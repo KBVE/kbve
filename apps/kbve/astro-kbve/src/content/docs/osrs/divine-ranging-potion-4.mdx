@@ -1,6 +1,6 @@
 ---
 title: Divine ranging potion(4) | OSRS Price Data
-description: "Divine ranging potion(4): 4 doses of divine ranging potion.. High alch: 150 GP, GE limit: 2,000."
+description: "Divine ranging potion(4): 4 doses of divine ranging potion. High alch: 150 GP, GE limit: 2,000."
 osrs:
   id: 23733
   name: Divine ranging potion(4)
@@ -12,9 +12,83 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 2000
-  about: "Divine ranging potion(4) is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 4
+    herblore_level: 74
+    herblore_xp: 2
+    effect: Boosts Ranged by 4 + 10% of base level for 5 minutes; prevents stat drain. Deals 10 HP self-damage on drink.
+    effects:
+      - stat: ranged
+        boost_value: 4
+        duration: 500
+        description: Boosts Ranged by 4 + 10% of base level and prevents stat drain for 5 minutes.
+      - stat: hitpoints
+        boost_value: -10
+        description: Drinking damages the player by 10 Hitpoints; requires 11+ HP.
+  recipes:
+    - skill: herblore
+      level: 74
+      xp: 2
+      materials:
+        - item_name: Ranging potion(4)
+          quantity: 1
+        - item_name: Crystal dust
+          quantity: 1
+      product: Divine ranging potion(4)
+      product_id: 23733
+  related_items:
+    - item_id: 23736
+      item_name: Divine ranging potion(3)
+      slug: divine-ranging-potion-3
+      relationship: variant
+      description: 3-dose variant
+    - item_id: 23739
+      item_name: Divine ranging potion(2)
+      slug: divine-ranging-potion-2
+      relationship: variant
+      description: 2-dose variant
+    - item_id: 23742
+      item_name: Divine ranging potion(1)
+      slug: divine-ranging-potion-1
+      relationship: variant
+      description: 1-dose variant
+    - item_id: 2444
+      item_name: Ranging potion(4)
+      slug: ranging-potion-4
+      relationship: component
+      description: Base potion required to brew the divine variant
+  market_strategy:
+    notes:
+      - Premium boost for ranged DPS at bosses
+      - Demand tracks raid and boss meta
+      - Crystal dust supply pressures price
+      - Five-minute drain immunity is the selling point
+      - Self-damage limits casual usage
+  history:
+    - date: "2019-07-25"
+      update: Song of the Elves
+      description: Item released alongside crystal dust herblore recipes.
+    - date: "2020-07-02"
+      update: Graphical update
+      description: Inventory icon refreshed to match standard potion sprite.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "25 Jul 2019"
+    update: Song of the Elves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+  about: 4-dose Divine ranging potion brewed from a ranging potion and crystal dust at 74 Herblore.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

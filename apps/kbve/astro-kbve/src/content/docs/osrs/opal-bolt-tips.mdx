@@ -1,6 +1,6 @@
 ---
 title: Opal bolt tips | OSRS Price Data
-description: "Opal bolt tips: Opal bolt tips.. High alch: 4 GP, GE limit: 11,000."
+description: "Opal bolt tips: Opal bolt tips. High alch: 4 GP, GE limit: 11,000."
 osrs:
   id: 45
   name: Opal bolt tips
@@ -12,18 +12,61 @@ osrs:
   lowalch: 2
   highalch: 4
   limit: 11000
+  material:
+    type: ammunition
+    tier: low
+  recipes:
+    - skill: fletching
+      level: 11
+      xp: 1.5
+      materials:
+        - item_name: Cut opal
+          item_id: 1609
+          quantity: 1
+      product: Opal bolt tips
+      product_id: 45
   related_items:
     - item_id: 46
       item_name: Pearl bolt tips
       slug: pearl-bolt-tips
       relationship: variant
       description: Higher tier bolt tips
-  about: |-
-    > _"Opal bolt tips."_
-
-    Opal bolt tips are members-only Fletching supplies. Attach to bronze bolts at 11 Fletching to create opal bolts. The lowest tier of gem-tipped bolt tips.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 879
+      item_name: Opal bolts
+      slug: opal-bolts
+      relationship: product
+      description: Bronze bolts tipped with opal
+  market_strategy:
+    notes:
+      - Cut opals into 12 tips with chisel (1.5 XP each)
+      - Lowest tier gem bolt tip
+      - Combine with bronze bolts for opal bolts
+  history:
+    - date: "2007-01-16"
+      update: Value adjustment
+      description: Item value reduced from 30 to 7 coins.
+    - date: "2006-07-31"
+      update: Graphic update
+      description: Renamed from "Opal bolttips"; quantity-dependent appearances added.
+    - date: "2004-03-03"
+      update: RS2 Beta
+      description: Added to RuneScape 2 Beta.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "29 Mar 2004"
+    update: RS2 Launched!
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+  about: Opal bolt tips are a low-tier Fletching supply used to make opal bolts.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

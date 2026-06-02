@@ -1,6 +1,6 @@
 ---
 title: Choc saturday | OSRS Price Data
-description: "Choc saturday: A warm creamy alcoholic beverage.. High alch: 18 GP, GE limit: 2,000."
+description: "Choc saturday: A warm creamy alcoholic beverage. High alch: 18 GP, GE limit: 2,000."
 osrs:
   id: 2074
   name: Choc saturday
@@ -12,9 +12,60 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 2000
-  about: "Choc saturday is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 5
+    type: gnome-cocktail
+  recipes:
+    - skill: cooking
+      level: 33
+      xp: 170
+      materials:
+        - item_name: Mixed saturday base
+          quantity: 1
+        - item_name: Chocolate dust
+          quantity: 1
+        - item_name: Pot of cream
+          quantity: 1
+      product: Choc saturday
+      product_id: 2074
+  shops:
+    - shop_name: Gabooty's Tai Bwo Wannai Drinky Store
+      location: Tai Bwo Wannai
+      price: 8
+      currency: Trading sticks
+      members_only: true
+  about: "Choc saturday is a Gnome Stronghold cocktail that restores 5 hitpoints while reducing Attack and boosting Strength, made via Cooking 33 with a mixed saturday base, chocolate dust and pot of cream."
+  market_strategy:
+    title: Niche Gnome Drink
+    notes:
+      - Primary demand is the Gnome Restaurant minigame fulfilling delivery orders.
+      - Cooking margins are weak; supply is mostly hand-rolled by minigame players.
+      - Premade spawn in Brimstail's cave keeps a floor on demand for cheap pickup.
+  trading_tips:
+    - Stock-pile only when running gnome deliveries — limited Grand Exchange churn.
+    - Compare cost of ingredients against current GE listing before crafting.
+    - Trading-stick price at Gabooty's is irrelevant for GP traders.
+  history:
+    - date: "2002-12-12"
+      update: "Agility skill online"
+      description: Introduced with the Gnome Stronghold cuisine alongside agility content.
+    - date: "2006-08-07"
+      update: "Gnome Restaurant Rework"
+      description: Received an updated inventory icon during the Gnome Restaurant graphics pass.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "12 Dec 2002"
+    update: "Agility skill online"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options: ["Drink", "Drop"]
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

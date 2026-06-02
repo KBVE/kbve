@@ -1,6 +1,6 @@
 ---
 title: Zenyte bracelet | OSRS Price Data
-description: "Zenyte bracelet is a members hands slot item. High alch: 120,600 GP, GE limit: 8."
+description: "Zenyte bracelet: A fiery glow emanates from this bracelet. High alch: 120,600 GP, GE limit: 8."
 osrs:
   id: 19532
   name: Zenyte bracelet
@@ -14,7 +14,25 @@ osrs:
   limit: 8
   equipment:
     slot: hands
-    type: bracelet
+    weight: 0.25
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 95
@@ -26,11 +44,29 @@ osrs:
         - item_name: Zenyte
           item_id: 19493
           quantity: 1
+        - item_name: Bracelet mould
+          item_id: 11065
+          quantity: 1
       product: Zenyte bracelet
       product_id: 19532
-      product_quantity: 1
-      facility: Furnace
-      members_only: true
+    - skill: magic
+      level: 93
+      xp: 110
+      materials:
+        - item_name: Zenyte bracelet
+          item_id: 19532
+          quantity: 1
+        - item_name: Cosmic rune
+          item_id: 564
+          quantity: 1
+        - item_name: Soul rune
+          item_id: 566
+          quantity: 20
+        - item_name: Blood rune
+          item_id: 565
+          quantity: 20
+      product: Tormented bracelet
+      product_id: 19544
   related_items:
     - item_id: 19493
       item_name: Zenyte
@@ -41,7 +77,7 @@ osrs:
       item_name: Tormented bracelet
       slug: tormented-bracelet
       relationship: upgrade
-      description: Enchanted version
+      description: Enchanted BiS magic gloves
     - item_id: 19538
       item_name: Zenyte necklace
       slug: zenyte-necklace
@@ -52,26 +88,32 @@ osrs:
       slug: zenyte-amulet
       relationship: alternative
       description: Amulet version
-  about: |-
-    Craft with gold bar and zenyte at a furnace (95 Crafting, 180 XP).
-
-    | Material | Quantity |
-    |----------|----------|
-    | Gold bar | 1 |
-    | Zenyte | 1 |
-
-    No combat bonuses (unenchanted).
-
-    Intermediate Item:
-    - Enchant into Tormented bracelet
-    - Requires Lvl-7 Enchant (93 Magic)
   market_strategy:
     notes:
       - Zenyte from demonic gorillas
-      - Enchant for BiS magic gloves
-      - High crafting requirement
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Enchant to Tormented bracelet (BiS magic gloves)
+      - 95 Crafting requirement gates production
+  history:
+    - date: "2020-09-10"
+      update: Buy limit reduction
+      description: GE buy limit reduced from 10,000 to 8 per day.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "6 May 2016"
+    update: Monkey Madness II
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  about: Zenyte bracelet is the unenchanted intermediate crafted at 95 Crafting; enchant for the Tormented bracelet.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

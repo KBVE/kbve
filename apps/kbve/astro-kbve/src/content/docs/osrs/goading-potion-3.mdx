@@ -1,6 +1,6 @@
 ---
 title: Goading potion(3) | OSRS Price Data
-description: "Goading potion(3): 3 doses of Goading potion.. High alch: 150 GP."
+description: "Goading potion(3): 3 doses of Goading potion. High alch: 150 GP."
 osrs:
   id: 30140
   name: Goading potion(3)
@@ -12,9 +12,74 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: null
-  about: "Goading potion(3) is a members-only item in Old School RuneScape. High alchemy value: 150 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 3
+    herblore_level: 54
+    herblore_xp: 132
+    effect: "Forces non-aggressive monsters within a 9x9 area to attack the player for 6 minutes per dose."
+    effects:
+      - description: "Forces non-aggressive monsters within line of sight in a 9x9 tile area to become aggressive toward the player."
+      - duration: 600
+        description: "Each dose lasts 6 minutes (600 game ticks) before expiring."
+  recipes:
+    - skill: herblore
+      level: 54
+      xp: 132
+      materials:
+        - item_name: Harralander potion (unf)
+          quantity: 1
+        - item_name: Aldarium
+          quantity: 1
+      product: Goading potion(3)
+      product_id: 30140
+  related_items:
+    - item_id: 30134
+      item_name: Goading potion(4)
+      slug: goading-potion-4
+      relationship: variant
+      description: Four-dose version with longer total effect.
+    - item_id: 30144
+      item_name: Goading potion(2)
+      slug: goading-potion-2
+      relationship: variant
+      description: Two-dose lower-stack version.
+    - item_id: 30148
+      item_name: Goading potion(1)
+      slug: goading-potion-1
+      relationship: variant
+      description: Single-dose final sip.
+  about: "Goading potion(3) is a Varlamore Herblore potion crafted at level 54 from a Harralander potion (unf) and Aldarium that forces non-aggressive monsters within a 9x9 area to attack the drinker for six minutes per dose."
+  market_strategy:
+    title: AFK Aggression Tooling
+    notes:
+      - Demand tracks AFK Slayer and prayer-grind workflows in passive-mob zones.
+      - Aldarium availability gates supply, so monitor that input.
+      - High alch (150) is below cost; do not alch — vial only.
+  trading_tips:
+    - Make and decant — 4-dose stacks usually trade above per-dose 3-dose rate.
+    - Stock during Varlamore content drops that revisit goading meta.
+    - Watch for unaggressive-mob nerf/buff news that swings demand.
+  history:
+    - date: "2024-09-25"
+      update: "Varlamore: The Rising Darkness"
+      description: Introduced with the Varlamore Herblore expansion.
+    - date: "2024-11-13"
+      update: "Goading Expiry Messages"
+      description: Added chat notifications when the effect ends early due to teleporting or tea drinking.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "25 Sep 2024"
+    update: "Varlamore: The Rising Darkness"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options: ["Drink", "Empty", "Drop"]
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

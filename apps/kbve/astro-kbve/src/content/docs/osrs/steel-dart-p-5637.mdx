@@ -1,6 +1,6 @@
 ---
 title: Steel dart(p++) | OSRS Price Data
-description: "Steel dart(p++): A deadly poisoned dart with a steel tip.. High alch: 6 GP, GE limit: 7,000."
+description: "Steel dart(p++): A deadly poisoned dart with a steel tip. High alch: 6 GP, GE limit: 7,000."
 osrs:
   id: 5637
   name: Steel dart(p++)
@@ -12,9 +12,90 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 7000
-  about: "Steel dart(p++) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 3
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Steel dart
+          item_id: 807
+          quantity: 1
+        - item_name: Weapon poison(++)
+          item_id: 5937
+          quantity: 1
+      product: Steel dart(p++)
+      product_id: 5637
+  related_items:
+    - item_id: 807
+      item_name: Steel dart
+      slug: steel-dart
+      relationship: variant
+      description: Unpoisoned base dart
+    - item_id: 5633
+      item_name: Steel dart(p)
+      slug: steel-dart-p
+      relationship: downgrade
+      description: Standard weapon poison variant
+    - item_id: 5635
+      item_name: Steel dart(p+)
+      slug: steel-dart-p-plus
+      relationship: downgrade
+      description: Stronger weapon poison (+)
+  market_strategy:
+    title: Extra-strong poisoned dart
+    notes:
+      - Made by applying weapon poison(++) to a steel dart
+      - Strongest poison variant of the steel dart line
+      - Thrown one-handed weapon, attack speed 3
+      - Niche outside legacy poison setups
+  history:
+    - date: "2003-04-14"
+      update: "New Throwing Weapons"
+      description: Added to the game.
+    - date: "2025-05-29"
+      update: "GE Tax Update"
+      description: Steel darts received exemption from Grand Exchange convenience fees.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "14 Apr 2003"
+    update: "New Throwing Weapons"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    alchable: true
+  about: Steel dart(p++) is a members-only thrown weapon made by applying extra-strong weapon poison(++) to a steel dart, granting +3 ranged strength.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

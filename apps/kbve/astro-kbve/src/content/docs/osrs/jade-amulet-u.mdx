@@ -1,6 +1,6 @@
 ---
 title: Jade amulet (u) | OSRS Price Data
-description: "Jade amulet (u): It needs a string so I can wear it.. High alch: 630 GP, GE limit: 10,000."
+description: "Jade amulet (u): It needs a string so I can wear it. High alch: 630 GP, GE limit: 10,000."
 osrs:
   id: 21102
   name: Jade amulet (u)
@@ -12,9 +12,81 @@ osrs:
   lowalch: 420
   highalch: 630
   limit: 10000
-  about: "Jade amulet (u) is a members-only item in Old School RuneScape. High alchemy value: 630 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: crafting
+      level: 34
+      xp: 70
+      materials:
+        - item_name: Silver bar
+          item_id: 2355
+          quantity: 1
+        - item_name: Jade
+          item_id: 1611
+          quantity: 1
+        - item_name: Amulet mould
+          item_id: 1595
+          quantity: 1
+      product: Jade amulet (u)
+      product_id: 21102
+    - skill: crafting
+      level: 34
+      xp: 4
+      materials:
+        - item_name: Jade amulet (u)
+          item_id: 21102
+          quantity: 1
+        - item_name: Ball of wool
+          item_id: 1759
+          quantity: 1
+      product: Jade amulet
+      product_id: 21104
+  related_items:
+    - item_id: 21104
+      item_name: Jade amulet
+      slug: jade-amulet
+      relationship: product
+      description: Strung version made with a ball of wool
+    - item_id: 21109
+      item_name: Amulet of chemistry
+      slug: amulet-of-chemistry
+      relationship: product
+      description: Enchanted amulet of chemistry via Lvl-2 Enchant
+    - item_id: 1611
+      item_name: Jade
+      slug: jade
+      relationship: component
+      description: Cut gem used in crafting
+    - item_id: 2355
+      item_name: Silver bar
+      slug: silver-bar
+      relationship: component
+      description: Bar smelted at the furnace
+  market_strategy:
+    notes:
+      - 34 Crafting gates supply
+      - Pipeline to amulet of chemistry boosts demand
+      - Silver bar and jade prices cap profitability
+      - High GE limit allows steady flipping
+  history:
+    - date: "2017-02-02"
+      update: Silver Jewellery, Tournament World & QoL
+      description: Released alongside the silver jewellery line.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2 Feb 2017"
+    update: Silver Jewellery, Tournament World & QoL
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.004
+    options:
+      - Drop
+    alchable: true
+  about: Unstrung jade amulet crafted from a silver bar and jade at 34 Crafting; string it to wear.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

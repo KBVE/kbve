@@ -1,6 +1,6 @@
 ---
 title: Boat bottle (empty) | OSRS Price Data
-description: "Boat bottle (empty): One has been poured out for (sailing with) the boys.. High alch: 300 GP, GE limit: 100."
+description: "Boat bottle (empty): One has been poured out for (sailing with) the boys. High alch: 300 GP, GE limit: 100."
 osrs:
   id: 31989
   name: Boat bottle (empty)
@@ -12,9 +12,51 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 100
-  about: "Boat bottle (empty) is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Small salvage
+        quantity: "1"
+        rarity: very-rare
+        members_only: true
+      - source: Fishy salvage
+        quantity: "1"
+        rarity: very-rare
+        members_only: true
+      - source: Barracuda salvage
+        quantity: "1"
+        rarity: very-rare
+        members_only: true
+  related_items:
+    - item_id: 31990
+      item_name: Boat bottle
+      slug: boat-bottle
+      relationship: upgrade
+      description: Filled boat bottle that transports a stored boat between ports.
+  market_strategy:
+    title: Sailing Utility
+    notes:
+      - Single-use transport bottle for boats between ports
+      - Sourced from low-tier shipwreck salvage in Sailing
+      - Limited supply, niche utility demand
+  history:
+    - date: "2025-11-19"
+      update: Sailing is OUT TODAY!
+      description: Added to game with the Sailing skill launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "19 Nov 2025"
+    update: Sailing is OUT TODAY!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options: [Bottle-boat, Drop]
+    alchable: false
+  about: Single-use Sailing bottle that lets a boat be stored and transported between ports.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

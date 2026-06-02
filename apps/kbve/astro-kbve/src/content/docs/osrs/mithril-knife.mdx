@@ -1,6 +1,6 @@
 ---
 title: Mithril knife | OSRS Price Data
-description: "Mithril knife is a members weapon slot item. High alch: 16 GP, GE limit: 7,000."
+description: "Mithril knife: A finely balanced throwing knife. High alch: 16 GP, GE limit: 7,000."
 osrs:
   id: 866
   name: Mithril knife
@@ -12,24 +12,43 @@ osrs:
   lowalch: 10
   highalch: 16
   limit: 7000
+  material:
+    type: mithril
+    tier: mid
   equipment:
     slot: weapon
-    type: thrown
-    attack_style: ranged
+    weapon_type: thrown
     attack_speed: 3
-  requirements:
-    ranged: 20
-  stats:
-    attack:
+    weight: 0.006
+    requirements:
+      ranged: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
       ranged: 11
-    other:
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 10
-  smithing:
-    level: 52
-    xp: 50
-    method: Mithril bar at anvil
-    bars: 1
-    quantity: 5
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 57
+      xp: 50
+      materials:
+        - item_name: Mithril bar
+          item_id: 2359
+          quantity: 1
+      product: Mithril knife
+      product_id: 866
   related_items:
     - item_id: 2359
       item_name: Mithril bar
@@ -51,16 +70,38 @@ osrs:
       slug: mithril-dart
       relationship: alternative
       description: Alternative thrown weapon
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Weapon |
-    | Type | Thrown |
-    | Tradeable | Yes |
-    | Weight | 0.006 kg |
-    | Requirements | 20 Ranged |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Mid-tier thrown weapon for early Ranged
+      - Stackable for easy bank management
+      - Mithril bar price floors profitability
+      - Demand from Slayer training and PKers
+  history:
+    - date: "2003-04-14"
+      update: New Throwing Weapons!
+      description: Released with the throwing knives family.
+    - date: "2021-07-01"
+      update: Female animation fix
+      description: Adjusted weapon positioning on female player characters.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "14 Apr 2003"
+    update: New Throwing Weapons!
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.006
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  about: Mid-tier mithril throwing knife requiring 20 Ranged; smithed five-per-bar at 57 Smithing.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

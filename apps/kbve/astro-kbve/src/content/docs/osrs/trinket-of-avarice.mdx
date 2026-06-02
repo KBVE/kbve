@@ -8,13 +8,48 @@ osrs:
   examine: A magic rock! This one automatically notes and retrieves drops.
   members: true
   icon: Trinket of avarice.png
-  value: 0
-  lowalch: null
-  highalch: null
+  value: 100000
+  lowalch: 40000
+  highalch: 60000
   limit: null
-  about: Trinket of avarice is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Breach monsters (Deadman Mode)
+        quantity: "1"
+        rarity: rare
+        members_only: true
+  about: "Trinket of avarice is a Deadman Mode-exclusive auto-loot trinket that notes and retrieves monster drops, prioritising looting bags and including a value filter and automatic bone pickup."
+  market_strategy:
+    title: Deadman Mode Loot Engine
+    notes:
+      - Restricted to Deadman world 345 and seasonal events, so off-season prices crater.
+      - Demand peaks during DMM tournament prep and early-season rushes.
+      - Single rare drop from breach monsters keeps supply throttled.
+  trading_tips:
+    - Time buys for pre-tournament announcement windows.
+    - Combine with looting bag and value filter for max ROI farming sessions.
+    - Resale liquidity is poor outside live DMM events.
+  history:
+    - date: "2026-01-21"
+      update: "Deadman Mode: Apocalypse"
+      description: Added as a breach monster drop with value filter and auto-noting behaviour.
+    - date: "2026-02-12"
+      update: "DMM Quality of Life"
+      description: Trinket now automatically loots bones and stacks noted drops when the looting bag is full.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "21 Jan 2026"
+    update: "Deadman Mode: Apocalypse"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options: ["Activate", "Configure", "Drop"]
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

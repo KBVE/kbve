@@ -1,6 +1,6 @@
 ---
 title: Dragon arrow(p++) | OSRS Price Data
-description: "Dragon arrow(p++): Venomous-looking arrows.. High alch: 480 GP, GE limit: 11,000."
+description: "Dragon arrow(p++): Venomous-looking arrows. High alch: 480 GP, GE limit: 11,000."
 osrs:
   id: 11229
   name: Dragon arrow(p++)
@@ -12,9 +12,80 @@ osrs:
   lowalch: 320
   highalch: 480
   limit: 11000
-  about: "Dragon arrow(p++) is a members-only item in Old School RuneScape. High alchemy value: 480 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: ammo
+    weapon_type: bow
+    weight: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 60
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: ranged
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Dragon arrow
+          item_id: 11212
+          quantity: 5
+        - item_name: Weapon poison(++)
+          quantity: 1
+      product: Dragon arrow(p++)
+      product_id: 11229
+  related_items:
+    - item_id: 11212
+      item_name: Dragon arrow
+      slug: dragon-arrow
+      relationship: variant
+      description: Unpoisoned dragon arrow.
+    - item_id: 11227
+      item_name: Dragon arrow(p)
+      slug: dragon-arrow-p-11227
+      relationship: downgrade
+      description: Weaker basic-poison variant.
+    - item_id: 11228
+      item_name: Dragon arrow(p+)
+      slug: dragon-arrow-p-plus
+      relationship: downgrade
+      description: Mid-tier weapon poison(+) variant.
+  market_strategy:
+    title: End-Game Ammo
+    notes:
+      - Highest ranged strength ammo (+60) — used for big-hit specs
+      - Requires dragon arrows + weapon poison(++)
+      - Niche PvP / bossing supply, thin daily volume
+  history:
+    - date: "2007-06-11"
+      update: Impetuous Impulses
+      description: Dragon arrows and poisoned variants added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "11 Jun 2007"
+    update: Impetuous Impulses
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options: [Wield, Drop]
+    alchable: true
+  about: Strongest poisoned arrow tier in OSRS, applies weapon poison(++) to dragon arrows.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Bass | OSRS Price Data
-description: "Bass: Wow, this is a big fish.. High alch: 24 GP, GE limit: 6,000."
+description: "Bass: Wow, this is a big fish. High alch: 24 GP, GE limit: 6,000."
 osrs:
   id: 365
   name: Bass
@@ -12,18 +12,84 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 6000
+  food:
+    heals: 13
+    type: fish
+  recipes:
+    - skill: cooking
+      level: 43
+      xp: 130
+      materials:
+        - item_name: Raw bass
+          item_id: 363
+          quantity: 1
+      product: Bass
+      product_id: 365
+  drop_table:
+    sources:
+      - source: Dagannoth Rex
+        quantity: "5"
+        rarity: rare
+        members_only: true
+      - source: The Nightmare
+        quantity: "1-18"
+        rarity: uncommon
+        members_only: true
+      - source: Phosani's Nightmare
+        quantity: "16-29"
+        rarity: uncommon
+        members_only: true
+  shops:
+    - shop_name: Warriors' Guild Food Shop
+      location: Warriors' Guild
+      price: 48
+      currency: Coins
+      members_only: true
+    - shop_name: Fishing Guild Shop
+      location: Fishing Guild
+      price: 40
+      currency: Coins
+      members_only: true
+    - shop_name: Prifddinas Foodstuffs
+      location: Prifddinas
+      price: 40
+      currency: Coins
+      members_only: true
   related_items:
     - item_id: 363
       item_name: Raw bass
       slug: raw-bass
       relationship: component
       description: Uncooked version
-  about: |-
-    > _"Wow, this is a big fish."_
-
-    Bass heals 13 Hitpoints. A decent mid-level members food. Commonly caught with a big fishing net at Catherby or the Fishing Guild.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Heals 13 HP — mid-level food
+      - Stops burning at 80 Cooking
+      - Caught with big fishing net at Catherby or Fishing Guild
+  history:
+    - date: "2025-05-29"
+      update: GE convenience fee exemption
+      description: Bass exempted from Grand Exchange convenience fee.
+    - date: "2018-09-20"
+      update: Value adjustment
+      description: Value adjusted from 120 to 40 coins.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "27 Feb 2002"
+    update: Latest RuneScape News (27 February 2002)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.35
+    options:
+      - Eat
+      - Drop
+    alchable: true
+  about: Bass is a mid-level members food that heals 13 Hitpoints, cooked at 43 Cooking.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
