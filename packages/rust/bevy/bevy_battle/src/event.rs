@@ -7,8 +7,6 @@ use bevy::prelude::*;
 
 use crate::types::{EffectKind, UseEffect};
 
-// ── Input messages (written by bridge before app.update()) ─────────
-
 /// Player attacks a target enemy.
 #[derive(Message, Debug, Clone)]
 pub struct AttackIntent {
@@ -44,8 +42,6 @@ pub struct EnemyTurnRequest;
 /// Trigger effect ticking on all combatants.
 #[derive(Message, Debug, Clone)]
 pub struct TickEffectsRequest;
-
-// ── Output messages (collected by bridge after app.update()) ───────
 
 /// Structured combat outcome — bridge converts these to flavor text.
 #[derive(Message, Debug, Clone)]

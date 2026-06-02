@@ -24,10 +24,6 @@ use super::phase::{GamePhase, PlayMode, PreFlight, TransportKind};
 use super::ui::{self, ButtonKind, UiButtonConfig};
 use super::ui_color;
 
-// ---------------------------------------------------------------------------
-// Marker components
-// ---------------------------------------------------------------------------
-
 /// Root node of the entire title screen overlay.
 #[derive(Component)]
 struct TitleScreenRoot;
@@ -61,10 +57,6 @@ struct ExitBtn;
 #[derive(Component, Clone)]
 struct OAuthBtn(&'static str);
 
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
-
 pub struct TitleScreenPlugin;
 
 impl Plugin for TitleScreenPlugin {
@@ -83,10 +75,6 @@ impl Plugin for TitleScreenPlugin {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 const TITLE_FONT_SIZE: f32 = 32.0;
 const SUBTITLE_FONT_SIZE: f32 = 13.0;
 const BTN_FONT_SIZE: f32 = 16.0;
@@ -94,10 +82,6 @@ const BADGE_FONT_SIZE: f32 = 12.0;
 const BTN_WIDTH: f32 = 220.0;
 const BTN_HEIGHT: f32 = 40.0;
 const BTN_GAP: f32 = 10.0;
-
-// ---------------------------------------------------------------------------
-// Spawn
-// ---------------------------------------------------------------------------
 
 fn spawn_title_screen(mut commands: Commands) {
     commands
@@ -119,7 +103,6 @@ fn spawn_title_screen(mut commands: Commands) {
             TitleScreenRoot,
         ))
         .with_children(|root| {
-            // ── Title text ──
             root.spawn((
                 Text::new("KBVE ISOMETRIC"),
                 TextFont {
@@ -133,7 +116,6 @@ fn spawn_title_screen(mut commands: Commands) {
                 },
             ));
 
-            // ── Subtitle ──
             root.spawn((
                 Text::new("a multiplayer sandbox"),
                 TextFont {
@@ -147,7 +129,6 @@ fn spawn_title_screen(mut commands: Commands) {
                 },
             ));
 
-            // ── Status badges container ──
             root.spawn(Node {
                 flex_direction: FlexDirection::Column,
                 align_items: AlignItems::Center,
@@ -179,7 +160,6 @@ fn spawn_title_screen(mut commands: Commands) {
                 ));
             });
 
-            // ── Button column ──
             root.spawn(Node {
                 flex_direction: FlexDirection::Column,
                 align_items: AlignItems::Center,
@@ -296,7 +276,6 @@ fn spawn_title_screen(mut commands: Commands) {
                 );
             });
 
-            // ── Version / footer ──
             root.spawn((
                 Text::new("v0.1 — dev build"),
                 TextFont {
@@ -311,10 +290,6 @@ fn spawn_title_screen(mut commands: Commands) {
             ));
         });
 }
-
-// ---------------------------------------------------------------------------
-// Live-update badge labels
-// ---------------------------------------------------------------------------
 
 fn update_transport_label(
     preflight: Res<PreFlight>,
@@ -369,10 +344,6 @@ fn update_auth_label(
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Button interactions
-// ---------------------------------------------------------------------------
 
 fn handle_title_buttons(
     mut next_phase: ResMut<NextState<GamePhase>>,

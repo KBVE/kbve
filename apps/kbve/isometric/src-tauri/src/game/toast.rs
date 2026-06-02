@@ -18,10 +18,6 @@ use std::collections::VecDeque;
 
 use super::ui_color;
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 /// Maximum number of visible toasts at once (also the pool size).
 const MAX_VISIBLE: usize = 5;
 
@@ -33,10 +29,6 @@ const TOAST_HEIGHT: f32 = 36.0;
 const STRIPE_WIDTH: f32 = 4.0;
 /// Gap between stacked toasts.
 const TOAST_GAP: f32 = 6.0;
-
-// ---------------------------------------------------------------------------
-// Toast severity
-// ---------------------------------------------------------------------------
 
 /// Severity level determines accent color and display duration.
 #[derive(Clone, Copy, Debug, Default)]
@@ -77,10 +69,6 @@ impl ToastSeverity {
         1.0
     }
 }
-
-// ---------------------------------------------------------------------------
-// Toast event
-// ---------------------------------------------------------------------------
 
 /// Event to trigger a toast notification.
 #[derive(Event, Clone, Debug)]
@@ -133,10 +121,6 @@ impl Toast {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
-
 /// Marker for the toast container node (top-right anchor).
 #[derive(Component)]
 struct ToastContainer;
@@ -159,10 +143,6 @@ struct ToastStripe {
 struct ToastText {
     index: usize,
 }
-
-// ---------------------------------------------------------------------------
-// Resources
-// ---------------------------------------------------------------------------
 
 /// Tracks active toast state per pool slot.
 #[derive(Default)]
@@ -190,10 +170,6 @@ impl Default for ToastPool {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
-
 pub struct ToastPlugin;
 
 impl Plugin for ToastPlugin {
@@ -205,10 +181,6 @@ impl Plugin for ToastPlugin {
         app.add_systems(Update, update_toast_pool);
     }
 }
-
-// ---------------------------------------------------------------------------
-// Spawn pre-allocated pool
-// ---------------------------------------------------------------------------
 
 fn spawn_toast_pool(mut commands: Commands) {
     // Container: top-right, column flowing downward
@@ -275,10 +247,6 @@ fn spawn_toast_pool(mut commands: Commands) {
         });
 }
 
-// ---------------------------------------------------------------------------
-// Observers
-// ---------------------------------------------------------------------------
-
 fn on_toast_event(trigger: On<Toast>, mut pool: ResMut<ToastPool>) {
     let toast = trigger.event().clone();
 
@@ -311,10 +279,6 @@ fn activate_slot(slot: &mut SlotState, toast: &Toast) {
     slot.display_duration = toast.severity.display_duration();
     slot.fade_duration = toast.severity.fade_duration();
 }
-
-// ---------------------------------------------------------------------------
-// Update system: applies pending toasts to UI nodes, ticks timers, fades
-// ---------------------------------------------------------------------------
 
 fn update_toast_pool(
     time: Res<Time>,

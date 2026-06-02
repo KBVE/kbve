@@ -126,10 +126,6 @@ fn json_value_to_item(v: &Value) -> Option<item::Item> {
     })
 }
 
-// ---------------------------------------------------------------------------
-// Enum parsers (string → i32)
-// ---------------------------------------------------------------------------
-
 fn parse_rarity(v: Option<&Value>) -> i32 {
     match v.and_then(|v| v.as_str()) {
         Some("common") => item::ItemRarity::Common as i32,
@@ -245,10 +241,6 @@ fn parse_skilling_type(v: Option<&Value>) -> i32 {
         _ => v.and_then(|v| v.as_i64()).unwrap_or(0) as i32,
     }
 }
-
-// ---------------------------------------------------------------------------
-// Sub-message parsers
-// ---------------------------------------------------------------------------
 
 fn parse_bonuses(v: Option<&Value>) -> Option<item::ItemBonuses> {
     let v = v?.as_object()?;
@@ -604,10 +596,6 @@ fn parse_extensions(v: Option<&Value>) -> Vec<item::ItemExtension> {
         })
         .unwrap_or_default()
 }
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 fn str_opt(v: &Value, key: &str) -> Option<String> {
     v.get(key).and_then(|v| v.as_str()).map(String::from)

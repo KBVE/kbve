@@ -648,8 +648,6 @@ mod tests {
         );
     }
 
-    // ── Behavior tests for the perf-audit changes (issue #8190) ────────
-
     #[test]
     fn quantize_rounds_to_step() {
         // 1/512 step ≈ 0.001953
@@ -724,8 +722,6 @@ mod tests {
         );
         assert!(threshold > 0.0);
     }
-
-    // ── Resize behaviour tests (issue #8190 — finding #5) ──────────────
 
     /// Recreate the exact math the resize system uses to derive
     /// render_w/render_h/quad_w/quad_h so a future refactor can't drift

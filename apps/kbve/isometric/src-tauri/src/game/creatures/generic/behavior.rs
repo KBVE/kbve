@@ -7,27 +7,20 @@ use bevy::prelude::Vec3;
 
 use super::super::common::hash_f32;
 
-// ---------------------------------------------------------------------------
-// Behavior tree nodes
-// ---------------------------------------------------------------------------
-
 /// A node in the behavior tree. Fully deterministic given the same snapshot+seed.
 #[derive(Clone, Debug)]
 pub enum BehaviorNode {
-    // --- Composites ---
     /// Run children in order. Succeed if all succeed, fail on first failure.
     Sequence(Vec<BehaviorNode>),
     /// Try children in order. Succeed on first success, fail if all fail.
     Selector(Vec<BehaviorNode>),
 
-    // --- Decorators ---
     /// Only evaluate child if random roll (from seed) is below probability.
     Chance {
         probability: f32,
         child: Box<BehaviorNode>,
     },
 
-    // --- Conditions (leaf, no side effects) ---
     /// True if nearest player is within radius.
     PlayerNearby { radius: f32 },
     /// True if nearest player is farther than radius.
@@ -39,7 +32,6 @@ pub enum BehaviorNode {
     /// True during nighttime hours.
     IsNight,
 
-    // --- Actions (leaf, produce CreatureIntent) ---
     /// Wander to a random nearby position.
     Wander {
         min_dist: f32,
@@ -55,10 +47,6 @@ pub enum BehaviorNode {
     Idle { min: f32, max: f32 },
 }
 
-// ---------------------------------------------------------------------------
-// World snapshot — captured on main thread, sent to task
-// ---------------------------------------------------------------------------
-
 /// Lightweight snapshot of the world state relevant to one creature's decision.
 /// All fields must be `Send` — no ECS references.
 pub struct WorldSnapshot {
@@ -71,10 +59,6 @@ pub struct WorldSnapshot {
     /// Terrain height samples around the creature (for wander target validation).
     pub ground_at_anchor: f32,
 }
-
-// ---------------------------------------------------------------------------
-// Creature intent — result of tree evaluation
-// ---------------------------------------------------------------------------
 
 /// What the creature should do next. Produced by behavior tree evaluation,
 /// consumed by the animate system to drive state transitions.
@@ -101,10 +85,6 @@ pub enum CreatureIntent {
     },
 }
 
-// ---------------------------------------------------------------------------
-// Tree evaluation — pure function, no ECS, deterministic
-// ---------------------------------------------------------------------------
-
 /// Result of evaluating a single node.
 enum NodeResult {
     Success(CreatureIntent),
@@ -122,7 +102,6 @@ pub fn evaluate(node: &BehaviorNode, snap: &WorldSnapshot) -> CreatureIntent {
 
 fn eval_node(node: &BehaviorNode, snap: &WorldSnapshot) -> NodeResult {
     match node {
-        // --- Composites ---
         BehaviorNode::Sequence(children) => {
             let mut last_intent = CreatureIntent::None;
             for child in children {
@@ -142,7 +121,6 @@ fn eval_node(node: &BehaviorNode, snap: &WorldSnapshot) -> NodeResult {
             NodeResult::Failure
         }
 
-        // --- Decorators ---
         BehaviorNode::Chance { probability, child } => {
             let roll = hash_f32(snap.patrol_seed.wrapping_mul(31).wrapping_add(7));
             if roll < *probability {
@@ -152,7 +130,6 @@ fn eval_node(node: &BehaviorNode, snap: &WorldSnapshot) -> NodeResult {
             }
         }
 
-        // --- Conditions ---
         BehaviorNode::PlayerNearby { radius } => {
             if snap.nearest_player_dist <= *radius {
                 NodeResult::Success(CreatureIntent::None)
@@ -189,7 +166,6 @@ fn eval_node(node: &BehaviorNode, snap: &WorldSnapshot) -> NodeResult {
             }
         }
 
-        // --- Actions ---
         BehaviorNode::Wander {
             min_dist,
             max_dist,

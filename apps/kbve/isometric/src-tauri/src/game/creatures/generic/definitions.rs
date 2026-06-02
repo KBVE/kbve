@@ -10,10 +10,6 @@ pub fn build_sprite_creature_types() -> SpriteCreatureTypes {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Boar: 4-directional, 2 anims (idle + run), always visible, linear run
-// ---------------------------------------------------------------------------
-
 fn boar() -> SpriteCreatureType {
     SpriteCreatureType {
         npc_ref: "wild-boar",
@@ -116,10 +112,8 @@ fn boar_tree() -> BehaviorNode {
     ])
 }
 
-// ---------------------------------------------------------------------------
 // Badger: 4-directional, 5 anims (idle + walk + burrow + unburrow),
 // always visible, slow walker with burrowing emotes
-// ---------------------------------------------------------------------------
 
 fn badger() -> SpriteCreatureType {
     SpriteCreatureType {
@@ -213,10 +207,8 @@ fn badger() -> SpriteCreatureType {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Wolf: 4-directional, 4 anims (idle + run + bite + howl),
 // always visible, linear run with flee behavior
-// ---------------------------------------------------------------------------
 
 fn wolf() -> SpriteCreatureType {
     SpriteCreatureType {
@@ -345,10 +337,8 @@ fn wolf_tree() -> BehaviorNode {
     ])
 }
 
-// ---------------------------------------------------------------------------
 // Stag: 4-directional, 3 anims (idle + run + walk),
 // day visibility, skittish flee behavior
-// ---------------------------------------------------------------------------
 
 fn stag() -> SpriteCreatureType {
     SpriteCreatureType {
@@ -470,10 +460,6 @@ fn stag_tree() -> BehaviorNode {
     ])
 }
 
-// ---------------------------------------------------------------------------
-// Frog: flip direction, 2 anims (idle + jump), day visibility, hop arc
-// ---------------------------------------------------------------------------
-
 fn frog() -> SpriteCreatureType {
     SpriteCreatureType {
         npc_ref: "green-toad",
@@ -539,10 +525,8 @@ fn frog() -> SpriteCreatureType {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Wraith: flip direction, 5 anims (idle + idle2 + attack + skill + summon),
 // night visibility, ghost tint, glide movement
-// ---------------------------------------------------------------------------
 
 fn wraith() -> SpriteCreatureType {
     SpriteCreatureType {

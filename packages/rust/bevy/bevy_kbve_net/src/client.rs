@@ -30,10 +30,6 @@ use lightyear::netcode::client_plugin::NetcodeConfig;
 use lightyear::prelude::client::*;
 use lightyear::prelude::*;
 
-// ---------------------------------------------------------------------------
-// Transport enum — each variant is fully self-contained, no mixing.
-// ---------------------------------------------------------------------------
-
 /// Transport selection — one variant per connection attempt.
 /// Mirrors lightyear's `ClientTransports` enum from the examples.
 /// Each variant maps 1:1 to a lightyear IO component.
@@ -55,10 +51,6 @@ pub enum ClientTransport {
         cert_type: String,
     },
 }
-
-// ---------------------------------------------------------------------------
-// GameClient component — spawn this to initiate a connection.
-// ---------------------------------------------------------------------------
 
 /// Spawn this component on an entity to connect to a game server.
 ///
@@ -202,10 +194,6 @@ impl GameClient {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Connection lifecycle markers
-// ---------------------------------------------------------------------------
-
 /// On WASM, stores the original hostname-based WebTransport URL so our
 /// `wasm_wt_hostname_link` observer can connect to the hostname instead
 /// of the IP that `PeerAddr` holds.
@@ -233,10 +221,6 @@ pub struct PendingDespawn;
 
 /// Maximum seconds to wait for the netcode handshake before aborting.
 pub const HANDSHAKE_TIMEOUT_SECS: f64 = 10.0;
-
-// ---------------------------------------------------------------------------
-// Lifecycle observers — follows lightyear example patterns
-// ---------------------------------------------------------------------------
 
 /// Linking started.
 pub fn on_linking(trigger: On<Add, Linking>) {

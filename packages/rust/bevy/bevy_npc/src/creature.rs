@@ -23,10 +23,6 @@ use bevy::prelude::*;
 
 use crate::ProtoNpcId;
 
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
-
 /// Pool index identifying a creature entity within its type pool.
 ///
 /// Assigned once at spawn (0..pool_size). Used internally for pool management.
@@ -48,10 +44,6 @@ pub enum CreatureState {
     /// Captured by a player. Slot is blocked across all clients.
     Captured,
 }
-
-// ---------------------------------------------------------------------------
-// Resources
-// ---------------------------------------------------------------------------
 
 /// Tracks which creatures have been captured, keyed by ULID (u128).
 ///
@@ -98,10 +90,6 @@ impl CapturedCreatures {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Events
-// ---------------------------------------------------------------------------
-
 /// Fired when a player attempts to capture a creature.
 ///
 /// Game code should trigger this event (e.g. on click, proximity, or item use).
@@ -113,10 +101,6 @@ pub struct CreatureCaptureEvent {
     /// NPC definition ID of the creature type.
     pub npc_id: ProtoNpcId,
 }
-
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
 
 /// Registers creature ECS resources and events.
 ///

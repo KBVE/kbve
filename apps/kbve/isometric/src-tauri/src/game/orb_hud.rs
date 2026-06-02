@@ -5,10 +5,6 @@ use bevy::shader::ShaderRef;
 use super::phase::GamePhase;
 use super::state::PlayerState;
 
-// ---------------------------------------------------------------------------
-// Uniforms
-// ---------------------------------------------------------------------------
-
 #[derive(ShaderType, Clone, Copy)]
 pub struct OrbUniforms {
     pub fill: f32,
@@ -36,10 +32,6 @@ impl Default for OrbUniforms {
     }
 }
 
-// ---------------------------------------------------------------------------
-// UiMaterial
-// ---------------------------------------------------------------------------
-
 #[derive(Asset, TypePath, AsBindGroup, Clone)]
 pub struct OrbMaterial {
     #[uniform(0)]
@@ -60,10 +52,6 @@ impl UiMaterial for OrbMaterial {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
-
 #[derive(Component)]
 struct HealthOrb;
 
@@ -73,18 +61,10 @@ struct ManaOrb;
 #[derive(Component)]
 struct EnergyOrb;
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 const ORB_SIZE: f32 = 80.0;
 const ORB_MARGIN: f32 = 12.0;
 /// Gap between stacked orbs.
 const ORB_GAP: f32 = 6.0;
-
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
 
 pub struct OrbHudPlugin;
 
@@ -100,10 +80,6 @@ impl Plugin for OrbHudPlugin {
         );
     }
 }
-
-// ---------------------------------------------------------------------------
-// Spawn
-// ---------------------------------------------------------------------------
 
 fn spawn_orbs(mut commands: Commands, mut orb_materials: ResMut<Assets<OrbMaterial>>) {
     // Health orb — bottom-left
@@ -201,10 +177,6 @@ fn spawn_orbs(mut commands: Commands, mut orb_materials: ResMut<Assets<OrbMateri
             ));
         });
 }
-
-// ---------------------------------------------------------------------------
-// Update fill from PlayerState
-// ---------------------------------------------------------------------------
 
 fn update_orbs(
     player_state: Res<PlayerState>,

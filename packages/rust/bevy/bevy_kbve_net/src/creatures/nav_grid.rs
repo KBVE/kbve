@@ -11,10 +11,6 @@ use dashmap::DashMap;
 
 use crate::terrain::{MAX_HEIGHT, NOISE_SCALE, TERRAIN_SEED, hash2d, terrain_height};
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 /// Tiles with height below this are water (impassable).
 pub const WATER_LEVEL: f32 = 1.0;
 
@@ -23,10 +19,6 @@ pub const MAX_STEP_HEIGHT: f32 = 1.0;
 
 /// Tiles per chunk side (matches terrain chunk size).
 pub const NAV_CHUNK: i32 = 16;
-
-// ---------------------------------------------------------------------------
-// Terrain band classification
-// ---------------------------------------------------------------------------
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum TerrainBand {
@@ -65,10 +57,6 @@ pub fn classify_band(h: f32) -> TerrainBand {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Per-tile navigation data
-// ---------------------------------------------------------------------------
-
 #[derive(Clone, Copy, Debug)]
 pub struct TileNav {
     pub height: f32,
@@ -77,10 +65,6 @@ pub struct TileNav {
     pub walkable: bool,
     pub has_tree: bool,
 }
-
-// ---------------------------------------------------------------------------
-// Per-chunk navigation data (16×16 = 256 tiles)
-// ---------------------------------------------------------------------------
 
 #[derive(Clone)]
 pub struct ChunkNav {
@@ -135,10 +119,6 @@ impl ChunkNav {
         &self.tiles[(lz * NAV_CHUNK + lx) as usize]
     }
 }
-
-// ---------------------------------------------------------------------------
-// NavGrid resource — DashMap for lock-free concurrent access
-// ---------------------------------------------------------------------------
 
 /// Lazily-computed navigation grid backed by `DashMap` for concurrent
 /// reads from the game thread and writes from background tasks.

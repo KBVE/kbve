@@ -12,7 +12,8 @@
 			"core:window:allow-inner-size",
 			"core:window:allow-maximize",
 			"core:window:allow-unmaximize",
-			"core:window:allow-is-maximized"
+			"core:window:allow-is-maximized",
+			"window-state:default"
 		]
 	}
 }

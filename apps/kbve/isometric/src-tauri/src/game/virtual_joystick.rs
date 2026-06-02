@@ -4,10 +4,6 @@ use bevy::window::PrimaryWindow;
 
 use super::phase::GamePhase;
 
-// ---------------------------------------------------------------------------
-// Shared joystick state — read by player movement system
-// ---------------------------------------------------------------------------
-
 #[derive(Resource, Default)]
 pub struct VirtualJoystickState {
     /// Whether the joystick is currently being dragged.
@@ -22,10 +18,6 @@ pub struct VirtualJoystickState {
     /// Set by the Bevy UI action button; consumed each frame by the player/combat system.
     pub action_requested: bool,
 }
-
-// ---------------------------------------------------------------------------
-// UI components
-// ---------------------------------------------------------------------------
 
 /// Marker for the joystick base (outer ring).
 #[derive(Component)]
@@ -52,10 +44,6 @@ struct JoystickDrag {
     /// Center of the joystick base in logical pixels.
     center: Vec2,
 }
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
 
 /// Joystick base diameter in logical pixels.
 const BASE_SIZE: f32 = 160.0;
@@ -85,10 +73,6 @@ const CAPTURE_RADIUS_MULT: f32 = 1.5;
 /// buttons untouched.
 const FLOATING_BASE_MAX_X_FRACTION: f32 = 0.5;
 
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
-
 pub struct VirtualJoystickPlugin;
 
 impl Plugin for VirtualJoystickPlugin {
@@ -102,10 +86,6 @@ impl Plugin for VirtualJoystickPlugin {
         );
     }
 }
-
-// ---------------------------------------------------------------------------
-// Spawn UI
-// ---------------------------------------------------------------------------
 
 fn spawn_joystick_ui(mut commands: Commands) {
     // Base: semi-transparent circle, bottom-left
@@ -141,7 +121,6 @@ fn spawn_joystick_ui(mut commands: Commands) {
                 .insert(JoystickKnob);
         });
 
-    // --- Action buttons (bottom-right) ---
     // Container for vertical button stack
     commands
         .spawn((
@@ -208,10 +187,6 @@ fn spawn_joystick_ui(mut commands: Commands) {
         });
 }
 
-// ---------------------------------------------------------------------------
-// Action button handler
-// ---------------------------------------------------------------------------
-
 fn handle_action_buttons(
     jump_query: Query<&Interaction, (With<JumpButton>, Changed<Interaction>)>,
     action_query: Query<
@@ -239,10 +214,6 @@ fn handle_action_buttons(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Input handling
-// ---------------------------------------------------------------------------
-
 #[allow(clippy::too_many_arguments)]
 fn handle_joystick_input(
     mouse_button: Res<ButtonInput<MouseButton>>,
@@ -262,8 +233,6 @@ fn handle_joystick_input(
         MARGIN + BASE_SIZE / 2.0,
         window.height() - MARGIN - BASE_SIZE / 2.0,
     );
-
-    // ---- Touch-based drag (tracks a specific finger) ----
 
     // Check if the tracked touch is still active
     if let Some(tid) = drag.touch_id {
@@ -319,8 +288,6 @@ fn handle_joystick_input(
         update_joystick(pos, &mut drag, &mut joystick_state, &mut knob_query);
         return;
     }
-
-    // ---- Mouse fallback (desktop) ----
 
     let base_interaction = base_query
         .single()

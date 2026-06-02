@@ -11,10 +11,6 @@ use super::camera::IsometricCamera;
 use super::campfire::FireMaterial;
 use super::terrain::TerrainMap;
 
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
-
 /// Marker for candle flame billboards.
 #[derive(Component)]
 pub struct CandleFlame;
@@ -23,15 +19,7 @@ pub struct CandleFlame;
 #[derive(Component)]
 struct CandleLight;
 
-// ---------------------------------------------------------------------------
-// Candle positions (client-side, decorative)
-// ---------------------------------------------------------------------------
-
 const CANDLE_POSITIONS: &[(f32, f32)] = &[(1.0, -1.0), (-2.0, 2.5), (5.0, 4.0), (-1.0, -3.0)];
-
-// ---------------------------------------------------------------------------
-// Systems
-// ---------------------------------------------------------------------------
 
 fn setup_candles(
     mut commands: Commands,
@@ -144,10 +132,6 @@ fn flicker_candle_lights(time: Res<Time>, mut light_q: Query<&mut PointLight, Wi
         pl.intensity = 4000.0 * flicker;
     }
 }
-
-// ---------------------------------------------------------------------------
-// Mesh builders
-// ---------------------------------------------------------------------------
 
 /// Vertical billboard quad for candle flame, anchored at bottom center.
 fn build_candle_flame_quad(width: f32, height: f32) -> Mesh {
@@ -269,10 +253,6 @@ fn srgb_to_linear(c: f32) -> f32 {
         ((c + 0.055) / 1.055).powf(2.4)
     }
 }
-
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
 
 pub struct CandlePlugin;
 

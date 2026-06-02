@@ -5,10 +5,6 @@
 
 use bevy::prelude::*;
 
-// ---------------------------------------------------------------------------
-// Background / Panel
-// ---------------------------------------------------------------------------
-
 /// Full-screen overlay backdrop (semi-transparent dark).
 pub const BACKDROP: Color = Color::srgba(0.03, 0.03, 0.06, 0.85);
 
@@ -17,10 +13,6 @@ pub const PANEL: Color = Color::srgba(0.08, 0.09, 0.12, 0.92);
 
 /// Panel border or subtle separator.
 pub const PANEL_BORDER: Color = Color::srgba(0.25, 0.28, 0.35, 0.5);
-
-// ---------------------------------------------------------------------------
-// Text
-// ---------------------------------------------------------------------------
 
 /// Primary text (headings, important labels).
 pub const TEXT_PRIMARY: Color = Color::srgba(0.92, 0.94, 0.96, 1.0);
@@ -39,10 +31,6 @@ pub const TEXT_WARNING: Color = Color::srgba(0.95, 0.75, 0.2, 1.0);
 
 /// Error text.
 pub const TEXT_ERROR: Color = Color::srgba(0.95, 0.3, 0.3, 1.0);
-
-// ---------------------------------------------------------------------------
-// Buttons
-// ---------------------------------------------------------------------------
 
 /// Primary button background (call-to-action).
 pub const BTN_PRIMARY: Color = Color::srgba(0.2, 0.55, 0.95, 1.0);
@@ -65,10 +53,6 @@ pub const BTN_SECONDARY_PRESSED: Color = Color::srgba(0.08, 0.09, 0.12, 0.95);
 /// Button text color.
 pub const BTN_TEXT: Color = Color::srgba(0.92, 0.94, 0.96, 1.0);
 
-// ---------------------------------------------------------------------------
-// Status badges
-// ---------------------------------------------------------------------------
-
 /// WebTransport badge.
 pub const BADGE_WT: Color = Color::srgba(0.3, 0.85, 0.45, 0.9);
 
@@ -80,10 +64,6 @@ pub const BADGE_OFFLINE: Color = Color::srgba(0.5, 0.5, 0.55, 0.8);
 
 /// Loading / in-progress badge.
 pub const BADGE_LOADING: Color = Color::srgba(0.95, 0.75, 0.2, 0.9);
-
-// ---------------------------------------------------------------------------
-// Toast severity accents (left border stripe)
-// ---------------------------------------------------------------------------
 
 /// Info toast accent.
 pub const TOAST_INFO: Color = Color::srgba(0.3, 0.7, 1.0, 1.0);
@@ -102,10 +82,6 @@ pub const TOAST_LOOT: Color = Color::srgba(0.85, 0.72, 0.25, 1.0);
 
 /// Toast panel background.
 pub const TOAST_BG: Color = Color::srgba(0.06, 0.07, 0.10, 0.92);
-
-// ---------------------------------------------------------------------------
-// Misc
-// ---------------------------------------------------------------------------
 
 /// Divider / horizontal rule.
 pub const DIVIDER: Color = Color::srgba(0.25, 0.28, 0.35, 0.4);

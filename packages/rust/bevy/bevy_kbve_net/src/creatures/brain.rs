@@ -12,10 +12,6 @@ use super::types::{
     Creature, SpriteCreatureMarker, SpriteCreatureTypes, SpriteData, SpriteHopState,
 };
 
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
-
 /// Per-entity brain: holds the behavior tree reference and current intent.
 #[derive(Component)]
 pub struct CreatureBrain {
@@ -42,10 +38,6 @@ impl CreatureBrain {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Systems
-// ---------------------------------------------------------------------------
 
 /// Capture world snapshots for idle creatures and dispatch behavior tree
 /// evaluation to bevy_tasker. Only evaluates when the creature is idle

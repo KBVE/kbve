@@ -13,10 +13,6 @@ use crate::backend::BackendStore;
 use crate::error::DbError;
 use crate::store::DbStore;
 
-// ---------------------------------------------------------------------------
-// DbRequest — non-blocking result handle
-// ---------------------------------------------------------------------------
-
 /// Handle to a pending database operation. Poll with `try_recv()`.
 pub struct DbRequest<T> {
     pub(crate) rx: Receiver<Result<T, DbError>>,
@@ -32,10 +28,6 @@ impl<T> DbRequest<T> {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Db — Bevy Resource
-// ---------------------------------------------------------------------------
 
 /// Async key-value database resource. Clone is cheap (Arc).
 ///

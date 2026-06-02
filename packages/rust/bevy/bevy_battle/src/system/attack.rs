@@ -170,7 +170,6 @@ pub fn attack_system(
             });
         }
 
-        // ── Class procs ─────────────────────────────────────────────
         let enemy_alive = !enemy_hp.is_dead();
         match class {
             ClassType::Warrior => {

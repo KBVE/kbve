@@ -61,15 +61,12 @@ impl Plugin for CreaturesPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(MaterialPlugin::<sprite_material::SpriteAtlasMaterial>::default());
 
-        // --- Unified NpcDb-driven registry ---
         app.add_systems(Startup, setup_creature_registry);
 
-        // --- Shared resources ---
         app.init_resource::<CreaturePool>();
         app.init_resource::<common::GameTime>();
         app.init_resource::<FireflySlotState>();
 
-        // --- Generic sprite creature system ---
         app.insert_resource(generic::definitions::build_sprite_creature_types());
         app.init_resource::<generic::SpriteAtlasPool>();
         app.init_resource::<generic::SimulationCenter>();
@@ -78,7 +75,6 @@ impl Plugin for CreaturesPlugin {
 
         app.add_systems(Startup, setup_creature_meshes);
 
-        // --- Per-type systems ---
         app.add_systems(
             Update,
             (
@@ -102,7 +98,6 @@ impl Plugin for CreaturesPlugin {
                 butterfly::render_butterflies
                     .after(butterfly::simulate_butterflies)
                     .run_if(any_with_component::<ButterflySimState>),
-                // --- Generic sprite creatures (all sprite types) ---
                 generic::spawn::spawn_sprite_creatures,
                 generic::brain::dispatch_behavior_trees
                     .after(generic::spawn::spawn_sprite_creatures)

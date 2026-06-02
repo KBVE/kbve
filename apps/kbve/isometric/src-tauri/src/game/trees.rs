@@ -10,10 +10,6 @@ use super::terrain::hash2d;
 use super::tilemap::{TILE_SIZE, build_chunk_mesh, lerp3, srgb_color};
 use super::weather::BlobShadow;
 
-// ---------------------------------------------------------------------------
-// Bark palettes
-// ---------------------------------------------------------------------------
-
 /// 4-shade bark palette (sRGB): [dark, mid_dark, mid_light, highlight].
 #[derive(Clone, Copy)]
 struct BarkPalette {
@@ -70,10 +66,6 @@ const BARK_PALETTES: [BarkPalette; 6] = [
         highlight: (0.62, 0.62, 0.52),
     },
 ];
-
-// ---------------------------------------------------------------------------
-// Canopy colors and tree presets
-// ---------------------------------------------------------------------------
 
 /// Per-preset canopy base colors (sRGB).
 const PRESET_CANOPY_COLORS: [(f32, f32, f32); 6] = [
@@ -177,10 +169,6 @@ const TREE_PRESETS: [TreePreset; 6] = [
     },
 ];
 
-// ---------------------------------------------------------------------------
-// Bark face colors
-// ---------------------------------------------------------------------------
-
 /// Per-face bark colors based on vertical position along trunk.
 /// `y_frac`: 0.0 = base, 1.0 = top.
 /// Returns `[top_cap, bottom, lit, shadow, semi_shadow, semi_lit]`.
@@ -203,10 +191,6 @@ fn bark_face_colors_with(y_frac: f32, bp: &BarkPalette) -> [[f32; 4]; 6] {
         apply(semi_l),
     ]
 }
-
-// ---------------------------------------------------------------------------
-// Trunk geometry
-// ---------------------------------------------------------------------------
 
 /// Two-section 6-sided trunk: flared trapezoid base + straight upper section.
 /// Per-face bark ridges (alternating brightness) + radial wobble for organic feel.
@@ -371,10 +355,6 @@ fn push_tapered_trunk(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Branch stub geometry
-// ---------------------------------------------------------------------------
-
 /// Sheared cuboid for branch stubs — bottom vertices anchored, top shifted by `(sx, sz)`.
 fn push_branch_stub(
     pos: &mut Vec<[f32; 3]>,
@@ -456,10 +436,6 @@ fn push_branch_stub(
         idx.extend_from_slice(&[f, f + 2, f + 1, f, f + 3, f + 2]);
     }
 }
-
-// ---------------------------------------------------------------------------
-// Canopy dome geometry
-// ---------------------------------------------------------------------------
 
 /// Push a 3-zone canopy dome with clean flat band colors and per-dome tilt.
 /// Zones: sun plate (~8%), foliage body (~65%), underside (~27%).
@@ -574,10 +550,6 @@ fn push_dome(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Tree geometry builder — returns mesh + metadata for entity spawning
-// ---------------------------------------------------------------------------
-
 /// Result of building a complete tree's geometry.
 pub struct TreeGeometry {
     pub mesh: Mesh,
@@ -608,7 +580,6 @@ pub fn build_tree_geometry(tx: i32, tz: i32, size_scale: f32) -> TreeGeometry {
     let mut tc = Vec::with_capacity(max_cuboids * 24);
     let mut ti = Vec::with_capacity(max_cuboids * 36);
 
-    // --- Tapered trunk with buttress roots ---
     let root_count = 3 + (hash2d(tx + 12017, tz + 6171) * 2.0) as i32;
     let trunk_seed = tx as f32 * 0.137 + tz as f32 * 0.293;
     push_tapered_trunk(
@@ -625,7 +596,6 @@ pub fn build_tree_geometry(tx: i32, tz: i32, size_scale: f32) -> TreeGeometry {
         bark_palette,
     );
 
-    // --- Branches ---
     let branch_count = if size_scale > 1.6 {
         3 + (hash2d(tx + 11817, tz + 5971) * 2.99) as i32
     } else {
@@ -658,7 +628,6 @@ pub fn build_tree_geometry(tx: i32, tz: i32, size_scale: f32) -> TreeGeometry {
         );
     }
 
-    // --- Canopy ---
     let canopy_base = PRESET_CANOPY_COLORS[preset_idx];
     let seed_base = tx * 31337 + tz * 17389;
     let mut max_hw: f32 = trunk_r;
@@ -866,10 +835,6 @@ pub fn build_tree_geometry(tx: i32, tz: i32, size_scale: f32) -> TreeGeometry {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Wind and occlusion components
-// ---------------------------------------------------------------------------
-
 /// Attached to tree entities. Rotation pivot at ground → canopy moves, trunk base stays.
 #[derive(Component)]
 pub struct TreeWindSway {
@@ -885,10 +850,6 @@ pub struct TreeOccluder;
 /// The player silhouette indicator (dots/ring visible through trees).
 #[derive(Component)]
 struct PlayerOcclusionIndicator;
-
-// ---------------------------------------------------------------------------
-// Occlusion system
-// ---------------------------------------------------------------------------
 
 const CAM_DIR_XZ: (f32, f32) = (0.707, 0.707);
 
@@ -1017,10 +978,6 @@ fn update_player_occlusion(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Spawn helper — called from tilemap chunk system
-// ---------------------------------------------------------------------------
-
 /// Spawn a tree entity with all required components. Returns the entity ID.
 pub fn spawn_tree_entity(
     commands: &mut Commands,
@@ -1098,10 +1055,6 @@ pub fn spawn_tree_entity(
 
     (tree_entity, shadow_entity)
 }
-
-// ---------------------------------------------------------------------------
-// Chunk-merged tree vertex generation (for Low/Medium PerfTier)
-// ---------------------------------------------------------------------------
 
 /// Metadata for a tree whose mesh was merged into the chunk.
 /// Used to spawn a lightweight interaction entity (no Mesh3d).
@@ -1196,10 +1149,6 @@ pub fn push_tree_vertices(
         shadow_height: geo.total_h,
     }
 }
-
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
 
 pub struct TreesPlugin;
 
