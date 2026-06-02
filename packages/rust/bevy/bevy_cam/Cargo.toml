@@ -11,9 +11,15 @@ keywords = ["bevy", "camera", "isometric", "pixel-art", "gamedev"]
 categories = ["game-development", "rendering"]
 readme = "README.md"
 
+[features]
+default = []
+# Wire scroll-wheel zoom input + per-frame zoom interpolation. Off by
+# default because most games using this plugin have a fixed isometric
+# camera and don't want the wasted system dispatch.
+zoom = []
+
 [dependencies]
 bevy = { version = "0.18", default-features = false, features = [
-    "bevy_state",
     "bevy_asset",
     "bevy_render",
     "bevy_core_pipeline",
