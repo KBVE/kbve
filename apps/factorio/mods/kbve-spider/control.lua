@@ -298,7 +298,7 @@ commands.add_command(
 			local owner_idx = storage.ally_owners and storage.ally_owners[unit_number] or "?"
 			local valid = ally and ally.valid
 			local cmdable = valid and ally.commandable or nil
-			local has_cmd = cmdable and cmdable.has_command() or false
+			local has_cmd = cmdable and cmdable.has_command or false
 			local pos_str = valid and string.format("(%d,%d)", math.floor(ally.position.x), math.floor(ally.position.y)) or "<gone>"
 			player.print(string.format(
 				"  unit=%d name=%s owner=%s surface=%d pos=%s valid=%s has_command=%s",
@@ -314,7 +314,7 @@ commands.add_command(
 					total_world = total_world + 1
 					local in_reg = allies[a.unit_number] ~= nil
 					local cmdable_a = a.commandable
-					local has_cmd_a = cmdable_a and cmdable_a.has_command() or false
+					local has_cmd_a = cmdable_a and cmdable_a.has_command or false
 					player.print(string.format(
 						"  world: unit=%d surface=%s pos=(%d,%d) in_registry=%s force=%s has_command=%s",
 						a.unit_number, surface.name,
@@ -605,7 +605,7 @@ local function follow_loop()
 							end
 						else
 							local commandable = ally.commandable
-							if commandable and not commandable.has_command() then
+							if commandable and not commandable.has_command then
 								commandable.set_command{
 									type = defines.command.wander,
 									ticks_to_wait = 240,
@@ -689,7 +689,7 @@ script.on_nth_tick(NERVOUS_TICK_INTERVAL, function(event)
 						if not in_group then
 							pcall(function()
 								local commandable = s.commandable
-								if commandable and not commandable.has_command() then
+								if commandable and not commandable.has_command then
 									commandable.set_command{
 										type = defines.command.wander,
 										ticks_to_wait = 600,
