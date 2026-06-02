@@ -1,0 +1,46 @@
+---
+title: 'Tann'
+description: |
+    Sci-fi field engineer. Roams the perimeter with a torch in one hand and a multitool in the other, patching wall plates and rotating burned-out turrets.
+ref: 'tann'
+id: '01KSAVZ000000000000000TANN'
+name: 'Tann'
+type_flags: 1
+rarity: 'common'
+personality: 'stoic'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+img: '/assets/npc/tann.png'
+role: 'Field Engineer'
+tags:
+    - kbve-factorio
+    - repair
+stats:
+    hp: 40
+    max_hp: 40
+    attack: 2
+    defense: 2
+    speed: 3
+    armor: 1
+behavior:
+    movement_type: 'patrol'
+    first_strike: false
+dialogue:
+    - trigger: 'greeting'
+      lines:
+        - 'Tann here. Wall holding?'
+        - 'Plates are bowed but the rivets hold.'
+        - 'Stand clear of the welder.'
+    - trigger: 'repair'
+      lines:
+        - 'Patched. It will last the night.'
+        - 'Worse on the inside than on the spec sheet.'
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Sci-fi field engineer. Patches wall plates and turrets.

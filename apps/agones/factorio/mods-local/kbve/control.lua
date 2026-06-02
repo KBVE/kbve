@@ -10,9 +10,16 @@ local function on_player_joined(event)
 	local player = game.get_player(event.player_index)
 	if player then
 		player.print({ 'kbve.welcome', player.name })
+		Spawn.guard(player.surface)
 	end
 	Coins.handle_player_joined(event)
 	Vault.get_or_create(event.player_index)
+end
+
+local function on_chunk_generated(event)
+	local surface = event.surface
+	if not (surface and surface.valid) then return end
+	Spawn.guard(surface)
 end
 
 local function on_player_left(event)
@@ -60,6 +67,20 @@ script.on_event(defines.events.on_gui_click, on_gui_click)
 script.on_event(defines.events.on_gui_closed, on_gui_closed)
 script.on_event(defines.events.on_gui_selection_state_changed, FleetGui.on_gui_selection_state_changed)
 script.on_event(defines.events.on_gui_checked_state_changed, FleetGui.on_gui_checked_state_changed)
+local function on_gui_selected_tab_changed(event)
+	ExchangeGui.on_gui_selected_tab_changed(event)
+	FleetGui.on_gui_selected_tab_changed(event)
+end
+script.on_event(defines.events.on_gui_selected_tab_changed, on_gui_selected_tab_changed)
 script.on_event('kbve-open-exchange', ExchangeGui.on_custom_input)
 script.on_event('kbve-open-fleet', FleetGui.on_custom_input)
-script.on_event(defines.events.on_tick, FleetMissions.on_tick)
+script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
+
+local function on_tick(event)
+	FleetMissions.on_tick(event)
+	if (event.tick % 600) == 0 then
+		local surface = game.surfaces['nauvis'] or game.surfaces[1]
+		if surface then Spawn.guard(surface) end
+	end
+end
+script.on_event(defines.events.on_tick, on_tick)
