@@ -1,6 +1,6 @@
 ---
 title: Cosmic rune | OSRS Price Data
-description: "Cosmic rune: Used for enchant spells.. High alch: 30 GP, GE limit: 18,000."
+description: "Cosmic rune: Used for enchant spells. High alch: 30 GP, GE limit: 18,000."
 osrs:
   id: 564
   name: Cosmic rune
@@ -12,15 +12,9 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 18000
-  rune:
-    type: utility
-  runecraft:
-    level: 27
-    xp: 8
-    multiple_at: 59
-    altar: Cosmic Altar
-    altar_location: Zanaris
-    essence_type: pure
+  material:
+    type: rune
+    tier: mid
   recipes:
     - skill: runecraft
       level: 27
@@ -31,9 +25,28 @@ osrs:
           quantity: 1
       product: Cosmic rune
       product_id: 564
-      product_quantity: 1
-      facility: Cosmic altar
+    - skill: runecraft
+      level: 27
+      xp: 12
+      materials:
+        - item_name: Daeyalt essence
+          item_id: 24704
+          quantity: 1
+      product: Cosmic rune
+      product_id: 564
+  shops:
+    - shop_name: Lundail's Arena-side Rune Shop
+      location: Mage Arena, Wilderness
+      price: 80
+      stock: 250
       members_only: true
+      currency: coins
+    - shop_name: Amlodd's Magical Supplies
+      location: Prifddinas
+      price: 80
+      stock: 250
+      members_only: true
+      currency: coins
   related_items:
     - item_id: 7936
       item_name: Pure essence
@@ -55,34 +68,38 @@ osrs:
       slug: law-rune
       relationship: upgrade
       description: Higher tier rune
-  about: |-
-    Craft at the Cosmic Altar (Zanaris) with Pure essence.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Runecrafting Level | 27 |
-    | XP per essence | 8 |
-    | Double runes | 59 RC |
-
-    Cosmic runes power enchantment magic:
-    - Enchant Sapphire/Emerald/Ruby/Diamond/Dragonstone/Onyx
-    - Lunar spells (NPC Contact, Cure spells)
-    - Arceuus resurrection spells
+  about: Mid-tier rune crafted at the Cosmic Altar in Zanaris; powers enchantment magic and select Lunar/Arceuus spells.
   market_strategy:
-    profit_formulas:
-      - (Cosmic rune × runes) - Pure essence = Profit
+    title: Cosmic Runecrafting
     notes:
-      - Entry-level profitable rune (27 RC)
-      - "At 59+ RC: Double runes"
-      - "Calculate:"
-      - Jewelry enchanting (rings of dueling, games necklaces)
+      - Entry profitable RC at level 27
+      - Doubles to 2 per essence at 59 RC
+      - Jewelry enchanting drives demand
       - Lunar spellbook users
-      - Consistent demand
-      - Requires Fairy ring access (Lost City)
-      - Good early RC money maker
-      - Lower value than law/nature but easier access
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Requires Fairy ring access from Lost City
+      - Lower value than law/nature but easier
+  trading_tips:
+    - Stock up before patch days that buff enchant spells
+    - Sell during Lunar spellbook events
+  history:
+    - date: "2001-05-24"
+      update: New magic system online!
+      description: Released with the magic system rework.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "24 May 2001"
+    update: New magic system online!
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

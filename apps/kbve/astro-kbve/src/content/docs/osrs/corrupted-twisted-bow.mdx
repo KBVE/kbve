@@ -12,9 +12,64 @@ osrs:
   lowalch: 100000
   highalch: 150000
   limit: null
-  about: "Corrupted twisted bow is a members-only item in Old School RuneScape. High alchemy value: 150,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: 2h
+    weapon_type: bow
+    attack_speed: 6
+    weight: 1.814
+    requirements:
+      ranged: 70
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 56
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 2
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 20997
+      item_name: Twisted bow
+      slug: twisted-bow
+      relationship: alternative
+      description: Standard PvM-grade variant of the bow.
+  about: Deadman Mode exclusive variant of the twisted bow, obtained from breach trinkets.
+  market_strategy:
+    notes:
+      - Deadman seasonal availability only
+      - Inferno "Budget Setup" achievement blocker
+      - Far weaker ranged strength than standard twisted bow
+  history:
+    - date: "2023-08-23"
+      update: Deadman Mode breach trinkets
+      description: Released as a 1/8 reward from trinket of advanced weaponry during Deadman events.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "23 August 2023"
+    update: Deadman Mode
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

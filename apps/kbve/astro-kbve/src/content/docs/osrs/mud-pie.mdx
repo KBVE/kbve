@@ -1,6 +1,6 @@
 ---
 title: Mud pie | OSRS Price Data
-description: "Mud pie: All the good of the earth.. High alch: 32 GP, GE limit: 11,000."
+description: "Mud pie: All the good of the earth. High alch: 32 GP, GE limit: 11,000."
 osrs:
   id: 7170
   name: Mud pie
@@ -12,11 +12,33 @@ osrs:
   lowalch: 21
   highalch: 32
   limit: 11000
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 4
+    weight: 0.001
+    attack_bonus:
+      stab: -100
+      slash: -100
+      crush: -50
+      magic: 0
+      ranged: 3
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: -10
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: cooking
       level: 29
       xp: 128
-      inputs:
+      materials:
         - item_name: Pastry dough
           quantity: 1
         - item_name: Pie dish
@@ -27,7 +49,8 @@ osrs:
           quantity: 1
         - item_name: Clay
           quantity: 1
-      output_quantity: 1
+      product: Mud pie
+      product_id: 7170
   related_items:
     - item_id: 7208
       item_name: Wild pie
@@ -39,26 +62,31 @@ osrs:
       slug: admiral-pie
       relationship: alternative
       description: +5 Fishing boost pie
-  about: |-
-    The mud pie is a throwable weapon that drains the target's run energy by 25% (rounded down). It deals no damage and only works on other players.
-
-    Ranged stats: Thrown weapon, 4-tick speed, 6-tile range
-
-    Mud pies are used in PvP to slow fleeing targets:
-    - Drains 25% run energy per throw
-    - 4 pies = nearly all run energy depleted
-    - Forces targets to walk, making them easier to catch
-    - Used by teams in multi-combat to lock down targets
-    - No combat requirements to throw
-
-    The pie dish drops at the target's feet after throwing.
+  about: Throwable PvP weapon that drains 25% of the target player's current run energy on hit; no damage, no NPC effect.
   market_strategy:
     notes:
       - PvP demand drives pricing
       - Ingredients are cheap and easy to gather
       - Only useful against players, not NPCs
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2006-05-16"
+      update: Wear/Wield Rename
+      description: The "Wear" option was renamed to "Wield".
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "20 Feb 2006"
+    update: Updates, updates and more updates...
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.001
+    options: [Wield, Drop]
+    worn_options: [Remove]
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

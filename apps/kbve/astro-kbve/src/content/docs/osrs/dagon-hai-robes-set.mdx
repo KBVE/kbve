@@ -1,6 +1,6 @@
 ---
 title: Dagon'hai robes set | OSRS Price Data
-description: "Dagon'hai robes set: A set containing a Dagon'hai hat, robe top and robe bottom.. High alch: 130,200 GP."
+description: "Dagon'hai robes set: A set containing a Dagon'hai hat, robe top and robe bottom. High alch: 130,200 GP."
 osrs:
   id: 24333
   name: Dagon'hai robes set
@@ -12,9 +12,55 @@ osrs:
   lowalch: 86800
   highalch: 130200
   limit: null
-  about: "Dagon'hai robes set is a members-only item in Old School RuneScape. High alchemy value: 130,200 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Grand Exchange (Sets)
+      location: Grand Exchange
+      members_only: true
+      currency: coins
+  related_items:
+    - item_id: 24288
+      item_name: Dagon'hai hat
+      slug: dagon-hai-hat
+      relationship: set-piece
+      description: Head slot piece of the set
+    - item_id: 24291
+      item_name: Dagon'hai robe top
+      slug: dagon-hai-robe-top
+      relationship: set-piece
+      description: Body slot piece of the set
+    - item_id: 24294
+      item_name: Dagon'hai robe bottom
+      slug: dagon-hai-robe-bottom
+      relationship: set-piece
+      description: Legs slot piece of the set
+  market_strategy:
+    title: Set arbitrage
+    notes:
+      - Bundled via Grand Exchange clerk Sets interface
+      - Watch component sum vs set price for arbitrage
+      - Convenience markup when set sells at a premium
+      - No buy limit makes flips uncapped
+  history:
+    - date: "2019-11-07"
+      update: Bounty Hunter Rework
+      description: Dagon'hai robes set added alongside the Bounty Hunter rework.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  about: Dagon'hai robes set bundles the Dagon'hai hat, robe top, and robe bottom for Grand Exchange convenience.
+  properties:
+    release_date: "7 November 2019"
+    update: Bounty Hunter Rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Exchange
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

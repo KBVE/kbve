@@ -12,9 +12,59 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Mummy's hands is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: hands
+    weight: 0.5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  about: Cosmetic hands slot of the mummy outfit awarded from master Treasure Trails.
+  market_strategy:
+    notes:
+      - Master clue reward, very scarce
+      - Pure cosmetic with 0 stats
+      - Set piece demand drives price
+  history:
+    - date: "2016-07-06"
+      update: Treasure Trail Expansion (2016)
+      description: Added as a reward from master clue scrolls alongside the rest of the mummy outfit.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "6 July 2016"
+    update: Treasure Trail Expansion (2016)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

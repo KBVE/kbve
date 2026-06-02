@@ -1,6 +1,6 @@
 ---
 title: Voidwaker gem | OSRS Price Data
-description: "Voidwaker gem: The gem of a broken sword.. High alch: 480,000 GP, GE limit: 8."
+description: "Voidwaker gem: The gem of a broken sword. High alch: 480,000 GP, GE limit: 8."
 osrs:
   id: 27687
   name: Voidwaker gem
@@ -12,9 +12,69 @@ osrs:
   lowalch: 320000
   highalch: 480000
   limit: 8
-  about: "Voidwaker gem is a members-only item in Old School RuneScape. High alchemy value: 480,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Venenatis
+        source_id: 6610
+        combat_level: 464
+        quantity: "1"
+        rarity: rare
+        members_only: true
+        notes: 1/360 drop rate
+      - source: Spindel
+        source_id: 12056
+        combat_level: 302
+        quantity: "1"
+        rarity: very-rare
+        members_only: true
+        notes: 1/912 drop rate
+  related_items:
+    - item_id: 27681
+      item_name: Voidwaker hilt
+      slug: voidwaker-hilt
+      relationship: component
+      description: Callisto/Artio drop, combined with gem and blade
+    - item_id: 27684
+      item_name: Voidwaker blade
+      slug: voidwaker-blade
+      relationship: component
+      description: Vet'ion/Calvar'ion drop, combined with gem and hilt
+    - item_id: 27690
+      item_name: Voidwaker
+      slug: voidwaker
+      relationship: product
+      description: Final assembled weapon
+  about: One of three Voidwaker pieces dropped by Wilderness bosses, combined at Madam Sikaro for the assembled weapon.
+  market_strategy:
+    notes:
+      - Wilderness boss drop, exposed to PKers
+      - Venenatis 1/360 is the primary supply
+      - Spindel 1/912 thins out lower-risk supply
+      - Demand driven by Voidwaker assembly + skip costs
+      - 500,000 coin combine fee plus three pieces
+  history:
+    - date: "2023-01-25"
+      update: Wilderness Boss Rework
+      description: Released as part of the Wilderness boss rework alongside Voidwaker hilt and blade.
+    - date: "2023-02-02"
+      update: Wilderness death mechanics
+      description: No longer converts to coins on death in the Wilderness.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-01-25"
+    update: Wilderness Boss Rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Inspect
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

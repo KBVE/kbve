@@ -1,6 +1,6 @@
 ---
 title: Monkey bar | OSRS Price Data
-description: "Monkey bar: It's a monkey bar. It looks highly nutritious.. High alch: 30 GP, GE limit: 6,000."
+description: "Monkey bar: It's a monkey bar. It looks highly nutritious. High alch: 30 GP, GE limit: 6,000."
 osrs:
   id: 4014
   name: Monkey bar
@@ -12,9 +12,55 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 6000
-  about: "Monkey bar is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 5
+    type: standard
+  shops:
+    - shop_name: Solihib's Food Stall
+      location: Ape Atoll
+      price: 5
+      stock: 50
+      members_only: true
+      currency: coins
+  related_items:
+    - item_id: 1963
+      item_name: Banana
+      slug: banana
+      relationship: alternative
+      description: Other Ape Atoll food
+    - item_id: 5074
+      item_name: Monkey nuts
+      slug: monkey-nuts
+      relationship: alternative
+      description: Used alongside in spirit tree protection
+  about: Edible monkey snack sold by Solihib on Ape Atoll; heals 5 hitpoints and used in Farming spirit-tree protection.
+  market_strategy:
+    title: Ape Atoll Snack
+    notes:
+      - Cheap shop buy at 5 coins
+      - Niche use as spirit-tree payment
+      - Low daily volume on the GE
+      - Heals only 5 hp - not for combat
+  history:
+    - date: "2004-12-06"
+      update: Monkey Madness
+      description: Released with the Monkey Madness quest update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "6 Dec 2004"
+    update: Monkey Madness
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.15
+    options:
+      - Eat
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

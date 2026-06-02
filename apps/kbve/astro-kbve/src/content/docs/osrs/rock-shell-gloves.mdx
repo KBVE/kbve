@@ -1,6 +1,6 @@
 ---
 title: Rock-shell gloves | OSRS Price Data
-description: "Rock-shell gloves: Fremennik gloves stitched together from rock crab shell shards.. High alch: 390 GP, GE limit: 125."
+description: "Rock-shell gloves: Fremennik gloves stitched together from rock crab shell shards. High alch: 390 GP, GE limit: 125."
 osrs:
   id: 6151
   name: Rock-shell gloves
@@ -12,9 +12,90 @@ osrs:
   lowalch: 260
   highalch: 390
   limit: 125
-  about: "Rock-shell gloves is a members-only item in Old School RuneScape. High alchemy value: 390 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: hands
+    weight: 3.175
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Giant Rock Crab
+        combat_level: 137
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: King Sand Crab
+        combat_level: 107
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+  related_items:
+    - item_id: 6147
+      item_name: Rock-shell legs
+      slug: rock-shell-legs
+      relationship: set-piece
+      description: Set legs
+    - item_id: 6145
+      item_name: Rock-shell plate
+      slug: rock-shell-plate
+      relationship: set-piece
+      description: Set body
+    - item_id: 6128
+      item_name: Rock-shell helm
+      slug: rock-shell-helm
+      relationship: set-piece
+      description: Set helm
+    - item_id: 6161
+      item_name: Rock-shell splinter
+      slug: rock-shell-splinter
+      relationship: component
+      description: Shell fragment dropped by the same crabs
+  about: Fremennik shell gloves dropped by giant and king rock crabs; modest crush/slash defence and no requirements to wear.
+  market_strategy:
+    title: Rock-shell Set Glove
+    notes:
+      - Only drops from giant/king sand crabs
+      - 2/128 drop rate per kill
+      - Niche Fremennik gear collector demand
+      - Low daily GE volume
+      - Storable in costume room armour case
+  history:
+    - date: "2005-08-01"
+      update: Waterbirth Island
+      description: Released with the Waterbirth Island update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "1 Aug 2005"
+    update: Waterbirth Island
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    worn_options:
+      - Wear
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

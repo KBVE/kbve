@@ -1,6 +1,6 @@
 ---
 title: Armageddon teleport scroll | OSRS Price Data
-description: "Armageddon teleport scroll: A scroll which unlocks the Deadman: Armageddon home teleport animation.. High alch: 15,000 GP, GE limit: 5."
+description: "Armageddon teleport scroll: A scroll which unlocks the Deadman: Armageddon home teleport animation. High alch: 15,000 GP, GE limit: 5."
 osrs:
   id: 29622
   name: Armageddon teleport scroll
@@ -12,9 +12,55 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: 5
-  about: "Armageddon teleport scroll is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Deadman Reward Store
+      location: Deadman Mode reward shop
+      price: 9000
+      stock: 1
+      members_only: true
+      currency: Deadman Points
+  teleport:
+    destinations:
+      - Home Teleport target
+    type: animation-override
+    charges: 1
+    recharge_method: Consumed on use; unlocks animation permanently
+  related_items:
+    - item_id: 26500
+      item_name: Crystal teleport seed
+      slug: crystal-teleport-seed
+      relationship: alternative
+      description: Other cosmetic teleport unlock
+  about: One-time use scroll that permanently unlocks the Deadman Armageddon home teleport animation.
+  market_strategy:
+    notes:
+      - Supply driven by Deadman Mode reward shop purchases
+      - One-time consumable cosmetic — demand falls off after unlock
+      - Tradable but low buy limit (5/4h) keeps spreads thin
+  history:
+    - date: "2026-03-11"
+      update: Death's Coffer Update
+      description: Item became sacrificeable to Death's Coffer.
+    - date: "2024-08-07"
+      update: Poll 82 Changes
+      description: Item made available for purchase from the Deadman Reward Store.
+    - date: "2024-07-17"
+      update: Deadman Armageddon Launch
+      description: Item added to the game (initially unobtainable).
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "17 Jul 2024"
+    update: Deadman Armageddon Launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options: [Read, Drop]
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Orange | OSRS Price Data
-description: "Orange is a members food item. High alch: 1 GP, GE limit: 13,000."
+description: "Orange: A fresh orange. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 2108
   name: Orange
@@ -12,16 +12,13 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    weight: 0.11
   food:
-    heals: 0
-  skilling_sources:
-    - skill: farming
-      level: 39
-      xp: 35.5
+    heals: 2
+    type: fruit
+  farming:
+    farming_level: 39
+    harvest_xp: 35.5
+    patch_type: fruit_tree
   related_items:
     - item_id: 5286
       item_name: Orange tree seed
@@ -32,21 +29,40 @@ osrs:
       item_name: Orange slices
       slug: orange-slices
       relationship: product
-      description: Sliced product
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Farming Product / Food |
-    | Tradeable | Yes |
-    | Weight | 0.11 kg |
-    | Requirements | 39 Farming |
-
-    Cooking: Ingredient for gnome cocktails
-
-    Food: Slice into orange slices
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Knife-cut slices, ingredient in gnome cocktails
+    - item_id: 2112
+      item_name: Orange chunks
+      slug: orange-chunks
+      relationship: product
+      description: Further-cut chunks for gnome cooking
+  about: A fresh orange harvested from a fruit tree patch, used in gnome cocktails and as farmer payment.
+  market_strategy:
+    notes:
+      - 39 Farming patch supply
+      - Gnome cocktail ingredient demand
+      - Used as farmer payment for maple trees
+      - Compost bin material for regular compost
+      - Heals only 2 HP, not a combat food
+  history:
+    - date: "2002-12-12"
+      update: Agility skill update
+      description: Item added alongside the original RuneScape Classic Agility update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    update: Agility skill update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.11
+    options:
+      - Eat
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
