@@ -12,27 +12,52 @@ osrs:
   lowalch: 128
   highalch: 192
   limit: 18000
+  material:
+    type: wood
+    tier: willow
   equipment:
     slot: 2h
-    type: longbow
-    attack_style: ranged
+    weapon_type: bow
     attack_speed: 6
-  requirements:
-    ranged: 20
-  stats:
-    attack:
+    weight: 1.814
+    requirements:
       ranged: 20
-    other:
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 20
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
       ranged_strength: 0
-    range: 9
-  fletching:
-    level: 40
-    xp: 41.5
-    method: Willow longbow (u) + bowstring
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 40
+      xp: 41.5
+      materials:
+        - item_name: Willow longbow (u)
+          quantity: 1
+        - item_name: Bow string
+          quantity: 1
+      tools:
+        - None
+      product: Willow longbow
+      product_id: 847
+      members_only: false
   shops:
     - shop_name: Lowe's Archery Emporium
       location: Varrock
-      price: 320
+    - shop_name: Lletya Archery Shop
+      location: Lletya
   related_items:
     - item_id: 851
       item_name: Maple longbow
@@ -54,8 +79,37 @@ osrs:
       slug: bow-string
       relationship: component
       description: Stringing material
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: A free-to-play willow longbow used by mid-level rangers, fletched at 40 Fletching by stringing a willow longbow (u).
+  market_strategy:
+    notes:
+      - Common Fletching training output
+      - Loses small gp per craft vs materials
+      - Stable F2P demand
+  trading_tips:
+    - Free-to-play tradable, ample volume
+    - Check material cost vs GE for fletching profit
+  history:
+    - date: "2002-03-25"
+      description: Added to the game.
+    - date: "2005-03-29"
+      description: Made available to free-to-play players.
+  properties:
+    release_date: "2002-03-25"
+    update: Bows and Arrows
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

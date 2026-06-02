@@ -14,16 +14,15 @@ osrs:
   limit: 30000
   material:
     type: scale
-    tier: zulrah
+    tier: mid-high
   drop_table:
-    primary_source: Zulrah
     sources:
       - source: Zulrah
-        source_id: 2042
-        combat_level: 725
-        quantity: 100-299
-        rarity: common
-        members_only: true
+        quantity: "100-299"
+        rarity: Always
+      - source: Zulrah
+        quantity: "500"
+        rarity: 2/249
   charges:
     toxic_blowpipe:
       per_use: 0.33
@@ -34,6 +33,9 @@ osrs:
     trident_of_the_swamp:
       per_use: 1
       max_charges: 2500
+    toxic_staff_of_the_dead:
+      per_use: 1
+      max_charges: 11000
   recipes:
     - skill: herblore
       level: 87
@@ -45,53 +47,59 @@ osrs:
         - item_name: Zulrah's scales
           item_id: 12934
           quantity: 20
+      tools:
+        - Vial
       product: Anti-venom(4)
       product_id: 12905
-      product_quantity: 1
-      members_only: true
   related_items:
     - item_id: 12924
       item_name: Toxic blowpipe
       slug: toxic-blowpipe
       relationship: alternative
-      description: Primary consumer
+      description: Primary consumer of scales
     - item_id: 12931
       item_name: Serpentine helm
       slug: serpentine-helm
       relationship: alternative
-      description: Defense use
+      description: Charged for venom immunity
     - item_id: 12899
       item_name: Trident of the swamp
       slug: trident-of-the-swamp
       relationship: alternative
-      description: Magic use
+      description: Magic weapon charged with scales
     - item_id: 12905
       item_name: Anti-venom(4)
       slug: anti-venom-4
       relationship: product
-      description: Herblore product
-  about: |-
-    | Item | Scales per charge | Max charges |
-    |------|-------------------|-------------|
-    | Toxic blowpipe | 1 per 3 shots | 16,383 |
-    | Serpentine helm | 1 per hit taken | 11,000 |
-    | Trident of the swamp | 1 per cast | 2,500 |
-    | Toxic staff of the dead | 1 per cast | 11,000 |
+      description: Herblore product brewed with scales
+  about: "Zulrah's scales are a stackable members consumable dropped in piles of 100-299 (and rarely 500) by Zulrah; they charge the toxic blowpipe, serpentine helm, trident of the swamp, and toxic staff of the dead, and are an ingredient for anti-venom potions at 87 Herblore."
   market_strategy:
     notes:
-      - High volume consumable
-      - Price tied to Zulrah popularity
-      - Blowpipe nerfs affected demand
-      - Toxic blowpipe users
-      - Serpentine helm charges
-      - Swamp trident users
-      - Anti-venom production
-      - Price correlates with raids activity
-      - Blowpipe still popular post-nerf
-      - Check GP/scale for gear choices
-      - Sacred eel fishing for ironmen
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - High volume consumable tied to Zulrah popularity
+      - Blowpipe nerfs and rework history affect long term demand
+      - Always check GP per scale across blowpipe, helm, and trident charges
+      - Anti-venom production absorbs excess supply at higher Herblore
+      - Sacred eel fishing is the ironman alternative source
+  history:
+    - date: "2015-01-08"
+      update: Zulrah
+      description: Zulrah's scales added as a guaranteed drop from the Zulrah boss fight.
+  properties:
+    release_date: "2015-01-08"
+    update: Zulrah
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

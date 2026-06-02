@@ -12,12 +12,17 @@ osrs:
   lowalch: 25600
   highalch: 38400
   limit: 8
+  material:
+    type: granite
+    tier: high
   equipment:
     slot: weapon
-    weapon_type: hammer
+    weapon_type: blunt
     weight: 5
     attack_speed: 4
-    attack_range: 1
+    requirements:
+      attack: 50
+      strength: 50
     attack_bonus:
       stab: 0
       slash: 0
@@ -35,26 +40,16 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      attack: 50
-      strength: 50
   special_attack:
     name: Hammer Blow
     energy: 60
-    description: Deals 10% more damage with 50% increased accuracy
-    damage_modifier: 1.1
+    description: "Costs 60% special energy: 50% increased accuracy with a guaranteed minimum damage of 5, except against immune NPCs."
     accuracy_modifier: 1.5
   drop_table:
-    primary_source: Grotesque Guardians
-    best_drop_rate: 2/750
     sources:
       - source: Grotesque Guardians
-        source_id: 7851
-        combat_level: 228
         quantity: "1"
-        rarity: rare
-        drop_rate: 2/750
-        members_only: true
+        rarity: 2/750
   related_items:
     - item_id: 21736
       item_name: Granite gloves
@@ -76,29 +71,38 @@ osrs:
       slug: granite-maul
       relationship: alternative
       description: Different granite weapon
-  about: |-
-    Special properties:
-    - Acts as rock hammer (auto-finishes Gargoyles)
-    - 30% damage and accuracy bonus vs golems
-    - 4-tick attack speed (same as scimitar)
-
-    Special attack - Hammer Blow:
-    - 60% special energy
-    - 10% increased damage
-    - 50% increased accuracy
-
-    Combat comparison:
-    - Lower DPS than Dragon scimitar
-    - Useful for Gargoyle tasks
-    - Convenient for finishing blows
+  about: "Granite hammer is a one-handed crush weapon dropped by Grotesque Guardians; it acts as a rock hammer for Gargoyle finishers, has a 4-tick attack speed, and its Hammer Blow special attack costs 60% energy for a guaranteed minimum 5 damage with 50% accuracy bonus."
   market_strategy:
     notes:
-      - Quality of life for Gargoyle tasks
-      - Saves inventory space (no rock hammer)
-      - Niche PvM use for golem creatures
-      - Part of Grotesque Guardian collection
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Quality of life for Gargoyle slayer tasks
+      - Saves an inventory slot vs carrying a rock hammer
+      - Niche PvM use against golem-type creatures with Golembane
+      - Part of the Grotesque Guardian unique drop collection
+  history:
+    - date: "2017-10-26"
+      update: Grotesque Guardians
+      description: Granite hammer added as a unique drop from the Grotesque Guardians slayer boss.
+    - date: "2025-08-27"
+      description: Gained a 30% Golembane damage bonus against golem-type creatures, stacking multiplicatively with slayer helmet bonuses.
+  properties:
+    release_date: "2017-10-26"
+    update: Grotesque Guardians
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    weight: 5
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

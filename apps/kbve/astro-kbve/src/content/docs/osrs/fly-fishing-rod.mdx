@@ -12,18 +12,65 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 40
+  shops:
+    - shop_name: Gerrant's Fishy Business
+      location: Port Sarim
+      price: 5
+      stock: 5
+      currency: coins
+      members_only: false
+    - shop_name: Fernahei's Fishing Hut
+      location: Shilo Village
+      price: 5
+      currency: coins
+      members_only: true
+    - shop_name: Fremennik Fish Monger
+      location: Rellekka
+      price: 6
+      currency: coins
+      members_only: true
+    - shop_name: Fishing Guild Shop
+      location: Fishing Guild
+      price: 5
+      currency: coins
+      members_only: true
   related_items:
     - item_id: 307
       item_name: Fishing rod
       slug: fishing-rod
       relationship: variant
-      description: For sardines and herring
-  about: |-
-    > _"Useful for catching salmon or trout."_
-
-    The fly fishing rod is used with feathers at lure/bait fishing spots to catch trout (20 Fishing) and salmon (30 Fishing). The most popular early-game Fishing training method.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Used with bait for sardines and herring
+    - item_id: 311
+      item_name: Harpoon
+      slug: harpoon
+      relationship: alternative
+      description: Tool for tuna and swordfish
+  about: The fly fishing rod is used with feathers at lure or bait fishing spots to catch raw trout at 20 Fishing, raw salmon at 30 Fishing, and raw rainbow fish at 38 Fishing; it is one of the most popular early game Fishing training tools and is available from several fishing shops across Gielinor.
+  market_strategy:
+    notes:
+      - Always in demand for early Fishing training
+      - Cheaper to buy from shops than the Grand Exchange in most cases
+      - Bulk flipping margin is small but volume is steady
+  history:
+    - date: "2001-06-11"
+      description: Fly fishing rod added with the launch of the Fishing skill.
+    - date: "2021-07-07"
+      description: Rod positioning adjusted for female player fishing animations.
+  properties:
+    release_date: "2001-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    weight: 1.36
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

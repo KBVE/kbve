@@ -1,6 +1,6 @@
 ---
 title: Wyvern visage | OSRS Price Data
-description: "Wyvern visage: It looks like this could be attached to a shield somehow.. High alch: 450,000 GP, GE limit: 5."
+description: "Wyvern visage: It looks like this could be attached to a shield somehow. High alch: 450,000 GP, GE limit: 5."
 osrs:
   id: 21637
   name: Wyvern visage
@@ -14,29 +14,42 @@ osrs:
   limit: 5
   material:
     type: visage
-    tradeable: true
-    weight: 0.907
+    tier: high
   drop_table:
     sources:
       - source: Ancient wyvern
-        rate: 1/10,000
+        quantity: "1"
+        rarity: "1/10000"
       - source: Long-tailed wyvern
-        rate: 1/10,000
+        quantity: "1"
+        rarity: "1/12000"
       - source: Spitting wyvern
-        rate: 1/10,000
+        quantity: "1"
+        rarity: "1/12000"
       - source: Taloned wyvern
-        rate: 1/12,000
-  uses:
-    - result_id: 21634
-      result_name: Ancient wyvern shield
-      method: Combine with elemental shield at Strange Machine
-      location: House on the Hill
+        quantity: "1"
+        rarity: "1/12000"
+  recipes:
+    - skill: smithing
+      level: 66
+      xp: 2000
       requirements:
         magic: 66
         smithing: 66
-  market:
-    buy_limit: 5
-    price_estimate: 25500000
+      materials:
+        - item_name: Wyvern visage
+          item_id: 21637
+          quantity: 1
+        - item_name: Elemental shield
+          item_id: 2890
+          quantity: 1
+      tools:
+        - Hammer
+      facility: Strange Machine (House on the Hill)
+      product: Ancient wyvern shield
+      product_id: 21634
+      product_quantity: 1
+      members_only: true
   related_items:
     - item_id: 21634
       item_name: Ancient wyvern shield
@@ -52,27 +65,43 @@ osrs:
       item_name: Skeletal visage
       slug: skeletal-visage
       relationship: alternative
-      description: Similar drop
+      description: Similar boss drop
     - item_id: 11286
       item_name: Draconic visage
       slug: draconic-visage
       relationship: alternative
-      description: Similar drop
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A (Material) |
-    | Type | Boss Drop |
-    | Tradeable | Yes |
-    | Weight | 0.907 kg |
-
-    Combine with an elemental shield at the Strange Machine (House on the Hill).
-
-    Requirements: 66 Magic and 66 Smithing.
-
-    Creates: Ancient wyvern shield
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Similar boss drop
+  about: Rare drop from Fossil Island wyverns; combine with an elemental shield at the Strange Machine to craft an Ancient wyvern shield.
+  market_strategy:
+    title: Boss drop investment
+    notes:
+      - Very low GE buy limit of 5
+      - Rare 1/10,000 to 1/12,000 drop rates
+      - High demand from shield crafters
+      - Long-term price trend tracks Ancient wyvern shield
+  trading_tips:
+    - Flip on low GE limit with margin patience
+    - Watch Cold War / wyvern slayer task popularity
+    - Combine yourself rather than flipping if costs align
+  history:
+    - date: "2017-09-07"
+      description: Added to game as a rare drop from Fossil Island wyverns.
+  properties:
+    release_date: "2017-09-07"
+    update: Fossil Island
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

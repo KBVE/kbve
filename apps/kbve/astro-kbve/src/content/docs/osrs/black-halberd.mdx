@@ -12,9 +12,80 @@ osrs:
   lowalch: 768
   highalch: 1152
   limit: 125
-  about: "Black halberd is a members-only item in Old School RuneScape. High alchemy value: 1,152 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: black
+    tier: low
+  equipment:
+    slot: 2h
+    weapon_type: polearm
+    attack_speed: 7
+    weight: 3.175
+    requirements:
+      attack: 10
+      strength: 5
+    attack_bonus:
+      stab: 19
+      slash: 25
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: -1
+      slash: 2
+      crush: 3
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 20
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Quartermaster's Stores
+      location: Tyras Camp
+      price: 2496
+      currency: coins
+      members_only: true
+  related_items:
+    - item_id: 3194
+      item_name: Steel halberd
+      slug: steel-halberd
+      relationship: downgrade
+      description: Weaker steel-tier halberd
+    - item_id: 3198
+      item_name: Mithril halberd
+      slug: mithril-halberd
+      relationship: upgrade
+      description: Stronger mithril-tier halberd
+  about: "Black halberd is a members two-handed polearm with a 2 tile reach and 7-tick attack speed, sold by the Quartermaster's Stores in Tyras Camp; unlike the dragon halberd, the Regicide quest is not required to wield it."
+  market_strategy:
+    notes:
+      - Shop price often undercuts the Grand Exchange listing
+      - Niche demand from collectors and pures
+      - Limited daily volume — large flips are slow
+  history:
+    - date: "2004-09-20"
+      update: Halberd Update
+      description: Black halberd released alongside other tier halberds.
+  properties:
+    release_date: "2004-09-20"
+    update: Halberd Update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    weight: 3.175
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

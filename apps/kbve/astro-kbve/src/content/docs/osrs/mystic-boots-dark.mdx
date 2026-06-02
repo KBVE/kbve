@@ -12,9 +12,86 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 70
-  about: "Mystic boots (dark) is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Mystic boots (dark) are the dark variant of the mystic boots, a magical footwear set dropped by Infernal Mages and Malevolent Mages."
+  equipment:
+    slot: feet
+    weight: 0.453
+    requirements:
+      magic: 40
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Infernal Mage
+        quantity: "1"
+        rarity: "1/512"
+      - source: Malevolent Mage
+        quantity: "1"
+        rarity: "3/512"
+  properties:
+    release_date: "2005-01-26"
+    update: "Slayer Skill"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  related_items:
+    - item_id: 4097
+      item_name: Mystic boots
+      slug: mystic-boots
+      relationship: variant
+      description: Blue mystic boots variant with identical stats
+    - item_id: 4117
+      item_name: Mystic boots (light)
+      slug: mystic-boots-light
+      relationship: variant
+      description: Light variant of the mystic boots
+    - item_id: 23054
+      item_name: Mystic boots (dusk)
+      slug: mystic-boots-dusk
+      relationship: variant
+      description: Dusk variant of the mystic boots
+  market_strategy:
+    notes:
+      - "GE price (~83k) sits well above high alch (~6k); never alch these."
+      - "Steady Infernal Mage Slayer task supply keeps prices stable."
+  trading_tips:
+    - "Identical stats to standard mystic boots; price reflects cosmetic preference."
+    - "Pair with the rest of the dark mystic set for fashionscape value."
+  history:
+    - date: "2014-12-10"
+      description: "Renamed from Mystic boots to Mystic boots (dark)."
+    - date: "2006-01-16"
+      description: "Examine text changed to 'Dark magical boots'."
+    - date: "2005-01-26"
+      description: "Released with the Slayer skill update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

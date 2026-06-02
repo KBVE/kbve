@@ -12,9 +12,86 @@ osrs:
   lowalch: 144
   highalch: 216
   limit: 125
-  about: "White claws is a members-only item in Old School RuneScape. High alchemy value: 216 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: white
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: claws
+    attack_speed: 4
+    weight: 0.907
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: 10
+      slash: 14
+      crush: -4
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 4
+      slash: 7
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 14
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  shops:
+    - shop_name: Sir Vyvin
+      location: White Knights' Castle
+      currency: Coins
+      sell_price: 360
+      notes: Sold only after reaching Master rank with 1,300 black knight kills.
+  related_items:
+    - item_id: 3095
+      item_name: Black claws
+      slug: black-claws
+      relationship: alternative
+      description: Black-tier claw counterpart with similar stats.
+    - item_id: 6585
+      item_name: Amulet of fury
+      slug: amulet-of-fury
+      relationship: alternative
+      description: Common neck-slot pairing for melee weapon setups.
+    - item_id: 13652
+      item_name: Dragon claws
+      slug: dragon-claws
+      relationship: upgrade
+      description: Far stronger claw weapon used at endgame.
+  about: "White claws are White Knight-tier melee claws requiring 10 Attack with +14 slash bonus and a rare +1 Prayer bonus among mid-game weapons."
+  market_strategy:
+    notes:
+      - Supply trickles from Master-rank White Knights selling Sir Vyvin's stock.
+      - Buy limit of 125 per 4 hours pairs with the very low daily volume of around 2 trades.
+      - Demand is mostly collector or fashionscape; combat use is dominated by stronger claws.
+  trading_tips:
+    - List with patience - thin order book means sales can take hours to fill.
+    - Compare against black claws to estimate fair midgame claw spread.
+  history:
+    - date: "2005-10-17"
+      description: Released alongside the Wanted! quest update enabling White Knight rank purchases.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-10-17"
+    update: "Wanted!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,15 +12,9 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 25000
-  rune:
-    type: combat
-  runecraft:
-    level: 77
-    xp: 23.8
-    altar: Dark Altar
-    altar_location: Arceuus (Zeah)
-    essence_type: dark
-    method: Dark essence fragments
+  material:
+    type: rune
+    tier: high
   recipes:
     - skill: runecraft
       level: 77
@@ -29,17 +23,44 @@ osrs:
         - item_name: Dark essence fragments
           item_id: 7938
           quantity: 1
+      tools:
+        - Dark altar (Arceuus)
       product: Blood rune
       product_id: 565
-      product_quantity: 1
-      facility: Dark altar (Arceuus)
-      members_only: true
+    - skill: runecraft
+      level: 77
+      xp: 10.5
+      materials:
+        - item_name: Pure essence
+          item_id: 7936
+          quantity: 1
+        - item_name: Blood talisman
+          item_id: 5516
+          quantity: 1
+      tools:
+        - True Blood Altar (Morytania)
+      product: Blood rune
+      product_id: 565
+    - skill: runecraft
+      level: 77
+      xp: 15.7
+      materials:
+        - item_name: Daeyalt essence
+          item_id: 24704
+          quantity: 1
+        - item_name: Blood talisman
+          item_id: 5516
+          quantity: 1
+      tools:
+        - True Blood Altar (Morytania)
+      product: Blood rune
+      product_id: 565
   related_items:
     - item_id: 560
       item_name: Death rune
       slug: death-rune
       relationship: alternative
-      description: Paired for barrages
+      description: Paired for Ancient barrage spells
     - item_id: 22325
       item_name: Scythe of vitur
       slug: scythe-of-vitur
@@ -54,38 +75,52 @@ osrs:
       item_name: Dark essence fragments
       slug: dark-essence-fragments
       relationship: component
-      description: Crafting material
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Runecraft Level | 77 |
-    | Method | Dark altar (Arceuus) |
-    | XP per rune | 23.8 |
-
-    Note: Cannot be crafted at true Blood Altar without special requirements.
-
-    | Spell | Blood Runes | Effect |
-    |-------|-------------|--------|
-    | Fire Wave | 1 | Standard combat |
-    | Blood Rush | 2 | Ancient heal |
-    | Blood Burst | 4 | Ancient AoE heal |
-    | Blood Barrage | 4 | Best Ancient heal |
-    | Heal Group | 3 | Lunar healing |
+      description: Arceuus Dark altar crafting material
+    - item_id: 5516
+      item_name: Blood talisman
+      slug: blood-talisman
+      relationship: component
+      description: Required for True Blood Altar runecrafting
+  about: "High-level Runecraft rune (77+) used for Ancient Magicks combat, healing spells, and charging Scythe of vitur / Sanguinesti staff — Dark Altar at Arceuus is the dominant production method."
   market_strategy:
+    title: Blood rune flip & flow
     notes:
-      - Dark essence fragments → Blood runes
-      - ~1.5m GP/hr at 77+ RC
-      - AFK profitable method
-      - Ancient Magicks combat
-      - Scythe of vitur charges
-      - Sanguinesti staff charges
-      - High-level PvM
-      - Scythe uses 3 per swing
-      - Sanguinesti uses 3 per attack
-      - ToB gear creates massive sink
-      - Price correlates with raid popularity
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Dark essence fragments yield ~1.5M GP/hr at 77+ Runecraft
+      - Scythe + Sanguinesti charging creates massive sink
+      - Price correlates with raid (ToB) popularity
+      - Ancient Magicks barrages keep demand consistent
+      - True Blood Altar (Sins of the Father) gives more GP/h after quest
+    profit_formulas:
+      - "GP/hr ≈ (runes per hour) × (GE price − essence cost)"
+  trading_tips:
+    - Stockpile during ToB resets when price dips
+    - Watch DMM seasonal demand for sustain spikes
+  history:
+    - date: "2019-12-19"
+      update: Sins of the Father
+      description: Quest released, unlocking the True Blood Altar in Morytania for blood rune crafting.
+    - date: "2017-09-14"
+      update: Arceuus Favour Rework
+      description: Dark Altar at Arceuus enabled blood rune crafting via dark essence fragments.
+    - date: "2002-03-18"
+      update: Ancient Magicks
+      description: Released with the Ancient Magicks spellbook.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-03-18"
+    update: Ancient Magicks
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    quest_item: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

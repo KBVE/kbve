@@ -5,7 +5,7 @@ osrs:
   id: 23389
   name: Spiked manacles
   slug: spiked-manacles
-  examine: Some very spikey metal bands, better make sure I don't cut myself while walking.
+  examine: "Some very spikey metal bands, better make sure I don't cut myself while walking."
   members: true
   icon: Spiked manacles.png
   value: 2500
@@ -15,6 +15,8 @@ osrs:
   equipment:
     slot: feet
     weight: 3
+    requirements:
+      defence: 1
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,52 +34,64 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Medium
-        drop_rate: 1/1,133
-        description: Rare reward from medium clue scrolls
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 1/1133
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  about: "Spiked manacles are medium clue feet slot armour with no requirements that tie aranea boots for the best strength bonus among unrestricted footwear, matching dragon boots without the 60 Defence requirement."
+  market_strategy:
+    notes:
+      - Best-in-slot strength boots for 1-Defence pures
+      - Medium clue exclusive with consistent demand from the pure community
+      - No alternative matches the strength bonus without a Defence requirement
+      - Price tracks pure PvP meta demand
+  trading_tips:
+    - Pair with other no-requirement strength gear
+    - Medium clues complete fast, keeping supply steady
+  history:
+    - date: "2019-04-11"
+      description: Released as part of the Treasure Trails Expansion.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-04-11"
+    update: Treasure Trails Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   related_items:
     - item_id: 11840
       item_name: Dragon boots
       slug: dragon-boots
       relationship: alternative
-      description: Best melee boots for mains (+4 str, requires 60 Defence)
+      description: Same strength bonus with 60 Defence req
     - item_id: 13239
       item_name: Primordial boots
       slug: primordial-boots
       relationship: upgrade
-      description: Best-in-slot melee boots (+5 str, requires 75 Defence)
+      description: Best-in-slot melee boots (+5 str, 75 Defence)
     - item_id: 4131
       item_name: Rune boots
       slug: rune-boots
       relationship: alternative
-      description: Alternative boots for pures (+2 str, no requirements)
-  about: |-
-    > *"Some very spikey metal bands, better make sure I don't cut myself while walking."*
-
-    | Property | Spiked Manacles | Rune Boots | Dragon Boots | Primordial Boots |
-    |----------|----------------|------------|--------------|-----------------|
-    | Melee Strength | +4 | +2 | +4 | +5 |
-    | Defence Req | None | None | 60 | 75 |
-    | Magic Attack | -3 | 0 | 0 | 0 |
-    | Magic Defence | -4 | 0 | 0 | 0 |
-    | Source | Medium clue | Nechryael | Spiritual mages | Dragon boots + Primordial crystal |
-
-    Spiked manacles match dragon boots in strength bonus while having no Defence requirement, making them essential for pure builds. The trade-off is negative magic attack and defence bonuses and zero defensive stats.
-  market_strategy:
-    title: Investment Notes
-    notes:
-      - Best-in-slot strength boots for 1-Defence pures
-      - Medium clue exclusive with consistent demand from pure community
-      - No alternative provides the same strength bonus without Defence requirements
-      - Essential purchase for any melee pure build
-      - Price is driven by pure PvP meta demand
-      - Consider pairing with other no-requirement strength gear
-      - Medium clues are relatively fast to complete, keeping supply steady
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: No requirement alternative (+2 str)
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

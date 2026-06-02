@@ -12,9 +12,53 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: 15000
-  about: "Blighted ancient ice sack is a members-only item in Old School RuneScape. High alchemy value: 21 coins. Grand Exchange buy limit: 15,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Justine's stuff for the Last Shopper Standing
+      location: Ferox Enclave
+      currency: Last Man Standing point
+      price: 1
+    - shop_name: Soul Wars Reward Shop
+      location: Edgeville
+      currency: Zeal Token
+      price: 10
+  drop_table:
+    sources:
+      - source: Chaos Elemental
+        quantity: "1-10"
+        rarity: 1/11
+      - source: Revenant
+        quantity: "1-10"
+        rarity: 1/24
+  related_items: []
+  about: "Blighted ancient ice sack lets the Ancient Magicks user cast any ice spell without runes in PvP areas like the Wilderness and Soul Wars."
+  market_strategy:
+    notes:
+      - PvP supply driven by Wilderness drops
+      - Demand swings with PvP events
+  trading_tips:
+    - Bulk buy before Wilderness updates
+    - Compare to barrage cast cost per kill
+  history:
+    - date: "2020-04-23"
+      description: Released alongside the Bounty Hunter Returns update, replacing the prior single-spell sack.
+    - date: "2024-11-01"
+      description: Use locations expanded to include Ferox Enclave and Mage Arena bank.
+  properties:
+    release_date: "2020-04-23"
+    update: Bounty Hunter Returns
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

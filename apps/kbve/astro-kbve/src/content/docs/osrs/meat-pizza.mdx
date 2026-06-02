@@ -12,9 +12,96 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 10000
-  about: "Meat pizza is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: low
+  food:
+    heals: 16
+    bites: 2
+    bite_heal: 8
+    consume_ticks: 2
+  recipes:
+    - skill: cooking
+      level: 45
+      xp: 26
+      materials:
+        - item_name: Plain pizza
+          item_id: 2289
+          quantity: 1
+        - item_name: Cooked meat
+          item_id: 2142
+          quantity: 1
+      product: Meat pizza
+      product_id: 2293
+      product_quantity: 1
+      notes: Cooked chicken substitutes for cooked meat with identical results.
+    - skill: cooking
+      level: 45
+      xp: 26
+      materials:
+        - item_name: Plain pizza
+          item_id: 2289
+          quantity: 1
+        - item_name: Cooked chicken
+          item_id: 2140
+          quantity: 1
+      product: Meat pizza
+      product_id: 2293
+      product_quantity: 1
+  related_items:
+    - item_id: 2289
+      item_name: Plain pizza
+      slug: plain-pizza
+      relationship: component
+      description: Base pizza topped to make a meat pizza.
+    - item_id: 2295
+      item_name: 1/2 meat pizza
+      slug: half-meat-pizza
+      relationship: variant
+      description: Half-eaten remnant after the first bite.
+    - item_id: 2297
+      item_name: Anchovy pizza
+      slug: anchovy-pizza
+      relationship: alternative
+      description: Same cooking tree, lower healing tier.
+    - item_id: 2301
+      item_name: Pineapple pizza
+      slug: pineapple-pizza
+      relationship: upgrade
+      description: Higher-tier pizza built from the same plain base.
+  about: "Meat pizza is a free-to-play two-bite food made at 45 Cooking from a plain pizza topped with cooked meat or chicken, healing 16 hitpoints total."
+  market_strategy:
+    notes:
+      - Supply comes from F2P cooks topping plain pizzas at 45 Cooking.
+      - Buy limit of 10,000 per 4 hours supports bulk midgame food flipping.
+      - Demand stays niche compared to monkfish or sharks since pineapple pizza dominates the line.
+  trading_tips:
+    - Watch plain pizza and cooked meat spreads to time profitable cook-ups.
+    - Stack against pineapple pizza margins before committing to bulk pizza production.
+  history:
+    - date: "2001-06-11"
+      description: Added with the new fishing skill and more cooking update.
+    - date: "2014-12-15"
+      description: Pizza halves became recombinable into a full pizza again.
+    - date: "2015-02-09"
+      description: Half-eaten pizzas became untradeable on the Grand Exchange.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-06-11"
+    update: New fishing skill and more cooking
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.9
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

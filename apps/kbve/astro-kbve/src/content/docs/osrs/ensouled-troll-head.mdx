@@ -5,7 +5,7 @@ osrs:
   id: 13484
   name: Ensouled troll head
   slug: ensouled-troll-head
-  examine: The creature's soul is still in here.
+  examine: "The creature's soul is still in here. I could reanimate it with Adept Reanimation."
   members: true
   icon: Ensouled troll head.png
   value: 384
@@ -14,25 +14,34 @@ osrs:
   limit: 7500
   material:
     type: ensouled_head
-    tier: adept
+    tier: mid
   prayer:
     xp_reanimate: 780
     magic_level: 41
     spell: Adept Reanimation
   drop_table:
     sources:
-      - source: Troll
-        source_id: 1106
-        combat_level: 75
+      - source: Ice troll grunt
         quantity: "1"
-        rarity: uncommon
-        members_only: true
+        rarity: "1/20"
+      - source: Ice troll runt
+        quantity: "1"
+        rarity: "1/20"
+      - source: Ice troll male
+        quantity: "1"
+        rarity: "1/20"
+      - source: Ice troll female
+        quantity: "1"
+        rarity: "1/20"
       - source: Mountain troll
-        source_id: 937
-        combat_level: 69
         quantity: "1"
-        rarity: uncommon
-        members_only: true
+        rarity: "1/45"
+      - source: Troll (general)
+        quantity: "1"
+        rarity: "1/45"
+      - source: Fremennik salvage activity
+        quantity: "1"
+        rarity: "50/2670"
   related_items:
     - item_id: 13475
       item_name: Ensouled giant head
@@ -49,19 +58,35 @@ osrs:
       slug: ensouled-demon-head
       relationship: upgrade
       description: Higher XP (1,170)
-  about: |-
-    1. Cast Adept Reanimation spell on the head
-    2. Kill the reanimated creature
-    3. Receive Prayer XP
+  about: "Cast Adept Reanimation (41 Magic) on the head, then kill the reanimated troll for 780 Prayer XP; sourced from troll Slayer tasks."
   market_strategy:
     notes:
-      - Decent Prayer XP
-      - Medium supply from Slayer
-      - Troll tasks provide supply
-      - Compare GP/XP to alternatives
-      - Mid-level Prayer training
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Mid-tier Prayer training option
+      - Troll Slayer tasks keep supply steady
+      - Compare GP/XP vs dragon and bigger heads
+  history:
+    - date: "2022-03-30"
+      update: Guardians of the Rift Improvements
+      description: Ensouled heads can now drop in instanced areas.
+    - date: "2016-01-07"
+      update: "Zeah: Great Kourend"
+      description: Added with the Arceuus reanimation spellbook.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-01-07"
+    update: "Zeah: Great Kourend"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    quest_item: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

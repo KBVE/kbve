@@ -12,9 +12,85 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: 10
-  about: "Morrigan's leather chaps is a members-only item in Old School RuneScape. High alchemy value: 300,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: leather
+    tier: high
+  equipment:
+    slot: legs
+    weight: 5.443
+    requirements:
+      defence: 78
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: 23
+    defence_bonus:
+      stab: 18
+      slash: 15
+      crush: 20
+      magic: 46
+      ranged: 22
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 6
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Morrigan's leather body
+      slug: morrigan-s-leather-body
+      relationship: set-piece
+      description: Body slot of the Morrigan's ranged set
+    - item_name: Morrigan's coif
+      slug: morrigan-s-coif
+      relationship: set-piece
+      description: Head slot of the Morrigan's ranged set
+    - item_name: Karil's leathertop
+      slug: karil-s-leathertop
+      relationship: alternative
+      description: Comparable ranged armour from Barrows
+  about: "Morrigan's leather chaps are powerful PvP-focused ranged leg armour requiring 78 Defence, obtained as a Bounty Hunter reward."
+  market_strategy:
+    notes:
+      - Supply driven by Bounty Hunter rewards
+      - High value PvP gear with niche demand
+      - "Buy limit: 10 per 4 hours"
+      - Price sensitive to Bounty Hunter meta changes
+  trading_tips:
+    - Monitor Bounty Hunter update notes for supply shifts
+    - Consider charges and degradation before reselling
+  history:
+    - date: "2026-03-25"
+      description: Bounty Hunter rewards can now be used within the TzHaar Fight Pit and both the player-owned house and Clan Hall combat rings.
+    - date: "2025-01-29"
+      description: Defence bonuses reduced across stab, slash, crush, and ranged slots.
+    - date: "2024-09-11"
+      description: Made usable in Castle Wars, Clan Wars, and Soul Wars.
+    - date: "2023-05-04"
+      description: Ranged strength bonus increased from 0 to 6.
+    - date: "2023-05-24"
+      description: Re-released with the relaunch of Bounty Hunter.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-05-24"
+    update: "Bounty Hunter is Back!"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Uncharge
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

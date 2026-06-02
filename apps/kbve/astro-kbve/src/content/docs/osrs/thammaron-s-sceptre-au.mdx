@@ -12,9 +12,82 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 8
-  about: "Thammaron's sceptre (au) is a members-only item in Old School RuneScape. High alchemy value: 72,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: staff
+    attack_speed: 5
+    weight: 1.814
+    requirements:
+      magic: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 15
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 20
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  charges:
+    material: Revenant ether
+    initial_activation: 1000
+    max_charges: 17000
+    hourly_usage: 1200
+  about: "Thammaron's sceptre (au) is the autocasting variant that lets players cast standard spellbook and Ancient Magicks offensive spells, and grants a 50% magic accuracy and damage boost against NPCs in the Wilderness while charged with revenant ether."
+  market_strategy:
+    notes:
+      - Wilderness-focused magic weapon for revenant hunting and PvM
+      - Initial activation requires 1000 revenant ether
+      - Effect stacks with Slayer helmet (i) and Salve amulet variants
+      - Swap option toggles between sceptre and autocast forms
+  history:
+    - date: "2023-02-08"
+      description: Released as part of the Wilderness Boss rework alongside revenant rework updates.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-02-08"
+    update: Wilderness Boss Rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Swap
+      - Uncharge
+    worn_options:
+      - Swap
+      - Uncharge
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_id: 27787
+      item_name: Thammaron's sceptre
+      slug: thammaron-s-sceptre
+      relationship: variant
+      description: Powered staff form
+    - item_id: 21796
+      item_name: Revenant ether
+      slug: revenant-ether
+      relationship: component
+      description: Required charging material
+    - item_id: 11791
+      item_name: Staff of the dead
+      slug: staff-of-the-dead
+      relationship: alternative
+      description: Alternative magic staff
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -9,12 +9,69 @@ osrs:
   members: true
   icon: Ankou socks.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 4
-  about: "Ankou socks is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: feet
+    weight: 0.5
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_id: 20104
+      item_name: Ankou mask
+      slug: ankou-mask
+      relationship: set-piece
+      description: Ankou outfit head piece
+    - item_id: 20110
+      item_name: Ankou's leggings
+      slug: ankou-leggings
+      relationship: set-piece
+      description: Ankou outfit legs piece
+    - item_id: 20113
+      item_name: Ankou top
+      slug: ankou-top
+      relationship: set-piece
+      description: Ankou outfit body piece
+    - item_id: 20116
+      item_name: Ankou gloves
+      slug: ankou-gloves
+      relationship: set-piece
+      description: Ankou outfit gloves piece
+  about: "Cosmetic feet slot socks from the Ankou outfit, obtained as a rare reward from Master clue caskets and storable in a costume room."
+  market_strategy:
+    notes:
+      - Master clue scroll cosmetic reward at 1/12,765 per casket
+      - Demand driven by collection log slots and costume room storage
+      - Low daily volume of around 44 units with a 4 per 4 hour buy limit
+  trading_tips:
+    - Buy from clue grinders flipping uncommon set pieces
+    - Pair with the full Ankou set for a higher resale margin
+  history:
+    - date: "2016-07-06"
+      description: Added to the game as a Master clue scroll reward in the Treasure Trail Expansion update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,80 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 4
-  about: "Blue headband is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: cosmetic
+  equipment:
+    slot: head
+    weight: 0.04
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_name: Red headband
+      slug: red-headband
+      relationship: variant
+      description: Alternative colour variant
+    - item_name: Brown headband
+      slug: brown-headband
+      relationship: variant
+      description: Alternative colour variant
+    - item_name: Black headband
+      slug: black-headband
+      relationship: variant
+      description: Alternative colour variant
+  about: The blue headband is a cosmetic head-slot item obtained from easy Treasure Trail rewards, offering no combat bonuses but a distinctive minimalist look.
+  market_strategy:
+    notes:
+      - Cosmetic-only with low supply from clue scrolls
+      - "Buy limit: 4 per 4 hours"
+      - Price floats with fashionscape demand
+  trading_tips:
+    - Treat as a flip target rather than a daily trade
+    - Watch for clue meta updates that change supply
+  history:
+    - date: "2014-06-12"
+      description: Blue headband released with the Treasure Trail Expansion update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.04
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

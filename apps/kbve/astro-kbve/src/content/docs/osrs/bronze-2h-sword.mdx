@@ -12,28 +12,44 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 125
+  about: "Bronze 2h sword is the weakest two-handed sword in OSRS, smithable at level 14 Smithing from 3 bronze bars."
+  material:
+    type: Bronze
+    tier: low
   equipment:
     slot: 2h
-    type: two-handed sword
-    tradeable: true
+    weapon_type: two_handed_sword
+    attack_speed: 7
     weight: 3.628
     requirements:
       attack: 1
-    stats:
-      attack_stab: -4
-      attack_slash: 9
-      attack_crush: 8
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
+    attack_bonus:
+      stab: -4
+      slash: 9
+      crush: 8
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -1
+    other_bonus:
       strength: 10
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  recipes:
+    - skill: Smithing
+      level: 14
+      xp: 37.5
+      materials:
+        - item_name: Bronze bar
+          quantity: 3
+      tools:
+        - Hammer
+        - Anvil
   related_items:
     - item_id: 1309
       item_name: Iron 2h sword
@@ -45,8 +61,34 @@ osrs:
       slug: bronze-longsword
       relationship: alternative
       description: One-handed alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  properties:
+    release_date: "2001-01-04"
+    update: "RuneScape Launch"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  market_strategy:
+    notes:
+      - "High daily volume (~6,607) makes flips fast at thin margins."
+      - "GE price ~134 gp vs 48 gp high alch; never alch."
+  trading_tips:
+    - "Cheap Smithing XP source at level 14 (37.5 xp per sword)."
+    - "Free strength bonus +10 makes it a budget low-level training weapon."
+  history:
+    - date: "2001-01-04"
+      description: "Released with the launch of RuneScape Classic."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

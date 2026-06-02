@@ -12,9 +12,103 @@ osrs:
   lowalch: 5000
   highalch: 7500
   limit: 8
-  about: "Gilded boots is a members-only item in Old School RuneScape. High alchemy value: 7,500 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: gilded armour
+    tier: rune
+  equipment:
+    slot: feet
+    weight: 1.36
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 12
+      slash: 13
+      crush: 14
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 2
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Elite Treasure Trails
+        quantity: "1"
+        rarity: 1/14662.5
+      - source: Master Treasure Trails
+        quantity: "1"
+        rarity: 1/13616
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+      - master
+  related_items:
+    - item_id: 4131
+      item_name: Rune boots
+      slug: rune-boots
+      relationship: variant
+      description: Standard rune boots with identical combat stats.
+    - item_id: 3486
+      item_name: Gilded full helm
+      slug: gilded-full-helm
+      relationship: set-piece
+      description: Head slot of the gilded armour set.
+    - item_id: 3481
+      item_name: Gilded platebody
+      slug: gilded-platebody
+      relationship: set-piece
+      description: Body slot of the gilded armour set.
+    - item_id: 3483
+      item_name: Gilded platelegs
+      slug: gilded-platelegs
+      relationship: set-piece
+      description: Leg slot of the gilded armour set.
+    - item_id: 3488
+      item_name: Gilded kiteshield
+      slug: gilded-kiteshield
+      relationship: set-piece
+      description: Shield slot of the gilded armour set.
+  about: "Gilded boots are a cosmetic feet-slot reward from Elite and Master clue scrolls that share rune boot stats but require 40 Defence to wear."
+  market_strategy:
+    notes:
+      - Price driven by fashionscape demand rather than combat utility.
+      - Drop rates are extremely rare so supply growth is slow.
+      - Buy limit of 8 keeps the market thin and price-volatile.
+      - Storeable in costume room treasure chest once the matching clue interface is opened.
+  trading_tips:
+    - Track Elite and Master clue meta changes for supply pressure.
+    - Compare against other gilded set pieces for fashionscape rotation value.
+    - Avoid panic selling during short-lived clue scroll events.
+  history:
+    - date: "2014-06-12"
+      description: Added to the game as an Elite and Master clue scroll reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

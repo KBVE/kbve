@@ -12,9 +12,70 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 2000
-  about: "Defence mix(2) is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 2
+    effects:
+      - description: "Boosts Defence level by 3 + floor(Defence level / 10) — up to +12 at 90+."
+      - description: "Heals 6 Hitpoints per dose consumed."
+  recipes:
+    - skill: herblore
+      level: 33
+      xp: 25
+      materials:
+        - item_name: Defence potion(2)
+          item_id: 135
+          quantity: 1
+        - item_name: Caviar
+          item_id: 11326
+          quantity: 1
+      tools:
+        - Otto Godblessed (Barbarian Herblore)
+      product: Defence mix(2)
+      product_id: 11457
+  related_items:
+    - item_id: 11458
+      item_name: Defence mix(1)
+      slug: defence-mix-1
+      relationship: variant
+      description: Single-dose variant
+    - item_id: 135
+      item_name: Defence potion(2)
+      slug: defence-potion-2
+      relationship: component
+      description: Base potion before adding caviar
+    - item_id: 11326
+      item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: Fish ingredient added via Barbarian Herblore
+  about: "Two-dose Barbarian Herblore Defence mix — boosts Defence and heals 6 HP per sip; made at 33 Herblore for 25 XP after unlocking Barbarian training."
+  market_strategy:
+    notes:
+      - Barbarian Herblore niche product
+      - Low GE volume — slow flip
+      - Healing-on-sip useful for combat skillers
+  history:
+    - date: "2007-07-03"
+      update: Barbarian Training
+      description: Released alongside the Barbarian Herblore training unlock from Otto Godblessed.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-07-03"
+    update: Barbarian Training
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 0.075
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    quest_item: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
