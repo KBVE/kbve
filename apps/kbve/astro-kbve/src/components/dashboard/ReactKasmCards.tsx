@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { kasmService, KasmState, type KasmInfo } from './kasmService';
 import { vmService } from './vmService';
@@ -14,6 +14,7 @@ import {
 	MessageCircle,
 	Globe,
 	Activity,
+	ExternalLink,
 } from 'lucide-react';
 
 type BundledApp = 'discord' | 'cloakbrowser';
@@ -125,6 +126,86 @@ function formatRange(req?: string, lim?: string): string | null {
 	if (!req && !lim) return null;
 	if (req && lim && req !== lim) return `${req} → ${lim}`;
 	return lim ?? req ?? '';
+}
+
+function UrlLauncherRow({
+	workspaceName,
+	disabled,
+}: {
+	workspaceName: string;
+	disabled: boolean;
+}) {
+	const token = useStore(vmService.$accessToken);
+	const actionInProgress = useStore(kasmService.$actionInProgress);
+	const [url, setUrl] = useState('');
+	const launching =
+		actionInProgress === `launch-url:${workspaceName}` || disabled;
+
+	const submit = (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!token || !url.trim()) return;
+		kasmService.launchUrl(token, workspaceName, url.trim());
+	};
+
+	return (
+		<form
+			onSubmit={submit}
+			style={{
+				display: 'flex',
+				gap: '0.4rem',
+				alignItems: 'center',
+				background: 'rgba(167, 139, 250, 0.06)',
+				border: '1px solid rgba(167, 139, 250, 0.18)',
+				borderRadius: '8px',
+				padding: '0.4rem 0.5rem',
+			}}>
+			<ExternalLink
+				size={14}
+				style={{ color: '#a78bfa', flexShrink: 0 }}
+			/>
+			<input
+				type="url"
+				value={url}
+				onChange={(e) => setUrl(e.target.value)}
+				placeholder="https://example.com"
+				disabled={launching}
+				maxLength={2048}
+				required
+				style={{
+					flex: 1,
+					background: 'rgba(0, 0, 0, 0.25)',
+					border: '1px solid rgba(255,255,255,0.08)',
+					borderRadius: '4px',
+					padding: '0.25rem 0.5rem',
+					color: 'var(--sl-color-text, #e6edf3)',
+					fontSize: '0.78rem',
+					outline: 'none',
+				}}
+			/>
+			<button
+				type="submit"
+				disabled={launching || !url.trim()}
+				style={{
+					display: 'inline-flex',
+					alignItems: 'center',
+					gap: '0.25rem',
+					padding: '0.25rem 0.65rem',
+					background: '#a78bfa22',
+					border: '1px solid #a78bfa55',
+					borderRadius: '4px',
+					color: '#a78bfa',
+					fontSize: '0.75rem',
+					cursor: launching ? 'wait' : 'pointer',
+				}}>
+				{launching ? (
+					<Loader2 size={12} className="animate-spin" />
+				) : (
+					<ExternalLink size={12} />
+				)}
+				Open
+			</button>
+		</form>
+	);
 }
 
 function KasmCard({ info }: { info: KasmInfo }) {
@@ -333,6 +414,13 @@ function KasmCard({ info }: { info: KasmInfo }) {
 						discord launches
 					</span>
 				</div>
+			)}
+
+			{canConnect && imageMeta.bundledApps.includes('cloakbrowser') && (
+				<UrlLauncherRow
+					workspaceName={workspace.name}
+					disabled={isActing}
+				/>
 			)}
 
 			{/* Actions */}

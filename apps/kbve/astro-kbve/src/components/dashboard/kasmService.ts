@@ -430,6 +430,67 @@ class KasmService {
 	public async stopWorkspace(token: string, name: string): Promise<void> {
 		await this.scaleWorkspace(token, name, 0);
 	}
+
+	public async launchUrl(
+		token: string,
+		name: string,
+		url: string,
+	): Promise<void> {
+		const trimmed = url.trim();
+		if (!trimmed) {
+			this.$lastAction.set({
+				name,
+				ok: false,
+				message: 'URL is empty',
+			});
+			return;
+		}
+		this.$actionInProgress.set(`launch-url:${name}`);
+		this.$lastAction.set({
+			name,
+			ok: true,
+			message: `Opening ${trimmed.slice(0, 60)}…`,
+		});
+		try {
+			const resp = await fetch(`/dashboard/kasm/launch-url/${name}`, {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ url: trimmed }),
+				signal: AbortSignal.timeout(15000),
+			});
+			if (!resp.ok) {
+				const text = await resp.text().catch(() => '');
+				throw new Error(
+					`Launch failed ${resp.status}: ${text.slice(0, 200)}`,
+				);
+			}
+			this.$lastAction.set({
+				name,
+				ok: true,
+				message: `Browser navigated to ${trimmed.slice(0, 60)}…`,
+			});
+			setTimeout(() => {
+				if (this.$lastAction.get()?.name === name) {
+					this.$lastAction.set(null);
+				}
+			}, 5000);
+		} catch (e) {
+			const msg =
+				e instanceof Error ? e.message : `Failed to launch ${name}`;
+			this.$error.set(msg);
+			this.$lastAction.set({ name, ok: false, message: msg });
+			setTimeout(() => {
+				if (this.$lastAction.get()?.name === name) {
+					this.$lastAction.set(null);
+				}
+			}, 8000);
+		} finally {
+			this.$actionInProgress.set(null);
+		}
+	}
 }
 
 export const kasmService = new KasmService();
