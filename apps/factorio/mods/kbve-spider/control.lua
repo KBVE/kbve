@@ -524,121 +524,109 @@ local FOLLOW_RADIUS_SQ = 128 * 128   -- keep tracking up to ~128 tiles away
 local FOLLOW_REST_DIST_SQ = 6 * 6    -- ally orbits within 6 tiles — pack-like, not heel-clinging
 local FOLLOW_DESTINATION_RADIUS = 5  -- ally settles within 5 tiles of owner
 
--- Iterates `storage.allies` (maintained at hatch + death + on_init/
--- on_configuration_changed rebuild) instead of calling
--- `surface.find_entities_filtered{name = SPIDER_ALLY}` per surface every
--- second. Entity lookups are O(1) via `game.get_entity_by_unit_number`.
--- The per-tick player→surface bucket is built lazily — only when an ally
--- has no recorded owner — so the common case (everyone has a live
--- placer) skips the connected-players scan entirely.
+-- Scans live allies per-surface every tick. The previous registry-driven
+-- path used game.get_entity_by_unit_number(stored_unit_number) for O(1)
+-- lookups, but in 2.0 that method returns nil for kbve-spider-ally
+-- entities even though surface.find_entities_filtered{name=SPIDER_ALLY}
+-- finds them at the exact same tick — so the registry self-prune wiped
+-- every entry and the follow loop's outer guard skipped the loop. We
+-- now drive the loop off the live scan; the registry stays for migration
+-- + nametag tracking but isn't load-bearing for follow.
 local function follow_loop()
-	local allies = storage.allies
-	if not allies or next(allies) == nil then return end
+	local active = active_surface_indices()
+	if not active then return end
 
 	local owners = storage.ally_owners or {}
 	local players_by_surface = nil
 
-	for unit_number, _ in pairs(allies) do
-		local ally = game.get_entity_by_unit_number(unit_number)
-		if not (ally and ally.valid) then
-			allies[unit_number] = nil
-		else
-			local owner = nil
-			local owner_idx = owners[unit_number]
-			if owner_idx then
-				local p = game.players[owner_idx]
-				if p and p.valid and p.connected and p.surface_index == ally.surface_index then
-					owner = p
-				end
-			end
-			if not owner then
-				if players_by_surface == nil then
-					players_by_surface = {}
-					for _, p in pairs(game.connected_players) do
-						if p.valid then
-							local si = p.surface_index
-							local bucket = players_by_surface[si]
-							if not bucket then
-								bucket = {}
-								players_by_surface[si] = bucket
-							end
-							bucket[#bucket + 1] = p
+	for _, surface in pairs(game.surfaces) do
+		if active[surface.index] then
+			local allies = surface.find_entities_filtered{ name = SPIDER_ALLY }
+			for i = 1, #allies do
+				local ally = allies[i]
+				if ally.valid then
+					local owner = nil
+					local owner_idx = owners[ally.unit_number]
+					if owner_idx then
+						local p = game.players[owner_idx]
+						if p and p.valid and p.connected and p.surface_index == ally.surface_index then
+							owner = p
 						end
 					end
-				end
-				local bucket = players_by_surface[ally.surface_index]
-				if bucket then
-					local nearest, nearest_d = nil, math.huge
-					local apos = ally.position
-					local ax, ay = apos.x, apos.y
-					local force = ally.force
-					for i = 1, #bucket do
-						local p = bucket[i]
-						if p.force == force then
-							local ppos = p.position
-							local dx = ppos.x - ax
-							local dy = ppos.y - ay
-							local d = dx * dx + dy * dy
-							if d < nearest_d then
-								nearest_d = d
-								nearest = p
+					if not owner then
+						if players_by_surface == nil then
+							players_by_surface = {}
+							for _, p in pairs(game.connected_players) do
+								if p.valid then
+									local si = p.surface_index
+									local bucket = players_by_surface[si]
+									if not bucket then
+										bucket = {}
+										players_by_surface[si] = bucket
+									end
+									bucket[#bucket + 1] = p
+								end
 							end
 						end
+						local bucket = players_by_surface[ally.surface_index]
+						if bucket then
+							local nearest, nearest_d = nil, math.huge
+							local apos = ally.position
+							local ax, ay = apos.x, apos.y
+							local force = ally.force
+							for j = 1, #bucket do
+								local p = bucket[j]
+								if p.force == force then
+									local ppos = p.position
+									local dx = ppos.x - ax
+									local dy = ppos.y - ay
+									local d = dx * dx + dy * dy
+									if d < nearest_d then
+										nearest_d = d
+										nearest = p
+									end
+								end
+							end
+							owner = nearest
+						end
 					end
-					owner = nearest
-				end
-			end
-			if owner then
-				local opos = owner.position
-				local apos = ally.position
-				local dx = opos.x - apos.x
-				local dy = opos.y - apos.y
-				local d2 = dx * dx + dy * dy
-				if d2 < FOLLOW_RADIUS_SQ then
-					pcall(function()
-						if d2 > FOLLOW_REST_DIST_SQ then
-							-- Pass `destination_entity` instead of a static
-							-- `destination` so Factorio's unit AI tracks the
-							-- player as they move. A plain MapPosition makes
-							-- this a one-shot move command — the unit arrives,
-							-- the command completes, and the ally idles even
-							-- though we re-issue every second (each re-issue is
-							-- a *new* one-shot to a stale spot). The character
-							-- entity is the player's body; LuaPlayer.character
-							-- is nil for spectators / editor mode, in which
-							-- case we fall back to a static destination so the
-							-- ally at least catches up to the cursor.
+					if owner then
+						local opos = owner.position
+						local apos = ally.position
+						local dx = opos.x - apos.x
+						local dy = opos.y - apos.y
+						local d2 = dx * dx + dy * dy
+						if d2 < FOLLOW_RADIUS_SQ then
 							local commandable = ally.commandable
 							if commandable then
-								local target_entity = owner.character
-								if target_entity and target_entity.valid then
+								if d2 > FOLLOW_REST_DIST_SQ then
+									local target_entity = owner.character
+									if target_entity and target_entity.valid then
+										commandable.set_command{
+											type = defines.command.go_to_location,
+											destination_entity = target_entity,
+											distraction = defines.distraction.by_enemy,
+											radius = FOLLOW_DESTINATION_RADIUS,
+										}
+									else
+										commandable.set_command{
+											type = defines.command.go_to_location,
+											destination = { x = opos.x, y = opos.y },
+											distraction = defines.distraction.by_enemy,
+											radius = FOLLOW_DESTINATION_RADIUS,
+										}
+									end
+								elseif not commandable.has_command then
 									commandable.set_command{
-										type = defines.command.go_to_location,
-										destination_entity = target_entity,
+										type = defines.command.wander,
+										ticks_to_wait = 240,
+										wander_in_group = false,
 										distraction = defines.distraction.by_enemy,
-										radius = FOLLOW_DESTINATION_RADIUS,
-									}
-								else
-									commandable.set_command{
-										type = defines.command.go_to_location,
-										destination = { x = opos.x, y = opos.y },
-										distraction = defines.distraction.by_enemy,
-										radius = FOLLOW_DESTINATION_RADIUS,
 									}
 								end
 							end
-						else
-							local commandable = ally.commandable
-							if commandable and not commandable.has_command then
-								commandable.set_command{
-									type = defines.command.wander,
-									ticks_to_wait = 240,
-									wander_in_group = false,
-									distraction = defines.distraction.by_enemy,
-								}
-							end
 						end
-					end)
+					end
 				end
 			end
 		end
@@ -652,11 +640,10 @@ end
 -- inside one function keeps the behavior + saves the overhead of a second
 -- per-tick dispatch.
 script.on_nth_tick(FOLLOW_TICK_INTERVAL, function(event)
-	local has_eggs = storage.pending_eggs and next(storage.pending_eggs) ~= nil
-	local has_allies = storage.allies and next(storage.allies) ~= nil
-	if not (has_eggs or has_allies) then return end
-	if has_eggs then hatch_sweep(event.tick) end
-	if has_allies then follow_loop() end
+	if storage.pending_eggs and next(storage.pending_eggs) ~= nil then
+		hatch_sweep(event.tick)
+	end
+	follow_loop()
 end)
 
 -- Build a set of surface indices that have at least one connected player.
