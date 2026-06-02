@@ -85,6 +85,14 @@
 			},
 			"cache": true
 		},
+		"test:unit": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"command": "vitest run --config vitest.unit-jsdom.config.ts"
+			},
+			"cache": true
+		},
 		"e2e": {
 			"executor": "nx:run-commands",
 			"dependsOn": ["build"],
