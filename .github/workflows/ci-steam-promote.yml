@@ -115,7 +115,15 @@ jobs:
                     DESC="$DESC ($APP_LABEL)"
                   fi
 
-                  echo "::notice::Setting app=$APP_ID build=$BUILD_ID live on branch=$TO_BRANCH"
+                  # Steam's public/default branch has no betakey of its own —
+                  # the API expects an empty string. `default` / `public` are
+                  # operator-friendly synonyms; both map to empty here.
+                  BETAKEY="$TO_BRANCH"
+                  if [ "$BETAKEY" = "default" ] || [ "$BETAKEY" = "public" ]; then
+                    BETAKEY=""
+                  fi
+
+                  echo "::notice::Setting app=$APP_ID build=$BUILD_ID live on branch=${BETAKEY:-<default/public>}"
 
                   HTTP_BODY=$(mktemp)
                   HTTP_CODE=$(curl -sS -o "$HTTP_BODY" -w '%{http_code}' \
@@ -123,7 +131,7 @@ jobs:
                     --data-urlencode "key=$STEAM_WEBAPI_KEY" \
                     --data-urlencode "appid=$APP_ID" \
                     --data-urlencode "buildid=$BUILD_ID" \
-                    --data-urlencode "betakey=$TO_BRANCH" \
+                    --data-urlencode "betakey=$BETAKEY" \
                     --data-urlencode "description=$DESC")
 
                   echo "HTTP $HTTP_CODE"
