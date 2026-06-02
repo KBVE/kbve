@@ -83,6 +83,13 @@ metadata:
     labels:
         app: guacamole
         component: guacamole
+    annotations:
+        # Pod runs an init container that renders user-mapping.xml from
+        # this ConfigMap + the admin Secret. Neither edit triggers a
+        # rollout on its own — Reloader rotates the pod whenever either
+        # changes, so RDP param tweaks land without manual rollout.
+        configmap.reloader.stakater.com/reload: 'guacamole-user-mapping'
+        secret.reloader.stakater.com/reload: 'windows-builder-admin'
 spec:
     replicas: 1
     selector:

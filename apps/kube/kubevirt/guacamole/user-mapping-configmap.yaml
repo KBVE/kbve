@@ -1,6 +1,30 @@
 # Guacamole user-mapping.xml — initial auth + RDP connection config.
 # Default password: guacadmin (sha256 hash below). CHANGE after first login.
 # For production, migrate to PostgreSQL backend.
+#
+# RDP param choices (Windows Server builder over WAN through Guacamole):
+#   - color-depth 24       — readable text without saturating the link
+#   - resize-method
+#     display-update       — true resolution change in the guest on browser
+#                            resize / fullscreen toggle; needs guest-agent
+#   - disable-wallpaper /
+#     theming / fwd-drag /
+#     desktop-composition /
+#     menu-animations      — strip expensive repaints; massive bandwidth win
+#                            and unblocks fullscreen mode rendering on slow
+#                            links
+#   - enable-font-smoothing — keep ClearType so MSVC / VS panes stay legible
+#   - bitmap / offscreen /
+#     glyph caching ON     — cuts repaint cost during long build log scroll
+#   - disable-audio        — VM has no audio device, avoids RDP channel error
+#   - enable-printing /
+#     enable-drive false   — no host file passthrough until we explicitly
+#                            wire a redirected drive
+#   - server-layout en-us  — fixes wrong characters on AltGr / dead keys
+#   - console false        — connect to interactive session (so autologon
+#                            takes effect); console=true would land on the
+#                            session 0 lock screen and CAD would target it
+#                            instead of the desktop
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -22,7 +46,22 @@ data:
                     <param name="username">Administrator</param>
                     <param name="security">nla</param>
                     <param name="ignore-cert">true</param>
+                    <param name="console">false</param>
+                    <param name="server-layout">en-us-qwerty</param>
+                    <param name="color-depth">24</param>
                     <param name="resize-method">display-update</param>
+                    <param name="enable-wallpaper">false</param>
+                    <param name="enable-theming">false</param>
+                    <param name="enable-font-smoothing">true</param>
+                    <param name="enable-full-window-drag">false</param>
+                    <param name="enable-desktop-composition">false</param>
+                    <param name="enable-menu-animations">false</param>
+                    <param name="disable-bitmap-caching">false</param>
+                    <param name="disable-offscreen-caching">false</param>
+                    <param name="disable-glyph-caching">false</param>
+                    <param name="disable-audio">true</param>
+                    <param name="enable-printing">false</param>
+                    <param name="enable-drive">false</param>
                 </connection>
             </authorize>
         </user-mapping>
