@@ -398,9 +398,7 @@ clear_nametag = function(unit_number)
 	if not storage.ally_nametags then return end
 	local ro = storage.ally_nametags[unit_number]
 	if ro then
-		pcall(function()
-			if ro.valid then ro.destroy() end
-		end)
+		if ro.valid then ro.destroy() end
 		storage.ally_nametags[unit_number] = nil
 	end
 end
@@ -447,10 +445,8 @@ script.on_event(defines.events.on_robot_built_entity, function(event)
 end, egg_filter)
 
 local function clear_render(info)
-	if info and info.render_id then
-		pcall(function()
-			if info.render_id.valid then info.render_id.destroy() end
-		end)
+	if info and info.render_id and info.render_id.valid then
+		info.render_id.destroy()
 	end
 end
 
