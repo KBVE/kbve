@@ -65,6 +65,21 @@ test.describe('tower defense HUD', () => {
 	});
 });
 
+test.describe('tower defense palette', () => {
+	test('village palette button is reachable and selectable', async ({
+		page,
+	}) => {
+		await startGame(page);
+		const palette = page.locator('.td-palette');
+		await expect(palette).toBeVisible();
+		const village = page.locator('button[data-pal-id="village"]');
+		await expect(village).toHaveCount(1, { timeout: 15_000 });
+		await village.scrollIntoViewIfNeeded();
+		await village.click();
+		await expect(village).toHaveClass(/td-pal-active/);
+	});
+});
+
 test.describe('tower defense input', () => {
 	test('digit keys 1–9 do not throw and stay on the TD route', async ({
 		page,
