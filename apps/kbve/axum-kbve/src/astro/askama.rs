@@ -298,3 +298,75 @@ pub struct ForumCommentPartial {
     /// Sanitized HTML — output of `kbve::markdown::render(..).html`.
     pub body_html: String,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::http::StatusCode;
+
+    #[test]
+    fn health_template_renders_status_and_version() {
+        let template = HealthTemplate {
+            status: "Operational".to_string(),
+            version: "9.9.9".to_string(),
+            uptime_seconds: 123,
+        };
+        let html = template.render().expect("health template must render");
+        assert!(html.contains("Operational"));
+        assert!(html.contains("9.9.9"));
+    }
+
+    #[test]
+    fn error_template_renders_code_and_message() {
+        let template = ErrorTemplate {
+            code: 404,
+            message: "Not Found".to_string(),
+        };
+        let html = template.render().expect("error template must render");
+        assert!(html.contains("404"));
+        assert!(html.contains("Not Found"));
+    }
+
+    #[tokio::test]
+    async fn template_response_serves_html_on_ok() {
+        let resp = TemplateResponse(HealthTemplate {
+            status: "Operational".to_string(),
+            version: "0.0.0".to_string(),
+            uptime_seconds: 0,
+        })
+        .into_response();
+        assert_eq!(resp.status(), StatusCode::OK);
+        let ct = resp
+            .headers()
+            .get(axum::http::header::CONTENT_TYPE)
+            .expect("html response must set content-type")
+            .to_str()
+            .unwrap()
+            .to_string();
+        assert!(ct.starts_with("text/html"), "content-type was {ct}");
+    }
+
+    /// Sad-path: feed the renderer empty / boundary values and confirm
+    /// the template still produces valid HTML without panicking. Askama
+    /// 0.16 catches missing-template paths at compile time, so we test
+    /// the runtime branches that can actually fail in CI.
+    #[test]
+    fn templates_render_with_empty_strings_without_panicking() {
+        let h = HealthTemplate {
+            status: String::new(),
+            version: String::new(),
+            uptime_seconds: 0,
+        };
+        let html = h
+            .render()
+            .expect("HealthTemplate must accept empty strings");
+        assert!(html.contains("html") || html.contains("<"));
+
+        let e = ErrorTemplate {
+            code: 0,
+            message: String::new(),
+        };
+        let html = e.render().expect("ErrorTemplate must accept empty strings");
+        assert!(html.contains("0"));
+    }
+}

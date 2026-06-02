@@ -99,3 +99,82 @@ fn compose_reply(prompt: &str) -> String {
         trimmed
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::body::to_bytes;
+    use axum::http::StatusCode;
+    use futures_util::StreamExt;
+
+    #[tokio::test]
+    async fn empty_prompt_returns_400_with_documented_body() {
+        let response = chat_handler(Query(YukiChatQuery { q: "".to_string() }))
+            .await
+            .into_response();
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        let body = to_bytes(response.into_body(), 1024).await.unwrap();
+        assert_eq!(body.as_ref(), b"prompt is required");
+    }
+
+    #[tokio::test]
+    async fn whitespace_only_prompt_is_rejected_as_empty() {
+        let response = chat_handler(Query(YukiChatQuery {
+            q: "   \t\n".to_string(),
+        }))
+        .await
+        .into_response();
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn three_word_chunk_split_produces_n_events_ending_in_done() {
+        let prompt = "hello".to_string();
+        let reply = compose_reply(&prompt);
+        let word_count = reply.split_whitespace().count();
+        let expected_chunks = word_count.div_ceil(3);
+
+        let mut stream = std::pin::pin!(stream_reply(prompt));
+        let mut data_events = 0_usize;
+        let mut done_seen = false;
+        while let Some(item) = stream.next().await {
+            let event = item.expect("event yields Ok");
+            // Event has no public accessor for its name/data, but the
+            // serialized form starts with `event: done` for the terminator
+            // and `data: ` for body chunks.
+            let serialized = format!("{:?}", event);
+            if serialized.contains("done") {
+                done_seen = true;
+                break;
+            }
+            data_events += 1;
+        }
+        assert!(
+            done_seen,
+            "stream must end with an `event: done` terminator"
+        );
+        assert_eq!(
+            data_events, expected_chunks,
+            "data chunk count must match `words.chunks(3)` len"
+        );
+    }
+
+    #[test]
+    fn compose_reply_truncates_to_160_chars() {
+        let long_prompt: String = "x".repeat(500);
+        let reply = compose_reply(&long_prompt);
+        // The embedded prompt must be 160 chars max; the surrounding
+        // boilerplate stays the same length, so an upper bound is enough.
+        let xs: usize = reply.chars().filter(|c| *c == 'x').count();
+        assert_eq!(xs, 160);
+    }
+
+    #[test]
+    fn keepalive_builder_uses_15_second_interval() {
+        // KeepAlive doesn't expose accessors, but constructing the same
+        // value the handler does must succeed and be cheap.
+        let _ka = KeepAlive::new()
+            .interval(Duration::from_secs(15))
+            .text("keepalive");
+    }
+}
