@@ -1,0 +1,46 @@
+---
+title: 'Reno'
+description: |
+    Sci-fi combat lieutenant. Coordinates the colony's response force when biters breach the wall. Loud, blunt, and effective. Treats every alarm like the last one.
+ref: 'reno'
+id: '01KSAVZ000000000000000RENO'
+name: 'Reno'
+type_flags: 1
+rarity: 'uncommon'
+personality: 'aggressive'
+rank: 'elite'
+family: 'humanoid'
+level: 2
+img: '/assets/npc/reno.png'
+role: 'Combat Lieutenant'
+tags:
+    - kbve-factorio
+    - combat
+stats:
+    hp: 60
+    max_hp: 60
+    attack: 8
+    defense: 3
+    speed: 4
+    armor: 2
+behavior:
+    movement_type: 'patrol'
+    first_strike: true
+dialogue:
+    - trigger: 'greeting'
+      lines:
+        - 'Reno. What is dying today?'
+        - 'Lieutenant on station. Awaiting orders.'
+        - 'Walls hold or we move outward. Your call.'
+    - trigger: 'rally'
+      lines:
+        - 'On me. Tight wedge. Move.'
+        - 'Hold the line — fall back on my mark, not before.'
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Sci-fi combat lieutenant. Coordinates the colony's response force.

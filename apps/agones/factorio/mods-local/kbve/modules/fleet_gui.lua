@@ -72,7 +72,7 @@ local function refresh_fleet_npc(player, line)
 	if not frame then return end
 	local body = frame[BODY_NAME]
 	local panel = body and body[NPC_PANEL_NAME]
-	if panel then render_fleet_npc_panel(panel, Npcs.FLEET_DISPATCHER, line) end
+	if panel then render_fleet_npc_panel(panel, Npcs.KRESS, line) end
 end
 local VEHICLES_TAB = 'kbve_fleet_vehicles'
 local ZONES_TAB = 'kbve_fleet_zones'
@@ -456,9 +456,9 @@ local function sync_unregistered(player)
 		', failed: ', failed,
 	})
 	if synced > 0 then
-		refresh_fleet_npc(player, Npcs.sync_line(Npcs.FLEET_DISPATCHER, player.index + game.tick))
+		refresh_fleet_npc(player, Npcs.sync(Npcs.KRESS, player.index + game.tick))
 	elseif failed > 0 then
-		refresh_fleet_npc(player, Npcs.unregistered_line(Npcs.FLEET_DISPATCHER, player.index + game.tick))
+		refresh_fleet_npc(player, Npcs.unregistered(Npcs.KRESS, player.index + game.tick))
 	end
 end
 
@@ -803,8 +803,8 @@ function FleetGui.show(player)
 	})
 	render_fleet_npc_panel(
 		npc_panel,
-		Npcs.FLEET_DISPATCHER,
-		Npcs.greeting(Npcs.FLEET_DISPATCHER, player.index)
+		Npcs.KRESS,
+		Npcs.greeting(Npcs.KRESS, player.index)
 	)
 
 	local tabbed = body.add({ type = 'tabbed-pane', name = TABBED_NAME })
@@ -1040,7 +1040,7 @@ local function mining_dispatch(player)
 	local unit_ids = units_matching(player, is_miner)
 	local n = FleetMissions.assign_mining(player, unit_ids, zone_name)
 	player.print({ '', 'Mining mission: ', tostring(n), ' miner(s) sent to ', zone_name, '.' })
-	refresh_fleet_npc(player, Npcs.mining_line(Npcs.FLEET_DISPATCHER, player.index + game.tick))
+	refresh_fleet_npc(player, Npcs.mining(Npcs.KRESS, player.index + game.tick))
 end
 
 local function defense_dispatch(player)
@@ -1064,7 +1064,7 @@ local function defense_dispatch(player)
 		FleetState.set_unit_mission(uid, 'defense', zone_name)
 	end
 	player.print({ '', 'Defense mission: ', tostring(n), ' combat unit(s) holding ', zone_name, '.' })
-	refresh_fleet_npc(player, Npcs.defense_line(Npcs.FLEET_DISPATCHER, player.index + game.tick))
+	refresh_fleet_npc(player, Npcs.defense(Npcs.KRESS, player.index + game.tick))
 end
 
 local function combat_dispatch(player)
@@ -1086,7 +1086,7 @@ local function combat_dispatch(player)
 	local unit_ids = units_matching(player, is_combat)
 	local n = FleetMissions.assign_combat(player, unit_ids, { x = x, y = y })
 	player.print({ '', 'Combat strike: ', tostring(n), ' unit(s) en route to (', tostring(x), ',', tostring(y), ').' })
-	refresh_fleet_npc(player, Npcs.combat_line(Npcs.FLEET_DISPATCHER, player.index + game.tick))
+	refresh_fleet_npc(player, Npcs.combat(Npcs.KRESS, player.index + game.tick))
 end
 
 local function set_zone_role_from_dropdown(player, elem, zone_name)
@@ -1256,7 +1256,7 @@ function FleetGui.on_gui_selected_tab_changed(event)
 	if not (elem and elem.valid and elem.name == TABBED_NAME) then return end
 	local player = game.get_player(event.player_index)
 	if not player then return end
-	refresh_fleet_npc(player, Npcs.greeting(Npcs.FLEET_DISPATCHER, player.index + game.tick))
+	refresh_fleet_npc(player, Npcs.greeting(Npcs.KRESS, player.index + game.tick))
 end
 
 function FleetGui.on_player_left(event)

@@ -1,0 +1,52 @@
+---
+title: 'Vex'
+description: |
+    Sci-fi exchange keeper. Operates the trading window of a colony hub: takes coin, hands over crates, watches the queue. Stoic with a sharp tongue when the till runs short.
+ref: 'vex'
+id: '01KSAVZ000000000000000VEXX'
+name: 'Vex'
+type_flags: 1
+rarity: 'uncommon'
+personality: 'cunning'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+img: '/assets/npc/vex.png'
+role: 'Exchange Keeper'
+tags:
+    - kbve-factorio
+    - shopkeeper
+stats:
+    hp: 30
+    max_hp: 30
+    attack: 1
+    defense: 0
+    speed: 3
+    armor: 0
+behavior:
+    movement_type: 'idle'
+    first_strike: false
+dialogue:
+    - trigger: 'greeting'
+      lines:
+        - 'Welcome to the Exchange, engineer. Spend wisely.'
+        - 'Coin moves the factory. What will you trade for?'
+        - 'Need stock? My shelves are deep.'
+        - 'Quality scales with coin, not vice versa.'
+    - trigger: 'buy'
+      lines:
+        - 'A solid pick — back to the line with you.'
+        - 'Pleasure doing business.'
+        - 'Stamped, sealed, yours.'
+    - trigger: 'empty_pocket'
+      lines:
+        - 'Come back when the pockets jingle.'
+        - 'No coin, no deal. Mine more.'
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Sci-fi exchange keeper. Operates the trading window of a colony hub.

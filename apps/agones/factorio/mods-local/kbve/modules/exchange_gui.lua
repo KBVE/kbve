@@ -139,8 +139,8 @@ local function render_vault(content, player)
 end
 
 local function npc_for_tab(tab_index)
-	if tab_index == 2 then return Npcs.VAULT_KEEPER end
-	return Npcs.EXCHANGE_KEEPER
+	if tab_index == 2 then return Npcs.SILA end
+	return Npcs.VEX
 end
 
 function ExchangeGui.show(player)
@@ -164,7 +164,7 @@ function ExchangeGui.show(player)
 		name = NPC_PANEL_NAME,
 		direction = 'vertical',
 	})
-	render_npc_panel(npc_panel, Npcs.EXCHANGE_KEEPER, Npcs.greeting(Npcs.EXCHANGE_KEEPER, player.index))
+	render_npc_panel(npc_panel, Npcs.VEX, Npcs.greeting(Npcs.VEX, player.index))
 
 	local tabbed = body.add({ type = 'tabbed-pane', name = TABBED_NAME })
 
@@ -230,7 +230,7 @@ local function handle_buy(player, index)
 	local balance = Coins.get_balance(player.index)
 	if balance < entry.price then
 		player.print({ '', 'Need ', entry.price, ' coins, balance is ', balance, '.' })
-		refresh_npc(player, Npcs.EXCHANGE_KEEPER, Npcs.empty_pocket_line(Npcs.EXCHANGE_KEEPER, player.index + game.tick))
+		refresh_npc(player, Npcs.VEX, Npcs.empty_pocket(Npcs.VEX, player.index + game.tick))
 		return
 	end
 	local inserted = player.insert({ name = entry.item, count = entry.count })
@@ -241,7 +241,7 @@ local function handle_buy(player, index)
 	local cost = math.ceil(entry.price * inserted / entry.count)
 	Coins.spend(player.index, cost, 'market_purchase')
 	player.print({ '', 'Bought ', inserted, ' x [item=', entry.item, '] for ', cost, ' coins.' })
-	refresh_npc(player, Npcs.EXCHANGE_KEEPER, Npcs.buy_line(Npcs.EXCHANGE_KEEPER, player.index + game.tick))
+	refresh_npc(player, Npcs.VEX, Npcs.buy(Npcs.VEX, player.index + game.tick))
 end
 
 local function handle_slot(player, slot_index, shift)
@@ -321,7 +321,7 @@ function ExchangeGui.on_gui_click(event)
 	if name == DEPOSIT_ALL then
 		deposit_entire_inventory(player)
 		refresh_vault(player)
-		refresh_npc(player, Npcs.VAULT_KEEPER, Npcs.deposit_line(Npcs.VAULT_KEEPER, player.index + game.tick))
+		refresh_npc(player, Npcs.SILA, Npcs.deposit(Npcs.SILA, player.index + game.tick))
 		return
 	end
 

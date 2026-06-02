@@ -40,11 +40,12 @@ table.insert(to_add, {
 	consuming = 'none',
 })
 
-for i = 1, 6 do
+local PORTRAIT_REFS = { 'vex', 'sila', 'kress', 'tann', 'reno', 'mira' }
+for _, ref in ipairs(PORTRAIT_REFS) do
 	table.insert(to_add, {
 		type = 'sprite',
-		name = 'kbve_portrait_' .. i,
-		filename = '__kbve__/graphics/portraits/portrait_' .. i .. '.png',
+		name = 'kbve_portrait_' .. ref,
+		filename = '__kbve__/graphics/portraits/' .. ref .. '.png',
 		width = 640,
 		height = 960,
 		flags = { 'gui-icon' },

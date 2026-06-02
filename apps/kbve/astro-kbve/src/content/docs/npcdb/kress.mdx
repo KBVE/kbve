@@ -1,0 +1,62 @@
+---
+title: 'Kress'
+description: |
+    Sci-fi fleet dispatcher. Runs the colony's autonomous vehicle grid from a console hub — registration, dispatch, retreat orders. Calm voice, fast hands.
+ref: 'kress'
+id: '01KSAVZ00000000000000KRESS'
+name: 'Kress'
+type_flags: 1
+rarity: 'uncommon'
+personality: 'noble'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+img: '/assets/npc/kress.png'
+role: 'Fleet Dispatcher'
+tags:
+    - kbve-factorio
+    - dispatcher
+stats:
+    hp: 30
+    max_hp: 30
+    attack: 1
+    defense: 0
+    speed: 3
+    armor: 0
+behavior:
+    movement_type: 'idle'
+    first_strike: false
+dialogue:
+    - trigger: 'greeting'
+      lines:
+        - 'Fleet ready. Where are we sending them?'
+        - 'Every chassis on the board, captain. Your call.'
+        - 'Wheels lubed, fuel topped, drivers alert.'
+    - trigger: 'mining'
+      lines:
+        - 'Miners en route. They will fan out on arrival.'
+        - 'Drill bits warm. Ore is borrowed time anyway.'
+    - trigger: 'defense'
+      lines:
+        - 'Defenders deployed. They hold or they fall back.'
+        - 'Turrets up. Biters will think twice.'
+    - trigger: 'combat'
+      lines:
+        - 'Strike package away. Make it count.'
+        - 'No survivors at the target. Acknowledged.'
+    - trigger: 'sync'
+      lines:
+        - 'New chassis registered with the grid.'
+        - 'Headcount updated. The roster is clean.'
+    - trigger: 'unregistered'
+      lines:
+        - 'Some vehicles are still off-grid. Run a sync.'
+        - 'I count more cars than transponders. Sync them.'
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Sci-fi fleet dispatcher. Runs the autonomous vehicle grid.

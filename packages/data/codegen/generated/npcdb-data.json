@@ -2420,6 +2420,84 @@
       }
     },
     {
+      "description": "Sci-fi fleet dispatcher. Runs the colony's autonomous vehicle grid from a console hub — registration, dispatch, retreat orders. Calm voice, fast hands.\n",
+      "ref": "kress",
+      "id": "01KSAVZ00000000000000KRESS",
+      "name": "Kress",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_UNCOMMON",
+      "personality": "PERSONALITY_NOBLE",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "humanoid",
+      "level": 1,
+      "img": "/assets/npc/kress.png",
+      "role": "Fleet Dispatcher",
+      "tags": [
+        "kbve-factorio",
+        "dispatcher"
+      ],
+      "stats": {
+        "hp": 30,
+        "maxHp": 30,
+        "attack": 1,
+        "defense": 0,
+        "speed": 3,
+        "armor": 0
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_IDLE",
+        "firstStrike": false
+      },
+      "dialogue": [
+        {
+          "trigger": "greeting",
+          "lines": [
+            "Fleet ready. Where are we sending them?",
+            "Every chassis on the board, captain. Your call.",
+            "Wheels lubed, fuel topped, drivers alert."
+          ]
+        },
+        {
+          "trigger": "mining",
+          "lines": [
+            "Miners en route. They will fan out on arrival.",
+            "Drill bits warm. Ore is borrowed time anyway."
+          ]
+        },
+        {
+          "trigger": "defense",
+          "lines": [
+            "Defenders deployed. They hold or they fall back.",
+            "Turrets up. Biters will think twice."
+          ]
+        },
+        {
+          "trigger": "combat",
+          "lines": [
+            "Strike package away. Make it count.",
+            "No survivors at the target. Acknowledged."
+          ]
+        },
+        {
+          "trigger": "sync",
+          "lines": [
+            "New chassis registered with the grid.",
+            "Headcount updated. The roster is clean."
+          ]
+        },
+        {
+          "trigger": "unregistered",
+          "lines": [
+            "Some vehicles are still off-grid. Run a sync.",
+            "I count more cars than transponders. Sync them."
+          ]
+        }
+      ],
+      "faction": {
+        "factionId": "player"
+      }
+    },
+    {
       "description": "Cloth-armoured spellcaster. Light HP, big mana pool, flings ranged spells from the back line.\n",
       "ref": "mage",
       "id": "01KSAVAEF2667PTP0HAG228QA5",
@@ -2561,6 +2639,56 @@
           "id": "attack",
           "name": "Pouch Swing",
           "damage": 1
+        }
+      ],
+      "faction": {
+        "factionId": "player"
+      }
+    },
+    {
+      "description": "Sci-fi logistics officer. Runs the hauler ring — what loads where, when, and in what order. Has a soft spot for clean spreadsheets and full cargo holds.\n",
+      "ref": "mira",
+      "id": "01KSAVZ000000000000000MIRA",
+      "name": "Mira",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_UNCOMMON",
+      "personality": "PERSONALITY_CHEERFUL",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "humanoid",
+      "level": 1,
+      "img": "/assets/npc/mira.png",
+      "role": "Logistics Officer",
+      "tags": [
+        "kbve-factorio",
+        "logistics"
+      ],
+      "stats": {
+        "hp": 30,
+        "maxHp": 30,
+        "attack": 1,
+        "defense": 1,
+        "speed": 3,
+        "armor": 0
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_IDLE",
+        "firstStrike": false
+      },
+      "dialogue": [
+        {
+          "trigger": "greeting",
+          "lines": [
+            "Convoys rolling, manifests clean. How can I help?",
+            "Routes are short today — fewer biters on the south road.",
+            "Pickup, dropoff, repeat. Easy job. Mostly."
+          ]
+        },
+        {
+          "trigger": "deposit",
+          "lines": [
+            "Manifest closed. Numbers match.",
+            "Trunk empty. Next run on the board."
+          ]
         }
       ],
       "faction": {
@@ -2873,6 +3001,56 @@
       ],
       "faction": {
         "factionId": "hostile"
+      }
+    },
+    {
+      "description": "Sci-fi combat lieutenant. Coordinates the colony's response force when biters breach the wall. Loud, blunt, and effective. Treats every alarm like the last one.\n",
+      "ref": "reno",
+      "id": "01KSAVZ000000000000000RENO",
+      "name": "Reno",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_UNCOMMON",
+      "personality": "PERSONALITY_AGGRESSIVE",
+      "rank": "NPC_RANK_ELITE",
+      "family": "humanoid",
+      "level": 2,
+      "img": "/assets/npc/reno.png",
+      "role": "Combat Lieutenant",
+      "tags": [
+        "kbve-factorio",
+        "combat"
+      ],
+      "stats": {
+        "hp": 60,
+        "maxHp": 60,
+        "attack": 8,
+        "defense": 3,
+        "speed": 4,
+        "armor": 2
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_PATROL",
+        "firstStrike": true
+      },
+      "dialogue": [
+        {
+          "trigger": "greeting",
+          "lines": [
+            "Reno. What is dying today?",
+            "Lieutenant on station. Awaiting orders.",
+            "Walls hold or we move outward. Your call."
+          ]
+        },
+        {
+          "trigger": "rally",
+          "lines": [
+            "On me. Tight wedge. Move.",
+            "Hold the line — fall back on my mark, not before."
+          ]
+        }
+      ],
+      "faction": {
+        "factionId": "player"
       }
     },
     {
@@ -3279,6 +3457,56 @@
       }
     },
     {
+      "description": "Sci-fi vault keeper. Catalogs and seals personal lockers in the colony bank. Polite but cold; she has counted every gram of metal that crosses the threshold.\n",
+      "ref": "sila",
+      "id": "01KSAVZ000000000000000SILA",
+      "name": "Sila",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_UNCOMMON",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "humanoid",
+      "level": 1,
+      "img": "/assets/npc/sila.png",
+      "role": "Vault Keeper",
+      "tags": [
+        "kbve-factorio",
+        "bank"
+      ],
+      "stats": {
+        "hp": 30,
+        "maxHp": 30,
+        "attack": 1,
+        "defense": 0,
+        "speed": 3,
+        "armor": 0
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_IDLE",
+        "firstStrike": false
+      },
+      "dialogue": [
+        {
+          "trigger": "greeting",
+          "lines": [
+            "Your vault is sealed and surveyed.",
+            "I keep what dies with you — and what does not.",
+            "Eight by eight, give or take. Pack tight."
+          ]
+        },
+        {
+          "trigger": "deposit",
+          "lines": [
+            "Tucked away. Safer with me than with you.",
+            "Counted twice. Logged twice."
+          ]
+        }
+      ],
+      "faction": {
+        "factionId": "player"
+      }
+    },
+    {
       "description": "A reanimated skeleton clad in rusted armor, standing eternal watch over dusty corridors.\n",
       "ref": "skeleton-guard",
       "id": "01KKR5QWTAEV48Y4WK51JWBXTX",
@@ -3606,6 +3834,56 @@
       }
     },
     {
+      "description": "Sci-fi field engineer. Roams the perimeter with a torch in one hand and a multitool in the other, patching wall plates and rotating burned-out turrets.\n",
+      "ref": "tann",
+      "id": "01KSAVZ000000000000000TANN",
+      "name": "Tann",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_COMMON",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "humanoid",
+      "level": 1,
+      "img": "/assets/npc/tann.png",
+      "role": "Field Engineer",
+      "tags": [
+        "kbve-factorio",
+        "repair"
+      ],
+      "stats": {
+        "hp": 40,
+        "maxHp": 40,
+        "attack": 2,
+        "defense": 2,
+        "speed": 3,
+        "armor": 1
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_PATROL",
+        "firstStrike": false
+      },
+      "dialogue": [
+        {
+          "trigger": "greeting",
+          "lines": [
+            "Tann here. Wall holding?",
+            "Plates are bowed but the rivets hold.",
+            "Stand clear of the welder."
+          ]
+        },
+        {
+          "trigger": "repair",
+          "lines": [
+            "Patched. It will last the night.",
+            "Worse on the inside than on the spec sheet."
+          ]
+        }
+      ],
+      "faction": {
+        "factionId": "player"
+      }
+    },
+    {
       "description": "An ancient ruler whose fractured body radiates immense power, speaking in riddles of ages past.\n",
       "ref": "the-shattered-king",
       "id": "01KKR5QWTCHDFP2XHQEZMR3J4F",
@@ -3898,6 +4176,65 @@
           "cooldownTurns": 3
         }
       ]
+    },
+    {
+      "description": "Sci-fi exchange keeper. Operates the trading window of a colony hub: takes coin, hands over crates, watches the queue. Stoic with a sharp tongue when the till runs short.\n",
+      "ref": "vex",
+      "id": "01KSAVZ000000000000000VEXX",
+      "name": "Vex",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_UNCOMMON",
+      "personality": "PERSONALITY_CUNNING",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "humanoid",
+      "level": 1,
+      "img": "/assets/npc/vex.png",
+      "role": "Exchange Keeper",
+      "tags": [
+        "kbve-factorio",
+        "shopkeeper"
+      ],
+      "stats": {
+        "hp": 30,
+        "maxHp": 30,
+        "attack": 1,
+        "defense": 0,
+        "speed": 3,
+        "armor": 0
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_IDLE",
+        "firstStrike": false
+      },
+      "dialogue": [
+        {
+          "trigger": "greeting",
+          "lines": [
+            "Welcome to the Exchange, engineer. Spend wisely.",
+            "Coin moves the factory. What will you trade for?",
+            "Need stock? My shelves are deep.",
+            "Quality scales with coin, not vice versa."
+          ]
+        },
+        {
+          "trigger": "buy",
+          "lines": [
+            "A solid pick — back to the line with you.",
+            "Pleasure doing business.",
+            "Stamped, sealed, yours."
+          ]
+        },
+        {
+          "trigger": "empty_pocket",
+          "lines": [
+            "Come back when the pockets jingle.",
+            "No coin, no deal. Mine more."
+          ]
+        }
+      ],
+      "faction": {
+        "factionId": "player"
+      }
     },
     {
       "description": "A being that exists between planes, striking from impossible angles with reality-bending attacks.\n",

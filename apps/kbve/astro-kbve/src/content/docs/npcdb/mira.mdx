@@ -1,0 +1,46 @@
+---
+title: 'Mira'
+description: |
+    Sci-fi logistics officer. Runs the hauler ring — what loads where, when, and in what order. Has a soft spot for clean spreadsheets and full cargo holds.
+ref: 'mira'
+id: '01KSAVZ000000000000000MIRA'
+name: 'Mira'
+type_flags: 1
+rarity: 'uncommon'
+personality: 'cheerful'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+img: '/assets/npc/mira.png'
+role: 'Logistics Officer'
+tags:
+    - kbve-factorio
+    - logistics
+stats:
+    hp: 30
+    max_hp: 30
+    attack: 1
+    defense: 1
+    speed: 3
+    armor: 0
+behavior:
+    movement_type: 'idle'
+    first_strike: false
+dialogue:
+    - trigger: 'greeting'
+      lines:
+        - 'Convoys rolling, manifests clean. How can I help?'
+        - 'Routes are short today — fewer biters on the south road.'
+        - 'Pickup, dropoff, repeat. Easy job. Mostly.'
+    - trigger: 'deposit'
+      lines:
+        - 'Manifest closed. Numbers match.'
+        - 'Trunk empty. Next run on the board.'
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Sci-fi logistics officer. Runs the hauler ring.
