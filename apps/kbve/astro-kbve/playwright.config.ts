@@ -12,6 +12,15 @@ export default defineConfig({
 	retries: process.env['CI'] ? 1 : 0,
 	workers: 1,
 	reporter: process.env['CI'] ? 'line' : 'list',
+	snapshotPathTemplate:
+		'{testDir}/__screenshots__/{projectName}/{testFilePath}/{arg}{ext}',
+	expect: {
+		toHaveScreenshot: {
+			maxDiffPixelRatio: 0.02,
+			animations: 'disabled',
+			caret: 'hide',
+		},
+	},
 	use: {
 		trace: 'on-first-retry',
 		baseURL,
@@ -20,6 +29,18 @@ export default defineConfig({
 		{
 			name: 'chromium',
 			use: { ...devices['Desktop Chrome'] },
+		},
+		{
+			name: 'webkit',
+			use: { ...devices['Desktop Safari'] },
+		},
+		{
+			name: 'mobile-chrome',
+			use: { ...devices['Pixel 7'] },
+		},
+		{
+			name: 'mobile-safari',
+			use: { ...devices['iPhone 14'] },
 		},
 	],
 	webServer: {
