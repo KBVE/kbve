@@ -209,8 +209,12 @@ local spider_egg_entity = {
 	icon_size = 64,
 	icon_mipmaps = 4,
 	flags = { "placeable-neutral", "placeable-off-grid", "not-blueprintable", "player-creation" },
-	collision_box = { { -0.3, -0.3 }, { 0.3, 0.3 } },
-	selection_box = { { -0.5, -0.5 }, { 0.5, 0.5 } },
+	-- Tiny collision footprint so the egg sits on the ground without blocking
+	-- the player walking over it. Selection box stays at half-tile so the
+	-- egg is still easy to click + mine before it hatches.
+	collision_box = { { -0.15, -0.15 }, { 0.15, 0.15 } },
+	collision_mask = { layers = {} },
+	selection_box = { { -0.45, -0.45 }, { 0.45, 0.45 } },
 	selectable_in_game = true,
 	picture = {
 		filename = "__kbve-spider__/graphics/item/spider-egg.png",
