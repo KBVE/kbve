@@ -1,4 +1,53 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.1
+Date: 2026-06-02
+  Bugfixes:
+    - Eggs now actually hatch. The follow loop and hatch sweep were both registered at
+      on_nth_tick(60); Factorio only keeps one callback per period, so the follow loop was
+      silently replacing the hatch sweep and eggs were frozen at "Hatching… 30s" indefinitely.
+      Both handlers now dispatch from a single 1 Hz registration.
+    - Allies now reliably follow the player. The follow loop only re-issued go_to_location
+      when the ally was more than 4 tiles from the owner, but the command completes at
+      radius 3 — the ally got stuck inside that dead zone. Cadence raised to 1 Hz, rest
+      distance dropped to 2 tiles, distraction switched from by_enemy to by_damage so
+      ambient hostiles don't shred the follow tether.
+    - Spider Eggs no longer body-check the player. Collision box shrunk and collision mask
+      cleared so the egg sits on the ground without blocking foot traffic.
+  Features:
+    - Each hatched ally gets a randomized name (Webby, Charlotte, Aragog, …) floating above
+      it via rendering.draw_text, suffixed with the owner's username so two players can
+      both have a Webby without confusion. Names persist across save/load. The owner's
+      death-alert chat message now reads "Webby died at (X, Y)." instead of generic.
+    - Backfill on on_configuration_changed assigns names + attaches labels to allies that
+      hatched on an older save before this feature existed.
+  Performance:
+    - Ally registry: storage.allies[unit_number] = surface_index, maintained at hatch + death
+      + on_configuration_changed rebuild. Follow loop iterates the registry and resolves
+      entities via game.get_entity_by_unit_number (O(1) in 2.0) instead of calling
+      surface.find_entities_filtered per surface every second.
+    - Sprint + nervous loops now skip surfaces with no connected players (empty planets and
+      dormant space platforms cost a single hashmap lookup per loop firing instead of a
+      full entity scan).
+    - on_entity_damaged + on_entity_died registered with name filters so the callback only
+      fires for kbve-spider / kbve-spider-ally / kbve-spider-egg-entity instead of every
+      damaged or destroyed entity in the game. Largest single saving on combat-heavy ticks.
+    - Runtime mod settings cached at load and refreshed via on_runtime_mod_setting_changed
+      instead of being re-read on every per-tick lookup.
+    - 1 Hz bundled handler short-circuits when both pending_eggs and allies are empty (two
+      hashmap probes per tick on quiet maps).
+  Graphics:
+    - Icon mipmap strips (120×64 = 64 + 32 + 16 + 8) for the spider and the egg so HUD
+      slots + alerts render crisply at every zoom level. All icon-bearing prototypes now
+      declare icon_mipmaps = 4.
+  Modding:
+    - locale/en/kbve-spider.cfg provides proper localized names + descriptions for the
+      mod, all three entities (kbve-spider / kbve-spider-ally / kbve-spider-egg-entity),
+      the spider-egg item, and every mod setting. Tooltips no longer expose raw prototype
+      slugs.
+    - settings.lua exposes runtime knobs (hatch_seconds, sprint_chance, flee_threshold,
+      nervous_pick_count) + startup knobs (sprint_speed_multiplier, ally_max_health).
+    - migrations/ directory scaffolded for future storage-shape changes.
+---------------------------------------------------------------------------------------------------
 Version: 0.2.0
 Date: 2026-06-01
   Features:
