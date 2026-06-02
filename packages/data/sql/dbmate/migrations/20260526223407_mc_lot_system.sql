@@ -511,10 +511,17 @@ CREATE INDEX idx_mc_lot_current_schematic
     ON mc.lot (current_schematic_id)
     WHERE current_schematic_id IS NOT NULL;
 
--- Queue table sees state-update churn (queued -> claimed -> applied);
--- HOT updates rely on free space inside the page. fillfactor 80 leaves
--- room for in-page row replacement so we avoid index bloat from page
--- splits. The audit/append-mostly tables stay at the default 100.
+-- Queue table sees state-update churn (queued -> claimed -> applied).
+-- apply_state and attempt_count both participate in partial indexes
+-- (pending_claim WHERE apply_state=0 AND attempt_count<5, claimed_stale
+-- WHERE apply_state=3, failed_recent WHERE apply_state=2,
+-- one_active_per_lot WHERE apply_state IN (0,3)) so most state
+-- transitions still require index maintenance and are NOT HOT-eligible.
+-- fillfactor 80 still pays off: it leaves room on heap pages and reduces
+-- page-split pressure under churn even when HOT can't be used. The
+-- proper long-term fix for high build traffic is splitting the queue
+-- state into a dedicated mc.lot_build_queue table (phase 3).
+-- Audit/append-mostly tables stay at the default 100.
 ALTER TABLE mc.lot_build_log SET (
     fillfactor = 80,
     autovacuum_vacuum_scale_factor = 0.02,
@@ -884,21 +891,25 @@ CREATE OR REPLACE FUNCTION mc.service_requeue_stale_claims(
     p_older_than_seconds INTEGER DEFAULT 300,
     p_limit INTEGER DEFAULT 128
 )
-RETURNS INTEGER
+RETURNS TABLE (
+    requeued_count  INTEGER,
+    exhausted_count INTEGER
+)
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-    -- Batch + SKIP LOCKED so a janitor run never blocks on rows another
-    -- requeue is touching, and the write surface stays bounded per call.
+    -- Two-bucket recovery so a stale claim with attempt_count >= 5 can't
+    -- become an invisible blocker (it would be queued but excluded by
+    -- the partial pending-claim index, and still occupy the partial
+    -- one-active-per-lot unique slot). Under-cap rows go back to
+    -- queued; at-cap rows transition to failed and the lot is released
+    -- to its prior settled state (built or owned).
     WITH picked AS (
-        SELECT build_id
+        SELECT build_id, lot_id, action_kind, attempt_count
           FROM mc.lot_build_log
          WHERE apply_state = 3
            AND claimed_at IS NOT NULL
-           -- Clamp to [1s, 1d] so an accidental huge input can't push the
-           -- threshold so far back it matches nothing (or wraps planner
-           -- estimates).
            AND claimed_at < clock_timestamp()
                           - make_interval(secs =>
                               LEAST(GREATEST(1, COALESCE(p_older_than_seconds, 300)), 86400))
@@ -906,16 +917,46 @@ AS $$
          LIMIT GREATEST(0, LEAST(COALESCE(p_limit, 128), 512))
          FOR UPDATE SKIP LOCKED
     ),
-    stale AS (
+    requeued AS (
         UPDATE mc.lot_build_log b
            SET apply_state = 0,
                claimed_at = NULL,
                claimed_by = NULL
-          FROM picked
-         WHERE b.build_id = picked.build_id
+          FROM picked p
+         WHERE b.build_id = p.build_id
+           AND p.attempt_count < 5
+        RETURNING 1
+    ),
+    exhausted AS (
+        UPDATE mc.lot_build_log b
+           SET apply_state = 2,
+               apply_error = 'retry budget exhausted after stale claim recovery',
+               failed_at = clock_timestamp(),
+               claimed_at = NULL,
+               claimed_by = NULL
+          FROM picked p
+         WHERE b.build_id = p.build_id
+           AND p.attempt_count >= 5
+        RETURNING b.lot_id, b.action_kind
+    ),
+    -- Release the lot back to its settled state so a new build can
+    -- queue. We don't know the exact prior state, so the same
+    -- heuristic the failure ACK uses applies: schematic_id present
+    -- => built (2), else owned (1).
+    released AS (
+        UPDATE mc.lot l
+           SET state = CASE
+                  WHEN l.current_schematic_id IS NULL THEN 1
+                  ELSE 2
+               END
+          FROM exhausted e
+         WHERE l.lot_id = e.lot_id
+           AND l.state IN (3, 4)
         RETURNING 1
     )
-    SELECT COUNT(*)::INTEGER FROM stale;
+    SELECT
+        (SELECT COUNT(*)::INTEGER FROM requeued),
+        (SELECT COUNT(*)::INTEGER FROM exhausted);
 $$;
 
 ALTER FUNCTION mc.service_requeue_stale_claims(INTEGER, INTEGER) OWNER TO postgres;
@@ -1807,12 +1848,15 @@ $$;
 
 ALTER FUNCTION public.proxy_list_lots(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER,
                                       TEXT, INTEGER, INTEGER, TEXT) OWNER TO service_role;
+-- service_role only. The raw shape exposes owner_user_id; authenticated
+-- callers must use public.proxy_list_lots_public (no raw UUIDs) or one
+-- of the hot-path partial RPCs.
 REVOKE ALL ON FUNCTION public.proxy_list_lots(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER,
                                               TEXT, INTEGER, INTEGER, TEXT)
-    FROM PUBLIC, anon;
+    FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.proxy_list_lots(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER,
                                                  TEXT, INTEGER, INTEGER, TEXT)
-    TO authenticated, service_role;
+    TO service_role;
 
 
 CREATE OR REPLACE FUNCTION public.proxy_list_schematics(p_category TEXT DEFAULT NULL)
@@ -2025,13 +2069,16 @@ CREATE OR REPLACE FUNCTION public.proxy_service_requeue_stale_claims(
     p_older_than_seconds INTEGER DEFAULT 300,
     p_limit INTEGER DEFAULT 128
 )
-RETURNS INTEGER
+RETURNS TABLE (
+    requeued_count  INTEGER,
+    exhausted_count INTEGER
+)
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = ''
 COST 100
 AS $$
-    SELECT mc.service_requeue_stale_claims(p_older_than_seconds, p_limit);
+    SELECT * FROM mc.service_requeue_stale_claims(p_older_than_seconds, p_limit);
 $$;
 
 ALTER FUNCTION public.proxy_service_requeue_stale_claims(INTEGER, INTEGER) OWNER TO service_role;
@@ -2059,9 +2106,45 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
+DECLARE
+    v_lot_id TEXT;
+    v_action_kind SMALLINT;
+    v_rowcount INTEGER;
 BEGIN
     IF p_build_id IS NULL OR btrim(p_build_id) = '' THEN
         RAISE EXCEPTION 'build_id cannot be empty' USING ERRCODE = '22004';
+    END IF;
+
+    -- Failure ACK already flipped the lot back to its settled state, so
+    -- the retried job's ACK path (which expects state = 3 for builds /
+    -- state = 4 for demolishes) would fail. Pre-flight the lot here.
+    SELECT lot_id, action_kind
+      INTO v_lot_id, v_action_kind
+      FROM mc.lot_build_log
+     WHERE build_id = p_build_id
+       AND apply_state = 2
+     FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RETURN FALSE;
+    END IF;
+
+    IF v_action_kind = 0 THEN
+        UPDATE mc.lot
+           SET state = 3
+         WHERE lot_id = v_lot_id
+           AND state IN (1, 2);
+    ELSE
+        UPDATE mc.lot
+           SET state = 4
+         WHERE lot_id = v_lot_id
+           AND state = 2;
+    END IF;
+
+    GET DIAGNOSTICS v_rowcount = ROW_COUNT;
+    IF v_rowcount <> 1 THEN
+        RAISE EXCEPTION 'lot % is not in a retryable state for build %', v_lot_id, p_build_id
+            USING ERRCODE = '22023';
     END IF;
 
     UPDATE mc.lot_build_log
@@ -2077,7 +2160,7 @@ BEGIN
      WHERE build_id = p_build_id
        AND apply_state = 2;
 
-    RETURN FOUND;
+    RETURN TRUE;
 END;
 $$;
 
@@ -2139,8 +2222,11 @@ AS $$
     WHERE b.apply_state = 2
       AND (
           p_after_build_id IS NULL
-          OR (b.failed_at, b.build_id)
-             < (p_after_failed_at, p_after_build_id)
+          OR (
+              p_after_failed_at IS NOT NULL
+              AND (b.failed_at, b.build_id)
+                  < (p_after_failed_at, p_after_build_id)
+          )
       )
     ORDER BY b.failed_at DESC, b.build_id DESC
     LIMIT LEAST(GREATEST(COALESCE(p_limit, 100), 1), 500);
@@ -2168,13 +2254,25 @@ RETURNS TABLE (
     failed_at       TIMESTAMPTZ,
     attempt_count   INTEGER
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
 SET search_path = ''
 ROWS 100
 AS $$
+BEGIN
+    IF p_after_build_id IS NOT NULL AND p_after_failed_at IS NULL THEN
+        RAISE EXCEPTION 'cursor must include after_failed_at and after_build_id together'
+            USING ERRCODE = '22023';
+    END IF;
+    IF p_after_build_id IS NULL AND p_after_failed_at IS NOT NULL THEN
+        RAISE EXCEPTION 'cursor must include after_failed_at and after_build_id together'
+            USING ERRCODE = '22023';
+    END IF;
+
+    RETURN QUERY
     SELECT * FROM mc.service_list_failed_builds(p_limit, p_after_failed_at, p_after_build_id);
+END;
 $$;
 
 ALTER FUNCTION public.proxy_service_list_failed_builds(INTEGER, TIMESTAMPTZ, TEXT) OWNER TO service_role;
@@ -2243,6 +2341,10 @@ RETURNS TABLE (
     chunk_x_max     INTEGER,
     chunk_z_min     INTEGER,
     chunk_z_max     INTEGER,
+    block_x_min     INTEGER,
+    block_x_max     INTEGER,
+    block_z_min     INTEGER,
+    block_z_max     INTEGER,
     chunk_area      INTEGER,
     anchor_y        SMALLINT,
     price_credits   BIGINT,
@@ -2261,9 +2363,6 @@ BEGIN
     IF p_world !~ '^[a-z0-9_.-]+:[a-z0-9_/.-]+$' THEN
         RAISE EXCEPTION 'invalid world format' USING ERRCODE = '22023';
     END IF;
-    -- Cursor all-or-none. Split into two directional checks so the
-    -- 'lot_id NULL + one coord set' case (and its mirror) can't slip
-    -- through a clever boolean.
     IF p_after_lot_id IS NOT NULL
        AND (p_after_chunk_x IS NULL OR p_after_chunk_z IS NULL) THEN
         RAISE EXCEPTION 'cursor must include after_chunk_x, after_chunk_z, and after_lot_id together'
@@ -2279,6 +2378,8 @@ BEGIN
     SELECT l.lot_id,
            l.chunk_x_min, l.chunk_x_max,
            l.chunk_z_min, l.chunk_z_max,
+           l.block_x_min, l.block_x_max,
+           l.block_z_min, l.block_z_max,
            l.chunk_area,
            l.anchor_y,
            l.price_credits,
@@ -2319,6 +2420,10 @@ RETURNS TABLE (
     chunk_x_max     INTEGER,
     chunk_z_min     INTEGER,
     chunk_z_max     INTEGER,
+    block_x_min     INTEGER,
+    block_x_max     INTEGER,
+    block_z_min     INTEGER,
+    block_z_max     INTEGER,
     chunk_area      INTEGER,
     anchor_y        SMALLINT,
     state           SMALLINT,
@@ -2359,6 +2464,8 @@ BEGIN
     SELECT l.lot_id,
            l.chunk_x_min, l.chunk_x_max,
            l.chunk_z_min, l.chunk_z_max,
+           l.block_x_min, l.block_x_max,
+           l.block_z_min, l.block_z_max,
            l.chunk_area,
            l.anchor_y,
            l.state,
@@ -2387,6 +2494,96 @@ GRANT EXECUTE ON FUNCTION public.proxy_list_my_active_lots(TEXT, INTEGER, INTEGE
     TO authenticated, service_role;
 COMMENT ON FUNCTION public.proxy_list_my_active_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT) IS
     'Hot-path: caller-owned active lots (state IN (1, 2)) in a world. Hard-codes owner = auth.uid() and the state set so idx_mc_lot_owner_active_world_chunk_cursor is the only viable plan.';
+
+
+-- Companion to proxy_list_my_active_lots for in-progress views the
+-- dashboard polls while waiting for worker ACK. Hard-codes the
+-- transitional state set so the planner pins to
+-- idx_mc_lot_owner_transitional_world_chunk_cursor.
+CREATE OR REPLACE FUNCTION public.proxy_list_my_transitional_lots(
+    p_world TEXT,
+    p_limit INTEGER DEFAULT 256,
+    p_after_chunk_x INTEGER DEFAULT NULL,
+    p_after_chunk_z INTEGER DEFAULT NULL,
+    p_after_lot_id TEXT DEFAULT NULL
+)
+RETURNS TABLE (
+    lot_id          TEXT,
+    chunk_x_min     INTEGER,
+    chunk_x_max     INTEGER,
+    chunk_z_min     INTEGER,
+    chunk_z_max     INTEGER,
+    block_x_min     INTEGER,
+    block_x_max     INTEGER,
+    block_z_min     INTEGER,
+    block_z_max     INTEGER,
+    chunk_area      INTEGER,
+    anchor_y        SMALLINT,
+    state           SMALLINT,
+    current_schematic_id TEXT,
+    price_credits   BIGINT,
+    price_khash     BIGINT
+)
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+ROWS 256
+AS $$
+DECLARE
+    v_uid UUID := auth.uid();
+BEGIN
+    IF v_uid IS NULL THEN
+        RAISE EXCEPTION 'not authenticated' USING ERRCODE = '42501';
+    END IF;
+    IF p_world IS NULL OR btrim(p_world) = '' THEN
+        RAISE EXCEPTION 'world cannot be empty' USING ERRCODE = '22004';
+    END IF;
+    IF p_world !~ '^[a-z0-9_.-]+:[a-z0-9_/.-]+$' THEN
+        RAISE EXCEPTION 'invalid world format' USING ERRCODE = '22023';
+    END IF;
+    IF p_after_lot_id IS NOT NULL
+       AND (p_after_chunk_x IS NULL OR p_after_chunk_z IS NULL) THEN
+        RAISE EXCEPTION 'cursor must include after_chunk_x, after_chunk_z, and after_lot_id together'
+            USING ERRCODE = '22023';
+    END IF;
+    IF p_after_lot_id IS NULL
+       AND (p_after_chunk_x IS NOT NULL OR p_after_chunk_z IS NOT NULL) THEN
+        RAISE EXCEPTION 'cursor must include after_chunk_x, after_chunk_z, and after_lot_id together'
+            USING ERRCODE = '22023';
+    END IF;
+
+    RETURN QUERY
+    SELECT l.lot_id,
+           l.chunk_x_min, l.chunk_x_max,
+           l.chunk_z_min, l.chunk_z_max,
+           l.block_x_min, l.block_x_max,
+           l.block_z_min, l.block_z_max,
+           l.chunk_area, l.anchor_y,
+           l.state, l.current_schematic_id,
+           l.price_credits, l.price_khash
+    FROM mc.lot l
+    WHERE l.owner_user_id = v_uid
+      AND l.state IN (3, 4)
+      AND l.world = p_world
+      AND (
+          p_after_lot_id IS NULL
+          OR (l.chunk_x_min, l.chunk_z_min, l.lot_id)
+             > (p_after_chunk_x, p_after_chunk_z, p_after_lot_id)
+      )
+    ORDER BY l.chunk_x_min, l.chunk_z_min, l.lot_id
+    LIMIT LEAST(GREATEST(COALESCE(p_limit, 256), 1), 1024);
+END;
+$$;
+
+ALTER FUNCTION public.proxy_list_my_transitional_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT)
+    OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_list_my_transitional_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT)
+    FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_list_my_transitional_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT)
+    TO authenticated, service_role;
+COMMENT ON FUNCTION public.proxy_list_my_transitional_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT) IS
+    'Hot-path companion to proxy_list_my_active_lots for the in-progress dashboard view (state IN (3, 4)). Pins to idx_mc_lot_owner_transitional_world_chunk_cursor. Surfaces block-space bounds for direct map rendering.';
 
 
 -- ===========================================================================
@@ -2495,6 +2692,10 @@ RETURNS TABLE (
     chunk_x_max     INTEGER,
     chunk_z_min     INTEGER,
     chunk_z_max     INTEGER,
+    block_x_min     INTEGER,
+    block_x_max     INTEGER,
+    block_z_min     INTEGER,
+    block_z_max     INTEGER,
     chunk_area      INTEGER,
     anchor_y        SMALLINT,
     is_owned        BOOLEAN,
@@ -2519,11 +2720,20 @@ BEGIN
     IF p_world !~ '^[a-z0-9_.-]+:[a-z0-9_/.-]+$' THEN
         RAISE EXCEPTION 'invalid world format' USING ERRCODE = '22023';
     END IF;
+    IF p_min_chunk_x IS NULL OR p_max_chunk_x IS NULL
+       OR p_min_chunk_z IS NULL OR p_max_chunk_z IS NULL THEN
+        RAISE EXCEPTION 'viewport bounds cannot be null' USING ERRCODE = '22004';
+    END IF;
     IF p_max_chunk_x < p_min_chunk_x OR p_max_chunk_z < p_min_chunk_z THEN
         RAISE EXCEPTION 'viewport max must be >= min' USING ERRCODE = '22023';
     END IF;
-    IF (p_max_chunk_x - p_min_chunk_x + 1) > 4096
-       OR (p_max_chunk_z - p_min_chunk_z + 1) > 4096 THEN
+    -- Guard against int4 overflow on (p_max_chunk_* + 1) when building
+    -- the int4range below. INT32_MAX = 2147483647.
+    IF p_max_chunk_x >= 2147483647 OR p_max_chunk_z >= 2147483647 THEN
+        RAISE EXCEPTION 'viewport max is too large' USING ERRCODE = '22023';
+    END IF;
+    IF (p_max_chunk_x::bigint - p_min_chunk_x::bigint + 1) > 4096
+       OR (p_max_chunk_z::bigint - p_min_chunk_z::bigint + 1) > 4096 THEN
         RAISE EXCEPTION 'viewport too large (max 4096 chunks per axis)'
             USING ERRCODE = '22023';
     END IF;
@@ -2532,6 +2742,8 @@ BEGIN
     SELECT l.lot_id,
            l.chunk_x_min, l.chunk_x_max,
            l.chunk_z_min, l.chunk_z_max,
+           l.block_x_min, l.block_x_max,
+           l.block_z_min, l.block_z_max,
            l.chunk_area, l.anchor_y,
            (l.owner_user_id IS NOT NULL) AS is_owned,
            (l.owner_user_id IS NOT NULL AND l.owner_user_id = v_uid) AS is_owned_by_me,
@@ -2543,7 +2755,10 @@ BEGIN
       AND l.chunk_z_range && int4range(p_min_chunk_z, p_max_chunk_z + 1, '[)')
       AND (p_state IS NULL OR l.state = p_state)
     ORDER BY l.chunk_x_min, l.chunk_z_min, l.lot_id
-    LIMIT LEAST(GREATEST(COALESCE(p_limit, 1000), 1), 4096);
+    -- Cap at 2000: SQL handles more, but PostgREST JSON serialization
+    -- and frontend rendering become the actual bottleneck past ~2k rows.
+    -- Bulk exports run as service_role through service_list_lots.
+    LIMIT LEAST(GREATEST(COALESCE(p_limit, 1000), 1), 2000);
 END;
 $$;
 
@@ -2596,6 +2811,7 @@ DROP FUNCTION IF EXISTS public.proxy_list_lots_in_viewport(TEXT, INTEGER, INTEGE
                                                             SMALLINT, INTEGER);
 DROP FUNCTION IF EXISTS public.proxy_list_lots_public(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER,
                                                       TEXT, INTEGER, INTEGER, TEXT);
+DROP FUNCTION IF EXISTS public.proxy_list_my_transitional_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT);
 DROP FUNCTION IF EXISTS public.proxy_list_my_active_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT);
 DROP FUNCTION IF EXISTS public.proxy_list_vacant_lots(TEXT, INTEGER, INTEGER, INTEGER, TEXT);
 DROP FUNCTION IF EXISTS public.proxy_list_schematics(TEXT);
