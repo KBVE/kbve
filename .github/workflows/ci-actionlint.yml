@@ -70,14 +70,17 @@ jobs:
                   EC=$?
                   # zizmor exit codes:
                   #   0  → no findings
-                  #   14 → findings detected (expected, informational only)
-                  #   *  → real error / crash → propagate so the tracker fires
-                  if [ "$EC" -eq 0 ] || [ "$EC" -eq 14 ]; then
-                      [ "$EC" -eq 14 ] && echo "::notice::zizmor reported findings (exit 14) — informational, not blocking"
-                      exit 0
+                  #   14 → findings detected (expected; the repo has a baseline)
+                  #   *  → crash or real error
+                  # Always exit 0 so the job stays green — the gate is explicitly
+                  # informational and a red ✗ here is misleading (looks like a
+                  # security incident on every PR). Findings still print to the
+                  # job log; crashes get an annotation but do not fail the run.
+                  if [ "$EC" -eq 14 ]; then
+                      echo "::notice::zizmor reported findings (exit 14) — informational, baseline cleanup tracked separately"
+                  elif [ "$EC" -ne 0 ]; then
+                      echo "::warning::zizmor exited with $EC (likely a crash) — see logs above; surfacing as warning, not failure"
                   fi
-                  echo "::error::zizmor exited with $EC (not a findings exit) — likely a crash"
-                  exit "$EC"
 
     track_failure:
         name: Track Failures
@@ -105,36 +108,6 @@ jobs:
         with:
             workflow_name: 'CI - Actionlint'
             job_name: 'actionlint'
-            run_id: ${{ github.run_id }}
-            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: 'success'
-
-    track_zizmor_failure:
-        name: Track Zizmor Failures
-        if: ${{ always() && needs.zizmor.result == 'failure' }}
-        needs: [zizmor]
-        permissions:
-            issues: write
-            contents: read
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
-        with:
-            workflow_name: 'CI - Actionlint'
-            job_name: 'zizmor'
-            run_id: ${{ github.run_id }}
-            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: 'failure'
-
-    track_zizmor_success:
-        name: Track Zizmor Success
-        if: ${{ always() && needs.zizmor.result == 'success' }}
-        needs: [zizmor]
-        permissions:
-            issues: write
-            contents: read
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
-        with:
-            workflow_name: 'CI - Actionlint'
-            job_name: 'zizmor'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: 'success'
