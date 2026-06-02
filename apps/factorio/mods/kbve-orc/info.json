@@ -1,0 +1,12 @@
+{
+	"name": "kbve-orc",
+	"version": "0.0.1",
+	"factorio_version": "2.0",
+	"title": "KBVE Orc",
+	"author": "kbve",
+	"contact": "https://kbve.com",
+	"homepage": "https://kbve.com",
+	"license": "MIT — see https://kbve.com/legal/",
+	"description": "Adds a custom isometric pre-rendered Orc Warrior as a neutral creature with a per-force reputation system. Kill orcs and their faction turns hostile; gift items (or buy a KBVE Orc Tribute from the Exchange) and they warm up to you. 16-direction Body+Shadow sprites with idle / walk / run / attack / death / hit / roar animations. Model: 'Isometric Orc Warrior Male' by engvee (https://engvee.itch.io/isometric-orc-warrior-male).",
+	"dependencies": ["base >= 2.0"]
+}
