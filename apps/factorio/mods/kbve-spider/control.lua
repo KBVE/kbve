@@ -210,18 +210,33 @@ end, spider_died_filter)
 -- Rebuild the ally registry from the world. Called on first init and on
 -- mod-config changes so save games predating the registry pick it up. After
 -- this, ally lookup is O(1) per unit_number via game.get_entity_by_unit_number.
-local function rebuild_ally_registry()
+local function rebuild_ally_registry(debug_print)
 	local reg = {}
+	local report = {}
 	for _, surface in pairs(game.surfaces) do
 		local allies = surface.find_entities_filtered{ name = SPIDER_ALLY }
+		local count = 0
 		for i = 1, #allies do
 			local a = allies[i]
 			if a.valid and a.unit_number then
 				reg[a.unit_number] = a.surface_index
+				count = count + 1
 			end
 		end
+		report[#report + 1] = { name = surface.name, index = surface.index, count = count }
 	end
 	storage.allies = reg
+	if debug_print then
+		for _, r in ipairs(report) do
+			debug_print(string.format(
+				"  rebuild: surface=%s index=%d found %d kbve-spider-ally entities",
+				r.name, r.index, r.count
+			))
+		end
+		local n = 0
+		for _ in pairs(reg) do n = n + 1 end
+		debug_print(string.format("  rebuild: storage.allies now holds %d entries", n))
+	end
 end
 
 script.on_init(function()
@@ -332,10 +347,13 @@ commands.add_command(
 		player.print(string.format("[kbve-spider] pending eggs: %d", pn))
 
 		player.print("[kbve-spider] forcing rebuild_ally_registry()…")
-		rebuild_ally_registry()
+		rebuild_ally_registry(function(line) player.print(line) end)
 		local n2 = 0
 		for _ in pairs(storage.allies or {}) do n2 = n2 + 1 end
-		player.print(string.format("[kbve-spider] post-rebuild registry: %d ally entries", n2))
+		player.print(string.format("[kbve-spider] post-rebuild registry (re-read storage.allies): %d entries", n2))
+
+		player.print(string.format("[kbve-spider] storage.allies type=%s, addr-ish=%s",
+			type(storage.allies), tostring(storage.allies)))
 	end
 )
 
