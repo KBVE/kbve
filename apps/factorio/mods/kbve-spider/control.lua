@@ -30,6 +30,18 @@ local DEATH_CORPSES = {
 local STAGGER_STICKER = "kbve-spider-stagger"
 local SPRINT_STICKER = "kbve-spider-sprint"
 
+-- Random pool used to title each newly hatched ally. Mixed homage / vibes —
+-- 32 entries so a server can run plenty of allies before names repeat (and
+-- repeats are fine; the name is cosmetic). The owner's username is appended
+-- so two players in the same lobby can both have a "Webby" without confusion.
+local ALLY_NAMES = {
+	"Webby", "Charlotte", "Aragog", "Boris", "Fang", "Itsy", "Bitsy", "Spinny",
+	"Webster", "Silk", "Jumper", "Pounce", "Skitter", "Crawler", "Lurker", "Spinneret",
+	"Mosey", "Tippy", "Stitch", "Vector", "Stealth", "Glitch", "Marrow", "Husk",
+	"Velvet", "Shade", "Echo", "Drift", "Quill", "Whisper", "Cinder", "Mote",
+}
+local ALLY_NAME_POOL_SIZE = #ALLY_NAMES
+
 -- Fixed cadences. Per-spider cooldown stays hardcoded so the tuning surface
 -- is small; the runtime-global settings cover everything an admin would
 -- reasonably want to flip mid-game.
@@ -144,13 +156,19 @@ script.on_event(defines.events.on_entity_died, function(event)
 
 		if e.name == SPIDER_ALLY then
 			if storage.allies then storage.allies[e.unit_number] = nil end
+			clear_nametag(e.unit_number)
+			local ally_name = storage.ally_names and storage.ally_names[e.unit_number] or nil
+			if storage.ally_names then storage.ally_names[e.unit_number] = nil end
 			local owner_idx = storage.ally_owners and storage.ally_owners[e.unit_number]
 			if storage.ally_owners then storage.ally_owners[e.unit_number] = nil end
 			if owner_idx then
 				local owner = game.players[owner_idx]
 				if owner and owner.valid then
+					local prefix = ally_name
+						and string.format("[item=kbve-spider-egg] %s died at ", ally_name)
+						or "[item=kbve-spider-egg] Your ally spider died at "
 					owner.print(
-						{ "", "[item=kbve-spider-egg] Your ally spider died at ",
+						{ "", prefix,
 							string.format("(%d, %d).", math.floor(e.position.x), math.floor(e.position.y)) },
 						{ sound = defines.print_sound.use_player_settings }
 					)
@@ -183,17 +201,79 @@ script.on_init(function()
 	storage.pending_eggs = {}
 	storage.ally_owners = {}
 	storage.allies = {}
+	storage.ally_names = {}
+	storage.ally_nametags = {}
 end)
+
+local function backfill_nametags()
+	storage.ally_names = storage.ally_names or {}
+	storage.ally_nametags = storage.ally_nametags or {}
+	for unit_number, _ in pairs(storage.allies or {}) do
+		if not storage.ally_nametags[unit_number] then
+			local ally = game.get_entity_by_unit_number(unit_number)
+			if ally and ally.valid then
+				local name = storage.ally_names[unit_number]
+				if not name then
+					name = ALLY_NAMES[math.random(1, ALLY_NAME_POOL_SIZE)]
+					storage.ally_names[unit_number] = name
+				end
+				local owner_idx = storage.ally_owners and storage.ally_owners[unit_number]
+				local owner = owner_idx and game.players[owner_idx] or nil
+				attach_nametag(ally, name, owner)
+			end
+		end
+	end
+end
 
 script.on_configuration_changed(function()
 	storage.sprint_cooldown = storage.sprint_cooldown or {}
 	storage.fleeing = storage.fleeing or {}
 	storage.pending_eggs = storage.pending_eggs or {}
 	storage.ally_owners = storage.ally_owners or {}
+	storage.ally_names = storage.ally_names or {}
+	storage.ally_nametags = storage.ally_nametags or {}
 	if not storage.allies then
 		rebuild_ally_registry()
 	end
+	backfill_nametags()
 end)
+
+local function attach_nametag(ally, name, owner_player)
+	if not (ally and ally.valid) then return end
+	local label
+	if owner_player and owner_player.valid then
+		label = string.format("%s (%s)", name, owner_player.name)
+	else
+		label = name
+	end
+	local ok, ro = pcall(function()
+		return rendering.draw_text{
+			text = label,
+			surface = ally.surface,
+			target = { entity = ally, offset = { 0, -1.4 } },
+			color = { r = 0.6, g = 0.85, b = 1, a = 1 },
+			scale = 1.1,
+			alignment = "center",
+			use_rich_text = true,
+			scale_with_zoom = false,
+		}
+	end)
+	if ok and ro then
+		storage.ally_nametags = storage.ally_nametags or {}
+		storage.ally_nametags[ally.unit_number] = ro
+	end
+end
+
+local function clear_nametag(unit_number)
+	if not storage.ally_nametags then return end
+	local ro = storage.ally_nametags[unit_number]
+	if ro then
+		pcall(function()
+			if ro.valid then ro.destroy() end
+		end)
+		storage.ally_nametags[unit_number] = nil
+	end
+end
 
 local function track_egg(entity, tick, placer_index)
 	storage.pending_eggs = storage.pending_eggs or {}
@@ -284,13 +364,19 @@ local function hatch_sweep(tick)
 				if ally and ally.valid then
 					storage.allies = storage.allies or {}
 					storage.allies[ally.unit_number] = ally.surface_index
+					local owner_player = nil
 					if info.placer_index then
 						storage.ally_owners[ally.unit_number] = info.placer_index
 						local player = game.players[info.placer_index]
 						if player and player.valid then
 							ally.last_user = player
+							owner_player = player
 						end
 					end
+					storage.ally_names = storage.ally_names or {}
+					local name = ALLY_NAMES[math.random(1, ALLY_NAME_POOL_SIZE)]
+					storage.ally_names[ally.unit_number] = name
+					attach_nametag(ally, name, owner_player)
 					surface.create_entity{
 						name = "explosion",
 						position = info.position,
