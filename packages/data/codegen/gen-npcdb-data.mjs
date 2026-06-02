@@ -159,28 +159,23 @@ function main() {
 			),
 		},
 	];
-	if (process.env.KBVE_PROTOC_REGEN === '1') {
-		for (const t of csharpTargets) {
-			if (!existsSync(t.dir)) mkdirSync(t.dir, { recursive: true });
-			try {
-				execSync(
-					`protoc --csharp_out="${t.dir}" --proto_path="${protoRoot}" ${protoFiles.join(' ')}`,
-					{ stdio: 'pipe' },
-				);
-				console.log(`Regenerated C# protos for ${t.name} → ${t.dir}`);
-			} catch (err) {
-				console.warn(
-					`[warn] protoc csharp gen for ${t.name} failed — ${err.stderr?.toString().trim() || err.message}`,
-				);
-				console.warn(
-					'       Skipping C# regeneration; install protoc (brew install protobuf) if you need it locally.',
-				);
-			}
+	const protoc = resolve(repoRoot, 'node_modules/grpc-tools/bin/protoc');
+	for (const t of csharpTargets) {
+		if (!existsSync(t.dir)) mkdirSync(t.dir, { recursive: true });
+		try {
+			execSync(
+				`"${protoc}" --csharp_out="${t.dir}" --proto_path="${protoRoot}" ${protoFiles.join(' ')}`,
+				{ stdio: 'pipe' },
+			);
+			console.log(`Regenerated C# protos for ${t.name} → ${t.dir}`);
+		} catch (err) {
+			console.warn(
+				`[warn] protoc csharp gen for ${t.name} failed — ${err.stderr?.toString().trim() || err.message}`,
+			);
+			console.warn(
+				'       Skipping C# regeneration; run `pnpm install` to fetch grpc-tools.',
+			);
 		}
-	} else {
-		console.log(
-			'[skip] C# proto regen — set KBVE_PROTOC_REGEN=1 to opt in (committed Generated/Proto/*.cs is canonical otherwise).',
-		);
 	}
 }
 
