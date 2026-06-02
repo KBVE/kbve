@@ -116,6 +116,16 @@ The remaining sheets (Idle, Run, Attack2/3, Death1/2, Hit\_\*, Nervous) are bake
 
 `storage.ally_owners[unit_number] = player_index` is set at hatch and cleared on death. The follow loop falls back to the nearest connected same-force player when the original owner has disconnected or moved to another surface, so allies are never permanently stuck.
 
+### Performance model
+
+The hot paths are deliberately registry-driven so they scale with the number of _active_ allies, not the size of the world.
+
+- `storage.allies[unit_number] = surface_index` is the canonical ally registry. Set on hatch (inside the 1 Hz hatch sweep) and cleared on death. Rebuilt at first load via a one-shot `find_entities_filtered` so saves that predate the registry pick it up.
+- The 1 Hz follow loop iterates `storage.allies` and resolves each entity through `game.get_entity_by_unit_number` (O(1) in 2.0). It does **not** call `find_entities_filtered` per surface. Invalid entries are pruned on the fly.
+- The connected-player → surface bucket inside the follow loop is built lazily — only when an ally has no recorded owner — so the common case skips the player scan entirely.
+- The 3 s sprint loop and 15 s nervous loop short-circuit on surfaces with no connected players (no point ticking AI on a planet nobody is on).
+- Every `entity.unit_group` / `entity.set_command` / `rendering.draw_text` call stays inside `pcall` to absorb the 2.0 API quirks without throwing the whole on_nth_tick handler.
+
 ## Releasing to the Factorio mod portal
 
 1. `./kbve.sh -nx kbve-spider:test` — must be green.

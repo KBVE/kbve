@@ -142,9 +142,10 @@ script.on_event(defines.events.on_entity_died, function(event)
 		if storage.sprint_cooldown then storage.sprint_cooldown[e.unit_number] = nil end
 		if storage.fleeing then storage.fleeing[e.unit_number] = nil end
 
-		if e.name == SPIDER_ALLY and storage.ally_owners then
-			local owner_idx = storage.ally_owners[e.unit_number]
-			storage.ally_owners[e.unit_number] = nil
+		if e.name == SPIDER_ALLY then
+			if storage.allies then storage.allies[e.unit_number] = nil end
+			local owner_idx = storage.ally_owners and storage.ally_owners[e.unit_number]
+			if storage.ally_owners then storage.ally_owners[e.unit_number] = nil end
 			if owner_idx then
 				local owner = game.players[owner_idx]
 				if owner and owner.valid then
@@ -159,11 +160,29 @@ script.on_event(defines.events.on_entity_died, function(event)
 	end
 end)
 
+-- Rebuild the ally registry from the world. Called on first init and on
+-- mod-config changes so save games predating the registry pick it up. After
+-- this, ally lookup is O(1) per unit_number via game.get_entity_by_unit_number.
+local function rebuild_ally_registry()
+	local reg = {}
+	for _, surface in pairs(game.surfaces) do
+		local allies = surface.find_entities_filtered{ name = SPIDER_ALLY }
+		for i = 1, #allies do
+			local a = allies[i]
+			if a.valid and a.unit_number then
+				reg[a.unit_number] = a.surface_index
+			end
+		end
+	end
+	storage.allies = reg
+end
+
 script.on_init(function()
 	storage.sprint_cooldown = {}
 	storage.fleeing = {}
 	storage.pending_eggs = {}
 	storage.ally_owners = {}
+	storage.allies = {}
 end)
 
 script.on_configuration_changed(function()
@@ -171,6 +190,9 @@ script.on_configuration_changed(function()
 	storage.fleeing = storage.fleeing or {}
 	storage.pending_eggs = storage.pending_eggs or {}
 	storage.ally_owners = storage.ally_owners or {}
+	if not storage.allies then
+		rebuild_ally_registry()
+	end
 end)
 
 local function track_egg(entity, tick, placer_index)
@@ -260,6 +282,8 @@ script.on_nth_tick(60, function(event)
 					force = info.force,
 				}
 				if ally and ally.valid then
+					storage.allies = storage.allies or {}
+					storage.allies[ally.unit_number] = ally.surface_index
 					if info.placer_index then
 						storage.ally_owners[ally.unit_number] = info.placer_index
 						local player = game.players[info.placer_index]
@@ -295,27 +319,60 @@ local FOLLOW_RADIUS_SQ = 128 * 128   -- keep tracking up to ~128 tiles away
 local FOLLOW_REST_DIST_SQ = 2 * 2    -- already on top of owner → don't churn
 local FOLLOW_DESTINATION_RADIUS = 2  -- ally settles within 2 tiles of owner
 
-script.on_nth_tick(FOLLOW_TICK_INTERVAL, function(event)
-	storage.ally_owners = storage.ally_owners or {}
-	for _, surface in pairs(game.surfaces) do
-		local allies = surface.find_entities_filtered{ name = SPIDER_ALLY }
-		for i = 1, #allies do
-			local ally = allies[i]
-			if ally.valid then
-				local owner = nil
-				local owner_idx = storage.ally_owners[ally.unit_number]
-				if owner_idx then
-					local p = game.players[owner_idx]
-					if p and p.valid and p.connected and p.surface_index == ally.surface_index then
-						owner = p
+-- Iterates `storage.allies` (maintained at hatch + death + on_init/
+-- on_configuration_changed rebuild) instead of calling
+-- `surface.find_entities_filtered{name = SPIDER_ALLY}` per surface every
+-- second. Entity lookups are O(1) via `game.get_entity_by_unit_number`.
+-- The per-tick player→surface bucket is built lazily — only when an ally
+-- has no recorded owner — so the common case (everyone has a live
+-- placer) skips the connected-players scan entirely.
+local function follow_loop()
+	local allies = storage.allies
+	if not allies or next(allies) == nil then return end
+
+	local owners = storage.ally_owners or {}
+	local players_by_surface = nil
+
+	for unit_number, _ in pairs(allies) do
+		local ally = game.get_entity_by_unit_number(unit_number)
+		if not (ally and ally.valid) then
+			allies[unit_number] = nil
+		else
+			local owner = nil
+			local owner_idx = owners[unit_number]
+			if owner_idx then
+				local p = game.players[owner_idx]
+				if p and p.valid and p.connected and p.surface_index == ally.surface_index then
+					owner = p
+				end
+			end
+			if not owner then
+				if players_by_surface == nil then
+					players_by_surface = {}
+					for _, p in pairs(game.connected_players) do
+						if p.valid then
+							local si = p.surface_index
+							local bucket = players_by_surface[si]
+							if not bucket then
+								bucket = {}
+								players_by_surface[si] = bucket
+							end
+							bucket[#bucket + 1] = p
+						end
 					end
 				end
-				if not owner then
+				local bucket = players_by_surface[ally.surface_index]
+				if bucket then
 					local nearest, nearest_d = nil, math.huge
-					for _, p in pairs(game.connected_players) do
-						if p.valid and p.surface_index == ally.surface_index and p.force == ally.force then
-							local dx = p.position.x - ally.position.x
-							local dy = p.position.y - ally.position.y
+					local apos = ally.position
+					local ax, ay = apos.x, apos.y
+					local force = ally.force
+					for i = 1, #bucket do
+						local p = bucket[i]
+						if p.force == force then
+							local ppos = p.position
+							local dx = ppos.x - ax
+							local dy = ppos.y - ay
 							local d = dx * dx + dy * dy
 							if d < nearest_d then
 								nearest_d = d
@@ -325,24 +382,71 @@ script.on_nth_tick(FOLLOW_TICK_INTERVAL, function(event)
 					end
 					owner = nearest
 				end
-				if owner then
-					local ox, oy = owner.position.x, owner.position.y
-					local dx = ox - ally.position.x
-					local dy = oy - ally.position.y
-					local d2 = dx * dx + dy * dy
-					if d2 > FOLLOW_REST_DIST_SQ and d2 < FOLLOW_RADIUS_SQ then
-						pcall(function()
-							ally.set_command{
-								type = defines.command.go_to_location,
-								destination = { x = ox, y = oy },
-								-- by_damage = ally engages only when hit, not at every
-								-- ambient enemy. Keeps the follow tether intact while
-								-- the owner is just walking past biter spawners.
-								distraction = defines.distraction.by_damage,
-								radius = FOLLOW_DESTINATION_RADIUS,
-								pathfind_flags = { allow_destroy_friendly_entities = false },
+			end
+			if owner then
+				local opos = owner.position
+				local apos = ally.position
+				local dx = opos.x - apos.x
+				local dy = opos.y - apos.y
+				local d2 = dx * dx + dy * dy
+				if d2 > FOLLOW_REST_DIST_SQ and d2 < FOLLOW_RADIUS_SQ then
+					pcall(function()
+						ally.set_command{
+							type = defines.command.go_to_location,
+							destination = { x = opos.x, y = opos.y },
+							-- by_damage = ally engages only when hit, not at every
+							-- ambient enemy. Keeps the follow tether intact while
+							-- the owner is just walking past biter spawners.
+							distraction = defines.distraction.by_damage,
+							radius = FOLLOW_DESTINATION_RADIUS,
+							pathfind_flags = { allow_destroy_friendly_entities = false },
+						}
+					end)
+				end
+			end
+		end
+	end
+end
+
+script.on_nth_tick(FOLLOW_TICK_INTERVAL, follow_loop)
+
+-- Build a set of surface indices that have at least one connected player.
+-- Sprint + nervous AI runs only on these surfaces — there's no value in
+-- ticking biters or nervous twitches on an empty planet, and the lookup
+-- saves the full `surface.find_entities_filtered` scan on idle worlds.
+local function active_surface_indices()
+	local set = nil
+	for _, p in pairs(game.connected_players) do
+		if p.valid then
+			set = set or {}
+			set[p.surface_index] = true
+		end
+	end
+	return set
+end
+
+script.on_nth_tick(NERVOUS_TICK_INTERVAL, function(event)
+	local active = active_surface_indices()
+	if not active then return end
+	for _, surface in pairs(game.surfaces) do
+		if active[surface.index] then
+			local spiders = surface.find_entities_filtered{ name = { SPIDER, SPIDER_ALLY } }
+			local n = #spiders
+			if n > 0 then
+				local picks = math.min(setting("kbve-spider-nervous-pick-count", 3), n)
+				for _ = 1, picks do
+					local s = spiders[math.random(1, n)]
+					if s.valid then
+						local in_group = false
+						local ok, ug = pcall(function() return s.unit_group end)
+						if ok and ug then in_group = true end
+						if not in_group then
+							surface.create_entity{
+								name = NERVOUS_CORPSE,
+								position = s.position,
+								direction = s.direction,
 							}
-						end)
+						end
 					end
 				end
 			end
@@ -350,36 +454,10 @@ script.on_nth_tick(FOLLOW_TICK_INTERVAL, function(event)
 	end
 end)
 
--- Sprint loop: every SPRINT_TICK_INTERVAL ticks, find spiders that are
--- chasing (in an attack group with a real command), roll RNG, apply the
--- sprint sticker. Per-unit cooldown prevents constant sprinting.
-script.on_nth_tick(NERVOUS_TICK_INTERVAL, function(event)
-	for _, surface in pairs(game.surfaces) do
-		local spiders = surface.find_entities_filtered{ name = { SPIDER, SPIDER_ALLY } }
-		local n = #spiders
-		if n == 0 then goto continue end
-
-		local picks = math.min(setting("kbve-spider-nervous-pick-count", 3), n)
-		for _ = 1, picks do
-			local s = spiders[math.random(1, n)]
-			if s.valid then
-				local in_group = false
-				local ok, ug = pcall(function() return s.unit_group end)
-				if ok and ug then in_group = true end
-				if not in_group then
-					surface.create_entity{
-						name = NERVOUS_CORPSE,
-						position = s.position,
-						direction = s.direction,
-					}
-				end
-			end
-		end
-		::continue::
-	end
-end)
-
 script.on_nth_tick(SPRINT_TICK_INTERVAL, function(event)
+	local active = active_surface_indices()
+	if not active then return end
+
 	local cooldowns = storage.sprint_cooldown
 	if not cooldowns then
 		cooldowns = {}
@@ -388,24 +466,26 @@ script.on_nth_tick(SPRINT_TICK_INTERVAL, function(event)
 	local tick = event.tick
 
 	for _, surface in pairs(game.surfaces) do
-		local spiders = surface.find_entities_filtered{ name = { SPIDER, SPIDER_ALLY } }
-		for i = 1, #spiders do
-			local s = spiders[i]
-			if s.valid then
-				local key = s.unit_number
-				local ready_at = cooldowns[key] or 0
-				if tick >= ready_at then
-					local in_group = false
-					local ok, ug = pcall(function() return s.unit_group end)
-					if ok and ug then in_group = true end
-					if in_group and math.random() < setting("kbve-spider-sprint-chance", 0.45) then
-						surface.create_entity{
-							name = SPRINT_STICKER,
-							position = s.position,
-							target = s,
-							force = "neutral",
-						}
-						cooldowns[key] = tick + SPRINT_COOLDOWN_TICKS
+		if active[surface.index] then
+			local spiders = surface.find_entities_filtered{ name = { SPIDER, SPIDER_ALLY } }
+			for i = 1, #spiders do
+				local s = spiders[i]
+				if s.valid then
+					local key = s.unit_number
+					local ready_at = cooldowns[key] or 0
+					if tick >= ready_at then
+						local in_group = false
+						local ok, ug = pcall(function() return s.unit_group end)
+						if ok and ug then in_group = true end
+						if in_group and math.random() < setting("kbve-spider-sprint-chance", 0.45) then
+							surface.create_entity{
+								name = SPRINT_STICKER,
+								position = s.position,
+								target = s,
+								force = "neutral",
+							}
+							cooldowns[key] = tick + SPRINT_COOLDOWN_TICKS
+						end
 					end
 				end
 			end
