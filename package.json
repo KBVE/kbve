@@ -166,6 +166,7 @@
 		"openapi-fetch": "^0.15.2",
 		"openpgp": "^6.3.0",
 		"phaser": "^4.1.0",
+		"pngjs": "^7.0.0",
 		"react-day-picker": "9.13.2",
 		"react-force-graph": "^1.48.2",
 		"react-grid-layout": "^1.5.3",

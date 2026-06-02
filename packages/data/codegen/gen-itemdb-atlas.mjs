@@ -12,8 +12,14 @@
  *
  * Layout:
  *   1024 x 1024 atlas, 16 x 16 grid, 64 x 64 per tile.
- *   Slot 0 is reserved for the "?" fallback. Items with a missing or
- *   broken `img:` reference resolve to slot 0 in the generated UV map.
+ *   Slot 0 is reserved for the procedural fallback tile. Items with a
+ *   missing or broken `img:` reference resolve to slot 0 in the UV map.
+ *
+ * Determinism:
+ *   Pure JS pngjs encode (no native libvips / sharp). Same byte output
+ *   on darwin-arm64 + linux-x64 + windows-x64 so CI regen matches the
+ *   committed atlas verbatim and game-ci/unity-builder's dirty check
+ *   stays green. See PR replacing the KBVE_ATLAS_REGEN env gate.
  *
  * Usage:
  *   node packages/data/codegen/gen-itemdb-atlas.mjs
@@ -30,7 +36,7 @@ import {
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
-import sharp from 'sharp';
+import { PNG } from 'pngjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
@@ -42,8 +48,11 @@ const SOURCE_OUT  = resolve(repoRoot, 'apps/rareicon/unity-rareicon/Assets/_Rare
 
 const TILE_SIZE     = 64;
 const TILES_PER_ROW = 16;
-const ATLAS_SIZE    = TILE_SIZE * TILES_PER_ROW; // 1024
-const MAX_SLOTS     = TILES_PER_ROW * TILES_PER_ROW; // 256
+const ATLAS_SIZE    = TILE_SIZE * TILES_PER_ROW;
+const MAX_SLOTS     = TILES_PER_ROW * TILES_PER_ROW;
+
+const FALLBACK_BG    = [0x3a, 0x3a, 0x3a, 0xff];
+const FALLBACK_MARK  = [0xff, 0x66, 0xaa, 0xff];
 
 function ensureDir(p) { if (!existsSync(p)) mkdirSync(p, { recursive: true }); }
 
@@ -61,56 +70,83 @@ function loadAllMdx() {
 	return records;
 }
 
-async function buildFallbackTile() {
-	const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${TILE_SIZE} ${TILE_SIZE}">
-		<rect width="${TILE_SIZE}" height="${TILE_SIZE}" fill="#3a3a3a"/>
-		<text x="50%" y="50%"
-			  font-family="sans-serif" font-size="${Math.floor(TILE_SIZE * 0.7)}"
-			  font-weight="bold" text-anchor="middle" dominant-baseline="central"
-			  fill="#ff66aa">?</text>
-	</svg>`;
-	return sharp(Buffer.from(svg)).png().toBuffer();
+function buildFallbackTile() {
+	const out = Buffer.alloc(TILE_SIZE * TILE_SIZE * 4);
+	for (let y = 0; y < TILE_SIZE; y++) {
+		for (let x = 0; x < TILE_SIZE; x++) {
+			const i = (y * TILE_SIZE + x) * 4;
+			const onDiagDown = x === y;
+			const onDiagUp   = x === TILE_SIZE - 1 - y;
+			const onBorder   = x === 0 || y === 0 || x === TILE_SIZE - 1 || y === TILE_SIZE - 1;
+			const px = (onDiagDown || onDiagUp || onBorder) ? FALLBACK_MARK : FALLBACK_BG;
+			out[i]     = px[0];
+			out[i + 1] = px[1];
+			out[i + 2] = px[2];
+			out[i + 3] = px[3];
+		}
+	}
+	return out;
 }
 
-async function loadItemTile(imgRelPath) {
+function loadItemTile(imgRelPath) {
 	if (!imgRelPath || typeof imgRelPath !== 'string') return null;
 	const norm = imgRelPath.startsWith('/') ? imgRelPath.slice(1) : imgRelPath;
 	const abs  = resolve(ASSET_ROOT, norm);
 	if (!existsSync(abs)) return null;
+	let png;
 	try {
-		return await sharp(abs)
-			.resize(TILE_SIZE, TILE_SIZE, {
-				fit: 'contain',
-				background: { r: 0, g: 0, b: 0, alpha: 0 },
-				kernel: 'nearest',
-			})
-			.png()
-			.toBuffer();
+		png = PNG.sync.read(readFileSync(abs));
 	} catch (e) {
-		console.warn(`[atlas] failed to load ${abs}: ${e.message}`);
+		console.warn(`[atlas] failed to read ${abs}: ${e.message}`);
 		return null;
+	}
+	const srcW = png.width;
+	const srcH = png.height;
+	const src  = png.data;
+	const scale = Math.min(TILE_SIZE / srcW, TILE_SIZE / srcH);
+	const drawW = Math.max(1, Math.round(srcW * scale));
+	const drawH = Math.max(1, Math.round(srcH * scale));
+	const offX  = Math.floor((TILE_SIZE - drawW) / 2);
+	const offY  = Math.floor((TILE_SIZE - drawH) / 2);
+	const out = Buffer.alloc(TILE_SIZE * TILE_SIZE * 4);
+	for (let y = 0; y < drawH; y++) {
+		const sy = Math.min(srcH - 1, Math.floor((y * srcH) / drawH));
+		for (let x = 0; x < drawW; x++) {
+			const sx = Math.min(srcW - 1, Math.floor((x * srcW) / drawW));
+			const si = (sy * srcW + sx) * 4;
+			const di = ((offY + y) * TILE_SIZE + (offX + x)) * 4;
+			out[di]     = src[si];
+			out[di + 1] = src[si + 1];
+			out[di + 2] = src[si + 2];
+			out[di + 3] = src[si + 3];
+		}
+	}
+	return out;
+}
+
+function placeTile(atlas, tile, slot) {
+	const sx = (slot % TILES_PER_ROW) * TILE_SIZE;
+	const sy = Math.floor(slot / TILES_PER_ROW) * TILE_SIZE;
+	for (let y = 0; y < TILE_SIZE; y++) {
+		const srcOff = y * TILE_SIZE * 4;
+		const dstOff = ((sy + y) * ATLAS_SIZE + sx) * 4;
+		tile.copy(atlas, dstOff, srcOff, srcOff + TILE_SIZE * 4);
 	}
 }
 
-async function main() {
-	if (process.env.KBVE_ATLAS_REGEN !== '1') {
-		console.log(
-			'[skip] itemdb-atlas regen — set KBVE_ATLAS_REGEN=1 to opt in. Committed atlas PNG + ItemSpriteAtlas.Generated.cs are canonical (sharp/libvips PNG encoding varies per platform).',
-		);
-		return;
-	}
-
+function main() {
 	const records = loadAllMdx();
 	console.log(`Loaded ${records.length} items from MDX`);
 
-	const fallback   = await buildFallbackTile();
-	const composites = [{ input: fallback, left: 0, top: 0 }];
+	const atlas      = Buffer.alloc(ATLAS_SIZE * ATLAS_SIZE * 4);
 	const slotById   = new Map();
 	const missingRefs = [];
 
+	placeTile(atlas, buildFallbackTile(), 0);
+
 	let nextSlot = 1;
 	for (const r of records) {
-		const tile = await loadItemTile(r.img);
+		const tile = loadItemTile(r.img);
 		if (!tile) {
 			slotById.set(r.key, 0);
 			missingRefs.push(r.ref);
@@ -122,24 +158,15 @@ async function main() {
 			continue;
 		}
 		const slot = nextSlot++;
-		const sx   = (slot % TILES_PER_ROW) * TILE_SIZE;
-		const sy   = Math.floor(slot / TILES_PER_ROW) * TILE_SIZE;
-		composites.push({ input: tile, left: sx, top: sy });
+		placeTile(atlas, tile, slot);
 		slotById.set(r.key, slot);
 	}
 
+	const png = new PNG({ width: ATLAS_SIZE, height: ATLAS_SIZE });
+	atlas.copy(png.data);
+	const encoded = PNG.sync.write(png, { deflateLevel: 9, deflateStrategy: 3 });
 	ensureDir(dirname(ATLAS_OUT));
-	await sharp({
-		create: {
-			width:  ATLAS_SIZE,
-			height: ATLAS_SIZE,
-			channels: 4,
-			background: { r: 0, g: 0, b: 0, alpha: 0 },
-		},
-	})
-		.composite(composites)
-		.png({ compressionLevel: 9 })
-		.toFile(ATLAS_OUT);
+	writeFileSync(ATLAS_OUT, encoded);
 	console.log(`Wrote ${ATLAS_OUT}`);
 
 	let maxId = 0;
@@ -202,7 +229,4 @@ async function main() {
 	}
 }
 
-main().catch((err) => {
-	console.error(err);
-	process.exit(1);
-});
+main();
