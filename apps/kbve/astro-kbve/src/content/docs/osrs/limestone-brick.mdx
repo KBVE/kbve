@@ -14,11 +14,7 @@ osrs:
   limit: 10000
   material:
     type: construction
-    tier: basic
-  crafting:
-    level: 12
-    xp: 6
-    tool: Chisel
+    tier: low
   construction:
     min_level: 1
     common_builds:
@@ -53,27 +49,40 @@ osrs:
       slug: chisel
       relationship: alternative
       description: Required tool
-  about: |-
-    | Furniture | Bricks | Level | XP |
-    |-----------|--------|-------|-----|
-    | Stone fireplace | 2 | 33 | 40 |
-    | Limestone attack stone | 3 | 59 | 200 |
-
-    Budget Construction:
-    - Cheaper alternative to marble blocks
-    - Used for basic stone furniture
-    - Lower XP than premium materials
   market_strategy:
     profit_formulas:
       - Brick price - Limestone price = Profit
     notes:
-      - Buy limestone, craft into bricks, sell
-      - "Calculate:"
+      - Buy limestone, craft into bricks, sell at margin
       - Low demand construction material
       - Marble blocks preferred for high-level builds
       - Useful for Ironman construction
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Stable supply from chisel craft
+      - GE limit 10,000 per 4 hours supports bulk flips
+  history:
+    - date: "2004-10-18"
+      update: Mortton Shades and Mage Armour
+      description: Item added to the game.
+    - date: "2005-03-21"
+      update: Game update
+      description: Received a graphical update and examine corrected from "lime stone" to "limestone".
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-10-18"
+    update: Mortton Shades and Mage Armour
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Limestone brick is a chiselled limestone used in basic Construction furniture and budget builds.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

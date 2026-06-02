@@ -12,9 +12,64 @@ osrs:
   lowalch: 360
   highalch: 540
   limit: 8
-  about: "Steel gold-trimmed set (sk) is a free-to-play item in Old School RuneScape. High alchemy value: 540 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: steel
+    tier: low
+  treasure_trail:
+    tier: easy
+    is_reward: false
+    reward_tiers:
+      - easy
+  related_items:
+    - item_id: 2587
+      item_name: Steel full helm (g)
+      slug: steel-full-helm-g
+      relationship: component
+      description: Helm piece of the set
+    - item_id: 2589
+      item_name: Steel platebody (g)
+      slug: steel-platebody-g
+      relationship: component
+      description: Platebody piece of the set
+    - item_id: 3477
+      item_name: Steel plateskirt (g)
+      slug: steel-plateskirt-g
+      relationship: component
+      description: Plateskirt piece of the set
+    - item_id: 2591
+      item_name: Steel kiteshield (g)
+      slug: steel-kiteshield-g
+      relationship: component
+      description: Kiteshield piece of the set
+  market_strategy:
+    notes:
+      - Pure cosmetic set tradeable via Grand Exchange Sets clerk
+      - Component sum frequently outpaces set price
+      - F2P bank-saver bundle
+      - Low buy limit caps flips
+      - Discounted when paired vs piece-by-piece
+  history:
+    - date: "2016-07-06"
+      update: Treasure Trail Expansion
+      description: Released as a Grand Exchange set bundling the four steel gold-trimmed (sk) pieces.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Exchange
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Steel gold-trimmed set (sk) bundles the helm, platebody, plateskirt, and kiteshield gold-trimmed Steel pieces for compact Grand Exchange trading.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

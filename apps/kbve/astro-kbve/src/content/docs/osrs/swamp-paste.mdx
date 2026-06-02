@@ -12,9 +12,70 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 13000
-  about: "Swamp paste is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: Cooking
+      level: 1
+      xp: 2
+      materials:
+        - item_name: Swamp tar
+          quantity: 1
+        - item_name: Pot of flour
+          quantity: 1
+      output:
+        item_name: Swamp paste
+        quantity: 1
+      notes: Cook on a fire only; cannot be made on a range.
+  shops:
+    - shop_name: Razmire Builders Merchants
+      location: Mort'ton
+      stock: 1000
+      price: 31
+    - shop_name: Khazard General Store
+      location: Port Khazard
+      stock: 5000
+      price: 42
+    - shop_name: Trader Stan's Trading Post
+      location: Various (21 locations)
+      stock: 30
+      price: 75
+  related_items:
+    - item_id: 1939
+      item_name: Swamp tar
+      slug: swamp-tar
+      relationship: component
+      description: Combined with flour to form raw swamp paste.
+    - item_id: 1933
+      item_name: Pot of flour
+      slug: pot-of-flour
+      relationship: component
+      description: Second component of swamp paste.
+  about: Swamp paste is a stackable members' utility item cooked from swamp tar and flour, used to repair leaks and boats across multiple quests, craft Construction repair kits, and fix damage in the Fishing Trawler minigame.
+  market_strategy:
+    notes:
+      - Razmire is the cheapest steady supply at 31 gp
+      - Stack-friendly so quest runners and Trawlers buy in bulk
+      - Construction repair kits act as a long-term demand floor
+  history:
+    - date: "2003-12-09"
+      description: Swamp paste became stackable.
+    - date: "2006-05-02"
+      description: Minor examine text punctuation update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-09-09"
+    update: Sea Slug
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

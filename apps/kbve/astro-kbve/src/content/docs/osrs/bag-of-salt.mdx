@@ -12,9 +12,78 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 8000
-  about: "Bag of salt is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 8,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: slayer-supply
+    tier: low
+  shops:
+    - shop_name: Slayer Equipment
+      location: Edgeville
+      stock: 5000
+      sells_for: 10
+      restock_time: 3
+    - shop_name: Slayer Equipment
+      location: Canifis
+      stock: 5000
+      sells_for: 10
+      restock_time: 3
+    - shop_name: Slayer Equipment
+      location: Morytania Slayer Tower
+      stock: 5000
+      sells_for: 10
+      restock_time: 3
+    - shop_name: Slayer Equipment
+      location: Shilo Village
+      stock: 5000
+      sells_for: 10
+      restock_time: 3
+    - shop_name: Slayer Equipment
+      location: Zanaris
+      stock: 5000
+      sells_for: 10
+      restock_time: 3
+    - shop_name: Slayer Equipment
+      location: Nardah
+      stock: 5000
+      sells_for: 10
+      restock_time: 3
+  related_items:
+    - item_id: 1714
+      item_name: Rockslug
+      slug: rockslug
+      relationship: alternative
+      description: Slayer monster requiring bag of salt finisher
+    - item_id: 1734
+      item_name: Slayer's staff
+      slug: slayers-staff
+      relationship: alternative
+      description: Slayer equipment purchased from same shops
+  about: Bag of salt is a Slayer supply used to finish off rockslugs at low HP and a required item during Icthlarin's Little Helper.
+  market_strategy:
+    notes:
+      - Shops sell at 10 gp with deep stock
+      - GE flips driven by alch and quest demand
+      - Rockslug slayer tasks spike usage
+      - Icthlarin's Little Helper quest creates one-off demand
+  history:
+    - date: "2005-01-26"
+      update: Slayer Skill
+      description: Item released with the Slayer skill.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-01-26"
+    update: Slayer Skill
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

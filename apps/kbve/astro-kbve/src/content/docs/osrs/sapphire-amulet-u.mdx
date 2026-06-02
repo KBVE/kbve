@@ -12,9 +12,75 @@ osrs:
   lowalch: 360
   highalch: 540
   limit: 10000
-  about: "Sapphire amulet (u) is a free-to-play item in Old School RuneScape. High alchemy value: 540 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: jewellery
+    tier: low
+  recipes:
+    - skill: crafting
+      level: 24
+      xp: 65
+      materials:
+        - item_name: Sapphire
+          item_id: 1607
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Sapphire amulet (u)
+      product_id: 1675
+      product_quantity: 1
+      members_only: false
+      tool: Amulet mould
+  related_items:
+    - item_id: 1607
+      item_name: Sapphire
+      slug: sapphire
+      relationship: component
+      description: Cut gem required for crafting
+    - item_id: 2357
+      item_name: Gold bar
+      slug: gold-bar
+      relationship: component
+      description: Smelted bar required for crafting
+    - item_id: 1694
+      item_name: Sapphire amulet
+      slug: sapphire-amulet
+      relationship: upgrade
+      description: Strung version made by adding ball of wool
+    - item_id: 1727
+      item_name: Amulet of magic
+      slug: amulet-of-magic
+      relationship: upgrade
+      description: Enchanted form via Lvl-1 Enchant
+  about: Sapphire amulet (u) is the unstrung amulet crafted from a sapphire and gold bar at 24 Crafting; add a ball of wool to string it.
+  market_strategy:
+    notes:
+      - F2P crafting staple at low levels
+      - Demand driven by Lvl-1 Enchant + amulet of magic
+      - Gold bar and sapphire prices set the floor
+      - High volume, low margin
+  trading_tips:
+    - Watch sapphire and gold bar markets for arbitrage
+    - Buy in bulk near alch value as a price floor
+    - Common Crafting XP path for 24+
+  history:
+    - date: "2014-12-10"
+      description: Renamed from "Sapphire amulet" to "Sapphire amulet (u)" to disambiguate from the strung version.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-05-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.004
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

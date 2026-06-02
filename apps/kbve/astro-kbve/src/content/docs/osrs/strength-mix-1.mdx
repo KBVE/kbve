@@ -12,9 +12,78 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 2000
-  about: "Strength mix(1) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: low
+  potion:
+    doses: 1
+    effects:
+      - description: Boosts Strength by 3 + 10% of level
+      - description: Restores 3 Hitpoints on drink
+  recipes:
+    - skill: herblore
+      level: 14
+      xp: 17
+      materials:
+        - item_name: Strength potion(2)
+          item_id: 115
+          quantity: 1
+        - item_name: Caviar
+          item_id: 11451
+          quantity: 1
+      product: Strength mix(1)
+      product_id: 11441
+      product_quantity: 2
+  related_items:
+    - item_id: 11443
+      item_name: Strength mix(2)
+      slug: strength-mix-2
+      relationship: upgrade
+      description: Two-dose version
+    - item_id: 113
+      item_name: Strength potion(4)
+      slug: strength-potion-4
+      relationship: alternative
+      description: Non-mix four-dose strength potion
+    - item_id: 11451
+      item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: Mix additive
+  market_strategy:
+    notes:
+      - Requires Barbarian Training to make
+      - Restores 3 HP on drink, useful in low-level PvM
+      - Niche demand outside Barbarian content
+      - Caviar makes the higher-XP variant
+      - Mix potions cannot be decanted at NPCs
+      - GE limit 2,000 per 4 hours
+  history:
+    - date: "2007-07-03"
+      update: Barbarian Training
+      description: Item added to the game with Barbarian Herblore mixes.
+    - date: "2016-04-15"
+      update: QoL
+      description: Half-full potions could now be turned into bank placeholders.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-07-03"
+    update: Barbarian Training
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.045
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Strength mix(1) is a one-dose Barbarian Herblore mix that boosts Strength and restores 3 Hitpoints on drink.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

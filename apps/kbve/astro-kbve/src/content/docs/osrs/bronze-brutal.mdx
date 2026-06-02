@@ -1,6 +1,6 @@
 ---
 title: Bronze brutal | OSRS Price Data
-description: "Bronze brutal: Blunt bronze arrow... ouch.. High alch: 3 GP, GE limit: 11,000."
+description: "Bronze brutal: Blunt bronze arrow... ouch. High alch: 3 GP, GE limit: 11,000."
 osrs:
   id: 4773
   name: Bronze brutal
@@ -12,9 +12,107 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 11000
-  about: "Bronze brutal is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ammo
+    tier: low
+  equipment:
+    slot: ammo
+    weapon_type: bow
+    weight: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 11
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 7
+      xp: 8.4
+      materials:
+        - item_name: Flighted ogre arrow
+          quantity: 6
+        - item_name: Bronze nails
+          quantity: 6
+      facility: Hammer
+      members_only: true
+  shops:
+    - shop_name: Hickton's Archery Emporium
+      location: Catherby
+      price: 12
+    - shop_name: Dargaud's Bow and Arrows
+      location: Ranging Guild
+      price: 12
+    - shop_name: Uglug's Stuffsies
+      location: Jiggig
+      price: 12
+  related_items:
+    - item_name: Flighted ogre arrow
+      slug: flighted-ogre-arrow
+      relationship: component
+      description: Base shaft required for fletching brutals
+    - item_name: Bronze nails
+      slug: bronze-nails
+      relationship: component
+      description: Required arrow head material
+    - item_name: Iron brutal
+      slug: iron-brutal
+      relationship: upgrade
+      description: Higher-tier ogre brutal arrow
+    - item_name: Steel brutal
+      slug: steel-brutal
+      relationship: upgrade
+      description: Mid-tier ogre brutal arrow
+    - item_name: Ogre bow
+      slug: ogre-bow
+      relationship: alternative
+      description: Required bow to fire brutal arrows
+    - item_name: Comp ogre bow
+      slug: comp-ogre-bow
+      relationship: alternative
+      description: Upgraded ogre bow compatible with brutals
+  market_strategy:
+    notes:
+      - Niche ammo - only ogre and comp ogre bows can fire brutals
+      - Primarily used for chompy bird hunting and Zogre Flesh Eaters content
+      - Requires partial completion of Zogre Flesh Eaters quest
+      - Limited demand outside of chompy hunter title grinding
+  about: Bronze brutal is a tier-one ogre arrow used with the ogre bow or comp ogre bow, fletched from flighted ogre arrows and bronze nails at 7 Fletching after partial completion of Zogre Flesh Eaters.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-17"
+    update: Zogre Flesh Eaters
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2005-05-17"
+      update: Zogre Flesh Eaters
+      description: Bronze brutal released as part of the Zogre Flesh Eaters quest update.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

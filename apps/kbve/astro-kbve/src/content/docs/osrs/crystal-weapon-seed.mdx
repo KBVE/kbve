@@ -12,13 +12,10 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 70
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    weight: 0.014
+  material:
+    type: crystal
+    tier: high
   drop_table:
-    primary_source: Corrupted Gauntlet
-    best_drop_rate: 1/50
     sources:
       - source: The Gauntlet
         source_id: 0
@@ -34,51 +31,97 @@ osrs:
         rarity: uncommon
         drop_rate: 1/50
         members_only: true
+  shops:
+    - shop_name: Justine's stuff for the Last Shopper Standing
+      location: Ferox Enclave
+      sells_for: 12
+      currency: Last Man Standing points
+  recipes:
+    - skill: smithing
+      level: 78
+      xp: 0
+      materials:
+        - item_name: Crystal weapon seed
+          item_id: 4207
+          quantity: 1
+        - item_name: Crystal shard
+          item_id: 23962
+          quantity: 40
+      product: Crystal bow
+      product_id: 23864
+      product_quantity: 1
+      tool: Singing bowl
+      members_only: true
+    - skill: crafting
+      level: 78
+      xp: 0
+      materials:
+        - item_name: Crystal weapon seed
+          item_id: 4207
+          quantity: 1
+        - item_name: Crystal shard
+          item_id: 23962
+          quantity: 40
+      product: Crystal halberd
+      product_id: 23987
+      product_quantity: 1
+      tool: Singing bowl
+      members_only: true
   related_items:
     - item_id: 23864
       item_name: Crystal bow
       slug: crystal-bow
       relationship: product
-      description: Created weapon
+      description: Sung crystal bow weapon
     - item_id: 23866
       item_name: Crystal shield
       slug: crystal-shield
       relationship: product
-      description: Created shield
+      description: Sung crystal shield
     - item_id: 23987
       item_name: Crystal halberd
       slug: crystal-halberd
       relationship: product
-      description: Created weapon (requires diary)
+      description: Sung crystal halberd (Hard Western Provinces Diary)
     - item_id: 23757
       item_name: Enhanced crystal weapon seed
       slug: enhanced-crystal-weapon-seed
       relationship: upgrade
-      description: For Blade of Saeldor and Bow of Faerdhinen
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Seed |
-    | Tradeable | Yes |
-    | Weight | 0.014 kg |
-
-    Creates crystal weapons:
-    - Crystal bow
-    - Crystal shield
-    - Crystal halberd (requires Hard Western Provinces Diary)
-
-    Via Singing Bowl (78 Smithing/Crafting): 40 crystal shards per weapon.
-
-    Via Ilfeen: 150K-900K gp (no skill req).
-
-    Can exchange for 10 crystal shards or crystal acorn.
+      description: Upgraded seed for Blade of Saeldor and Bow of Faerdhinen
+  about: Crystal weapon seed is a Gauntlet drop sung into Crystal bows, shields, or halberds via the Singing Bowl (or via Ilfeen for gp).
   market_strategy:
     notes:
-      - Farm Corrupted Gauntlet
+      - Corrupted Gauntlet is the primary supply at 1/50
+      - Price tracks Enhanced seed demand
       - Cheaper than enhanced seed
-      - Good for ironmen
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Solid ironman crafting path
+      - LMS shop offers an alternate point-sink supply
+  history:
+    - date: "2005-02-07"
+      update: Roving Elves
+      description: Item released with the Roving Elves quest.
+    - date: "2005-06-22"
+      description: Initial graphical update.
+    - date: "2015-03-05"
+      description: Halberd enchantment added, requiring the Hard Western Provinces Diary.
+    - date: "2019-07-25"
+      description: Graphically updated and renamed from "Crystal seed".
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-02-07"
+    update: Roving Elves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.014
+    options:
+      - Drop
+    alchable: false
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

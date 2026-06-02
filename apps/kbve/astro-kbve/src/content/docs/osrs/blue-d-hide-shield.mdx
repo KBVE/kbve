@@ -1,6 +1,6 @@
 ---
 title: Blue d'hide shield | OSRS Price Data
-description: "Blue d'hide shield: A solid yew shield covered in blue dragon leather.. High alch: 4,500 GP, GE limit: 125."
+description: "Blue d'hide shield: A solid yew shield covered in blue dragon leather. High alch: 4,500 GP, GE limit: 125."
 osrs:
   id: 22278
   name: Blue d'hide shield
@@ -12,9 +12,98 @@ osrs:
   lowalch: 3000
   highalch: 4500
   limit: 125
-  about: "Blue d'hide shield is a members-only item in Old School RuneScape. High alchemy value: 4,500 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: dragonhide_shield
+    tier: mid
+  equipment:
+    slot: shield
+    weight: 8
+    requirements:
+      defence: 40
+      ranged: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 16
+      slash: 14
+      crush: 12
+      magic: 12
+      ranged: 12
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 69
+      xp: 140
+      materials:
+        - item_name: Blue dragon leather
+          quantity: 2
+        - item_name: Yew shield
+          quantity: 1
+        - item_name: Mithril nails
+          quantity: 15
+      facility: Hammer
+      ticks: 5
+      members_only: true
+  related_items:
+    - item_name: Green d'hide shield
+      slug: green-d-hide-shield
+      relationship: downgrade
+      description: Lower-tier dragonhide shield
+    - item_name: Red d'hide shield
+      slug: red-d-hide-shield
+      relationship: upgrade
+      description: Higher-tier dragonhide shield
+    - item_name: Black d'hide shield
+      slug: black-d-hide-shield
+      relationship: upgrade
+      description: Highest-tier dragonhide shield
+    - item_name: Yew shield
+      slug: yew-shield
+      relationship: component
+      description: Required base shield for crafting
+    - item_name: Blue dragon leather
+      slug: blue-dragon-leather
+      relationship: component
+      description: Crafted from cured blue dragonhide
+  market_strategy:
+    notes:
+      - Crafted item, supply driven by Crafting trainers
+      - Generally trades below high-alch value
+      - Useful budget shield for mid-tier ranged or melee setups
+      - Requires 40 Defence and 50 Ranged to equip
+  about: Blue d'hide shield is a members-only shield-slot item in Old School RuneScape, crafted from a yew shield, two blue dragon leathers, and mithril nails at 69 Crafting.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2018-02-01"
+    update: Leather Shields and Tournament Worlds
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 8
+    options:
+      - Wear
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2018-02-01"
+      update: Leather Shields and Tournament Worlds
+      description: Blue d'hide shield released as part of the Leather Shields update.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,45 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: null
-  about: "Sigil of revoked limitation is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Deadman skull shop
+      location: Deadman Mode
+      price: 1
+      currency: Deadman's skull
+      notes: Tier 2 utility unlock; duplicates can be sold back.
+  related_items:
+    - item_id: 13576
+      item_name: Bracelet of ethereum
+      slug: bracelet-of-ethereum
+      relationship: alternative
+      description: Standard-mode counter to revenant weapons outside Wilderness.
+  about: Sigil of revoked limitation is a Deadman Mode tier-2 utility sigil that, once attuned, removes the Wilderness restriction on revenant weapon accuracy and damage bonuses so they apply to NPCs anywhere.
+  market_strategy:
+    notes:
+      - Exclusive to temporary Deadman events; not on the live Grand Exchange
+      - Earlier untradeable drop versions cycled with Deadman drop tables
+      - Multiple permanent sigils can stack across an account
+  history:
+    - date: "2024-07-17"
+      update: Deadman; Armageddon & While Guthix Sleeps
+      description: Sigil of revoked limitation introduced as a Deadman Mode permanent utility unlock.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-07-17"
+    update: Deadman; Armageddon & While Guthix Sleeps
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Unlock
+      - Inspect
+    alchable: false
+    destroy: Destroy
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,16 +12,15 @@ osrs:
   lowalch: 19
   highalch: 28
   limit: 10000
+  material:
+    type: potion
+    tier: mid-high
   potion:
     type: unfinished
     tier: mid-high
-  herblore:
-    level: 50
-    xp: 0
-    method: Add avantoe to vial of water
   recipes:
     - skill: herblore
-      level: 50
+      level: 1
       xp: 0
       materials:
         - item_name: Vial of water
@@ -45,16 +44,6 @@ osrs:
       slug: vial-of-water
       relationship: component
       description: Base liquid
-    - item_id: 2970
-      item_name: Mort myre fungus
-      slug: mort-myre-fungus
-      relationship: component
-      description: Secondary for super energy
-    - item_id: 10111
-      item_name: Kebbit teeth dust
-      slug: kebbit-teeth-dust
-      relationship: component
-      description: Secondary for hunter potion
     - item_id: 3016
       item_name: Super energy(3)
       slug: super-energy-3
@@ -70,23 +59,31 @@ osrs:
       slug: fishing-potion-3
       relationship: product
       description: Boosts fishing
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Unfinished Potion |
-    | Tradeable | Yes |
-    | Weight | 0.056 kg |
-    | Requirements | 50 Herblore |
-
-    Add secondary ingredient to create:
-    - Super energy potion (+ mort myre fungus)
-    - Hunter potion (+ kebbit teeth dust)
-    - Fishing potion (+ snape grass)
-
-    Popular for super energy production.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2016-04-15"
+      description: Item became usable as a bank placeholder.
+    - date: "2014-05-01"
+      description: Renamed from "Unfinished potion" to "Avantoe potion (unf)".
+    - date: "2004-10-26"
+      description: '"Empty" option added.'
+  about: Avantoe potion (unf) is a members unfinished potion made by adding avantoe to a vial of water, used as the base for fishing, super energy, and hunter potions.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    update: RuneScape News (27 February 2002)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,73 @@ osrs:
   lowalch: 300
   highalch: 450
   limit: 150
-  about: "Trousers (blue) is a members-only item in Old School RuneScape. High alchemy value: 450 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: legs
+    weight: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Agmundi Quality Clothes
+      location: Keldagrim
+      price: 975
+    - shop_name: Miscellanian Clothes Shop
+      location: Miscellania
+      price: 750
+  related_items:
+    - item_id: 5038
+      item_name: Trousers (green)
+      slug: trousers-green
+      relationship: variant
+      description: Green dwarven trousers recolour.
+    - item_id: 5042
+      item_name: Trousers (purple)
+      slug: trousers-purple
+      relationship: variant
+      description: Purple dwarven trousers recolour.
+  about: Trousers (blue) are cosmetic dwarven legwear sold in Keldagrim and Miscellania, providing no combat bonuses.
+  market_strategy:
+    notes:
+      - Shops keep a hard ceiling near 975 gp
+      - Fashionscape demand modest; thin liquidity
+      - 150 GE buy limit fine for casual flips
+  history:
+    - date: "2005-07-26"
+      description: Examine text updated from "These look pretty heavy." to "A pair of long dwarven trousers... long for dwarves, of course."
+    - date: "2005-05-31"
+      description: Trousers (blue) released as Keldagrim dwarven clothing.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

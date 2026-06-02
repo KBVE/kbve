@@ -14,7 +14,7 @@ osrs:
   limit: 3000
   material:
     type: bone
-    tier: basic
+    tier: low
   prayer:
     xp_bury: 4.5
     xp_gilded_altar: 15.75
@@ -66,8 +66,28 @@ osrs:
       - Very low value per bone
       - High volume but low profit potential
       - Better to collect Big bones instead
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2001-01-04"
+      update: RuneScape beta launch
+      description: Item added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape beta launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.5
+    options:
+      - Bury
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Bones are the lowest-tier Prayer training material in Old School RuneScape, dropped by almost every low-level monster and used for bury/altar XP.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

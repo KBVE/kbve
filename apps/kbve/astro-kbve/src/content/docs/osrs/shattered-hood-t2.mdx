@@ -12,9 +12,87 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: null
-  about: "Shattered hood (t2) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: mid
+  equipment:
+    slot: head
+    weight: 0.453
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Shattered Relics League
+      price: 3000
+      currency: League points
+      notes: Purchased for 3,000 League points during the Shattered Relics League event.
+  related_items:
+    - item_name: Shattered hood (t1)
+      slug: shattered-hood-t1
+      relationship: downgrade
+      description: Tier 1 version of the Shattered Relic Hunter hood.
+    - item_name: Shattered hood (t3)
+      slug: shattered-hood-t3
+      relationship: upgrade
+      description: Tier 3 version of the Shattered Relic Hunter hood.
+    - item_name: Shattered top (t2)
+      slug: shattered-top-t2
+      relationship: set-piece
+      description: Matching tier 2 top of the Shattered Relic Hunter outfit.
+    - item_name: Shattered trousers (t2)
+      slug: shattered-trousers-t2
+      relationship: set-piece
+      description: Matching tier 2 trousers of the Shattered Relic Hunter outfit.
+    - item_name: Shattered boots (t2)
+      slug: shattered-boots-t2
+      relationship: set-piece
+      description: Matching tier 2 boots of the Shattered Relic Hunter outfit.
+  about: Shattered hood (t2) is the tier 2 cosmetic head piece of the Shattered Relic Hunter outfit, awarded during the Shattered Relics League for 3,000 League points.
+  market_strategy:
+    notes:
+      - Strictly cosmetic with no combat bonuses.
+      - Supply is fixed to the original League release window; rarity drives the high GE price.
+      - Stored in costume room armour case or displayed on the league hall outfit stand.
+  history:
+    - date: "2022-03-16"
+      update: PvP Arena - Rewards Beta
+      description: Became obtainable on live servers following the league reward sync.
+    - date: "2022-01-19"
+      update: Shattered Relics League
+      description: Item added to the game alongside the Shattered Relics League outfit set.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2022-01-19"
+    update: Shattered Relics League
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

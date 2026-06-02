@@ -12,9 +12,77 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Raging echoes boots (t1) is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: mid
+  equipment:
+    slot: feet
+    weight: 0.34
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 30404
+      item_name: Raging echoes helm (t1)
+      slug: raging-echoes-helm-t1
+      relationship: set-piece
+      description: Matching tier 1 helm
+    - item_id: 30406
+      item_name: Raging echoes top (t1)
+      slug: raging-echoes-top-t1
+      relationship: set-piece
+      description: Matching tier 1 top
+    - item_id: 30408
+      item_name: Raging echoes legs (t1)
+      slug: raging-echoes-legs-t1
+      relationship: set-piece
+      description: Matching tier 1 legs
+    - item_id: 30412
+      item_name: Raging echoes gloves (t1)
+      slug: raging-echoes-gloves-t1
+      relationship: set-piece
+      description: Matching tier 1 gloves
+  history:
+    - date: "2025-01-15"
+      update: "Leagues V: Raging Echoes Rewards Are Here"
+      description: Item became obtainable from the Leagues Reward Shop.
+    - date: "2024-11-27"
+      update: "Leagues V: Raging Echoes OUT NOW!"
+      description: Item added to the game with the Leagues V launch.
+  about: Raging echoes boots (t1) are tier 1 cosmetic foot armour from the Leagues V reward shop, purchased with 1,000 League points as part of the Raging Echoes outfit.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-11-27"
+    update: "Leagues V: Raging Echoes OUT NOW!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

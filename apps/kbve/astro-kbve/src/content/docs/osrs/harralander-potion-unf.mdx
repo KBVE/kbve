@@ -12,13 +12,16 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 10000
+  material:
+    type: unfinished_potion
+    tier: mid
   potion:
     type: unfinished
-    tier: mid
-  herblore:
-    level: 22
-    xp: 0
-    method: Add harralander to vial of water
+    doses: 0
+    effects:
+      - description: Base for Restore potion(3) when combined with red spiders' eggs (22 Herblore, 62.5 XP).
+      - description: Base for Energy potion(3) when combined with chocolate dust (26 Herblore, 67.5 XP).
+      - description: Base for Combat potion(3) when combined with goat horn dust (36 Herblore, 84 XP).
   recipes:
     - skill: herblore
       level: 22
@@ -39,49 +42,60 @@ osrs:
       item_name: Harralander
       slug: harralander
       relationship: component
-      description: Herb ingredient
+      description: Cleaned herb ingredient
     - item_id: 227
       item_name: Vial of water
       slug: vial-of-water
       relationship: component
       description: Base liquid
-    - item_id: 223
-      item_name: Red spiders' eggs
-      slug: red-spiders-eggs
-      relationship: component
-      description: Secondary for restore
     - item_id: 127
       item_name: Restore potion(3)
       slug: restore-potion-3
       relationship: product
-      description: Restores stats
+      description: Stat restore made with red spiders' eggs
     - item_id: 3008
       item_name: Energy potion(3)
       slug: energy-potion-3
       relationship: product
-      description: Restores run energy
-    - item_id: 3024
+      description: Run energy restore made with chocolate dust
+    - item_id: 9741
       item_name: Combat potion(3)
       slug: combat-potion-3
       relationship: product
-      description: Boosts attack and strength
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Unfinished Potion |
-    | Tradeable | Yes |
-    | Weight | 0.056 kg |
-    | Requirements | 22 Herblore |
-
-    Add secondary ingredient to create:
-    - Restore potion (+ red spiders' eggs)
-    - Energy potion (+ chocolate dust)
-    - Combat potion (+ goat horn dust)
-
-    Versatile unfinished potion with multiple uses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Attack and strength boost made with goat horn dust
+  about: Harralander potion (unf) is the unfinished base made from a clean harralander and vial of water at 22 Herblore; combine with secondary ingredients for restore, energy, or combat potions.
+  market_strategy:
+    notes:
+      - High-volume Herblore staple
+      - Margin tracks harralander and vial-of-water prices
+      - Buy limit 10,000 supports bulk crafting
+  trading_tips:
+    - Compare harralander + vial cost vs unf price for crafting profit
+    - Bulk supply for combat potion makers
+    - Watch herb runs and farming output cadence
+  history:
+    - date: "2014-05-01"
+      description: Renamed from "Unfinished potion" to "Harralander potion (unf)" when herb-named variants were introduced.
+    - date: "2004-10-26"
+      description: '"Empty" option added.'
+    - date: "2002-02-27"
+      description: Released alongside the original Herblore content.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

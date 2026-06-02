@@ -12,9 +12,63 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 600
-  about: "Drift net is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 600 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: net
+    tier: low
+  recipes:
+    - skill: crafting
+      level: 26
+      xp: 55
+      materials:
+        - item_name: Jute fibre
+          item_id: 5931
+          quantity: 2
+      product: Drift net
+      product_id: 21652
+      product_quantity: 1
+      facility: Loom
+      members_only: true
+  related_items:
+    - item_id: 5931
+      item_name: Jute fibre
+      slug: jute-fibre
+      relationship: component
+      description: Crafted into drift nets at a loom
+    - item_id: 21347
+      item_name: Numulite
+      slug: numulite
+      relationship: alternative
+      description: Common Fossil Island drift-fishing reward currency
+  market_strategy:
+    notes:
+      - Single-use net consumed per shoal sequence
+      - Drift fishing burns 80-110 nets per hour
+      - Loom crafting at 26 Crafting yields steady supply
+      - GE limit lifted to 600 in 2020 to ease bottlenecks
+      - Demand peaks during Fishing or Hunter grinds
+  history:
+    - date: "2020-09-10"
+      description: Grand Exchange buy limit increased from 100 to 600.
+    - date: "2017-09-07"
+      update: Fossil Island
+      description: Released with the Fossil Island update for drift-net fishing.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-09-07"
+    update: Fossil Island
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Drift net is a Fossil Island consumable used in drift-net fishing for combined Fishing and Hunter experience.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

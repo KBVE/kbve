@@ -12,77 +12,94 @@ osrs:
   lowalch: 300000
   highalch: 450000
   limit: 8
+  material:
+    type: inquisitor
+    tier: high
   equipment:
     slot: legs
-    type: melee armour
-    tradeable: true
+    weapon_type: unarmed
     weight: 9.071
     requirements:
-      strength: 70
       defence: 30
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 49
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 2
+      strength: 70
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 12
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 42
+      slash: 30
+      crush: 49
+      magic: 0
+      ranged: 22
+    other_bonus:
+      melee_strength: 2
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  obtaining:
-    - source: The Nightmare
-      drop_rate: 1/420
-    - source: Phosani's Nightmare
-      drop_rate: 1/700
-  set_bonus:
-    name: Inquisitor's Set
-    per_piece: +0.5% accuracy and damage (crush style)
-    full_set: +2.5% accuracy and damage
-    full_set_with_mace: +7.5% accuracy and damage
+  drop_table:
+    sources:
+      - source: The Nightmare
+        source_id: 9416
+        combat_level: 814
+        quantity: "1"
+        rarity: 1/420
+        members_only: true
+      - source: Phosani's Nightmare
+        source_id: 11153
+        combat_level: 1024
+        quantity: "1"
+        rarity: 1/700
+        members_only: true
   related_items:
     - item_id: 24417
       item_name: Inquisitor's mace
       slug: inquisitors-mace
-      relationship: alternative
-      description: Set weapon for maximum bonus
+      relationship: set-piece
+      description: Set weapon for the +7.5% full bonus
     - item_id: 24420
       item_name: Inquisitor's hauberk
       slug: inquisitors-hauberk
-      relationship: alternative
-      description: Set body piece
+      relationship: set-piece
+      description: Body slot member of the set
     - item_id: 24419
       item_name: Inquisitor's great helm
       slug: inquisitors-great-helm
-      relationship: alternative
-      description: Set helm piece
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Strength | +2 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Crush | +49 |
-
-    Crush Bonus:
-    - +0.5% accuracy and damage (crush style)
-    - +2.5% with full set
-    - +7.5% with full set + mace
-
-    BiS for:
-    - Crush-focused setups
-    - Tekton
-    - Cerberus
-
-    Part of Inquisitor set.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: set-piece
+      description: Helm slot member of the set
+  market_strategy:
+    notes:
+      - BiS legs for crush damage at Tekton and Cerberus
+      - Set bonus stacks each crush attack
+      - 70 Strength gates the equip
+      - Long-cycle Nightmare drop keeps supply tight
+      - Mid-tier piece relative to hauberk and helm
+  history:
+    - date: "2020-02-06"
+      update: The Nightmare of Ashihama
+      description: Released as a possible drop from The Nightmare.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2020-02-06"
+    update: The Nightmare of Ashihama
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  about: Inquisitor's plateskirt is a Nightmare-drop legs piece that boosts crush accuracy and damage when worn with the Inquisitor's set.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

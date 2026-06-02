@@ -1,6 +1,6 @@
 ---
 title: Oak magic wardrobe (flatpack) | OSRS Price Data
-description: "Oak magic wardrobe (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Oak magic wardrobe (flatpack): How does it all fit in there? High alch: 6 GP, GE limit: 500."
 osrs:
   id: 9852
   name: Oak magic wardrobe (flatpack)
@@ -12,9 +12,72 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Oak magic wardrobe (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: flatpack
+    tier: low
+  construction:
+    level: 42
+    xp: 240
+    facility: Steel framed workbench
+    builds: Oak magic wardrobe
+  recipes:
+    - skill: construction
+      level: 42
+      xp: 240
+      materials:
+        - item_name: Oak plank
+          quantity: 4
+      facility: Steel framed workbench
+      ticks: 5
+      members_only: true
+  related_items:
+    - item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: Required building material
+    - item_name: Oak magic wardrobe
+      slug: oak-magic-wardrobe
+      relationship: product
+      description: Costume room furniture built from the flatpack
+    - item_name: Teak magic wardrobe (flatpack)
+      slug: teak-magic-wardrobe-flatpack
+      relationship: upgrade
+      description: Higher-tier costume room flatpack
+    - item_name: Mahogany magic wardrobe (flatpack)
+      slug: mahogany-magic-wardrobe-flatpack
+      relationship: upgrade
+      description: Highest-tier costume room flatpack
+  market_strategy:
+    notes:
+      - Construction training and ironman supply staple
+      - Sold for trivial coin compared to plank cost
+      - Used to skip POH carpentry steps for costume room storage
+      - Buy limit 500 keeps mass training accessible
+  about: Oak magic wardrobe (flatpack) is a Construction flatpack made from 4 oak planks at the steel framed workbench, used to build an Oak magic wardrobe in a Costume Room.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-10-18"
+    update: Player-Owned House Costume Room
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2006-10-18"
+      update: Player-Owned House Costume Room
+      description: Oak magic wardrobe flatpack released alongside the Costume Room.
+    - date: "2015-02-26"
+      update: Grand Exchange update
+      description: Item renamed from "Oak mage wardrobe" to "Oak magic wardrobe".
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
