@@ -51,10 +51,6 @@ pub mod renderer;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod tauri_plugin;
 
-// ---------------------------------------------------------------------------
-// WASM entry point
-// ---------------------------------------------------------------------------
-
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 

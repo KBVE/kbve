@@ -39,8 +39,6 @@ mod message;
 pub use config::{IrcConfig, IrcTransport};
 pub use message::{ChatMessage, MessageKind};
 
-// ── Platform-specific transport ───────────────────────────────────────
-
 #[cfg(not(target_arch = "wasm32"))]
 mod client_native;
 #[cfg(not(target_arch = "wasm32"))]
@@ -51,14 +49,11 @@ mod client_wasm;
 #[cfg(target_arch = "wasm32")]
 pub use client_wasm::ChatClient;
 
-// ── Optional Bevy plugin ──────────────────────────────────────────────
-
 #[cfg(feature = "plugin")]
 mod plugin;
 #[cfg(feature = "plugin")]
 pub use plugin::{ChatInbox, ChatOutbox, ChatPlugin, IncomingChatEvent};
 
-// ── Optional C-FFI surface (native only) ──────────────────────────────
 //
 // Exposes `extern "C"` functions usable from JNI (MC Fabric) and
 // csbindgen (Unity). Native-only — WASM consumers use `ChatClient`

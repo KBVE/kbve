@@ -15,10 +15,6 @@ use super::brain::CreatureBrain;
 use super::types::*;
 use crate::game::terrain::TerrainMap;
 
-// ---------------------------------------------------------------------------
-// Resource
-// ---------------------------------------------------------------------------
-
 /// The center point used for creature spawn-ring and recycle distance checks.
 ///
 /// On **client**: set from the camera position each frame (via
@@ -34,10 +30,6 @@ impl Default for SimulationCenter {
         Self(Vec3::ZERO)
     }
 }
-
-// ---------------------------------------------------------------------------
-// System
-// ---------------------------------------------------------------------------
 
 /// Shared simulation system for all generic sprite creatures.
 ///
@@ -70,7 +62,6 @@ pub fn simulate_sprite_creatures(
             continue;
         };
 
-        // --- Visibility schedule (hide by moving off-screen, no Visibility component) ---
         match ctype.visibility {
             VisibilitySchedule::Day => {
                 if day_factor(game_time.hour) < 0.01 {
@@ -89,7 +80,6 @@ pub fn simulate_sprite_creatures(
             VisibilitySchedule::Always => {}
         }
 
-        // --- Recycle if too far from simulation center ---
         let dist = Vec2::new(cr.anchor.x - center.x, cr.anchor.z - center.z).length();
         if dist > ctype.recycle_dist || cr.anchor.y < -50.0 {
             marker.patrol_step = marker.patrol_step.wrapping_add(1);
@@ -125,7 +115,6 @@ pub fn simulate_sprite_creatures(
             continue;
         }
 
-        // --- Frame advance ---
         sd.frame_timer += dt;
         if sd.frame_timer >= sd.frame_duration {
             sd.frame_timer -= sd.frame_duration;
@@ -135,11 +124,9 @@ pub fn simulate_sprite_creatures(
             }
         }
 
-        // --- Terrain snap ---
         let ground = terrain.height_at_world(cr.anchor.x, cr.anchor.z);
         cr.anchor.y = ground;
 
-        // --- State machine ---
         let mut state = sd.hop_state;
         match state {
             SpriteHopState::Idle { ref mut timer } => {
@@ -379,10 +366,6 @@ pub fn simulate_sprite_creatures(
         sd.hop_state = state;
     }
 }
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 /// Set the active animation on a sprite creature, resetting frame on anim change.
 pub(super) fn set_anim(sd: &mut SpriteData, marker: &mut SpriteCreatureMarker, anim: &AnimDef) {

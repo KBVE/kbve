@@ -34,10 +34,6 @@ const EXIT_SPEED: f32 = 3.0;
 /// Total distance a butterfly travels while exiting before going idle.
 const EXIT_DISTANCE: f32 = 10.0;
 
-// ---------------------------------------------------------------------------
-// Color palette
-// ---------------------------------------------------------------------------
-
 const PALETTE: &[(f32, f32, f32)] = &[
     (0.90, 0.50, 0.10), // monarch orange
     (0.92, 0.88, 0.78), // cabbage white
@@ -61,10 +57,6 @@ fn butterfly_color(index: usize) -> Color {
         1.0,
     )
 }
-
-// ---------------------------------------------------------------------------
-// Mesh
-// ---------------------------------------------------------------------------
 
 /// Two-winged butterfly mesh with distinct upper and lower wing lobes.
 pub(super) fn build_butterfly_mesh() -> Mesh {
@@ -114,10 +106,6 @@ pub(super) fn build_butterfly_mesh() -> Mesh {
     .with_inserted_indices(Indices::U32(indices))
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 fn apply_flap_and_billboard(
     tf: &mut Transform,
     pos: Vec3,
@@ -134,10 +122,6 @@ fn apply_flap_and_billboard(
     let wing_scale = 0.4 + flap.abs() * 0.6;
     tf.scale = Vec3::new(wing_scale * size_scale, size_scale, size_scale);
 }
-
-// ---------------------------------------------------------------------------
-// Spawn
-// ---------------------------------------------------------------------------
 
 pub(super) fn spawn_butterflies(
     mut commands: Commands,
@@ -198,10 +182,6 @@ pub(super) fn spawn_butterflies(
 
     info!("[butterfly] spawned {count} entities");
 }
-
-// ---------------------------------------------------------------------------
-// Simulation (adapted from bevy_kbve_net::creatures::simulate_butterfly)
-// ---------------------------------------------------------------------------
 
 /// Advance butterfly flight state machine. Writes Transform::translation.
 /// NO billboard facing, material alpha, or wing flap scale.
@@ -355,10 +335,6 @@ pub(super) fn simulate_butterflies(
         bs.flight_state = state;
     }
 }
-
-// ---------------------------------------------------------------------------
-// Render (client-only)
-// ---------------------------------------------------------------------------
 
 /// Per-frame render: billboard facing, wing flap, material alpha, wind, visibility.
 /// Reads sim state set by simulate_butterflies.

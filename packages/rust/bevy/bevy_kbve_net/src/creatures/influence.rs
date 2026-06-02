@@ -7,10 +7,6 @@ use bevy::prelude::*;
 
 use super::waypoint_graph::{Waypoint, ZoneTag};
 
-// ---------------------------------------------------------------------------
-// Patrol mode
-// ---------------------------------------------------------------------------
-
 /// How a creature traverses its patrol route.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum PatrolMode {
@@ -19,10 +15,6 @@ pub enum PatrolMode {
     /// A → B → C → D → C → B → A → B → ...
     PingPong,
 }
-
-// ---------------------------------------------------------------------------
-// Influence profile
-// ---------------------------------------------------------------------------
 
 /// Per-creature-type configuration that scores waypoints for patrol selection.
 #[derive(Clone, Debug)]
@@ -42,10 +34,6 @@ pub struct InfluenceProfile {
     /// Traversal pattern.
     pub patrol_mode: PatrolMode,
 }
-
-// ---------------------------------------------------------------------------
-// Scoring
-// ---------------------------------------------------------------------------
 
 /// Score a waypoint for a given creature type. Pure, deterministic.
 /// Higher score = more preferred.
@@ -84,10 +72,6 @@ pub fn score_waypoint(wp: &Waypoint, profile: &InfluenceProfile, anchor: Vec3) -
 
     score.max(0.001)
 }
-
-// ---------------------------------------------------------------------------
-// Static influence profiles per creature type
-// ---------------------------------------------------------------------------
 
 /// Wolf: patrols forest edges, drawn to chokepoints.
 pub const WOLF_INFLUENCE: InfluenceProfile = InfluenceProfile {

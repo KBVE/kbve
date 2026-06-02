@@ -6,10 +6,6 @@ use bevy::render::storage::ShaderStorageBuffer;
 
 use super::super::sprite_material::{SpriteAnimData, SpriteAtlasMaterial};
 
-// ---------------------------------------------------------------------------
-// Per-entity components
-// ---------------------------------------------------------------------------
-
 /// Generic marker for all sprite-sheet creatures processed by the unified
 /// spawn/animate systems. Replaces per-creature markers (WolfMarker, etc.).
 #[derive(Component)]
@@ -31,10 +27,6 @@ pub struct SpriteCreatureMarker {
 /// Links a sprite creature entity to its blob shadow entity.
 #[derive(Component)]
 pub struct CreatureShadowLink(pub Entity);
-
-// ---------------------------------------------------------------------------
-// Creature vitals — ECS-friendly health/mana/energy tracking
-// ---------------------------------------------------------------------------
 
 /// Per-entity vitals for NPC creatures. Server-authoritative, replicated
 /// to clients for health bars and interaction logic.
@@ -129,10 +121,6 @@ impl Default for VitalsConfig {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Direction handling
-// ---------------------------------------------------------------------------
-
 /// How a sprite creature resolves its facing direction.
 #[derive(Clone, Debug)]
 pub enum DirectionModel {
@@ -156,10 +144,6 @@ pub fn iso_quadrant(dx: f32, dz: f32) -> u32 {
     ((diff >= 0.0) as u32) << 1 | (sum >= 0.0) as u32
 }
 
-// ---------------------------------------------------------------------------
-// Movement
-// ---------------------------------------------------------------------------
-
 /// How a creature moves during `SpriteHopState::Airborne`.
 #[derive(Clone, Debug)]
 pub enum MovementProfile {
@@ -180,10 +164,6 @@ pub enum MovementProfile {
         hover_frequency: f32,
     },
 }
-
-// ---------------------------------------------------------------------------
-// Animation
-// ---------------------------------------------------------------------------
 
 /// A single animation definition: base row + frame count.
 #[derive(Clone, Copy, Debug)]
@@ -219,10 +199,6 @@ impl AnimSet {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Behavior
-// ---------------------------------------------------------------------------
-
 /// What a creature does when its idle timer expires.
 #[derive(Clone, Debug)]
 pub enum BehaviorAction {
@@ -256,10 +232,6 @@ pub struct BehaviorProfile {
     pub choices: Vec<BehaviorChoice>,
 }
 
-// ---------------------------------------------------------------------------
-// Tinting
-// ---------------------------------------------------------------------------
-
 /// How weather tinting is applied to this creature type.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TintProfile {
@@ -269,15 +241,7 @@ pub enum TintProfile {
     Ghost,
 }
 
-// ---------------------------------------------------------------------------
-// Visibility schedule (reuses TimeSchedule from bevy_kbve_net)
-// ---------------------------------------------------------------------------
-
 pub use bevy_kbve_net::npcdb::TimeSchedule as VisibilitySchedule;
-
-// ---------------------------------------------------------------------------
-// Complete type descriptor
-// ---------------------------------------------------------------------------
 
 /// Static descriptor for one sprite creature type. Lives in the
 /// `SpriteCreatureTypes` resource, keyed by NPC ref string.
@@ -312,10 +276,6 @@ pub struct SpriteCreatureType {
     /// Vitals configuration (health, mana, energy). Every creature gets vitals.
     pub vitals: VitalsConfig,
 }
-
-// ---------------------------------------------------------------------------
-// Resources
-// ---------------------------------------------------------------------------
 
 /// All registered sprite creature type descriptors.
 #[derive(Resource, Default)]

@@ -38,8 +38,6 @@ use bevy::prelude::*;
 
 use serde::{Deserialize, Serialize};
 
-// ── Item trait ──────────────────────────────────────────────────────────
-
 /// Trait that item types must implement to be used with the inventory system.
 ///
 /// Implementors are typically an `enum` of all item kinds in a game.
@@ -69,8 +67,6 @@ pub trait ItemKind:
     }
 }
 
-// ── Item stack ──────────────────────────────────────────────────────────
-
 /// A single inventory slot holding a quantity of one item kind.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(bound = "K: ItemKind")]
@@ -80,8 +76,6 @@ pub struct ItemStack<K: ItemKind> {
     /// How many of this item are in the slot (always `>= 1`).
     pub quantity: u32,
 }
-
-// ── Inventory resource ──────────────────────────────────────────────────
 
 /// Slot-based inventory with automatic stacking.
 ///
@@ -443,8 +437,6 @@ impl<K: ItemKind> Inventory<K> {
     }
 }
 
-// ── Action outcomes (always available) ─────────────────────────────────
-
 /// The outcome of an inventory action ([`SplitStackAction`],
 /// [`MergeStackAction`], [`MoveSlotAction`]).
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -480,15 +472,9 @@ pub enum ActionError {
     InvalidQuantity,
 }
 
-// ════════════════════════════════════════════════════════════════════════
-// Bevy-specific: Events, Plugin, Systems
-// ════════════════════════════════════════════════════════════════════════
-
 #[cfg(feature = "bevy")]
 mod bevy_integration {
     use super::*;
-
-    // ── Events ─────────────────────────────────────────────────────────
 
     /// Event requesting items be added to the inventory. Trigger this
     /// from your loot / pickup systems; the plugin observer drains it
@@ -621,8 +607,6 @@ mod bevy_integration {
             app.add_systems(Update, snapshot_inventory::<K>);
         }
     }
-
-    // ── Systems ────────────────────────────────────────────────────────
 
     fn process_loot_events<K: ItemKind>(
         event: On<LootEvent<K>>,
@@ -765,8 +749,6 @@ mod bevy_integration {
 #[cfg(feature = "bevy")]
 pub use bevy_integration::*;
 
-// ── Snapshot ────────────────────────────────────────────────────────────
-
 #[cfg(feature = "snapshot")]
 #[cfg(not(target_arch = "wasm32"))]
 mod snapshot_store {
@@ -831,8 +813,6 @@ pub fn get_inventory_snapshot<K: ItemKind>() -> Option<Inventory<K>> {
 pub fn get_inventory_snapshot_json() -> Option<String> {
     snapshot_store::read()
 }
-
-// ── Tests ───────────────────────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {

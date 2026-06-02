@@ -79,10 +79,6 @@ use virtual_joystick::VirtualJoystickPlugin;
 use water::WaterPlugin;
 use weather::WeatherPlugin;
 
-// ---------------------------------------------------------------------------
-// Performance tier — detected at startup, read by throttled systems
-// ---------------------------------------------------------------------------
-
 /// Performance tier used to scale system budgets per platform.
 ///
 /// `High`   — desktop native (all effects at full rate).

@@ -17,10 +17,6 @@ use dashmap::DashMap;
 use super::scene_objects::HoverOutline;
 use super::tilemap::TileCoord;
 
-// ---------------------------------------------------------------------------
-// HoverMap resource
-// ---------------------------------------------------------------------------
-
 /// Maximum Y-plane to test when casting the cursor ray. Objects taller than
 /// this won't be pickable above this height (trees top out around 4-5 units).
 const MAX_HOVER_Y: f32 = 6.0;
@@ -126,10 +122,6 @@ impl HoverMap {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Systems
-// ---------------------------------------------------------------------------
-
 /// Insert newly spawned hoverable entities into the map, recording their
 /// vertical bounds from Transform.y and HoverOutline.half_extents.y.
 pub fn insert_hoverables(
@@ -155,10 +147,6 @@ pub fn remove_hoverables(mut removed: RemovedComponents<HoverOutline>, hover_map
         hover_map.map.retain(|_, entry| entry.entity != entity);
     }
 }
-
-// ---------------------------------------------------------------------------
-// Ray construction
-// ---------------------------------------------------------------------------
 
 /// Build a ray (origin, direction) from the orthographic camera through the
 /// cursor's screen position. Returns None if the camera isn't orthographic
@@ -207,10 +195,6 @@ fn ray_hit_y_plane(ray_origin: Vec3, ray_dir: Vec3, y: f32) -> Option<Vec2> {
     let hit = ray_origin + ray_dir * t;
     Some(Vec2::new(hit.x, hit.z))
 }
-
-// ---------------------------------------------------------------------------
-// Public picking entry point
-// ---------------------------------------------------------------------------
 
 /// Multi-plane cursor picking. Casts the cursor ray against Y-planes from
 /// MAX_HOVER_Y down to 0, collecting all candidate entities, then returns

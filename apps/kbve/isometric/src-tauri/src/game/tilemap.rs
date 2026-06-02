@@ -42,10 +42,6 @@ const CAP_HEIGHT: f32 = 0.06;
 /// Per-side inset on the cap where a cliff edge faces a lower neighbor.
 const EDGE_INSET: f32 = 0.10;
 
-// ---------------------------------------------------------------------------
-// Vertex color constants (replaces per-tile materials)
-// ---------------------------------------------------------------------------
-
 /// Height-band base colors: grass, dirt, stone, snow
 const BAND_COLORS: [(f32, f32, f32); 4] = [
     (0.3, 0.6, 0.2),
@@ -138,18 +134,10 @@ fn blended_grass_corner(
     ]
 }
 
-// ---------------------------------------------------------------------------
-// Vegetation vertex color constants
-// ---------------------------------------------------------------------------
-
 /// Snap vegetation jitter to the pixel grid (1/PIXEL_DENSITY = 1/32 world units).
 /// Matches the camera snap step so edges never land between pixels.
 #[allow(dead_code)]
 const VEG_SNAP: f32 = 1.0 / 32.0;
-
-// ---------------------------------------------------------------------------
-// Pixel-art grass masks (8×8) — disabled for now, kept for future use
-// ---------------------------------------------------------------------------
 
 #[allow(dead_code)]
 const GRASS_TRANSPARENT: u8 = 0;
@@ -369,10 +357,6 @@ pub(super) fn lerp3(a: (f32, f32, f32), b: (f32, f32, f32), t: f32) -> (f32, f32
         a.2 + (b.2 - a.2) * t,
     )
 }
-
-// ---------------------------------------------------------------------------
-// Combined mesh helpers
-// ---------------------------------------------------------------------------
 
 /// Push exposed faces of a terrain body column. Skips:
 /// - Bottom (-Y): underground, never visible from isometric camera
@@ -844,10 +828,6 @@ fn build_chunk_mesh_uv(
     .with_inserted_indices(Indices::U32(indices))
 }
 
-// ---------------------------------------------------------------------------
-// Procedural pixel flora: mask-based sprite generation
-// ---------------------------------------------------------------------------
-
 /// Pixel roles in a flower mask.
 /// 0 = transparent, 1 = stem, 2 = petal, 3 = center/pistil
 const FLORA_TRANSPARENT: u8 = 0;
@@ -1171,10 +1151,6 @@ fn generate_flora_atlas() -> (Vec<u8>, u32, u32) {
     (pixels, atlas_w, atlas_h)
 }
 
-// ---------------------------------------------------------------------------
-// Flower mesh (UV-mapped billboard cards)
-// ---------------------------------------------------------------------------
-
 /// Build a UV-mapped flower mesh: two crossed planes (MC-style X pattern)
 /// textured from the procedural flora atlas.  `arch_idx` selects which 16×16
 /// region of the 80×16 atlas to sample (0–4).
@@ -1241,10 +1217,6 @@ fn build_flower_mesh(arch_idx: usize) -> Mesh {
     .with_inserted_indices(Indices::U32(indices))
 }
 
-// ---------------------------------------------------------------------------
-// Pre-created materials
-// ---------------------------------------------------------------------------
-
 #[derive(Resource)]
 pub(super) struct TileMaterials {
     chunk_body_mat: Handle<StandardMaterial>,
@@ -1273,10 +1245,6 @@ pub(super) struct TileMaterials {
 /// been spawned. Player movement is frozen until this resource exists.
 #[derive(Resource)]
 pub struct TerrainReady;
-
-// ---------------------------------------------------------------------------
-// Async chunk computation pipeline
-// ---------------------------------------------------------------------------
 
 /// Raw mesh vertex data — Send-safe, no Bevy types.
 #[derive(Default)]
@@ -1453,7 +1421,6 @@ fn compute_chunk_geometry(
             let lx = dx as f32 * TILE_SIZE;
             let lz = dz as f32 * TILE_SIZE;
 
-            // --- Body column ---
             let body_h = column_h - CAP_HEIGHT;
             let nb = |ntx: i32, ntz: i32| -> f32 { h_at(ntx, ntz).max(0.5) - CAP_HEIGHT };
             push_terrain_body(
@@ -1473,13 +1440,11 @@ fn compute_chunk_geometry(
                 ],
             );
 
-            // --- Collider sub-shape ---
             colliders.push((
                 Vec3::new(lx, column_h / 2.0, lz),
                 Vec3::new(TILE_SIZE, column_h, TILE_SIZE),
             ));
 
-            // --- Cap / grass ---
             let inset = |nh: f32| if h - nh >= 1.0 { EDGE_INSET } else { 0.0 };
             let inset_nx = inset(h_at(tx - 1, tz));
             let inset_px = inset(h_at(tx + 1, tz));
@@ -1528,7 +1493,6 @@ fn compute_chunk_geometry(
                 );
             }
 
-            // --- Water surface ---
             if h < WATER_LEVEL {
                 let wy = WATER_LEVEL;
                 let half = TILE_SIZE / 2.0;
@@ -1569,7 +1533,6 @@ fn compute_chunk_geometry(
                 ]);
             }
 
-            // --- Vegetation decisions (band 0 only) ---
             if band == 0 {
                 let mut tile_occupied = false;
 
@@ -1779,10 +1742,6 @@ impl Plugin for TilemapPlugin {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Setup
-// ---------------------------------------------------------------------------
-
 fn setup_tile_materials(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -1885,10 +1844,6 @@ fn setup_tile_materials(
     });
 }
 
-// ---------------------------------------------------------------------------
-// Chunk spawn / despawn (combined meshes + compound collider)
-// ---------------------------------------------------------------------------
-
 fn process_chunk_spawns_and_despawns(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -1910,7 +1865,6 @@ fn process_chunk_spawns_and_despawns(
         return;
     };
 
-    // ── Phase 1: Despawn chunks (cheap — all at once) ──────────────────────
     let despawns: Vec<(i32, i32, Vec<Entity>)> = terrain.chunks_to_despawn.drain(..).collect();
     for (_cx, _cz, entities) in despawns {
         for entity in entities {
@@ -1918,7 +1872,6 @@ fn process_chunk_spawns_and_despawns(
         }
     }
 
-    // ── Phase 2: Dispatch async tasks for new chunks ───────────────────────
     let player_chunk = player_query.single().ok().map(|tf| {
         TerrainMap::tile_to_chunk(
             tf.translation.x.round() as i32,
@@ -1951,7 +1904,6 @@ fn process_chunk_spawns_and_despawns(
         );
     }
 
-    // ── Phase 2b: Speculative precomputation ──────────────────────────────
     // Predict player movement direction from chunk history and speculatively
     // dispatch chunks 1-2 rings ahead in that direction.
     if let Some((pcx, pcz)) = player_chunk {
@@ -1992,7 +1944,6 @@ fn process_chunk_spawns_and_despawns(
         }
     }
 
-    // ── Phase 3: Finalize completed chunks ─────────────────────────────────
     // Drain the crossbeam channel — lock-free, no contention with workers.
     let mut results: Vec<ChunkGeometry> = chunk_channel.rx.try_iter().collect();
 
@@ -2040,7 +1991,6 @@ fn process_chunk_spawns_and_despawns(
         let base_z = cz * CHUNK_SIZE;
         let mut entities = Vec::new();
 
-        // ── Terrain meshes from pre-computed vertex data ───────────────
         let body_mesh = meshes.add(build_chunk_mesh(
             geometry.body.positions,
             geometry.body.normals,
@@ -2120,7 +2070,6 @@ fn process_chunk_spawns_and_despawns(
             entities.push(water_entity);
         }
 
-        // ── Merged rock mesh (single draw call per chunk) ──────────────
         if !geometry.rock_body.positions.is_empty() {
             let rock_mesh = meshes.add(build_chunk_mesh(
                 geometry.rock_body.positions,
@@ -2184,7 +2133,6 @@ fn process_chunk_spawns_and_despawns(
             entities.push(shadow_entity);
         }
 
-        // ── Merged mushroom mesh (single draw call per chunk) ─────────
         if !geometry.mushroom_body.positions.is_empty() {
             let mush_mesh = meshes.add(build_chunk_mesh(
                 geometry.mushroom_body.positions,
@@ -2234,7 +2182,6 @@ fn process_chunk_spawns_and_despawns(
             entities.push(mush_entity);
         }
 
-        // ── Merged tree mesh (single draw call per chunk, Low/Medium) ──
         if !geometry.tree_body.positions.is_empty() {
             let tree_mesh = meshes.add(build_chunk_mesh(
                 geometry.tree_body.positions,
@@ -2296,7 +2243,6 @@ fn process_chunk_spawns_and_despawns(
             entities.push(shadow_entity);
         }
 
-        // ── Vegetation entities (trees + flowers — still individual) ──
         for veg in geometry.vegetation {
             match veg {
                 VegetationSpawn::Tree { tx, tz, column_h } => {

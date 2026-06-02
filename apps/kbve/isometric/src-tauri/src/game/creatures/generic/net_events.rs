@@ -16,10 +16,6 @@ use super::types::SpriteCreatureMarker;
 use bevy_kbve_net::creatures::types::CreatureId;
 use bevy_kbve_net::{CreatureEventKind, CreaturePositionSync, CreatureStateEvent};
 
-// ---------------------------------------------------------------------------
-// ULID → Entity index
-// ---------------------------------------------------------------------------
-
 /// Index of server-assigned creature ULIDs to local ECS entities.
 ///
 /// Two views are kept in sync:
@@ -62,10 +58,6 @@ pub fn update_creature_id_index(
         index.indexed.insert(entity);
     }
 }
-
-// ---------------------------------------------------------------------------
-// State event corrections (damage, death, flee, capture)
-// ---------------------------------------------------------------------------
 
 /// System that receives `CreatureStateEvent` messages from the server and
 /// overrides the local creature's behavior intent.
@@ -124,10 +116,6 @@ pub fn receive_creature_events(
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Position sync (sprite creatures)
-// ---------------------------------------------------------------------------
 
 /// Minimum drift to trigger a correction hop.
 const SYNC_MIN_DRIFT: f32 = 0.5;
@@ -214,10 +202,6 @@ pub fn receive_creature_sync(
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Position sync (ambient creatures: fireflies, butterflies)
-// ---------------------------------------------------------------------------
 
 fn ambient_npc_ref_to_render_kind(npc_ref: &str) -> Option<RenderKind> {
     match npc_ref {

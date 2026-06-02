@@ -1,9 +1,7 @@
 use bevy::prelude::*;
 
-// ---------------------------------------------------------------------------
 // Shared resource — tracks which creature types have been spawned.
 // Add a new `bool` field here when adding a new creature type.
-// ---------------------------------------------------------------------------
 
 #[derive(Resource, Default)]
 pub struct CreaturePool {
@@ -19,10 +17,8 @@ pub struct CreatureMeshes {
     pub butterfly_wings: Handle<Mesh>,
 }
 
-// ---------------------------------------------------------------------------
 // Game time — unified clock that defers to server when connected.
 // Creature modules read this instead of DayCycle directly.
-// ---------------------------------------------------------------------------
 
 /// Canonical game time shared across all creature modules.
 /// Updated each frame by the `sync_game_time` system in weather.rs.
@@ -43,10 +39,6 @@ impl Default for GameTime {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Deterministic pseudo-random (no deps, WASM-safe)
-// ---------------------------------------------------------------------------
-
 /// Simple hash → f32 in [0, 1) for deterministic variety per creature index.
 pub fn hash_f32(seed: u32) -> f32 {
     let mut x = seed;
@@ -55,10 +47,6 @@ pub fn hash_f32(seed: u32) -> f32 {
     x ^= x >> 16;
     (x & 0xFFFF) as f32 / 65535.0
 }
-
-// ---------------------------------------------------------------------------
-// Time-of-day visibility factors
-// ---------------------------------------------------------------------------
 
 /// Butterflies active during 7:00–18:00 with 1.5h fade.
 const DAY_START: f32 = 7.0;
@@ -92,10 +80,6 @@ pub fn night_factor(hour: f32) -> f32 {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Shared animation helpers
-// ---------------------------------------------------------------------------
-
 /// Reusable flutter offset — overlapping sine waves for erratic insect motion.
 /// `amp` scales the overall amplitude (1.0 = full wander, 0.3 = subtle entry flutter).
 pub fn flutter_offset(t: f32, phase: f32, speed: f32, radius: f32, amp: f32) -> Vec3 {
@@ -119,10 +103,6 @@ pub fn flutter_offset(t: f32, phase: f32, speed: f32, radius: f32, amp: f32) -> 
 pub fn scene_center(cam_pos: Vec3) -> Vec3 {
     Vec3::new(cam_pos.x - 15.0, 0.0, cam_pos.z - 15.0)
 }
-
-// ---------------------------------------------------------------------------
-// Shared mesh builder for sprite billboard quads
-// ---------------------------------------------------------------------------
 
 /// Build a single-sided billboard quad, bottom-aligned (y=0..y=size).
 /// UVs span full [0,1] — the shader maps to the correct atlas cell.
@@ -152,10 +132,6 @@ pub fn build_billboard_quad(size: f32) -> Mesh {
     )
     .with_inserted_indices(Indices::U32(vec![0, 2, 1, 0, 3, 2]))
 }
-
-// ---------------------------------------------------------------------------
-// Deterministic patrol seed (shared by all patrol-based creatures)
-// ---------------------------------------------------------------------------
 
 /// Deterministic seed for creature decisions. Combines slot_seed, patrol_step,
 /// and creature_seed so all clients produce identical behavior.

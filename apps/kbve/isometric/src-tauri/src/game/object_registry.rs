@@ -16,10 +16,6 @@ use super::scene_objects::{
 };
 use super::terrain::TerrainMap;
 
-// ---------------------------------------------------------------------------
-// Object Kind
-// ---------------------------------------------------------------------------
-
 /// Every placeable object type in the game.
 /// Adding a new variant requires updating `spawn_object_entity()`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Component, Reflect)]
@@ -33,10 +29,6 @@ pub enum ObjectKind {
     PointLight,
 }
 
-// ---------------------------------------------------------------------------
-// Placement record (serializable, no ECS coupling)
-// ---------------------------------------------------------------------------
-
 /// A serializable description of one placed object.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ObjectPlacement {
@@ -45,18 +37,10 @@ pub struct ObjectPlacement {
     pub rotation_y: f32,
 }
 
-// ---------------------------------------------------------------------------
-// ECS component linking entity to registry
-// ---------------------------------------------------------------------------
-
 #[derive(Component)]
 pub struct ObjectInstance {
     pub registry_id: u64,
 }
-
-// ---------------------------------------------------------------------------
-// Registry resource
-// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone)]
 pub struct ObjectRegistryEntry {
@@ -115,10 +99,6 @@ impl ObjectRegistry {
     }
 }
 
-// ---------------------------------------------------------------------------
-// IPC snapshot (mirrors state.rs pattern)
-// ---------------------------------------------------------------------------
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ObjectRegistrySnapshot {
     pub objects: Vec<ObjectPlacement>,
@@ -147,10 +127,6 @@ pub fn get_registry_snapshot() -> Option<ObjectRegistrySnapshot> {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Events
-// ---------------------------------------------------------------------------
-
 #[derive(Message)]
 pub struct SpawnObjectMessage {
     pub kind: ObjectKind,
@@ -162,10 +138,6 @@ pub struct SpawnObjectMessage {
 pub struct DespawnObjectMessage {
     pub registry_id: u64,
 }
-
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
 
 pub struct ObjectRegistryPlugin;
 
@@ -185,10 +157,6 @@ impl Plugin for ObjectRegistryPlugin {
             );
     }
 }
-
-// ---------------------------------------------------------------------------
-// Initial scene (replaces hard-coded spawn_scene_objects)
-// ---------------------------------------------------------------------------
 
 fn spawn_initial_scene(mut writer: MessageWriter<SpawnObjectMessage>) {
     let objects = [
@@ -232,10 +200,6 @@ fn spawn_initial_scene(mut writer: MessageWriter<SpawnObjectMessage>) {
         writer.write(msg);
     }
 }
-
-// ---------------------------------------------------------------------------
-// Message handlers
-// ---------------------------------------------------------------------------
 
 fn handle_spawn_messages(
     mut commands: Commands,
@@ -300,10 +264,6 @@ fn snapshot_object_registry(registry: Res<ObjectRegistry>) {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Central spawn function — exhaustive match on ObjectKind
-// ---------------------------------------------------------------------------
 
 fn spawn_object_entity(
     commands: &mut Commands,

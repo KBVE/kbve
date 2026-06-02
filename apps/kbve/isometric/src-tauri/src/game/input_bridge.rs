@@ -8,19 +8,13 @@ use bevy::window::PrimaryWindow;
 
 use super::phase::GamePhase;
 
-// ---------------------------------------------------------------------------
 // Bridged cursor position (replaces window.cursor_position() since we
 // skip WinitPlugin and can't update the Window's internal cursor state)
-// ---------------------------------------------------------------------------
 
 #[derive(Resource, Default)]
 pub struct BridgedCursorPosition {
     pub position: Option<Vec2>,
 }
-
-// ---------------------------------------------------------------------------
-// Input frame from JavaScript
-// ---------------------------------------------------------------------------
 
 #[derive(Default)]
 pub struct InputFrame {
@@ -35,10 +29,6 @@ pub struct InputFrame {
 }
 
 pub static INPUT_BUFFER: Mutex<Option<InputFrame>> = Mutex::new(None);
-
-// ---------------------------------------------------------------------------
-// Public API called from Tauri command handler
-// ---------------------------------------------------------------------------
 
 pub fn receive_input(
     keys_pressed: Vec<String>,
@@ -75,10 +65,6 @@ pub fn receive_input(
     *INPUT_BUFFER.lock().unwrap() = Some(frame);
 }
 
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
-
 pub struct InputBridgePlugin;
 
 impl Plugin for InputBridgePlugin {
@@ -98,17 +84,9 @@ impl Plugin for InputBridgePlugin {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Drain stale input during non-Playing phases (Title, Connecting)
-// ---------------------------------------------------------------------------
-
 fn drain_input_buffer() {
     let _ = INPUT_BUFFER.lock().unwrap().take();
 }
-
-// ---------------------------------------------------------------------------
-// System: reads INPUT_BUFFER and writes Bevy input messages
-// ---------------------------------------------------------------------------
 
 fn inject_input_from_ipc(
     mut keyboard_writer: MessageWriter<KeyboardInput>,
@@ -180,10 +158,6 @@ fn inject_input_from_ipc(
         });
     }
 }
-
-// ---------------------------------------------------------------------------
-// JS key code to Bevy KeyCode conversion
-// ---------------------------------------------------------------------------
 
 fn js_to_keycode(code: &str) -> Option<KeyCode> {
     match code {

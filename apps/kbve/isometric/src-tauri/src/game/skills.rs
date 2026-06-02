@@ -9,10 +9,6 @@ use bevy_skills::{BevySkillsPlugin, GrantXpMsg, LevelUpMsg, SkillId, SkillRegist
 use super::player::Player;
 use super::toast::Toast;
 
-// ---------------------------------------------------------------------------
-// Skill IDs (stable hashes of ref strings)
-// ---------------------------------------------------------------------------
-
 /// Woodcutting — XP from chopping trees.
 pub fn skill_woodcutting() -> SkillId {
     SkillId::from_ref("woodcutting")
@@ -26,10 +22,6 @@ pub fn skill_foraging() -> SkillId {
     SkillId::from_ref("foraging")
 }
 
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
-
 pub struct SkillsPlugin;
 
 impl Plugin for SkillsPlugin {
@@ -39,10 +31,6 @@ impl Plugin for SkillsPlugin {
         app.add_systems(Update, notify_level_ups);
     }
 }
-
-// ---------------------------------------------------------------------------
-// Startup: register skill definitions
-// ---------------------------------------------------------------------------
 
 fn register_skills(mut registry: ResMut<SkillRegistry>) {
     use bevy_skills::SkillDef;
@@ -74,10 +62,6 @@ fn register_skills(mut registry: ResMut<SkillRegistry>) {
     info!("[skills] registered {} skills", registry.len());
 }
 
-// ---------------------------------------------------------------------------
-// XP grant helper (called from net.rs when ObjectRemoved is received)
-// ---------------------------------------------------------------------------
-
 /// Grant gathering XP to the local player based on what they collected.
 pub fn grant_collection_xp(
     writer: &mut MessageWriter<GrantXpMsg>,
@@ -99,10 +83,6 @@ pub fn grant_collection_xp(
         amount: xp,
     });
 }
-
-// ---------------------------------------------------------------------------
-// Level-up notification
-// ---------------------------------------------------------------------------
 
 fn notify_level_ups(
     mut commands: Commands,

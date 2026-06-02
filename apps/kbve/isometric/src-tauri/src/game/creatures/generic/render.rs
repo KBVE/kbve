@@ -13,10 +13,6 @@ use super::types::*;
 use crate::game::camera::IsometricCamera;
 use crate::game::weather::BlobShadow;
 
-// ---------------------------------------------------------------------------
-// System
-// ---------------------------------------------------------------------------
-
 /// Client-only rendering system for all generic sprite creatures.
 ///
 /// Updates the [`SimulationCenter`] resource from camera position, then handles
@@ -60,7 +56,6 @@ pub fn render_sprite_creatures(
             continue;
         };
 
-        // --- Visibility schedule (set Visibility component) ---
         let schedule_hidden = match ctype.visibility {
             VisibilitySchedule::Day => day_factor(game_time.hour) < 0.01,
             VisibilitySchedule::Night => day_factor(game_time.hour) > 0.99,
@@ -81,7 +76,6 @@ pub fn render_sprite_creatures(
             continue;
         }
 
-        // --- SSBO update ---
         let entry = atlas_pool
             .entries
             .iter_mut()
@@ -110,10 +104,8 @@ pub fn render_sprite_creatures(
             }
         }
 
-        // --- Billboard ---
         tf.look_to(cam_tf.forward().as_vec3(), Vec3::Y);
 
-        // --- Glide hover for idle/landing (wraith-style) ---
         if let MovementProfile::Glide {
             hover_base,
             hover_amplitude,
@@ -130,7 +122,6 @@ pub fn render_sprite_creatures(
             }
         }
 
-        // --- Shadow sync ---
         if let Some(CreatureShadowLink(se)) = shadow {
             if let Ok((mut bs, mut sv)) = shadow_q.get_mut(*se) {
                 bs.anchor = Vec3::new(cr.anchor.x, cr.anchor.y + 0.01, cr.anchor.z);
@@ -141,17 +132,12 @@ pub fn render_sprite_creatures(
         *vis = Visibility::Visible;
     }
 
-    // --- Flush all SSBO buffers ---
     for entry in &atlas_pool.entries {
         if let Some(buffer) = buffers.get_mut(&entry.anim_buffer) {
             buffer.set_data(entry.anim_data.as_slice());
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 /// Hide a creature's blob shadow.
 fn hide_shadow(

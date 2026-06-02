@@ -23,10 +23,6 @@ pub use bevy_kbve_net::creatures::ambient_types::{
     FireflySlotState,
 };
 
-// ---------------------------------------------------------------------------
-// Core component — shared by ALL creature types (client-side ECS)
-// ---------------------------------------------------------------------------
-
 /// Unified creature component for NpcDb-driven ambient creatures.
 ///
 /// Contains shared pool/slot data. Render-specific state lives in companion
@@ -50,10 +46,6 @@ pub struct Creature {
     /// Material handle for per-entity visual updates.
     pub mat_handle: Handle<StandardMaterial>,
 }
-
-// ---------------------------------------------------------------------------
-// Render-specific companion components
-// ---------------------------------------------------------------------------
 
 /// Render-only data for ambient creatures (fireflies, butterflies).
 /// Holds GPU resource handles that the shared simulation components don't carry.
@@ -104,10 +96,6 @@ impl Default for SpriteHopState {
         Self::Idle { timer: 3.0 }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Client-only slot helpers (depend on ECS components)
-// ---------------------------------------------------------------------------
 
 /// Apply slot-derived animation parameters to shared creature fields.
 pub fn apply_slot_base(creature: &mut Creature, seed: u32, anchor: Vec3, slot: (i32, i32, u16)) {

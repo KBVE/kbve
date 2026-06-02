@@ -22,10 +22,6 @@ const MODAL_CLOSE_DIST: f32 = 6.0;
 /// Max XZ distance to perform an action.
 const ACTION_DIST: f32 = 3.0;
 
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
-
 /// Root node of the interaction panel overlay.
 #[derive(Component)]
 struct InteractionPanel;
@@ -56,10 +52,6 @@ struct ActiveInteraction {
     title: String,
 }
 
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
-
 pub struct InteractionUiPlugin;
 
 impl Plugin for InteractionUiPlugin {
@@ -73,10 +65,6 @@ impl Plugin for InteractionUiPlugin {
         );
     }
 }
-
-// ---------------------------------------------------------------------------
-// Object info lookup (matches React OBJECT_INFO / FLOWER_INFO / etc.)
-// ---------------------------------------------------------------------------
 
 struct ObjectInfo {
     title: &'static str,
@@ -198,10 +186,6 @@ fn lookup_object_info(kind: InteractableKind, sub_kind: Option<&str>) -> ObjectI
     }
 }
 
-// ---------------------------------------------------------------------------
-// Spawn (hidden panel, shown on selection)
-// ---------------------------------------------------------------------------
-
 fn spawn_interaction_panel(mut commands: Commands) {
     commands
         .spawn((
@@ -265,10 +249,6 @@ fn spawn_interaction_panel(mut commands: Commands) {
             );
         });
 }
-
-// ---------------------------------------------------------------------------
-// Systems
-// ---------------------------------------------------------------------------
 
 /// Check for new object selections (reads snapshot directly, no polling delay).
 fn poll_selection(

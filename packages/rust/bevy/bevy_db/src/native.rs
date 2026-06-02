@@ -145,8 +145,6 @@ impl NativeStore {
         Ok(keys)
     }
 
-    // ── Internal byte-level helpers ────────────────────────────────
-
     async fn get_bytes(&self, table: &str, key: &str) -> Result<Option<Vec<u8>>, DbError> {
         let ck = composite_key(table, key);
         let read_txn = self

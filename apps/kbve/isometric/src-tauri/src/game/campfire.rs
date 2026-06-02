@@ -12,10 +12,6 @@ use bevy::shader::ShaderRef;
 use super::camera::IsometricCamera;
 use super::terrain::TerrainMap;
 
-// ---------------------------------------------------------------------------
-// Fire material
-// ---------------------------------------------------------------------------
-
 #[derive(Clone, Copy, Debug, ShaderType)]
 pub struct FireUniforms {
     pub time: f32,
@@ -44,10 +40,6 @@ impl Material for FireMaterial {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
-
 /// Marker for campfire billboard entities.
 #[derive(Component)]
 struct Campfire {
@@ -60,16 +52,8 @@ struct Campfire {
 #[derive(Component)]
 struct CampfireLight;
 
-// ---------------------------------------------------------------------------
-// Campfire positions (client-side, near world origin / spawn)
-// ---------------------------------------------------------------------------
-
 /// Fixed campfire spawn positions (world XZ). Y is resolved from terrain.
 const CAMPFIRE_POSITIONS: &[(f32, f32)] = &[(3.0, 3.0), (-4.0, 5.0), (6.0, -2.0)];
-
-// ---------------------------------------------------------------------------
-// Systems
-// ---------------------------------------------------------------------------
 
 fn setup_campfires(
     mut commands: Commands,
@@ -206,10 +190,6 @@ fn flicker_lights(time: Res<Time>, mut light_q: Query<&mut PointLight, With<Camp
         pl.intensity = 120000.0 * flicker;
     }
 }
-
-// ---------------------------------------------------------------------------
-// Mesh
-// ---------------------------------------------------------------------------
 
 /// Build a ring of stones (low-poly rock lumps in a circle).
 /// Returns vertex-colored mesh at origin — caller positions via Transform.
@@ -519,10 +499,6 @@ fn build_fire_quad(width: f32, height: f32) -> Mesh {
     .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
     .with_inserted_indices(Indices::U32(indices))
 }
-
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
 
 pub struct CampfirePlugin;
 

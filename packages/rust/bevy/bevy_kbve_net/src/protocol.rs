@@ -6,10 +6,6 @@ use serde::{Deserialize, Serialize};
 use crate::inputs::PlayerInput;
 use crate::worldgen::{TileKey, WorldObjectKind};
 
-// ---------------------------------------------------------------------------
-// Replicated components
-// ---------------------------------------------------------------------------
-
 /// Unique player identifier assigned by the server.
 #[derive(Component, Serialize, Deserialize, Clone, Debug, PartialEq, Reflect)]
 pub struct PlayerId(pub u64);
@@ -46,10 +42,6 @@ impl Default for PlayerVitals {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Messages
-// ---------------------------------------------------------------------------
 
 /// Client sends JWT after connecting so the server can identify the user.
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -191,10 +183,6 @@ pub struct SkillXpGrant {
     pub amount: u64,
 }
 
-// ---------------------------------------------------------------------------
-// Equipment
-// ---------------------------------------------------------------------------
-
 /// Equip an item already in the player's inventory. The server resolves
 /// the proto EquipSlot from the item's EquipmentInfo, so the client only
 /// needs to identify which inventory slot to equip from.
@@ -226,10 +214,6 @@ pub struct EquipmentSync {
     pub player_id: u64,
     pub slots: Vec<(i32, String)>,
 }
-
-// ---------------------------------------------------------------------------
-// Crafting
-// ---------------------------------------------------------------------------
 
 /// Ask the server to craft `output_item_ref`. Server resolves the recipe
 /// from the item's `CraftingRecipe` list, validates ingredients + skill +
@@ -265,10 +249,6 @@ pub struct CraftResult {
     pub produced: u32,
 }
 
-// ---------------------------------------------------------------------------
-// Consumables
-// ---------------------------------------------------------------------------
-
 /// Client asks to use a consumable from a given inventory slot. Server
 /// validates `consumable=true`, applies the UseEffect list (heal/buff/
 /// damage), decrements the stack, and broadcasts inventory + vital updates.
@@ -276,10 +256,6 @@ pub struct CraftResult {
 pub struct UseItemRequest {
     pub inventory_slot: u32,
 }
-
-// ---------------------------------------------------------------------------
-// Deployables
-// ---------------------------------------------------------------------------
 
 /// Client asks to deploy an item at a world tile (campfire, fence, etc.).
 /// Server validates the item carries `DeployableInfo`, removes one from
@@ -361,10 +337,6 @@ pub struct CreatureCapturedBatch {
     pub entries: Vec<CapturedCreatureEntry>,
 }
 
-// ---------------------------------------------------------------------------
-// Creature interaction messages
-// ---------------------------------------------------------------------------
-
 /// Client requests to attack/interact with a creature.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CreatureAttackRequest {
@@ -408,10 +380,6 @@ pub struct TimeChannel;
 /// Separate from TimeChannel so large batches don't block time sync.
 pub struct CreatureSyncChannel;
 
-// ---------------------------------------------------------------------------
-// Creature position sync
-// ---------------------------------------------------------------------------
-
 /// Single creature's server-authoritative state snapshot.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CreatureSnapshot {
@@ -439,16 +407,8 @@ pub struct CreaturePositionSync {
     pub snapshots: Vec<CreatureSnapshot>,
 }
 
-// ---------------------------------------------------------------------------
-// Channels
-// ---------------------------------------------------------------------------
-
 /// Ordered-reliable channel for important game events.
 pub struct GameChannel;
-
-// ---------------------------------------------------------------------------
-// Protocol plugin — registers everything with lightyear
-// ---------------------------------------------------------------------------
 
 pub struct ProtocolPlugin;
 
@@ -460,10 +420,8 @@ impl Plugin for ProtocolPlugin {
         // receive_input_message system panics on the first tick.
         app.init_resource::<PeerMetadata>();
 
-        // --- Inputs ---
         app.add_plugins(lightyear::input::native::prelude::InputPlugin::<PlayerInput>::default());
 
-        // --- Channels ---
         app.add_channel::<GameChannel>(ChannelSettings {
             mode: ChannelMode::OrderedReliable(ReliableSettings::default()),
             ..default()
@@ -482,7 +440,6 @@ impl Plugin for ProtocolPlugin {
         })
         .add_direction(NetworkDirection::ServerToClient);
 
-        // --- Messages ---
         // AuthMessage: client → server
         app.register_message::<AuthMessage>()
             .add_direction(NetworkDirection::ClientToServer);
@@ -567,8 +524,6 @@ impl Plugin for ProtocolPlugin {
         app.register_message::<CreaturePositionSync>()
             .add_direction(NetworkDirection::ServerToClient);
 
-        // --- Replicated components (custom game components) ---
-
         // PlayerId: synced once on spawn, predicted + rollback
         app.register_component::<PlayerId>().add_prediction();
 
@@ -587,8 +542,6 @@ impl Plugin for ProtocolPlugin {
         // SetUsernameResponse: server → client
         app.register_message::<SetUsernameResponse>()
             .add_direction(NetworkDirection::ServerToClient);
-
-        // --- Replicated avian3d physics components ---
 
         // Position: full sync with rollback
         app.register_component::<Position>().add_prediction();

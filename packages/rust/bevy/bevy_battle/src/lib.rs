@@ -401,8 +401,6 @@ mod tests {
         assert_eq!(actual, 2);
     }
 
-    // ── Expanded tests ────────────────────────────────────────────
-
     /// Spawn a player with a specific class.
     fn spawn_player_class(
         app: &mut App,
@@ -433,8 +431,6 @@ mod tests {
         reader.read(outcomes).cloned().collect()
     }
 
-    // ── Health unit tests ─────────────────────────────────────────
-
     #[test]
     fn health_new_sets_both_fields() {
         let hp = Health::new(25, 50);
@@ -457,8 +453,6 @@ mod tests {
         assert_eq!(hp.current, 10);
     }
 
-    // ── ActiveEffects unit tests ──────────────────────────────────
-
     #[test]
     fn active_effects_has_and_stacks() {
         let mut effects = ActiveEffects::default();
@@ -473,8 +467,6 @@ mod tests {
         assert!(effects.has(&EffectKind::Poison));
         assert_eq!(effects.stacks(&EffectKind::Poison), 3);
     }
-
-    // ── EffectKind unit tests ─────────────────────────────────────
 
     #[test]
     fn effect_kind_dot_values() {
@@ -497,8 +489,6 @@ mod tests {
         assert!(!EffectKind::Thorns.is_negative());
     }
 
-    // ── CombatModifiers default ───────────────────────────────────
-
     #[test]
     fn combat_modifiers_default_multiplier_is_one() {
         let mods = CombatModifiers::default();
@@ -506,8 +496,6 @@ mod tests {
         assert_eq!(mods.fog_accuracy_penalty, 0.0);
         assert_eq!(mods.blessing_heal_bonus, 0);
     }
-
-    // ── Burning DoT test ──────────────────────────────────────────
 
     #[test]
     fn effect_tick_burning_dot() {
@@ -620,8 +608,6 @@ mod tests {
         );
     }
 
-    // ── Death check tests ─────────────────────────────────────────
-
     #[test]
     fn death_check_emits_death_outcome() {
         let mut app = test_app(42);
@@ -700,8 +686,6 @@ mod tests {
         let _ = death_count;
     }
 
-    // ── Attack system edge cases ──────────────────────────────────
-
     #[test]
     fn attack_against_armored_enemy_does_minimum_one() {
         let mut app = test_app(99);
@@ -756,8 +740,6 @@ mod tests {
         assert!(app.world().get::<Dead>(enemy).is_some());
     }
 
-    // ── Defend emits outcome ──────────────────────────────────────
-
     #[test]
     fn defend_emits_defend_outcome() {
         let mut app = test_app(42);
@@ -773,8 +755,6 @@ mod tests {
             .any(|e| matches!(e, CombatOutcome::Defend { .. }));
         assert!(has_defend, "Should emit Defend outcome");
     }
-
-    // ── Flee depth scaling ────────────────────────────────────────
 
     #[test]
     fn flee_at_high_depth_still_has_min_chance() {
@@ -854,8 +834,6 @@ mod tests {
             warrior_successes
         );
     }
-
-    // ── Enemy turn edge cases ─────────────────────────────────────
 
     #[test]
     fn enemy_defend_increases_armor() {
@@ -1024,8 +1002,6 @@ mod tests {
         assert!(has_stunned, "Should emit Stunned outcome");
     }
 
-    // ── First strike / initiative ─────────────────────────────────
-
     #[test]
     fn first_strike_sets_flag() {
         let mut app = test_app(42);
@@ -1057,8 +1033,6 @@ mod tests {
             "FirstStrikeFired should be set when an enemy has first_strike"
         );
     }
-
-    // ── UseItem variants ──────────────────────────────────────────
 
     #[test]
     fn use_item_damage_enemy() {
@@ -1220,8 +1194,6 @@ mod tests {
         assert!(effects.has(&EffectKind::Burning), "Should apply Burning");
     }
 
-    // ── Lifesteal ─────────────────────────────────────────────────
-
     #[test]
     fn attack_with_lifesteal_heals_player() {
         let mut app = test_app(42);
@@ -1271,8 +1243,6 @@ mod tests {
         }
     }
 
-    // ── Thorns reflection ─────────────────────────────────────────
-
     #[test]
     fn enemy_attack_triggers_thorns() {
         let mut app = test_app(42);
@@ -1314,8 +1284,6 @@ mod tests {
         assert!(has_thorns, "Should emit Thorns outcome");
     }
 
-    // ── Multi-enemy turn ──────────────────────────────────────────
-
     #[test]
     fn multiple_enemies_all_act() {
         let mut app = test_app(42);
@@ -1342,8 +1310,6 @@ mod tests {
             .count();
         assert_eq!(attack_count, 2, "Both enemies should have attacked");
     }
-
-    // ── roll_new_intent coverage ──────────────────────────────────
 
     #[test]
     fn roll_new_intent_low_level_limited_pool() {

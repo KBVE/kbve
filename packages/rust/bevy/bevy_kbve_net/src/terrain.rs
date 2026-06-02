@@ -6,17 +6,9 @@
 use bevy::prelude::*;
 use std::collections::HashMap;
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 pub const MAX_HEIGHT: f32 = 6.0;
 pub const NOISE_SCALE: f32 = 6.0;
 pub const TERRAIN_SEED: u32 = 42;
-
-// ---------------------------------------------------------------------------
-// Noise functions (zero deps, WASM-safe, deterministic)
-// ---------------------------------------------------------------------------
 
 /// Deterministic hash of two integers to a float in [0.0, 1.0).
 #[inline(always)]
@@ -61,10 +53,6 @@ pub fn terrain_height(x: i32, z: i32, seed: u32, max_height: f32, scale: f32) ->
     let raw = n1 * 0.7 + n2 * 0.3;
     (raw * max_height).round()
 }
-
-// ---------------------------------------------------------------------------
-// TerrainMap resource — lightweight height cache for simulation
-// ---------------------------------------------------------------------------
 
 /// Shared terrain height cache used by creature simulation on both client
 /// and server. Computes heights on-demand and caches them.

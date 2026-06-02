@@ -4,10 +4,6 @@ use bevy::prelude::*;
 
 use super::scene_objects::MushroomKind;
 
-// ---------------------------------------------------------------------------
-// Color palettes (sRGB)
-// ---------------------------------------------------------------------------
-
 /// Porcini: warm brown dome, cream stem
 const PORCINI_CAP: [(f32, f32, f32); 3] = [
     (0.55, 0.35, 0.18), // highlight
@@ -33,10 +29,6 @@ const FLY_AGARIC_CAP: [(f32, f32, f32); 3] = [
 const FLY_AGARIC_SPOT: (f32, f32, f32) = (0.92, 0.90, 0.84);
 const FLY_AGARIC_STEM: (f32, f32, f32) = (0.90, 0.88, 0.82);
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 fn srgb_to_linear(c: f32) -> f32 {
     if c <= 0.04045 {
         c / 12.92
@@ -54,10 +46,6 @@ fn hash2d(x: i32, z: i32) -> f32 {
     let n = n.wrapping_mul(n);
     (n as u32 as f32) / u32::MAX as f32
 }
-
-// ---------------------------------------------------------------------------
-// Mushroom geometry
-// ---------------------------------------------------------------------------
 
 /// Push a dome cap (squashed hemisphere). Used for Porcini and Fly Agaric caps.
 fn push_dome_cap(
@@ -287,10 +275,6 @@ fn build_mushroom_mesh(
     .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0.0f32, 0.0]; uv_count])
     .with_inserted_indices(Indices::U32(indices))
 }
-
-// ---------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------
 
 pub struct MushroomParams {
     pub tx: i32,
