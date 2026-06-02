@@ -12,9 +12,68 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: null
-  about: "Black warlock mix (1) is a members-only item in Old School RuneScape. High alchemy value: 42 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 1
+    effects:
+      - description: Boosts Strength by floor(level * 15 / 100) + 4 for a temporary buff.
+      - description: In multicombat areas, up to three nearby players with Accept Aid enabled receive the same boost.
+  recipes:
+    - skill: Hunter
+      members: true
+      materials:
+        - item_name: Black warlock
+          quantity: 1
+        - item_name: Raw hunter meat
+          quantity: 1
+      products:
+        - item_name: Black warlock mix (2)
+          quantity: 1
+      notes: Crafted with a pestle and mortar; takes 3 ticks
+  related_items:
+    - item_id: 29205
+      item_name: Black warlock mix (2)
+      slug: black-warlock-mix-2
+      relationship: variant
+      description: 2-dose version produced by the recipe
+    - item_id: 29203
+      item_name: Black warlock
+      slug: black-warlock
+      relationship: component
+      description: Hunter butterfly base ingredient
+  about: Black warlock mix is a Varlamore hunter butterfly mix that grants a Strength boost and shares the buff with nearby allies in multicombat zones.
+  market_strategy:
+    notes:
+      - Supply tied to Varlamore hunter activity
+      - Strength buff scales with player level
+      - Shareable buff drives party demand
+      - No GE buy limit listed
+  trading_tips:
+    - Stock during Hunter XP events
+    - Watch PvM trip metas that favor shared boosts
+  history:
+    - date: "2024-04-03"
+      description: Group Ironmen corrected to properly share hunter mixes and butterflies with their group.
+    - date: "2024-03-20"
+      update: "Varlamore: Part One"
+      description: Black warlock mix introduced alongside Varlamore hunter content.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

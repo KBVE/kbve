@@ -12,9 +12,63 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 2000
-  about: "Divine super attack potion(2) is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 2
+    effects:
+      - description: Boosts Attack by 5 + 15% of the player's current Attack level for 5 minutes.
+      - description: Attack will not naturally drain below the boost amount during the effect duration.
+      - description: Drinking deals 10 Hitpoints damage; requires 11+ Hitpoints to consume.
+  recipes:
+    - skill: herblore
+      level: 70
+      xp: 1
+      materials:
+        - item_name: Super attack(2)
+          quantity: 1
+        - item_name: Crystal dust
+          quantity: 2
+      product: Divine super attack potion(2)
+      product_id: 23703
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 23700
+      item_name: Divine super attack potion(4)
+      slug: divine-super-attack-potion-4
+      relationship: variant
+      description: 4-dose variant
+    - item_id: 23706
+      item_name: Divine super attack potion(1)
+      slug: divine-super-attack-potion-1
+      relationship: variant
+      description: 1-dose variant
+    - item_id: 2436
+      item_name: Super attack(4)
+      slug: super-attack-4
+      relationship: alternative
+      description: Standard super attack potion
+  history:
+    - date: "2020-07-02"
+      description: The inventory icon was graphically updated to match the look of normal potions.
+  about: Divine super attack potion(2) is a 2-dose Herblore potion that boosts Attack by 5 + 15% of the player's level for 5 minutes, at the cost of 10 Hitpoints per dose.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-07-25"
+    update: Song of the Elves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

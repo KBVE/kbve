@@ -12,9 +12,71 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 11000
-  about: "Willow pyre logs is a members-only item in Old School RuneScape. High alchemy value: 48 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: log
+    tier: low
+  recipes:
+    - product: Willow pyre logs
+      skill: Firemaking
+      level: 35
+      xp: 100
+      materials:
+        - item_name: Willow logs
+          quantity: 1
+        - item_name: Sacred oil (3)
+          quantity: 1
+      facility: Inventory
+      notes: Use sacred oil on willow logs; flat 5 Firemaking XP per dose applied.
+  prayer:
+    notes:
+      - Burned at Mort'ton funeral pyres with shade remains to grant Prayer XP
+      - Loar remains 33.5 XP, Phrin 46 XP, Riyl 61 XP on willow pyre
+      - Higher Prayer XP than regular pyre logs, gated by 35 Firemaking
+  related_items:
+    - item_id: 1519
+      item_name: Willow logs
+      slug: willow-logs
+      relationship: component
+      description: Base log soaked in sacred oil
+    - item_id: 3438
+      item_name: Pyre logs
+      slug: pyre-logs
+      relationship: downgrade
+      description: Regular log version, lower Firemaking requirement
+    - item_id: 3444
+      item_name: Maple pyre logs
+      slug: maple-pyre-logs
+      relationship: upgrade
+      description: Next-tier pyre log with higher Prayer XP
+  market_strategy:
+    notes:
+      - Demand driven by Shades of Mort'ton Prayer training
+      - Cheaper alternative to higher-tier pyre logs
+      - Supply tied to willow log + sacred oil availability
+  history:
+    - date: "2004-10-18"
+      update: Shades of Mort'ton
+      description: Released alongside the Shades of Mort'ton minigame.
+    - date: "2015-01-22"
+      description: Firemaking XP standardized regardless of click order on sacred oil application.
+    - date: "2024-07-31"
+      description: Make-All menu added; Firemaking XP from sacred oil set to a flat 5 XP per dose.
+  about: Willow pyre logs are willow logs soaked in sacred oil, used at Mort'ton funeral pyres to grant elevated Prayer XP from shade remains.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-10-18"
+    update: Shades of Mort'ton
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

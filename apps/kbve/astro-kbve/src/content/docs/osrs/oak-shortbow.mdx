@@ -14,24 +14,50 @@ osrs:
   limit: 18000
   equipment:
     slot: 2h
-    type: shortbow
-    attack_style: ranged
+    weapon_type: bow
     attack_speed: 4
-  requirements:
-    ranged: 5
-  stats:
-    attack:
+    weight: 1.814
+    requirements:
+      ranged: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
       ranged: 14
-    other:
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
-    range: 7
-  fletching:
-    level: 20
-    xp: 16.5
-    method: Oak shortbow (u) + bowstring
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 20
+      xp: 16.5
+      materials:
+        - item_name: Oak shortbow (u)
+          item_id: 54
+          quantity: 1
+        - item_name: Bow string
+          item_id: 1777
+          quantity: 1
+      product: Oak shortbow
+      product_id: 843
+      product_quantity: 1
+      facility: None
+      members_only: false
   shops:
     - shop_name: Lowe's Archery Emporium
       location: Varrock
+      price: 100
+    - shop_name: Brian's Archery Supplies
+      location: Rimmington
       price: 100
   related_items:
     - item_id: 849
@@ -54,8 +80,36 @@ osrs:
       slug: bow-string
       relationship: component
       description: Stringing material
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - F2P low-level ranged weapon
+      - Fletching 20 product
+      - Stable shop supply at 100 gp
+      - Common training intermediate
+  history:
+    - date: "2002-03-25"
+      description: Item released into RuneScape.
+    - date: "2005-01-26"
+      description: Inventory and equipped sprite graphically updated.
+  about: The oak shortbow is a free-to-play two-handed ranged weapon strung from oak shortbow (u) and a bowstring at Fletching 20.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

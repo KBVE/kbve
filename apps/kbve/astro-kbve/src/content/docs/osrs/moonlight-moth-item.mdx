@@ -12,9 +12,59 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 125
-  about: "Moonlight moth (item) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Hunter (Butterfly net)
+        quantity: "1"
+        rarity: common
+        members_only: true
+        notes: Caught with butterfly net and butterfly jar at level 75 Hunter; barehanded at level 85 Hunter in Varlamore.
+  prayer:
+    notes:
+      - Restores 22 Prayer points when released from butterfly jar.
+      - Shareable with up to 3 nearby players in multi-combat zones if Accept Aid is enabled.
+      - Cannot be shared on Group Ironman accounts.
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Moonlight moth (item)
+          quantity: 1
+        - item_name: Raw hunter meat
+          quantity: 1
+      product: Moonlight moth mix
+      product_quantity: 1
+      facility: Pestle and mortar
+  market_strategy:
+    notes:
+      - Hunted in Varlamore butterfly netting; supply driven by 75+ Hunter players.
+      - Prayer restore niche makes it useful for low-cost PvM trips.
+      - Pestle-and-mortar combine creates moonlight moth mix variants.
+  about: Moonlight moth (item) is a members-only Hunter catch from Varlamore that restores 22 Prayer points when released and can be combined with raw hunter meat to make moonlight moth mix.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Inventory icon adjusted"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Release
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  history:
+    - date: "2024-03-20"
+      update: Perilous Moons
+      description: Added to game with the release of Varlamore Hunter content.
+    - date: "2024-09-25"
+      description: Inventory icon adjusted.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

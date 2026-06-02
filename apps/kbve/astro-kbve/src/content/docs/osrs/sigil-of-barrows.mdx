@@ -12,9 +12,38 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  about: "Sigil of barrows is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: sigil
+    tier: high
+  about: Sigil of barrows is a Deadman Mode sigil granting +40% Barrows weapon accuracy and preventing Barrows gear degradation except on death or drop.
+  market_strategy:
+    notes:
+      - Deadman Mode exclusive
+      - Currently unobtainable in live game
+      - Untradeable on GE
+      - Duplicates sold via Deadman's skull
+      - Adds amulet of the damned effects
+  history:
+    - date: "2021-08-25"
+      description: Sigil of barrows released with Deadman Reborn.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-08-25"
+    update: "Deadman: Reborn"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    alchable: false
+    destroy: "You must unattune the Sigil before you can destroy it."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

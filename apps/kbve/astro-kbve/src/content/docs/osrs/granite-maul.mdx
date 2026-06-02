@@ -14,88 +14,102 @@ osrs:
   limit: 70
   equipment:
     slot: 2h
-    type: maul
-    attack_style: melee
+    weapon_type: blunt
     attack_speed: 7
+    weight: 4.535
     requirements:
       attack: 50
       strength: 50
-    stats:
-      attack_crush: 81
-      strength: 79
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 81
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 79
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   special_attack:
     name: Quick Smash
     energy: 60
-    energy_ornate: 50
-    effect: Instant attack, resets attack timer
+    description: Performs an instant attack that resets the attack timer; with the ornate handle the cost drops to 50% and multiple specs can stack in one tick.
   drop_table:
     sources:
       - source: Gargoyle
-        source_id: 412
         combat_level: 111
         quantity: "1"
         rarity: 1/256
         members_only: true
       - source: Marble gargoyle
-        source_id: 7407
-        combat_level: 186
+        combat_level: 349
         quantity: "1"
         rarity: 1/256
         members_only: true
       - source: Grotesque Guardians
-        source_id: 7850
         combat_level: 328
         quantity: "1"
-        rarity: 1/256
+        rarity: 1/250
         members_only: true
   related_items:
     - item_id: 12848
       item_name: Granite maul (or)
       slug: granite-maul-or
       relationship: upgrade
-      description: With ornate handle
+      description: Ornate handle variant with 50% spec cost
     - item_id: 12849
       item_name: Granite clamp
       slug: granite-clamp
-      relationship: upgrade
-      description: Cosmetic upgrade
+      relationship: component
+      description: Cosmetic clamp attachment
     - item_id: 11802
       item_name: Armadyl godsword
       slug: armadyl-godsword
       relationship: alternative
-      description: Common combo weapon
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Crush | +81 |
-    | Strength | +79 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | +0 |
-
-    Requirements: 50 Attack, 50 Strength
-
-    Quick Smash (50% with ornate handle, 60% without):
-    - Deals an instant attack
-    - Can stack multiple specs instantly
-    - Resets attack timer
-
-    With ornate handle, can hit 3 specs in one tick.
-
-    Essential for:
-    - PvP (combo specs)
-    - KO potential
-    - Stacking with other specs
-
-    Iconic PvP weapon for instant damage stacking.
+      description: Common spec combo partner
+  about: Granite maul is a two-handed crush weapon dropped by Gargoyles and the Grotesque Guardians, prized for its Quick Smash instant-attack special that enables PvP spec stacking.
   market_strategy:
     notes:
-      - Very cheap base weapon
-      - Ornate handle essential for PvP
-      - Stack with AGS/claws specs
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Cheap base for the iconic instant-spec setup
+      - Ornate handle adds the meaningful upgrade
+      - Stable Slayer-supply from gargoyle tasks
+      - PvP demand spikes around Wilderness events
+  trading_tips:
+    - Watch for PvP event announcements driving demand
+    - Stockpile during Slayer XP weekends
+  history:
+    - date: "2019-09-05"
+      description: Special attack energy cost raised to 60% for the base granite maul.
+    - date: "2005-02-15"
+      update: Ghosts Ahoy and Slayer Update
+      description: Granite maul released as a Gargoyle drop with the Slayer skill rework.
+    - date: "2005-01-26"
+      description: Item added to the game cache (unobtainable at the time).
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-02-15"
+    update: Ghosts Ahoy and Slayer Update
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 4.535
+    options:
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

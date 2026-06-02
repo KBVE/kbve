@@ -12,9 +12,56 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 13000
-  about: "Blamish blue shell (round) is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Bruise blamish snail
+        combat_level: 20
+        quantity: "1"
+        rarity: Always
+        members_only: true
+  recipes:
+    - skill: crafting
+      level: 15
+      xp: 32.5
+      materials:
+        - item_name: Blamish blue shell (round)
+          item_id: 3351
+          quantity: 1
+        - item_name: Chisel
+          quantity: 1
+      product: Bruise blue snelm (round)
+      product_quantity: 1
+  related_items:
+    - item_id: 3349
+      item_name: Blamish blue shell (pointed)
+      slug: blamish-blue-shell-pointed
+      relationship: variant
+      description: Pointed variant used for pointed snelm
+  market_strategy:
+    notes:
+      - Crafted into round bruise blue snelm at level 15 Crafting
+      - Snelms offer minor melee defence for low-level players
+      - Supply gated by bruise blamish snail drops in Mort Myre
+      - Niche cosmetic and Crafting XP item
+  history:
+    - date: "2004-10-14"
+      description: Released as part of the Morytania Expansion update.
+  about: Blamish blue shell (round) is obtained from bruise blamish snails in Mort Myre and crafted with a chisel into a bruise blue snelm (round) at 15 Crafting for 32.5 XP.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-10-14"
+    update: Morytania Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

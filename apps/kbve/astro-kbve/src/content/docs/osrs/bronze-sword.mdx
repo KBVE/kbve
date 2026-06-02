@@ -12,26 +12,75 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 125
-  item_id: 1277
-  item_type: equipment
-  slot: weapon
-  type: sword
-  attack_style: stab
-  attack_speed: 4
-  tradeable: true
-  weight: 1.814
-  requirements:
-    attack: 1
-  stats:
-    stab_attack: 4
-    slash_attack: 3
-    crush_attack: -2
-    strength: 5
+  equipment:
+    slot: weapon
+    weapon_type: stab-sword
+    attack_speed: 4
+    weight: 1.814
+    attack_bonus:
+      stab: 4
+      slash: 3
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 5
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 4
+      xp: 12.5
+      materials:
+        - item_name: Bronze bar
+          quantity: 1
+      product: Bronze sword
+      product_id: 1277
+      product_quantity: 1
+  shops:
+    - shop_name: Varrock Swordshop
+      location: Varrock
+      price: 26
+      stock: 5
   related_items:
-    - slug: iron-sword
-    - slug: bronze-scimitar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Iron sword
+      slug: iron-sword
+      relationship: upgrade
+      description: Next-tier sword
+    - item_name: Bronze scimitar
+      slug: bronze-scimitar
+      relationship: alternative
+      description: Same tier, slash weapon
+  history:
+    - date: "2001-01-04"
+      update: RuneScape beta is now online
+      description: Released with the original launch of RuneScape.
+  about: Bronze sword is a free-to-play stab sword smithable at level 4 Smithing from a single bronze bar, used by low-level Attack trainers and starter combatants.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape beta is now online
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

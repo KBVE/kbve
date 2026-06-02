@@ -1,6 +1,6 @@
 ---
 title: Limpwurt root | OSRS Price Data
-description: "Limpwurt root: The root of a limpwurt plant.. High alch: 4 GP, GE limit: 13,000."
+description: "Limpwurt root: The root of a limpwurt plant. High alch: 4 GP, GE limit: 13,000."
 osrs:
   id: 225
   name: Limpwurt root
@@ -16,7 +16,7 @@ osrs:
     type: secondary
     tier: mid
   farming:
-    level: 26
+    farming_level: 26
     seed_id: 5100
     seed_name: Limpwurt seed
   drop_table:
@@ -37,6 +37,11 @@ osrs:
         combat_level: 28
         quantity: "1"
         rarity: common
+      - source: Ogress Warrior
+        combat_level: 82
+        quantity: "1"
+        rarity: common
+        members_only: true
   recipes:
     - skill: herblore
       level: 12
@@ -109,16 +114,32 @@ osrs:
       - Super strength demand
       - Farmable ingredient
       - High volume trading
-      - Super strength potions
       - Strength potion production
-      - Teak tree protection (15)
-      - Ironman Herblore
+      - Ironman Herblore staple
       - Farm runs profitable
       - Hill giants drop commonly
-      - Protect teak trees
       - Consistent demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2001-02-05"
+      description: Item released into Old School RuneScape.
+    - date: "2023-02-15"
+      description: Magic secateurs now affect crop yield for limpwurt roots.
+  about: Limpwurt root is a Herblore secondary used in Strength and Super strength potions.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-02-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.007
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

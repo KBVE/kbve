@@ -15,108 +15,116 @@ osrs:
   potion:
     doses: 0
     type: unfinished
-    base_herb: cadantine
-    uses_blood: true
+    base_herb: lantadyme
   recipes:
     - skill: herblore
-      level: 80
-      xp: 155
+      level: 69
+      xp: 0
       materials:
-        - item_name: Cadantine blood potion (unf)
-          item_id: 2483
+        - item_name: Lantadyme
+          item_id: 2481
           quantity: 1
-        - item_name: Wine of zamorak
-          item_id: 245
+        - item_name: Vial of water
+          item_id: 227
           quantity: 1
-      product: Bastion potion (3)
-      product_id: 22461
+      product: Lantadyme potion (unf)
+      product_id: 2483
       product_quantity: 1
       facility: None
       members_only: true
     - skill: herblore
-      level: 80
-      xp: 155
+      level: 69
+      xp: 84
       materials:
-        - item_name: Cadantine blood potion (unf)
+        - item_name: Lantadyme potion (unf)
+          item_id: 2483
+          quantity: 1
+        - item_name: Dragon scale dust
+          item_id: 241
+          quantity: 1
+      product: Antifire potion (3)
+      product_id: 2454
+      product_quantity: 1
+      facility: None
+      members_only: true
+    - skill: herblore
+      level: 76
+      xp: 172.5
+      materials:
+        - item_name: Lantadyme potion (unf)
           item_id: 2483
           quantity: 1
         - item_name: Potato cactus
           item_id: 3138
           quantity: 1
-      product: Battlemage potion (3)
-      product_id: 22449
+      product: Magic potion (3)
+      product_id: 3042
       product_quantity: 1
       facility: None
       members_only: true
   related_items:
-    - item_id: 265
-      item_name: Cadantine
-      slug: cadantine
+    - item_id: 2481
+      item_name: Lantadyme
+      slug: lantadyme
       relationship: component
-      description: Primary herb
-    - item_id: 22446
-      item_name: Vial of blood
-      slug: vial-of-blood
+      description: Primary herb mixed into the vial
+    - item_id: 227
+      item_name: Vial of water
+      slug: vial-of-water
       relationship: component
-      description: Blood component
-    - item_id: 245
-      item_name: Wine of zamorak
-      slug: wine-of-zamorak
+      description: Base container
+    - item_id: 241
+      item_name: Dragon scale dust
+      slug: dragon-scale-dust
       relationship: component
-      description: Bastion secondary
+      description: Secondary for antifire potion
     - item_id: 3138
       item_name: Potato cactus
       slug: potato-cactus
       relationship: component
-      description: Battlemage secondary
-    - item_id: 22461
-      item_name: Bastion potion (4)
-      slug: bastion-potion-4
+      description: Secondary for magic potion
+    - item_id: 2454
+      item_name: Antifire potion (3)
+      slug: antifire-potion-3
       relationship: product
-      description: Ranged/Defence boost
-    - item_id: 22449
-      item_name: Battlemage potion (4)
-      slug: battlemage-potion-4
+      description: Finished antifire potion
+    - item_id: 3042
+      item_name: Magic potion (3)
+      slug: magic-potion-3
       relationship: product
-      description: Magic/Defence boost
-  about: |-
-    Mix Cadantine + Vial of blood.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 80 |
-
-    Add secondary ingredient to create finished potions:
-
-    | Add | Creates | Level | XP |
-    |-----|---------|-------|-----|
-    | Wine of zamorak | Bastion potion (3) | 80 | 155 |
-    | Potato cactus | Battlemage potion (3) | 80 | 155 |
-
-    Boosts Ranged and Defence:
-    - Ranged: +4 to +13 (level dependent)
-    - Defence: +5 to +19 (level dependent)
-
-    Used for:
-    - Raids (CoX, ToB, ToA)
-    - Bossing with ranged
-    - Inferno attempts
-
-    Boosts Magic and Defence:
-    - Magic: +4
-    - Defence: +5 to +19 (level dependent)
-
-    Used for:
-    - Magic-based bossing
-    - Raids support role
-    - Ancient Magicks
+      description: Finished magic potion
+  history:
+    - date: "2004-03-29"
+      update: RS2 Launched!
+      description: Lantadyme potion (unf) released alongside the Herblore update.
+    - date: "2014-05-01"
+      description: Renamed from "Unfinished potion" to "Lantadyme potion (unf)".
+  about: Lantadyme potion (unf) is the unfinished base used to make antifire potion (69 Herblore) and magic potion (76 Herblore).
   market_strategy:
     notes:
-      - Blood vials from Theatre of Blood
-      - Often made for personal use rather than profit
-      - Check which finished potion is more profitable
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Profitable bulk Herblore intermediate for antifire/magic potions
+      - Demand tied to lantadyme herb supply
+      - High volume from clean lantadyme + vial of water makers
+  trading_tips:
+    - Track antifire and magic potion margins to time bulk flips
+    - Buy clean lantadyme dips and mass-produce unfinished
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-03-29"
+    update: RS2 Launched!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

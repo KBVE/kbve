@@ -12,39 +12,99 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 125
+  material:
+    type: cloth
+    tier: low
   equipment:
     slot: body
-    type: magic robes
-    tradeable: true
     weight: 0.907
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 3
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 3
-      defence_ranged: 0
-      strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  drop_table:
+    sources:
+      - source: Wizard
+        source_id: 0
+        combat_level: 9
+        quantity: "1"
+        rarity: uncommon
+        members_only: false
+      - source: Reward casket (beginner)
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: varies
+        members_only: true
+      - source: Elaborate lockbox
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: varies
+        members_only: true
+  treasure_trail:
+    tier: beginner
+    is_reward: true
+    reward_tiers:
+      - beginner
   related_items:
     - item_id: 579
       item_name: Blue wizard hat
       slug: blue-wizard-hat
-      relationship: alternative
-      description: Set piece
+      relationship: set-piece
+      description: Wizard set headpiece
     - item_id: 1011
       item_name: Blue wizard robe skirt
       slug: blue-wizard-robe-skirt
-      relationship: alternative
-      description: Set piece
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: set-piece
+      description: Wizard set legs
+  about: Blue wizard robe is a free-to-play body slot magic robe providing magic accuracy and defence.
+  market_strategy:
+    notes:
+      - Cheap F2P magic gear
+      - Common Wizard drop
+      - Beginner clue reward
+      - Set piece with hat and skirt
+      - Low GE buy limit
+  history:
+    - date: "2014-12-10"
+      description: The item was renamed from "Wizard robe" to "Blue wizard robe".
+    - date: "2005-06-13"
+      description: The item was renamed from "Wizards robe" to "Wizard robe".
+    - date: "2001-01-21"
+      description: Blue wizard robe released.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-21"
+    update: Newsletter 1
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,83 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 125
-  about: "Xerician hat is a members-only item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: head
+    weight: 0.2
+    requirements:
+      defence: 10
+      magic: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 14
+      xp: 66
+      materials:
+        - item_name: Xerician fabric
+          quantity: 3
+        - item_name: Thread
+          quantity: 1
+      product: Xerician hat
+      product_id: 13385
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_name: Xerician top
+      slug: xerician-top
+      relationship: set-piece
+      description: Body component of set
+    - item_name: Xerician robe
+      slug: xerician-robe
+      relationship: set-piece
+      description: Legs component of set
+    - item_name: Xerician fabric
+      slug: xerician-fabric
+      relationship: component
+      description: Crafting material
+  market_strategy:
+    notes:
+      - Stats match gnome hats, Canifis hats, ghostly hood, Fremennik hat
+      - Crafted from Xerician fabric at level 14 Crafting
+      - Low alch margin; flip mostly on fabric cost swings
+  history:
+    - date: "2016-01-07"
+      update: Zeah Great Kourend
+      description: Released with the Great Kourend expansion.
+  about: Xerician hat is a low-level magic hat requiring 10 Defence and 20 Magic, crafted at level 14 Crafting from 3 Xerician fabric and one thread.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-01-07"
+    update: Zeah Great Kourend
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.2
+    options:
+      - Drop
+    worn_options:
+      - Wear
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

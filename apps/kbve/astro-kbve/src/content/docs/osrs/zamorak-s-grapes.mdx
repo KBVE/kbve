@@ -12,9 +12,66 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 11000
-  about: "Zamorak's grapes is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  farming:
+    farming_level: 36
+    notes:
+      - Picked from vines at the Hosidius vinery while carrying Bologa's blessing
+      - One blessing is consumed per grape harvested
+  recipes:
+    - product: Wine of Zamorak
+      skill: Cooking
+      level: 65
+      xp: 200
+      materials:
+        - item_name: Zamorak's grapes
+          quantity: 1
+        - item_name: Jug of water
+          quantity: 1
+      facility: Inventory
+      notes: Success rate scales from ~50% at 65 Cooking to 100% at 98 Cooking; failures produce jug of bad wine.
+  related_items:
+    - item_id: 245
+      item_name: Wine of Zamorak
+      slug: wine-of-zamorak
+      relationship: product
+      description: Cooked product used in high-level Herblore potions
+    - item_id: 1937
+      item_name: Grapes
+      slug: grapes
+      relationship: alternative
+      description: Standard grapes used in regular wine making
+    - item_id: 20755
+      item_name: Bologa's blessing
+      slug: bologa-s-blessing
+      relationship: component
+      description: Required to harvest from the Hosidius vinery
+  market_strategy:
+    notes:
+      - Supply gated by 36 Farming + Hosidius access
+      - Demand driven by Wine of Zamorak ingredient for Herblore
+      - Margin tied to Wine of Zamorak resale at 65+ Cooking
+  history:
+    - date: "2016-09-29"
+      update: Duel Arena Improvements
+      description: Released alongside the Duel Arena Improvements update.
+    - date: "2023-03-01"
+      description: Wine of Zamorak success rate floor improved at level 65 and capped at 100% by level 98 (previously 99).
+  about: Zamorak's grapes are members-only vinery grapes harvested in Hosidius using Bologa's blessing and cooked into Wine of Zamorak at 65 Cooking.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-09-29"
+    update: Duel Arena Improvements
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
