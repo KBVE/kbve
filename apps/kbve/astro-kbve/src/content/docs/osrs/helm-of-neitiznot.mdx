@@ -14,6 +14,9 @@ osrs:
   limit: 70
   equipment:
     slot: head
+    weight: 2.267
+    requirements:
+      defence: 55
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,8 +34,6 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 3
-    requirements:
-      defence: 55
   related_items:
     - item_id: 24268
       item_name: Neitiznot faceguard
@@ -49,29 +50,29 @@ osrs:
       slug: warrior-helm
       relationship: alternative
       description: Alternative Fremennik helm
-  about: |-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +31 |
-    | Slash | +29 |
-    | Crush | +34 |
-    | Magic | +3 |
-    | Ranged | +30 |
-
-    | Other | Value |
-    |-------|-------|
-    | Strength | +3 |
-    | Prayer | +3 |
-
-    Best free melee helm until Neitiznot faceguard:
-    - Slayer tasks
-    - General PvM
-    - Budget melee setup
-    - PvP (commonly used)
-
-    Upgrade: Attach a Basilisk jaw to create the Neitiznot faceguard.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: Helm of neitiznot is a melee head slot helm awarded after completing The Fremennik Isles quest, valued for its +3 prayer and +3 melee strength bonuses without magic or ranged penalties.
+  history:
+    - date: "2007-02-12"
+      description: "'Destroy' option replaced with 'Drop'."
+  properties:
+    release_date: "2007-02-06"
+    update: The Fremennik Isles
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

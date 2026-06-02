@@ -1,6 +1,6 @@
 ---
 title: Black spear(p++) | OSRS Price Data
-description: "Black spear(p++): A poisoned black tipped spear.. High alch: 450 GP, GE limit: 8."
+description: "Black spear(p++): a poisoned two-handed black spear requiring 10 Attack, obtained from Shades of Mort'ton or vampyre Juvinates. High alch: 450 GP, GE limit: 8."
 osrs:
   id: 5736
   name: Black spear(p++)
@@ -12,9 +12,80 @@ osrs:
   lowalch: 300
   highalch: 450
   limit: 8
-  about: "Black spear(p++) is a members-only item in Old School RuneScape. High alchemy value: 450 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: black
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    weight: 2.267
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: 15
+      slash: 15
+      crush: 15
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 16
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 1247
+      item_name: Black spear
+      slug: black-spear
+      relationship: variant
+      description: Unpoisoned base variant of the black spear.
+    - item_id: 5734
+      item_name: Black spear(p)
+      slug: black-spear-p
+      relationship: variant
+      description: Weakly poisoned black spear.
+    - item_id: 5735
+      item_name: Black spear(p+)
+      slug: black-spear-p-5735
+      relationship: variant
+      description: Moderately poisoned black spear.
+  about: "Black spear(p++) is the strongest-poisoned variant of the two-handed black spear, sourced from Shades of Mort'ton chests and vampyre conversion."
+  market_strategy:
+    title: Investment Notes
+    notes:
+      - Supply tied to Shades of Mort'ton chest drops and Juvinate conversions.
+      - Members-only with a tight buy limit of 8 keeps prices volatile.
+      - Strongest poison tier commands a premium over plain and (p)/(p+).
+      - Niche demand from low-tier PvP and showcase loadouts.
+  history:
+    - date: "2005-05-17"
+      update: Shades of Mort'ton
+      description: Added to game alongside the Shades of Mort'ton minigame and vampyre conversion mechanic.
+  properties:
+    release_date: "2005-05-17"
+    update: Shades of Mort'ton
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

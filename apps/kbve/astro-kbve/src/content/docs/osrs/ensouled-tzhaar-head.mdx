@@ -1,20 +1,66 @@
 ---
 title: Ensouled tzhaar head | OSRS Price Data
-description: "Ensouled tzhaar head: The creature's soul is still in here.. High alch: 304 GP, GE limit: 3,000."
+description: "Ensouled tzhaar head: The creature's soul is still in here. High alch: 304 GP."
 osrs:
   id: 13499
   name: Ensouled tzhaar head
   slug: ensouled-tzhaar-head
-  examine: The creature's soul is still in here.
+  examine: "The creature's soul is still in here. I could reanimate it with Expert Reanimation."
   members: true
   icon: Ensouled tzhaar head.png
   value: 507
   lowalch: 202
   highalch: 304
-  limit: 3000
-  about: "Ensouled tzhaar head is a members-only item in Old School RuneScape. High alchemy value: 304 coins. Grand Exchange buy limit: 3,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: null
+  prayer:
+    reanimation_level: 72
+    reanimation_xp: 1104
+    spellbook: Arceuus
+  drop_table:
+    - source: TzHaar-Ket (level 149)
+      quantity: "1"
+      rarity: 1/35
+    - source: TzHaar-Ket (level 221)
+      quantity: "1"
+      rarity: 1/25
+  related_items:
+    - item_id: 13501
+      item_name: Ensouled kalphite head
+      slug: ensouled-kalphite-head
+      relationship: alternative
+      description: Adept reanimation ensouled head
+    - item_id: 13507
+      item_name: Ensouled abyssal head
+      slug: ensouled-abyssal-head
+      relationship: upgrade
+      description: Master reanimation ensouled head
+  about: A TzHaar-Ket drop reanimated via the Expert Reanimation spell at 72 Magic on the Arceuus spellbook to spawn a Reanimated TzHaar worth 1,104 Prayer XP.
+  market_strategy:
+    notes:
+      - Untradeable — value comes from the Prayer XP yield per cast
+      - Solid mid-tier Arceuus Prayer training on TzHaar-Ket Slayer assignments
+  history:
+    - date: "2016-01-07"
+      description: Released with Zeah — Great Kourend.
+    - date: "2021-04-28"
+      description: Examine text updated.
+    - date: "2022-03-30"
+      description: Ensouled heads can now drop in instanced areas.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-01-07"
+    update: "Zeah: Great Kourend"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

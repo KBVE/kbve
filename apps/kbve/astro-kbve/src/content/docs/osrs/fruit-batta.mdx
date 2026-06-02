@@ -1,6 +1,6 @@
 ---
 title: Fruit batta | OSRS Price Data
-description: "Fruit batta: It actually smells quite good.. High alch: 1 GP, GE limit: 6,000."
+description: "Fruit batta: It actually smells quite good. Heals 11 HP. High alch: 1 GP, GE limit: 6,000."
 osrs:
   id: 2277
   name: Fruit batta
@@ -12,9 +12,71 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 6000
-  about: "Fruit batta is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 11
+    bites: 1
+  recipes:
+    - skill: Cooking
+      level: 25
+      xp: 150
+      tools:
+        - Batta tin
+      materials:
+        - item_name: Gianne dough
+          quantity: 1
+        - item_name: Equa leaves
+          quantity: 4
+        - item_name: Lime chunks
+          quantity: 1
+        - item_name: Orange chunks
+          quantity: 1
+        - item_name: Pineapple chunks
+          quantity: 1
+        - item_name: Gnome spice
+          quantity: 1
+  shops:
+    - shop_name: Hudo Glenfad's Grocery Store
+      location: Grand Tree
+      price: 120
+      stock: 3
+  related_items:
+    - item_id: 2275
+      item_name: Toad batta
+      slug: toad-batta
+      relationship: alternative
+      description: Alternative gnome batta variant
+    - item_id: 2281
+      item_name: Worm batta
+      slug: worm-batta
+      relationship: alternative
+      description: Alternative gnome batta variant
+  about: "Fruit batta is a gnome cooking food that heals 11 hitpoints, made by combining a batta tin with gnome dough, equa leaves, fruit chunks and gnome spice."
+  market_strategy:
+    notes:
+      - Niche gnome cooking item
+      - GE price often inflated due to low supply
+      - Premade version available at the Grand Tree
+      - Used mainly for Gnome Restaurant minigame credit cooking
+  history:
+    - date: "2002-12-12"
+      description: Fruit batta released with The Grand Tree quest and Gnome Stronghold food.
+  properties:
+    release_date: "2002-12-12"
+    update: The Grand Tree
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

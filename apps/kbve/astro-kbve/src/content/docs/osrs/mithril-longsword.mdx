@@ -12,41 +12,93 @@ osrs:
   lowalch: 520
   highalch: 780
   limit: 125
+  material:
+    type: mithril
+    tier: mid
   equipment:
     slot: weapon
-    type: longsword
-    tradeable: true
+    weapon_type: slash_sword
+    attack_speed: 5
     weight: 1.587
     requirements:
       attack: 20
-    stats:
-      attack_stab: 15
-      attack_slash: 20
-      attack_crush: -2
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 22
+    attack_bonus:
+      stab: 15
+      slash: 20
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 3
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 22
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  recipes:
+    - skill: smithing
+      level: 56
+      xp: 100
+      materials:
+        - item_name: Mithril bar
+          quantity: 2
+      tools:
+        - Hammer
+      facility: Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: Varrock Swordshop
+      location: Varrock
+      price: 1300
+    - shop_name: Warriors' Guild Armoury
+      location: Burthorpe
+      price: 1560
   related_items:
     - item_id: 1301
       item_name: Adamant longsword
       slug: adamant-longsword
       relationship: upgrade
       description: Higher tier longsword
+    - item_id: 1297
+      item_name: Steel longsword
+      slug: steel-longsword
+      relationship: downgrade
+      description: Lower tier longsword
     - item_id: 1329
       item_name: Mithril scimitar
       slug: mithril-scimitar
       relationship: alternative
       description: Faster slash alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: A free-to-play mithril longsword wielded at 20 Attack, smithed from two mithril bars at level 56 Smithing for 100 experience.
+  market_strategy:
+    notes:
+      - Cheap entry F2P longsword, GE price well below shop price
+      - Useful Smithing alch fodder when bar costs are low
+  history:
+    - date: "2001-01-04"
+      description: Released alongside the original Smithing weapon set.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape released
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.587
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

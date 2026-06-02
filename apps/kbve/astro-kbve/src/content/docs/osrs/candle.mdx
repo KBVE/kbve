@@ -12,13 +12,52 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 40
-  related_items: []
-  about: |-
-    > _"A candle."_
-
-    A candle is a members-only light source. Can be lit with a tinderbox (1 Firemaking). Used in quests including Enlightened Journey and Enakhra's Lament. Can be placed in a candle lantern for a safer light source, as an open candle can ignite swamp gas in certain caves.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  shops:
+    - shop_name: Candle Shop
+      location: Catherby
+      price: 3
+    - shop_name: Candle seller's stall
+      location: Lumbridge Swamp
+      price: 1000
+  related_items:
+    - item_id: 33
+      item_name: Candle lantern
+      slug: candle-lantern
+      relationship: upgrade
+      description: Safer lit light source
+    - item_id: 590
+      item_name: Tinderbox
+      slug: tinderbox
+      relationship: component
+      description: Used to light the candle
+  about: "Candle is the lowest-tier Firemaking light source, lit with a tinderbox and used in Enlightened Journey and Enakhra's Lament, though it can ignite swamp gas if carried lit."
+  market_strategy:
+    notes:
+      - Tradeable on the Grand Exchange with a 40 buy limit
+      - Cheapest source is Candle Shop in Catherby at 3 coins
+      - Quest demand keeps a steady low-volume market
+  history:
+    - date: "2002-02-27"
+      description: Released as a basic Firemaking light source.
+    - date: "2005-03-14"
+      description: Extinguish option added and bank note conversion removed.
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drop
+    worn_options:
+      - Extinguish
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Royal gown top | OSRS Price Data
-description: "Royal gown top: Feeling distinctly ornate.. High alch: 3,000 GP, GE limit: 4."
+description: "Royal gown top: Feeling distinctly ornate. High alch: 3,000 GP, GE limit: 4."
 osrs:
   id: 12393
   name: Royal gown top
@@ -12,9 +12,57 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Royal gown top is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 1.36
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  related_items:
+    - item_id: 12395
+      item_name: Royal gown bottom
+      slug: royal-gown-bottom
+      relationship: set-piece
+      description: Legs piece of the royal outfit
+    - item_id: 12397
+      item_name: Royal crown
+      slug: royal-crown
+      relationship: set-piece
+      description: Head piece of the royal outfit
+    - item_id: 12399
+      item_name: Royal sceptre
+      slug: royal-sceptre
+      relationship: set-piece
+      description: Weapon piece of the royal outfit
+  about: "Royal gown top is a cosmetic body slot piece of the royal outfit, awarded from hard Treasure Trails and storable in a costume room treasure chest."
+  market_strategy:
+    notes:
+      - Hard clue scroll reward
+      - Purely cosmetic with no combat bonuses
+      - Storable in costume room treasure chest
+  history:
+    - date: "2014-06-12"
+      description: "Item released with the Treasure Trail Expansion update."
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

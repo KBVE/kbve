@@ -1,6 +1,6 @@
 ---
 title: Magic stock | OSRS Price Data
-description: "Magic stock: A magic crossbow stock.. High alch: 168 GP, GE limit: 10,000."
+description: "Magic stock: A magic crossbow stock. Fletching 78 to make. High alch: 168 GP, GE limit: 10,000."
 osrs:
   id: 21952
   name: Magic stock
@@ -12,9 +12,60 @@ osrs:
   lowalch: 112
   highalch: 168
   limit: 10000
-  about: "Magic stock is a members-only item in Old School RuneScape. High alchemy value: 168 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: magic
+    tier: mid
+  recipes:
+    - skill: Fletching
+      level: 78
+      xp: 70
+      tools:
+        - Knife
+      materials:
+        - item_name: Magic logs
+          quantity: 1
+  related_items:
+    - item_id: 21902
+      item_name: Dragon crossbow (u)
+      slug: dragon-crossbow-u
+      relationship: product
+      description: Combined with dragon limbs
+    - item_id: 21932
+      item_name: Dragon crossbow
+      slug: dragon-crossbow
+      relationship: product
+      description: Final dragon crossbow
+    - item_id: 9442
+      item_name: Yew stock
+      slug: yew-stock
+      relationship: downgrade
+      description: Lower tier crossbow stock
+  about: "Magic stock is a crossbow stock made by cutting a magic log at Fletching level 78, used to craft the dragon crossbow with dragon limbs."
+  market_strategy:
+    notes:
+      - Niche fletching intermediate for dragon crossbow
+      - GE supply driven by Fletching skillers
+      - Dragon crossbow demand keeps steady volume
+  history:
+    - date: "2018-01-04"
+      description: Magic stock released with Dragon Slayer II and the dragon crossbow.
+  properties:
+    release_date: "2018-01-04"
+    update: Dragon Slayer II
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

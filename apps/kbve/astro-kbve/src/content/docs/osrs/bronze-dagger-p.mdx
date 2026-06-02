@@ -1,6 +1,6 @@
 ---
 title: Bronze dagger(p) | OSRS Price Data
-description: "Bronze dagger(p): This dagger is poisoned.. High alch: 6 GP, GE limit: 125."
+description: "Bronze dagger(p): a weakly poisoned bronze dagger usable from level 1 Attack. High alch: 6 GP, GE limit: 125."
 osrs:
   id: 1221
   name: Bronze dagger(p)
@@ -12,9 +12,87 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 125
-  about: "Bronze dagger(p) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bronze
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: dagger
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 4
+      slash: 2
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
+      melee_strength: 3
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - name: Poison a bronze dagger
+      skill: Herblore
+      level: 3
+      experience: 0
+      output: Bronze dagger(p)
+      materials:
+        - item_name: Bronze dagger
+          quantity: 1
+        - item_name: Weapon poison
+          quantity: 1
+      description: Apply weapon poison to a bronze dagger.
+  related_items:
+    - item_id: 1205
+      item_name: Bronze dagger
+      slug: bronze-dagger
+      relationship: variant
+      description: Unpoisoned bronze dagger.
+    - item_id: 1231
+      item_name: Iron dagger(p)
+      slug: iron-dagger-p
+      relationship: upgrade
+      description: Stronger iron-tier poisoned dagger.
+  about: "Bronze dagger(p) is the bottom-tier poisoned dagger, made by applying weapon poison to a bronze dagger and useful only for early Herblore training."
+  market_strategy:
+    title: Investment Notes
+    notes:
+      - Demand is near-zero outside of Herblore poison practice.
+      - Cheaper to alch components individually than buy whole.
+      - Buy limit of 125 per 4 hours is generous for an item with little speculation interest.
+      - Bronze poisoned variants serve as inexpensive cosmetic options.
+  history:
+    - date: "2002-04-11"
+      update: Members release
+      description: Added with the original poisoned weapon line on RuneScape's members launch.
+  properties:
+    release_date: "2002-04-11"
+    update: Members release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -15,10 +15,6 @@ osrs:
   material:
     type: hide
     tier: low
-  tanning:
-    cost: 20
-    product_id: 1745
-    product_name: Green dragon leather
   drop_table:
     sources:
       - source: Green dragon
@@ -65,15 +61,7 @@ osrs:
       slug: black-dragonhide
       relationship: alternative
       description: Highest tier
-  about: |-
-    Take to a tanner to convert into Green dragon leather.
-
-    | Cost | Location |
-    |------|----------|
-    | 20 GP | Most tanners (Al Kharid, etc.) |
-    | 45 GP | Canifis tanner |
-
-    Buy Limit: 13,000 per 4 hours
+  about: Take green dragonhide to a tanner (20 GP at most tanners, 45 GP in Canifis) to convert it into green dragon leather for crafting.
   market_strategy:
     title: Full Processing Chain
     steps:
@@ -88,13 +76,33 @@ osrs:
     profit_formulas:
       - Green dragon leather - Green dragonhide - 20 GP = Profit
     notes:
-      - Buy hide → Tan → Sell leather
-      - "Calculate:"
+      - "Buy hide, tan, sell leather"
       - High volume from green dragon killers
       - Green dragons drop both hides and Dragon bones
       - Check combined value vs alternatives
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2018-09-20"
+      description: Item value increased from 20 to 135 coins for ground visibility purposes.
+    - date: "2005-11-14"
+      description: Renamed from Dragonhide to Green dragonhide; examine text updated to specify Green Dragon.
+    - date: "2004-03-29"
+      description: Permanently available at RuneScape 2 launch.
+  properties:
+    release_date: "2004-03-29"
+    update: RS2 Launched!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

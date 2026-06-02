@@ -12,16 +12,14 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 5
-  item:
-    type: god_page
-    god: Armadyl
-    page_number: 1
-    tradeable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard/Elite
-        drop_rate: Varies by tier
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
   related_items:
     - item_id: 12618
       item_name: Armadyl page 2
@@ -38,33 +36,30 @@ osrs:
       slug: armadyl-page-4
       relationship: set-piece
       description: Page 4 of 4
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | God Page |
-    | God | Armadyl |
-    | Page | 1 of 4 |
-    | Tradeable | Yes |
-
-    Add to incomplete Book of law (Armadyl god book) to complete it.
-
-    Requires all 4 pages:
-    - Armadyl page 1
-    - Armadyl page 2
-    - Armadyl page 3
-    - Armadyl page 4
-
-    When complete, the Book of law provides:
-    - +10 ranged attack bonus
-    - Counts as Armadyl item in GWD
-    - Can be illuminated after Horror from the Deep
+  about: "Armadyl page 1 is one of four pages used to complete a damaged Book of law into the Armadyl god book; obtained from Treasure Trails clue rewards."
   market_strategy:
     notes:
       - Collect all 4 pages
       - Best ranged attack god book
       - GWD Armadyl protection
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2014-07-03"
+      description: Released with the Halos, God Books & Stamina update.
+  properties:
+    release_date: "2014-07-03"
+    update: "Halos, God Books & Stamina"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Iron halberd | OSRS Price Data
-description: "Iron halberd: An iron halberd.. High alch: 168 GP, GE limit: 125."
+description: "Iron halberd: An iron halberd. Two-handed polearm with 2-tile attack range. High alch: 168 GP, GE limit: 125."
 osrs:
   id: 3192
   name: Iron halberd
@@ -12,9 +12,81 @@ osrs:
   lowalch: 112
   highalch: 168
   limit: 125
-  about: "Iron halberd is a members-only item in Old School RuneScape. High alchemy value: 168 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: iron
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: polearm
+    attack_speed: 7
+    weight: 3.175
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 9
+      slash: 12
+      crush: 0
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: -1
+      slash: 1
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 12
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    - source: Gorak
+      rarity: 1/128
+      quantity: "1"
+  shops:
+    - shop_name: Quartermaster
+      location: Tyras Camp
+      price: 280
+  related_items:
+    - item_id: 3190
+      item_name: Bronze halberd
+      slug: bronze-halberd
+      relationship: downgrade
+      description: Lower tier polearm
+    - item_id: 3194
+      item_name: Steel halberd
+      slug: steel-halberd
+      relationship: upgrade
+      description: Next tier polearm
+  about: "Iron halberd is a two-handed polearm with 2-tile attack range, useful for safespotting. Wielding requires completion of Regicide quest."
+  market_strategy:
+    notes:
+      - Niche polearm with 2-tile attack range
+      - Requires Regicide quest to wield
+      - Mainly purchased for safespotting strategies
+      - Low GE volume due to limited demand
+  history:
+    - date: "2004-09-20"
+      description: Iron halberd released with the Plague City Part 4 / Regicide quest update.
+  properties:
+    release_date: "2004-09-20"
+    update: Regicide
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -14,67 +14,78 @@ osrs:
   limit: 8
   equipment:
     slot: legs
-    type: mage_armour
+    weight: 1.814
     requirements:
       magic: 75
       defence: 65
-    stats:
-      defence_stab: 27
-      defence_slash: 24
-      defence_crush: 30
-      defence_magic: 20
-      attack_magic: 26
-      magic_damage_percent: 3
-  drop_sources:
-    - name: Chambers of Xeric
-      combat_level: 0
-      drop_rate: rare
-      members_only: true
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 26
+      ranged: -7
+    defence_bonus:
+      stab: 27
+      slash: 24
+      crush: 30
+      magic: 20
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 3
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Chambers of Xeric
+        rarity: rare
+        members_only: true
   related_items:
     - item_id: 21018
       item_name: Ancestral hat
       slug: ancestral-hat
       relationship: set-piece
-      description: Head slot
+      description: Head slot of the set
     - item_id: 21021
       item_name: Ancestral robe top
       slug: ancestral-robe-top
       relationship: set-piece
-      description: Body slot
+      description: Body slot of the set
     - item_id: 4714
       item_name: Ahrim's robeskirt
       slug: ahrims-robeskirt
       relationship: alternative
-      description: Budget option
-  about: |-
-    | Stat | Value |
-    |------|-------|
-    | Magic attack | +26 |
-    | Magic damage | +3% |
-    | Stab defence | +27 |
-    | Slash defence | +24 |
-    | Crush defence | +30 |
-    | Magic defence | +20 |
-    | Requirements | 75 Magic, 65 Defence |
-
-    Part of the Ancestral robes set:
-    - Ancestral hat (head)
-    - Ancestral robe top (body)
-    - Ancestral robe bottom (legs)
-
-    Total set bonus: +9% magic damage
-
-    PvM:
-    - Best-in-slot mage legs
-    - Essential for max magic DPS
-    - All high-level magic content
+      description: Budget magic legs alternative
+  about: "Ancestral robe bottom is the best-in-slot mage legs in OSRS, providing +26 magic attack, +3% magic damage and strong melee defence; dropped rarely from Chambers of Xeric."
   market_strategy:
     notes:
-      - CoX completions affect supply
-      - Core for mage setups
-      - Cheaper than robe top
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - CoX completions drive supply
+      - Core piece for high-end mage setups
+      - Typically cheaper than the robe top
+  history:
+    - date: "2024-05-29"
+      description: Magic damage bonus increased from 2% to 3%.
+    - date: "2017-01-05"
+      description: Released with the Chambers of Xeric update.
+  properties:
+    release_date: "2017-01-05"
+    update: Chambers of Xeric
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

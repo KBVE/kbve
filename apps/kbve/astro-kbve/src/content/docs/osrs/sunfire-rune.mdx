@@ -12,9 +12,69 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 18000
-  about: "Sunfire rune is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: low
+  recipes:
+    - name: Craft Sunfire rune
+      skill: Runecraft
+      level: 33
+      xp: 9
+      output: Sunfire rune
+      output_quantity: 1
+      tools: [Chisel]
+      materials:
+        - item_name: Fire rune
+          quantity: 1
+        - item_name: Sunfire splinters
+          quantity: 1
+        - item_name: Pure essence
+          quantity: 1
+      location: Shrine of Ralos
+      notes: "Output doubles at 49 Runecraft and triples at 98 Runecraft."
+  related_items:
+    - item_name: Fire rune
+      slug: fire-rune
+      relationship: alternative
+      description: Standard fire rune that Sunfire rune empowers.
+    - item_name: Sunfire splinters
+      slug: sunfire-splinters
+      relationship: component
+      description: Required material crafted from Sunfire fanatics.
+    - item_name: Searing pages
+      slug: searing-page
+      relationship: product
+      description: 100 Sunfire runes plus a burnt page produce a Searing page for the Tome of fire.
+    - item_name: Tome of fire
+      slug: tome-of-fire
+      relationship: alternative
+      description: Spellbook tome enhanced by Searing pages.
+  about: "Sunfire runes are members-only fire runes empowered by Ralos that guarantee a minimum 10% max hit when used to cast offensive fire spells, introduced with Varlamore Part One."
+  market_strategy:
+    notes:
+      - "Demand follows magic combat use cases; sunfire splinter availability and Shrine of Ralos throughput drive supply."
+  trading_tips:
+    - "Watch Wintertodt and PvM updates that change fire-spell viability, as those spike sunfire rune demand."
+  history:
+    - date: "2024-03-20"
+      description: Released with the Varlamore Part One expansion.
+    - date: "2024-04-03"
+      description: Runecraft experience per rune was doubled from 4.5 to 9.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options: [Drop]
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

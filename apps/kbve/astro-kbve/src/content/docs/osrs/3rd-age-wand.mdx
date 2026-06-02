@@ -1,6 +1,6 @@
 ---
 title: 3rd age wand | OSRS Price Data
-description: "3rd age wand is a members weapon slot item requiring 65 Magic. High alch: 90,000 GP, GE limit: 8."
+description: "3rd age wand: an ultra-rare master clue magic weapon with +20 magic attack and +5% magic damage requiring 65 Magic. High alch: 90,000 GP, GE limit: 8."
 osrs:
   id: 12422
   name: 3rd age wand
@@ -14,67 +14,81 @@ osrs:
   limit: 8
   equipment:
     slot: weapon
-    type: wand
-    attack_style: magic
+    weapon_type: powered_staff
     attack_speed: 4
+    weight: 3.175
     requirements:
       magic: 65
-    stats:
-      attack_magic: 20
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 15
-      defence_ranged: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 20
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 20
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
       magic_damage: 5
-      prayer_bonus: 0
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Master
-        rarity: Very Rare
-        description: Extremely rare reward from master clue scrolls
+      prayer: 0
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - elite
+      - master
   related_items:
     - item_id: 12426
       item_name: 3rd age longsword
       slug: 3rd-age-longsword
       relationship: alternative
-      description: 3rd age melee weapon
+      description: 3rd age melee weapon counterpart.
     - item_id: 12424
       item_name: 3rd age bow
       slug: 3rd-age-bow
       relationship: alternative
-      description: 3rd age ranged weapon
-    - item_id: 20014
-      item_name: 3rd age pickaxe
-      slug: 3rd-age-pickaxe
+      description: 3rd age ranged weapon counterpart.
+    - item_id: 6914
+      item_name: Master wand
+      slug: master-wand
       relationship: alternative
-      description: 3rd age skilling tool
-    - item_id: 20011
-      item_name: 3rd age axe
-      slug: 3rd-age-axe
-      relationship: alternative
-      description: 3rd age skilling tool
-  about: |-
-    The 3rd age wand is a rare magic weapon obtained from Treasure Trails. It requires 65 Magic to wield and can autocast Ancient Magicks and standard spellbook spells.
-
-    3rd age weapons are highly sought after due to their extreme rarity and status symbol value. The wand provides a 5% magic damage bonus, making it useful for combat as well as a status symbol.
+      description: Same +20 magic attack at lower level with autocast support.
+  about: "The 3rd age wand is an ultra-rare elite and master clue magic weapon providing +20 magic attack and a 5% magic damage bonus."
   market_strategy:
     title: Investment Notes
     notes:
-      - Extremely valuable due to rarity
-      - Price fluctuates based on collector demand
-      - More common than druidic but still very rare
-      - Verify authenticity when trading high-value items
-      - Use Grand Exchange for secure trades
-      - Monitor price trends before purchasing
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Extreme rarity from elite and master caskets keeps supply minimal.
+      - Status-symbol pricing dominates over combat utility.
+      - Cannot autocast Ancient or Arceuus spellbooks unlike the master wand.
+      - High-value trades should use the Grand Exchange for security.
+  history:
+    - date: "2014-06-12"
+      update: Treasure Trail Expansion
+      description: Added to game with the 3rd age weapon line.
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

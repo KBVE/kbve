@@ -12,9 +12,47 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 10000
-  about: "Magic shortbow scroll is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: ranged
+      level: 1
+      xp: 0
+      materials:
+        - item_id: 861
+          item_name: Magic shortbow
+          quantity: 1
+        - item_id: 12786
+          item_name: Magic shortbow scroll
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_id: 12788
+      item_name: Magic shortbow (i)
+      slug: magic-shortbow-i
+      relationship: product
+      description: Imbued result of using the scroll on a Magic shortbow.
+  about: Magic shortbow scroll is a Bounty Hunter reward used on a Magic shortbow to permanently imbue it, reducing special attack energy cost from 55% to 50% and boosting ranged attack bonus.
+  history:
+    - date: "2014-09-25"
+      description: Examine text corrected to reference the magic shortbow.
+    - date: "2014-09-18"
+      description: Initial release as a Bounty Hunter reward.
+  properties:
+    release_date: "2014-09-18"
+    update: Bounty Hunter
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.002
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

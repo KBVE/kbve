@@ -12,9 +12,53 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Swamp tar is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: secondary
+    tier: mid
+  recipes:
+    - skill: Herblore
+      level: 19
+      xp: 30
+      materials:
+        - item_name: Guam leaf
+        - item_name: Swamp tar
+      tools:
+        - Pestle and mortar
+      output: Guam tar
+  related_items:
+    - item_id: 10142
+      item_name: Guam tar
+      slug: guam-tar
+      relationship: product
+      description: Salamander ammunition crafted with herbs
+    - item_id: 1929
+      item_name: Swamp paste
+      slug: swamp-paste
+      relationship: product
+      description: Created by combining swamp tar with flour and heating
+  about: Swamp tar is a foul-smelling tar substance obtained from Lumbridge Swamp, Mort Myre Swamp, or Cave Slime drops. It is used to craft herb tar salamander ammunition, swamp paste, and lamp oil.
+  history:
+    - date: "2002-09-09"
+      description: Released with the Sea Slug quest update.
+    - date: "2006-05-02"
+      description: Examine text punctuation corrected from "tar like" to "tar-like".
+    - date: "2015-06-11"
+      description: Game messages added to chat filter.
+  properties:
+    release_date: "2002-09-09"
+    update: Sea Slug
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: false
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Divine super combat potion(2) | OSRS Price Data
-description: "Divine super combat potion(2): 2 doses of divine super combat potion.. High alch: 54 GP, GE limit: 2,000."
+description: "Divine super combat potion(2): 2 doses of divine super combat potion. High alch: 54 GP, GE limit: 2,000."
 osrs:
   id: 23691
   name: Divine super combat potion(2)
@@ -12,9 +12,98 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 2000
-  about: "Divine super combat potion(2) is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 2
+    effects:
+      - skill: attack
+        boost: 5
+        percent_boost: 15
+        duration_seconds: 300
+        description: "Boosts Attack by 5 + 15% of level for 5 minutes; level does not drain during effect."
+      - skill: strength
+        boost: 5
+        percent_boost: 15
+        duration_seconds: 300
+        description: "Boosts Strength by 5 + 15% of level for 5 minutes; level does not drain during effect."
+      - skill: defence
+        boost: 5
+        percent_boost: 15
+        duration_seconds: 300
+        description: "Boosts Defence by 5 + 15% of level for 5 minutes; level does not drain during effect."
+      - skill: hitpoints
+        boost: -10
+        duration_seconds: 0
+        description: "Drinking causes 10 Hitpoints damage; cannot drink at 10 HP or lower."
+  recipes:
+    - skill: herblore
+      level: 97
+      xp: 2
+      materials:
+        - item_name: Super combat potion(2)
+          item_id: 12697
+          quantity: 1
+        - item_name: Crystal dust
+          item_id: 23685
+          quantity: 2
+      product: Divine super combat potion(2)
+      product_id: 23691
+      product_quantity: 1
+      facility: None
+      tools:
+        - Pestle and mortar
+      members_only: true
+  related_items:
+    - item_id: 23685
+      item_name: Crystal dust
+      slug: crystal-dust
+      relationship: component
+      description: Made from crushed crystal shards
+    - item_id: 12697
+      item_name: Super combat potion(2)
+      slug: super-combat-potion-2
+      relationship: component
+      description: Base potion
+    - item_id: 23689
+      item_name: Divine super combat potion(4)
+      slug: divine-super-combat-potion-4
+      relationship: variant
+      description: 4-dose variant
+    - item_id: 23693
+      item_name: Divine super combat potion(3)
+      slug: divine-super-combat-potion-3
+      relationship: variant
+      description: 3-dose variant
+    - item_id: 23695
+      item_name: Divine super combat potion(1)
+      slug: divine-super-combat-potion-1
+      relationship: variant
+      description: 1-dose variant
+  about: "Divine super combat potion(2) provides a fixed boost to Attack, Strength, and Defence that does not drain for 5 minutes, at the cost of 10 Hitpoints on drink."
+  market_strategy:
+    notes:
+      - Decanted from higher-dose divine variants
+      - Used in melee combat scenarios where stat-drain prevention matters
+      - Cannot be shared via Boost Potion Share spell
+  history:
+    - date: "2019-07-25"
+      description: "Item released with the Song of the Elves update."
+  properties:
+    release_date: "2019-07-25"
+    update: Song of the Elves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

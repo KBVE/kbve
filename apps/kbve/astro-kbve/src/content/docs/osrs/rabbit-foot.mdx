@@ -12,9 +12,57 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 100
-  about: "Rabbit foot is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: crafting
+    tier: low
+  related_items:
+    - item_id: 10133
+      item_name: Strung rabbit foot
+      slug: strung-rabbit-foot
+      relationship: product
+      description: "Crafted with a ball of wool at 37 Crafting"
+    - item_id: 1759
+      item_name: Ball of wool
+      slug: ball-of-wool
+      relationship: component
+      description: Used to string the rabbit foot
+  about: Used to craft a strung rabbit foot necklace which increases bird egg drop rates while woodcutting and from birdhouse traps.
+  recipes:
+    - product_id: 10133
+      product_name: Strung rabbit foot
+      skill: Crafting
+      level: 37
+      experience: 4
+      tools:
+        - None
+      materials:
+        - item_id: 1759
+          item_name: Ball of wool
+          quantity: 1
+        - item_id: 10134
+          item_name: Rabbit foot
+          quantity: 1
+  history:
+    - date: "2006-11-28"
+      description: Became obtainable; renamed from Thing to Rabbit foot.
+    - date: "2006-11-21"
+      description: Added to the game cache.
+  properties:
+    release_date: "2006-11-28"
+    update: Eagles' Peak
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

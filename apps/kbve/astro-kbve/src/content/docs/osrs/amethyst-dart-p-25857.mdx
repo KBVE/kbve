@@ -12,9 +12,66 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 11000
-  about: "Amethyst dart(p++) is a members-only item in Old School RuneScape. High alchemy value: 240 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 28
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 25849
+      item_name: Amethyst dart
+      slug: amethyst-dart
+      relationship: variant
+      description: Unpoisoned base variant
+    - item_id: 811
+      item_name: Rune dart
+      slug: rune-dart
+      relationship: downgrade
+      description: Lower-tier dart (+2 less ranged strength)
+  about: Amethyst dart(p++) is the deadly-poison variant of the amethyst dart — a one-handed thrown weapon with +28 ranged strength, requiring 50 Ranged.
+  market_strategy:
+    notes:
+      - Niche poison-variant supply via Fletching
+      - 90 Fletching gate keeps producer pool small
+      - Demand from PvP and Slayer with deadly poison utility
+  history:
+    - date: "2021-06-30"
+      description: Amethyst darts released as part of Phosani's Nightmare update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-06-30"
+    update: Phosani's Nightmare
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

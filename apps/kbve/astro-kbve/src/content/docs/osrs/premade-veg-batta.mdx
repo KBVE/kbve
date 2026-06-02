@@ -12,9 +12,42 @@ osrs:
   lowalch: 48
   highalch: 72
   limit: 6000
-  about: "Premade veg batta is a members-only item in Old School RuneScape. High alchemy value: 72 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 11
+    edible: true
+  shops:
+    - shop_name: Grand Tree Gnome Waiter
+      price: 120
+      currency: Coins
+      stock: 3
+  related_items:
+    - item_id: 2222
+      item_name: Veg batta
+      slug: veg-batta
+      relationship: variant
+      description: Player-made vegetable batta with identical effect
+  about: "Premade veg batta is a members food item purchased from the gnome waiter at the Grand Tree (stock 3) for 120 coins; restores 11 Hitpoints when eaten."
+  history:
+    - date: "2002-12-12"
+      description: Added to the game with the launch of the Agility skill.
+    - date: "2006-08-07"
+      description: Renamed from 'Vegetable batta' to 'Premade veg batta'.
+  properties:
+    release_date: "2002-12-12"
+    update: Agility skill online
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Eat
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Super strength(4) | OSRS Price Data
-description: "Super strength(4) is a 3-dose members potion. High alch: 165 GP, GE limit: 2,000."
+description: "Super strength(4) is a 4-dose members potion. High alch: 165 GP, GE limit: 2,000."
 osrs:
   id: 2440
   name: Super strength(4)
@@ -13,31 +13,32 @@ osrs:
   highalch: 165
   limit: 2000
   potion:
-    doses: 3
+    doses: 4
     type: boost
     skill: strength
     boost_min: 5
     boost_max: 19
-    boost_formula: 15% + 5
+    boost_formula: "floor(level * 0.15) + 5"
     duration: 60
-  herblore:
-    level: 55
-    xp: 125
+    effects:
+      - skill: strength
+        description: "Boosts Strength by 5 + 15% of level (max +19); decays 1 per minute, 90s with Preserve."
   recipes:
-    - skill: herblore
+    - name: Mix Super strength(3)
+      skill: herblore
       level: 55
       xp: 125
       materials:
-        - item_name: Kwuarm potion (unf)
-          item_id: 105
+        - item_id: 105
+          item_name: Kwuarm potion (unf)
           quantity: 1
-        - item_name: Limpwurt root
-          item_id: 225
+        - item_id: 225
+          item_name: Limpwurt root
           quantity: 1
       product: Super strength(3)
-      product_id: 2440
+      product_id: 159
       product_quantity: 1
-      facility: None
+      tools: []
       members_only: true
   related_items:
     - item_id: 263
@@ -49,44 +50,50 @@ osrs:
       item_name: Limpwurt root
       slug: limpwurt-root
       relationship: component
-      description: Secondary
+      description: Secondary ingredient
     - item_id: 12695
       item_name: Super combat potion(4)
       slug: super-combat-potion-4
       relationship: product
-      description: Combined potion
+      description: Combined super potion
     - item_id: 115
       item_name: Strength potion(3)
       slug: strength-potion-3
-      relationship: alternative
+      relationship: downgrade
       description: Lower tier
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 55 |
-    | XP | 125 |
-    | Ingredients | Kwuarm + Limpwurt root |
-
-    | Effect | Value |
-    |--------|-------|
-    | Strength boost | +5 to +19 (15% + 5) |
-    | Duration | 60s per level lost |
-    | Preserve prayer | 90s per level lost |
+  about: Super strength(4) is a four-dose members Strength booster and a core ingredient for Super combat potions.
   market_strategy:
     notes:
-      - Super combat ingredient
-      - Standalone strength boost
-      - Very high demand
-      - Super combat production
-      - Melee PvM
-      - Bossing preparation
-      - Slayer tasks
-      - Low buy limit (2,000)
-      - Kwuarm herb
-      - Limpwurt root secondary
-      - Component for super combat
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Super combat ingredient drives steady volume
+      - Tight 2,000/4h buy limit keeps spreads workable
+      - Kwuarm + Limpwurt supply chain dictates price
+      - Standalone bossing/Slayer staple
+  history:
+    - date: "2016-04-15"
+      description: Half-full potions could now be turned into bank placeholders.
+    - date: "2014-08-14"
+      description: Super strength(4) enabled for Super combat potion crafting.
+    - date: "2004-10-26"
+      description: An Empty option was added.
+    - date: "2004-03-29"
+      description: The 4 dose potion became permanently available with the launch of RuneScape 2.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-03-29"
+    update: RS2 Launched!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

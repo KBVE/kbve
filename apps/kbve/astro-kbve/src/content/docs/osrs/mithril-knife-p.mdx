@@ -1,6 +1,6 @@
 ---
 title: Mithril knife(p) | OSRS Price Data
-description: "Mithril knife(p) is a members weapon slot item requiring 20 Ranged. High alch: 16 GP, GE limit: 7,000."
+description: "Mithril knife(p) is a members thrown weapon requiring 20 Ranged, tipped with weapon poison. High alch: 16 GP, GE limit: 7,000."
 osrs:
   id: 873
   name: Mithril knife(p)
@@ -12,21 +12,77 @@ osrs:
   lowalch: 10
   highalch: 16
   limit: 7000
+  material:
+    type: mithril
+    tier: mid
   equipment:
     slot: weapon
+    weapon_type: thrown
     attack_speed: 3
+    weight: 0
     requirements:
       ranged: 20
     attack_bonus:
-      ranged: 9
-    ranged_strength: 9
-  related_items: []
-  about: |-
-    > _"A very sharp mithril knife with a poisoned tip."_
-
-    A mithril knife tipped with basic weapon poison. Requires 20 Ranged. Poison deals 2-4 damage over time.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      ranged: 11
+    other_bonus:
+      ranged_strength: 10
+  recipes:
+    - skill: Smithing
+      level: 57
+      experience: 50
+      materials:
+        - item_name: Mithril bar
+          quantity: 1
+        - item_name: Weapon poison
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 5
+  related_items:
+    - item_id: 871
+      item_name: Mithril knife
+      slug: mithril-knife
+      relationship: variant
+      description: Unpoisoned variant of the mithril throwing knife
+    - item_id: 5654
+      item_name: Mithril knife(p+)
+      slug: mithril-knife-p
+      relationship: upgrade
+      description: Stronger poison variant tipped with weapon poison+
+    - item_id: 5663
+      item_name: Mithril knife(p++)
+      slug: mithril-knife-p
+      relationship: upgrade
+      description: Strongest poison variant tipped with weapon poison++
+  about: "The mithril knife(p) is a thrown ranged weapon tipped with basic weapon poison, requiring 20 Ranged to wield and dealing a chance of 2-4 poison damage on hit."
+  market_strategy:
+    notes:
+      - "Poisoned thrown knives sell on consumable demand from PKers and low-level rangers; margins are thin so flips need volume and the 7k limit helps."
+  trading_tips:
+    - "Watch the spread between unpoisoned mithril knife and the (p) tier - if the poison premium narrows below the price of weapon poison plus a small fee, buy the poisoned tier directly."
+  history:
+    - date: "2003-04-14"
+      description: "Released as part of the New Throwing Weapons! update."
+  properties:
+    release_date: "2003-04-14"
+    update: New Throwing Weapons!
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

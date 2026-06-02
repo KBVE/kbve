@@ -68,19 +68,28 @@ osrs:
       slug: snape-grass
       relationship: alternative
       description: Tree protection (10 jangerberries)
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Herblore Secondary |
-    | Tradeable | Yes |
-    | Weight | 0.007 kg |
-
-    Secondary ingredient for:
-    - Combat potion (with harralander potion unf)
-    - Snape grass protection (10 jangerberries)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Jangerberries are a Herblore secondary used to brew Combat potions and as 10x payment to protect papaya/palm trees; harvested from jangerberry bushes at 48 Farming."
+  history:
+    - date: "2002-12-12"
+      description: Added to the game with the launch of the Agility skill.
+    - date: "2004-10-14"
+      description: The 'eat' option was renamed to 'Eat'.
+  properties:
+    release_date: "2002-12-12"
+    update: Agility skill online
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Eat
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

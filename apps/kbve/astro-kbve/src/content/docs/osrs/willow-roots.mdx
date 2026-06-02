@@ -1,6 +1,6 @@
 ---
 title: Willow roots | OSRS Price Data
-description: "Willow roots: The roots of the Willow tree.. High alch: 1 GP, GE limit: 11,000."
+description: "Willow roots: The roots of the Willow tree. High alch: 1 GP, GE limit: 11,000."
 osrs:
   id: 6045
   name: Willow roots
@@ -12,9 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  about: "Willow roots is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  farming:
+    skill_level: 30
+    notes: Dug from the stump of a fully grown willow tree planted in a tree patch. Yields 1–4 roots per harvest.
+  recipes:
+    - skill: crafting
+      level: 10
+      xp: 15
+      materials:
+        - item_name: Willow roots
+          quantity: 1
+      tools:
+        - Spinning wheel
+      output_item: Crossbow string
+      output_quantity: 1
+  related_items:
+    - item_id: 6043
+      item_name: Oak roots
+      slug: oak-roots
+      relationship: downgrade
+      description: Lower-tier tree roots from oak patches
+    - item_id: 6047
+      item_name: Maple roots
+      slug: maple-roots
+      relationship: upgrade
+      description: Higher-tier tree roots from maple patches
+    - item_id: 6034
+      item_name: Supercompost
+      slug: supercompost
+      relationship: product
+      description: Tree roots compost into supercompost in a compost bin
+  about: Willow roots are dug from a chopped willow tree on a tree farming patch and can be spun into crossbow string or composted into supercompost.
+  market_strategy:
+    notes:
+      - Cheap source of crossbow string via spinning wheel
+      - Bulk farmers feed roots into compost bins for supercompost
+  history:
+    - date: "2005-07-11"
+      description: Released with the Farming skill.
+    - date: "2023-06-28"
+      description: Item icon graphically updated.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Drop
+    alchable: false
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

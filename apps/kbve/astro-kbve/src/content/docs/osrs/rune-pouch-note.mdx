@@ -12,20 +12,11 @@ osrs:
   lowalch: 84
   highalch: 126
   limit: 40
-  item:
-    type: redeemable note
-    tradeable: true
-    weight: 0
-  obtaining:
-    - source: Last Man Standing shop
-      cost: 75 LMS points
-  effect:
-    description: Exchange at bank for a Rune pouch
-    locations:
-      - Banker
-      - Grand Exchange clerk
-      - Bank booth
-    restrictions: Cannot redeem if you already own a rune pouch
+  shops:
+    - shop_name: Last Man Standing rewards
+      location: Ferox Enclave
+      currency: LMS points
+      stock_quantity: 75
   related_items:
     - item_id: 12791
       item_name: Rune pouch
@@ -37,22 +28,26 @@ osrs:
       slug: divine-rune-pouch
       relationship: alternative
       description: Upgraded version with 4 slots
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Redeemable Note |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-
-    Exchange at bank for a Rune pouch.
-
-    Use on banker, Grand Exchange clerk, or bank booth.
-
-    Cannot redeem if you already own a rune pouch.
-
-    Tradeable workaround since rune pouches themselves are untradeable.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Rune pouch note is a tradeable redeemable note bought from the Last Man Standing rewards shop and exchanged at any bank for a non-tradeable Rune pouch."
+  history:
+    - date: "2020-04-23"
+      description: Released with the Bounty Hunter Returns update.
+  properties:
+    release_date: "2020-04-23"
+    update: Bounty Hunter Returns
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Read
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

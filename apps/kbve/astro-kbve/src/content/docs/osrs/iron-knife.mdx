@@ -1,6 +1,6 @@
 ---
 title: Iron knife | OSRS Price Data
-description: "Iron knife is a members weapon slot item. High alch: 1 GP, GE limit: 7,000."
+description: "Iron knife is a members thrown weapon. High alch: 1 GP, GE limit: 7,000."
 osrs:
   id: 863
   name: Iron knife
@@ -12,24 +12,41 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
+  material:
+    type: iron
+    tier: low
   equipment:
     slot: weapon
-    type: thrown
-    attack_style: ranged
+    weapon_type: thrown
     attack_speed: 3
-  requirements:
-    ranged: 1
-  stats:
-    attack:
+    weight: 0.006
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
       ranged: 5
-    other:
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 4
-  smithing:
-    level: 22
-    xp: 25
-    method: Iron bar at anvil
-    bars: 1
-    quantity: 5
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Smithing
+      level: 22
+      xp: 25
+      output_quantity: 5
+      tools: [Hammer]
+      facility: Anvil
+      materials:
+        - item_name: Iron bar
+          quantity: 1
   related_items:
     - item_id: 2351
       item_name: Iron bar
@@ -51,16 +68,36 @@ osrs:
       slug: iron-dart
       relationship: alternative
       description: Alternative thrown weapon
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Weapon |
-    | Type | Thrown |
-    | Tradeable | Yes |
-    | Weight | 0.006 kg |
-    | Requirements | 1 Ranged |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: Iron knife is an entry-level members thrown weapon smithed from a single iron bar yielding five knives at level 22 Smithing.
+  history:
+    - date: "2003-04-14"
+      update: New Throwing Weapons!
+      description: Iron knife introduced alongside the new throwing weapons update.
+    - date: "2006-09-20"
+      update: Poison Nomenclature
+      description: Poisoned knife variants standardised to (p), (p+), (p++) naming.
+    - date: "2021-07-07"
+      update: Female Equipment Positioning
+      description: Female model wielding offsets adjusted.
+  properties:
+    release_date: "2003-04-14"
+    update: New Throwing Weapons!
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.006
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

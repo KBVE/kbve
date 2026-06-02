@@ -1,6 +1,6 @@
 ---
 title: Plain pizza | OSRS Price Data
-description: "Plain pizza: A cheese and tomato pizza.. High alch: 24 GP, GE limit: 10,000."
+description: "Plain pizza is a F2P cookable food healing 7 HP per bite. High alch: 24 GP, GE limit: 10,000."
 osrs:
   id: 2289
   name: Plain pizza
@@ -12,9 +12,74 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 10000
-  about: "Plain pizza is a free-to-play item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 14
+    bites: 2
+    heal_per_bite: 7
+  recipes:
+    - skill: Cooking
+      level: 35
+      xp: 143
+      output_quantity: 1
+      facility: Range or oven
+      materials:
+        - item_name: Uncooked pizza
+          quantity: 1
+  related_items:
+    - item_id: 2287
+      item_name: Uncooked pizza
+      slug: uncooked-pizza
+      relationship: component
+      description: Raw ingredient before cooking
+    - item_id: 2291
+      item_name: Meat pizza
+      slug: meat-pizza
+      relationship: upgrade
+      description: Upgraded by adding cooked meat
+    - item_id: 2293
+      item_name: Anchovy pizza
+      slug: anchovy-pizza
+      relationship: upgrade
+      description: Upgraded by adding cooked anchovies
+    - item_id: 2295
+      item_name: Pineapple pizza
+      slug: pineapple-pizza
+      relationship: upgrade
+      description: Upgraded by adding pineapple
+  about: Plain pizza is a two-bite food cooked at 35 Cooking, healing 7 HP per bite and forming the base for stronger pizza variants.
+  history:
+    - date: "2001-06-11"
+      update: New fishing skill and more cooking
+      description: Plain pizza added with the original Cooking expansion update.
+    - date: "2004-03-29"
+      update: RuneScape 2 launch
+      description: Carried over and made permanently available at RS2 launch.
+    - date: "2004-11-17"
+      update: Graphical Update
+      description: Half pizza inventory icon graphically updated.
+    - date: "2015-02-26"
+      update: GE Update
+      description: Half pizza made untradeable on the Grand Exchange.
+    - date: "2015-08-13"
+      update: Quality of Life
+      description: Pizza now remains in the same inventory slot after the first half is eaten.
+  properties:
+    release_date: "2001-06-11"
+    update: New fishing skill and more cooking
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.8
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

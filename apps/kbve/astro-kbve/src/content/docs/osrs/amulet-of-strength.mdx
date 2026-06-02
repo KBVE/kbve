@@ -1,6 +1,6 @@
 ---
 title: Amulet of strength | OSRS Price Data
-description: "Amulet of strength is a F2P neck slot item. High alch: 1,215 GP, GE limit: 125."
+description: "Amulet of strength is a F2P neck slot item providing +10 Strength. High alch: 1,215 GP, GE limit: 125."
 osrs:
   id: 1725
   name: Amulet of strength
@@ -12,26 +12,41 @@ osrs:
   lowalch: 810
   highalch: 1215
   limit: 125
+  material:
+    type: ruby
+    tier: low
   equipment:
     slot: neck
-    type: amulet
-    tradeable: true
     weight: 0.01
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 10
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  recipes:
+    - skill: Magic
+      level: 49
+      xp: 59
+      output_quantity: 1
+      materials:
+        - item_name: Ruby amulet
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Fire rune
+          quantity: 5
   related_items:
     - item_id: 1698
       item_name: Ruby amulet
@@ -43,8 +58,34 @@ osrs:
       slug: amulet-of-power
       relationship: alternative
       description: Balanced alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1727
+      item_name: Amulet of magic
+      slug: amulet-of-magic
+      relationship: alternative
+      description: Magic-focused neck slot
+  about: Amulet of strength is an enchanted ruby amulet granting +10 melee strength, a popular F2P melee neck slot option enchanted at 49 Magic.
+  history:
+    - date: "2001-05-24"
+      update: Amulet enchantment
+      description: Amulet of strength introduced as an enchantable ruby amulet.
+  properties:
+    release_date: "2001-05-24"
+    update: Amulet enchantment
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.01
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

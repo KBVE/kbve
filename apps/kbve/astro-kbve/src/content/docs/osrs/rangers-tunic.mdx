@@ -1,6 +1,6 @@
 ---
 title: Rangers' tunic | OSRS Price Data
-description: "Rangers' tunic is a members body slot item requiring 40 Defence. High alch: 7,200 GP, GE limit: 4."
+description: "Rangers' tunic is a members body slot item requiring 40 Ranged. High alch: 7,200 GP, GE limit: 4."
 osrs:
   id: 12596
   name: Rangers' tunic
@@ -14,24 +14,31 @@ osrs:
   limit: 4
   equipment:
     slot: body
-    type: ranged_armour
-    tradeable: true
-    weight: 3.6
+    weight: 3
     requirements:
       ranged: 40
-      defence: 40
-    stats:
-      attack_ranged: 15
-      defence_stab: 36
-      defence_slash: 30
-      defence_crush: 39
-      defence_magic: -10
-      defence_ranged: 36
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard
-        drop_rate: Rare from reward casket
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 15
+    defence_bonus:
+      stab: 6
+      slash: 9
+      crush: 12
+      magic: 6
+      ranged: 6
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
   related_items:
     - item_id: 2581
       item_name: Robin hood hat
@@ -48,46 +55,35 @@ osrs:
       slug: ranger-boots
       relationship: set-piece
       description: Matching boots (medium clue)
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Ranged attack | +15 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +36 |
-    | Slash | +30 |
-    | Crush | +39 |
-    | Magic | -10 |
-    | Ranged | +36 |
-
-    Requirements: 40 Ranged, 40 Defence
-
-    Good ranged body armour:
-    - Hard clue exclusive
-    - Same ranged bonus as black d'hide body
-    - Better defences than d'hide
-    - Fashionscape with ranger set
-
-    | Item | Ranged attack | Defence |
-    |------|---------------|---------|
-    | Rangers' tunic | +15 | Higher |
-    | Black d'hide body | +15 | Lower |
-    | Blessed d'hide body | +15 | Similar |
-
-    Complete the ranger set with:
-    - Robin hood hat (hard clue)
-    - Ranger gloves (master clue)
-    - Ranger boots (medium clue)
-    - Rangers' tights (elite clue)
+  about: "Rangers' tunic is an elite clue exclusive body armour offering the highest ranged attack bonus available without a Defence requirement, popular with 1 Defence pures."
   market_strategy:
     notes:
-      - Hard clue exclusive
+      - Elite clue exclusive
       - Part of ranger outfit
-      - Good stats for fashionscape
+      - Highest ranged attack with no defence req
       - Collection log item
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2014-06-26"
+      description: Released as an elite clue scroll reward during the Midsummer Event.
+  properties:
+    release_date: "2014-06-26"
+    update: Midsummer Event
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

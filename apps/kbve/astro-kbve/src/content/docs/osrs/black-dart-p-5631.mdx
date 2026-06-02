@@ -1,6 +1,6 @@
 ---
 title: Black dart(p+) | OSRS Price Data
-description: "Black dart(p+): A deadly poisoned dart with a black tip.. High alch: 10 GP, GE limit: 7,000."
+description: "Black dart(p+) is a members thrown weapon requiring 10 Ranged, tipped with weapon poison+. High alch: 10 GP, GE limit: 7,000."
 osrs:
   id: 5631
   name: Black dart(p+)
@@ -12,9 +12,66 @@ osrs:
   lowalch: 7
   highalch: 10
   limit: 7000
-  about: "Black dart(p+) is a members-only item in Old School RuneScape. High alchemy value: 10 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 10
+    attack_bonus:
+      ranged: 6
+  drop_table:
+    - source: Burthorpe soldier
+      level: 48
+      quantity: "1"
+      rarity: 9/128
+  related_items:
+    - item_id: 3093
+      item_name: Black dart
+      slug: black-dart
+      relationship: variant
+      description: Unpoisoned variant of the black dart
+    - item_id: 5628
+      item_name: Black dart(p)
+      slug: black-dart-p-5628
+      relationship: downgrade
+      description: Weaker poison tier tipped with weapon poison
+    - item_id: 5634
+      item_name: Black dart(p++)
+      slug: black-dart-p-5634
+      relationship: upgrade
+      description: Strongest poison tier tipped with weapon poison++
+  about: "The black dart(p+) is a thrown ranged weapon tipped with weapon poison+, requiring 10 Ranged to wield and dropping primarily from Burthorpe soldiers since it cannot be fletched."
+  market_strategy:
+    notes:
+      - "Supply is drop-only from Burthorpe soldiers, so price is sticky relative to other poisoned darts; spikes happen on Death Plateau quest content swings."
+  trading_tips:
+    - "Pair drops from Death Plateau training with bulk listings while the GE buy limit of 7,000 caps a single trader's exposure."
+  history:
+    - date: "2004-08-09"
+      description: "Released in the Death Plateau quest update."
+    - date: "2021-04-21"
+      description: "Ranged attack bonus on black darts was reduced from +7 to 0 on the unpoisoned variant."
+  properties:
+    release_date: "2004-08-09"
+    update: Death Plateau
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

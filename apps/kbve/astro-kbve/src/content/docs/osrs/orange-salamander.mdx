@@ -1,6 +1,6 @@
 ---
 title: Orange salamander | OSRS Price Data
-description: "Orange salamander: Slightly slimy but kind of cute.. High alch: 60 GP, GE limit: 125."
+description: "Orange salamander: Slightly slimy but kind of cute. High alch: 60 GP, GE limit: 125."
 osrs:
   id: 10146
   name: Orange salamander
@@ -12,9 +12,74 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 125
-  about: "Orange salamander is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: salamander
+    attack_speed: 5
+    weight: 4
+    requirements:
+      attack: 50
+      magic: 50
+      ranged: 50
+    attack_bonus:
+      stab: 0
+      slash: 19
+      crush: 0
+      magic: 0
+      ranged: 29
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 31
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 10149
+      item_name: Red salamander
+      slug: red-salamander
+      relationship: upgrade
+      description: Higher tier two-handed hybrid salamander
+    - item_id: 10147
+      item_name: Swamp lizard
+      slug: swamp-lizard
+      relationship: downgrade
+      description: Lower-level hybrid salamander
+    - item_id: 10148
+      item_name: Black salamander
+      slug: black-salamander
+      relationship: upgrade
+      description: Highest-tier standard salamander
+  about: A live orange salamander caught at 47 Hunter with a small fishing net and rope, used as a hybrid two-handed weapon switchable between Scorch (slash), Flare (ranged), and Blaze (magic).
+  market_strategy:
+    notes:
+      - Steady consumption — escapes from inventory on death and must be replaced
+      - Popular for AFK chinning style training in low-defence dungeons
+  history:
+    - date: "2006-11-21"
+      description: Released with the Hunter skill.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter skill
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Wield
+      - Release
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

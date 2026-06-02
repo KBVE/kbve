@@ -12,9 +12,59 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: null
-  about: "Jumbo squid is a members-only item in Old School RuneScape. High alchemy value: 96 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: mid
+  food:
+    heal: 17
+    skill: Cooking
+    level: 71
+    xp: 180
+  recipes:
+    - name: Cook Raw jumbo squid
+      skill: Cooking
+      level: 71
+      xp: 180
+      output: Jumbo squid
+      output_quantity: 1
+      tools: [Fire]
+      materials:
+        - item_name: Raw jumbo squid
+          quantity: 1
+      notes: "Burn rate decreases with level; stops burning at 98 Cooking, or 96 with elite Kourend & Kebos Diary at Hosidius Kitchen."
+  related_items:
+    - item_name: Raw jumbo squid
+      slug: raw-jumbo-squid
+      relationship: component
+      description: Raw form caught via Sailing-related fishing content.
+    - item_name: Burnt jumbo squid
+      slug: burnt-jumbo-squid
+      relationship: alternative
+      description: Result of failing the cooking attempt.
+  about: "Jumbo squid is a members-only cooked food released with Sailing, healing 17 hitpoints and requiring 71 Cooking to prepare from raw jumbo squid."
+  market_strategy:
+    notes:
+      - "Sailing skill engagement and resource throughput drive supply; raw jumbo squid input cost currently exceeds the cooked sell price."
+  trading_tips:
+    - "Cooking the squid yourself nets the XP but loses gold per cook; watch raw price swings for arbitrage."
+  history:
+    - date: "2025-11-19"
+      description: Released with the Sailing skill update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.45
+    options: [Eat, Drop]
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

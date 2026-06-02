@@ -12,9 +12,52 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Teak magic wardrobe (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: teak
+    tier: mid
+  recipes:
+    - skill: construction
+      level: 60
+      xp: 360
+      materials:
+        - item_name: Teak plank
+          quantity: 4
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+      facility: Steel framed workbench
+  related_items:
+    - item_id: 9853
+      item_name: Teak magic wardrobe
+      slug: teak-magic-wardrobe
+      relationship: product
+      description: Built furniture from this flatpack
+  about: "Teak magic wardrobe (flatpack) is a members-only flatpack built at a steel framed workbench with 60 Construction using 4 teak planks for 360 XP."
+  market_strategy:
+    notes:
+      - Niche flatpack with low daily volume
+      - Most players craft on-site rather than buy flatpacks
+      - Profit margin depends on teak plank prices
+  history:
+    - date: "2015-02-26"
+      description: Renamed from 'Teak mw' to 'Teak magic wardrobe' during The Grand Exchange update.
+  properties:
+    release_date: "2006-10-18"
+    update: Player-Owned House Costume Room
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

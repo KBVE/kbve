@@ -1,6 +1,6 @@
 ---
 title: Dodgy necklace | OSRS Price Data
-description: "Dodgy necklace is a members neck slot item. High alch: 630 GP, GE limit: 10,000."
+description: "Dodgy necklace: Lets you get away with it - sometimes. 25% chance to prevent stun while pickpocketing. High alch: 630 GP, GE limit: 10,000."
 osrs:
   id: 21143
   name: Dodgy necklace
@@ -14,79 +14,93 @@ osrs:
   limit: 10000
   equipment:
     slot: neck
-    type: thieving_necklace
-    tradeable: true
     weight: 0.01
-  creation:
-    method: Enchant Opal necklace with Lvl-1 Enchant
     requirements:
       magic: 7
-    runes:
-      - rune: Cosmic
-        quantity: 1
-      - rune: Water
-        quantity: 1
-  special_effect:
-    name: Stun Prevention
-    description: 25% chance to avoid stun and damage when pickpocketing
-    charges: 10
-    notes:
-      - Works on all pickpocketing
-      - Stacks with Shadow Veil (36.25% total)
-  market:
-    buy_limit: 10000
-    price_estimate: 1592
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  charges:
+    initial: 10
+    description: Each charge prevents stun and damage from a failed pickpocket. The necklace crumbles to dust at 0 charges.
+  recipes:
+    - skill: Magic
+      level: 7
+      xp: 17.5
+      tools: []
+      materials:
+        - item_name: Opal necklace
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Water rune
+          quantity: 1
   related_items:
-    - item_id: 21168
-      item_name: Rogue equipment
-      slug: rogue-equipment
-      relationship: alternative
-      description: Double loot
+    - item_id: 1603
+      item_name: Opal necklace
+      slug: opal-necklace
+      relationship: component
+      description: Unenchanted base
     - item_id: 23049
-      item_name: Shadow veil
+      item_name: Shadow Veil
       slug: shadow-veil
       relationship: alternative
-      description: Stacking protection
+      description: Stacking pickpocket protection (Magic spell)
     - item_id: 13121
-      item_name: Ardougne cloak
-      slug: ardougne-cloak
+      item_name: Ardougne cloak 4
+      slug: ardougne-cloak-4
       relationship: alternative
-      description: Thieving bonus
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Neck |
-    | Type | Thieving Necklace |
-    | Tradeable | Yes |
-    | Weight | 0.01 kg |
-
-    Enchant Opal necklace with Lvl-1 Enchant.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Magic | 7 |
-    | Cosmic rune | 1 |
-    | Water rune | 1 |
-
-    Stun Prevention:
-    - 25% chance to avoid stun/damage
-    - Works on all pickpocketing
-    - 10 charges
-    - Stacks with Shadow Veil (36.25% total)
-
-    Essential for:
-    - All pickpocketing
-    - Ardy Knights
-    - Master Farmers
-
-    Must-have for thieving.
+      description: Pickpocket buff cape
+  about: "Dodgy necklace is an enchanted opal necklace with 10 charges that grants a 25% chance to prevent stun and damage when pickpocketing."
   market_strategy:
     notes:
-      - Very high volume item
-      - Essential for thieving
-      - Stacks with other bonuses
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Extremely high volume thieving consumable
+      - Essential for Ardougne Knight and Master Farmer thieving
+      - Stacks with Shadow Veil for 36.25% combined protection
+      - Profitable to craft via Lvl-1 Enchant
+  trading_tips:
+    - Buy opal necklaces in bulk and self-enchant for profit
+    - Sell in 1k stacks to maintain GE buy limit churn
+  history:
+    - date: "2017-02-02"
+      description: Dodgy necklace released as part of the Thieving update.
+    - date: "2018-04-05"
+      description: Examine text updated, apostrophe removed.
+  properties:
+    release_date: "2017-02-02"
+    update: Thieving Update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Check
+      - Drop
+    worn_options:
+      - Remove
+      - Check
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

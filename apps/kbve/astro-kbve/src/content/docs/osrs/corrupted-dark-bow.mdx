@@ -12,9 +12,57 @@ osrs:
   lowalch: 100000
   highalch: 150000
   limit: null
-  about: "Corrupted dark bow is a members-only item in Old School RuneScape. High alchemy value: 150,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: bow
+    attack_speed: 6
+    weight: 1.814
+    requirements:
+      ranged: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 95
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    name: Descent of Darkness
+    energy: 55
+    description: Fires two arrows simultaneously with increased accuracy and damage.
+  about: "Corrupted dark bow is a Deadman-event-only variant of the dark bow that trades attack range for faster fire rate, currently unobtainable in the live game."
+  history:
+    - date: "2024-07-17"
+      description: Released alongside Deadman Armageddon and the While Guthix Sleeps updates.
+  properties:
+    release_date: "2024-07-17"
+    update: "Deadman: Armageddon & While Guthix Sleeps Updates"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
