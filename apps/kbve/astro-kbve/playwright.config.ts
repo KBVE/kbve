@@ -1,7 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
+import { resolve } from 'path';
 
 const port = Number(process.env['E2E_PORT'] ?? 4321);
 const baseURL = `http://localhost:${port}`;
+const distDir = resolve(__dirname, '../../../dist/apps/astro-kbve');
 
 export default defineConfig({
 	testDir: './e2e',
@@ -20,4 +22,12 @@ export default defineConfig({
 			use: { ...devices['Desktop Chrome'] },
 		},
 	],
+	webServer: {
+		command: `python3 -m http.server ${port} --directory "${distDir}"`,
+		url: baseURL,
+		reuseExistingServer: !process.env['CI'],
+		timeout: 60_000,
+		stdout: 'pipe',
+		stderr: 'pipe',
+	},
 });
