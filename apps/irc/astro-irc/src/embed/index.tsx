@@ -7,24 +7,13 @@ import { connect, disconnect } from './transport';
 import { resetState } from './state';
 
 export interface KbveChatOptions {
-	/** Mount target. Accepts a DOM element or a CSS selector. */
 	el: HTMLElement | string;
-	/** Default channel to auto-join (defaults to "#general"). */
 	channel?: string;
-	/** WebSocket endpoint (defaults to "wss://chat.kbve.com/ws"). */
 	ws?: string;
-	/** "dark" | "light" — defaults to "dark". */
 	theme?: 'dark' | 'light';
-	/**
-	 * Pixel height of the embed shell. Accepts any CSS length string.
-	 * Defaults to "480px". Pass "100%" or "100vh" for full-bleed hosts.
-	 */
 	height?: string;
-	/**
-	 * Optional explicit JWT. If omitted, the embed reads the
-	 * `kbve_session` cross-domain cookie. Empty token = read-only mode.
-	 */
 	token?: string;
+	signinUrl?: string;
 }
 
 interface MountedInstance {
@@ -86,7 +75,7 @@ export function mount(opts: KbveChatOptions): void {
 	const root = createRoot(wrapper);
 	root.render(
 		<StrictMode>
-			<EmbedChat />
+			<EmbedChat signinUrl={opts.signinUrl} />
 		</StrictMode>,
 	);
 
@@ -112,15 +101,6 @@ export function unmount(el: HTMLElement | string): void {
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Auto-discover: scan the page on script load for elements tagged with
-//   <div data-kbve-chat data-channel="..." data-ws="..." data-theme="..." />
-// or any id beginning with "kbve-chat" (kbve-chat, kbve-chat-home,
-// kbve-chat-embed, ...). The id prefix is forgiving because host pages
-// often need multiple mounts on the same page and bare `id="kbve-chat"`
-// can't repeat. Hosts that prefer programmatic control can ignore this
-// and call window.KbveChat.mount({...}) themselves.
-// ---------------------------------------------------------------------------
 function autoMount(): void {
 	const targets = document.querySelectorAll<HTMLElement>(
 		'[data-kbve-chat], [id^="kbve-chat"]',
@@ -134,6 +114,7 @@ function autoMount(): void {
 			theme: (el.dataset.theme as 'dark' | 'light') ?? undefined,
 			height: el.dataset.height,
 			token: el.dataset.token,
+			signinUrl: el.dataset.signinUrl,
 		});
 	}
 }

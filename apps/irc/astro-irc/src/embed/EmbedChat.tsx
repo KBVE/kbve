@@ -31,7 +31,7 @@ import {
 import { readSharedTokenCookie } from './auth';
 import { formatTime, nickColor, nickInitial } from './format';
 
-const SIGNIN_URL = 'https://chat.kbve.com/auth/';
+export const DEFAULT_SIGNIN_URL = 'https://chat.kbve.com/auth/';
 
 function isKbveOrigin(): boolean {
 	if (typeof location === 'undefined') return false;
@@ -41,40 +41,62 @@ function isKbveOrigin(): boolean {
 	);
 }
 
-function startSignInPopup(onToken: (token: string) => void): void {
+interface SignInHandle {
+	cancel: () => void;
+}
+
+function startSignInPopup(
+	signinUrl: string,
+	onToken: (token: string) => void,
+): SignInHandle | null {
 	const popup = window.open(
-		SIGNIN_URL,
+		signinUrl,
 		'kbve_chat_signin',
 		'width=520,height=720,menubar=no,toolbar=no,location=no',
 	);
 	if (!popup) {
-		window.location.href = SIGNIN_URL;
-		return;
+		window.location.href = signinUrl;
+		return null;
 	}
+
+	let cancelled = false;
+	let timerId: number | null = null;
+
+	const cancel = () => {
+		if (cancelled) return;
+		cancelled = true;
+		if (timerId !== null) {
+			window.clearInterval(timerId);
+			timerId = null;
+		}
+		try {
+			if (popup && !popup.closed) popup.close();
+		} catch {
+			/* cross-origin popup, ignore */
+		}
+	};
+
 	const start = Date.now();
-	const interval = window.setInterval(() => {
-		const elapsed = Date.now() - start;
-		if (elapsed > 5 * 60 * 1000) {
-			window.clearInterval(interval);
+	timerId = window.setInterval(() => {
+		if (cancelled) return;
+		if (Date.now() - start > 5 * 60 * 1000) {
+			cancel();
 			return;
 		}
 		const token = readSharedTokenCookie();
 		if (token) {
-			window.clearInterval(interval);
-			try {
-				popup.close();
-			} catch {
-				/* ignore */
-			}
+			cancel();
 			onToken(token);
 			return;
 		}
 		if (popup.closed) {
-			window.clearInterval(interval);
+			cancel();
 			const finalToken = readSharedTokenCookie();
 			if (finalToken) onToken(finalToken);
 		}
 	}, 1200);
+
+	return { cancel };
 }
 
 const STATUS_LABEL: Record<ConnectionStatus, string> = {
@@ -250,13 +272,28 @@ const Feed: React.FC = () => {
 	);
 };
 
-const Composer: React.FC = () => {
+interface ComposerProps {
+	signinUrl?: string;
+}
+
+const Composer: React.FC<ComposerProps> = ({
+	signinUrl = DEFAULT_SIGNIN_URL,
+}) => {
 	const status = useStore($connectionStatus);
 	const canSend = useStore($canSend);
 	const nick = useStore($nick);
 	const avatar = useStore($avatarUrl);
 	const [value, setValue] = useState('');
 	const inputRef = useRef<HTMLInputElement>(null);
+	const signInHandleRef = useRef<SignInHandle | null>(null);
+
+	useEffect(
+		() => () => {
+			signInHandleRef.current?.cancel();
+			signInHandleRef.current = null;
+		},
+		[],
+	);
 
 	const disabled = status !== 'connected' || !canSend;
 
@@ -284,10 +321,12 @@ const Composer: React.FC = () => {
 		const onKbve = isKbveOrigin();
 		const handleSignIn = () => {
 			if (!onKbve) {
-				window.open(SIGNIN_URL, '_blank', 'noopener');
+				window.open(signinUrl, '_blank', 'noopener');
 				return;
 			}
-			startSignInPopup((token) => {
+			signInHandleRef.current?.cancel();
+			signInHandleRef.current = startSignInPopup(signinUrl, (token) => {
+				signInHandleRef.current = null;
 				void reconnectWithToken(token);
 			});
 		};
@@ -377,14 +416,18 @@ const Users: React.FC = () => {
 	);
 };
 
-export const EmbedChat: React.FC = () => (
+export interface EmbedChatProps {
+	signinUrl?: string;
+}
+
+export const EmbedChat: React.FC<EmbedChatProps> = ({ signinUrl }) => (
 	<div className="root">
 		<TopBar />
 		<div className="body">
 			<ChannelRail />
 			<div className="main">
 				<Feed />
-				<Composer />
+				<Composer signinUrl={signinUrl} />
 			</div>
 			<Users />
 		</div>
