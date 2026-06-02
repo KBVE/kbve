@@ -12,9 +12,85 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
-  about: "Bronze dart(p++) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bronze
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 1
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Bronze dart
+      slug: bronze-dart
+      relationship: variant
+      description: Unpoisoned version
+    - item_name: Bronze dart(p)
+      slug: bronze-dart-p
+      relationship: variant
+      description: Weak poison variant
+    - item_name: Bronze dart(p+)
+      slug: bronze-dart-plus
+      relationship: variant
+      description: Stronger poison variant
+    - item_name: Weapon poison++
+      slug: weapon-poison-plus-plus
+      relationship: component
+      description: Used to upgrade darts to (p++)
+  about: "Bronze dart(p++) is a deadly-poisoned bronze throwing dart equipped in the weapon slot, usable from Ranged level 1."
+  market_strategy:
+    notes:
+      - Poison upgrade tier is mostly cosmetic for low-tier darts so demand is thin
+      - Margin opportunity sits in the gap between unpoisoned darts plus weapon poison++ versus the (p++) price
+  trading_tips:
+    - Watch the unpoisoned bronze dart price plus weapon poison++ as the synthesis cost reference
+    - Daily volume is low; size orders accordingly
+  history:
+    - date: "2003-04-14"
+      update: New Throwing Weapons
+      description: Added to the game.
+    - date: "2021-06-30"
+      description: Ranged attack bonus reduced from +3 to 0.
+    - date: "2025-05-29"
+      description: Exempted from the Grand Exchange convenience fee.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-04-14"
+    update: New Throwing Weapons
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

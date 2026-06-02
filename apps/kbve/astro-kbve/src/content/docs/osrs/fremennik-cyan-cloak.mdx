@@ -12,9 +12,62 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 150
-  about: "Fremennik cyan cloak is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: cape
+    weight: 0.453
+    requirements:
+      quest: The Fremennik Trials
+    defence_bonus:
+      slash: 1
+      crush: 1
+      ranged: 2
+  shops:
+    - shop_name: Yrsa's Accoutrements
+      location: Rellekka
+      price: 325
+      stock: 5
+  related_items:
+    - item_id: 3757
+      item_name: Fremennik cloak
+      slug: fremennik-cloak
+      relationship: alternative
+      description: Brown variant
+    - item_id: 3761
+      item_name: Fremennik green cloak
+      slug: fremennik-green-cloak
+      relationship: alternative
+      description: Green variant
+  about: "Fremennik cyan cloak is a cape sold by Yrsa's Accoutrements in Rellekka after completing The Fremennik Trials."
+  market_strategy:
+    notes:
+      - Shop stocks 5 at 325 coins
+      - Restocks every minute
+      - GE buy limit 150
+      - Requires Fremennik Trials
+  history:
+    - date: "2004-11-02"
+      description: Released with The Fremennik Trials update.
+    - date: "2014-12-10"
+      description: Renamed from Fremennik cloak to Fremennik cyan cloak.
+  properties:
+    release_date: "2004-11-02"
+    update: The Fremennik Trials
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

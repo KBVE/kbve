@@ -1,6 +1,6 @@
 ---
 title: Aldarium | OSRS Price Data
-description: "Aldarium: A special alchemical ingredient used for creating potions.. High alch: 60 GP, GE limit: 13,000."
+description: "Aldarium: A special alchemical ingredient used for creating potions. High alch: 60 GP, GE limit: 13,000."
 osrs:
   id: 29993
   name: Aldarium
@@ -12,9 +12,74 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 13000
-  about: "Aldarium is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Mixology Rewards
+      location: Alchemical Society headquarters
+      quantity: 0
+      notes: "Infinite stock; costs 80 Mox + 60 Aga + 90 Lye resin per Aldarium."
+  recipes:
+    - skill: herblore
+      level: 54
+      xp: 132
+      materials:
+        - item_name: Harralander potion (unf)
+          quantity: 1
+        - item_name: Aldarium
+          quantity: 1
+      tools: []
+      output_item: Goading potion(3)
+      output_quantity: 1
+    - skill: herblore
+      level: 58
+      xp: 132
+      materials:
+        - item_name: Huasca potion (unf)
+          quantity: 1
+        - item_name: Aldarium
+          quantity: 1
+      tools: []
+      output_item: Prayer regeneration potion(3)
+      output_quantity: 1
+  related_items:
+    - item_id: 30000
+      item_name: Mox resin
+      slug: mox-resin
+      relationship: component
+      description: One of the resins spent at the Mixology Rewards shop.
+    - item_id: 30001
+      item_name: Aga resin
+      slug: aga-resin
+      relationship: component
+      description: One of the resins spent at the Mixology Rewards shop.
+    - item_id: 30002
+      item_name: Lye resin
+      slug: lye-resin
+      relationship: component
+      description: One of the resins spent at the Mixology Rewards shop.
+  about: "Aldarium is a Herblore ingredient bought from the Mixology Rewards shop with resins, used to brew Goading and Prayer regeneration potions."
+  market_strategy:
+    notes:
+      - Demand tracks Goading and Prayer regen potion meta usage
+      - Resin supply via Mastering Mixology caps practical supply
+  history:
+    - date: "2024-09-25"
+      description: Released alongside Varlamore - The Rising Darkness and the Mastering Mixology minigame.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-09-25"
+    update: "Varlamore: The Rising Darkness"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

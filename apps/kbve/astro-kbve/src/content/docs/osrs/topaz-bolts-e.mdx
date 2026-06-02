@@ -12,13 +12,33 @@ osrs:
   lowalch: 9
   highalch: 14
   limit: 11000
+  material:
+    type: red topaz
+    tier: mid
   equipment:
     slot: ammo
-    other_bonus:
-      ranged_strength: 66
+    weapon_type: bolt
+    weight: 0
     requirements:
       ranged: 1
-    weight: 0
+    other_bonus:
+      ranged_strength: 66
+  special_attack:
+    name: Down to Earth
+    description: "4% chance (4.4% with Hard Kandarin Diary) on a successful hit in PvP to lower the target's Magic level by 1."
+  recipes:
+    - skill: Magic
+      level: 29
+      xp: 33
+      materials:
+        - item_name: Topaz bolts
+          quantity: 10
+        - item_name: Fire rune
+          quantity: 2
+        - item_name: Cosmic rune
+          quantity: 1
+      tools: []
+      output: Topaz bolts (e)
   related_items:
     - item_id: 9238
       item_name: Pearl bolts (e)
@@ -30,23 +50,42 @@ osrs:
       slug: sapphire-bolts-e
       relationship: upgrade
       description: Next tier enchanted bolt
-  about: |-
-    | Other | Value |
-    |-------|-------|
-    | Ranged Strength | +66 |
-
-    Proc chance: 4% (4.4% with Kandarin hard diary)
-
-    On activation, reduces the target's Magic level by 1. Useful in PvP to gradually lower an opponent's Magic level, reducing their magic defence and splash chance.
-
-    Topaz bolts are niche in PvP — stacking Magic drains can make targets more vulnerable to binds and magic attacks. However, the low 4% proc rate limits their effectiveness.
+    - item_id: 9237
+      item_name: Topaz bolts
+      slug: topaz-bolts
+      relationship: component
+      description: Unenchanted base bolt
+  about: "Topaz bolts (e) are red topaz-tipped steel crossbow bolts enchanted with Lvl-3 Enchant (Magic 29, 33 xp per cast of 10) that proc the Down to Earth effect — a 4% chance (4.4% with Hard Kandarin Diary) to lower the target's Magic level by 1 in PvP."
   market_strategy:
     notes:
       - Niche PvP bolt for Magic drain
-      - Low proc rate limits usefulness
-      - Cheap to enchant
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Low 4% proc rate limits PvE usefulness
+      - Cheap to enchant; supply tracks Topaz bolt + cosmic rune prices
+  trading_tips:
+    - Enchant in bulk when topaz bolts and cosmic runes are both cheap
+    - Watch for PvP meta shifts that increase Magic-drain bolt demand
+  properties:
+    release_date: "2006-07-31"
+    update: "Bolt Enchant Spells"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2006-07-31"
+      description: "Released alongside bolt enchant spells, adding enchanted gem-tipped bolt variants."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

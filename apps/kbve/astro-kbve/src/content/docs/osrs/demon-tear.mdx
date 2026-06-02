@@ -1,6 +1,6 @@
 ---
 title: Demon tear | OSRS Price Data
-description: "Demon tear: A strange glowing tear.. High alch: 300 GP, GE limit: 13,000."
+description: "Demon tear: A strange glowing tear. High alch: 300 GP, GE limit: 13,000."
 osrs:
   id: 31111
   name: Demon tear
@@ -12,9 +12,47 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 13000
-  about: "Demon tear is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Doom of Mokhaiotl
+        quantity: "1"
+        rarity: 7/104 (100-300 per drop)
+      - source: Doom of Mokhaiotl (guaranteed)
+        quantity: "1"
+        rarity: 50 guaranteed per kill
+      - source: Infected roots
+        quantity: "1"
+        rarity: 15/17 at 80+ Woodcutting
+      - source: Eye of Ayak (dismantle)
+        quantity: "1"
+        rarity: 10,000 per dismantle
+  about: "Demon tear is a stackable upgrade material introduced with the Varlamore: The Final Dawn update, used to enhance the Eye of Ayak and craft Confliction gauntlets and Avernic treads variants."
+  market_strategy:
+    notes:
+      - Primary sink is Avernic treads upgrades (4,000 per upgrade) and Confliction gauntlets (10,000).
+      - Total of 22,000 tears needed for full Avernic treads + Confliction gauntlets.
+      - GE buy limit 13,000 per 4 hours supports bulk acquisition.
+  trading_tips:
+    - Watch Doom of Mokhaiotl player counts to forecast supply.
+    - Demand spikes whenever a new sink is announced for the tears.
+  history:
+    - date: "2025-07-23"
+      description: "Released with the Varlamore: The Final Dawn update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-07-23"
+    update: "Varlamore: The Final Dawn"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

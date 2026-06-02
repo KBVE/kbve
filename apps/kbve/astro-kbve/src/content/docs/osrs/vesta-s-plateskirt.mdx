@@ -1,20 +1,95 @@
 ---
-title: Vesta's plateskirt | OSRS Price Data
+title: "Vesta's plateskirt | OSRS Price Data"
 description: "Vesta's plateskirt: A powerful plateskirt.. High alch: 300,000 GP, GE limit: 10."
 osrs:
   id: 22619
-  name: Vesta's plateskirt
+  name: "Vesta's plateskirt"
   slug: vesta-s-plateskirt
   examine: A powerful plateskirt.
   members: true
-  icon: Vesta's plateskirt.png
+  icon: "Vesta's plateskirt.png"
   value: 500000
   lowalch: 200000
   highalch: 300000
   limit: 10
-  about: "Vesta's plateskirt is a members-only item in Old School RuneScape. High alchemy value: 300,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: statius
+    tier: high
+  equipment:
+    slot: legs
+    weapon_type: melee
+    attack_speed: 1
+    weight: 8.164
+    requirements:
+      defence: 78
+    attack_bonus:
+      stab: 10
+      slash: 10
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 39
+      slash: 42
+      crush: 45
+      magic: 0
+      ranged: 59
+    other_bonus:
+      strength: 3
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Bounty Hunter Store
+      location: Edgeville
+      price: 550 Bounty Hunter points
+  related_items:
+    - item_id: 27924
+      item_name: "Vesta's chainbody"
+      slug: vesta-s-chainbody
+      relationship: set-piece
+      description: Matching chainbody granting 15% melee spec accuracy when paired
+    - item_id: 27932
+      item_name: "Vesta's longsword"
+      slug: vesta-s-longsword
+      relationship: set-piece
+      description: Matching longsword from the Vesta set
+  charges:
+    cost: 5000000 coins
+    charge_count: 100000
+    description: Must be charged with coins before use; reverts to inactive when uncharged.
+  about: "Bounty Hunter Store reward unlocked at 78 Defence; charges with coins and operates only in designated PvP zones such as Castle Wars and Soul Wars."
+  market_strategy:
+    notes:
+      - Acquired by spending Bounty Hunter points, supply tied to BH activity
+      - Pairing with Vesta's chainbody grants +15% melee spec accuracy
+      - Only functional in PvP-designated areas
+  trading_tips:
+    - Track BH event participation for supply cycles
+    - Pre-position before Deadman/PvP tournaments
+  history:
+    - date: "2023-05-24"
+      description: Re-released through the revamped Bounty Hunter Store.
+  properties:
+    release_date: "2023-05-24"
+    update: Bounty Hunter Rework
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 8.164
+    options:
+      - Activate
+      - Drop
+    worn_options:
+      - Remove
+      - Uncharge
+    alchable: false
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

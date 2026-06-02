@@ -1,6 +1,6 @@
 ---
 title: Iron cannonball | OSRS Price Data
-description: "Iron cannonball: Ammo suited for a boat's cannon.. High alch: 2 GP, GE limit: 11,000."
+description: "Iron cannonball: Ammo suited for a boat's cannon. High alch: 2 GP, GE limit: 11,000."
 osrs:
   id: 31908
   name: Iron cannonball
@@ -12,9 +12,62 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 11000
-  about: "Iron cannonball is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: iron
+    tier: low
+  related_items:
+    - item_id: 31909
+      item_name: Iron chainshot cannonball
+      slug: iron-chainshot-cannonball
+      relationship: variant
+      description: Specialized chainshot variant for boat cannons.
+    - item_id: 31910
+      item_name: Iron incendiary cannonball
+      slug: iron-incendiary-cannonball
+      relationship: variant
+      description: Specialized incendiary variant for boat cannons.
+  recipes:
+    - skill: smithing
+      level: 20
+      xp: 17
+      materials:
+        - item_name: Iron bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      product: Iron cannonball
+      product_quantity: 4
+      members_only: true
+  about: "Iron cannonball is stackable boat-cannon ammunition smithed from iron bars at 20 Smithing, used for ship combat during the Sailing skill."
+  market_strategy:
+    notes:
+      - Smith from iron bars (1 bar = 4 cannonballs, or 2 bars = 8 with a double mould).
+      - High-volume consumable for Sailing combat content.
+      - GE buy limit 11,000 per 4 hours.
+  trading_tips:
+    - Watch iron bar GE price vs cannonball price for smithing profit margins.
+    - Bulk-buy during off-peak hours to stock ship voyages.
+  history:
+    - date: "2025-11-19"
+      description: "Released as part of the Sailing skill update."
+    - date: "2026-03-18"
+      description: "Ranged Strength bonus increased from +10 to +56."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

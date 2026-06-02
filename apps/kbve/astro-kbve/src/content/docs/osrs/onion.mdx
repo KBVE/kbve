@@ -12,17 +12,30 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  produce:
-    type: allotment
-    tier: lowest
+  food:
+    heal_amount: 1
+    edible: true
   farming:
-    seed_id: 5319
     seed_name: Onion seed
     level: 5
     xp_plant: 9.5
     xp_harvest: 10.5
     growth_time: 40
     patches: 8
+  shops:
+    - shop_name: Grand Tree Groceries
+      location: Grand Tree
+      price: 3
+      stock: 10
+  recipes:
+    - product: Yellow dye
+      skill: Crafting
+      level: 1
+      xp: 0
+      tools: []
+      materials:
+        - item_name: Onion
+          quantity: 2
   related_items:
     - item_id: 5319
       item_name: Onion seed
@@ -39,28 +52,38 @@ osrs:
       slug: cabbage
       relationship: alternative
       description: Alternative allotment produce
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Farming Level | 5 |
-    | Growth time | 40 minutes |
-    | XP (plant) | 9.5 |
-    | XP (harvest) | 10.5 per onion |
-
-    - Ingredient in various cooking recipes
-    - Used in several quests
-    - Protection payment for potato seeds
+  about: "Onions are a free-to-play allotment crop grown at 5 Farming, used in cooking recipes, yellow dye, and many quests."
   market_strategy:
-    title: Ironman Notes
     notes:
-      - Low-tier crop
-      - Very low value
-      - Good for early farming training
-      - Easy to obtain
-      - Required for some quests
-      - Good early farming crop
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Low-tier crop, very low value
+      - Good early Farming training
+      - Easy to obtain via spawns or shops
+      - Required for several quests
+  trading_tips:
+    - Stock-buyable from grocery shops
+    - Field spawns at Rimmington and Hosidius
+  history:
+    - date: "2001-02-28"
+      description: Item released.
+    - date: "2005-07-11"
+      description: An 'Eat' option was added following the Farming update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-02-28"
+    update: Onion (initial release)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.15
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

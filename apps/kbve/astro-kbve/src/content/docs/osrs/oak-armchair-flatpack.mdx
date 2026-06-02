@@ -1,6 +1,6 @@
 ---
 title: Oak armchair (flatpack) | OSRS Price Data
-description: "Oak armchair (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Oak armchair (flatpack): How does it all fit in there? High alch: 6 GP, GE limit: 500."
 osrs:
   id: 8504
   name: Oak armchair (flatpack)
@@ -12,9 +12,61 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Oak armchair (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: oak
+    tier: low
+  recipes:
+    - skill: construction
+      level: 26
+      xp: 180
+      materials:
+        - item_name: Oak plank
+          quantity: 3
+      tools:
+        - Hammer
+        - Saw
+      output_item: Oak armchair (flatpack)
+      output_quantity: 1
+      notes: "Built at an Oak workbench in the Workshop of a player-owned house."
+  construction:
+    level: 26
+    xp: 180
+    notes: "Flatpack version is built at an Oak workbench (Workshop) and placed in the Parlour/Quest Hall chair hotspots."
+  related_items:
+    - item_id: 8500
+      item_name: Wooden armchair (flatpack)
+      slug: wooden-armchair-flatpack
+      relationship: downgrade
+      description: Lower-tier wooden chair flatpack.
+    - item_id: 8508
+      item_name: Teak armchair (flatpack)
+      slug: teak-armchair-flatpack
+      relationship: upgrade
+      description: Higher-tier teak chair flatpack.
+  about: "Oak armchair (flatpack) is a Construction flatpack built at an Oak workbench and placed in chair hotspots of player-owned houses."
+  market_strategy:
+    notes:
+      - Bulk-bought by Construction trainers furnishing budget POH layouts
+      - Margin vs raw oak plank cost usually negative — flip, do not craft
+  history:
+    - date: "2006-05-31"
+      description: Released alongside the Player-Owned Houses update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    update: "Player-Owned Houses"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

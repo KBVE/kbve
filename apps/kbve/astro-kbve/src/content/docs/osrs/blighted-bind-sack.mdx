@@ -1,20 +1,71 @@
 ---
 title: Blighted bind sack | OSRS Price Data
-description: "Blighted bind sack: Enough power for a Bind, blighted so it can be used only in the Wilderness.. High alch: 1 GP, GE limit: 10,000."
+description: "Blighted bind sack: Enough power for a Bind, blighted so it can be used only in the Wilderness. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 24609
   name: Blighted bind sack
   slug: blighted-bind-sack
-  examine: Enough power for a Bind, blighted so it can be used only in the Wilderness.
+  examine: "Enough power for a Bind, blighted so it can be used only in the Wilderness."
   members: true
   icon: Blighted bind sack.png
   value: 1
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Blighted bind sack is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: blighted spell sack
+    tier: low
+  shops:
+    - shop_name: "Justine's stuff for the Last Man Standing"
+      location: Ferox Enclave
+      price: 1
+      currency: Last Man Standing points
+      quantity: 300
+    - shop_name: Soul Wars Reward Shop
+      location: Soul Wars
+      price: 10
+      currency: Zeal Tokens
+      quantity: 300
+  related_items:
+    - item_name: Blighted entangle sack
+      slug: blighted-entangle-sack
+      relationship: upgrade
+      description: Successor sack covering both Bind and Entangle after the 2023 rework.
+    - item_name: Blighted snare sack
+      slug: blighted-snare-sack
+      relationship: alternative
+      description: Equivalent blighted sack for the Snare spell.
+  about: "Blighted bind sack let players cast Bind in the Wilderness without runes until it was rolled into the blighted entangle sack on 20 September 2023."
+  market_strategy:
+    notes:
+      - Removed in September 2023, only legacy stacks remain.
+      - Functionality merged into blighted entangle sack.
+      - No active supply, treat as historical only.
+  trading_tips:
+    - Only relevant for legacy inventories; do not flip.
+  history:
+    - date: "2020-04-23"
+      description: Released as part of the blighted Wilderness spell sacks lineup.
+    - date: "2023-09-20"
+      description: Removed from the game with bind functionality folded into the blighted entangle sack.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2020-04-23"
+    update: "Blighted Wilderness Supplies"
+    tradeable: false
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Cast
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,26 +12,76 @@ osrs:
   lowalch: 832
   highalch: 1248
   limit: 125
-  item_id: 1287
-  item_type: equipment
-  slot: weapon
-  type: sword
-  attack_style: stab
-  attack_speed: 4
-  tradeable: true
-  weight: 2.041
-  requirements:
-    attack: 30
-  stats:
-    stab_attack: 23
-    slash_attack: 18
-    crush_attack: -2
-    strength: 24
+  material:
+    type: adamant
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: stab_sword
+    attack_speed: 4
+    weight: 2.041
+    requirements:
+      attack: 30
+    attack_bonus:
+      stab: 23
+      slash: 18
+      crush: -2
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 1
+    other_bonus:
+      strength: 24
+  shops:
+    - shop_name: Varrock Swordshop
+      price: 2080
+    - shop_name: Warrior Guild Armoury
+      price: 2496
+    - shop_name: Quality Weapons Shop
+      location: Keldagrim
+      price: 2704
+    - shop_name: Briget's Weapons
+      location: Shayzien
+      price: 2080
+    - shop_name: Cam Torum Blacksmith
+      price: 2080
   related_items:
-    - slug: rune-sword
-    - slug: adamant-scimitar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Rune sword
+      slug: rune-sword
+      relationship: upgrade
+      description: Higher-tier sword
+    - item_name: Adamant scimitar
+      slug: adamant-scimitar
+      relationship: alternative
+      description: Faster slash weapon at the same tier
+  about: "Adamant sword is a free-to-play stab weapon requiring 30 Attack to wield. Crafted at 74 Smithing or sold by sword shops across the world."
+  market_strategy:
+    notes:
+      - Free-to-play stab weapon at 30 Attack
+      - Outclassed by scimitar for training due to slash attack speed
+      - Common smithing product at 74 Smithing
+  history:
+    - date: "2001-01-04"
+      description: Released with the RuneScape beta launch.
+  properties:
+    release_date: "2001-01-04"
+    update: Runescape beta is now online!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.041
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

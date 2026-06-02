@@ -1,6 +1,6 @@
 ---
 title: Rock-shell legs | OSRS Price Data
-description: "Rock-shell legs is a members legs slot item requiring 40 Defence. High alch: 38,400 GP, GE limit: 70."
+description: "Rock-shell legs is a members legs slot armour requiring 40 Defence and The Fremennik Trials. High alch: 38,400 GP, GE limit: 70."
 osrs:
   id: 6130
   name: Rock-shell legs
@@ -14,6 +14,9 @@ osrs:
   limit: 70
   equipment:
     slot: legs
+    weight: 9.071
+    requirements:
+      defence: 40
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,60 +34,66 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 40
-    weight: 9.071
   drop_table:
     sources:
       - source: Dagannoth Rex
-        combat_level: 303
         quantity: "1"
         rarity: uncommon
-        drop_rate: 1/128
-        members_only: true
+  shops:
+    - shop_name: Skulgrimen's Battle Gear
+      location: Rellekka
+      stock: 0
+      price: 7500
+      currency: coins
+      notes: "Crafted on demand for 7,500 coins using 2 Dagannoth hides and 1 Rock-shell chunk."
   related_items:
     - item_id: 6128
       item_name: Rock-shell helm
       slug: rock-shell-helm
       relationship: set-piece
-      description: Matching helm piece
+      description: Matching helm of the rock-shell set.
     - item_id: 6129
       item_name: Rock-shell plate
       slug: rock-shell-plate
       relationship: set-piece
-      description: Matching body piece
-  about: |-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +51 |
-    | Slash | +49 |
-    | Crush | +47 |
-    | Ranged | +49 |
-    | Magic | -4 |
-
-    Requirements: 40 Defence | Weight: 9.1 kg
-
-    | Stat | Rock-shell Legs | Rune Platelegs |
-    |------|----------------|----------------|
-    | Stab Def | +51 | +51 |
-    | Slash Def | +49 | +49 |
-    | Crush Def | +47 | +47 |
-    | Ranged Def | +49 | +45 |
-    | Magic | -4 | -21 |
-
-    Identical melee defence to rune platelegs with +4 more ranged defence and significantly less magic penalty (-4 vs -21). Like the rock-shell plate, this is slightly superior to its rune counterpart.
-
-    Rex (melee DK) drops the legs at 1/128. Players farming all three DKs will accumulate these passively alongside other rock-shell and skeletal pieces.
-
-    Storable in a Costume Room armour case as part of the complete rock-shell set.
+      description: Matching body of the rock-shell set.
+    - item_id: 1079
+      item_name: Rune platelegs
+      slug: rune-platelegs
+      relationship: alternative
+      description: Comparable melee tier with weaker ranged defence.
+  about: "Rock-shell legs offer identical melee defence to rune platelegs with +4 more ranged defence and a far smaller magic penalty."
   market_strategy:
     notes:
-      - GE price near high alch value
-      - Dagannoth Rex drop (passive from DK farming)
-      - Slight upgrade over rune platelegs for ranged defence
-      - Moderate trade volume
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - GE price hovers near high-alch value
+      - Passive supply from Dagannoth Kings runs
+      - Strong ranged-defence niche vs rune platelegs
+  trading_tips:
+    - Monitor Dagannoth Rex weekly drop rates for supply spikes
+    - Buy full rock-shell sets when discounted vs piece prices
+  history:
+    - date: "2005-08-01"
+      description: "Released with the Waterbirth Island / Dagannoth Kings update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-01"
+    update: "Waterbirth Island"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: "The Fremennik Trials"
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

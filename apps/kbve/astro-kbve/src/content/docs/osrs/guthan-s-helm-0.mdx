@@ -1,6 +1,6 @@
 ---
 title: Guthan's helm 0 | OSRS Price Data
-description: "Guthan's helm 0: Guthan the Infested's helm.. High alch: 61,800 GP, GE limit: 15."
+description: "Guthan's helm 0: Guthan the Infested's helm. High alch: 61,800 GP, GE limit: 15."
 osrs:
   id: 4908
   name: Guthan's helm 0
@@ -12,9 +12,81 @@ osrs:
   lowalch: 41200
   highalch: 61800
   limit: 15
-  about: "Guthan's helm 0 is a members-only item in Old School RuneScape. High alchemy value: 61,800 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: barrows
+    tier: high
+  equipment:
+    slot: head
+    weapon_type: armour
+    weight: 2.721
+    requirements:
+      defence: 70
+    attack_bonus:
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 55
+      slash: 58
+      crush: 54
+      magic: -1
+      ranged: 62
+  related_items:
+    - item_id: 4724
+      item_name: Guthan's helm
+      slug: guthan-s-helm
+      relationship: variant
+      description: Fully charged version with 15 hours of combat durability.
+    - item_id: 4910
+      item_name: Guthan's platebody 0
+      slug: guthan-s-platebody-0
+      relationship: set-piece
+      description: Uncharged platebody piece of the Guthan's set.
+    - item_id: 4912
+      item_name: Guthan's chainskirt 0
+      slug: guthan-s-chainskirt-0
+      relationship: set-piece
+      description: Uncharged legwear piece of the Guthan's set.
+    - item_id: 4914
+      item_name: Guthan's warspear 0
+      slug: guthan-s-warspear-0
+      relationship: set-piece
+      description: Uncharged warspear piece of the Guthan's set.
+  about: "Guthan's helm 0 is the fully-degraded helm from Guthan the Infested's Barrows set, broken and unable to be worn until repaired with coins at an armour stand."
+  market_strategy:
+    notes:
+      - Cheaper than the charged variant — repair cost determines net price.
+      - Used as a low-cost entry to the Guthan's healing set effect.
+      - Low GE limit (15) makes flipping illiquid.
+  trading_tips:
+    - Compare repair cost vs charged helm GE price for arbitrage.
+    - Spread orders across multiple GE slots given the 15-per-4h limit.
+  history:
+    - date: "2005-05-09"
+      description: "Released with the Barrows update."
+    - date: "2014-12-10"
+      description: "Renamed from 'Guthans helm' to 'Guthan's helm'."
+    - date: "2015-04-16"
+      description: "Added a Check option to display remaining durability."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-09"
+    update: Barrows
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Check
+      - Drop
+    worn_options:
+      - Check
+    alchable: true
+    destroy: "If you drop this item it will break. Are you sure you want to drop it?"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

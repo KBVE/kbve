@@ -1,6 +1,6 @@
 ---
 title: Dragonstone boots | OSRS Price Data
-description: "Dragonstone boots: A stylish pair of rune boots inlaid with dragonstones.. High alch: 7,500 GP."
+description: "Dragonstone boots: A stylish pair of rune boots inlaid with dragonstones. High alch: 7,500 GP."
 osrs:
   id: 24043
   name: Dragonstone boots
@@ -12,9 +12,83 @@ osrs:
   lowalch: 5000
   highalch: 7500
   limit: null
-  about: "Dragonstone boots is a members-only item in Old School RuneScape. High alchemy value: 7,500 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: dragonstone-rune
+    tier: high
+  equipment:
+    slot: feet
+    weight: 1.36
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: -1
+    defence_bonus:
+      stab: 12
+      slash: 13
+      crush: 14
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 2
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Elven Crystal Chest
+        quantity: "1"
+        rarity: 1/2500
+  related_items:
+    - item_id: 24039
+      item_name: Dragonstone full helm
+      slug: dragonstone-full-helm
+      relationship: set-piece
+      description: Matching full helm.
+    - item_id: 24041
+      item_name: Dragonstone platebody
+      slug: dragonstone-platebody
+      relationship: set-piece
+      description: Matching platebody.
+    - item_id: 24037
+      item_name: Dragonstone platelegs
+      slug: dragonstone-platelegs
+      relationship: set-piece
+      description: Matching platelegs.
+  about: "Dragonstone boots are a high-tier melee foot slot reward from the Elven Crystal Chest in Prifddinas, sharing rune-tier defences with a small Strength bonus."
+  market_strategy:
+    notes:
+      - Supply is gated by Crystal Chest runs, supporting strong long-term value.
+      - Most demand comes from cosmetic set collectors rather than pure DPS upgraders.
+  trading_tips:
+    - Snipe undercut listings during Crystal Chest grind weekends.
+    - Buy in tandem with the rest of the Dragonstone armour set for resale.
+  history:
+    - date: "2019-07-25"
+      description: Added with the release of Song of the Elves and the Elven Crystal Chest rewards.
+  properties:
+    release_date: "2019-07-25"
+    update: "Song of the Elves"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: Song of the Elves
+    weight: 1.36
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

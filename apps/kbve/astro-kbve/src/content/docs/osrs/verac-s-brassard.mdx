@@ -5,88 +5,90 @@ osrs:
   id: 4757
   name: Verac's brassard
   slug: verac-s-brassard
-  examine: Verac the Defiled's brassard.
+  examine: "Verac the Defiled's brassard."
   members: true
   icon: Verac's brassard.png
   value: 280000
   lowalch: 112000
   highalch: 168000
   limit: 15
+  material:
+    type: barrows-armour
+    tier: high
   equipment:
     slot: body
-    type: barrows
-    set: Verac
-    tradeable: true
-    degradeable: true
-    weight: 7.2
+    weapon_type: melee
+    weight: 4.989
     requirements:
       defence: 70
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -6
-      attack_ranged: 0
-      defence_stab: 81
-      defence_slash: 95
-      defence_crush: 85
-      defence_magic: 0
-      defence_ranged: 81
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 81
+      slash: 95
+      crush: 85
+      magic: 0
+      ranged: 81
+    other_bonus:
       strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 5
-  set_effect:
-    name: Defiler
-    pieces_required: 4
-    description: 25% chance to ignore target's Defence and Protection prayers
   related_items:
     - item_id: 4753
       item_name: Verac's helm
-      slug: veracs-helm
+      slug: verac-s-helm
       relationship: set-piece
-      description: Head slot set piece (+3 prayer)
+      description: Head slot piece (+3 prayer) of the Verac set.
     - item_id: 4759
       item_name: Verac's plateskirt
-      slug: veracs-plateskirt
+      slug: verac-s-plateskirt
       relationship: set-piece
-      description: Legs slot set piece (+4 prayer)
+      description: Legs slot piece (+4 prayer) of the Verac set.
     - item_id: 4755
       item_name: Verac's flail
-      slug: veracs-flail
+      slug: verac-s-flail
       relationship: set-piece
-      description: Weapon set piece (+6 prayer)
-  about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Stab defence | +81 |
-    | Slash defence | +95 |
-    | Crush defence | +85 |
-    | Magic defence | +0 |
-    | Ranged defence | +81 |
-    | Prayer | +5 |
-    | Magic attack | -6 |
-
-    Note: Highest prayer bonus body armor (+5). Lower defence than other Barrows platebodies.
-
-    Defiler:
-    When wearing full Verac's (helm, brassard, plateskirt, flail):
-    - 25% chance to ignore target's Defence and Protection prayers
-    - Hits through Protect from Melee
-
-    Best For:
-    - Prayer bonus body option
-    - Proselyte alternative with better stats
-    - Corp with full set
-
-    - 15 hours of combat use
-    - Repair at Bob in Lumbridge or POH armor stand
+      description: Weapon piece (+6 prayer) of the Verac set.
+  about: Highest prayer-bonus body slot armour and the chest piece of Verac's set, granting the Defiler effect when worn with the full set.
   market_strategy:
     notes:
-      - Prayer bonus makes it useful standalone
-      - Less defence than Dharok/Guthan/Torag bodies
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Prayer bonus keeps standalone demand from Proselyte upgraders
+      - Full-set buyers spike price ahead of Corp / boss DPS metas
+  trading_tips:
+    - Watch full Verac's set bonus deals - splitting pieces often flips
+    - Account for 15h degrade cost when comparing to Bandos
+  history:
+    - date: "2005-05-09"
+      description: Released with the Barrows update.
+    - date: "2014-11-13"
+      description: Renamed from Veracs brassard to Verac's brassard.
+    - date: "2015-04-30"
+      description: Added a durability check option.
+  properties:
+    release_date: "2005-05-09"
+    update: Barrows
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.989
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+      - Check
+    alchable: true
+    destroy: "If you drop this item it will break. Are you sure you want to drop it?"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

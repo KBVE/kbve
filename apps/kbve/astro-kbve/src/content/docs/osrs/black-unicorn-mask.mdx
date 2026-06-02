@@ -12,9 +12,67 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 4
-  about: "Black unicorn mask is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: head
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - item_id: 20265
+      item_name: Black unicorn mask
+      slug: black-unicorn-mask
+      relationship: set-piece
+      description: Part of the unicorn mask cosmetic line
+  about: "Black unicorn mask is a cosmetic head slot item rewarded from medium-tier Treasure Trails. It provides no combat bonuses and is storable in the costume room treasure chest."
+  market_strategy:
+    notes:
+      - Cosmetic-only treasure trail reward
+      - Low buy limit (4)
+      - Storable in costume room
+  trading_tips:
+    - Watch for clue-running supply spikes
+    - Premium driven by cosmetic demand
+  history:
+    - date: "2016-07-06"
+      description: Released as part of the Treasure Trail Expansion.
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

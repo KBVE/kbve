@@ -12,9 +12,76 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 2000
-  about: "Defence potion(4) is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 4
+    effects:
+      - description: "Boosts Defence by 3 + 10% of current Defence level (rounded down)."
+      - description: "Boost decays at 1 point per minute, or 90 seconds with the Preserve prayer."
+  recipes:
+    - skill: Herblore
+      level: 30
+      xp: 75
+      materials:
+        - item_name: Ranarr potion (unf)
+          quantity: 1
+        - item_name: White berries
+          quantity: 1
+      tools: []
+  drop_table:
+    sources:
+      - source: Abyssal demon
+        quantity: "1"
+        rarity: 1/128
+      - source: Black demon
+        quantity: "1"
+        rarity: 1/128
+      - source: Young impling jar
+        quantity: "1"
+        rarity: 1/100
+  related_items:
+    - item_name: Defence potion(3)
+      slug: defence-potion-3
+      relationship: variant
+      description: Three-dose variant
+    - item_name: Defence potion(2)
+      slug: defence-potion-2
+      relationship: variant
+      description: Two-dose variant
+    - item_name: Defence potion(1)
+      slug: defence-potion-1
+      relationship: variant
+      description: Single-dose variant
+  about: "Defence potion(4) holds four doses that each boost Defence by 3 + 10% of the current level. Brewed at 30 Herblore from a ranarr potion (unf) and white berries for 75 XP."
+  market_strategy:
+    notes:
+      - Cheap Herblore training product
+      - Limited combat use vs Super defence
+      - Drops from demons and young impling jars
+  history:
+    - date: "2004-10-26"
+      description: An "Empty" option was added.
+    - date: "2004-03-29"
+      description: The 4-dose potion became permanently available with the RuneScape 2 launch.
+    - date: "2002-02-27"
+      description: Released with Herblore-era potion content.
+  properties:
+    release_date: "2002-02-27"
+    update: Latest RuneScape News (27 February 2002)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.08
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

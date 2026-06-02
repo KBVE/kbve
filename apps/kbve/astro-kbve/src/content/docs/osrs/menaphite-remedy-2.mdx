@@ -1,6 +1,6 @@
 ---
 title: Menaphite remedy(2) | OSRS Price Data
-description: "Menaphite remedy(2): 2 doses of Menaphite remedy.. High alch: 66 GP."
+description: "Menaphite remedy(2): 2 doses of Menaphite remedy. High alch: 66 GP."
 osrs:
   id: 27208
   name: Menaphite remedy(2)
@@ -12,9 +12,73 @@ osrs:
   lowalch: 44
   highalch: 66
   limit: null
-  about: "Menaphite remedy(2) is a members-only item in Old School RuneScape. High alchemy value: 66 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 2
+    effects:
+      - description: "Restores 6 + 16% of each combat stat (excluding Prayer) every 15 seconds for 5 minutes."
+      - description: "Negates Saradomin brew stat drains for the duration."
+      - description: "Removes divine potion effects so they decay normally instead of resetting on expiry."
+  recipes:
+    - skill: herblore
+      level: 88
+      xp: 200
+      materials:
+        - item_name: Unfinished dwarf weed potion
+          quantity: 1
+        - item_name: Lily of the sands
+          quantity: 1
+      tools:
+        - Vial
+      product: Menaphite remedy(4)
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 27204
+      item_name: Menaphite remedy(4)
+      slug: menaphite-remedy-4
+      relationship: variant
+      description: 4-dose version of the same potion.
+    - item_id: 27206
+      item_name: Menaphite remedy(3)
+      slug: menaphite-remedy-3
+      relationship: variant
+      description: 3-dose version of the same potion.
+    - item_id: 27210
+      item_name: Menaphite remedy(1)
+      slug: menaphite-remedy-1
+      relationship: variant
+      description: 1-dose version of the same potion.
+  about: "Menaphite remedy(2) is a 2-dose stat-renewal potion made at 88 Herblore that gradually restores combat stats and counters Saradomin brew drains."
+  market_strategy:
+    notes:
+      - Made at 88 Herblore from unfinished dwarf weed potion and lily of the sands.
+      - Decants down from 4-dose; price tracks per-dose value of (4).
+      - No explicit GE limit reported on this dose variant.
+  trading_tips:
+    - Compare per-dose price vs Menaphite remedy(4) to spot decanting margin.
+    - Demand spikes around Brew-heavy bossing trips (Nex, ToB, ToA).
+  history:
+    - date: "2022-08-24"
+      description: "Released as part of the Tombs of Amascut update."
+    - date: "2025-04-30"
+      description: "Lily of the sands now correctly draws from the reagent pouch when brewing."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2022-08-24"
+    update: Tombs of Amascut
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

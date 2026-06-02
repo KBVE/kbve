@@ -1,6 +1,6 @@
 ---
 title: Calcified moth | OSRS Price Data
-description: "Calcified moth: A fossilised moth infused with dwarven magic.. GE limit: 100."
+description: "Calcified moth: a fossilised moth infused with dwarven magic that teleports the user to Cam Torum. GE limit: 100."
 osrs:
   id: 29090
   name: Calcified moth
@@ -12,9 +12,52 @@ osrs:
   lowalch: null
   highalch: null
   limit: 100
-  about: "Calcified moth is a members-only item in Old School RuneScape. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destination: Cam Torum
+    type: single-use
+    wilderness_limit: 20
+  recipes:
+    - skill: smithing
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Calcified deposit
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      product: Calcified moth
+      product_quantity: 1
+      members_only: true
+      notes: 1/4 chance per deposit
+  about: "Calcified moth is a single-use teleport to Cam Torum produced by smithing calcified deposits and requires partial Perilous Moons progress to activate."
+  market_strategy:
+    notes:
+      - Output of calcified deposit smithing rolls
+      - Demand tied to Cam Torum convenience teleports
+  trading_tips:
+    - Buy in bulk during off-peak hours for slayer/skilling trips
+    - Track Perilous Moons popularity for demand shifts
+  history:
+    - date: "2024-03-20"
+      description: Released as part of the Varlamore Part One update.
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Crush
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,63 +12,64 @@ osrs:
   lowalch: 30000
   highalch: 45000
   limit: 4
+  material:
+    type: boots
+    tier: mid-high
   equipment:
     slot: feet
-    type: boots
-    tradeable: true
-    weight: 0.7
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 2
-      defence_stab: 0
-      defence_slash: 1
-      defence_crush: 1
+    weight: 0.34
+    requirements:
+      death-plateau: 1
+    attack_bonus:
+      crush: 2
+    defence_bonus:
+      slash: 1
+      crush: 1
+    other_bonus:
       strength: 2
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Medium
-        drop_rate: Rare from reward casket
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
-    - item_id: 3105
-      item_name: Climbing boots
+    - item_name: Climbing boots
       slug: climbing-boots
       relationship: downgrade
-      description: Non-gilded version
-    - item_id: 2577
-      item_name: Ranger boots
+      description: Non-trimmed version sold by Tenzing
+    - item_name: Ranger boots
       slug: ranger-boots
       relationship: alternative
-      description: Same clue tier
-  about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Crush attack | +2 |
-    | Slash defence | +1 |
-    | Crush defence | +1 |
-    | Strength | +2 |
-
-    Same stats as regular climbing boots but with gold trim cosmetic.
-
-    | Property | Climbing boots | Climbing boots (g) |
-    |----------|---------------|-------------------|
-    | Stats | Same | Same |
-    | Appearance | Normal | Gold trimmed |
-    | Source | Purchase | Medium clue |
-
-    Cosmetic upgrade to climbing boots:
-    - Same +2 strength bonus
-    - Fashionscape item
-    - Collection log item
+      description: Same medium clue tier cosmetic
+  about: "Climbing boots (g) are a gold-trimmed cosmetic variant of climbing boots obtained as a rare medium Treasure Trail reward."
   market_strategy:
     notes:
-      - Medium clue exclusive
-      - Purely cosmetic upgrade
-      - Collection log hunters
-      - Identical stats to regular version
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Supply gated by medium clue completions and 4 buy limit
+      - Demand from fashionscape and collection log hunters
+      - Death Plateau quest required to equip both versions
+  history:
+    - date: "2019-04-11"
+      description: Released with the Treasure Trails Expansion and Easter 2019 update.
+    - date: "2019-04-18"
+      description: Received a graphical update to match other gold-trimmed items.
+  properties:
+    release_date: "2019-04-11"
+    update: "Treasure Trails Expansion and Easter 2019"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: Death Plateau
+    weight: 0.34
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

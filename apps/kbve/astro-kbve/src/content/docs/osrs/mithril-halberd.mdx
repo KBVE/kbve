@@ -1,6 +1,6 @@
 ---
 title: Mithril halberd | OSRS Price Data
-description: "Mithril halberd: A mithril halberd.. High alch: 1,560 GP, GE limit: 125."
+description: "Mithril halberd: A mithril halberd. High alch: 1,560 GP, GE limit: 125."
 osrs:
   id: 3198
   name: Mithril halberd
@@ -12,9 +12,77 @@ osrs:
   lowalch: 1040
   highalch: 1560
   limit: 125
-  about: "Mithril halberd is a members-only item in Old School RuneScape. High alchemy value: 1,560 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: Mithril
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: halberd
+    attack_speed: 7
+    weight: 2.721
+    requirements:
+      attack: 20
+      strength: 10
+    attack_bonus:
+      stab: 22
+      slash: 28
+      crush: 0
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: -1
+      slash: 2
+      crush: 4
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 29
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Quartermaster
+      location: Tyras Camp
+      price: 3380
+      members: true
+  related_items:
+    - item_name: Steel halberd
+      relationship: downgrade
+      description: Lower-tier halberd.
+    - item_name: Adamant halberd
+      relationship: upgrade
+      description: Higher-tier halberd.
+  about: "Mithril halberd is a two-handed polearm requiring 20 Attack, sold by the Quartermaster at Tyras Camp. Its 2-tile reach is the defining feature for safespotting melee monsters."
+  market_strategy:
+    notes:
+      - Reached only after Regicide grants access to Tyras Camp
+      - 2-tile reach allows melee training while safespotted
+      - Buy limit of 125 per 4 hours caps flipping volume
+  trading_tips:
+    - Stock up via the Quartermaster when the GE price is above 3,380 coins
+    - Watch for spikes after Regicide quest guide promotion
+  history:
+    - date: "2004-09-20"
+      description: Released with the Plague City Part 4 update introducing halberds.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-09-20"
+    update: Plague City Part 4
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

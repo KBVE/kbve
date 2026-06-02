@@ -1,6 +1,6 @@
 ---
 title: White toy horsey | OSRS Price Data
-description: "White toy horsey: A white toy horse.. High alch: 60 GP, GE limit: 150."
+description: "White toy horsey: A white toy horse. High alch: 60 GP, GE limit: 150."
 osrs:
   id: 2522
   name: White toy horsey
@@ -12,9 +12,72 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "White toy horsey is a free-to-play item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Diango's Toy Store (Draynor Village)
+      price: 150
+  recipes:
+    - skill: crafting
+      level: 10
+      xp: 0
+      materials:
+        - item_name: Plank
+          quantity: 1
+      tools:
+        - Crafting table
+      product: White toy horsey
+      product_quantity: 1
+      facility: Player-owned house
+      members_only: true
+  related_items:
+    - item_id: 2520
+      item_name: Toy horsey (red)
+      slug: toy-horsey-red
+      relationship: variant
+      description: Red colour variant.
+    - item_id: 2524
+      item_name: Toy horsey (black)
+      slug: toy-horsey-black
+      relationship: variant
+      description: Black colour variant.
+    - item_id: 2526
+      item_name: Toy horsey (brown)
+      slug: toy-horsey-brown
+      relationship: variant
+      description: Brown colour variant.
+  about: "White toy horsey is a free-to-play joke toy sold by Diango in Draynor Village that, when played with, says 'Just say neigh to gambling!'."
+  market_strategy:
+    notes:
+      - Shop price 150 gp from Diango caps the GE value.
+      - One of four colour variants of the toy horsey.
+      - Crafting at 10 Crafting requires a player-owned house.
+  trading_tips:
+    - Buy in bulk from Diango if GE price drifts above 150 gp.
+    - Cosmetic-only demand — thin liquidity at the 150-per-4h limit.
+  history:
+    - date: "2004-04-01"
+      description: "Released as an April Fools joke item from Diango's Toy Store."
+    - date: "2013-03-18"
+      description: "Forced speech changed to always say 'Just say neigh to gambling!'."
+    - date: "2014-12-10"
+      description: "Renamed from 'Toy horsey' to 'White toy horsey'."
+    - date: "2014-12-18"
+      description: "Fixed a typo in the item's text."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-04-01"
+    update: April Fools (Diango's Toy Store)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.05
+    options:
+      - Play-with
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Mole slippers | OSRS Price Data
-description: "Mole slippers: Cute mole slippers.. High alch: 600 GP, GE limit: 4."
+description: "Mole slippers: Cute mole slippers. High alch: 600 GP, GE limit: 4."
 osrs:
   id: 23285
   name: Mole slippers
@@ -12,9 +12,73 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 4
-  about: "Mole slippers is a free-to-play item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: feet
+    weight: 0.2
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: beginner
+    is_reward: true
+    reward_tiers:
+      - beginner
+  related_items:
+    - item_id: 23283
+      item_name: Holy sandals
+      slug: holy-sandals
+      relationship: component
+      description: Combined with mole slippers to create holy moleys.
+    - item_id: 23287
+      item_name: Holy moleys
+      slug: holy-moleys
+      relationship: product
+      description: Result of combining mole slippers with holy sandals.
+  about: "Mole slippers are a cosmetic beginner clue reward that count as warm clothing during Wintertodt and combine with holy sandals to form holy moleys."
+  market_strategy:
+    notes:
+      - Demand is driven by warm clothing seekers and joke set collectors.
+      - Buy limit of 4 keeps individual flips small but reliable.
+  trading_tips:
+    - Pair with holy sandals when building inventory for holy moleys flips.
+    - Buy near alch value during clue droughts for long-term holds.
+  history:
+    - date: "2019-04-11"
+      description: Added to the game as a beginner clue reward.
+  properties:
+    release_date: "2019-04-11"
+    update: "Treasure Trails Expansion and Easter 2019"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.2
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

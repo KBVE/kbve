@@ -1,6 +1,6 @@
 ---
 title: Dark tuxedo shoes | OSRS Price Data
-description: "Dark tuxedo shoes: Dark shoes to match your dark tuxedo.. High alch: 1,800 GP, GE limit: 4."
+description: "Dark tuxedo shoes: Dark shoes to match your dark tuxedo. High alch: 1,800 GP, GE limit: 4."
 osrs:
   id: 19967
   name: Dark tuxedo shoes
@@ -12,9 +12,84 @@ osrs:
   lowalch: 1200
   highalch: 1800
   limit: 4
-  about: "Dark tuxedo shoes is a members-only item in Old School RuneScape. High alchemy value: 1,800 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: feet
+    weapon_type: cosmetic
+    weight: 0.5
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  related_items:
+    - item_id: 19961
+      item_name: Dark tuxedo jacket
+      slug: dark-tuxedo-jacket
+      relationship: set-piece
+      description: Body piece of the dark tuxedo outfit.
+    - item_id: 19964
+      item_name: Dark trousers
+      slug: dark-trousers
+      relationship: set-piece
+      description: Legs piece of the dark tuxedo outfit.
+    - item_id: 19958
+      item_name: Dark bow tie
+      slug: dark-bow-tie
+      relationship: set-piece
+      description: Neck piece of the dark tuxedo outfit.
+    - item_id: 19970
+      item_name: Dark tuxedo cuffs
+      slug: dark-tuxedo-cuffs
+      relationship: set-piece
+      description: Hands piece of the dark tuxedo outfit.
+  about: Cosmetic feet slot piece of the Dark Tuxedo outfit obtained from elite clue caskets; storable in the costume room treasure chest.
+  market_strategy:
+    notes:
+      - Supply is limited to elite clue completions
+      - Collector demand keeps price well above alch value
+  trading_tips:
+    - Watch each tuxedo piece individually - shoes lag jacket pricing
+    - Spike sell around bot ban waves that clear cheap supply
+  history:
+    - date: "2016-07-06"
+      description: Released with the Treasure Trail Expansion update.
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

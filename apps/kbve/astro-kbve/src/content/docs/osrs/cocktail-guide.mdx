@@ -1,6 +1,6 @@
 ---
 title: Cocktail guide | OSRS Price Data
-description: "Cocktail guide: A book on tree gnome cocktails.. High alch: 1 GP, GE limit: 15."
+description: "Cocktail guide: a book on tree gnome cocktails. High alch: 1 GP, GE limit: 15."
 osrs:
   id: 2023
   name: Cocktail guide
@@ -12,9 +12,47 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15
-  about: "Cocktail guide is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Blurberry's Bar
+      location: Grand Tree
+      stock: 5
+      price: 4
+    - shop_name: Heckel Funch's Bar
+      location: Grand Tree
+      stock: 5
+      price: 4
+    - shop_name: Rasolo the Wandering Merchant
+      location: South of Baxtorian Falls
+      stock: 1
+      price: 4
+  about: "Cocktail guide is a members reference book containing the seven tree gnome cocktail recipes used in the Gnome Restaurant minigame and player-mixed cocktails."
+  market_strategy:
+    notes:
+      - Cheap shop-floor item with thin GE demand
+      - Mostly bought to unlock cocktail mixing references
+  trading_tips:
+    - Slow flips near alch value for collectors only
+    - Player-owned house bookcase removes most demand
+  history:
+    - date: "2002-12-12"
+      description: Released alongside the Agility skill online update.
+  properties:
+    release_date: "2002-12-12"
+    update: Agility skill online
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.51
+    options:
+      - Read
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

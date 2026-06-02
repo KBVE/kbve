@@ -1,6 +1,6 @@
 ---
 title: Toad crunchies | OSRS Price Data
-description: "Toad crunchies: It actually smells quite good.. High alch: 1 GP, GE limit: 6,000."
+description: "Toad crunchies: It actually smells quite good. High alch: 1 GP, GE limit: 6,000."
 osrs:
   id: 2217
   name: Toad crunchies
@@ -12,9 +12,67 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 6000
-  about: "Toad crunchies is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 8
+    edible: true
+  recipes:
+    - skill: Cooking
+      level: 10
+      xp: 100
+      materials:
+        - item_name: Unfinished crunchy (toad)
+          quantity: 1
+      tools:
+        - Range
+      output_item: Toad crunchies
+      output_quantity: 1
+      notes: "Stops burning at level 38. Gnome cooking chain starts from Gianne dough + crunchy tray."
+  related_items:
+    - item_name: Gianne dough
+      relationship: component
+      description: Base dough for the crunchy chain.
+    - item_name: Crunchy tray
+      relationship: component
+      description: Tray that shapes raw crunchies.
+    - item_name: Toad's legs
+      relationship: component
+      description: Added with gnome spice to form half-made crunchies.
+    - item_name: Equa leaves
+      relationship: component
+      description: Finishing ingredient after cooking.
+    - item_name: Worm crunchies
+      relationship: alternative
+      description: Sibling gnome crunchy variant.
+    - item_name: Spicy crunchies
+      relationship: alternative
+      description: Sibling gnome crunchy variant.
+  about: "Toad crunchies is a Gnome Restaurant snack that heals 8 hitpoints, cooked at level 10 Cooking for 100 XP after a multi-step gnome cooking chain."
+  market_strategy:
+    notes:
+      - Used in the Gnome Restaurant minigame
+      - Multi-step gnome cooking chain caps supply
+      - GE price often well above alch values due to minigame demand
+  history:
+    - date: "2002-12-12"
+      description: Released alongside the Agility skill update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    update: Agility skill
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

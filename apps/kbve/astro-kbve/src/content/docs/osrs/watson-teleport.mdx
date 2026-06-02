@@ -12,9 +12,40 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 10000
-  about: "Watson teleport is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destination: Watson's house in Hosidius, Great Kourend
+    type: item
+  related_items:
+    - item_name: Master scroll book
+      slug: master-scroll-book
+      relationship: component
+      description: Exchanged with Watson to obtain teleports
+  about: "Watson teleport is a single-use tablet that teleports the player to Watson's house in Hosidius, Great Kourend. Obtained by trading empty master scroll books to Watson."
+  market_strategy:
+    notes:
+      - Obtained from Watson via empty master scroll books
+      - Useful Hosidius teleport for clue scroll turn-ins and Mimic access
+      - Works without prior Kourend visitation
+  history:
+    - date: "2019-04-11"
+      description: Released with the Treasure Trails Expansion and Easter 2019 update.
+  properties:
+    release_date: "2019-04-11"
+    update: Treasure Trails Expansion and Easter 2019
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Teleport
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

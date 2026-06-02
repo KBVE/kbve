@@ -12,23 +12,30 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 18000
+  material:
+    type: wood
+    tier: mid
   equipment:
     slot: 2h
-    type: shortbow
-    attack_style: ranged
+    weapon_type: shortbow
     attack_speed: 4
-  requirements:
-    ranged: 30
-  stats:
-    attack:
+    weight: 1.36
+    requirements:
+      ranged: 30
+    attack_bonus:
       ranged: 29
-    other:
+    other_bonus:
       ranged_strength: 0
-    range: 7
-  fletching:
-    level: 50
-    xp: 50
-    method: Maple shortbow (u) + bowstring
+  recipes:
+    - skill: Fletching
+      level: 50
+      xp: 50
+      materials:
+        - item_name: Maple shortbow (u)
+          quantity: 1
+        - item_name: Bow string
+          quantity: 1
+      tools: []
   shops:
     - shop_name: Lowe's Archery Emporium
       location: Varrock
@@ -54,8 +61,37 @@ osrs:
       slug: bow-string
       relationship: component
       description: Stringing material
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Maple shortbow is a free-to-play two-handed bow fletched at level 50 and the strongest bow available to F2P, accepting arrows up to adamant."
+  market_strategy:
+    notes:
+      - BiS F2P bow
+      - Crafted at 50 Fletching for 50 xp
+      - Buy limit 18,000 per 4 hours
+      - Sold by Lowe's Archery Emporium
+  history:
+    - date: "2002-03-25"
+      description: Released as a members-only shortbow.
+    - date: "2005-03-29"
+      description: Made available to free-to-play players.
+  properties:
+    release_date: "2002-03-25"
+    update: Maple shortbow release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

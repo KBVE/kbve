@@ -1,6 +1,6 @@
 ---
 title: Adamant platebody (t) | OSRS Price Data
-description: "Adamant platebody (t) is a F2P body slot item requiring 30 Defence. High alch: 9,984 GP, GE limit: 8."
+description: "Adamant platebody (t) is a F2P body slot reward from medium clues requiring 30 Defence. High alch: 9,984 GP, GE limit: 8."
 osrs:
   id: 2599
   name: Adamant platebody (t)
@@ -12,33 +12,83 @@ osrs:
   lowalch: 6656
   highalch: 9984
   limit: 8
+  material:
+    type: adamantite
+    tier: mid
   equipment:
     slot: body
     requirements:
       defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
     defence_bonus:
       stab: 65
       slash: 63
       crush: 55
       magic: -6
       ranged: 63
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
     - item_id: 2601
       item_name: Adamant platelegs (t)
       slug: adamant-platelegs-t
       relationship: set-piece
-      description: Matching trimmed platelegs
+      description: Matching trimmed platelegs.
+    - item_id: 2603
+      item_name: Adamant kiteshield (t)
+      slug: adamant-kiteshield-t
+      relationship: set-piece
+      description: Matching trimmed kiteshield.
+    - item_id: 2605
+      item_name: Adamant full helm (t)
+      slug: adamant-full-helm-t
+      relationship: set-piece
+      description: Matching trimmed full helm.
     - item_id: 2607
       item_name: Adamant platebody (g)
       slug: adamant-platebody-g
       relationship: variant
-      description: Gold-trimmed variant
-  about: |-
-    > *"Adamant platebody with trim."*
-
-    The adamant platebody (t) is a trimmed cosmetic variant of the standard adamant platebody. Identical stats, requiring 30 Defence. Cannot be made through Smithing — clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Gold-trimmed cosmetic variant.
+  about: "Adamant platebody (t) is a cosmetic trimmed platebody from medium clue scroll rewards with identical stats to the standard adamant platebody."
+  market_strategy:
+    notes:
+      - Identical combat stats to base adamant platebody — premium is purely cosmetic
+      - Tight 8/4h buy limit keeps trimmed clue cosmetics thin
+  history:
+    - date: "2004-05-05"
+      description: Released alongside the Bigger Banks and Treasure Trails update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-05-05"
+    update: "Bigger Banks & Treasure Trails"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 11.339
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

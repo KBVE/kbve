@@ -12,9 +12,41 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-27 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: cape
+    weapon_type: unarmed
+    requirements:
+      attack: 1
+    attack_bonus: {}
+    defence_bonus:
+      slash: 1
+      crush: 1
+      ranged: 2
+    other_bonus: {}
+  about: "Team-27 cape is a free-to-play team cape used to identify teammates on the minimap."
+  history:
+    - date: "2005-02-22"
+      description: Released with the Wilderness Capes update.
+    - date: "2013-05-23"
+      description: Item became accessible to free-to-play players.
+  properties:
+    release_date: "2005-02-22"
+    update: Wilderness Capes
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    worn_options:
+      - Wear
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

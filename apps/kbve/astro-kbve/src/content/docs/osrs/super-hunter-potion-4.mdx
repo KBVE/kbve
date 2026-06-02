@@ -12,9 +12,54 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: null
-  about: "Super hunter potion(4) is a members-only item in Old School RuneScape. High alchemy value: 150 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: Boosts Hunter level by 6 stages on use.
+      - description: Standard four-dose potion; each sip consumes one dose.
+  recipes:
+    - skill: Herblore
+      level: 67
+      xp: 154
+      materials:
+        - item_name: Pillar potion (unf)
+          quantity: 1
+        - item_name: Crab paste
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+      notes: Produces a Super hunter potion(3); requires four mixes to bank a full (4) dose.
+  about: "Four-dose Herblore potion that grants a +6 visible Hunter boost, mixed at level 67 Herblore from a pillar potion (unf) and crab paste for 154 experience."
+  market_strategy:
+    notes:
+      - Released alongside Sailing on 19 Nov 2025
+      - Crab paste supply tied to Sailing fishing nodes
+      - Pillar potion (unf) is the price driver
+  trading_tips:
+    - Buy doses in (4) and split via decanter for arbitrage
+    - Watch crab paste GE supply during Hunter event weeks
+  history:
+    - date: "2025-11-19"
+      description: Released with the Sailing skill launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

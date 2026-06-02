@@ -1,6 +1,6 @@
 ---
 title: Bronze dart(p) | OSRS Price Data
-description: "Bronze dart(p) is a members weapon slot item. High alch: 1 GP, GE limit: 7,000."
+description: "Bronze dart(p): A deadly poisoned dart with a bronze tip. High alch: 1 GP, GE limit: 7,000."
 osrs:
   id: 812
   name: Bronze dart(p)
@@ -12,24 +12,82 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
+  material:
+    type: bronze
+    tier: low
   equipment:
     slot: weapon
+    weapon_type: thrown
     attack_speed: 3
-    attack_bonus:
-      ranged: 3
-    ranged_strength: 1
+    weight: 0
+    other_bonus:
+      ranged_strength: 1
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Bronze dart
+          quantity: 1
+        - item_name: Weapon poison
+          quantity: 1
+      tools: []
+      product: Bronze dart(p)
+      product_quantity: 1
+      members_only: true
   related_items:
+    - item_id: 806
+      item_name: Bronze dart
+      slug: bronze-dart
+      relationship: component
+      description: Unpoisoned base dart.
     - item_id: 813
-      item_name: Iron dart (p)
+      item_name: Bronze dart(p+)
+      slug: bronze-dart-p-plus
+      relationship: upgrade
+      description: Stronger poisoned variant using weapon poison(+).
+    - item_id: 814
+      item_name: Bronze dart(p++)
+      slug: bronze-dart-p-plus-plus
+      relationship: upgrade
+      description: Strongest poisoned variant using weapon poison(++).
+    - item_id: 807
+      item_name: Iron dart(p)
       slug: iron-dart-p
       relationship: variant
-      description: Higher tier poisoned dart
-  about: |-
-    > _"A bronze tipped dart with a poisoned tip."_
-
-    A bronze dart tipped with basic weapon poison. No Ranged requirement. Poison deals 2-4 damage over time. Cheap and effective for poisoning enemies in early-game.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Higher tier poisoned dart.
+  about: "Bronze dart(p) is the poisoned form of the entry-level bronze throwing dart, requiring no Ranged level to wield and inflicting basic weapon poison on hit."
+  market_strategy:
+    notes:
+      - Entry-tier poisoned thrown weapon with no Ranged requirement.
+      - Poison ticks add 2-4 damage over time.
+      - GE limit 7,000 per 4 hours.
+  trading_tips:
+    - Compare bronze dart + weapon poison cost vs (p) dart price for arbitrage.
+    - Demand is niche — bulk orders only when training new accounts.
+  history:
+    - date: "2003-04-14"
+      description: "Released with the New Throwing Weapons update."
+    - date: "2021-06-30"
+      description: "Ranged Attack bonus reduced from +3 to 0 (matches base bronze dart change)."
+    - date: "2025-05-29"
+      description: "Exempted from Grand Exchange convenience fees."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-04-14"
+    update: New Throwing Weapons
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

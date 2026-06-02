@@ -1,6 +1,6 @@
 ---
 title: Merchant's paint | OSRS Price Data
-description: "Merchant's paint: A vibrant gold paint. This might look good on a boat.. High alch: 1 GP."
+description: "Merchant's paint: A vibrant gold paint. This might look good on a boat. High alch: 1 GP."
 osrs:
   id: 32110
   name: Merchant's paint
@@ -12,9 +12,83 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Merchant's paint is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - product: Merchant's paint
+      product_id: 32110
+      skill: Sailing
+      level: 25
+      experience: 0
+      materials:
+        - item_id: 32100
+          item_name: Shark paint
+          quantity: 1
+        - item_id: 32102
+          item_name: Inky paint
+          quantity: 1
+        - item_id: 32104
+          item_name: Barracuda paint
+          quantity: 1
+        - item_id: 32106
+          item_name: Salvor's paint
+          quantity: 1
+        - item_id: 32108
+          item_name: Angler's paint
+          quantity: 1
+      tools: []
+      notes: "Talk to Trader Stan while holding all five tradeable paints to receive a Merchant's paint."
+  related_items:
+    - item_id: 32100
+      item_name: Shark paint
+      slug: shark-paint
+      relationship: component
+      description: One of the five paints traded in.
+    - item_id: 32102
+      item_name: Inky paint
+      slug: inky-paint
+      relationship: component
+      description: One of the five paints traded in.
+    - item_id: 32104
+      item_name: Barracuda paint
+      slug: barracuda-paint
+      relationship: component
+      description: One of the five paints traded in.
+    - item_id: 32106
+      item_name: Salvor's paint
+      slug: salvor-s-paint
+      relationship: component
+      description: One of the five paints traded in.
+    - item_id: 32108
+      item_name: Angler's paint
+      slug: angler-s-paint
+      relationship: component
+      description: One of the five paints traded in.
+  about: "Merchant's paint is a prestige Sailing boat recolour earned by handing Trader Stan every standard paint at once and applied via the Shipyard schematics board with 25 Sailing and 20 Construction."
+  market_strategy:
+    notes:
+      - Supply requires consuming roughly 22M coins of base paints, anchoring a steep floor.
+      - High-end Sailing cosmetics collectors are the primary buyer pool.
+  trading_tips:
+    - Margin opportunities open when one of the five base paints crashes below trend.
+    - Treat as a luxury hold rather than a high-volume flip.
+  history:
+    - date: "2025-11-19"
+      description: Added with the launch of the Sailing skill.
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing is OUT TODAY!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

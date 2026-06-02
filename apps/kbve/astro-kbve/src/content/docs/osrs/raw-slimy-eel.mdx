@@ -1,6 +1,6 @@
 ---
 title: Raw slimy eel | OSRS Price Data
-description: "Raw slimy eel: A slime covered eel - yuck!. High alch: 1 GP, GE limit: 13,000."
+description: "Raw slimy eel: A slime covered eel - yuck! High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 3379
   name: Raw slimy eel
@@ -12,9 +12,62 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Raw slimy eel is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: Cooking
+      level: 28
+      xp: 95
+      materials:
+        - item_name: Raw slimy eel
+          quantity: 1
+      tools:
+        - Fire or range
+      output_item: Slimy eel
+      output_quantity: 1
+      notes: Burns into Burnt eel on failure.
+    - skill: Fishing
+      level: 28
+      xp: 80
+      materials:
+        - item_name: Fishing bait
+          quantity: 1
+      tools:
+        - Fishing rod
+      output_item: Raw slimy eel
+      output_quantity: 1
+      notes: 80 XP from swamp caves/dungeons, 65 XP in Mort Myre Swamp.
+  related_items:
+    - item_name: Slimy eel
+      relationship: product
+      description: Cooked version at 28 Cooking.
+    - item_name: Burnt eel
+      relationship: alternative
+      description: Failure product when cooking.
+  about: "Raw slimy eel is fished at 28 Fishing from Mort Myre Swamp, Dorgesh-Kaan, the Lumbridge Swamp Caves, or the Ruins of Camdozaal, and cooked at 28 Cooking for 95 XP."
+  market_strategy:
+    notes:
+      - Steady supply from Mort Myre and Lumbridge Swamp Caves fishers
+      - Low alch value caps downside; flipping depends on cook spread
+      - Buy limit of 13,000 supports bulk arbitrage
+  history:
+    - date: "2004-10-14"
+      description: Released as part of the Morytania expansion.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-10-14"
+    update: Morytania expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

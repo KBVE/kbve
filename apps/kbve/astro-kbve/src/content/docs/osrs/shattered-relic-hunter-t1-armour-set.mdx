@@ -12,9 +12,57 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: null
-  about: "Shattered relic hunter (t1) armour set is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: armour set
+    tier: high
+  related_items:
+    - item_name: Shattered hood (t1)
+      slug: shattered-hood-t1
+      relationship: set-piece
+      description: Head slot component of the set.
+    - item_name: Shattered top (t1)
+      slug: shattered-top-t1
+      relationship: set-piece
+      description: Body slot component of the set.
+    - item_name: Shattered trousers (t1)
+      slug: shattered-trousers-t1
+      relationship: set-piece
+      description: Legs slot component of the set.
+    - item_name: Shattered boots (t1)
+      slug: shattered-boots-t1
+      relationship: set-piece
+      description: Feet slot component of the set.
+  about: "Shattered relic hunter (t1) armour set bundles the four T1 Shattered Relics League cosmetic pieces for convenient Grand Exchange trading."
+  market_strategy:
+    notes:
+      - Convenience bundle for the four T1 Shattered pieces.
+      - Compare set price vs sum of individual pieces before exchanging.
+      - Daily volume is very thin, expect slow fills.
+  trading_tips:
+    - Buy the set when it trades below the sum of its components.
+    - Sell as components when the parts trade richer than the bundle.
+  history:
+    - date: "2022-01-19"
+      description: Item added to game with the Shattered Relics League conclusion rewards.
+    - date: "2022-03-16"
+      description: Became obtainable via the Grand Exchange alongside the PvP Arena rewards beta.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2022-03-16"
+    update: "PvP Arena: Rewards Beta"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

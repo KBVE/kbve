@@ -12,9 +12,47 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Common tench is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: raw_fish
+    tier: low
+  related_items:
+    - item_name: Cormorant's glove
+      slug: cormorants-glove
+      relationship: component
+      description: Required glove for aerial fishing
+    - item_name: Greater siren
+      slug: greater-siren
+      relationship: alternative
+      description: Higher-tier aerial fishing catch
+    - item_name: Bluegill
+      slug: bluegill
+      relationship: alternative
+      description: Alternative aerial fishing catch
+  about: "Common tench is the entry-level aerial fishing catch on Molch Island, requiring 56 Fishing and 51 Hunter with a Cormorant's glove."
+  market_strategy:
+    notes:
+      - Bulk supply from aerial fishing keeps price near alch value
+      - 13,000 buy limit supports mass trade for slow Hunter XP
+      - Demand mainly from collectors and aerial fishing herblore offhand
+  history:
+    - date: "2019-01-10"
+      description: Released with The Kebos Lowlands update introducing aerial fishing.
+  properties:
+    release_date: "2019-01-10"
+    update: "The Kebos Lowlands"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
