@@ -259,9 +259,7 @@ script.on_configuration_changed(function()
 	storage.ally_owners = storage.ally_owners or {}
 	storage.ally_names = storage.ally_names or {}
 	storage.ally_nametags = storage.ally_nametags or {}
-	if not storage.allies then
-		rebuild_ally_registry()
-	end
+	rebuild_ally_registry()
 	backfill_nametags()
 	rehydrate_runtime_settings()
 end)
@@ -503,18 +501,23 @@ local function follow_loop()
 				local dx = opos.x - apos.x
 				local dy = opos.y - apos.y
 				local d2 = dx * dx + dy * dy
-				if d2 > FOLLOW_REST_DIST_SQ and d2 < FOLLOW_RADIUS_SQ then
+				if d2 < FOLLOW_RADIUS_SQ then
 					pcall(function()
-						ally.set_command{
-							type = defines.command.go_to_location,
-							destination = { x = opos.x, y = opos.y },
-							-- by_damage = ally engages only when hit, not at every
-							-- ambient enemy. Keeps the follow tether intact while
-							-- the owner is just walking past biter spawners.
-							distraction = defines.distraction.by_damage,
-							radius = FOLLOW_DESTINATION_RADIUS,
-							pathfind_flags = { allow_destroy_friendly_entities = false },
-						}
+						if d2 > FOLLOW_REST_DIST_SQ then
+							ally.set_command{
+								type = defines.command.go_to_location,
+								destination = { x = opos.x, y = opos.y },
+								distraction = defines.distraction.by_damage,
+								radius = FOLLOW_DESTINATION_RADIUS,
+							}
+						elseif not ally.has_command() then
+							ally.set_command{
+								type = defines.command.wander,
+								ticks_to_wait = 240,
+								wander_in_group = false,
+								distraction = defines.distraction.by_damage,
+							}
+						end
 					end)
 				end
 			end
@@ -559,6 +562,7 @@ script.on_nth_tick(NERVOUS_TICK_INTERVAL, function(event)
 			local spiders = surface.find_entities_filtered{ name = { SPIDER, SPIDER_ALLY } }
 			local n = #spiders
 			if n > 0 then
+				-- Twitch overlay on 3 random spiders.
 				local picks = math.min(cached_nervous_pick, n)
 				for _ = 1, picks do
 					local s = spiders[math.random(1, n)]
@@ -572,6 +576,31 @@ script.on_nth_tick(NERVOUS_TICK_INTERVAL, function(event)
 								position = s.position,
 								direction = s.direction,
 							}
+						end
+					end
+				end
+				-- Idle wander pass: any spider that's not in an attack group and
+				-- has no current command gets a short wander burst so wild biters
+				-- (which aren't tied to a spawner here, so don't get Factorio's
+				-- normal ambient AI) and ally spiders parked near their owner
+				-- don't freeze in place.
+				for i = 1, n do
+					local s = spiders[i]
+					if s.valid then
+						local in_group = false
+						local ok_ug, ug = pcall(function() return s.unit_group end)
+						if ok_ug and ug then in_group = true end
+						if not in_group then
+							pcall(function()
+								if not s.has_command() then
+									s.set_command{
+										type = defines.command.wander,
+										ticks_to_wait = 600,
+										wander_in_group = false,
+										distraction = defines.distraction.by_damage,
+									}
+								end
+							end)
 						end
 					end
 				end
