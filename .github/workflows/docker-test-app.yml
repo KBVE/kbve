@@ -132,7 +132,7 @@ jobs:
               timeout-minutes: 15
               env:
                   UV_THREADPOOL_SIZE: '16'
-              run: pnpm exec playwright install --with-deps chromium
+              run: pnpm exec playwright install --with-deps chromium webkit
 
             # VALKEY_PASSWORD is injected into the runner container's
             # process env by the actions-runner-controller values.yaml
