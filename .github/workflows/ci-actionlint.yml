@@ -64,11 +64,9 @@ jobs:
 
             - name: Run zizmor (offline audits only, informational)
               run: |
-                  set -uo pipefail
+                  set -euo pipefail
                   uvx zizmor==1.25.2 --persona=regular --no-online-audits \
-                      --format plain .github/workflows || \
-                      echo "::notice::zizmor exited non-zero (findings or crash) — informational only, not blocking"
-                  exit 0
+                      --format plain .github/workflows
 
     track_failure:
         name: Track Failures
@@ -96,6 +94,36 @@ jobs:
         with:
             workflow_name: 'CI - Actionlint'
             job_name: 'actionlint'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'success'
+
+    track_zizmor_failure:
+        name: Track Zizmor Failures
+        if: ${{ always() && needs.zizmor.result == 'failure' }}
+        needs: [zizmor]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - Actionlint'
+            job_name: 'zizmor'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'failure'
+
+    track_zizmor_success:
+        name: Track Zizmor Success
+        if: ${{ always() && needs.zizmor.result == 'success' }}
+        needs: [zizmor]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        with:
+            workflow_name: 'CI - Actionlint'
+            job_name: 'zizmor'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: 'success'
