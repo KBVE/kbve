@@ -1,6 +1,6 @@
 ---
-title: Blacksmith's helm | OSRS Price Data
-description: "Blacksmith's helm: A helm worn by blacksmiths.. High alch: 1,800 GP, GE limit: 125."
+title: "Blacksmith's helm | OSRS Price Data"
+description: "Blacksmith's helm: A helm worn by blacksmiths. High alch: 1,800 GP, GE limit: 125."
 osrs:
   id: 19988
   name: Blacksmith's helm
@@ -12,9 +12,69 @@ osrs:
   lowalch: 1200
   highalch: 1800
   limit: 125
-  about: "Blacksmith's helm is a members-only item in Old School RuneScape. High alchemy value: 1,800 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: mid
+  equipment:
+    slot: head
+    weight: 1.814
+    defence_bonus:
+      stab: 6
+      slash: 7
+      crush: 5
+      magic: -1
+      ranged: 6
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  drop_table:
+    sources:
+      - source: Elite Treasure Trail reward casket
+        quantity: "1"
+        rarity: 1/1275
+  related_items:
+    - item_name: Iron full helm
+      slug: iron-full-helm
+      relationship: alternative
+      description: Shares identical defensive stats with the blacksmith's helm.
+  about: "Blacksmith's helm is an Elite Treasure Trail cosmetic that mirrors the iron full helm's defences and resembles a welding mask; it stores in the costume room but grants no Smiths' Uniform set bonus."
+  market_strategy:
+    notes:
+      - Supply is gated entirely by elite clue completions.
+      - Cosmetic demand keeps the price well above its iron-helm stats.
+      - Can be stored in the costume room treasure chest.
+  trading_tips:
+    - Stockpile during elite clue drought events when supply tightens.
+    - Buy limit of 125 makes large flips slow to fill.
+  history:
+    - date: "2016-07-06"
+      description: Added with the Treasure Trail Expansion update.
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

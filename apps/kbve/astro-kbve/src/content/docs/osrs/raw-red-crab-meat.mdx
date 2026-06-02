@@ -12,9 +12,58 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: null
-  about: "Raw red crab meat is a members-only item in Old School RuneScape. High alchemy value: 60 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: raw_food
+    tier: low
+  recipes:
+    - skill: cooking
+      level: 21
+      xp: 5
+      materials:
+        - item_name: Red crab
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+  related_items:
+    - item_name: Red crab meat
+      slug: red-crab-meat
+      relationship: product
+      description: Cooked version
+    - item_name: Red crab
+      slug: red-crab
+      relationship: component
+      description: Source creature
+  about: "Raw red crab meat is a Sailing-era cooking ingredient harvested from red crabs at level 21 Cooking. Cooked into red crab meat for 85 XP per piece."
+  market_strategy:
+    notes:
+      - Sailing skill cooking ingredient
+      - No buy limit currently
+      - Cooking 21 requirement to obtain
+      - Burn rate matters for ironmen
+      - Tied to red crab spawn locations
+  trading_tips:
+    - Stock when Sailing cooking content trends
+    - Watch for cooking event demand spikes
+  history:
+    - date: "2025-11-19"
+      description: Released alongside the Sailing skill launch update.
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.35
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

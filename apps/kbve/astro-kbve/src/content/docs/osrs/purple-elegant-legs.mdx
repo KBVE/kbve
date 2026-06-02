@@ -12,21 +12,81 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
+  material:
+    type: clothing
+    tier: mid
   equipment:
     slot: legs
+    weight: 1
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 8/18128
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
     - item_id: 10416
       item_name: Purple elegant shirt
       slug: purple-elegant-shirt
       relationship: set-piece
       description: Matching elegant shirt
-  about: |-
-    > *"A rather elegant pair of men's purple pantaloons."*
-
-    Purely cosmetic treasure trail reward with no combat stats. Part of the purple elegant clothing set.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "A cosmetic medium Treasure Trail reward from the purple elegant clothing set; provides no combat bonuses."
+  market_strategy:
+    notes:
+      - Cosmetic only, demand driven by fashionscape
+      - Tiny buy limit of 4 keeps prices volatile
+      - Often paired with purple elegant shirt
+  trading_tips:
+    - Watch matching shirt prices for set demand
+    - Flip during cosmetic-focused events
+  history:
+    - date: "2006-12-05"
+      description: Item released with the Treasure Trails, spiders and sheep update.
+    - date: "2007-01-01"
+      description: Renamed from Elegant trousers to Purple ele' legs.
+    - date: "2014-01-01"
+      description: Renamed to Purple elegant legs.
+  properties:
+    release_date: "2006-12-05"
+    update: Treasure Trails, spiders and sheep
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

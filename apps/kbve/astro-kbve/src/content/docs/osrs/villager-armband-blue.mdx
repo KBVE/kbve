@@ -1,6 +1,6 @@
 ---
 title: Villager armband (blue) | OSRS Price Data
-description: "Villager armband (blue): A light blue armband, as worn by the Tai Bwo Wannai locals.. High alch: 90 GP, GE limit: 150."
+description: "Villager armband (blue): A light blue armband, as worn by the Tai Bwo Wannai locals. High alch: 90 GP, GE limit: 150."
 osrs:
   id: 6359
   name: Villager armband (blue)
@@ -12,9 +12,74 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 150
-  about: "Villager armband (blue) is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: hands
+    weight: 0.68
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Gabooty's Tai Bwo Wannai Cooperative
+      location: Tai Bwo Wannai
+      price: "180 trading sticks"
+  related_items:
+    - item_name: Villager armband (yellow)
+      slug: villager-armband-yellow
+      relationship: alternative
+    - item_name: Villager armband (red)
+      slug: villager-armband-red
+      relationship: alternative
+    - item_name: Villager armband (green)
+      slug: villager-armband-green
+      relationship: alternative
+  about: "Villager armband (blue) is a cosmetic hands-slot item bought from Gabooty's Tai Bwo Wannai Cooperative on Karamja for 180 trading sticks."
+  market_strategy:
+    notes:
+      - Cosmetic demand from collectors and roleplayers
+      - Buy limit caps speculation
+      - Karamja gloves discount cuts trading-stick cost
+  trading_tips:
+    - Stock during Karamja-themed events
+    - Compare alch margin to other armband colours
+  history:
+    - date: "2005-08-09"
+      description: Added to the game with the Tai Bwo Wannai Trio quest update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-09"
+    update: Tai Bwo Wannai Trio
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.68
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

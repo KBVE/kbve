@@ -1,6 +1,6 @@
 ---
 title: Adamant set (sk) | OSRS Price Data
-description: "Adamant set (sk): A set containing a full helm, platebody, skirt and kiteshield.. High alch: 4,800 GP, GE limit: 8."
+description: "Adamant set (sk): A set containing a full helm, platebody, skirt and kiteshield. High alch: 4,800 GP, GE limit: 8."
 osrs:
   id: 13014
   name: Adamant set (sk)
@@ -12,9 +12,58 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: 8
-  about: "Adamant set (sk) is a free-to-play item in Old School RuneScape. High alchemy value: 4,800 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: adamant
+    tier: mid
+  related_items:
+    - item_name: Adamant full helm
+      slug: adamant-full-helm
+      relationship: set-piece
+      description: Helm component of the adamant skirt set.
+    - item_name: Adamant platebody
+      slug: adamant-platebody
+      relationship: set-piece
+      description: Body component of the adamant skirt set.
+    - item_name: Adamant plateskirt
+      slug: adamant-plateskirt
+      relationship: set-piece
+      description: Skirt component of the adamant skirt set.
+    - item_name: Adamant kiteshield
+      slug: adamant-kiteshield
+      relationship: set-piece
+      description: Shield component of the adamant skirt set.
+    - item_name: Adamant set (lg)
+      slug: adamant-set-lg
+      relationship: alternative
+      description: Platelegs variant of the same adamant armour set.
+  about: "Adamant set (sk) bundles the adamant full helm, platebody, plateskirt, and kiteshield into a single Grand Exchange listing for F2P mid-game and ironman bankspace savings."
+  market_strategy:
+    notes:
+      - Buy/sell via the Grand Exchange clerk's Sets interface.
+      - Set usually trades a small convenience premium over components.
+      - Daily volume is thin; buy limit caps at 8 per 4 hours.
+  trading_tips:
+    - Split into pieces when components rise above bundle price.
+    - Re-bundle during component dumps for arbitrage.
+  history:
+    - date: "2015-02-26"
+      description: Added with The Grand Exchange item set rework.
+  properties:
+    release_date: "2015-02-26"
+    update: The Grand Exchange
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

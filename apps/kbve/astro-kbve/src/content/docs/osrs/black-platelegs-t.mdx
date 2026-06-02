@@ -12,27 +12,82 @@ osrs:
   lowalch: 768
   highalch: 1152
   limit: 8
+  material:
+    type: black
+    tier: low
   equipment:
     slot: legs
+    weapon_type: none
+    weight: 9.071
     requirements:
       defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 21
+      slash: 20
+      crush: 19
+      magic: -4
+      ranged: 20
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 2583
+    - slug: black-platebody-t
       item_name: Black platebody (t)
-      slug: black-platebody-t
       relationship: set-piece
-      description: Matching trimmed platebody
-    - item_id: 2593
+      description: Matching trimmed platebody.
+    - slug: black-platelegs-g
       item_name: Black platelegs (g)
-      slug: black-platelegs-g
       relationship: variant
-      description: Gold-trimmed variant
-  about: |-
-    > *"Black platelegs with trim."*
-
-    The black platelegs (t) are a trimmed cosmetic variant of standard black platelegs. Identical stats, requiring 10 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Gold-trimmed variant.
+    - slug: black-platelegs
+      item_name: Black platelegs
+      relationship: variant
+      description: Untrimmed base item.
+  about: "Black platelegs (t) are a cosmetic trimmed variant of standard black platelegs awarded from easy Treasure Trails, identical in stats to the base version."
+  market_strategy:
+    notes:
+      - Cosmetic clue reward with thin demand pool of collectors and showoffs.
+      - GE limit of 8 makes flipping high-priced trims slow.
+  trading_tips:
+    - Long-hold for clue cosmetic appreciation rather than quick flips.
+    - List near the high-alch floor during bear markets to clear inventory.
+  history:
+    - date: "2004-05-05"
+      description: Released alongside Bigger Banks & Treasure Trails.
+    - date: "2021-04-21"
+      description: Ranged attack bonus reduced from -7 to -11 in the equipment rebalance.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-05-05"
+    update: Bigger Banks & Treasure Trails
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

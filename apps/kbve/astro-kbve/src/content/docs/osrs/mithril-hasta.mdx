@@ -1,6 +1,6 @@
 ---
 title: Mithril hasta | OSRS Price Data
-description: "Mithril hasta: A mithril-tipped, one-handed hasta.. High alch: 507 GP, GE limit: 125."
+description: "Mithril hasta: A mithril-tipped, one-handed hasta. High alch: 507 GP, GE limit: 125."
 osrs:
   id: 11373
   name: Mithril hasta
@@ -12,9 +12,93 @@ osrs:
   lowalch: 338
   highalch: 507
   limit: 125
-  about: "Mithril hasta is a members-only item in Old School RuneScape. High alchemy value: 507 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 20
+    attack_bonus:
+      stab: 17
+      slash: 17
+      crush: 17
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 18
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 55
+      xp: 100
+      materials:
+        - item_name: Mithril bar
+          quantity: 2
+      tools:
+        - Hammer
+      product: Mithril hasta
+      output_quantity: 1
+  related_items:
+    - item_id: 11375
+      item_name: Mithril hasta(p)
+      slug: mithril-hasta-p
+      relationship: variant
+      description: Weapon poison variant
+    - item_id: 11393
+      item_name: Mithril hasta(p+)
+      slug: mithril-hasta-p-plus
+      relationship: variant
+      description: Stronger poison variant
+    - item_id: 11411
+      item_name: Mithril hasta(p++)
+      slug: mithril-hasta-p-plus-plus
+      relationship: variant
+      description: Strongest poison variant
+  about: Mithril hasta is a one-handed spear used as the off-hand weapon by Barbarian fishermen in Otto's grotto, smithed from two mithril bars at level 55 Smithing.
+  market_strategy:
+    notes:
+      - Barbarian Smithing niche keeps demand low
+      - Used by Mountain Trolls and Defender of Varrock training
+  trading_tips:
+    - Buy from supply when Barbarian skilling is active
+    - Limited utility caps long-term demand
+  history:
+    - date: "2007-12-19"
+      update: Barbarian Smithing
+      description: Released with the Barbarian Training extension to Tai Bwo Wannai Trio.
+    - date: "2021-04-21"
+      description: Attack speed reduced from 5 ticks to 4 ticks as part of the Equipment Rebalance.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-12-19"
+    update: Barbarian Smithing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,95 @@ osrs:
   lowalch: 338
   highalch: 507
   limit: 125
-  about: "Mithril spear(p++) is a members-only item in Old School RuneScape. High alchemy value: 507 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mithril
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: Spear
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 20
+    attack_bonus:
+      stab: 17
+      slash: 17
+      crush: 17
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 18
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Fletching
+      materials:
+        - item_name: Mithril spear
+          quantity: 1
+        - item_name: Weapon poison(++)
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      notes: Apply weapon poison(++) to a mithril spear to produce the (p++) variant.
+    - skill: Smithing
+      level: 55
+      materials:
+        - item_name: Mithril bar
+          quantity: 1
+        - item_name: Maple logs
+          quantity: 1
+      tools:
+        - Barbarian anvil
+      output_quantity: 1
+      notes: Produces an unpoisoned mithril spear via Barbarian Smithing; poison separately to make the (p++) variant.
+  related_items:
+    - item_name: Mithril spear
+      relationship: variant
+      description: Unpoisoned base spear.
+    - item_name: Mithril spear(p)
+      relationship: variant
+      description: Standard poison variant.
+    - item_name: Mithril spear(p+)
+      relationship: variant
+      description: Mid-tier poison variant.
+    - item_name: "Weapon poison(++)"
+      relationship: component
+      description: Consumable applied to make the (p++) variant.
+  history:
+    - date: "2003-04-14"
+      description: Released with the original Mithril spear in the Slayer Tower expansion era.
+  about: "Mithril spear(p++) is a two-handed mithril spear with the strongest weapon poison applied, dealing high damage-over-time and requiring 20 Attack to wield."
+  market_strategy:
+    notes:
+      - Niche poison-meta weapon; demand is highest around bossing setups that benefit from venom.
+      - Spread tracks mithril spear price plus weapon poison(++) cost.
+  trading_tips:
+    - Buy unpoisoned mithril spears + weapon poison(++) and apply for arbitrage when GE spread exceeds component cost.
+    - Volume is thin — list near margin midpoint and avoid undercutting.
+  properties:
+    release_date: "2003-04-14"
+    update: Mithril spear release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

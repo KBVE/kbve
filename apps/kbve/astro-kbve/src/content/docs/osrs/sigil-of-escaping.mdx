@@ -12,9 +12,55 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of escaping is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: sigil
+    tier: mid-high
+  special_attack:
+    description: When attuned and activated, grants a 75% increased chance to resist the first bind effect cast on you within the next 12 seconds. Cooldown is 5 minutes on miss, 1 minute on successful bind resist.
+  drop_table:
+    sources:
+      - source: Deadman Mode drop table
+        quantity: "1"
+        rarity: Common (event only)
+  related_items:
+    - item_name: Sigil of resistance
+      slug: sigil-of-resistance
+      relationship: alternative
+      description: Other tier 2 Deadman combat sigil
+    - item_name: Sigil of hunting
+      slug: sigil-of-hunting
+      relationship: alternative
+      description: Other tier 2 Deadman combat sigil
+  about: "Sigil of escaping is a tier 2 Deadman Mode combat sigil that resists a single bind. Tradeable while un-attuned; binds to the player on attunement."
+  market_strategy:
+    notes:
+      - Only sees liquidity during Deadman Mode events
+      - Tiny buy limit of 8 caps bulk activity
+      - Value swings hard around Deadman season announcements
+  trading_tips:
+    - Buy ahead of Deadman event windows when supply is thin
+    - Avoid holding through end of event when demand collapses
+  history:
+    - date: "2021-08-25"
+      description: Released with Deadman Reborn.
+  properties:
+    release_date: "2021-08-25"
+    update: Deadman Reborn
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    alchable: false
+    destroy: Destroy
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

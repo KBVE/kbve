@@ -12,9 +12,15 @@ osrs:
   lowalch: 116004
   highalch: 174006
   limit: 15
+  material:
+    type: eclipse-moon
+    tier: high
   equipment:
     slot: body
     weight: 3
+    requirements:
+      ranged: 75
+      defence: 50
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,11 +38,15 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      ranged: 75
-      defence: 50
-    degradable: true
-    charges: 3000
+  charges:
+    max_charges: 3000
+    charge_rate: 1 per 54 seconds
+    duration_hours: 45
+    npc_repair_cost: 1500000
+    smithing_repair_cost: 757500
+  special_attack:
+    name: Eclipse set burn
+    description: With the full Eclipse moon set and Eclipse atlatl equipped, successful attacks have a 20% chance to inflict burn damage on non-immune targets.
   drop_table:
     primary_source: Lunar Chest (Neypotzli)
     best_drop_rate: 1/224
@@ -62,29 +72,39 @@ osrs:
       slug: eclipse-moon-tassets
       relationship: set-piece
       description: Leg armour in set
-  about: |-
-    When wearing the full Eclipse moon armour set with the Eclipse atlatl:
-    - Successful attacks have a 20% chance to inflict burn damage on non-immune targets
-
-    | Property | Value |
-    |----------|-------|
-    | Total charges | 3,000 |
-    | Charge rate | 1 per 54 seconds |
-    | Combat duration | ~45 hours |
-    | NPC repair cost | 1,500,000 coins |
-    | Repair at 99 Smithing | 757,500 coins |
-
-    Part of the Eclipse moon armour set for ranged combat:
-    - Strong magic defence (+55)
-    - Good ranged attack bonus (+31)
-    - Strength bonus for melee damage calculation with atlatl
+  about: Eclipse moon chestplate is a ranged body slot armour from the Lunar Chest that enables the Eclipse set burn effect when paired with the atlatl.
   market_strategy:
     notes:
       - Core piece for Eclipse atlatl builds
       - High magic defence makes it versatile
       - Consider repair costs for sustained use
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  trading_tips:
+    - Flip during Varlamore content drops
+    - Pair purchases with helm and tassets for set deals
+  history:
+    - date: "2024-03-20"
+      update: "Varlamore: Part One"
+      description: Released with Varlamore Part One as a Lunar Chest reward.
+    - date: "2024-04-24"
+      description: Weight reduced from 12 kg to 3 kg.
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Mature cider | OSRS Price Data
-description: "Mature cider: This looks a good deal stronger than normal cider.. High alch: 1 GP, GE limit: 2,000."
+description: "Mature cider boosts Farming +2 while draining Attack and Strength. High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 5765
   name: Mature cider
@@ -12,9 +12,65 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Mature cider is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 2
+    effects:
+      - description: Boosts Farming by 2 levels.
+      - description: Drains Attack by 5 levels.
+      - description: Drains Strength by 5 levels.
+  recipes:
+    - skill: Cooking
+      level: 14
+      output_quantity: 1
+      materials:
+        - item_name: Apple mush
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Beer glass
+          quantity: 8
+      tools:
+        - Brewery vat
+  related_items:
+    - item_id: 5763
+      item_name: Cider
+      slug: cider
+      relationship: alternative
+      description: Standard non-mature cider
+    - item_id: 5767
+      item_name: Calquat keg
+      slug: calquat-keg
+      relationship: component
+      description: Storage keg for cider batches
+  about: "Mature cider is the stronger version of regular cider, randomly produced from brewery batches; restores 2 HP and is prized for the +2 Farming boost."
+  market_strategy:
+    notes:
+      - Heavy demand from Farming boost stackers
+      - Brewery batch RNG makes supply unpredictable
+      - Track apple mush + ale yeast input costs
+  trading_tips:
+    - Sell on calquat keg batches for higher per-glass margin
+    - Watch for farmer events to spike demand
+  history:
+    - date: "2005-07-11"
+      description: Released with the Farming update via the Keldagrim brewery system.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,66 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: 8
-  about: "Dragon armour set (lg) is a members-only item in Old School RuneScape. High alchemy value: 300,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: armour_set
+    tier: high
+  related_items:
+    - item_id: 11335
+      item_name: Dragon full helm
+      slug: dragon-full-helm
+      relationship: set-piece
+      description: Set component
+    - item_id: 21892
+      item_name: Dragon platebody
+      slug: dragon-platebody
+      relationship: set-piece
+      description: Set component
+    - item_id: 4087
+      item_name: Dragon platelegs
+      slug: dragon-platelegs
+      relationship: set-piece
+      description: Set component
+    - item_id: 21895
+      item_name: Dragon kiteshield
+      slug: dragon-kiteshield
+      relationship: set-piece
+      description: Set component
+    - item_id: 21887
+      item_name: Dragon armour set (sk)
+      slug: dragon-armour-set-sk
+      relationship: alternative
+      description: Plateskirt variant
+  about: "Dragon armour set (lg) bundles a Dragon full helm, platebody, platelegs and kiteshield into one tradeable item. Exchanged at a Grand Exchange clerk for the four pieces and used primarily to save bank space."
+  market_strategy:
+    notes:
+      - Bank space saver for high-end dragon armour
+      - Set premium fluctuates around component sum
+      - Very low buy limit (8 per 4 hours)
+      - Dragon full helm and kiteshield are rare drops driving cost
+      - Exchange at GE clerk to unpack components
+  trading_tips:
+    - Compare set price to sum of components for arbitrage
+    - Repack components into sets for bank efficiency
+    - Watch Dragon Slayer II completion trends
+  history:
+    - date: "2018-01-04"
+      description: Released alongside the Dragon Slayer II update introducing dragon kiteshield and platebody.
+  properties:
+    release_date: "2018-01-04"
+    update: Dragon Slayer II
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 6
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

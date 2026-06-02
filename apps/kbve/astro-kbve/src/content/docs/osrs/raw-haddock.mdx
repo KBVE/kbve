@@ -1,6 +1,6 @@
 ---
 title: Raw haddock | OSRS Price Data
-description: "Raw haddock: I should try cooking this.. High alch: 102 GP, GE limit: 15,000."
+description: "Raw haddock is a members raw fish caught at 73 Fishing during Sailing, cooked at 73 Cooking. High alch: 102 GP, GE limit: 15,000."
 osrs:
   id: 32317
   name: Raw haddock
@@ -12,9 +12,69 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: 15000
-  about: "Raw haddock is a members-only item in Old School RuneScape. High alchemy value: 102 coins. Grand Exchange buy limit: 15,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: raw fish
+    tier: mid
+  food:
+    description: Raw ingredient; must be cooked into haddock at 73 Cooking for 180 XP.
+  drop_table:
+    sources:
+      - source: Haddock shoal
+        quantity: "1"
+        rarity: Variable
+      - source: Shimmering shoal
+        quantity: "1"
+        rarity: Variable
+      - source: Fish stall (Port Roberts)
+        quantity: "1"
+        rarity: 1/256
+  recipes:
+    - materials:
+        - item_name: Raw haddock
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+  related_items:
+    - item_name: Haddock
+      slug: haddock
+      relationship: product
+      description: Cooked food made at 73 Cooking
+    - item_name: Fish offcuts
+      slug: fish-offcuts
+      relationship: product
+      description: Cut from raw haddock with a knife
+    - item_name: Haddock eye
+      slug: haddock-eye
+      relationship: product
+      description: Possible herblore secondary from cutting raw haddock
+  about: Raw haddock is a Sailing-era 73 Fishing catch obtained from haddock and shimmering shoals, cooked into haddock or used as herblore secondary source.
+  market_strategy:
+    notes:
+      - Caught at 73 Fishing during Sailing activities
+      - High GE limit makes it suitable for bulk training
+      - Yields fish offcuts and rare haddock eye when knifed
+  trading_tips:
+    - Track demand from Cooking trainers vs. Fishing supply
+  history:
+    - date: "2025-11-19"
+      description: Released alongside the Sailing skill launch.
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.7
+    options: []
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Cocktail shaker | OSRS Price Data
-description: "Cocktail shaker: Used for mixing cocktails.. High alch: 1 GP, GE limit: 40."
+description: "Cocktail shaker: Used for mixing cocktails. High alch: 1 GP, GE limit: 40."
 osrs:
   id: 2025
   name: Cocktail shaker
@@ -12,9 +12,50 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 40
-  about: "Cocktail shaker is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: utility
+    tier: low
+  shops:
+    - shop_name: Grand Tree Groceries
+      location: Tree Gnome Stronghold
+      stock: 1
+      price: 2
+    - shop_name: Funch's Fine Groceries
+      location: Tree Gnome Village
+      price: 2
+    - shop_name: Blurberry Bar
+      location: Grand Tree
+      price: 20
+  about: "Cocktail shaker is a members-only Gnome Cooking utility used to mix cocktail ingredients into intermediate drinks before garnishing in cocktail glasses."
+  market_strategy:
+    notes:
+      - Cheap utility item with steady gnome-cooking demand.
+      - Multiple shop sources keep GE prices anchored near the alch floor.
+  trading_tips:
+    - Buy from Grand Tree Groceries for 2 gp when stocked rather than the GE.
+    - Stock up before training Gnome Cooking for Gnome restaurant deliveries.
+  history:
+    - date: "2002-12-12"
+      description: Added to the game alongside the Agility skill update.
+    - date: "2006-08-07"
+      description: The Inspect option was removed and replaced with Mix-cocktail.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    update: Agility
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.15
+    options:
+      - Mix-cocktail
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

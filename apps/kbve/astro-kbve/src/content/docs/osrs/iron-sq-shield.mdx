@@ -12,25 +12,99 @@ osrs:
   lowalch: 67
   highalch: 100
   limit: 125
-  item_id: 1175
-  item_type: armor
-  slot: shield
-  type: square_shield
-  tradeable: true
-  weight: 3.628
-  requirements:
-    defence: 0
-  stats:
-    stab_defence: 8
-    slash_defence: 9
-    crush_defence: 7
-    magic_defence: 0
-    ranged_defence: 8
+  material:
+    type: armor
+    tier: low
+  equipment:
+    slot: shield
+    weapon_type: shield
+    weight: 3.628
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 8
+      slash: 9
+      crush: 7
+      magic: 0
+      ranged: 8
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 23
+      xp: 50
+      materials:
+        - item_name: Iron bar
+          quantity: 2
+      tools:
+        - Hammer
+        - Anvil
+      product: Iron sq shield
+      output_quantity: 1
+  shops:
+    - shop_name: Cassie's Shield Shop
+      location: Falador
+      price: 168
+    - shop_name: Cam Torum Blacksmith
+      location: Cam Torum
+      price: 168
+    - shop_name: Shields of Mistrock
+      location: Mistrock
+      price: 168
   related_items:
-    - slug: steel-sq-shield
-    - slug: iron-kiteshield
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Steel sq shield
+      slug: steel-sq-shield
+      relationship: upgrade
+      description: Next tier square shield
+    - item_name: Iron kiteshield
+      slug: iron-kiteshield
+      relationship: alternative
+      description: Iron kiteshield alternative
+    - item_name: Bronze sq shield
+      slug: bronze-sq-shield
+      relationship: downgrade
+      description: Previous tier square shield
+  about: "Iron sq shield is a free-to-play medium square shield. Smithed at level 23 with 2 iron bars or bought from shield shops in Falador, Cam Torum, and Mistrock."
+  market_strategy:
+    notes:
+      - Low-tier free-to-play shield with thin spreads
+      - Smithing supply keeps the price near alch value
+      - High alch margin can be reasonable when buy limit allows
+  trading_tips:
+    - Watch for high alch profitability windows
+    - Demand spikes during F2P combat events
+  history:
+    - date: "2001-01-04"
+      description: Released with the early game.
+    - date: "2021-04-21"
+      description: Ranged attack bonus increased from -2 to 0.
+  properties:
+    release_date: "2001-01-04"
+    update: Original
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

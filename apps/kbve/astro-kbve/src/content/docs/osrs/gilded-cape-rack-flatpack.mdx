@@ -12,9 +12,70 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Gilded cape rack (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: flatpack
+    tier: high
+  construction:
+    level: 81
+    xp: 860
+    hotspot: Cape rack
+    room: Costume Room
+  recipes:
+    - skill: construction
+      level: 81
+      xp: 860
+      materials:
+        - item_name: Mahogany plank
+          item_id: 8782
+          quantity: 4
+        - item_name: Gold leaf
+          item_id: 8784
+          quantity: 1
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_id: 8782
+      item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: Construction material
+    - item_id: 8784
+      item_name: Gold leaf
+      slug: gold-leaf
+      relationship: component
+      description: Decoration material
+  about: "Gilded cape rack (flatpack) is a high-tier Construction flatpack made at a bench with lathe by players with level 81 Construction. Used to build a gilded cape rack hotspot in the Costume Room of a player-owned house."
+  market_strategy:
+    notes:
+      - Niche Construction flatpack
+      - Useful for training Construction without building presence
+      - High-level Construction requirement (81)
+      - Gold leaf cost dominates margin
+      - Low buy limit (500 per 4 hours)
+  trading_tips:
+    - Monitor mahogany plank and gold leaf prices
+    - Sell during Construction skilling events
+  history:
+    - date: "2006-10-18"
+      description: Released with the Player-Owned House Costume Room update.
+  properties:
+    release_date: "2006-10-18"
+    update: Costume Room
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

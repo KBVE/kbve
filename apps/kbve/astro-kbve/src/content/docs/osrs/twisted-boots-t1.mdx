@@ -12,9 +12,96 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 5
-  about: "Twisted boots (t1) is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: low
+  equipment:
+    slot: feet
+    weapon_type: unarmed
+    attack_speed: 4
+    weight: 0.34
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Leagues Reward Shop
+      price: 1000
+      currency: League points
+  related_items:
+    - item_id: 24414
+      item_name: Twisted boots (t2)
+      slug: twisted-boots-t2
+      relationship: variant
+      description: Tier 2 recolour of the same cosmetic boots
+    - item_id: 24417
+      item_name: Twisted boots (t3)
+      slug: twisted-boots-t3
+      relationship: variant
+      description: Tier 3 recolour of the same cosmetic boots
+    - item_id: 24405
+      item_name: Twisted hat (t1)
+      slug: twisted-hat-t1
+      relationship: set-piece
+      description: Tier 1 hat from the Twisted relic hunter outfit
+    - item_id: 24407
+      item_name: Twisted coat (t1)
+      slug: twisted-coat-t1
+      relationship: set-piece
+      description: Tier 1 coat from the Twisted relic hunter outfit
+    - item_id: 24409
+      item_name: Twisted trousers (t1)
+      slug: twisted-trousers-t1
+      relationship: set-piece
+      description: Tier 1 trousers from the Twisted relic hunter outfit
+  about: "Twisted boots (t1) are the tier 1 cosmetic boots from the Twisted Relic Hunter outfit, originally earned through the Twisted League reward shop and later tradeable on the Grand Exchange."
+  market_strategy:
+    notes:
+      - Supply is fixed since the Twisted League shop no longer dispenses new pairs
+      - Demand is purely cosmetic and tied to fashionscape preferences
+      - Tight 5-per-limit constrains active flipping
+  trading_tips:
+    - Pair price tracking with the t1 hat, coat, and trousers as set buyers dominate
+    - Cosmetic releases or recolours can shift collector demand
+  history:
+    - date: "2019-11-14"
+      description: Added to the Twisted League reward shop alongside the tier 1 outfit.
+    - date: "2020-01-16"
+      description: Made tradeable with base value increased to 1,000 coins.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-11-14"
+    update: Twisted League
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

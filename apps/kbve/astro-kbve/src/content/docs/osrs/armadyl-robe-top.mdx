@@ -12,29 +12,90 @@ osrs:
   lowalch: 2800
   highalch: 4200
   limit: 8
+  material:
+    type: vestment
+    tier: mid
   equipment:
     slot: body
+    weapon_type: unarmed
+    attack_speed: 4
+    weight: 1.8
     requirements:
       prayer: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
     other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 6
+  drop_table:
+    sources:
+      - source: Easy Treasure Trails reward casket
+        quantity: "1"
+        rarity: 1/1404
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
     - item_id: 12255
       item_name: Armadyl robe legs
       slug: armadyl-robe-legs
       relationship: set-piece
-      description: Armadyl vestment legs
+      description: Vestment legs companion piece
     - item_id: 12259
       item_name: Armadyl mitre
       slug: armadyl-mitre
       relationship: set-piece
-      description: Armadyl vestment head
-  about: |-
-    > *"Armadyl Vestments."*
-
-    The Armadyl robe top is the body piece of the Armadyl vestment set. It provides a +6 Prayer bonus and requires 20 Prayer to equip. Counts as an Armadylean item in the God Wars Dungeon, providing protection from Armadyl followers.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Vestment headwear companion piece
+    - item_id: 12257
+      item_name: Armadyl stole
+      slug: armadyl-stole
+      relationship: set-piece
+      description: Vestment stole completing the set
+  about: "Armadyl robe top is the chest piece of the Armadyl vestment set, granting +6 Prayer bonus at 20 Prayer and counting as an Armadylean item inside the God Wars Dungeon."
+  market_strategy:
+    notes:
+      - Drops exclusively from easy clue caskets at a roughly 1 in 1,404 rate
+      - Buy limit of 8 keeps prices volatile around clue update cycles
+      - Pair pricing with the rest of the set since collectors usually buy together
+  trading_tips:
+    - Watch easy clue droprate or QoL updates for supply shocks
+    - Costume room storage lowers floor demand for active wearers
+  history:
+    - date: "2014-06-12"
+      description: Released with the Treasure Trail Expansion alongside the other vestment sets.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.8
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

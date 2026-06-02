@@ -12,9 +12,76 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 7000
-  about: "Bronze javelin(p+) is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bronze
+    tier: low
+  equipment:
+    slot: ammunition
+    weapon_type: Ammunition
+    weight: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 25
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 825
+      item_name: Bronze javelin
+      slug: bronze-javelin
+      relationship: variant
+      description: Unpoisoned base javelin.
+    - item_id: 5634
+      item_name: Bronze javelin(p)
+      slug: bronze-javelin-p-5634
+      relationship: variant
+      description: Lower-tier poison variant.
+    - item_id: 5650
+      item_name: Bronze javelin(p++)
+      slug: bronze-javelin-p-5650
+      relationship: upgrade
+      description: Stronger poison variant.
+  history:
+    - date: "2016-05-06"
+      description: Javelins converted so ranged strength applies only when used as ballista ammunition.
+    - date: "2016-10-31"
+      description: Ranged strength bonus reduced from +30 to +25.
+  about: "Bronze javelin(p+) is a poisoned bronze javelin used as ballista ammunition, dealing damage-over-time on hit with no level requirement to wield."
+  market_strategy:
+    notes:
+      - Niche ballista ammo; thin daily volume at low GE prices.
+      - Poison variant flips track closely with unpoisoned bronze javelin + weapon poison(+).
+  trading_tips:
+    - Buy near alch floor and hold for ballista training spikes.
+    - Compare against fletching unpoisoned javelins from tips + shafts.
+  properties:
+    release_date: "2004-03-29"
+    update: RuneScape 2 launch
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Pottery scarab | OSRS Price Data
-description: "Pottery scarab: Little ornament in the shape of a scarab.. High alch: 6 GP, GE limit: 13,000."
+description: "Pottery scarab: Little ornament in the shape of a scarab. High alch: 6 GP, GE limit: 13,000."
 osrs:
   id: 9032
   name: Pottery scarab
@@ -12,9 +12,55 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 13000
-  about: "Pottery scarab is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    primary_source: Pyramid Plunder (Room 1 sarcophagi)
+    sources:
+      - source: Pyramid Plunder sarcophagus
+        quantity: "1"
+        rarity: common
+        drop_rate: 1/4
+  shops:
+    - shop_name: Simon Templeton's Agility Shop
+      location: Agility Pyramid
+      price: 75
+      sells: true
+  related_items:
+    - item_id: 9044
+      item_name: Pharaoh's sceptre
+      slug: pharaoh-s-sceptre
+      relationship: product
+      description: Recharged with 24 pottery scarabs
+  about: Pottery scarab is a Pyramid Plunder loot used to recharge the Pharaoh's sceptre at a cost of 24 scarabs per full charge.
+  market_strategy:
+    notes:
+      - Steady demand from Pharaoh's sceptre rechargers
+      - High buy limit keeps prices flat
+      - Bulk supply from Pyramid Plunder farmers
+  trading_tips:
+    - Buy 24-stack lots for sceptre recharges
+    - Watch for price spikes when Desert Treasure content trends
+  history:
+    - date: "2006-07-17"
+      update: Pyramid Plunder
+      description: Released with the Pyramid Plunder minigame.
+    - date: "2015-02-26"
+      description: Made tradeable on the Grand Exchange.
+  properties:
+    release_date: "2006-07-17"
+    update: Pyramid Plunder
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

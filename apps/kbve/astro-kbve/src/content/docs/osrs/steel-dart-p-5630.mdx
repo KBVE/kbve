@@ -1,6 +1,6 @@
 ---
 title: Steel dart(p+) | OSRS Price Data
-description: "Steel dart(p+): A deadly poisoned dart with a steel tip.. High alch: 6 GP, GE limit: 7,000."
+description: "Steel dart(p+): A deadly poisoned dart with a steel tip. High alch: 6 GP, GE limit: 7,000."
 osrs:
   id: 5630
   name: Steel dart(p+)
@@ -12,9 +12,92 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 7000
-  about: "Steel dart(p+) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: steel
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 3
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Herblore
+      level: 73
+      experience: 0
+      materials:
+        - item_name: Steel dart
+          quantity: 1
+        - item_name: "Weapon poison(+)"
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_id: 807
+      item_name: Steel dart
+      slug: steel-dart
+      relationship: variant
+      description: Unpoisoned base dart
+    - item_id: 5628
+      item_name: Steel dart(p)
+      slug: steel-dart-p-5628
+      relationship: variant
+      description: Standard poison variant
+    - item_id: 5632
+      item_name: "Steel dart(p++)"
+      slug: steel-dart-p-5632
+      relationship: upgrade
+      description: Strongest poison variant
+  about: Steel dart(p+) is a stackable thrown weapon poisoned with weapon poison(+). Requires 5 Ranged to wield. Standard variant has +3 ranged strength after a 2021 rebalance and is commonly used for low-tier Slayer or Fight Caves prep with sustained poison damage.
+  market_strategy:
+    notes:
+      - Marginal poison upgrade over (p) at higher cost
+      - Limited demand outside niche poison-stacking strategies
+      - Buy limit 7,000 per 4 hours
+  trading_tips:
+    - Compare with (p++) per-dart cost when prepping long trips
+    - Apply via weapon poison(+) on base steel darts for cheaper crafting
+  history:
+    - date: "2003-04-14"
+      description: Added to the game.
+    - date: "2021-06-30"
+      description: "Ranged Attack bonus decreased from +5 to 0; Ranged Strength bonus decreased from +4 to +3."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

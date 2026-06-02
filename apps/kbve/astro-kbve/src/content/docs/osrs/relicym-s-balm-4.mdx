@@ -1,6 +1,6 @@
 ---
 title: Relicym's balm(4) | OSRS Price Data
-description: "Relicym's balm(4): 4 doses of Relicym's balm, which helps cure disease.. High alch: 135 GP, GE limit: 2,000."
+description: "Relicym's balm(4): 4 doses of Relicym's balm, which helps cure disease. High alch: 135 GP, GE limit: 2,000."
 osrs:
   id: 4842
   name: Relicym's balm(4)
@@ -12,9 +12,65 @@ osrs:
   lowalch: 90
   highalch: 135
   limit: 2000
-  about: "Relicym's balm(4) is a members-only item in Old School RuneScape. High alchemy value: 135 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: Cures disease by progressively weakening it with each dose.
+      - description: Does not grant temporary immunity from disease (unlike Sanfew serum).
+  recipes:
+    - materials:
+        - item_name: Rogue's purse
+        - item_name: Snake weed
+        - item_name: Vial of water
+      tools:
+        - Herblore level 8
+      output_quantity: 1
+  shops:
+    - shop_name: Uglug Nar
+      location: Jiggig
+      price: 200
+      currency: Coins
+  related_items:
+    - item_name: Relicym's balm(3)
+      slug: relicym-s-balm-3
+      relationship: variant
+    - item_name: Relicym's balm(2)
+      slug: relicym-s-balm-2
+      relationship: variant
+    - item_name: Relicym's balm(1)
+      slug: relicym-s-balm-1
+      relationship: variant
+    - item_name: Sanfew serum(4)
+      slug: sanfew-serum-4
+      relationship: alternative
+  about: "Relicym's balm is a Herblore potion that cures disease, often used during Zogre Flesh Eaters follow-ups and the Tai Bwo Wannai Cleanup minigame."
+  market_strategy:
+    notes:
+      - Spike demand when bossing meta calls for disease cures (Nightmare parasites)
+      - Cheaper than Sanfew serum but lacks immunity window
+      - Tai Bwo Wannai players keep steady baseline demand
+  trading_tips:
+    - Watch for Nightmare-of-Ashihama strategy guides that recommend balm over sanfew
+    - Decant 4-dose to lower doses for quick-use inventories
+  history:
+    - date: "2005-05-17"
+      description: Released with the Zogre Flesh Eaters quest update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-17"
+    update: Zogre Flesh Eaters
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

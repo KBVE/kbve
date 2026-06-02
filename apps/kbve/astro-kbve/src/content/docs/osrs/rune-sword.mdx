@@ -12,8 +12,16 @@ osrs:
   lowalch: 8320
   highalch: 12480
   limit: 70
+  material:
+    type: rune
+    tier: mid-high
   equipment:
     slot: weapon
+    weapon_type: stab_sword
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 40
     attack_bonus:
       stab: 38
       slash: 26
@@ -22,8 +30,8 @@ osrs:
       ranged: 0
     defence_bonus:
       stab: 0
-      slash: 1
-      crush: 0
+      slash: 2
+      crush: 1
       magic: 0
       ranged: 0
     other_bonus:
@@ -31,55 +39,71 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      attack: 40
-    attack_speed: 4
+  recipes:
+    - materials:
+        - item_name: Runite bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+      skill: Smithing
+      level: 89
+      xp: 75
+  shops:
+    - shop_name: Scavvo's Rune Store
+      location: Champions' Guild
   related_items:
     - item_id: 1333
       item_name: Rune scimitar
       slug: rune-scimitar
       relationship: alternative
-      description: Higher slash, preferred for training
+      description: Higher slash bonus, preferred for general training
     - item_id: 1373
       item_name: Rune battleaxe
       slug: rune-battleaxe
       relationship: alternative
-      description: Higher strength, slower speed
+      description: Higher strength, slower 5 tick speed
     - item_id: 1347
       item_name: Rune warhammer
       slug: rune-warhammer
       relationship: alternative
-      description: Crush alternative
-  about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Stab | +38 |
-    | Slash | +26 |
-
-    | Other | Value |
-    |-------|-------|
-    | Strength | +39 |
-
-    Requirements: 40 Attack | Speed: 4 tick (2.4s)
-
-    The rune sword is the best stab weapon available in F2P. While the rune scimitar has higher slash (+45) and is preferred for general training, the rune sword's +38 stab is valuable against stab-weak monsters.
-
-    | Stat | Rune Sword | Rune Scimitar | Rune Longsword |
-    |------|-----------|---------------|----------------|
-    | Stab | +38 | +7 | +38 |
-    | Slash | +26 | +45 | +40 |
-    | Strength | +39 | +44 | +49 |
-    | Speed | 4 tick | 4 tick | 5 tick |
-    | DPS Role | Stab | Slash (best) | Slow slash |
-
-    Same speed as the scimitar but lower overall DPS. Use it specifically when stab accuracy matters.
+      description: Crush-style rune alternative
+    - item_name: Rune longsword
+      slug: rune-longsword
+      relationship: alternative
+      description: Same stab but slower 5 tick speed
+  about: "Rune sword is the best free-to-play stab weapon, smithed from a single runite bar at Smithing 89 and stocked by Scavvo at the Champions' Guild; its +38 stab and 4 tick speed make it the F2P pick against stab-weak targets while the rune scimitar still wins for general training."
   market_strategy:
     notes:
-      - Commonly smithed for XP (2 runite bars)
-      - GE price tracks near alch value
-      - Niche F2P stab weapon demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Smithable for Smithing XP from 1 runite bar at level 89
+      - GE price tracks alch value; common alch flipping candidate
+      - Niche F2P stab demand keeps liquidity thin compared to scimitars
+  trading_tips:
+    - Compare smithing cost (1 runite bar) to GE price before crafting
+    - Stock during F2P PvP or stab-weak boss meta shifts
+  history:
+    - date: "2001-07-26"
+      description: Added to RuneScape as part of the original Rune armoury.
+  properties:
+    release_date: "2001-07-26"
+    update: Rune weaponry
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

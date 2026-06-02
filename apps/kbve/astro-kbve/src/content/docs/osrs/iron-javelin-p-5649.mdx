@@ -1,6 +1,6 @@
 ---
 title: Iron javelin(p++) | OSRS Price Data
-description: "Iron javelin(p++): An iron tipped javelin.. High alch: 3 GP, GE limit: 7,000."
+description: "Iron javelin(p++) is a members poisoned iron javelin ammunition for javelin weapons. High alch: 3 GP, GE limit: 7,000."
 osrs:
   id: 5649
   name: Iron javelin(p++)
@@ -12,9 +12,75 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 7000
-  about: "Iron javelin(p++) is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: iron
+    tier: low
+  equipment:
+    slot: ammo
+    weapon_type: ammunition
+    weight: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - materials:
+        - item_name: Iron javelin
+          quantity: 1
+        - item_name: Weapon poison++
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Iron javelin
+      slug: iron-javelin
+      relationship: variant
+      description: Unpoisoned base javelin
+    - item_name: Steel javelin(p++)
+      slug: steel-javelin-p
+      relationship: upgrade
+      description: Stronger poisoned javelin variant
+  about: Iron javelin(p++) is the weapon poison++ coated iron javelin used as ammunition for javelin weapons, useful for poisoning targets in PvM and PvP.
+  market_strategy:
+    notes:
+      - Low alchemy value; primary use is ammunition supply
+      - Poison++ tier delivers strongest poison damage tick
+  trading_tips:
+    - Liquidity is low; check price vs. base iron javelin plus poison
+  history:
+    - date: "2003-04-14"
+      description: Released alongside the original javelin ammunition line.
+  properties:
+    release_date: "2003-04-14"
+    update: Javelins
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

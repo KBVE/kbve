@@ -12,9 +12,93 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 4
-  about: "Bronze plateskirt (g) is a free-to-play item in Old School RuneScape. High alchemy value: 48 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bronze
+    tier: low
+  equipment:
+    slot: legs
+    weight: 8.164
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 8
+      slash: 7
+      crush: 6
+      magic: -4
+      ranged: 7
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  related_items:
+    - item_id: 1087
+      item_name: Bronze platelegs
+      slug: bronze-platelegs
+      relationship: variant
+      description: Untrimmed legs version
+    - item_id: 12205
+      item_name: Bronze platebody (g)
+      slug: bronze-platebody-g
+      relationship: set-piece
+      description: Gold-trimmed set component
+    - item_id: 12207
+      item_name: Bronze full helm (g)
+      slug: bronze-full-helm-g
+      relationship: set-piece
+      description: Gold-trimmed set component
+    - item_id: 12211
+      item_name: Bronze kiteshield (g)
+      slug: bronze-kiteshield-g
+      relationship: set-piece
+      description: Gold-trimmed set component
+  about: "Bronze plateskirt (g) is a cosmetic gold-trimmed leg armour identical in stats to a regular bronze plateskirt. Obtained as a rare reward from easy treasure trails and storable in the costume room treasure chest."
+  market_strategy:
+    notes:
+      - Easy treasure trail reward only
+      - Cosmetic gold-trim variant of bronze plateskirt
+      - Identical stats to untrimmed plateskirt
+      - Very low buy limit (4 per 4 hours)
+      - Low daily volume
+  trading_tips:
+    - Flip when clue scroll content gets attention
+    - Storable in costume room for collectors
+  history:
+    - date: "2014-06-12"
+      description: Released with the Treasure Trail Expansion update.
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 8.164
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

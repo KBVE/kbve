@@ -1,6 +1,6 @@
 ---
 title: Sigil of onslaught | OSRS Price Data
-description: "Sigil of onslaught: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP."
+description: "Sigil of onslaught: A power enhancing sigil not yet attuned to you. High alch: 6,000 GP."
 osrs:
   id: 29667
   name: Sigil of onslaught
@@ -12,9 +12,42 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: null
-  about: "Sigil of onslaught is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  related_items:
+    - item_id: 29666
+      item_name: Deadman's skull
+      slug: deadman-s-skull
+      relationship: component
+      description: Sigil resale currency in Deadman events
+  about: "Sigil of onslaught is a Deadman Mode tier 2 combat sigil that increases the maximum number of targets that chinchompas and multi-target ancient spells can hit by two, with black chinchompas gaining a single extra target. Permanent once attuned."
+  market_strategy:
+    notes:
+      - Untradeable on the regular Grand Exchange
+      - Only obtainable during temporary Deadman Mode events
+      - Duplicate sigils can be resold via the deadman's skull shop
+  trading_tips:
+    - Hold for next Deadman event window
+    - Plan attunement around your primary multi-target build
+  history:
+    - date: "2024-07-17"
+      description: Released with the Deadman Armageddon and While Guthix Sleeps updates.
+  properties:
+    release_date: "2024-07-17"
+    update: "Deadman: Armageddon & While Guthix Sleeps Updates"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Unlock
+      - Inspect
+      - Destroy
+    alchable: false
+    destroy: "You must unattune the Sigil before you can destroy it."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

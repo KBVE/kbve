@@ -5,16 +5,70 @@ osrs:
   id: 31680
   name: Rainbow crab (2)
   slug: rainbow-crab-2
-  examine: You'll need something to break through that shell.
+  examine: "You'll need something to break through that shell."
   members: true
   icon: Rainbow crab (2).png
   value: 300
   lowalch: 120
   highalch: 180
   limit: null
-  about: "Rainbow crab (2) is a members-only item in Old School RuneScape. High alchemy value: 180 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - materials:
+        - item_name: Rainbow crab (2)
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+      skill: Cooking
+      product: Raw rainbow crab meat
+    - materials:
+        - item_name: Rainbow crab (2)
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+      skill: Herblore
+      product: Rainbow crab paste
+  related_items:
+    - item_name: Rainbow crab (1)
+      relationship: variant
+      description: Alternative cosmetic colour variant with identical mechanics.
+    - item_name: Rainbow crab (3)
+      relationship: variant
+      description: Alternative cosmetic colour variant with identical mechanics.
+    - item_name: Raw rainbow crab meat
+      relationship: product
+      description: Cut output, cookable at 77 Cooking.
+    - item_name: Rainbow crab paste
+      relationship: product
+      description: Ground output used as a Herblore secondary.
+  about: "Rainbow crab (2) is one of three cosmetic colour variants of rainbow crab caught via Hunter crab trapping on The Crown Jewel at level 77 Hunter. It can be cut with a knife for raw meat or ground with a pestle and mortar for crab paste."
+  market_strategy:
+    notes:
+      - No GE buy limit listed in current data; check the in-game GE before bulk orders.
+      - Demand is driven by 77 Cooking trips and Herblore secondaries.
+  trading_tips:
+    - Sell to cookers needing raw meat or to herblorists chasing crab paste secondaries.
+    - Pair with pestle and mortar / knife purchases for processing crab paste flips.
+  history:
+    - date: "2025-11-19"
+      description: Released alongside the Sailing skill content drop.
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.6
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

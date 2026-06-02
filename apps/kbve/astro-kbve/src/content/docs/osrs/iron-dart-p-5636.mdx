@@ -1,6 +1,6 @@
 ---
 title: Iron dart(p++) | OSRS Price Data
-description: "Iron dart(p++): A deadly poisoned dart with an iron tip.. High alch: 1 GP, GE limit: 7,000."
+description: "Iron dart(p++) is a strongly poisoned thrown iron dart. High alch: 1 GP, GE limit: 7,000."
 osrs:
   id: 5636
   name: Iron dart(p++)
@@ -12,9 +12,75 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
-  about: "Iron dart(p++) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 4
+    defence_bonus: {}
+    other_bonus:
+      ranged_strength: 3
+  related_items:
+    - item_id: 807
+      item_name: Iron dart
+      slug: iron-dart
+      relationship: variant
+      description: Unpoisoned base dart
+    - item_id: 5628
+      item_name: Iron dart(p)
+      slug: iron-dart-p-5628
+      relationship: variant
+      description: Weakly poisoned variant
+    - item_id: 5632
+      item_name: Iron dart(p+)
+      slug: iron-dart-p-5632
+      relationship: variant
+      description: Mid-tier poisoned variant
+  about: "Iron dart(p++) is the strongest-poison iron dart, made by adding weapon poison++ to iron darts; requires Tourist Trap, 22 Fletching, and 19 Smithing to craft the base."
+  market_strategy:
+    notes:
+      - High limit but low margin per dart
+      - Bulk demand from low-level pures and slayer trips
+      - Spread vs unpoisoned base tracks weapon poison++ price
+  trading_tips:
+    - Buy near low alch as floor
+    - Flip when poison potion supply tightens
+  history:
+    - date: "2003-04-14"
+      description: Released with the New Throwing Weapons! update.
+    - date: "2021-06-01"
+      description: Ranged attack bonus rebalanced across dart variants.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-04-14"
+    update: New Throwing Weapons!
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    quest: Tourist Trap
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

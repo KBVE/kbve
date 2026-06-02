@@ -12,9 +12,93 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 11000
-  about: "Amethyst dart(p) is a members-only item in Old School RuneScape. High alchemy value: 240 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: amethyst
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 28
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - materials:
+        - item_name: Amethyst dart
+          quantity: 1
+        - item_name: Weapon poison
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Amethyst dart
+      slug: amethyst-dart
+      relationship: variant
+      description: Unpoisoned amethyst dart
+    - item_name: Amethyst dart(p+)
+      slug: amethyst-dart-p-plus
+      relationship: variant
+      description: Stronger poisoned variant
+    - item_name: Amethyst dart(p++)
+      slug: amethyst-dart-p-plus-plus
+      relationship: variant
+      description: Strongest poisoned variant
+    - item_name: Rune dart(p)
+      slug: rune-dart-p
+      relationship: downgrade
+      description: Lower-tier poisoned dart
+    - item_name: Dragon dart(p)
+      slug: dragon-dart-p
+      relationship: upgrade
+      description: Higher-tier poisoned dart
+  about: "Amethyst dart(p) is a poisoned thrown weapon requiring 50 Ranged with +28 ranged strength; create it by using weapon poison on an unpoisoned amethyst dart and benefit from a 3 tick attack speed that drops to 2 ticks on rapid."
+  market_strategy:
+    notes:
+      - +28 ranged strength bridges Rune and Dragon darts at lower cost
+      - Demand tied to Phosani's Nightmare and high-DPS thrown setups
+      - Buy limit of 11,000 supports bulk PvM consumption
+  trading_tips:
+    - Compare price per dart against rune and dragon poisoned variants
+    - Buy ahead of PvM content patches that buff thrown ranged usage
+  history:
+    - date: "2021-06-30"
+      description: Released with the Phosani's Nightmare update alongside amethyst dart tips.
+  properties:
+    release_date: "2021-06-30"
+    update: Phosani's Nightmare
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

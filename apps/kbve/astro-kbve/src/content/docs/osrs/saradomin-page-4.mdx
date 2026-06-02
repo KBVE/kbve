@@ -5,23 +5,42 @@ osrs:
   id: 3830
   name: Saradomin page 4
   slug: saradomin-page-4
-  examine: This seems to have been torn from a book...
+  examine: "This seems to have been torn from a book..."
   members: true
   icon: Saradomin page 4.png
   value: 200
   lowalch: 80
   highalch: 120
   limit: 5
-  item:
+  material:
     type: god_page
-    god: Saradomin
-    page_number: 4
-    tradeable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Easy/Medium/Hard/Elite
-        drop_rate: Varies by tier
+    tier: mid
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+      - master
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 11/9504
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 10/8184
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/650
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/775
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/702.6
   related_items:
     - item_id: 3827
       item_name: Saradomin page 1
@@ -38,23 +57,40 @@ osrs:
       slug: saradomin-page-3
       relationship: set-piece
       description: Page 3 of 4
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | God Page |
-    | God | Saradomin |
-    | Page | 4 of 4 |
-    | Tradeable | Yes |
-
-    Add to incomplete Book of wisdom (Saradomin god book) to complete it.
-
-    Requires all 4 pages:
-    - Saradomin page 1
-    - Saradomin page 2
-    - Saradomin page 3
-    - Saradomin page 4
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Saradomin page 4 is one of four torn pages used to complete the Book of wisdom (Saradomin god book). Obtained as a Treasure Trails reward from all clue tiers except beginner."
+  market_strategy:
+    notes:
+      - God book completion component
+      - All four pages required for Book of wisdom
+      - Very low buy limit (5)
+      - Demand from prayer/magic god book users
+      - Treasure trail reward only
+  trading_tips:
+    - Buy in sets of 4 to flip as complete pages
+    - Resell paired with other Saradomin pages
+  history:
+    - date: "2019-01-24"
+      description: Inventory graphics updated to match holy book coloration.
+    - date: "2006-07-11"
+      description: Renamed from "Torn page 4(s)" to "Saradomin page 4".
+    - date: "2004-11-17"
+      description: Released with the Horror from the Deep quest update.
+  properties:
+    release_date: "2004-11-17"
+    update: Horror from the Deep
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
