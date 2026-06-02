@@ -127,7 +127,7 @@ spec:
                               command:
                                   - /usr/local/bin/agones-shim-prestop
                 - name: factorio-relay
-                  image: ghcr.io/kbve/agones-factorio-relay:0.0.5
+                  image: ghcr.io/kbve/agones-factorio-relay:0.0.6
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: FACTORIO_CONSOLE_LOG
