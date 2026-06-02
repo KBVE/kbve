@@ -42,6 +42,17 @@ local ALLY_NAMES = {
 }
 local ALLY_NAME_POOL_SIZE = #ALLY_NAMES
 
+-- Forward declarations. Lua resolves bare names inside a function body at
+-- COMPILE time: if a `local` of that name hasn't been declared YET in the
+-- enclosing chunk, the reference is baked in as a global lookup and goes
+-- nil at call time. on_entity_died (line ~188) needs to call clear_nametag
+-- and backfill_nametags (line ~253) needs attach_nametag, both of which
+-- would otherwise be defined much further down. Predeclaring the locals
+-- here lets the later `function attach_nametag(...) … end` lines assign
+-- to the EXISTING local slot instead of creating a fresh shadowing local.
+local attach_nametag
+local clear_nametag
+
 -- Fixed cadences. Per-spider cooldown stays hardcoded so the tuning surface
 -- is small; the runtime-global settings cover everything an admin would
 -- reasonably want to flip mid-game.
@@ -357,7 +368,7 @@ commands.add_command(
 	end
 )
 
-local function attach_nametag(ally, name, owner_player)
+attach_nametag = function(ally, name, owner_player)
 	if not (ally and ally.valid) then return end
 	local label
 	if owner_player and owner_player.valid then
@@ -383,7 +394,7 @@ local function attach_nametag(ally, name, owner_player)
 	end
 end
 
-local function clear_nametag(unit_number)
+clear_nametag = function(unit_number)
 	if not storage.ally_nametags then return end
 	local ro = storage.ally_nametags[unit_number]
 	if ro then
