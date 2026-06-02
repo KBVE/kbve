@@ -329,3 +329,148 @@ jobs:
     #         targets: aarch64-apple-ios
     #     - run: cargo build --release --target aarch64-apple-ios
     # ---------------------------------------------------------------------------
+
+    # ===========================================================================
+    # SCAFFOLD: manifest-dispatched generic bevy_game pipeline.
+    #
+    # Absorbed from the deleted ci-bevy-game.yml so the work isn't lost. When
+    # the first project sets `pipeline: bevy_game` in its MDX (and re-adds the
+    # `=== Bevy Game ===` dispatcher block in ci-main.yml), uncomment + wire:
+    #
+    #   1. Add the workflow_dispatch input block to `on:` at the top of this
+    #      file (keep workflow_run as-is, additive).
+    #   2. Uncomment queue_guard / version_gate / build_matrix / itch / post_publish_sync.
+    #   3. Add new jobs to track_failure / add a track_success twin if needed.
+    #   4. Re-add the dispatcher block in ci-main.yml line ~530 pointing at
+    #      ci-bevy.yml (or split back out to ci-bevy-game.yml if the workflow
+    #      grows past ~600 lines).
+    #
+    # on:
+    #   workflow_dispatch:
+    #     inputs:
+    #       key:               { description: 'Manifest key', required: true,  type: string }
+    #       app_name:          { description: 'Cargo bin target name', required: true, type: string }
+    #       project_path:      { description: 'Bevy crate root', required: true, type: string }
+    #       engine_version:    { required: false, type: string, default: '' }
+    #       build_targets:     { required: false, type: string, default: '["x86_64-unknown-linux-gnu"]' }
+    #       features:          { required: false, type: string, default: '[]' }
+    #       version_source:    { required: false, type: string, default: '' }
+    #       version_toml:      { required: false, type: string, default: '' }
+    #       version_target:    { required: false, type: string, default: '' }
+    #       manifest_version:  { required: false, type: string, default: '' }
+    #       deploy_to_itch:    { required: false, type: boolean, default: false }
+    #       itch_user:         { required: false, type: string, default: '' }
+    #       itch_game:         { required: false, type: string, default: '' }
+    #       dispatched_at:     { description: 'Unix ts queue guard', required: true, type: string }
+    #
+    # queue_guard:
+    #   name: Queue Guard
+    #   if: github.event_name == 'workflow_dispatch'
+    #   runs-on: ubuntu-latest
+    #   timeout-minutes: 5
+    #   steps:
+    #     - name: Check queue age
+    #       run: |
+    #         NOW=$(date +%s); AGE=$(( NOW - ${{ inputs.dispatched_at }} ))
+    #         echo "bevy_game/${{ inputs.app_name }} queued ${AGE}s"
+    #         [ "$AGE" -gt 7200 ] && { echo "::error::Queue timeout"; exit 1; } || true
+    #
+    # version_gate:
+    #   name: Version Gate
+    #   needs: [queue_guard]
+    #   runs-on: ubuntu-latest
+    #   timeout-minutes: 5
+    #   permissions: { contents: read }
+    #   outputs:
+    #     should_publish: ${{ steps.check.outputs.should_publish }}
+    #   steps:
+    #     - uses: actions/checkout@v6
+    #     - id: check
+    #       run: |
+    #         LOCAL="${{ inputs.manifest_version }}"; VTOML="${{ inputs.version_toml }}"; PUB="0.0.0"
+    #         [ -n "$VTOML" ] && [ -f "$VTOML" ] && PUB=$(grep -m1 '^version' "$VTOML" | sed 's/version = "\(.*\)"/\1/')
+    #         if [ -z "$LOCAL" ] || [ "$LOCAL" = "0.0.0" ] || [ "$LOCAL" = "$PUB" ]; then
+    #           echo "should_publish=false" >> "$GITHUB_OUTPUT"
+    #         else
+    #           echo "should_publish=true" >> "$GITHUB_OUTPUT"
+    #         fi
+    #
+    # build_matrix:
+    #   name: Build (${{ matrix.target }})
+    #   needs: [version_gate]
+    #   runs-on: ubuntu-latest
+    #   timeout-minutes: 60
+    #   permissions: { contents: read }
+    #   strategy:
+    #     fail-fast: false
+    #     matrix:
+    #       target: ${{ fromJSON(inputs.build_targets) }}
+    #   steps:
+    #     - uses: actions/checkout@v6
+    #     - uses: dtolnay/rust-toolchain@stable
+    #       with: { targets: ${{ matrix.target }} }
+    #     - uses: Swatinem/rust-cache@v2
+    #       with: { workspaces: '${{ inputs.project_path }} -> target', key: ${{ matrix.target }} }
+    #     - name: Bevy linux deps
+    #       run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
+    #     - name: Patch Cargo.toml version
+    #       if: ${{ inputs.manifest_version != '' && inputs.version_target != '' }}
+    #       run: sed -i.bak "s/^version = \".*\"/version = \"${{ inputs.manifest_version }}\"/" "${{ inputs.version_target }}" && rm -f "${{ inputs.version_target }}.bak"
+    #     - id: feats
+    #       run: |
+    #         FEATS=$(echo '${{ inputs.features }}' | jq -r 'join(",")')
+    #         [ -n "$FEATS" ] && echo "args=--features $FEATS" >> "$GITHUB_OUTPUT" || echo "args=" >> "$GITHUB_OUTPUT"
+    #     - name: cargo build --release
+    #       working-directory: ${{ inputs.project_path }}
+    #       run: cargo build --release --bin ${{ inputs.app_name }} --target ${{ matrix.target }} ${{ steps.feats.outputs.args }}
+    #     - id: art
+    #       run: |
+    #         EXT=""; case "${{ matrix.target }}" in *windows*) EXT=".exe" ;; esac
+    #         echo "path=${{ inputs.project_path }}/target/${{ matrix.target }}/release/${{ inputs.app_name }}${EXT}" >> "$GITHUB_OUTPUT"
+    #     - uses: actions/upload-artifact@v7
+    #       with:
+    #         name: ${{ inputs.app_name }}-${{ matrix.target }}
+    #         path: ${{ steps.art.outputs.path }}
+    #         if-no-files-found: error
+    #
+    # itch:
+    #   name: Itch.io Publish
+    #   needs: [version_gate, build_matrix]
+    #   if: needs.version_gate.outputs.should_publish == 'true' && inputs.deploy_to_itch && inputs.itch_user != '' && inputs.itch_game != ''
+    #   runs-on: ubuntu-latest
+    #   timeout-minutes: 30
+    #   permissions: { contents: read }
+    #   strategy:
+    #     fail-fast: false
+    #     matrix:
+    #       target: ${{ fromJSON(inputs.build_targets) }}
+    #   steps:
+    #     - uses: actions/download-artifact@v8
+    #       with: { name: ${{ inputs.app_name }}-${{ matrix.target }}, path: ./build }
+    #     - name: Install butler
+    #       run: curl -L -o butler.zip 'https://broth.itch.zone/butler/linux-amd64/LATEST/archive/default' && unzip -q butler.zip && chmod +x butler
+    #     - id: chan
+    #       run: |
+    #         case "${{ matrix.target }}" in
+    #           *linux*)         echo "channel=linux"   >> "$GITHUB_OUTPUT" ;;
+    #           *windows*)       echo "channel=windows" >> "$GITHUB_OUTPUT" ;;
+    #           *darwin*|*apple*) echo "channel=mac"     >> "$GITHUB_OUTPUT" ;;
+    #           wasm32*)         echo "channel=html5"   >> "$GITHUB_OUTPUT" ;;
+    #           *)               echo "channel=${{ matrix.target }}" >> "$GITHUB_OUTPUT" ;;
+    #         esac
+    #     - env: { BUTLER_API_KEY: ${{ secrets.ITCH_API }} }
+    #       run: ./butler push ./build "${{ inputs.itch_user }}/${{ inputs.itch_game }}:${{ steps.chan.outputs.channel }}" --userversion "${{ inputs.manifest_version }}"
+    #
+    # post_publish_sync:
+    #   name: Post-publish version sync
+    #   needs: [version_gate, build_matrix, itch]
+    #   if: ${{ always() && needs.version_gate.outputs.should_publish == 'true' && needs.build_matrix.result == 'success' && (needs.itch.result == 'success' || needs.itch.result == 'skipped') && inputs.version_toml != '' }}
+    #   permissions: { contents: write, pull-requests: write, actions: write }
+    #   uses: KBVE/kbve/.github/workflows/utils-post-publish.yml@main
+    #   with:
+    #     app_name: ${{ inputs.app_name }}
+    #     version:  ${{ inputs.manifest_version }}
+    #     version_toml_path: ${{ inputs.version_toml }}
+    #   secrets:
+    #     TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
+    # ===========================================================================
