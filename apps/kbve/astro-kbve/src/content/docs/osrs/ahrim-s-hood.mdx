@@ -12,36 +12,33 @@ osrs:
   lowalch: 5200
   highalch: 7800
   limit: 15
+  material:
+    type: barrows
+    tier: high
   equipment:
     slot: head
-    type: barrows
-    set: Ahrim
-    tradeable: true
-    degradeable: true
-    weight: 0.9
+    weapon_type: none
+    weight: 0.907
     requirements:
       defence: 70
       magic: 70
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 6
-      attack_ranged: -2
-      defence_stab: 15
-      defence_slash: 13
-      defence_crush: 16
-      defence_magic: 6
-      defence_ranged: 0
-      strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 6
+      ranged: -2
+    defence_bonus:
+      stab: 15
+      slash: 13
+      crush: 16
+      magic: 6
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
       magic_damage: 1
       prayer: 0
-  set_effect:
-    name: Blighted Aura
-    pieces_required: 4
-    description: 25% chance to lower opponent's Strength by 5 levels
-    amulet_of_damned: 25% chance for +30% damage on hits; can autocast Ancient Magicks
   related_items:
     - item_id: 4712
       item_name: Ahrim's robetop
@@ -63,34 +60,37 @@ osrs:
       slug: ancestral-hat
       relationship: upgrade
       description: Upgrade path
-  about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Magic attack | +6 |
-    | Magic defence | +6 |
-    | Magic damage | +1% |
-    | Stab defence | +15 |
-    | Slash defence | +13 |
-    | Crush defence | +16 |
-    | Ranged attack | -2 |
-
-    Blighted Aura:
-    When wearing full Ahrim's (hood, robetop, robeskirt, staff):
-    - 25% chance to lower opponent's Strength by 5 levels
-
-    With Amulet of the Damned:
-    - 25% chance for +30% damage on hits
-    - Can autocast Ancient Magicks
-
-    Best For:
-    - Magic training with Slayer helm alternative
-    - Budget magic setup
-    - Barrows set bonus scenarios
-
-    - 15 hours of combat use
-    - Repair at Bob in Lumbridge or POH armor stand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Ahrim's hood is the head piece of Ahrim the Blighted's set; a degradable mage hood requiring 70 Defence and 70 Magic that grants +6 magic attack and +1% magic damage with strong melee defence."
+  market_strategy:
+    notes:
+      - Repair at Bob in Lumbridge or POH armor stand
+      - 15 hours of combat use before fully degrading
+      - Budget magic setup or Barrows set bonus scenarios
+  history:
+    - date: "2005-05-09"
+      description: Released with the Barrows update.
+    - date: "2024-05-29"
+      description: Magic damage bonus increased from 0% to 1% via Project Rebalance Combat Changes.
+  properties:
+    release_date: "2005-05-09"
+    update: Barrows
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Check
+      - Drop
+    worn_options:
+      - Check
+    alchable: true
+    destroy: "If you drop this item it will break. Are you sure you want to drop it?"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

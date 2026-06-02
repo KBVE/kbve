@@ -1,6 +1,6 @@
 ---
 title: Rune knife(p++) | OSRS Price Data
-description: "Rune knife(p++): A finely balanced throwing knife.. High alch: 99 GP, GE limit: 7,000."
+description: "Rune knife(p++) is a members thrown weapon poisoned with weapon poison++ requiring 40 Ranged. High alch: 99 GP, GE limit: 7,000."
 osrs:
   id: 5667
   name: Rune knife(p++)
@@ -12,9 +12,78 @@ osrs:
   lowalch: 66
   highalch: 99
   limit: 7000
-  about: "Rune knife(p++) is a members-only item in Old School RuneScape. High alchemy value: 99 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: mid-high
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 25
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 24
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - materials:
+        - item_name: Rune knife
+          quantity: 1
+        - item_name: Weapon poison++
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Rune knife
+      slug: rune-knife
+      relationship: variant
+      description: Unpoisoned base version
+    - item_name: Dragon knife(p++)
+      slug: dragon-knife-p
+      relationship: upgrade
+      description: Stronger ranged thrown knife
+  about: Rune knife(p++) is a rune throwing knife coated in weapon poison++, popular in PKing for its short throwing animation and ability to apply strong venom-style poison.
+  market_strategy:
+    notes:
+      - Carries weapon poison++ for higher poison damage
+      - Often used in PvP for cancelable throw animation
+  trading_tips:
+    - Margin tracks closely to base rune knife plus poison cost
+  history:
+    - date: "2003-04-14"
+      description: Released as part of the throwing knife line.
+  properties:
+    release_date: "2003-04-14"
+    update: Throwing knives
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

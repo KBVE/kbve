@@ -15,82 +15,99 @@ osrs:
   material:
     type: secondary
     tier: high
-  spawn_locations:
-    - name: Chaos Temple
-      method: Telegrab
-    - name: Deep Wilderness Dungeon
-      method: Spawn
-      members_only: true
-  cooking:
-    level: 65
-    ingredient: Zamorak's grapes
+  drop_table:
+    sources:
+      - source: Chaos Temple (Asgarnia)
+        quantity: "1"
+        rarity: Spawn (30s respawn)
+      - source: Chaos Temple (Wilderness, level 38)
+        quantity: "1"
+        rarity: Spawn (30s respawn)
+      - source: Deep Wilderness Dungeon
+        quantity: "1"
+        rarity: Spawn (6.6s respawn)
   recipes:
     - skill: herblore
       level: 72
       xp: 162.5
       materials:
         - item_name: Dwarf weed potion (unf)
-          item_id: 109
           quantity: 1
         - item_name: Wine of zamorak
-          item_id: 245
           quantity: 1
+      tools: []
       product: Ranging potion(3)
-      product_id: 2444
-      product_quantity: 1
-      facility: None
-      members_only: true
+      output_quantity: 1
     - skill: herblore
       level: 80
       xp: 155
       materials:
         - item_name: Cadantine blood potion (unf)
-          item_id: 22443
           quantity: 1
         - item_name: Wine of zamorak
-          item_id: 245
           quantity: 1
+      tools: []
       product: Bastion potion(3)
-      product_id: 22461
-      product_quantity: 1
-      facility: None
-      members_only: true
+      output_quantity: 1
+    - skill: cooking
+      level: 65
+      xp: 200
+      materials:
+        - item_name: Zamorak's grapes
+          quantity: 1
+        - item_name: Jug of water
+          quantity: 1
+      tools: []
+      product: Wine of zamorak
+      output_quantity: 1
+      notes: 50% success at level 65; 100% at level 98.
   related_items:
-    - item_id: 2444
-      item_name: Ranging potion(3)
+    - item_name: Ranging potion(3)
       slug: ranging-potion-3
       relationship: product
-      description: Main product
-    - item_id: 267
-      item_name: Dwarf weed
-      slug: dwarf-weed
-      relationship: component
-      description: Partner herb
-    - item_id: 22461
-      item_name: Bastion potion(3)
+      description: Main Herblore product
+    - item_name: Bastion potion(3)
       slug: bastion-potion-3
       relationship: product
-      description: Alternative product
-    - item_id: 1987
-      item_name: Grapes
-      slug: grapes
+      description: Alternative Herblore product
+    - item_name: Dwarf weed potion (unf)
+      slug: dwarf-weed-potion-unf
       relationship: component
-      description: Cooking ingredient
+      description: Unfinished potion for Ranging potion
+    - item_name: Cadantine blood potion (unf)
+      slug: cadantine-blood-potion-unf
+      relationship: component
+      description: Unfinished potion for Bastion potion
+  about: "Wine of zamorak is a secondary used to brew Ranging and Bastion potions. Telegrabbed from Chaos Temple altars or found as a spawn in the Wilderness."
   market_strategy:
     notes:
-      - High demand for ranging pots
-      - Telegrab money maker
-      - Cooking alternative
-      - Ranging potions (PvM essential)
-      - Bastion potions (raids)
-      - Ironman accounts
-      - F2P money making
-      - Telegrab at Chaos Temple
-      - Wilderness spawns risky
-      - Cooking method viable
-      - Price tied to ranging pot demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - High demand from Ranging and Bastion potion brewers
+      - Telegrab gathering at Chaos Temple supplies the market
+      - Cooking method viable at 65+ for irons and bulk supply
+  trading_tips:
+    - Margin tied directly to Ranging potion demand cycles
+    - Wilderness PvP events can spike short-term supply or demand
+  history:
+    - date: "2002-02-27"
+      description: Released with the early game.
+    - date: "2023-03-01"
+      description: Cooking success rate adjusted to roughly 50% at level 65 and 100% at level 98.
+  properties:
+    release_date: "2002-02-27"
+    update: Original
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.085
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

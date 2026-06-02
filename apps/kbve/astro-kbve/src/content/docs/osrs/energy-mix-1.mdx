@@ -12,9 +12,71 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: 2000
-  about: "Energy mix(1) is a members-only item in Old School RuneScape. High alchemy value: 21 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: low
+  potion:
+    effects:
+      - description: Restores 10% of current run energy.
+      - description: Heals 3 Hitpoints on drink.
+  recipes:
+    - skill: herblore
+      level: 29
+      xp: 23
+      materials:
+        - item_name: Energy potion(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      product: Energy mix(2)
+      output_quantity: 1
+      notes: Requires Barbarian Herblore training; produces a 2-dose mix.
+  related_items:
+    - item_name: Energy mix(2)
+      slug: energy-mix-2
+      relationship: variant
+      description: Two-dose version
+    - item_name: Energy potion(2)
+      slug: energy-potion-2
+      relationship: component
+      description: Base potion used to brew the mix
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: Barbarian Herblore secondary
+  about: "Energy mix (1) is a one-dose Barbarian Herblore mix that restores run energy and a small amount of Hitpoints. Created with level 29 Herblore."
+  market_strategy:
+    notes:
+      - Niche Barbarian Herblore product with thin volume
+      - Buy limit of 2,000 keeps flips modest
+      - Demand tied to combat training and energy management
+  trading_tips:
+    - Compare price against base Energy potion to evaluate brewing margin
+    - Track caviar supply, which gates Barbarian Herblore mixes
+  history:
+    - date: "2007-07-03"
+      description: Released with the Barbarian Training update.
+    - date: "2016-04-15"
+      description: Half-full potions can now be turned into bank placeholders.
+  properties:
+    release_date: "2007-07-03"
+    update: Barbarian Training
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.045
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

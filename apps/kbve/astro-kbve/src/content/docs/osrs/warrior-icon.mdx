@@ -1,6 +1,6 @@
 ---
 title: Warrior icon | OSRS Price Data
-description: "Warrior icon: The icon of a warrior.. High alch: 4,800 GP."
+description: "Warrior icon: The icon of a warrior. High alch: 4,800 GP."
 osrs:
   id: 28301
   name: Warrior icon
@@ -12,9 +12,76 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: null
-  about: "Warrior icon is a members-only item in Old School RuneScape. High alchemy value: 4,800 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - materials:
+        - item_name: Warrior ring
+          quantity: 1
+      tools:
+        - Chisel
+      skill: Crafting
+      level: 80
+      xp: 400
+      output_item: Warrior icon
+      output_quantity: 1
+      notes: Chisel a warrior ring to produce the icon; level can be boosted.
+    - materials:
+        - item_name: Warrior icon
+          quantity: 1
+        - item_name: Bellator vestige
+          quantity: 1
+        - item_name: Blood rune
+          quantity: 500
+      tools:
+        - Magic
+      skill: Magic
+      level: 90
+      output_item: Bellator icon
+      output_quantity: 1
+      notes: Combined at level 90 Magic; requires 80 Crafting for the follow-up bellator ring step.
+  related_items:
+    - item_name: Warrior ring
+      slug: warrior-ring
+      relationship: component
+      description: Chiselled to produce the warrior icon.
+    - item_name: Bellator vestige
+      slug: bellator-vestige
+      relationship: component
+      description: Combined with the warrior icon to make a bellator icon.
+    - item_name: Bellator ring
+      slug: bellator-ring
+      relationship: product
+      description: Final ring crafted from the bellator icon at a furnace.
+  about: "Warrior icon is a Desert Treasure II crafting intermediate made by chiselling a warrior ring; it is combined with a bellator vestige and 500 blood runes to forge the bellator ring."
+  market_strategy:
+    notes:
+      - Supply comes from players chiselling warrior rings (80 Crafting).
+      - Demand is driven by bellator ring upgrades for slayer and PvM.
+      - No GE buy limit listed; volume can be thin.
+  trading_tips:
+    - Compare ring + chisel cost to icon price for arbitrage.
+    - Track bellator vestige drop news; price moves with vestige supply.
+  history:
+    - date: "2023-07-26"
+      description: Released with Desert Treasure II - The Fallen Empire.
+    - date: "2023-08-09"
+      description: Added an Inspect option to clarify intended use.
+  properties:
+    release_date: "2023-07-26"
+    update: "Desert Treasure II - The Fallen Empire"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.002
+    options:
+      - Inspect
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,46 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 150
-  about: "Desert top is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: body
+    weight: 0.005
+    requirements: {}
+    attack_bonus: {}
+    defence_bonus: {}
+    other_bonus: {}
+  shops:
+    - shop_name: Ali's Discount Wares
+      location: Al Kharid
+      price: 15
+      stock: 25
+      restock: 30 seconds
+  about: "Desert top is a body-slot clothing item bought from Ali's Discount Wares after completing parts of the Rogue Trader miniquest. Wearing it together with the matching desert robe delays the onset of desert heat damage by 12 seconds."
+  history:
+    - date: "2005-08-15"
+      description: Added with the Rogue Trader miniquest update.
+    - date: "2023-03-29"
+      description: Heat-delay window extended from 6 seconds to 12 seconds while worn.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-15"
+    update: Rogue Trader
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

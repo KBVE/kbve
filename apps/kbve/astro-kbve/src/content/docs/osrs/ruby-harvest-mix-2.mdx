@@ -12,9 +12,90 @@ osrs:
   lowalch: 7
   highalch: 10
   limit: null
-  about: "Ruby harvest mix (2) is a members-only item in Old School RuneScape. High alchemy value: 10 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: hunter mix
+    tier: low
+  potion:
+    effects:
+      - description: "Boosts Attack by 4 + 15% of the player's current Attack level (rounded down), ranging from +4 at low levels to +18 at level 99."
+      - description: In multicombat zones nearby players with Accept Aid enabled receive the same Attack boost from one dose, up to three additional players.
+  recipes:
+    - skill: hunter
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Ruby harvest jar
+          quantity: 1
+        - item_name: Raw wild kebbit
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+    - skill: hunter
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Ruby harvest jar
+          quantity: 1
+        - item_name: Raw larupia
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+    - skill: hunter
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Ruby harvest jar
+          quantity: 1
+        - item_name: Raw barb-tailed kebbit
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+  related_items:
+    - item_id: 29184
+      item_name: Ruby harvest mix (1)
+      slug: ruby-harvest-mix-1
+      relationship: variant
+      description: Single-dose version of the same potion
+    - item_id: 29182
+      item_name: Ruby harvest jar
+      slug: ruby-harvest-jar
+      relationship: component
+      description: Captured butterfly used in the mix recipe
+  about: "Ruby harvest mix (2) is a two-dose Varlamore hunter mix that boosts Attack and shares its dose with nearby allies in multicombat areas via Accept Aid."
+  market_strategy:
+    notes:
+      - Most recipes lose coins after GE tax versus selling the jar outright
+      - Demand spikes around boss masses where Accept Aid sharing is useful
+      - Supply tied to butterfly catch rates and meat market prices
+  trading_tips:
+    - Watch group PvM updates that promote Accept Aid sharing
+    - Compare raw meat costs daily before brewing for profit
+  history:
+    - date: "2024-03-20"
+      description: Released with Varlamore Part One alongside the Aldarin hunting expansion.
+    - date: "2024-04-03"
+      description: Group Ironmen gained the ability to share hunter mixes and butterflies correctly.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: The Final Dawn"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

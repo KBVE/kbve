@@ -1,6 +1,6 @@
 ---
 title: Hat eyepatch | OSRS Price Data
-description: "Hat eyepatch: Essential pirate wear.. High alch: 60 GP, GE limit: 150."
+description: "Hat eyepatch: Essential pirate wear. High alch: 60 GP, GE limit: 150."
 osrs:
   id: 8928
   name: Hat eyepatch
@@ -12,9 +12,82 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "Hat eyepatch is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: head
+    weight: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Pirate's hat
+          quantity: 1
+        - item_name: Right eye patch
+          quantity: 1
+        - item_name: Coins
+          quantity: 500
+      tools:
+        - Patchy on Mos Le'Harmless
+      output_quantity: 1
+  related_items:
+    - item_name: Pirate's hat
+      slug: pirates-hat
+      relationship: component
+    - item_name: Right eye patch
+      slug: right-eye-patch
+      relationship: component
+  about: "Hat eyepatch is a cosmetic head-slot item combined by Patchy on Mos Le'Harmless from a pirate's hat and a right eye patch for 500 coins after completing Cabin Fever."
+  market_strategy:
+    notes:
+      - Cosmetic pirate-themed cap with niche demand
+      - Requires Cabin Fever, limiting supply
+      - Low alch margin restricts flipping
+  trading_tips:
+    - List during pirate-themed events
+    - Buy during off-peak quest activity
+  history:
+    - date: "2006-07-04"
+      description: Added to the game alongside the Cabin Fever quest update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-04"
+    update: Cabin Fever
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: Cabin Fever
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

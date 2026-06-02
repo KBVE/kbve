@@ -1,6 +1,6 @@
 ---
 title: Rune dart(p+) | OSRS Price Data
-description: "Rune dart(p+): A deadly poisoned dart with a rune tip.. High alch: 210 GP, GE limit: 11,000."
+description: "Rune dart(p+) is a mid-tier poisoned rune throwing dart. High alch: 210 GP, GE limit: 11,000."
 osrs:
   id: 5634
   name: Rune dart(p+)
@@ -12,9 +12,73 @@ osrs:
   lowalch: 140
   highalch: 210
   limit: 11000
-  about: "Rune dart(p+) is a members-only item in Old School RuneScape. High alchemy value: 210 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 14
+    defence_bonus: {}
+    other_bonus:
+      ranged_strength: 26
+  related_items:
+    - item_id: 811
+      item_name: Rune dart
+      slug: rune-dart
+      relationship: variant
+      description: Unpoisoned base dart
+    - item_id: 5633
+      item_name: Rune dart(p)
+      slug: rune-dart-p-5633
+      relationship: variant
+      description: Weakly poisoned variant
+    - item_id: 5635
+      item_name: Rune dart(p++)
+      slug: rune-dart-p-5635
+      relationship: variant
+      description: Strongly poisoned variant
+  about: "Rune dart(p+) is the mid-tier poisoned rune dart, made by applying weapon poison+ to rune darts; needs Tourist Trap, 89 Smithing, and 81 Fletching to craft the base."
+  market_strategy:
+    notes:
+      - 11,000 limit supports heavy bulk flipping
+      - Demand from PvM ranged setups and slayer
+      - Track rune dart tip + feather inputs
+  trading_tips:
+    - Spread against unpoisoned matches weapon poison+ price
+    - Sell during DMM/leagues when ranged demand spikes
+  history:
+    - date: "2003-04-14"
+      description: Released with the New Throwing Weapons! update alongside other dart variants.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-04-14"
+    update: New Throwing Weapons!
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    quest: Tourist Trap
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

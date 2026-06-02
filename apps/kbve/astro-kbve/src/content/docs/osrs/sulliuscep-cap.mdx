@@ -14,43 +14,57 @@ osrs:
   limit: 100
   material:
     type: cooking_ingredient
-    tradeable: true
-    weight: 0.907
+    tier: mid
   drop_table:
     sources:
-      - source: Sulliuscep chopping
-        rate: 1/100
-        requirements:
-          woodcutting: 65
-  uses:
-    - result_name: Mushroom pie
-      effect: +4 Crafting boost
-  market:
-    buy_limit: 100
-    price_estimate: 6600
+      - source: Sulliuscep chopping (Woodcutting 65)
+        quantity: "1"
+        rarity: 1/100
+  recipes:
+    - skill: cooking
+      level: 60
+      materials:
+        - item_name: Pie shell
+          quantity: 1
+        - item_name: Sulliuscep cap
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      product: Uncooked mushroom pie
   related_items:
-    - item_id: 21516
-      item_name: Fossil Island
-      slug: fossil-island
-      relationship: alternative
-      description: Location
     - item_id: 21670
       item_name: Mushroom pie
       slug: mushroom-pie
       relationship: product
-      description: Created item
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Cooking Ingredient |
-    | Tradeable | Yes |
-    | Weight | 0.907 kg |
-
-    | Recipe | Boost |
-    |--------|-------|
-    | Mushroom pie | +4 Crafting |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Boosts Crafting by 4 when consumed
+  about: A Fossil Island mushroom cap chopped from sulliusceps at Woodcutting 65 and used as the primary ingredient in mushroom pies.
+  market_strategy:
+    notes:
+      - Demand driven by mushroom pie cookers
+      - Limited supply due to low drop rate
+      - Useful for Crafting boost via pie
+  trading_tips:
+    - GE price well above alch value
+    - Watch Crafting boss popularity for spikes
+  history:
+    - date: "2017-09-07"
+      description: Item released with the Fossil Island update.
+  properties:
+    release_date: "2017-09-07"
+    update: Fossil Island
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

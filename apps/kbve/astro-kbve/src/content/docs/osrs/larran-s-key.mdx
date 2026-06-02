@@ -1,6 +1,6 @@
 ---
 title: Larran's key | OSRS Price Data
-description: "Larran's key is a members none slot item. High alch: 54 GP, GE limit: 250."
+description: "Larran's key is a members tradeable key dropped by Wilderness Slayer monsters. High alch: 54 GP, GE limit: 250."
 osrs:
   id: 23490
   name: Larran's key
@@ -12,62 +12,62 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 250
-  equipment:
-    slot: none
-    weight: 0
   drop_table:
-    primary_source: Wilderness Slayer tasks
-    best_drop_rate: ~1/50
     sources:
       - source: Wilderness Slayer monsters
-        source_id: 0
-        combat_level: 0
         quantity: "1"
         rarity: varies
-        drop_rate: varies
-        members_only: true
       - source: Revenants
-        source_id: 0
-        combat_level: 0
         quantity: "1"
         rarity: uncommon
-        drop_rate: varies
-        members_only: true
+      - source: Superior slayer monsters
+        quantity: "1"
+        rarity: always
   related_items:
     - item_id: 23083
       item_name: Brimstone key
       slug: brimstone-key
       relationship: alternative
-      description: Konar Slayer equivalent
+      description: Konar Slayer equivalent key
     - item_id: 23995
       item_name: Dagon'hai robes piece
       slug: dagonhai-robes
       relationship: alternative
       description: Larran's chest reward
-  about: |-
-    Opens two types of chests:
-
-    Small Larran's chest:
-    - Located in Wilderness Slayer Cave
-    - Requires 1 key
-
-    Big Larran's chest:
-    - Located in Slayer Cave
-    - Better loot on average
-
-    Notable rewards:
-    - Dagon'hai robes
-    - Dragon pickaxe
-    - Various supplies
-    - Noted resources
+  about: "Larran's key opens Larran's small and big chests in the Wilderness Slayer Cave; rates scale with monster level and the Wilderness Slayer Cave 15% boost."
   market_strategy:
     notes:
-      - Wilderness Slayer Cave monsters have boosted rates
-      - Risk vs reward in Wilderness
-      - Multi-combat areas more dangerous
-      - Bring minimal risk gear
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Wilderness Slayer Cave monsters have boosted key rates
+      - Risk vs reward in Wilderness PvP zones
+      - Bring minimal risk gear to chest runs
+      - Multi-combat areas around the cave are dangerous
+  trading_tips:
+    - Sell on Grand Exchange since 2023 tradeable change
+    - Stockpile during DMM/events when chest opens spike
+    - Track Dagon'hai prices to value chest opens
+  history:
+    - date: "2019-06-20"
+      description: Released during the Wilderness Updates as a drop from Wilderness Slayer monsters.
+    - date: "2020-10-01"
+      description: Drop rates boosted inside the Wilderness Slayer Cave and Destroy swapped for Drop option.
+    - date: "2023-04-01"
+      description: Made tradeable on the Grand Exchange to combat scamming.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-06-20"
+    update: Wilderness Updates
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Are you sure you want to drop this? You will lose it forever."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

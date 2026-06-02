@@ -1,6 +1,6 @@
 ---
 title: Black full helm | OSRS Price Data
-description: "Black full helm: A full face helmet.. High alch: 633 GP, GE limit: 125."
+description: "Black full helm: A full face helmet. High alch: 633 GP, GE limit: 125."
 osrs:
   id: 1165
   name: Black full helm
@@ -12,24 +12,81 @@ osrs:
   lowalch: 422
   highalch: 633
   limit: 125
-  item_id: 1165
-  item_type: armor
-  slot: head
-  type: full_helm
-  tradeable: true
-  weight: 2.721
-  requirements:
-    defence: 10
-  stats:
-    stab_defence: 12
-    slash_defence: 13
-    crush_defence: 10
-    ranged_defence: 12
+  material:
+    type: black
+    tier: low
+  equipment:
+    slot: head
+    weapon_type: none
+    weight: 2.721
+    requirements:
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -3
+    defence_bonus:
+      stab: 12
+      slash: 13
+      crush: 10
+      magic: -1
+      ranged: 12
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Valaine's Shop of Champions
+      location: Heroes' Guild
+      price: 1372
   related_items:
     - slug: mithril-full-helm
+      item_name: Mithril full helm
+      relationship: upgrade
+      description: Higher-tier full helm.
     - slug: black-platebody
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      item_name: Black platebody
+      relationship: set-piece
+      description: Matching black body armour.
+    - slug: rune-full-helm
+      item_name: Rune full helm
+      relationship: upgrade
+      description: Highest-tier free-to-play full helm.
+  about: "Black full helm is a free-to-play head slot armour that requires 10 Defence, used in the King's Ransom and Heroes' Quest tasks and obtainable from shops or Treasure Trails."
+  market_strategy:
+    notes:
+      - Cannot be smithed, so supply relies on shop restocks and clue drops.
+      - Reliable demand from quest completionists keeps the GE price steady.
+  trading_tips:
+    - Bulk-buy from Valaine's Shop during low-volume periods for flipping margin.
+    - Hold extra copies for Heroes' Quest restarts on iron accounts.
+  history:
+    - date: "2001-02-13"
+      description: Added to the game.
+    - date: "2021-04-21"
+      description: Equipment rebalance reduced ranged attack from -2 to -3.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-02-13"
+    update: Armour
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

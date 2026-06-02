@@ -14,10 +14,8 @@ osrs:
   limit: 2000
   material:
     type: compost
-    tier: highest
-    tradeable: true
-    weight: 0.5
-  farming_effect:
+    tier: high
+  farming:
     disease_reduction: 90
     min_herb_yield: 6
     avg_herb_yield: 8.6
@@ -25,72 +23,76 @@ osrs:
       - Allotments
       - Hops
       - Herbs
-  creation:
-    method: Combine with volcanic ash
-    materials:
-      - item_id: 6034
-        item_name: Supercompost
-        quantity: "1"
-      - item_id: 21622
-        item_name: Volcanic ash
-        quantity: "1"
-  market:
-    buy_limit: 2000
-    price_estimate: 700
+  recipes:
+    - skill: farming
+      level: 1
+      xp: 10
+      materials:
+        - item_name: Supercompost
+          item_id: 6034
+          quantity: 1
+        - item_name: Volcanic ash
+          item_id: 21622
+          quantity: 2
+      tools: []
+      output_quantity: 1
   related_items:
     - item_id: 6034
       item_name: Supercompost
       slug: supercompost
-      relationship: component
-      description: Lower tier
+      relationship: downgrade
+      description: Lower tier compost
     - item_id: 21622
       item_name: Volcanic ash
       slug: volcanic-ash
       relationship: component
-      description: Crafting material
+      description: Crafting material from Fossil Island
     - item_id: 22997
       item_name: Bottomless compost bucket
       slug: bottomless-compost-bucket
       relationship: alternative
-      description: Container
-    - item_id: 5295
-      item_name: Ranarr seed
-      slug: ranarr-seed
-      relationship: alternative
-      description: Farming companion
-  about: |-
-    | Method | Requirements |
-    |--------|--------------|
-    | Volcanic ash + Supercompost | 1 ash per bucket |
-    | Bottomless bucket | Doubles doses |
-
-    | Effect | Value |
-    |--------|-------|
-    | Disease reduction | 90% per stage |
-    | Minimum herb yield | 6 |
-    | Average herb yield | ~8.6 |
-    | Works on | Allotments, hops, herbs |
-
-    | Compost | Disease Reduction | Min Herbs |
-    |---------|-------------------|-----------|
-    | Regular | 50% | 3 |
-    | Supercompost | 80% | 5 |
-    | Ultracompost | 90% | 6 |
+      description: Doubles compost doses
+  about: "Ultracompost is the highest tier compost in OSRS providing 90% disease reduction and minimum 6 herbs per patch. Created by combining supercompost with 2 volcanic ash from Fossil Island."
   market_strategy:
     notes:
       - Essential for herb runs
-      - Significantly better yields
-      - Volcanic ash crafting
+      - Significantly better yields than supercompost
+      - Volcanic ash crafting from Fossil Island
       - Herb run efficiency
       - Farming profit maximization
-      - Ironman farming
-      - High-level farmers
+      - Ironman farming staple
+      - High-level farmer demand
       - Bottomless bucket saves money
-      - Volcanic ash from Fossil Island
-      - ~20% more yield than super
-      - Low buy limit (2,000)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - ~20% more yield than supercompost
+      - Low buy limit (2,000) constrains supply
+  trading_tips:
+    - Stock up during volcanic ash price dips
+    - Buy when farming events boost demand
+    - Pair with Bottomless compost bucket for efficiency
+  history:
+    - date: "2024-09-25"
+      description: Now grants a small amount of Farming experience when created.
+    - date: "2020-09-10"
+      description: Grand Exchange buy limit increased from 600 to 2,000.
+    - date: "2017-09-07"
+      description: Released with the Fossil Island update.
+  properties:
+    release_date: "2017-09-07"
+    update: Fossil Island
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

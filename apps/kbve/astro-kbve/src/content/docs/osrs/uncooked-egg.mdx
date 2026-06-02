@@ -12,9 +12,45 @@ osrs:
   lowalch: 3
   highalch: 4
   limit: 13000
+  recipes:
+    - materials:
+        - item_name: Egg
+        - item_name: Bowl
+      tools: []
+      output_quantity: 1
+  related_items:
+    - name: Egg
+      relationship: component
+    - name: Bowl
+      relationship: component
+    - name: Scrambled egg
+      relationship: product
+    - name: Burnt egg
+      relationship: product
+    - name: Egg and tomato
+      relationship: product
+    - name: Egg potato
+      relationship: product
   about: "Uncooked egg is a members-only item in Old School RuneScape. High alchemy value: 4 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  history:
+    - date: "2006-01-30"
+      description: "Released as part of the Runesquares, Harpie Bugs and new potato recipes update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-01-30"
+    update: "Runesquares, Harpie Bugs and new potato recipes!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Ghorrock teleport (tablet) | OSRS Price Data
-description: "Ghorrock teleport (tablet): A teleport to Ghorrock, in level 45 Wilderness.. High alch: 1 GP, GE limit: 10,000."
+description: "Ghorrock teleport (tablet): A teleport to Ghorrock, in level 45 Wilderness. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 12778
   name: Ghorrock teleport (tablet)
@@ -12,9 +12,72 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Ghorrock teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destination: Frozen Waste Plateau (level 45 Wilderness)
+    spellbook: Ancient Magicks
+    quest_requirement: Desert Treasure I
+  recipes:
+    - skill: Magic
+      level: 96
+      xp: 106
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Law rune
+          quantity: 2
+        - item_name: Water rune
+          quantity: 8
+      tools:
+        - Ancient Lectern
+      output_quantity: 1
+      facility: Ancient Pyramid Lectern
+  related_items:
+    - item_id: 12777
+      item_name: Carrallangar teleport (tablet)
+      slug: carrallangar-teleport-tablet
+      relationship: alternative
+      description: Ancient Magicks Wilderness teleport tablet
+    - item_id: 12780
+      item_name: Annakarl teleport (tablet)
+      slug: annakarl-teleport-tablet
+      relationship: alternative
+      description: Ancient Magicks Wilderness teleport tablet
+  about: "Ghorrock teleport (tablet) is a members-only Ancient Magicks tablet that teleports to the Frozen Waste Plateau in level 45 Wilderness, made at the Ancient Lectern at 96 Magic for 106 XP after Desert Treasure I."
+  market_strategy:
+    notes:
+      - Niche Wilderness PvM and clue scroll travel demand
+      - Production gated by 96 Magic and Desert Treasure I
+      - Buy limit 10,000 covers typical user stockpiles
+      - Profit per tablet sits in the 1,500+ range vs runes
+      - High alch is 0 so alching is not in play
+  trading_tips:
+    - Wilderness boss meta lifts demand for this tablet line
+    - Soft clay and law rune floors drive crafting margin
+    - Producers can flip surplus on slow GE days
+  history:
+    - date: "2014-09-18"
+      update: "Ancient Spell Tablets"
+      description: Ghorrock teleport (tablet) added with the Ancient Magicks tablet line.
+    - date: "2020-10-14"
+      description: "Break became a left-click option with a Wilderness warning; Configure added to toggle the prompt."
+  properties:
+    release_date: "2014-09-18"
+    update: "Ancient Spell Tablets"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Configure
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

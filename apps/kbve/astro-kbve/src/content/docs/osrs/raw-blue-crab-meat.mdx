@@ -1,6 +1,6 @@
 ---
 title: Raw blue crab meat | OSRS Price Data
-description: "Raw blue crab meat: I should try cooking this.. High alch: 90 GP."
+description: "Raw blue crab meat: I should try cooking this. High alch: 90 GP."
 osrs:
   id: 31692
   name: Raw blue crab meat
@@ -12,9 +12,78 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: null
-  about: "Raw blue crab meat is a members-only item in Old School RuneScape. High alchemy value: 90 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: raw-food
+    tier: mid
+  recipes:
+    - materials:
+        - item_name: Blue crab
+          quantity: 1
+      tools:
+        - Knife
+      skill: Cooking
+      level: 48
+      xp: 8
+      output_item: Raw blue crab meat
+      output_quantity: 1
+      notes: Use a knife on a blue crab caught via crab trapping.
+    - materials:
+        - item_name: Raw blue crab meat
+          quantity: 1
+      tools:
+        - Fire
+        - Range
+      skill: Cooking
+      level: 48
+      xp: 145
+      output_item: Blue crab meat
+      output_quantity: 1
+      notes: Cook over a fire or range; may burn into burnt crab meat.
+  related_items:
+    - item_name: Blue crab
+      slug: blue-crab
+      relationship: component
+      description: Source crab sliced into raw blue crab meat.
+    - item_name: Blue crab meat
+      slug: blue-crab-meat
+      relationship: product
+      description: Cooked output granting 145 Cooking XP.
+    - item_name: Raw red crab meat
+      slug: raw-red-crab-meat
+      relationship: alternative
+      description: Red crab variant from the same Sailing trapping activity.
+    - item_name: Raw rainbow crab meat
+      slug: raw-rainbow-crab-meat
+      relationship: alternative
+      description: Rainbow crab variant from the same Sailing trapping activity.
+  about: "Raw blue crab meat is the Sailing-era cooking ingredient produced by knifing a blue crab; it cooks at 48 Cooking for 145 XP into blue crab meat."
+  market_strategy:
+    notes:
+      - Supply tied to crab-trapping activity post-Sailing release.
+      - Demand from Cooking XP grinders chasing efficient mid-tier XP/hour.
+      - No GE buy limit listed at release.
+  trading_tips:
+    - Compare against red and rainbow raw crab meat for best XP-per-coin.
+    - Stack with knives and cooking gear before bulk processing.
+  history:
+    - date: "2025-11-19"
+      description: Released with the Sailing update.
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.35
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

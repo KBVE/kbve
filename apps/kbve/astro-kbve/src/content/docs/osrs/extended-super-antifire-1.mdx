@@ -1,6 +1,6 @@
 ---
 title: Extended super antifire(1) | OSRS Price Data
-description: "Extended super antifire(1): 1 dose of extended super anti-firebreath potion.. High alch: 408 GP, GE limit: 2,000."
+description: "Extended super antifire(1) grants 6 minutes of complete dragonfire immunity. High alch: 408 GP, GE limit: 2,000."
 osrs:
   id: 22218
   name: Extended super antifire(1)
@@ -12,9 +12,74 @@ osrs:
   lowalch: 272
   highalch: 408
   limit: 2000
-  about: "Extended super antifire(1) is a members-only item in Old School RuneScape. High alchemy value: 408 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 1
+    effects:
+      - description: Complete immunity to standard dragonfire for 6 minutes per dose.
+      - description: Does not protect against Galvek, King Black Dragon's special breaths, or Vorkath (partial only).
+  recipes:
+    - skill: Herblore
+      level: 98
+      experience: 40
+      output_quantity: 1
+      materials:
+        - item_name: Super antifire potion
+          quantity: 1
+        - item_name: Lava scale shard
+          quantity: 1
+      tools: []
+    - skill: Herblore
+      level: 98
+      experience: 180
+      output_quantity: 1
+      materials:
+        - item_name: Extended antifire(1)
+          quantity: 1
+        - item_name: Crushed superior dragon bones
+          quantity: 1
+      tools: []
+  related_items:
+    - item_id: 22216
+      item_name: Extended super antifire(4)
+      slug: extended-super-antifire-4
+      relationship: variant
+      description: 4-dose variant
+    - item_id: 21978
+      item_name: Super antifire potion(1)
+      slug: super-antifire-potion-1
+      relationship: alternative
+      description: Non-extended super antifire base
+  about: "Extended super antifire(1) is a 1-dose dragonfire immunity potion unlocked via Primula at Myths' Guild after Dragon Slayer II."
+  market_strategy:
+    notes:
+      - 2,000 buy limit supports steady flipping
+      - Demand spikes during dragon slayer events and Vorkath grinds
+      - Convert from 4-dose when split prices diverge
+  trading_tips:
+    - Watch lava scale shard prices for input cost
+    - Decanting service shifts dose-split arbitrage
+  history:
+    - date: "2018-01-25"
+      description: Released with the Barbarian Assault Ranged Rework update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2018-01-25"
+    update: Barbarian Assault Ranged Rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    quest: Dragon Slayer II
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

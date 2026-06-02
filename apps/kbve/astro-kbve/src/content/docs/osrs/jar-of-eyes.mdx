@@ -9,12 +9,66 @@ osrs:
   members: true
   icon: Jar of eyes.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 4
-  about: "Jar of eyes is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: boss collectible
+    tier: high
+  drop_table:
+    sources:
+      - source: Sarachnis
+        quantity: "1"
+        rarity: 1/2000
+  construction:
+    feature: Boss lair display
+    room: Achievement Gallery
+  related_items:
+    - item_id: 25531
+      item_name: Sarachnis cudgel
+      slug: sarachnis-cudgel
+      relationship: alternative
+      description: Unique weapon drop from the same boss
+    - item_id: 23529
+      item_name: Jar of decay
+      slug: jar-of-decay
+      relationship: variant
+      description: Vorkath boss jar collectible
+    - item_id: 23527
+      item_name: Jar of stone
+      slug: jar-of-stone
+      relationship: variant
+      description: Grotesque Guardians boss jar collectible
+  about: "Jar of eyes is a rare collectible drop from Sarachnis that mounts inside the player-owned house Achievement Gallery, displaying boss-related lore for completionists."
+  market_strategy:
+    notes:
+      - Supply is entirely dictated by Sarachnis kills, capped by its niche slayer use
+      - Display piece demand is driven by player housing trends and pet hunters
+      - 4-per-limit makes large positions slow to acquire
+  trading_tips:
+    - Sarachnis task week updates inflate supply briefly
+    - Pair price tracking with the boss collection log meta
+  history:
+    - date: "2019-07-04"
+      description: Added with the Forthos Dungeon and Sarachnis release.
+    - date: "2024-09-25"
+      description: Inventory icon updated during the Varlamore Part Two graphical pass.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-07-04"
+    update: Forthos Dungeon
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drop
+    alchable: false
+    destroy: "You'll have to get another jar from Sarachnis if you destroy this."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

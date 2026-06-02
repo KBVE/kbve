@@ -1,6 +1,6 @@
 ---
 title: Adamant platebody | OSRS Price Data
-description: "Adamant platebody: Provides excellent protection.. High alch: 9,984 GP, GE limit: 125."
+description: "Adamant platebody: Provides excellent protection. High alch: 9,984 GP, GE limit: 125."
 osrs:
   id: 1123
   name: Adamant platebody
@@ -12,25 +12,96 @@ osrs:
   lowalch: 6656
   highalch: 9984
   limit: 125
-  item_id: 1123
-  item_type: armor
-  slot: body
-  type: platebody
-  tradeable: true
-  weight: 11.339
-  requirements:
-    defence: 30
-  stats:
-    stab_defence: 65
-    slash_defence: 63
-    crush_defence: 55
-    magic: -30
-    ranged: -15
+  material:
+    type: adamant
+    tier: mid
+  equipment:
+    slot: body
+    weapon_type: none
+    weight: 11.339
+    requirements:
+      defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -15
+    defence_bonus:
+      stab: 65
+      slash: 63
+      crush: 55
+      magic: -6
+      ranged: 63
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Smithing
+      level: 88
+      experience: 312.5
+      materials:
+        - item_name: Adamantite bar
+          quantity: 5
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: Horvik's Armour Shop
+      location: Varrock
+      stock: 0
+      price: 16640
+    - shop_name: Champions' Guild Shop
+      location: Champions' Guild
+      price: 21632
   related_items:
     - slug: rune-platebody
+      item_name: Rune platebody
+      relationship: upgrade
+      description: Tier above adamant platebody.
+    - slug: mithril-platebody
+      item_name: Mithril platebody
+      relationship: downgrade
+      description: Tier below adamant platebody.
     - slug: adamantite-bar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      item_name: Adamantite bar
+      relationship: component
+      description: Required smithing material.
+  about: "Adamant platebody is a free-to-play mid-tier body armour that requires 30 Defence and is smithed from five adamantite bars at level 88 Smithing."
+  market_strategy:
+    notes:
+      - Steady free-to-play demand from new Defence levellers.
+      - Smithing supply at level 88 keeps GE prices close to bar cost.
+  trading_tips:
+    - Smith from bars for the elite Lumbridge & Draynor Diary requirement.
+    - Compare bar price plus heat against current GE price before flipping.
+  history:
+    - date: "2001-01-04"
+      description: Added to the game.
+    - date: "2021-04-21"
+      description: Equipment rebalance adjusted ranged attack penalty.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    update: Smithing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 11.339
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
