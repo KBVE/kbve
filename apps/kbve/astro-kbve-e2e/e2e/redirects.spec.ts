@@ -45,5 +45,11 @@ describe('Static redirects', () => {
 			const ct = res.headers.get('content-type') ?? '';
 			expect(ct).toContain('text/html');
 		});
+
+		it(`${from} destination ${to} embeds the dashboard sidebar root`, async () => {
+			const res = await fetch(`${BASE_URL}${from}`);
+			const body = await res.text();
+			expect(body).toContain('data-kbve-sidebar-root');
+		});
 	}
 });
