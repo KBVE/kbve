@@ -14,8 +14,6 @@ interface Props {
 	title?: string;
 }
 
-const SCALAR_CDN = 'https://cdn.jsdelivr.net/npm/@scalar/api-reference';
-
 const {
 	specUrl = '/api/openapi.json',
 	sources,
@@ -37,6 +35,12 @@ const configJson = JSON.stringify(configuration);
 ---
 
 <div id="scalar-app"></div>
+<script
+	is:inline
+	type="application/json"
+	id="scalar-config"
+	set:html={configJson}
+/>
 
 <style is:global>
 	#scalar-app {
@@ -84,27 +88,70 @@ const configJson = JSON.stringify(configuration);
 	}
 </style>
 
-<script is:inline src={SCALAR_CDN}></script>
-<script is:inline define:vars={{ configJson }} data-astro-rerun>
-	(function () {
-		// Skip when the host mount node isn't on the swap target (router
-		// can re-fire this script on any page; only run where the
-		// Scalar mount exists).
-		if (!document.getElementById('scalar-app')) return;
-		var cfg = JSON.parse(configJson);
-		window.__scalarBaseConfig = cfg;
-		if (!window.Scalar) return;
-		// Tear down any previous instance bound to the now-removed DOM.
+<script>
+	// Module script — Astro bundles `@scalar/api-reference` so we don't
+	// depend on a CDN tag racing the mount script (the CDN approach
+	// broke on client-router transitions: the inline `<script src=...>`
+	// re-injected async, but the inline mount script ran immediately
+	// and bailed on `window.Scalar` not being defined yet — blank page
+	// until a full reload).
+	import { createApiReference } from '@scalar/api-reference';
+	import '@scalar/api-reference/style.css';
+	import { attachScalarAuthBridge } from '@/components/api/scalar-auth-bridge';
+
+	type ScalarInstance = {
+		updateConfiguration?: (cfg: Record<string, unknown>) => void;
+		destroy?: () => void;
+	};
+
+	declare global {
+		interface Window {
+			__scalarRef?: ScalarInstance;
+			__scalarBaseConfig?: Record<string, unknown>;
+		}
+	}
+
+	function readConfig(): Record<string, unknown> | null {
+		const node = document.getElementById('scalar-config');
+		if (!node?.textContent) return null;
 		try {
-			window.__scalarRef?.destroy?.();
-		} catch (e) {}
-		window.__scalarRef = window.Scalar.createApiReference(
+			return JSON.parse(node.textContent) as Record<string, unknown>;
+		} catch {
+			return null;
+		}
+	}
+
+	function mount() {
+		// astro:page-load fires on every route; bail when the route the
+		// user landed on doesn't have the Scalar mount node.
+		const host = document.getElementById('scalar-app');
+		if (!host) return;
+		const cfg = readConfig();
+		if (!cfg) return;
+		window.__scalarBaseConfig = cfg;
+		// Reuse the existing instance when the same DOM node is still
+		// alive (e.g. partial swap that left the host mounted); destroy
+		// otherwise so the new mount doesn't double-render.
+		const existing = window.__scalarRef;
+		if (existing && host.childElementCount > 0) {
+			existing.updateConfiguration?.(cfg);
+			void attachScalarAuthBridge();
+			return;
+		}
+		try {
+			existing?.destroy?.();
+		} catch {
+			/* old instance already gone */
+		}
+		window.__scalarRef = createApiReference(
 			'#scalar-app',
 			cfg,
-		);
-	})();
-</script>
+		) as ScalarInstance;
+		void attachScalarAuthBridge();
+	}
 
-<script>
-	import '@/components/api/scalar-auth-bridge';
+	// astro:page-load fires after the initial parse AND after every
+	// client-router swap, so a single subscription covers both modes
+	// without any data-astro-rerun gymnastics.
+	document.addEventListener('astro:page-load', mount);
 </script>
