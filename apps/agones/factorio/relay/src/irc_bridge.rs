@@ -176,8 +176,14 @@ fn parse_privmsg(line: &str, expected_channel: &str, self_nick: &str) -> Option<
 
 fn format_for_irc(ev: &GameEvent) -> Option<String> {
     match ev.kind {
-        GameEventKind::Chat | GameEventKind::Join | GameEventKind::Leave => Some(ev.text.clone()),
-        GameEventKind::Command | GameEventKind::Stats => None,
+        GameEventKind::Chat => {
+            let player = ev.player.as_deref().unwrap_or("server");
+            Some(format!("[CHAT] {player}@factorio: {}", ev.text))
+        }
+        GameEventKind::Join
+        | GameEventKind::Leave
+        | GameEventKind::Command
+        | GameEventKind::Stats => None,
     }
 }
 

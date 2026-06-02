@@ -92,15 +92,32 @@ fn should_forward_irc(msg: &ChatMessage, target_channel: &str) -> bool {
 fn format_irc_for_discord(msg: &ChatMessage) -> String {
     let sender = sanitize(&msg.sender);
     let content = sanitize(&msg.content);
+    let tag = platform_tag(&msg.platform);
     let head = if sender.is_empty() {
-        "**IRC**".to_owned()
+        format!("**[{tag}]**")
     } else {
-        format!("**IRC \u{2022} {sender}**")
+        format!("**[{tag}] {sender}**")
     };
     if content.is_empty() {
         head
     } else {
         format!("{head}: {content}")
+    }
+}
+
+fn platform_tag(platform: &str) -> String {
+    match platform {
+        "factorio" => "F".to_owned(),
+        "isometric" => "I".to_owned(),
+        "rareicon" => "R".to_owned(),
+        "minecraft" => "M".to_owned(),
+        "system" => "SYS".to_owned(),
+        "irc" => "IRC".to_owned(),
+        other => other
+            .chars()
+            .next()
+            .map(|c| c.to_ascii_uppercase().to_string())
+            .unwrap_or_else(|| "IRC".to_owned()),
     }
 }
 
