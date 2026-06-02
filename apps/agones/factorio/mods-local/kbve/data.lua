@@ -40,4 +40,16 @@ table.insert(to_add, {
 	consuming = 'none',
 })
 
+local PORTRAIT_REFS = { 'vex', 'sila', 'kress', 'tann', 'reno', 'mira' }
+for _, ref in ipairs(PORTRAIT_REFS) do
+	table.insert(to_add, {
+		type = 'sprite',
+		name = 'kbve_portrait_' .. ref,
+		filename = '__kbve__/graphics/portraits/' .. ref .. '.png',
+		width = 640,
+		height = 960,
+		flags = { 'gui-icon' },
+	})
+end
+
 data:extend(to_add)

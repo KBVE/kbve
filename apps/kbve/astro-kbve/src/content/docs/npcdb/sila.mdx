@@ -1,0 +1,46 @@
+---
+title: 'Sila'
+description: |
+    Sci-fi vault keeper. Catalogs and seals personal lockers in the colony bank. Polite but cold; she has counted every gram of metal that crosses the threshold.
+ref: 'sila'
+id: '01KSAVZ000000000000000SILA'
+name: 'Sila'
+type_flags: 1
+rarity: 'uncommon'
+personality: 'stoic'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+img: '/assets/npc/sila.png'
+role: 'Vault Keeper'
+tags:
+    - kbve-factorio
+    - bank
+stats:
+    hp: 30
+    max_hp: 30
+    attack: 1
+    defense: 0
+    speed: 3
+    armor: 0
+behavior:
+    movement_type: 'stationary'
+    first_strike: false
+dialogue:
+    - trigger: 'greeting'
+      lines:
+        - 'Your vault is sealed and surveyed.'
+        - 'I keep what dies with you — and what does not.'
+        - 'Eight by eight, give or take. Pack tight.'
+    - trigger: 'deposit'
+      lines:
+        - 'Tucked away. Safer with me than with you.'
+        - 'Counted twice. Logged twice.'
+faction:
+    faction_id: 'player'
+---
+
+import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+
+<NPCDBPanel data={frontmatter} />
+Sci-fi vault keeper. Catalogs and seals personal lockers.

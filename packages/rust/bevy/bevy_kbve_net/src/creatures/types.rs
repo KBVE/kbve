@@ -5,10 +5,6 @@ use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use ulid::Ulid;
 
-// ---------------------------------------------------------------------------
-// Creature instance identity
-// ---------------------------------------------------------------------------
-
 /// Globally unique creature instance identifier assigned by the server.
 /// Embeds creation timestamp in the ULID's upper 48 bits, so you can tell
 /// when a creature was spawned from its ID alone.
@@ -43,10 +39,6 @@ impl CreatureId {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Per-entity components
-// ---------------------------------------------------------------------------
-
 /// Generic marker for all sprite-sheet creatures processed by the unified
 /// spawn/animate systems. Replaces per-creature markers (WolfMarker, etc.).
 #[derive(Component)]
@@ -68,10 +60,6 @@ pub struct SpriteCreatureMarker {
 /// Links a sprite creature entity to its blob shadow entity.
 #[derive(Component)]
 pub struct CreatureShadowLink(pub Entity);
-
-// ---------------------------------------------------------------------------
-// Creature vitals — ECS-friendly health/mana/energy tracking
-// ---------------------------------------------------------------------------
 
 /// Per-entity vitals for NPC creatures. Server-authoritative, replicated
 /// to clients for health bars and interaction logic.
@@ -166,10 +154,6 @@ impl Default for VitalsConfig {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Direction handling
-// ---------------------------------------------------------------------------
-
 /// How a sprite creature resolves its facing direction.
 #[derive(Clone, Debug)]
 pub enum DirectionModel {
@@ -187,10 +171,6 @@ pub fn iso_quadrant(dx: f32, dz: f32) -> u32 {
     let sum = dx + dz;
     ((diff >= 0.0) as u32) << 1 | (sum >= 0.0) as u32
 }
-
-// ---------------------------------------------------------------------------
-// Movement
-// ---------------------------------------------------------------------------
 
 /// How a creature moves during `SpriteHopState::Airborne`.
 #[derive(Clone, Debug)]
@@ -212,10 +192,6 @@ pub enum MovementProfile {
         hover_frequency: f32,
     },
 }
-
-// ---------------------------------------------------------------------------
-// Animation
-// ---------------------------------------------------------------------------
 
 /// A single animation definition: base row + frame count.
 #[derive(Clone, Copy, Debug)]
@@ -251,10 +227,6 @@ impl AnimSet {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Behavior
-// ---------------------------------------------------------------------------
-
 /// What a creature does when its idle timer expires.
 #[derive(Clone, Debug)]
 pub enum BehaviorAction {
@@ -288,10 +260,6 @@ pub struct BehaviorProfile {
     pub choices: Vec<BehaviorChoice>,
 }
 
-// ---------------------------------------------------------------------------
-// Tinting
-// ---------------------------------------------------------------------------
-
 /// How weather tinting is applied to this creature type.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TintProfile {
@@ -301,10 +269,6 @@ pub enum TintProfile {
     Ghost,
 }
 
-// ---------------------------------------------------------------------------
-// Visibility schedule
-// ---------------------------------------------------------------------------
-
 /// When this creature type is visible. Re-exported from npcdb when that
 /// feature is enabled; standalone definition when not.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -313,10 +277,6 @@ pub enum VisibilitySchedule {
     Day,
     Always,
 }
-
-// ---------------------------------------------------------------------------
-// Sprite animation state (moved from game crate creature.rs)
-// ---------------------------------------------------------------------------
 
 /// Sprite render data (sprite sheet UV animation + hop arcs).
 /// Shared between client and server for simulation state.
@@ -359,10 +319,6 @@ impl Default for SpriteHopState {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Creature core component (simulation-relevant fields only)
-// ---------------------------------------------------------------------------
-
 /// Core creature state needed by the simulation system.
 /// On the client this is the same struct defined in the game crate's creature.rs;
 /// the server uses this shared version directly.
@@ -396,10 +352,6 @@ pub enum CreatureState {
 #[derive(Component)]
 pub struct CreaturePoolIndex(pub usize);
 
-// ---------------------------------------------------------------------------
-// Atlas pool (simulation-only tracking, no GPU handles)
-// ---------------------------------------------------------------------------
-
 /// Per-creature-type spawn tracking. GPU resource handles stay client-side.
 #[derive(Resource, Default)]
 pub struct SpriteAtlasPool {
@@ -411,10 +363,6 @@ pub struct SpriteAtlasEntry {
     pub type_key: &'static str,
     pub spawned: bool,
 }
-
-// ---------------------------------------------------------------------------
-// Complete type descriptor
-// ---------------------------------------------------------------------------
 
 /// Static descriptor for one sprite creature type. Lives in the
 /// `SpriteCreatureTypes` resource, keyed by NPC ref string.
@@ -455,19 +403,11 @@ pub struct SpriteCreatureType {
     pub patrol_emotes: &'static [&'static str],
 }
 
-// ---------------------------------------------------------------------------
-// Resources
-// ---------------------------------------------------------------------------
-
 /// All registered sprite creature type descriptors.
 #[derive(Resource, Default)]
 pub struct SpriteCreatureTypes {
     pub types: Vec<SpriteCreatureType>,
 }
-
-// ---------------------------------------------------------------------------
-// Player positions resource (decouples from Player component)
-// ---------------------------------------------------------------------------
 
 /// Player positions populated each frame by the client or server.
 /// The physics LOD system reads this instead of querying a `Player` component

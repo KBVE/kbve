@@ -15,10 +15,6 @@ pub struct FallDamageEvent {
     pub amount: f32,
 }
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 const PLAYER_HALF_X: f32 = 0.3;
 const PLAYER_HALF_Z: f32 = 0.3;
 const PLAYER_HEIGHT: f32 = 1.2;
@@ -32,10 +28,6 @@ const FALL_DAMAGE_PER_UNIT: f32 = 15.0;
 
 /// Small skin distance to prevent the player from touching colliders exactly.
 const COLLISION_SKIN: f32 = 0.01;
-
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
 
 #[derive(Component)]
 pub struct Player;
@@ -57,16 +49,8 @@ impl Default for PlayerPhysics {
     }
 }
 
-// ---------------------------------------------------------------------------
-// System set (used by camera for ordering)
-// ---------------------------------------------------------------------------
-
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PlayerMovement;
-
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
 
 pub struct PlayerPlugin;
 
@@ -89,10 +73,6 @@ impl Plugin for PlayerPlugin {
         );
     }
 }
-
-// ---------------------------------------------------------------------------
-// Spawn
-// ---------------------------------------------------------------------------
 
 fn spawn_player(
     mut commands: Commands,
@@ -129,10 +109,6 @@ fn spawn_player(
         .with_max_distance(0.15),
     ));
 }
-
-// ---------------------------------------------------------------------------
-// Movement: WASD + gravity + jump → set desired translation
-// ---------------------------------------------------------------------------
 
 fn move_player(
     keyboard: Res<ButtonInput<KeyCode>>,
@@ -194,7 +170,6 @@ fn move_player(
 
         let vertical = Vec3::new(0.0, physics.velocity_y * time.delta_secs(), 0.0);
 
-        // -- Collision-aware movement via shape casting -------------------------
         // Use a slightly shrunk collider for sweeping to avoid edge-catching.
         let sweep_collider = Collider::cuboid(
             PLAYER_HALF_X * 2.0 * 0.85,
@@ -241,7 +216,6 @@ fn move_player(
 
         transform.translation += resolved_h + resolved_v;
 
-        // --- Fallback floor: prevent falling through unloaded chunks ---
         // If the player is below the terrain surface (e.g. chunk collider not
         // yet spawned), snap them back up. This is the last line of defense.
         let floor_y = terrain.height_at_loaded(
@@ -341,10 +315,6 @@ fn try_cast(
         .map(|hit| hit.distance)
 }
 
-// ---------------------------------------------------------------------------
-// Post-physics: ground detection via ShapeCaster + fall damage
-// ---------------------------------------------------------------------------
-
 fn process_player_ground_detection(
     mut commands: Commands,
     mut query: Query<(&ShapeHits, &mut PlayerPhysics, &Transform), With<Player>>,
@@ -374,10 +344,6 @@ fn process_player_ground_detection(
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// State sync
-// ---------------------------------------------------------------------------
 
 fn sync_player_state(
     query: Query<&Transform, With<Player>>,

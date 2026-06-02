@@ -23,6 +23,14 @@ export interface BurnPatchDeps {
 		alpha?: number,
 	) => Phaser.GameObjects.Arc;
 	releaseArc: (sprite: Phaser.GameObjects.Arc) => void;
+	acquireBurnDecal?: (
+		x: number,
+		y: number,
+		radius: number,
+		color: number,
+		alpha: number,
+	) => Phaser.GameObjects.Image | null;
+	releaseBurnDecal?: (sprite: Phaser.GameObjects.Image) => void;
 	forEachEnemyInRange: (
 		cx: number,
 		cy: number,
@@ -42,8 +50,16 @@ export function spawnBurnPatch(
 	dps: number,
 	expiresAtMs: number,
 ): void {
-	const sprite = deps.acquireArc(x, y, radius, COLORS.burnPatch, 0.25);
-	sprite.setStrokeStyle(2, COLORS.burnPatch, 0.6);
+	const decal = deps.acquireBurnDecal?.(x, y, radius, COLORS.burnPatch, 0.4);
+	const sprite: Phaser.GameObjects.Arc | Phaser.GameObjects.Image =
+		decal ?? deps.acquireArc(x, y, radius, COLORS.burnPatch, 0.25);
+	if (!decal && 'setStrokeStyle' in sprite) {
+		(sprite as Phaser.GameObjects.Arc).setStrokeStyle(
+			2,
+			COLORS.burnPatch,
+			0.6,
+		);
+	}
 	const eid = addEntity(deps.world);
 	addComponent(deps.world, eid, Position);
 	addComponent(deps.world, eid, BurnPatchTag);
@@ -101,7 +117,15 @@ export function updateBurnPatches(deps: BurnPatchDeps, nowMs: number): void {
 	for (let i = 0; i < deps.burnPatchDeathRow.length; i++) {
 		const eid = deps.burnPatchDeathRow[i];
 		const v = deps.burnPatchVisuals.delete(eid);
-		if (v) deps.releaseArc(v.sprite);
+		if (v) {
+			if ('setStrokeStyle' in v.sprite) {
+				deps.releaseArc(v.sprite as Phaser.GameObjects.Arc);
+			} else if (deps.releaseBurnDecal) {
+				deps.releaseBurnDecal(v.sprite as Phaser.GameObjects.Image);
+			} else {
+				v.sprite.destroy();
+			}
+		}
 		deps.removeEntityQueue.push(eid);
 	}
 }

@@ -275,6 +275,12 @@ import type {
 
 const HUD_HEIGHT = TILE * HUD_ROWS_TOP;
 const PALETTE_HEIGHT = TILE * 2;
+const IMPACT_DECAL_TEXTURE_KEY = 'td-impact-decal';
+
+function redTintColorMatrix(strength: number): number[] {
+	const t = 0.35 + (1 - strength) * 0.65;
+	return [1, 0, 0, 0, 0, 0, t, 0, 0, 0, 0, 0, t, 0, 0, 0, 0, 0, 1, 0];
+}
 
 function refundForBuilding(b: Building): number {
 	let value = b.spec.cost;
@@ -451,6 +457,15 @@ export class TowerDefenseScene extends Phaser.Scene {
 			) => this.acquireArc(x, y, radius, color, alpha),
 			releaseArc: (sprite: Phaser.GameObjects.Arc) =>
 				this.releaseArc(sprite),
+			acquireBurnDecal: (
+				x: number,
+				y: number,
+				radius: number,
+				color: number,
+				alpha: number,
+			) => this.acquireBurnDecal(x, y, radius, color, alpha),
+			releaseBurnDecal: (sprite: Phaser.GameObjects.Image) =>
+				this.releaseBurnDecal(sprite),
 			forEachEnemyInRange: (
 				cx: number,
 				cy: number,
@@ -622,6 +637,13 @@ export class TowerDefenseScene extends Phaser.Scene {
 	private placementRange!: Phaser.GameObjects.Arc;
 	private placementCoverage!: Phaser.GameObjects.Graphics;
 	private grassController: GrassController | null = null;
+	private nexusAura:
+		| (Phaser.GameObjects.GameObject & {
+				setAlpha(alpha: number): unknown;
+				offset: number;
+		  })
+		| null = null;
+	private cameraPauseBlur: unknown = null;
 	private hoverRangeIndicator: Phaser.GameObjects.Arc | null = null;
 	private hoverRangeOwner: Building | null = null;
 
@@ -646,6 +668,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	init(): void {
+		this.setCameraPauseBlur(false);
+		this.nexusAura = null;
 		this.world = createWorld();
 		this.enemyVisuals = new SideMap<EnemyVisual>();
 		this.pendingBosses = 0;
@@ -755,6 +779,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.grassController = drawGrass(this);
 		drawGridLines(this);
 		drawPath(this, this.path);
+		this.applyCameraPolishFilters();
+		this.ensureImpactDecalTexture();
 		this.subscribeHudSignals();
 		this.buildPlacementPreview();
 		this.placeNexus();
@@ -937,6 +963,115 @@ export class TowerDefenseScene extends Phaser.Scene {
 		});
 	}
 
+	private applyCameraPolishFilters(): void {
+		const cam = this.cameras.main as Phaser.Cameras.Scene2D.Camera & {
+			filters?: {
+				external: {
+					addVignette(
+						x?: number,
+						y?: number,
+						radius?: number,
+						strength?: number,
+					): unknown;
+				};
+			};
+		};
+		if (cam.filters?.external) {
+			cam.filters.external.addVignette(0.5, 0.5, 0.55, 0.4);
+		}
+		const actions = (
+			Phaser as unknown as {
+				Actions?: { AddEffectBloom?: (items: unknown[]) => unknown };
+			}
+		).Actions;
+		if (typeof actions?.AddEffectBloom === 'function') {
+			actions.AddEffectBloom([this.cameras.main]);
+		}
+	}
+
+	private ensureImpactDecalTexture(): void {
+		const key = IMPACT_DECAL_TEXTURE_KEY;
+		if (this.textures.exists(key)) return;
+		const size = 32;
+		const canvas = this.textures.createCanvas(key, size, size);
+		if (!canvas) return;
+		const ctx = canvas.getContext();
+		const gradient = ctx.createRadialGradient(
+			size / 2,
+			size / 2,
+			0,
+			size / 2,
+			size / 2,
+			size / 2,
+		);
+		gradient.addColorStop(0, 'rgba(255,255,255,1)');
+		gradient.addColorStop(0.45, 'rgba(255,255,255,0.55)');
+		gradient.addColorStop(1, 'rgba(255,255,255,0)');
+		ctx.fillStyle = gradient;
+		ctx.fillRect(0, 0, size, size);
+		canvas.refresh();
+	}
+
+	private spawnImpactDecal(x: number, y: number, color: number): void {
+		const factory = this.add as Phaser.GameObjects.GameObjectFactory & {
+			stamp?: (
+				x: number,
+				y: number,
+				texture: string,
+			) => Phaser.GameObjects.Image;
+		};
+		const stamp =
+			typeof factory.stamp === 'function'
+				? factory.stamp(x, y, IMPACT_DECAL_TEXTURE_KEY)
+				: this.add.image(x, y, IMPACT_DECAL_TEXTURE_KEY);
+		stamp
+			.setOrigin(0.5)
+			.setDepth(2)
+			.setBlendMode(Phaser.BlendModes.ADD)
+			.setTint(color)
+			.setScale(0.65)
+			.setAlpha(0.85);
+		this.tweens.add({
+			targets: stamp,
+			alpha: 0,
+			scale: 1.15,
+			duration: 320,
+			ease: 'Cubic.easeOut',
+			onComplete: () => stamp.destroy(),
+		});
+	}
+
+	private flashCameraDamageTint(): void {
+		const cam = this.cameras.main as Phaser.Cameras.Scene2D.Camera & {
+			filters?: {
+				internal: {
+					addColorMatrix(): {
+						colorMatrix: {
+							reset(): void;
+							set(value: number[]): unknown;
+						};
+					};
+					remove(filter: unknown): void;
+				};
+			};
+		};
+		const filters = cam.filters?.internal;
+		if (!filters) return;
+		const cm = filters.addColorMatrix();
+		cm.colorMatrix.set(redTintColorMatrix(1));
+		const state = { t: 1 };
+		this.tweens.add({
+			targets: state,
+			t: 0,
+			duration: 260,
+			ease: 'Cubic.easeOut',
+			onUpdate: () => {
+				cm.colorMatrix.set(redTintColorMatrix(state.t));
+			},
+			onComplete: () => filters.remove(cm),
+		});
+	}
+
 	private buildPlacementPreview(): void {
 		this.placementCoverage = this.add
 			.graphics()
@@ -993,6 +1128,60 @@ export class TowerDefenseScene extends Phaser.Scene {
 		const nexus = this.spawnBuilding('nexus', col, row, cx, cy);
 		this.nexusEid = nexus.id;
 		nexusMaxHpAtom.set(Health.maxHp[nexus.id]);
+		this.spawnNexusAura(cx, cy, nexus.sprite.depth);
+	}
+
+	private spawnNexusAura(cx: number, cy: number, baseDepth: number): void {
+		const factory = this.add as Phaser.GameObjects.GameObjectFactory & {
+			gradient?: (
+				config: Record<string, unknown>,
+				x: number,
+				y: number,
+				width: number,
+				height: number,
+			) => Phaser.GameObjects.GameObject & {
+				setDepth(depth: number): unknown;
+				setAlpha(alpha: number): unknown;
+				setBlendMode(mode: number): unknown;
+				offset: number;
+			};
+		};
+		if (typeof factory.gradient !== 'function') return;
+		const size = TILE * 5;
+		const aura = factory.gradient(
+			{
+				bands: [
+					{
+						start: 0.0,
+						end: 0.55,
+						colorStart: [1, 0.85, 0.35, 0.55],
+						colorEnd: [1, 0.7, 0.25, 0.25],
+						colorSpace: 1,
+						interpolation: 4,
+					},
+					{
+						start: 0.55,
+						end: 1.0,
+						colorStart: [1, 0.7, 0.25, 0.25],
+						colorEnd: [1, 0.6, 0.2, 0],
+						colorSpace: 1,
+						interpolation: 4,
+					},
+				],
+				shapeMode: 2,
+				start: { x: 0.5, y: 0.5 },
+				shape: { x: 0.5, y: 0.0 },
+				dither: true,
+			},
+			cx,
+			cy,
+			size,
+			size,
+		);
+		aura.setDepth(baseDepth - 1)
+			.setBlendMode(Phaser.BlendModes.ADD)
+			.setAlpha(0.85);
+		this.nexusAura = aura;
 	}
 
 	private placeStarterKit(): void {
@@ -2620,6 +2809,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.sfx.play('nexus_hit', 60);
 		const intensity = Math.min(0.012, 0.002 + taken * 0.0008);
 		this.cameras.main.shake(120, intensity);
+		this.flashCameraDamageTint();
 		if (taken <= 0) return;
 		this.floatingText.spawn({
 			x: b.x,
@@ -3576,6 +3766,63 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.pools.arc.release(sprite);
 	}
 
+	private acquireBurnDecal(
+		x: number,
+		y: number,
+		radius: number,
+		color: number,
+		alpha: number,
+	): Phaser.GameObjects.Image | null {
+		const factory = this.add as Phaser.GameObjects.GameObjectFactory & {
+			stamp?: (
+				x: number,
+				y: number,
+				texture: string,
+			) => Phaser.GameObjects.Image;
+		};
+		if (typeof factory.stamp !== 'function') return null;
+		if (!this.textures.exists(IMPACT_DECAL_TEXTURE_KEY)) return null;
+		const sprite = factory.stamp(x, y, IMPACT_DECAL_TEXTURE_KEY);
+		const scale = (radius * 2) / 32;
+		sprite
+			.setOrigin(0.5)
+			.setDepth(2)
+			.setBlendMode(Phaser.BlendModes.ADD)
+			.setTint(color)
+			.setScale(scale)
+			.setAlpha(alpha);
+		return sprite;
+	}
+
+	private releaseBurnDecal(sprite: Phaser.GameObjects.Image): void {
+		sprite.destroy();
+	}
+
+	private setCameraPauseBlur(enabled: boolean): void {
+		const cam = this.cameras.main as Phaser.Cameras.Scene2D.Camera & {
+			filters?: {
+				external: {
+					addBlur(
+						quality?: number,
+						x?: number,
+						y?: number,
+						strength?: number,
+					): unknown;
+					remove(filter: unknown): void;
+				};
+			};
+		};
+		const filters = cam.filters?.external;
+		if (!filters) return;
+		if (enabled) {
+			if (this.cameraPauseBlur) return;
+			this.cameraPauseBlur = filters.addBlur(1, 2, 2, 1.2);
+		} else if (this.cameraPauseBlur) {
+			filters.remove(this.cameraPauseBlur);
+			this.cameraPauseBlur = null;
+		}
+	}
+
 	private acquireRect(
 		x: number,
 		y: number,
@@ -3726,6 +3973,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 		x: number,
 		y: number,
 	): void {
+		const visual = this.projectileVisuals.get(eid);
+		const decalColor = visual?.sprite.fillColor ?? 0xffffff;
+		this.spawnImpactDecal(x, y, decalColor);
 		const burnDps = ProjectileStats.burnDps[eid];
 		const burnMs = ProjectileStats.burnMs[eid];
 		const burnRadius = ProjectileStats.burnRadius[eid];
@@ -3862,6 +4112,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			speedFactorAtom.set(0);
 		}
 		this.pauseOverlay?.setPaused(this.isPaused);
+		this.setCameraPauseBlur(this.isPaused);
 	}
 
 	private updateEnemyHover(): void {
@@ -3942,6 +4193,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.placementPreview.setVisible(false);
 		this.placementRange.setVisible(false);
 		this.clearPlacementCoverage();
+		this.setCameraPauseBlur(true);
 		const previousBest = loadBestWave();
 		const newRecord = this.wave > previousBest;
 		if (newRecord) {
@@ -3971,6 +4223,9 @@ export class TowerDefenseScene extends Phaser.Scene {
 
 	update(time: number, deltaMs: number): void {
 		this.grassController?.update(time);
+		if (this.nexusAura) {
+			this.nexusAura.offset = 0.5 + 0.5 * Math.sin(time * 0.0018);
+		}
 		if (gameStateAtom.get() !== 'playing') return;
 		if (this.isGameOver) return;
 		if (this.awaitingCardPick) {

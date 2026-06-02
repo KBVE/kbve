@@ -49,10 +49,15 @@ use axum::{
 use bevy_chat::{ChatMessage, MessageKind};
 use futures_util::{SinkExt, StreamExt};
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
+use tokio::time::{interval, timeout};
 use tracing::{debug, error, info, warn};
+
+const WS_PING_INTERVAL: Duration = Duration::from_secs(30);
+const WS_READ_DEADLINE: Duration = Duration::from_secs(90);
 
 use crate::auth::jwt;
 
@@ -90,7 +95,9 @@ pub async fn ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoResponse
     let nick = format!("mc-{}", sanitize_sub(&claims.sub, 8));
 
     info!(user = %nick, "minechat upgrade accepted");
-    ws.on_upgrade(move |socket| session(socket, nick))
+    ws.max_frame_size(16 * 1024)
+        .max_message_size(64 * 1024)
+        .on_upgrade(move |socket| session(socket, nick))
         .into_response()
 }
 
@@ -135,12 +142,22 @@ async fn session(client_ws: WebSocket, nick: String) {
     }
 
     let (mut client_tx, mut client_rx) = client_ws.split();
+    let (pulse_tx, mut pulse_rx) = tokio::sync::mpsc::unbounded_channel::<()>();
 
-    // client JSON → ergo IRC (filtered + stamped)
     let nick_c2i = nick.clone();
     let ergo_w_c2i = Arc::clone(&ergo_w);
+    let pulse_tx_c2i = pulse_tx.clone();
     let c2i = async move {
-        while let Some(Ok(msg)) = client_rx.next().await {
+        loop {
+            let msg = match timeout(WS_READ_DEADLINE, client_rx.next()).await {
+                Ok(Some(Ok(m))) => m,
+                Ok(Some(Err(_))) | Ok(None) => break,
+                Err(_) => {
+                    warn!(user = %nick_c2i, "minechat client idle past read deadline");
+                    break;
+                }
+            };
+            let _ = pulse_tx_c2i.send(());
             let text = match msg {
                 Message::Text(t) => t.to_string(),
                 Message::Close(_) => break,
@@ -189,44 +206,51 @@ async fn session(client_ws: WebSocket, nick: String) {
         }
     };
 
-    // ergo IRC → client JSON (parse PRIVMSGs, answer PINGs, drop the rest)
     let nick_i2c = nick.clone();
     let ergo_w_i2c = Arc::clone(&ergo_w);
     let i2c = async move {
         let mut line = String::new();
+        let mut ping_timer = interval(WS_PING_INTERVAL);
+        ping_timer.tick().await;
         loop {
-            line.clear();
-            let read = ergo_reader.read_line(&mut line).await;
-            let n = match read {
-                Ok(0) => break, // ergo closed
-                Ok(n) => n,
-                Err(e) => {
-                    warn!(user = %nick_i2c, "ergo read failed: {e}");
-                    break;
-                }
-            };
-            let raw = line[..n].trim_end_matches(['\r', '\n']).to_string();
-
-            // Answer PINGs so ergo keeps the session alive.
-            if let Some(rest) = raw.strip_prefix("PING ") {
-                let pong = format!("PONG {rest}");
-                if let Err(e) = write_irc_line(&ergo_w_i2c, &pong).await {
-                    warn!(user = %nick_i2c, "PONG write failed: {e}");
-                    break;
-                }
-                continue;
-            }
-
-            // Only PRIVMSG lines get surfaced to the client. JOINs, numerics,
-            // MODE, etc. stay hidden — clients speak the JSON abstraction.
-            if let Some((channel, payload)) = parse_privmsg(&raw) {
-                if let Some(mut msg) = ChatMessage::from_irc_privmsg(&channel, &payload) {
-                    if msg.platform.is_empty() {
-                        msg.platform = "irc".into();
+            tokio::select! {
+                read = ergo_reader.read_line(&mut line) => {
+                    let n = match read {
+                        Ok(0) => break,
+                        Ok(n) => n,
+                        Err(e) => {
+                            warn!(user = %nick_i2c, "ergo read failed: {e}");
+                            break;
+                        }
+                    };
+                    let raw = line[..n].trim_end_matches(['\r', '\n']).to_string();
+                    line.clear();
+                    if let Some(rest) = raw.strip_prefix("PING ") {
+                        let pong = format!("PONG {rest}");
+                        if let Err(e) = write_irc_line(&ergo_w_i2c, &pong).await {
+                            warn!(user = %nick_i2c, "PONG write failed: {e}");
+                            break;
+                        }
+                        continue;
                     }
-                    if send_json(&mut client_tx, &msg).await.is_err() {
+                    if let Some((channel, payload)) = parse_privmsg(&raw) {
+                        if let Some(mut msg) = ChatMessage::from_irc_privmsg(&channel, &payload) {
+                            if msg.platform.is_empty() {
+                                msg.platform = "irc".into();
+                            }
+                            if send_json(&mut client_tx, &msg).await.is_err() {
+                                break;
+                            }
+                        }
+                    }
+                }
+                _ = ping_timer.tick() => {
+                    if client_tx.send(Message::Ping(Default::default())).await.is_err() {
                         break;
                     }
+                }
+                _ = pulse_rx.recv() => {
+                    ping_timer.reset();
                 }
             }
         }

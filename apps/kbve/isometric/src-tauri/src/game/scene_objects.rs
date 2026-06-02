@@ -55,10 +55,6 @@ pub struct AnimatedCrystal {
 #[derive(Component)]
 pub struct RotatingBox;
 
-// ---------------------------------------------------------------------------
-// Generic interactable system
-// ---------------------------------------------------------------------------
-
 /// Discriminated union of all clickable object categories.
 /// React maps each variant to typed modal content + actions.
 #[derive(Component, Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]

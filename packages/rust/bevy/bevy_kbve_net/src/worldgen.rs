@@ -5,10 +5,6 @@
 
 use serde::{Deserialize, Serialize};
 
-// ---------------------------------------------------------------------------
-// Deterministic hash — WASM-safe, zero-dependency
-// ---------------------------------------------------------------------------
-
 /// Deterministic 2D hash → [0.0, 1.0).
 /// Used for all procedural placement decisions.
 pub fn hash2d(x: i32, z: i32) -> f32 {
@@ -18,10 +14,6 @@ pub fn hash2d(x: i32, z: i32) -> f32 {
     (h as u32 as f32) / (u32::MAX as f32)
 }
 
-// ---------------------------------------------------------------------------
-// Object kinds (must match client-side InteractableKind for trees/rocks/flowers/mushrooms)
-// ---------------------------------------------------------------------------
-
 /// What type of collectible object exists at a tile (if any).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum WorldObjectKind {
@@ -30,10 +22,6 @@ pub enum WorldObjectKind {
     Flower,
     Mushroom,
 }
-
-// ---------------------------------------------------------------------------
-// Placement thresholds — must match tilemap.rs exactly
-// ---------------------------------------------------------------------------
 
 /// Check what object (if any) the deterministic world gen places at tile (tx, tz).
 /// Priority: Tree > Rock > Flower > Mushroom.
@@ -57,10 +45,6 @@ pub fn object_at_tile(tx: i32, tz: i32) -> Option<WorldObjectKind> {
     None
 }
 
-// ---------------------------------------------------------------------------
-// Tile key for tracking collected objects
-// ---------------------------------------------------------------------------
-
 /// Uniquely identifies a world tile. Since placement is deterministic and
 /// at most one object per tile, (tx, tz) is sufficient.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -69,7 +53,6 @@ pub struct TileKey {
     pub tz: i32,
 }
 
-// ---------------------------------------------------------------------------
 // Subkind → item_ref resolution
 //
 // Deterministic per-subkind buckets — mirror the client-side resolvers in
@@ -77,7 +60,6 @@ pub struct TileKey {
 // `mushrooms.rs::mushroom_kind_from_hash`, and the inline flower-archetype
 // bucket in `tilemap.rs`. Server resolves item_ref directly so the wire
 // protocol can carry the canonical ref string back to clients.
-// ---------------------------------------------------------------------------
 
 const NUM_FLORA_SPECIES: usize = 10;
 
@@ -137,7 +119,6 @@ pub fn item_ref_at(tx: i32, tz: i32) -> Option<&'static str> {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Drop tables — deterministic per-tile loot rolls
 //
 // The first entry of every roll is the canonical primary drop (so it matches
@@ -145,7 +126,6 @@ pub fn item_ref_at(tx: i32, tz: i32) -> Option<&'static str> {
 // Additional entries are bonus drops; quantities are variance rolls keyed off
 // `hash2d` so the same tile re-rolled gives the same loot — important for
 // reconnects + future server replays.
-// ---------------------------------------------------------------------------
 
 fn roll_quantity_in_range(seed_a: i32, seed_b: i32, tx: i32, tz: i32, min: u32, max: u32) -> u32 {
     if max <= min {

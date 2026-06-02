@@ -1,0 +1,31 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2026-06-01
+  Features:
+    - New item: Spider Egg (kbve-spider-egg). Place on a tile; hatches after 30 seconds.
+    - New entity: kbve-spider-egg-entity. Mineable back into a Spider Egg item before it hatches.
+    - New entity: kbve-spider-ally. Same animations as the wild spider but spawned on the
+      builder's force from a hatched egg. Lower HP (60), faster movement (0.22), faster attack
+      cooldown (50 ticks). Ally lives until killed.
+    - Hit/stagger/flee/sprint/nervous behaviors now apply to ally spiders too.
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+Date: 2026-06-01
+  Features:
+    - Random sprint behavior when chasing in an attack group (1.9x speed, 3s burst, 10s cooldown).
+    - Low-health flee: spiders below 30% HP run from the attacker with a sprint burst applied.
+    - Random nervous twitch overlay on idle spiders (visual only).
+    - Directional hit reaction: front / back / left / right hit corpse spawned based on attacker angle.
+    - 30-tick stagger sticker on every hit (80% slowdown).
+    - Death variations: 50% chance to also play Death2 on top of the default Death1 corpse.
+    - All 13 animations (Idle, Walk, Run, Attack1-3, Death1-2, Hit_Front/Back/Left/Right, Nervous)
+      registered as corpse prototypes for future scripted use.
+  Graphics:
+    - 144x144 mod portal thumbnail added.
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 2026-06-01
+  Features:
+    - Initial release. Custom pre-rendered isometric spider as biter-class unit.
+    - 16-direction sprites (256x256 frames) with separated body + shadow layers.
+    - Animations: idle, walk, run, attack (3 variants), death (2), hit (4 sides), nervous.

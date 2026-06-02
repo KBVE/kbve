@@ -13,10 +13,6 @@ use crate::game::scene_objects::{HoveredObject, SelectedObject};
 #[cfg(not(target_arch = "wasm32"))]
 use crate::game::state::PlayerState;
 
-// ---------------------------------------------------------------------------
-// Desktop: Tauri IPC commands
-// ---------------------------------------------------------------------------
-
 #[cfg(not(target_arch = "wasm32"))]
 #[tauri::command]
 pub fn get_fps() -> usize {
@@ -92,7 +88,6 @@ pub fn greet(name: &str) -> String {
     format!("Welcome to the Isometric realm, {}!", name)
 }
 
-// ── Native input forwarders ──────────────────────────────────────────
 // JS captures pointer/key/wheel on `window` (capture phase) and invokes
 // these commands. Each pushes a typed event onto the static buffer
 // drained by `game::native_input::drain_native_input` once per frame.
@@ -219,10 +214,6 @@ pub fn open_oauth_url(app: tauri::AppHandle, provider: String) -> Result<(), Str
 pub fn handle_deep_link(_app: &tauri::AppHandle, url: &str) {
     crate::auth::handle_deep_link(url);
 }
-
-// ---------------------------------------------------------------------------
-// WASM: wasm-bindgen exports (returns JSON strings for JS consumption)
-// ---------------------------------------------------------------------------
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;

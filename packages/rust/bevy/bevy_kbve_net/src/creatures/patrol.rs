@@ -14,16 +14,8 @@ use super::influence::{InfluenceProfile, PatrolMode, score_waypoint};
 use super::nav_grid::NavGrid;
 use super::waypoint_graph::WaypointGraph;
 
-// ---------------------------------------------------------------------------
-// A* budget
-// ---------------------------------------------------------------------------
-
 /// Maximum node expansions for tile-level A* (prevents runaway on WASM).
 pub const MAX_ASTAR_STEPS: u32 = 200;
-
-// ---------------------------------------------------------------------------
-// Dwell action
-// ---------------------------------------------------------------------------
 
 /// What the creature does when it arrives at a patrol waypoint.
 #[derive(Clone, Copy, Debug)]
@@ -31,10 +23,6 @@ pub enum DwellAction {
     Idle { duration: f32 },
     Emote { anim: &'static str, repeat: u32 },
 }
-
-// ---------------------------------------------------------------------------
-// Patrol step
-// ---------------------------------------------------------------------------
 
 /// A single waypoint in a patrol route.
 #[derive(Clone, Debug)]
@@ -44,10 +32,6 @@ pub struct PatrolStep {
     /// Action to perform on arrival.
     pub dwell: DwellAction,
 }
-
-// ---------------------------------------------------------------------------
-// PatrolRoute component
-// ---------------------------------------------------------------------------
 
 /// ECS component: a creature's active patrol route.
 #[derive(Component, Clone, Debug)]
@@ -102,10 +86,6 @@ impl PatrolRoute {
         self.steps.get(self.current)
     }
 }
-
-// ---------------------------------------------------------------------------
-// Route generation
-// ---------------------------------------------------------------------------
 
 /// Generate a patrol route from seed. Pure, deterministic.
 ///
@@ -258,10 +238,6 @@ fn generate_dwell(seed: u32, emote_anims: &[&'static str]) -> DwellAction {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Tile-level A* pathfinding
-// ---------------------------------------------------------------------------
 
 /// A* pathfinding on the tile grid between two tile coordinates.
 /// Returns the path as a vec of `(tx, tz)` from start to goal (inclusive),

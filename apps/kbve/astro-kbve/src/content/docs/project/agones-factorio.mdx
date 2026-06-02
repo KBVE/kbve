@@ -13,7 +13,7 @@ tags:
 key: agones_factorio
 pipeline: docker
 app_name: agones-factorio
-version: "0.0.10"
+version: "0.0.12"
 source_path: apps/agones/factorio
 version_toml: apps/agones/factorio/version.toml
 runner: ubuntu-latest
@@ -26,8 +26,11 @@ author: h0lybyte
 license: KBVE
 status: active
 external_publish:
-    factorio_mod_name: kbve
-    factorio_mod_source_path: apps/agones/factorio/mods-local/kbve
+    factorio_mods:
+        - name: kbve
+          source_path: apps/agones/factorio/mods-local/kbve
+        - name: kbve-spider
+          source_path: apps/factorio/mods/kbve-spider
 ---
 
 ## Overview

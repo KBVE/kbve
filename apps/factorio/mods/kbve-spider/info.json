@@ -1,0 +1,12 @@
+{
+	"name": "kbve-spider",
+	"version": "0.2.0",
+	"factorio_version": "2.0",
+	"title": "KBVE Spider",
+	"author": "kbve",
+	"contact": "https://kbve.com",
+	"homepage": "https://openfret.com",
+	"license": "MIT — see https://kbve.com/legal/",
+	"description": "Adds a custom isometric pre-rendered spider as a hostile unit. 16-direction body+shadow sprites with idle / walk / run / attack / death / hit / nervous animations. Spider model: 'Animated Isometric Pale Spider' by engvee (https://engvee.itch.io/animated-isometric-pale-spider). Music by OpenFret (https://openfret.com).",
+	"dependencies": ["base >= 2.0"]
+}

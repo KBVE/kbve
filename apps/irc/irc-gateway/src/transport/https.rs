@@ -3,11 +3,12 @@ use std::{net::SocketAddr, time::Duration};
 
 use axum::{
     Json, Router,
-    http::{HeaderName, HeaderValue, header},
+    http::{HeaderName, HeaderValue, Method, header, request::Parts as RequestParts},
     response::IntoResponse,
     routing::get,
 };
 use tokio::net::TcpListener;
+use tower_http::cors::{AllowOrigin, CorsLayer};
 use tower_http::set_header::SetResponseHeaderLayer;
 use tracing::info;
 
@@ -44,7 +45,7 @@ fn router(static_config: &crate::astro::StaticConfig) -> Router {
                 tower_http::trace::DefaultMakeSpan::new().level(tracing::Level::INFO),
             ),
         )
-        .layer(tower_http::cors::CorsLayer::permissive())
+        .layer(build_cors_layer())
         .layer(SetResponseHeaderLayer::overriding(
             header::X_CONTENT_TYPE_OPTIONS,
             HeaderValue::from_static("nosniff"),
@@ -99,6 +100,51 @@ static START_TIME: std::sync::OnceLock<std::time::Instant> = std::sync::OnceLock
 
 pub fn init_start_time() {
     START_TIME.get_or_init(std::time::Instant::now);
+}
+
+fn is_origin_allowed(origin: &HeaderValue, _parts: &RequestParts) -> bool {
+    let raw = match origin.to_str() {
+        Ok(s) => s,
+        Err(_) => return false,
+    };
+    if let Some(host) = raw.strip_prefix("https://") {
+        let host = host.split('/').next().unwrap_or(host);
+        if host == "kbve.com" || host.ends_with(".kbve.com") {
+            return true;
+        }
+    }
+    if let Some(host) = raw.strip_prefix("http://") {
+        let host = host.split('/').next().unwrap_or(host);
+        if host == "localhost"
+            || host.starts_with("localhost:")
+            || host == "127.0.0.1"
+            || host.starts_with("127.0.0.1:")
+        {
+            return true;
+        }
+    }
+    if let Ok(extra) = std::env::var("CORS_EXTRA_ORIGINS") {
+        for allowed in extra.split(',').map(str::trim).filter(|s| !s.is_empty()) {
+            if allowed == raw {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+fn build_cors_layer() -> CorsLayer {
+    CorsLayer::new()
+        .allow_origin(AllowOrigin::predicate(is_origin_allowed))
+        .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+        .allow_headers([
+            header::AUTHORIZATION,
+            header::CONTENT_TYPE,
+            header::ACCEPT,
+            HeaderName::from_static("x-requested-with"),
+        ])
+        .allow_credentials(true)
+        .max_age(std::time::Duration::from_secs(600))
 }
 
 async fn health() -> impl IntoResponse {
@@ -214,5 +260,68 @@ mod tests {
             response.headers().get("referrer-policy").unwrap(),
             "strict-origin-when-cross-origin"
         );
+    }
+
+    fn parts_for(uri: &str) -> RequestParts {
+        Request::builder().uri(uri).body(()).unwrap().into_parts().0
+    }
+
+    #[test]
+    fn cors_allows_kbve_apex() {
+        let origin = HeaderValue::from_static("https://kbve.com");
+        assert!(is_origin_allowed(&origin, &parts_for("/")));
+    }
+
+    #[test]
+    fn cors_allows_kbve_subdomain() {
+        for sub in ["chat", "docs", "rareicon", "edge.staging"] {
+            let raw = format!("https://{sub}.kbve.com");
+            let origin = HeaderValue::from_str(&raw).unwrap();
+            assert!(is_origin_allowed(&origin, &parts_for("/")), "{raw}");
+        }
+    }
+
+    #[test]
+    fn cors_rejects_foreign_origin() {
+        for raw in [
+            "https://evil.example.com",
+            "https://kbve.com.attacker.net",
+            "http://kbve.com",
+            "https://notkbve.com",
+        ] {
+            let origin = HeaderValue::from_str(raw).unwrap();
+            assert!(!is_origin_allowed(&origin, &parts_for("/")), "{raw}");
+        }
+    }
+
+    #[test]
+    fn cors_allows_localhost_for_dev() {
+        for raw in [
+            "http://localhost",
+            "http://localhost:4321",
+            "http://127.0.0.1:5173",
+        ] {
+            let origin = HeaderValue::from_str(raw).unwrap();
+            assert!(is_origin_allowed(&origin, &parts_for("/")), "{raw}");
+        }
+    }
+
+    #[test]
+    fn cors_extra_env_origins() {
+        unsafe {
+            std::env::set_var(
+                "CORS_EXTRA_ORIGINS",
+                "https://partner.example, https://other.test",
+            );
+        }
+        let allowed = HeaderValue::from_static("https://partner.example");
+        let other = HeaderValue::from_static("https://other.test");
+        let denied = HeaderValue::from_static("https://not-listed.test");
+        assert!(is_origin_allowed(&allowed, &parts_for("/")));
+        assert!(is_origin_allowed(&other, &parts_for("/")));
+        assert!(!is_origin_allowed(&denied, &parts_for("/")));
+        unsafe {
+            std::env::remove_var("CORS_EXTRA_ORIGINS");
+        }
     }
 }

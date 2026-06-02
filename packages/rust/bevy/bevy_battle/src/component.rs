@@ -123,8 +123,6 @@ pub struct CombatIndex(pub u8);
 #[derive(Component, Debug, Clone)]
 pub struct CombatName(pub String);
 
-// ── Marker components ──────────────────────────────────────────────
-
 /// Marker: entity participates in the current battle.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Combatant;
@@ -140,8 +138,6 @@ pub struct EnemyTag;
 /// Marker: entity has died. Added on death, used for filtering.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Dead;
-
-// ── Behavior tree override ─────────────────────────────────────────
 
 /// Snapshot an enemy turn system passes to an attached [`BehaviorPolicy`]
 /// tree. Implements `bevy_behavior::Healthed` so generic leaves like

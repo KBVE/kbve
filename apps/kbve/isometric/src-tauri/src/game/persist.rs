@@ -20,10 +20,6 @@ use super::state::PlayerState;
 use super::terrain::TerrainMap;
 use super::tilemap::CollectedTiles;
 
-// ---------------------------------------------------------------------------
-// Tables + keys
-// ---------------------------------------------------------------------------
-
 const TABLE_PLAYER: &str = "player";
 const TABLE_WORLD: &str = "world";
 const TABLE_TERRAIN: &str = "terrain";
@@ -45,10 +41,6 @@ fn chunk_key(cx: i32, cz: i32) -> String {
     format!("{cx}:{cz}")
 }
 
-// ---------------------------------------------------------------------------
-// Timers
-// ---------------------------------------------------------------------------
-
 /// Throttle for periodic saves (every 5 seconds).
 #[derive(Resource)]
 struct PersistTimer(Timer);
@@ -59,10 +51,6 @@ impl Default for PersistTimer {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Pending load requests (startup)
-// ---------------------------------------------------------------------------
-
 #[derive(Resource, Default)]
 struct PendingLoads {
     player_state: Option<DbRequest<Option<PlayerState>>>,
@@ -72,10 +60,6 @@ struct PendingLoads {
     server_time: Option<DbRequest<Option<ServerTime>>>,
     done: bool,
 }
-
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
 
 pub struct PersistPlugin;
 
@@ -123,10 +107,6 @@ impl Plugin for PersistPlugin {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Startup: kick off all load requests in parallel
-// ---------------------------------------------------------------------------
-
 fn kick_off_loads(db: Res<Db>, mut pending: ResMut<PendingLoads>) {
     pending.player_state = Some(db.get::<PlayerState>(TABLE_PLAYER, KEY_PLAYER_STATE));
     pending.collected_tiles = Some(db.get::<Vec<(i32, i32)>>(TABLE_WORLD, KEY_COLLECTED_TILES));
@@ -134,10 +114,6 @@ fn kick_off_loads(db: Res<Db>, mut pending: ResMut<PendingLoads>) {
     pending.inventory = Some(db.get::<Inventory<ItemKind>>(TABLE_PLAYER, KEY_INVENTORY));
     pending.server_time = Some(db.get::<ServerTime>(TABLE_WORLD, KEY_SERVER_TIME));
 }
-
-// ---------------------------------------------------------------------------
-// Receive cached data and apply to ECS resources
-// ---------------------------------------------------------------------------
 
 fn receive_loads(
     mut pending: ResMut<PendingLoads>,
@@ -234,10 +210,6 @@ fn receive_loads(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Save: player state + inventory (throttled every 5s)
-// ---------------------------------------------------------------------------
-
 fn save_periodic(
     time: Res<Time>,
     mut timer: ResMut<PersistTimer>,
@@ -253,10 +225,6 @@ fn save_periodic(
     let _ = db.put(TABLE_PLAYER, KEY_LAST_POSITION, &player_state.position);
 }
 
-// ---------------------------------------------------------------------------
-// Save: inventory (on change)
-// ---------------------------------------------------------------------------
-
 fn save_inventory_on_change(db: Res<Db>, inventory: Option<Res<Inventory<ItemKind>>>) {
     let Some(inv) = inventory else { return };
     if !inv.is_changed() {
@@ -265,10 +233,6 @@ fn save_inventory_on_change(db: Res<Db>, inventory: Option<Res<Inventory<ItemKin
 
     let _ = db.put(TABLE_PLAYER, KEY_INVENTORY, &*inv);
 }
-
-// ---------------------------------------------------------------------------
-// Save: collected tiles (on change)
-// ---------------------------------------------------------------------------
 
 fn save_collected_tiles_on_change(db: Res<Db>, collected: Res<CollectedTiles>) {
     if !collected.is_changed() {
@@ -279,10 +243,6 @@ fn save_collected_tiles_on_change(db: Res<Db>, collected: Res<CollectedTiles>) {
     let _ = db.put(TABLE_WORLD, KEY_COLLECTED_TILES, &tiles);
 }
 
-// ---------------------------------------------------------------------------
-// Save: server time sync (on change)
-// ---------------------------------------------------------------------------
-
 fn save_server_time_on_change(db: Res<Db>, server_time: Res<ServerTime>) {
     if !server_time.is_changed() || !server_time.active {
         return;
@@ -290,10 +250,6 @@ fn save_server_time_on_change(db: Res<Db>, server_time: Res<ServerTime>) {
 
     let _ = db.put(TABLE_WORLD, KEY_SERVER_TIME, &*server_time);
 }
-
-// ---------------------------------------------------------------------------
-// Terrain chunk caching
-// ---------------------------------------------------------------------------
 
 /// Tracks which chunks have been written to / loaded from the cache,
 /// so we don't re-save or re-request them every frame.
@@ -385,10 +341,6 @@ fn receive_cached_terrain_chunks(
     }
 }
 
-// ---------------------------------------------------------------------------
-// WaypointGraph caching
-// ---------------------------------------------------------------------------
-
 /// Tracks whether we've saved/loaded the waypoint graph this session.
 #[derive(Resource, Default)]
 struct WaypointGraphCacheState {
@@ -451,10 +403,6 @@ fn cache_waypoint_graph_on_change(
     state.saved_version = version;
     let _ = db.put(TABLE_NAV, KEY_WAYPOINT_GRAPH, &*graph);
 }
-
-// ---------------------------------------------------------------------------
-// PatrolRoute caching — serializable DTO
-// ---------------------------------------------------------------------------
 
 /// Serializable version of PatrolStep (replaces &'static str with String).
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -554,10 +502,6 @@ fn cache_new_patrol_routes(
     }
 }
 
-// ---------------------------------------------------------------------------
-// PatrolRoute cache loading — try cache before generating
-// ---------------------------------------------------------------------------
-
 /// Pending cache load for a patrol route.
 #[derive(Component)]
 struct PendingPatrolCacheLoad {
@@ -621,10 +565,6 @@ fn receive_cached_patrol_routes(
     }
 }
 
-// ---------------------------------------------------------------------------
-// Creature state caching — save/restore active creature positions
-// ---------------------------------------------------------------------------
-
 /// Serializable snapshot of one creature's state.
 #[derive(serde::Serialize, serde::Deserialize)]
 struct CachedCreatureState {
@@ -668,10 +608,6 @@ fn save_creature_states(
         let _ = db.put(TABLE_CREATURES, &key, &state);
     }
 }
-
-// ---------------------------------------------------------------------------
-// Cache invalidation — detect terrain seed changes
-// ---------------------------------------------------------------------------
 
 /// Resource tracking whether we've validated the cache seed.
 #[derive(Resource, Default)]

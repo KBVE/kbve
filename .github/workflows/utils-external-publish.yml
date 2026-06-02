@@ -611,22 +611,30 @@ jobs:
             - run: echo "::notice::CurseForge publish not yet implemented for ${{ inputs.app_name }}"
 
     factorio_mod_portal:
-        name: Factorio Mod Portal (${{ inputs.app_name }})
-        if: fromJson(inputs.external_publish).factorio_mod_name != ''
+        name: Factorio Mod Portal (${{ inputs.app_name }} → ${{ matrix.mod.name }})
+        # external_publish.factorio_mods is the canonical array shape — one
+        # CI project can publish multiple mods (e.g. agones-factorio ships
+        # both the main `kbve` server pack and the `kbve-spider` content mod
+        # from the same Docker pipeline). The matrix runs this job once per
+        # entry so each mod is gated + uploaded independently.
+        if: fromJson(inputs.external_publish).factorio_mods != null
         runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                mod: ${{ fromJson(inputs.external_publish).factorio_mods }}
         permissions:
             contents: read
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
 
             - name: Resolve mod metadata
               id: meta
               env:
-                  CFG: ${{ inputs.external_publish }}
+                  MOD_NAME: ${{ matrix.mod.name }}
+                  MOD_DIR: ${{ matrix.mod.source_path }}
               run: |
                   set -euo pipefail
-                  MOD_NAME=$(echo "$CFG" | jq -r .factorio_mod_name)
-                  MOD_DIR=$(echo "$CFG" | jq -r .factorio_mod_source_path)
                   if [ ! -f "${MOD_DIR}/info.json" ]; then
                     echo "::error::missing info.json at ${MOD_DIR}/info.json"
                     exit 1

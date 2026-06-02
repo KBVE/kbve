@@ -15,10 +15,6 @@ use super::super::creature::Creature;
 use super::types::{SpriteCreatureMarker, SpriteCreatureTypes};
 use crate::game::player::Player;
 
-// ---------------------------------------------------------------------------
-// Components
-// ---------------------------------------------------------------------------
-
 /// Current physics LOD tier for a generic creature.
 #[derive(Component, Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub enum PhysicsLod {
@@ -61,10 +57,6 @@ impl Default for PhysicsLodConfig {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// System
-// ---------------------------------------------------------------------------
 
 /// Timer resource to throttle LOD updates (every 0.5s, not every frame).
 #[derive(Resource)]

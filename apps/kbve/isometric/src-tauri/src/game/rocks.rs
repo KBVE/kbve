@@ -4,10 +4,6 @@ use bevy::prelude::*;
 
 use super::scene_objects::RockKind;
 
-// ---------------------------------------------------------------------------
-// Rock color palettes (sRGB → linear at use)
-// ---------------------------------------------------------------------------
-
 /// Stone palette: [highlight, mid, shadow]
 const STONE_PALETTE: [(f32, f32, f32); 3] = [
     (0.62, 0.60, 0.56), // highlight — warm gray
@@ -29,10 +25,6 @@ const ORE_IRON_ACCENT: (f32, f32, f32) = (0.50, 0.38, 0.35);
 /// Crystal ore accent color
 const ORE_CRYSTAL_ACCENT: (f32, f32, f32) = (0.55, 0.40, 0.75);
 
-// ---------------------------------------------------------------------------
-// Helpers (self-contained, no tilemap dependency)
-// ---------------------------------------------------------------------------
-
 fn srgb_to_linear(c: f32) -> f32 {
     if c <= 0.04045 {
         c / 12.92
@@ -51,10 +43,6 @@ fn hash2d(x: i32, z: i32) -> f32 {
     let n = n.wrapping_mul(n);
     (n as u32 as f32) / u32::MAX as f32
 }
-
-// ---------------------------------------------------------------------------
-// Rock dome geometry — chunkier, squashed version of tree domes
-// ---------------------------------------------------------------------------
 
 /// Build a squashed dome with irregular wobble for rocky silhouettes.
 /// Returns (positions, normals, colors, indices) for a single rock body.
@@ -190,10 +178,6 @@ fn build_rock_mesh(
     .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, vec![[0.0f32, 0.0]; uv_count])
     .with_inserted_indices(Indices::U32(indices))
 }
-
-// ---------------------------------------------------------------------------
-// Public API — called from tilemap.rs during chunk generation
-// ---------------------------------------------------------------------------
 
 /// Rock generation parameters computed from tile coordinates.
 pub struct RockParams {

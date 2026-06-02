@@ -8,20 +8,12 @@ use std::collections::HashSet;
 
 use super::common::hash_f32;
 
-// ---------------------------------------------------------------------------
-// Marker
-// ---------------------------------------------------------------------------
-
 /// Marker component for ambient creatures (fireflies, butterflies).
 /// Analogous to `SpriteCreatureMarker` for sprite creatures.
 #[derive(Component)]
 pub struct AmbientCreatureMarker {
     pub type_key: &'static str,
 }
-
-// ---------------------------------------------------------------------------
-// Firefly simulation state (headless — no light_entity, no mat_handle)
-// ---------------------------------------------------------------------------
 
 /// Headless firefly state: orbital motion + glow phase.
 /// Client attaches PointLight and StandardMaterial on top.
@@ -44,10 +36,6 @@ impl FireflySimState {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Butterfly simulation state (headless — no billboard facing, no material)
-// ---------------------------------------------------------------------------
 
 /// Headless butterfly state: flight state machine + animation params.
 /// Client attaches wing mesh, billboard facing, and material alpha on top.
@@ -91,10 +79,6 @@ pub enum ButterflyFlightState {
         progress: f32,
     },
 }
-
-// ---------------------------------------------------------------------------
-// Resources
-// ---------------------------------------------------------------------------
 
 /// Tracks active firefly slot assignments and the last-seen creature_seed.
 #[derive(Resource, Default)]

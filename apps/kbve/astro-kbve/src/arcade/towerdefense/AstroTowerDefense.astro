@@ -1007,7 +1007,7 @@ import TdHud from './TdHud';
 		right: 8px;
 		bottom: 8px;
 		display: flex;
-		justify-content: center;
+		justify-content: flex-start;
 		gap: 6px;
 		padding: 6px 10px;
 		background: rgba(11, 14, 20, 0.78);
@@ -1017,6 +1017,17 @@ import TdHud from './TdHud';
 		-webkit-backdrop-filter: blur(10px) saturate(140%);
 		pointer-events: auto;
 		overflow-x: auto;
+		overflow-y: hidden;
+		scroll-behavior: smooth;
+		overscroll-behavior-x: contain;
+		scrollbar-width: thin;
+	}
+	.td-palette::-webkit-scrollbar {
+		height: 6px;
+	}
+	.td-palette::-webkit-scrollbar-thumb {
+		background: rgba(148, 163, 184, 0.45);
+		border-radius: 3px;
 	}
 
 	.td-pal {
@@ -1111,3 +1122,23 @@ import TdHud from './TdHud';
 		color: var(--pal-accent, #fbd38d);
 	}
 </style>
+
+<script>
+	const container = document.getElementById('towerdefense-game-container');
+	if (container) {
+		container.addEventListener(
+			'wheel',
+			(event) => {
+				const target = event.target;
+				if (
+					target instanceof Element &&
+					target.closest('.td-palette')
+				) {
+					return;
+				}
+				event.preventDefault();
+			},
+			{ passive: false },
+		);
+	}
+</script>

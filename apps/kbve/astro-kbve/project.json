@@ -85,6 +85,24 @@
 			},
 			"cache": true
 		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["build"],
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"commands": [
+					"pnpm exec playwright test --config=playwright.config.ts"
+				],
+				"parallel": false
+			},
+			"configurations": {
+				"ci": {
+					"commands": [
+						"pnpm exec playwright test --config=playwright.config.ts --reporter=line"
+					]
+				}
+			}
+		},
 		"sync": {
 			"executor": "nx:run-commands",
 			"options": {

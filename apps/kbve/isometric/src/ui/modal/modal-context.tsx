@@ -8,7 +8,6 @@ import {
 import { gameEvents } from '../events/event-bus';
 import type { ModalConfig, ModalState } from './modal-types';
 
-// --- Actions ---
 export type ModalAction =
 	| { type: 'OPEN'; modal: ModalConfig }
 	| { type: 'CLOSE' }
@@ -39,13 +38,11 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
 	}
 }
 
-// --- Contexts (split) ---
 export const ModalStateContext = createContext<ModalState>(initialState);
 export const ModalDispatchContext = createContext<Dispatch<ModalAction>>(() => {
 	/* noop default */
 });
 
-// --- Provider ---
 export function ModalProvider({ children }: { children: ReactNode }) {
 	const [state, dispatch] = useReducer(modalReducer, initialState);
 

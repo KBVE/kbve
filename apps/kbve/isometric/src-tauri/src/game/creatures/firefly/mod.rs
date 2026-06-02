@@ -23,10 +23,6 @@ const NPC_REF: &str = "meadow-firefly";
 /// How many chunks in each direction from the camera to scan.
 const VIEW_RADIUS: i32 = 3;
 
-// ---------------------------------------------------------------------------
-// Spawn
-// ---------------------------------------------------------------------------
-
 /// One-time spawn of the firefly entity pool. All entities start hidden.
 pub(super) fn spawn_fireflies(
     mut commands: Commands,
@@ -97,10 +93,6 @@ pub(super) fn spawn_fireflies(
 
     info!("[firefly] spawned {pool_size} pooled entities");
 }
-
-// ---------------------------------------------------------------------------
-// Simulation (adapted from bevy_kbve_net::creatures::simulate_firefly)
-// ---------------------------------------------------------------------------
 
 /// Per-frame slot assignment: determines which chunk slots are visible near
 /// the camera and assigns/unassigns pool entities.
@@ -263,10 +255,6 @@ pub(super) fn simulate_fireflies(
         tf.translation = cr.anchor + Vec3::new(ox, oy, oz);
     }
 }
-
-// ---------------------------------------------------------------------------
-// Render (client-only)
-// ---------------------------------------------------------------------------
 
 /// Per-frame render: material emissive, PointLight, Visibility, wind offset.
 /// Reads sim state set by simulate_fireflies.

@@ -2,6 +2,8 @@ local Coins = require('modules.coins')
 local Market = require('modules.market')
 local Vault = require('modules.vault')
 local Spawn = require('modules.spawn')
+local Npcs = require('modules.npcs')
+local NpcPanel = require('modules.npc_panel')
 
 local ExchangeGui = {}
 
@@ -13,6 +15,13 @@ local BUY_PREFIX = 'kbve_buy_'
 local SLOT_PREFIX = 'kbve_vault_slot_'
 local CLOSE_NAME = 'kbve_close'
 local DEPOSIT_ALL = 'kbve_deposit_all'
+local BODY_NAME = 'kbve_exchange_body'
+local NPC_PANEL_NAME = 'kbve_npc_panel'
+local NPC_NAME_PREFIX = 'kbve_exchange_npc_'
+
+local function render_npc_panel(panel, npc, line)
+	NpcPanel.render(panel, npc, line, NPC_NAME_PREFIX)
+end
 
 local function destroy(player)
 	if player.gui.screen[GUI_NAME] then
@@ -77,6 +86,11 @@ local function render_vault(content, player)
 	content.add({ type = 'button', name = DEPOSIT_ALL, caption = 'Deposit my entire inventory' })
 end
 
+local function npc_for_tab(tab_index)
+	if tab_index == 2 then return Npcs.SILA end
+	return Npcs.VEX
+end
+
 function ExchangeGui.show(player)
 	destroy(player)
 	local frame = player.gui.screen.add({
@@ -91,7 +105,16 @@ function ExchangeGui.show(player)
 	close_flow.add({ type = 'empty-widget' }).style.horizontally_stretchable = true
 	close_flow.add({ type = 'button', name = CLOSE_NAME, caption = 'Close' })
 
-	local tabbed = frame.add({ type = 'tabbed-pane', name = TABBED_NAME })
+	local body = frame.add({ type = 'flow', name = BODY_NAME, direction = 'horizontal' })
+
+	local npc_panel = body.add({
+		type = 'flow',
+		name = NPC_PANEL_NAME,
+		direction = 'vertical',
+	})
+	render_npc_panel(npc_panel, Npcs.VEX, Npcs.greeting(Npcs.VEX, player.index))
+
+	local tabbed = body.add({ type = 'tabbed-pane', name = TABBED_NAME })
 
 	local buy_tab = tabbed.add({ type = 'tab', caption = 'Buy' })
 	local buy_content = tabbed.add({
@@ -121,10 +144,19 @@ function ExchangeGui.on_gui_closed(event)
 	end
 end
 
+local function refresh_npc(player, npc, line)
+	local frame = player.gui.screen[GUI_NAME]
+	if not frame then return end
+	local body = frame[BODY_NAME]
+	local panel = body and body[NPC_PANEL_NAME]
+	if panel then render_npc_panel(panel, npc, line) end
+end
+
 local function refresh_buy(player)
 	local frame = player.gui.screen[GUI_NAME]
 	if not frame then return end
-	local tabbed = frame[TABBED_NAME]
+	local body = frame[BODY_NAME]
+	local tabbed = body and body[TABBED_NAME]
 	if not tabbed then return end
 	local content = tabbed[BUY_TAB_CONTENT]
 	if content then render_buy(content, player) end
@@ -133,7 +165,8 @@ end
 local function refresh_vault(player)
 	local frame = player.gui.screen[GUI_NAME]
 	if not frame then return end
-	local tabbed = frame[TABBED_NAME]
+	local body = frame[BODY_NAME]
+	local tabbed = body and body[TABBED_NAME]
 	if not tabbed then return end
 	local content = tabbed[VAULT_TAB_CONTENT]
 	if content then render_vault(content, player) end
@@ -145,6 +178,7 @@ local function handle_buy(player, index)
 	local balance = Coins.get_balance(player.index)
 	if balance < entry.price then
 		player.print({ '', 'Need ', entry.price, ' coins, balance is ', balance, '.' })
+		refresh_npc(player, Npcs.VEX, Npcs.empty_pocket(Npcs.VEX, player.index + game.tick))
 		return
 	end
 	local inserted = player.insert({ name = entry.item, count = entry.count })
@@ -155,6 +189,7 @@ local function handle_buy(player, index)
 	local cost = math.ceil(entry.price * inserted / entry.count)
 	Coins.spend(player.index, cost, 'market_purchase')
 	player.print({ '', 'Bought ', inserted, ' x [item=', entry.item, '] for ', cost, ' coins.' })
+	refresh_npc(player, Npcs.VEX, Npcs.buy(Npcs.VEX, player.index + game.tick))
 end
 
 local function handle_slot(player, slot_index, shift)
@@ -234,6 +269,7 @@ function ExchangeGui.on_gui_click(event)
 	if name == DEPOSIT_ALL then
 		deposit_entire_inventory(player)
 		refresh_vault(player)
+		refresh_npc(player, Npcs.SILA, Npcs.deposit(Npcs.SILA, player.index + game.tick))
 		return
 	end
 
@@ -253,6 +289,15 @@ function ExchangeGui.on_gui_click(event)
 			refresh_vault(player)
 		end
 	end
+end
+
+function ExchangeGui.on_gui_selected_tab_changed(event)
+	local elem = event.element
+	if not (elem and elem.valid and elem.name == TABBED_NAME) then return end
+	local player = game.get_player(event.player_index)
+	if not player then return end
+	local npc = npc_for_tab(elem.selected_tab_index)
+	refresh_npc(player, npc, Npcs.greeting(npc, player.index + game.tick))
 end
 
 function ExchangeGui.on_player_left(event)

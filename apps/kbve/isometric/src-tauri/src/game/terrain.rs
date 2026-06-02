@@ -3,10 +3,6 @@ use std::collections::HashMap;
 
 use super::player::Player;
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 pub const CHUNK_SIZE: i32 = 16;
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -17,10 +13,6 @@ pub const LOAD_RADIUS: i32 = 2;
 pub const MAX_HEIGHT: f32 = 6.0;
 pub const NOISE_SCALE: f32 = 6.0;
 pub const TERRAIN_SEED: u32 = 42;
-
-// ---------------------------------------------------------------------------
-// Noise functions (zero deps, WASM-safe, deterministic)
-// ---------------------------------------------------------------------------
 
 /// Deterministic hash of two integers to a float in [0.0, 1.0).
 #[inline(always)]
@@ -65,10 +57,6 @@ pub fn terrain_height(x: i32, z: i32, seed: u32, max_height: f32, scale: f32) ->
     let raw = n1 * 0.7 + n2 * 0.3;
     (raw * max_height).round()
 }
-
-// ---------------------------------------------------------------------------
-// SIMD-batched terrain height (4 tiles at once)
-// ---------------------------------------------------------------------------
 
 /// Compute terrain heights for 4 tiles simultaneously.
 /// Returns [h0, h1, h2, h3] for the given (x,z) pairs.
@@ -137,10 +125,6 @@ fn f32x4_store(v: &core::arch::wasm32::v128, out: &mut [f32; 4]) {
     out[3] = f32x4_extract_lane::<3>(*v);
 }
 
-// ---------------------------------------------------------------------------
-// Chunk data
-// ---------------------------------------------------------------------------
-
 pub struct ChunkData {
     pub heights: HashMap<(i32, i32), f32>,
     pub tile_entities: Vec<Entity>,
@@ -192,10 +176,6 @@ impl ChunkData {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// TerrainMap resource
-// ---------------------------------------------------------------------------
 
 #[derive(Resource)]
 pub struct TerrainMap {
@@ -345,10 +325,6 @@ impl TerrainMap {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
 
 pub struct TerrainPlugin;
 

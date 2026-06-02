@@ -161,13 +161,11 @@ pub unsafe extern "C" fn uniti_empire_reset() {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Async runtime — opt-in tokio ticker for unloaded-region cities.
 // Keeps the synchronous FFI above untouched; Unity continues to publish
 // and take whenever it wants. When the runtime is enabled, a background
 // tokio task drives `uniti_empire_tick` on a 1s cadence so cities outside
 // the active chunk window keep evolving even if Unity stops polling tick.
-// ---------------------------------------------------------------------------
 
 #[cfg(not(target_arch = "wasm32"))]
 static TICKER_RUNNING: AtomicBool = AtomicBool::new(false);

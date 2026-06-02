@@ -195,7 +195,7 @@ jobs:
                   esac
                   echo "path=${{ inputs.project_path }}/target/${{ matrix.target }}/release/${{ inputs.app_name }}${EXT}" >> "$GITHUB_OUTPUT"
             - name: Upload artefact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: ${{ inputs.app_name }}-${{ matrix.target }}
                   path: ${{ steps.art.outputs.path }}
@@ -215,7 +215,7 @@ jobs:
                 target: ${{ fromJSON(inputs.build_targets) }}
         steps:
             - name: Download artefact
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: ${{ inputs.app_name }}-${{ matrix.target }}
                   path: ./build

@@ -3,10 +3,6 @@
 
 use bevy::prelude::*;
 
-// ---------------------------------------------------------------------------
-// Game time — unified clock that defers to server when connected.
-// ---------------------------------------------------------------------------
-
 /// Canonical game time shared across all creature modules.
 /// Updated each frame by the time-sync system.
 #[derive(Resource)]
@@ -26,10 +22,6 @@ impl Default for GameTime {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Deterministic pseudo-random (no deps, WASM-safe)
-// ---------------------------------------------------------------------------
-
 /// Simple hash -> f32 in [0, 1) for deterministic variety per creature index.
 pub fn hash_f32(seed: u32) -> f32 {
     let mut x = seed;
@@ -38,10 +30,6 @@ pub fn hash_f32(seed: u32) -> f32 {
     x ^= x >> 16;
     (x & 0xFFFF) as f32 / 65535.0
 }
-
-// ---------------------------------------------------------------------------
-// Time-of-day visibility factors
-// ---------------------------------------------------------------------------
 
 /// Butterflies active during 7:00-18:00 with 1.5h fade.
 const DAY_START: f32 = 7.0;
@@ -74,10 +62,6 @@ pub fn night_factor(hour: f32) -> f32 {
         0.0
     }
 }
-
-// ---------------------------------------------------------------------------
-// Shared animation helpers
-// ---------------------------------------------------------------------------
 
 /// Reusable flutter offset — overlapping sine waves for erratic insect motion.
 /// `amp` scales the overall amplitude (1.0 = full wander, 0.3 = subtle entry flutter).
@@ -131,10 +115,6 @@ pub fn build_billboard_quad(size: f32) -> Mesh {
     )
     .with_inserted_indices(Indices::U32(vec![0, 2, 1, 0, 3, 2]))
 }
-
-// ---------------------------------------------------------------------------
-// Deterministic patrol seed (shared by all patrol-based creatures)
-// ---------------------------------------------------------------------------
 
 /// Deterministic seed for creature decisions. Combines slot_seed, patrol_step,
 /// and creature_seed so all clients produce identical behavior.

@@ -12,10 +12,6 @@ use bevy::prelude::*;
 use super::nav_grid::{NAV_CHUNK, NavGrid, TerrainBand};
 use crate::terrain::hash2d;
 
-// ---------------------------------------------------------------------------
-// Zone classification
-// ---------------------------------------------------------------------------
-
 /// Terrain zone tag derived from local features around a waypoint.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum ZoneTag {
@@ -27,10 +23,6 @@ pub enum ZoneTag {
     Waterfront,
     Scrubland,
 }
-
-// ---------------------------------------------------------------------------
-// Waypoint
-// ---------------------------------------------------------------------------
 
 /// A navigation waypoint in the graph.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
@@ -44,10 +36,6 @@ pub struct Waypoint {
     /// Vegetation density in 3×3 neighborhood [0, 1].
     pub veg_density: f32,
 }
-
-// ---------------------------------------------------------------------------
-// WaypointGraph resource
-// ---------------------------------------------------------------------------
 
 /// Regional waypoint graph built from NavGrid data.
 #[derive(Resource, Default, Clone, serde::Serialize, serde::Deserialize)]
@@ -284,10 +272,6 @@ impl WaypointGraph {
         self.adjacency = new_adj;
     }
 }
-
-// ---------------------------------------------------------------------------
-// Waypoint extraction helpers
-// ---------------------------------------------------------------------------
 
 /// Extract ~4 waypoints from a chunk by dividing into 4 quadrants (8×8 each)
 /// and picking the most "interesting" walkable tile per quadrant.

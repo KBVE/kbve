@@ -26,6 +26,8 @@ AGONES_SDK_HTTP="${AGONES_SDK_HTTP:-}"
 AGONES_HEALTH_INTERVAL="${AGONES_HEALTH_INTERVAL:-5}"
 AGONES_READY_DELAY="${AGONES_READY_DELAY:-30}"
 
+FACTORIO_PORTAL_ONLY_MODS="${FACTORIO_PORTAL_ONLY_MODS:-kbve kbve-spider}"
+
 mkdir -p "$FACTORIO_CONFIG_DIR" "$FACTORIO_MODS_DIR" "$FACTORIO_LOG_DIR"
 for f in server-settings.json map-gen-settings.json map-settings.json; do
     if [ ! -f "${FACTORIO_CONFIG_DIR}/${f}" ] && [ -f "${FACTORIO_DEFAULTS_DIR}/${f}" ]; then
@@ -42,6 +44,21 @@ for local_mod in "${FACTORIO_MODS_DEFAULTS_DIR}"/*/; do
     [ -d "$local_mod" ] || continue
     [ -f "${local_mod}info.json" ] || continue
     mod_name=$(basename "$local_mod")
+    skip_local=0
+    for portal_only in $FACTORIO_PORTAL_ONLY_MODS; do
+        if [ "$mod_name" = "$portal_only" ]; then
+            skip_local=1
+            break
+        fi
+    done
+    if [ "$skip_local" = "1" ]; then
+        rm -f "${FACTORIO_MODS_DIR}/${mod_name}_"*.zip
+        if [ -d "${FACTORIO_MODS_DIR}/${mod_name}" ]; then
+            rm -rf "${FACTORIO_MODS_DIR}/${mod_name}"
+        fi
+        echo "[agones-shim] ${mod_name} marked portal-only, deferring to mod portal sync"
+        continue
+    fi
     mod_version=$(jq -r '.version // "0.0.1"' "${local_mod}info.json")
     target_zip="${FACTORIO_MODS_DIR}/${mod_name}_${mod_version}.zip"
     if [ -d "${FACTORIO_MODS_DIR}/${mod_name}" ]; then

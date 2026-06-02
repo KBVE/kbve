@@ -11,10 +11,6 @@ use super::net::ServerTime;
 use super::tilemap::TileMaterials;
 use super::trees::TreeWindSway;
 
-// ---------------------------------------------------------------------------
-// Day/night cycle
-// ---------------------------------------------------------------------------
-
 /// Marker component for the sun (directional light driven by day cycle).
 #[derive(Component)]
 struct Sun;
@@ -115,10 +111,6 @@ pub(crate) fn sun_params(hour: f32) -> SunParams {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Wind state
-// ---------------------------------------------------------------------------
-
 #[derive(Resource)]
 pub struct WindState {
     pub speed_mph: f32, // 0 = calm, 5 = gentle breeze, 15 = moderate, 30 = strong
@@ -133,10 +125,6 @@ impl Default for WindState {
         }
     }
 }
-
-// ---------------------------------------------------------------------------
-// Blob shadows
-// ---------------------------------------------------------------------------
 
 /// Dynamic blob shadow that follows the directional light angle.
 #[derive(Component)]
@@ -156,20 +144,12 @@ pub struct BlobShadowAssets {
     pub material: Handle<StandardMaterial>,
 }
 
-// ---------------------------------------------------------------------------
-// Vegetation wind sway
-// ---------------------------------------------------------------------------
-
 /// Attached to small vegetation (flowers, grass) for gentle translation sway.
 #[derive(Component)]
 pub struct WindSway {
     pub base_translation: Vec3,
     pub phase: f32,
 }
-
-// ---------------------------------------------------------------------------
-// Wind streaks (Wind Waker-style visual wind trails)
-// ---------------------------------------------------------------------------
 
 const WIND_STREAK_COUNT: usize = 10;
 const WIND_STREAK_LIFETIME: f32 = 2.8; // seconds per streak cycle
@@ -212,10 +192,6 @@ fn build_streak_mesh() -> Mesh {
     .with_inserted_indices(Indices::U32(vec![0, 1, 2, 0, 2, 3]))
 }
 
-// ---------------------------------------------------------------------------
-// Throttle timers (used on Low/Medium perf tiers)
-// ---------------------------------------------------------------------------
-
 /// Throttle timer for wind animation systems. On Low tier, wind updates at
 /// ~15 Hz instead of every frame — saves hundreds of sin/cos calls per tick.
 #[derive(Resource)]
@@ -225,10 +201,6 @@ pub struct WindAnimThrottle(pub Timer);
 /// update at ~10 Hz — shadows follow the sun angle which changes very slowly.
 #[derive(Resource)]
 pub struct ShadowUpdateThrottle(pub Timer);
-
-// ---------------------------------------------------------------------------
-// Systems
-// ---------------------------------------------------------------------------
 
 fn setup_weather(
     mut commands: Commands,
@@ -733,10 +705,6 @@ fn animate_wind_streaks(
         tf.scale = Vec3::new(length_scale, 1.0, 1.0);
     }
 }
-
-// ---------------------------------------------------------------------------
-// Plugin
-// ---------------------------------------------------------------------------
 
 pub struct WeatherPlugin;
 

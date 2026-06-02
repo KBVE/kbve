@@ -13,10 +13,6 @@ use super::simulate::SimulationCenter;
 use super::types::{Creature, CreatureState, SpriteCreatureMarker, SpriteCreatureTypes};
 use super::waypoint_graph::WaypointGraph;
 
-// ---------------------------------------------------------------------------
-// Timers
-// ---------------------------------------------------------------------------
-
 #[derive(Resource)]
 pub struct NavBuildTimer(pub Timer);
 
@@ -35,18 +31,10 @@ impl Default for NavEvictTimer {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Pending nav build (single in-flight task)
-// ---------------------------------------------------------------------------
-
 #[derive(Resource, Default)]
 pub struct PendingNavBuild {
     rx: Option<Receiver<WaypointGraph>>,
 }
-
-// ---------------------------------------------------------------------------
-// System: dispatch nav build off-thread
-// ---------------------------------------------------------------------------
 
 /// Periodically dispatches NavGrid chunk + WaypointGraph computation to
 /// bevy_tasker. NavGrid uses DashMap — background task writes chunks directly
@@ -142,10 +130,6 @@ pub fn receive_nav_build(mut pending: ResMut<PendingNavBuild>, mut graph: ResMut
     }
 }
 
-// ---------------------------------------------------------------------------
-// System: evict far-away nav data
-// ---------------------------------------------------------------------------
-
 pub fn evict_nav_data(
     time: Res<Time>,
     mut timer: ResMut<NavEvictTimer>,
@@ -165,10 +149,6 @@ pub fn evict_nav_data(
     nav.evict_far(center_cx, center_cz, keep_radius);
     graph.evict_far(center_cx, center_cz, keep_radius);
 }
-
-// ---------------------------------------------------------------------------
-// Patrol route generation — off-thread per creature
-// ---------------------------------------------------------------------------
 
 /// Marker for creatures that need a patrol route computed.
 #[derive(Component)]

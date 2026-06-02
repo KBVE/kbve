@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-05-31T09:12:42Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-06-01T10:01:26Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**49** critical/high severity findings across the monorepo.
+**48** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,10 +26,10 @@ Last generated: **2026-05-31T09:12:42Z** — updated daily by `ci-dashboard`.
   <Card title="2 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="47 High" icon="error">
+  <Card title="46 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="64 Medium" icon="information">
+  <Card title="63 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="32 Low" icon="approve-check-circle">
@@ -41,7 +41,7 @@ Last generated: **2026-05-31T09:12:42Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **69** advisories
+    **67** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **43** advisories
@@ -63,8 +63,8 @@ Last generated: **2026-05-31T09:12:42Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 2
-    "High" : 47
-    "Medium" : 64
+    "High" : 46
+    "Medium" : 63
     "Low" : 32
 ```
 
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 69
+    "npm" : 67
     "Cargo" : 43
     "CodeQL" : 61
 ```
@@ -83,12 +83,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 0 | 29 | 34 | 6 | 69 |
+| **npm** | 0 | 28 | 33 | 6 | 67 |
 | **Cargo** | 0 | 0 | 15 | 0 | 43 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 2 | 18 | 15 | 26 | 61 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 2 | 47 | 64 | 32 | 173 |
+| **Total** | 2 | 46 | 63 | 32 | 171 |
 
   </TabItem>
   <TabItem label="npm">
@@ -106,7 +106,6 @@ pie showData
 | High | `flatted` | flatted vulnerable to unbounded recursion DoS in parse() ... | [Details](https://github.com/advisories/GHSA-25h7-pfq9-p65f) |
 | High | `flatted` | Prototype Pollution via parse() in NodeJS flatted | [Details](https://github.com/advisories/GHSA-rf6f-7fwh-wjgh) |
 | High | `path-to-regexp` | path-to-regexp vulnerable to Regular Expression Denial of... | [Details](https://github.com/advisories/GHSA-37ch-88jc-xwx2) |
-| High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
 | High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
 | High | `lodash` | lodash vulnerable to Code Injection via `_.template` impo... | [Details](https://github.com/advisories/GHSA-r5fr-rjxr-66jc) |
 | High | `vite` | Vite: `server.fs.deny` bypassed with queries | [Details](https://github.com/advisories/GHSA-v2wj-q39q-566r) |
@@ -135,7 +134,6 @@ pie showData
 | Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
 | Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
 | Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
-| Medium | `picomatch` | Picomatch: Method Injection in POSIX Character Classes ca... | [Details](https://github.com/advisories/GHSA-3v7f-55p6-f55p) |
 | Medium | `picomatch` | Picomatch: Method Injection in POSIX Character Classes ca... | [Details](https://github.com/advisories/GHSA-3v7f-55p6-f55p) |
 | Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |
 | Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |

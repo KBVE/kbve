@@ -15,10 +15,6 @@ pub use bevy_npc::creature;
 
 use bevy_npc::{self as npc_types, NpcDb};
 
-// ---------------------------------------------------------------------------
-// Enums
-// ---------------------------------------------------------------------------
-
 /// How this creature is rendered in the isometric game.
 /// Each variant maps to a specific animate system.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -42,10 +38,6 @@ pub enum TimeSchedule {
     Always,
 }
 
-// ---------------------------------------------------------------------------
-// Per-NPC game config
-// ---------------------------------------------------------------------------
-
 /// Game-specific spawn and render configuration for an NPC.
 /// Bridges the game-agnostic NpcDb to the game's rendering pipeline.
 #[derive(Clone, Debug)]
@@ -63,10 +55,6 @@ pub struct CreatureConfig {
     /// When this creature is active (day/night/always).
     pub schedule: TimeSchedule,
 }
-
-// ---------------------------------------------------------------------------
-// Creature Registry — NpcDb + game-specific configs
-// ---------------------------------------------------------------------------
 
 /// Bevy resource bridging the game-agnostic `NpcDb` to game rendering.
 ///
@@ -114,10 +102,6 @@ impl CreatureRegistry {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Builder — populates the registry with creature definitions
-// ---------------------------------------------------------------------------
-
 /// Build the creature registry with all known ambient creature types.
 ///
 /// Each creature gets a proto NPC entry (game-agnostic data: name, family,
@@ -126,7 +110,6 @@ impl CreatureRegistry {
 pub fn build_creature_registry() -> CreatureRegistry {
     let mut registry = CreatureRegistry::default();
 
-    // --- Meadow Firefly ---
     registry.register(
         npc_types::Npc {
             r#ref: "meadow-firefly".into(),
@@ -176,7 +159,6 @@ pub fn build_creature_registry() -> CreatureRegistry {
         },
     );
 
-    // --- Woodland Butterfly ---
     registry.register(
         npc_types::Npc {
             r#ref: "woodland-butterfly".into(),
@@ -226,7 +208,6 @@ pub fn build_creature_registry() -> CreatureRegistry {
         },
     );
 
-    // --- Green Toad ---
     registry.register(
         npc_types::Npc {
             r#ref: "green-toad".into(),
@@ -275,7 +256,6 @@ pub fn build_creature_registry() -> CreatureRegistry {
         },
     );
 
-    // --- Wraith Executioner ---
     registry.register(
         npc_types::Npc {
             r#ref: "wraith-executioner".into(),
@@ -327,7 +307,6 @@ pub fn build_creature_registry() -> CreatureRegistry {
         },
     );
 
-    // --- Forest Wolf ---
     registry.register(
         npc_types::Npc {
             r#ref: "forest-wolf".into(),
@@ -379,7 +358,6 @@ pub fn build_creature_registry() -> CreatureRegistry {
         },
     );
 
-    // --- Woodland Stag ---
     registry.register(
         npc_types::Npc {
             r#ref: "woodland-stag".into(),
@@ -430,7 +408,6 @@ pub fn build_creature_registry() -> CreatureRegistry {
         },
     );
 
-    // --- Wild Boar ---
     registry.register(
         npc_types::Npc {
             r#ref: "wild-boar".into(),
@@ -482,7 +459,6 @@ pub fn build_creature_registry() -> CreatureRegistry {
         },
     );
 
-    // --- Honey Badger ---
     registry.register(
         npc_types::Npc {
             r#ref: "honey-badger".into(),
@@ -536,10 +512,6 @@ pub fn build_creature_registry() -> CreatureRegistry {
 
     registry
 }
-
-// ---------------------------------------------------------------------------
-// Slot helpers — shared deterministic placement logic
-// ---------------------------------------------------------------------------
 
 /// Simple hash → f32 in [0, 1) for deterministic variety.
 pub fn hash_f32(seed: u32) -> f32 {

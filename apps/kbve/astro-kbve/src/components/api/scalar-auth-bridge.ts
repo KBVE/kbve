@@ -1,7 +1,7 @@
 import { initSupa, getSupa } from '@/lib/supa';
 
 type ScalarInstance = {
-	updateConfiguration: (cfg: Record<string, unknown>) => void;
+	updateConfiguration?: (cfg: Record<string, unknown>) => void;
 };
 
 declare global {
@@ -12,25 +12,6 @@ declare global {
 }
 
 const BEARER_SCHEME = 'bearerAuth';
-
-function waitForInstance(timeoutMs = 10_000): Promise<ScalarInstance | null> {
-	return new Promise((resolve) => {
-		if (window.__scalarRef) {
-			resolve(window.__scalarRef);
-			return;
-		}
-		const start = performance.now();
-		const id = window.setInterval(() => {
-			if (window.__scalarRef) {
-				window.clearInterval(id);
-				resolve(window.__scalarRef);
-			} else if (performance.now() - start > timeoutMs) {
-				window.clearInterval(id);
-				resolve(null);
-			}
-		}, 50);
-	});
-}
 
 function withAuth(
 	base: Record<string, unknown>,
@@ -48,26 +29,42 @@ function withAuth(
 	};
 }
 
-void (async () => {
-	const instance = await waitForInstance();
-	if (!instance) return;
-	const baseConfig = window.__scalarBaseConfig ?? {};
+let latestToken: string | null = null;
+let supaInitialized = false;
 
+function applyToCurrent(): void {
+	const instance = window.__scalarRef;
+	const base = window.__scalarBaseConfig;
+	if (!instance?.updateConfiguration || !base) return;
+	instance.updateConfiguration(withAuth(base, latestToken));
+}
+
+/**
+ * Sync the latest Supabase token onto the live Scalar instance. Idempotent —
+ * the first call wires the Supabase listener once; every subsequent call
+ * (one per client-router mount) just re-applies the cached token to whatever
+ * `window.__scalarRef` is currently bound to.
+ */
+export async function attachScalarAuthBridge(): Promise<void> {
+	applyToCurrent();
+	if (supaInitialized) return;
+	supaInitialized = true;
 	try {
 		await initSupa();
 		const supa = getSupa();
 		const result = await supa.getSession().catch(() => null);
-		const token = result?.session?.access_token as string | undefined;
-		if (token) instance.updateConfiguration(withAuth(baseConfig, token));
+		latestToken = result?.session?.access_token ?? null;
+		applyToCurrent();
 		supa.on('auth', (payload: unknown) => {
 			const msg = payload as
 				| { session?: { access_token?: string } }
 				| undefined;
-			instance.updateConfiguration(
-				withAuth(baseConfig, msg?.session?.access_token ?? null),
-			);
+			latestToken = msg?.session?.access_token ?? null;
+			applyToCurrent();
 		});
 	} catch (e) {
+		// Reset so a later mount can retry once supa starts answering.
+		supaInitialized = false;
 		console.warn('Scalar auth bridge skipped:', e);
 	}
-})();
+}

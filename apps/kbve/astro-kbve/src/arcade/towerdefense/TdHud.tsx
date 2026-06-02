@@ -1,4 +1,5 @@
 import { useStore } from '@nanostores/react';
+import { useEffect, useRef } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import {
 	bestWaveAtom,
@@ -330,8 +331,45 @@ function PaletteBar() {
 	const selected = useStore(selectedBuildAtom);
 	const gold = useStore(goldAtom);
 	const freeTowers = useStore(freeTowersAtom);
+	const paletteRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const el = paletteRef.current;
+		if (!el) return;
+		const btn = el.querySelector<HTMLButtonElement>(
+			`button[data-pal-id="${selected}"]`,
+		);
+		if (!btn) return;
+		const elLeft = el.scrollLeft;
+		const elRight = elLeft + el.clientWidth;
+		const btnLeft = btn.offsetLeft;
+		const btnRight = btnLeft + btn.offsetWidth;
+		if (btnLeft < elLeft || btnRight > elRight) {
+			btn.scrollIntoView({
+				behavior: 'smooth',
+				inline: 'center',
+				block: 'nearest',
+			});
+		}
+	}, [selected]);
+
+	useEffect(() => {
+		const el = paletteRef.current;
+		if (!el) return;
+		const onWheel = (event: globalThis.WheelEvent) => {
+			const dx = event.deltaX;
+			const dy = event.deltaY;
+			const dominant = Math.abs(dy) > Math.abs(dx) ? dy : dx;
+			if (dominant === 0) return;
+			el.scrollLeft += dominant;
+			event.preventDefault();
+		};
+		el.addEventListener('wheel', onWheel, { passive: false });
+		return () => el.removeEventListener('wheel', onWheel);
+	}, []);
+
 	return (
-		<div className="td-palette">
+		<div ref={paletteRef} className="td-palette">
 			{PALETTE_ORDER.map((id: BuildId, i) => {
 				const spec = specFor(id);
 				const isFree = id === 'basic' && freeTowers > 0;
@@ -361,6 +399,7 @@ function PaletteBar() {
 					<button
 						key={id}
 						type="button"
+						data-pal-id={id}
 						className={className}
 						style={style}
 						title={`${spec.name} — ${costLabel}${powerSuffix ? ' · ' + powerSuffix : ''}`}

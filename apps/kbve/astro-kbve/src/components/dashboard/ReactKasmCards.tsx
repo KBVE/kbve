@@ -11,7 +11,85 @@ import {
 	Loader2,
 	Cpu,
 	MemoryStick,
+	MessageCircle,
+	Globe,
+	Activity,
 } from 'lucide-react';
+
+type BundledApp = 'discord' | 'cloakbrowser';
+
+interface ImageMeta {
+	display: string;
+	projectSlug?: string;
+	bundledApps: BundledApp[];
+}
+
+const KASM_IMAGE_BUNDLES: Record<
+	string,
+	{ apps: BundledApp[]; projectSlug?: string }
+> = {
+	'kasm-void': {
+		apps: ['discord', 'cloakbrowser'],
+		projectSlug: 'kasm-void',
+	},
+	'kasm-cloakbrowser': {
+		apps: ['cloakbrowser'],
+		projectSlug: 'kasm-cloakbrowser',
+	},
+	discord: { apps: ['discord'] },
+	cloakbrowser: { apps: ['cloakbrowser'] },
+};
+
+function parseImage(image: string): ImageMeta {
+	const lastSlash = image.lastIndexOf('/');
+	const tail = lastSlash >= 0 ? image.slice(lastSlash + 1) : image;
+	const colonIdx = tail.indexOf(':');
+	const name = colonIdx >= 0 ? tail.slice(0, colonIdx) : tail;
+	const tag = colonIdx >= 0 ? tail.slice(colonIdx + 1) : 'latest';
+	const bundle = KASM_IMAGE_BUNDLES[name];
+	return {
+		display: `${name}:${tag}`,
+		projectSlug: bundle?.projectSlug,
+		bundledApps: bundle?.apps ?? [],
+	};
+}
+
+function AppChip({ app }: { app: BundledApp }) {
+	const config: Record<
+		BundledApp,
+		{ label: string; color: string; Icon: typeof MessageCircle }
+	> = {
+		discord: {
+			label: 'Discord',
+			color: '#5865f2',
+			Icon: MessageCircle,
+		},
+		cloakbrowser: {
+			label: 'CloakBrowser',
+			color: '#a78bfa',
+			Icon: Globe,
+		},
+	};
+	const { label, color, Icon } = config[app];
+	return (
+		<span
+			title={`Bundled: ${label}`}
+			style={{
+				display: 'inline-flex',
+				alignItems: 'center',
+				gap: '0.25rem',
+				padding: '0.15rem 0.45rem',
+				borderRadius: '999px',
+				fontSize: '0.7rem',
+				background: `${color}22`,
+				border: `1px solid ${color}44`,
+				color,
+			}}>
+			<Icon size={11} />
+			{label}
+		</span>
+	);
+}
 
 interface ResourcePillProps {
 	label: string;
@@ -52,8 +130,10 @@ function formatRange(req?: string, lim?: string): string | null {
 function KasmCard({ info }: { info: KasmInfo }) {
 	const actionInProgress = useStore(kasmService.$actionInProgress);
 	const lastAction = useStore(kasmService.$lastAction);
+	const supervisorActivity = useStore(kasmService.$supervisorActivity);
 	const token = useStore(vmService.$accessToken);
 	const { workspace, phase, state } = info;
+	const activity = supervisorActivity[workspace.name];
 
 	const isActing = actionInProgress?.includes(workspace.name) ?? false;
 	const cardAction = lastAction?.name === workspace.name ? lastAction : null;
@@ -71,7 +151,7 @@ function KasmCard({ info }: { info: KasmInfo }) {
 					? '#ef4444'
 					: '#6b7280';
 
-	const imageName = workspace.image.split('/').pop() ?? workspace.image;
+	const imageMeta = parseImage(workspace.image);
 
 	return (
 		<div
@@ -133,7 +213,23 @@ function KasmCard({ info }: { info: KasmInfo }) {
 					fontSize: '0.8rem',
 					color: 'rgba(255,255,255,0.6)',
 				}}>
-				<span>Image: {imageName}</span>
+				<span style={{ gridColumn: 'span 2' }}>
+					Image:{' '}
+					{imageMeta.projectSlug ? (
+						<a
+							href={`/project/${imageMeta.projectSlug}/`}
+							title={workspace.image}
+							style={{
+								color: '#a78bfa',
+								textDecoration: 'none',
+								borderBottom: '1px dashed #a78bfa66',
+							}}>
+							{imageMeta.display}
+						</a>
+					) : (
+						<span title={workspace.image}>{imageMeta.display}</span>
+					)}
+				</span>
 				<span>Port: {workspace.port}</span>
 				<span>
 					Replicas: {workspace.readyReplicas}/{workspace.replicas}
@@ -198,6 +294,46 @@ function KasmCard({ info }: { info: KasmInfo }) {
 					</div>
 				);
 			})()}
+
+			{imageMeta.bundledApps.length > 0 && (
+				<div
+					style={{
+						display: 'flex',
+						flexWrap: 'wrap',
+						gap: '0.35rem',
+						marginTop: '-0.25rem',
+					}}>
+					{imageMeta.bundledApps.map((app) => (
+						<AppChip key={app} app={app} />
+					))}
+				</div>
+			)}
+
+			{activity && (activity.cloak > 0 || activity.discord > 0) && (
+				<div
+					title={`Supervisor launches in the last ${activity.windowMin}m — includes the cold pod start. Anything above 2 per app is likely respawns after a crash or window close.`}
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: '0.4rem',
+						fontSize: '0.72rem',
+						color: 'rgba(255,255,255,0.55)',
+						marginTop: '-0.25rem',
+					}}>
+					<Activity size={12} style={{ color: '#a78bfa' }} />
+					<span>
+						Last {activity.windowMin}m:{' '}
+						<strong style={{ color: '#a78bfa' }}>
+							{activity.cloak}
+						</strong>{' '}
+						browser ·{' '}
+						<strong style={{ color: '#a78bfa' }}>
+							{activity.discord}
+						</strong>{' '}
+						discord launches
+					</span>
+				</div>
+			)}
 
 			{/* Actions */}
 			<div
