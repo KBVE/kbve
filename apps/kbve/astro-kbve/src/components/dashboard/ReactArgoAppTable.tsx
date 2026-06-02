@@ -112,7 +112,7 @@ function syncIcon(status: string) {
 	}
 }
 
-function StatusBadge({
+export function StatusBadge({
 	status,
 	colorFn,
 	iconFn,
@@ -802,7 +802,7 @@ function AppExpandedPanel({
 // Application Row
 // ---------------------------------------------------------------------------
 
-function ApplicationRow({
+export function ApplicationRow({
 	app,
 	token,
 	expanded,
