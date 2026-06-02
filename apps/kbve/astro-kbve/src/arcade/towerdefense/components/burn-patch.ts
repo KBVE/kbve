@@ -10,5 +10,5 @@ export const BurnPatchStats = {
 };
 
 export interface BurnPatchVisual {
-	sprite: Phaser.GameObjects.Arc;
+	sprite: Phaser.GameObjects.Arc | Phaser.GameObjects.Image;
 }

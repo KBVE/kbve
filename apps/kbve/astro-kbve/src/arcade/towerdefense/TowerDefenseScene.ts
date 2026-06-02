@@ -457,6 +457,15 @@ export class TowerDefenseScene extends Phaser.Scene {
 			) => this.acquireArc(x, y, radius, color, alpha),
 			releaseArc: (sprite: Phaser.GameObjects.Arc) =>
 				this.releaseArc(sprite),
+			acquireBurnDecal: (
+				x: number,
+				y: number,
+				radius: number,
+				color: number,
+				alpha: number,
+			) => this.acquireBurnDecal(x, y, radius, color, alpha),
+			releaseBurnDecal: (sprite: Phaser.GameObjects.Image) =>
+				this.releaseBurnDecal(sprite),
 			forEachEnemyInRange: (
 				cx: number,
 				cy: number,
@@ -634,6 +643,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 				offset: number;
 		  })
 		| null = null;
+	private cameraPauseBlur: unknown = null;
 	private hoverRangeIndicator: Phaser.GameObjects.Arc | null = null;
 	private hoverRangeOwner: Building | null = null;
 
@@ -658,6 +668,8 @@ export class TowerDefenseScene extends Phaser.Scene {
 	}
 
 	init(): void {
+		this.setCameraPauseBlur(false);
+		this.nexusAura = null;
 		this.world = createWorld();
 		this.enemyVisuals = new SideMap<EnemyVisual>();
 		this.pendingBosses = 0;
@@ -3754,6 +3766,63 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.pools.arc.release(sprite);
 	}
 
+	private acquireBurnDecal(
+		x: number,
+		y: number,
+		radius: number,
+		color: number,
+		alpha: number,
+	): Phaser.GameObjects.Image | null {
+		const factory = this.add as Phaser.GameObjects.GameObjectFactory & {
+			stamp?: (
+				x: number,
+				y: number,
+				texture: string,
+			) => Phaser.GameObjects.Image;
+		};
+		if (typeof factory.stamp !== 'function') return null;
+		if (!this.textures.exists(IMPACT_DECAL_TEXTURE_KEY)) return null;
+		const sprite = factory.stamp(x, y, IMPACT_DECAL_TEXTURE_KEY);
+		const scale = (radius * 2) / 32;
+		sprite
+			.setOrigin(0.5)
+			.setDepth(2)
+			.setBlendMode(Phaser.BlendModes.ADD)
+			.setTint(color)
+			.setScale(scale)
+			.setAlpha(alpha);
+		return sprite;
+	}
+
+	private releaseBurnDecal(sprite: Phaser.GameObjects.Image): void {
+		sprite.destroy();
+	}
+
+	private setCameraPauseBlur(enabled: boolean): void {
+		const cam = this.cameras.main as Phaser.Cameras.Scene2D.Camera & {
+			filters?: {
+				external: {
+					addBlur(
+						quality?: number,
+						x?: number,
+						y?: number,
+						strength?: number,
+					): unknown;
+					remove(filter: unknown): void;
+				};
+			};
+		};
+		const filters = cam.filters?.external;
+		if (!filters) return;
+		if (enabled) {
+			if (this.cameraPauseBlur) return;
+			this.cameraPauseBlur = filters.addBlur(1, 2, 2, 1.2);
+		} else if (this.cameraPauseBlur) {
+			filters.remove(this.cameraPauseBlur);
+			this.cameraPauseBlur = null;
+		}
+	}
+
 	private acquireRect(
 		x: number,
 		y: number,
@@ -4043,6 +4112,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 			speedFactorAtom.set(0);
 		}
 		this.pauseOverlay?.setPaused(this.isPaused);
+		this.setCameraPauseBlur(this.isPaused);
 	}
 
 	private updateEnemyHover(): void {
@@ -4123,6 +4193,7 @@ export class TowerDefenseScene extends Phaser.Scene {
 		this.placementPreview.setVisible(false);
 		this.placementRange.setVisible(false);
 		this.clearPlacementCoverage();
+		this.setCameraPauseBlur(true);
 		const previousBest = loadBestWave();
 		const newRecord = this.wave > previousBest;
 		if (newRecord) {
