@@ -12,14 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
+  potion:
+    effects:
+      - description: "Temporarily boosts Woodcutting level by +2 when drunk; matches the per-glass mature Axeman's folly effect."
+  recipes:
+    - materials:
+        - item_name: Calquat keg
+          quantity: 1
+        - item_name: Axeman's folly (m)
+          quantity: 4
+      tools:
+        - Beer glass
+      output_quantity: 1
+      notes: "Pour four pints of mature Axeman's folly into a calquat keg; brewed via the Brewing process after fermenting in a vat."
+  related_items:
+    - name: Axeman's folly (m)
+      relationship: component
+    - name: Axeman's folly(m1)
+      relationship: variant
+    - name: Axeman's folly(m2)
+      relationship: variant
+    - name: Axeman's folly(m3)
+      relationship: variant
+    - name: Calquat keg
+      relationship: component
   about: "Axeman's folly(m4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - Full 4-pint keg of mature Axeman's folly; non-alchable, so price floor is set by GE demand.
+      - Partially drunk kegs are untradeable since the 2015 update — only the full m4 trades on GE.
+      - Brewed via vat fermentation then poured into a calquat keg.
+  trading_tips:
+    - Buy limit of 2,000 per 4 hours allows bulk acquisition for Woodcutting bonus stacking.
+    - Check GE margins vs. self-brewing cost (barley malt + oak roots + ale yeast + calquat keg).
+  history:
+    - date: "2005-07-11"
+      description: "Released with the Farming Update."
+    - date: "2005-10-04"
+      description: "Renamed from 'Axeman's folly(n)' to 'Axeman's folly(mn)' naming scheme."
+    - date: "2015-02-26"
+      description: "Partially drunk versions (m1-m3) became untradeable."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: "Farming Update"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

@@ -12,14 +12,82 @@ osrs:
   lowalch: 307
   highalch: 460
   limit: 125
-  about: "White scimitar is a members-only item in Old School RuneScape. High alchemy value: 460 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: white
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: scimitar
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: 4
+      slash: 19
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 14
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  shops:
+    - shop_name: Sir Vyvin's white equipment store
+      location: Falador Castle
+      stock: 1
+      currency: coins
+      price: 768
+      notes: "Requires Master rank from Sir Vyvin (1,300 Black Knight kills) and completion of the Wanted! quest."
+  related_items:
+    - name: "Steel scimitar"
+      relationship: alternative
+    - name: "Mithril scimitar"
+      relationship: alternative
+  about: "White scimitar is a members-only quest-locked melee weapon in Old School RuneScape requiring 10 Attack and completion of the Wanted! quest. It provides a small +1 Prayer bonus alongside scimitar-tier slash and strength stats."
+  market_strategy:
+    notes:
+      - "Quest-gated weapon (Wanted!) which limits supply versus standard scimitars."
+      - "Prayer bonus is unusual on a scimitar, niche for low-level prayer setups."
+      - "High alch margin is slim — best for casual flipping rather than alching."
+  trading_tips:
+    - "Stock white equipment when Black Knight Fortress crowds drop completed scimitars."
+    - "Sell to ironmen-passable accounts post Wanted! quest spikes."
+  history:
+    - date: "2005-10-17"
+      description: "Released as part of the Wanted! quest update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-10-17"
+    update: "Wanted!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: true
+    quest: "Wanted!"
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Chop
+      - Slash
+      - Lunge
+      - Block
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

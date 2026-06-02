@@ -12,23 +12,45 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 7000
+  material:
+    type: steel
+    tier: low
   equipment:
     slot: weapon
-    type: thrown
-    attack_style: ranged
+    weapon_type: thrown
     attack_speed: 3
-  requirements:
-    ranged: 5
-  stats:
-    attack:
+    weight: 0
+    requirements:
+      ranged: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
       ranged: 0
-    other:
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
       ranged_strength: 3
-  fletching:
-    level: 37
-    xp: 7.5
-    method: Attach feathers to steel dart tips
-    quest: Tourist Trap
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Fletching
+      level: 37
+      xp: 75
+      output_quantity: 10
+      materials:
+        - item_name: Steel dart tip
+          quantity: 10
+        - item_name: Feather
+          quantity: 10
+      tools: []
+      notes: Requires Tourist Trap quest completion to fletch darts.
   related_items:
     - item_id: 821
       item_name: Steel dart tip
@@ -55,21 +77,37 @@ osrs:
       slug: toxic-blowpipe
       relationship: alternative
       description: Uses darts as ammo
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Weapon/Ammo |
-    | Type | Thrown |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 5 Ranged |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: Steel dart is a mid-low tier thrown ranged weapon requiring 5 Ranged to wield, fletched from steel dart tips and feathers after completing Tourist Trap.
+  market_strategy:
+    notes:
+      - Cheap stackable ammo with a high 7,000 GE buy limit, making bulk flipping low-margin but consistent.
+      - Demand is steady from low-level rangers and ironmen seeking quick Fletching XP via dart fletching.
+  trading_tips:
+    - Buy steel dart tips and feathers separately if the assembled dart price exceeds the combined component cost.
+    - Stockpile for Fletching bot purges that briefly spike dart demand.
+  history:
+    - date: "2003-04-14"
+      description: Released alongside the rest of the dart family.
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

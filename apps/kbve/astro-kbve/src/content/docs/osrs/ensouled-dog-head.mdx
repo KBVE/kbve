@@ -12,14 +12,56 @@ osrs:
   lowalch: 114
   highalch: 171
   limit: 3000
-  about: "Ensouled dog head is a members-only item in Old School RuneScape. High alchemy value: 171 coins. Grand Exchange buy limit: 3,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Guard dog
+        quantity: "1"
+        rarity: "1/25"
+      - source: Wild dog
+        quantity: "1"
+        rarity: "1/25"
+      - source: Bottle of headless unicornman's heady beer
+        quantity: "3-8"
+        rarity: Common
+  prayer:
+    reanimation:
+      spell: Adept Reanimation
+      magic_level: 41
+      prayer_xp: 520
+      runes: "1 Soul rune, 3 Nature runes, 4 Body runes"
+  related_items:
+    - name: "Dog bones"
+      relationship: alternative
+  about: "Ensouled dog head is a members-only reanimation reagent in Old School RuneScape used with the Adept Reanimation spell on the Arceuus spellbook at 41 Magic to summon a reanimated dog, granting 520 Prayer experience on defeat."
+  market_strategy:
+    notes:
+      - "Non-tradeable on the Grand Exchange; obtained directly from monster drops."
+      - "Used by Arceuus prayer trainers grinding 41 Magic Adept Reanimation."
+      - "Bottle of headless unicornman's heady beer can yield 3-8 per drink for low-cost stockpiles."
+  trading_tips:
+    - "Farm Guard dogs (1/25) for a steady supply during Prayer training."
+    - "Carry stamina potions; ensouled heads are 0.453 kg each and add up fast."
+  history:
+    - date: "2016-01-07"
+      description: "Released with the Zeah: Great Kourend update introducing the Arceuus reanimation spells."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-01-07"
+    update: "Zeah: Great Kourend"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

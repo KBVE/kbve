@@ -12,14 +12,63 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15000
-  about: "Camelot teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destination: Camelot
+    type: tablet
+    requirements_to_use: none
+  recipes:
+    - materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Law rune
+          quantity: 1
+        - item_name: Air rune
+          quantity: 5
+      tools:
+        - Eagle lectern (teak, mahogany, or marble)
+      output_quantity: 1
+      magic_level: 45
+      magic_xp: 55.5
+  related_items:
+    - item_id: 8013
+      item_name: Varrock teleport (tablet)
+      slug: varrock-teleport-tablet
+      relationship: alternative
+      description: Another standard teleport tablet
+    - item_id: 8009
+      item_name: Falador teleport (tablet)
+      slug: falador-teleport-tablet
+      relationship: alternative
+      description: Another standard teleport tablet
+  about: "Camelot teleport (tablet) is a stackable Magic tablet that teleports the user to Camelot. Created at a POH eagle lectern with 1 soft clay, 1 law rune, and 5 air runes at 45 Magic for 55.5 xp. Anyone can use it regardless of Magic level."
+  market_strategy:
+    notes:
+      - Strong steady volume from POH tablet farmers and questers
+      - Crafting profit fluctuates with law rune price
+      - Buy limit 15,000 supports mass flipping
+  history:
+    - date: "2006-05-31"
+      description: Released alongside the Magic on Eagle Lectern POH update.
+  properties:
+    release_date: "2006-05-31"
+    update: Magic on Eagle Lectern
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

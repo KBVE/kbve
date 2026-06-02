@@ -12,14 +12,81 @@ osrs:
   lowalch: 21760
   highalch: 32640
   limit: 8
-  about: "Zamorak kiteshield is a free-to-play item in Old School RuneScape. High alchemy value: 32,640 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: mid-high
+  equipment:
+    slot: shield
+    weapon_type: none
+    weight: 5.443
+    requirements:
+      defence: 40
+    attack_bonus:
+      magic: -8
+      ranged: -2
+    defence_bonus:
+      stab: 44
+      slash: 48
+      crush: 46
+      magic: -1
+      ranged: 46
+    other_bonus:
+      prayer: 1
+  drop_table:
+    sources:
+      - source: Hard Treasure Trails reward casket
+        quantity: "1"
+        rarity: 1/1625
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  related_items:
+    - name: Saradomin kiteshield
+      relationship: alternative
+    - name: Guthix kiteshield
+      relationship: alternative
+    - name: Armadyl kiteshield
+      relationship: alternative
+    - name: Ancient kiteshield
+      relationship: alternative
+    - name: Bandos kiteshield
+      relationship: alternative
+    - name: Rune kiteshield
+      relationship: variant
+  about: "Zamorak kiteshield is a rune kiteshield bearing the colours of Zamorak, obtainable as a hard clue scroll reward."
+  market_strategy:
+    notes:
+      - "GE buy limit is only 8 per 4 hours, capping bulk flipping."
+      - "Hard clue casket reward at 1/1,625 keeps supply thin relative to plain rune."
+  trading_tips:
+    - "Track hard clue completion trends — supply tracks clue popularity."
+    - "Compare with Saradomin and Guthix variants for cosmetic preference arbitrage."
+  history:
+    - date: "2004-05-05"
+      description: "Released as part of the god armour cosmetic rune set."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-05-05"
+    update: God armour
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

@@ -12,14 +12,78 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: null
-  about: "Polar camo legs is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: legs
+    weight: 0.226
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -7
+    defence_bonus:
+      stab: 11
+      slash: 10
+      crush: 10
+      magic: 0
+      ranged: 10
+    other_bonus: {}
+  recipes:
+    - materials:
+        - item_name: Polar kebbit fur
+          quantity: 2
+        - item_name: Coins
+          quantity: 20
+      tools: []
+      output_quantity: 1
+      skill: Hunter
+      notes: Trade with Pellem at the Hunter Guild or the Varrock Fancy Clothes Store proprietor.
+  related_items:
+    - slug: woodland-camo-legs
+      relationship: variant
+    - slug: jungle-camo-legs
+      relationship: variant
+    - slug: desert-camo-legs
+      relationship: variant
+    - slug: larupia-legs
+      relationship: alternative
+    - slug: polar-kebbit-fur
+      relationship: component
+  about: "Polar camo legs are Hunter cosmetic legwear crafted from polar kebbit fur; weight-reducing since 2024."
+  market_strategy:
+    notes:
+      - No GE buy limit, supply is bottlenecked by polar kebbit hunting rate.
+      - Weight-reducing buff added in 2024 modestly increased fashionscape demand.
+  trading_tips:
+    - Hunters can self-supply via Rellekka Hunter area for cheap restocks.
+    - Pair with matching polar camo top for cosmetic set bundles.
+  history:
+    - date: "2006-11-21"
+      description: Added with the Hunter skill release.
+    - date: "2024-03-20"
+      description: Granted -2 kg weight-reducing property when equipped.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

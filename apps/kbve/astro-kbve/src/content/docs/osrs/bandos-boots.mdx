@@ -12,39 +12,50 @@ osrs:
   lowalch: 115604
   highalch: 173406
   limit: 8
+  material:
+    type: bandos
+    tier: high
   equipment:
     slot: feet
-    type: melee_boots
-    tradeable: true
     weight: 6
     requirements:
       defence: 65
-    stats:
-      defence_stab: 17
-      defence_slash: 18
-      defence_crush: 19
-      defence_ranged: 15
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 17
+      slash: 18
+      crush: 19
+      magic: 0
+      ranged: 15
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 1
-  obtaining:
-    methods:
+  drop_table:
+    sources:
       - source: General Graardor
+        combat_level: 624
+        quantity: "1"
+        rarity: rare
         drop_rate: 1/381
+        members_only: true
   related_items:
-    - item_id: 0
-      item_name: General Graardor
-      slug: general-graardor
-      relationship: component
-      description: Boss drop
     - item_id: 21733
       item_name: Guardian boots
       slug: guardian-boots
       relationship: upgrade
-      description: Upgrade
+      description: Upgraded variant combining Bandos boots with Black tourmaline core
     - item_id: 13239
       item_name: Primordial boots
       slug: primordial-boots
       relationship: alternative
-      description: Offensive alternative
+      description: Offensive melee boots with Strength bonus
   about: |-
     | Defence | Bonus |
     |---------|-------|
@@ -52,31 +63,49 @@ osrs:
     | Slash | +18 |
     | Crush | +19 |
     | Ranged | +15 |
-
     | Other | Bonus |
     |-------|-------|
     | Prayer | +1 |
-
     No strength bonus.
-
     Used for:
     - Defensive tank builds
     - Budget boots
     - Upgrades to Guardian boots
-
     Defence-focused boots (no strength).
   market_strategy:
     notes:
       - From General Graardor (GWD)
       - No strength bonus
       - Upgrade to Guardian boots
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - 8 per 4h limit, low-volume luxury
+  trading_tips:
+    - Track Bandos PvM popularity for entry-tank demand
+    - Pair with Black tourmaline core to make Guardian boots
+    - Avoid alching, price greatly exceeds high alch
+  history:
+    - date: "2013-10-17"
+      description: Added to General Graardor's drop table in the Bandos rework.
+  properties:
+    release_date: "2013-10-17"
+    update: Bandos rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 6
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

@@ -12,14 +12,85 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 8
+  material:
+    type: cosmetic
+    tier: mid-high
+  equipment:
+    slot: cape
+    weight: 0.453
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 9
+      slash: 9
+      crush: 9
+      magic: 9
+      ranged: 9
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    description: "Equipping the cape skulls the wearer for 20 minutes (with warning prompt); skull persists after removal and resets on world-hop or re-equip."
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/5616
+        members_only: true
+  related_items:
+    - item_id: 6568
+      item_name: Obsidian cape
+      slug: obsidian-cape
+      relationship: alternative
+      description: Identical defensive bonuses, no skull penalty
   about: "Cape of skulls is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - Easy clue reward, rare casket drop
+      - Mostly cosmetic demand; functional alternative exists in obsidian cape
+      - Wearing skulls the player, niche use only
+  trading_tips:
+    - Price volatile with cosmetic / collector demand
+    - Volume low (limit 8); slow to flip
+    - Avoid alching, value far exceeds high alch
+  history:
+    - date: "2019-04-11"
+      description: Added as an easy clue scroll reward.
+  properties:
+    release_date: "2019-04-11"
+    update: Easy Clue Rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

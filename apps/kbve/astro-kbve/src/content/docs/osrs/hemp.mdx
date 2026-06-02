@@ -12,14 +12,65 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 13000
-  about: "Hemp is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  farming:
+    seed: Hemp seeds
+    seeds_per_patch: 3
+    patch_type: Hops
+    level: 37
+  recipes:
+    - materials:
+        - item_name: Hemp
+          quantity: 1
+      tools:
+        - Spinning wheel
+      skill: Crafting
+      level: 39
+      xp: 60
+      output_quantity: 1
+      output_item: Hemp yarn
+  related_items:
+    - item_id: 31458
+      item_name: Hemp seeds
+      slug: hemp-seeds
+      relationship: component
+      description: Seed planted in a hops patch to grow hemp.
+    - item_id: 31459
+      item_name: Hemp yarn
+      slug: hemp-yarn
+      relationship: product
+      description: Hemp spun on a spinning wheel; used for Sailing content.
+  about: "Hemp is a Sailing-update Farming crop harvested from a hops patch at level 37 and spun into hemp yarn for canvas bolts, trawling nets and other ship rigging."
+  market_strategy:
+    notes:
+      - "Supply is driven by hops-patch farm runs; price tracks Sailing engagement and yarn demand."
+      - "GE limit of 13,000 per 4 hours supports bulk crafters spinning yarn for canvas bolts."
+      - "Acts as payment to protect cotton patches, so demand from cotton farmers adds floor."
+  trading_tips:
+    - "Plant during seed-price dips and resell harvest when canvas bolt demand spikes."
+    - "Convert to hemp yarn (Crafting 39) when the spread covers GE tax."
+    - "Avoid alching; high alch (18 gp) sits far below GE price."
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2025-11-19"
+      description: "Introduced with the Sailing skill update as a hops-patch Farming crop spinnable into hemp yarn."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

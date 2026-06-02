@@ -12,28 +12,48 @@ osrs:
   lowalch: 260
   highalch: 390
   limit: 125
+  material:
+    type: steel
+    tier: low
   equipment:
     slot: weapon
-    type: battleaxe
-    tradeable: true
+    weapon_type: battleaxe
+    attack_speed: 6
     weight: 2.721
     requirements:
       attack: 5
-    stats:
-      attack_stab: -2
-      attack_slash: 16
-      attack_crush: 11
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 20
+    attack_bonus:
+      stab: -2
+      slash: 16
+      crush: 11
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -1
+    other_bonus:
+      melee_strength: 20
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  recipes:
+    - materials:
+        - item_name: Steel bar
+          quantity: 3
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+      smithing_level: 40
+      smithing_xp: 112.5
+  shops:
+    - shop_name: Bob's Brilliant Axes
+      location: Lumbridge
+    - shop_name: Brian's Battleaxe Bazaar
+      location: Port Sarim
   related_items:
     - item_id: 1367
       item_name: Black battleaxe
@@ -45,13 +65,36 @@ osrs:
       slug: steel-sword
       relationship: alternative
       description: Better accuracy alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Steel battleaxe is a free-to-play one-handed melee weapon requiring 5 Attack. It needs 3 steel bars and 40 Smithing to forge for 112.5 Smithing XP."
+  market_strategy:
+    notes:
+      - Smithing alch farm material if steel bar price stays low
+      - F2P availability keeps demand steady at low prices
+      - 125 buy limit constrains rapid flips
+  history:
+    - date: "2001-01-04"
+      description: Released in the original RuneScape weapon roster.
+  properties:
+    release_date: "2001-01-04"
+    update: Early RuneScape
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

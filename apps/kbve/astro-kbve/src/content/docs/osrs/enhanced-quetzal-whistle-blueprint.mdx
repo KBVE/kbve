@@ -12,14 +12,72 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: null
-  about: "Enhanced quetzal whistle blueprint is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: blueprint
+    tier: mid
+  recipes:
+    - materials:
+        - item_name: Basic quetzal whistle
+          quantity: 1
+        - item_name: Yew logs
+          quantity: 1
+      tools:
+        - Knife
+      skill: Crafting
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Adept hunters' loot sack
+        quantity: "1"
+        rarity: 1/50
+      - source: Expert hunters' loot sack
+        quantity: "1"
+        rarity: 1/50
+      - source: Master hunters' loot sack
+        quantity: "1"
+        rarity: 1/50
+  related_items:
+    - name: Basic quetzal whistle
+      relationship: component
+    - name: Enhanced quetzal whistle
+      relationship: product
+    - name: Perfected quetzal whistle blueprint
+      relationship: upgrade
+    - name: Torn enhanced quetzal whistle blueprint
+      relationship: variant
+  about: "Enhanced quetzal whistle blueprint is a Varlamore Hunter Rumours drop used with a basic quetzal whistle, yew logs, and a knife to craft the enhanced quetzal whistle."
+  market_strategy:
+    notes:
+      - "Drops at 1/50 from adept, expert, and master hunters' loot sacks."
+      - "Untradeable torn variant is granted after 100 Hunter Rumour completions."
+      - "Can be exchanged with Guild Scribe Verity for a supply loot sack."
+  trading_tips:
+    - "Price tracks Hunter Rumour engagement and Varlamore meta."
+    - "Watch teleport convenience demand — drives whistle upgrades."
+  history:
+    - date: "2024-03-20"
+      description: "Released with Varlamore: Part One and the Hunter Guild rework."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.004
+    options:
+      - Check
+      - Craft
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

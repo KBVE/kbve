@@ -12,14 +12,62 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 15
-  about: "Redberry pie is a free-to-play item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    healing: 10
+    bites: 2
+    heal_per_bite: 5
+  recipes:
+    - materials:
+        - item_name: Pie shell
+          quantity: 1
+        - item_name: Redberries
+          quantity: 1
+      tools:
+        - Range
+      skill: Cooking
+      level: 10
+      experience: 78
+      output_quantity: 1
+  related_items:
+    - name: Half a redberry pie
+      relationship: variant
+    - name: Pie dish
+      relationship: component
+    - name: Uncooked berry pie
+      relationship: component
+    - name: Redberries
+      relationship: component
+  about: "Redberry pie is a free-to-play 10-Cooking pie that heals 10 hitpoints across two bites and is used in The Knight's Sword, The Giant Dwarf, and Prying Times."
+  market_strategy:
+    notes:
+      - "GE buy limit only 15 per 4 hours, so bulk supply is slow."
+      - "Demand comes from quest seekers more than combat food."
+  trading_tips:
+    - "Spike around quest guide videos and new account onboarding."
+    - "Bake Pie lunar spell guarantees success past base burn rate."
+  history:
+    - date: "2001-03-17"
+      description: "Released as one of the original Cooking pies."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-03-17"
+    update: Cooking pies
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.45
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

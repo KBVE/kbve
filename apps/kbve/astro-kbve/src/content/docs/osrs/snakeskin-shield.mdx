@@ -12,31 +12,34 @@ osrs:
   lowalch: 368
   highalch: 552
   limit: 125
-  item_id: 22272
-  item_type: armor
-  slot: shield
-  type: shield
-  tradeable: true
-  weight: 8
-  requirements:
-    ranged: 30
-    defence: 30
-  stats:
-    stab_attack: -15
-    slash_attack: -15
-    crush_attack: -11
-    magic_attack: -10
-    ranged_attack: 3
-    stab_defence: 10
-    slash_defence: 9
-    crush_defence: 8
-    magic_defence: 7
-    ranged_defence: 10
+  material:
+    type: snakeskin
+    tier: low
+  equipment:
+    slot: shield
+    weight: 8
+    requirements:
+      ranged: 30
+      defence: 30
+    attack_bonus:
+      stab: -15
+      slash: -15
+      crush: -11
+      magic: -10
+      ranged: 3
+    defence_bonus:
+      stab: 10
+      slash: 9
+      crush: 8
+      magic: 7
+      ranged: 10
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
-    - skill: crafting
-      level: 56
-      xp: 100
-      materials:
+    - materials:
         - item_name: Snakeskin
           quantity: 2
         - item_name: Willow shield
@@ -45,22 +48,62 @@ osrs:
           quantity: 15
       tools:
         - Hammer
+      output_quantity: 1
+      crafting_level: 56
+      crafting_xp: 100
   related_items:
-    - slug: snakeskin-body
-    - slug: snakeskin-chaps
-    - slug: green-dhide-shield
-    - slug: snakeskin
+    - item_id: 6322
+      item_name: Snakeskin body
+      slug: snakeskin-body
+      relationship: set-piece
+      description: Body piece in the snakeskin ranged set
+    - item_id: 6324
+      item_name: Snakeskin chaps
+      slug: snakeskin-chaps
+      relationship: set-piece
+      description: Legs piece in the snakeskin ranged set
+    - item_id: 1191
+      item_name: Green d'hide shield
+      slug: green-dhide-shield
+      relationship: upgrade
+      description: Higher tier ranged shield at 40 Ranged/Defence
+    - item_id: 6287
+      item_name: Snakeskin
+      slug: snakeskin
+      relationship: component
+      description: Crafted from cured swamp snake hides
   about: |-
     *A solid willow shield covered in snakeskin leather.*
-
     The snakeskin shield provides a small +3 ranged attack bonus, making it one of few shields that does not penalize ranged accuracy. However, its defensive stats are modest and it is very heavy at 8 kg. The Green d'hide shield (at 40 Ranged/Defence) is a direct upgrade with better stats all around. The snakeskin shield pairs with the Snakeskin body and Snakeskin chaps for a budget mid-level ranged set.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Thin crafting profit per shield (~80 gp); requires bulk to scale
+      - Limited by GE buy limit of 125 and modest daily volume
+      - Niche demand outside ironmen and budget rangers
+  history:
+    - date: "2018-02-01"
+      description: Released alongside the Snakeskin shield crafting recipe update.
+  properties:
+    release_date: "2018-02-01"
+    update: Snakeskin shield
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 8
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

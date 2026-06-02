@@ -12,14 +12,66 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 11000
-  about: "Mahogany pyre logs is a members-only item in Old School RuneScape. High alchemy value: 120 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: log
+    tier: mid
+  recipes:
+    - materials:
+        - item_name: Mahogany logs
+          quantity: 1
+        - item_name: Sacred oil(3)
+          quantity: 1
+      tools:
+        - Tinderbox
+      output_quantity: 1
+  related_items:
+    - item_name: Mahogany logs
+      slug: mahogany-logs
+      relationship: component
+    - item_name: Sacred oil(3)
+      slug: sacred-oil-3
+      relationship: component
+    - item_name: Yew pyre logs
+      slug: yew-pyre-logs
+      relationship: downgrade
+    - item_name: Magic pyre logs
+      slug: magic-pyre-logs
+      relationship: upgrade
+    - item_name: Redwood pyre logs
+      slug: redwood-pyre-logs
+      relationship: upgrade
+  about: "Mahogany logs treated with three doses of sacred oil for use as a Shades of Mort'ton funeral pyre, granting 210 Firemaking xp plus Prayer xp on cremation."
+  market_strategy:
+    notes:
+      - Used in Shades of Mort'ton
+      - 55 Firemaking to light
+      - Profit margin is thin
+  trading_tips:
+    - Buy logs and oil separately if cheaper
+    - Use during Shades events for demand
+  history:
+    - date: "2005-08-09"
+      description: Released with Shades of Mort'ton update.
+    - date: "2024-07-31"
+      description: Standardized to 5 xp per sacred oil dose, added Make-All menu.
+  properties:
+    release_date: "2005-08-09"
+    update: Shades of Mort'ton
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

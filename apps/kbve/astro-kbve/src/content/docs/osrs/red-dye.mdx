@@ -12,14 +12,84 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 150
+  shops:
+    - shop_name: Aggie the Witch
+      location: Draynor Village
+      price: 5
+      restock_time: null
+      notes: "Trade 3 redberries + 5 coins; creates red dye"
+    - shop_name: Ali the Dyer
+      location: Pollnivneach
+      price: 25
+      restock_time: null
+    - shop_name: Oronwen's Seamstress
+      location: Lletya
+      stock: 10
+      price: 6
+      restock_time: 1 minute
+    - shop_name: Guinevere's Dyes
+      location: Prifddinas
+      stock: 10
+      price: 6
+      restock_time: 1 minute
+  recipes:
+    - skill: Crafting
+      level: 1
+      experience: 0
+      materials:
+        - item_name: Redberries
+          quantity: 3
+        - item_name: Coins
+          quantity: 5
+      tools: []
+      output_quantity: 1
+      output_item: Red dye
+      notes: Made by Aggie the Witch in Draynor Village
+  related_items:
+    - item_id: 1765
+      item_name: Yellow dye
+      slug: yellow-dye
+      relationship: alternative
+      description: Other primary dye from Aggie
+    - item_id: 1767
+      item_name: Blue dye
+      slug: blue-dye
+      relationship: alternative
+      description: Other primary dye from Aggie
+    - item_id: 1769
+      item_name: Orange dye
+      slug: orange-dye
+      relationship: product
+      description: Created by mixing red and yellow dye
+  market_strategy:
+    notes:
+      - "Low GE volume; quest demand spikes around Goblin Diplomacy and Ghosts Ahoy."
+      - "Self-creation via Aggie is cheaper than GE during shortages."
+  trading_tips:
+    - "Hold during major quest reveals; supply is thin."
+    - "Stack with redberry flips when Hosidius bushes are popular."
   about: "Red dye is a free-to-play item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  history:
+    - date: "2001-05-08"
+      description: Released in a RuneScape update introducing dyes.
+  properties:
+    release_date: "2001-05-08"
+    update: Dyes introduced
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

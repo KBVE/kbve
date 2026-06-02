@@ -12,14 +12,95 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: 70
-  about: "Mystic hat (dark) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: enchanted-cloth
+    tier: high
+  equipment:
+    slot: head
+    weapon_type: none
+    attack_speed: 1
+    weight: 0.453
+    requirements:
+      magic: 40
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Infernal Mage
+        quantity: "1"
+        rarity: 1/512
+      - source: Malevolent Mage
+        quantity: "1"
+        rarity: 3/512
+  related_items:
+    - item_id: 3385
+      item_name: Mystic hat
+      slug: mystic-hat
+      relationship: variant
+      description: Standard blue colour variant with identical bonuses
+    - item_id: 4109
+      item_name: Mystic hat (light)
+      slug: mystic-hat-light
+      relationship: variant
+      description: Light colour variant
+    - item_id: 4101
+      item_name: Mystic robe top (dark)
+      slug: mystic-robe-top-dark
+      relationship: set-piece
+      description: Body piece of the dark mystic robes set
+    - item_id: 4103
+      item_name: Mystic robe bottom (dark)
+      slug: mystic-robe-bottom-dark
+      relationship: set-piece
+      description: Legs piece of the dark mystic robes set
+  about: "Mystic hat (dark) is a colour variant of the standard mystic hat with identical bonuses, dropped by Infernal and Malevolent Mages."
+  market_strategy:
+    notes:
+      - Identical bonuses to the standard mystic hat make demand mostly cosmetic, capping ceiling price.
+      - Drop-only supply from Infernal/Malevolent Mages keeps stock thin; 70 buy limit easy to fill.
+      - Set-piece demand from collectors lifts the floor when blue and light variants align in price.
+  trading_tips:
+    - Compare against standard mystic hat to spot mispricings driven purely by cosmetic preference.
+    - Buy in advance of fashionscape events that revive demand for the dark mystic set.
+  history:
+    - date: "2005-01-26"
+      description: Added as a colour variant of mystic equipment.
+  properties:
+    release_date: "2005-01-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

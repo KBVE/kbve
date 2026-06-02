@@ -12,97 +12,91 @@ osrs:
   lowalch: 1728
   highalch: 2592
   limit: null
+  material:
+    type: Hueycoatl hide
+    tier: mid-high
   equipment:
     slot: hands
-    type: ranged
-    tradeable: true
-    weight: 0.2
+    weapon_type: none
+    weight: 0.283
     requirements:
-      defence: 40
       ranged: 70
-    stats:
-      attack_ranged: 11
-      attack_magic: -10
-      defence_stab: 6
-      defence_slash: 5
-      defence_crush: 7
-      defence_magic: 8
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: 11
+    defence_bonus:
+      stab: 6
+      slash: 5
+      crush: 7
+      magic: 8
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 1
   recipes:
-    - skill: crafting
+    - skill: Crafting
       level: 76
       xp: 95
       materials:
-        - item_id: 30085
-          item_name: Hueycoatl hide
+        - item_name: Hueycoatl hide
           quantity: 1
-        - item_id: 1734
-          item_name: Thread
+        - item_name: Thread
           quantity: 1
-  market:
-    buy_limit: 70
-    price_estimate: 550000
+      tools:
+        - Needle
+      output_quantity: 1
   related_items:
-    - item_id: 30085
-      item_name: Hueycoatl hide
-      slug: hueycoatl-hide
+    - name: Hueycoatl hide
       relationship: component
-      description: Crafting material
-    - item_id: 30073
-      item_name: Hueycoatl hide coif
-      slug: hueycoatl-hide-coif
+    - name: Hueycoatl hide coif
       relationship: set-piece
-      description: Head armor
-    - item_id: 30076
-      item_name: Hueycoatl hide body
-      slug: hueycoatl-hide-body
+    - name: Hueycoatl hide body
       relationship: set-piece
-      description: Body armor
-    - item_id: 30079
-      item_name: Hueycoatl hide chaps
-      slug: hueycoatl-hide-chaps
+    - name: Hueycoatl hide chaps
       relationship: set-piece
-      description: Leg armor
-  about: |-
-    - 40 Defence
-    - 70 Ranged
-
-    | Stat | Bonus |
-    |------|-------|
-    | Ranged Attack | +11 |
-    | Magic Attack | -10 |
-    | Stab Defence | +6 |
-    | Slash Defence | +5 |
-    | Crush Defence | +7 |
-    | Magic Defence | +8 |
-    | Prayer | +1 |
-
-    The Hueycoatl hide vambraces complete the armor set:
-
-    - Good ranged attack: +11 ranged attack for glove slot
-    - Prayer bonus: +1 prayer adds up with full set
-    - Lightweight: Only 0.2 kg
-
-    Best used with:
-    - Hueycoatl hide coif
-    - Hueycoatl hide body
-    - Hueycoatl hide chaps
-
-    Set completion: The vambraces are the easiest piece to craft (lowest hide cost, tied lowest level requirement) and complete the full +8 prayer bonus from the set.
+  about: "Hueycoatl hide vambraces are members ranged-gloves crafted from a single Hueycoatl hide and thread. They match blessed d'hide vambrace stats while remaining lighter, completing the Hueycoatl hide set for a +1 prayer slice."
   market_strategy:
     notes:
-      - Cheapest piece of the set
-      - Only requires 1 hide to craft
-      - Entry point for Crafting training with Hueycoatl hides
-      - Good profit margins when hides are cheap
-      - Often the last piece bought when completing the set
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Cheapest piece of the Hueycoatl hide armour set, requiring only one hide per craft."
+      - "Entry point for crafting hides into finished armour pieces at Crafting 76."
+      - "Profit margins follow Hueycoatl hide spot price — checks daily before committing to bulk crafts."
+      - "Often the final piece bought when assembling the full set since its cost is lowest."
+  trading_tips:
+    - "Watch Hueycoatl hide bulk listings; small crashes in hide price translate directly into vambrace profit."
+    - "Sell finished vambraces during PvM gear-up cycles when the set sees demand spikes."
+    - "Note when bagged for fast banking on crafting runs."
+  history:
+    - date: "2024-09-25"
+      description: "Released with the Varlamore: The Rising Darkness update as a craftable reward from Hueycoatl drops."
+    - date: "2025-06-25"
+      description: "Crafting requirement reduced from 86 to 76 in the Summer Sweep Up: Combat update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-09-25"
+    update: "Varlamore: The Rising Darkness"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.283
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

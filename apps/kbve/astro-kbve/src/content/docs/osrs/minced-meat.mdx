@@ -12,14 +12,84 @@ osrs:
   lowalch: 3
   highalch: 4
   limit: 13000
-  about: "Minced meat is a members-only item in Old School RuneScape. High alchemy value: 4 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 2
+    consumable: true
+  recipes:
+    - skill: Cooking
+      level: 1
+      xp: 0
+      output_quantity: 1
+      materials:
+        - item_name: Bowl
+          quantity: 1
+        - item_name: Cooked meat
+          quantity: 1
+      tools:
+        - Knife
+      notes: Combine a bowl with cooked meat using a knife to produce minced meat.
+    - skill: Cooking
+      level: 1
+      xp: 0
+      output_quantity: 1
+      materials:
+        - item_name: Minced meat
+          quantity: 1
+        - item_name: Spice
+          quantity: 1
+      tools: []
+      notes: Add spice to create spicy minced meat used for chinchompa hunting bait.
+  related_items:
+    - item_id: 7072
+      item_name: Spicy minced meat
+      slug: spicy-minced-meat
+      relationship: product
+      description: Spiced variant used as chinchompa bait
+    - item_id: 7062
+      item_name: Chilli con carne
+      slug: chilli-con-carne
+      relationship: product
+      description: Cooked dish requiring minced meat
+    - item_id: 2142
+      item_name: Cooked meat
+      slug: cooked-meat
+      relationship: component
+      description: Required ingredient
+    - item_id: 1923
+      item_name: Bowl
+      slug: bowl
+      relationship: component
+      description: Container required for mincing
+  about: "Minced meat is a members cooking ingredient produced by using a knife on cooked meat in a bowl, used for spicy minced meat and chilli con carne."
+  market_strategy:
+    notes:
+      - Steady ironman/skiller demand for chinchompa hunting bait keeps minced meat liquid.
+      - Profit margin against bowl + cooked meat inputs is usually positive thanks to the convenience tax.
+  trading_tips:
+    - Compare GE price against bowl plus cooked meat to decide whether to flip or craft from raw inputs.
+    - Watch for hunter content updates that spike chinchompa demand and ripple into spicy minced meat.
+  history:
+    - date: "2006-01-30"
+      description: Added with the Hunter skill release.
+  properties:
+    release_date: "2006-01-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

@@ -12,14 +12,57 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: null
-  about: "Super hunter potion(2) is a members-only item in Old School RuneScape. High alchemy value: 54 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: "Boosts the Hunter skill by +6 levels when consumed."
+      - description: "Each dose provides one Hunter boost; this is a 2-dose flask."
+  recipes:
+    - materials:
+        - item_name: Super hunter potion(3)
+      tools: []
+      output_quantity: 1
+  related_items:
+    - name: Super hunter potion(1)
+      relationship: variant
+    - name: Super hunter potion(3)
+      relationship: variant
+    - name: Super hunter potion(4)
+      relationship: variant
+    - name: Crab paste
+      relationship: component
+    - name: Pillar potion (unf)
+      relationship: component
+  about: "Super hunter potion(2) is a members-only Herblore potion in Old School RuneScape, introduced with the Sailing update on 19 November 2025. Drinking a dose boosts the Hunter skill by +6 levels, making it valuable for high-level Hunter training and bossing setups that demand temporary skill increases."
+  market_strategy:
+    notes:
+      - "Two-dose flasks are typically priced at two-thirds of a 4-dose, making them a flexible inventory choice."
+      - "Demand tracks with new Hunter content releases and high-tier Hunter activities."
+  trading_tips:
+    - "Compare per-dose cost against the 4-dose variant before stocking up."
+    - "Brewing from Super hunter potion(3) decanting is the usual supply route."
+  history:
+    - date: "2025-11-19"
+      description: "Released alongside the Sailing skill update, introducing Super hunter potion to the game."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

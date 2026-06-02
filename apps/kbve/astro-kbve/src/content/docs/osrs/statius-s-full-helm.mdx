@@ -12,14 +12,85 @@ osrs:
   lowalch: 100000
   highalch: 150000
   limit: 10
-  about: "Statius's full helm is a members-only item in Old School RuneScape. High alchemy value: 150,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: vesta-statius
+    tier: high
+  equipment:
+    slot: head
+    weapon_type: armour
+    weight: 2.721
+    requirements:
+      defence: 78
+    attack_bonus:
+      stab: 1
+      slash: 1
+      crush: 6
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 52
+      slash: 50
+      crush: 47
+      magic: -1
+      ranged: 55
+    other_bonus:
+      strength: 3
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  charges:
+    max_charges: 5000000
+    description: "Activated by paying 5,000,000 coins. Usable only in designated PvP areas (Daimon's Crater, Castle Wars, Clan Wars, Soul Wars, TzHaar Fight Pit, POH combat ring). On PvP death, activation coins transfer to the killer."
+  shops:
+    - shop_name: Bounty Hunter Store
+      location: Edgeville
+      stock: 1
+      currency: Bounty Hunter points
+      price: 400
+  related_items:
+    - name: "Statius's platebody"
+      relationship: set-piece
+    - name: "Statius's platelegs"
+      relationship: set-piece
+    - name: "Statius's warhammer"
+      relationship: set-piece
+    - name: "Corrupted Statius's full helm"
+      relationship: variant
+  about: "Statius's full helm is a members-only powerful melee head slot armour in Old School RuneScape purchased from the Bounty Hunter Store for 400 points and activated with 5,000,000 coins for use in PvP areas. As part of the full Statius set it grants a 15% melee special attack accuracy bonus."
+  market_strategy:
+    notes:
+      - "Non-tradeable; obtained via Bounty Hunter points only."
+      - "Set bonus with platebody and platelegs adds 15% melee special attack accuracy — primarily valued in PvP."
+      - "Activation cost of 5,000,000 coins makes losing a charged set extremely punishing."
+  trading_tips:
+    - "Stockpile Bounty Hunter points before set rotations or PvP events."
+    - "Charge the set only immediately before entering PvP — uncharged sets are safer to bank."
+  history:
+    - date: "2023-05-24"
+      description: "Released with the 'Bounty Hunter is Back!' update as the new Statius's set replacing the old beta variant."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-05-24"
+    update: "Bounty Hunter is Back!"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Wear
+      - Uncharge
+      - Drop
+    alchable: false
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

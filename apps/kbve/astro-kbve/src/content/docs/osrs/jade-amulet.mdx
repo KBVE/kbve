@@ -12,14 +12,104 @@ osrs:
   lowalch: 420
   highalch: 630
   limit: 10000
-  about: "Jade amulet is a members-only item in Old School RuneScape. High alchemy value: 630 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: jade
+    tier: low
+  equipment:
+    slot: neck
+    weapon_type: null
+    weight: 0.007
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - name: String Jade amulet (ball of wool)
+      skill: Crafting
+      level: 1
+      experience: 4
+      materials:
+        - item_name: Jade amulet (u)
+          quantity: 1
+        - item_name: Ball of wool
+          quantity: 1
+      tools: []
+      output_quantity: 1
+    - name: String Jade amulet (Lunar spell)
+      skill: Magic
+      level: 80
+      experience: 83
+      materials:
+        - item_name: Jade amulet (u)
+          quantity: 1
+        - item_name: Water rune
+          quantity: 5
+        - item_name: Earth rune
+          quantity: 10
+        - item_name: Astral rune
+          quantity: 2
+      tools: []
+      output_quantity: 1
+      requirements:
+        quest: Lunar Diplomacy
+  related_items:
+    - name: Jade amulet (u)
+      relationship: component
+    - name: Amulet of chemistry
+      relationship: upgrade
+    - name: Jade necklace
+      relationship: alternative
+    - name: Jade ring
+      relationship: alternative
+    - name: Jade bracelet
+      relationship: alternative
+  about: "Jade amulet is a members-only neck slot item in Old School RuneScape. High alchemy value: 630 coins. Grand Exchange buy limit: 10,000 per 4 hours. Can be enchanted into an Amulet of chemistry."
+  market_strategy:
+    notes:
+      - Created by stringing a Jade amulet (u) with a Ball of wool (Crafting 1) or via the String Jewellery Lunar spell.
+      - Enchanted via Lvl-2 Enchant (Magic 27) into an Amulet of chemistry.
+      - Margin tracks the gap between (u) + ball of wool inputs and the strung GE price.
+  trading_tips:
+    - Lunar String Jewellery is much faster XP/hr if you have Lunar Diplomacy completed.
+    - Resell as Amulet of chemistry for added value when enchant runes are cheap.
+  history:
+    - date: "2017-02-02"
+      description: Item released with the Silver Jewellery, Tournament World & QoL update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-02-02"
+    update: "Silver Jewellery, Tournament World & QoL!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

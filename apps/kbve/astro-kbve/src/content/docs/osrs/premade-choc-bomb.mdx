@@ -12,14 +12,55 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 6000
+  food:
+    heals: 15
+    description: Restores 15 Hitpoints when eaten.
+  shops:
+    - shop_name: Gnome Waiter (Grand Tree)
+      location: Grand Tree
+      stock: 3
+      restock_minutes: 1
+      sell_price: 160
+      buy_price: 40
+  related_items:
+    - item_id: 2185
+      item_name: Chocolate bomb
+      slug: chocolate-bomb
+      relationship: variant
+      description: Player-made equivalent from Gnome Cooking
   about: "Premade choc bomb is a members-only item in Old School RuneScape. High alchemy value: 96 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - Sourced from Gnome Waiter at Grand Tree
+      - Heals 15 Hitpoints, useful low-level food
+      - Restocks every minute, supply-limited
+  trading_tips:
+    - Buy from Gnome Waiter at Grand Tree for resale
+    - Track Tree Gnome stronghold meta for demand spikes
+    - Low alch margin is thin; rely on shop arbitrage
+  history:
+    - date: "2002-12-12"
+      description: Released alongside the Agility skill.
+  properties:
+    release_date: "2002-12-12"
+    update: Agility skill online
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.35
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

@@ -1,6 +1,6 @@
 ---
 title: Stripy feather | OSRS Price Data
-description: "Stripy feather: Attractive to other birds and hunters alike.. High alch: 12 GP, GE limit: 8,000."
+description: "Stripy feather: Attractive to other birds and hunters alike. High alch: 12 GP, GE limit: 8,000."
 osrs:
   id: 10087
   name: Stripy feather
@@ -12,14 +12,56 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 8000
-  about: "Stripy feather is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 8,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Tropical wagtail
+        quantity: "5-10"
+        rarity: Always
+  shops:
+    - shop_name: Fancy Clothes Store
+      location: South-east Varrock
+      price: 8
+      stock: 0
+  related_items:
+    - item_id: 314
+      item_name: Feather
+      slug: feather
+      relationship: alternative
+      description: Standard feather usable for fly fishing and fletching arrows.
+    - item_id: 10088
+      item_name: Stripy feather (fly)
+      slug: stripy-feather-fly
+      relationship: variant
+      description: Used as a fly-fishing bait at higher fishing levels.
+  about: A hunter resource dropped by tropical wagtails caught in bird snares; doubles as a substitute fly-fishing lure.
+  market_strategy:
+    notes:
+      - Supply driven by Hunter trainers killing tropical wagtails for clean swamp toads.
+      - Demand is niche; fly-fishing rainbow fish is the primary buyer.
+  trading_tips:
+    - Buy bulk lots during Hunter XP meta shifts when wagtails are popular.
+    - Watch fletching feather price; substitution arbitrage opens at extremes.
+  history:
+    - date: "2006-11-21"
+      description: Stripy feather released with the Hunter skill.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter expansion
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

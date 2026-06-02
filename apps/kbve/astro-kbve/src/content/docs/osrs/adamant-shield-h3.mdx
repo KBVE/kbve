@@ -12,14 +12,94 @@ osrs:
   lowalch: 2176
   highalch: 3264
   limit: 70
-  about: "Adamant shield (h3) is a free-to-play item in Old School RuneScape. High alchemy value: 3,264 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: adamant
+    tier: mid
+  equipment:
+    slot: shield
+    weight: 5.896
+    requirements:
+      defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -8
+      ranged: -3
+    defence_bonus:
+      stab: 27
+      slash: 31
+      crush: 29
+      magic: -1
+      ranged: 29
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - item_name: Adamant kiteshield
+      slug: adamant-kiteshield
+      relationship: variant
+      description: Untrimmed adamant kiteshield sharing identical combat stats
+    - item_name: Adamant shield (h1)
+      slug: adamant-shield-h1
+      relationship: variant
+      description: H1 heraldic variant
+    - item_name: Adamant shield (h2)
+      slug: adamant-shield-h2
+      relationship: variant
+      description: H2 heraldic variant
+    - item_name: Adamant shield (h4)
+      slug: adamant-shield-h4
+      relationship: variant
+      description: H4 heraldic variant
+    - item_name: Adamant shield (h5)
+      slug: adamant-shield-h5
+      relationship: variant
+      description: H5 heraldic variant
+  about: "Adamant shield (h3) is a free-to-play heraldic adamant kiteshield earned from medium Treasure Trail clue scrolls, sharing the standard adamant kiteshield's combat stats while featuring the H3 heraldic design for cosmetic appeal."
+  market_strategy:
+    notes:
+      - Low buy limit (70) tightens daily liquidity
+      - Cosmetic premium over base adamant kiteshield
+      - Supply tied to medium clue scroll completions
+      - High alch value below GE price limits alch flips
+  trading_tips:
+    - Patient sell orders capture spread during cosmetic meta updates
+    - Track medium clue popularity for supply changes
+    - Compare heraldic variants when filling fashionscape orders
+  history:
+    - date: "2006-02-20"
+      description: Adamant shield (h3) released as part of the Updates, updates and more updates… patch as a medium clue reward.
+    - date: "2021-04-21"
+      description: Ranged attack bonus reduced from -2 to -3 alongside a broader shield rebalance.
+  properties:
+    release_date: "2006-02-20"
+    update: "Updates, updates and more updates..."
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.896
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

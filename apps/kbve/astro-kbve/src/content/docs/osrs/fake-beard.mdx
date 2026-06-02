@@ -12,14 +12,46 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15
-  about: "Fake beard is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Ali Morrisane's Stall
+      location: Al Kharid
+      price: 1
+    - shop_name: Pollnivneach General Store
+      location: Pollnivneach
+      price: 1
+  related_items:
+    - slug: kharidian-headpiece
+      relationship: set-piece
+  about: "Fake beard is a quest item used during The Feud and Wanted! quests for disguise purposes in Pollnivneach."
+  market_strategy:
+    notes:
+      - Joke alch value at 0 coins; price floor set by shop scarcity (15 GE limit).
+      - Demand is intermittent and tied to quest completion.
+  trading_tips:
+    - Maintain a small stock during ironman quest update windows.
+    - Players rarely flip; shop arbitrage is the main profit angle.
+  history:
+    - date: "2005-04-04"
+      description: Released with The Feud quest update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-04-04"
+    update: The Feud
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    quest: The Feud
+    weight: 0.03
+    options:
+      - Drop
+    alchable: false
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

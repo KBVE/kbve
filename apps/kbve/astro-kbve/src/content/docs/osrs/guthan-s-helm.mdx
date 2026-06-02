@@ -12,85 +12,81 @@ osrs:
   lowalch: 41200
   highalch: 61800
   limit: 15
+  material:
+    type: barrows
+    tier: high
   equipment:
     slot: head
-    type: barrows
-    set: Guthan
-    tradeable: true
-    degradeable: true
-    weight: 1.8
+    weapon_type: armour
+    weight: 2.721
     requirements:
       defence: 70
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -6
-      attack_ranged: 0
-      defence_stab: 55
-      defence_slash: 58
-      defence_crush: 54
-      defence_magic: -1
-      defence_ranged: 62
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 55
+      slash: 58
+      crush: 54
+      magic: -1
+      ranged: 62
+    other_bonus:
       strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  set_effect:
-    name: Infestation
-    pieces_required: 4
-    description: 25% chance to heal HP equal to damage dealt
+  charges:
+    max_charges: 15
+    description: "Degrades over 15 hours of combat use. Full repair costs 60,000 coins at Bob in Lumbridge, or 59,700 coins at a POH armour stand with 1 Smithing."
+  drop_table:
+    sources:
+      - source: Barrows chest
+        quantity: "1"
+        rarity: "1/2448"
   related_items:
-    - item_id: 4728
-      item_name: Guthan's platebody
-      slug: guthans-platebody
+    - name: "Guthan's platebody"
       relationship: set-piece
-      description: Body slot set piece
-    - item_id: 4730
-      item_name: Guthan's chainskirt
-      slug: guthans-chainskirt
+    - name: "Guthan's chainskirt"
       relationship: set-piece
-      description: Legs slot set piece
-    - item_id: 4726
-      item_name: Guthan's warspear
-      slug: guthans-warspear
+    - name: "Guthan's warspear"
       relationship: set-piece
-      description: Weapon set piece
-  about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Stab defence | +55 |
-    | Slash defence | +58 |
-    | Crush defence | +54 |
-    | Magic defence | -1 |
-    | Ranged defence | +62 |
-    | Magic attack | -6 |
-
-    Infestation:
-    When wearing full Guthan's (helm, platebody, chainskirt, warspear):
-    - 25% chance to heal HP equal to damage dealt
-    - No prayer or food needed for sustain
-    - Popular for AFK training
-
-    Best For:
-    - AFK Slayer tasks
-    - Extended trips without banking
-    - Gargoyles, Aberrant spectres
-    - NMZ AFK method
-
-    - 15 hours of combat use
-    - Repair at Bob in Lumbridge or POH armor stand
+  about: "Guthan's helm is a members-only barrows head armour requiring 70 Defence. When worn with the full Guthan's set, successful melee attacks have a 25% chance to heal the wearer for damage dealt — the Infestation effect is heavily used for AFK combat training."
   market_strategy:
     notes:
-      - Popular for AFK methods
-      - Full set required for healing
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Popular for AFK Slayer methods (gargoyles, aberrant spectres) and NMZ AFK builds."
+      - "Full set required to trigger the Infestation healing effect."
+      - "Degrades over 15 hours; factor 60k repair into long-term cost."
+  trading_tips:
+    - "Stockpile during Barrows mass-runs when supply pushes prices down."
+    - "Sell into AFK Slayer demand spikes after league or event releases."
+  history:
+    - date: "2005-05-09"
+      description: "Released as part of the Barrows update as one of the six brothers' armour sets."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-09"
+    update: "Barrows"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Check
+      - Drop
+    alchable: true
+    destroy: "If you drop this item it will break."
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

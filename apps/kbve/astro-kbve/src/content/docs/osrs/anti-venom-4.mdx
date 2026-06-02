@@ -12,83 +12,68 @@ osrs:
   lowalch: 176
   highalch: 264
   limit: 2000
+  material:
+    type: potion
+    tier: high
   potion:
     doses: 4
-    herblore_level: 87
-    herblore_xp: 120
-    effect: Cures venom and provides 12 minutes of venom immunity
     effects:
-      - stat: Venom
-        boost_type: cure
-        description: Instantly cures venom
-      - stat: Venom immunity
-        boost_type: immunity
-        duration: 720
-        description: 12 minutes immunity per dose
+      - description: "Instantly cures venom and poison."
+      - description: "Grants 12 minutes of poison immunity per dose."
+      - description: "Grants 36 to 54 seconds of venom immunity per dose."
   recipes:
-    - skill: herblore
-      level: 87
-      xp: 120
-      materials:
+    - materials:
         - item_name: Antidote++(4)
-          item_id: 5952
           quantity: 1
         - item_name: Zulrah's scales
-          item_id: 12934
           quantity: 20
-      ticks: 2
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 5952
-      item_name: Antidote++(4)
+    - item_name: Antidote++(4)
       slug: antidote-4
       relationship: component
-      description: Base potion
-    - item_id: 12934
-      item_name: Zulrah's scales
+    - item_name: Zulrah's scales
       slug: zulrahs-scales
       relationship: component
-      description: Secondary ingredient
-    - item_id: 12913
-      item_name: Anti-venom+(4)
-      slug: anti-venom-4
+    - item_name: Anti-venom+(4)
+      slug: anti-venom-plus-4
       relationship: upgrade
-      description: Upgraded version
-    - item_id: 12931
-      item_name: Serpentine helm
+    - item_name: Serpentine helm
       slug: serpentine-helm
       relationship: alternative
-      description: Passive venom immunity
-  about: |-
-    Anti-venom provides:
-    - Instant venom cure
-    - 12 minutes of venom immunity per dose
-
-    Essential for fighting venomous creatures without serpentine helm.
-
-    | Input | Output | Herblore Level | XP |
-    |-------|--------|----------------|-----|
-    | Antidote++(4) + 20 Zulrah's scales | Anti-venom(4) | 87 | 120 |
+  about: "Four-dose anti-venom that instantly cures venom and grants venom immunity for 36-54 seconds plus 12 minutes of poison immunity, made at 87 Herblore from antidote++(4) and 20 Zulrah's scales."
   market_strategy:
-    steps:
-      - order: 1
-        action: Anti-venom(4) (venom immunity)
-      - order: 2
-        action: Add Torstol for Anti-venom+(4) (super antipoison + venom)
     notes:
       - 20 scales per potion is significant
       - Compare anti-venom cost vs serpentine helm charges
       - Scale price drives potion economics
-      - Zulrah (if not using serp helm)
-      - Theatre of Blood (Maiden, Xarpus)
-      - Vorkath (post-acid phase)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  trading_tips:
+    - Brew when scales are cheap and decant for storage
+    - Upgrade to anti-venom+ with torstol for longer immunity
+  history:
+    - date: "2015-01-08"
+      description: Released with the Zulrah update.
+  properties:
+    release_date: "2015-01-08"
+    update: Zulrah
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

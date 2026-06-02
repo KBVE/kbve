@@ -12,14 +12,63 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 15
-  about: "Grand seed pod is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destinations:
+      - name: Grand Tree (top floor)
+        method: Launch
+        notes: "Outdoors only; grants 100 Farming XP."
+      - name: Grand Tree (ground floor)
+        method: Squash
+        notes: "Drains Farming by 5 temporarily."
+    works_in_wilderness_up_to: 30
+  drop_table:
+    sources:
+      - source: Wingstone
+        quantity: "1"
+        rarity: 23/512
+      - source: Penwie
+        quantity: "1"
+        rarity: 23/512
+      - source: Brambickle
+        quantity: "1"
+        rarity: 23/512
+      - source: Professor Manglethorp
+        quantity: "1"
+        rarity: 23/512
+  related_items:
+    - name: Royal seed pod
+      relationship: upgrade
+  about: "Grand seed pod is a members-only teleport consumable in Old School RuneScape obtained as a Gnome Restaurant minigame reward. High alchemy value: 150 coins. Grand Exchange buy limit: 15 per 4 hours."
+  market_strategy:
+    notes:
+      - Buy limit of 15 per 4h keeps single-trade exposure low but the item is thin on volume.
+      - Demand is driven by Wilderness teleports up to level 30 and Farming XP grinders.
+  trading_tips:
+    - Place buy orders well below last because volume is low and pricing is volatile.
+    - Royal seed pod largely supplants this item for MMII completers; price soft after major MMII spikes.
+  history:
+    - date: "2006-08-07"
+      description: Released as a Gnome Restaurant reward with the Gnome Cuisine update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-08-07"
+    update: Gnome Cuisine
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Launch
+      - Squash
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

@@ -12,14 +12,44 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Grid master torch scroll is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Events Reward Shop
+      location: Varrock Square
+      price: 6000
+      currency: event points
+      stock: unlimited
+  related_items:
+    - name: Grid master altar icon scroll
+      relationship: alternative
+  about: "Grid master torch scroll is a members-only cosmetic in Old School RuneScape. Used on a marble incense burner inside a Player Owned House to convert it into the Flames of Lloigh-enn."
+  market_strategy:
+    notes:
+      - Supply is gated by the Grid Master event reward shop at 6,000 event points.
+      - Resale value tends to drift down after the event ends as new scrolls flood the GE.
+  trading_tips:
+    - Cosmetic POH unlocks see thin daily volume; place buy orders well under last and be patient.
+    - Track the event's end date to time entry/exit on the market.
+  history:
+    - date: "2025-10-15"
+      description: Released as a reward from the Grid Master community event.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-10-15"
+    update: Grid Master
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Read
+    alchable: false
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

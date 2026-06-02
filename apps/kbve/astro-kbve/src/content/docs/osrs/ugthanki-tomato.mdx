@@ -12,14 +12,77 @@ osrs:
   lowalch: 2
   highalch: 4
   limit: 11000
-  about: "Ugthanki & tomato is a members-only item in Old School RuneScape. High alchemy value: 4 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - materials:
+        - item_name: Chopped tomato
+          quantity: 1
+        - item_name: Cooked ugthanki meat
+          quantity: 1
+      tools:
+        - Knife
+        - Bowl
+      skill: Cooking
+      level: 1
+      output_quantity: 1
+    - materials:
+        - item_name: Chopped ugthanki
+          quantity: 1
+        - item_name: Tomato
+          quantity: 1
+      tools:
+        - Knife
+        - Bowl
+      skill: Cooking
+      level: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 1881
+      item_name: Kebab mix
+      slug: kebab-mix
+      relationship: product
+      description: Add an onion to advance the ugthanki kebab recipe.
+    - item_id: 1883
+      item_name: Ugthanki kebab
+      slug: ugthanki-kebab
+      relationship: product
+      description: Final cooked kebab using pitta bread at Cooking 58.
+    - item_id: 1869
+      item_name: Chopped ugthanki
+      slug: chopped-ugthanki
+      relationship: component
+      description: Alternative starting component.
+  about: "Ugthanki & tomato is a Cooking intermediate combining chopped tomato with cooked ugthanki meat in a bowl, used to make the kebab mix and ultimately ugthanki kebab."
+  market_strategy:
+    notes:
+      - "Daily GE volume is effectively zero; treat any trade as a one-off, not a flip."
+      - "Ingredients cost more than the bowl's sell price, so crafting for profit is not viable."
+      - "Mostly traded by chefs working toward the ugthanki kebab recipe."
+  trading_tips:
+    - "Source ingredients from the Pollnivneach kebab stall or Shantay Pass area; cheaper than GE."
+    - "Skip flipping; demand is too thin for meaningful margin."
+    - "Use the in-game Cooking guide if you need a primary for kebab progression."
+  properties:
+    release_date: "2004-03-29"
+    update: "RuneScape 2"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2004-03-29"
+      description: "Released with RuneScape 2 launch as part of the ugthanki kebab cooking chain."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

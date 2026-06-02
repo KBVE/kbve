@@ -12,12 +12,10 @@ osrs:
   lowalch: 14000
   highalch: 21000
   limit: 10000
-  equipment:
-    slot: none
-    weight: 3.2
+  material:
+    type: dragon
+    tier: high
   drop_table:
-    primary_source: Rune dragon
-    best_drop_rate: 1/800
     sources:
       - source: Rune dragon
         source_id: 8031
@@ -33,16 +31,29 @@ osrs:
         rarity: rare
         drop_rate: 1/1000
         members_only: true
+  recipes:
+    - skill: Fletching
+      level: 78
+      xp: 135
+      materials:
+        - item_name: Dragon limbs
+          quantity: 1
+        - item_name: Magic stock
+          quantity: 1
+      tools:
+        - Hammer
+      output_quantity: 1
+      product: Dragon crossbow (u)
   related_items:
     - item_id: 21902
       item_name: Dragon crossbow
       slug: dragon-crossbow
-      relationship: upgrade
-      description: Crafted using dragon limbs
+      relationship: product
+      description: Final crossbow once strung
     - item_id: 21905
       item_name: Dragon crossbow (u)
       slug: dragon-crossbow-u
-      relationship: component
+      relationship: product
       description: Intermediate crafting step
     - item_id: 11785
       item_name: Armadyl crossbow
@@ -53,8 +64,7 @@ osrs:
     Creates Dragon crossbow:
     - Attach to Magic stock
     - Requires 78 Fletching
-    - Grants 70 Fletching XP
-
+    - Grants 135 Fletching XP
     Dragon crossbow stats:
     - +94 Ranged attack
     - Can fire dragon bolts
@@ -65,13 +75,32 @@ osrs:
       - Rune dragons more profitable source
       - Also obtainable from Brimstone chest
       - Part of Dragon Slayer II content
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  trading_tips:
+    - Flip on margin between limbs price and finished Dragon crossbow value
+    - Monitor Brimstone chest meta and Dragon Slayer II completion rates
+    - Rune dragon trips drop these and bones, profit-stack accordingly
+  history:
+    - date: "2018-01-04"
+      description: Added with the Dragon Slayer II update.
+  properties:
+    release_date: "2018-01-04"
+    update: Dragon Slayer II
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.2
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

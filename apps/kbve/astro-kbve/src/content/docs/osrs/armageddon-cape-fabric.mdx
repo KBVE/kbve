@@ -12,14 +12,51 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: 5
-  about: "Armageddon cape fabric is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: fabric
+    tier: high
+  shops:
+    - shop_name: Deadman Reward Store
+      location: Deadman lobby
+      price: 6000 Deadman Points
+  related_items:
+    - item_name: Imbued saradomin cape
+      relationship: alternative
+    - item_name: Imbued guthix cape
+      relationship: alternative
+    - item_name: Imbued zamorak cape
+      relationship: alternative
+  about: "Armageddon cape fabric is a Deadman reward turned in to Nigel in Lumbridge to permanently unlock a Deadman: Armageddon cosmetic theme on the imbued Saradomin, Guthix, and Zamorak capes."
+  market_strategy:
+    notes:
+      - Originally sold by the Deadman Reward Store for 6,000 Deadman Points.
+      - One-time consumption per account unlocks cosmetic swaps on all three god capes.
+      - GE buy limit of 5 per 4 hours keeps multi-million coin trades slow.
+  trading_tips:
+    - Buyer base is god cape collectors with imbued capes already; pricing tracks god wars meta interest.
+    - Stockpile around new Deadman seasons when supply spikes from reward dumps.
+  history:
+    - date: "2024-08-07"
+      description: Added with the Poll 82 Changes update introducing tradeable Deadman cape fabrics.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-08-07"
+    update: "Poll 82 Changes"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Read
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

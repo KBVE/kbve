@@ -5,21 +5,45 @@ osrs:
   id: 29664
   name: Sigil of the adroit
   slug: sigil-of-the-adroit
-  examine: A power enhancing sigil not yet attuned to you.
+  examine: Accuracy is increased by 1% for each Hitpoint missing. This increases to 2% accuracy per Hitpoint if the player is at or below 20 Hitpoints.
   members: true
   icon: Sigil of adroit.png
   value: 10000
   lowalch: 4000
   highalch: 6000
   limit: null
-  about: "Sigil of the adroit is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Sigil of the adroit is a Deadman Mode sigil that increases accuracy as Hitpoints drop, scaling more aggressively at low health. Currently unobtainable in the live game."
+  properties:
+    release_date: "2024-07-17"
+    update: "Deadman: Armageddon & While Guthix Sleeps Updates"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Inspect
+      - Unattune
+    worn_options: []
+    alchable: true
+    destroy: "Are you sure you want to destroy this sigil? You will need to obtain another if you wish to use one again."
+  related_items:
+    - name: Sigil of the menacing
+      relationship: alternative
+    - name: Sigil of the augmented
+      relationship: alternative
+  history:
+    - date: "2024-07-17"
+      description: "Sigil of adroit was introduced as part of the Deadman: Armageddon event."
+    - date: "2026-01-21"
+      description: "Item was renamed from Sigil of adroit to Sigil of the adroit."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

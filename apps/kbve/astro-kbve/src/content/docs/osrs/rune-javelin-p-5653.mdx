@@ -12,14 +12,82 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 11000
-  about: "Rune javelin(p++) is a members-only item in Old School RuneScape. High alchemy value: 240 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: high
+  equipment:
+    slot: ammo
+    weapon_type: javelin
+    attack_speed: 6
+    weight: 0
+    requirements:
+      ranged: 40
+    attack_bonus:
+      ranged: 0
+    defence_bonus: {}
+    other_bonus:
+      ranged_strength: 124
+  recipes:
+    - materials:
+        - item_name: Rune javelin
+          quantity: 1
+        - item_name: Weapon poison(++)
+          quantity: 1
+      tools: []
+      skill: Herblore
+      level: 82
+      output_quantity: 1
+      notes: "One dose of weapon poison(++) poisons 5 rune javelins."
+  related_items:
+    - item_id: 825
+      item_name: Rune javelin
+      slug: rune-javelin
+      relationship: variant
+      description: Unpoisoned rune javelin.
+    - item_id: 5651
+      item_name: Rune javelin(p)
+      slug: rune-javelin-p-5651
+      relationship: variant
+      description: Weakest poison variant.
+    - item_id: 5652
+      item_name: Rune javelin(p+)
+      slug: rune-javelin-p-5652
+      relationship: variant
+      description: Mid-strength poison variant.
+  about: "Rune javelin(p++) is the strongest poisoned variant of the rune javelin, fired by chinchompa-tier ranged weapons and javelin throwers; it deals 6 damage on poison procs."
+  market_strategy:
+    notes:
+      - "Margin opportunity comes from buying unpoisoned rune javelins + weapon poison(++) and reselling poisoned stacks."
+      - "GE buy limit of 11,000 per 4 hours supports flips during PvP/league events where venom-equivalent poisons are sought."
+      - "Demand is thin outside niche PvP and Heavy ballista users; volume can be low."
+  trading_tips:
+    - "Poison costs eat margin; flip only when weapon poison(++) is cheap relative to the spread."
+    - "Pair with a Heavy ballista for maximum ranged strength leverage."
+    - "Avoid alching unless you accept a heavy loss; high alch (240 gp) sits below GE price."
+  properties:
+    release_date: "2004-03-29"
+    update: "RuneScape 2"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2004-03-29"
+      description: "Released with RuneScape 2 alongside the original javelin ammunition line."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

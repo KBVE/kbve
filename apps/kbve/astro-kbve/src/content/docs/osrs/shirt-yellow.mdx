@@ -12,14 +12,67 @@ osrs:
   lowalch: 240
   highalch: 360
   limit: 150
-  about: "Shirt (yellow) is a members-only item in Old School RuneScape. High alchemy value: 360 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 0.07
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus: {}
+  shops:
+    - shop_name: Agmundi Quality Clothes
+      location: Keldagrim
+      price: 780
+    - shop_name: Miscellanian Clothes Shop
+      location: Miscellania
+      price: 600
+  related_items:
+    - slug: shirt-brown
+      relationship: variant
+    - slug: shirt-lilac
+      relationship: variant
+  about: "Shirt (yellow) is a cosmetic dwarven body-slot piece sold in Keldagrim and Miscellania."
+  market_strategy:
+    notes:
+      - Cosmetic dwarven cloth; volume driven by fashionscape demand.
+      - Shop price ceilings cap upside; alch margin is modest.
+  trading_tips:
+    - Pair with matching dwarven cosmetic set for cosmetic bundles.
+    - Monitor demand during fashionscape competitions and content updates.
+  history:
+    - date: "2005-05-31"
+      description: Added with the Keldagrim and dwarven content update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-31"
+    update: Keldagrim
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.07
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

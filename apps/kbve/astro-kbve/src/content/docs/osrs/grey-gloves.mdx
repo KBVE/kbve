@@ -12,14 +12,87 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Grey gloves is a free-to-play item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: hands
+    weapon_type: none
+    attack_speed: 1
+    weight: 0.453
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Barker's Haberdashery
+      location: Canifis
+      price: 650
+      stock: 5
+  related_items:
+    - item_id: 2912
+      item_name: Black gloves
+      slug: black-gloves
+      relationship: variant
+      description: Black colour variant
+    - item_id: 2900
+      item_name: White gloves
+      slug: white-gloves
+      relationship: variant
+      description: White colour variant
+  about: "Grey gloves are a free-to-play cosmetic glove from Barker's Haberdashery in Canifis with marginal slash and crush defence bonuses."
+  market_strategy:
+    notes:
+      - Shop price at Barker's caps arbitrage to roughly 650 coins minus tax versus the GE.
+      - Cosmetic demand drives most volume; fashionscape and roleplay setups dominate the order book.
+      - F2P access broadens buyer base versus members-only cosmetic gloves.
+  trading_tips:
+    - Stock from Canifis shop and resell on GE during cosmetic event spikes.
+    - Watch alongside white/black glove pricing since players often buy the trio together.
+  history:
+    - date: "2004-06-29"
+      description: Released as a generic glove cosmetic.
+    - date: "2004-07-13"
+      description: Briefly converted to members-only.
+    - date: "2004-07-20"
+      description: Returned to free-to-play access.
+    - date: "2014-12-10"
+      description: Renamed from Gloves to Grey gloves to disambiguate the colour variants.
+  properties:
+    release_date: "2004-06-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

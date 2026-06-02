@@ -12,14 +12,92 @@ osrs:
   lowalch: 1600
   highalch: 2400
   limit: 100
-  about: "Mixed hide cape is a members-only item in Old School RuneScape. High alchemy value: 2,400 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: leather
+    tier: mid
+  equipment:
+    slot: cape
+    weight: 3
+    requirements:
+      ranged: 60
+      defence: 50
+    attack_bonus:
+      ranged: 5
+      magic: -15
+    defence_bonus:
+      stab: 2
+      slash: 2
+      crush: 2
+      magic: 5
+      ranged: 1
+    other_bonus:
+      strength: 1
+  recipes:
+    - materials:
+        - item_name: Mixed hide base
+          quantity: 1
+        - item_name: Jaguar fur
+          quantity: 1
+        - item_name: Thread
+          quantity: 1
+      tools:
+        - Needle
+      skill: Crafting
+      level: 68
+      output_quantity: 1
+    - materials:
+        - item_name: Jaguar fur
+          quantity: 1
+        - item_name: Coins
+          quantity: 20000
+      tools: []
+      vendor: Pellem
+      location: Hunter Guild
+      requirements:
+        hunter: 46
+        quest: "Children of the Sun"
+      output_quantity: 1
+  related_items:
+    - name: Mixed hide top
+      relationship: set-piece
+    - name: Mixed hide legs
+      relationship: set-piece
+    - name: Mixed hide boots
+      relationship: set-piece
+    - name: Mixed hide base
+      relationship: component
+  about: "Mixed hide cape is a members-only Crafting-made cape in Old School RuneScape and the only tradeable cape that grants a Strength bonus. High alchemy value: 2,400 coins. Grand Exchange buy limit: 100 per 4 hours."
+  market_strategy:
+    notes:
+      - Supply ties to jaguar fur drops from Hunter Guild content and mixed hide base availability.
+      - Strength + ranged combo gives it niche demand among low-tier ranged hybrids.
+  trading_tips:
+    - Track jaguar fur price; the cape often lags its raw material movement.
+    - Costume room storage softens supply spikes from end-of-set crafters.
+  history:
+    - date: "2024-03-20"
+      description: Released with the Varlamore - Part One update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

@@ -14,73 +14,72 @@ osrs:
   limit: 15
   equipment:
     slot: shield
-    type: magic_offhand
+    weapon_type: null
+    weight: 1
     requirements:
       magic: 60
-    stats:
-      attack_magic: 15
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 15
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 15
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
       magic_damage: 2
-      defence_magic: 15
+      prayer: 0
   drop_table:
     sources:
       - source: Mage Training Arena
-        source_id: 0
-        combat_level: 0
         quantity: "1"
-        rarity: N/A
-        members_only: true
-  minigame_rewards:
-    points_required:
-      telekinetic: 500
-      alchemist: 550
-      enchantment: 6000
-      graveyard: 500
+        rarity: Reward
   related_items:
-    - item_id: 12825
-      item_name: Arcane spirit shield
+    - item_name: Arcane spirit shield
       slug: arcane-spirit-shield
       relationship: upgrade
-      description: BiS magic offhand
-    - item_id: 11924
-      item_name: Malediction ward
+    - item_name: Malediction ward
       slug: malediction-ward
       relationship: alternative
-      description: Tradeable option
-    - item_id: 12612
-      item_name: Book of darkness
+    - item_name: Book of darkness
       slug: book-of-darkness
       relationship: alternative
-      description: Prayer bonus option
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Magic attack | +15 |
-    | Magic damage | +2% |
-
-    | Defence | Value |
-    |---------|-------|
-    | Magic | +15 |
-
-    Requirements: 60 Magic (no Defence)
-
-    Popular for:
-    - Pures (no def requirement)
-    - Budget magic offhand
-    - Mid-game maging
-
-    Great for 1 Defence builds.
+  about: "Mage Training Arena reward offhand requiring 60 Magic and no Defence, providing +15 Magic attack and +2% damage, popular for pures and budget mid-game mages."
   market_strategy:
     notes:
       - Long grind but free
       - Good for pures
       - Upgrade to arcane later
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2006-01-04"
+      description: Released with Mage Training Arena minigame.
+  properties:
+    release_date: "2006-01-04"
+    update: Mage Training Arena
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

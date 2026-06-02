@@ -12,62 +12,66 @@ osrs:
   lowalch: 44000
   highalch: 66000
   limit: 5
-  item:
-    type: crafting_material
-    tradeable: true
-    weight: 0.01
-  obtaining:
-    methods:
+  material:
+    type: organic
+    tier: high
+  drop_table:
+    sources:
       - source: Zulrah
-        drop_rate: 1/1,024
-  creation:
-    creates:
-      item_id: 12924
-      item_name: Toxic blowpipe
-      slug: toxic-blowpipe
-    method: Use chisel to create Toxic blowpipe
-    requirements:
-      fletching: 53
+        quantity: "1"
+        rarity: "2/1024"
+  recipes:
+    - materials:
+        - item_name: Tanzanite fang
+      tools:
+        - Chisel
+      output_quantity: 1
   related_items:
-    - item_id: 0
-      item_name: Zulrah
-      slug: zulrah
-      relationship: component
-      description: Boss drop
-    - item_id: 12924
-      item_name: Toxic blowpipe
-      slug: toxic-blowpipe
+    - name: Toxic blowpipe (empty)
       relationship: product
-      description: Created weapon
-    - item_id: 12932
-      item_name: Magic fang
-      slug: magic-fang
+    - name: Toxic blowpipe
+      relationship: product
+    - name: Magic fang
       relationship: alternative
-      description: Sister drop
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 0.01 kg |
-
-    | Item Created | Materials |
-    |--------------|-----------|
-    | Toxic blowpipe | Tanzanite fang (chisel) |
-
-    Use chisel to create Toxic blowpipe.
+    - name: Tanzanite mutagen
+      relationship: alternative
+    - name: Zulrah scales
+      relationship: component
+  about: "Tanzanite fang is a rare drop from Zulrah used to craft the Toxic blowpipe, one of the strongest ranged weapons in Old School RuneScape. At level 78 Fletching, players use a chisel on the fang to produce an empty toxic blowpipe; alternatively, the fang can be dismantled for 20,000 Zulrah scales at a steep net loss."
   market_strategy:
     notes:
-      - Zulrah exclusive drop
-      - Creates BiS ranged weapon
-      - 53 Fletching required
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Price floor anchored by the value of the resulting toxic blowpipe minus chisel-time effort."
+      - "Limit of 5 per 4 hours throttles bulk arbitrage; expect daily volatility around Zulrah trip rates."
+      - "Dismantle path rarely worth it - only consider if blowpipe demand collapses."
+  trading_tips:
+    - "Watch toxic blowpipe (empty) vs fang spread - flipping the gap is a reliable margin when both move together."
+    - "Buy dips after major bossing droprate news, sell into Leagues / DMM hype cycles."
+  history:
+    - date: "2015-01-08"
+      description: "Released alongside Zulrah as the boss's signature fletching material for the Toxic blowpipe."
+    - date: "2016-02-01"
+      description: "Dismantle option added, converting the fang into 20,000 Zulrah scales."
+    - date: "2024-05-01"
+      description: "Fletching requirement to craft Toxic blowpipe raised from 53 to 78."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-01-08"
+    update: Zulrah
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.35
+    options:
+      - Dismantle
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

@@ -12,88 +12,92 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: 5
+  material:
+    type: crystal
+    tier: high
   equipment:
     slot: ring
-    type: skilling ring
-    tradeable: true
-  passive_effect:
-    name: Crystal Efficiency
-    effect: 10% chance to not consume a charge when using crystal equipment
-    excluded: Blade of Saeldor, Bow of Faerdhinen
-    effective_bonus: ~11.1% additional charges (saved charges can save again)
-  obtaining:
-    methods:
-      - source: Gauntlet
-        method: Rare drop from regular Gauntlet
-      - source: Corrupted Gauntlet
-        method: Rare drop from Corrupted Gauntlet
+    weapon_type: none
+    attack_speed: 1
+    weight: 0.006
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Crystal impling jar
+        quantity: "1"
+        rarity: "1/128"
+  recipes:
+    - materials:
+        - item_name: Elven signet
+        - item_name: Celestial ring
+        - item_name: Crystal shard
+        - item_name: Stardust
+      tools:
+        - Singing bowl
+      output_quantity: 1
   related_items:
-    - item_id: 25539
-      item_name: Celestial ring
-      slug: celestial-ring
+    - name: Celestial ring
       relationship: component
-      description: Can combine to make Celestial signet
-    - item_id: 25538
-      item_name: Celestial signet
-      slug: celestial-signet
+    - name: Celestial signet
       relationship: upgrade
-      description: Combined ring with both effects
-    - item_id: 23680
-      item_name: Crystal pickaxe
-      slug: crystal-pickaxe
+    - name: Crystal pickaxe
       relationship: alternative
-      description: Works with this tool
-    - item_id: 23673
-      item_name: Crystal axe
-      slug: crystal-axe
+    - name: Crystal axe
       relationship: alternative
-      description: Works with this tool
-    - item_id: 23762
-      item_name: Crystal harpoon
-      slug: crystal-harpoon
+    - name: Crystal harpoon
       relationship: alternative
-      description: Works with this tool
-  about: |-
-    Crystal Efficiency:
-    - 10% chance to not consume a charge when using crystal equipment
-    - Effective bonus: ~11.1% additional charges (saved charges can save again)
-
-    Works With:
-    - Crystal pickaxe
-    - Crystal axe
-    - Crystal harpoon
-    - Crystal armour
-
-    Does NOT work with:
-    - Blade of Saeldor
-    - Bow of Faerdhinen
-
-    Can be combined with Celestial ring to create Celestial signet:
-    - Requires 70 Smithing and 70 Crafting
-    - Or pay NPCs to combine
-
-    Celestial signet provides:
-    - +4 invisible Mining levels (from Celestial ring)
-    - 10% crystal charge saving (from Elven signet)
-
-    Essential for:
-    - Crystal tool users
-    - Reducing crystal shard consumption
-    - Efficient skilling in Prifddinas
-
-    Stacks with all crystal equipment.
+  about: "Elven signet is a members ring obtained from crystal impling jars that grants a 10% chance to save a charge whenever crystal equipment is used, excluding the Blade of Saeldor and Bow of Faerdhinen. Combined with a Celestial ring at a singing bowl using 100 crystal shards and 1,000 stardust, it forms the Celestial signet, the best-in-slot ring for crystal-tool skilling."
   market_strategy:
     notes:
-      - Gauntlet is only source
-      - Combine with Celestial ring for BiS mining ring
-      - Saves expensive crystal shards long-term
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply is bottlenecked by crystal impling hunter throughput; price tracks crystal tool adoption."
+      - "Limit of 5 per 4 hours throttles bulk flips - expect thin order books and wide spreads."
+      - "Celestial signet combine permanently sinks the ring, gradually tightening supply."
+  trading_tips:
+    - "Pair purchases with Celestial ring stock if you plan to flip the combined Celestial signet."
+    - "Watch Prifddinas skilling meta updates - any buff to crystal tools moves this ring."
+  history:
+    - date: "2019-07-25"
+      description: "Released with Song of the Elves as a crystal impling drop."
+    - date: "2020-04-08"
+      description: "Charge-save chance doubled from 5% to 10%."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-07-25"
+    update: Song of the Elves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.006
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

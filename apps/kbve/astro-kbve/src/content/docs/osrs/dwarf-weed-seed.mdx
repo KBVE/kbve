@@ -12,70 +12,57 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 200
-  seed:
-    type: herb
-    tier: high
   farming:
     level: 79
-    xp_plant: 170.5
-    xp_harvest: 192
-    growth_time: 80
-    patches: 9
-    product_id: 217
-    product_name: Grimy dwarf weed
+    plant_xp: 170.5
+    harvest_xp: 192
+    growth_time_minutes: 80
+    patch_type: Herb
+    product: Grimy dwarf weed
+    notes: "Plant 1 seed per patch; does not regrow. Use ultracompost or Fertile Soil to minimize disease."
   related_items:
-    - item_id: 217
-      item_name: Grimy dwarf weed
-      slug: grimy-dwarf-weed
+    - name: Grimy dwarf weed
       relationship: product
-      description: Harvested product
-    - item_id: 267
-      item_name: Dwarf weed
-      slug: dwarf-weed
+    - name: Dwarf weed
       relationship: product
-      description: Cleaned herb
-    - item_id: 2450
-      item_name: Ranging potion(4)
-      slug: ranging-potion-4
+    - name: Ranging potion(4)
       relationship: product
-      description: Made from dwarf weed
-    - item_id: 5302
-      item_name: Lantadyme seed
-      slug: lantadyme-seed
+    - name: Lantadyme seed
       relationship: alternative
-      description: Lower tier herb seed
-    - item_id: 5304
-      item_name: Torstol seed
-      slug: torstol-seed
+    - name: Torstol seed
       relationship: upgrade
-      description: Highest tier herb seed
-  about: |-
-    Plant in a herb patch to grow Grimy dwarf weed.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Farming Level | 79 |
-    | Growth time | 80 minutes |
-    | XP (plant) | 170.5 |
-    | XP (harvest) | 192 per herb |
+  about: "Dwarf weed seed is a high-tier herb seed planted in herb patches at 79 Farming, yielding grimy dwarf weed used in ranging potions. Each seed gives 170.5 plant XP and 192 XP per herb harvested over an 80 minute growth cycle."
   market_strategy:
     notes:
-      - High-tier herb seed
-      - Used for ranging potions
-      - Excellent profit potential
-      - Ultracompost (essential)
-      - Magic secateurs (10% more yield)
-      - Farming cape (5% more yield)
-      - 9 herb patches available
-      - ~10 minute runs, 80 minute regrowth
-      - Ranging potions essential for ranged PvM
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - High-tier herb seed used for Ranging potions
+      - Strong profit potential per farm run
+      - 9 herb patches available across game world
+      - Ultracompost recommended for max yield
+  trading_tips:
+    - Buy limit is 200 per 4 hours
+    - Track Ranging potion demand for resale margin
+  history:
+    - date: "2005-06-06"
+      description: "Dwarf weed seed was released along with the Farming skill."
+  properties:
+    release_date: "2005-06-06"
+    update: "Farming"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Plant
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

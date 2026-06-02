@@ -1,6 +1,6 @@
 ---
 title: Red robe bottoms | OSRS Price Data
-description: "Red robe bottoms: Made by werewolves for werewolves.. High alch: 300 GP, GE limit: 150."
+description: "Red robe bottoms: Made by werewolves for werewolves. High alch: 300 GP, GE limit: 150."
 osrs:
   id: 2908
   name: Red robe bottoms
@@ -12,14 +12,83 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Red robe bottoms is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: legs
+    weapon_type: robe
+    attack_speed: 4
+    weight: 0.907
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      prayer: 0
+  shops:
+    - shop_name: Barkers' Haberdashery
+      location: Canifis
+      price: 650
+      stock: 5
+  related_items:
+    - item_id: 2906
+      item_name: Red robe top
+      slug: red-robe-top
+      relationship: set-piece
+      description: Matching Canifis red robe top.
+    - item_id: 2912
+      item_name: Yellow robe bottoms
+      slug: yellow-robe-bottoms
+      relationship: variant
+      description: Yellow color variant from the same Canifis shop.
+    - item_id: 2914
+      item_name: Grey robe bottoms
+      slug: grey-robe-bottoms
+      relationship: variant
+      description: Grey color variant from the same Canifis shop.
+  about: A Morytania fashion piece sold at Barkers' Haberdashery in Canifis; minor defence bonuses make it a cosmetic-tier leg slot.
+  market_strategy:
+    notes:
+      - Demand is purely cosmetic; supply is unlimited at the Canifis shop.
+      - Modest flip margins on GE relative to shop price.
+  trading_tips:
+    - Buy from Barkers' shop and resell on GE during fashionscape events.
+    - Watch low GE limit; flipping volume capped at 150 per 4 hours.
+  history:
+    - date: "2004-06-29"
+      description: Red robe bottoms released alongside Priest in Peril and the Morytania region.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-06-29"
+    update: Priest in Peril
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

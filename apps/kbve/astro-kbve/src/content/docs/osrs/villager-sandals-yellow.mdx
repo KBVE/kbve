@@ -12,14 +12,71 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "Villager sandals (yellow) is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: feet
+    weight: 0.68
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus: {}
+  shops:
+    - shop_name: Gabooty's Tai Bwo Wannai Cooperative
+      location: Tai Bwo Wannai
+      price: 120
+      currency: Trading sticks
+  related_items:
+    - slug: villager-sandals-blue
+      relationship: variant
+    - slug: villager-sandals-brown
+      relationship: variant
+    - slug: villager-sandals-pink
+      relationship: variant
+    - slug: villager-robe-yellow
+      relationship: set-piece
+    - slug: villager-hat-yellow
+      relationship: set-piece
+  about: "Villager sandals (yellow) are a cosmetic feet-slot piece from the Tai Bwo Wannai villager outfit set."
+  market_strategy:
+    notes:
+      - Niche fashionscape item; demand is small and steady.
+      - Shop arbitrage through trading sticks underpins floor pricing.
+  trading_tips:
+    - Stock during fashionscape events or Karamja diary milestones.
+    - Karamja gloves 1+ unlock a 100 sticks shop price for cheaper restocks.
+  history:
+    - date: "2005-08-09"
+      description: Added with Tai Bwo Wannai villager cosmetics.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-09"
+    update: Tai Bwo Wannai update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.68
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

@@ -12,14 +12,55 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: null
-  about: "Pillar potion (unf) is a members-only item in Old School RuneScape. High alchemy value: 15 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - materials:
+        - item_name: Vial of water
+          quantity: 1
+        - item_name: Pillar coral
+          quantity: 1
+      tools: []
+      skill: Herblore
+      level: 62
+      output_quantity: 1
+  related_items:
+    - name: Pillar coral
+      relationship: component
+    - name: Vial of water
+      relationship: component
+    - name: Super fishing potion(3)
+      relationship: product
+    - name: Super hunter potion(3)
+      relationship: product
+  about: "Pillar potion (unf) is an unfinished potion created at 62 Herblore by combining a vial of water with pillar coral, used as the base for super fishing and super hunter potions."
+  market_strategy:
+    notes:
+      - "Unfinished potion with no buy limit; trades around 2,829 gp."
+      - "Daily volume near 26,000 units, making it a high-liquidity Herblore intermediate."
+  trading_tips:
+    - "Compare cost of pillar coral plus vial vs. finished super fishing/hunter potion prices to find the better leg to flip."
+    - "Watch for Sailing content patches that adjust pillar coral spawn rates, which move this potion's price."
+  history:
+    - date: "2025-11-19"
+      description: "Added to the game with the Sailing update."
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

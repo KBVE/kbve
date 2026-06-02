@@ -12,14 +12,83 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-38 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: cape
+    weapon_type: none
+    attack_speed: 1
+    weight: 0.453
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Edmond's Wilderness Cape Shop
+      location: South of Lava Maze
+      price: 50
+      stock: 50
+  related_items:
+    - item_id: 4387
+      item_name: Team-37 cape
+      slug: team-37-cape
+      relationship: variant
+      description: Adjacent team cape variant
+    - item_id: 4391
+      item_name: Team-39 cape
+      slug: team-39-cape
+      relationship: variant
+      description: Adjacent team cape variant
+  about: "Team-38 cape is a free-to-play wilderness cape that highlights teammates wearing the same number as blue minimap dots for clan-style PvP coordination."
+  market_strategy:
+    notes:
+      - Buy price of 50 coins at Edmond's shop sets a hard arbitrage ceiling; GE swings above that come from PKer team coordination.
+      - Cape number 38 has no special significance, so demand mirrors the broader team cape pool.
+      - Members-only access until 2013, now F2P, broadening the buyer base.
+  trading_tips:
+    - Stock up from Edmond's wilderness shop for guaranteed margin during clan war or PKer event spikes.
+    - Rotate inventory across multiple team cape IDs since demand follows whatever number a clan picks first.
+  history:
+    - date: "2005-02-22"
+      description: Released as part of the team cape lineup.
+    - date: "2013-05-23"
+      description: Made available to free-to-play players.
+  properties:
+    release_date: "2005-02-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

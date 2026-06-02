@@ -12,14 +12,94 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 4
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: head
+    weapon_type: not_applicable
+    weight: 0.04
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 2649
+      item_name: Brown headband
+      slug: brown-headband
+      relationship: alternative
+      description: Colour variant from Treasure Trails
+    - item_id: 2651
+      item_name: White headband
+      slug: white-headband
+      relationship: alternative
+      description: Colour variant from Treasure Trails
+    - item_id: 2653
+      item_name: Red headband
+      slug: red-headband
+      relationship: alternative
+      description: Colour variant from Treasure Trails
+    - item_id: 2655
+      item_name: Blue headband
+      slug: blue-headband
+      relationship: alternative
+      description: Colour variant from Treasure Trails
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  market_strategy:
+    notes:
+      - "Hard clue cosmetic reward with a 4/4hr GE limit; supply is thin."
+      - "Required for the Panic emote clue south of the Blighted Volcano bridge (with Guthix crozier)."
+  trading_tips:
+    - "Stock before hard clue scroll events or new emote clue meta announcements."
+    - "Long-term hold candidate due to fixed supply rate."
   about: "Black headband is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  history:
+    - date: "2004-05-05"
+      description: Released as a Treasure Trails reward in the Bigger Banks & Treasure Trails update.
+    - date: "2005-05-01"
+      description: Renamed from Headband to Black headband.
+    - date: "2005-07-01"
+      description: Examine text corrected from minimilist to minimalist.
+  properties:
+    release_date: "2004-05-05"
+    update: Bigger Banks & Treasure Trails
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.04
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

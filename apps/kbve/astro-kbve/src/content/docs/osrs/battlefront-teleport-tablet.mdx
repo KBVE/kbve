@@ -12,14 +12,60 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Battlefront teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destination: Ancient grave outside the Kebos Battlefront
+    consumed: true
+    requirements: {}
+  recipes:
+    - materials:
+        - item_name: Law rune
+          quantity: 1
+        - item_name: Earth rune
+          quantity: 1
+        - item_name: Fire rune
+          quantity: 1
+        - item_name: Dark essence block
+          quantity: 1
+      tools:
+        - Lectern
+      skill: Magic
+      level: 23
+      xp: 19
+      output_quantity: 1
+      notes: "Crafted on the Arceuus lectern in Ouditor's house while the Arceuus spellbook is active."
+  about: "Battlefront teleport (tablet) is a single-use Arceuus tablet that teleports the user to the ancient grave just outside the Kebos Battlefront."
+  market_strategy:
+    notes:
+      - "Supply is driven by Arceuus tablet farmers crafting via the lectern, so price tracks dark essence block availability."
+      - "GE buy limit of 10,000 per 4 hours supports bulk PvM travel stocks for slayer alts."
+      - "High alch is below value, so flippers rely on spread, not alching."
+  trading_tips:
+    - "Stock up when dark essence block supply spikes; tablet price tends to follow essence block cost."
+    - "Use as a fast travel option to lizardman shamans and the Wintertodt area south of the Battlefront."
+    - "Avoid manual breaking if you want full XP; only level 23 Magic users gain XP from the tablet."
+  properties:
+    release_date: "2019-01-10"
+    update: "The Kebos Lowlands"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2019-01-10"
+      description: "Released with The Kebos Lowlands update as part of the Arceuus lectern tablet line."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

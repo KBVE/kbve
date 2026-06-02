@@ -12,14 +12,92 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: null
-  about: "Swampbark legs is a members-only item in Old School RuneScape. High alchemy value: 48,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: Swampbark
+    tier: mid-high
+  equipment:
+    slot: legs
+    weapon_type: none
+    weight: 3.628
+    requirements:
+      magic: 50
+      defence: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 10
+      ranged: 0
+    defence_bonus:
+      stab: 20
+      slash: 22
+      crush: 24
+      magic: 15
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Runecraft
+      level: 48
+      xp: 25
+      materials:
+        - item_name: Splitbark legs
+          quantity: 1
+        - item_name: Nature rune
+          quantity: 500
+      tools:
+        - Nature Altar
+        - Runescroll of swampbark (read once)
+      output_quantity: 1
+  related_items:
+    - name: Splitbark legs
+      relationship: component
+    - name: Swampbark helm
+      relationship: set-piece
+    - name: Swampbark body
+      relationship: set-piece
+    - name: Swampbark boots
+      relationship: set-piece
+    - name: Swampbark gauntlets
+      relationship: set-piece
+    - name: Runescroll of swampbark
+      relationship: component
+  about: "Swampbark legs are members magic-defensive leg armour crafted at the Nature Altar by reinforcing splitbark legs with 500 nature runes at 48 Runecraft. As part of the full Swampbark set, they extend the duration of bind spells (Bind, Snare, Entangle) by 6 ticks."
+  market_strategy:
+    notes:
+      - "Niche demand from PvP and Castle Wars binders who use the set bonus to lock targets in place."
+      - "Crafting profit margin depends on the spot price of nature runes and splitbark legs."
+      - "Supply is thin — bulk listings can swing the GE price significantly."
+  trading_tips:
+    - "Buy splitbark legs in bulk when nature runes dip below 800 gp to maintain a positive craft margin."
+    - "Pair sales with other Swampbark pieces — set-completers often buy multiple slots at once."
+  history:
+    - date: "2021-01-27"
+      description: "Released with the Shades of Mort'ton Rework, adding the Swampbark set as a bind-extension armour line."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-01-27"
+    update: "Shades of Mort'ton Rework"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

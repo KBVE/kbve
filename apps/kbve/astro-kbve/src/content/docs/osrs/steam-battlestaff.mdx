@@ -14,61 +14,72 @@ osrs:
   limit: 8
   equipment:
     slot: weapon
-    type: staff
-    tradeable: true
+    weapon_type: bladed_staff
+    attack_speed: 5
     weight: 2.267
     requirements:
       attack: 30
       magic: 30
-    stats:
-      attack_magic: 12
-      attack_crush: 28
+    attack_bonus:
+      stab: 7
+      slash: -1
+      crush: 28
+      magic: 12
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 12
+      ranged: 0
+    other_bonus:
       strength: 35
-      defence_magic: 12
-  passive_effects:
-    - name: Unlimited Runes
-      description: Provides infinite water and fire runes, enables autocast for relevant spells
-  obtaining:
-    methods:
+  drop_table:
+    sources:
       - source: K'ril Tsutsaroth
-        drop_rate: 1/127
+        quantity: "1"
+        rarity: 1/127
   related_items:
-    - item_id: 0
-      item_name: K'ril Tsutsaroth
-      slug: kril-tsutsaroth
-      relationship: component
-      description: Drop source
-    - item_id: 11789
-      item_name: Mystic steam staff
-      slug: mystic-steam-staff
+    - slug: mystic-steam-staff
       relationship: upgrade
-      description: Upgrade
-    - item_id: 11998
-      item_name: Smoke battlestaff
-      slug: smoke-battlestaff
+    - slug: smoke-battlestaff
       relationship: alternative
-      description: Air+fire variant
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Magic | +12 |
-    | Crush | +28 |
-    | Strength | +35 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Magic | +12 |
-
-    Unlimited Runes: Provides infinite water and fire runes.
-
-    Enables autocast for relevant spells.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - slug: mud-battlestaff
+      relationship: alternative
+    - slug: lava-battlestaff
+      relationship: alternative
+  about: "Steam battlestaff supplies unlimited water and fire runes while wielded and enables autocast for steam spells."
+  market_strategy:
+    notes:
+      - Supply gated by K'ril Tsutsaroth drop rate at 1/127.
+      - Mystic upgrade path provides a stable demand floor through Thormac.
+      - Low GE limit (8) keeps spreads wide.
+  trading_tips:
+    - Track Zamorak GWD trip popularity for short-term price moves.
+    - Convert to mystic steam staff when upgrade margin exceeds Thormac fee.
+  history:
+    - date: "2013-10-17"
+      description: Added to the game as a K'ril Tsutsaroth drop.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2013-10-17"
+    update: Elemental and Combination Staves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

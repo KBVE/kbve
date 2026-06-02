@@ -12,9 +12,12 @@ osrs:
   lowalch: 506
   highalch: 759
   limit: 10000
+  material:
+    type: jewellery
+    tier: mid
   equipment:
     slot: hands
-    weight: 0.007
+    weight: 0.25
     attack_bonus:
       stab: 0
       slash: 0
@@ -33,29 +36,22 @@ osrs:
       magic_damage: 0
       prayer: 0
   charges:
-    current: 28
-    max: 28
-    recharge: Not rechargeable - breaks after use
-  special_effect:
-    name: Soft Clay Effect
-    description: Mining clay while worn gives soft clay directly instead of clay
-    triggers: on_mine_clay
+    max_charges: 28
+    recharge_method: Not rechargeable - crumbles to dust after 28 uses
   recipes:
-    - skill: magic
-      level: 23
-      xp: 37
-      spell: Lvl-2 Enchant
+    - skill: Magic
+      level: 7
+      xp: 17.5
+      spell: Lvl-1 Enchant
       materials:
         - item_name: Sapphire bracelet
-          item_id: 11072
           quantity: 1
         - item_name: Cosmic rune
-          item_id: 564
           quantity: 1
-        - item_name: Air rune
-          item_id: 556
-          quantity: 3
-      members_only: true
+        - item_name: Water rune
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
     - item_id: 11072
       item_name: Sapphire bracelet
@@ -77,37 +73,52 @@ osrs:
     |-------|---------|
     | New | 28 |
     | Depleted | Crumbles to dust |
-
     Soft Clay Effect:
     - Mining clay while wearing gives soft clay directly
     - Saves time on water bucket step
     - 28 uses before bracelet crumbles
-
+    - In Trahaearn mine, allows mining two soft clay at once
     | Requirement | Value |
     |-------------|-------|
-    | Magic | 23 |
-    | Spell | Lvl-2 Enchant |
-    | Materials | Sapphire bracelet + 3 air + 1 cosmic |
+    | Magic | 7 |
+    | Spell | Lvl-1 Enchant |
+    | Materials | Sapphire bracelet + 1 water + 1 cosmic |
   market_strategy:
     notes:
       - Saves time making soft clay
       - Popular for Crafting training
       - Low cost per use
-      - Crafting training
-      - Pottery makers
-      - Ironmen
-      - Efficient players
-      - Very cheap per soft clay
       - Essential for efficient clay gathering
-      - Popular among crafters
       - Crumbles after 28 uses
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  trading_tips:
+    - Buy in bulk for Crafting training sessions
+    - Cheaper to enchant sapphire bracelets directly than buy GE
+    - Useful for ironmen avoiding the water bucket step
+  history:
+    - date: "2007-04-30"
+      description: Released as part of the 24 Carat update.
+  properties:
+    release_date: "2007-04-30"
+    update: 24 Carat
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Check
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

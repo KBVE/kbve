@@ -14,59 +14,72 @@ osrs:
   limit: 40
   material:
     type: mould
-    tier: crafting_tool
-  crafting:
-    use: holy_symbol
+    tier: low
+  recipes:
+    - materials:
+        - item_name: Silver bar
+          quantity: 1
+      tools:
+        - Holy mould
+        - Furnace
+      output_quantity: 1
   shops:
-    - shop_name: Crafting shops
-      price: 5
+    - shop_name: Dommik's Crafting Store (Al Kharid)
       currency: Coins
-  uses:
-    - product: Unstrung holy symbol
-      product_id: 1714
-      bar: Silver bar
-      bar_id: 2355
-      crafting_level: 16
-      crafting_xp: 50
+      price: 5
+      stock: 2
+    - shop_name: Rommik's Crafty Supplies (Rimmington)
+      currency: Coins
+      price: 5
+      stock: 2
+    - shop_name: Jamila's Craft Stall (Sophanem)
+      currency: Coins
+      price: 7
+      stock: 2
+    - shop_name: Rasolo the Wandering Merchant
+      currency: Coins
+      price: 10
+      stock: 1
   related_items:
-    - item_id: 2355
-      item_name: Silver bar
+    - item_name: Silver bar
       slug: silver-bar
       relationship: component
-      description: Material used
-    - item_id: 1714
-      item_name: Unstrung holy symbol
+    - item_name: Unstrung holy symbol
       slug: unstrung-holy-symbol
       relationship: product
-      description: Crafted product
-    - item_id: 1718
-      item_name: Holy symbol
+    - item_name: Holy symbol
       slug: holy-symbol
       relationship: product
-      description: Strung version
-  about: |-
-    Make holy symbols at a furnace:
-
-    | Product | Level | XP | Materials |
-    |---------|-------|-----|-----------|
-    | Unstrung holy symbol | 16 | 50 | 1 Silver bar |
-
-    String with ball of wool for completed holy symbol.
+    - item_name: Unholy mould
+      slug: unholy-mould
+      relationship: alternative
+  about: "Reusable crafting tool that turns silver bars into unstrung holy symbols at a furnace (16 Crafting, 50 xp)."
   market_strategy:
     notes:
-      - Holy symbol crafting
-      - Prayer item production
-      - One-time purchase
-      - Not consumed on use
-      - Buy from shop
-      - Low demand item
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Buy from shop for cheap
+      - Reusable tool
+      - Low demand
+  history:
+    - date: "2001-07-12"
+      description: Released to support holy symbol crafting.
+  properties:
+    release_date: "2001-07-12"
+    update: Crafting moulds release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

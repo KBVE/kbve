@@ -5,21 +5,87 @@ osrs:
   id: 7186
   name: Raw fish pie
   slug: raw-fish-pie
-  examine: Raw fish is risky, better cook it.
+  examine: "Raw fish is risky, better cook it."
   members: true
   icon: Raw fish pie.png
   value: 50
   lowalch: 20
   highalch: 30
   limit: 13000
-  about: "Raw fish pie is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: Cooking
+      level: 47
+      xp: 0
+      output_quantity: 1
+      materials:
+        - item_name: Part fish pie
+          quantity: 1
+        - item_name: Potato
+          quantity: 1
+      tools: []
+      notes: Combine a part fish pie with a potato to assemble the raw fish pie.
+    - skill: Cooking
+      level: 47
+      xp: 164
+      output_quantity: 1
+      materials:
+        - item_name: Raw fish pie
+          quantity: 1
+      tools:
+        - Range
+      notes: Cook the raw fish pie on a range to produce a fish pie, with chance of a burnt pie.
+  related_items:
+    - item_id: 7188
+      item_name: Fish pie
+      slug: fish-pie
+      relationship: product
+      description: Cooked product of the raw fish pie
+    - item_id: 7184
+      item_name: Part fish pie
+      slug: part-fish-pie
+      relationship: component
+      description: Intermediate ingredient before adding potato
+    - item_id: 1942
+      item_name: Potato
+      slug: potato
+      relationship: component
+      description: Required ingredient
+    - item_id: 2329
+      item_name: Burnt pie
+      slug: burnt-pie
+      relationship: alternative
+      description: Failure result when cooking
+  about: "Raw fish pie is the uncooked intermediate of fish pie, made by adding a potato to a part fish pie and cooked at 47 Cooking for 164 XP."
+  market_strategy:
+    notes:
+      - Demand is driven by Cooking trainers and ironmen targeting 47+ XP gains via fish pies.
+      - GE buy limit of 13,000 supports bulk flipping when raw inputs are oversupplied by skill farmers.
+      - Profitability depends on the spread between part fish pie plus potato versus the cooked fish pie price.
+  trading_tips:
+    - Track part fish pie inventory; raw fish pie usually moves in lockstep with its precursor.
+    - Sell raw rather than cooked when burn rates make the cook unprofitable for low-level chefs.
+  history:
+    - date: "2006-02-20"
+      description: Added with the gnome stronghold pie cooking line.
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

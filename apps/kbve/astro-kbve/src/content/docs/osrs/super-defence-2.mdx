@@ -1,6 +1,6 @@
 ---
 title: Super defence(2) | OSRS Price Data
-description: "Super defence(2): 2 doses of super Defence potion.. High alch: 118 GP, GE limit: 2,000."
+description: "Super defence(2): 2 doses of super Defence potion. High alch: 118 GP, GE limit: 2,000."
 osrs:
   id: 165
   name: Super defence(2)
@@ -12,28 +12,69 @@ osrs:
   lowalch: 79
   highalch: 118
   limit: 2000
+  potion:
+    doses: 2
+    effects:
+      - description: "Boosts Defence by ⌊DefenceLevel × 15/100⌋ + 5."
+      - description: Boost decays at 1 level per minute (90 seconds with Preserve prayer active).
+  recipes:
+    - materials:
+        - item_name: Cadantine potion (unf)
+          quantity: 1
+        - item_name: White berries
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      skill: Herblore
+      level: 66
+      xp: 150
+      output_quantity: 1
+      notes: Produces Super defence(3); decant to (2) for this item.
   related_items:
     - item_id: 163
-      item_name: Super defence(3)
-      slug: super-defence-3
+      item_name: Super defence(4)
+      slug: super-defence-4
       relationship: variant
-      description: 3-dose version
+      description: Four-dose version of the same potion.
     - item_id: 167
       item_name: Super defence(1)
       slug: super-defence-1
       relationship: variant
-      description: 1-dose version
-  about: |-
-    > _"2 doses of super Defence potion."_
-
-    A 2-dose super defence potion. Boosts Defence by 5 + 15% of current level.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: One-dose version of the same potion.
+    - item_id: 12463
+      item_name: Super def. mix(2)
+      slug: super-def-mix-2
+      relationship: product
+      description: Barbarian Herblore mixed version with healing.
+  about: Two-dose super defence potion; standard Defence boost for boss prep and mid-game PvM, decanted from 3-dose stock.
+  market_strategy:
+    notes:
+      - Bulk supply driven by herb runs and decanter splits from (3) and (4) doses.
+      - Stable demand from mid-tier PvMers and Defence pure builds.
+  trading_tips:
+    - Decant (3) into (2) when 3-dose GE price runs hot.
+    - Watch cadantine and white berries supply for upstream pressure.
+  history:
+    - date: "2002-02-27"
+      description: Super defence potion released alongside other super potions.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    update: Members Skills Become Available
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

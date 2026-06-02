@@ -12,44 +12,80 @@ osrs:
   lowalch: 58
   highalch: 87
   limit: 4
+  material:
+    type: black
+    tier: mid
   equipment:
     slot: weapon
-    type: pickaxe
-    tradeable: true
+    weapon_type: pickaxe
+    attack_speed: 5
     weight: 0.01
     requirements:
       attack: 10
       mining: 11
-    stats:
-      attack_stab: 10
-      attack_slash: -2
-      attack_crush: 8
+    attack_bonus:
+      stab: 10
+      slash: -2
+      crush: 8
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
       strength: 11
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Beginner and Easy
-  usage:
-    description: Mining tool. Lightest pickaxe available. Same speed as mithril pickaxe.
+      prayer: 0
+  treasure_trail:
+    tier: beginner
+    is_reward: true
+    reward_tiers:
+      - beginner
+      - easy
   related_items:
     - item_id: 1273
       item_name: Mithril pickaxe
       slug: mithril-pickaxe
       relationship: alternative
-      description: Same speed
+      description: Same mining speed as black pickaxe
     - item_id: 1275
       item_name: Rune pickaxe
       slug: rune-pickaxe
       relationship: upgrade
-      description: Upgrade
-  about: Mining tool. Lightest pickaxe available. Same speed as mithril pickaxe.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Faster mining upgrade
+  about: The lightest pickaxe in the game, ideal for activities requiring mobility such as questing or Abyss training. Mines at the same speed as a mithril pickaxe.
+  market_strategy:
+    notes:
+      - Niche demand driven by lightweight builds and clue scroll completionists.
+      - GE limit of 4 makes flipping margins small but consistent.
+  trading_tips:
+    - Buy from beginner and easy clue scroll rewards for instant supply.
+    - Hold during Abyss/RC training meta shifts when weight reduction matters.
+  history:
+    - date: "2014-06-12"
+      description: Black pickaxe added to the game as a treasure trail reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Rewards
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

@@ -12,14 +12,60 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Summon boat is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    type: tablet
+    destination: Player-owned boat
+    requirements:
+      magic: 56
+    notes:
+      - Break while standing on a dock or mooring point to summon your boat.
+      - Requires a teleport focus or greater teleport focus facility on the boat.
+  recipes:
+    - skill: Magic
+      level: 56
+      xp: 66
+      output_quantity: 1
+      tools:
+        - Mahogany eagle lectern or better
+      materials:
+        - item_name: Law rune
+          quantity: 2
+        - item_name: Earth rune
+          quantity: 1
+        - item_name: Water rune
+          quantity: 1
+        - item_name: Soft clay
+          quantity: 1
+  about: "Summon boat is a magic tablet that breaks to teleport a player-owned boat to the player's current dock or mooring point. Requires 56 Magic to make at a Mahogany eagle lectern or better."
+  market_strategy:
+    notes:
+      - GE price (~897 gp) sits well above material cost (~346 gp); profitable craft if Magic 56 is unlocked.
+      - Demand tied to active Sailing players; expect bursts during Sailing expansions and seasonal events.
+  trading_tips:
+    - Bulk-craft when law rune prices dip; tablet is stackable so storage is trivial.
+    - Watch for new teleport focus tiers or competing Sailing tablets that could compress margins.
+  history:
+    - date: "2025-11-19"
+      description: Released with the Sailing skill update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    alchable: false
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

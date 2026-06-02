@@ -12,28 +12,52 @@ osrs:
   lowalch: 20
   highalch: 31
   limit: 125
+  material:
+    type: bronze
+    tier: low
   equipment:
     slot: weapon
-    type: battleaxe
-    tradeable: true
+    weapon_type: battleaxe
+    attack_speed: 6
     weight: 2.721
     requirements:
       attack: 1
-    stats:
-      attack_stab: -2
-      attack_slash: 6
-      attack_crush: 3
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 9
+    attack_bonus:
+      stab: -2
+      slash: 6
+      crush: 3
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -1
+    other_bonus:
+      melee_strength: 9
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  recipes:
+    - skill: Smithing
+      level: 10
+      xp: 37.5
+      materials:
+        - item_name: Bronze bar
+          quantity: 3
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: Brian's Battleaxe Bazaar
+      location: Port Sarim
+      sell_price: 52
+    - shop_name: Lunami's Axe Shop
+      location: Auburnvale
+      members_only: true
+      sell_price: 52
   related_items:
     - item_id: 1363
       item_name: Iron battleaxe
@@ -45,13 +69,40 @@ osrs:
       slug: bronze-sword
       relationship: alternative
       description: Better accuracy alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: Bronze battleaxe is an entry-level F2P slash weapon usable from 1 Attack. Smithed at 10 Smithing using 3 bronze bars.
+  market_strategy:
+    notes:
+      - Entry-level F2P weapon
+      - High alch is below smithing cost; alch-loss item
+      - Niche demand from new accounts only
+  trading_tips:
+    - Volumes low; resell margin thin
+    - Avoid alching unless flipping shop stock
+    - Smithing it for XP is generally cheaper than buying
+  history:
+    - date: "2001-01-04"
+      description: Released with the RuneScape beta launch.
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape beta launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

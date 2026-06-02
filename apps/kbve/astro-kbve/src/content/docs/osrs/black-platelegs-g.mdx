@@ -12,32 +12,76 @@ osrs:
   lowalch: 768
   highalch: 1152
   limit: 8
+  material:
+    type: black
+    tier: low
   equipment:
     slot: legs
+    weight: 9.071
     requirements:
       defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 21
+      slash: 20
+      crush: 19
+      magic: -4
+      ranged: 22
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 2591
-      item_name: Black platebody (g)
-      slug: black-platebody-g
+    - item_name: Black platebody (g)
       relationship: set-piece
-      description: Matching gold-trimmed platebody
-    - item_id: 2585
-      item_name: Black platelegs (t)
-      slug: black-platelegs-t
+    - item_name: Black platelegs (t)
       relationship: variant
-      description: Trimmed variant
-  about: |-
-    > *"Black platelegs with gold trim."*
-
-    The black platelegs (g) are a gold-trimmed cosmetic variant of standard black platelegs. Identical stats, requiring 10 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Black platelegs
+      relationship: variant
+  about: "The black platelegs (g) are a gold-trimmed cosmetic variant of standard black platelegs awarded from easy clue scroll caskets, sharing identical defensive stats with the base version."
+  market_strategy:
+    notes:
+      - Supplied solely by easy clue scroll caskets at roughly 1/1,404 per reward roll.
+      - Buy limit of 8 every 4 hours keeps prices sensitive to clue-running activity.
+      - Cosmetic value drives the markup over the base black platelegs.
+  trading_tips:
+    - Track easy clue completion meta; supply rises when easy clues are popular.
+    - Store finished sets in the costume room chest to keep bank space free while flipping pieces.
+  history:
+    - date: "2004-05-05"
+      description: Released as part of the Bigger Banks & Treasure Trails update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-05-05"
+    update: "Bigger Banks & Treasure Trails"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

@@ -13,73 +13,56 @@ osrs:
   highalch: 132
   limit: 13000
   material:
-    type: nails
-    tier: rune
-  smithing:
-    level: 89
-    xp: 75
-    bars: 1
-    nails_per_bar: 15
-  construction:
-    bend_rate: None
-    min_level: 1
+    type: rune
+    tier: high
   recipes:
-    - skill: smithing
+    - materials:
+        - item_name: Runite bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 15
+      skill: Smithing
       level: 89
       xp: 75
-      materials:
-        - item_name: Runite bar
-          item_id: 2363
-          quantity: 1
-      product: Rune nails
-      product_id: 4824
-      product_quantity: 15
   related_items:
-    - item_id: 2363
-      item_name: Runite bar
-      slug: runite-bar
+    - item_name: Runite bar
       relationship: component
-      description: Smelting material
-    - item_id: 4823
-      item_name: Adamantite nails
-      slug: adamantite-nails
+    - item_name: Adamantite nails
       relationship: downgrade
-      description: Very low bend rate
-    - item_id: 960
-      item_name: Plank
-      slug: plank
+    - item_name: Plank
       relationship: component
-      description: Used with planks
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Bend rate | Never bends |
-    | Construction level | 1+ |
-    | Used with | Planks |
-
-    Best nails in game - never bend. Perfect for Construction training efficiency.
-
-    | Nails | Bend Rate | Shop Price |
-    |-------|-----------|------------|
-    | Bronze | Highest | 1 GP |
-    | Iron | High | 2 GP |
-    | Steel | Medium | 5 GP |
-    | Mithril | Low | 10 GP |
-    | Adamantite | Very Low | 25 GP |
-    | Rune | Never bends | 100 GP |
+  about: "Rune nails are members-only Construction nails smithed from runite bars; they are the most durable nails in the game and never bend during furniture builds."
   market_strategy:
     notes:
-      - Guaranteed to never bend
-      - Most expensive nails
-      - Overkill for most players
-      - Adamantite nails are more cost-effective
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Smithed at level 89 producing 15 nails per runite bar for 75 Smithing xp.
+      - Never bend, making them the safest option for high-end Construction builds.
+      - GE buy limit is 13,000 per 4 hours despite the high coin price.
+  trading_tips:
+    - Compare against adamantite nails since most builders prefer the cheaper bend-rate trade-off.
+    - Construction demand picks up around Achievement Diary and POH-related updates.
+  history:
+    - date: "2005-05-17"
+      description: Released alongside the Zogre Flesh Eaters quest update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-17"
+    update: "Zogre Flesh Eaters"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

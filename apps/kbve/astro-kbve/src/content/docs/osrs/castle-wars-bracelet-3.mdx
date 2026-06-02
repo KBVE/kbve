@@ -12,14 +12,74 @@ osrs:
   lowalch: 670
   highalch: 1005
   limit: 10000
-  about: "Castle wars bracelet(3) is a free-to-play item in Old School RuneScape. High alchemy value: 1,005 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: emerald
+    tier: mid
+  equipment:
+    slot: hands
+    weight: 0.25
+    requirements:
+      defence: 1
+  charges:
+    max_charges: 3
+    description: Each Castle Wars game consumed at entry burns one charge; the bracelet must be worn at the start to apply its bonuses.
+  recipes:
+    - materials:
+        - item_name: Emerald bracelet
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Air rune
+          quantity: 3
+      tools: []
+      output_quantity: 1
+      skill: Magic
+      level: 27
+      xp: 37
+      spell: Lvl-2 Enchant
+  related_items:
+    - item_name: Emerald bracelet
+      relationship: component
+    - item_name: Castle wars bracelet(2)
+      relationship: variant
+    - item_name: Castle wars bracelet(1)
+      relationship: variant
+  about: "Castle wars bracelet(3) is a charged Magic-enchanted bracelet that grants +20% damage to flag bearers and a 50% bandage healing boost when worn at the start of a Castle Wars match."
+  market_strategy:
+    notes:
+      - Crafted from an emerald bracelet using Lvl-2 Enchant at 27 Magic for 37 xp.
+      - Each Castle Wars game consumes one charge; new bracelets must be re-enchanted after three uses.
+      - Lanthus now stores extra charges, easing inventory management for serious flaggers.
+  trading_tips:
+    - Demand spikes around Castle Wars events and double-XP weekends.
+    - Low-level enchanters can profit by sourcing emerald bracelets cheap and selling charged variants.
+  history:
+    - date: "2007-04-30"
+      description: Released with the 24 Carat Update introducing emerald bracelet enchants.
+    - date: "2025-04-02"
+      description: Lanthus now accepts Castle Wars bracelets to bank stored charges.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-04-30"
+    update: "24 Carat Update"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Check
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

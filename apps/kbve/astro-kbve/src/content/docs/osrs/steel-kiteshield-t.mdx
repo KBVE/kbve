@@ -12,27 +12,69 @@ osrs:
   lowalch: 340
   highalch: 510
   limit: 125
+  material:
+    type: steel
+    tier: low
   equipment:
     slot: shield
+    weight: 5.443
     requirements:
       defence: 5
+    attack_bonus:
+      magic: -8
+      ranged: -2
+    defence_bonus:
+      stab: 13
+      slash: 15
+      crush: 14
+      magic: -1
+      ranged: 14
+    other_bonus: {}
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 20184
-      item_name: Steel platebody (t)
-      slug: steel-platebody-t
+    - name: Steel kiteshield
+      relationship: variant
+    - name: Steel platebody (t)
       relationship: set-piece
-      description: Matching trimmed platebody
-  about: |-
-    > *"Steel kiteshield with trim."*
-
-    The steel kiteshield (t) is a trimmed cosmetic variant of the standard steel kiteshield. Identical stats, requiring 5 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Steel full helm (t)
+      relationship: set-piece
+    - name: Steel platelegs (t)
+      relationship: set-piece
+  about: "Steel kiteshield (t) is a trimmed cosmetic variant of the steel kiteshield, awarded from easy Treasure Trails. It shares identical stats with the standard steel kiteshield and requires 5 Defence to equip."
+  market_strategy:
+    notes:
+      - Free-to-play cosmetic item
+      - Demand driven by trimmed set collectors
+  trading_tips:
+    - Buy limit is 125 per 4 hours
+    - Pairs with other steel trimmed pieces
+  history:
+    - date: "2002-02-27"
+      description: "Steel kiteshield (t) was added as an easy clue scroll reward."
+  properties:
+    release_date: "2002-02-27"
+    update: "Treasure Trails"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

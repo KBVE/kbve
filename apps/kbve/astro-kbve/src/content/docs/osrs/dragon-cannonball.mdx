@@ -12,14 +12,56 @@ osrs:
   lowalch: 720
   highalch: 1080
   limit: 11000
-  about: "Dragon cannonball is a members-only item in Old School RuneScape. High alchemy value: 1,080 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: orikalkum
+    tier: high
+  equipment:
+    slot: ammo
+    weapon_type: ship-cannon
+    weight: 0
+    requirements: {}
+    attack_bonus:
+      ranged: 80
+      ranged_strength: 270
+    defence_bonus: {}
+    other_bonus: {}
+  related_items:
+    - name: Cannonball
+      relationship: downgrade
+    - name: Granite cannonball
+      relationship: alternative
+    - name: Dragon cannon
+      relationship: component
+  about: "Dragon cannonball is high-tier ammunition used exclusively with the dragon ship cannon, introduced with Sailing."
+  market_strategy:
+    notes:
+      - "Cannot be smithed; supply depends on drops and cannonball stalls."
+      - "GE buy limit 11,000 per 4 hours; high alch 1,080 gp."
+  trading_tips:
+    - "Demand tracks Sailing combat encounter popularity."
+    - "Cannonball-stall feeders can suppress price during bot waves."
+  history:
+    - date: "2025-11-19"
+      description: "Released with the Sailing skill launch update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing is OUT TODAY!"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

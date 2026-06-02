@@ -12,14 +12,45 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: null
-  about: "Sigil of deception is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  charges:
+    max_charges: 1
+    description: "Single-use attunement; once unlocked, the sigil binds to the account and cannot be retraded."
+  related_items:
+    - name: Deadman's skull
+      relationship: alternative
+    - name: Sigil of the alchemaniac
+      relationship: alternative
+    - name: Sigil of the formidable fighter
+      relationship: alternative
+  about: "Sigil of deception is a tier 1 Deadman Mode skilling sigil that, when unlocked, automatically re-pickpockets a target NPC and effectively raises Thieving by an invisible +100 levels at early skill ranks. It is exclusive to temporary Deadman events and is purchased from the skull shop in Deadman: Annihilation as a permanent account unlock."
+  market_strategy:
+    notes:
+      - "Untradeable post-unlock - no Grand Exchange market, value tied to deadman skull conversion rates."
+  trading_tips:
+    - "Only acquire during active Deadman events; outside of those the sigil has no in-game source."
+  history:
+    - date: "2024-07-17"
+      description: "Released as part of Deadman: Apocalypse skilling sigil set."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-07-17"
+    update: "Deadman: Apocalypse"
+    tradeable: false
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Unlock
+      - Inspect
+      - Destroy
+    alchable: true
+    destroy: "You must unattune the sigil before you can destroy it."
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

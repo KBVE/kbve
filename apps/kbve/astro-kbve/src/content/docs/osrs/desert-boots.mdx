@@ -12,14 +12,68 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 150
-  about: "Desert boots is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: feet
+    weight: 0.226
+    requirements: {}
+  shops:
+    - shop_name: Shantay Pass Shop
+      location: Shantay Pass
+    - shop_name: Ali's Discount Wares
+      location: Al Kharid
+    - shop_name: Pollnivneach General Store
+      location: Pollnivneach
+    - shop_name: Bandit Camp General Store
+      location: Kharidian Desert Bandit Camp
+  related_items:
+    - item_id: 1833
+      item_name: Desert robe
+      slug: desert-robe
+      relationship: set-piece
+      description: Desert clothing body piece
+    - item_id: 1835
+      item_name: Desert shirt
+      slug: desert-shirt
+      relationship: set-piece
+      description: Desert clothing shirt
+    - item_id: 1839
+      item_name: Bronze pickaxe
+      slug: bronze-pickaxe
+      relationship: alternative
+      description: Required alongside desert set for The Tourist Trap slave disguise
+  about: "Desert boots are part of the desert clothing set that delays Kharidian desert heat damage by an extra 6 seconds. Required for The Tourist Trap quest disguise; sold by Shantay Pass, Al Kharid, Pollnivneach, and Bandit Camp shops."
+  market_strategy:
+    notes:
+      - Shop-bought cheaply across desert vendors; GE flips are thin (~1k daily volume).
+      - Demand spikes around new desert content or DT2-adjacent updates that drive heat-resistance interest.
+  trading_tips:
+    - Buy directly from Shantay Pass or Ali's Discount Wares for the lowest cost.
+    - Stockpile during quest revisits or desert-focused leagues for short-term price bumps.
+  history:
+    - date: "2003-04-14"
+      description: Released with the Tourist Trap Quest Online! update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-04-14"
+    update: "Tourist Trap Quest Online!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: The Tourist Trap
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

@@ -12,14 +12,80 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 5
-  about: "Twisted banner is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: mid-high
+  equipment:
+    slot: weapon
+    weapon_type: bladed
+    attack_speed: 4
+    weight: 2.267
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Leagues hub
+      stock: 1
+      currency: League Points
+      price: 750
+  related_items:
+    - name: "Trailblazer banner"
+      relationship: alternative
+    - name: "Shattered banner"
+      relationship: alternative
+  about: "Twisted banner is a members-only cosmetic weapon-slot item in Old School RuneScape commemorating Leagues I - Twisted. It is purchased from the Leagues Reward Shop for 750 League Points and can be displayed on player-owned house banner stands."
+  market_strategy:
+    notes:
+      - "Prestige cosmetic from the first League event — supply is permanently capped by League I participation."
+      - "GE buy limit of 5 per 4 hours keeps even large flips slow."
+      - "Holds value as a collector item rather than an active combat weapon."
+  trading_tips:
+    - "Long-term holders historically benefit as new players seeking the full banner set bid prices up."
+    - "Cross-list with Trailblazer and Shattered banners when courting collectors."
+  history:
+    - date: "2020-01-16"
+      description: "Released alongside the Twisted League Reward Shop; originally named 'Twisted league banner' and shortened the same day."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2020-01-16"
+    update: "Twisted League Reward Shop"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Lunge
+      - Swipe
+      - Pound
+      - Block
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

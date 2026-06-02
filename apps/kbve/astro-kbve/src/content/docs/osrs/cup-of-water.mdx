@@ -12,14 +12,53 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 13000
+  recipes:
+    - materials:
+        - item_name: Empty cup
+          quantity: 1
+      tools:
+        - Water source
+      output_quantity: 1
+      notes: "Use an empty cup on any water source (sink, fountain, well) to fill it."
+  related_items:
+    - name: Empty cup
+      relationship: component
+    - name: Cup of hot water
+      relationship: upgrade
+    - name: Bowl of water
+      relationship: alternative
   about: "Cup of water is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - Filled by using an empty cup on any water source — supply effectively unlimited.
+      - GE price ~54 coins vs alch 6; margin driven by lazy buyers, not scarcity.
+      - Cannot be used to counter desert heat effects (use waterskins).
+  trading_tips:
+    - High buy limit (13,000) makes this viable for bulk arbitrage off no-skill water source farming.
+    - Heat on range/fire to convert into Cup of hot water for tea-making chains.
+  history:
+    - date: "2005-02-28"
+      description: "Released with the One Small Favour update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-02-28"
+    update: "One Small Favour"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

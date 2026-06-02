@@ -12,14 +12,51 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: null
-  about: "Kraken colada is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    effects:
+      - description: Boosts Slayer by 1 level.
+      - description: Drains Sailing, Attack, Strength, and Defence by 2% + 2 each.
+      - description: "Drinking message: 'You drink the Kraken colada. You find yourself feeling rather woozy.'"
+  shops:
+    - shop_name: "'Squawking' Steve Beanie's Pub"
+      location: The Pandemonium
+      stock: Unlimited
+      sell_price: 20
+  related_items:
+    - name: Pineapple
+      relationship: component
+    - name: Coconut milk
+      relationship: component
+  about: "Kraken colada is a members-only alcoholic drink in Old School RuneScape. High alchemy value: 12 coins."
+  market_strategy:
+    notes:
+      - Purchased exclusively from 'Squawking' Steve Beanie at The Pandemonium pub.
+      - Provides a small Slayer boost at the cost of Sailing, Attack, Strength, and Defence.
+  trading_tips:
+    - Useful for niche Slayer level boosts when other boosts are unavailable.
+    - Avoid drinking before combat - the stat drains can be steep.
+  history:
+    - date: "2025-11-19"
+      description: Item released with the Sailing skill launch update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

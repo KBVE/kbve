@@ -12,14 +12,62 @@ osrs:
   lowalch: 53
   highalch: 79
   limit: 10000
-  about: "Mahogany stock is a members-only item in Old School RuneScape. High alchemy value: 79 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mahogany
+    tier: mid
+  recipes:
+    - materials:
+        - item_name: Mahogany logs
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+      fletching_level: 61
+      fletching_xp: 41
+  related_items:
+    - item_id: 9449
+      item_name: Mahogany logs
+      slug: mahogany-logs
+      relationship: component
+      description: Source log carved into the stock
+    - item_id: 9456
+      item_name: Adamant crossbow (u)
+      slug: adamant-crossbow-u
+      relationship: product
+      description: Combine with adamantite limbs to create the unstrung adamant crossbow
+    - item_id: 9145
+      item_name: Adamantite limbs
+      slug: adamantite-limbs
+      relationship: component
+      description: Limbs attached to this stock to produce an adamant crossbow
+  about: "Mahogany stock is a Fletching intermediate carved from mahogany logs at 61 Fletching for 41 xp. Attach adamantite limbs to create an adamant crossbow (u), granting another 82 Fletching xp."
+  market_strategy:
+    notes:
+      - Watch margin between mahogany logs and stock GE price for fletch flips
+      - Stock often cheaper than logs - alch farming opportunity at 79 gp high alch
+      - High buy limit (10,000) supports bulk crossbow production
+  history:
+    - date: "2006-07-31"
+      description: Released as a Fletching step for adamant crossbow construction.
+  properties:
+    release_date: "2006-07-31"
+    update: Crossbow Fletching expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

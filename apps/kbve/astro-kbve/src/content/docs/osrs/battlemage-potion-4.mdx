@@ -12,58 +12,79 @@ osrs:
   lowalch: 144
   highalch: 216
   limit: 2000
-  item:
-    type: potion
-    tradeable: true
+  potion:
     doses: 4
-    weight: 0.135
-    requirements:
-      herblore: 80
-  effect:
-    boost:
-      - skill: magic
-        amount: 4
-      - skill: defence
-        amount: 5 + 15% of level
-    duration: 60
-    preserve_duration: 90
+    effects:
+      - description: "Boosts Magic by +4 levels."
+        skill: magic
+        boost: 4
+      - description: "Boosts Defence by 5 + 15% of the player's Defence level (rounded down)."
+        skill: defence
+        boost_formula: "5 + 15% of level"
+      - description: "Boost decays 1 point per minute (90 seconds with the Preserve prayer)."
+        duration_seconds: 60
+        preserve_duration_seconds: 90
+  recipes:
+    - materials:
+        - item_name: Cadantine blood potion (unf)
+          quantity: 1
+        - item_name: Potato cactus
+          quantity: 1
+      tools: []
+      skill: Herblore
+      level: 80
+      xp: 155
+      output_quantity: 1
   related_items:
     - item_id: 3040
       item_name: Magic potion
       slug: magic-potion
-      relationship: component
-      description: Ingredient for battlemage potion
+      relationship: alternative
+      description: Boosts only Magic; cheaper but weaker overall.
     - item_id: 2440
       item_name: Super defence
       slug: super-defence
-      relationship: component
-      description: Ingredient for battlemage potion
+      relationship: alternative
+      description: Pure defence boost without magic component.
     - item_id: 23582
       item_name: Divine battlemage potion
       slug: divine-battlemage-potion
       relationship: upgrade
-      description: Enhanced version with maintained boost
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Combat Potion |
-    | Tradeable | Yes |
-    | Weight | 0.135 kg |
-    | Requirements | 80 Herblore |
-
-    Boosts Magic by +4.
-
-    Boosts Defence by 5 + 15% of level.
-
-    Decays 1 point/minute (90 seconds with Preserve).
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Maintains boost for 5 minutes instead of decaying.
+  about: "Battlemage potion(4) is a combo magic/defence potion that grants +4 Magic and 5 + 15% Defence, popular for hybrid PvP and Theatre of Blood mage rooms."
+  market_strategy:
+    notes:
+      - "Demand is driven by Theatre of Blood mage strategies and hybrid PvP brews; price tracks ToB participation."
+      - "GE buy limit of 2,000 per 4 hours limits bulk PvM stockpiling."
+      - "Cadantine blood potion (unf) cost is the main margin lever for crafters."
+  trading_tips:
+    - "Stock cadantine blood potions when blood runes are cheap to make finished potions for profit."
+    - "Stack divine battlemage potions instead for boss runs needing the no-decay variant."
+    - "Avoid alching; high alch (216 gp) is far below GE price."
+  properties:
+    release_date: "2018-06-07"
+    update: "Theatre of Blood"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.135
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2018-06-07"
+      description: "Released with the Theatre of Blood update as part of the new combo-potion line."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

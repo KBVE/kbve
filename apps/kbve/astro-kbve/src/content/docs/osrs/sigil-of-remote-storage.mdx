@@ -12,14 +12,46 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: 4
-  about: "Sigil of remote storage is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  charges:
+    type: deadman-sigil
+    description: Tier 3 skilling sigil; permanent unlock once attuned. Sell duplicates by using on Deadman's skull.
+  related_items:
+    - item_id: 26140
+      item_name: Sigil of remote storage (attuned)
+      slug: sigil-of-remote-storage-attuned
+      relationship: variant
+      description: Attuned/active form bound to the player
+  about: "Sigil of remote storage is a Tier 3 Deadman Mode skilling sigil that auto-notes (or auto-banks, depending on event) resources from Mining, Fishing, Woodcutting and Farming. Obtainable only during temporary Deadman events."
+  market_strategy:
+    notes:
+      - Untradeable on standard worlds; the real "market" is Deadman event point/shop economies.
+      - Duplicate sigils sell via Deadman's skull NPC during events.
+  trading_tips:
+    - Attune ASAP during a DMM event to unlock the skilling QoL for that season.
+    - Save duplicates for the skull NPC instead of destroying for points.
+  history:
+    - date: "2021-08-25"
+      description: "Released with the Deadman: Reborn event."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-08-25"
+    update: "Deadman: Reborn"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Unlock
+      - Inspect
+      - Destroy
+    alchable: false
+    destroy: "You must unattune the Sigil before you can destroy it."
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

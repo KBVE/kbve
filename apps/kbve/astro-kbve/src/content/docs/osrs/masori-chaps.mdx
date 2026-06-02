@@ -1,6 +1,6 @@
 ---
 title: Masori chaps | OSRS Price Data
-description: "Masori chaps is a members head slot item requiring 30 Defence. High alch: 600,000 GP, GE limit: 8."
+description: "Masori chaps is a members legs slot item requiring 80 Ranged and 30 Defence. High alch: 600,000 GP, GE limit: 8."
 osrs:
   id: 27232
   name: Masori chaps
@@ -12,102 +12,88 @@ osrs:
   lowalch: 400000
   highalch: 600000
   limit: 8
+  material:
+    type: masori
+    tier: high
   equipment:
-    slot: head
-    type: masori_armor
-    attack_style: ranged
+    slot: legs
+    weight: 7
     requirements:
       ranged: 80
       defence: 30
-    stats:
-      attack_ranged: 16
-      defence_stab: 10
-      defence_slash: 12
-      defence_crush: 14
-      defence_magic: 12
-      defence_ranged: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -2
+      ranged: 27
+    defence_bonus:
+      stab: 26
+      slash: 24
+      crush: 29
+      magic: 19
+      ranged: 22
+    other_bonus:
       ranged_strength: 2
-  set_bonus:
-    with_full_set: true
-    regular_damage: 10
-    fortified_damage: 12.5
   drop_table:
     sources:
       - source: Tombs of Amascut
-        source_id: 11751
-        combat_level: 0
         quantity: "1"
-        rarity: 1/48 at 150 invocation
-        members_only: true
-  recipes:
-    - skill: crafting
-      level: 90
-      xp: 0
-      materials:
-        - item_name: Masori mask
-          item_id: 27232
-          quantity: 1
-        - item_name: Armadyl helmet
-          item_id: 11826
-          quantity: 1
-      product: Masori mask (f)
-      product_id: 27241
-      product_quantity: 1
-      facility: None
-      members_only: true
+        rarity: "2/24 from chest at scaled invocation"
   related_items:
     - item_id: 27226
+      item_name: Masori mask
+      slug: masori-mask
+      relationship: set-piece
+      description: Masori head slot piece
+    - item_id: 27229
       item_name: Masori body
       slug: masori-body
-      relationship: alternative
-      description: Body armor
-    - item_id: 27229
-      item_name: Masori chaps
-      slug: masori-chaps
-      relationship: alternative
-      description: Leg armor
-    - item_id: 11825
-      item_name: Armadyl helmet
-      slug: armadyl-helmet
+      relationship: set-piece
+      description: Masori body slot piece
+    - item_id: 27235
+      item_name: Masori chaps (f)
+      slug: masori-chaps-f
+      relationship: upgrade
+      description: Fortified version crafted with 3 Armadylean plates at 90 Crafting
+    - item_id: 11826
+      item_name: Armadylean plate
+      slug: armadylean-plate
       relationship: component
-      description: Used for fortifying
-  about: |-
-    | Stat | Value |
-    |------|-------|
-    | Ranged attack | +16 |
-    | Stab defence | +10 |
-    | Slash defence | +12 |
-    | Crush defence | +14 |
-    | Magic defence | +12 |
-    | Ranged defence | +10 |
-    | Ranged strength | +2 |
-    | Requirements | 80 Ranged, 30 Defence |
-
-    With full Masori armor (fortified):
-    - +12.5% ranged damage bonus
-
-    With regular Masori:
-    - +10% ranged damage bonus
-
-    BiS ranged helm for:
-    - All ranged combat
-    - Raids
-    - Bossing
-    - When not using Slayer helm
-
-    Fortified version requires Armadyl helmet.
+      description: Used (x3) to fortify Masori chaps
+  about: "Masori chaps are the legs piece of the Masori ranged set from Tombs of Amascut. Requires 80 Ranged and 30 Defence; provides +27 ranged attack and a strong defence profile. Fortify into Masori chaps (f) with three Armadylean plates at 90 Crafting for the full-set damage bonus."
   market_strategy:
     notes:
-      - Regular from ToA
-      - Fortify with Armadyl piece
-      - Set bonus is massive DPS increase
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Drop is gated to ToA invocation scaling; high-invocation runs are the supply floor.
+      - Fortified upgrade burns 3 Armadylean plates per piece; track plate GE price for the true upgrade cost.
+      - BiS ranged legs outside of slayer/ranged-prayer niches; long-term demand remains strong.
+  trading_tips:
+    - Buy mask/body/chaps as a set when GE pricing dips after invocation/loot tweaks.
+    - Avoid fortifying speculatively — Armadyl plates spike with TWW/GWD demand.
+  history:
+    - date: "2022-08-24"
+      description: Released with the Tombs of Amascut raid update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2022-08-24"
+    update: "Tombs of Amascut"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 7
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

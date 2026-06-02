@@ -12,31 +12,93 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: 125
-  item_id: 1203
-  item_type: equipment
-  slot: weapon
-  type: dagger
-  attack_style: stab
-  attack_speed: 4
-  tradeable: true
-  weight: 0.453
-  requirements:
-    attack: 1
-  stats:
-    stab_attack: 5
-    slash_attack: 3
-    crush_attack: -4
-    strength: 4
+  material:
+    type: iron
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: dagger
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 5
+      slash: 3
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
+      strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - materials:
+        - item_name: Iron bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+      skill: Smithing
+      level: 15
+      xp: 25
+      notes: "Smithed at any anvil; 5-tick action."
+  shops:
+    - shop_name: Varrock Swordshop
+      location: Varrock
+      stock: 6
+      price: 35
+      currency: coins
   related_items:
-    - slug: steel-dagger
-    - slug: iron-sword
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Steel dagger
+      relationship: upgrade
+    - name: Bronze dagger
+      relationship: downgrade
+    - name: Iron sword
+      relationship: alternative
+    - name: Iron bar
+      relationship: component
+  about: "Iron dagger is a free-to-play one-handed stab weapon smithed from a single iron bar at level 15 Smithing. Stocked in Varrock Swordshop and naturally spawns around Lumbridge, Varrock, and the Wilderness."
+  market_strategy:
+    notes:
+      - Stocked in Varrock Swordshop (6 base, 35 coins) — shop arbitrage on world hops.
+      - Free-to-play accessible, low buy limit of 125 per 4 hours.
+      - Smithed at 15 Smithing for 25 XP per bar; rarely flipped for profit.
+  trading_tips:
+    - GE price typically tracks slightly above alch — high alch margin is negligible.
+    - Watch iron bar price for a smithing-profit floor; usually unprofitable solo.
+  history:
+    - date: "2001-01-04"
+      description: "Released with the RuneScape beta launch."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    update: "Runescape beta is now online!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

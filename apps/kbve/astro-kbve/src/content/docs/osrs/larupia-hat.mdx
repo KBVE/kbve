@@ -5,21 +5,88 @@ osrs:
   id: 10045
   name: Larupia hat
   slug: larupia-hat
-  examine: This should make me harder to spot in woodland and jungle areas.
+  examine: "This should make me harder to spot in woodland and jungle areas."
   members: true
   icon: Larupia hat.png
   value: 500
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Larupia hat is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: larupia-fur
+    tier: low
+  equipment:
+    slot: head
+    weight: 0.226
+    requirements:
+      hunter: 28
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -1
+    defence_bonus:
+      stab: 4
+      slash: 5
+      crush: 3
+      magic: 0
+      ranged: 4
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - materials:
+        - item_name: Larupia fur
+          quantity: 1
+        - item_name: Coins
+          quantity: 500
+      tools: []
+      output_quantity: 1
+      facility: Fancy Clothes Store (Varrock), Hunter Guild, or Prifddinas Seamstress
+  related_items:
+    - item_id: 10043
+      item_name: Larupia top
+      slug: larupia-top
+      relationship: set-piece
+      description: Body piece of the larupia hunter gear set
+    - item_id: 10047
+      item_name: Larupia legs
+      slug: larupia-legs
+      relationship: set-piece
+      description: Legs piece of the larupia hunter gear set
+  about: "Larupia hat is part of the larupia hunter gear set, providing camouflage in jungle areas and a bonus when hunting tropical wagtails or other jungle hunter creatures. Made by tanning a larupia fur for 500 coins at the Fancy Clothes Store in Varrock, the Hunter Guild, or with the Prifddinas Seamstress."
+  market_strategy:
+    notes:
+      - Required for jungle camouflage hunter activities
+      - Buy limit of 150 supports volume trades
+      - Cost to make is 906 coins; sell price often lower so flipping margin is thin
+  history:
+    - date: "2006-11-21"
+      description: Released alongside the Hunter skill expansion.
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter skill (Hunting for Sport)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

@@ -12,14 +12,68 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Oak wardrobe (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: oak
+    tier: low
+  construction:
+    level: 39
+    xp: 180
+    room: Bedroom
+    space: Wardrobe
+    workbench: Oak workbench
+  recipes:
+    - materials:
+        - item_name: Oak plank
+          quantity: 3
+      tools:
+        - Hammer
+        - Saw
+      skill: Construction
+      level: 39
+      xp: 180
+      output_quantity: 1
+  related_items:
+    - name: Oak wardrobe
+      relationship: product
+    - name: Oak plank
+      relationship: component
+    - name: Wardrobe (flatpack)
+      relationship: downgrade
+    - name: Teak wardrobe (flatpack)
+      relationship: upgrade
+    - name: Mahogany wardrobe (flatpack)
+      relationship: upgrade
+    - name: Gilded wardrobe (flatpack)
+      relationship: upgrade
+  about: "Oak wardrobe (flatpack) is a members-only Construction flatpack in Old School RuneScape, made at an oak workbench for bedroom wardrobe spaces. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
+  market_strategy:
+    notes:
+      - GE price trails oak plank cost; flatpack flipping leans on Mahogany Homes / butler XP cycles.
+      - Margins are pennies; profit comes from scale only.
+  trading_tips:
+    - Buy in 500-stack increments to stay inside the GE limit.
+    - Track oak plank prices; flatpack profit is essentially oak plank arbitrage.
+  history:
+    - date: "2006-05-31"
+      description: Released with the Player-Owned Houses update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    update: "Player-Owned Houses"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

@@ -12,14 +12,53 @@ osrs:
   lowalch: 360
   highalch: 540
   limit: 8
-  about: "Steel gold-trimmed set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 540 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: steel
+    tier: low
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - name: Steel full helm (g)
+      relationship: set-piece
+    - name: Steel platebody (g)
+      relationship: set-piece
+    - name: Steel platelegs (g)
+      relationship: set-piece
+    - name: Steel kiteshield (g)
+      relationship: set-piece
+  about: "Steel gold-trimmed set (lg) is a Grand Exchange item set bundle containing the gold-trimmed full helm, platebody, platelegs, and kiteshield. Exchanged with the GE clerk for its component pieces, all originally medium-clue rewards."
+  market_strategy:
+    notes:
+      - Cosmetic free-to-play set
+      - Set vs component arbitrage opportunity
+  trading_tips:
+    - Compare set price to sum of component pieces
+    - Buy limit is only 8 per 4 hours
+  history:
+    - date: "2016-07-06"
+      description: "Steel gold-trimmed set (lg) was added as a GE-exchangeable set."
+  properties:
+    release_date: "2016-07-06"
+    update: "Grand Exchange Sets Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Exchange
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

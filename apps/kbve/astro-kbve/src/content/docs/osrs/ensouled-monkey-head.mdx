@@ -12,14 +12,65 @@ osrs:
   lowalch: 41
   highalch: 62
   limit: 3000
-  about: "Ensouled monkey head is a members-only item in Old School RuneScape. High alchemy value: 62 coins. Grand Exchange buy limit: 3,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  prayer:
+    description: "Reanimated via the Arceuus Basic Reanimation spell (Magic 16) at the Dark Altar to spawn a combat shade. Killing the reanimated monkey grants 182 Prayer XP and 32 Magic XP."
+    requirements:
+      magic: 16
+      arceuus_favour: 0
+    xp:
+      prayer: 182
+      magic: 32
+    spell: Basic Reanimation
+    runes: "4 body runes, 2 nature runes"
+  drop_table:
+    sources:
+      - source: Monkey
+        quantity: "1"
+        rarity: 1/35
+      - source: Monkey Guard
+        quantity: "1"
+        rarity: 1/35
+      - source: Monkey Archer
+        quantity: "1"
+        rarity: 1/35
+  related_items:
+    - name: Ensouled imp head
+      relationship: alternative
+    - name: Ensouled goblin head
+      relationship: alternative
+    - name: Ensouled chicken head
+      relationship: alternative
+  about: "Ensouled monkey head is a members-only Arceuus reanimation reagent in Old School RuneScape. High alchemy value: 62 coins. Used with the Basic Reanimation spell (Magic 16) to spawn a combat shade that grants 182 Prayer XP when killed."
+  market_strategy:
+    notes:
+      - "Untradeable, not on the Grand Exchange — must be farmed from monkeys, monkey guards, or monkey archers at 1/35 drop rate."
+      - "Mid-tier Prayer training option for accounts with Magic 16+ but lacking the levels for stronger ensouled heads."
+  trading_tips:
+    - "Farm in Ape Atoll or the Karamja Monkey Cave; carry runes and reanimate near the Dark Altar in Arceuus."
+    - "Always carry a teleport — the reanimated shade attacks with melee and can interrupt Prayer training if unprepared."
+  history:
+    - date: "2016-01-07"
+      description: "Released with the Zeah: Great Kourend update alongside the Arceuus Reanimation spell suite."
+    - date: "2022-03-30"
+      description: "Ensouled heads were updated to drop inside instanced areas."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-01-07"
+    update: "Zeah: Great Kourend"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

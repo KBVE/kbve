@@ -12,14 +12,90 @@ osrs:
   lowalch: 1200
   highalch: 1800
   limit: 125
-  about: "Broodoo shield (10) (combat) is a members-only item in Old School RuneScape. High alchemy value: 1,800 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: snakeskin
+    tier: mid
+  equipment:
+    slot: shield
+    weapon_type: shield
+    weight: 5.443
+    requirements:
+      defence: 25
+      magic: 25
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: -7
+    defence_bonus:
+      stab: 10
+      slash: 10
+      crush: 15
+      magic: 5
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 5
+  charges:
+    max_charges: 10
+    description: "Begins with 10 charges. On taking damage, has a 1/10 chance to drain the opponent's Attack level by 1 plus 5% of their remaining total. Charges deplete with each trigger and cannot be recharged."
+  recipes:
+    - materials:
+        - item_name: Snakeskin
+          quantity: 2
+        - item_name: Combat tribal mask
+          quantity: 1
+        - item_name: Nails
+          quantity: 8
+      tools:
+        - Hammer
+      output_quantity: 1
+      skill: Crafting
+      level: 35
+      notes: "Built from a combat tribal mask using snakeskin and nails on Tai Bwo Wannai's Mahogany tree."
+  related_items:
+    - name: "Broodoo shield (combat)"
+      relationship: variant
+    - name: "Broodoo shield (uncharged)"
+      relationship: downgrade
+  about: "Broodoo shield (10) (combat) is a members-only magic shield variant in Old School RuneScape with 10 remaining charges. It requires 25 Defence and 25 Magic to wield and offers a chance on hit to drain the opponent's Attack level."
+  market_strategy:
+    notes:
+      - "Niche shield with limited demand outside Tai Bwo Wannai content."
+      - "Used charges reduce resale value relative to a fully-charged shield."
+      - "Low GE buy limit (125 per 4 hours) restricts large-scale flips."
+  trading_tips:
+    - "Stockpile cheap charged variants for the alchable margin if highalch covers price + nature rune."
+    - "Sell to crafters chasing Tai Bwo Wannai achievement tasks."
+  history:
+    - date: "2005-08-09"
+      description: "Released as part of the Tai Bwo Wannai Clean-Up update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-09"
+    update: "Tai Bwo Wannai Clean-Up"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Wield
+      - Uncharge
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

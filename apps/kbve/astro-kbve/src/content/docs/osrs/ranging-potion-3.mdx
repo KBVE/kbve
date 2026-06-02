@@ -12,28 +12,65 @@ osrs:
   lowalch: 115
   highalch: 172
   limit: 2000
+  potion:
+    effects:
+      - description: Temporarily boosts Ranged level by 4 + 10% of current Ranged level (rounded down).
+      - description: Boost decays at 1 level per minute, or roughly 90 seconds with the Preserve prayer.
+  recipes:
+    - materials:
+        - item_name: Dwarf weed potion (unf)
+          quantity: 1
+        - item_name: Wine of Zamorak
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: Herblore
+      level: 72
+      experience: 162.5
   related_items:
-    - item_id: 171
-      item_name: Ranging potion(2)
-      slug: ranging-potion-2
+    - slug: ranging-potion-1
       relationship: variant
-      description: 2-dose version
-    - item_id: 173
-      item_name: Ranging potion(1)
-      slug: ranging-potion-1
+    - slug: ranging-potion-2
       relationship: variant
-      description: 1-dose version
-  about: |-
-    > _"3 doses of ranging potion."_
-
-    The ranging potion boosts Ranged by 4 + 10% of current level (rounded down). Essential for ranged combat, commonly used at bosses and in PvP.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - slug: ranging-potion-4
+      relationship: variant
+    - slug: dwarf-weed-potion-unf
+      relationship: component
+    - slug: wine-of-zamorak
+      relationship: component
+  about: "Ranging potion(3) is a 3-dose Herblore brew that temporarily boosts Ranged for high-level PvM and PvP."
+  market_strategy:
+    notes:
+      - Volume tracks raid and PvP popularity.
+      - Decant arbitrage between 3-dose and 4-dose vials is common.
+  trading_tips:
+    - Watch dwarf weed and wine of Zamorak prices for Herblore craft margins.
+    - Higher demand around Theatre of Blood and Chambers of Xeric runs.
+  history:
+    - date: "2002-02-27"
+      description: Released with the Herblore skill expansion.
+    - date: "2004-10-18"
+      description: Empty option added to ranging potions.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    update: Herblore
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

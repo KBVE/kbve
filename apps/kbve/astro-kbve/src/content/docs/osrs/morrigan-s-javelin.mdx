@@ -12,14 +12,60 @@ osrs:
   lowalch: 1600
   highalch: 2400
   limit: 100
-  about: "Morrigan's javelin is a members-only item in Old School RuneScape. High alchemy value: 2,400 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 6
+    weight: 1.36
+    requirements:
+      ranged: 75
+    attack_bonus:
+      ranged: 105
+    other_bonus:
+      ranged_strength: 145
+  special_attack:
+    name: Phantom Strike
+    energy: 50
+    description: Consumes 50% special attack energy with 150% accuracy; applies a damage-over-time bleed of 10 per tick to a player opponent until 75% of the initial hit damage has been dealt. No effect against NPCs.
+  shops:
+    - shop_name: Bounty Hunter Store
+      location: Daimon's Crater
+      currency: Bounty Hunter points
+      price: 550
+  about: "Morrigan's javelin is a one-handed thrown PvP weapon purchased from the Bounty Hunter Store for 550 BH points. Requires 75 Ranged and a 10,000,000 coin activation fee; restricted to PvP zones and minigames."
+  market_strategy:
+    notes:
+      - Untradeable BH reward; "market" is Bounty Hunter points, not GE coins.
+      - Activation fee dropped from 50M to 10M in Jan 2025, lowering barrier for new PKers.
+  trading_tips:
+    - Grind BH points during double-point events to amortize the activation gp cost.
+    - Pair purchase with Morrigan's throwing axe runs for shared point efficiency.
+  history:
+    - date: "2023-05-24"
+      description: Re-released alongside the "Bounty Hunter is Back!" update.
+    - date: "2025-01-15"
+      description: Activation fee reduced from 50,000,000 to 10,000,000 coins; special attack buffed to 150% accuracy with adjusted bleed mechanics.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-05-24"
+    update: "Bounty Hunter is Back!"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

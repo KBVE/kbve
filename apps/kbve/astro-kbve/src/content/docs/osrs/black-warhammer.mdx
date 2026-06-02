@@ -5,53 +5,100 @@ osrs:
   id: 1341
   name: Black warhammer
   slug: black-warhammer
-  examine: I don't think it's intended for joinery.
+  examine: "I don't think it's intended for joinery."
   members: false
   icon: Black warhammer.png
   value: 980
   lowalch: 392
   highalch: 588
   limit: 125
+  material:
+    type: black
+    tier: mid
   equipment:
     slot: weapon
-    type: warhammer
-    tradeable: true
+    weapon_type: warhammer
+    attack_speed: 6
     weight: 1.814
     requirements:
       attack: 10
-    stats:
-      attack_stab: -4
-      attack_slash: -4
-      attack_crush: 22
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
+    attack_bonus:
+      stab: -4
+      slash: -4
+      crush: 22
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
       strength: 22
-      ranged_strength: 0
-      magic_damage: 0
       prayer: 0
+  drop_table:
+    sources:
+      - source: Mountain troll
+        quantity: "1"
+        rarity: Uncommon
+      - source: Ice troll
+        quantity: "1"
+        rarity: Uncommon
+      - source: Spiritual warrior
+        quantity: "1"
+        rarity: Rare
+  shops:
+    - shop_name: Skulgrimen's Battle Gear
+      location: Rellekka
+      price: 1274
+      stock: 3
+    - shop_name: "Vigr's Warhammers"
+      location: Keldagrim
+      price: 1274
+      stock: 3
   related_items:
     - item_id: 1343
       item_name: Mithril warhammer
       slug: mithril-warhammer
       relationship: upgrade
-      description: Higher tier warhammer
+      description: Higher tier warhammer one step above black.
     - item_id: 1426
       item_name: Black mace
       slug: black-mace
       relationship: alternative
-      description: Alternative crush weapon
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Alternative crush weapon with lower strength but faster speed.
+  about: F2P-tier crush weapon; mid-game stepping stone before mithril for crush-weakness training.
+  market_strategy:
+    notes:
+      - Demand stable from F2P pures and early-game crushers.
+      - Shop supply caps profit but keeps prices anchored near 1.2k.
+  trading_tips:
+    - Buy from Rellekka or Keldagrim shops and flip on GE during F2P events.
+    - Watch troll task assignment metas; drop supply spikes during Slayer pushes.
+  history:
+    - date: "2004-03-29"
+      description: Black warhammer added with the warhammer weapon class.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-03-29"
+    update: Warhammer weapons
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />

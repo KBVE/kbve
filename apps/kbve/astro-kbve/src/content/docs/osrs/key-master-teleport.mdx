@@ -12,64 +12,73 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: null
-  equipment:
-    slot: none
-    weight: 0
+  teleport:
+    destination: Key Master, Cerberus' Lair
+    consumed: true
+    requirements: {}
   drop_table:
-    primary_source: Cerberus
-    best_drop_rate: 2/130
     sources:
       - source: Cerberus
-        source_id: 5862
-        combat_level: 318
         quantity: "7"
-        rarity: uncommon
-        drop_rate: 2/130
-        members_only: true
+        rarity: "2/130"
   related_items:
     - item_id: 13231
       item_name: Primordial crystal
       slug: primordial-crystal
       relationship: alternative
-      description: Rare Cerberus unique
+      description: Rare Cerberus unique drop.
     - item_id: 13229
       item_name: Pegasian crystal
       slug: pegasian-crystal
       relationship: alternative
-      description: Rare Cerberus unique
+      description: Rare Cerberus unique drop.
     - item_id: 13227
       item_name: Eternal crystal
       slug: eternal-crystal
       relationship: alternative
-      description: Rare Cerberus unique
+      description: Rare Cerberus unique drop.
     - item_id: 13233
       item_name: Smouldering stone
       slug: smouldering-stone
       relationship: alternative
-      description: Rare Cerberus unique
-  about: |-
-    Teleport to Key Master:
-    - Instant teleport to Cerberus entrance
-    - Located next to Key Master NPC
-    - Single-click access to boss
-
-    Consumable:
-    - One teleport per scroll
-    - Drops in stacks of 7
-    - Stackable in inventory
+      description: Rare Cerberus unique drop.
+  about: "Key master teleport is a consumable scroll that teleports the user directly next to the Key Master in Cerberus' Lair, skipping the dungeon run."
   market_strategy:
     notes:
-      - Convenience item for Cerberus grind
-      - Saves time vs running through dungeon
-      - Tradeable for passive income
-      - Popular among consistent Cerberus killers
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply is bottlenecked by Cerberus kill volume; price is sensitive to changes in slayer task popularity."
+      - "Tradeable since 25 June 2025 and drop batch raised to 7 on 2 July 2025; supply has structurally increased since then."
+      - "No GE buy limit listed, so bulk purchases for boss alts are viable."
+  trading_tips:
+    - "Buy in bulk when slayer events flood Cerberus drops and resell into PvM rushes."
+    - "Skip alching: high alch (6 gp) is orders of magnitude below GE price."
+    - "Useful as a passive income stream while doing Cerberus tasks."
+  properties:
+    release_date: "2015-08-27"
+    update: "Cerberus"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Teleport
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2015-08-27"
+      description: "Released as a Cerberus drop alongside the boss's launch update."
+    - date: "2025-06-25"
+      description: "Became tradeable on the Grand Exchange."
+    - date: "2025-07-02"
+      description: "Drop batch size increased from 3 to 7 per Cerberus kill."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
-
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
-
 <OSRSItemPanel data={frontmatter.osrs} />
-
 <OSRSAdsenseCard />
