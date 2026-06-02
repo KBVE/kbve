@@ -12,9 +12,45 @@ osrs:
   lowalch: 22000
   highalch: 33000
   limit: null
-  about: "Sunfire fanatic armour set is a members-only item in Old School RuneScape. High alchemy value: 33,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  related_items:
+    - item_name: Sunfire fanatic helm
+      slug: sunfire-fanatic-helm
+      relationship: set-piece
+      description: Helm component
+    - item_name: Sunfire fanatic cuirass
+      slug: sunfire-fanatic-cuirass
+      relationship: set-piece
+      description: Body component
+    - item_name: Sunfire fanatic chausses
+      slug: sunfire-fanatic-chausses
+      relationship: set-piece
+      description: Legs component
+  market_strategy:
+    notes:
+      - Assembled via the Grand Exchange clerk's Sets interface
+      - Trades as a single bundle for easy resale of full set
+      - Watch premium vs individual piece total for arb opportunities
+  history:
+    - date: "2024-03-20"
+      update: Varlamore Part One
+      description: Released with the Sunfire fanatic armour as part of Varlamore Part One.
+  about: Sunfire fanatic armour set bundles the Sunfire fanatic helm, cuirass, and chausses for trading as one item via the Grand Exchange Sets interface.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: Varlamore Part One
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

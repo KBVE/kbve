@@ -1,6 +1,6 @@
 ---
 title: Water orb | OSRS Price Data
-description: "Water orb: A magic glowing orb.. High alch: 180 GP, GE limit: 11,000."
+description: "Water orb: A magic glowing orb. High alch: 180 GP, GE limit: 11,000."
 osrs:
   id: 571
   name: Water orb
@@ -12,37 +12,43 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 11000
-  item:
-    type: material
-    tradeable: true
+  material:
+    type: secondary
+    tier: mid
   recipes:
     - skill: magic
       level: 56
       xp: 66
       materials:
-        - item_id: 567
-          item_name: Unpowered orb
+        - item_name: Unpowered orb
+          item_id: 567
           quantity: 1
-        - item_id: 555
-          item_name: Water rune
+        - item_name: Water rune
+          item_id: 555
           quantity: 30
-        - item_id: 564
-          item_name: Cosmic rune
+        - item_name: Cosmic rune
+          item_id: 564
           quantity: 3
       product: Water orb
       product_id: 571
+      product_quantity: 1
+      facility: Obelisk of Water
+      members_only: true
     - skill: crafting
-      level: 66
+      level: 54
       xp: 100
       materials:
-        - item_id: 571
-          item_name: Water orb
+        - item_name: Water orb
+          item_id: 571
           quantity: 1
-        - item_id: 1391
-          item_name: Battlestaff
+        - item_name: Battlestaff
+          item_id: 1391
           quantity: 1
       product: Water battlestaff
       product_id: 1395
+      product_quantity: 1
+      facility: None
+      members_only: true
   related_items:
     - item_id: 567
       item_name: Unpowered orb
@@ -59,17 +65,36 @@ osrs:
       slug: cosmic-rune
       relationship: component
       description: Required rune for charging
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 0.453 kg |
-
-    Combine with battlestaff (66 Crafting) to create water battlestaff.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Magic 56 production gate
+      - Water battlestaff intermediate
+      - Profitable charge spell
+      - Steady daily volume
+      - Limit raised to 11k in 2020
+  history:
+    - date: "2002-03-18"
+      description: Item released into RuneScape.
+    - date: "2015-03-05"
+      description: Continuous orb charging enabled without diary tasks.
+    - date: "2020-09-09"
+      description: Grand Exchange buy limit raised from 10,000 to 11,000.
+  about: The water orb is a magic-charged crafting material made at the Obelisk of Water and combined with a battlestaff to create a water battlestaff.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-03-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

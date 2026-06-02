@@ -12,24 +12,95 @@ osrs:
   lowalch: 44
   highalch: 67
   limit: 125
-  item_id: 1323
-  item_type: equipment
-  slot: weapon
-  type: scimitar
-  attack_style: slash
-  attack_speed: 4
-  tradeable: true
-  weight: 1.814
-  requirements:
-    attack: 1
-  stats:
-    slash_attack: 10
-    strength: 9
+  equipment:
+    slot: weapon
+    weapon_type: slash-sword
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 2
+      slash: 10
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 9
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 20
+      xp: 50
+      materials:
+        - item_name: Iron bar
+          quantity: 2
+      product: Iron scimitar
+      product_quantity: 1
+      facility: Anvil
+  shops:
+    - shop_name: Zeke's Superior Scimitars
+      location: Al Kharid
+      price: 112
+    - shop_name: Daga's Scimitar Smithy
+      location: Ape Atoll
+      price: 112
+    - shop_name: Ranael's Super Skirt Store / Sophanem scimitar shop
+      location: Sophanem
+      price: 168
   related_items:
-    - slug: steel-scimitar
-    - slug: iron-bar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1321
+      item_name: Steel scimitar
+      slug: steel-scimitar
+      relationship: upgrade
+      description: Next tier scimitar.
+    - item_id: 1325
+      item_name: Bronze scimitar
+      slug: bronze-scimitar
+      relationship: downgrade
+      description: Lower tier scimitar.
+    - item_id: 2351
+      item_name: Iron bar
+      slug: iron-bar
+      relationship: component
+      description: Smithed (2 bars) into the scimitar at level 20 Smithing.
+  market_strategy:
+    notes:
+      - Cheap free-to-play training weapon for new accounts after the bronze scimitar tier.
+      - Shops offer steady supply at fixed prices, capping flip margins.
+      - Smithing it loses gp vs material cost; bought for use, not profit.
+  about: Iron scimitar is a free-to-play one-handed slash sword usable from level 1 Attack, smithed at level 20 Smithing from 2 iron bars and sold by scimitar shops across Gielinor.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2001-01-04"
+      description: Added to game at RuneScape launch.
+    - date: "2005-06-13"
+      description: Examine text punctuation updated.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

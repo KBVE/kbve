@@ -1,6 +1,6 @@
 ---
 title: Jar of spirits | OSRS Price Data
-description: "Jar of spirits: How does someone jar this?. High alch: 1 GP, GE limit: 4."
+description: "Jar of spirits: How does someone jar this? High alch: 1 GP, GE limit: 4."
 osrs:
   id: 25521
   name: Jar of spirits
@@ -12,9 +12,49 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Jar of spirits is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Phantom Muspah
+        combat_level: 881
+        quantity: "1"
+        rarity: 1/2500
+        members_only: true
+  related_items:
+    - item_id: 25522
+      item_name: Phantom Muspah (boss)
+      slug: phantom-muspah-boss
+      relationship: product
+      description: POH trophy made from this jar
+  market_strategy:
+    notes:
+      - Phantom Muspah rare drop
+      - Used for POH trophy
+      - 1/2500 rate from boss
+      - Collection log slot
+  history:
+    - date: "2023-01-25"
+      update: Phantom Muspah
+      description: Item released alongside the Phantom Muspah boss.
+    - date: "2024-09-25"
+      update: Varlamore
+      description: Inventory icon adjusted.
+  about: The Jar of spirits is a rare drop from the Phantom Muspah used with a mahogany plank to craft a boss trophy in the Achievement Gallery.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-01-25"
+    update: Phantom Muspah
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.04
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

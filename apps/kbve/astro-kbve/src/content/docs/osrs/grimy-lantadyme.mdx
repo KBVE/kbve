@@ -12,19 +12,50 @@ osrs:
   lowalch: 9
   highalch: 13
   limit: 11000
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    weight: 0.007
+  material:
+    type: herb
+    tier: mid-high
   recipes:
     - skill: herblore
       level: 67
-      xp: 10.5
+      xp: 13.1
       materials:
         - item_name: Grimy lantadyme
           item_id: 2485
           quantity: 1
-      description: Cleaning grimy lantadyme
+      description: Clean to produce Lantadyme
+  drop_table:
+    sources:
+      - source: Banshee
+        source_id: 0
+        combat_level: 23
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Chaos druid
+        source_id: 0
+        combat_level: 13
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Aberrant spectre
+        source_id: 0
+        combat_level: 96
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Fire giant
+        source_id: 0
+        combat_level: 86
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Demonic gorilla
+        source_id: 0
+        combat_level: 275
+        quantity: "1"
+        rarity: common
+        members_only: true
   related_items:
     - item_id: 2481
       item_name: Lantadyme
@@ -41,22 +72,34 @@ osrs:
       slug: magic-potion-4
       relationship: product
       description: Secondary potion use
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Grimy Herb |
-    | Tradeable | Yes |
-    | Weight | 0.007 kg |
-    | Herblore Level | 67 (to clean) |
-
-    Clean to produce lantadyme for Herblore.
-
-    Lantadyme used for:
-    - Antifire
-    - Magic potion
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: Grimy lantadyme is a herb requiring 67 Herblore to clean, used to make antifire and magic potions.
+  market_strategy:
+    notes:
+      - High Herblore XP per clean (13.1)
+      - Used for antifire potions
+      - Steady drops from common slayer tasks
+      - Demonic gorilla farms supply
+      - 11k GE buy limit
+  history:
+    - date: "2004-03-29"
+      description: Grimy lantadyme released with RS2 launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-03-29"
+    update: "RS2 Launched!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Clean
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

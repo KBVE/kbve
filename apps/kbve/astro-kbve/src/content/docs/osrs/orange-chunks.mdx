@@ -1,6 +1,6 @@
 ---
 title: Orange chunks | OSRS Price Data
-description: "Orange chunks: Fresh chunks of orange.. High alch: 1 GP, GE limit: 13,000."
+description: "Orange chunks: Fresh chunks of orange. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 2110
   name: Orange chunks
@@ -12,9 +12,70 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Orange chunks is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: secondary
+    tier: low
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Orange
+          item_id: 2108
+          quantity: 1
+        - item_name: Knife
+          item_id: 946
+          quantity: 1
+      product: Orange chunks
+      product_id: 2110
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 2108
+      item_name: Orange
+      slug: orange
+      relationship: component
+      description: Diced with a knife to produce chunks
+    - item_id: 2112
+      item_name: Fruit batta
+      slug: fruit-batta
+      relationship: product
+      description: Gnome cooking dish
+    - item_id: 2113
+      item_name: Blurberry Special
+      slug: blurberry-special
+      relationship: product
+      description: Gnome cocktail ingredient
+  market_strategy:
+    notes:
+      - Gnome cooking secondary
+      - Diced from oranges
+      - Low margin per craft
+      - Used in fruit batta
+      - Blurberry Special component
+  history:
+    - date: "2002-12-12"
+      update: Agility skill release
+      description: Item released alongside the Agility skill update.
+  about: Orange chunks are a gnome cooking ingredient made by dicing an orange with a knife.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    update: Agility skill release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.09
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,91 @@ osrs:
   lowalch: 2
   highalch: 4
   limit: 11000
-  about: "Yanillian hops is a members-only item in Old School RuneScape. High alchemy value: 4 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  farming:
+    farming_level: 16
+    seed: Yanillian seed
+    patch: Hops
+    growth_time_minutes: 50
+    description: Grown from a Yanillian seed in a hops patch.
+  recipes:
+    - skill: Cooking
+      level: 34
+      xp: 314
+      output: Wizard's mind bomb
+      materials:
+        - item_name: Yanillian hops
+          quantity: 4
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Water
+          quantity: 2
+        - item_name: Ale yeast
+          quantity: 1
+  shops:
+    - shop_name: Vanessa's Farming Shop
+      location: Catherby
+      stock: 0
+      price: 7
+    - shop_name: Richard's Farming Shop
+      location: North of East Ardougne
+      stock: 0
+      price: 7
+    - shop_name: Sarah's Farming Shop
+      location: South Falador Farm
+      stock: 0
+      price: 7
+    - shop_name: Alice's Farming Shop
+      location: Alice's farm
+      stock: 0
+      price: 7
+  related_items:
+    - item_id: 5994
+      item_name: Hammerstone hops
+      slug: hammerstone-hops
+      relationship: variant
+      description: Lower-tier hops variety
+    - item_id: 5996
+      item_name: Asgarnian hops
+      slug: asgarnian-hops
+      relationship: variant
+      description: Mid-tier hops variety
+    - item_id: 6000
+      item_name: Krandorian hops
+      slug: krandorian-hops
+      relationship: variant
+      description: Higher-tier hops variety
+    - item_id: 6002
+      item_name: Wildblood hops
+      slug: wildblood-hops
+      relationship: variant
+      description: Highest-tier hops variety
+  market_strategy:
+    notes:
+      - Wizard's Mind Bomb is the staple sink
+      - Mahogany tree protection costs 25
+      - 11k buy limit absorbs farm flips
+      - Farming shops never run out
+  history:
+    - date: "2005-07-11"
+      update: "Farming"
+      description: Released with the Farming skill launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: "Farming"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  about: Yanillian hops are the mid-tier hops harvested from a Yanillian seed at 16 Farming, used to brew Wizard's Mind Bomb and pay mahogany tree protection.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

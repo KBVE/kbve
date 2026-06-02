@@ -12,9 +12,76 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Iron bolts (unf) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ammunition
+    tier: low
+  recipes:
+    - product: Iron bolts (unf)
+      skill: Smithing
+      level: 19
+      xp: 25
+      materials:
+        - item_name: Iron bar
+          quantity: 1
+      facility: Anvil
+      notes: Smith one iron bar at an anvil with a hammer to produce 10 unfinished iron bolts.
+    - product: Iron bolts
+      skill: Fletching
+      level: 39
+      xp: 1.5
+      materials:
+        - item_name: Iron bolts (unf)
+          quantity: 1
+        - item_name: Feather
+          quantity: 1
+      facility: Inventory
+      notes: Attach feathers to unfinished iron bolts to produce finished iron bolts; 1.5 Fletching XP per bolt.
+  related_items:
+    - item_id: 2351
+      item_name: Iron bar
+      slug: iron-bar
+      relationship: component
+      description: Smithing input that produces 10 unfinished bolts
+    - item_id: 9140
+      item_name: Iron bolts
+      slug: iron-bolts
+      relationship: product
+      description: Finished bolts after feather attachment
+    - item_id: 9375
+      item_name: Bronze bolts (unf)
+      slug: bronze-bolts-unf
+      relationship: downgrade
+      description: Lower-tier unfinished bolt
+    - item_id: 9378
+      item_name: Steel bolts (unf)
+      slug: steel-bolts-unf
+      relationship: upgrade
+      description: Higher-tier unfinished bolt
+  market_strategy:
+    notes:
+      - Margin driven by iron bar to feathered iron bolt arbitrage
+      - Consistent volume from Fletching trainers
+      - Members-only Smithing + Fletching crossover good
+  history:
+    - date: "2006-07-31"
+      update: Crossbows
+      description: Released as part of the Crossbows update introducing the bolt manufacturing chain.
+  about: Iron bolts (unf) are unfinished crossbow bolts smithed from iron bars; feathered at 39 Fletching to produce finished iron bolts.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-31"
+    update: Crossbows
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

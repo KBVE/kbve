@@ -12,9 +12,90 @@ osrs:
   lowalch: 240
   highalch: 360
   limit: 4
-  about: "Bone club is a members-only item in Old School RuneScape. High alchemy value: 360 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: blunt
+    attack_speed: 6
+    weight: 0.907
+    attack_bonus:
+      stab: -4
+      slash: -4
+      crush: 16
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 15
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Cave goblin guard
+        combat_level: 26
+        quantity: "1"
+        rarity: 20/128
+        members_only: true
+      - source: Cave goblin
+        combat_level: 24
+        quantity: "1"
+        rarity: 20/128
+        members_only: true
+  shops:
+    - shop_name: Nardok's Bone Weapons
+      location: Dorgesh-Kaan
+      stock: 10
+      price: 600
+      restock_seconds: 12
+      requirements: Completion of The Lost Tribe
+  related_items:
+    - item_id: 1335
+      item_name: Steel warhammer
+      slug: steel-warhammer
+      relationship: alternative
+      description: Comparable crush bonus, no quest gate
+    - item_id: 5020
+      item_name: Bone spear
+      slug: bone-spear
+      relationship: variant
+      description: Dorgeshuun spear counterpart
+  market_strategy:
+    notes:
+      - Locked behind The Lost Tribe quest
+      - Tiny 4/4hr buy limit chokes supply
+      - Cave goblin drops feed casual flow
+      - F2P-style crush weapon for members
+  history:
+    - date: "2005-05-31"
+      update: "New Appointment in Lumbridge"
+      description: Released alongside The Lost Tribe quest.
+    - date: "2021-07-07"
+      description: Adjusted on-model position so female characters appear to hold it correctly.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-31"
+    update: "New Appointment in Lumbridge"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  about: Bone club is a Dorgeshuun crush weapon sold by Nardok in Dorgesh-Kaan after The Lost Tribe, offering steel-tier crush power with no level requirement.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

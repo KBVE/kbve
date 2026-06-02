@@ -12,9 +12,83 @@ osrs:
   lowalch: 1800
   highalch: 2700
   limit: 70
-  about: "Samurai boots is a members-only item in Old School RuneScape. High alchemy value: 2,700 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: feet
+    weight: 0.95
+    requirements:
+      defence: 35
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 11
+      slash: 12
+      crush: 13
+      magic: 1
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    is_reward: true
+    tier: master
+    reward_tiers:
+      - master
+    rarity: 1/851
+  related_items:
+    - item_id: 20041
+      item_name: Samurai kasa
+      slug: samurai-kasa
+      relationship: set-piece
+      description: Head slot set piece
+    - item_id: 20043
+      item_name: Samurai shirt
+      slug: samurai-shirt
+      relationship: set-piece
+      description: Body slot set piece
+    - item_id: 20045
+      item_name: Samurai greaves
+      slug: samurai-greaves
+      relationship: set-piece
+      description: Legs slot set piece
+    - item_id: 20049
+      item_name: Samurai gloves
+      slug: samurai-gloves
+      relationship: set-piece
+      description: Hands slot set piece
+  market_strategy:
+    notes:
+      - Master clue reward at 1/851 rarity
+      - Cosmetic feet slot storable in costume room
+      - Low buy limit of 70 amplifies short-term volatility
+      - Demand driven by collection log and cosmetic transmog
+  history:
+    - date: "2016-07-06"
+      description: Released as part of the Treasure Trail Expansion update.
+  about: Samurai boots are a master clue reward feet slot cosmetic granting modest melee defence bonuses at 35 Defence.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.95
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

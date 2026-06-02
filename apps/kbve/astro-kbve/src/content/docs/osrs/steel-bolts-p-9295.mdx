@@ -12,9 +12,96 @@ osrs:
   lowalch: 3
   highalch: 4
   limit: 11000
-  about: "Steel bolts (p+) is a members-only item in Old School RuneScape. High alchemy value: 4 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ammunition
+    tier: low
+  equipment:
+    slot: ammo
+    weapon_type: crossbow
+    attack_speed: 6
+    weight: 0
+    requirements:
+      ranged: 23
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 64
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    name: Stronger poison coating
+    description: Applies a stronger poison effect than standard (p) variant on the target when fired.
+  recipes:
+    - product: Steel bolts (p+)
+      skill: Herblore
+      level: 73
+      xp: 0
+      materials:
+        - item_name: Steel bolts
+          quantity: 1
+        - item_name: Weapon poison(+)
+          quantity: 1
+      facility: Inventory
+      notes: Apply weapon poison(+) to unpoisoned steel bolts.
+  related_items:
+    - item_id: 9140
+      item_name: Steel bolts
+      slug: steel-bolts
+      relationship: variant
+      description: Unpoisoned variant
+    - item_id: 9286
+      item_name: Steel bolts (p)
+      slug: steel-bolts-p-9286
+      relationship: downgrade
+      description: Standard poison variant
+    - item_id: 9305
+      item_name: Steel bolts (p++)
+      slug: steel-bolts-p-9305
+      relationship: upgrade
+      description: Strongest poison variant
+  market_strategy:
+    notes:
+      - Niche poison-tier bolt for early-Ranged players
+      - Profit margin tied to weapon poison(+) supply
+      - Volume driven by Herblore training and PvP loadouts
+  history:
+    - date: "2006-07-31"
+      update: Crossbows
+      description: Released as part of the Crossbows update with the rest of the bolt tier system.
+    - date: "2007-01-16"
+      description: Value adjusted; poisoned bolt variants raised from 1 to 8 coins around this window.
+    - date: "2018-01-04"
+      description: Naming convention adjusted to add a space in poisoned variants (e.g. "Steel bolts (p+)").
+  about: Steel bolts (p+) are members-only poisoned crossbow bolts requiring 23 Ranged, created by applying weapon poison(+) to standard steel bolts.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-31"
+    update: Crossbows
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

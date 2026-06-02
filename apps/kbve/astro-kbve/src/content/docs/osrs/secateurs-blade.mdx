@@ -12,9 +12,75 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: null
-  about: "Secateurs blade is a members-only item in Old School RuneScape. High alchemy value: 600 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: smithing
+      level: 35
+      xp: 0
+      materials:
+        - item_name: Secateurs blade
+          item_id: 28159
+          quantity: 1
+        - item_name: Iron bar
+          item_id: 2351
+          quantity: 1
+      product: Secateurs attachment
+      product_id: 28160
+      product_quantity: 50
+      facility: Forestry Shop crafting station
+      members_only: true
+  shops:
+    - shop_name: Forestry Shop
+      location: Forestry locations
+      buy_price: 420
+      sell_price: 0
+      stock: 50
+      currency: Anima-infused bark
+  related_items:
+    - item_id: 28160
+      item_name: Secateurs attachment
+      slug: secateurs-attachment
+      relationship: product
+      description: Crafted with an iron bar (50 attachments per blade)
+    - item_id: 2351
+      item_name: Iron bar
+      slug: iron-bar
+      relationship: component
+      description: Required to craft the attachment
+    - item_id: 28140
+      item_name: Anima-infused bark
+      slug: anima-infused-bark
+      relationship: component
+      description: Forestry currency used to purchase the blade
+  history:
+    - date: "2023-06-28"
+      update: "Forestry: The Way of the Forester - Part One"
+      description: Secateurs blade released with the Forestry update.
+  about: Secateurs blade is a Forestry shop ingredient combined with an iron bar at level 35 Woodcutting and Smithing to make 50 secateurs attachments.
+  market_strategy:
+    notes:
+      - Forestry shop supply via anima-infused bark gives steady availability
+      - Bottlenecked by anima-infused bark grind, so GE price runs well above alch
+      - Useful for Forestry farmers stocking secateurs attachments
+  trading_tips:
+    - Compare anima-infused bark cost vs. GE flip margin
+    - Watch for Forestry update spikes in demand
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-06-28"
+    update: "Forestry: The Way of the Forester - Part One"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Craft
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

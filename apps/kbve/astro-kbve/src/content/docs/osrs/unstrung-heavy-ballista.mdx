@@ -1,6 +1,6 @@
 ---
 title: Unstrung heavy ballista | OSRS Price Data
-description: "Unstrung heavy ballista: Needs a suitably simian rope.. High alch: 30,000 GP, GE limit: 8."
+description: "Unstrung heavy ballista: Needs a suitably simian rope. High alch: 30,000 GP, GE limit: 8."
 osrs:
   id: 19607
   name: Unstrung heavy ballista
@@ -12,9 +12,89 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 8
-  about: "Unstrung heavy ballista is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: fletching
+      level: 72
+      xp: 30
+      materials:
+        - item_name: Incomplete heavy ballista
+          item_id: 19601
+          quantity: 1
+        - item_name: Ballista spring
+          item_id: 19595
+          quantity: 1
+      product: Unstrung heavy ballista
+      product_id: 19607
+      product_quantity: 1
+      facility: None
+      members_only: true
+    - skill: fletching
+      level: 72
+      xp: 600
+      materials:
+        - item_name: Unstrung heavy ballista
+          item_id: 19607
+          quantity: 1
+        - item_name: Monkey tail
+          item_id: 19613
+          quantity: 1
+      product: Heavy ballista
+      product_id: 19481
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 19481
+      item_name: Heavy ballista
+      slug: heavy-ballista
+      relationship: upgrade
+      description: Strung functional ballista
+    - item_id: 19601
+      item_name: Incomplete heavy ballista
+      slug: incomplete-heavy-ballista
+      relationship: component
+      description: Pre-assembly stage
+    - item_id: 19595
+      item_name: Ballista spring
+      slug: ballista-spring
+      relationship: component
+      description: Required spring component
+    - item_id: 19613
+      item_name: Monkey tail
+      slug: monkey-tail
+      relationship: component
+      description: Stringing material for the ballista
+  market_strategy:
+    notes:
+      - Monkey Madness II gated supply
+      - Cheaper than strung ballista
+      - Final step requires monkey tail
+      - Fletching 72 to assemble
+      - Niche Ironman crafting demand
+  history:
+    - date: "2016-05-06"
+      update: Monkey Madness II
+      description: Item released alongside Monkey Madness II.
+    - date: "2017-10-19"
+      update: Halloween 2017 & Make-All
+      description: Inventory sprite adjusted.
+  about: The unstrung heavy ballista is the penultimate step in crafting a heavy ballista, requiring a monkey tail to complete.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-05-06"
+    update: Monkey Madness II
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 5.75
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,71 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: null
-  about: "Berserker icon is a members-only item in Old School RuneScape. High alchemy value: 4,800 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - product: Berserker icon
+      skill: Crafting
+      level: 80
+      experience: 400
+      materials:
+        - item_name: Berserker ring
+          quantity: 1
+        - item_name: Chisel
+          quantity: 1
+          tool: true
+      notes: Crafting level is boostable.
+  related_items:
+    - item_id: 6737
+      item_name: Berserker ring
+      slug: berserker-ring
+      relationship: component
+      description: Cut with a chisel to create the icon
+    - item_id: 28281
+      item_name: Ultor vestige
+      slug: ultor-vestige
+      relationship: component
+      description: Combined with the icon and blood runes for an ultor icon
+    - item_id: 28307
+      item_name: Ultor icon
+      slug: ultor-icon
+      relationship: product
+      description: Created from the berserker icon with vestige and blood runes
+    - item_id: 28310
+      item_name: Ultor ring
+      slug: ultor-ring
+      relationship: product
+      description: Final ring crafted from the ultor icon path
+  market_strategy:
+    notes:
+      - Demand tied to ultor ring upgrades
+      - Profit margin shifts with berserker ring price
+      - 80 Crafting gate keeps supply moderate
+      - Slow daily volume — patience on flips
+  history:
+    - date: "2023-07-26"
+      update: Desert Treasure II
+      description: Berserker icon released alongside the Desert Treasure II finale.
+    - date: "2023-08-09"
+      update: Inspect option
+      description: An Inspect option was added to guide players on item usage.
+  about: Berserker icon is a members-only Desert Treasure II reward used in the ultor ring upgrade chain.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-07-26"
+    update: Desert Treasure II
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.002
+    options:
+      - Inspect
+      - Use
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

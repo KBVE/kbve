@@ -12,9 +12,88 @@ osrs:
   lowalch: 240000
   highalch: 360000
   limit: null
-  about: "Oathplate chest is a members-only item in Old School RuneScape. High alchemy value: 360,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 9.979
+    requirements:
+      defence: 78
+    attack_bonus:
+      stab: 0
+      slash: 16
+      crush: 0
+      magic: -16
+      ranged: -18
+    defence_bonus:
+      stab: 105
+      slash: 128
+      crush: 100
+      magic: -5
+      ranged: 112
+    other_bonus:
+      melee_strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 83
+      xp: 2000
+      materials:
+        - item_name: Infernal plate
+          quantity: 9
+      product: Oathplate chest
+      product_id: 30753
+      product_quantity: 1
+      members_only: true
+  drop_table:
+    sources:
+      - source: Yama
+        combat_level: 1238
+        quantity: "1"
+        rarity: 1/600
+        members_only: true
+      - source: Forgotten lockbox
+        quantity: "1"
+        rarity: 1/403
+        members_only: true
+  related_items:
+    - item_name: Oathplate helm
+      slug: oathplate-helm
+      relationship: set-piece
+      description: Helm component
+    - item_name: Oathplate legs
+      slug: oathplate-legs
+      relationship: set-piece
+      description: Legs component
+    - item_name: Infernal plate
+      slug: infernal-plate
+      relationship: component
+      description: Smithing material
+  history:
+    - date: "2025-05-22"
+      description: Players can now smelt oathplate armour pieces into 50 oathplate shards using the Ancient Forge.
+    - date: "2025-05-16"
+      update: Hotfix
+      description: Infernal plates requirement for crafting was increased from 7 to 9.
+  about: Oathplate chest is a high-tier body armour requiring 78 Defence, smithed at 83 Smithing from 9 Infernal plates or obtained as a rare Yama drop.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-05-14"
+    update: Yama the Master of Pacts
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 9.979
+    options:
+      - Drop
+    worn_options:
+      - Wear
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

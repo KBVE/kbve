@@ -12,9 +12,66 @@ osrs:
   lowalch: 7680
   highalch: 11520
   limit: 8
-  about: "Silver locks is a members-only item in Old School RuneScape. High alchemy value: 11,520 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Silver chest (Shades of Mort'ton)
+        quantity: "1"
+        rarity: 1/63
+        members_only: true
+        notes: Drop rate varies 1/63 to 1/57 by chest tier; improved with ring of wealth
+  recipes:
+    - skill: Crafting
+      members: true
+      materials:
+        - item_name: Silver locks
+          quantity: 1
+        - item_name: Broken coffin
+          quantity: 1
+      products:
+        - item_name: Silver coffin
+          quantity: 1
+      notes: Performed by Dampe; reversible via Remove-lock
+  related_items:
+    - item_id: 25433
+      item_name: Broken coffin
+      slug: broken-coffin
+      relationship: component
+      description: Coffin upgraded with silver locks
+    - item_id: 25443
+      item_name: Silver coffin
+      slug: silver-coffin
+      relationship: product
+      description: Final upgraded coffin
+  about: Silver locks are a Shades of Mort'ton silver chest reward used by Dampe to upgrade a broken coffin into a silver coffin.
+  market_strategy:
+    notes:
+      - Supply gated by silver chest drop rates
+      - Ring of wealth improves drop odds
+      - Limit of 8 keeps the market thin
+      - Demand tied to coffin upgrade meta
+  trading_tips:
+    - Track Shades of Mort'ton popularity for supply shifts
+    - Flip during minigame XP events
+  history:
+    - date: "2021-01-27"
+      update: Shades of Mort'ton Rework
+      description: Silver locks added as a silver chest reward in the reworked Shades of Mort'ton minigame.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-01-27"
+    update: Shades of Mort'ton Rework
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.283
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

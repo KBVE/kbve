@@ -12,9 +12,78 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 4
-  about: "Tan cavalier is a members-only item in Old School RuneScape. High alchemy value: 120 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: head
+    weight: 0.08
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    is_reward: true
+    tier: hard
+    rarity: 1/1625
+    source: Reward casket (hard)
+  related_items:
+    - item_id: 2641
+      item_name: Dark cavalier
+      slug: dark-cavalier
+      relationship: variant
+      description: Alternate cavalier colour
+    - item_id: 2643
+      item_name: Black cavalier
+      slug: black-cavalier
+      relationship: variant
+      description: Alternate cavalier colour
+  about: Tan cavalier is a cosmetic head slot hat rewarded from hard clue caskets, storable in the costume room and providing no combat bonuses.
+  market_strategy:
+    notes:
+      - Pure cosmetic from hard clues
+      - Low buy limit keeps prices spiky
+      - Costume room storage reduces circulating supply
+      - Variants compete for fashionscape demand
+  trading_tips:
+    - Buy after hard clue XP events flood supply
+    - Sell during streamer fashionscape trends
+  history:
+    - date: "2005-05-31"
+      description: Renamed from "Brown cavalier" to "Tan cavalier".
+    - date: "2005-05-17"
+      description: Renamed from "Cavalier" to "Brown cavalier".
+    - date: "2004-05-05"
+      update: Bigger Banks & Treasure Trails
+      description: Tan cavalier released as a Treasure Trails reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-05-05"
+    update: Bigger Banks & Treasure Trails
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.08
+    options:
+      - Drop
+    worn_options:
+      - Wear
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
