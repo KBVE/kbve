@@ -63,11 +63,29 @@ jobs:
                   github-token: ${{ github.token }}
 
             - name: Run zizmor (offline audits only, informational)
+              # GitHub's default bash invocation is `bash --noprofile --norc -eo
+              # pipefail {0}`, so `-e` would abort this step on zizmor's
+              # non-zero exit before we get to inspect the code. `set +e` here
+              # overrides that so we can always exit 0 from this step.
               run: |
-                  set -uo pipefail
+                  set +e
                   uvx zizmor==1.25.2 --persona=regular --no-online-audits \
-                      --format plain .github/workflows || \
-                      echo "::notice::zizmor exited non-zero (findings or crash) — informational only, not blocking"
+                      --format plain .github/workflows
+                  EC=$?
+                  set -u
+                  # zizmor exit codes:
+                  #   0  → no findings
+                  #   14 → findings detected (expected; the repo has a baseline)
+                  #   *  → crash or real error
+                  # Always exit 0 so the job stays green — the gate is explicitly
+                  # informational and a red ✗ here is misleading (looks like a
+                  # security incident on every PR). Findings still print to the
+                  # job log; crashes get an annotation but do not fail the run.
+                  if [ "$EC" -eq 14 ]; then
+                      echo "::notice::zizmor reported findings (exit 14) — informational, baseline cleanup tracked separately"
+                  elif [ "$EC" -ne 0 ]; then
+                      echo "::warning::zizmor exited with $EC (likely a crash) — see logs above; surfacing as warning, not failure"
+                  fi
                   exit 0
 
     track_failure:
