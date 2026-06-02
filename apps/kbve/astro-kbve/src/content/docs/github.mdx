@@ -12,13 +12,19 @@ sidebar:
 ---
 
 import DeferredAstroGithubHero from '@/components/github/GithubHero/DeferredAstroGithubHero.astro';
+import AstroGithubRepoCatalog from '@/components/github/RepoCatalog/AstroGithubRepoCatalog.astro';
+import AstroGithubActivity from '@/components/github/Activity/AstroGithubActivity.astro';
+import AstroGithubProjectBoard from '@/components/github/ProjectBoard/AstroGithubProjectBoard.astro';
+import AstroGithubContribute from '@/components/github/Contribute/AstroGithubContribute.astro';
 import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
 
 <div class="ring-page kbve-dashboard-page relative min-h-screen w-full bg-transparent">
 
 # GitHub
 
-Community contributors, open-source projects, and live org activity.
+Open-source games, cloud infrastructure, and the contributors building them.
+PRs land against `dev`, ship through CI to `main`. Pick an issue, fork the
+repo, open a worktree — the walkthrough is below.
 
 <DeferredAstroGithubHero
     title="Top Contributors"
@@ -33,6 +39,14 @@ Community contributors, open-source projects, and live org activity.
     rank3Label="3rd Place"
     newTabLabel="(opens in new tab)"
 />
+
+<AstroGithubActivity />
+
+<AstroGithubProjectBoard />
+
+<AstroGithubRepoCatalog />
+
+<AstroGithubContribute />
 
 </div>
 

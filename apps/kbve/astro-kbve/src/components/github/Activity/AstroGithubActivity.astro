@@ -1,0 +1,305 @@
+---
+/**
+ * AstroGithubActivity - Build-time-rendered recent org activity.
+ * PullRequestEvent (opened/closed) + ReleaseEvent + PushEvent (default branch).
+ */
+
+interface Actor {
+	login: string;
+	avatar_url: string;
+}
+interface Repo {
+	name: string;
+	url: string;
+}
+interface Event {
+	id: string;
+	type: string;
+	actor: Actor;
+	repo: Repo;
+	created_at: string;
+	payload: any;
+}
+
+interface Props {
+	title?: string;
+	subtitle?: string;
+	limit?: number;
+}
+
+const {
+	title = 'Recent Activity',
+	subtitle = 'Pull requests and releases across the org',
+	limit = 12,
+} = Astro.props;
+
+const GITHUB_ORG = 'KBVE';
+const API_URL = `https://api.github.com/orgs/${GITHUB_ORG}/events?per_page=100`;
+
+let events: Event[] = [];
+let error: string | null = null;
+try {
+	const response = await fetch(API_URL, {
+		headers: { Accept: 'application/vnd.github.v3+json' },
+	});
+	if (!response.ok) throw new Error(`GitHub API ${response.status}`);
+	const all = (await response.json()) as Event[];
+	const filtered = all.filter((e) =>
+		['PullRequestEvent', 'ReleaseEvent', 'PushEvent'].includes(e.type),
+	);
+	const seen = new Set<string>();
+	for (const e of filtered) {
+		const key = describeKey(e);
+		if (key && !seen.has(key)) {
+			seen.add(key);
+			events.push(e);
+		}
+		if (events.length >= limit) break;
+	}
+} catch (err) {
+	error = err instanceof Error ? err.message : 'fetch failed';
+	console.error('AstroGithubActivity fetch error:', error);
+}
+
+function describeKey(e: Event): string | null {
+	if (e.type === 'PullRequestEvent') {
+		const pr = e.payload?.pull_request;
+		if (!pr) return null;
+		return `pr:${e.repo.name}#${pr.number}:${e.payload.action}`;
+	}
+	if (e.type === 'ReleaseEvent') {
+		const tag = e.payload?.release?.tag_name;
+		return tag ? `rel:${e.repo.name}:${tag}` : null;
+	}
+	if (e.type === 'PushEvent') {
+		const sha = e.payload?.head;
+		return sha ? `push:${e.repo.name}:${sha}` : null;
+	}
+	return null;
+}
+
+function describe(e: Event): {
+	label: string;
+	href: string;
+	title: string;
+	icon: string;
+} {
+	const repoShort = e.repo.name.split('/').pop() ?? e.repo.name;
+	if (e.type === 'PullRequestEvent') {
+		const pr = e.payload?.pull_request;
+		const action = e.payload?.action ?? '';
+		const merged = pr?.merged === true;
+		const verb = merged
+			? 'merged'
+			: action === 'opened'
+				? 'opened'
+				: action === 'closed'
+					? 'closed'
+					: action;
+		return {
+			label: `${verb} #${pr?.number ?? '?'} ${pr?.title ?? ''}`,
+			href: pr?.html_url ?? `https://github.com/${e.repo.name}`,
+			title: repoShort,
+			icon: merged ? '🟣' : action === 'opened' ? '🟢' : '⚪',
+		};
+	}
+	if (e.type === 'ReleaseEvent') {
+		const rel = e.payload?.release;
+		return {
+			label: `released ${rel?.tag_name ?? ''} ${rel?.name ?? ''}`.trim(),
+			href: rel?.html_url ?? `https://github.com/${e.repo.name}`,
+			title: repoShort,
+			icon: '🏷️',
+		};
+	}
+	if (e.type === 'PushEvent') {
+		const count = e.payload?.commits?.length ?? 0;
+		const top = e.payload?.commits?.[0]?.message?.split('\n')[0] ?? '';
+		const ref = e.payload?.ref?.replace('refs/heads/', '') ?? '';
+		return {
+			label: `pushed ${count} commit${count === 1 ? '' : 's'} to ${ref}${top ? ` — ${top}` : ''}`,
+			href: `https://github.com/${e.repo.name}/commits/${ref}`,
+			title: repoShort,
+			icon: '⬆️',
+		};
+	}
+	return {
+		label: e.type,
+		href: `https://github.com/${e.repo.name}`,
+		title: repoShort,
+		icon: '•',
+	};
+}
+
+function ago(iso: string): string {
+	const ms = Date.now() - new Date(iso).getTime();
+	const s = Math.max(1, Math.floor(ms / 1000));
+	if (s < 60) return `${s}s ago`;
+	const m = Math.floor(s / 60);
+	if (m < 60) return `${m}m ago`;
+	const h = Math.floor(m / 60);
+	if (h < 24) return `${h}h ago`;
+	const d = Math.floor(h / 24);
+	return `${d}d ago`;
+}
+---
+
+<section class="github-activity" aria-labelledby="github-activity-title">
+	<header class="github-activity__header">
+		<h2 id="github-activity-title">{title}</h2>
+		<p>{subtitle}</p>
+	</header>
+
+	{
+		error && (
+			<p class="github-activity__error" role="alert">
+				Unable to load activity ({error}).
+			</p>
+		)
+	}
+
+	{
+		!error && events.length === 0 && (
+			<p class="github-activity__empty">No recent public activity.</p>
+		)
+	}
+
+	{
+		!error && events.length > 0 && (
+			<ul class="github-activity__list" role="list">
+				{events.map((e) => {
+					const d = describe(e);
+					return (
+						<li class="github-activity__item">
+							<span
+								class="github-activity__icon"
+								aria-hidden="true">
+								{d.icon}
+							</span>
+							<a
+								class="github-activity__avatar"
+								href={`https://github.com/${e.actor.login}`}
+								target="_blank"
+								rel="noopener noreferrer">
+								<img
+									src={e.actor.avatar_url}
+									alt={`${e.actor.login}'s avatar`}
+									width="24"
+									height="24"
+									loading="lazy"
+								/>
+							</a>
+							<div class="github-activity__body">
+								<a
+									class="github-activity__link"
+									href={d.href}
+									target="_blank"
+									rel="noopener noreferrer">
+									<strong>{e.actor.login}</strong> {d.label}
+								</a>
+								<span class="github-activity__meta">
+									<a
+										href={`https://github.com/${e.repo.name}`}
+										target="_blank"
+										rel="noopener noreferrer">
+										{d.title}
+									</a>
+									<span class="github-activity__sep">·</span>
+									<time datetime={e.created_at}>
+										{ago(e.created_at)}
+									</time>
+								</span>
+							</div>
+						</li>
+					);
+				})}
+			</ul>
+		)
+	}
+</section>
+
+<style>
+	.github-activity {
+		margin: 3rem 0;
+		color: var(--sl-color-text, #e6edf3);
+	}
+	.github-activity__header {
+		text-align: center;
+		margin-bottom: 1rem;
+	}
+	.github-activity__header h2 {
+		font-size: 1.75rem;
+		font-weight: 700;
+		margin: 0 0 0.25rem;
+	}
+	.github-activity__header p {
+		color: var(--sl-color-gray-2, #8b949e);
+		margin: 0;
+	}
+	.github-activity__empty,
+	.github-activity__error {
+		text-align: center;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+	.github-activity__list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		max-width: 720px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.github-activity__item {
+		display: flex;
+		gap: 0.75rem;
+		align-items: flex-start;
+		padding: 0.6rem 0.85rem;
+		background: var(--sl-color-bg-nav, #111);
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		border-radius: 8px;
+	}
+	.github-activity__icon {
+		flex: 0 0 auto;
+		line-height: 1.5;
+	}
+	.github-activity__avatar img {
+		border-radius: 50%;
+		width: 24px;
+		height: 24px;
+		display: block;
+	}
+	.github-activity__body {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+	.github-activity__link {
+		display: block;
+		color: inherit;
+		text-decoration: none;
+		font-size: 0.9rem;
+		line-height: 1.35;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.github-activity__link:hover {
+		color: var(--sl-color-accent, #06b6d4);
+	}
+	.github-activity__meta {
+		font-size: 0.7rem;
+		color: var(--sl-color-gray-3, #8b949e);
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+	.github-activity__meta a {
+		color: inherit;
+		text-decoration: none;
+	}
+	.github-activity__sep {
+		opacity: 0.6;
+	}
+</style>
