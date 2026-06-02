@@ -18,13 +18,13 @@ spec:
                     restartPolicy: Never
                     securityContext:
                         runAsNonRoot: true
-                        runAsUser: 65532
-                        runAsGroup: 65532
+                        runAsUser: 10001
+                        runAsGroup: 10001
                         seccompProfile:
                             type: RuntimeDefault
                     containers:
                         - name: rotator
-                          image: bitnami/kubectl:1.31
+                          image: ghcr.io/kbve/kubectl:0.1.2
                           imagePullPolicy: IfNotPresent
                           securityContext:
                               allowPrivilegeEscalation: false
@@ -33,7 +33,7 @@ spec:
                                       - ALL
                               readOnlyRootFilesystem: true
                           command:
-                              - /bin/bash
+                              - /bin/sh
                               - -c
                               - |
                                   set -euo pipefail
