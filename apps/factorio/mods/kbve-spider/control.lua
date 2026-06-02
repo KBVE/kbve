@@ -672,48 +672,31 @@ script.on_nth_tick(FOLLOW_TICK_INTERVAL, function(event)
 	follow_loop()
 end)
 
+-- Idle wander pass for wild spiders. Skips allies (handled by the wander
+-- branch inside follow_loop) and any spider already in an attack group.
+-- Previously this loop ALSO spawned a Nervous corpse on a few random
+-- spiders as a cosmetic twitch, but the corpse is the same 16-direction
+-- model as the live spider — it overlapped exactly and read as a "ghost
+-- spider that pops in for a second then vanishes". Removed; the Nervous
+-- corpse prototype stays registered for any future scripted use.
 script.on_nth_tick(NERVOUS_TICK_INTERVAL, function(event)
 	local active = active_surface_indices()
 	if not active then return end
 	for _, surface in pairs(game.surfaces) do
 		if active[surface.index] then
-			-- Wild spiders only — overlaying a Nervous corpse on top of an
-			-- ally that's idling next to its owner reads as a "ghost spider
-			-- popping in then disappearing" since the corpse lingers ~1s
-			-- and renders at the same tile. Ally idle motion is handled by
-			-- the wander fallback in follow_loop.
 			local spiders = surface.find_entities_filtered{ name = SPIDER }
-			local n = #spiders
-			if n > 0 then
-				-- Twitch overlay on 3 random spiders.
-				local picks = math.min(cached_nervous_pick, n)
-				for _ = 1, picks do
-					local s = spiders[math.random(1, n)]
-					if s.valid then
-						local cmdable = s.commandable
-						local in_group = cmdable and cmdable.parent_group ~= nil
-						if not in_group then
-							surface.create_entity{
-								name = NERVOUS_CORPSE,
-								position = s.position,
-								direction = s.direction,
-							}
-						end
-					end
-				end
-				for i = 1, n do
-					local s = spiders[i]
-					if s.valid then
-						local cmdable = s.commandable
-						local in_group = cmdable and cmdable.parent_group ~= nil
-						if not in_group and cmdable and not cmdable.has_command then
-							cmdable.set_command{
-								type = defines.command.wander,
-								ticks_to_wait = 600,
-								wander_in_group = false,
-								distraction = defines.distraction.by_damage,
-							}
-						end
+			for i = 1, #spiders do
+				local s = spiders[i]
+				if s.valid then
+					local cmdable = s.commandable
+					local in_group = cmdable and cmdable.parent_group ~= nil
+					if not in_group and cmdable and not cmdable.has_command then
+						cmdable.set_command{
+							type = defines.command.wander,
+							ticks_to_wait = 600,
+							wander_in_group = false,
+							distraction = defines.distraction.by_damage,
+						}
 					end
 				end
 			end
