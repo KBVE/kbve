@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FixedSizeList as List } from 'react-window';
+import { List, type RowComponentProps } from 'react-window';
 
 interface OSRSIndexEntry {
 	id: number;
@@ -46,14 +46,10 @@ function formatGP(v: number | null | undefined): string {
 	return v.toLocaleString();
 }
 
-interface RowProps {
-	index: number;
-	style: React.CSSProperties;
-	data: OSRSIndexEntry[];
-}
+type RowExtra = { items: OSRSIndexEntry[] };
 
-function Row({ index, style, data }: RowProps) {
-	const item = data[index];
+function Row({ index, style, items }: RowComponentProps<RowExtra>) {
+	const item = items[index];
 	return (
 		<a
 			href={`/osrs/${item.slug}/`}
@@ -216,14 +212,14 @@ export default function OSRSItemBrowser() {
 				className="rounded border border-white/10 bg-black/30">
 				{data && filtered.length > 0 && width > 0 ? (
 					<List
-						height={LIST_HEIGHT}
-						width={width}
-						itemCount={filtered.length}
-						itemSize={ROW_HEIGHT}
-						itemData={filtered}
-						overscanCount={6}>
-						{Row}
-					</List>
+						defaultHeight={LIST_HEIGHT}
+						rowCount={filtered.length}
+						rowHeight={ROW_HEIGHT}
+						rowComponent={Row}
+						rowProps={{ items: filtered }}
+						overscanCount={6}
+						style={{ width, height: LIST_HEIGHT }}
+					/>
 				) : (
 					<div className="flex h-full items-center justify-center text-sm text-white/50">
 						{data ? 'No items match the current filters.' : ''}
