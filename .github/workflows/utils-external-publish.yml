@@ -686,6 +686,13 @@ jobs:
                   INNER="${MOD_NAME}_${MOD_VERSION}"
                   cp -R "${MOD_DIR}" "${WORK}/${INNER}"
                   find "${WORK}/${INNER}" -name '.DS_Store' -delete
+                  find "${WORK}/${INNER}" \( \
+                      -name '*.exe' -o -name '*.bat' -o -name '*.ps1' \
+                      -o -name '*.sh' -o -name '*.py' -o -name '*.pyc' \
+                      \) -delete
+                  for dev_dir in tools scripts .git .github __pycache__ node_modules; do
+                      find "${WORK}/${INNER}" -type d -name "${dev_dir}" -exec rm -rf {} +
+                  done
                   mkdir -p dist
                   (cd "${WORK}" && zip -qr "${GITHUB_WORKSPACE}/dist/${MOD_NAME}_${MOD_VERSION}.zip" "${INNER}")
                   ls -l "dist/${MOD_NAME}_${MOD_VERSION}.zip"
