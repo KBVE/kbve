@@ -1,6 +1,6 @@
 ---
 title: Orange sapling | OSRS Price Data
-description: "Orange sapling: This sapling is ready to be replanted in a fruit tree patch.. High alch: 1 GP, GE limit: 200."
+description: "Orange sapling: This sapling is ready to be replanted in a fruit tree patch. High alch: 1 GP, GE limit: 200."
 osrs:
   id: 5498
   name: Orange sapling
@@ -12,9 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 200
-  about: "Orange sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: sapling
+    tier: mid
+  farming:
+    farming_level: 39
+    plant_xp: 35.5
+    harvest_xp: 13.5
+    patch_type: fruit tree
+    growth_time: 960
+  related_items:
+    - item_id: 5284
+      item_name: Orange tree seed
+      slug: orange-tree-seed
+      relationship: component
+      description: Seed planted into a plant pot to grow a sapling
+    - item_id: 5371
+      item_name: Orange seedling
+      slug: orange-seedling
+      relationship: component
+      description: Seedling stage before sapling
+    - item_id: 2108
+      item_name: Orange
+      slug: orange
+      relationship: product
+      description: Harvested fruit from a grown orange tree
+  market_strategy:
+    notes:
+      - 39 Farming gates demand
+      - Saplings shortcut waiting for seed-to-sapling growth
+      - Pairs with watered plant pots farming
+      - Steady demand from fruit tree run players
+      - Tradeable since 2015 GE poll
+  history:
+    - date: "2005-07-11"
+      update: Farming
+      description: Released with the Farming skill; converted from cache "Plant pot" entry.
+    - date: "2015-01-29"
+      update: Tradeable saplings
+      description: Made tradeable on the Grand Exchange after a community poll.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "11 Jul 2005"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    alchable: false
+  about: Sapling stage of the Orange tree; replant in a fruit tree patch at 39 Farming.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

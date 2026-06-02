@@ -1,6 +1,6 @@
 ---
 title: Blood pint | OSRS Price Data
-description: "Blood pint: It's literally a pint of blood.. High alch: 1 GP, GE limit: 2,000."
+description: "Blood pint: It's literally a pint of blood. High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 24774
   name: Blood pint
@@ -12,9 +12,54 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Blood pint is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 0
+    type: ale
+  shops:
+    - shop_name: The Crypt
+      location: Darkmeyer
+      price: 2
+      currency: Coins
+      members_only: true
+  drop_table:
+    sources:
+      - source: Vyrewatch (pickpocket)
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Vyrewatch Sentinel (pickpocket)
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+  about: "Blood pint is a Darkmeyer ale that boosts Attack and Strength by 4% + 2 while draining Magic and Prayer, available from The Crypt shop and via 82 Thieving Vyre pickpockets."
+  market_strategy:
+    title: Vampyric Combat Sip
+    notes:
+      - Cheap shop supply caps the GE ceiling near vendor price floors.
+      - Niche demand from PvMers stacking +Atk/+Str ales pre-fight.
+      - Cannot brew or combine into potions, limiting upside.
+  trading_tips:
+    - Pickpocket Vyres at 82 Thieving for free supply rather than buying.
+    - Sell to GE only during ale-stat-boost meta spikes.
+    - Volume is high but margin is razor-thin — don't tie up cash.
+  history:
+    - date: "2020-06-04"
+      update: "Sins of the Father"
+      description: Added with the Darkmeyer release as a flavour ale and Vyre pickpocket drop.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "04 Jun 2020"
+    update: "Sins of the Father"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options: ["Drink", "Drop"]
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

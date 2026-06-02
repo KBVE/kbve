@@ -1,6 +1,6 @@
 ---
 title: Raw pyre fox | OSRS Price Data
-description: "Raw pyre fox: I should probably cook this first.. High alch: 1 GP, GE limit: 13,000."
+description: "Raw pyre fox: I should probably cook this first. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 29110
   name: Raw pyre fox
@@ -12,9 +12,77 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Raw pyre fox is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: raw-food
+    tier: mid-high
+  food:
+    heals: 0
+    type: raw-meat
+  drop_table:
+    sources:
+      - source: Pyre fox
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Hunters' loot sack (basic)
+        quantity: "3"
+        rarity: varies
+        members_only: true
+      - source: Hunters' loot sack (adept)
+        quantity: "3"
+        rarity: varies
+        members_only: true
+      - source: Hunters' loot sack (expert)
+        quantity: "3"
+        rarity: varies
+        members_only: true
+      - source: Hunters' loot sack (master)
+        quantity: "3"
+        rarity: varies
+        members_only: true
+  recipes:
+    - skill: Cooking
+      level: 59
+      xp: 154
+      materials:
+        - item_name: Raw pyre fox
+          item_id: 29110
+          quantity: 1
+      product: Cooked pyre fox
+      product_id: 29111
+  related_items:
+    - item_id: 29111
+      item_name: Cooked pyre fox
+      slug: cooked-pyre-fox
+      relationship: product
+      description: Cooked variant healing food
+  market_strategy:
+    title: Varlamore hunter supply
+    notes:
+      - Trapped via 57 Hunter pyre foxes
+      - Tradeable to Soar Leader Pitri for quetzal whistle charges
+      - Cooks into pyre fox at 59 Cooking for 154 XP
+      - Steady supply from hunter trainers
+  history:
+    - date: "2024-03-20"
+      update: "Varlamore: Part One"
+      description: Added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "20 Mar 2024"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Drop
+    alchable: true
+  about: Raw pyre fox is a members-only raw food obtained from pyre foxes that can be cooked into pyre fox at 59 Cooking for 154 XP.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

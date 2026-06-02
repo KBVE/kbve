@@ -1,6 +1,6 @@
 ---
 title: Team cape zero | OSRS Price Data
-description: "Team cape zero is a F2P cape slot item. High alch: 30 GP, GE limit: 4."
+description: "Team cape zero: Ooohhh look at the dirty colours... High alch: 30 GP, GE limit: 4."
 osrs:
   id: 20211
   name: Team cape zero
@@ -14,7 +14,28 @@ osrs:
   limit: 4
   equipment:
     slot: cape
+    weight: 0.453
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
   related_items:
     - item_id: 20214
       item_name: Team cape x
@@ -26,12 +47,36 @@ osrs:
       slug: team-cape-i
       relationship: variant
       description: Team cape i variant
-  about: |-
-    > *"Ooohhh look at the dirty colours..."*
-
-    Team cape zero is a cosmetic cape from easy treasure trails. Unlike regular team capes bought from shops, the treasure trail variants are rarer and cannot be purchased from NPCs. No stats or requirements.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Easy clue exclusive supply (~1/5,616)
+      - Low GE buy limit caps flips
+      - Counts as a team cape for Wilderness Easy Diary
+      - Cosmetic cape with minor defensive bonuses
+      - Storable in costume room cape racks
+  history:
+    - date: "2016-07-06"
+      update: Treasure Trail Expansion
+      description: Added as an easy clue reward casket drop.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "6 Jul 2016"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  about: Easy clue reward cape with minor defence bonuses; satisfies team-cape diary requirements.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

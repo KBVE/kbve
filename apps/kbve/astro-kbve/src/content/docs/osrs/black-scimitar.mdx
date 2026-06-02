@@ -1,6 +1,6 @@
 ---
 title: Black scimitar | OSRS Price Data
-description: "Black scimitar: A vicious, curved sword.. High alch: 460 GP, GE limit: 125."
+description: "Black scimitar: A vicious, curved sword. High alch: 460 GP, GE limit: 125."
 osrs:
   id: 1327
   name: Black scimitar
@@ -12,25 +12,84 @@ osrs:
   lowalch: 307
   highalch: 460
   limit: 125
-  item_id: 1327
-  item_type: equipment
-  slot: weapon
-  type: scimitar
-  attack_style: slash
-  attack_speed: 4
-  tradeable: true
-  weight: 1.814
-  requirements:
-    attack: 10
-  stats:
-    slash_attack: 19
-    stab_attack: 4
-    strength: 14
+  equipment:
+    slot: weapon
+    weapon_type: slash-sword
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: 4
+      slash: 19
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 14
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Briget's Weapons
+      location: Shayzien
+      price: 768
+      stock: 3
+      currency: Coins
+      members_only: true
+  drop_table:
+    sources:
+      - source: Gangster
+        quantity: "1"
+        rarity: uncommon
+        members_only: false
+      - source: Gang boss
+        quantity: "1"
+        rarity: uncommon
+        members_only: false
   related_items:
-    - slug: mithril-scimitar
-    - slug: steel-scimitar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1325
+      item_name: Steel scimitar
+      slug: steel-scimitar
+      relationship: downgrade
+      description: Lower tier scimitar
+    - item_id: 1329
+      item_name: Mithril scimitar
+      slug: mithril-scimitar
+      relationship: upgrade
+      description: Higher tier scimitar
+  market_strategy:
+    notes:
+      - Black equipment tier requires 10 Attack
+      - Cannot be crafted via Smithing
+      - Obtained from spawns, shop, or monster drops
+  history:
+    - date: "2005-06-13"
+      update: Examine punctuation
+      description: Examine text updated from "A vicious curved sword" to "A vicious, curved sword".
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "30 Apr 2002"
+    update: Latest RuneScape News (30 April 2002)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    alchable: true
+  about: Black scimitar is a free-to-play one-handed slash sword requiring 10 Attack to wield.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

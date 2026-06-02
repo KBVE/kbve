@@ -1,6 +1,6 @@
 ---
 title: Sinew | OSRS Price Data
-description: "Sinew: I can use this to make a crossbow string.. High alch: 1 GP, GE limit: 13,000."
+description: "Sinew: I can use this to make a crossbow string. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 9436
   name: Sinew
@@ -12,9 +12,78 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Sinew is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: crafting
+    tier: low
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 3
+      materials:
+        - item_name: Raw beef
+          quantity: 1
+      product: Sinew
+      product_id: 9436
+    - skill: cooking
+      level: 1
+      xp: 3
+      materials:
+        - item_name: Raw bear meat
+          quantity: 1
+      product: Sinew
+      product_id: 9436
+    - skill: crafting
+      level: 10
+      xp: 15
+      materials:
+        - item_name: Damaged monkey tail
+          quantity: 1
+      product: Sinew
+      product_id: 9436
+    - skill: crafting
+      level: 10
+      xp: 15
+      materials:
+        - item_name: Sinew
+          quantity: 1
+      product: Crossbow string
+      product_id: 9438
+  related_items:
+    - item_id: 9438
+      item_name: Crossbow string
+      slug: crossbow-string
+      relationship: product
+      description: Spun from sinew at a spinning wheel for crossbow assembly.
+    - item_id: 2132
+      item_name: Raw beef
+      slug: raw-beef
+      relationship: component
+      description: Cheapest source — cook on a range for 1 sinew.
+  market_strategy:
+    title: Cheap Crafting Supply
+    notes:
+      - Profit by cooking raw beef on a range for sinew + cooking XP
+      - Spin at a wheel for crossbow strings — 15 Crafting XP each
+      - Bulk buy limit 13k makes it ironman-friendly
+  history:
+    - date: "2006-07-31"
+      update: Crossbows
+      description: Added with the new crossbow Crafting/Fletching content.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "31 Jul 2006"
+    update: Crossbows
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.002
+    options: [Drop]
+    alchable: true
+  about: Crafting material cooked from meat or knifed from monkey tails, spun into crossbow strings.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

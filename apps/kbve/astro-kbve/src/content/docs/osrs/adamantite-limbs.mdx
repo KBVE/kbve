@@ -1,6 +1,6 @@
 ---
 title: Adamantite limbs | OSRS Price Data
-description: "Adamantite limbs: A pair of adamantite crossbow limbs.. High alch: 960 GP, GE limit: 10,000."
+description: "Adamantite limbs: A pair of adamantite crossbow limbs. High alch: 960 GP, GE limit: 10,000."
 osrs:
   id: 9429
   name: Adamantite limbs
@@ -12,9 +12,86 @@ osrs:
   lowalch: 640
   highalch: 960
   limit: 10000
-  about: "Adamantite limbs is a members-only item in Old School RuneScape. High alchemy value: 960 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: mid-high
+  shops:
+    - shop_name: Lova's Crossbow Shop
+      location: Dwarven Mines
+      price: 5760
+      currency: Coins
+      members_only: true
+    - shop_name: Hirko's Crossbow Shop
+      location: White Wolf Mountain
+      price: 5760
+      currency: Coins
+      members_only: true
+    - shop_name: Hura's Crossbow Shop
+      location: Keldagrim Palace
+      price: 4800
+      stock: 5
+      currency: Coins
+      members_only: true
+  recipes:
+    - skill: smithing
+      level: 76
+      xp: 62.5
+      materials:
+        - item_name: Adamantite bar
+          quantity: 1
+      product: Adamantite limbs
+      product_id: 9429
+    - skill: fletching
+      level: 61
+      xp: 82
+      materials:
+        - item_name: Adamantite limbs
+          item_id: 9429
+          quantity: 1
+        - item_name: Mahogany stock
+          quantity: 1
+      product: Adamant crossbow (u)
+      product_id: 9459
+  related_items:
+    - item_id: 9434
+      item_name: Adamantite bar
+      slug: adamantite-bar
+      relationship: component
+      description: Smelted into limbs at 76 Smithing.
+    - item_id: 9459
+      item_name: Adamant crossbow (u)
+      slug: adamant-crossbow-u
+      relationship: product
+      description: Limbs attached to a mahogany stock at 61 Fletching.
+  market_strategy:
+    title: Crossbow Fletching Pipeline
+    notes:
+      - Demand is paced by Fletching trainers chasing adamant crossbow XP.
+      - Compare bar + smithing margin vs limb GE flip — usually limbs sit at a loss vs raw smithing.
+      - Bulk buyers move during double XP weekends, so stock ahead of those windows.
+  trading_tips:
+    - Set buy orders below the bar cost to catch panic sells from impatient fletchers.
+    - Check the smithing margin on adamantite bars first to know fair value.
+    - Limbs are noteable — bank stacks for Fletching grinds rather than shop runs.
+  history:
+    - date: "2006-07-31"
+      update: "Crossbows"
+      description: Added with the Crossbows update introducing the full elemental-bar crossbow tier ladder.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "31 Jul 2006"
+    update: "Crossbows"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options: ["Drop"]
+    destroy: "Drop"
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

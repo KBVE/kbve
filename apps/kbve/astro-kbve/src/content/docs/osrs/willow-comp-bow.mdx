@@ -1,6 +1,6 @@
 ---
 title: Willow comp bow | OSRS Price Data
-description: "Willow comp bow: A powerful bow made from willow wood.. High alch: 180 GP, GE limit: 8."
+description: "Willow comp bow: A powerful bow made from willow wood. High alch: 180 GP, GE limit: 8."
 osrs:
   id: 10280
   name: Willow comp bow
@@ -12,9 +12,72 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 8
-  about: "Willow comp bow is a free-to-play item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: 2h
+    weapon_type: bow
+    attack_speed: 5
+    weight: 1.8
+    requirements:
+      ranged: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 22
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+  related_items:
+    - item_id: 10282
+      item_name: Maple comp bow
+      slug: maple-comp-bow
+      relationship: upgrade
+      description: Higher tier composite bow
+    - item_id: 10280
+      item_name: Willow longbow
+      slug: willow-longbow
+      relationship: alternative
+      description: Fletched alternative at same Ranged requirement
+  market_strategy:
+    title: Easy clue cosmetic bow
+    notes:
+      - Cannot be fletched - clue scroll reward only
+      - 11/3960 from easy clue caskets
+      - Limit of 8 keeps thin supply
+      - Fires up to mithril arrows
+  history:
+    - date: "2006-12-05"
+      update: "Treasure Trails, spiders and sheep"
+      description: Added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "5 Dec 2006"
+    update: "Treasure Trails, spiders and sheep"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.8
+    options:
+      - Wield
+      - Drop
+    alchable: true
+  about: Willow comp bow is a free-to-play two-handed composite bow from easy Treasure Trails, requiring 20 Ranged and firing up to mithril arrows.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

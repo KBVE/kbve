@@ -1,6 +1,6 @@
 ---
 title: Apprentice wand | OSRS Price Data
-description: "Apprentice wand is a members weapon slot item requiring 50 Magic. High alch: 900 GP, GE limit: 125."
+description: "Apprentice wand: An apprentice level wand. High alch: 900 GP, GE limit: 125."
 osrs:
   id: 6910
   name: Apprentice wand
@@ -14,95 +14,76 @@ osrs:
   limit: 125
   equipment:
     slot: weapon
-    type: magic_weapon
-    attack_style: magic
+    weapon_type: staff
     attack_speed: 4
+    weight: 0.255
     requirements:
       magic: 50
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 10
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 10
-      defence_ranged: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 10
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 10
+      ranged: 0
+    other_bonus:
       melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    weight: 0.255
-  obtaining:
-    methods:
-      - source: Mage Training Arena
-        requirements:
-          magic: 50
-        pizazz_points:
-          telekinetic: 60
-          alchemist: 60
-          enchantment: 600
-          graveyard: 60
-        notes: Requires beginner wand plus pizazz points
+  shops:
+    - shop_name: Mage Training Arena rewards
+      location: Mage Training Arena (requires beginner wand + pizazz points)
+      price: 0
+      currency: pizazz points
+      members_only: true
   related_items:
     - item_id: 6908
       item_name: Beginner wand
       slug: beginner-wand
       relationship: downgrade
-      description: Previous tier wand
+      description: Previous tier wand and required component.
     - item_id: 6912
       item_name: Teacher wand
       slug: teacher-wand
       relationship: upgrade
-      description: Next tier wand
+      description: Next tier wand in the MTA progression.
     - item_id: 6914
       item_name: Master wand
       slug: master-wand
       relationship: upgrade
-      description: Best MTA wand
-  about: |-
-    "An apprentice level wand."
-
-    | Stat | Value |
-    |------|-------|
-    | Stab Attack | +0 |
-    | Slash Attack | +0 |
-    | Crush Attack | +0 |
-    | Magic Attack | +10 |
-    | Ranged Attack | +0 |
-    | Stab Defence | +0 |
-    | Slash Defence | +0 |
-    | Crush Defence | +0 |
-    | Magic Defence | +10 |
-    | Ranged Defence | +0 |
-    | Melee Strength | +0 |
-    | Ranged Strength | +0 |
-    | Magic Damage | +0% |
-    | Prayer | +0 |
-
-    Requirements: 50 Magic
-
-    | Wand | Magic Atk | Magic Def | Requirements |
-    |------|----------|----------|-------------|
-    | Beginner wand | +5 | +5 | 45 Magic |
-    | Apprentice wand | +10 | +10 | 50 Magic |
-    | Teacher wand | +15 | +15 | 55 Magic |
-    | Master wand | +20 | +20 | 60 Magic |
-
-    The apprentice wand is the second tier in the Mage Training Arena wand progression. Each upgrade requires the previous wand plus additional pizazz points.
+      description: Best MTA wand.
   market_strategy:
+    title: MTA Progression
     notes:
-      - Mid-level magic training
-      - Stepping stone to master wand
-      - Ironman progression
-      - Most players skip directly to master wand if possible
+      - Mid-level magic training stepping stone
       - Required as a component for the teacher wand upgrade
-      - Low demand compared to master wand
-      - Time-intensive to obtain from MTA
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Most players skip straight to master wand if they can
+      - Low demand, time-intensive to obtain from MTA
+  history:
+    - date: "2006-01-04"
+      update: Mage Training Arena
+      description: Added as the second-tier reward wand from the MTA mini-game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "4 Jan 2006"
+    update: Mage Training Arena
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.255
+    options: [Wield, Drop]
+    alchable: true
+  about: Second-tier Mage Training Arena wand, requires 50 Magic and the beginner wand to claim.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

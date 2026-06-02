@@ -1,6 +1,6 @@
 ---
 title: Tribal top (yellow) | OSRS Price Data
-description: "Tribal top (yellow): Local dress.. High alch: 180 GP, GE limit: 150."
+description: "Tribal top (yellow): Local dress. High alch: 180 GP, GE limit: 150."
 osrs:
   id: 6361
   name: Tribal top (yellow)
@@ -12,9 +12,67 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 150
-  about: "Tribal top (yellow) is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Gabooty's Tai Bwo Wannai Cooperative
+      location: Tai Bwo Wannai
+      price: 360
+      currency: trading sticks
+      members_only: true
+  related_items:
+    - item_id: 6359
+      item_name: Tribal top (blue)
+      slug: tribal-top-blue
+      relationship: variant
+      description: Blue colour variant
+    - item_id: 6363
+      item_name: Tribal top (red)
+      slug: tribal-top-red
+      relationship: variant
+      description: Red colour variant
+  market_strategy:
+    notes:
+      - Bought with trading sticks, not coins
+      - Karamja gloves 1+ cuts cost to 300 sticks
+      - Niche cosmetic body slot
+      - Tradeable on Grand Exchange
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  about: Cosmetic yellow tribal body sold by Gabooty for 360 trading sticks in Tai Bwo Wannai.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
