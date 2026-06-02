@@ -3,9 +3,9 @@ name: CI - Unreal Game
 run-name: 'CI - Unreal Game / ${{ inputs.app_name }} (stub)'
 
 # STUB — Win64 / Mac self-hosted runners are not yet provisioned. The
-# workflow accepts the same dispatch shape as ci-bevy-game / ci-unity /
-# ci-godot so ci-main.yml can fan-out to it once runners come online.
-# Until then it short-circuits with a notice; no actual build runs.
+# workflow accepts the same dispatch shape as ci-unity / ci-godot so
+# ci-main.yml can fan-out to it once runners come online. Until then it
+# short-circuits with a notice; no actual build runs.
 
 on:
     workflow_dispatch:
