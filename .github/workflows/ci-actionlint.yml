@@ -64,9 +64,20 @@ jobs:
 
             - name: Run zizmor (offline audits only, informational)
               run: |
-                  set -euo pipefail
+                  set -uo pipefail
                   uvx zizmor==1.25.2 --persona=regular --no-online-audits \
                       --format plain .github/workflows
+                  EC=$?
+                  # zizmor exit codes:
+                  #   0  → no findings
+                  #   14 → findings detected (expected, informational only)
+                  #   *  → real error / crash → propagate so the tracker fires
+                  if [ "$EC" -eq 0 ] || [ "$EC" -eq 14 ]; then
+                      [ "$EC" -eq 14 ] && echo "::notice::zizmor reported findings (exit 14) — informational, not blocking"
+                      exit 0
+                  fi
+                  echo "::error::zizmor exited with $EC (not a findings exit) — likely a crash"
+                  exit "$EC"
 
     track_failure:
         name: Track Failures
