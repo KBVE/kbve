@@ -2101,6 +2101,7 @@ name = "bevy_cam"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "criterion",
 ]
 
 [[package]]
