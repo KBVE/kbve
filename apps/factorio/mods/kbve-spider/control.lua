@@ -677,7 +677,12 @@ script.on_nth_tick(NERVOUS_TICK_INTERVAL, function(event)
 	if not active then return end
 	for _, surface in pairs(game.surfaces) do
 		if active[surface.index] then
-			local spiders = surface.find_entities_filtered{ name = { SPIDER, SPIDER_ALLY } }
+			-- Wild spiders only — overlaying a Nervous corpse on top of an
+			-- ally that's idling next to its owner reads as a "ghost spider
+			-- popping in then disappearing" since the corpse lingers ~1s
+			-- and renders at the same tile. Ally idle motion is handled by
+			-- the wander fallback in follow_loop.
+			local spiders = surface.find_entities_filtered{ name = SPIDER }
 			local n = #spiders
 			if n > 0 then
 				-- Twitch overlay on 3 random spiders.

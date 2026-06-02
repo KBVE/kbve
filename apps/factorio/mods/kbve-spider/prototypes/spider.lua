@@ -125,7 +125,7 @@ local spider = {
 		},
 	},
 
-	run_animation = rotated("Walk", { animation_speed = 0.8 }),
+	run_animation = rotated("Walk", { animation_speed = 1.3 }),
 
 	corpse = "kbve-spider-corpse-death1",
 }
@@ -172,7 +172,7 @@ local SPRINT_SPEED_MULTIPLIER = settings.startup["kbve-spider-sprint-speed-multi
 	or 1.9
 local ALLY_MAX_HEALTH = settings.startup["kbve-spider-ally-max-health"]
 		and settings.startup["kbve-spider-ally-max-health"].value
-	or 60
+	or 120
 
 local sprint_sticker = {
 	type = "sticker",
