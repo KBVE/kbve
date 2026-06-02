@@ -173,7 +173,7 @@ jobs:
                   godot --headless --export-release "${{ matrix.preset }}" \
                         "build/${{ steps.san.outputs.name }}/${{ inputs.app_name }}"
             - name: Upload artefact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: ${{ inputs.app_name }}-${{ steps.san.outputs.name }}
                   path: ${{ inputs.project_path }}/build/${{ steps.san.outputs.name }}
@@ -193,7 +193,7 @@ jobs:
             - name: Sanitize preset name
               id: san
               run: echo "name=$(echo '${{ matrix.preset }}' | tr '/' '-' | tr ' ' '-')" >> "$GITHUB_OUTPUT"
-            - uses: actions/download-artifact@v4
+            - uses: actions/download-artifact@v8
               with:
                   name: ${{ inputs.app_name }}-${{ steps.san.outputs.name }}
                   path: ./build
