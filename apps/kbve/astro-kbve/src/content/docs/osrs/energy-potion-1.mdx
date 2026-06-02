@@ -1,6 +1,6 @@
 ---
 title: Energy potion(1) | OSRS Price Data
-description: "Energy potion(1): 1 dose of energy potion.. High alch: 21 GP, GE limit: 2,000."
+description: "Energy potion(1): 1 dose of energy potion. High alch: 21 GP, GE limit: 2,000."
 osrs:
   id: 3014
   name: Energy potion(1)
@@ -12,9 +12,77 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: 2000
-  about: "Energy potion(1) is a free-to-play item in Old School RuneScape. High alchemy value: 21 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 1
+    herblore_level: 26
+    herblore_xp: 67.5
+    effect: Restores 10% of run energy
+    effects:
+      - description: Restores 10% of the player's run energy
+  recipes:
+    - skill: Herblore
+      level: 26
+      xp: 67.5
+      materials:
+        - item_name: Harralander potion (unf)
+          quantity: 1
+        - item_name: Chocolate dust
+          quantity: 1
+      output_quantity: 1
+      output_item: Energy potion(3)
+  related_items:
+    - item_name: Energy potion(4)
+      slug: energy-potion-4
+      relationship: variant
+      description: 4-dose version
+    - item_name: Energy potion(3)
+      slug: energy-potion-3
+      relationship: variant
+      description: 3-dose version
+    - item_name: Energy potion(2)
+      slug: energy-potion-2
+      relationship: variant
+      description: 2-dose version
+    - item_name: Super energy(4)
+      slug: super-energy-4
+      relationship: upgrade
+      description: Restores more run energy per dose
+  market_strategy:
+    notes:
+      - F2P tradeable potion since 2017
+      - Compare 1-dose vs 4-dose for decant flips
+      - 2000/4h buy limit
+  history:
+    - date: "2004-09-01"
+      update: Herblore Additions
+      description: Item released with the Herblore additions update.
+    - date: "2004-10-26"
+      description: '"Empty" option added.'
+    - date: "2016-04-15"
+      description: Half-full potions became bankable.
+    - date: "2017-03-09"
+      description: Made available to free-to-play players.
+    - date: "2025-05-29"
+      description: Exempted from the Grand Exchange convenience fee.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-09-01"
+    update: Herblore Additions
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Energy potion(1) is a free-to-play 1-dose potion that restores 10% of run energy, made at 26 Herblore.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

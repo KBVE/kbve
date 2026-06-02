@@ -1,97 +1,101 @@
 ---
 title: Inquisitor's great helm | OSRS Price Data
-description: "Inquisitor's great helm is a members legs slot item requiring 70 Defence. High alch: 300,000 GP, GE limit: 8."
+description: "Inquisitor's great helm is a members head slot item requiring 30 Defence and 70 Strength. High alch: 300,000 GP, GE limit: 8."
 osrs:
   id: 24419
   name: Inquisitor's great helm
   slug: inquisitor-s-great-helm
-  examine: The great helmet of the turncloak Justiciar.
+  examine: The great helmet of the turncloak justiciar.
   members: true
   icon: Inquisitor's great helm.png
   value: 500000
   lowalch: 200000
   highalch: 300000
   limit: 8
+  material:
+    type: metal
+    tier: high
   equipment:
-    slot: legs
-    type: crystal_armor
-    attack_style: ranged
+    slot: head
+    weight: 2.721
     requirements:
-      ranged: 70
-      defence: 70
-    stats:
-      defence_stab: 32
-      defence_slash: 24
-      defence_crush: 48
-      defence_magic: -4
-      defence_ranged: 36
-    degradeable: true
-    tradeable: false
-  set_bonus:
-    with_item: Bow of faerdhinen
-    per_piece_accuracy: 3
-    per_piece_damage: 6
-    full_set_accuracy: 15
-    full_set_damage: 30
-  recipes:
-    - skill: crafting
-      level: 70
-      xp: 0
-      materials:
-        - item_name: Crystal armour seed
-          item_id: 23956
-          quantity: 1
-        - item_name: Crystal shard
-          item_id: 23962
-          quantity: 1500
-      product: Crystal legs
-      product_id: 24419
-      product_quantity: 1
-      facility: Singing bowl
-      members_only: true
+      defence: 30
+      strength: 70
+    attack_bonus:
+      stab: -2
+      slash: -2
+      crush: 8
+      magic: -5
+      ranged: -5
+    defence_bonus:
+      stab: 19
+      slash: 10
+      crush: 21
+      magic: 0
+      ranged: 12
+    other_bonus:
+      melee_strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  drop_table:
+    sources:
+      - source: The Nightmare
+        combat_level: 814
+        quantity: "1"
+        rarity: 1/420
+        members_only: true
+      - source: Phosani's Nightmare
+        combat_level: 1024
+        quantity: "1"
+        rarity: 1/700
+        members_only: true
   related_items:
-    - item_id: 25865
-      item_name: Bow of faerdhinen
-      slug: bow-of-faerdhinen
-      relationship: component
-      description: Crystal bow
-    - item_id: 24421
-      item_name: Crystal body
-      slug: crystal-body
-      relationship: alternative
-      description: Body slot
     - item_id: 24417
-      item_name: Crystal helm
-      slug: crystal-helm
-      relationship: alternative
-      description: Helm slot
-  about: |-
-    | Stat | Value |
-    |------|-------|
-    | Ranged attack | +0 |
-    | Stab defence | +32 |
-    | Slash defence | +24 |
-    | Crush defence | +48 |
-    | Magic defence | -4 |
-    | Ranged defence | +36 |
-    | Requirements | 70 Ranged, Defence |
-
-    With Bow of faerdhinen:
-    - Each piece: +3% accuracy, +6% damage
-    - Full set: +15% accuracy, +30% damage
-
-    BiS for Bow of faerdhinen builds:
-    - Inferno
-    - Fight Caves
-    - Slayer
-    - General ranged combat
+      item_name: Inquisitor's hauberk
+      slug: inquisitor-s-hauberk
+      relationship: set-piece
+      description: Body slot set piece
+    - item_id: 24421
+      item_name: Inquisitor's plateskirt
+      slug: inquisitor-s-plateskirt
+      relationship: set-piece
+      description: Legs slot set piece
+    - item_id: 24423
+      item_name: Inquisitor's mace
+      slug: inquisitor-s-mace
+      relationship: set-piece
+      description: Crush weapon paired with the set
   market_strategy:
     notes:
-      - Crystal seeds from Gauntlet
-      - Best with corrupted bow
-      - Shards from Prifddinas
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Crush-focused tank helm
+      - Nightmare boss drop pool
+      - High wealth-storage value
+      - Synergises with Inquisitor's mace
+  history:
+    - date: "2020-02-06"
+      description: Item released as part of The Nightmare boss drops.
+    - date: "2024-05-29"
+      description: Set effect tripled when wielding Inquisitor's mace.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2020-02-06"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  about: Inquisitor's great helm is a members crush-focused tank helm dropped by The Nightmare in Old School RuneScape.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

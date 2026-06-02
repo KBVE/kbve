@@ -12,9 +12,79 @@ osrs:
   lowalch: 130
   highalch: 196
   limit: 10000
-  about: "Steel crossbow (u) is a members-only item in Old School RuneScape. High alchemy value: 196 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: steel
+    tier: low
+  recipes:
+    - skill: fletching
+      level: 46
+      xp: 54
+      materials:
+        - item_id: 9442
+          item_name: Teak stock
+          quantity: 1
+        - item_id: 9425
+          item_name: Steel limbs
+          quantity: 1
+      product: Steel crossbow (u)
+      product_id: 9459
+    - skill: fletching
+      level: 46
+      xp: 27
+      materials:
+        - item_id: 9459
+          item_name: Steel crossbow (u)
+          quantity: 1
+        - item_id: 9438
+          item_name: Crossbow string
+          quantity: 1
+      product: Steel crossbow
+      product_id: 9177
+  related_items:
+    - item_id: 9442
+      item_name: Teak stock
+      slug: teak-stock
+      relationship: component
+      description: Crossbow stock material
+    - item_id: 9425
+      item_name: Steel limbs
+      slug: steel-limbs
+      relationship: component
+      description: Crossbow limbs material
+    - item_id: 9177
+      item_name: Steel crossbow
+      slug: steel-crossbow
+      relationship: product
+      description: Strung result of the unfinished crossbow
+  about: "Steel crossbow (u) is an unfinished crossbow made at 46 Fletching by attaching steel limbs to a teak stock; string it to produce a steel crossbow."
+  market_strategy:
+    notes:
+      - Mid-Fletching XP intermediate item
+      - Limited demand due to crossbow tier
+      - Most players make and string in sequence
+  history:
+    - date: "2006-07-31"
+      update: Crossbows
+      description: Steel crossbow (u) released as part of the Crossbows update.
+    - date: "2021-07-07"
+      update: Animation Fix
+      description: Female stringing animation adjusted so the crossbow is held correctly.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-31"
+    update: Crossbows
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 8
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

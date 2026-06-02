@@ -1,6 +1,6 @@
 ---
 title: Maple roots | OSRS Price Data
-description: "Maple roots: The roots of the Maple tree.. High alch: 1 GP, GE limit: 11,000."
+description: "Maple roots: The roots of the Maple tree. High alch: 1 GP, GE limit: 11,000."
 osrs:
   id: 6047
   name: Maple roots
@@ -12,9 +12,72 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  about: "Maple roots is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Vale offerings (Vale Totems)
+        rarity: common
+        members_only: true
+  farming:
+    farming_level: 45
+    seed: Maple seed
+    notes: Grow a maple tree then chop and dig the stump to obtain roots.
+  recipes:
+    - skill: crafting
+      level: 10
+      xp: 15
+      materials:
+        - item_name: Maple roots
+          item_id: 6047
+          quantity: 1
+      product: Crossbow string
+      product_quantity: 1
+      facility: Spinning wheel
+  related_items:
+    - item_id: 5316
+      item_name: Maple seed
+      slug: maple-seed
+      relationship: component
+      description: Seed planted to obtain roots
+    - item_id: 1517
+      item_name: Maple logs
+      slug: maple-logs
+      relationship: alternative
+      description: Logs from the same maple tree
+    - item_id: 21486
+      item_name: Supercompost
+      slug: supercompost
+      relationship: product
+      description: Roots can be added to a compost bin
+  about: "Maple roots are obtained by digging up a chopped maple tree planted via Farming or by completing Vale offerings in Vale Totems."
+  market_strategy:
+    notes:
+      - Members-only Farming and Vale Totems byproduct
+      - Used for crossbow strings (Crafting 10, 15 XP)
+      - Compost bin input for supercompost batches
+      - GE limit 11,000 per 4 hours allows bulk turnover
+      - Supply scales with maple seed farming popularity
+  history:
+    - date: "2005-07-11"
+      update: Release
+      description: Maple roots added with the introduction of the Farming skill.
+    - date: "2023-06-28"
+      update: Graphical update
+      description: Item icon refreshed with modernised artwork.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

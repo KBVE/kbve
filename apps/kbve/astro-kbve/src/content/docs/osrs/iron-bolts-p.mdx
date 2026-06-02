@@ -12,9 +12,93 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  about: "Iron bolts (p) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ammunition
+    tier: low
+  equipment:
+    slot: ammo
+    weight: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 46
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Iron bolts
+          quantity: 5
+        - item_name: Weapon poison
+          quantity: 1
+      output_quantity: 5
+      members_only: true
+  related_items:
+    - item_id: 9140
+      item_name: Iron bolts
+      slug: iron-bolts
+      relationship: component
+      description: Unpoisoned base bolts
+    - item_id: 175
+      item_name: Weapon poison
+      slug: weapon-poison
+      relationship: component
+      description: Standard weapon poison
+    - item_id: 9293
+      item_name: Iron bolts (p+)
+      slug: iron-bolts-p-plus
+      relationship: upgrade
+      description: Stronger poison variant
+    - item_id: 9299
+      item_name: Iron bolts (p++)
+      slug: iron-bolts-p-plus-plus
+      relationship: upgrade
+      description: Strongest poison variant
+  market_strategy:
+    notes:
+      - Tiny per-unit alch, value pure GE flip
+      - Poison gates out gem-tipped bolt enhancement
+      - 11k buy limit gives decent flip volume
+  trading_tips:
+    - Track spread vs base iron bolts + weapon poison cost
+    - Watch low-level slayer/PvM bolt consumption cycles
+  history:
+    - date: "2006-07-31"
+      update: Crossbows
+      description: Iron bolts (p) released with the Crossbows update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-31"
+    update: Crossbows
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  about: Iron bolts (p) are poison-tipped iron crossbow bolts crafted by combining iron bolts with weapon poison.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

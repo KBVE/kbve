@@ -12,9 +12,79 @@ osrs:
   lowalch: 216
   highalch: 324
   limit: 2000
-  about: "Divine bastion potion(3) is a members-only item in Old School RuneScape. High alchemy value: 324 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    duration_minutes: 5
+    effects:
+      - description: "Boosts Ranged by 4 + 10% of the player's current Ranged level."
+      - description: "Boosts Defence by 5 + 15% of the player's current Defence level."
+      - description: "Prevents the boosted Ranged and Defence stats from draining below the potion's maximum boost while active."
+      - description: "Inflicts 10 Hitpoints damage when consumed, requiring the player to have at least 11 HP."
+  recipes:
+    - product_name: Divine bastion potion(3)
+      skill: Herblore
+      herblore_level: 86
+      experience: 1.5
+      materials:
+        - item_name: Bastion potion(3)
+          quantity: 1
+        - item_name: Crystal dust
+          quantity: 3
+  related_items:
+    - item_id: 24634
+      item_name: Divine bastion potion(4)
+      slug: divine-bastion-potion-4
+      relationship: variant
+      description: Four-dose variant
+    - item_id: 24642
+      item_name: Divine bastion potion(2)
+      slug: divine-bastion-potion-2
+      relationship: variant
+      description: Two-dose variant
+    - item_id: 24646
+      item_name: Divine bastion potion(1)
+      slug: divine-bastion-potion-1
+      relationship: variant
+      description: One-dose variant
+    - item_id: 22461
+      item_name: Bastion potion(3)
+      slug: bastion-potion-3
+      relationship: component
+      description: Base bastion potion combined with crystal dust
+    - item_id: 23964
+      item_name: Crystal dust
+      slug: crystal-dust
+      relationship: component
+      description: Crushed crystal shard ingredient
+  market_strategy:
+    notes:
+      - Used by Ranged PvMers wanting boosted defence without stat drain
+      - Crystal shard supply ties price to Prifddinas activities
+      - Per-dose cost falls when bought as (4)-dose and decanted
+  history:
+    - date: "2020-04-30"
+      update: Poll 70
+      description: Divine bastion potion introduced as part of the divine potion rework giving Ranged and Defence boosts with no stat decay.
+    - date: "2020-07-02"
+      description: Inventory icon graphically updated to match the standardised potion sprite style.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2020-04-30"
+    update: Poll 70
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: "Divine bastion potion(3) is a members-only three-dose Herblore potion that locks in Ranged and Defence boosts for five minutes at the cost of 10 Hitpoints per consumption."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

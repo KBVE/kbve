@@ -1,6 +1,6 @@
 ---
 title: Huasca | OSRS Price Data
-description: "Huasca: A powerful herb.. High alch: 45 GP."
+description: "Huasca: A powerful herb. High alch: 45 GP."
 osrs:
   id: 30097
   name: Huasca
@@ -12,9 +12,86 @@ osrs:
   lowalch: 30
   highalch: 45
   limit: null
-  about: "Huasca is a members-only item in Old School RuneScape. High alchemy value: 45 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: herb
+    tier: high
+  farming:
+    farming_level: 65
+    seed: Huasca seed
+    notes: Grow huasca herbs in herb patches with a huasca seed.
+  recipes:
+    - skill: herblore
+      level: 58
+      xp: 11.8
+      materials:
+        - item_name: Grimy huasca
+          item_id: 30095
+          quantity: 1
+      product: Huasca
+      product_id: 30097
+      product_quantity: 1
+      facility: Inventory (clean herb)
+    - skill: herblore
+      materials:
+        - item_name: Huasca
+          item_id: 30097
+          quantity: 1
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+      product: Huasca potion (unf)
+      facility: Inventory
+  related_items:
+    - item_id: 30095
+      item_name: Grimy huasca
+      slug: grimy-huasca
+      relationship: downgrade
+      description: Uncleaned form of the herb
+    - item_id: 30093
+      item_name: Huasca seed
+      slug: huasca-seed
+      relationship: component
+      description: Farming seed for huasca
+    - item_id: 30099
+      item_name: Huasca potion (unf)
+      slug: huasca-potion-unf
+      relationship: product
+      description: Unfinished potion crafted from clean huasca
+    - item_id: 30103
+      item_name: Prayer regeneration potion
+      slug: prayer-regeneration-potion
+      relationship: product
+      description: Restores 66 prayer points over 8 minutes
+  about: "Huasca is a Herblore 58 clean herb from Varlamore used to brew prayer regeneration potions and aga paste, sourced from grimy huasca or huasca seeds."
+  market_strategy:
+    notes:
+      - Cleaning grimy huasca grants 11.8 Herblore XP at level 58
+      - Prayer regeneration potion (with aldarium) is the main demand driver
+      - Aga paste at Herblore 60 adds a secondary sink
+      - Zahur can clean and unf-process huasca for a fee
+      - GE supply scales with huasca seed farming output
+  history:
+    - date: "2024-09-25"
+      update: Varlamore - The Rising Darkness
+      description: Huasca herb added with the Varlamore second-content drop.
+    - date: "2025-01-08"
+      update: Zahur processing
+      description: Zahur can now process huasca into huasca potion (unf).
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-09-25"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

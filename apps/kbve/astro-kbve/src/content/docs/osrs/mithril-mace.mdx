@@ -12,28 +12,58 @@ osrs:
   lowalch: 234
   highalch: 351
   limit: 125
+  material:
+    type: mithril
+    tier: mid
   equipment:
     slot: weapon
-    type: mace
-    tradeable: true
+    weapon_type: spiked
+    attack_speed: 4
     weight: 1.587
     requirements:
       attack: 20
-    stats:
-      attack_stab: 11
-      attack_slash: -2
-      attack_crush: 18
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 16
+    attack_bonus:
+      stab: 11
+      slash: -2
+      crush: 18
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 16
       ranged_strength: 0
       magic_damage: 0
       prayer: 3
+  recipes:
+    - skill: smithing
+      level: 52
+      xp: 50
+      materials:
+        - item_name: Mithril bar
+          quantity: 1
+      output_quantity: 1
+      notes: Smith on an anvil with a hammer.
+  shops:
+    - shop_name: Warrior Guild Armoury
+      location: Burthorpe
+      price: 702
+    - shop_name: Flynn's Mace Market
+      location: Falador
+      price: 585
+    - shop_name: Briget's Weapons
+      location: Shayzien
+      price: 585
+    - shop_name: Iwan's Maces
+      location: Prifddinas
+      price: 585
+    - shop_name: Spike's Spikes
+      location: Outer Fortis
+      price: 760
   related_items:
     - item_id: 1430
       item_name: Adamant mace
@@ -45,8 +75,41 @@ osrs:
       slug: mithril-warhammer
       relationship: alternative
       description: Higher strength alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 2436
+      item_name: Mithril bar
+      slug: mithril-bar
+      relationship: component
+      description: Smithed into the mace
+  about: Mithril mace is a free-to-play crush mace requiring 20 Attack, smithed from a single mithril bar at 52 Smithing and granting +3 prayer alongside +16 strength.
+  market_strategy:
+    notes:
+      - Cheaper than GE value via Falador shop runs
+      - Niche +3 prayer bonus for low-level prayer trips
+      - Limited F2P demand outside ironmen
+      - Smithing recipe operates at a loss
+  history:
+    - date: "2021-04-21"
+      description: Attack speed decreased from 5 (every 3.0 seconds) to 4 (every 2.4 seconds).
+    - date: "2001-01-04"
+      update: Runescape beta is now online!
+      description: Added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    update: Runescape beta is now online!
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 1.587
+    alchable: true
+    destroy: Drop
+    options:
+      - Wield
+      - Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

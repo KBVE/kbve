@@ -12,9 +12,81 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 13000
-  about: "Raw garden pie is a members-only item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    type: raw
+    cookable: true
+  recipes:
+    - skill: cooking
+      level: 34
+      xp: 138
+      materials:
+        - item_name: Raw garden pie
+          item_id: 7176
+          quantity: 1
+      product: Garden pie
+      product_id: 7178
+      product_quantity: 1
+      members_only: true
+      notes: Cooked on a range; can produce a burnt pie below the no-burn threshold.
+    - skill: cooking
+      level: 34
+      xp: 0
+      materials:
+        - item_name: Part garden pie
+          item_id: 7174
+          quantity: 1
+        - item_name: Cabbage
+          item_id: 1965
+          quantity: 1
+      product: Raw garden pie
+      product_id: 7176
+      product_quantity: 1
+      members_only: true
+      notes: Final assembly step before cooking.
+  related_items:
+    - item_id: 7178
+      item_name: Garden pie
+      slug: garden-pie
+      relationship: product
+      description: Cooked result
+    - item_id: 7174
+      item_name: Part garden pie
+      slug: part-garden-pie
+      relationship: component
+      description: Pre-cabbage assembly stage
+    - item_id: 1965
+      item_name: Cabbage
+      slug: cabbage
+      relationship: component
+      description: Final filling ingredient
+    - item_id: 2313
+      item_name: Pie dish
+      slug: pie-dish
+      relationship: component
+      description: Base container
+  market_strategy:
+    notes:
+      - Farming Guild + Cooking training feeder
+      - Cabbage supply gates production
+      - Cooks to 138 XP per pie
+      - Useful for restoring Farming level
+  about: Raw garden pie is the uncooked stage of the garden pie, assembled from a part garden pie and a cabbage and cooked at level 34 Cooking for 138 experience.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-02-20"
+    update: "Updates, updates and more updates..."
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

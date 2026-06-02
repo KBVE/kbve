@@ -12,6 +12,28 @@ osrs:
   lowalch: 5
   highalch: 7
   limit: 2000
+  potion:
+    doses: 3
+    effects:
+      - description: Boosts Strength by 3 + 10% of current level (rounded down)
+      - description: Boost decays 1 point per minute (90 seconds with Preserve)
+  recipes:
+    - skill: Herblore
+      level: 12
+      xp: 50
+      materials:
+        - item_name: Tarromin potion (unf)
+          quantity: 1
+        - item_name: Limpwurt root
+          quantity: 1
+      output_quantity: 1
+      members_only: true
+  shops:
+    - shop_name: Warriors' Guild Potion Shop
+      location: Warriors' Guild
+      stock: 10
+      price: 15
+      members_only: true
   related_items:
     - item_id: 117
       item_name: Strength potion(2)
@@ -23,12 +45,33 @@ osrs:
       slug: strength-potion-1
       relationship: variant
       description: 1-dose version
-  about: |-
-    > _"3 doses of Strength potion."_
-
-    The strength potion boosts Strength by 3 + 10% of current level (rounded down). Available to both F2P and members, though Herblore brewing is members-only. The Apothecary can make a 4-dose version using limpwurt root, red spiders' eggs, and 5 coins.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: Strength potion(3) provides a Strength boost of 3 + 10% of current level, available to both F2P and members though Herblore brewing is members-only.
+  market_strategy:
+    notes:
+      - F2P tradeable, broad market
+      - Used by F2P combat trainers
+      - Herblore 12 to brew
+      - Limpwurt root + tarromin recipe
+  history:
+    - date: "2001-02-05"
+      description: Added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-02-05"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

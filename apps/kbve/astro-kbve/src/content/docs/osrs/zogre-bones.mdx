@@ -12,9 +12,77 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 3000
-  about: "Zogre bones is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 3,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bone
+    tier: low
+  prayer:
+    xp_bury: 22.5
+    xp_scatter: 22.5
+  drop_table:
+    sources:
+      - source: Zogre
+        combat_level: 44
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Skogre
+        combat_level: 44
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Slash Bash
+        combat_level: 111
+        quantity: "2"
+        rarity: always
+        members_only: true
+      - source: Ogre coffin (Thieving)
+        quantity: "1"
+        rarity: 64/128
+        members_only: true
+  related_items:
+    - item_id: 526
+      item_name: Bones
+      slug: bones
+      relationship: downgrade
+      description: Standard low tier bones
+    - item_id: 4830
+      item_name: Ogre bones
+      slug: ogre-bones
+      relationship: alternative
+      description: Sibling ogre bones from regular ogres
+    - item_id: 6818
+      item_name: Babydragon bones
+      slug: babydragon-bones
+      relationship: upgrade
+      description: Higher tier prayer bones
+  about: Zogre bones are members-only bones unlocked through Zogre Flesh Eaters, dropped by Zogres, Skogres and Slash Bash, giving 22.5 Prayer XP per bury or scatter.
+  market_strategy:
+    notes:
+      - Unlocked behind Zogre Flesh Eaters quest
+      - 22.5 Prayer XP matches regular ogre bones
+      - 3000 buy limit suits big sinkers
+      - Slash Bash drops two per kill
+  history:
+    - date: "2005-05-17"
+      update: Zogre Flesh Eaters
+      description: Released with the Zogre Flesh Eaters quest.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-17"
+    update: Zogre Flesh Eaters
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.8
+    options:
+      - Bury
+      - Drop
+    alchable: false
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

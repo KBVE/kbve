@@ -1,6 +1,6 @@
 ---
 title: Shattered top (t1) | OSRS Price Data
-description: "Shattered top (t1): The shirt of a Shattered Relic Hunter.. High alch: 9,000 GP."
+description: "Shattered top (t1): The shirt of a Shattered Relic Hunter. High alch: 9,000 GP."
 osrs:
   id: 26430
   name: Shattered top (t1)
@@ -12,9 +12,81 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: null
-  about: "Shattered top (t1) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 0.907
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: League hub
+      base_price: 1000
+      currency: League points
+  related_items:
+    - item_name: Shattered hood (t1)
+      slug: shattered-hood-t1
+      relationship: set-piece
+      description: Same tier 1 cosmetic set
+    - item_name: Shattered trousers (t1)
+      slug: shattered-trousers-t1
+      relationship: set-piece
+      description: Same tier 1 cosmetic set
+    - item_name: Shattered boots (t1)
+      slug: shattered-boots-t1
+      relationship: set-piece
+      description: Same tier 1 cosmetic set
+    - item_name: Shattered top (t2)
+      slug: shattered-top-t2
+      relationship: upgrade
+      description: Tier 2 cosmetic upgrade
+    - item_name: Shattered top (t3)
+      slug: shattered-top-t3
+      relationship: upgrade
+      description: Tier 3 cosmetic upgrade
+  market_strategy:
+    notes:
+      - Cosmetic-only with zero combat bonuses
+      - Supply capped by Leagues reward shop sales
+      - Storable in costume room armour case as part of complete outfit
+  history:
+    - date: "2022-03-16"
+      update: "PvP Arena: Rewards Beta"
+      description: Item released as part of the Shattered Relics League tier 1 cosmetic outfit.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2022-03-16"
+    update: "PvP Arena: Rewards Beta"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  about: Shattered top (t1) is a members cosmetic body slot reward from the Shattered Relics League, purchasable for 1,000 League points.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

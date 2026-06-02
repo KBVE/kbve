@@ -14,22 +14,67 @@ osrs:
   limit: 8
   equipment:
     slot: legs
+    weight: 2.7
     requirements:
       prayer: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
     other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 5
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
     - item_id: 12265
       item_name: Bandos robe top
       slug: bandos-robe-top
       relationship: set-piece
       description: Bandos vestment body
-  about: |-
-    > *"Leggings from the Bandos Vestments."*
-
-    The Bandos robe legs are the legs piece of the Bandos vestment set. They provide a +5 Prayer bonus and require 20 Prayer to equip. Counts as a Bandosian item in the God Wars Dungeon.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: Bandos robe legs is the legs piece of the Bandos vestment set, providing a +5 Prayer bonus and counting as a Bandosian item in the God Wars Dungeon.
+  market_strategy:
+    notes:
+      - Obtained exclusively from easy clue caskets
+      - 1/1,404 rarity from reward casket (easy)
+      - Vestment set demand drives price
+      - Used for fashionscape and GWD
+  history:
+    - date: "2014-06-12"
+      update: Treasure Trail Expansion
+      description: Added to the game via the Treasure Trail Expansion update.
+    - date: "2014-07-24"
+      description: Vestment robe tops and legs now offer the same prayer bonuses as monk robes.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 2.7
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

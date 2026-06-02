@@ -12,9 +12,45 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 100
-  about: "Granite (500g) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  related_items:
+    - item_id: 6981
+      item_name: Granite (2kg)
+      slug: granite-2kg
+      relationship: variant
+      description: 2kg granite chunk
+    - item_id: 6983
+      item_name: Granite (5kg)
+      slug: granite-5kg
+      relationship: variant
+      description: 5kg granite chunk
+  market_strategy:
+    notes:
+      - Mined at 45 Mining from granite rocks
+      - Found at Bandit Camp Quarry, Necropolis, Cape Conch
+      - Desert heat protection required for Bandit Camp
+      - 50 Mining XP per chunk
+      - Used in construction and stonemasonry
+  history:
+    - date: "2006-01-23"
+      description: Added to the game with the Desert Treasure update.
+    - date: "2006-01-30"
+      description: Items renamed from Granite (tiny/small/medium) to Granite (500g/2kg/5kg).
+  about: Granite (500g) is a small mined granite chunk obtained at 45 Mining from rocks in the Bandit Camp Quarry and other desert sites.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-01-23"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    alchable: false
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

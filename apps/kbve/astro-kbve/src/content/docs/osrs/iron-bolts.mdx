@@ -12,38 +12,101 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
-  item_id: 9140
-  type: ammunition
-  tradeable: true
-  weight: 0
-  buy_limit: 7000
+  material:
+    type: ammunition
+    tier: low
   equipment:
     slot: ammo
-    type: bolts
+    weapon_type: crossbow
+    weight: 0
     requirements:
       ranged: 26
-    stats:
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 46
-  fletching:
-    level: 39
-    xp: 1.5
-    materials:
-      - item: Iron bolts (unf)
-        quantity: 1
-      - item: Feathers
-        quantity: 1
-  obtaining:
-    fletching: 39 Fletching with iron bolts (unf) + feathers
-    shop: Crossbow Shop, Keldagrim
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Daryl's Ranging Surplus
+      location: Shayzien
+      stock: 1500
+      base_price: 2
+  recipes:
+    - skill: Fletching
+      level: 39
+      xp: 1.5
+      materials:
+        - item_name: Iron bolts (unf)
+          quantity: 10
+        - item_name: Feather
+          quantity: 10
+      output_quantity: 10
   related_items:
-    - slug: steel-bolts
-      name: Steel bolts
-      relation: upgrade
-    - slug: iron-crossbow
-      name: Iron crossbow
-      relation: compatible_weapon
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Bronze bolts
+      slug: bronze-bolts
+      relationship: downgrade
+      description: Lower-tier crossbow bolt
+    - item_name: Steel bolts
+      slug: steel-bolts
+      relationship: upgrade
+      description: Next-tier crossbow bolt
+    - item_name: Iron bolts (unf)
+      slug: iron-bolts-unf
+      relationship: component
+      description: Unfinished bolt fletched with feathers
+    - item_name: Iron crossbow
+      slug: iron-crossbow
+      relationship: alternative
+      description: Compatible crossbow weapon
+    - item_name: Iron bolts (p)
+      slug: iron-bolts-p
+      relationship: variant
+      description: Poisoned version
+  market_strategy:
+    notes:
+      - 26 Ranged requirement keeps mid-game demand steady
+      - Daryl's Ranging Surplus stocks 1,500 at 2 coins
+      - Stackable ammunition with 7000/4h buy limit
+  history:
+    - date: "2006-07-31"
+      update: Crossbows
+      description: Item released with the Crossbows update.
+    - date: "2007-01-16"
+      description: Unpoisoned value decreased from 12 to 2 coins.
+    - date: "2018-01-04"
+      description: Poison variant naming standardised with spacing.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-31"
+    update: Crossbows
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  about: Iron bolts are a members ammunition stackable requiring 26 Ranged, fletched at 39 from iron bolts (unf) and feathers.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,55 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: null
-  about: "Trailblazer reloaded relic hunter (t3) armour set is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  related_items:
+    - item_id: 28771
+      item_name: Trailblazer reloaded headband (t3)
+      slug: trailblazer-reloaded-headband-t3
+      relationship: set-piece
+      description: Head piece bundled in the set
+    - item_id: 28773
+      item_name: Trailblazer reloaded top (t3)
+      slug: trailblazer-reloaded-top-t3
+      relationship: set-piece
+      description: Body piece bundled in the set
+    - item_id: 28775
+      item_name: Trailblazer reloaded trousers (t3)
+      slug: trailblazer-reloaded-trousers-t3
+      relationship: set-piece
+      description: Legs piece bundled in the set
+    - item_id: 28777
+      item_name: Trailblazer reloaded boots (t3)
+      slug: trailblazer-reloaded-boots-t3
+      relationship: set-piece
+      description: Feet piece bundled in the set
+  market_strategy:
+    notes:
+      - Convenience bundle made via the Grand Exchange Sets option
+      - Premium asked over component sum reflects packing convenience
+      - Resale supply tied to Leagues IV cosmetic demand
+  history:
+    - date: "2023-11-22"
+      update: Chambers of Xeric Changes
+      description: Trailblazer reloaded relic hunter (t3) armour set added as a Grand Exchange bundle alongside Leagues IV reward cosmetics.
+    - date: "2023-11-29"
+      description: Initial release typo "Strailblazer" corrected on the item name.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-11-22"
+    update: Chambers of Xeric Changes
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    alchable: false
+    destroy: Drop
+  about: "Trailblazer reloaded relic hunter (t3) armour set is a members-only Grand Exchange bundle holding the Trailblazer Reloaded headband, top, trousers and boots (t3) Leagues IV cosmetics."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

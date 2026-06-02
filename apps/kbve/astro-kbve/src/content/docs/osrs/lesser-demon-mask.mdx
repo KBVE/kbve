@@ -1,6 +1,6 @@
 ---
 title: Lesser demon mask | OSRS Price Data
-description: "Lesser demon mask: Evil.. High alch: 2,400 GP, GE limit: 4."
+description: "Lesser demon mask: Evil. High alch: 2,400 GP, GE limit: 4."
 osrs:
   id: 20020
   name: Lesser demon mask
@@ -12,9 +12,70 @@ osrs:
   lowalch: 1600
   highalch: 2400
   limit: 4
-  about: "Lesser demon mask is a members-only item in Old School RuneScape. High alchemy value: 2,400 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: head
+    weight: 0.8
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_id: 19929
+      item_name: Greater demon mask
+      slug: greater-demon-mask
+      relationship: variant
+      description: Larger cosmetic demon mask
+    - item_id: 19725
+      item_name: Black demon mask
+      slug: black-demon-mask
+      relationship: variant
+      description: Black-variant cosmetic demon mask
+  about: Lesser demon mask is a purely cosmetic head slot item rewarded from master Treasure Trail caskets at roughly 1/851, storable in a costume room mahogany treasure chest.
+  market_strategy:
+    notes:
+      - Tight master clue supply with a 4-per-4-hours limit
+      - Fashionscape demand outpaces drop rate
+      - Storable in a mahogany treasure chest
+      - High alch is a price floor at 2,400 GP
+  history:
+    - date: "2016-07-06"
+      update: Treasure Trail Expansion
+      description: Added to the master Treasure Trail reward pool.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.8
+    alchable: true
+    destroy: Drop
+    options:
+      - Wear
+      - Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

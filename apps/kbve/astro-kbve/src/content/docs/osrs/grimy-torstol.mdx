@@ -12,30 +12,49 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 11000
-  herb:
-    type: grimy
-    tier: highest
-  herblore:
-    cleaning_level: 75
-    cleaning_xp: 15
-    clean_id: 269
-    clean_name: Torstol
+  material:
+    type: herb
+    tier: high
   farming:
-    level: 85
-    seed_id: 5309
+    farming_level: 85
+    seed_id: 5304
     seed_name: Torstol seed
+    plant_xp: 25
+    harvest_xp: 224.5
+  recipes:
+    - skill: Herblore
+      level: 75
+      xp: 15
+      materials:
+        - item_name: Grimy torstol
+          quantity: 1
+      output_quantity: 1
+      output_item: Torstol
+      members_only: true
   drop_table:
     sources:
+      - source: Kalphite Queen
+        source_id: 963
+        combat_level: 333
+        quantity: "25 (noted)"
+        rarity: uncommon
+        members_only: true
+      - source: Scorpia
+        source_id: 7811
+        combat_level: 225
+        quantity: "10-15 (noted)"
+        rarity: uncommon
+        members_only: true
       - source: Zulrah
         source_id: 2042
         combat_level: 725
-        quantity: 10-20 (noted)
+        quantity: "10-20 (noted)"
         rarity: uncommon
         members_only: true
       - source: Cerberus
         source_id: 5862
         combat_level: 318
-        quantity: 5-15 (noted)
+        quantity: "5-15 (noted)"
         rarity: uncommon
         members_only: true
   related_items:
@@ -43,39 +62,51 @@ osrs:
       item_name: Torstol
       slug: torstol
       relationship: product
-      description: Cleaned version
+      description: Cleaned form
     - item_id: 111
       item_name: Torstol potion (unf)
       slug: torstol-potion-unf
       relationship: product
       description: Unfinished potion
+    - item_id: 5304
+      item_name: Torstol seed
+      slug: torstol-seed
+      relationship: component
+      description: Farming seed
     - item_id: 2450
       item_name: Zamorak brew(4)
       slug: zamorak-brew-4
       relationship: product
       description: Primary end product
-    - item_id: 5309
-      item_name: Torstol seed
-      slug: torstol-seed
-      relationship: component
-      description: Farming seed
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Grimy Herb |
-    | Tradeable | Yes |
-    | Weight | 0.007 kg |
-    | Herblore Level | 75 (to clean) |
-
-    Clean to produce torstol for Herblore.
-
-    Torstol used for:
-    - Zamorak brew
-    - Overload (in raids)
-    - Antivenom+
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Top-tier herb supply hard-gated by 85 Farming
+      - Demand pinned to Zamorak brew and super combat
+      - Boss noted-drop streams smooth supply
+  trading_tips:
+    - Track vs clean torstol spread for 75 Herblore cleaning flip
+    - Watch Raids/herb-running cycles for demand spikes
+  history:
+    - date: "2002-12-12"
+      update: RuneScape 2 launch herb pool
+      description: Grimy torstol added as the highest-level Herblore herb.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Clean
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Grimy torstol is the highest-level grimy herb, cleaned at Herblore 75 for use in Zamorak brews and overloads.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

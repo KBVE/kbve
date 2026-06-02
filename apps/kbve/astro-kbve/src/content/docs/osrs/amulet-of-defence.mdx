@@ -14,6 +14,7 @@ osrs:
   limit: 125
   equipment:
     slot: neck
+    weight: 0.01
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,13 +32,11 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements: {}
-    weight: 0.01
   recipes:
     - skill: magic
       level: 27
       xp: 37
-      inputs:
+      materials:
         - item_name: Emerald amulet
           quantity: 1
         - item_name: Cosmic rune
@@ -45,6 +44,7 @@ osrs:
         - item_name: Air rune
           quantity: 3
       output_quantity: 1
+      notes: Lvl-2 Enchant spell on standard spellbook
   related_items:
     - item_id: 1725
       item_name: Amulet of power
@@ -56,39 +56,39 @@ osrs:
       slug: amulet-of-glory
       relationship: upgrade
       description: Superior all-round amulet
-  about: |-
-    | Defence | Value |
-    |---------|-------|
-    | All styles | +7 |
-
-    Requirements: None | Weight: 0.01 kg
-
-    No attack bonuses of any kind — purely defensive.
-
-    One of the few neck slot items available in F2P that provides defence bonuses. The amulet of power (+6 all attack, +1 all defence, +6 str, +1 prayer) is generally preferred, but the amulet of defence offers +6 more defence per style — making it niche for tanking.
-
-    An Amulet of defence (t) variant exists, obtained from beginner Treasure Trail caskets. This trimmed version is purely cosmetic with identical stats, but trades at a premium for fashionscape.
-
-    The amulet of defence is useful for Wilderness skilling (e.g., black chinchompa hunting, Wilderness Agility Course) where players want cheap defensive stats without risking an expensive amulet.
-
-    | Component | Cost |
-    |-----------|------|
-    | Emerald amulet | ~1,200 GP |
-    | 1 Cosmic rune | ~130 GP |
-    | 3 Air runes | ~15 GP |
-    | Total cost | ~1,345 GP |
-    | GE sell price | ~1,800 GP |
-    | Profit | ~455 GP |
-
-    Enchanting emerald amulets into amulets of defence can be marginally profitable and provides decent Magic XP at low levels.
+    - item_id: 1727
+      item_name: Emerald amulet
+      slug: emerald-amulet
+      relationship: component
+      description: Enchanted into the amulet of defence
+  about: Amulet of defence is a free-to-play neck slot item providing +7 defence across every style, created by casting Lvl-2 Enchant on an emerald amulet at 27 Magic.
   market_strategy:
     notes:
       - Steady F2P demand
       - Enchanting can be marginally profitable
       - (t) variant from beginner clues trades at premium
       - Budget Wilderness risk amulet
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2001-05-24"
+      update: New magic system online!
+      description: Added to the game alongside the new Magic system.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-05-24"
+    update: New magic system online!
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 0.01
+    alchable: true
+    destroy: Drop
+    options:
+      - Wear
+      - Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

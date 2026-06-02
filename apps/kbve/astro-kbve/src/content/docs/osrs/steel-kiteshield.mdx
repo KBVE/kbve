@@ -1,6 +1,6 @@
 ---
 title: Steel kiteshield | OSRS Price Data
-description: "Steel kiteshield: A large metal shield.. High alch: 510 GP, GE limit: 125."
+description: "Steel kiteshield: A large metal shield. High alch: 510 GP, GE limit: 125."
 osrs:
   id: 1193
   name: Steel kiteshield
@@ -12,24 +12,114 @@ osrs:
   lowalch: 340
   highalch: 510
   limit: 125
-  item_id: 1193
-  item_type: armor
-  slot: shield
-  type: kiteshield
-  tradeable: true
-  weight: 5.443
-  requirements:
-    defence: 5
-  stats:
-    stab_defence: 13
-    slash_defence: 15
-    crush_defence: 14
-    ranged_defence: 14
+  material:
+    type: ore
+    tier: low
+  equipment:
+    slot: shield
+    weight: 5.443
+    requirements:
+      defence: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -8
+      ranged: -3
+    defence_bonus:
+      stab: 13
+      slash: 15
+      crush: 14
+      magic: -1
+      ranged: 14
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Cassie's Shield Shop
+      location: Falador
+      base_price: 850
+    - shop_name: Seddu's Adventurer's Store
+      location: Nardah
+      stock: 1
+      base_price: 807
+    - shop_name: Shields of Mistrock
+      location: Mistrock
+      stock: 3
+      base_price: 850
+    - shop_name: Elder Blunn's Spear and Shield Stall
+      location: The Summer Shore
+      stock: 4
+      base_price: 850
+  drop_table:
+    sources:
+      - source: Dagannoth Rex
+        combat_level: 303
+        quantity: "1"
+        rarity: 17/128
+        members_only: true
+      - source: Moss giant
+        combat_level: 48
+        quantity: "1"
+        rarity: 1/128
+        members_only: false
+  recipes:
+    - skill: Smithing
+      level: 42
+      xp: 112.5
+      materials:
+        - item_name: Steel bar
+          quantity: 3
+      facility: Anvil
+      tools: [Hammer]
+      output_quantity: 1
   related_items:
-    - slug: black-kiteshield
-    - slug: steel-platebody
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Black kiteshield
+      slug: black-kiteshield
+      relationship: downgrade
+      description: Weaker tier
+    - item_name: Mithril kiteshield
+      slug: mithril-kiteshield
+      relationship: upgrade
+      description: Stronger tier
+    - item_name: Steel platebody
+      slug: steel-platebody
+      relationship: set-piece
+      description: Same metal tier body armor
+  market_strategy:
+    notes:
+      - Common drop from low-level monsters
+      - Smithing target item at level 42
+      - Stock available from multiple shops
+      - Defence 5 requirement makes it accessible
+  history:
+    - date: "2001-01-04"
+      update: Runescape beta is now online
+      description: Item released with the launch of the RuneScape beta.
+    - date: "2004-05-05"
+      description: Graphical update applied.
+    - date: "2021-04-21"
+      description: Ranged attack bonus decreased from -2 to -3.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    update: Runescape beta is now online
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Steel kiteshield is a free-to-play shield requiring 5 Defence to wield, smithed at level 42 from 3 steel bars.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

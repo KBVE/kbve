@@ -1,6 +1,6 @@
 ---
 title: Iron full helm | OSRS Price Data
-description: "Iron full helm: A full face helmet.. High alch: 92 GP, GE limit: 125."
+description: "Iron full helm: A full face helmet. High alch: 92 GP, GE limit: 125."
 osrs:
   id: 1153
   name: Iron full helm
@@ -12,24 +12,79 @@ osrs:
   lowalch: 61
   highalch: 92
   limit: 125
-  item_id: 1153
-  item_type: armor
-  slot: head
-  type: full_helm
-  tradeable: true
-  weight: 2.721
-  requirements:
-    defence: 0
-  stats:
-    stab_defence: 6
-    slash_defence: 7
-    crush_defence: 5
-    ranged_defence: 6
+  material:
+    type: iron
+    tier: low
+  equipment:
+    slot: head
+    weight: 2.721
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -3
+    defence_bonus:
+      stab: 6
+      slash: 7
+      crush: 5
+      magic: -1
+      ranged: 6
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 22
+      xp: 50
+      materials:
+        - item_name: Iron bar
+          quantity: 2
+      output_quantity: 1
+      notes: Smith on an anvil with a hammer.
   related_items:
-    - slug: steel-full-helm
-    - slug: iron-platebody
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1155
+      item_name: Steel full helm
+      slug: steel-full-helm
+      relationship: upgrade
+      description: Next tier of full helm
+    - item_id: 1115
+      item_name: Iron platebody
+      slug: iron-platebody
+      relationship: set-piece
+      description: Matching iron body armour
+  about: Iron full helm is a free-to-play head slot item smithed from 2 iron bars at 22 Smithing, providing low-tier melee defence and prayer-neutral stats.
+  market_strategy:
+    notes:
+      - High daily volume on the GE
+      - Common low-level F2P starter armour
+      - Smithing recipe operates at a loss
+      - Useful for early ironman defence training
+  history:
+    - date: "2021-04-21"
+      description: Ranged attack bonus decreased from -2 to -3.
+    - date: "2001-01-04"
+      update: Runescape beta is now online!
+      description: Added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    update: Runescape beta is now online!
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    alchable: true
+    destroy: Drop
+    options:
+      - Wear
+      - Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

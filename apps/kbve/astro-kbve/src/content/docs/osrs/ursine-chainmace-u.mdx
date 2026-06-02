@@ -12,9 +12,105 @@ osrs:
   lowalch: 70000
   highalch: 105000
   limit: 8
-  about: "Ursine chainmace (u) is a members-only item in Old School RuneScape. High alchemy value: 105,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: spiked
+    attack_speed: 4
+    weight: 2
+    requirements:
+      attack: 70
+    attack_bonus:
+      stab: 53
+      slash: -2
+      crush: 71
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 74
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 2
+  special_attack:
+    name: Bear Down
+    energy_cost: 50
+    description: Doubles accuracy against the target's slash defence; on hit deals 20 damage over 6 seconds, prevents running for 3.6 seconds and drains 20 Agility. Charged variant only.
+  recipes:
+    - skill: smithing
+      level: 85
+      xp: 0
+      materials:
+        - item_name: Viggora's chainmace (u)
+          item_id: 22542
+          quantity: 1
+        - item_name: Claws of Callisto
+          item_id: 27667
+          quantity: 1
+      product: Ursine chainmace (u)
+      product_id: 27657
+      product_quantity: 1
+      facility: Player or Andros Mai (500,000 coin fee)
+      members_only: true
+  related_items:
+    - item_id: 22542
+      item_name: Viggora's chainmace (u)
+      slug: viggoras-chainmace-u
+      relationship: component
+      description: Base wilderness weapon upgraded with claws
+    - item_id: 27667
+      item_name: Claws of Callisto
+      slug: claws-of-callisto
+      relationship: component
+      description: Rare drop from Callisto used to corrupt the chainmace
+    - item_id: 27659
+      item_name: Ursine chainmace
+      slug: ursine-chainmace
+      relationship: upgrade
+      description: Charged version activated with revenant ether
+  about: Ursine chainmace (u) is the uncharged form of the corrupted chainmace, crafted from Viggora's chainmace plus Claws of Callisto at 85 Smithing and the best Wilderness melee weapon when charged.
+  market_strategy:
+    notes:
+      - Charged variant melee BiS for Wilderness PvM
+      - Ether bank deep ties price to revenant supply
+      - 8 per 4 hour buy limit caps liquidity
+      - Andros Mai 500k coin fee for assembly
+  history:
+    - date: "2025-12-17"
+      update: Charge Notification
+      description: Updated the charge notification message for the chainmace.
+    - date: "2023-05-03"
+      update: Ether Prompt
+      description: Added prompts asking for the amount of revenant ether to apply.
+    - date: "2023-02-08"
+      update: Wilderness Boss Polish
+      description: Fixed special attack damage and effect avoidance against Callisto, Venenatis and Vet'ion.
+    - date: "2023-01-25"
+      update: Wilderness Boss Rework
+      description: Released alongside the Wilderness Boss Rework as a corrupted upgrade.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-01-25"
+    update: Wilderness Boss Rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Wield
+      - Dismantle
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
