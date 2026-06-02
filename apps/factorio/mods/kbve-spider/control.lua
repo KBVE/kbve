@@ -504,12 +504,33 @@ local function follow_loop()
 				if d2 < FOLLOW_RADIUS_SQ then
 					pcall(function()
 						if d2 > FOLLOW_REST_DIST_SQ then
-							ally.set_command{
-								type = defines.command.go_to_location,
-								destination = { x = opos.x, y = opos.y },
-								distraction = defines.distraction.by_damage,
-								radius = FOLLOW_DESTINATION_RADIUS,
-							}
+							-- Pass `destination_entity` instead of a static
+							-- `destination` so Factorio's unit AI tracks the
+							-- player as they move. A plain MapPosition makes
+							-- this a one-shot move command — the unit arrives,
+							-- the command completes, and the ally idles even
+							-- though we re-issue every second (each re-issue is
+							-- a *new* one-shot to a stale spot). The character
+							-- entity is the player's body; LuaPlayer.character
+							-- is nil for spectators / editor mode, in which
+							-- case we fall back to a static destination so the
+							-- ally at least catches up to the cursor.
+							local target_entity = owner.character
+							if target_entity and target_entity.valid then
+								ally.set_command{
+									type = defines.command.go_to_location,
+									destination_entity = target_entity,
+									distraction = defines.distraction.by_damage,
+									radius = FOLLOW_DESTINATION_RADIUS,
+								}
+							else
+								ally.set_command{
+									type = defines.command.go_to_location,
+									destination = { x = opos.x, y = opos.y },
+									distraction = defines.distraction.by_damage,
+									radius = FOLLOW_DESTINATION_RADIUS,
+								}
+							end
 						elseif not ally.has_command() then
 							ally.set_command{
 								type = defines.command.wander,
