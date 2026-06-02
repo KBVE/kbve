@@ -697,26 +697,44 @@ jobs:
                   MOD_NAME: ${{ steps.meta.outputs.mod_name }}
                   MOD_VERSION: ${{ steps.meta.outputs.mod_version }}
               run: |
-                  set -euo pipefail
+                  set -uo pipefail
                   if [ -z "${FACTORIO_API_KEY}" ]; then
                     echo "::error::secrets.FACTORIO is empty"
                     exit 1
                   fi
                   ZIP="dist/${MOD_NAME}_${MOD_VERSION}.zip"
-                  INIT=$(curl -sS --fail-with-body -X POST \
+
+                  INIT_HTTP=$(curl -sS -o /tmp/init.json -w "%{http_code}" -X POST \
                       -H "Authorization: Bearer ${FACTORIO_API_KEY}" \
                       -F "mod=${MOD_NAME}" \
                       "https://mods.factorio.com/api/v2/mods/releases/init_upload")
-                  UPLOAD_URL=$(printf '%s' "$INIT" | jq -r '.upload_url // empty')
-                  if [ -z "$UPLOAD_URL" ]; then
-                    echo "::error::init_upload did not return upload_url"
-                    echo "$INIT"
+                  INIT_BODY=$(cat /tmp/init.json)
+                  echo "init_upload HTTP ${INIT_HTTP}"
+                  echo "${INIT_BODY}"
+                  if [ "${INIT_HTTP}" != "200" ]; then
+                    if [ "${INIT_HTTP}" = "400" ] || [ "${INIT_HTTP}" = "401" ] || [ "${INIT_HTTP}" = "403" ] || [ "${INIT_HTTP}" = "404" ]; then
+                      echo "::warning::portal init_upload returned ${INIT_HTTP} for ${MOD_NAME} — most likely the FACTORIO API key is not authorised for this mod slug. Rotate the key on https://mods.factorio.com/profile and grant it ModPortal:Upload Mods for ${MOD_NAME}."
+                      exit 0
+                    fi
+                    echo "::error::init_upload returned HTTP ${INIT_HTTP}"
                     exit 1
                   fi
-                  RESP=$(curl -sS --fail-with-body -X POST -F "file=@${ZIP}" "$UPLOAD_URL")
-                  if printf '%s' "$RESP" | jq -e '.error // empty | length > 0' >/dev/null 2>&1; then
+                  UPLOAD_URL=$(printf '%s' "${INIT_BODY}" | jq -r '.upload_url // empty')
+                  if [ -z "${UPLOAD_URL}" ]; then
+                    echo "::error::init_upload did not return upload_url"
+                    exit 1
+                  fi
+
+                  RESP_HTTP=$(curl -sS -o /tmp/resp.json -w "%{http_code}" -X POST -F "file=@${ZIP}" "${UPLOAD_URL}")
+                  RESP_BODY=$(cat /tmp/resp.json)
+                  echo "upload HTTP ${RESP_HTTP}"
+                  echo "${RESP_BODY}"
+                  if [ "${RESP_HTTP}" != "200" ]; then
+                    echo "::error::portal upload returned HTTP ${RESP_HTTP}"
+                    exit 1
+                  fi
+                  if printf '%s' "${RESP_BODY}" | jq -e '.error // empty | length > 0' >/dev/null 2>&1; then
                     echo "::error::portal rejected the upload"
-                    echo "$RESP"
                     exit 1
                   fi
                   echo "::notice::published ${MOD_NAME} ${MOD_VERSION} → https://mods.factorio.com/mod/${MOD_NAME}"
