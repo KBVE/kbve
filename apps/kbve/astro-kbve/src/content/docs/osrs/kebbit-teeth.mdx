@@ -1,6 +1,6 @@
 ---
 title: Kebbit teeth | OSRS Price Data
-description: "Kebbit teeth: A kebbit-sized set of dentures.. High alch: 96 GP, GE limit: 10,000."
+description: "Kebbit teeth: A kebbit-sized set of dentures. High alch: 96 GP, GE limit: 10,000."
 osrs:
   id: 10109
   name: Kebbit teeth
@@ -12,9 +12,67 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 10000
-  about: "Kebbit teeth is a members-only item in Old School RuneScape. High alchemy value: 96 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: hunter
+    tier: mid
+  drop_table:
+    sources:
+      - source: Sabre-toothed kebbit
+        combat_level: 0
+        quantity: "1"
+        rarity: always
+        members_only: true
+        notes: Deadfall trap at 51 Hunter
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Kebbit teeth
+          item_id: 10109
+          quantity: 1
+        - item_name: Pestle and mortar
+          item_id: 233
+          quantity: 1
+      members_only: true
+      output_item: Kebbit teeth dust
+  related_items:
+    - item_id: 10111
+      item_name: Kebbit teeth dust
+      slug: kebbit-teeth-dust
+      relationship: product
+      description: Ground form, used in Hunter potions
+    - item_id: 10000
+      item_name: Hunter potion(4)
+      slug: hunter-potion-4
+      relationship: product
+      description: Final Herblore product using the dust
+  about: Kebbit teeth are dropped by Sabre-toothed kebbits trapped via deadfall at 51 Hunter, then ground with a pestle and mortar into Kebbit teeth dust for Hunter potions.
+  market_strategy:
+    notes:
+      - Supply gated by 51 Hunter Sabre-toothed kebbit trapping
+      - Demand driven by Hunter potion Herblore training
+      - Steady price floor around alch value
+  history:
+    - date: "2006-11-21"
+      update: HUNTER SKILL!
+      description: Kebbit teeth introduced with the Hunter skill launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: HUNTER SKILL!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -17,7 +17,6 @@ on:
                 description: 'Godot version to use for the build'
                 required: true
                 type: string
-                default: '4.3'
             export_name:
                 description: 'Export name for the build'
                 required: true

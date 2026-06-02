@@ -75,9 +75,6 @@ on:
             should_release:
                 description: 'Whether a new release was created'
                 value: ${{ jobs.version-check.outputs.should_release }}
-            build_result:
-                description: 'Build job result'
-                value: ${{ jobs.build.result }}
 
 permissions: {}
 

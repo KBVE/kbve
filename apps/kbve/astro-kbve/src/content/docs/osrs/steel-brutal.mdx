@@ -1,6 +1,6 @@
 ---
 title: Steel brutal | OSRS Price Data
-description: "Steel brutal: Blunt steel arrow... ouch.. High alch: 12 GP, GE limit: 11,000."
+description: "Steel brutal: Blunt steel arrow... ouch. High alch: 12 GP, GE limit: 11,000."
 osrs:
   id: 4783
   name: Steel brutal
@@ -12,9 +12,81 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 11000
-  about: "Steel brutal is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ammunition
+    tier: mid
+  equipment:
+    slot: ammo
+    weapon_type: bow
+    weight: 0
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 19
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Fletching
+      level: 33
+      xp: 30.6
+      materials:
+        - item_name: Flighted ogre arrow
+          quantity: 6
+        - item_name: Steel nails
+          quantity: 6
+      product: Steel brutal
+      product_id: 4783
+  related_items:
+    - item_id: 4825
+      item_name: Ogre composite bow
+      slug: ogre-composite-bow
+      relationship: alternative
+      description: Bow that fires brutal arrows
+    - item_id: 4827
+      item_name: Comp ogre bow
+      slug: comp-ogre-bow
+      relationship: alternative
+      description: Composite ogre bow upgrade
+  market_strategy:
+    title: Chompy hunting ammo
+    notes:
+      - Requires partial Zogre Flesh Eaters completion
+      - Used with ogre bow vs zogres, skogres and chompy birds
+      - Fletched 6-at-a-time from steel nails + flighted ogre arrows
+  history:
+    - date: "2005-05-17"
+      update: "Zogre Flesh Eaters"
+      description: Added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "17 May 2005"
+    update: "Zogre Flesh Eaters"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    alchable: true
+  about: Steel brutal is a members-only fletched arrow used with ogre and composite ogre bows against zogres, skogres and chompy birds.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

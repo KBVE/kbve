@@ -1,6 +1,6 @@
 ---
 title: Desert shirt | OSRS Price Data
-description: "Desert shirt: A cool, light desert shirt.. High alch: 24 GP, GE limit: 150."
+description: "Desert shirt: A cool, light desert shirt. High alch: 24 GP, GE limit: 150."
 osrs:
   id: 1833
   name: Desert shirt
@@ -12,9 +12,91 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 150
-  about: "Desert shirt is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: body
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Ali's Discount Wares
+      location: Al Kharid
+      price: 40
+      currency: coins
+      members_only: true
+    - shop_name: Pollnivneach general store
+      location: Pollnivneach
+      price: 40
+      currency: coins
+      members_only: true
+    - shop_name: Shantay Pass Shop
+      location: Shantay Pass
+      price: 40
+      currency: coins
+      members_only: true
+    - shop_name: Raetul and Co's Cloth Store
+      location: Sophanem
+      price: 40
+      currency: coins
+      members_only: true
+    - shop_name: Bandit Bargains
+      location: Bandit Camp
+      price: 40
+      currency: coins
+      members_only: true
+  related_items:
+    - item_id: 1835
+      item_name: Desert robe
+      slug: desert-robe
+      relationship: set-piece
+      description: Desert outfit legs
+    - item_id: 1837
+      item_name: Desert boots
+      slug: desert-boots
+      relationship: set-piece
+      description: Desert outfit footwear
+  market_strategy:
+    title: Desert heat delay gear
+    notes:
+      - Delays desert heat effect by an extra 12 seconds when worn
+      - Cheap and widely stocked in desert shops
+      - Common kit for Kharidian Desert content
+  history:
+    - date: "2003-04-14"
+      update: "Tourist Trap"
+      description: Added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "14 Apr 2003"
+    update: "Tourist Trap"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  about: Desert shirt is a members-only body slot item from desert shops that delays the Kharidian Desert heat effect by 12 additional seconds when worn.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

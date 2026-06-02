@@ -12,53 +12,79 @@ osrs:
   lowalch: 300000
   highalch: 450000
   limit: 5
-  item:
+  material:
     type: crafting_material
-    tradeable: true
-    weight: 2
-  obtaining:
-    methods:
+    tier: high
+  drop_table:
+    sources:
       - source: Corporeal Beast
-        drop_rate: 3/512 (~1/171)
-  creation:
-    creates:
-      item_id: 12831
-      item_name: Blessed spirit shield
-      slug: blessed-spirit-shield
-    method: Combine with Spirit shield
-    requirements:
-      prayer: 85
-    note: Blessed spirit shield can then be combined with sigils
+        combat_level: 785
+        quantity: "1"
+        rarity: 3/512
+        members_only: true
+  recipes:
+    - skill: prayer
+      level: 85
+      xp: 0
+      materials:
+        - item_name: Spirit shield
+          item_id: 12829
+          quantity: 1
+        - item_name: Holy elixir
+          item_id: 12833
+          quantity: 1
+      product: Blessed spirit shield
+      product_id: 12831
+      product_quantity: 1
+      members_only: true
+      notes: Blessed spirit shield can then be combined with sigils to make spectral, arcane, elysian, or divine spirit shields.
   related_items:
-    - item_id: 0
-      item_name: Corporeal Beast
-      slug: corporeal-beast
-      relationship: component
-      description: Source
     - item_id: 12829
       item_name: Spirit shield
       slug: spirit-shield
       relationship: component
-      description: Required material
+      description: Required base shield
     - item_id: 12831
       item_name: Blessed spirit shield
       slug: blessed-spirit-shield
       relationship: product
-      description: Created item
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 2 kg |
-
-    | Item Created | Materials | Requirements |
-    |--------------|-----------|--------------|
-    | Blessed spirit shield | Spirit shield + Holy elixir | 85 Prayer |
-
-    Blessed spirit shield can then be combined with sigils.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Product created when combined with spirit shield
+    - item_id: 0
+      item_name: Corporeal Beast
+      slug: corporeal-beast
+      relationship: alternative
+      description: Drop source
+  about: Holy elixir is a rare drop from the Corporeal Beast used at 85 Prayer to bless a spirit shield into a blessed spirit shield, the base for all sigil-tier spirit shields.
+  market_strategy:
+    notes:
+      - Supply gated by Corporeal Beast kill rates
+      - Demand from blessed spirit shield production
+      - Buy limit 5 makes flips slow
+      - Long-term hold against shield meta shifts
+  trading_tips:
+    - Watch Corp Beast popularity for supply pulses
+    - Track blessed spirit shield and sigil prices in tandem
+    - Patient flipper item due to thin volume
+  history:
+    - date: "2014-10-16"
+      update: "Corporeal Beast"
+      description: Released alongside the Corporeal Beast as a tradeable rare drop used to bless spirit shields.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-10-16"
+    update: "Corporeal Beast"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

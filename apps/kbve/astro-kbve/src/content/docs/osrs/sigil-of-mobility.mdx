@@ -12,9 +12,52 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  about: "Sigil of mobility is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: sigil
+    tier: mid
+  drop_table:
+    sources:
+      - source: Deadman Mode monster drop table
+        quantity: "1"
+        rarity: very rare
+        members_only: true
+        notes: Drops from most monsters while playing in temporary Deadman Mode events.
+  related_items:
+    - item_name: Sigil of consistency
+      slug: sigil-of-consistency
+      relationship: alternative
+      description: Companion Deadman Mode utility sigil with a different attunement effect.
+    - item_name: Sigil of stamina
+      slug: sigil-of-stamina
+      relationship: alternative
+      description: Stamina-themed Deadman Mode utility sigil.
+  about: Sigil of mobility is a tier 1 utility Deadman Mode sigil that, once attuned, removes rune and XP costs from teleports, only obtainable during temporary Deadman events.
+  market_strategy:
+    notes:
+      - Only obtainable during Deadman Mode events - supply is limited to event windows.
+      - Reduces logistics overhead on alts that teleport frequently during ranked play.
+      - Stack with stamina-style sigils to free up gear slots in PvP setups.
+  history:
+    - date: "2021-08-25"
+      update: Deadman - Reborn
+      description: Released with the Deadman - Reborn event as a utility sigil that nullifies teleport rune and XP costs once attuned.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-08-25"
+    update: Deadman - Reborn
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Destroy
+    alchable: false
+    destroy: Destroy
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

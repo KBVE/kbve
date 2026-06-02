@@ -12,9 +12,67 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 4
-  about: "Wolf cloak is a free-to-play item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: mid
+  equipment:
+    slot: cape
+    weight: 0.453
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    casket: Reward casket (medium)
+    rarity: 1/1133
+  related_items:
+    - item_id: 0
+      item_name: Reward casket (medium)
+      slug: reward-casket-medium
+      relationship: alternative
+      description: Medium clue reward casket
+  about: Wolf cloak is a free-to-play cosmetic cape from medium Treasure Trails that counts as warm clothing in Wintertodt despite no combat bonuses.
+  market_strategy:
+    notes:
+      - F2P accessible via GE
+      - Tiny buy limit constrains flips
+      - Wintertodt warm-clothing utility supports demand
+  history:
+    - date: "2019-04-11"
+      update: Treasure Trails Expansion / Easter 2019
+      description: Added as a medium clue reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: 11 April 2019
+    update: Treasure Trails Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

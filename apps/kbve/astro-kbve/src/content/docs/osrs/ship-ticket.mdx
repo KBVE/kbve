@@ -12,13 +12,48 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 18000
-  related_items: []
-  about: |-
-    > _"Take this to the ship captain."_
-
-    A ship ticket is used to travel by ship between Port Sarim and Karamja. Consumed on use. The one-time 30 coin fee is one of the earliest travel costs new players encounter.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  shops:
+    - shop_name: Seravel
+      location: Shilo Village
+      price: 25
+    - shop_name: Captain Shanks
+      location: Port Sarim
+      price: 26
+  drop_table:
+    sources:
+      - source: Barrel (Shaman Caves, Legends' Quest)
+        quantity: "1"
+        rarity: 1/100
+        members_only: true
+  related_items:
+    - item_name: Karamja gloves
+      slug: karamja-gloves
+      relationship: alternative
+      description: Karamja Diary reward replaces ticket need
+  about: Ship ticket grants single passage aboard the Lady of the Waves between Port Sarim and Port Khazard/Shilo Village and is consumed on use.
+  market_strategy:
+    notes:
+      - Shop-priced cheap travel item
+      - Speculation capped by 18k GE limit
+      - Legacy travel option
+  history:
+    - date: "2003-01-27"
+      description: Released with the Shilo Village quest update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-01-27"
+    update: Shilo Village
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.004
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

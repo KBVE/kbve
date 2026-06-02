@@ -136,12 +136,17 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 	scene.add(vrm.scene);
 	applyRestPose(vrm);
 
-	try {
-		(
-			vrm as unknown as { springBoneManager?: { reset?: () => void } }
-		).springBoneManager?.reset?.();
-	} catch {
-		void 0;
+	if (
+		typeof window !== 'undefined' &&
+		/[?&]yuki-debug=1/.test(window.location.search)
+	) {
+		console.warn('[yuki-vrm] loaded', {
+			hasHumanoid: !!vrm.humanoid,
+			sceneChildren: scene.children.length,
+			canvasSize: { w: canvas.width, h: canvas.height },
+			hostSize: { w: host.clientWidth, h: host.clientHeight },
+			vrmUrl,
+		});
 	}
 
 	const humanoid = vrm.humanoid;
@@ -267,8 +272,8 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 	const tick = (now: number) => {
 		if (disposed) return;
 		rafId = requestAnimationFrame(tick);
-		if (!active) return;
 		if (document.visibilityState !== 'visible') return;
+		void active;
 
 		const idleMs = now - lastInteractionMs;
 		const isIdle =

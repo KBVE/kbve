@@ -14,81 +14,82 @@ osrs:
   limit: 10000
   equipment:
     slot: neck
-    type: necklace
-    tradeable: true
     weight: 0.01
-    stats:
-      all: 0
-  creation:
-    method: Enchant Diamond necklace with Lvl-4 Enchant
-    requirements:
-      magic: 57
-    materials:
-      - item_id: 1662
-        item_name: Diamond necklace
-        slug: diamond-necklace
-      - item_id: 564
-        item_name: Cosmic rune
-        quantity: 1
-      - item_id: 557
-        item_name: Earth rune
-        quantity: 10
-  passive_effects:
-    - name: Emergency Heal
-      description: Triggers at 20% HP or below, restores 30% of max HP, clears pending damage, destroys after use
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - name: Enchant Diamond necklace (Lvl-4 Enchant)
+      magic_level: 57
+      magic_xp: 67
+      materials:
+        - item_id: 1662
+          item_name: Diamond necklace
+          quantity: 1
+        - item_id: 564
+          item_name: Cosmic rune
+          quantity: 1
+        - item_id: 557
+          item_name: Earth rune
+          quantity: 10
+      output_quantity: 1
   related_items:
     - item_id: 2570
       item_name: Ring of life
       slug: ring-of-life
       relationship: alternative
-      description: Teleport safety
+      description: Teleport-on-low-HP safety net
     - item_id: 1662
       item_name: Diamond necklace
       slug: diamond-necklace
       relationship: component
-      description: Base item
+      description: Base item before enchanting
     - item_id: 6685
       item_name: Saradomin brew
       slug: saradomin-brew
       relationship: alternative
-      description: Manual healing
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Neck |
-    | Type | Combat Necklace |
-    | Tradeable | Yes |
-    | Weight | 0.01 kg |
-
-    Enchant Diamond necklace with Lvl-4 Enchant.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Magic | 57 |
-    | Cosmic rune | 1 |
-    | Earth rune | 10 |
-
-    All bonuses +0
-
-    Emergency Heal:
-    - Triggers at 20% HP or below
-    - Restores 30% of max HP
-    - Clears pending damage
-    - Destroys after use
-
-    Essential for:
-    - PvP survival
-    - Risky PvM
-    - Hardcore Ironmen
-
-    Auto-heal safety net.
+      description: Manual heal alternative
+  about: Phoenix necklace is a Lvl-4 enchanted diamond necklace that auto-heals 30% max HP when the wearer drops to 20% HP, then breaks.
   market_strategy:
     notes:
-      - Great for HCIM
-      - One-time use
-      - Clears damage queue
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Staple safety item for HCIM and risky PvM
+      - One-time use keeps demand constant
+      - Clears pending damage queue on proc
+  history:
+    - date: "2025-03-26"
+      description: Phoenix proc no longer restores sanity during the Whisperer fight.
+    - date: "2025-05-29"
+      description: Phoenix proc no longer removes the soulflame horn buff.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-04-30"
+    update: 24 Carat Update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

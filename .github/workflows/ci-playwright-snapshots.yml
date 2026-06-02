@@ -1,0 +1,123 @@
+name: CI - Playwright Snapshots
+
+run-name: 'CI - Playwright Snapshots / ${{ inputs.project }} / ${{ inputs.base_branch }}'
+
+on:
+    workflow_dispatch:
+        inputs:
+            project:
+                description: 'Nx project to refresh snapshots for'
+                required: false
+                default: 'astro-kbve'
+                type: string
+            base_branch:
+                description: 'Base branch to refresh against'
+                required: false
+                default: 'dev'
+                type: string
+
+concurrency:
+    group: ${{ github.workflow }}-${{ inputs.project }}-${{ inputs.base_branch }}
+    cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+    refresh-snapshots:
+        name: Refresh ${{ inputs.project }} snapshots
+        runs-on: ubuntu-latest
+        timeout-minutes: 45
+        permissions:
+            contents: write
+            pull-requests: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  ref: ${{ inputs.base_branch }}
+                  fetch-depth: 0
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v5
+              with:
+                  version: 10.33.0
+                  run_install: false
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Install Playwright browsers
+              timeout-minutes: 15
+              run: pnpm exec playwright install --with-deps chromium webkit
+
+            - name: Build project
+              env:
+                  NX_NO_CLOUD: 'true'
+                  NODE_OPTIONS: '--max-old-space-size=8192'
+              run: pnpm nx run ${{ inputs.project }}:build --no-cloud --output-style=stream
+
+            - name: Update Playwright snapshots
+              env:
+                  CI: 'true'
+              run: |
+                  cd apps/kbve/${{ inputs.project }}
+                  pnpm exec playwright test --config=playwright.config.ts --update-snapshots --reporter=line
+
+            - name: Detect changes
+              id: detect
+              run: |
+                  if git diff --quiet apps/kbve/${{ inputs.project }}/e2e/__screenshots__ 2>/dev/null && \
+                     [ -z "$(git status --porcelain apps/kbve/${{ inputs.project }}/e2e/__screenshots__ 2>/dev/null)" ]; then
+                    echo "changed=false" >> "$GITHUB_OUTPUT"
+                    echo "No snapshot changes detected."
+                  else
+                    echo "changed=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Open PR with refreshed snapshots
+              if: steps.detect.outputs.changed == 'true'
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  set -euo pipefail
+                  BRANCH="atom/playwright-snapshots-${{ inputs.project }}-${{ github.run_id }}"
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git checkout -b "$BRANCH"
+                  git add apps/kbve/${{ inputs.project }}/e2e/__screenshots__
+                  git commit -m "test(${{ inputs.project }}): refresh Playwright baselines via workflow_dispatch"
+                  git push origin "$BRANCH"
+
+                  cat > /tmp/pr-body.md <<'PREOF'
+                  ## Summary
+                  Auto-refresh of Playwright `toHaveScreenshot()` baselines for `${{ inputs.project }}`.
+
+                  Triggered via `ci-playwright-snapshots` workflow_dispatch on `${{ inputs.base_branch }}` by @${{ github.actor }}.
+
+                  ## How to reproduce locally
+                  ```sh
+                  cd apps/kbve/${{ inputs.project }}
+                  pnpm exec playwright test --config=playwright.config.ts --update-snapshots
+                  ```
+
+                  ## Review checklist
+                  - [ ] Inspect each updated PNG under `apps/kbve/${{ inputs.project }}/e2e/__screenshots__/<project>/`
+                  - [ ] Confirm the diff is an intentional UI change (or an accepted UA-render shift)
+                  PREOF
+
+                  gh pr create \
+                    --base ${{ inputs.base_branch }} \
+                    --head "$BRANCH" \
+                    --title "test(${{ inputs.project }}): refresh Playwright baselines" \
+                    --body-file /tmp/pr-body.md \
+                    --label "atomic,auto-pr"
+
+            - name: No-op summary
+              if: steps.detect.outputs.changed == 'false'
+              run: echo "Snapshots are already up to date — no PR opened."

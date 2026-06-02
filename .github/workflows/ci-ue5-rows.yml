@@ -11,6 +11,9 @@ on:
             epic_pat:
                 description: 'PAT with access to ghcr.io/epicgames/unreal-engine and game repo (falls back to UNITY_PAT)'
                 required: false
+            UNITY_PAT:
+                description: 'Fallback org-level PAT used when epic_pat is not provided'
+                required: false
     workflow_dispatch:
         inputs:
             shell_path:
@@ -356,7 +359,7 @@ jobs:
     track_failure:
         name: Track Failures
         if: ${{ always() && contains(needs.*.result, 'failure') }}
-        needs: [build, version_gate]
+        needs: [config, build, version_gate]
         permissions:
             issues: write
             contents: read

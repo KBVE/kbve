@@ -1,6 +1,6 @@
 ---
 title: Plant cure | OSRS Price Data
-description: "Plant cure: Use this on plants to cure disease.. High alch: 24 GP, GE limit: 2,000."
+description: "Plant cure: Use this on plants to cure disease. High alch: 24 GP, GE limit: 2,000."
 osrs:
   id: 6036
   name: Plant cure
@@ -12,9 +12,46 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 2000
-  about: "Plant cure is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Farming shops
+      location: Various farming patches and the Farming Guild
+      price: 40
+      currency: coins
+      members_only: true
+  related_items:
+    - item_id: 6036
+      item_name: Plant cure
+      slug: plant-cure
+      relationship: component
+      description: Combined with rune dust during Garden of Tranquillity for strengthened cure.
+  market_strategy:
+    title: Farming Utility
+    notes:
+      - Cheap shop-bought consumable for diseased crops
+      - Cannot revive dead plants — apply early
+      - Auto-vial-smash on use since 2020 patch
+  history:
+    - date: "2020-08-01"
+      update: Quality of Life
+      description: Plant cure now automatically smashes the vial on use.
+    - date: "2005-07-11"
+      update: Farming
+      description: Added with the Farming skill release.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "11 Jul 2005"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options: [Empty, Drop]
+    alchable: true
+  about: Farming consumable used to cure diseased crops before they die.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

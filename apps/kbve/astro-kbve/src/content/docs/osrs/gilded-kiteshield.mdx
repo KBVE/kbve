@@ -1,6 +1,6 @@
 ---
 title: Gilded kiteshield | OSRS Price Data
-description: "Gilded kiteshield is a F2P shield slot item requiring 40 Defence. High alch: 32,640 GP, GE limit: 8."
+description: "Gilded kiteshield: Rune kiteshield with gold plate. High alch: 32,640 GP, GE limit: 8."
 osrs:
   id: 3488
   name: Gilded kiteshield
@@ -14,50 +14,51 @@ osrs:
   limit: 8
   equipment:
     slot: shield
-    type: melee armour
-    attack_style: melee
+    weight: 5.443
     requirements:
       defence: 40
-    stats:
-      defence_stab: 44
-      defence_slash: 48
-      defence_crush: 46
-      defence_magic: -1
-      defence_ranged: 46
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -8
+      ranged: -3
+    defence_bonus:
+      stab: 44
+      slash: 48
+      crush: 46
+      magic: -1
+      ranged: 46
+    other_bonus:
       melee_strength: 0
-      prayer_bonus: 0
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Hard
-        rarity: Rare
-        description: Rare reward from hard clue scrolls
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers: [hard, elite, master]
   related_items:
     - item_id: 3486
       item_name: Gilded full helm
       slug: gilded-full-helm
       relationship: set-piece
-      description: Head slot of gilded set
+      description: Head slot of gilded set.
     - item_id: 3481
       item_name: Gilded platebody
       slug: gilded-platebody
       relationship: set-piece
-      description: Body slot of gilded set
+      description: Body slot of gilded set.
     - item_id: 3483
       item_name: Gilded platelegs
       slug: gilded-platelegs
       relationship: set-piece
-      description: Leg slot of gilded set
+      description: Leg slot of gilded set.
     - item_id: 12389
       item_name: Gilded scimitar
       slug: gilded-scimitar
       relationship: set-piece
-      description: Weapon of gilded set
-  about: |-
-    The gilded kiteshield is a cosmetic variant of the rune kiteshield with identical stats but a prestigious golden appearance. It requires 40 Defence to wear.
-
-    Gilded armour is obtained from Treasure Trails and is valued for its appearance rather than stats. It shares the same defensive bonuses as rune armour but costs significantly more due to its rarity and fashionscape appeal.
+      description: Weapon of gilded set.
   market_strategy:
     title: Investment Notes
     notes:
@@ -67,8 +68,32 @@ osrs:
       - Compare prices with rune equivalent for value assessment
       - Watch for dips after clue scroll events
       - Popular with free-to-play players for fashion
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2021-04-21"
+      update: Combat rebalance
+      description: Ranged attack bonus decreased from -2 to -3.
+    - date: "2016-05-19"
+      update: F2P content
+      description: Made accessible to free-to-play players.
+    - date: "2004-10-26"
+      update: Treasure Trails
+      description: Added as a reward from the Treasure Trails clue system.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "26 Oct 2004"
+    update: Treasure Trails
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options: [Wear, Drop]
+    worn_options: [Remove]
+    alchable: true
+  about: Cosmetic gilded variant of the rune kiteshield, rare clue scroll reward with matching stats.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

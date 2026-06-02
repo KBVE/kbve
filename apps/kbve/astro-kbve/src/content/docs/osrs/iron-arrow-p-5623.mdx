@@ -12,9 +12,97 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
-  about: "Iron arrow(p++) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ammunition
+    tier: low
+  equipment:
+    slot: ammo
+    weapon_type: thrown
+    attack_speed: 1
+    weight: 0
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 10
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 15
+      xp: 37.5
+      materials:
+        - item_name: Iron arrow
+          item_id: 884
+          quantity: 5
+        - item_name: Weapon poison(++)
+          item_id: 5940
+          quantity: 1
+      product: Iron arrow(p++)
+      product_id: 5623
+      product_quantity: 5
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 884
+      item_name: Iron arrow
+      slug: iron-arrow
+      relationship: component
+      description: Unpoisoned base arrow
+    - item_id: 5621
+      item_name: Iron arrow(p)
+      slug: iron-arrow-p-5621
+      relationship: downgrade
+      description: Weakest poison variant
+    - item_id: 5622
+      item_name: Iron arrow(p+)
+      slug: iron-arrow-p-5622
+      relationship: downgrade
+      description: Medium poison variant
+    - item_id: 5940
+      item_name: Weapon poison(++)
+      slug: weapon-poison
+      relationship: component
+      description: Poison applied to arrows
+  market_strategy:
+    notes:
+      - Niche poisoned ammunition for low-level ranged content
+      - Members-only despite base iron arrow being F2P
+      - Demand limited compared to higher-tier poisoned arrows
+  history:
+    - date: "2025-05-29"
+      description: Iron arrows exempted from the Grand Exchange convenience fee.
+  properties:
+    release_date: "2002-03-25"
+    update: RuneScape Launch
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  about: Iron arrow(p++) is a poisoned iron arrow created by applying weapon poison(++) to five iron arrows.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

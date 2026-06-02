@@ -12,9 +12,94 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: 70
-  about: "Tzhaar-ket-em is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: obsidian
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: blunt
+    attack_speed: 5
+    weight: 1.814
+    requirements:
+      attack: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 62
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 56
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: TzHaar-Ket
+        combat_level: 149
+        quantity: "1"
+        rarity: rare
+        members_only: true
+  shops:
+    - shop_name: TzHaar-Hur-Zal's Equipment Store
+      location: Mor Ul Rek
+      price: 37500
+  related_items:
+    - item_id: 6528
+      item_name: Tzhaar-ket-om
+      slug: tzhaar-ket-om
+      relationship: upgrade
+      description: Two-handed obsidian maul variant
+    - item_id: 1434
+      item_name: Dragon mace
+      slug: dragon-mace
+      relationship: alternative
+      description: Comparable melee mace tier
+    - item_id: 11128
+      item_name: Berserker necklace
+      slug: berserker-necklace
+      relationship: alternative
+      description: Provides 20% damage boost with obsidian weapons
+  market_strategy:
+    notes:
+      - Strongest non-special obsidian mace
+      - 20% boost with Berserker necklace
+      - Obsidian armour set bonus stacks (+10% melee accuracy/strength)
+      - Niche use vs dragon mace (no special attack)
+      - Sold by TzHaar shop in Tokkul or coins
+      - GE limit 70 per 4 hours
+  history:
+    - date: "2005-09-19"
+      update: Massive minigame - Fight Pits
+      description: Item added to the game with the TzHaar city.
+    - date: "2021-04-28"
+      update: Game update
+      description: Attack speed reverted to 5 ticks after temporary 4-tick adjustment.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-09-19"
+    update: Massive minigame - Fight Pits
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
+    destroy: Drop
+  about: Tzhaar-ket-em is an obsidian one-handed mace requiring 60 Attack, slightly stronger than the dragon mace but without a special attack.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

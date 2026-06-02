@@ -12,9 +12,52 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 8000
-  about: "Sandworms is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 8,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Tynan's Fishing Supplies
+      location: Port Piscarilius
+      price: 90
+  related_items:
+    - item_id: 13441
+      item_name: Anglerfish
+      slug: anglerfish
+      relationship: alternative
+      description: Fish caught using sandworm bait
+    - item_id: 952
+      item_name: Spade
+      slug: spade
+      relationship: component
+      description: Required to dig sandworm castings
+    - item_id: 1925
+      item_name: Bucket
+      slug: bucket
+      relationship: component
+      description: Used to collect sandworms from castings
+  market_strategy:
+    notes:
+      - Hunter-level 15 gate keeps supply moderate
+      - Anglerfish bait demand drives flips
+      - Hourly profit 100k-150k from digging
+      - Tynan shop caps ceiling near 90 gp
+  history:
+    - date: "2016-01-07"
+      description: Released with Zeah - Great Kourend.
+  about: Fishing bait dug from sandworm castings at Port Piscarilius with 15 Hunter and used to catch anglerfish with a fishing rod.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-01-07"
+    update: Zeah - Great Kourend
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

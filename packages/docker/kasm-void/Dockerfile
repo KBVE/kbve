@@ -6,15 +6,28 @@ ARG CLOAK_SHA256=
 ENV CLOAK_HOME=/opt/cloakbrowser \
     CLOAK_BIN=/opt/cloakbrowser/cloakbrowser
 
+LABEL org.opencontainers.image.source="https://github.com/KBVE/kbve" \
+      org.opencontainers.image.description="KASM workspace with Discord + CloakBrowser + URL launcher nav-shim" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.vendor="KBVE" \
+      org.opencontainers.image.title="kasm-void"
+
 USER root
 
 RUN set -eux; \
     apt-get update; \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ca-certificates curl tar xz-utils procps \
+        python3 python3-pip \
         libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libxkbcommon0 \
         libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libgtk-3-0 \
         libasound2 libpango-1.0-0 libcairo2 libcups2 libdbus-1-3 fonts-liberation; \
+    if pip3 install --help 2>&1 | grep -q -- --break-system-packages; then \
+      pip3 install --no-cache-dir --break-system-packages websocket-client==1.8.0; \
+    else \
+      pip3 install --no-cache-dir websocket-client==1.8.0; \
+    fi; \
+    python3 -c 'import websocket, sys; assert websocket.__version__ == "1.8.0", websocket.__version__'; \
     rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
@@ -43,16 +56,26 @@ RUN set -eux; \
     fi
 
 COPY custom_startup.sh /dockerstartup/custom_startup.sh
+COPY nav_shim.py /dockerstartup/nav_shim.py
 COPY cloakbrowser.desktop /home/kasm-user/Desktop/cloakbrowser.desktop
 
 RUN set -eux; \
-    chmod +x /dockerstartup/custom_startup.sh; \
+    chmod +x /dockerstartup/custom_startup.sh /dockerstartup/nav_shim.py; \
     [ -f /dockerstartup/discord_startup.sh ] && chmod +x /dockerstartup/discord_startup.sh || true; \
-    chown -R 1000:1000 /home/kasm-user /dockerstartup/custom_startup.sh /dockerstartup/discord_startup.sh 2>/dev/null || true
+    chown -R 1000:1000 /home/kasm-user /dockerstartup/custom_startup.sh /dockerstartup/nav_shim.py /dockerstartup/discord_startup.sh 2>/dev/null || true
 
 USER 1000
 ENV HOME=/home/kasm-user \
     START_URL=https://kbve.com \
     LAUNCH_DISCORD=1 \
-    LAUNCH_CLOAK=1
+    LAUNCH_CLOAK=1 \
+    LAUNCH_NAV_SHIM=1 \
+    NAV_SHIM_PORT=9998 \
+    CDP_PORT=9222
 WORKDIR /home/kasm-user
+
+EXPOSE 9222 9998
+STOPSIGNAL SIGTERM
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD curl -fsS "http://127.0.0.1:${NAV_SHIM_PORT:-9998}/healthz" >/dev/null || exit 1

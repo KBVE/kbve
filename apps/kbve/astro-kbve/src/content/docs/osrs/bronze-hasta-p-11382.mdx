@@ -12,9 +12,90 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 125
-  about: "Bronze hasta(p+) is a members-only item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    weight: 2.267
+    attack_bonus:
+      stab: 5
+      slash: 5
+      crush: 5
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: -1
+      slash: -1
+      crush: -1
+      magic: 0
+      ranged: -1
+    other_bonus:
+      melee_strength: 6
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Bronze hasta
+          item_id: 11378
+          quantity: 1
+        - item_name: Weapon poison(+)
+          item_id: 5937
+          quantity: 1
+      product: Bronze hasta(p+)
+      product_id: 11382
+      product_quantity: 1
+      facility: Inventory
+  related_items:
+    - item_id: 11378
+      item_name: Bronze hasta
+      slug: bronze-hasta
+      relationship: variant
+      description: Unpoisoned variant
+    - item_id: 11380
+      item_name: Bronze hasta(p)
+      slug: bronze-hasta-p
+      relationship: alternative
+      description: Lower poison tier
+    - item_id: 11384
+      item_name: Bronze hasta(p++)
+      slug: bronze-hasta-p-plus-plus
+      relationship: upgrade
+      description: Higher poison tier
+  about: Bronze hasta(p+) is a one-handed bronze hasta coated with weapon poison(+), made at the Barbarian Outpost after the Barbarian Training miniquest.
+  market_strategy:
+    notes:
+      - Niche poisoned starter spear
+      - Members-only, low buy limit
+      - Demand limited to collectors and irons
+  history:
+    - date: "2007-07-03"
+      update: Barbarian Training
+      description: Released alongside the Barbarian smithing line.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: 3 July 2007
+    update: Barbarian Training
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

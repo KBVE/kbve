@@ -123,7 +123,7 @@ spec:
                       - name: HTTPPROXY_LOG
                         value: 'off'
                       - name: FIREWALL_INPUT_PORTS
-                        value: '6901,9999'
+                        value: '6901,9998,9999'
                       - name: FIREWALL_OUTBOUND_SUBNETS
                         value: '10.0.0.0/8,172.16.0.0/12'
                       - name: DOT
@@ -168,10 +168,34 @@ spec:
                       capabilities:
                           drop:
                               - ALL
+                  ports:
+                      - name: nav-shim
+                        containerPort: 9998
+                        protocol: TCP
+                  startupProbe:
+                      httpGet:
+                          path: /healthz
+                          port: 9998
+                      initialDelaySeconds: 30
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 30
+                  readinessProbe:
+                      httpGet:
+                          path: /healthz
+                          port: 9998
+                      periodSeconds: 30
+                      timeoutSeconds: 5
+                      failureThreshold: 3
                   env:
                       - name: KASM_PORT
                         value: '6901'
                       - name: VNC_PW
+                        valueFrom:
+                            secretKeyRef:
+                                name: kasm-vnc-pw
+                                key: password
+                      - name: URL_LAUNCHER_TOKEN
                         valueFrom:
                             secretKeyRef:
                                 name: kasm-vnc-pw
@@ -186,6 +210,12 @@ spec:
                         value: '1'
                       - name: LAUNCH_CLOAK
                         value: '1'
+                      - name: LAUNCH_NAV_SHIM
+                        value: '1'
+                      - name: NAV_SHIM_PORT
+                        value: '9998'
+                      - name: CDP_PORT
+                        value: '9222'
                   volumeMounts:
                       - name: discord-profile
                         mountPath: /home/kasm-user
@@ -221,4 +251,8 @@ spec:
         - name: web
           port: 6901
           targetPort: 6901
+          protocol: TCP
+        - name: nav-shim
+          port: 9998
+          targetPort: 9998
           protocol: TCP

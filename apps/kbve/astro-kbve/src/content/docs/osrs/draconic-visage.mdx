@@ -12,72 +12,98 @@ osrs:
   lowalch: 300000
   highalch: 450000
   limit: 5
-  item:
-    type: crafting_material
-    tradeable: true
-    weight: 1.814
-  obtaining:
-    methods:
+  drop_table:
+    sources:
       - source: King Black Dragon
-        drop_rate: 1/5,000
-      - source: Vorkath
-        drop_rate: 1/5,000
-      - source: Black dragon (Wildy Slayer)
-        drop_rate: 1/5,000
+        combat_level: 276
+        quantity: "1"
+        rarity: 1/5000
+        members_only: false
+      - source: Vorkath (post-quest)
+        combat_level: 732
+        quantity: "1"
+        rarity: 1/5000
+        members_only: true
+      - source: Black dragon (Wilderness Slayer)
+        combat_level: 247
+        quantity: "1"
+        rarity: 1/5000
+        members_only: true
       - source: Rune dragon
-        drop_rate: 1/8,000
+        combat_level: 380
+        quantity: "1"
+        rarity: 1/8000
+        members_only: true
       - source: Adamant dragon
-        drop_rate: 1/9,000
-      - source: Most other dragons/wyverns
-        drop_rate: 1/10,000
-  creation:
-    creates:
-      item_id: 11283
-      item_name: Dragonfire shield
-      slug: dragonfire-shield
-    materials: Anti-dragon shield + visage
-    methods:
-      - source: Player
-        requirements:
-          smithing: 90
-        xp: 2000
-      - source: Oziach
-        cost: 1250000
+        combat_level: 338
+        quantity: "1"
+        rarity: 1/9000
+        members_only: true
+      - source: Mithril dragon
+        combat_level: 304
+        quantity: "1"
+        rarity: 1/10000
+        members_only: true
+      - source: Steel dragon
+        combat_level: 246
+        quantity: "1"
+        rarity: 1/10000
+        members_only: true
+  recipes:
+    - product: Dragonfire shield
+      skill: Smithing
+      level: 90
+      xp: 2000
+      facility: Player crafting (boostable)
+      materials:
+        - item_name: Anti-dragon shield
+          quantity: 1
+        - item_name: Draconic visage
+          quantity: 1
+    - product: Dragonfire shield
+      skill: Smithing
+      facility: Oziach (NPC service, requires Dragon Slayer I)
+      materials:
+        - item_name: Anti-dragon shield
+          quantity: 1
+        - item_name: Draconic visage
+          quantity: 1
+        - item_name: Coins
+          quantity: 1250000
   related_items:
-    - item_id: 11283
-      item_name: Dragonfire shield
-      slug: dragonfire-shield
+    - item_name: Dragonfire shield
       relationship: product
-      description: Created shield
-    - item_id: 1540
-      item_name: Anti-dragon shield
-      slug: anti-dragon-shield
+      description: Created by attaching the visage to an anti-dragon shield
+    - item_name: Anti-dragon shield
       relationship: component
-      description: Base material
-    - item_id: 0
-      item_name: Vorkath
-      slug: vorkath
-      relationship: component
-      description: Best source
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 1.814 kg |
-
-    | Item Created | Materials | Method |
-    |--------------|-----------|--------|
-    | Dragonfire shield | Anti-dragon shield + visage | 90 Smithing or Oziach (1.25M) |
-
-    Grants 2,000 Smithing XP when crafted.
+      description: Base shield combined with the visage
+    - item_name: Vorkath
+      relationship: alternative
+      description: Best consistent farm for the visage
+  about: Draconic visage is a rare drop from dragons used to craft the dragonfire shield with an anti-dragon shield at 90 Smithing for 2,000 XP, or via Oziach for 1.25M coins after Dragon Slayer I.
   market_strategy:
     notes:
-      - Vorkath is best consistent source
-      - KBD for early game
-      - Required for Dragon Slayer I
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Vorkath is the most consistent supply source
+      - King Black Dragon offers the easiest early-game route
+      - Dragonfire shield demand drives the long-run floor
+  history:
+    - date: "2007-06-18"
+      description: Released with The Dragonfire Shield update
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-06-18"
+    update: The Dragonfire Shield
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

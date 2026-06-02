@@ -1,6 +1,6 @@
 ---
 title: Cooked chompy (roasted) | OSRS Price Data
-description: "Cooked chompy (roasted): Roasted chompy bird.. High alch: 51 GP, GE limit: 100."
+description: "Cooked chompy (roasted): Roasted chompy bird. High alch: 51 GP, GE limit: 100."
 osrs:
   id: 7228
   name: Cooked chompy (roasted)
@@ -12,9 +12,38 @@ osrs:
   lowalch: 34
   highalch: 51
   limit: 100
-  about: "Cooked chompy (roasted) is a members-only item in Old School RuneScape. High alchemy value: 51 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 0
+    type: cooked-meat
+  about: "Cooked chompy (roasted) is an unobtainable members-only food remnant tied to the Big Chompy Bird Hunting quest line, surviving on the Grand Exchange despite being inaccessible through normal gameplay."
+  market_strategy:
+    title: Unobtainable Curio
+    notes:
+      - Item exists in the GE but cannot be obtained through normal gameplay after a cooking rework removed its source.
+      - Supply is fixed and trickles from legacy stockpiles, so price drifts purely on collector demand.
+      - High alch is below the cost, so do not alch — list at competitive GE prices for collectors.
+  trading_tips:
+    - Treat this as a rare curio rather than a flippable food item.
+    - Avoid buying at inflated spikes — volume is effectively zero some days.
+    - Stocks held by long-standing players are the only real liquidity.
+  history:
+    - date: "2006-02-20"
+      update: "Updates, updates and more updates..."
+      description: Item added to the game alongside expanded chompy hunting cooking options.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "20 Feb 2006"
+    update: "Updates, updates and more updates..."
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options: ["Eat", "Drop"]
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

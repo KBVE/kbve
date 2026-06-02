@@ -12,9 +12,78 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Fremennik skirt is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: legs
+    weight: 0.907
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Yrsa's Shoe Store
+      location: Rellekka
+      sells_for: 650
+      buys_for: 350
+    - shop_name: Miscellanian Clothes Shop
+      location: Miscellania Dungeon
+      sells_for: 500
+      buys_for: 275
+  related_items:
+    - item_id: 3791
+      item_name: Fremennik shirt
+      slug: fremennik-shirt
+      relationship: set-piece
+      description: Matching Fremennik outfit top
+    - item_id: 3793
+      item_name: Fremennik boots
+      slug: fremennik-boots
+      relationship: set-piece
+      description: Matching Fremennik outfit boots
+  about: Fremennik skirt is a green skirt purchased from Yrsa or the Miscellania Clothes Shop after completing The Fremennik Trials.
+  market_strategy:
+    notes:
+      - Fixed shop supply caps demand spikes
+      - Fashionscape collectors drive price
+      - Cheap to stock from Yrsa post-quest
+      - Low alch margin keeps floor near shop value
+  history:
+    - date: "2004-11-02"
+      update: The Fremennik Trials
+      description: Item released with the Fremennik Trials quest.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-11-02"
+    update: The Fremennik Trials
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

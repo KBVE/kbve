@@ -1,6 +1,6 @@
 ---
 title: Raw mud pie | OSRS Price Data
-description: "Raw mud pie: Needs to be baked before I can use it.. High alch: 16 GP, GE limit: 13,000."
+description: "Raw mud pie: Needs to be baked before I can use it. High alch: 16 GP, GE limit: 13,000."
 osrs:
   id: 7168
   name: Raw mud pie
@@ -12,9 +12,71 @@ osrs:
   lowalch: 10
   highalch: 16
   limit: 13000
-  about: "Raw mud pie is a members-only item in Old School RuneScape. High alchemy value: 16 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 0
+    type: raw-pie
+  recipes:
+    - skill: cooking
+      level: 29
+      xp: 0
+      materials:
+        - item_name: Part mud pie
+          quantity: 1
+        - item_name: Clay
+          quantity: 1
+      product: Raw mud pie
+      product_id: 7168
+    - skill: cooking
+      level: 29
+      xp: 128
+      materials:
+        - item_name: Raw mud pie
+          item_id: 7168
+          quantity: 1
+      product: Mud pie
+      product_id: 7170
+  related_items:
+    - item_id: 7170
+      item_name: Mud pie
+      slug: mud-pie
+      relationship: product
+      description: Baked result that teleports the consumer to Edgeville.
+    - item_id: 1761
+      item_name: Clay
+      slug: clay
+      relationship: component
+      description: Combined with the water-filled pie shell to assemble the raw pie.
+  market_strategy:
+    title: Pie Crafter Pipeline
+    notes:
+      - Demand tied to Cooking levellers and Edgeville-teleport stockpilers.
+      - Mud pie GE margin determines fair raw-pie ceiling.
+      - 13,000 buy limit makes this scalable for AFK Cooking flips.
+  trading_tips:
+    - Check mud pie price first — raw should sit at materials + small markup.
+    - Source cheap clay during weekend mining-spike weekends.
+    - Stack noted in bank for AFK range cooking sessions.
+  history:
+    - date: "2006-02-20"
+      update: "Updates, updates and more updates..."
+      description: Added with the early mud pie / pie cooking expansion.
+    - date: "2015-03-12"
+      update: "Trade Updates"
+      description: Uncooked pies (including raw mud pie) made tradeable on the Grand Exchange.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "20 Feb 2006"
+    update: "Updates, updates and more updates..."
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options: ["Drop"]
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

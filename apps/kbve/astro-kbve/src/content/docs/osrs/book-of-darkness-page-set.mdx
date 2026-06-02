@@ -12,9 +12,77 @@ osrs:
   lowalch: 3000
   highalch: 4500
   limit: 5
-  about: "Book of darkness page set is a members-only item in Old School RuneScape. High alchemy value: 4,500 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: page set
+    tier: mid
+  recipes:
+    - skill: none
+      level: 1
+      xp: 0
+      materials:
+        - item_id: 11341
+          item_name: Ancient page 1
+          quantity: 1
+        - item_id: 11342
+          item_name: Ancient page 2
+          quantity: 1
+        - item_id: 11343
+          item_name: Ancient page 3
+          quantity: 1
+        - item_id: 11344
+          item_name: Ancient page 4
+          quantity: 1
+      product: Book of darkness page set
+      product_id: 13159
+  related_items:
+    - item_id: 11341
+      item_name: Ancient page 1
+      slug: ancient-page-1
+      relationship: component
+      description: First page combined into the set
+    - item_id: 11342
+      item_name: Ancient page 2
+      slug: ancient-page-2
+      relationship: component
+      description: Second page combined into the set
+    - item_id: 11343
+      item_name: Ancient page 3
+      slug: ancient-page-3
+      relationship: component
+      description: Third page combined into the set
+    - item_id: 11344
+      item_name: Ancient page 4
+      slug: ancient-page-4
+      relationship: component
+      description: Fourth page combined into the set
+  market_strategy:
+    notes:
+      - Created through the Grand Exchange sets exchange option
+      - Set premium fluctuates with completion log demand
+      - Flips between individual pages and the packed set for arbitrage
+      - Buy limit of 5 restricts large-scale flipping
+  history:
+    - date: "2015-03-26"
+      description: God page sets are now noted when packed.
+    - date: "2015-03-19"
+      description: Added with the Boss Pets, Sets, Chat & More update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-03-19"
+    update: "Boss Pets, Sets, Chat & More"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Book of darkness page set is a GE sets-stall bundle that packs all four Ancient pages into a single tradeable item.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

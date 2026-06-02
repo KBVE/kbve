@@ -12,9 +12,52 @@ osrs:
   lowalch: 2500
   highalch: 3750
   limit: 100
-  about: "Large mithril keel parts is a members-only item in Old School RuneScape. High alchemy value: 3,750 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: mid
+  recipes:
+    - name: Forge Large mithril keel parts from regular parts
+      smithing_level: 56
+      materials:
+        - item_name: Mithril keel parts
+          quantity: 5
+      output_quantity: 1
+      requirements: Pandemonium quest
+    - name: Combine into a mithril keel for sloops
+      materials:
+        - item_name: Large mithril keel parts
+          quantity: 16
+        - item_name: Lead bar
+          quantity: 5
+      output_quantity: 1
+  related_items:
+    - item_name: Mithril keel parts
+      relationship: component
+      description: Base part smithed into the large variant
+    - item_name: Lead bar
+      relationship: component
+      description: Combined with parts to build sloop keels
+  about: Large mithril keel parts are Sailing components forged from five mithril keel parts each at 56 Smithing, then assembled into mithril sloop keels.
+  market_strategy:
+    notes:
+      - Pandemonium gate constrains the smithing supply
+      - 16 parts plus 5 lead bars per finished sloop keel is the demand driver
+      - Low GE limit of 100 means thin order book
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

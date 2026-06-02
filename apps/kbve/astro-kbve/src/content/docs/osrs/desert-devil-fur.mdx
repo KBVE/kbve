@@ -12,9 +12,76 @@ osrs:
   lowalch: 6
   highalch: 10
   limit: 10000
-  about: "Desert devil fur is a members-only item in Old School RuneScape. High alchemy value: 10 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: fur
+    tier: low
+  drop_table:
+    sources:
+      - source: Desert devil
+        quantity: "1"
+        rarity: always
+        members_only: true
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Desert devil fur
+          item_id: 10123
+          quantity: 2
+        - item_name: Coins
+          item_id: 995
+          quantity: 20
+      product: Desert camo legs
+      product_id: 10067
+      product_quantity: 1
+      members_only: true
+    - skill: crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Desert devil fur
+          item_id: 10123
+          quantity: 2
+        - item_name: Coins
+          item_id: 995
+          quantity: 20
+      product: Desert camo top
+      product_id: 10065
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 10067
+      item_name: Desert camo legs
+      slug: desert-camo-legs
+      relationship: product
+      description: Made from 2 desert devil furs
+    - item_id: 10065
+      item_name: Desert camo top
+      slug: desert-camo-top
+      relationship: product
+      description: Made from 2 desert devil furs
+  history:
+    - date: "2006-11-21"
+      update: HUNTER SKILL!
+      description: Desert devil fur added with the Hunter skill release.
+  about: Desert devil fur is a sandy coloured kebbit fur obtained from hunting desert devils at level 13 Hunter, used by the Fancy Clothes Store to craft desert camo gear.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: HUNTER SKILL!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,58 +12,89 @@ osrs:
   lowalch: 272
   highalch: 408
   limit: 11000
+  material:
+    type: dragon
+    tier: high
   equipment:
     slot: ammo
+    weight: 0
     attack_bonus:
       stab: 0
       slash: 0
       crush: 0
       magic: 0
       ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
     other_bonus:
+      melee_strength: 0
       ranged_strength: 122
+      magic_damage: 0
       prayer: 0
-    requirements: {}
+  special_attack:
+    name: Sea Curse
+    description: Water bolt strike dealing extra damage equal to 1/15 of Ranged level against fiery targets and 1/20 against others; negated by water staves. 6% activation (6.6% with Hard Kandarin Diary).
+    activation_chance: 6
   recipes:
     - skill: magic
       level: 24
       xp: 29.5
-      inputs:
+      materials:
         - item_name: Pearl dragon bolts
+          item_id: 21932
           quantity: 10
-      output_quantity: 10
+        - item_name: Cosmic rune
+          item_id: 564
+          quantity: 1
+        - item_name: Water rune
+          item_id: 555
+          quantity: 2
+      members_only: true
   related_items:
+    - item_id: 21932
+      item_name: Pearl dragon bolts
+      slug: pearl-dragon-bolts
+      relationship: component
+      description: Unenchanted base bolts
     - item_id: 9238
       item_name: Pearl bolts (e)
       slug: pearl-bolts-e
       relationship: downgrade
       description: Regular crossbow version
-  about: |-
-    > *"Enchanted Dragon crossbow bolts, tipped with pearl."*
-
-    Pearl dragon bolts (e) carry the Sea Curse enchantment. On activation, a mighty bolt of water strikes the opponent. The effect deals extra damage equal to 1/15 of the attacker's visible Ranged level against fiery targets (fire-based monsters, players wielding fire staves or fire capes) and 1/20 against all other targets. The effect is negated if the target is wielding a water staff. This makes pearl bolts particularly effective against fire-themed enemies.
-
-    Enchant Crossbow Bolt (Pearl) requires Magic level 24 and grants 29.5 XP per cast. Each cast enchants 10 bolts at a time.
-
-    | Component | Quantity |
-    |-----------|----------|
-    | Pearl dragon bolts | 10 |
-    | Cosmic rune | 1 |
-    | Water rune | 2 |
-
-    | Stat | Dragon (e) | Regular (e) |
-    |------|-----------|-------------|
-    | Ranged Str | +122 | +48 |
-    | Base bolt | Dragon crossbow bolt | Iron bolt |
-
-    The dragon bolt base provides substantially higher ranged strength over the regular pearl bolt variant.
+  about: Pearl dragon bolts (e) are dragon crossbow bolts tipped with pearl and enchanted with Sea Curse, dealing bonus water damage versus fiery targets.
   market_strategy:
     notes:
       - Extra effective against fire-themed monsters and fire staff/cape users
       - Negated by water staves in PvP
       - Mid-low tier enchant requirement (Magic 24)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Highest ranged strength pearl bolt variant
+  history:
+    - date: "2018-01-04"
+      update: Dragon Slayer II
+      description: Pearl dragon bolts (e) introduced with Dragon Slayer II quest.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2018-01-04"
+    update: Dragon Slayer II
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

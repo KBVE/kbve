@@ -14,6 +14,10 @@ osrs:
   limit: 8
   equipment:
     slot: head
+    weight: 0.9
+    requirements:
+      ranged: 70
+      defence: 40
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,9 +35,9 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 1
-    requirements:
-      ranged: 70
-      defence: 40
+  treasure_trail:
+    tier: hard
+    rarity: 1/1625
   related_items:
     - item_id: 10382
       item_name: Guthix coif
@@ -55,17 +59,38 @@ osrs:
       slug: ancient-coif
       relationship: variant
       description: God blessed coif variant
-  about: |-
-    > *"A Zamorak blessed dragonhide coif."*
-
-    All blessed coifs share identical stats. They offer a +1 prayer bonus over a standard coif while maintaining the same defensive profile. The choice between god variants is purely cosmetic.
+  about: Zamorak blessed dragonhide coif from hard clue scrolls; identical defensive profile to a standard coif but with a +1 prayer bonus, choice of god is cosmetic.
   market_strategy:
     notes:
-      - Hard clue exclusive — supply tied to clue completion rates
+      - Hard clue exclusive, supply tied to clue completion rates
       - Price differences between gods are cosmetic preference only
       - Armadyl and Ancient tend to command slight premiums
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2006-12-05"
+      update: Released
+      description: Released
+    - date: "2014-03-01"
+      update: Received +1 prayer bonus buff
+      description: Received +1 prayer bonus buff
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-12-05"
+    update: God blessed dragonhide armour
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.9
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

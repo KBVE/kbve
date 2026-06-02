@@ -14,7 +14,11 @@ osrs:
   limit: 70
   equipment:
     slot: weapon
-    type: wand
+    weapon_type: powered-staff
+    attack_speed: 4
+    weight: 0.226
+    requirements:
+      magic: 55
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,22 +36,23 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      magic: 55
-    weight: 0.226
-    attack_speed: 4
-    combat_style: staff
-    autocast: standard
-  shop:
-    currency: pizazz_points
-    cost:
-      telekinetic: 150
-      alchemist: 200
-      enchantment: 1500
-      graveyard: 150
-    requires_item:
-      item_id: 6910
-      item_name: Apprentice wand
+  shops:
+    - shop_name: Mage Training Arena Reward Shop
+      location: Mage Training Arena
+      currency: pizazz_points
+      notes: "Requires Apprentice wand plus 150 Telekinetic, 200 Alchemist, 1500 Enchantment, 150 Graveyard points"
+  recipes:
+    - skill: magic
+      level: 55
+      materials:
+        - item_name: Apprentice wand
+          item_id: 6910
+          quantity: 1
+      product: Teacher wand
+      product_id: 6912
+      product_quantity: 1
+      facility: Mage Training Arena
+      members_only: true
   related_items:
     - item_id: 6908
       item_name: Beginner wand
@@ -69,41 +74,35 @@ osrs:
       slug: kodai-wand
       relationship: upgrade
       description: Best-in-slot wand from Chambers of Xeric
-  about: |-
-    | Stat | Attack | Defence |
-    |------|--------|---------|
-    | Stab | 0 | 0 |
-    | Slash | 0 | 0 |
-    | Crush | 0 | 0 |
-    | Magic | +15 | +15 |
-    | Ranged | 0 | 0 |
-
-    Requirements: 55 Magic | Weight: 0.23 kg | Speed: 4 ticks (2.4s)
-
-    The teacher wand supports Standard Spellbook autocast only. It cannot autocast Ancient Magicks or Arceuus spells. As a one-handed wand, it allows use of a shield or book in the off-hand slot.
-
-    The teacher wand is the third tier in the Mage Training Arena wand progression:
-
-    | Wand | Magic Atk | Magic Def | Req | Notes |
-    |------|----------|----------|-----|-------|
-    | Beginner wand | +5 | +5 | 45 | Entry tier |
-    | Apprentice wand | +10 | +10 | 50 | Required to buy teacher |
-    | Teacher wand | +15 | +15 | 55 | This item |
-    | Master wand | +20 | +20 | 60 | Best MTA wand |
-    | Kodai wand | +28 | +20 | 75 | Best-in-slot, Chambers of Xeric |
-
-    Each wand upgrade adds +5 magic attack and +5 magic defence. The teacher wand sits in the middle of the progression and is often skipped in favour of saving for the master wand.
-
-    The wand progression requires trading in the previous tier plus additional pizazz points at each step. Cumulative point costs increase significantly for higher tiers. Players aiming for the master wand will pass through the teacher wand as an intermediate step.
   market_strategy:
     notes:
-      - High GE value (~1.87M gp) due to time-gated MTA grind
+      - High GE value due to time-gated MTA grind
       - Often purchased as a stepping stone toward master wand
       - Some players buy from GE to skip part of the MTA grind
       - Demand is relatively stable from mid-level mages
       - The one-handed slot makes it useful with mage books and shields
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2006-01-04"
+      description: Released with the Mage Training Arena update.
+  properties:
+    release_date: "2006-01-04"
+    update: Mage Training Arena
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  about: Teacher wand is the third tier in the Mage Training Arena wand progression, providing +15 Magic attack and defence at 55 Magic.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

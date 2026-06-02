@@ -12,9 +12,59 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Gilded bench (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  construction:
+    construction_level: 61
+    xp: 1760
+    facility: Bench with vice
+    placement: Dining room or throne room seating space
+  recipes:
+    - name: Gilded bench (flatpack)
+      skill: Construction
+      level: 61
+      xp: 1760
+      facility: Workshop workbench
+      materials:
+        - item_name: Mahogany plank
+          quantity: 4
+        - item_name: Gold leaf
+          quantity: 4
+  related_items:
+    - item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: Bench frame material
+    - item_name: Gold leaf
+      slug: gold-leaf
+      relationship: component
+      description: Gilding material
+    - item_name: Gilded bench
+      slug: gilded-bench
+      relationship: product
+      description: Built furniture form
+  about: Gilded bench (flatpack) is a Player-Owned House flatpack assembled at a workshop bench with vice and placed in dining or throne rooms.
+  market_strategy:
+    notes:
+      - Mahogany planks and gold leaf drive cost
+      - Construction skillers supply at a loss
+      - Demand from PoH decorators
+  history:
+    - date: "2006-05-31"
+      description: Released with the Player-Owned Houses update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    update: Player-Owned Houses
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Iron platebody | OSRS Price Data
-description: "Iron platebody: Provides excellent protection.. High alch: 336 GP, GE limit: 125."
+description: "Iron platebody: Provides excellent protection. High alch: 336 GP, GE limit: 125."
 osrs:
   id: 1115
   name: Iron platebody
@@ -12,24 +12,89 @@ osrs:
   lowalch: 224
   highalch: 336
   limit: 125
-  item_id: 1115
-  item_type: armor
-  slot: body
-  type: platebody
-  tradeable: true
-  weight: 9.979
-  requirements:
-    defence: 0
-  stats:
-    stab_defence: 21
-    slash_defence: 20
-    crush_defence: 12
-    ranged_defence: 20
+  material:
+    type: metal
+    tier: low
+  equipment:
+    slot: body
+    weight: 9.979
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -15
+    defence_bonus:
+      stab: 21
+      slash: 20
+      crush: 12
+      magic: -6
+      ranged: 20
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 33
+      xp: 125
+      materials:
+        - item_name: Iron bar
+          quantity: 5
+      product: Iron platebody
+      product_id: 1115
+  shops:
+    - shop_name: Horvik's Armour Shop
+      location: Varrock
+      price: 560
+      currency: Coins
+      members_only: false
+    - shop_name: Zenesha's Plate Mail Body Shop
+      location: East Ardougne
+      price: 560
+      currency: Coins
+      members_only: true
   related_items:
-    - slug: steel-platebody
-    - slug: iron-full-helm
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1119
+      item_name: Steel platebody
+      slug: steel-platebody
+      relationship: upgrade
+      description: Stronger metal-tier alternative requiring 5 Defence.
+    - item_id: 1153
+      item_name: Iron full helm
+      slug: iron-full-helm
+      relationship: set-piece
+      description: Matching iron armour set helmet.
+  market_strategy:
+    title: Free-to-Play Smithing Sink
+    notes:
+      - Demand stays steady from new players gearing up before Defence-locked tiers.
+      - Smithing margin is a net loss vs bars; only craft for XP, never profit.
+      - Buy limit is only 125 per 4 hours — illiquid for bulk flipping.
+  trading_tips:
+    - Skip alching unless bar input cost drops well below high alch return.
+    - Stock platebody charity drops to F2P levellers in trade chat.
+    - Watch double XP weekends for Smithing-driven supply spikes.
+  history:
+    - date: "2001-01-04"
+      update: "RuneScape launch era"
+      description: Available since early RuneScape Classic as the no-Defence-requirement starter platebody.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "04 Jan 2001"
+    update: "RuneScape launch"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.979
+    options: ["Wear", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

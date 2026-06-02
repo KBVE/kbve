@@ -12,9 +12,58 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: 10000
-  about: "Fancy hedge (bagged) is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  construction:
+    level: 72
+    xp: 158
+    farming_xp: 158
+    facility: Formal Garden (player-owned house)
+    materials:
+      - item_name: Fancy hedge (bagged)
+        item_id: 8445
+        quantity: 1
+      - item_name: Watering can
+        quantity: 1
+  shops:
+    - shop_name: Garden Supplier
+      location: Falador Park
+      price: 25000
+    - shop_name: Garden Supplier
+      location: Farming Guild
+      price: 25000
+  related_items:
+    - item_id: 8443
+      item_name: Box hedge (bagged)
+      slug: box-hedge-bagged
+      relationship: downgrade
+      description: Lower-tier formal garden hedge
+    - item_id: 8447
+      item_name: Tall fancy hedge (bagged)
+      slug: tall-fancy-hedge-bagged
+      relationship: upgrade
+      description: Taller variant for formal gardens
+  about: Fancy hedge (bagged) is a members-only decorative garden item planted in the Formal Garden of a player-owned house at Construction level 72.
+  market_strategy:
+    notes:
+      - Niche Construction supply
+      - Decorative use only
+      - Low daily GE volume
+      - 25,000 gp shop price caps demand
+      - Bulk buyers tend to be POH decorators
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    update: Player-Owned Houses
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 10
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

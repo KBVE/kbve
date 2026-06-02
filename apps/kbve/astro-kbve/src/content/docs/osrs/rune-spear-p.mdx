@@ -1,6 +1,6 @@
 ---
 title: Rune spear(p) | OSRS Price Data
-description: "Rune spear(p): A poisoned rune tipped spear.. High alch: 12,480 GP, GE limit: 70."
+description: "Rune spear(p): A poisoned rune tipped spear. High alch: 12,480 GP, GE limit: 70."
 osrs:
   id: 1261
   name: Rune spear(p)
@@ -12,9 +12,111 @@ osrs:
   lowalch: 8320
   highalch: 12480
   limit: 70
-  about: "Rune spear(p) is a members-only item in Old School RuneScape. High alchemy value: 12,480 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: spear
+    tier: mid-high
+  equipment:
+    slot: 2h
+    weapon_type: spear
+    attack_speed: 4
+    weight: 2.267
+    requirements:
+      attack: 40
+    attack_bonus:
+      stab: 36
+      slash: 36
+      crush: 36
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 42
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: none
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Rune spear
+          quantity: 1
+        - item_name: Weapon poison
+          quantity: 1
+      facility: Apply poison
+      members_only: true
+  shops:
+    - shop_name: Mount Karuulm Weapon Shop
+      location: Mount Karuulm
+      price: 20800
+  related_items:
+    - item_name: Rune spear
+      slug: rune-spear
+      relationship: component
+      description: Unpoisoned base spear
+    - item_name: Rune spear(p+)
+      slug: rune-spear-p-plus
+      relationship: upgrade
+      description: Stronger poison variant
+    - item_name: Rune spear(p++)
+      slug: rune-spear-p-plus-plus
+      relationship: upgrade
+      description: Super-poison variant
+    - item_name: Rune spear(kp)
+      slug: rune-spear-kp
+      relationship: variant
+      description: Karambwan-poisoned variant
+    - item_name: Dragon spear(p)
+      slug: dragon-spear-p
+      relationship: upgrade
+      description: Higher-tier poisoned spear
+    - item_name: Weapon poison
+      slug: weapon-poison
+      relationship: component
+      description: Required to apply poison
+  market_strategy:
+    notes:
+      - Niche PvP and Corporeal Beast specialty weapon
+      - Spears bypass shields - useful at Corporeal Beast
+      - Poison variant adds early-fight chip damage
+      - Supply driven by Karuulm shop and Mithril dragon drops
+      - Buy limit 70 keeps it inexpensive vs dragon spear
+  about: Rune spear(p) is a poisoned two-handed rune spear with 4-tick attack speed, requiring 40 Attack to wield and dealing standard poison stacks on hit.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-04-14"
+    update: New Throwing Weapons!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2003-04-14"
+      update: New Throwing Weapons!
+      description: Rune spear and poisoned variants released.
+    - date: "2006-08-22"
+      update: Game Update
+      description: Poisoned variants renamed from "Rune spear(+)" to "Rune spear(p+)" for consistency.
+    - date: "2021-04-21"
+      update: Weapon Rebalance
+      description: Attack speed improved from 5 ticks to 4 ticks.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

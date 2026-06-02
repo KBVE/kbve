@@ -93,6 +93,13 @@ async function loadItemTile(imgRelPath) {
 }
 
 async function main() {
+	if (process.env.KBVE_ATLAS_REGEN !== '1') {
+		console.log(
+			'[skip] itemdb-atlas regen — set KBVE_ATLAS_REGEN=1 to opt in. Committed atlas PNG + ItemSpriteAtlas.Generated.cs are canonical (sharp/libvips PNG encoding varies per platform).',
+		);
+		return;
+	}
+
 	const records = loadAllMdx();
 	console.log(`Loaded ${records.length} items from MDX`);
 

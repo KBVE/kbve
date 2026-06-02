@@ -12,9 +12,66 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: null
-  about: "Chasm teleport scroll is a members-only item in Old School RuneScape. High alchemy value: 6 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destination: Bottom of the Chasm of Fire near the Voice of Yama
+    type: scroll
+    consumed: true
+  drop_table:
+    sources:
+      - source: Yama
+        combat_level: 1238
+        quantity: "6"
+        rarity: 4/95.11
+        members_only: true
+      - source: Dossier
+        quantity: 15-18
+        rarity: 1/15
+        members_only: true
+        notes: Tertiary drop bundle from Yama
+  related_items:
+    - item_id: 0
+      item_name: Yama
+      slug: yama
+      relationship: component
+      description: Boss drop source
+    - item_id: 0
+      item_name: Chasm of Fire
+      slug: chasm-of-fire
+      relationship: alternative
+      description: Teleport destination
+  about: Chasm teleport scroll is a stackable members teleport scroll dropped by Yama that warps the holder to the bottom of the Chasm of Fire.
+  market_strategy:
+    notes:
+      - Supply gated by Yama boss popularity
+      - High alch value far below GE price
+      - Convenience teleport for repeat Yama trips
+      - Stackable, easy to bank
+  trading_tips:
+    - Track Yama boss meta shifts that affect kills per hour
+    - Compare against alternative Chasm of Fire access methods
+  history:
+    - date: "2025-05-14"
+      update: "Yama, the Master of Pacts"
+      description: Item released with the Yama boss launch.
+    - date: "2025-05-29"
+      description: Teleport destination adjusted to land players by the Voice of Yama on the lowest level instead of near the Chasm exit on the uppermost level.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-05-14"
+    update: "Yama, the Master of Pacts"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Teleport
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

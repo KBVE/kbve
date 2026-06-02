@@ -629,6 +629,10 @@ fn router(state: AppState) -> Router {
             axum::routing::get(super::proxy::kasm_launch_handler),
         )
         .route(
+            "/dashboard/kasm/launch-url/{name}",
+            axum::routing::post(super::proxy::kasm_launch_url_handler),
+        )
+        .route(
             "/dashboard/guac/proxy/guacamole/websocket-tunnel",
             axum::routing::get(super::proxy::guacamole_ws_handler),
         )

@@ -14,10 +14,7 @@ osrs:
   limit: 10000
   material:
     type: pottery
-    tier: unfired
-  crafting:
-    level: 7
-    xp: 15
+    tier: low
   recipes:
     - skill: crafting
       level: 7
@@ -52,27 +49,31 @@ osrs:
       slug: pie-dish
       relationship: product
       description: Fired version
-  about: |-
-    | Method | Level | Materials |
-    |--------|-------|-----------|
-    | Potter's wheel | 7 | 1 Soft clay |
-    | XP | 15 | - |
-
-    | Method | Level | XP |
-    |--------|-------|-----|
-    | Pottery oven | 1 | 10 |
-    | Success rate | 100% | - |
+  about: Unfired pie dish is a free-to-play crafting intermediate made from soft clay at a potter's wheel before firing in a pottery oven.
   market_strategy:
     notes:
-      - Pie dish crafting
-      - Cooking skill
-      - F2P accessible
-      - Higher XP than pots
-      - No failure rate for firing
-      - Used in Cooking
-      - F2P accessible
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - F2P accessible crafting product
+      - Used to train Crafting via firing for Pie dish
+      - Soft clay supply gates production
+  history:
+    - date: "2001-05-08"
+      update: RuneScape update
+      description: Item present since early RuneScape.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: 8 May 2001
+    update: RuneScape update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.68
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

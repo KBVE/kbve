@@ -12,9 +12,61 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: null
-  about: "Aquanite tendon is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Aquanite
+        combat_level: 145
+        quantity: "1"
+        rarity: 1/750
+        members_only: true
+      - source: Elder Aquanite
+        combat_level: 305
+        quantity: "1"
+        rarity: 3 x 1/750
+        members_only: true
+  recipes:
+    - product: Aquanite hopper
+      skill: Smithing
+      level: 60
+      xp: 350
+      facility: Anvil
+      materials:
+        - item_name: Aquanite tendon
+          quantity: 1
+        - item_name: Mithril bar
+          quantity: 1
+  related_items:
+    - item_name: Aquanite hopper
+      relationship: product
+      description: Crafted from the tendon and a mithril bar
+    - item_name: Mithril bar
+      relationship: component
+      description: Smithing component for the hopper
+  about: Aquanite tendon is a Sailing-era drop from Aquanites in the Ynysdail Cavern, used in Smithing the aquanite hopper; receiving one broadcasts to the cavern chat.
+  market_strategy:
+    notes:
+      - Rare 1/750 floor drop from Aquanite encounters
+      - No Grand Exchange buy limit currently set
+      - Demand tracks aquanite hopper smithing supply
+  history:
+    - date: "2025-11-19"
+      description: Released with the Sailing launch
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Inspect
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

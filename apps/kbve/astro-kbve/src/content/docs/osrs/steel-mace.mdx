@@ -12,28 +12,63 @@ osrs:
   lowalch: 90
   highalch: 135
   limit: 125
+  material:
+    type: ore
+    tier: low
   equipment:
     slot: weapon
-    type: mace
-    tradeable: true
+    weapon_type: blunt
+    attack_speed: 4
     weight: 1.814
     requirements:
       attack: 5
-    stats:
-      attack_stab: 7
-      attack_slash: -2
-      attack_crush: 13
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 11
+    attack_bonus:
+      stab: 7
+      slash: -2
+      crush: 13
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 11
       ranged_strength: 0
       magic_damage: 0
       prayer: 2
+  recipes:
+    - skill: Smithing
+      level: 32
+      xp: 37.5
+      materials:
+        - item_name: Steel bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: Flynn's Mace Market
+      location: Falador
+      price: 225
+    - shop_name: Warrior Guild Armoury
+      location: Burthorpe
+      price: 270
+  treasure_trail:
+    tier: easy
+    role: reward
+    notes: Easy emote clue at Mudskipper Point.
+  drop_table:
+    sources:
+      - source: Cyclops
+        rarity: uncommon
+      - source: Dark warrior
+        rarity: uncommon
+      - source: Skeleton
+        rarity: uncommon
   related_items:
     - item_id: 1426
       item_name: Black mace
@@ -45,8 +80,31 @@ osrs:
       slug: steel-warhammer
       relationship: alternative
       description: Higher strength alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Free-to-play crush weapon
+      - Has +2 prayer bonus, useful for low-level prayer training
+      - Smithing this at 32 loses money vs steel bar cost
+      - Common shop stock
+  history:
+    - date: "2021-04-21"
+      description: Attack speed improved from 5 ticks to 4 ticks per strike.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    alchable: true
+  about: Steel mace is a F2P crush weapon requiring 5 Attack that offers a small prayer bonus alongside solid crush damage.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

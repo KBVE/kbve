@@ -1,6 +1,6 @@
 ---
 title: Bronze bolts (p++) | OSRS Price Data
-description: "Bronze bolts (p++): Super poisoned bronze bolts.. High alch: 1 GP, GE limit: 11,000."
+description: "Bronze bolts (p++): Super poisoned bronze bolts. High alch: 1 GP, GE limit: 11,000."
 osrs:
   id: 6062
   name: Bronze bolts (p++)
@@ -12,9 +12,92 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  about: "Bronze bolts (p++) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ammo
+    tier: low
+  equipment:
+    slot: ammo
+    weapon_type: crossbow
+    weight: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 10
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: none
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Bronze bolts
+          quantity: 1
+        - item_name: Weapon poison++
+          quantity: 1
+      facility: Apply poison
+      members_only: true
+  related_items:
+    - item_name: Bronze bolts
+      slug: bronze-bolts
+      relationship: component
+      description: Unpoisoned base bolt
+    - item_name: Bronze bolts (p)
+      slug: bronze-bolts-p
+      relationship: variant
+      description: Standard poison variant
+    - item_name: Bronze bolts (p+)
+      slug: bronze-bolts-p-plus
+      relationship: variant
+      description: Mid-tier poison variant
+    - item_name: Weapon poison++
+      slug: weapon-poison-plus-plus
+      relationship: component
+      description: Required to apply super poison
+  market_strategy:
+    notes:
+      - Strongest poison tier for bronze bolts
+      - Niche use due to weak base damage of bronze
+      - Often crafted by Herblore trainers for the +20 poison effect
+      - Low volume - prefer broad bolts for serious ranged training
+  about: Bronze bolts (p++) are super-poisoned bronze crossbow bolts created by applying weapon poison++ to a regular bronze bolt.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-11-28"
+    update: Slayer Update
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2005-11-28"
+      update: Slayer Update
+      description: Super-poisoned bolt variants introduced alongside weapon poison++.
+    - date: "2018-01-04"
+      update: Game Update
+      description: Item name reformatted from "Bronze bolts(p++)" to "Bronze bolts (p++)" with added space.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

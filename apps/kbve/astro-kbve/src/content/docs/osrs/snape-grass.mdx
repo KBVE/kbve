@@ -16,7 +16,7 @@ osrs:
     type: secondary
     tier: mid
   farming:
-    level: 61
+    farming_level: 61
     seed_id: 22879
     seed_name: Snape grass seed
   recipes:
@@ -69,13 +69,7 @@ osrs:
       slug: avantoe
       relationship: component
       description: Fishing potion herb
-  about: |-
-    Secondary ingredient for potions:
-
-    | Potion | Herb | Herblore Level |
-    |--------|------|----------------|
-    | Prayer potion | Ranarr weed | 38 |
-    | Fishing potion | Avantoe | 50 |
+  about: Snape grass is a herblore secondary used for prayer potions and fishing potions; farmable at level 61 and yielding supercompost when composted.
   market_strategy:
     notes:
       - Grow Snape grass seed at 61 Farming
@@ -88,8 +82,26 @@ osrs:
       - Waterbirth collection popular
       - Fossil Island farming patches
       - Check seed vs grass prices
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2002-02-27"
+      description: Item released.
+    - date: "2020-08-26"
+      description: Composting snape grass now yields supercompost instead of normal compost.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

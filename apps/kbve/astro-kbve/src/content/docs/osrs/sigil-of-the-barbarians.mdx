@@ -12,9 +12,45 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of the barbarians is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Deadman Mode drop table (most monsters)
+        quantity: "1"
+        rarity: rare
+        members_only: true
+  related_items:
+    - item_name: Sigil of the smith
+      relationship: alternative
+      description: Tier 2 Deadman skilling sigil
+    - item_name: Sigil of the hunter
+      relationship: alternative
+      description: Tier 2 Deadman skilling sigil
+  about: Sigil of the barbarians is a Tier 2 Deadman Mode skilling sigil that, once attuned, grants 50% bonus XP in Firemaking, Fishing, Herblore, and Slayer.
+  market_strategy:
+    notes:
+      - Only obtainable during temporary Deadman Mode events
+      - Un-attuned copies are tradeable on the Grand Exchange
+      - Attuning binds the sigil permanently to the account
+  history:
+    - date: "2021-08-25"
+      description: Released with Deadman Reborn
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-08-25"
+    update: Deadman Reborn
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

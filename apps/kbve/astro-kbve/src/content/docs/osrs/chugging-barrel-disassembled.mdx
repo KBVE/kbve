@@ -1,6 +1,6 @@
 ---
 title: Chugging barrel (disassembled) | OSRS Price Data
-description: "Chugging barrel (disassembled): Can be assembled to consume multiple potions.. High alch: 600 GP, GE limit: 5."
+description: "Chugging barrel (disassembled) is a Mastering Mixology reward that assembles into a multi-potion drinker. High alch: 600 GP, GE limit: 5."
 osrs:
   id: 30002
   name: Chugging barrel (disassembled)
@@ -12,9 +12,47 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 5
-  about: "Chugging barrel (disassembled) is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Mastering Mixology Rewards
+      location: Mastering Mixology minigame
+      currency: Mox/Aga/Lye resin
+      requirements: 17,250 Mox, 14,000 Aga, 18,600 Lye resin
+  related_items:
+    - item_id: 30000
+      item_name: Chugging barrel
+      slug: chugging-barrel
+      relationship: product
+      description: Assembled barrel ready to drink from
+  about: Chugging barrel (disassembled) is the tradeable form of the Mastering Mixology reward; once assembled it pulls potions from bank or potion storage for chugging.
+  market_strategy:
+    notes:
+      - Tradeable only in disassembled state
+      - Assembly costs significant Mox/Aga/Lye resin
+      - Useful for multi-potion content
+  history:
+    - date: "2025-09-24"
+      description: Barrels now pull potions directly from both bank and potion storage with configurable settings.
+    - date: "2024-10-09"
+      description: Fixed scrollbar display issue in configuration interface.
+    - date: "2024-10-02"
+      description: Renamed from Pre-pot device; expanded usable locations; fixed extended anti-venom+ compatibility; adjusted resin costs.
+    - date: "2024-09-25"
+      description: Item added with Varlamore The Rising Darkness update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-09-25"
+    update: "Varlamore: The Rising Darkness"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    weight: 0.453
+    options:
+      - Assemble
+      - Drop
+    alchable: false
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,57 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 150
-  about: "Toy doll is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - name: Toy doll
+      skill: Crafting
+      level: 18
+      xp: 15
+      facility: Crafting table 3
+      materials:
+        - item_name: Clockwork
+          quantity: 1
+        - item_name: Plank
+          quantity: 1
+  related_items:
+    - item_name: Clockwork
+      slug: clockwork
+      relationship: component
+      description: Mechanism core
+    - item_name: Plank
+      slug: plank
+      relationship: component
+      description: Doll body material
+    - item_name: Toy mouse
+      slug: toy-mouse
+      relationship: alternative
+      description: Alternative clockwork toy
+  about: Toy doll is a clockwork toy crafted at a Crafting table 3 in a player-owned house workshop; releasing it grants the player a small amount of Agility experience when caught.
+  market_strategy:
+    notes:
+      - Crafted from clockwork + plank
+      - Scam-bait in restricted release zones
+      - Limited niche demand
+  history:
+    - date: "2006-05-31"
+      description: Released with the Player-Owned Houses update.
+    - date: "2014-08-14"
+      description: Limited the number of clockwork toys that can be dropped in an area.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    update: Player-Owned Houses
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wind
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

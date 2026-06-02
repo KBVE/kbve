@@ -12,9 +12,89 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: null
-  about: "Desert camo top is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: body
+    weight: -3
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 10
+      slash: 15
+      crush: 19
+      magic: 0
+      ranged: 12
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Fancy Clothes Store
+      location: Varrock
+      sells_for: 20
+      notes: Trade 2 desert devil furs plus 20 coins
+    - shop_name: Hunter Guild Shop
+      location: Hunter Guild
+      sells_for: 20
+      notes: Pellem; trade 2 desert devil furs plus 20 coins
+    - shop_name: Seamstress
+      location: Prifddinas
+      sells_for: 20
+      notes: Trade 2 desert devil furs plus 20 coins
+  related_items:
+    - item_id: 10063
+      item_name: Desert camo legs
+      slug: desert-camo-legs
+      relationship: set-piece
+      description: Matching desert camouflage legs
+    - item_id: 10069
+      item_name: Polar camo top
+      slug: polar-camo-top
+      relationship: variant
+      description: Polar biome camouflage top
+    - item_id: 10065
+      item_name: Woodland camo top
+      slug: woodland-camo-top
+      relationship: variant
+      description: Woodland biome camouflage top
+  about: Desert camo top is a body slot camouflage shirt purchased with 2 desert devil furs and 20 coins; the camo affix is flavour text and does not influence Hunter traps.
+  market_strategy:
+    notes:
+      - Not tradeable on Grand Exchange
+      - Purchase price requires desert devil furs
+      - 2024 weight reduction (-3 kg) revived demand
+      - Useful as a passive weight-reducing body
+  history:
+    - date: "2006-11-21"
+      update: Hunter
+      description: Item released with the Hunter skill update.
+    - date: "2024-03-20"
+      description: Now reduces worn weight by 3 kg.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter
+    tradeable: false
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: -3
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

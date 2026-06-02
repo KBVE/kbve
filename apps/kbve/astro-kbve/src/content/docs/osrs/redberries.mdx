@@ -12,9 +12,71 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Redberries is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  farming:
+    farming_level: 10
+    patch: Bush patch
+    plant_xp: 11.5
+    check_xp: 64
+    harvest_xp: 11.5
+  recipes:
+    - skill: Cooking
+      output_name: Redberry pie
+      materials:
+        - item_name: Redberries
+          quantity: 1
+        - item_name: Pie shell
+          quantity: 1
+    - skill: Crafting
+      output_name: Red dye
+      materials:
+        - item_name: Redberries
+          quantity: 2
+  shops:
+    - shop_name: Wydin's Food Store
+      location: Port Sarim
+      price: 2
+    - shop_name: Grum's Gold Exchange
+      location: Port Sarim
+  related_items:
+    - item_id: 5104
+      item_name: Redberry seed
+      slug: redberry-seed
+      relationship: component
+      description: Plant at 10 Farming
+    - item_id: 2325
+      item_name: Redberry pie
+      slug: redberry-pie
+      relationship: product
+      description: Cooked into a pie
+    - item_id: 1763
+      item_name: Red dye
+      slug: red-dye
+      relationship: product
+      description: Crafted into red dye
+  market_strategy:
+    notes:
+      - Cheap quest staple, 27 used across all quests
+      - Used to craft red dye for further dye recipes
+      - Picked from wild bushes south-east of Varrock mine
+      - Stealable from fruit stall at Xeric's Glade (25 Thieving)
+  history:
+    - date: "2001-02-28"
+      description: Released into the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-02-28"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 0.007
+    options:
+      - Drop
+    alchable: true
+  about: Redberries are a F2P quest and cooking staple harvested from bush patches, wild bushes, or shops, used in redberry pies and red dye.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

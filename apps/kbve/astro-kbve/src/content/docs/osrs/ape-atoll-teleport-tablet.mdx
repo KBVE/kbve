@@ -12,9 +12,62 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Ape atoll teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  teleport:
+    destination: Ape Atoll cave (south of island)
+    type: tablet
+    quest_requirement: Monkey Madness I (to use destination)
+  recipes:
+    - product: Ape atoll teleport (tablet)
+      skill: Magic
+      level: 90
+      xp: 100
+      facility: Arceuus lectern
+      spellbook: Arceuus
+      materials:
+        - item_name: Law rune
+          quantity: 2
+        - item_name: Soul rune
+          quantity: 2
+        - item_name: Blood rune
+          quantity: 2
+        - item_name: Dark essence block
+          quantity: 1
+  related_items:
+    - item_name: Dark essence block
+      relationship: component
+      description: Required for tablet creation
+    - item_name: Law rune
+      relationship: component
+      description: Runecrafting component
+  about: Ape atoll teleport (tablet) is a members-only Arceuus tablet that teleports the user to the cave on the south side of Ape Atoll.
+  market_strategy:
+    notes:
+      - Created via 90 Magic on the Arceuus spellbook
+      - Steady demand from Slayer and questing players
+      - Skips the standard Monkey Madness teleport pathway
+  history:
+    - date: "2016-05-12"
+      description: Released alongside the Necromancy teleport tablets update
+    - date: "2016-05-19"
+      description: Destination moved from Temple of Marimbo
+    - date: "2017-10-12"
+      description: Examine text updated from generic spell description
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-05-12"
+    update: Necromancy Teleport Tablets
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    alchable: false
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

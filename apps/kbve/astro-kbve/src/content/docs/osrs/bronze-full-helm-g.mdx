@@ -12,9 +12,72 @@ osrs:
   lowalch: 19
   highalch: 28
   limit: 4
-  about: "Bronze full helm (g) is a free-to-play item in Old School RuneScape. High alchemy value: 28 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bronze
+    tier: low
+  equipment:
+    slot: head
+    weight: 2.721
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -1
+      ranged: -3
+    defence_bonus:
+      stab: 4
+      slash: 5
+      crush: 3
+      magic: -1
+      ranged: 4
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+  related_items:
+    - item_id: 1155
+      item_name: Bronze full helm
+      slug: bronze-full-helm
+      relationship: variant
+      description: Untrimmed base helm
+    - item_id: 12213
+      item_name: Bronze full helm (t)
+      slug: bronze-full-helm-t
+      relationship: variant
+      description: Trimmed (t) cosmetic counterpart
+  market_strategy:
+    notes:
+      - Cosmetic trim with identical defence to base helm
+      - Tiny buy limit keeps GE prices volatile
+      - Driven by easy clue scroll completions
+      - Popular collection log target for newer accounts
+  history:
+    - date: "2021-04-21"
+      description: Ranged attack bonus reduced from -2 to -3.
+    - date: "2014-06-12"
+      description: Added with the Treasure Trail Expansion update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Bronze full helm (g) is a gold-trimmed cosmetic helmet from easy clue scroll caskets with the same defence as the base helm.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,60 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 6000
-  about: "Choc-ice is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: low
+  food:
+    heals: 7
+    effects:
+      - description: Automatically eaten during desert heat to cool the player and offset thirst.
+      - description: Waterskins take priority over choc-ices when both are in inventory.
+  shops:
+    - shop_name: Rok's Chocs Box
+      location: Nardah
+      stock: 30
+      price: 30
+      restock_seconds: 30
+  drop_table:
+    sources:
+      - source: Karamel
+        combat_level: 110
+        quantity: "1"
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 1973
+      item_name: Chocolate bar
+      slug: chocolate-bar
+      relationship: alternative
+      description: Standard chocolate food source
+  market_strategy:
+    notes:
+      - Niche utility in the Kharidian Desert
+      - Heals 7 plus desert cooling effect
+      - Bulk demand from desert questers and Pyramid Plunder runners
+      - Cheap shop supply caps upside
+      - Stable low-volume listing
+  history:
+    - date: "2005-12-05"
+      description: Released alongside the Contact! quest and Nardah shop expansion.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-12-05"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: Choc-ice is a desert-friendly food that doubles as a coolant against Kharidian heat damage.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

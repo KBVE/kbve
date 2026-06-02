@@ -12,9 +12,86 @@ osrs:
   lowalch: 10
   highalch: 16
   limit: 7000
-  about: "Mithril knife(p+) is a members-only item in Old School RuneScape. High alchemy value: 16 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 11
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 10
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - name: Apply Weapon poison(+)
+      materials:
+        - item_id: 5654
+          item_name: Mithril knife
+          quantity: 1
+        - item_id: 5937
+          item_name: Weapon poison(+)
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 5654
+      item_name: Mithril knife
+      slug: mithril-knife
+      relationship: component
+      description: Unpoisoned variant
+    - item_id: 5937
+      item_name: Weapon poison(+)
+      slug: weapon-poison-plus
+      relationship: component
+      description: Stronger poison
+    - item_id: 5659
+      item_name: Mithril knife(p++)
+      slug: mithril-knife-p-plus-plus
+      relationship: upgrade
+      description: Strongest poison variant
+  about: Mithril knife(p+) is a stackable thrown Ranged weapon coated in Weapon poison(+), requiring 20 Ranged to wield.
+  market_strategy:
+    notes:
+      - Niche poisoned ranged option for budget pures
+      - Profit hinges on weapon poison(+) spread
+      - Stackable so bulk flips are bank-friendly
+  history:
+    - date: "2006-09-20"
+      description: Renamed from (+) and (s) suffixes to (p+) and (p++).
+    - date: "2021-07-07"
+      description: Female player weapon positioning adjusted.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-04-14"
+    update: New Throwing Weapons!
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

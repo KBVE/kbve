@@ -12,9 +12,93 @@ osrs:
   lowalch: 196
   highalch: 294
   limit: 11000
-  about: "Amethyst arrow(p++) is a members-only item in Old School RuneScape. High alchemy value: 294 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ammunition
+    tier: mid-high
+  equipment:
+    slot: ammo
+    weight: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 55
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Amethyst arrow
+          item_id: 21332
+          quantity: 1
+        - item_name: Weapon poison(++)
+          item_id: 5954
+          quantity: 1
+      product: Amethyst arrow(p++)
+      product_id: 21336
+      product_quantity: 1
+      facility: Inventory
+  related_items:
+    - item_id: 21332
+      item_name: Amethyst arrow
+      slug: amethyst-arrow
+      relationship: variant
+      description: Unpoisoned variant
+    - item_id: 21334
+      item_name: Amethyst arrow(p+)
+      slug: amethyst-arrow-p-plus
+      relationship: alternative
+      description: Lower poison tier
+    - item_id: 892
+      item_name: Rune arrow
+      slug: rune-arrow
+      relationship: alternative
+      description: Weaker (+49 ranged strength)
+    - item_id: 11212
+      item_name: Dragon arrow
+      slug: dragon-arrow
+      relationship: upgrade
+      description: Stronger (+60 ranged strength)
+  about: Amethyst arrow(p++) is a venomous amethyst-tipped arrow used with magic shortbow or stronger, applying the stronger weapon poison++ effect for boss and high-level Ranged tasks.
+  market_strategy:
+    notes:
+      - Niche poisoned amethyst variant
+      - Magic shortbow and Twisted bow compatible
+      - Demand tied to venom-immune content avoidance
+  history:
+    - date: "2017-06-22"
+      update: Mining Guild Expansion
+      description: Amethyst arrow line introduced.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: 22 June 2017
+    update: Mining Guild Expansion
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

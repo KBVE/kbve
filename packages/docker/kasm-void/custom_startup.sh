@@ -6,11 +6,15 @@ MAXIMIZE_SCRIPT="${STARTUPDIR:-/dockerstartup}/maximize_window.sh"
 
 CLOAK_BIN="${CLOAK_BIN:-/opt/cloakbrowser/cloakbrowser}"
 CLOAK_PGREP="cloakbrowser"
-CLOAK_DEFAULT_ARGS="--no-sandbox --disable-gpu --disable-dev-shm-usage --start-maximized --no-first-run --no-default-browser-check --password-store=basic"
+CDP_PORT="${CDP_PORT:-9222}"
+CLOAK_CDP_ARGS="--remote-debugging-port=${CDP_PORT} --remote-debugging-address=127.0.0.1 --remote-allow-origins=http://127.0.0.1"
+CLOAK_DEFAULT_ARGS="--no-sandbox --disable-gpu --disable-dev-shm-usage --start-maximized --no-first-run --no-default-browser-check --password-store=basic ${CLOAK_CDP_ARGS}"
 CLOAK_ARGS=${CLOAK_APP_ARGS:-$CLOAK_DEFAULT_ARGS}
 CLOAK_URL="${START_URL:-https://kbve.com}"
 
 DISCORD_STARTUP="/dockerstartup/discord_startup.sh"
+NAV_SHIM="/dockerstartup/nav_shim.py"
+NAV_SHIM_PGREP="nav_shim.py"
 
 wait_desktop() {
     [ -x /usr/bin/filter_ready ] && /usr/bin/filter_ready || true
@@ -44,6 +48,20 @@ discord_loop() {
     done
 }
 
+nav_shim_loop() {
+    if [ ! -x "$NAV_SHIM" ]; then
+        echo "[startup] nav_shim.py missing; skipping URL launcher supervisor"
+        return
+    fi
+    while true; do
+        if ! pgrep -f "$NAV_SHIM_PGREP" >/dev/null 2>&1; then
+            echo "[startup] launching nav_shim"
+            python3 "$NAV_SHIM" >/tmp/nav_shim.log 2>&1 &
+        fi
+        sleep 5
+    done
+}
+
 if [ -n "$DISABLE_CUSTOM_STARTUP" ]; then
     echo "[startup] DISABLE_CUSTOM_STARTUP set; idling"
     exec sleep infinity
@@ -51,6 +69,7 @@ fi
 
 [ "${LAUNCH_CLOAK:-1}" = "1" ] && cloak_loop &
 [ "${LAUNCH_DISCORD:-1}" = "1" ] && discord_loop &
+[ "${LAUNCH_NAV_SHIM:-1}" = "1" ] && nav_shim_loop &
 
 wait -n || true
 exec sleep infinity

@@ -12,9 +12,83 @@ osrs:
   lowalch: 8320
   highalch: 12480
   limit: 70
-  about: "Rune hasta(p+) is a members-only item in Old School RuneScape. High alchemy value: 12,480 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    weight: 2.267
+    requirements:
+      attack: 40
+    attack_bonus:
+      stab: 36
+      slash: 36
+      crush: 36
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: -10
+      slash: -10
+      crush: -9
+      magic: 0
+      ranged: -10
+    other_bonus:
+      melee_strength: 42
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 11415
+      item_name: Rune hasta
+      slug: rune-hasta
+      relationship: variant
+      description: Unpoisoned base hasta
+    - item_id: 11416
+      item_name: Rune hasta(p)
+      slug: rune-hasta-p
+      relationship: variant
+      description: Weaker poison variant
+    - item_id: 11418
+      item_name: Rune hasta(p++)
+      slug: rune-hasta-p-plus-plus
+      relationship: upgrade
+      description: Strongest poison tier
+  market_strategy:
+    notes:
+      - Barbarian Smithing miniquest required to wield
+      - 4-tick spear attack speed (since 2021 buff)
+      - Poison++ damage stacks on hit
+      - Limited PvM niche, low supply
+      - Alchable for 12,480 GP
+      - Compare with regular rune spear for value
+  history:
+    - date: "2007-07-03"
+      update: Barbarian Training
+      description: Item added to the game with Barbarian hastas.
+    - date: "2021-04-21"
+      update: Game update
+      description: Attack speed improved from 5 ticks to 4 ticks.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-07-03"
+    update: Barbarian Training
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
+    destroy: Drop
+  about: Rune hasta(p+) is a strong-poison variant of the Barbarian-Smithing rune hasta with a 4-tick spear attack speed.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

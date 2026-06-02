@@ -12,9 +12,49 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 15
-  about: "Linen (Icthlarin's Little Helper) is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Raetul and Co's Cloth Store
+      location: Sophanem
+      stock: 14
+      price: 30
+    - shop_name: Raetul and Co's Cloth Store (post Contact!)
+      location: Sophanem
+      stock: 20
+      price: 30
+  related_items:
+    - item_name: Embalming manual
+      relationship: alternative
+      description: Icthlarin's Little Helper quest item
+    - item_name: Bucket of saltwater
+      relationship: alternative
+      description: Mummification reagent
+    - item_name: Canopic jar
+      relationship: alternative
+      description: Quest mummification component
+  about: Linen is a sheet of mummy wrap purchased from Raetul and Co's Cloth Store in Sophanem and used during the Icthlarin's Little Helper quest to wrap the mummy.
+  market_strategy:
+    notes:
+      - Shop floor price of 30 coins caps the buy ceiling
+      - Quest demand keeps a steady stream of buyers
+      - Low GE buy limit (15) discourages bulk flipping
+  history:
+    - date: "2005-04-26"
+      description: Released with the Desert Month Finale
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-04-26"
+    update: Desert Month Finale
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0.907
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

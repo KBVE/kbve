@@ -12,9 +12,74 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "Villager sandals (pink) is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: feet
+    weight: 0.68
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Gabooty's Tai Bwo Wannai Cooperative
+      location: Tai Bwo Wannai
+      sells_for: 120
+      currency: Trading sticks
+  related_items:
+    - item_id: 6373
+      item_name: Villager robe (pink)
+      slug: villager-robe-pink
+      relationship: set-piece
+      description: Matching pink villager robe
+    - item_id: 6375
+      item_name: Villager hat (pink)
+      slug: villager-hat-pink
+      relationship: set-piece
+      description: Matching pink villager hat
+  about: Villager sandals (pink) are feet slot cosmetic footwear bought from Gabooty's Tai Bwo Wannai Cooperative for 120 trading sticks (100 with Karamja gloves).
+  market_strategy:
+    notes:
+      - Trading-stick shop sets a hard supply floor
+      - Karamja gloves 1+ discount supports merchant flips
+      - Fashionscape collectors and quest completionists drive price
+      - Low buy limit keeps spikes possible
+  history:
+    - date: "2005-08-09"
+      update: Tai Bwo Wannai Clean-Up
+      description: Item released with the Tai Bwo Wannai Clean-Up update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-09"
+    update: Tai Bwo Wannai Clean-Up
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.68
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

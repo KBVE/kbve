@@ -4,4 +4,10 @@ metadata:
     name: angelscript
     labels:
         name: angelscript
-        pod-security.kubernetes.io/enforce: baseline
+        # Hosts KubeVirt virt-launcher pods (windows-builder, macos-builder)
+        # and the gluetun-builder-egress proxy, both of which require
+        # NET_ADMIN + /dev/net/tun hostPath. Matches the `kasm` and
+        # `firecracker` namespaces that run the same kind of workload.
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/warn: privileged
