@@ -1,9 +1,10 @@
-# One-shot Job to configure Windows autologon + VNC-ready settings on the builder VM.
+# ArgoCD-managed Job to configure Windows autologon + VNC-ready settings on
+# the builder VM.
 #
-# Uses the QEMU Guest Agent to set registry keys inside Windows so the
-# VM auto-logs in as Administrator on every boot — no lock screen, no
-# Ctrl+Alt+Del prompt, no screensaver, no idle lock. VNC users see the
-# desktop immediately without any interaction.
+# Uses the QEMU Guest Agent to set registry keys inside Windows so the VM
+# auto-logs in as Administrator on every boot — no lock screen, no
+# Ctrl+Alt+Del prompt, no screensaver, no idle lock. Guacamole / VNC users
+# see the desktop immediately without any interaction.
 #
 # What it configures (7 steps):
 #   1. Autologon registry keys (AutoAdminLogon, DefaultUserName, DefaultPassword)
@@ -14,20 +15,25 @@
 #   6. Disable Server Manager auto-start (DoNotOpenServerManagerAtLogon)
 #   7. Disable machine inactivity lock (InactivityTimeoutSecs=0)
 #
+# Lifecycle: ArgoCD treats this as a Sync hook. Each sync of the autologon
+# app deletes the previous completed Job (BeforeHookCreation) and creates a
+# fresh one. The script is idempotent — re-running just rewrites the same
+# registry keys.
+#
+# If the VM is stopped at sync time the script exits 0 without configuring
+# anything, so the sync stays Healthy. The next sync triggered after the
+# VM comes back online will reapply the settings.
+#
 # Prerequisites:
-#   1. windows-builder VM is running with QEMU Guest Agent installed
-#   2. Secret 'windows-builder-admin' exists in angelscript namespace
-#      with key 'password' containing the Administrator password
-#   3. vm-scaler RBAC includes pod/exec permissions (auto-deployed via KEDA app)
+#   1. windows-builder VM with QEMU Guest Agent installed (cold-start once
+#      via virtctl + virtio-win ISO).
+#   2. Secret 'windows-builder-admin' in angelscript namespace with key
+#      'password' containing the Administrator password.
+#   3. vm-scaler RBAC includes pod/exec permissions (deployed via KEDA app).
 #
-# Apply manually (NOT managed by ArgoCD — this is a one-shot job):
-#   kubectl apply -f apps/kube/kubevirt/autologon/ -n angelscript
-#
-# Re-run (if the Job already completed):
-#   kubectl delete job vm-autologon-windows -n angelscript
-#   kubectl apply -f apps/kube/kubevirt/autologon/ -n angelscript
-#
-# The settings persist across reboots — only needs to run once.
+# The settings persist across reboots — the Job only needs to land once
+# successfully per VM lifecycle, but Argo will keep retrying on each sync
+# until that happens.
 #
 # Note: the pod template intentionally does NOT carry `app: angelscript`
 # because the namespace NetworkPolicy (podSelector app=angelscript) only
@@ -43,6 +49,13 @@ metadata:
     labels:
         app: angelscript
         component: vm-autologon
+    annotations:
+        # PostSync so the autologon Job runs after every successful sync of
+        # the autologon app itself (e.g. when the script ConfigMap or the
+        # Job spec changes). BeforeHookCreation deletes the prior completed
+        # Job before recreating, sidestepping the immutable-Job-spec error.
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
     backoffLimit: 3
     ttlSecondsAfterFinished: 86400
