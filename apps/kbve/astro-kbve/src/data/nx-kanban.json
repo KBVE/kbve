@@ -1,12 +1,12 @@
 {
-	"generated_at": "2026-06-01T09:57:59.668Z",
+	"generated_at": "2026-06-02T09:35:42.007Z",
 	"project": {
 		"title": "KBVE",
 		"url": "https://github.com/orgs/KBVE/projects/5",
-		"total_items": 201
+		"total_items": 199
 	},
 	"summary": {
-		"Theory": 28,
+		"Theory": 32,
 		"AI": 1,
 		"Todo": 10,
 		"Backlog": 8,
@@ -14,7 +14,7 @@
 		"Support": 0,
 		"Staging": 3,
 		"Review": 1,
-		"Done": 135
+		"Done": 130
 	},
 	"columns": {
 		"Theory": [
@@ -467,6 +467,63 @@
 				],
 				"matrix": null,
 				"date": "2026-05-25",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 11579,
+				"title": "feat(laser): extract chat client into @kbve/laser for Phaser game embedding",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/issues/11579",
+				"assignees": [],
+				"labels": [
+					"enhancement"
+				],
+				"matrix": null,
+				"date": "2026-06-01",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 11580,
+				"title": "feat(chat): proto + zod schema for ChatMessage envelope (bots, NOTICE, kinds)",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/issues/11580",
+				"assignees": [],
+				"labels": [
+					"enhancement"
+				],
+				"matrix": null,
+				"date": "2026-06-01",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 11582,
+				"title": "harden(astro-irc): embed popup lifecycle + data-signin-url override",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/issues/11582",
+				"assignees": [],
+				"labels": [
+					"enhancement"
+				],
+				"matrix": null,
+				"date": "2026-06-01",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 11605,
+				"title": "[isometric] WebGL2 fallback for browsers without WebGPU",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/issues/11605",
+				"assignees": [],
+				"labels": [
+					"2",
+					"enhancement"
+				],
+				"matrix": null,
+				"date": "2026-06-02",
 				"milestone": null
 			}
 		],
@@ -1014,10 +1071,10 @@
 		"Review": [
 			{
 				"type": "PULL_REQUEST",
-				"number": 11552,
-				"title": "Release: 2 features, 1 chore → Main",
+				"number": 11655,
+				"title": "Release: 3 features, 4 fixes, 2 CI, 6 tests, 8 chores → Main",
 				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/pull/11552",
+				"url": "https://github.com/KBVE/kbve/pull/11655",
 				"assignees": [],
 				"labels": [
 					"auto-pr",
@@ -1031,268 +1088,19 @@
 		"Done": [
 			{
 				"type": "ISSUE",
-				"number": 10601,
-				"title": "[DISCORDSH] - [BEVY] - Crate Integration State",
+				"number": 8190,
+				"title": "[BEVY] bevy_cam performance audit — 8 findings",
 				"state": "CLOSED",
-				"url": "https://github.com/KBVE/kbve/issues/10601",
-				"assignees": [],
+				"url": "https://github.com/KBVE/kbve/issues/8190",
+				"assignees": [
+					"h0lybyte"
+				],
 				"labels": [
-					"enhancement",
+					"1",
 					"rust"
 				],
 				"matrix": null,
-				"date": "2026-05-08",
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11143,
-				"title": "Release: 6 features, 3 perfs, 3 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11143",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11146,
-				"title": "Atomic: axum-kbve v1.0.162 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11146",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11147,
-				"title": "Release: 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11147",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11148,
-				"title": "Release: 6 features, 6 fixes, 2 refactors, 2 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11148",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11158,
-				"title": "Atomic: mc v1.0.53 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11158",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11159,
-				"title": "Release: 2 features, 1 refactor, 2 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11159",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11162,
-				"title": "deploy(isometric): update WASM build",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11162",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11166,
-				"title": "Release: 1 fix, 2 perfs, 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11166",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11167,
-				"title": "deploy(isometric): update WASM build",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11167",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11168,
-				"title": "chore(dashboard): daily sync — 2026-05-18",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11168",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11169,
-				"title": "Atomic: axum-kbve v1.0.163 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11169",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11172,
-				"title": "Release: 8 features, 7 fixes, 2 refactors, 4 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11172",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11183,
-				"title": "Atomic: firecracker-ctl v0.1.41 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11183",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11184,
-				"title": "Release: 2 features, 3 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11184",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11185,
-				"title": "Atomic: mc v1.0.54 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11185",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11186,
-				"title": "deploy(isometric): update WASM build",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11186",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 11190,
-				"title": "Atomic: axum-kbve v1.0.164 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/11190",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
+				"date": "2026-04-09",
 				"milestone": null
 			},
 			{
@@ -3018,6 +2826,184 @@
 				"assignees": [],
 				"labels": [
 					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11552,
+				"title": "Release: 16 features, 8 fixes, 2 docs, 3 perfs, 8 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11552",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11562,
+				"title": "chore(dashboard): daily sync — 2026-06-01",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11562",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 11581,
+				"title": "harden(irc-gateway): tighten CORS, cap WS frames, add PING/PONG heartbeat",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/11581",
+				"assignees": [],
+				"labels": [
+					"enhancement",
+					"rust"
+				],
+				"matrix": null,
+				"date": "2026-06-01",
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11612,
+				"title": "Atomic: agones-factorio v0.0.12 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11612",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11614,
+				"title": "Atomic: agones-factorio-relay v0.0.6 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11614",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11615,
+				"title": "Release: 1 fix, 4 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11615",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11618,
+				"title": "deploy(isometric): update WASM build",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11618",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11619,
+				"title": "Atomic: axum-kbve v1.0.179 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11619",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11624,
+				"title": "Release: 1 feature, 1 fix, 1 test, 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11624",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11632,
+				"title": "Release: 2 features, 4 fixes, 4 CI, 4 tests, 4 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11632",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11676,
+				"title": "Atomic: axum-kbve v1.0.180 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11676",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 11678,
+				"title": "Atomic: rareicon v0.1.7 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/11678",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
 				],
 				"matrix": null,
 				"date": null,
