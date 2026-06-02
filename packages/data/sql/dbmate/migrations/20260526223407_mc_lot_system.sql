@@ -1,68 +1,27 @@
 -- migrate:up
 
--- ============================================================================
--- MC LOT SYSTEM — digital real estate for the survival backend
---
--- Phase 0 schema: parcel registry, schematic catalog, ownership ledger, and
--- build-event audit log. Players buy lots in the dashboard, then pick
--- structures from the schematic catalog to place on owned lots. The MC mod
--- side picks up purchase + build events and applies them to the world.
---
--- Lot bounds are stored as int4range pairs (chunk_x_range, chunk_z_range)
--- with a GIST EXCLUDE constraint that forbids any two lots in the same
--- world from overlapping at the chunk grid level. The schema supports
--- 1x1 lots from day one and arbitrarily large lots (200x100 castles, etc)
--- with no further migration — the operational ceiling lives in RPC guards,
--- not table definitions.
---
--- Money flow rides on wallet.service_debit against the user-kind account.
--- mc.lot_purchase and mc.lot_build_log keep their own append-only audit
--- rows so we can reconstruct ownership / build history without joining
--- through wallet.ledger. Both ledgers carry a per-currency ledger reference
--- pair (wallet_credits_ledger_id, wallet_khash_ledger_id) because a single
--- charge can debit BOTH currencies; storing one column would discard the
--- second debit on a dual-currency purchase.
---
--- Idempotency is enforced both at the mc layer (UNIQUE(idempotency_key))
--- AND at the wallet layer (per-currency-derived UUID via
--- mc._derive_idem_key) so retrying a dual-currency charge cannot collide
--- on the wallet side.
---
--- Schema exposure: every public-callable RPC is fronted by a
--- public.proxy_* wrapper because PostgREST only sees the public schema.
--- The mc schema stays private; service_role and authenticated callers
--- route through the proxies. Pattern matches mc_public_proxies.sql.
--- ============================================================================
+-- mc lot system — digital real estate for the survival backend.
+-- Tables: mc.schematic (catalog), mc.lot (parcels, GIST EXCLUDE on
+-- (world, chunk_x_range, chunk_z_range) prevents overlap),
+-- mc.lot_purchase (ownership ledger), mc.lot_build_log (build audit
+-- + concurrent work queue).
+-- Money flows through wallet.service_debit; dual-currency charges
+-- use mc._derive_idem_key to avoid wallet-side idempotency collision.
+-- RPC layering: mc.service_* (service_role), mc.proxy_* (auth.uid()),
+-- public.proxy_* (PostgREST surface).
 
--- btree_gist supplies the gist_text_ops opclass needed by the
--- (world WITH =) leg of the EXCLUDE constraint on mc.lot. Left in the
--- default schema (rather than `extensions`) because EXCLUDE opclass
--- resolution uses the live search_path at CREATE TABLE time, and pinning
--- the extension to `extensions` would force every consumer to extend its
--- search_path. pgcrypto sits in extensions because it's only called via
--- explicit extensions.digest(...) — different concern.
+-- btree_gist supplies gist_text_ops for the EXCLUDE constraint. Kept
+-- in default schema; pinning to `extensions` breaks opclass resolution
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
--- Re-affirm schema + grants so this migration is independently runnable
--- against a fresh database. mc was already created in mc_schema_init but
--- IF NOT EXISTS keeps the statement safe to replay.
 CREATE SCHEMA IF NOT EXISTS mc;
 GRANT USAGE ON SCHEMA mc TO service_role;
 REVOKE ALL ON SCHEMA mc FROM PUBLIC, anon, authenticated;
 
 
--- ===========================================================================
--- mc._derive_idem_key — deterministic per-currency idempotency key
--- ===========================================================================
---
--- wallet.service_debit treats (account, idempotency_key) as the uniqueness
--- scope for replay collapsing. A single mc.lot purchase or build can debit
--- BOTH credits AND khash; reusing the same key for both calls would either
--- silently no-op the second debit or surface a fingerprint mismatch
--- depending on how wallet handles it. Derive a stable per-currency UUID
--- from the caller-supplied key so retry semantics still work, but each
--- currency has its own slot.
--- ===========================================================================
+-- mc._derive_idem_key — wallet.service_debit treats (account,
+-- idempotency_key) as the uniqueness scope; dual-currency charges
+-- need a stable per-currency UUID so credits + khash don't collide.
 CREATE OR REPLACE FUNCTION mc._derive_idem_key(p_key UUID, p_tag TEXT)
 RETURNS UUID
 LANGUAGE sql
@@ -71,11 +30,8 @@ STRICT
 PARALLEL SAFE
 SET search_path = ''
 AS $$
-    -- pgcrypto lives in the extensions schema on Supabase/kilobase; the
-    -- mc_pgcrypto_qualify migration already established this convention
-    -- and granted USAGE on extensions to service_role. SHA-256 truncated
-    -- to 128 bits gives a UUID-sized digest with no realistic collision
-    -- surface even though the use is non-adversarial.
+    -- pgcrypto lives in extensions schema on Supabase. SHA-256 truncated
+    -- to 128 bits = UUID-sized digest.
     SELECT substr(encode(extensions.digest(p_key::text || ':' || p_tag, 'sha256'), 'hex'), 1, 32)::uuid;
 $$;
 
@@ -108,18 +64,14 @@ CREATE TABLE mc.schematic (
         CHECK (schematic_id ~ '^[A-Za-z0-9:_/-]{3,128}$'),
     CONSTRAINT mc_schematic_category_chk
         CHECK (category IN ('house', 'castle', 'tower', 'farm', 'shop', 'utility', 'monument')),
-    -- Reject path-traversal + force schematics into the mod jar's
-    -- schematics/ dir. Loader on the Java side concats this onto a class
-    -- loader resource path, so anything escaping the dir is a footgun.
+    -- Reject path traversal; lock to schematics/ dir in mod jar.
     CONSTRAINT mc_schematic_resource_path_chk
         CHECK (resource_path !~ '(^/|\.\.)' AND
                resource_path ~ '^schematics/[A-Za-z0-9_./-]+\.(nbt|schem)$')
 );
 
--- Partial index lines up with proxy_list_schematics' WHERE enabled +
--- ORDER BY category, tier, name path. INCLUDE columns let the planner
--- satisfy the catalog listing without touching the heap once the
--- visibility map is warm.
+-- Index-only path for proxy_list_schematics: WHERE enabled ORDER BY
+-- category, tier, name.
 CREATE INDEX idx_mc_schematic_enabled_category_tier_name_cover
     ON mc.schematic (category, tier, name, schematic_id)
     INCLUDE (dims_x, dims_y, dims_z, price_credits, price_khash)
@@ -130,7 +82,7 @@ ALTER TABLE mc.schematic ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mc.schematic FORCE ROW LEVEL SECURITY;
 
 COMMENT ON TABLE mc.schematic IS
-    'Build catalog. RPC-only: RLS is enabled + forced with NO policies; direct table access is denied even to service_role. All reads/writes flow through SECURITY DEFINER RPCs.';
+    'Build catalog. RPC-only — RLS forced with no policies; all access via SECURITY DEFINER RPCs.';
 
 
 -- ===========================================================================
@@ -141,11 +93,8 @@ CREATE TABLE mc.lot (
     world           TEXT NOT NULL DEFAULT 'minecraft:overworld',
     chunk_x_range   int4range NOT NULL,
     chunk_z_range   int4range NOT NULL,
-    -- Stored generated columns so chunk-count guards in RPCs, listing
-    -- sort orders, and dashboard map queries don't recompute on every
-    -- read. *_min / *_max are inclusive (i.e. -1 from the half-open
-    -- upper bound) so indexes and queries are in the same coordinate
-    -- system the dashboard renders in.
+    -- Stored generated columns for chunk-count guards, index ORDER BY,
+    -- and map queries. *_min / *_max are inclusive (upper-1).
     chunk_x_min     INTEGER GENERATED ALWAYS AS (lower(chunk_x_range)) STORED,
     chunk_x_max     INTEGER GENERATED ALWAYS AS (upper(chunk_x_range) - 1) STORED,
     chunk_z_min     INTEGER GENERATED ALWAYS AS (lower(chunk_z_range)) STORED,
@@ -157,21 +106,14 @@ CREATE TABLE mc.lot (
     chunk_area      INTEGER GENERATED ALWAYS AS
         ((upper(chunk_x_range) - lower(chunk_x_range))
        * (upper(chunk_z_range) - lower(chunk_z_range))) STORED,
-    -- Block-space mirrors of the chunk bounds. The dashboard map and
-    -- the MC mod both render in block space; storing these once avoids
-    -- per-client recompute and keeps the math DB-side.
+    -- Block-space mirrors so map/worker reads skip chunk*16 client-side.
     block_x_min     INTEGER GENERATED ALWAYS AS (lower(chunk_x_range) * 16) STORED,
     block_x_max     INTEGER GENERATED ALWAYS AS (upper(chunk_x_range) * 16 - 1) STORED,
     block_z_min     INTEGER GENERATED ALWAYS AS (lower(chunk_z_range) * 16) STORED,
     block_z_max     INTEGER GENERATED ALWAYS AS (upper(chunk_z_range) * 16 - 1) STORED,
     anchor_y        SMALLINT NOT NULL,
-    -- ON DELETE RESTRICT, not SET NULL: the owner_state_chk requires
-    -- state > 0 to carry a non-null owner. SET NULL would let a user
-    -- deletion drop the owner column on a built/owned/under_build lot
-    -- and surface the CHECK violation at the wrong layer. Forcing a
-    -- restriction means user deletion has to flow through an explicit
-    -- 'release my lots' RPC that resets state, owner, and schematic
-    -- together.
+    -- RESTRICT not SET NULL: owner_state_chk requires owner with
+    -- state>0; user-delete must flow through a release-lots RPC.
     owner_user_id   UUID REFERENCES auth.users(id) ON DELETE RESTRICT,
     current_schematic_id TEXT REFERENCES mc.schematic(schematic_id),
     -- 0 = vacant, 1 = owned, 2 = built, 3 = under_build, 4 = demolishing
@@ -191,18 +133,12 @@ CREATE TABLE mc.lot (
     CONSTRAINT mc_lot_z_range_chk    CHECK (NOT isempty(chunk_z_range)
                                              AND lower_inc(chunk_z_range)
                                              AND NOT upper_inc(chunk_z_range)),
-    -- Explicit finite-bounds guard so the generated chunk_area columns
-    -- and the GIST EXCLUDE never see unbounded ranges. Belt-and-suspenders
-    -- with the isempty + bound-inclusion checks above.
     CONSTRAINT mc_lot_x_range_finite_chk
         CHECK (lower(chunk_x_range) IS NOT NULL AND upper(chunk_x_range) IS NOT NULL),
     CONSTRAINT mc_lot_z_range_finite_chk
         CHECK (lower(chunk_z_range) IS NOT NULL AND upper(chunk_z_range) IS NOT NULL),
-    -- Hard ceiling on parcel size. 512 chunks = 8192 blocks per axis;
-    -- 262144 total chunks = 4 km × 4 km. Anything bigger is almost
-    -- certainly an admin tooling bug and would corrode map/exclusion
-    -- index behavior. Phase-0 RPC cap is 64 chunks; this is the table
-    -- floor that even direct admin INSERTs must obey.
+    -- 512 chunks = 8192 blocks per axis; 262144 area = 4km^2. Table
+    -- floor; phase-0 RPC cap is 64 chunks.
     CONSTRAINT mc_lot_chunk_width_max_chk
         CHECK ((upper(chunk_x_range) - lower(chunk_x_range)) <= 512),
     CONSTRAINT mc_lot_chunk_depth_max_chk
@@ -210,22 +146,14 @@ CREATE TABLE mc.lot (
     CONSTRAINT mc_lot_chunk_area_max_chk
         CHECK ((upper(chunk_x_range) - lower(chunk_x_range))
              * (upper(chunk_z_range) - lower(chunk_z_range)) <= 262144),
-    -- Vanilla dim ids look like 'minecraft:overworld' or
-    -- 'kbve:survival_ext'. Enforce the namespaced format to keep typos and
-    -- arbitrary text from sneaking into the world column.
+    -- Vanilla namespaced dim id: 'minecraft:overworld' etc.
     CONSTRAINT mc_lot_world_chk
         CHECK (world ~ '^[a-z0-9_.-]+:[a-z0-9_/.-]+$'),
     CONSTRAINT mc_lot_owner_state_chk CHECK (
         (state = 0 AND owner_user_id IS NULL)
         OR (state > 0 AND owner_user_id IS NOT NULL)
     ),
-    -- Schematic presence per state:
-    --   0 vacant       — no schematic (and no owner; see vacant_clean_chk).
-    --   1 owned        — no schematic (clean lot, no build yet).
-    --   2 built        — schematic NOT NULL.
-    --   3 under_build  — schematic free (rebuild flow may carry the
-    --                    prior schematic; first build starts NULL).
-    --   4 demolishing  — schematic NOT NULL (target row of the clear).
+    -- 0/1: no schematic. 2/4: schematic NOT NULL. 3: free (rebuild).
     CONSTRAINT mc_lot_built_has_schematic_chk CHECK (
         CASE state
             WHEN 0 THEN current_schematic_id IS NULL
@@ -235,9 +163,7 @@ CREATE TABLE mc.lot (
             ELSE TRUE  -- state=3 unconstrained
         END
     ),
-    -- Vacant lots have no owner. state=0 + owner combos slipped through
-    -- the broader owner_state_chk because that check allowed state>0
-    -- with non-null owner; this is the stricter inverse for state=0.
+    -- state=0 inverse of owner_state_chk: no owner, no schematic.
     CONSTRAINT mc_lot_vacant_clean_chk CHECK (
         state <> 0
         OR (owner_user_id IS NULL AND current_schematic_id IS NULL)
@@ -250,11 +176,7 @@ CREATE TABLE mc.lot (
     )
 );
 
--- Now that we have stored chunk_x_min / chunk_z_min generated columns,
--- prefer them over expression indexes on lower(chunk_*_range) so plans
--- pick the index directly without rewriting the predicate. The trailing
--- lot_id makes every ordering deterministic and unlocks keyset
--- pagination in a later migration without touching these indexes.
+-- Generated chunk_min columns + trailing lot_id for keyset pagination.
 -- Bare 'WHERE owner_user_id = $1' lookups are covered by the leading
 -- column of idx_mc_lot_owner_world_chunk_cursor; no separate non-cursor
 -- owner index needed.
@@ -265,26 +187,19 @@ CREATE INDEX idx_mc_lot_world_state_chunk_cursor
 CREATE INDEX idx_mc_lot_owner_world_chunk_cursor
     ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
     WHERE owner_user_id IS NOT NULL;
--- Hottest dashboard read path: "what vacant lots can I buy in <world>?"
--- Partial + INCLUDE so the marketplace map renders without heap hops.
+-- Marketplace map: vacant lots, index-only via INCLUDE.
 CREATE INDEX idx_mc_lot_vacant_world_chunk_cursor
     ON mc.lot (world, chunk_x_min, chunk_z_min, lot_id)
     INCLUDE (chunk_x_max, chunk_z_max, chunk_area, anchor_y,
              price_credits, price_khash)
     WHERE state = 0;
--- "My lots" page is dominated by owned + built rows; vacant/under-build
--- are rare. INCLUDE the columns the dashboard renders (including
--- prices, which surface as "sell-for" hints on owned-but-not-built
--- rows) so the index can answer index-only.
+-- "My lots" (state IN (1,2)), index-only.
 CREATE INDEX idx_mc_lot_owner_active_world_chunk_cursor
     ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
     INCLUDE (state, current_schematic_id, chunk_x_max, chunk_z_max,
              chunk_area, anchor_y, price_credits, price_khash)
     WHERE owner_user_id IS NOT NULL AND state IN (1, 2);
--- "Under build / demolishing" view of my lots. Smaller partial set,
--- but lots in transitional states get re-rendered every few seconds
--- by the dashboard waiting for the worker ACK, so a dedicated index
--- earns its keep there.
+-- Transitional poll view (state IN (3,4)).
 CREATE INDEX idx_mc_lot_owner_transitional_world_chunk_cursor
     ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
     INCLUDE (state, current_schematic_id, chunk_x_max, chunk_z_max,
@@ -295,11 +210,7 @@ ALTER TABLE mc.lot OWNER TO postgres;
 ALTER TABLE mc.lot ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mc.lot FORCE ROW LEVEL SECURITY;
 
--- Trigger touches updated_at only when one of the mutable business
--- columns changed; cuts write amplification on no-op UPDATEs and avoids
--- a whole-row IS DISTINCT FROM comparison that would touch every
--- generated chunk_* column too. NOW() (transaction-stable) is the right
--- clock for an audit-style column.
+-- Per-column DISTINCT check skips generated cols; NOW() for txn-stable.
 CREATE OR REPLACE FUNCTION mc.trg_lot_updated_at()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -327,7 +238,7 @@ CREATE TRIGGER trg_mc_lot_updated_at
     EXECUTE FUNCTION mc.trg_lot_updated_at();
 
 COMMENT ON TABLE mc.lot IS
-    'Parcel registry. Chunk-aligned rectangular regions guarded by a GIST EXCLUDE constraint that forbids overlap within a world. RPC-only: RLS is enabled + forced with NO policies; all reads/writes flow through SECURITY DEFINER RPCs.';
+    'Parcel registry. Chunk-aligned regions; GIST EXCLUDE forbids overlap. RPC-only — RLS forced with no policies.';
 COMMENT ON COLUMN mc.lot.state IS '0=vacant, 1=owned, 2=built, 3=under_build, 4=demolishing';
 
 
@@ -340,14 +251,8 @@ CREATE TABLE mc.lot_purchase (
     buyer_user_id   UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     price_credits   BIGINT NOT NULL DEFAULT 0,
     price_khash     BIGINT NOT NULL DEFAULT 0,
-    -- One ledger id per currency. A dual-currency purchase fills both;
-    -- single-currency purchases leave the other NULL.
-    -- NOTE: deliberately NOT declared as a FOREIGN KEY to wallet.ledger.
-    -- mc and wallet are owned by different teams' migration timelines
-    -- and wallet.ledger uses ON DELETE NO ACTION semantics that would
-    -- block valid retention/archival flows over there. The reverse
-    -- direction (wallet.ledger.ref_type = 'mc.lot' / .ref_id) is how the
-    -- audit trail is reconstructed; back-reference here is informational.
+    -- Per-currency back-ref. NOT a FK to wallet.ledger; that path's NO
+    -- ACTION semantics would block wallet retention/archival.
     wallet_credits_ledger_id BIGINT,
     wallet_khash_ledger_id   BIGINT,
     idempotency_key UUID NOT NULL,
@@ -355,9 +260,7 @@ CREATE TABLE mc.lot_purchase (
 
     CONSTRAINT mc_lot_purchase_price_chk
         CHECK (price_credits >= 0 AND price_khash >= 0),
-    -- Per-currency ledger reference must be present iff that currency
-    -- was actually charged. Prevents dirty audit rows that would force
-    -- defensive null-checking downstream.
+    -- Ledger ref NOT NULL iff that currency was charged.
     CONSTRAINT mc_lot_purchase_credits_ledger_chk CHECK (
         (price_credits = 0 AND wallet_credits_ledger_id IS NULL)
         OR (price_credits > 0 AND wallet_credits_ledger_id IS NOT NULL)
@@ -369,19 +272,12 @@ CREATE TABLE mc.lot_purchase (
     CONSTRAINT mc_lot_purchase_idem_uq UNIQUE (idempotency_key)
 );
 
--- Dashboard "my purchase history" sorts newest first; composite avoids
--- a sort step. INCLUDE'd columns make the history list index-only.
--- Ledger ids intentionally omitted — the dashboard doesn't render
--- them, and adding them inflates the index without payoff.
+-- "My purchases" newest-first, index-only (ledger ids omitted on purpose).
 CREATE INDEX idx_mc_lot_purchase_buyer_created
     ON mc.lot_purchase (buyer_user_id, created_at DESC, purchase_id DESC)
     INCLUDE (lot_id, price_credits, price_khash);
 
--- Phase-0 invariant: each lot can be bought exactly once. Resale comes
--- with an explicit ownership-epoch column in a follow-up migration.
--- This unique index also covers the lookup-by-lot path; no separate
--- non-unique idx_mc_lot_purchase_lot needed (would just be write
--- amplification).
+-- Phase-0 invariant: one purchase per lot. Doubles as lookup index.
 CREATE UNIQUE INDEX uq_mc_lot_purchase_one_per_lot
     ON mc.lot_purchase (lot_id);
 
@@ -390,7 +286,7 @@ ALTER TABLE mc.lot_purchase ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mc.lot_purchase FORCE ROW LEVEL SECURITY;
 
 COMMENT ON TABLE mc.lot_purchase IS
-    'Append-only ownership ledger. Per-currency wallet_*_ledger_id columns back-reference wallet.ledger so dual-currency purchases retain both debit references. RPC-only: RLS enabled + forced, no policies.';
+    'Append-only ownership ledger. Per-currency back-refs to wallet.ledger. RPC-only — RLS forced with no policies.';
 
 
 -- ===========================================================================
@@ -405,7 +301,6 @@ CREATE TABLE mc.lot_build_log (
     schematic_id    TEXT REFERENCES mc.schematic(schematic_id),
     price_credits   BIGINT NOT NULL DEFAULT 0,
     price_khash     BIGINT NOT NULL DEFAULT 0,
-    -- One ledger id per currency. Mirrors mc.lot_purchase.
     wallet_credits_ledger_id BIGINT,
     wallet_khash_ledger_id   BIGINT,
     idempotency_key UUID NOT NULL,
@@ -417,11 +312,7 @@ CREATE TABLE mc.lot_build_log (
     queued_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     applied_at      TIMESTAMPTZ,
     failed_at       TIMESTAMPTZ,
-    -- Retry budget. Incremented on every claim; rows that hit the cap
-    -- are excluded from the SKIP LOCKED scan so a poisoned job cannot
-    -- cycle through claim -> stale-requeue -> claim forever. INTEGER
-    -- (not SMALLINT) so future schemas can reuse the column without
-    -- a type widening migration.
+    -- Incremented on claim; cap excludes poison from SKIP LOCKED scan.
     attempt_count   INTEGER NOT NULL DEFAULT 0,
     last_attempt_at TIMESTAMPTZ,
 
@@ -446,9 +337,8 @@ CREATE TABLE mc.lot_build_log (
         (price_khash = 0 AND wallet_khash_ledger_id IS NULL)
         OR (price_khash > 0 AND wallet_khash_ledger_id IS NOT NULL)
     ),
-    -- Demolish is always free in phase 0: action_kind=1 cannot carry a
-    -- schematic, price, or ledger ref. Locking this in at the table
-    -- level so a future RPC change can't silently break the invariant.
+    -- Demolish is free in phase 0 — table-level lock so future RPC
+    -- changes can't silently start charging.
     CONSTRAINT mc_lot_build_log_demolish_free_chk CHECK (
         action_kind <> 1
         OR (schematic_id IS NULL
@@ -467,31 +357,24 @@ CREATE TABLE mc.lot_build_log (
     CONSTRAINT mc_lot_build_log_idem_uq UNIQUE (idempotency_key)
 );
 
--- Per-lot history: newest-first composite drops the sort for
--- "show me every build event for this lot".
+-- Per-lot history.
 CREATE INDEX idx_mc_lot_build_log_lot_queued
     ON mc.lot_build_log (lot_id, queued_at DESC, build_id DESC);
--- User history: INCLUDE the columns the 'my build history' page
--- renders so the dashboard read goes index-only.
+-- "My build history" — index-only via INCLUDE.
 CREATE INDEX idx_mc_lot_build_log_actor_queued
     ON mc.lot_build_log (actor_user_id, queued_at DESC, build_id DESC)
     INCLUDE (lot_id, action_kind, schematic_id, apply_state,
              failed_at, applied_at, attempt_count);
--- Queue + worker claim path: include build_id so the claim ORDER BY
--- (queued_at, build_id) is satisfied by index walk alone. attempt_count
--- predicate mirrors the claim WHERE so poisoned rows drop out of the
--- partial index instead of getting scanned-and-skipped forever.
+-- Worker claim path. attempt_count predicate mirrors claim WHERE so
+-- exhausted rows drop out of the index.
 CREATE INDEX idx_mc_lot_build_log_pending_claim
     ON mc.lot_build_log (queued_at, build_id)
     WHERE apply_state = 0 AND attempt_count < 5;
--- Stuck-job reclaim. build_id keeps janitor scans deterministic and
--- supports a LIMIT-batched requeue. claimed_at IS NOT NULL is
--- redundant with the claimed-consistency CHECK today but makes the
--- partial index self-documenting and survives future constraint edits.
+-- Stale-claim janitor scan.
 CREATE INDEX idx_mc_lot_build_log_claimed_stale
     ON mc.lot_build_log (claimed_at, build_id)
     WHERE apply_state = 3 AND claimed_at IS NOT NULL;
--- Failed-job admin/janitor listing (#3, #10).
+-- Failed-job admin listing.
 CREATE INDEX idx_mc_lot_build_log_failed_recent
     ON mc.lot_build_log (failed_at DESC, build_id DESC)
     WHERE apply_state = 2;
@@ -500,8 +383,7 @@ CREATE INDEX idx_mc_lot_build_log_schematic
     ON mc.lot_build_log (schematic_id)
     WHERE schematic_id IS NOT NULL;
 
--- At most one outstanding job (queued OR claimed) per lot. Stronger than
--- the lot.state guard because it survives RPC bugs / direct admin writes.
+-- One outstanding job per lot. Survives RPC bugs / direct writes.
 CREATE UNIQUE INDEX uq_mc_lot_build_log_one_active_per_lot
     ON mc.lot_build_log (lot_id)
     WHERE apply_state IN (0, 3);
@@ -511,17 +393,9 @@ CREATE INDEX idx_mc_lot_current_schematic
     ON mc.lot (current_schematic_id)
     WHERE current_schematic_id IS NOT NULL;
 
--- Queue table sees state-update churn (queued -> claimed -> applied).
--- apply_state and attempt_count both participate in partial indexes
--- (pending_claim WHERE apply_state=0 AND attempt_count<5, claimed_stale
--- WHERE apply_state=3, failed_recent WHERE apply_state=2,
--- one_active_per_lot WHERE apply_state IN (0,3)) so most state
--- transitions still require index maintenance and are NOT HOT-eligible.
--- fillfactor 80 still pays off: it leaves room on heap pages and reduces
--- page-split pressure under churn even when HOT can't be used. The
--- proper long-term fix for high build traffic is splitting the queue
--- state into a dedicated mc.lot_build_queue table (phase 3).
--- Audit/append-mostly tables stay at the default 100.
+-- apply_state + attempt_count participate in partial indexes so most
+-- transitions aren't HOT-eligible. fillfactor still cuts page splits;
+-- phase-3 queue/audit split is the real high-throughput fix.
 ALTER TABLE mc.lot_build_log SET (
     fillfactor = 80,
     autovacuum_vacuum_scale_factor = 0.02,
@@ -530,9 +404,7 @@ ALTER TABLE mc.lot_build_log SET (
     autovacuum_analyze_threshold = 500
 );
 
--- mc.lot churns too: state cycles 0 -> 1 -> 3 -> 2 -> 4 -> 1, and the
--- updated_at trigger writes on every meaningful column change. Less
--- aggressive than lot_build_log but tighter than the catalog default.
+-- mc.lot state cycles 0->1->3->2->4->1; tighter than catalog default.
 ALTER TABLE mc.lot SET (
     fillfactor = 90,
     autovacuum_vacuum_scale_factor = 0.05,
@@ -541,12 +413,7 @@ ALTER TABLE mc.lot SET (
     autovacuum_analyze_threshold = 250
 );
 
--- Extended statistics for correlated column pairs. The planner
--- otherwise treats (world, state) and (owner_user_id, state) as
--- independent, which under-estimates selectivity on the hot list
--- queries because state distribution is skewed (most rows owned or
--- built, very few transitional). Same idea on the queue: pending +
--- attempt_count are tightly correlated (most rows are 0/applied).
+-- Extended stats for correlated columns (state distribution skewed).
 CREATE STATISTICS st_mc_lot_world_state
     ON world, state
     FROM mc.lot;
@@ -562,7 +429,7 @@ ALTER TABLE mc.lot_build_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mc.lot_build_log FORCE ROW LEVEL SECURITY;
 
 COMMENT ON TABLE mc.lot_build_log IS
-    'Append-only audit of build/demolish events and concurrent work queue. action_kind: 0=build, 1=demolish. apply_state: 0=queued, 1=applied, 2=failed, 3=claimed. RPC-only: RLS enabled + forced, no policies.';
+    'Audit + work queue. action_kind: 0=build, 1=demolish. apply_state: 0=queued, 1=applied, 2=failed, 3=claimed. RPC-only — RLS forced.';
 COMMENT ON COLUMN mc.lot_build_log.action_kind IS '0=build, 1=demolish';
 COMMENT ON COLUMN mc.lot_build_log.apply_state IS
     '0=queued, 1=applied, 2=failed, 3=claimed (worker holding the row)';
@@ -578,10 +445,8 @@ STABLE
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-    -- wallet.account has a partial unique index (kind='user', user_id)
-    -- so at most one row matches; LIMIT 1 was previously defensive but
-    -- masked corruption. Plain scalar subquery surfaces duplicates as a
-    -- "more than one row" runtime error instead.
+    -- wallet.account partial unique (kind='user', user_id) enforces
+    -- single match; no LIMIT 1 so duplicates raise instead of hide.
     SELECT a.id
     FROM wallet.account a
     WHERE a.kind = 'user' AND a.user_id = p_user_id;
@@ -594,11 +459,7 @@ REVOKE ALL ON FUNCTION mc._user_account_id(UUID) FROM PUBLIC, anon, authenticate
 -- ===========================================================================
 -- mc.service_list_lots
 -- ===========================================================================
--- Cursor pagination via four trailing p_after_* args. Default-NULL keeps
--- the legacy LIMIT/OFFSET shape for callers that don't pass a cursor;
--- callers that DO pass (world, chunk_x_min, chunk_z_min, lot_id) of the
--- last row from the prior page get a clean index walk via
--- idx_mc_lot_world_chunk_cursor.
+-- Cursor pagination via trailing p_after_* args; NULL = legacy LIMIT/OFFSET.
 CREATE OR REPLACE FUNCTION mc.service_list_lots(
     p_world TEXT DEFAULT NULL,
     p_state SMALLINT DEFAULT NULL,
@@ -617,6 +478,10 @@ RETURNS TABLE (
     chunk_x_max     INTEGER,
     chunk_z_min     INTEGER,
     chunk_z_max     INTEGER,
+    block_x_min     INTEGER,
+    block_x_max     INTEGER,
+    block_z_min     INTEGER,
+    block_z_max     INTEGER,
     chunk_area      INTEGER,
     anchor_y        SMALLINT,
     owner_user_id   UUID,
@@ -639,6 +504,10 @@ AS $$
            l.chunk_x_max,
            l.chunk_z_min,
            l.chunk_z_max,
+           l.block_x_min,
+           l.block_x_max,
+           l.block_z_min,
+           l.block_z_max,
            l.chunk_area,
            l.anchor_y,
            l.owner_user_id,
@@ -699,6 +568,10 @@ RETURNS TABLE (
     chunk_x_max     INTEGER,
     chunk_z_min     INTEGER,
     chunk_z_max     INTEGER,
+    block_x_min     INTEGER,
+    block_x_max     INTEGER,
+    block_z_min     INTEGER,
+    block_z_max     INTEGER,
     chunk_area      INTEGER,
     anchor_y        SMALLINT,
     owner_user_id   UUID,
@@ -718,6 +591,8 @@ AS $$
     SELECT l.lot_id, l.world,
            l.chunk_x_min, l.chunk_x_max,
            l.chunk_z_min, l.chunk_z_max,
+           l.block_x_min, l.block_x_max,
+           l.block_z_min, l.block_z_max,
            l.chunk_area, l.anchor_y,
            l.owner_user_id, l.current_schematic_id,
            l.state, l.price_credits, l.price_khash,
@@ -779,10 +654,8 @@ GRANT EXECUTE ON FUNCTION mc.service_list_schematics(TEXT, BOOLEAN)
 -- mc.service_claim_pending_builds — concurrency-safe work claim
 -- ===========================================================================
 --
--- Replaces a plain SELECT of queued rows. Uses FOR UPDATE SKIP LOCKED so
--- multiple MC workers polling at the same time each get a distinct slice,
--- and flips apply_state from 0 → 3 (claimed) in the same statement so a
--- worker death leaves a recoverable claim instead of a lost job.
+-- SKIP LOCKED claim; flips 0 → 3 atomically so worker death leaves a
+-- recoverable claim, not a lost job.
 -- ===========================================================================
 CREATE OR REPLACE FUNCTION mc.service_claim_pending_builds(
     p_worker_id TEXT,
@@ -795,14 +668,15 @@ RETURNS TABLE (
     action_kind     SMALLINT,
     schematic_id    TEXT,
     queued_at       TIMESTAMPTZ,
-    -- Denormalized lot + schematic columns so the worker can start
-    -- applying without follow-up queries. resource_path / dims_* are
-    -- NULL for demolish jobs (LEFT JOIN to mc.schematic).
     world           TEXT,
     chunk_x_min     INTEGER,
     chunk_x_max     INTEGER,
     chunk_z_min     INTEGER,
     chunk_z_max     INTEGER,
+    block_x_min     INTEGER,
+    block_x_max     INTEGER,
+    block_z_min     INTEGER,
+    block_z_max     INTEGER,
     anchor_y        SMALLINT,
     resource_path   TEXT,
     dims_x          SMALLINT,
@@ -822,34 +696,20 @@ BEGIN
         RAISE EXCEPTION 'worker_id too long (max 128)' USING ERRCODE = '22001';
     END IF;
 
-    -- Pick + claim split into two CTEs:
-    --   picked  — SKIP LOCKED scan of queued rows ordered for fairness;
-    --             cap p_limit at [0, 256] so the dry-poll case (p_limit=0)
-    --             is legitimate.
-    --   claimed — UPDATE ... FROM picked is the more index-friendly
-    --             shape than the older WHERE build_id IN (...) form.
-    -- UPDATE ... RETURNING has no ordering guarantee, so the final SELECT
-    -- re-sorts the batch so workers process in queued order.
+    -- Final ORDER BY because UPDATE...RETURNING is unordered; workers
+    -- process the batch in queued order. p_limit=0 is dry-poll.
     RETURN QUERY
     WITH picked AS (
         SELECT build_id
           FROM mc.lot_build_log
          WHERE apply_state = 0
-           -- Retry budget: skip poison jobs that have already exhausted
-           -- their attempts. The stale-claim janitor never resurrects
-           -- past this cap either, so the row stays queued but dormant
-           -- until an admin retries via service_retry_failed_build.
+           -- Exhausted jobs stay dormant; admin unsticks via retry RPC.
            AND attempt_count < 5
          ORDER BY queued_at, build_id
          LIMIT GREATEST(0, LEAST(COALESCE(p_limit, 32), 256))
          FOR UPDATE SKIP LOCKED
     ),
-    nowish AS (
-        -- One clock_timestamp() reading shared by claimed_at and
-        -- last_attempt_at; avoids the multi-microsecond drift the
-        -- old shape introduced.
-        SELECT clock_timestamp() AS ts
-    ),
+    nowish AS (SELECT clock_timestamp() AS ts),
     claimed AS (
         UPDATE mc.lot_build_log b
            SET apply_state     = 3,
@@ -862,13 +722,13 @@ BEGIN
         RETURNING b.build_id, b.lot_id, b.actor_user_id,
                   b.action_kind, b.schematic_id, b.queued_at
     )
-    -- Denormalize the claim with lot + schematic data so workers don't
-    -- need follow-up queries to start applying. schematic_id is NULL
-    -- on demolish jobs, so the schematic join is LEFT.
+    -- Denormalize lot + schematic so workers skip follow-up reads.
     SELECT c.build_id, c.lot_id, c.actor_user_id, c.action_kind,
            c.schematic_id, c.queued_at,
            l.world, l.chunk_x_min, l.chunk_x_max,
-           l.chunk_z_min, l.chunk_z_max, l.anchor_y,
+           l.chunk_z_min, l.chunk_z_max,
+           l.block_x_min, l.block_x_max,
+           l.block_z_min, l.block_z_max, l.anchor_y,
            s.resource_path, s.dims_x, s.dims_y, s.dims_z
       FROM claimed c
       JOIN mc.lot l ON l.lot_id = c.lot_id
@@ -899,12 +759,9 @@ LANGUAGE sql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-    -- Two-bucket recovery so a stale claim with attempt_count >= 5 can't
-    -- become an invisible blocker (it would be queued but excluded by
-    -- the partial pending-claim index, and still occupy the partial
-    -- one-active-per-lot unique slot). Under-cap rows go back to
-    -- queued; at-cap rows transition to failed and the lot is released
-    -- to its prior settled state (built or owned).
+    -- Under-cap stale claims requeue; at-cap stale claims fail and
+    -- release the lot — prevents poisoned rows from blocking via
+    -- the partial one-active-per-lot unique slot.
     WITH picked AS (
         SELECT build_id, lot_id, action_kind, attempt_count
           FROM mc.lot_build_log
@@ -939,13 +796,12 @@ AS $$
            AND p.attempt_count >= 5
         RETURNING b.lot_id, b.action_kind
     ),
-    -- Release the lot back to its settled state so a new build can
-    -- queue. We don't know the exact prior state, so the same
-    -- heuristic the failure ACK uses applies: schematic_id present
-    -- => built (2), else owned (1).
+    -- Release lot: demolish failures → built (2); build failures use
+    -- schematic heuristic.
     released AS (
         UPDATE mc.lot l
            SET state = CASE
+                  WHEN e.action_kind = 1 THEN 2
                   WHEN l.current_schematic_id IS NULL THEN 1
                   ELSE 2
                END
@@ -995,8 +851,7 @@ BEGIN
         RAISE EXCEPTION 'worker_id too long (max 128)' USING ERRCODE = '22001';
     END IF;
 
-    -- Only the worker that holds the claim may ACK it. Prevents a stale
-    -- or wrong worker from finalizing another worker's job.
+    -- Worker-bound ACK: claimed_by must match.
     UPDATE mc.lot_build_log
        SET apply_state = 1,
            applied_at = clock_timestamp(),
@@ -1062,8 +917,9 @@ SET search_path = ''
 COST 100
 AS $$
 DECLARE
-    v_lot_id   TEXT;
-    v_rowcount INTEGER;
+    v_lot_id      TEXT;
+    v_action_kind SMALLINT;
+    v_rowcount    INTEGER;
 BEGIN
     IF p_build_id IS NULL OR btrim(p_build_id) = '' THEN
         RAISE EXCEPTION 'build_id cannot be empty' USING ERRCODE = '22004';
@@ -1077,13 +933,9 @@ BEGIN
 
     UPDATE mc.lot_build_log
        SET apply_state = 2,
-           -- Always carry SOME diagnostic string so operators reading
-           -- the row aren't left guessing on null/blank input.
            apply_error = left(
                COALESCE(NULLIF(btrim(p_error), ''), 'worker reported failure'),
                2048),
-           -- Distinct timestamp from applied_at so dashboards can tell
-           -- 'finished cleanly' from 'gave up' without inspecting state.
            failed_at = clock_timestamp(),
            applied_at = NULL,
            claimed_at = NULL,
@@ -1091,14 +943,18 @@ BEGIN
      WHERE build_id = p_build_id
        AND apply_state = 3
        AND claimed_by = p_worker_id
-    RETURNING lot_id INTO v_lot_id;
+    RETURNING lot_id, action_kind INTO v_lot_id, v_action_kind;
 
     IF NOT FOUND THEN
         RETURN FALSE;
     END IF;
 
     UPDATE mc.lot
-       SET state = CASE WHEN current_schematic_id IS NULL THEN 1 ELSE 2 END
+       SET state = CASE
+              WHEN v_action_kind = 1 THEN 2
+              WHEN current_schematic_id IS NULL THEN 1
+              ELSE 2
+           END
      WHERE lot_id = v_lot_id
        AND state IN (3, 4);
     GET DIAGNOSTICS v_rowcount = ROW_COUNT;
@@ -1157,17 +1013,10 @@ BEGIN
         RAISE EXCEPTION 'idempotency_key cannot be null' USING ERRCODE = '22004';
     END IF;
 
-    -- Serialize concurrent retries on the same idempotency_key. Without
-    -- the lock two identical requests can both miss the existing-key
-    -- check, then one inserts cleanly and the other tries the lot-state
-    -- path and surfaces a confusing "lot not vacant" error instead of
-    -- collapsing to the original purchase row. Namespace the lock key
-    -- so a caller that reuses the same idempotency_key across purchase,
-    -- build, and demolish doesn't accidentally cross-block.
+    -- Advisory lock: serialize same-key retries before the existing-row
+    -- check; namespace by op so cross-op key reuse doesn't deadlock.
     PERFORM pg_advisory_xact_lock(hashtextextended('mc.purchase:' || p_idempotency_key::text, 0));
 
-    -- Idempotent replay: existing key must match the original parameters,
-    -- otherwise the caller is reusing a key for a different request.
     SELECT purchase_id, lot_id, buyer_user_id
       INTO v_existing_purchase_id, v_existing_lot, v_existing_buyer
       FROM mc.lot_purchase
@@ -1310,8 +1159,6 @@ BEGIN
         RAISE EXCEPTION 'idempotency_key cannot be null' USING ERRCODE = '22004';
     END IF;
 
-    -- Serialize concurrent retries on the same idempotency_key. See the
-    -- matching note in service_purchase_lot.
     PERFORM pg_advisory_xact_lock(hashtextextended('mc.build:' || p_idempotency_key::text, 0));
 
     SELECT build_id, lot_id, schematic_id, actor_user_id
@@ -1330,8 +1177,8 @@ BEGIN
 
     SELECT owner_user_id, state, anchor_y,
            chunk_area,
-           chunk_width * 16,
-           chunk_depth * 16
+           block_x_max - block_x_min + 1,
+           block_z_max - block_z_min + 1
       INTO v_lot_owner, v_lot_state, v_lot_anchor_y,
            v_lot_chunk_area,
            v_lot_dx_blocks,
@@ -1377,8 +1224,7 @@ BEGIN
             p_schematic_id, v_lot_anchor_y USING ERRCODE = '22023';
     END IF;
 
-    -- Phase-0 chunk-count guard. Lifted in a follow-up migration once the
-    -- tick-chunked paste pipeline is proven stable.
+    -- Phase-0 cap; lifted once tick-chunked paste pipeline is stable.
     IF v_lot_chunk_area > 64 THEN
         RAISE EXCEPTION 'lot % exceeds phase-0 build cap (chunks=%, max=64)',
             p_lot_id, v_lot_chunk_area USING ERRCODE = '22023';
@@ -1415,11 +1261,8 @@ BEGIN
         );
     END IF;
 
-    -- The partial uq_mc_lot_build_log_one_active_per_lot index turns a
-    -- concurrent second queue attempt into a unique_violation. Translate
-    -- ONLY that constraint into the domain error; an idempotency-key
-    -- collision (different mc_lot_build_log_idem_uq constraint) must
-    -- re-raise so the caller sees a distinct error.
+    -- Concurrent second queue surfaces as unique_violation on the
+    -- partial active-per-lot index; map only that, re-raise others.
     BEGIN
         INSERT INTO mc.lot_build_log (
             lot_id, actor_user_id, action_kind, schematic_id,
@@ -1446,8 +1289,6 @@ BEGIN
         END;
     END;
 
-    -- Self-validating transition: defense-in-depth in case a future
-    -- refactor weakens the earlier FOR UPDATE + state guard.
     DECLARE v_rowcount INTEGER;
     BEGIN
         UPDATE mc.lot
@@ -1605,6 +1446,10 @@ RETURNS TABLE (
     chunk_x_max     INTEGER,
     chunk_z_min     INTEGER,
     chunk_z_max     INTEGER,
+    block_x_min     INTEGER,
+    block_x_max     INTEGER,
+    block_z_min     INTEGER,
+    block_z_max     INTEGER,
     chunk_area      INTEGER,
     anchor_y        SMALLINT,
     owner_user_id   UUID,
@@ -1620,12 +1465,6 @@ SECURITY DEFINER
 SET search_path = ''
 ROWS 256
 AS $$
-    -- LANGUAGE sql so the planner sees the body directly instead of going
-    -- through a plpgsql RETURN QUERY layer. auth.uid() is called once via
-    -- the CROSS JOIN so the equality survives function inlining cleanly.
-    -- Keyset pagination via trailing p_after_* args: when supplied, the
-    -- (world, chunk_x_min, chunk_z_min, lot_id) tuple comparison walks
-    -- idx_mc_lot_world_chunk_cursor directly.
     WITH me AS (SELECT auth.uid() AS uid)
     SELECT l.lot_id,
            l.world,
@@ -1633,6 +1472,10 @@ AS $$
            l.chunk_x_max,
            l.chunk_z_min,
            l.chunk_z_max,
+           l.block_x_min,
+           l.block_x_max,
+           l.block_z_min,
+           l.block_z_max,
            l.chunk_area,
            l.anchor_y,
            l.owner_user_id,
@@ -1805,6 +1648,10 @@ RETURNS TABLE (
     chunk_x_max     INTEGER,
     chunk_z_min     INTEGER,
     chunk_z_max     INTEGER,
+    block_x_min     INTEGER,
+    block_x_max     INTEGER,
+    block_z_min     INTEGER,
+    block_z_max     INTEGER,
     chunk_area      INTEGER,
     anchor_y        SMALLINT,
     owner_user_id   UUID,
@@ -1821,10 +1668,7 @@ SET search_path = ''
 ROWS 256
 AS $$
 BEGIN
-    -- Generic list has a four-field cursor (world + chunk_x + chunk_z +
-    -- lot_id). All-or-none, otherwise a malformed client cursor would
-    -- silently return zero rows from the SQL-level guard inside
-    -- mc.proxy_list_lots and hide the bug.
+    -- Four-field cursor all-or-none; partial cursor would silent-empty.
     IF p_after_lot_id IS NOT NULL
        AND (p_after_world IS NULL
             OR p_after_chunk_x IS NULL
@@ -1997,6 +1841,10 @@ RETURNS TABLE (
     chunk_x_max     INTEGER,
     chunk_z_min     INTEGER,
     chunk_z_max     INTEGER,
+    block_x_min     INTEGER,
+    block_x_max     INTEGER,
+    block_z_min     INTEGER,
+    block_z_max     INTEGER,
     anchor_y        SMALLINT,
     resource_path   TEXT,
     dims_x          SMALLINT,
@@ -2115,9 +1963,7 @@ BEGIN
         RAISE EXCEPTION 'build_id cannot be empty' USING ERRCODE = '22004';
     END IF;
 
-    -- Failure ACK already flipped the lot back to its settled state, so
-    -- the retried job's ACK path (which expects state = 3 for builds /
-    -- state = 4 for demolishes) would fail. Pre-flight the lot here.
+    -- Restore lot to 3/4 so the next worker ACK can proceed.
     SELECT lot_id, action_kind
       INTO v_lot_id, v_action_kind
       FROM mc.lot_build_log
@@ -2292,6 +2138,10 @@ RETURNS TABLE (
     chunk_x_max     INTEGER,
     chunk_z_min     INTEGER,
     chunk_z_max     INTEGER,
+    block_x_min     INTEGER,
+    block_x_max     INTEGER,
+    block_z_min     INTEGER,
+    block_z_max     INTEGER,
     chunk_area      INTEGER,
     anchor_y        SMALLINT,
     owner_user_id   UUID,
@@ -2321,12 +2171,8 @@ COMMENT ON FUNCTION public.proxy_service_get_lot(TEXT) IS
 -- ===========================================================================
 -- HOT-PATH LIST RPCs — dedicated wrappers for the two most common reads
 -- ===========================================================================
--- The generic list_lots() uses optional OR predicates, which can make the
--- planner pick the broad cursor index instead of the narrower partial
--- indexes (idx_mc_lot_vacant_*, idx_mc_lot_owner_active_*). These two
--- wrappers hard-code the state predicate so the partial indexes are the
--- only viable plan. Same cursor convention (chunk_x, chunk_z, lot_id),
--- but world is fixed by p_world so it isn't part of the cursor tuple.
+-- Hard-coded state predicates so partial indexes are the only plan.
+-- world fixed by p_world; cursor only carries (chunk_x, chunk_z, lot_id).
 
 CREATE OR REPLACE FUNCTION public.proxy_list_vacant_lots(
     p_world TEXT,
@@ -2611,6 +2457,10 @@ RETURNS TABLE (
     chunk_x_max     INTEGER,
     chunk_z_min     INTEGER,
     chunk_z_max     INTEGER,
+    block_x_min     INTEGER,
+    block_x_max     INTEGER,
+    block_z_min     INTEGER,
+    block_z_max     INTEGER,
     chunk_area      INTEGER,
     anchor_y        SMALLINT,
     is_owned        BOOLEAN,
@@ -2646,6 +2496,8 @@ BEGIN
     SELECT r.lot_id, r.world,
            r.chunk_x_min, r.chunk_x_max,
            r.chunk_z_min, r.chunk_z_max,
+           r.block_x_min, r.block_x_max,
+           r.block_z_min, r.block_z_max,
            r.chunk_area, r.anchor_y,
            (r.owner_user_id IS NOT NULL) AS is_owned,
            r.is_owned_by_me,

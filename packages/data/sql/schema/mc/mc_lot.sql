@@ -249,6 +249,8 @@ CREATE TABLE IF NOT EXISTS mc.lot_build_log (
     failed_at       TIMESTAMPTZ,
     attempt_count   INTEGER NOT NULL DEFAULT 0,
     last_attempt_at TIMESTAMPTZ,
+    -- NOTE: 'failed_at' replaces the prior use of applied_at for failure
+    -- timestamps; mark_build_failed writes failed_at and NULLs applied_at.
 
     CONSTRAINT mc_lot_build_log_action_chk
         CHECK (action_kind IN (0, 1)),
