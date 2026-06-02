@@ -524,14 +524,33 @@ local FOLLOW_RADIUS_SQ = 128 * 128   -- keep tracking up to ~128 tiles away
 local FOLLOW_REST_DIST_SQ = 6 * 6    -- ally orbits within 6 tiles — pack-like, not heel-clinging
 local FOLLOW_DESTINATION_RADIUS = 5  -- ally settles within 5 tiles of owner
 
+-- Build a set of surface indices that have at least one connected player.
+-- Sprint / follow / nervous AI runs only on these surfaces — there's no
+-- value in ticking biters or follow commands on an empty planet, and the
+-- lookup saves the full `surface.find_entities_filtered` scan on idle
+-- worlds. Must be defined ABOVE follow_loop (which calls it) because Lua
+-- resolves function references at call time against the enclosing chunk
+-- scope; a forward `local` declaration would also work but moving the
+-- whole definition up keeps the call site obvious.
+local function active_surface_indices()
+	local set = nil
+	for _, p in pairs(game.connected_players) do
+		if p.valid then
+			set = set or {}
+			set[p.surface_index] = true
+		end
+	end
+	return set
+end
+
 -- Scans live allies per-surface every tick. The previous registry-driven
 -- path used game.get_entity_by_unit_number(stored_unit_number) for O(1)
--- lookups, but in 2.0 that method returns nil for kbve-spider-ally
--- entities even though surface.find_entities_filtered{name=SPIDER_ALLY}
--- finds them at the exact same tick — so the registry self-prune wiped
--- every entry and the follow loop's outer guard skipped the loop. We
--- now drive the loop off the live scan; the registry stays for migration
--- + nametag tracking but isn't load-bearing for follow.
+-- lookups, but until the "get-by-unit-number" prototype flag was added
+-- that method returned nil for our entities, so the registry self-prune
+-- wiped every entry and the follow loop's outer guard skipped the loop.
+-- Even with the flag fix in place, the live-scan path is the more robust
+-- driver (works regardless of registry state); the registry stays for
+-- migration + nametag tracking but isn't load-bearing for follow.
 local function follow_loop()
 	local active = active_surface_indices()
 	if not active then return end
@@ -645,21 +664,6 @@ script.on_nth_tick(FOLLOW_TICK_INTERVAL, function(event)
 	end
 	follow_loop()
 end)
-
--- Build a set of surface indices that have at least one connected player.
--- Sprint + nervous AI runs only on these surfaces — there's no value in
--- ticking biters or nervous twitches on an empty planet, and the lookup
--- saves the full `surface.find_entities_filtered` scan on idle worlds.
-local function active_surface_indices()
-	local set = nil
-	for _, p in pairs(game.connected_players) do
-		if p.valid then
-			set = set or {}
-			set[p.surface_index] = true
-		end
-	end
-	return set
-end
 
 script.on_nth_tick(NERVOUS_TICK_INTERVAL, function(event)
 	local active = active_surface_indices()
