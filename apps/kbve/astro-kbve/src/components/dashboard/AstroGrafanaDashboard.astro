@@ -25,15 +25,20 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 					<ReactGrafanaAlerts client:only="react" />
 				</div>
 
-				<!-- Island: Node section (stat cards, drill-downs, charts) -->
-				<div id="grafana-nodes">
+				<!-- Section: Nodes — title is server-rendered at build time
+				     so it lands in the initial HTML; React island only owns
+				     the dynamic stat cards / drill-downs / charts. -->
+				<section id="grafana-nodes" class="kbve-dash-section">
+					<h2 class="kbve-dash-section-title">Nodes</h2>
 					<ReactGrafanaNodes client:only="react" />
-				</div>
+				</section>
 
-				<!-- Island: K8s section (stat cards, drill-downs, pods chart) -->
-				<div id="grafana-k8s">
+				<!-- Section: Kubernetes — same pattern, static title +
+				     React-only dynamic body. -->
+				<section id="grafana-k8s" class="kbve-dash-section">
+					<h2 class="kbve-dash-section-title">Kubernetes</h2>
 					<ReactGrafanaK8s client:only="react" />
-				</div>
+				</section>
 			</div>
 		</ReactGrafanaAuth>
 	</div>
@@ -63,6 +68,23 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 		display: flex;
 		flex-direction: column;
 		gap: 1.5rem;
+	}
+
+	/* Server-rendered section titles — moved out of React so they land
+	   in the initial HTML and don't wait on hydration. */
+	.kbve-dash-section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.kbve-dash-section-title {
+		color: var(--sl-color-text, #e6edf3);
+		margin: 0;
+		font-size: clamp(1.05rem, 2.6vw, 1.3rem);
+		font-weight: 600;
+		padding-bottom: 0.5rem;
+		border-bottom: 1px solid var(--sl-color-gray-5, #262626);
 	}
 
 	:global(@keyframes spin) {

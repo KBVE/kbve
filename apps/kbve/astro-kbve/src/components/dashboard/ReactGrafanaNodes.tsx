@@ -333,20 +333,9 @@ export default function ReactGrafanaNodes() {
 	const timeRange = useStore(grafanaService.$timeRange);
 
 	return (
-		<section>
-			<h2
-				style={{
-					color: 'var(--sl-color-text, #e6edf3)',
-					margin: '0 0 1rem 0',
-					fontSize: '1.3rem',
-					fontWeight: 600,
-					paddingBottom: '0.5rem',
-					borderBottom: '1px solid var(--sl-color-gray-5, #262626)',
-				}}>
-				Nodes
-			</h2>
-
+		<>
 			<div
+				className="kbve-card-grid"
 				style={{
 					display: 'grid',
 					gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
@@ -672,6 +661,6 @@ export default function ReactGrafanaNodes() {
 					<ChartSkeleton height={250} />
 				)}
 			</div>
-		</section>
+		</>
 	);
 }
