@@ -160,7 +160,25 @@ jobs:
                     git-lfs version
                   fi
 
+            # External-LFS path: project lives in Azure DevOps (Git LFS hosted
+            # there). Clone the project repo directly into `project_path` and
+            # skip the Forgejo monorepo flow. Activated when external_repo_url
+            # is set on the manifest entry (engine.external_repo_url).
+            - name: Clone Azure DevOps project
+              if: ${{ inputs.external_repo_url != '' }}
+              env:
+                  AZURE_PAT: ${{ secrets.AZURE_PAT }}
+              run: |
+                  if [ -z "$AZURE_PAT" ]; then
+                    echo "::error::AZURE_PAT secret missing — required for external_repo_url checkout"
+                    exit 1
+                  fi
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                  git clone "https://kbve:${AZURE_PAT}@${{ inputs.external_repo_url }}" "${{ inputs.project_path }}"
+
             - name: Configure Forgejo LFS credentials
+              if: ${{ inputs.external_repo_url == '' }}
               env:
                   FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
@@ -174,11 +192,13 @@ jobs:
                   chmod 600 "$HOME/.netrc"
 
             - name: Checkout monorepo (no LFS smudge)
+              if: ${{ inputs.external_repo_url == '' }}
               uses: actions/checkout@v6
               with:
                   lfs: false
 
             - name: Pull LFS objects (rareicon scope only)
+              if: ${{ inputs.external_repo_url == '' }}
               run: |
                   LFS_CACHE="/home/runner/_cache/lfs/${GITHUB_REPOSITORY//\//_}"
                   mkdir -p "$LFS_CACHE"
@@ -237,7 +257,7 @@ jobs:
                   retention-days: 3
 
             - name: Wipe Forgejo netrc
-              if: always()
+              if: ${{ always() && inputs.external_repo_url == '' }}
               run: rm -f "$HOME/.netrc"
 
     build:
@@ -266,7 +286,24 @@ jobs:
                     git-lfs version
                   fi
 
+            # External-LFS path: project lives in Azure DevOps. Same gating
+            # as the test job — keeps the two LFS hosts (Forgejo / Azure)
+            # mutually exclusive per dispatch.
+            - name: Clone Azure DevOps project
+              if: ${{ inputs.external_repo_url != '' }}
+              env:
+                  AZURE_PAT: ${{ secrets.AZURE_PAT }}
+              run: |
+                  if [ -z "$AZURE_PAT" ]; then
+                    echo "::error::AZURE_PAT secret missing — required for external_repo_url checkout"
+                    exit 1
+                  fi
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                  git clone "https://kbve:${AZURE_PAT}@${{ inputs.external_repo_url }}" "${{ inputs.project_path }}"
+
             - name: Configure Forgejo LFS credentials
+              if: ${{ inputs.external_repo_url == '' }}
               env:
                   FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
@@ -280,11 +317,13 @@ jobs:
                   chmod 600 "$HOME/.netrc"
 
             - name: Checkout monorepo (no LFS smudge)
+              if: ${{ inputs.external_repo_url == '' }}
               uses: actions/checkout@v6
               with:
                   lfs: false
 
             - name: Pull LFS objects (rareicon scope only)
+              if: ${{ inputs.external_repo_url == '' }}
               run: |
                   LFS_CACHE="/home/runner/_cache/lfs/${GITHUB_REPOSITORY//\//_}"
                   mkdir -p "$LFS_CACHE"
@@ -394,7 +433,7 @@ jobs:
                   retention-days: 3
 
             - name: Wipe Forgejo netrc
-              if: always()
+              if: ${{ always() && inputs.external_repo_url == '' }}
               run: rm -f "$HOME/.netrc"
 
     deploy_itch:
