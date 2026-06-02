@@ -1,20 +1,85 @@
 ---
 title: Red halloween mask | OSRS Price Data
-description: "Red halloween mask: Aaaarrrghhh ... I'm a monster.. High alch: 9 GP, GE limit: 5."
+description: "Red halloween mask: Aaaarrrghhh ... I'm a monster. High alch: 9 GP, GE limit: 5."
 osrs:
   id: 1057
   name: Red halloween mask
   slug: red-halloween-mask
-  examine: Aaaarrrghhh ... I'm a monster.
+  examine: "Aaaarrrghhh ... I'm a monster."
   members: false
   icon: Red halloween mask.png
   value: 15
   lowalch: 6
   highalch: 9
   limit: 5
-  about: "Red halloween mask is a free-to-play item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: head
+    weapon_type: none
+    weight: 0.34
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 1053
+      item_name: Green halloween mask
+      slug: green-halloween-mask
+      relationship: variant
+      description: Green coloured halloween mask variant.
+    - item_id: 1055
+      item_name: Blue halloween mask
+      slug: blue-halloween-mask
+      relationship: variant
+      description: Blue coloured halloween mask variant.
+  about: "Red halloween mask is a cosmetic rare originally distributed during the 2002 Halloween event and the 2013 Rare Drops event; one of three halloween mask colours."
+  market_strategy:
+    notes:
+      - Strict GE buy limit of 5 keeps supply thin.
+      - Long-term holder asset; pricing tied to player base growth.
+  trading_tips:
+    - Watch all three colours together; spreads narrow during seasonal hype.
+    - Avoid impulsive flips; thin supply means wide spreads.
+  history:
+    - date: "2002-10-31"
+      description: Released during the 2002 Halloween holiday event.
+    - date: "2005-05-17"
+      description: Renamed from Halloween mask to Red h'ween mask; examine text capitalisation corrected.
+    - date: "2013-06-17"
+      description: Redistributed during the 2013 Rare Drops event through 24 June 2013.
+    - date: "2015-02-26"
+      description: Renamed from Red h'ween mask to Red halloween mask.
+  properties:
+    release_date: "2002-10-31"
+    update: 2002 Hallowe'en event
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.34
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

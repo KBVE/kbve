@@ -14,18 +14,81 @@ osrs:
   limit: 150
   equipment:
     slot: feet
+    weight: 0.34
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Rometti's Fine Fashions
+      location: Grand Tree, Tree Gnome Stronghold
+      currency: Coins
+      price: 200
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
     - item_id: 638
       item_name: Green robe top
       slug: green-robe-top
       relationship: set-piece
-      description: Matching top
-  about: |-
-    > _"A pair of green boots."_
-
-    Green boots are part of the gnome clothing set. Purely cosmetic with no stat bonuses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Matching gnome robe top
+    - item_id: 630
+      item_name: Blue boots
+      slug: blue-boots
+      relationship: alternative
+      description: Recoloured gnome boots variant
+    - item_id: 632
+      item_name: Red boots
+      slug: red-boots
+      relationship: alternative
+      description: Recoloured gnome boots variant
+  about: Green boots are members-only cosmetic gnome footwear sold by Rometti's Fine Fashions and rewarded from Easy clue scrolls, with negligible combat stats.
+  market_strategy:
+    notes:
+      - Cosmetic fashionscape item
+      - Easy clue casket reward floor
+      - Limited buy of 150 per 4 hours
+      - Shop price 200 caps GE downside
+  history:
+    - date: "2014-12-10"
+      update: Item Rename
+      description: Item renamed from Boots to Green boots.
+    - date: "2002-12-12"
+      update: Agility Online
+      description: Released with the Agility Online update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    update: Agility Online
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

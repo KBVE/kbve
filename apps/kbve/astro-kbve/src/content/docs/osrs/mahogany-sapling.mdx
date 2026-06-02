@@ -12,9 +12,76 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 200
-  about: "Mahogany sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  farming:
+    farming_level: 55
+    patch_type: Hardwood tree
+    planting_xp: 63
+    checking_xp: 15720
+    growth_time_minutes: 5120
+    protection: 25 Yanillian hops per growth cycle.
+    notes: Plant a mahogany seed in a filled plant pot with a gardening trowel, water it, then wait one crop cycle for the sapling to sprout.
+  recipes:
+    - product: Mahogany sapling
+      skill: Farming
+      level: 55
+      experience: 63
+      materials:
+        - item_name: Mahogany seed
+          quantity: 1
+        - item_name: Plant pot (filled)
+          quantity: 1
+        - item_name: Gardening trowel
+          quantity: 1
+          tool: true
+        - item_name: Watering can
+          quantity: 1
+          tool: true
+      notes: Watered seedling matures into a sapling within one crop cycle (0–5 minutes).
+  related_items:
+    - item_name: Mahogany seed
+      slug: mahogany-seed
+      relationship: component
+      description: Seed planted in a plant pot to start the sapling
+    - item_name: Mahogany seedling
+      slug: mahogany-seedling
+      relationship: component
+      description: Intermediate stage before watering
+    - item_name: Mahogany tree
+      slug: mahogany-tree
+      relationship: product
+      description: Fully grown hardwood tree from this sapling
+    - item_name: Mahogany logs
+      slug: mahogany-logs
+      relationship: product
+      description: Logs chopped from the grown tree
+  market_strategy:
+    notes:
+      - Hardwood farmers create steady supply
+      - 200 limit makes daily restocks easy
+      - Demand spikes during Construction events
+      - Ultracompost is cheaper than Yanillian hops for disease protection
+  history:
+    - date: "2017-09-07"
+      update: Fossil Island
+      description: Mahogany sapling released alongside the Fossil Island hardwood patches.
+  about: Mahogany sapling is the planted hardwood seedling stage used in Fossil Island hardwood tree patches at 55 Farming.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-09-07"
+    update: Fossil Island
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Use
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

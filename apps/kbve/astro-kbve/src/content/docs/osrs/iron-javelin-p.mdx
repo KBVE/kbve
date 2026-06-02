@@ -12,26 +12,64 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 7000
+  material:
+    type: iron
+    tier: low
   equipment:
-    slot: weapon
+    slot: ammo
+    weapon_type: javelin
     attack_speed: 6
-    requirements:
-      ranged: 1
+    weight: 0
+    requirements: {}
     attack_bonus:
       ranged: 8
-    ranged_strength: 32
+    other_bonus:
+      ranged_strength: 32
+  recipes:
+    - skill: Herblore
+      output_quantity: 5
+      tools: []
+      materials:
+        - item_name: Iron javelin
+          quantity: 5
+        - item_name: Weapon poison
+          quantity: 1
   related_items:
-    - item_id: 826
-      item_name: Iron javelin
-      slug: iron-javelin
+    - name: Iron javelin
       relationship: variant
-      description: Unpoisoned version
-  about: |-
-    > _"An iron tipped javelin with a poisoned tip."_
-
-    An iron javelin tipped with basic weapon poison. Poison deals 2-4 damage over time.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Iron javelin(p+)
+      relationship: upgrade
+    - name: Iron javelin(p++)
+      relationship: upgrade
+  about: "Iron javelin(p) is an iron javelin coated in weapon poison, dealing 2-4 chip damage over time. Created by using weapon poison on 5 iron javelins."
+  market_strategy:
+    notes:
+      - Cheap chip-damage ammo for PvM
+      - Demand tracks ballista PvP activity
+  trading_tips:
+    - GE limit of 7000 supports bulk flips
+    - Margin tracks Iron javelin + Weapon poison
+  history:
+    - date: "2004-03-29"
+      description: "Iron javelin(p) was released as part of the poisoned weapons set."
+  properties:
+    release_date: "2004-03-29"
+    update: "Members release"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

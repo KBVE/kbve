@@ -1,6 +1,6 @@
 ---
 title: Mithril chainbody | OSRS Price Data
-description: "Mithril chainbody: A series of connected metal rings.. High alch: 1,170 GP, GE limit: 125."
+description: "Mithril chainbody: A series of connected metal rings. High alch: 1,170 GP, GE limit: 125."
 osrs:
   id: 1109
   name: Mithril chainbody
@@ -12,25 +12,113 @@ osrs:
   lowalch: 780
   highalch: 1170
   limit: 125
-  item_id: 1109
-  item_type: armor
-  slot: body
-  type: chainbody
-  tradeable: true
-  weight: 5.896
-  requirements:
-    defence: 20
-  stats:
-    stab_defence: 25
-    slash_defence: 35
-    crush_defence: 42
-    magic_defence: -3
-    ranged_defence: 27
+  material:
+    type: mithril
+    tier: mid
+  equipment:
+    slot: body
+    weight: 5.896
+    requirements:
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: 0
+    defence_bonus:
+      stab: 25
+      slash: 35
+      crush: 42
+      magic: -3
+      ranged: 27
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 61
+      xp: 150
+      materials:
+        - item_name: Mithril bar
+          item_id: 2359
+          quantity: 3
+      product: Mithril chainbody
+      product_id: 1109
+      product_quantity: 1
+      facility: Anvil
+  shops:
+    - shop_name: Horvik's Armour Shop
+      location: Varrock
+    - shop_name: Wayne's Chains - Chainmail Specialist
+      location: Falador
+    - shop_name: Skulgrimen's Battle Gear
+      location: Jatizso
+    - shop_name: Hild's Wares
+      location: Keldagrim
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  drop_table:
+    sources:
+      - source: Various mithril-tier monster drops
+        rarity: varies
+        members_only: false
   related_items:
-    - slug: adamant-chainbody
-    - slug: mithril-platebody
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 2359
+      item_name: Mithril bar
+      slug: mithril-bar
+      relationship: component
+      description: Smithing material (×3)
+    - item_id: 1121
+      item_name: Mithril platebody
+      slug: mithril-platebody
+      relationship: upgrade
+      description: Stronger mithril body slot armour
+    - item_id: 1105
+      item_name: Adamant chainbody
+      slug: adamant-chainbody
+      relationship: upgrade
+      description: Next tier chainbody
+    - item_id: 1103
+      item_name: Steel chainbody
+      slug: steel-chainbody
+      relationship: downgrade
+      description: Previous tier chainbody
+  about: "Mithril chainbody is a free-to-play body slot armour requiring 20 Defence, smithed from 3 mithril bars at Smithing 61."
+  market_strategy:
+    notes:
+      - F2P 20 Defence body slot armour
+      - Smithed from 3 mithril bars at Smithing 61 for 150 XP
+      - GE limit 125 per 4 hours
+      - Stocked by multiple armour shops, suppressing price spikes
+      - High alch 1,170 GP rarely profitable vs bar costs
+  history:
+    - date: "2001-01-04"
+      update: Release
+      description: Mithril chainbody added as part of the original armour line-up.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 5.896
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

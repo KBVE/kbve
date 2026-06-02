@@ -12,9 +12,75 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: null
-  about: "Elven gloves is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: hands
+    weight: 4.535
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Lliann's Wares
+      location: Prifddinas
+      price: 10000
+  related_items:
+    - item_id: 24000
+      item_name: Elven shirt
+      slug: elven-shirt
+      relationship: set-piece
+      description: Matching elven outfit body.
+    - item_id: 24003
+      item_name: Elven legwear
+      slug: elven-legwear
+      relationship: set-piece
+      description: Matching elven outfit legs.
+    - item_id: 24009
+      item_name: Elven boots
+      slug: elven-boots
+      relationship: set-piece
+      description: Matching elven outfit boots.
+  market_strategy:
+    notes:
+      - Cosmetic-only piece; demand is fashionscape-driven.
+      - Supply gated by Prifddinas access (Song of the Elves required to reach the shop).
+      - Notably the heaviest glove slot item in the game at 4.535 kg.
+  about: Elven gloves are members-only cosmetic hand slot armour purchased from Lliann's Wares in Prifddinas after Song of the Elves, with no combat bonuses and the highest weight of any glove in the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-07-25"
+    update: "Song of the Elves"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.535
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2019-07-25"
+      update: Song of the Elves
+      description: Added to game with the Song of the Elves quest and Prifddinas city release.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

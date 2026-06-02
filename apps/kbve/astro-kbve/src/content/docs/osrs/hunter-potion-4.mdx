@@ -12,9 +12,71 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 2000
-  about: "Hunter potion(4) is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 4
+    type: boost
+    skill: hunter
+    boost_min: 3
+    boost_max: 3
+    boost_formula: "+3"
+    duration: 60
+    effects:
+      - skill: hunter
+        description: Temporarily raises Hunter level by 3.
+  recipes:
+    - name: Mix Hunter potion(4)
+      skill: herblore
+      level: 53
+      xp: 120
+      materials:
+        - item_id: 105
+          item_name: Avantoe potion (unf)
+          quantity: 1
+        - item_id: 10111
+          item_name: Kebbit teeth dust
+          quantity: 1
+      product: Hunter potion(4)
+      product_id: 9998
+      product_quantity: 1
+      tools: []
+      members_only: true
+  related_items:
+    - item_id: 261
+      item_name: Avantoe
+      slug: avantoe
+      relationship: component
+      description: Primary herb
+    - item_id: 10111
+      item_name: Kebbit teeth dust
+      slug: kebbit-teeth-dust
+      relationship: component
+      description: Secondary ingredient
+  about: Hunter potion(4) is a four-dose members potion that raises the Hunter level by 3 for catching higher-tier creatures.
+  market_strategy:
+    notes:
+      - Niche demand spikes during Hunter contracts and rumours
+      - Cheap to mix; flips on margin not volume
+      - Avantoe-tied supply chain
+  history:
+    - date: "2016-04-15"
+      description: Half-full potions could now be turned into bank placeholders.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: HUNTER SKILL!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7500
-  about: "Asyn remains is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Asyn Shade
+        combat_level: 100
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Asyn shadow
+        combat_level: 110
+        quantity: "1"
+        rarity: always
+        members_only: true
+        notes: Temple Trekking encounter
+  related_items:
+    - item_id: 3438
+      item_name: Pyre logs
+      slug: pyre-logs
+      relationship: component
+      description: Used with remains on a funeral pyre
+    - item_id: 3444
+      item_name: Shade key
+      slug: shade-key
+      relationship: product
+      description: Cremation reward
+  about: Asyn remains drop from Asyn Shades and Asyn shadows and are burned on funeral pyres during Shades of Mort'ton for Firemaking and Prayer XP.
+  market_strategy:
+    notes:
+      - Steady supply from Shades of Mort'ton runners
+      - Buy limit of 7,500 supports bulk Prayer training
+      - Alch value is sentinel at 1 gp
+      - Demand peaks during Morytania Diary pushes
+  trading_tips:
+    - Watch for Mort'ton minigame XP events
+    - Bulk buy when chest hunters flood the GE
+  history:
+    - date: "2024-07-31"
+      description: Warning added when attempting to burn pyre logs without proper shade remains.
+    - date: "2024-05-08"
+      description: Keys and coins dropped from cremation now despawn after 5 minutes instead of 30 seconds.
+    - date: "2015-03-05"
+      description: Morytania Achievement Diary bonuses now grant a 50% XP boost from cremation with hard/elite tiers completed.
+    - date: "2004-10-18"
+      update: Mortton Shades and Mage Armour
+      description: Asyn remains released with Shades of Mort'ton content.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-10-18"
+    update: Mortton Shades and Mage Armour
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

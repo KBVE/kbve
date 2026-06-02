@@ -1,6 +1,6 @@
 ---
 title: White dagger(p++) | OSRS Price Data
-description: "White dagger(p++): This dagger is poisoned.. High alch: 144 GP, GE limit: 125."
+description: "White dagger(p++): This dagger is poisoned. High alch: 144 GP, GE limit: 125."
 osrs:
   id: 6597
   name: White dagger(p++)
@@ -12,9 +12,82 @@ osrs:
   lowalch: 96
   highalch: 144
   limit: 125
-  about: "White dagger(p++) is a members-only item in Old School RuneScape. High alchemy value: 144 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: white
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: stab_sword
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: 10
+      slash: 5
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
+      strength: 7
+      prayer: 1
+  related_items:
+    - item_id: 6591
+      item_name: White dagger
+      slug: white-dagger
+      relationship: variant
+      description: Unpoisoned variant
+    - item_id: 6593
+      item_name: White dagger(p)
+      slug: white-dagger-p-6593
+      relationship: variant
+      description: Standard poison variant
+    - item_id: 6595
+      item_name: White dagger(p+)
+      slug: white-dagger-p-6595
+      relationship: variant
+      description: Plus poison variant
+  about: "White dagger(p++) is a members-only stab sword poisoned with the strongest weapon poison variant. Wielded after completing the Wanted! quest and reaching Peon rank with the White Knights, it offers a stab bonus of +10 and strength bonus of +7."
+  market_strategy:
+    notes:
+      - Buy limit 125 per 4 hours
+      - Niche stab option for low-level training
+      - Poison++ variant carries premium over base white dagger
+      - Wanted! quest unlock gates the supply
+  trading_tips:
+    - Compare premium against base white dagger price for arbitrage
+    - Stable Grand Exchange volume; thin liquidity
+  history:
+    - date: "2005-10-17"
+      description: Released alongside the Wanted! quest update.
+    - date: "2006-08-22"
+      description: Renamed from White dagger(s) variants to the poison(p+/p++) naming convention.
+  properties:
+    release_date: "2005-10-17"
+    update: Wanted!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: Wanted!
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

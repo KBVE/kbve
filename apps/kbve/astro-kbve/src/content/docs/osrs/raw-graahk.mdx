@@ -12,9 +12,70 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Raw graahk is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    cooking_level: 41
+    cooking_xp: 124
+    notes:
+      - Cooked into graahk; failed attempts yield burnt large beast
+      - Cooking unlock requires completing 25 Hunters' Rumours
+  drop_table:
+    sources:
+      - source: Horned graahk
+        rarity: always
+        quantity: "1"
+        members_only: true
+        notes: Hunted in Karamja (Demonic Pacts League region) at 41 Hunter.
+  recipes:
+    - product: Graahk
+      skill: Cooking
+      level: 41
+      xp: 124
+      materials:
+        - item_name: Raw graahk
+          quantity: 1
+      facility: Fire / Range
+      notes: Requires completion of 25 Hunters' Rumours to unlock cooking.
+  related_items:
+    - item_id: 29121
+      item_name: Graahk
+      slug: graahk
+      relationship: product
+      description: Cooked version of the raw meat
+    - item_id: 29117
+      item_name: Raw kyatt
+      slug: raw-kyatt
+      relationship: alternative
+      description: Alternative raw big-game meat from Varlamore Hunter
+    - item_id: 29115
+      item_name: Raw larupia
+      slug: raw-larupia
+      relationship: alternative
+      description: Alternative raw big-game meat from Varlamore Hunter
+  market_strategy:
+    notes:
+      - Supply gated by 41 Hunter + Hunters' Rumours unlock
+      - Used as Cooking training food and herblore secondary base
+      - Margin tied to cooked graahk demand
+  history:
+    - date: "2024-03-20"
+      update: Varlamore Part One
+      description: Released with the Varlamore Part One update as part of the new big-game Hunter loop.
+  about: Raw graahk is a members-only big-game raw meat obtained from hunting horned graahks at 41 Hunter and cooked into graahk at 41 Cooking.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: Varlamore Part One
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

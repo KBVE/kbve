@@ -12,9 +12,69 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Mithril bolts (unf) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mithril
+    tier: mid
+  recipes:
+    - materials:
+        - item_name: Mithril bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      skill: Smithing
+      level: 53
+      xp: 50
+      output_quantity: 10
+    - materials:
+        - item_name: Mithril bolts (unf)
+          quantity: 1
+        - item_name: Feather
+          quantity: 1
+      tools: []
+      skill: Fletching
+      level: 54
+      xp: 5
+      output_quantity: 1
+      produces: Mithril bolts
+  related_items:
+    - name: Mithril bar
+      relationship: component
+    - name: Feather
+      relationship: component
+    - name: Mithril bolts
+      relationship: product
+    - name: Steel bolts (unf)
+      relationship: downgrade
+    - name: Adamant bolts (unf)
+      relationship: upgrade
+  about: "Mithril bolts (unf) is a members-only unfeathered crossbow bolt in Old School RuneScape, smithed from mithril bars and fletched with feathers into mithril bolts. Grand Exchange buy limit: 13,000 per 4 hours."
+  market_strategy:
+    notes:
+      - Price is driven by mithril bar feedstock and fletching XP demand.
+      - Tight margin between unfeathered and feathered bolt = fletcher XP arbitrage window.
+  trading_tips:
+    - Track mithril bar/feather price to compute per-bolt XP and margin.
+    - Bulk-flip in 13k stacks; volume is high so spreads compress quickly.
+  history:
+    - date: "2006-07-31"
+      description: Released with the Crossbows update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-31"
+    update: "Crossbows"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

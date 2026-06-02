@@ -9,12 +9,52 @@ osrs:
   members: true
   icon: Dragon bitter(m).png
   value: 2
-  lowalch: 1
+  lowalch: null
   highalch: 1
   limit: 2000
-  about: "Dragon bitter(m) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ale
+    tier: low
+  potion:
+    effects:
+      - description: Restores 2 Hitpoints when consumed.
+      - description: Temporarily boosts Strength by 3.
+      - description: Drains Attack by 6.
+  related_items:
+    - item_id: 1993
+      item_name: Dragon bitter
+      slug: dragon-bitter
+      relationship: alternative
+      description: Standard non-mature version
+  about: "Dragon bitter(m) is the matured form of Dragon Bitter, brewed at 39 Cooking with roughly a 5% mature chance (64% when the stuff is used). Drinking it restores 2 hitpoints and temporarily boosts Strength by 3 at the cost of draining Attack by 6, making it a niche tradeable strength booster."
+  market_strategy:
+    notes:
+      - Supply is driven by brewers waiting on mature outcomes
+      - Niche demand from low-level strength boost setups
+      - Buy limit of 2,000 supports steady but small-scale flipping
+  trading_tips:
+    - Stock up when brewing tick events bring matured ales to the GE in bulk
+    - Spread the buy over multiple GE limit windows for large bulk orders
+  history:
+    - date: "2005-07-11"
+      description: Mature ale brewing was introduced with the Cooking update, enabling Dragon bitter(m).
+  properties:
+    release_date: "2005-07-11"
+    update: Cooking - Mature ales
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

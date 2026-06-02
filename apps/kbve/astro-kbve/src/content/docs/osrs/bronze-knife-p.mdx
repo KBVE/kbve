@@ -1,6 +1,6 @@
 ---
 title: Bronze knife(p) | OSRS Price Data
-description: "Bronze knife(p) is a members weapon slot item. High alch: 1 GP, GE limit: 7,000."
+description: "Bronze knife(p): A finely balanced throwing knife coated in weapon poison. High alch: 1 GP, GE limit: 7,000."
 osrs:
   id: 870
   name: Bronze knife(p)
@@ -12,19 +12,71 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
+  material:
+    type: bronze
+    tier: low
   equipment:
     slot: weapon
+    weapon_type: thrown
     attack_speed: 3
+    weight: 0
     attack_bonus:
       ranged: 3
-    ranged_strength: 2
-  related_items: []
-  about: |-
-    > _"A very sharp\"bronze\" knife with a poisoned tip."_
-
-    A bronze knife tipped with basic weapon poison. No Ranged requirement. Poison deals 2-4 damage over time.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    other_bonus:
+      ranged_strength: 2
+  recipes:
+    - skill: Herblore
+      materials:
+        - item_name: Bronze knife
+          quantity: 1
+        - item_name: Weapon poison
+          quantity: 1
+      tools: []
+      output: Bronze knife(p)
+  related_items:
+    - item_id: 864
+      item_name: Bronze knife
+      slug: bronze-knife
+      relationship: variant
+      description: Unpoisoned base form
+    - item_id: 5654
+      item_name: Bronze knife(p+)
+      slug: bronze-knife-p-plus
+      relationship: upgrade
+      description: Coated in extra-strength weapon poison(+)
+    - item_id: 5660
+      item_name: Bronze knife(p++)
+      slug: bronze-knife-p-plus-plus
+      relationship: upgrade
+      description: Coated in super-strength weapon poison(++)
+    - item_id: 868
+      item_name: Iron knife(p)
+      slug: iron-knife-p
+      relationship: upgrade
+      description: Next tier poisoned throwing knife
+  about: "Bronze knife(p) is a thrown weapon coated in standard weapon poison, dealing 2-4 damage over time on a successful hit; created by using weapon poison on a Bronze knife with no Herblore level requirement."
+  properties:
+    release_date: "2003-04-14"
+    update: "Member's Update - Herblore (Members)"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2003-04-14"
+      description: "Released as part of the Herblore skill launch, poisoned variants of throwing knives became available."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

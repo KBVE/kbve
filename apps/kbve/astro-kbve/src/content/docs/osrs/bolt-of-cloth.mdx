@@ -16,74 +16,91 @@ osrs:
     type: construction
     tier: basic
   construction:
-    cost: 650
-    source: Construction Supplies
-    common_builds:
-      - name: Curtains
-        quantity: 3
-        xp: 225
-      - name: Rug
-        quantity: 2
-        xp: 180
-      - name: Torn curtains
-        quantity: 3
-        xp: 132
-  shop_sources:
-    - name: Sawmill operator
-      location: Various sawmills
+    common_uses:
+      - Curtains
+      - Rugs
+      - Beds
+      - Bell-pulls
+      - Tapestries
+  shops:
+    - shop_name: Construction supplies
+      location: Sawmill
       price: 650
-      stock: 10
-    - name: Construction Supplies (Mahogany Homes)
-      location: Various cities
+      stock: 1000
+      currency: coins
+      members_only: true
+    - shop_name: Construction supplies
+      location: Woodcutting Guild
       price: 650
-      stock: 10
+      stock: 1000
+      currency: coins
+      members_only: true
+    - shop_name: Construction supplies
+      location: Prifddinas
+      price: 650
+      stock: 1000
+      currency: coins
+      members_only: true
+    - shop_name: Construction supplies
+      location: Auburnvale
+      price: 650
+      stock: 1000
+      currency: coins
+      members_only: true
   related_items:
     - item_id: 8786
       item_name: Marble block
       slug: marble-block
       relationship: alternative
-      description: Premium material
+      description: Premium Construction material
     - item_id: 8784
       item_name: Gold leaf
       slug: gold-leaf
       relationship: alternative
-      description: Premium decoration
+      description: Premium Construction decoration
     - item_id: 8778
       item_name: Oak plank
       slug: oak-plank
       relationship: component
-      description: Used together
+      description: Often used together for furniture
     - item_id: 1759
       item_name: Ball of wool
       slug: ball-of-wool
       relationship: alternative
-      description: Crafting material
-  about: |-
-    | Furniture | Bolts of Cloth | Level | XP |
-    |-----------|----------------|-------|-----|
-    | Torn curtains | 3 | 2 | 132 |
-    | Curtains | 3 | 18 | 225 |
-    | Rug | 2 | 13 | 180 |
-    | Opulent rug | 4 | 65 | 360 |
-    | Bell-pull | 1 | 37 | 120 |
-    | Tapestry | 4 | 36 | 290 |
-
-    Common Uses:
-    - Decorating bedrooms, parlours, and dining rooms
-    - Required for servant call bell-pulls
-    - Rugs and curtains in various rooms
-
-    - Plank - Basic construction
-    - Oak plank - Common training
-    - Steel nails - Some furniture requires nails
+      description: Crafting cloth alternative
+  about: Bolt of cloth is a Construction material used in many bedroom, parlour, and dining-room furniture builds, and is purchased from Construction supply shops for 650 coins.
   market_strategy:
     notes:
-      - Cheap at 650 GP from shops
-      - Low demand item - usually at GE minimum
-      - Buy from sawmill when building in bulk
-      - Used for Mahogany Homes contracts occasionally
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Cheap at 650 GP from Construction supplies
+      - Usually trades close to shop price on the Grand Exchange
+      - Buy from sawmill when building furniture in bulk
+      - Occasional demand from Mahogany Homes contracts
+  trading_tips:
+    - Buy from shops before listing on the Grand Exchange
+    - Stock heavily before player-owned house meta updates
+  history:
+    - date: "2006-05-31"
+      description: Bolt of cloth added with the player-owned houses update.
+    - date: "2006-06-13"
+      description: Item received a graphical update.
+    - date: "2006-07-04"
+      description: Item renamed from "Cloth" to "Bolt of cloth".
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    update: PLAYER-OWNED HOUSES!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

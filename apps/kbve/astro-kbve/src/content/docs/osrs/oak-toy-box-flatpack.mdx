@@ -12,9 +12,73 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Oak toy box (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: oak
+    tier: oak
+  construction:
+    level: 50
+    xp: 120
+    room: Costume Room
+    hotspot: Toy box
+  recipes:
+    - skill: Construction
+      level: 50
+      xp: 120
+      materials:
+        - item_name: Oak plank
+          quantity: 2
+      tools:
+        - Hammer
+        - Saw
+      requirements:
+        - Steel framed workbench in a Workshop
+      output:
+        item_name: Oak toy box (flatpack)
+        quantity: 1
+  related_items:
+    - item_id: 8778
+      item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: Plank used to build the flatpack
+    - item_id: 9851
+      item_name: Teak toy box (flatpack)
+      slug: teak-toy-box-flatpack
+      relationship: upgrade
+      description: Teak-tier variant
+    - item_id: 9853
+      item_name: Mahogany toy box (flatpack)
+      slug: mahogany-toy-box-flatpack
+      relationship: upgrade
+      description: Mahogany-tier variant
+  about: "Oak-tier Construction flatpack built at a steel framed workbench from two oak planks and placed in the Costume Room toy box hotspot."
+  market_strategy:
+    notes:
+      - Low-margin Construction levelling output with thin daily volume
+      - 500 buy limit accommodates costume room hotspot demand bursts
+      - Net profit per craft is negative once oak plank costs are paid
+  trading_tips:
+    - Sell into Construction XP events when plank prices spike demand
+    - Avoid mass production unless oak planks are deeply undercut
+  history:
+    - date: "2006-10-18"
+      description: Added with the Player-Owned House Costume Room update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-10-18"
+    update: Costume Room
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

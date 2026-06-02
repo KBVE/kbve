@@ -14,11 +14,11 @@ osrs:
   limit: 8
   equipment:
     slot: body
+    weapon_type: unarmed
     weight: 9.979
+    requirements:
+      defence: 65
     attack_bonus:
-      stab: 0
-      slash: 0
-      crush: 0
       magic: -15
       ranged: -10
     defence_bonus:
@@ -29,56 +29,68 @@ osrs:
       ranged: -8
     other_bonus:
       melee_strength: 4
-      ranged_strength: 0
-      magic_damage: 0
-      prayer: 0
-    requirements:
-      defence: 65
+      prayer: 1
   drop_table:
-    primary_source: General Graardor
-    best_drop_rate: 1/381
     sources:
       - source: General Graardor
-        source_id: 2215
-        combat_level: 624
         quantity: "1"
-        rarity: rare
-        drop_rate: 1/381
-        members_only: true
+        rarity: "1/381"
+      - source: Sergeant Strongstack
+        quantity: "1"
+        rarity: "1/16,256"
+      - source: Sergeant Steelwill
+        quantity: "1"
+        rarity: "1/16,256"
+      - source: Sergeant Grimspike
+        quantity: "1"
+        rarity: "1/16,256"
   related_items:
-    - item_id: 11834
-      item_name: Bandos tassets
-      slug: bandos-tassets
+    - name: Bandos tassets
       relationship: set-piece
-      description: Matching leg armor
-    - item_id: 26382
-      item_name: Torva platebody
-      slug: torva-platebody
+    - name: Bandos boots
+      relationship: set-piece
+    - name: Torva platebody
       relationship: upgrade
-      description: Ultimate upgrade
-    - item_id: 10551
-      item_name: Fighter torso
-      slug: fighter-torso
+    - name: Fighter torso
       relationship: alternative
-      description: Budget alternative (untradeable)
-    - item_id: 11128
-      item_name: Bandos boots
-      slug: bandos-boots
-      relationship: set-piece
-      description: Matching boots
+    - name: Rune platebody
+      relationship: downgrade
+  market_strategy:
+    notes:
+      - "Primary supply is General Graardor at 1/381 unique rolls; market sensitive to GWD trip popularity."
+      - "Still a top melee body for trips where +4 Strength matters more than +1 from Torva."
+      - "Used as a Torva platebody component, sinking supply over time."
+  trading_tips:
+    - "Watch Torva platebody recipe demand for upward pressure on Bandos chestplate."
+    - "Volume rises during double XP/league events and falls during dry farming streams."
+  history:
+    - date: "2013-10-17"
+      description: "Released as part of the God Wars Dungeon update for Old School."
+  properties:
+    release_date: "2013-10-17"
+    update: God Wars Dungeon
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 9.979
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   about: |-
     BiS melee body for:
     - All melee combat
     - Bossing
     - Slayer
     - Tank setups
-  market_strategy:
-    notes:
-      - GWD is popular grind
-      - Required for Torva platebody
-      - Still BiS defence
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

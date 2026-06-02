@@ -12,9 +12,66 @@ osrs:
   lowalch: 3
   highalch: 5
   limit: 13000
-  about: "Spicy sauce is a members-only item in Old School RuneScape. High alchemy value: 5 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 2
+  recipes:
+    - product_name: Spicy sauce
+      skill: Cooking
+      cooking_level: 9
+      experience: 25
+      materials:
+        - item_name: Chopped garlic
+          quantity: 1
+        - item_name: Gnome spice
+          quantity: 1
+  related_items:
+    - item_id: 7062
+      item_name: Chopped garlic
+      slug: chopped-garlic
+      relationship: component
+      description: Garlic ingredient prepared for the sauce
+    - item_id: 2169
+      item_name: Gnome spice
+      slug: gnome-spice
+      relationship: component
+      description: Spice ingredient bought from Gnome cooks
+    - item_id: 7062
+      item_name: Chilli con carne
+      slug: chilli-con-carne
+      relationship: product
+      description: Combined with minced meat to make chilli con carne
+    - item_id: 7054
+      item_name: Chilli potato
+      slug: chilli-potato
+      relationship: product
+      description: Downstream Gnome cooking dish using spicy sauce
+  market_strategy:
+    notes:
+      - Used in chilli con carne and chilli potato recipes
+      - GE supply driven by Gnome Restaurant minigame players
+      - Per-portion yield is small so volume is steady but low
+  history:
+    - date: "2006-01-30"
+      update: Runesquares, Harpie Bugs and new potato recipes!
+      description: Spicy sauce added with the Gnome cooking expansion that introduced new potato dishes.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-01-30"
+    update: Runesquares, Harpie Bugs and new potato recipes!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: "Spicy sauce is a members-only Cooking ingredient made by combining chopped garlic with gnome spice, used in chilli con carne and chilli potato recipes."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

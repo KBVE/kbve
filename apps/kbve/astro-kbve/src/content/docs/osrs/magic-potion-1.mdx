@@ -12,9 +12,77 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 2000
-  about: "Magic potion(1) is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 1
+    effects:
+      - description: "Boosts Magic level by +4 for casting purposes; does not lift equipment Magic requirements."
+        skill: magic
+        boost: 4
+  recipes:
+    - materials:
+        - item_name: Lantadyme potion (unf)
+          quantity: 1
+        - item_name: Potato cactus
+          quantity: 1
+      tools: []
+      skill: Herblore
+      level: 76
+      xp: 172.5
+      output_quantity: 1
+      notes: "Recipe makes a 3-dose magic potion; this 1-dose form is the partially drunk remainder."
+  related_items:
+    - item_id: 3040
+      item_name: Magic potion(4)
+      slug: magic-potion-4
+      relationship: variant
+      description: Full 4-dose form.
+    - item_id: 3042
+      item_name: Magic potion(3)
+      slug: magic-potion-3
+      relationship: variant
+      description: 3-dose form.
+    - item_id: 3044
+      item_name: Magic potion(2)
+      slug: magic-potion-2
+      relationship: variant
+      description: 2-dose form.
+    - item_id: 22449
+      item_name: Battlemage potion(4)
+      slug: battlemage-potion-4
+      relationship: upgrade
+      description: Combo magic + defence potion.
+  about: "Magic potion(1) is the 1-dose tail of the magic potion line, boosting Magic level by +4 to enable higher-tier spell casts."
+  market_strategy:
+    notes:
+      - "Single-dose vials are mostly drained leftovers; supply is shallow and depends on PvM/PvP consumption."
+      - "GE buy limit of 2,000 per 4 hours limits bulk flips."
+      - "Decanting services convert 1-dose into 4-dose, so price often tracks decant arbitrage."
+  trading_tips:
+    - "Buy 1-dose at a discount and decant into 4-dose for a small spread."
+    - "Avoid alching; high alch (90 gp) is well below GE prices."
+    - "Use full doses for sustained spellcasting; the 1-dose form is for top-up scenarios."
+  properties:
+    release_date: "2004-09-07"
+    update: "Herblore expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2004-09-07"
+      description: "Released alongside the Magic potion line as part of the Herblore content expansion."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

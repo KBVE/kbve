@@ -12,9 +12,82 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 150
-  about: "Blood'n'tar snelm is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: head
+    weight: 2
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: -1
+    defence_bonus:
+      stab: 7
+      slash: 8
+      crush: 6
+      magic: -1
+      ranged: 7
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Crafting
+      level: 15
+      xp: 32.5
+      output: Blood'n'tar snelm
+      materials:
+        - item_name: Blamish red shell (round)
+          quantity: 1
+        - item_name: Chisel
+          quantity: 1
+  related_items:
+    - item_id: 3327
+      item_name: Myre snelm
+      slug: myre-snelm
+      relationship: variant
+      description: Black snelm variant
+    - item_id: 3331
+      item_name: Bruise blue snelm
+      slug: bruise-blue-snelm
+      relationship: variant
+      description: Blue snelm variant
+    - item_id: 3333
+      item_name: Ochre snelm
+      slug: ochre-snelm
+      relationship: variant
+      description: Yellow snelm variant
+  market_strategy:
+    notes:
+      - Crafted from blamish red shells
+      - Reduces blamish snail damage by 12
+      - Niche early Morytania gear
+      - Round and pointed counterparts exist
+  history:
+    - date: "2004-10-14"
+      update: "Morytania Expansion"
+      description: Released with the Morytania expansion alongside the snail family.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-10-14"
+    update: "Morytania Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  about: Blood'n'tar snelm is a Crafting-15 head slot helmet made from blamish red shells that reduces blamish snail damage by 12.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

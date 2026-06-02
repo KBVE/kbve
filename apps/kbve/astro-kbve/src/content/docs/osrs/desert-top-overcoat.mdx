@@ -12,9 +12,76 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: 150
-  about: "Desert top (overcoat) is a members-only item in Old School RuneScape. High alchemy value: 21 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: body
+    weapon_type: none
+    attack_speed: 1
+    weight: 0.005
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Ali Morrisane
+      location: Al Kharid
+  related_items:
+    - name: Desert robe
+      relationship: set-piece
+    - name: Desert legs
+      relationship: set-piece
+    - name: Desert boots
+      relationship: set-piece
+    - name: Desert top
+      relationship: variant
+  about: "Desert top (overcoat) is a members-only body slot clothing item obtained from Ali Morrisane after completing the Rogue Trader miniquest, traded for three matching animal skins. Worn as part of the desert outfit, it delays the onset of desert heat damage by 12 seconds, making it a low-effort quality-of-life pickup for early Kharidian Desert content."
+  market_strategy:
+    notes:
+      - "Supply trickles in from Rogue Trader runners; demand is low and steady from desert clue / quest gear."
+      - "150 limit per 4 hours far exceeds typical daily volume - price is anchored near shop value."
+  trading_tips:
+    - "Buy direct from Ali Morrisane if you have spare skins instead of paying the Grand Exchange markup."
+    - "Bundle with the rest of the desert outfit for resale to clue scroll completionists."
+  history:
+    - date: "2005-08-15"
+      description: "Introduced with the Rogue Trader miniquest as part of the desert outfit obtainable from Ali Morrisane."
+    - date: "2023-01-01"
+      description: "Heat-protection duration increased from 6 to 12 seconds when worn as part of the desert outfit."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-15"
+    update: Rogue Trader
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

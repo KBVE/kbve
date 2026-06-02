@@ -12,9 +12,59 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 11000
-  about: "Chopped ugthanki is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - materials:
+        - item_name: Bowl
+          quantity: 1
+        - item_name: Ugthanki meat
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+      skill: Cooking
+  related_items:
+    - item_name: Ugthanki & onion
+      relationship: product
+      description: Add an onion to make Ugthanki & onion.
+    - item_name: Ugthanki & tomato
+      relationship: product
+      description: Add a tomato to make Ugthanki & tomato.
+    - item_name: Ugthanki kebab
+      relationship: product
+      description: Combined with pitta bread and kebab mix at 58 Cooking.
+  about: "Chopped ugthanki is strips of ugthanki meat in a bowl, made by using a knife on raw or cooked ugthanki meat with a bowl. It serves as an intermediate ingredient in the ugthanki kebab cooking chain."
+  market_strategy:
+    notes:
+      - Buy limit of 11,000 every 4 hours makes bulk acquisition easy.
+      - Low alch margin makes it a weak high-alch candidate; better as a recipe component.
+  trading_tips:
+    - Stock up only when running ugthanki kebab cooking trips.
+    - Pair with bowls and pitta bread purchases to streamline kebab assembly.
+  history:
+    - date: "2003-12-01"
+      description: Added to the RS2 Beta cache.
+    - date: "2004-02-02"
+      description: Became obtainable in RS2 Beta.
+    - date: "2004-03-29"
+      description: Released to live game with the RS2 launch.
+    - date: "2006-01-30"
+      description: Received a graphical update.
+  properties:
+    release_date: "2004-03-29"
+    update: "RS2 Launched!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.2
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

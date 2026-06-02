@@ -15,51 +15,68 @@ osrs:
   material:
     type: raw_fish
     tier: high
-  fishing:
-    level: 85
-    xp: 130
-    method: Lobster pot
-    locations:
-      - Resource Area (Wilderness)
-  cooking:
-    level: 90
-    xp: 215
-    stop_burn_level: 99
-    raw_item_id: 11934
-    raw_item_name: Raw dark crab
-    product_id: 11936
-    product_name: Dark crab
+  food:
+    raw: true
+    cook_level: 90
+    cook_xp: 215
+    cooked_item: Dark crab
+    burn_stop_level: 99
   related_items:
     - item_id: 11936
       item_name: Dark crab
       slug: dark-crab
       relationship: product
-      description: Cooked version, heals 22
+      description: Cooked version, heals 22 HP
     - item_id: 11940
       item_name: Dark fishing bait
       slug: dark-fishing-bait
       relationship: component
-      description: Required bait
+      description: Required bait for fishing
     - item_id: 383
       item_name: Raw shark
       slug: raw-shark
       relationship: alternative
-      description: Safer alternative
+      description: Safer high-tier raw fish alternative
     - item_id: 389
       item_name: Raw manta ray
       slug: raw-manta-ray
       relationship: alternative
-      description: Non-wilderness alternative
+      description: Non-wilderness raw alternative
+  about: "Raw dark crab is a high-tier raw fish caught at 85 Fishing using a lobster pot and dark fishing bait in the Wilderness Resource Area. When cooked at 90 Cooking it produces dark crab, which heals 22 hitpoints and is favored for 1-tick PvP eating."
   market_strategy:
     notes:
-      - High profit potential but dangerous location
-      - Raw crabs often supply comes from PvMers/skillers
-      - Bait cost affects margins
-      - Same healing as manta ray (22 HP)
-      - Often cheaper due to wilderness sourcing
-      - Popular for PvP due to 1-tick eating
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - High profit potential but supply is gated behind dangerous wilderness fishing
+      - Bait cost directly affects skiller margins
+      - Heals the same 22 HP as manta ray but often trades cheaper
+      - Popular for PvP loadouts due to 1-tick eating
+      - Elite Wilderness Diary doubles catch rate, boosting supply spikes
+  trading_tips:
+    - Buy in bulk when Wilderness PvM/PK activity is low
+    - Watch for diary or Wilderness content updates that shift fishing throughput
+  history:
+    - date: "2014-03-13"
+      description: Item released alongside the Wilderness Resource Area dark crab fishing spots.
+    - date: "2015-03-19"
+      description: Cooking animation on fires corrected.
+    - date: "2017-01-26"
+      description: Inventory icon recolored.
+  properties:
+    release_date: "2014-03-13"
+    update: Player-Owned Ports
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.35
+    options:
+      - Use
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

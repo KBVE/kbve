@@ -1,6 +1,6 @@
 ---
 title: Black skirt | OSRS Price Data
-description: "Black skirt: Clothing favoured by women and dark wizards.. High alch: 1 GP, GE limit: 150."
+description: "Black skirt: Clothing favoured by women and dark wizards. F2P legs slot cosmetic. High alch: 1 GP, GE limit: 150."
 osrs:
   id: 1015
   name: Black skirt
@@ -12,9 +12,75 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 150
-  about: "Black skirt is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: legs
+    weight: 0.907
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Thessalia's Fine Clothes"
+      location: Varrock
+      price: 2
+  drop_table:
+    - source: Forgotten Soul
+      rarity: 1/128
+      quantity: "1"
+  related_items:
+    - item_id: 1013
+      item_name: Blue skirt
+      slug: blue-skirt
+      relationship: variant
+      description: Blue colour variant
+    - item_id: 1017
+      item_name: Pink skirt
+      slug: pink-skirt
+      relationship: variant
+      description: Pink colour variant
+  about: "Black skirt is a free-to-play cosmetic legs slot item with no combat bonuses, often paired with a black robe for the dark wizard look."
+  market_strategy:
+    notes:
+      - F2P cosmetic with negligible combat use
+      - Cheap shop alternative at Thessalia's
+      - Low GE volume
+  history:
+    - date: "2001-01-04"
+      description: Black skirt released as part of the initial RuneScape clothing options.
+  properties:
+    release_date: "2001-01-04"
+    update: Original
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

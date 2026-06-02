@@ -12,9 +12,58 @@ osrs:
   lowalch: 34
   highalch: 51
   limit: 200
-  about: "Mushroom spore is a members-only item in Old School RuneScape. High alchemy value: 51 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: farming seed
+    tier: mushroom
+  farming:
+    level: 53
+    planting_experience: 61.5
+    harvest_experience: 57.7
+    patch: Mushroom patch
+    location: West of Canifis
+    growth_time_minutes: 240
+    yield: 6
+    product: Bittercap mushroom
+  related_items:
+    - item_id: 6004
+      item_name: Bittercap mushroom
+      slug: bittercap-mushroom
+      relationship: product
+      description: Harvested mushroom grown from planting the spore.
+    - item_id: 22881
+      item_name: Attas seed
+      slug: attas-seed
+      relationship: alternative
+      description: Anima patch herb that increases adjacent farming yields.
+  about: "Mushroom spore is a Farming planting material that grows into bittercap mushrooms in the Mort Myre patch at level 53 Farming over four hours."
+  market_strategy:
+    notes:
+      - Demand tracks bittercap mushroom usage in Herblore and quest steps.
+      - Master Farmer pickpocketing supply keeps GE price suppressed.
+      - Buy limit of 200 supports moderate-volume flipping.
+  trading_tips:
+    - Stockpile before farming buffs or new mushroom-based recipes are released.
+    - Compare against bittercap mushroom price to project planter profit.
+    - Watch Master Farmer thieving meta shifts for supply pressure changes.
+  history:
+    - date: "2005-06-06"
+      description: Added to the game with the Seeds, Bankspace and Advisors update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-06-06"
+    update: Seeds, Bankspace and Advisors
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

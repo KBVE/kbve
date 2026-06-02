@@ -1,6 +1,6 @@
 ---
 title: Runite limbs | OSRS Price Data
-description: "Runite limbs: A pair of runite crossbow limbs.. High alch: 9,600 GP, GE limit: 10,000."
+description: "Runite limbs: A pair of runite crossbow limbs. High alch: 9,600 GP, GE limit: 10,000."
 osrs:
   id: 9431
   name: Runite limbs
@@ -12,9 +12,69 @@ osrs:
   lowalch: 6400
   highalch: 9600
   limit: 10000
-  about: "Runite limbs is a members-only item in Old School RuneScape. High alchemy value: 9,600 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: runite
+    tier: mid
+  recipes:
+    - skill: smithing
+      level: 91
+      xp: 75
+      materials:
+        - item_name: Runite bar
+          quantity: 1
+      tools:
+        - Hammer
+      facility: Anvil
+      output_quantity: 1
+    - skill: fletching
+      level: 69
+      xp: 100
+      materials:
+        - item_name: Runite limbs
+          quantity: 1
+        - item_name: Yew stock
+          quantity: 1
+      output_item: Runite crossbow (u)
+      output_quantity: 1
+  related_items:
+    - item_id: 9461
+      item_name: Runite crossbow (u)
+      slug: runite-crossbow-u
+      relationship: product
+      description: Unstrung runite crossbow assembled from yew stock and runite limbs
+    - item_id: 2363
+      item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: Smithed at an anvil into runite limbs
+    - item_id: 9429
+      item_name: Adamantite limbs
+      slug: adamantite-limbs
+      relationship: downgrade
+      description: Lower-tier crossbow limbs
+  about: Runite limbs are smithed from one runite bar at level 91 Smithing and combined with a yew stock to make an unstrung runite crossbow.
+  market_strategy:
+    notes:
+      - High-level crossbow material with steady demand from Fletchers
+      - Smithing at Yanille or Witchaven counts toward Elite Ardougne Diary
+  history:
+    - date: "2006-07-31"
+      description: Introduced with the Crossbows update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-31"
+    update: Crossbows
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

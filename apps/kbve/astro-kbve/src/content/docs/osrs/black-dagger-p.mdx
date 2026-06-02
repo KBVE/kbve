@@ -12,9 +12,98 @@ osrs:
   lowalch: 96
   highalch: 144
   limit: 125
-  about: "Black dagger(p) is a members-only item in Old School RuneScape. High alchemy value: 144 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: black
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: stab-sword
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: 10
+      slash: 5
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
+      melee_strength: 7
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_id: 1217
+          item_name: Black dagger
+          quantity: 1
+        - item_id: 187
+          item_name: Weapon poison
+          quantity: 1
+      product: Black dagger(p)
+      product_id: 1233
+      notes: Members-only poisoning; instant
+  related_items:
+    - item_id: 1217
+      item_name: Black dagger
+      slug: black-dagger
+      relationship: component
+      description: Unpoisoned base dagger
+    - item_id: 5680
+      item_name: Black dagger(p+)
+      slug: black-dagger-p-plus
+      relationship: upgrade
+      description: Stronger poison variant
+    - item_id: 5698
+      item_name: Black dagger(p++)
+      slug: black-dagger-p-plus-plus
+      relationship: upgrade
+      description: Strongest poison variant
+  about: "Black dagger(p) is a poisoned stab dagger requiring 10 Attack, created by applying weapon poison to a black dagger."
+  market_strategy:
+    notes:
+      - Members-only via poison process
+      - Low-tier PKing dagger
+      - Cheap entry to poison weaponry
+  history:
+    - date: "2001-12-08"
+      update: Equipment Release
+      description: Black dagger added to the game.
+    - date: "2006-08-22"
+      update: Weapon Poison Rename
+      description: Poisoned variants renamed from (+) and (s) to (p+) and (p++).
+    - date: "2021-07-07"
+      update: Female Player Equipment Fix
+      description: Female player equip positioning adjusted.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-12-08"
+    update: Equipment Release
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

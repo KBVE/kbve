@@ -9,12 +9,68 @@ osrs:
   members: true
   icon: Asgarnian ale(m).png
   value: 2
-  lowalch: 1
+  lowalch: null
   highalch: 1
   limit: 2000
-  about: "Asgarnian ale(m) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: beer
+    tier: low
+  potion:
+    effects:
+      - description: "Restores 2 Hitpoints when consumed"
+      - description: "Temporarily boosts Strength by 3 levels"
+      - description: "Drains Attack by 6 levels"
+  recipes:
+    - materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Asgarnian hops
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Beer glass
+          quantity: 8
+      tools:
+        - Brewery vat
+      output_quantity: 8
+      skill: Cooking
+      level: 24
+  related_items:
+    - item_name: Asgarnian ale
+      slug: asgarnian-ale
+      relationship: variant
+      description: Standard non-matured Asgarnian ale
+  about: "Asgarnian ale(m) is the matured Asgarnian Ale brewed at Cooking 24 with two buckets of water, two barley malt, four Asgarnian hops, an ale yeast and eight beer glasses; mature batches give a +3 Strength boost while draining Attack by 6 and restoring 2 Hitpoints."
+  market_strategy:
+    notes:
+      - Mature beer brewed with the stuff for 64 percent maturation chance
+      - +3 Strength boost makes it useful for sub-level training tricks
+      - Buy limit of 2,000 supports bulk acquisition during XP events
+  trading_tips:
+    - Brew during The Stuff buffs to amortize maturation costs
+    - Watch for spikes around Strength milestone leagues or content drops
+  history:
+    - date: "2005-07-11"
+      description: Released alongside the Farming update as a brewable mature variant.
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

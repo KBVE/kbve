@@ -12,9 +12,73 @@ osrs:
   lowalch: 140
   highalch: 210
   limit: null
-  about: "Hunter's spear is a members-only item in Old School RuneScape. High alchemy value: 210 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: wood
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 5
+    weight: 0
+    requirements:
+      ranged: 55
+      strength: 30
+    attack_bonus:
+      ranged: 73
+    defence_bonus: {}
+    other_bonus:
+      strength: 48
+      prayer: 1
+  recipes:
+    - skill: fletching
+      level: 60
+      materials:
+        - item_name: Teak logs
+          quantity: 1
+        - item_name: Jerboa tail
+          quantity: 5
+        - item_name: Hunter spear tip
+          quantity: 5
+      tools:
+        - Knife
+      output_quantity: 5
+  related_items:
+    - item_name: Hunter spear tip
+      slug: hunter-spear-tip
+      relationship: component
+      description: Tipped onto teak shafts with jerboa tails when fletching the spear.
+    - item_name: Teak logs
+      slug: teak-logs
+      relationship: component
+      description: Shaft material for the spear at 60 Fletching.
+  about: "Hunter's spear is a thrown ranged weapon released with Varlamore: Part One. It uses melee strength to scale ranged damage, requires 55 Ranged and 30 Strength to wield, and doubles as a teasing stick - granting a 5% bonus chance for teased creatures to walk into pitfall traps. It is not consumed when used against chinchompas during hunting."
+  market_strategy:
+    notes:
+      - Supply gated by 60 Fletching + hunter spear tip / jerboa tail availability
+      - Profit per fletch tracks tip and tail prices closely
+      - Niche demand from pitfall hunter trips and ranged training in Varlamore
+      - Works with Ava's devices for ranged training builds
+  history:
+    - date: "2024-03-20"
+      description: Added to the game with the Varlamore Part One update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

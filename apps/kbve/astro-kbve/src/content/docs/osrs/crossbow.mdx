@@ -12,20 +12,66 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: 125
+  material:
+    type: wood
+    tier: low
   equipment:
     slot: weapon
+    weapon_type: crossbow
     attack_speed: 6
+    weight: 8
     requirements:
       ranged: 1
     attack_bonus:
       ranged: 6
-  related_items: []
+  shops:
+    - shop_name: "Lowe's Archery Emporium"
+      location: Varrock
+      price: 70
+    - shop_name: "Hickton's Archery Emporium"
+      location: Catherby
+      price: 70
+  related_items:
+    - item_id: 877
+      item_name: Bronze bolts
+      slug: bronze-bolts
+      relationship: component
+      description: Ammunition fired by the basic crossbow
+    - item_id: 9419
+      item_name: Mith grapple
+      slug: mith-grapple
+      relationship: component
+      description: Special ammunition usable with the basic crossbow
   about: |-
     > _"This fires crossbow bolts."_
 
-    The crossbow is the most basic crossbow, requiring 1 Ranged. Fires bronze bolts and above. Slower than shortbows but usable with a shield for defensive setups.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The crossbow is the most basic crossbow, requiring 1 Ranged. Fires bronze bolts and mith grapples only. Slower than shortbows but usable with a shield for defensive setups. It is the heaviest one-handed weapon in the game at 8kg.
+  market_strategy:
+    notes:
+      - F2P-available baseline weapon — supply is plentiful
+      - Low alchemy margin; flips rarely worth the slot
+      - Mith grapple compatibility keeps niche demand among questers
+  history:
+    - date: "2001-01-04"
+      description: Added to the game.
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 8
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

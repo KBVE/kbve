@@ -12,9 +12,16 @@ osrs:
   lowalch: 1024
   highalch: 1536
   limit: 18000
+  material:
+    type: bow
+    tier: high
   equipment:
     slot: weapon
+    weapon_type: bow
+    attack_speed: 6
     weight: 1.814
+    requirements:
+      ranged: 50
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,27 +39,22 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      ranged: 50
-    attack_speed: 6
+  special_attack:
+    name: Powershot
+    description: Increased accuracy and damage on a single shot.
   recipes:
     - skill: fletching
       level: 85
       xp: 91.5
       materials:
         - item_name: Magic longbow (u)
-          item_id: 64
           quantity: 1
         - item_name: Bow string
-          item_id: 1777
           quantity: 1
+      tools:
+        - Knife
       product: Magic longbow
-      product_id: 859
-      product_quantity: 1
       members_only: true
-  alchemy:
-    high: 1536
-    low: 1024
   related_items:
     - item_id: 64
       item_name: Magic longbow (u)
@@ -69,48 +71,47 @@ osrs:
       slug: bow-string
       relationship: component
       description: Required for stringing
-    - item_id: 561
-      item_name: Nature rune
-      slug: nature-rune
-      relationship: component
-      description: For High Alchemy
     - item_id: 855
       item_name: Yew longbow
       slug: yew-longbow
-      relationship: alternative
+      relationship: downgrade
       description: Lower tier alternative
-  about: |-
-    String a Magic longbow (u) with a Bow string.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Fletching Level | 85 |
-    | XP gained | 91.5 |
-
-    | Alch Type | Value |
-    |-----------|-------|
-    | High Alch | 1,536 GP |
-    | Low Alch | 1,024 GP |
+  about: The magic longbow is a two-handed bow that requires 50 Ranged to wield and is fletched by stringing a magic longbow (u) at 85 Fletching for 91.5 experience.
   market_strategy:
-    title: Full Processing Chain
-    steps:
-      - order: 1
-        action: Magic logs → Magic longbow (u) → Magic longbow → High Alch
-      - order: 2
-        action: "Total cost: Magic log + Bow string + Nature rune"
-      - order: 3
-        action: "Revenue: 1,536 GP"
-    profit_formulas:
-      - 1,536 - Magic longbow price - Nature rune price = Profit
     notes:
-      - "High Alch value: **1,536 GP**"
-      - "Calculate:"
+      - "High Alch value: 1,536 GP"
       - Higher profit per alch than yew longbows
       - "Buy limit: 18,000 per 4 hours"
       - Less competition than yew longbows
       - Good for high-level fletchers
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  trading_tips:
+    - Buy magic logs and bow string in bulk for fletching margins
+    - Check daily volume before flipping
+    - Compare alch profit against nature rune price
+  history:
+    - date: "2002-03-25"
+      description: Magic longbow added to the game.
+    - date: "2004-06-14"
+      description: The item was given a special attack, Powershot.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-03-25"
+    update: Latest RuneScape News
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

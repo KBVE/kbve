@@ -1,0 +1,237 @@
+---
+/**
+ * AstroGithubProjectBoard - Build-time-rendered open priority:medium issues
+ * from KBVE/kbve. Visitors see what's actively in flight, not just a button.
+ */
+
+interface Label {
+	name: string;
+	color: string;
+}
+interface Issue {
+	id: number;
+	number: number;
+	title: string;
+	html_url: string;
+	state: string;
+	labels: Label[];
+	comments: number;
+	created_at: string;
+	updated_at: string;
+	user: { login: string; avatar_url: string } | null;
+	pull_request?: unknown;
+}
+
+interface Props {
+	title?: string;
+	subtitle?: string;
+	limit?: number;
+	label?: string;
+}
+
+const {
+	title = 'In Flight',
+	subtitle = 'Open issues labelled priority:medium — solid first-PR candidates.',
+	limit = 9,
+	label = 'priority:medium',
+} = Astro.props;
+
+const GITHUB_OWNER = 'KBVE';
+const GITHUB_REPO = 'kbve';
+const API_URL = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues?state=open&labels=${encodeURIComponent(label)}&per_page=${Math.max(limit * 2, 30)}`;
+const ALL_ISSUES_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/issues?q=is%3Aopen+is%3Aissue+label%3A%22${encodeURIComponent(label)}%22`;
+
+let issues: Issue[] = [];
+let error: string | null = null;
+try {
+	const response = await fetch(API_URL, {
+		headers: { Accept: 'application/vnd.github.v3+json' },
+	});
+	if (!response.ok) throw new Error(`GitHub API ${response.status}`);
+	const all = (await response.json()) as Issue[];
+	issues = all.filter((i) => !i.pull_request).slice(0, limit);
+} catch (err) {
+	error = err instanceof Error ? err.message : 'fetch failed';
+	console.error('AstroGithubProjectBoard fetch error:', error);
+}
+
+function ago(iso: string): string {
+	const ms = Date.now() - new Date(iso).getTime();
+	const d = Math.floor(ms / (1000 * 60 * 60 * 24));
+	if (d <= 0) return 'today';
+	if (d === 1) return '1 day ago';
+	if (d < 30) return `${d} days ago`;
+	const m = Math.floor(d / 30);
+	if (m === 1) return '1 month ago';
+	return `${m} months ago`;
+}
+---
+
+<section class="github-board" aria-labelledby="github-board-title">
+	<header class="github-board__header">
+		<h2 id="github-board-title">{title}</h2>
+		<p>{subtitle}</p>
+	</header>
+
+	{
+		error && (
+			<p class="github-board__error" role="alert">
+				Unable to load issues ({error}).
+			</p>
+		)
+	}
+
+	{
+		!error && issues.length === 0 && (
+			<p class="github-board__empty">
+				No open `{label}` issues right now.{' '}
+				<a href={ALL_ISSUES_URL}>Browse the full issue tracker</a>.
+			</p>
+		)
+	}
+
+	{
+		!error && issues.length > 0 && (
+			<>
+				<ul class="github-board__grid" role="list">
+					{issues.map((issue) => (
+						<li class="github-board__card">
+							<a
+								href={issue.html_url}
+								target="_blank"
+								rel="noopener noreferrer">
+								<div class="github-board__card-head">
+									<span class="github-board__num">
+										#{issue.number}
+									</span>
+									<span
+										class="github-board__comments"
+										aria-label={`${issue.comments} comments`}>
+										💬 {issue.comments}
+									</span>
+								</div>
+								<h3 class="github-board__title">
+									{issue.title}
+								</h3>
+								<div class="github-board__labels">
+									{issue.labels.slice(0, 4).map((l) => (
+										<span
+											class="github-board__label"
+											style={`background:#${l.color}22;border-color:#${l.color}55;color:#${l.color}`}>
+											{l.name}
+										</span>
+									))}
+								</div>
+								<div class="github-board__meta">
+									<span>{ago(issue.created_at)}</span>
+								</div>
+							</a>
+						</li>
+					))}
+				</ul>
+				<p class="github-board__cta">
+					<a
+						href={ALL_ISSUES_URL}
+						target="_blank"
+						rel="noopener noreferrer">
+						Browse every open issue →
+					</a>
+				</p>
+			</>
+		)
+	}
+</section>
+
+<style>
+	.github-board {
+		margin: 3rem 0;
+		color: var(--sl-color-text, #e6edf3);
+	}
+	.github-board__header {
+		text-align: center;
+		margin-bottom: 1.25rem;
+	}
+	.github-board__header h2 {
+		font-size: 1.75rem;
+		font-weight: 700;
+		margin: 0 0 0.25rem;
+	}
+	.github-board__header p {
+		color: var(--sl-color-gray-2, #8b949e);
+		margin: 0;
+	}
+	.github-board__error,
+	.github-board__empty {
+		text-align: center;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+	.github-board__grid {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 0.75rem;
+	}
+	.github-board__card {
+		background: var(--sl-color-bg-nav, #111);
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		border-radius: 10px;
+		transition:
+			border-color 0.15s,
+			transform 0.15s;
+	}
+	.github-board__card:hover {
+		border-color: var(--sl-color-accent, #06b6d4);
+		transform: translateY(-1px);
+	}
+	.github-board__card a {
+		display: block;
+		padding: 0.85rem 1rem;
+		color: inherit;
+		text-decoration: none;
+	}
+	.github-board__card-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+	.github-board__title {
+		margin: 0.45rem 0 0.55rem;
+		font-size: 0.95rem;
+		font-weight: 600;
+		line-height: 1.35;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.github-board__labels {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.3rem;
+		margin-bottom: 0.5rem;
+	}
+	.github-board__label {
+		font-size: 0.65rem;
+		padding: 0.1rem 0.45rem;
+		border: 1px solid;
+		border-radius: 999px;
+	}
+	.github-board__meta {
+		font-size: 0.7rem;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+	.github-board__cta {
+		text-align: center;
+		margin-top: 1rem;
+	}
+	.github-board__cta a {
+		color: var(--sl-color-accent, #06b6d4);
+		text-decoration: none;
+		font-size: 0.9rem;
+	}
+</style>

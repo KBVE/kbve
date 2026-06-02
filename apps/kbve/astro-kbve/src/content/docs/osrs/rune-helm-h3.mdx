@@ -12,9 +12,84 @@ osrs:
   lowalch: 14080
   highalch: 21120
   limit: 70
-  about: "Rune helm (h3) is a free-to-play item in Old School RuneScape. High alchemy value: 21,120 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Rune helm (h3) is a heraldic rune full helm cosmetic obtained from hard and elite Treasure Trail clue scrolls."
+  material:
+    type: Rune
+    tier: mid-high
+  equipment:
+    slot: head
+    weight: 2.721
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -3
+    defence_bonus:
+      stab: 30
+      slash: 32
+      crush: 27
+      magic: -1
+      ranged: 30
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+      - elite
+  properties:
+    release_date: "2006-12-05"
+    update: "Treasure Trails Update"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  related_items:
+    - item_id: 1163
+      item_name: Rune full helm
+      slug: rune-full-helm
+      relationship: variant
+      description: Standard rune full helm with identical defensive stats
+    - item_id: 10286
+      item_name: Rune helm (h1)
+      slug: rune-helm-h1
+      relationship: variant
+      description: Asgarnia heraldic variant
+    - item_id: 10288
+      item_name: Rune helm (h2)
+      slug: rune-helm-h2
+      relationship: variant
+      description: Dorgeshuun heraldic variant
+  market_strategy:
+    notes:
+      - "Trades well below high alch (~20,611 GE vs 21,120 alch) — alch profit when uncovered."
+      - "Heraldic design appeals to fashionscape and clue completionists."
+  trading_tips:
+    - "Same defensive stats as rune full helm; price premium is cosmetic only."
+    - "Hard and elite caskets feed supply; flips depend on clue activity."
+  history:
+    - date: "2021-04-21"
+      description: "Ranged attack bonus reduced from -2 to -3."
+    - date: "2006-12-05"
+      description: "Released with the Treasure Trails update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

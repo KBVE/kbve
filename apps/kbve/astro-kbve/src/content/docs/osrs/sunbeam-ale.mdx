@@ -12,9 +12,55 @@ osrs:
   lowalch: 3
   highalch: 4
   limit: null
+  food:
+    heals: 1
+    cooking_level: 1
+  potion:
+    effects:
+      - description: "Heals 1 Hitpoint and provides a temporary +1 boost to Agility and Strength."
+      - description: "Reduces Attack by 5% plus 1 level for the duration of the boost."
+  shops:
+    - shop_name: "Varlamore pub vendors"
+      location: Varlamore
+      stock: 5
+      price: 8
+  related_items:
+    - name: Moonlight mead
+      relationship: alternative
+    - name: Mature dwarven stout
+      relationship: alternative
+    - name: Asgarnian ale
+      relationship: alternative
+  market_strategy:
+    notes:
+      - "Sold by Varlamore pub vendors for 8 coins; cannot be brewed."
+      - "Useful for +1 Agility boost where Summer pies are scarce or overkill."
+      - "Niche flips on diary-task spikes when players want a temporary Agility buff."
+  trading_tips:
+    - "Buy direct from pub vendors and flip when GE price diverges from shop price."
+    - "Watch for boost meta changes; Strength boost overlap with Strength potions limits demand."
+  history:
+    - date: "2024-03-20"
+      description: "Released as part of the Varlamore: Part One update."
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   about: "Sunbeam ale is a members-only item in Old School RuneScape. High alchemy value: 4 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

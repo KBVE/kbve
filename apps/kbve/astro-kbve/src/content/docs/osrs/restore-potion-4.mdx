@@ -1,6 +1,6 @@
 ---
 title: Restore potion(4) | OSRS Price Data
-description: "Restore potion(4): 4 doses of restore potion.. High alch: 66 GP, GE limit: 2,000."
+description: "Restore potion(4) restores reduced Attack, Strength, Defence, Ranged and Magic levels over four doses. High alch: 66 GP, GE limit: 2,000."
 osrs:
   id: 2430
   name: Restore potion(4)
@@ -12,9 +12,73 @@ osrs:
   lowalch: 44
   highalch: 66
   limit: 2000
-  about: "Restore potion(4) is a members-only item in Old School RuneScape. High alchemy value: 66 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 4
+    effects:
+      - skill: Attack
+        description: "Restores reduced Attack by floor(level * 3 / 10) + 10."
+      - skill: Strength
+        description: "Restores reduced Strength by floor(level * 3 / 10) + 10."
+      - skill: Defence
+        description: "Restores reduced Defence by floor(level * 3 / 10) + 10."
+      - skill: Ranged
+        description: "Restores reduced Ranged by floor(level * 3 / 10) + 10."
+      - skill: Magic
+        description: "Restores reduced Magic by floor(level * 3 / 10) + 10."
+  recipes:
+    - skill: Herblore
+      level: 22
+      experience: 62.5
+      materials:
+        - item_name: Harralander potion (unf)
+          quantity: 1
+        - item_name: Red spiders' eggs
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      output_item: Restore potion(3)
+  related_items:
+    - item_id: 3024
+      item_name: Super restore(4)
+      slug: super-restore-4
+      relationship: upgrade
+      description: Stronger restore that also covers Prayer
+    - item_id: 2428
+      item_name: Attack potion(4)
+      slug: attack-potion-4
+      relationship: alternative
+      description: Boost rather than restore variant
+  about: "Restore potion(4) is a four-dose Herblore potion that restores temporarily reduced Attack, Strength, Defence, Ranged and Magic levels but does not affect Prayer or boost stats above base."
+  market_strategy:
+    notes:
+      - "Demand cycles with mid-tier PvM and slayer bursts; competition with super restore caps upside but the 2,000 GE limit lets bulk flips clear quickly."
+  trading_tips:
+    - "Watch the unfinished harralander potion plus red spiders' egg spread - if the combined input price drops below the (4) dose GE, buy materials and Herblore to alch instead of flipping."
+  history:
+    - date: "2002-02-27"
+      description: "Released alongside the Herblore skill in the Latest RuneScape News update."
+    - date: "2004-10-26"
+      description: "Empty option added to allow emptying potion doses."
+    - date: "2016-04-15"
+      description: "Half-full potions could now act as bank placeholders."
+  properties:
+    release_date: "2002-02-27"
+    update: Latest RuneScape News (27 February 2002)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

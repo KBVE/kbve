@@ -1,6 +1,6 @@
 ---
 title: Thorny hedge (bagged) | OSRS Price Data
-description: "Thorny hedge (bagged): You can plant this in your garden.. High alch: 3,000 GP, GE limit: 10,000."
+description: "Thorny hedge (bagged): You can plant this in your garden. High alch: 3,000 GP, GE limit: 10,000."
 osrs:
   id: 8437
   name: Thorny hedge (bagged)
@@ -12,9 +12,47 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 10000
-  about: "Thorny hedge (bagged) is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Garden Centre (Falador Park)
+      location: Falador Park
+      quantity: 20
+      price: 5000
+    - shop_name: Garden Centre (Farming Guild)
+      location: Farming Guild
+      quantity: 20
+      price: 5000
+  farming:
+    level: 1
+    xp: 72
+    notes: "Plant in formal garden patch; requires Construction 56 and a filled watering can. 70 Farming required to uproot."
+  construction:
+    level: 56
+    xp: 72
+    notes: "Used in formal garden hotspots in player-owned houses."
+  about: "Thorny hedge (bagged) is a members-only farming/construction item used to plant decorative thorny hedges in formal garden hotspots of player-owned houses."
+  market_strategy:
+    notes:
+      - Niche POH cosmetic with modest GE turnover
+      - Bought in bulk by Construction trainers furnishing formal gardens
+  history:
+    - date: "2006-05-31"
+      description: Released alongside the Player-Owned Houses update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    update: "PLAYER-OWNED HOUSES!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

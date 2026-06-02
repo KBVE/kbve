@@ -12,9 +12,45 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 18000
-  about: "Shantay pass (item) is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Shantay Pass Shop (Shantay Pass)
+      location: Shantay Pass
+      price: 5
+    - shop_name: Shantay Pass Shop (Ruins of Unkah)
+      location: Ruins of Unkah
+      price: 5
+    - shop_name: Rasolo the Wandering Merchant
+      location: South of Baxtorian Falls
+      price: 10
+  about: "Shantay pass (item) is a single-use ticket sold by the Shantay Pass shopkeepers and Rasolo, used to enter the Kharidian Desert from Shantay Pass. It is consumed on use and stackable in the inventory."
+  market_strategy:
+    notes:
+      - Generous 18,000 buy limit keeps supply flexible for desert prep.
+      - Cheap purchase at NPC shops anchors a hard ceiling on the GE price.
+  trading_tips:
+    - Stock up directly from the Shantay Pass shop for the cheapest unit price.
+    - Bulk purchase before long desert grinds saves repeat banking trips.
+  history:
+    - date: "2003-04-14"
+      description: Released with the Tourist Trap Quest update.
+    - date: "2006-10-30"
+      description: Graphical update alongside the Tourist Trap quest rework.
+  properties:
+    release_date: "2003-04-14"
+    update: "Tourist Trap Quest Online!"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

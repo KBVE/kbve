@@ -12,9 +12,63 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "Villager sandals (brown) is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: feet
+    weapon_type: armour
+    weight: 0.68
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Gabooty's Tai Bwo Wannai Cooperative
+      location: Tai Bwo Wannai
+      currency: Trading sticks
+      price: 120
+  related_items:
+    - item_id: 6353
+      item_name: Villager robe (blue)
+      slug: villager-robe-blue
+      relationship: set-piece
+      description: Matching villager leg slot piece
+  about: "Villager sandals (brown) is a cosmetic Karamja foot slot piece bought with trading sticks at Gabooty's cooperative in Tai Bwo Wannai."
+  market_strategy:
+    notes:
+      - Tradeable on the Grand Exchange with a 150 buy limit
+      - Karamja gloves 1+ discount drops shop cost to 100 trading sticks
+      - Cosmetic demand only; no combat utility
+  history:
+    - date: "2005-08-09"
+      description: Released with the Tai Bwo Wannai Clean-Up update.
+  properties:
+    release_date: "2005-08-09"
+    update: Tai Bwo Wannai Clean-Up
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.68
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

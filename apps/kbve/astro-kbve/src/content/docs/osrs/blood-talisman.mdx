@@ -12,9 +12,9 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: null
-  item:
-    type: material
-    tradeable: true
+  material:
+    type: talisman
+    tier: high
   related_items:
     - item_id: 5529
       item_name: Blood tiara
@@ -26,20 +26,31 @@ osrs:
       slug: blood-rune
       relationship: alternative
       description: Crafted product at Blood Altar
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Runecraft Talisman |
-    | Tradeable | Yes |
-    | Weight | 0.015 kg |
-    | Requirements | Sins of the Father |
-
-    Grants access to Blood Altar in Meiyerditch (77 Runecraft).
-
-    Can create blood tiara for headslot access.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: Grants access to the Blood Altar in Meiyerditch and can be combined with a tiara to create a blood tiara for hands-free runecrafting access.
+  history:
+    - date: "2022-03-23"
+      description: Made available as a reward from the Guardians of the Rift minigame.
+    - date: "2004-03-29"
+      description: Permanently added at RS2 launch but remained unobtainable.
+    - date: "2003-12-01"
+      description: Added to RuneScape 2 Beta cache.
+  properties:
+    release_date: "2022-03-23"
+    update: Guardians of the Rift
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.015
+    options:
+      - Locate
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

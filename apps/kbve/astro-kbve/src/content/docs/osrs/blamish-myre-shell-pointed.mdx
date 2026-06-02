@@ -5,16 +5,65 @@ osrs:
   id: 3355
   name: Blamish myre shell (pointed)
   slug: blamish-myre-shell-pointed
-  examine: A large 'Myre' coloured blamish snail shell, looks protective.
+  examine: "A large 'Myre' coloured blamish snail shell, looks protective."
   members: true
   icon: Blamish myre shell (pointed).png
   value: 150
   lowalch: 60
   highalch: 90
   limit: 13000
+  drop_table:
+    sources:
+      - source: Myre blamish snail (pointed)
+        quantity: "1"
+        rarity: Always
+  recipes:
+    - name: Craft pointed myre snelm
+      skill: Crafting
+      level: 15
+      experience: 32.5
+      materials:
+        - item_name: Blamish myre shell (pointed)
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+      output_item: Myre snelm (pointed)
+  related_items:
+    - name: Myre snelm (pointed)
+      relationship: product
+    - name: Blamish myre shell (round)
+      relationship: alternative
+    - name: Blamish ochre shell (pointed)
+      relationship: alternative
   about: "Blamish myre shell (pointed) is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - Dropped exclusively by Myre blamish snails in Mort Myre Swamp.
+      - Crafted into a pointed myre snelm with a chisel at Crafting level 15.
+      - Snelms are a low-tier helmet alternative for early Crafting training.
+  trading_tips:
+    - Daily volume is very low; expect slow fills on the Grand Exchange.
+    - Combat-only Crafting trainers may prefer collecting shells over buying.
+  history:
+    - date: "2004-10-14"
+      description: Item released with the Morytania expansion update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-10-14"
+    update: Morytania Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -5,67 +5,82 @@ osrs:
   id: 22327
   name: Justiciar chestguard
   slug: justiciar-chestguard
-  examine: A Justiciar's chestguard. They once roamed the land casting judgements on wrongdoers, their decisions were never questioned.
+  examine: "A Justiciar's chestguard. They once roamed the land casting judgements on wrongdoers, their decisions were never questioned."
   members: true
   icon: Justiciar chestguard.png
   value: 6000000
   lowalch: 2400000
   highalch: 3600000
   limit: 8
+  material:
+    type: justiciar
+    tier: high
   equipment:
     slot: body
-    type: tank armour
-    tradeable: true
     weight: 9.979
     requirements:
       defence: 75
-    stats:
-      defence_stab: 132
-      defence_slash: 130
-      defence_crush: 117
-      defence_magic: -16
-      defence_ranged: 142
+    defence_bonus:
+      stab: 132
+      slash: 130
+      crush: 117
+      magic: -16
+      ranged: 142
+    other_bonus:
       prayer: 4
-  set_effect:
-    name: Justiciar Damage Reduction
-    description: "Reduces all combat damage (PvM only). Formula: defence bonus / 3000"
+  drop_table:
+    sources:
+      - source: Theatre of Blood
+        quantity: "1"
+        rarity: 2/19
+      - source: Theatre of Blood (Hard Mode)
+        quantity: "1"
+        rarity: 2/18
   related_items:
     - item_id: 22326
       item_name: Justiciar faceguard
       slug: justiciar-faceguard
-      relationship: alternative
-      description: Set helm for Justiciar armour
+      relationship: set-piece
+      description: Head slot piece of the Justiciar set
     - item_id: 22328
       item_name: Justiciar legguards
       slug: justiciar-legguards
-      relationship: alternative
-      description: Set legs for Justiciar armour
-  about: |-
-    | Defence | Bonus |
-    |---------|-------|
-    | Stab | +132 |
-    | Slash | +130 |
-    | Crush | +117 |
-    | Magic | -16 |
-    | Ranged | +142 |
-
-    | Other | Bonus |
-    |-------|-------|
-    | Prayer | +4 |
-
-    Damage Reduction (full set):
-    - Reduces all combat damage (PvM only)
-    - Formula: defence bonus / 3000
-    - Higher defence = more reduction
-
-    BiS for:
-    - Tanking
-    - Inferno
-    - Solo bossing
-
-    Part of Justiciar set.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: set-piece
+      description: Legs slot piece of the Justiciar set
+  about: "Justiciar chestguard is the body piece of the Justiciar armour set obtained from the Theatre of Blood, requiring 75 Defence to equip. It carries the highest stab/slash/ranged defence of any body slot item and, when worn with the rest of the set, applies a defence-bonus / 3000 PvM damage-reduction effect."
+  market_strategy:
+    notes:
+      - Price tracks Theatre of Blood completion volume and set demand
+      - BiS for tanking, Inferno attempts, and solo bossing
+      - Set effect scales with defence bonus, rewarding stacking high-defence gear
+      - Buy limit of 8 per 4 hours caps quick flipping
+  trading_tips:
+    - Demand spikes during boss release weeks where damage reduction is valuable
+    - Compare against Inquisitor and Torva body pricing for tank-vs-offensive choice
+  history:
+    - date: "2018-06-07"
+      description: Released with the Theatre of Blood update.
+    - date: "2024-04-17"
+      description: Updated to correctly interfere with Ava's devices when worn.
+  properties:
+    release_date: "2018-06-07"
+    update: Theatre of Blood
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 9.979
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

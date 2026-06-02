@@ -1,6 +1,6 @@
 ---
 title: Slayer's respite | OSRS Price Data
-description: "Slayer's respite: Ale with bite.. High alch: 1 GP, GE limit: 2,000."
+description: "Slayer's respite: Ale with bite. High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 5759
   name: Slayer's respite
@@ -12,9 +12,77 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Slayer's respite is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    healing: 1
+    edible: true
+  potion:
+    effects:
+      - description: "Temporarily boosts Slayer by 2 levels"
+      - description: "Drains Attack by 2% + 2 levels"
+      - description: "Drains Strength by 2% + 2 levels"
+  recipes:
+    - skill: Cooking
+      level: 59
+      xp: 479
+      materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Wildblood hops
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Beer glass
+          quantity: 8
+      tools:
+        - Fermenting vat
+        - Calquat keg
+      output_quantity: 8
+  related_items:
+    - item_id: 7228
+      item_name: Wild pie
+      slug: wild-pie
+      relationship: alternative
+      description: Stronger +5 Slayer boost without stat drain
+    - item_id: 5751
+      item_name: Slayer's respite (m)
+      slug: slayer-s-respite-m
+      relationship: upgrade
+      description: Matured variant from a Calquat keg
+  about: "Slayer's respite is a members-only ale that heals 1 Hitpoint, boosts Slayer by 2 levels, and drains Attack and Strength; brewed at level 59 Cooking with wildblood hops and ale yeast."
+  market_strategy:
+    notes:
+      - Demand is niche compared to wild pies for Slayer boosts
+      - Brewing line yields 8 glasses per batch from cheap inputs
+      - Buy limit 2,000 fits Slayer boosting cycles
+      - Low alch values rule out alching as a strategy
+      - Profit hinges on barley malt and wildblood hops floors
+  trading_tips:
+    - Compare boost economy versus wild pies before stocking
+    - Volume favors patient sells over instant flips
+    - Mature variants can be cellar-aged from this base ale
+  history:
+    - date: "2005-07-11"
+      update: "Farming Skill"
+      description: Slayer's respite introduced as a brewable ale.
+  properties:
+    release_date: "2005-07-11"
+    update: "Farming Skill"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

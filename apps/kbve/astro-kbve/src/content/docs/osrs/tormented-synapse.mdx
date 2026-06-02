@@ -12,31 +12,39 @@ osrs:
   lowalch: 320000
   highalch: 480000
   limit: 5
-  item:
-    type: material
-    tradeable: true
-    weight: 1.814
+  material:
+    type: crafting
+    tier: high
   drop_table:
     sources:
       - source: Tormented demon
-        rate: 1/500
-  quest_requirement: While Guthix Sleeps
-  location: Ancient Guthix Temple
+        quantity: "1"
+        rarity: 1/500
   recipes:
-    - skill: smithing
+    - materials:
+        - item_name: Tormented synapse
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: smithing
       level: 74
       product: Emberlight
-      product_id: 29589
-    - skill: crafting
+    - materials:
+        - item_name: Tormented synapse
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: crafting
       level: 74
-      requirements:
-        smithing: 55
       product: Purging staff
-      product_id: 29594
-    - skill: fletching
+    - materials:
+        - item_name: Tormented synapse
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: fletching
       level: 74
       product: Scorching bow
-      product_id: 29591
   related_items:
     - item_id: 29589
       item_name: Emberlight
@@ -53,27 +61,37 @@ osrs:
       slug: purging-staff
       relationship: product
       description: Created BiS magic demonbane weapon
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 1.814 kg |
-
-    Creates demonbane weapons:
-
-    | Weapon | Skill |
-    |--------|-------|
-    | Emberlight | 74 Smithing |
-    | Purging staff | 74 Crafting, 55 Smithing |
-    | Scorching bow | 74 Fletching |
+  about: "Tormented synapse is a crafting material dropped by Tormented demons used to create the BiS demonbane weapons Emberlight, Purging staff, and Scorching bow."
   market_strategy:
     notes:
       - Farm Tormented demons
       - Requires While Guthix Sleeps
       - Creates non-degrading demonbane gear
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2024-07-10"
+      description: Released with the While Guthix Sleeps update.
+    - date: "2024-07-11"
+      description: Grand Exchange value hotfixed from 1,500,000 to 60,000,000 coins.
+    - date: "2024-07-17"
+      description: Item value increased from 1 to 800,000 coins.
+    - date: "2025-02-26"
+      description: Creation processes for all synapse products became reversible, returning only the synapse itself; experience rewards reduced across all three craftable items.
+  properties:
+    release_date: "2024-07-10"
+    update: While Guthix Sleeps
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Inspect
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

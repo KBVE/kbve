@@ -1,6 +1,6 @@
 ---
 title: Monkey tail | OSRS Price Data
-description: "Monkey tail: Smells like the south end of a northbound monkey, because it is.. High alch: 30,000 GP, GE limit: 8."
+description: "Monkey tail: Smells like the south end of a northbound monkey, because it is. High alch: 30,000 GP, GE limit: 8."
 osrs:
   id: 19610
   name: Monkey tail
@@ -12,9 +12,61 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 8
-  about: "Monkey tail is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: organic
+    tier: high
+  drop_table:
+    sources:
+      - source: Demonic gorilla
+        quantity: "1"
+        rarity: 1/1500
+      - source: Tortured gorilla
+        quantity: "1"
+        rarity: 1/15000
+      - source: Maniacal monkey
+        quantity: "1"
+        rarity: 1/5000
+  related_items:
+    - item_name: Light ballista
+      slug: light-ballista
+      relationship: product
+    - item_name: Heavy ballista
+      slug: heavy-ballista
+      relationship: product
+    - item_name: Light frame
+      slug: light-frame
+      relationship: component
+    - item_name: Heavy frame
+      slug: heavy-frame
+      relationship: component
+  about: "Monkey tail is a Fletching component used to assemble the light and heavy ballistae, dropped primarily by demonic and tortured gorillas and as a rare catch from maniacal monkeys."
+  market_strategy:
+    notes:
+      - Tight buy limit (8) keeps prices volatile
+      - High alch value supports a price floor
+      - Demand tied to ballista popularity for PvM
+  trading_tips:
+    - Stock for ballista crafting flips
+    - Track demonic gorilla slayer task popularity
+  history:
+    - date: "2016-05-06"
+      description: Added to the game with the Monkey Madness II quest update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-05-06"
+    update: Monkey Madness II
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

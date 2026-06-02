@@ -12,9 +12,80 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: null
-  about: "Extended stamina potion(1) is a members-only item in Old School RuneScape. High alchemy value: 24 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: high
+  potion:
+    doses: 1
+    effects:
+      - description: Restores 40% run energy per dose
+      - description: Reduces run energy depletion by 70% for 4 minutes
+      - description: When used with charged Ring of Endurance, consumes 2 charges to double effects (80% restoration, 8-minute duration)
+  recipes:
+    - skill: Herblore
+      level: 85
+      xp: 27.5
+      tools: []
+      materials:
+        - item_name: Stamina potion(1)
+          quantity: 1
+        - item_name: Marlin scale
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_name: Stamina potion(1)
+      slug: stamina-potion-1
+      relationship: component
+      description: Base 1-dose stamina potion combined with marlin scales
+    - item_name: Marlin scale
+      slug: marlin-scale
+      relationship: component
+      description: Secondary ingredient unlocked via Sailing
+    - item_name: Extended stamina potion(2)
+      slug: extended-stamina-potion-2
+      relationship: variant
+      description: 2-dose variant
+    - item_name: Extended stamina potion(3)
+      slug: extended-stamina-potion-3
+      relationship: variant
+      description: 3-dose variant
+    - item_name: Extended stamina potion(4)
+      slug: extended-stamina-potion-4
+      relationship: variant
+      description: 4-dose variant
+  about: "Extended stamina potion(1) is a members-only Herblore potion brewed at level 85 by adding a marlin scale to a 1-dose stamina potion, restoring 40% run energy and applying a stronger run-depletion debuff than the standard stamina potion."
+  market_strategy:
+    notes:
+      - Demand driven by long-duration PvM and agility content
+      - Sailing-era release ties supply to marlin scale farming
+      - 1-dose decant variant has lower margin than 4-dose
+      - No published GE limit means decanters can move volume
+  trading_tips:
+    - Decant into 4-dose for liquidity when premium is high
+    - Watch marlin scale supply for crafting arbitrage
+    - Buy off-peak when raid teams aren't restocking
+  history:
+    - date: "2025-11-19"
+      description: Extended stamina potion(1) added alongside the Sailing skill release.
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

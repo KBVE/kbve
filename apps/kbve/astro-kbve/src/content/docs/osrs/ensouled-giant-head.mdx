@@ -1,11 +1,11 @@
 ---
 title: Ensouled giant head | OSRS Price Data
-description: "Ensouled giant head: The creature's soul is still in here.. High alch: 191 GP, GE limit: 3,000."
+description: "Ensouled giant head: The creature's soul is still in here. High alch: 191 GP, GE limit: 3,000."
 osrs:
   id: 13475
   name: Ensouled giant head
   slug: ensouled-giant-head
-  examine: The creature's soul is still in here.
+  examine: "The creature's soul is still in here."
   members: true
   icon: Ensouled giant head.png
   value: 319
@@ -25,17 +25,34 @@ osrs:
         source_id: 2098
         combat_level: 28
         quantity: "1"
-        rarity: uncommon
+        rarity: "1/25"
         members_only: true
       - source: Moss giant
         source_id: 2090
         combat_level: 42
         quantity: "1"
-        rarity: uncommon
+        rarity: "1/24"
         members_only: true
       - source: Fire giant
         source_id: 2075
         combat_level: 86
+        quantity: "1"
+        rarity: "1/20"
+        members_only: true
+      - source: Ice giant
+        combat_level: 53
+        quantity: "1"
+        rarity: "1/21"
+        members_only: true
+      - source: Obor
+        quantity: "1"
+        rarity: common
+        members_only: false
+      - source: Bryophyta
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Black Knight Titan
         quantity: "1"
         rarity: uncommon
         members_only: true
@@ -55,20 +72,33 @@ osrs:
       slug: ensouled-demon-head
       relationship: upgrade
       description: Higher XP (1,170)
-  about: |-
-    1. Cast Adept Reanimation spell on the head
-    2. Kill the reanimated creature
-    3. Receive Prayer XP
+  about: "Ensouled giant head is reanimated with the Adept Reanimation spell from the Arceuus spellbook, granting 650 Prayer XP when the spawned giant is killed."
   market_strategy:
     notes:
       - Popular Prayer training option
       - Good XP for the price
       - High supply from giant farming
-      - Popular for efficient training
       - Check GP/XP vs bones
       - Hill giants common source
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2016-01-07"
+      description: "Item released with the Zeah update."
+  properties:
+    release_date: "2016-01-07"
+    update: Zeah
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Reanimate
+      - Drop
+    alchable: false
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

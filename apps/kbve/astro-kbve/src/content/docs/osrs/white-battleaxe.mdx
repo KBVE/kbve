@@ -12,9 +12,55 @@ osrs:
   lowalch: 499
   highalch: 748
   limit: 125
-  about: "White battleaxe is a members-only item in Old School RuneScape. High alchemy value: 748 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: battleaxe
+    attack_speed: 6
+    weight: 2.721
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: -2
+      slash: 20
+      crush: 15
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -1
+    other_bonus:
+      melee_strength: 24
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  shops:
+    - shop_name: White Knights' Armoury
+      location: Falador
+      price: 1248
+      currency: coins
+  about: White battleaxe is a members-only one-handed slash battleaxe sold by the White Knights' Armoury in Falador, requiring 10 Attack and completion of the Wanted! quest to wield.
+  properties:
+    release_date: "2005-10-17"
+    update: Wanted!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wield
+      - Drop
+    alchable: true
+  history:
+    - date: "2005-10-17"
+      description: Released alongside the Wanted! quest.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

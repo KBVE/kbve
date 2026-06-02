@@ -12,9 +12,54 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 6000
-  about: "Cooked dashing kebbit is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 23
+    description: "Heals 13 Hitpoints immediately, then 10 more after a 7-tick delay (4.2s) which also restores 10 run energy."
+  recipes:
+    - product_name: Cooked dashing kebbit
+      skill: Cooking
+      cooking_level: 82
+      experience: 215
+      facility: Cooking range
+      materials:
+        - item_name: Raw dashing kebbit
+          quantity: 1
+  related_items:
+    - item_id: 29132
+      item_name: Raw dashing kebbit
+      slug: raw-dashing-kebbit
+      relationship: component
+      description: Uncooked source meat for the dish
+  market_strategy:
+    notes:
+      - Premium food driven by Hunter Guild participants needing 50 Rumours
+      - High Cooking requirement keeps the supply pool small
+      - Doubles as run-energy restore for endgame movement
+  history:
+    - date: "2024-03-20"
+      update: "Varlamore: Part One"
+      description: Cooked dashing kebbit released with the Varlamore Hunter Guild update.
+    - date: "2026-05-13"
+      update: Sailing Changes and Gem Bag Expansion
+      description: Inventory icon graphically updated.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.283
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: "Cooked dashing kebbit is a members-only food prepared at 82 Cooking from raw dashing kebbit, healing 23 Hitpoints in two ticks and restoring 10 run energy on the secondary heal."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

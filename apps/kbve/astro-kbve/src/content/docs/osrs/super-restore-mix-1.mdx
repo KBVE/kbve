@@ -1,6 +1,6 @@
 ---
 title: Super restore mix(1) | OSRS Price Data
-description: "Super restore mix(1): One dose of fishy super restore potion.. High alch: 72 GP, GE limit: 2,000."
+description: "Super restore mix(1) is a members one-dose barbarian-mixed super restore. High alch: 72 GP, GE limit: 2,000."
 osrs:
   id: 11495
   name: Super restore mix(1)
@@ -12,9 +12,75 @@ osrs:
   lowalch: 48
   highalch: 72
   limit: 2000
-  about: "Super restore mix(1) is a members-only item in Old School RuneScape. High alchemy value: 72 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 1
+    effects:
+      - description: "Restores Prayer points by 8 + 25% of the player's Prayer level."
+      - description: "Restores all other lowered stats (except Hitpoints) by 8 + 25% of their base level."
+      - description: "Heals 3 Hitpoints due to its barbarian-mix fish base."
+  recipes:
+    - skill: Herblore
+      level: 67
+      xp: 41.7
+      output_quantity: 1
+      materials:
+        - item_name: Super restore(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      notes: "Barbarian Herblore training (Recipe for Disaster sub-quest) required."
+  related_items:
+    - item_id: 11497
+      item_name: Super restore mix(2)
+      slug: super-restore-mix-2
+      relationship: variant
+      description: Two-dose barbarian mix variant.
+    - item_id: 3026
+      item_name: Super restore(4)
+      slug: super-restore-4
+      relationship: alternative
+      description: Standard non-mixed super restore.
+    - item_id: 7318
+      item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: Barbarian-mix secondary ingredient.
+  about: "Super restore mix(1) is a one-dose Barbarian Herblore mix that restores Prayer and stats while healing 3 Hitpoints on drink."
+  market_strategy:
+    notes:
+      - Caviar supply drives the mix premium
+      - Low-dose variant moves slower than the (2) dose
+      - GE buy limit 2,000 supports steady flips
+  trading_tips:
+    - Decant (1) doses into (2) doses or split (2) → (1) based on premium
+    - Tracks Barbarian Herblore training demand
+  history:
+    - date: "2007-07-03"
+      description: "Released as part of the Barbarian Training update."
+    - date: "2015-02-26"
+      description: "Renamed from 'Sup. restore mix' to 'Super restore mix'."
+    - date: "2016-04-15"
+      description: "Half-full potions can now be converted into bank placeholders."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-07-03"
+    update: "Barbarian Training"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.045
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

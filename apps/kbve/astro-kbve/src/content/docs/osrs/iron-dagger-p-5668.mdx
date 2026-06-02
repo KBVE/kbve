@@ -12,9 +12,82 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: 125
-  about: "Iron dagger(p+) is a members-only item in Old School RuneScape. High alchemy value: 21 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: dagger
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 5
+      slash: 3
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
+      strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - materials:
+        - item_name: Iron dagger
+        - item_name: Weapon poison(+)
+      tools: []
+      output_quantity: 1
+  related_items:
+    - name: Iron dagger
+      relationship: variant
+    - name: "Iron dagger(p)"
+      relationship: variant
+    - name: "Iron dagger(p++)"
+      relationship: upgrade
+    - name: "Weapon poison(+)"
+      relationship: component
+    - name: "Steel dagger(p+)"
+      relationship: alternative
+  about: "Iron dagger(p+) is a members-only poisoned variant of the iron dagger, created by applying weapon poison(+) to a standard iron dagger. The enhanced coating gives each successful hit a chance to inflict the stronger tier of poison damage, making the dagger a low-cost option for ironmen and pures looking to chip down higher-level targets with damage-over-time."
+  market_strategy:
+    notes:
+      - "Floor is set by iron dagger plus weapon poison(+) cost - rarely deviates from the sum of parts."
+      - "Limit of 125 per 4 hours keeps liquidity reasonable for low-volume flips."
+  trading_tips:
+    - "Apply poison yourself if base dagger and weapon poison(+) trade cheaper than the assembled item."
+    - "Pures and low-level ironmen drive most demand - watch league launches for short squeezes."
+  history:
+    - date: "2001-01-04"
+      description: "Base iron dagger released at the launch of RuneScape."
+    - date: "2005-02-15"
+      description: "Weapon poison(+) introduced, enabling the (p+) poisoned variant of every standard dagger."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-02-15"
+    update: Members Weapon Poison
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

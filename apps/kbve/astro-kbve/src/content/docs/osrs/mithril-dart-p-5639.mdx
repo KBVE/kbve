@@ -1,6 +1,6 @@
 ---
 title: Mithril dart(p++) | OSRS Price Data
-description: "Mithril dart(p++): A deadly poisoned dart with a mithril tip.. High alch: 15 GP, GE limit: 7,000."
+description: "Mithril dart(p++): A deadly poisoned dart with a mithril tip. 2-tick throwing weapon. High alch: 15 GP, GE limit: 7,000."
 osrs:
   id: 5639
   name: Mithril dart(p++)
@@ -12,9 +12,94 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 7000
-  about: "Mithril dart(p++) is a members-only item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mithril
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 2
+    weight: 0
+    requirements:
+      ranged: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 9
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Herblore
+      level: 1
+      tools: []
+      materials:
+        - item_name: Mithril dart
+          quantity: 1
+        - item_name: Super weapon poison
+          quantity: 1
+  related_items:
+    - item_id: 807
+      item_name: Mithril dart
+      slug: mithril-dart
+      relationship: variant
+      description: Unpoisoned variant
+    - item_id: 5637
+      item_name: Mithril dart(p)
+      slug: mithril-dart-p-5637
+      relationship: downgrade
+      description: Weak poison variant
+    - item_id: 5638
+      item_name: Mithril dart(p+)
+      slug: mithril-dart-p-plus
+      relationship: downgrade
+      description: Medium poison variant
+    - item_id: 811
+      item_name: Adamant dart(p++)
+      slug: adamant-dart-p-plus-plus
+      relationship: upgrade
+      description: Higher tier super-poison dart
+  about: "Mithril dart(p++) is a super-poison-tipped mithril throwing dart with +9 ranged strength and a 2-tick attack speed, used for fast ranged DPS."
+  market_strategy:
+    notes:
+      - Super poison variant of mithril dart
+      - 2-tick attack speed makes them strong filler ammo
+      - Made by applying super weapon poison to mithril darts
+      - GE volume tied to weapon poison supply
+  history:
+    - date: "2003-04-14"
+      description: Mithril darts released with the New Throwing Weapons update.
+    - date: "2021-06-23"
+      description: Ranged attack bonus dropped from +8 to 0, ranged strength increased from +7 to +9.
+  properties:
+    release_date: "2003-04-14"
+    update: New Throwing Weapons
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

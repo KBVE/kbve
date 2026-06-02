@@ -12,9 +12,85 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 150
-  about: "Graahk legs is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: fur
+    tier: mid
+  equipment:
+    slot: legs
+    requirements:
+      hunter: 38
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -7
+    defence_bonus:
+      stab: 11
+      slash: 10
+      crush: 10
+      magic: 0
+      ranged: 10
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 0.226
+  recipes:
+    - skill: Hunter
+      level: 38
+      xp: 0
+      materials:
+        - item_name: Graahk fur
+          quantity: 1
+        - item_name: Coins
+          quantity: 150
+      tools: []
+      output_quantity: 1
+      notes: Tailored by an NPC tailor in Varrock, Hunter Guild, or Prifddinas; tatty graahk fur also works.
+  related_items:
+    - item_id: 10045
+      item_name: Graahk headdress
+      slug: graahk-headdress
+      relationship: set-piece
+      description: Matching graahk hunter head piece
+    - item_id: 10043
+      item_name: Graahk top
+      slug: graahk-top
+      relationship: set-piece
+      description: Matching graahk hunter body piece
+  about: "Hunter camouflage leg armour for jungle and desert regions, tailored from one graahk fur and 150 coins; requires 38 Hunter to wear and grants jungle camouflage when paired with the rest of the set."
+  market_strategy:
+    notes:
+      - Demand tracks Hunter training and Aerial Fishing prep
+      - Tailoring from tatty fur is cheaper margin
+      - Buy limit 150; bulk flipping viable
+  trading_tips:
+    - Stock during Hunter double XP events
+    - Watch graahk fur supply for entry timing
+  history:
+    - date: "2006-11-21"
+      description: Released with the Hunter skill update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

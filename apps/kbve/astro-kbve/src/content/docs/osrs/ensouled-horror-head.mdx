@@ -12,9 +12,67 @@ osrs:
   lowalch: 161
   highalch: 241
   limit: 7500
-  about: "Ensouled horror head is a members-only item in Old School RuneScape. High alchemy value: 241 coins. Grand Exchange buy limit: 7,500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Cave horror
+        combat_level: 80
+        quantity: "1"
+        rarity: 1/30
+        members_only: true
+      - source: Jungle horror
+        combat_level: 70
+        quantity: "1"
+        rarity: 1/40
+        members_only: true
+      - source: Cave abomination
+        combat_level: 206
+        quantity: "1"
+        rarity: always
+        members_only: true
+  prayer:
+    xp_reanimation: 832
+    reanimation_spell: Adept Reanimation
+    spellbook: Arceuus
+    magic_level: 41
+  related_items:
+    - item_id: 13483
+      item_name: Ensouled bear head
+      slug: ensouled-bear-head
+      relationship: alternative
+      description: Lower-tier reanimation head
+    - item_id: 13491
+      item_name: Ensouled kalphite head
+      slug: ensouled-kalphite-head
+      relationship: alternative
+      description: Adjacent-tier reanimation head
+    - item_id: 565
+      item_name: Blood rune
+      slug: blood-rune
+      relationship: component
+      description: Adept reanimation rune cost component
+  market_strategy:
+    notes:
+      - Steady Arceuus Prayer XP source
+      - Supply gated by cave horror tasks
+      - Buy limit allows bulk training stock
+      - Reanimated horror also gives Slayer XP toward jungle tasks
+  about: Ensouled horror head is dropped by cave horrors, jungle horrors, and cave abominations and can be reanimated with the Arceuus spellbook for Prayer experience.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-01-07"
+    update: "Zeah: Great Kourend"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

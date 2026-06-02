@@ -12,9 +12,46 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 18000
-  about: "Adamant seeds is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: utility
+    tier: mid
+  drop_table:
+    - source: Zombie pirate
+      rarity: "8/378"
+      quantity: "1"
+      notes: "Drop rate varies between 8/378 and 8/1260 across zombie pirate types and lockers."
+    - source: Zombie pirate locker
+      rarity: "8/1260"
+      quantity: "1"
+  related_items:
+    - item_name: Mithril seeds
+      slug: mithril-seeds
+      relationship: alternative
+      description: Counterpart seed that forces movement in the opposite direction.
+  about: "Adamant seeds are stackable Wilderness utility seeds dropped by zombie pirates that force the planter one tile east when used, popular for PvP repositioning and flower-planting money-making."
+  market_strategy:
+    notes:
+      - "PvP and Wilderness activity drive demand; zombie pirate participation governs supply."
+  trading_tips:
+    - "Stack pricing follows Wilderness escalations and league seasons; flip around large PvP updates."
+  history:
+    - date: "2024-04-10"
+      description: Released with the Undead Pirates update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-04-10"
+    update: "Undead Pirates"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options: [Plant, Drop]
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

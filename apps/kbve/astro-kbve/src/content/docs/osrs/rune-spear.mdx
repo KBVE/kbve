@@ -12,9 +12,75 @@ osrs:
   lowalch: 8320
   highalch: 12480
   limit: 70
-  about: "Rune spear is a members-only item in Old School RuneScape. High alchemy value: 12,480 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    weight: 2.267
+    attack_bonus:
+      stab: 36
+      slash: 36
+      crush: 36
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 42
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      attack: 40
+  drop_table:
+    sources:
+      - source: Mithril dragon
+        quantity: "1"
+        rarity: rare
+      - source: Brutal black dragon
+        quantity: "1"
+        rarity: rare
+      - source: Brutal red dragon
+        quantity: "1"
+        rarity: rare
+      - source: Basilisk knight
+        quantity: "1"
+        rarity: rare
+      - source: Rare drop table
+        quantity: "1"
+        rarity: rare
+  about: Rune spear is a two-handed runite spear with equal stab, slash, and crush attack bonuses, popular for training melee against creatures weak to a specific style.
+  history:
+    - date: "2021-04-21"
+      description: Attack speed increased from 5 ticks to 4 ticks.
+    - date: "2003-04-14"
+      description: Released with the New Throwing Weapons update.
+  properties:
+    release_date: "2003-04-14"
+    update: New Throwing Weapons!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Team-26 cape | OSRS Price Data
-description: "Team-26 cape: Ooohhh look at the pretty colours.... High alch: 30 GP, GE limit: 150."
+description: "Team-26 cape is a F2P cape sold by Richard's Wilderness Cape Shop in Edgeville. High alch: 30 GP, GE limit: 150."
 osrs:
   id: 4365
   name: Team-26 cape
@@ -12,9 +12,54 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-26 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: cape
+    weight: 0.453
+    requirements: {}
+    defence_bonus:
+      crush: 1
+      ranged: 2
+  shops:
+    - shop_name: Richard's Wilderness Cape Shop
+      location: Edgeville
+      price: 50
+      stock: 100
+  related_items:
+    - item_id: 4315
+      item_name: Team-1 cape
+      slug: team-1-cape
+      relationship: variant
+      description: Another numbered team cape from Richard's shop
+  about: "The Team-26 cape is one of fifty numbered team capes sold by Richard's Wilderness Cape Shop in Edgeville, used to identify allies during Wilderness team events."
+  market_strategy:
+    notes:
+      - "Shop restock at 30 coins versus a GE high alch of 30 leaves no alch margin; price moves only on cosmetic demand from team-event organizers."
+  trading_tips:
+    - "Pre-buy from Richard before announced clan wars or PvP events when team capes briefly spike on demand; sell quickly because supply is unlimited at the shop."
+  history:
+    - date: "2005-02-22"
+      description: "Released with the Wilderness Capes, and Changes update."
+    - date: "2013-05-23"
+      description: "Made available to free-to-play players."
+  properties:
+    release_date: "2005-02-22"
+    update: Wilderness Capes, and Changes
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

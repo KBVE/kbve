@@ -12,22 +12,69 @@ osrs:
   lowalch: 25600
   highalch: 38400
   limit: 8
+  material:
+    type: rune
+    tier: mid
   equipment:
     slot: legs
+    weight: 9.071
     requirements:
       defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 51
+      slash: 49
+      crush: 47
+      magic: -4
+      ranged: 49
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
     - item_id: 2623
       item_name: Rune platebody (t)
       slug: rune-platebody-t
       relationship: set-piece
       description: Matching trimmed platebody
-  about: |-
-    > *"Rune platelegs with trim."*
-
-    The rune platelegs (t) are a trimmed cosmetic variant of standard rune platelegs. Identical stats, requiring 40 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1079
+      item_name: Rune platelegs
+      slug: rune-platelegs
+      relationship: alternative
+      description: Untrimmed variant with identical stats
+  about: Rune platelegs (t) are a trimmed cosmetic variant of standard rune platelegs obtained from hard clue scroll reward caskets. Stats are identical to the untrimmed variant.
+  history:
+    - date: "2004-05-05"
+      description: Released with the Bigger Banks & Treasure Trails update.
+    - date: "2021-04-21"
+      description: Ranged attack bonus decreased from -7 to -11.
+  properties:
+    release_date: "2004-05-05"
+    update: Bigger Banks & Treasure Trails
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

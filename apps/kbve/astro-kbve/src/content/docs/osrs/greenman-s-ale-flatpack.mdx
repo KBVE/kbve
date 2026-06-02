@@ -12,9 +12,59 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Greenman's ale (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: construction
+      level: 26
+      xp: 184
+      materials:
+        - item_name: Oak plank
+          item_id: 8778
+          quantity: 3
+        - item_name: Greenman's ale
+          item_id: 1909
+          quantity: 8
+      tools:
+        - Hammer
+        - Saw
+      product: Greenman's ale (flatpack)
+      product_id: 8522
+  related_items:
+    - item_id: 1909
+      item_name: Greenman's ale
+      slug: greenmans-ale
+      relationship: component
+      description: Source ale used in the flatpack
+    - item_id: 8778
+      item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: Construction plank required for assembly
+  about: "Greenman's ale (flatpack) is a flatpacked Greenman's barrel built at an Oak workbench in a player-owned house Workshop, requiring level 26 Construction; the resulting flatpack can be placed in the Kitchen Barrel hotspot or sold on the Grand Exchange."
+  market_strategy:
+    notes:
+      - Profitable Construction-to-GE flip when oak planks are cheap
+      - Buy limit of 500 caps short term flipping per 4 hours
+      - Low daily volume means large batches sell slowly
+  history:
+    - date: "2006-05-31"
+      update: Player-Owned Houses
+      description: Greenman's ale (flatpack) added with the Player-Owned Houses update.
+  properties:
+    release_date: "2006-05-31"
+    update: Player-Owned Houses
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

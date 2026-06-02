@@ -5,16 +5,55 @@ osrs:
   id: 32077
   name: Large ironwood hull parts
   slug: large-ironwood-hull-parts
-  examine: Parts for creating an ironwood hull for a boat.
+  examine: Large parts for creating an ironwood hull for a boat.
   members: true
   icon: Large ironwood hull parts.png
   value: 62500
   lowalch: 25000
   highalch: 37500
   limit: 100
-  about: "Large ironwood hull parts is a members-only item in Old School RuneScape. High alchemy value: 37,500 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: construction
+      level: 77
+      xp: 2.5
+      materials:
+        - item_name: Ironwood hull parts
+          quantity: 5
+      product: Large ironwood hull parts
+      product_id: 32077
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_name: Ironwood hull parts
+      slug: ironwood-hull-parts
+      relationship: component
+      description: Smaller component required (5x) for combine
+  market_strategy:
+    notes:
+      - Crafted at Shipwrights' Workbench from 5 smaller ironwood hull parts
+      - Watch combine cost vs GE flip for profit
+      - New Sailing skill item, prices may swing on update cycles
+  history:
+    - date: "2025-11-19"
+      update: Hotfix
+      description: Halved the amount of Construction experience gained from shipwrights' workbenches.
+  about: Large ironwood hull parts is a Sailing-related component crafted at the Shipwrights' Workbench by combining 5 ironwood hull parts at level 77 Construction.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,6 +12,36 @@ osrs:
   lowalch: 72
   highalch: 108
   limit: 2000
+  potion:
+    effects:
+      - description: "Boosts Attack by 5 + 15% of current Attack level (rounded down)"
+        skill: Attack
+        boost_formula: "floor(AttackLevel * 0.15) + 5"
+
+  recipes:
+    - skill: Herblore
+      level: 45
+      experience: 100
+      materials:
+        - item_name: Irit potion (unf)
+          quantity: 1
+        - item_name: Eye of newt
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      output_item: Super attack(3)
+  drop_table:
+    sources:
+      - source: K'ril Tsutsaroth
+        quantity: "3"
+        rarity: 8/127
+        notes: 3-dose
+      - source: Steel dragon
+        quantity: "1"
+        rarity: 13/128
+      - source: Lava Strykewyrm
+        quantity: "1"
+        rarity: 4/128
   related_items:
     - item_id: 147
       item_name: Super attack(2)
@@ -23,12 +53,44 @@ osrs:
       slug: super-attack-1
       relationship: variant
       description: 1-dose version
+    - item_id: 2436
+      item_name: Super attack(4)
+      slug: super-attack-4
+      relationship: variant
+      description: 4-dose version
+  market_strategy:
+    notes:
+      - "Mid-tier combat potion staple; consistent demand from melee trainers and bossers."
+      - "Component for Super combat potions when paired with the 4-dose variant."
+  trading_tips:
+    - "Buy from herblore bots after major DXP weekends when supply spikes."
+    - "Decant 3-dose into 4-dose at the apothecary for arbitrage during shortages."
   about: |-
     > _"3 doses of super Attack potion."_
-
     The super attack potion boosts Attack by 5 + 15% of current level (rounded down). A significant upgrade over the regular attack potion, commonly used in combat.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2002-02-27"
+      description: Released alongside the Herblore skill update.
+    - date: "2014-08-14"
+      description: Super attack(4) became a component for the Super combat potion recipe.
+  properties:
+    release_date: "2002-02-27"
+    update: Herblore skill release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

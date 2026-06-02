@@ -1,6 +1,6 @@
 ---
 title: Rune platebody | OSRS Price Data
-description: "Rune platebody is a F2P body slot item requiring 40 Defence. High alch: 39,000 GP, GE limit: 70."
+description: "Rune platebody: Provides excellent protection. High alch: 39,000 GP, GE limit: 70."
 osrs:
   id: 1127
   name: Rune platebody
@@ -12,15 +12,20 @@ osrs:
   lowalch: 26000
   highalch: 39000
   limit: 70
+  material:
+    type: rune
+    tier: high
   equipment:
     slot: body
     weight: 9.979
+    requirements:
+      defence: 40
     attack_bonus:
       stab: 0
       slash: 0
       crush: 0
       magic: -30
-      ranged: 0
+      ranged: -15
     defence_bonus:
       stab: 82
       slash: 80
@@ -32,15 +37,6 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 40
-  smithing:
-    level: 99
-    xp: 375
-    bars_required: 5
-  alch:
-    high: 39000
-    low: 26000
   recipes:
     - skill: smithing
       level: 99
@@ -53,48 +49,69 @@ osrs:
       product_id: 1127
       product_quantity: 1
       facility: Anvil
+  drop_table:
+    sources:
+      - source: Treasure Trails
+        rarity: varies
+        members_only: false
+      - source: Various monster drops
+        rarity: varies
+        members_only: false
   related_items:
     - item_id: 2363
       item_name: Runite bar
       slug: runite-bar
       relationship: component
-      description: Raw material (×5)
+      description: Smithing material (×5)
     - item_id: 1079
       item_name: Rune platelegs
       slug: rune-platelegs
       relationship: set-piece
-      description: Alternative rune armor
-    - item_id: 1319
-      item_name: Rune 2h sword
-      slug: rune-2h-sword
+      description: Matching rune armor leg piece
+    - item_id: 1093
+      item_name: Rune plateskirt
+      slug: rune-plateskirt
       relationship: alternative
-      description: Alternative alch item
+      description: Skirt variant for legs slot
     - item_id: 561
       item_name: Nature rune
       slug: nature-rune
       relationship: component
-      description: For High Alchemy
-  about: |-
-    | Alch Type | Value |
-    |-----------|-------|
-    | High Alch | 39,000 GP |
-    | Low Alch | 26,000 GP |
+      description: Required for High Alchemy
+  about: "Rune platebody is a free-to-play body slot armor in Old School RuneScape requiring 40 Defence and Dragon Slayer I completion to equip."
   market_strategy:
-    profit_formulas:
-      - 39,000 - Rune platebody price - Nature rune = Profit
-      - 39,000 - (5 × Runite bar price) - Nature rune
     notes:
-      - "High Alch value: **39,000 GP**"
-      - "Calculate:"
-      - One of the highest alch value items
-      - "Cost: 5 Runite bars"
-      - "Revenue: 39,000 GP (alch) or GE price"
-      - "Compare:"
-      - "Buy limit: 8 per 4 hours (low limit!)"
-      - Dragon Slayer 1 completion required to equip
-      - Popular PvM drop - check drop sources for supply
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - High alch value 39,000 GP makes it a popular alching target
+      - Smithing requires 99 level and 5 runite bars per body
+      - Dragon Slayer I quest required to equip
+      - Buy limit of 70 per 4 hours constrains alchemy throughput
+      - Compare bar cost vs GE price to determine smithing profit
+      - Popular PvM drop from rune-tier mobs sustains supply
+  history:
+    - date: "2001-09-23"
+      update: Release
+      description: Rune platebody added to Old School RuneScape as part of the initial rune armor set.
+    - date: "2021-04-21"
+      update: Combat bonus rebalance
+      description: Ranged attack bonus decreased from -10 to -15.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-09-23"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 9.979
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

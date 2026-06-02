@@ -12,9 +12,59 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 5
-  about: "Trailblazer banner is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: bladed
+    attack_speed: 4
+    weight: 2.267
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 24154
+      item_name: Trailblazer hood
+      slug: trailblazer-hood
+      relationship: set-piece
+      description: Matching Trailblazer League cosmetic
+  about: Trailblazer banner is a cosmetic one-handed banner from the Leagues II reward shop with a crossbar that recolours to match the wearer's boot palette.
+  market_strategy:
+    notes:
+      - Leagues II reward shop exclusive — fixed supply
+      - Cosmetic-only, no combat utility
+      - Tiny 5/4h buy limit keeps prices premium
+  history:
+    - date: "2021-01-06"
+      description: Released alongside Soul Wars and the 20th Anniversary Event as a Trailblazer League reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-01-06"
+    update: Soul Wars and 20th Anniversary Event
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

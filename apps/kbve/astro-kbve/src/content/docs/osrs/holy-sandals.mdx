@@ -14,70 +14,78 @@ osrs:
   limit: 4
   equipment:
     slot: feet
-    type: boots
-    tradeable: true
-    weight: 1
+    weight: 0.5
     requirements:
       prayer: 31
-    stats:
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 3
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Medium
-        drop_rate: 1/1,133 from reward casket
-  effects:
-    - name: God Wars Protection
-      description: Counts as a Saradomin item, prevents Saradomin faction aggression in GWD
-  upgrades:
-    - item_name: Devout boots
-      materials: Holy sandals + Drake's tooth
-      bonus: +5 prayer
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
     - item_id: 23037
       item_name: Devout boots
       slug: devout-boots
       relationship: upgrade
-      description: Upgraded version (+5 prayer)
+      description: Upgraded prayer footwear (+5 prayer)
     - item_id: 22983
       item_name: Drake's tooth
       slug: drakes-tooth
       relationship: component
-      description: Upgrade material
+      description: Material used to craft Devout boots
     - item_id: 2577
       item_name: Ranger boots
       slug: ranger-boots
       relationship: alternative
-      description: Same clue tier
+      description: Same clue tier ranged equivalent
     - item_id: 2579
       item_name: Wizard boots
       slug: wizard-boots
       relationship: alternative
-      description: Magic equivalent
-  about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Prayer | +3 |
-
-    God Wars Protection:
-    - Counts as a Saradomin item
-    - Prevents Saradomin faction aggression in GWD
-
-    Combine with Drake's tooth to create Devout boots:
-    - Increases prayer bonus to +5
-    - Requires completion of upgrade process
-
-    Best prayer bonus boots option:
-    - Slayer tasks with prayer
-    - GWD as Saradomin item
-    - Budget option before Devout boots
+      description: Magic equivalent boots
   market_strategy:
     notes:
-      - Medium clue reward
-      - Upgrade to Devout when affordable
-      - Saradomin item utility adds value
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Medium clue casket reward
+      - Saradomin item for GWD aggression skips
+      - Stepping stone toward Devout boots
+      - Buy limit 4 caps daily flips
+  about: Holy sandals are members feet slot boots awarded from medium Treasure Trails reward caskets, count as a Saradomin item, and serve as the base for Devout boots.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-26"
+    update: Midsummer Event
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,8 +12,15 @@ osrs:
   lowalch: 22400
   highalch: 33600
   limit: 70
+  material:
+    type: granite
+    tier: mid-high
   equipment:
     slot: shield
+    weight: 6.803
+    requirements:
+      defence: 50
+      strength: 50
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,10 +38,6 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 50
-      strength: 50
-    weight: 6.803
   drop_table:
     primary_source: Ice troll
     best_drop_rate: 1/128
@@ -62,42 +65,34 @@ osrs:
       slug: granite-legs
       relationship: set-piece
       description: Granite set piece
-  about: |-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +40 |
-    | Slash | +42 |
-    | Crush | +38 |
-    | Ranged | +65 |
-    | Magic | 0 |
-
-    Requirements: 50 Defence, 50 Strength | Weight: 6.8 kg
-
-    | Stat | Granite Shield | Toktz-ket-xil | Rune Kiteshield |
-    |------|---------------|---------------|-----------------|
-    | Stab Def | +40 | +40 | +44 |
-    | Slash Def | +42 | +42 | +48 |
-    | Crush Def | +38 | +38 | +42 |
-    | Ranged Def | +65 | +65 | +46 |
-    | Str Bonus | 0 | +5 | 0 |
-    | Prayer | 0 | 0 | 0 |
-    | Req | 50 Def/Str | 60 Def | 40 Def |
-
-    Statistically identical to the Toktz-ket-xil (obsidian shield) in defensive stats, but the obsidian shield provides +5 Strength bonus and only requires 60 Defence (no Strength req). The granite shield's main advantage is lower level requirements for the ranged defence.
-
-    The granite shield's model bears a resemblance to the island of Gran Canaria in the Canary Islands, which may be an intentional reference to "granite."
-
-    - Best ranged defence shield at 50 Defence
-    - Part of granite fashionscape set
-    - Budget alternative before dragon/crystal shields
-    - No negative Prayer bonus (unlike some alternatives)
+  about: Granite shield is a members shield offering the best ranged defence at 50 Defence, statistically identical defensively to the obsidian shield (Toktz-ket-xil) but without a strength bonus.
   market_strategy:
     notes:
       - Dropped by trolls on Jatizso during The Fremennik Isles
       - GE price near high alch value
       - Low trade volume
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2004-08-09"
+      update: Death Plateau
+      description: Granite shield released alongside the Death Plateau quest line content.
+  properties:
+    release_date: "2004-08-09"
+    update: Death Plateau
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 6.803
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

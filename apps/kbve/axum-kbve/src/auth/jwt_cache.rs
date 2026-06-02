@@ -625,3 +625,74 @@ pub fn init_jwt_cache(supabase_url: String, supabase_anon_key: String) -> JwtCac
 pub fn get_jwt_cache() -> Option<JwtCache> {
     JWT_CACHE.get().cloned()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn token_with_perms(perms: i32) -> TokenInfo {
+        TokenInfo {
+            user_id: "00000000-0000-0000-0000-000000000001".to_string(),
+            email: Some("mock@kbve.com".to_string()),
+            role: "authenticated".to_string(),
+            staff_permissions: perms,
+            expires_at: chrono::Utc::now().timestamp() + 3600,
+            verified_at: Instant::now(),
+        }
+    }
+
+    #[test]
+    fn has_permission_rejects_non_staff_jwt_for_dashboard_view() {
+        let info = token_with_perms(0);
+        assert!(
+            !info.has_permission(staff_perm::DASHBOARD_VIEW),
+            "non-staff token must NOT be granted DASHBOARD_VIEW"
+        );
+        assert!(
+            !info.has_permission(staff_perm::DASHBOARD_MANAGE),
+            "non-staff token must NOT be granted DASHBOARD_MANAGE"
+        );
+        assert!(!info.is_staff());
+    }
+
+    #[test]
+    fn has_permission_grants_only_matching_flag() {
+        let info = token_with_perms(staff_perm::DASHBOARD_VIEW);
+        assert!(info.has_permission(staff_perm::DASHBOARD_VIEW));
+        assert!(
+            !info.has_permission(staff_perm::DASHBOARD_MANAGE),
+            "DASHBOARD_VIEW must NOT imply DASHBOARD_MANAGE"
+        );
+        assert!(info.is_staff());
+    }
+
+    #[test]
+    fn superadmin_implies_every_permission() {
+        let info = token_with_perms(staff_perm::SUPERADMIN);
+        assert!(info.has_permission(staff_perm::DASHBOARD_VIEW));
+        assert!(info.has_permission(staff_perm::DASHBOARD_MANAGE));
+        assert!(info.has_permission(staff_perm::USER_MANAGE));
+        assert!(info.has_permission(staff_perm::SYSTEM_CONFIG));
+    }
+
+    #[test]
+    fn is_expired_uses_clock_time() {
+        let mut info = token_with_perms(0);
+        info.expires_at = chrono::Utc::now().timestamp() - 1;
+        assert!(info.is_expired());
+        info.expires_at = chrono::Utc::now().timestamp() + 60;
+        assert!(!info.is_expired());
+    }
+
+    #[test]
+    fn dashboard_view_and_manage_are_distinct_flags() {
+        // Sanity: tracker #11525 lineage — DASHBOARD_VIEW and
+        // DASHBOARD_MANAGE must NOT alias.
+        assert_ne!(staff_perm::DASHBOARD_VIEW, staff_perm::DASHBOARD_MANAGE);
+        assert_eq!(
+            staff_perm::DASHBOARD_VIEW & staff_perm::DASHBOARD_MANAGE,
+            0,
+            "DASHBOARD_VIEW and DASHBOARD_MANAGE must share no bits"
+        );
+    }
+}

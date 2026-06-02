@@ -12,12 +12,12 @@ osrs:
   lowalch: 23
   highalch: 35
   limit: 11000
-  herb:
-    type: clean
+  material:
+    type: herb
     tier: high
   farming:
-    level: 67
-    xp: 141
+    level: 62
+    xp: 98.5
     growth_time: 80
     seed_id: 5300
     seed_name: Snapdragon seed
@@ -30,6 +30,8 @@ osrs:
     - skill: herblore
       level: 63
       xp: 142.5
+      tools:
+        - Pestle and mortar
       materials:
         - item_name: Snapdragon
           item_id: 3000
@@ -41,53 +43,59 @@ osrs:
       product_id: 3026
       members_only: true
   related_items:
-    - item_id: 3051
-      item_name: Grimy snapdragon
+    - item_name: Grimy snapdragon
       slug: grimy-snapdragon
-      relationship: component
+      relationship: variant
       description: Uncleaned version
-    - item_id: 5300
-      item_name: Snapdragon seed
+    - item_name: Snapdragon seed
       slug: snapdragon-seed
       relationship: component
-      description: For farming
-    - item_id: 223
-      item_name: Red spiders' eggs
+      description: Seed used to grow the herb at Farming 62
+    - item_name: Red spiders' eggs
       slug: red-spiders-eggs
       relationship: component
-      description: Secondary ingredient
-    - item_id: 3024
-      item_name: Super restore(4)
+      description: Secondary ingredient for super restore
+    - item_name: Super restore(4)
       slug: super-restore-4
       relationship: product
-      description: Final product
-    - item_id: 257
-      item_name: Ranarr weed
+      description: Final super restore potion
+    - item_name: Ranarr weed
       slug: ranarr-weed
       relationship: alternative
-      description: Alternative herb for prayer pots
+      description: Alternative herb for prayer potions
+  about: "Snapdragon is a high-tier herb cleaned at Herblore 59 and combined with red spiders' eggs at Herblore 63 to make super restore potions."
   market_strategy:
-    steps:
-      - order: 1
-        action: Buy Grimy snapdragon or clean Snapdragon
-      - order: 2
-        action: Buy Red spiders' eggs
-      - order: 3
-        action: Make Super restore(4)
-      - order: 4
-        action: "Calculate: `Super restore price - Snapdragon price - Red spiders' eggs - Vial = Profit`"
-    profit_formulas:
-      - Super restore price - Snapdragon price - Red spiders' eggs - Vial = Profit
+    title: Clean and brew flow
     notes:
-      - Buy grimy → Clean (3 XP) → Sell clean
-      - Check margin between grimy and clean
-      - Snapdragon seed (67 Farming)
-      - Profitable alternative to ranarr
-      - Super restores essential for raids
-      - Paired with Sara brews (3:1 ratio)
-      - Universal stat recovery potion
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Buy grimy snapdragon, clean for 11.8 XP, sell clean for the spread
+      - Pair with red spiders' eggs to make super restore(3) at Herblore 63
+      - Super restore demand from raids props up the floor on snapdragon prices
+      - Snapdragon seed at Farming 62 is the long-term supply source for ironmen
+      - 'Profit formula: super restore price - snapdragon price - red spiders'' eggs - vial'
+  trading_tips:
+    - Watch the grimy-to-clean margin daily; cleaning is near-instant for the spread
+    - Universal stat recovery means demand is sticky across PvM content
+    - Often paired with Saradomin brews at a 3:1 ratio in raid kits
+  history:
+    - date: "2004-07-27"
+      update: Agility, Potions and Parties!
+      description: Added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-07-27"
+    update: Agility, Potions and Parties!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

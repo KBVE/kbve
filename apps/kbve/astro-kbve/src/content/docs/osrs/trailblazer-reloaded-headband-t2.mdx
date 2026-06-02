@@ -12,9 +12,66 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: null
-  about: "Trailblazer reloaded headband (t2) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic_headgear
+    tier: mid
+  equipment:
+    slot: head
+    weight: 0.453
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Reward shop
+      price: 5000
+      currency: League points
+  related_items:
+    - item_name: Trailblazer reloaded headband (t1)
+      slug: trailblazer-reloaded-headband-t1
+      relationship: downgrade
+      description: Tier 1 variant of the headband
+    - item_name: Trailblazer reloaded headband (t3)
+      slug: trailblazer-reloaded-headband-t3
+      relationship: upgrade
+      description: Tier 3 variant of the headband
+    - item_name: Trailblazer reloaded top (t2)
+      slug: trailblazer-reloaded-top-t2
+      relationship: set-piece
+      description: Matching tier 2 body piece
+    - item_name: Trailblazer reloaded trousers (t2)
+      slug: trailblazer-reloaded-trousers-t2
+      relationship: set-piece
+      description: Matching tier 2 legs piece
+    - item_name: Trailblazer reloaded boots (t2)
+      slug: trailblazer-reloaded-boots-t2
+      relationship: set-piece
+      description: Matching tier 2 feet piece
+  about: "Trailblazer reloaded headband (t2) is the head slot piece of the tier 2 Relic Hunter outfit from the Trailblazer Reloaded Leagues reward shop."
+  market_strategy:
+    notes:
+      - Supply locked behind Leagues IV reward shop unlocks
+      - Cosmetic only with no combat stats
+      - Demand peaks during Leagues nostalgia cycles
+  history:
+    - date: "2023-11-15"
+      description: Added to the game files.
+    - date: "2023-11-29"
+      description: Made obtainable through the Trailblazer Reloaded reward shop.
+  properties:
+    release_date: "2023-11-29"
+    update: "Trailblazer Reloaded Leagues"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

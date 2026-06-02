@@ -12,25 +12,108 @@ osrs:
   lowalch: 84
   highalch: 126
   limit: 125
-  item_id: 1101
-  item_type: armor
-  slot: body
-  type: chainbody
-  tradeable: true
-  weight: 6.803
-  requirements:
-    defence: 0
-  stats:
-    stab_defence: 10
-    slash_defence: 15
-    crush_defence: 19
-    magic_defence: -3
-    ranged_defence: 12
+  material:
+    type: iron
+    tier: low
+  equipment:
+    slot: body
+    weapon_type: null
+    weight: 6.803
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 10
+      slash: 15
+      crush: 19
+      magic: -3
+      ranged: 12
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - materials:
+        - item_name: Iron bar
+          quantity: 3
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+      skill: Smithing
+      level: 26
+      xp: 75
+  shops:
+    - shop_name: Horvik's Armour Shop
+      location: Varrock
+    - shop_name: Wayne's Chains - Chainmail Specialist
+      location: Falador
+    - shop_name: Warriors' Guild Armoury
+      location: Burthorpe
+    - shop_name: Blair's Armour Shop
+      location: Shayzien
+  drop_table:
+    sources:
+      - source: Cyclops (Warriors' Guild)
+        quantity: "1"
+        rarity: Uncommon
+      - source: Cave goblin guard
+        quantity: "1"
+        rarity: Uncommon
+      - source: Ork
+        quantity: "1"
+        rarity: Uncommon
   related_items:
-    - slug: steel-chainbody
-    - slug: iron-platebody
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1119
+      item_name: Steel chainbody
+      slug: steel-chainbody
+      relationship: upgrade
+      description: Higher-tier steel variant
+    - item_id: 1115
+      item_name: Iron platebody
+      slug: iron-platebody
+      relationship: alternative
+      description: Stronger iron body alternative requiring a quest
+    - item_id: 1103
+      item_name: Bronze chainbody
+      slug: bronze-chainbody
+      relationship: downgrade
+      description: Lower-tier bronze variant
+  about: "Iron chainbody is a free-to-play body armour smithable at Smithing 26 from three iron bars; it requires only 1 Defence to wear and is widely stocked by Horvik, Wayne and other chainmail shops."
+  market_strategy:
+    notes:
+      - Smithable from common iron bars so supply tracks Smithing trainers
+      - Buy limit of 125 per 4 hours keeps small-scale flipping viable
+      - GE price often sits below high alch, occasionally attracting alch-margin flipping
+  trading_tips:
+    - Compare smithing cost (3 iron bars) against the GE price before crafting for profit
+    - Stock up during Smithing XP events when prices dip from bulk production
+  history:
+    - date: "2001-01-04"
+      description: Added to RuneScape as part of the original Smithing armour set.
+  properties:
+    release_date: "2001-01-04"
+    update: Smithing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 6.803
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

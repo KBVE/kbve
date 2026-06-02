@@ -1,6 +1,6 @@
 ---
 title: Air battlestaff | OSRS Price Data
-description: "Air battlestaff: It's a slightly magical stick.. High alch: 9,300 GP, GE limit: 18,000."
+description: "Air battlestaff is a members magic staff requiring 30 Attack and 30 Magic, providing unlimited air runes when wielded. High alch: 9,300 GP, GE limit: 18,000."
 osrs:
   id: 1397
   name: Air battlestaff
@@ -12,44 +12,84 @@ osrs:
   lowalch: 6200
   highalch: 9300
   limit: 18000
-  item_id: 1397
-  item_type: equipment
-  slot: weapon
-  type: battlestaff
-  attack_speed: 5
-  tradeable: true
-  weight: 2.267
-  requirements:
-    attack: 30
-    magic: 30
-  stats:
-    stab: 7
-    slash: -1
-    crush: 28
-    magic: 12
-    strength: 35
-  effect:
-    description: Provides unlimited air runes when equipped. Supports autocast for air spells.
+  material:
+    type: battlestaff
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: bladed_staff
+    attack_speed: 5
+    weight: 2.267
+    requirements:
+      attack: 30
+      magic: 30
+    attack_bonus:
+      stab: 7
+      slash: -1
+      crush: 28
+      magic: 12
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 12
+      ranged: 0
+    other_bonus:
+      melee_strength: 35
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - materials:
+        - item_name: Battlestaff
+          quantity: 1
+        - item_name: Air orb
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - slug: battlestaff
-    - slug: air-orb
-    - slug: mystic-air-staff
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Stab | +7 |
-    | Slash | -1 |
-    | Crush | +28 |
-    | Magic | +12 |
-    | Strength | +35 |
-
-    Attack Speed: 5-tick (3.0s)
-
-    Unlimited air runes when equipped.
-
-    Supports autocast for air spells.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Battlestaff
+      slug: battlestaff
+      relationship: component
+      description: Base staff used in crafting
+    - item_name: Air orb
+      slug: air-orb
+      relationship: component
+      description: Enchanted orb fused to the staff
+    - item_name: Mystic air staff
+      slug: mystic-air-staff
+      relationship: upgrade
+      description: Stronger variant made by Thormac
+  about: Air battlestaff is a magic combat staff that grants unlimited air runes when wielded and supports autocast for Standard spellbook air spells.
+  market_strategy:
+    notes:
+      - Crafted at 66 Crafting via air orb + battlestaff for 137.5 XP
+      - Unlimited air runes save cost for low to mid level mages
+      - Upgrades into Mystic air staff via Thormac
+  trading_tips:
+    - Check air orb + battlestaff combined price vs. finished GE price
+  history:
+    - date: "2002-03-18"
+      description: Released as one of the original elemental battlestaves.
+  properties:
+    release_date: "2002-03-18"
+    update: Battlestaves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

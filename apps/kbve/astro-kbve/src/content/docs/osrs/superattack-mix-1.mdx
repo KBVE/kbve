@@ -1,6 +1,6 @@
 ---
 title: Superattack mix(1) | OSRS Price Data
-description: "Superattack mix(1): One dose of fishy super Attack potion.. High alch: 54 GP, GE limit: 2,000."
+description: "Superattack mix(1): One dose of fishy super Attack potion. High alch: 54 GP, GE limit: 2,000."
 osrs:
   id: 11471
   name: Superattack mix(1)
@@ -12,9 +12,68 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 2000
-  about: "Superattack mix(1) is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: barbarian potion
+    tier: low
+  potion:
+    effects:
+      - description: "Boosts Attack by 5 + 15% of current level."
+      - description: "Restores 6 Hitpoints on consumption."
+  recipes:
+    - skill: Herblore
+      level: 47
+      experience: 33
+      materials:
+        - item_name: Super attack(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      product: Superattack mix(1)
+      notes: "Barbarian Herblore mix; requires Barbarian Training."
+  food:
+    heals: 6
+    type: potion mix
+  related_items:
+    - item_name: Superattack mix(2)
+      slug: superattack-mix-2
+      relationship: variant
+      description: Two-dose variant of the same mix.
+    - item_name: Super attack(2)
+      slug: super-attack-2
+      relationship: component
+      description: Base super attack potion used to brew the mix.
+  about: "Superattack mix(1) is a Barbarian Herblore variant of the super attack potion that adds a small heal alongside the attack boost."
+  market_strategy:
+    notes:
+      - Low volume potion, primarily used by Barbarian Herblore trainers.
+      - Compare against Super attack(2) plus caviar input cost for arbitrage.
+      - Daily limit of 2,000 leaves plenty of room for bulk plays.
+  trading_tips:
+    - Margin flips work best during caviar supply dips.
+    - Bulk buyers usually undercut alch values, expect thin spreads.
+  history:
+    - date: "2007-07-03"
+      description: Released with the Barbarian Training update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-07-03"
+    update: "Barbarian Training"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.045
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

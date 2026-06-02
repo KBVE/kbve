@@ -12,9 +12,65 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: null
-  about: "Black warlock mix (2) is a members-only item in Old School RuneScape. High alchemy value: 42 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 2
+    effects:
+      - description: Boosts Strength by floor(Strength level × 15 / 100) + 4 — for example +18 at 99 Strength.
+      - description: In multicombat areas, up to three nearby players with Accept Aid on receive the same boost.
+    duration: Single boost per dose.
+  recipes:
+    - product: Black warlock mix (2)
+      skill: Hunter
+      materials:
+        - item_name: Black warlock
+          quantity: 1
+        - item_name: Raw barb-tailed kebbit
+          quantity: 1
+        - item_name: Pestle and mortar
+          quantity: 1
+          tool: true
+      notes: 3-tick craft. Cheapest meat is raw barb-tailed kebbit; recipe currently loses roughly 360 coins per mix.
+  related_items:
+    - item_name: Black warlock
+      slug: black-warlock
+      relationship: component
+      description: Butterfly ingredient
+    - item_name: Raw barb-tailed kebbit
+      slug: raw-barb-tailed-kebbit
+      relationship: component
+      description: Cheapest raw meat used in the mix
+  market_strategy:
+    notes:
+      - Demand follows multicombat group boss meta
+      - Loss-per-mix means players sink supply rather than print
+      - No buy limit — speculative bulk possible
+      - Group iron shareability widens audience
+  history:
+    - date: "2024-03-20"
+      update: Varlamore — Part One
+      description: Black warlock mix released alongside hunter mixes in Varlamore.
+    - date: "2024-04-03"
+      update: Group Ironman sharing
+      description: Group Ironmen can now correctly share hunter mixes and butterflies with their group.
+  about: Black warlock mix (2) is a 2-dose hunter mix that boosts Strength and can share the buff with three nearby allies in multicombat areas.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: Varlamore — Part One
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

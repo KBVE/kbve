@@ -63,6 +63,17 @@ enum Commands {
         #[arg(trailing_var_arg = true)]
         args: Vec<String>,
     },
+    /// Roll an Agones GameServer when its desired image drifts from the running pod image
+    RotateGameserver {
+        #[arg(long)]
+        namespace: String,
+        #[arg(long)]
+        gameserver: String,
+        #[arg(long, default_value = "factorio")]
+        container: String,
+        #[arg(long, default_value = "180")]
+        delete_timeout: u64,
+    },
 }
 
 // ---------------------------------------------------------------------------
@@ -375,6 +386,90 @@ async fn cmd_guest_exec(
     }
 }
 
+async fn cmd_rotate_gameserver(
+    namespace: &str,
+    gameserver: &str,
+    container: &str,
+    delete_timeout: u64,
+) -> ExitCode {
+    let gs_ref = format!("gs/{gameserver}");
+    let pod_ref = format!("pod/{gameserver}");
+    let image_path =
+        format!("{{.spec.template.spec.containers[?(@.name==\"{container}\")].image}}");
+    let pod_image_path = format!("{{.spec.containers[?(@.name==\"{container}\")].image}}");
+
+    let desired = kubectl_output(&[
+        "-n",
+        namespace,
+        "get",
+        &gs_ref,
+        "-o",
+        &format!("jsonpath={image_path}"),
+    ])
+    .await
+    .unwrap_or_default();
+
+    let running = kubectl_output(&[
+        "-n",
+        namespace,
+        "get",
+        &pod_ref,
+        "-o",
+        &format!("jsonpath={pod_image_path}"),
+    ])
+    .await
+    .unwrap_or_default();
+
+    let state = kubectl_output(&[
+        "-n",
+        namespace,
+        "get",
+        &gs_ref,
+        "-o",
+        "jsonpath={.status.state}",
+    ])
+    .await
+    .unwrap_or_default();
+
+    tracing::info!("desired={desired} running={running} state={state}");
+
+    if desired.is_empty() || running.is_empty() {
+        tracing::info!("missing gs or pod — nothing to rotate");
+        return ExitCode::SUCCESS;
+    }
+    if desired == running {
+        tracing::info!("images match — no rotation needed");
+        return ExitCode::SUCCESS;
+    }
+    if state != "Ready" && state != "Allocated" {
+        tracing::info!("gs not Ready/Allocated (state={state}) — skipping rotate");
+        return ExitCode::SUCCESS;
+    }
+
+    tracing::info!("image drift detected: {running} -> {desired}; rotating");
+
+    let timeout_arg = format!("--timeout={delete_timeout}s");
+    match kubectl_output(&[
+        "-n",
+        namespace,
+        "delete",
+        &gs_ref,
+        &timeout_arg,
+        "--ignore-not-found",
+    ])
+    .await
+    {
+        Ok(_) => {
+            tracing::info!("delete sent; ArgoCD selfHeal will recreate from {desired}");
+            ExitCode::SUCCESS
+        }
+        Err(e) => {
+            tracing::error!("delete failed: {e}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -394,5 +489,11 @@ async fn main() -> ExitCode {
             timeout,
             args,
         } => cmd_guest_exec(&vm, &namespace, &command, &args, timeout).await,
+        Commands::RotateGameserver {
+            namespace,
+            gameserver,
+            container,
+            delete_timeout,
+        } => cmd_rotate_gameserver(&namespace, &gameserver, &container, delete_timeout).await,
     }
 }

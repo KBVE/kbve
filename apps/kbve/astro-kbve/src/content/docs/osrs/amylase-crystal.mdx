@@ -14,12 +14,20 @@ osrs:
   limit: 11000
   material:
     type: crystal
-    tier: agility
+    tier: mid-high
   shops:
     - shop_name: Grace
       location: Rogues' Den
       currency: Marks of Grace
-      rate: 10 marks = 100 crystals
+      notes: 10 Marks of Grace per 100 crystals (amylase pack)
+    - shop_name: Worm Tongue
+      location: Colossal Wyrm Remains
+      currency: Brimhaven vouchers
+      notes: 60 vouchers per 100 crystals
+    - shop_name: Pirate Jackie the Fruit
+      location: Brimhaven Agility Arena
+      currency: Agility Arena tickets
+      notes: 100 tickets per 100 crystals
   recipes:
     - skill: herblore
       level: 77
@@ -40,37 +48,49 @@ osrs:
       item_name: Super energy(4)
       slug: super-energy-4
       relationship: component
-      description: Stamina base
+      description: Stamina base potion
     - item_id: 12625
       item_name: Stamina potion(4)
       slug: stamina-potion-4
       relationship: product
-      description: End product
+      description: End product brewed with crystals
     - item_id: 21752
       item_name: Ring of endurance
       slug: ring-of-endurance
       relationship: alternative
-      description: Uses staminas
-  about: |-
-    | Potion | Crystals | Herblore Level | XP per crystal |
-    |--------|----------|----------------|----------------|
-    | Stamina potion(4) | 4 | 77 | 25.5 |
+      description: Stamina alternative consuming staminas
+  about: Amylase crystal is a members-only Herblore secondary used to convert super energy potions into stamina potions at level 77.
   market_strategy:
-    profit_formulas:
-      - (Amylase × 100) / 10 = GP per Mark
-      - Stamina(4) - Super energy(4) - (Amylase × 4) = Profit
     notes:
-      - 10 Marks = 100 Amylase crystals
-      - "Calculate:"
-      - Compare to Graceful recoloring value
-      - 4 crystals + Super energy(4) = Stamina(4)
-      - "Calculate:"
-      - Rooftop agility best source
+      - 10 Marks of Grace yield 100 crystals
+      - Compare GP per Mark vs Graceful recoloring value
+      - 4 crystals plus Super energy(4) makes Stamina(4)
+      - Rooftop agility courses are the main supply
       - Marks untradeable, crystals tradeable
-      - Consistent stamina demand
-      - Check GP/Mark vs outfit pieces
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Stamina demand keeps pricing consistent
+  history:
+    - date: "2014-07-10"
+      update: Amylase Tradeable
+      description: Amylase crystals were made tradeable as originally intended.
+    - date: "2014-07-03"
+      update: Stamina Potions
+      description: Initial release alongside stamina potions and the Rogues' Den exchange.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-07-03"
+    update: Stamina Potions
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

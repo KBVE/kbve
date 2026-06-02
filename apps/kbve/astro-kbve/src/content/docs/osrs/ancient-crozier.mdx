@@ -14,22 +14,68 @@ osrs:
   limit: 8
   equipment:
     slot: weapon
+    weapon_type: staff
+    attack_speed: 5
+    weight: 0.005
     requirements:
       prayer: 60
+    attack_bonus:
+      stab: 7
+      slash: -1
+      crush: 25
+      magic: 10
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 10
+      ranged: 0
     other_bonus:
+      melee_strength: 32
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 6
+  treasure_trail:
+    tier: medium
+    is_reward: true
   related_items:
     - item_id: 12201
       item_name: Ancient stole
       slug: ancient-stole
       relationship: set-piece
       description: Ancient vestment neck piece
-  about: |-
-    > *"An Ancient crozier."*
-
-    The Ancient crozier is a weapon slot staff from the Ancient vestment set. It provides a +6 Prayer bonus and requires 60 Prayer to wield. Counts as a Zarosian item in the God Wars Dungeon. Cannot autocast Ancient Magicks despite the name.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Medium clue exclusive reward
+      - Counts as Zarosian in GWD
+      - Cannot autocast Ancient Magicks
+      - Lightest crozier in game
+      - +6 prayer bonus tier
+  history:
+    - date: "2014-06-12"
+      update: Treasure Trail Expansion
+      description: Item released with the Treasure Trail Expansion update.
+  about: The Ancient crozier is a Zarosian Prayer-themed staff dropped from medium Treasure Trail caskets, requiring 60 Prayer to wield and granting +6 Prayer bonus.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

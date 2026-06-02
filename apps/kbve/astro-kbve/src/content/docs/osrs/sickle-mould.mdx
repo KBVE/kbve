@@ -1,6 +1,6 @@
 ---
 title: Sickle mould | OSRS Price Data
-description: "Sickle mould: Used to make sickles.. High alch: 6 GP, GE limit: 40."
+description: "Sickle mould: Used to make sickles. High alch: 6 GP, GE limit: 40."
 osrs:
   id: 2976
   name: Sickle mould
@@ -12,9 +12,67 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 40
-  about: "Sickle mould is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: crafting
+      level: 18
+      xp: 50
+      materials:
+        - item_name: Silver bar
+          quantity: 1
+        - item_name: Sickle mould
+          quantity: 1
+      tools:
+        - Sickle mould
+      facility: Furnace
+      output_item: Silver sickle
+      output_quantity: 1
+  shops:
+    - shop_name: Dommik's Crafting Store
+      location: Al Kharid
+      price: 10
+    - shop_name: Rommik's Crafty Supplies
+      location: Rimmington
+      price: 10
+    - shop_name: Jamila's Craft Stall
+      location: Sophanem
+      price: 15
+    - shop_name: Rasolo the Wandering Merchant
+      location: South of Baxtorian Falls
+      price: 20
+  related_items:
+    - item_id: 2961
+      item_name: Silver sickle
+      slug: silver-sickle
+      relationship: product
+      description: Cast from a silver bar with this mould
+    - item_id: 2962
+      item_name: Silver sickle (b)
+      slug: silver-sickle-b
+      relationship: product
+      description: Blessed silver sickle used in Nature Spirit and druidic rituals
+  about: A reusable casting mould for silver sickles, available from general crafting shops and required for several Mort Myre Nature Spirit follow-up activities.
+  market_strategy:
+    notes:
+      - Cheap one-time purchase; demand spikes after Nature Spirit completions
+      - Quick alch fodder when bulk-bought from Crafting stalls
+  history:
+    - date: "2004-07-13"
+      description: Released with the Nature Spirit quest.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-07-13"
+    update: Nature Spirit
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

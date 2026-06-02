@@ -1,6 +1,6 @@
 ---
 title: Proselyte sallet | OSRS Price Data
-description: "Proselyte sallet is a members full_set slot item requiring 30 Defence. High alch: 4,800 GP, GE limit: 70."
+description: "Proselyte sallet is a members head slot item requiring 30 Defence and 20 Prayer. High alch: 4,800 GP, GE limit: 70."
 osrs:
   id: 9672
   name: Proselyte sallet
@@ -12,89 +12,86 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: 70
+  material:
+    type: prayer-armor
+    tier: mid
   equipment:
-    slot: full_set
-    type: prayer_armor
+    slot: head
+    weight: 2.267
     requirements:
       defence: 30
       prayer: 20
-      quest: The Slug Menace
-    stats:
-      defence_stab: 117
-      defence_slash: 115
-      defence_crush: 100
-      defence_magic: -11
-      defence_ranged: 113
-      prayer: 18
-  set_pieces:
-    sallet:
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -1
+      ranged: -3
+    defence_bonus:
+      stab: 19
+      slash: 21
+      crush: 16
+      magic: -1
+      ranged: 19
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 4
-      slot: head
-    hauberk:
-      prayer: 8
-      slot: body
-    cuisse:
-      prayer: 6
-      slot: legs
   drop_table:
     sources:
       - source: Sir Tiffy Cashien (Falador Park)
-        source_id: 0
         combat_level: 0
         quantity: "1"
-        rarity: N/A
+        rarity: always
         members_only: true
   related_items:
+    - item_id: 9674
+      item_name: Proselyte hauberk
+      slug: proselyte-hauberk
+      relationship: set-piece
+      description: Body slot piece of the Proselyte set
+    - item_id: 9676
+      item_name: Proselyte cuisse
+      slug: proselyte-cuisse
+      relationship: set-piece
+      description: Legs slot piece of the Proselyte set
     - item_id: 9670
-      item_name: Initiate armour
-      slug: initiate-armour
+      item_name: Initiate sallet
+      slug: initiate-sallet
       relationship: downgrade
-      description: Lower tier
-    - item_id: 23191
-      item_name: Devout boots
-      slug: devout-boots
-      relationship: alternative
-      description: Prayer boots
-    - item_id: 6714
-      item_name: Holy wrench
-      slug: holy-wrench
-      relationship: alternative
-      description: Prayer boost
-  about: |-
-    | Piece | Prayer | Defence |
-    |-------|--------|---------|
-    | Proselyte sallet | +4 | Helm |
-    | Proselyte hauberk | +8 | Body |
-    | Proselyte cuisse/tasset | +6 | Legs |
-    | Total | +18 | |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +117 |
-    | Slash | +115 |
-    | Crush | +100 |
-    | Magic | -11 |
-    | Ranged | +113 |
-
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +18 (full set) |
-
-    Requirements: 30 Defence, 20 Prayer
-
-    Essential for:
-    - Protection prayer Slayer
-    - Budget prayer gear
-    - Cannon tasks
-
-    Best prayer bonus armor set.
+      description: Lower tier prayer armour helm
+  about: Proselyte sallet is the head piece of the Proselyte armour set, awarded after The Slug Menace; gives a strong prayer bonus suitable for Slayer and protection prayer training.
   market_strategy:
     notes:
-      - Complete Slug Menace first
-      - ~12K per piece
-      - Great for Slayer
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Requires The Slug Menace quest completion
+      - Sold by Sir Tiffy Cashien in Falador Park
+      - Great for budget prayer setups
+  history:
+    - date: "2006-09-20"
+      update: The Slug Menace
+      description: Proselyte sallet released with The Slug Menace quest.
+    - date: "2021-04-21"
+      update: Equipment Rebalance
+      description: Ranged attack bonus decreased from -2 to -3.
+  properties:
+    release_date: "2006-09-20"
+    update: The Slug Menace
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Secateurs attachment | OSRS Price Data
-description: "Secateurs attachment: Collects leaves when chopping trees.. High alch: 60 GP, GE limit: 10,000."
+description: "Secateurs attachment: Collects leaves when chopping trees. High alch: 60 GP, GE limit: 10,000."
 osrs:
   id: 28161
   name: Secateurs attachment
@@ -12,9 +12,60 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 10000
-  about: "Secateurs attachment is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: forestry
+    tier: low
+  recipes:
+    - skill: Crafting
+      level: 35
+      experience: 32
+      materials:
+        - item_name: Secateurs blade
+          quantity: 1
+        - item_name: Iron bar
+          quantity: 1
+      tools: []
+      output_quantity: 50
+  shops:
+    - shop_name: Forestry Shop
+      location: Various Forestry locations
+      price: 100
+  related_items:
+    - slug: secateurs-blade
+      item_name: Secateurs blade
+      relationship: component
+      description: Crafted with an iron bar to produce attachments.
+    - slug: forestry-kit
+      item_name: Forestry kit
+      relationship: alternative
+      description: Holds attachments while woodcutting.
+  about: "Secateurs attachment is a Forestry consumable that, when carried or in a forestry kit, has a 1 in 4 chance per leaf to double the leaf drop and consume one attachment."
+  market_strategy:
+    notes:
+      - Forestry leaf-gathering demand keeps daily volume high relative to GE limit.
+      - Cheap consumable - flippers rely on volume, not margin.
+  trading_tips:
+    - Stockpile during leaf-related Herblore content launches.
+    - Craft from blades when GE price exceeds material cost plus xp value.
+  history:
+    - date: "2023-06-28"
+      description: Released alongside Forestry - The Way of the Forester - Part One.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-06-28"
+    update: "Forestry: The Way of the Forester - Part One"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

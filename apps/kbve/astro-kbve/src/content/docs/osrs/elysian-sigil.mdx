@@ -12,60 +12,73 @@ osrs:
   lowalch: 300000
   highalch: 450000
   limit: 5
-  item:
-    type: sigil
-    tradeable: true
-    weight: 3
-  obtaining:
-    methods:
+  drop_table:
+    sources:
       - source: Corporeal Beast
-        drop_rate: 1/4,095
-        note: Rarest sigil drop
-  creation:
-    creates:
-      item_id: 12817
-      item_name: Elysian spirit shield
-      slug: elysian-spirit-shield
-    method: Combine with Blessed spirit shield
-    requirements:
-      prayer: 90
-      smithing: 85
-    alternative: Pay Abbot Langley 1,500,000 gp
-  created_effect:
-    name: Divine Protection
-    description: 70% chance to reduce incoming damage by 25%
+        combat_level: 785
+        quantity: "1"
+        rarity: 1/4095
+        members_only: true
+  recipes:
+    - skill: smithing
+      level: 85
+      xp: 1800
+      materials:
+        - item_name: Blessed spirit shield
+          item_id: 12831
+          quantity: 1
+        - item_name: Elysian sigil
+          item_id: 12819
+          quantity: 1
+      product: Elysian spirit shield
+      product_id: 12817
+      product_quantity: 1
+      members_only: true
+      notes: Also requires 90 Prayer. Alternative — pay Abbot Langley 1,500,000 coins to assemble.
   related_items:
-    - item_id: 0
-      item_name: Corporeal Beast
-      slug: corporeal-beast
-      relationship: component
-      description: Source
     - item_id: 12817
       item_name: Elysian spirit shield
       slug: elysian-spirit-shield
       relationship: product
-      description: Created item
+      description: Combine with blessed spirit shield to create
     - item_id: 12831
       item_name: Blessed spirit shield
       slug: blessed-spirit-shield
       relationship: component
-      description: Required material
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Sigil |
-    | Tradeable | Yes |
-    | Weight | 3 kg |
-
-    | Item Created | Materials | Requirements |
-    |--------------|-----------|--------------|
-    | Elysian spirit shield | Elysian sigil + Blessed spirit shield | 90 Prayer, 85 Smithing |
-
-    Alternatively, pay Abbot Langley 1,500,000 gp.
-
-    Elysian Spirit Shield: 70% chance to reduce incoming damage by 25%.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Base shield required for assembly
+    - item_id: 12821
+      item_name: Spectral sigil
+      slug: spectral-sigil
+      relationship: alternative
+      description: Sister sigil from Corporeal Beast
+    - item_id: 12825
+      item_name: Arcane sigil
+      slug: arcane-sigil
+      relationship: alternative
+      description: Sister sigil from Corporeal Beast
+  market_strategy:
+    notes:
+      - Rarest Corporeal Beast sigil drop
+      - High-end PvM shield investment
+      - Low GE limit constrains flipping
+      - Demand tied to Corp Beast team activity
+  about: Elysian sigil is the rarest sigil dropped by the Corporeal Beast and is combined with a blessed spirit shield to create the Elysian spirit shield.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-10-16"
+    update: Corporeal Beast
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

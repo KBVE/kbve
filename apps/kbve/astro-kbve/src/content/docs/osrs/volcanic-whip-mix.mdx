@@ -1,63 +1,78 @@
 ---
 title: Volcanic whip mix | OSRS Price Data
-description: "Volcanic whip mix is a members none slot item. High alch: 1 GP, GE limit: 4."
+description: "Volcanic whip mix: How has lava been stored like this...? Cosmetic upgrade for the abyssal whip. GE limit: 4."
 osrs:
   id: 12771
   name: Volcanic whip mix
   slug: volcanic-whip-mix
-  examine: How has lava been stored like this...?
+  examine: "How has lava been stored like this...?"
   members: true
   icon: Volcanic whip mix.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 4
-  equipment:
-    slot: none
-    weight: 0.001
-  drop_table:
-    primary_source: Last Man Standing shop
-    best_drop_rate: N/A
-    sources:
-      - source: Justine's stuff for the Last Shopper Standing
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
-        rarity: shop
-        drop_rate: 25 LMS points
+  shops:
+    - shop_name: Justine's stuff for the Last Shopper Standing
+      location: Last Man Standing lobby
+      price: 25
+      currency: LMS points
+      stock: Unlimited
+  recipes:
+    - product: Volcanic abyssal whip
+      skill: null
+      level: null
+      xp: 0
+      tools: []
+      materials:
+        - item_name: Abyssal whip
+          quantity: 1
+        - item_name: Volcanic whip mix
+          quantity: 1
   related_items:
     - item_id: 12769
       item_name: Frozen whip mix
       slug: frozen-whip-mix
       relationship: alternative
-      description: Blue whip cosmetic variant
+      description: Blue cosmetic variant of the same recipe
     - item_id: 4151
       item_name: Abyssal whip
       slug: abyssal-whip
       relationship: component
-      description: Required base weapon
-    - item_id: 4178
+      description: Required base weapon for the cosmetic upgrade
+    - item_id: 12774
       item_name: Volcanic abyssal whip
       slug: volcanic-abyssal-whip
-      relationship: upgrade
-      description: Final volcanic whip product
-  about: |-
-    Creates Volcanic abyssal whip:
-    - Use on Abyssal whip
-    - Purely cosmetic change (red/orange color)
-    - Stats remain identical to regular whip
-
-    Reversible:
-    - Can be reverted at any time
-    - Returns whip mix when removed
+      relationship: product
+      description: Final volcanic whip cosmetic
+  about: "Volcanic whip mix is a Last Man Standing cosmetic that recolours an abyssal whip into a volcanic variant with identical stats."
   market_strategy:
     notes:
-      - Cosmetic item only
-      - Popular for fashion
-      - Requires LMS gameplay to obtain directly
-      - "Alternative: Buy from GE"
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Cosmetic item, no stat change
+      - Very low buy limit slows flips
+      - Direct LMS purchase is cheapest for grinders
+  trading_tips:
+    - Recolour is reversible via the whip itself
+    - GE arbitrage versus 25 LMS points
+  history:
+    - date: "2014-09-18"
+      description: Released alongside the Bounty Hunter update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-09-18"
+    update: Bounty Hunter
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Drop
+    alchable: false
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

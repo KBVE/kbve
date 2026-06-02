@@ -1,6 +1,6 @@
 ---
 title: Cursed amulet of magic | OSRS Price Data
-description: "Cursed amulet of magic: An cursed amulet of magic.. High alch: 540 GP, GE limit: 125."
+description: "Cursed amulet of magic: An cursed amulet of magic. High alch: 540 GP, GE limit: 125."
 osrs:
   id: 29486
   name: Cursed amulet of magic
@@ -12,9 +12,52 @@ osrs:
   lowalch: 360
   highalch: 540
   limit: 125
-  about: "Cursed amulet of magic is a free-to-play item in Old School RuneScape. High alchemy value: 540 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: neck
+    weight: 0.01
+    other_bonus:
+      magic_damage: -80
+  drop_table:
+    sources:
+      - source: Necromancer
+        combat_level: 68
+        quantity: "1"
+        rarity: "1/5"
+        members_only: false
+        notes: "Great Kourend"
+  related_items:
+    - item_id: 1727
+      item_name: Amulet of magic
+      slug: amulet-of-magic
+      relationship: alternative
+      description: Standard amulet of magic
+  about: "Cursed amulet of magic is a neck slot item with an extreme -80% magic damage penalty, used by restricted accounts to apply venom or earn kill credit without dealing meaningful damage."
+  market_strategy:
+    notes:
+      - Dropped 1/5 by Necromancers in Great Kourend
+      - Niche use for venom-only kill credit setups
+      - Free-to-play tradeable
+  history:
+    - date: "2024-05-29"
+      description: "Item released with the Project Rebalance: Combat Changes update."
+  properties:
+    release_date: "2024-05-29"
+    update: "Project Rebalance: Combat Changes"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

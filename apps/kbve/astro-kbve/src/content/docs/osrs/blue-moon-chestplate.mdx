@@ -12,9 +12,15 @@ osrs:
   lowalch: 116004
   highalch: 174006
   limit: 15
+  material:
+    type: blue-moon
+    tier: high
   equipment:
     slot: body
     weight: 3.175
+    requirements:
+      magic: 75
+      defence: 50
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,20 +38,18 @@ osrs:
       ranged_strength: 0
       magic_damage: 1
       prayer: 0
-    requirements:
-      magic: 75
-      defence: 50
+  charges:
+    max_charges: 3000
+    charge_rate: 1 per 54 seconds of combat
+    combat_duration_hours: 45
+    npc_repair_cost: 1500000
+    player_repair_cost_at_99_smithing: 757500
     degradable: true
-    charges: 3000
   drop_table:
-    primary_source: Lunar Chest (Neypotzli)
-    best_drop_rate: 1/224
     sources:
       - source: Lunar Chest
         quantity: "1"
-        rarity: rare
-        drop_rate: 1/224
-        members_only: true
+        rarity: 1/224
   related_items:
     - item_id: 28988
       item_name: Blue moon spear
@@ -65,7 +69,6 @@ osrs:
   about: |-
     When wearing the full Blue moon armour set with the Blue moon spear:
     - Frostweaver: After casting a bind spell, 20% chance for next melee attack to be unaffected by action delays
-
     | Property | Value |
     |----------|-------|
     | Total charges | 3,000 |
@@ -73,7 +76,6 @@ osrs:
     | Combat duration | ~45 hours |
     | NPC repair cost | 1,500,000 coins |
     | Repair at 99 Smithing | 757,500 coins |
-
     Magic-melee hybrid body for Blue moon builds:
     - +30 magic attack
     - +2 strength bonus
@@ -83,8 +85,28 @@ osrs:
       - Core piece for Blue moon builds
       - Good magic attack bonus
       - Factor in repair costs
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2024-03-20"
+      description: Released with Varlamore Part One update as a drop from Lunar Chest in Neypotzli.
+  properties:
+    release_date: "2024-03-20"
+    update: Varlamore - Part One
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

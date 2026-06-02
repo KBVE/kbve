@@ -1,6 +1,6 @@
 ---
 title: Torva full helm (damaged) | OSRS Price Data
-description: "Torva full helm (damaged) is a members legs slot item requiring 80 Defence. High alch: 120,000 GP, GE limit: 8."
+description: "Torva full helm (damaged) is a members head slot item requiring 80 Defence to wear after repair. High alch: 120,000 GP, GE limit: 8."
 osrs:
   id: 26376
   name: Torva full helm (damaged)
@@ -12,102 +12,91 @@ osrs:
   lowalch: 80000
   highalch: 120000
   limit: 8
-  equipment:
-    slot: legs
+  material:
     type: melee armour
-    tradeable: true
-    weight: 9.9
+    tier: high
+  equipment:
+    slot: head
+    weapon_type: armour
+    weight: 2.721
     requirements:
       defence: 80
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 103
-      defence_slash: 96
-      defence_crush: 102
-      defence_magic: -22
-      defence_ranged: 91
-      strength: 4
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -5
+      ranged: -5
+    defence_bonus:
+      stab: 59
+      slash: 60
+      crush: 62
+      magic: -2
+      ranged: 55
+    other_bonus:
+      melee_strength: 8
       ranged_strength: 0
       magic_damage: 0
-      prayer: 0
-  obtaining:
-    - source: Nex
-      drop_rate: 1/43 per unique roll
-      notes: Drops as damaged version
+      prayer: 1
+  drop_table:
+    sources:
+      - source: Nex
+        quantity: "1"
+        rarity: 1/258
   recipes:
-    - skill: smithing
-      level: 90
-      xp: 2250
-      materials:
-        - item_name: Damaged Torva platelegs
+    - materials:
+        - item_name: Torva full helm (damaged)
           quantity: 1
-        - item_id: 26394
-          item_name: Bandosian components
+        - item_name: Bandosian components
           quantity: 2
-      notes: 90 Smithing or pay Abbot Langley 1,500,000 gp. Not reversible.
-  effect:
-    hp_boost: 6
-    full_set_hp: 16
-  variants:
-    - name: Sanguine torva platelegs
-      description: Cosmetic (ancient blood ornament kit + 20k blood runes)
+      tools: []
+      output_quantity: 1
   related_items:
     - item_id: 26382
       item_name: Torva full helm
       slug: torva-full-helm
-      relationship: alternative
-      description: Head armor (+6 HP)
+      relationship: upgrade
+      description: Restored version after repair
     - item_id: 26384
       item_name: Torva platebody
       slug: torva-platebody
-      relationship: alternative
-      description: Body armor (+4 HP)
-    - item_id: 11834
-      item_name: Bandos tassets
-      slug: bandos-tassets
-      relationship: alternative
-      description: Budget alternative
+      relationship: set-piece
+      description: Body armour of the Torva set
     - item_id: 26394
       item_name: Bandosian components
       slug: bandosian-components
       relationship: component
-      description: Required for repair
-  about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Stab defence | +103 |
-    | Slash defence | +96 |
-    | Crush defence | +102 |
-    | Magic defence | -22 |
-    | Ranged defence | +91 |
-    | Strength | +4 |
-
-    Best-in-slot legs for melee strength bonus.
-
-    HP Boost:
-    - Provides +6 max hitpoints when worn
-    - Stacks with other Torva pieces (+16 HP total for full set)
-
-    | Variant | Effect |
-    |---------|--------|
-    | Sanguine torva platelegs | Cosmetic (ancient blood ornament kit + 20k blood runes) |
-
-    BiS for all melee content:
-    - Bossing
-    - Raids (CoX, ToB, ToA)
-    - Slayer
-    - General PvM
+      description: Required to repair the damaged helm
+  about: Torva full helm (damaged) is the dropped form of the Nex unique head slot armour, restorable to a Torva full helm via 90 Smithing or by paying Abbot Langley 1.5M coins.
   market_strategy:
     notes:
-      - Highest melee strength bonus legs in game
-      - HP boost makes it essential for high-level PvM
-      - Nex drops damaged version only
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Drops from Nex as the damaged variant
+      - Restoring is irreversible; weigh repair cost vs. flipping damaged
+      - High-tier melee headpiece with strength and prayer bonuses
+  trading_tips:
+    - Compare damaged price against restored price minus repair cost
+    - GE buy limit is only 8 per 4 hours, plan accordingly
+  history:
+    - date: "2022-01-05"
+      description: Released in the Nex - The Fifth General update.
+    - date: "2023-08-01"
+      description: Graphically updated for art style consistency; back lowered to better conceal the neck.
+  properties:
+    release_date: "2022-01-05"
+    update: Nex - The Fifth General
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.721
+    options: []
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

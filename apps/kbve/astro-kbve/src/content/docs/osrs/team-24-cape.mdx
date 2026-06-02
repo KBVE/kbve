@@ -1,6 +1,6 @@
 ---
 title: Team-24 cape | OSRS Price Data
-description: "Team-24 cape: Ooohhh look at the pretty colours.... High alch: 30 GP, GE limit: 150."
+description: "Team-24 cape: Ooohhh look at the pretty colours... High alch: 30 GP, GE limit: 150."
 osrs:
   id: 4361
   name: Team-24 cape
@@ -12,9 +12,70 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-24 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: cape
+    weight: 0.453
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+  shops:
+    - shop_name: "Darren's Wilderness Cape Shop"
+      location: East of the Wilderness Agility Course
+      stock: 100
+      buy_price: 50
+      sell_price: 30
+      restock_minutes: 1
+  related_items:
+    - item_id: 4315
+      item_name: Team-1 cape
+      slug: team-1-cape
+      relationship: variant
+      description: Alternative team cape colourway
+  about: "Team-24 cape is a free-to-play team cape stocked at Darren's Wilderness Cape Shop. Players wearing matching team capes appear as blue minimap dots and cannot be left-clicked to attack, useful for organised PvP groups."
+  market_strategy:
+    notes:
+      - Buy limit 150 per 4 hours
+      - Shop floor of 50 coins caps upside
+      - Volatile demand around PvP events and clan wars
+  trading_tips:
+    - Buy from Darren during low-demand windows
+    - Watch clan-event calendars for spikes
+  history:
+    - date: "2005-02-22"
+      description: Released with the Wilderness Capes update.
+    - date: "2013-05-23"
+      description: Made available to free-to-play players.
+  properties:
+    release_date: "2005-02-22"
+    update: Wilderness Capes
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

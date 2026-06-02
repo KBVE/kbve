@@ -12,9 +12,71 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: null
-  about: "Raw swordtip squid is a members-only item in Old School RuneScape. High alchemy value: 60 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Lantern harpoon fishing spot
+        quantity: "1"
+        rarity: common
+        members_only: true
+  recipes:
+    - skill: Cooking
+      level: 56
+      xp: 150
+      output: Swordtip squid
+      materials:
+        - item_name: Raw swordtip squid
+          quantity: 1
+    - skill: Herblore
+      level: 1
+      xp: 0
+      output: Squid paste
+      materials:
+        - item_name: Raw swordtip squid
+          quantity: 1
+  related_items:
+    - item_id: 31555
+      item_name: Swordtip squid
+      slug: swordtip-squid
+      relationship: product
+      description: Cooked version healing 15 HP
+    - item_id: 31557
+      item_name: Squid paste
+      slug: squid-paste
+      relationship: product
+      description: Herblore ingredient made by crushing
+  market_strategy:
+    notes:
+      - Lantern harpoon at 52 Fishing
+      - Cooking at 56 yields 150 XP
+      - Supply tied to Sailing engagement
+      - 1/1024 chance for squid beaks bycatch
+  history:
+    - date: "2025-06-26"
+      description: Added to Sailing Beta cache.
+    - date: "2025-07-03"
+      description: Removed when Sailing Beta ended.
+    - date: "2025-08-14"
+      description: Model updated during Sailing Stress Test.
+    - date: "2025-11-19"
+      update: "Sailing"
+      description: Released alongside the Sailing skill launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.45
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  about: Raw swordtip squid is fished via lantern harpooning at 52 Fishing and cooked at 56 Cooking into food that heals 15 Hitpoints.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

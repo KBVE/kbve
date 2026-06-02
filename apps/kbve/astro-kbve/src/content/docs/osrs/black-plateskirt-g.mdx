@@ -12,22 +12,75 @@ osrs:
   lowalch: 768
   highalch: 1152
   limit: 8
+  material:
+    type: black
+    tier: low
   equipment:
     slot: legs
+    weight: 9.071
     requirements:
       defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 21
+      slash: 20
+      crush: 19
+      magic: -4
+      ranged: 20
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
     - item_id: 3472
       item_name: Black plateskirt (t)
       slug: black-plateskirt-t
       relationship: variant
-      description: Trimmed variant
-  about: |-
-    > *"Black plateskirt with gold trim."*
-
-    The black plateskirt (g) is a gold-trimmed cosmetic variant of the black plateskirt. Same stats as black platelegs with slightly less weight, requiring 10 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Trimmed (non-gold) cosmetic variant.
+    - item_id: 1099
+      item_name: Black plateskirt
+      slug: black-plateskirt
+      relationship: variant
+      description: Base ungilded plateskirt with identical stats.
+  history:
+    - date: "2021-04-21"
+      description: Ranged attack bonus decreased from -7 to -11.
+  about: "Black plateskirt (g) is a gold-trimmed cosmetic reward from easy clue scrolls, sharing stats with the base black plateskirt and storable in the costume room treasure chest."
+  market_strategy:
+    notes:
+      - Cosmetic clue reward with thin volume; price driven by collectors.
+      - Stock the full black (g) set in the costume room to maximise per-piece resale value.
+  trading_tips:
+    - Spreads are wide — list slightly above margin midpoint and wait.
+    - Easy clue casket grinds occasionally flood supply, depressing price briefly.
+  properties:
+    release_date: "2004-10-26"
+    update: Treasure Trails
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

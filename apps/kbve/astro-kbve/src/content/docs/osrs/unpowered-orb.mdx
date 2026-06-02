@@ -5,7 +5,7 @@ osrs:
   id: 567
   name: Unpowered orb
   slug: unpowered-orb
-  examine: I'd prefer it if it was powered.
+  examine: "I'd prefer it if it was powered."
   members: true
   icon: Unpowered orb.png
   value: 100
@@ -13,88 +13,83 @@ osrs:
   highalch: 60
   limit: 10000
   material:
-    type: orb
-    tier: base
-  crafting:
-    level: 46
-    xp: 52.5
+    type: glass
+    tier: low
   recipes:
     - skill: crafting
       level: 46
       xp: 52.5
       materials:
         - item_name: Molten glass
-          item_id: 1775
           quantity: 1
-      product: Unpowered orb
-      product_id: 567
-      product_quantity: 1
-      facility: Glassblowing pipe
-  magic:
-    air_orb:
-      level: 66
-      obelisk: Air Obelisk
-      location: Edgeville Dungeon
-    water_orb:
-      level: 56
-      obelisk: Water Obelisk
-      location: Taverley Dungeon
-    earth_orb:
-      level: 60
-      obelisk: Earth Obelisk
-      location: Edgeville Dungeon
-    fire_orb:
-      level: 63
-      obelisk: Fire Obelisk
-      location: Taverley Dungeon
+      output_quantity: 1
+      tools:
+        - Glassblowing pipe
   related_items:
     - item_id: 573
       item_name: Air orb
       slug: air-orb
       relationship: product
-      description: Charged product
+      description: Charged at Air Obelisk
     - item_id: 569
       item_name: Fire orb
       slug: fire-orb
       relationship: product
-      description: Charged product
+      description: Charged at Fire Obelisk
+    - item_id: 571
+      item_name: Water orb
+      slug: water-orb
+      relationship: product
+      description: Charged at Water Obelisk
+    - item_id: 575
+      item_name: Earth orb
+      slug: earth-orb
+      relationship: product
+      description: Charged at Earth Obelisk
     - item_id: 1391
       item_name: Battlestaff
       slug: battlestaff
       relationship: component
-      description: Attachment base
+      description: Attachment base for elemental staves
     - item_id: 1775
       item_name: Molten glass
       slug: molten-glass
       relationship: component
-      description: Crafting material
-  about: |-
-    | Method | Level | XP |
-    |--------|-------|-----|
-    | Glassblowing | 46 Crafting | 52.5 |
-    | Materials | Molten glass + Glassblowing pipe | - |
-
-    | Orb Type | Magic Level | Obelisk Location |
-    |----------|-------------|------------------|
-    | Air orb | 66 | Edgeville Dungeon |
-    | Water orb | 56 | Taverley Dungeon |
-    | Earth orb | 60 | Edgeville Dungeon |
-    | Fire orb | 63 | Taverley Dungeon |
+      description: Crafting input
+  about: "Blown at 46 Crafting from molten glass and charged at one of four elemental obelisks via Magic to produce orbs used in battlestaff creation."
   market_strategy:
     notes:
-      - Charge at obelisks
-      - Battlestaff production
-      - Good Magic XP
-      - Orb charging money making
-      - Battlestaff crafting
-      - Magic training
-      - Crafting training
-      - Glassblowing to create
-      - Obelisk charging for profit
-      - Air orbs most popular
-      - Wilderness air obelisk risky
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Charge at obelisks for elemental orbs
+      - Feeds battlestaff production
+      - Solid Magic XP via obelisk charging
+      - Glassblowing as the main supply lane
+      - Air orbs in Wilderness obelisk carry PK risk
+  trading_tips:
+    - Buy when molten glass dips below break-even
+    - Stockpile around Crafting bonus events
+    - Watch Air Orb premium when Wilderness is hot
+  history:
+    - date: "2002-03-18"
+      description: Released alongside the Magic skill obelisk system.
+    - date: "2016-08-11"
+      description: Recoloured to distinguish from Air orbs.
+  properties:
+    release_date: "2002-03-18"
+    update: Magic Skill Update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

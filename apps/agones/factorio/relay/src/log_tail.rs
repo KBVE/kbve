@@ -58,24 +58,36 @@ pub async fn run(cfg: Config, tx: Sender<GameEvent>) -> Result<()> {
 
 fn parse_line(line: &str) -> Option<GameEvent> {
     let trimmed = line.trim_end_matches(['\n', '\r']);
-    let kind = if trimmed.contains("[CHAT]") {
-        GameEventKind::Chat
-    } else if trimmed.contains("[JOIN]") {
-        GameEventKind::Join
-    } else if trimmed.contains("[LEAVE]") {
-        GameEventKind::Leave
-    } else if trimmed.contains("[COMMAND]") {
-        GameEventKind::Command
-    } else if trimmed.contains("[STATS]") {
-        GameEventKind::Stats
-    } else {
-        return None;
+
+    let tags = [
+        ("[CHAT]", GameEventKind::Chat),
+        ("[JOIN]", GameEventKind::Join),
+        ("[LEAVE]", GameEventKind::Leave),
+        ("[COMMAND]", GameEventKind::Command),
+        ("[STATS]", GameEventKind::Stats),
+    ];
+    let (tag, kind, tag_idx) = tags
+        .iter()
+        .find_map(|(t, k)| trimmed.find(t).map(|i| (*t, k.clone(), i)))?;
+
+    let after_tag = trimmed[tag_idx + tag.len()..].trim_start();
+
+    let (player, text) = match kind {
+        GameEventKind::Chat => match after_tag.split_once(": ") {
+            Some((p, m)) => (Some(p.to_string()), m.to_string()),
+            None => (None, after_tag.to_string()),
+        },
+        GameEventKind::Join | GameEventKind::Leave => {
+            let player = after_tag.split_whitespace().next().map(str::to_string);
+            (player, after_tag.to_string())
+        }
+        _ => (None, after_tag.to_string()),
     };
 
     Some(GameEvent {
         kind,
-        player: None,
-        text: trimmed.to_string(),
+        player,
+        text,
         raw: trimmed.to_string(),
     })
 }

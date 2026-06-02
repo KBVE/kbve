@@ -12,23 +12,74 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 2000
+  potion:
+    effects:
+      - description: "Boosts Attack by 2 + 20% of base Attack level."
+      - description: "Boosts Strength by 2 + 12% of base Strength level."
+      - description: "Drains Defence by 2 + 10% of current Defence level."
+      - description: "Drains Hitpoints by 12% of current HP."
+      - description: "Restores Prayer by 10% of current Prayer level."
+  recipes:
+    - materials:
+        - item_name: Zamorak brew(3)
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      notes: "2-dose brew is created by drinking one dose from a Zamorak brew(3), or by decanting partial doses."
+    - materials:
+        - item_name: Torstol potion (unf)
+          quantity: 1
+        - item_name: Jangerberries
+          quantity: 1
+      tools:
+        - Vial of water
+      output_quantity: 1
+      skill: Herblore
+      level: 78
+      xp: 175
+      notes: "Base recipe yields a Zamorak brew(3); decanting or partial use produces the (2) variant."
   related_items:
-    - item_id: 189
-      item_name: Zamorak brew(3)
-      slug: zamorak-brew-3
+    - name: Zamorak brew(3)
       relationship: variant
-      description: 3-dose version
-    - item_id: 193
-      item_name: Zamorak brew(1)
-      slug: zamorak-brew-1
+    - name: Zamorak brew(1)
       relationship: variant
-      description: 1-dose version
-  about: |-
-    > _"2 doses of Zamorak brew."_
-
-    A 2-dose Zamorak brew. Boosts Attack and Strength, drains Defence and Hitpoints, restores Prayer.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Zamorak brew(4)
+      relationship: variant
+    - name: Zamorak mix
+      relationship: upgrade
+    - name: Restore potion
+      relationship: alternative
+  about: "Zamorak brew(2) is a 2-dose Zamorak brew. Boosts Attack and Strength, drains Defence and Hitpoints, restores Prayer."
+  market_strategy:
+    notes:
+      - Drained doses of a (3) brew or freshly decanted (2) — supply tied to PvM consumption.
+      - Often paired with Saradomin brew + Super restore in PvM rotations.
+      - Caviar upgrade path to Zamorak mix requires 85 Herblore.
+  trading_tips:
+    - Decant between dose sizes via Bob Barter (Grand Exchange) for arbitrage when 4-dose vs 2-dose prices diverge.
+    - Watch torstol + jangerberry prices to gauge supply-side cost floor.
+  history:
+    - date: "2002-12-12"
+      description: "Released alongside Herblore content."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    update: "Herblore"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

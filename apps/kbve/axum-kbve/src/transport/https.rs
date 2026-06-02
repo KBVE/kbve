@@ -3680,4 +3680,41 @@ mod tests {
         assert_eq!(format_duration(Duration::from_secs(125)), "2m 5s");
         assert_eq!(format_duration(Duration::from_secs(3661)), "1h 1m 1s");
     }
+
+    #[tokio::test]
+    async fn health_trailing_slash_returns_permanent_redirect() {
+        let app = mount_permanent_redirects(
+            Router::<()>::new().route("/health", get(health)),
+            PERMANENT_REDIRECTS,
+        );
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/health/")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::PERMANENT_REDIRECT);
+        assert_eq!(response.headers().get(header::LOCATION).unwrap(), "/health");
+    }
+
+    #[tokio::test]
+    async fn permanent_redirect_table_is_non_empty_and_unique() {
+        // Cheap sanity gate so a future refactor that empties the table
+        // surfaces here before the routes regress in prod.
+        assert!(!PERMANENT_REDIRECTS.is_empty());
+        let mut sources: Vec<_> = PERMANENT_REDIRECTS.iter().map(|(s, _)| *s).collect();
+        sources.sort_unstable();
+        let before = sources.len();
+        sources.dedup();
+        assert_eq!(
+            sources.len(),
+            before,
+            "PERMANENT_REDIRECTS source paths must be unique"
+        );
+    }
 }

@@ -1,6 +1,6 @@
 ---
 title: Torva armour set | OSRS Price Data
-description: "Torva armour set: A set containing a Torva full helm, Torva platebody and Torva platelegs.. High alch: 87,000 GP, GE limit: 2."
+description: "Torva armour set: A set containing a Torva full helm, Torva platebody and Torva platelegs. High alch: 87,000 GP, GE limit: 2."
 osrs:
   id: 31145
   name: Torva armour set
@@ -12,9 +12,49 @@ osrs:
   lowalch: 58000
   highalch: 87000
   limit: 2
-  about: "Torva armour set is a members-only item in Old School RuneScape. High alchemy value: 87,000 coins. Grand Exchange buy limit: 2 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  related_items:
+    - item_id: 26382
+      item_name: Torva full helm
+      slug: torva-full-helm
+      relationship: component
+      description: Head slot piece in the set
+    - item_id: 26384
+      item_name: Torva platebody
+      slug: torva-platebody
+      relationship: component
+      description: Body slot piece in the set
+    - item_id: 26386
+      item_name: Torva platelegs
+      slug: torva-platelegs
+      relationship: component
+      description: Legs slot piece in the set
+  about: Torva armour set bundles a Torva full helm, platebody, and platelegs into a single tradeable item for convenient Grand Exchange transactions. Cannot be equipped directly — must be unboxed via Grand Exchange clerk or Sets tab.
+  market_strategy:
+    notes:
+      - "Bundle convenience premium: typically saves ~2M vs piecemeal"
+      - Buy limit only 2 per 4 hours throttles bulk flipping
+      - Tracks Bandos/Torva BiS demand cycles
+  trading_tips:
+    - Compare set price vs sum of pieces before buying
+    - Unbox at the Grand Exchange clerk for free
+  history:
+    - date: "2025-08-20"
+      description: Added to the game as a Grand Exchange convenience bundle.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-08-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

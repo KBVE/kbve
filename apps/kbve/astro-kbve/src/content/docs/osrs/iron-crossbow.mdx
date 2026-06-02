@@ -14,48 +14,90 @@ osrs:
   limit: 125
   equipment:
     slot: weapon
-    type: crossbow
-    tradeable: true
+    weapon_type: crossbow
+    attack_speed: 6
     weight: 4
     requirements:
       ranged: 26
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 0
-      attack_ranged: 42
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 42
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    attack_range: 7
   recipes:
     - skill: fletching
       level: 39
+      xp: 88
       materials:
         - item_name: Iron crossbow (u)
+          item_id: 9455
           quantity: 1
         - item_name: Crossbow string
+          item_id: 9438
           quantity: 1
+      product: Iron crossbow
+      product_id: 9177
+      product_quantity: 1
+      members_only: true
   related_items:
     - item_id: 9179
       item_name: Steel crossbow
       slug: steel-crossbow
       relationship: upgrade
-      description: Next tier crossbow
+      description: Next-tier crossbow
+    - item_id: 837
+      item_name: Crossbow
+      slug: crossbow
+      relationship: downgrade
+      description: Bronze-tier crossbow predecessor
     - item_id: 9140
       item_name: Iron bolts
       slug: iron-bolts
       relationship: alternative
-      description: Compatible ammo
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Tier-matched bolts
+    - item_id: 9455
+      item_name: Iron crossbow (u)
+      slug: iron-crossbow-u
+      relationship: component
+      description: Unstrung Fletching intermediate
+  market_strategy:
+    notes:
+      - Fletching ingredient demand drives supply
+      - Cheap mid-tier crossbow for low Ranged accounts
+      - Low margin per unit but high turnover
+      - Loses to bronze-bolt + Karil's setups in PvM
+  about: Iron crossbow is a one-handed members crossbow requiring 26 Ranged to wield and is fletched from an iron crossbow (u) and a crossbow string at level 39 Fletching for 88 experience.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-31"
+    update: Crossbows
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Comp ogre bow | OSRS Price Data
-description: "Comp ogre bow: A composite ogre bow.. High alch: 108 GP, GE limit: 70."
+description: "Comp ogre bow is a members composite ogre bow requiring 30 Ranged and partial Zogre Flesh Eaters progress. High alch: 108 GP, GE limit: 70."
 osrs:
   id: 4827
   name: Comp ogre bow
@@ -12,9 +12,104 @@ osrs:
   lowalch: 72
   highalch: 108
   limit: 70
-  about: "Comp ogre bow is a members-only item in Old School RuneScape. High alchemy value: 108 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: bow
+    attack_speed: 5
+    weight: 1.814
+    requirements:
+      ranged: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 38
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Fletching
+      level: 30
+      xp: 45
+      output_quantity: 1
+      materials:
+        - item_name: Achey tree logs
+          quantity: 1
+        - item_name: Wolf bones
+          quantity: 1
+        - item_name: Bow string
+          quantity: 1
+      tools:
+        - Knife
+      notes: "Carve achey tree logs into an unstrung comp bow, attach wolf bones for the composite frame, then string it."
+  shops:
+    - shop_name: Hickton's Archery Emporium
+      location: Catherby
+      currency: coins
+    - shop_name: Dargaud's Bow and Arrows
+      location: Ranging Guild
+      currency: coins
+    - shop_name: Uglug's Stuffsies
+      location: Jiggig
+      currency: coins
+  related_items:
+    - item_id: 4825
+      item_name: Ogre bow
+      slug: ogre-bow
+      relationship: variant
+      description: Standard non-composite ogre bow.
+    - item_id: 4839
+      item_name: Ogre arrow
+      slug: ogre-arrow
+      relationship: component
+      description: Required ammunition for ogre bows.
+    - item_id: 4773
+      item_name: Brutal arrow
+      slug: brutal-arrow
+      relationship: component
+      description: Alternative ammunition for ogre bows.
+  about: "Comp ogre bow is the only composite bow craftable via Fletching; it fires ogre and brutal arrows and tracks Chompy bird kills up to 100,000 notches."
+  market_strategy:
+    notes:
+      - Demand tied to Chompy bird hunting and capes
+      - GE price well above high alch
+      - Buy limit 70 supports modest flips
+  trading_tips:
+    - Wolf bone supply gates fletching profit
+    - Check Big Chompy Bird Hunting quest demand surges
+  history:
+    - date: "2005-05-17"
+      description: "Released as part of the Zogre Flesh Eaters update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-17"
+    update: "Zogre Flesh Eaters"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: "Zogre Flesh Eaters"
+    weight: 1.814
+    options:
+      - Wield
+      - Check
+      - Drop
+    worn_options:
+      - Check
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

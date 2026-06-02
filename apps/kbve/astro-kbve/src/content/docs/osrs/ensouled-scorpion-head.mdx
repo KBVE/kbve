@@ -5,16 +5,73 @@ osrs:
   id: 13460
   name: Ensouled scorpion head
   slug: ensouled-scorpion-head
-  examine: The creature's soul is still in here.
+  examine: "The creature's soul is still in here."
   members: true
   icon: Ensouled scorpion head.png
   value: 247
   lowalch: 98
   highalch: 148
   limit: 3000
-  about: "Ensouled scorpion head is a members-only item in Old School RuneScape. High alchemy value: 148 coins. Grand Exchange buy limit: 3,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  prayer:
+    spell: Basic Reanimation
+    magic_level: 16
+    xp: 454
+    runes:
+      - item_name: Body rune
+        quantity: 4
+      - item_name: Nature rune
+        quantity: 2
+    creates: Reanimated Scorpion
+  drop_table:
+    sources:
+      - source: Scorpion
+        quantity: "1"
+        rarity: 1/25
+      - source: Giant lobster
+        quantity: "1"
+        rarity: 1/25
+      - source: King Scorpion
+        quantity: "1"
+        rarity: 1/25
+      - source: Poison Scorpion
+        quantity: "1"
+        rarity: 1/25
+  related_items:
+    - item_name: Ensouled goblin head
+      relationship: alternative
+      description: Lower-tier reanimation head from the Arceuus spellbook line.
+    - item_name: Ensouled imp head
+      relationship: alternative
+      description: Adjacent low-tier reanimation head.
+  about: "Ensouled scorpion head is a low-tier Arceuus reanimation head dropped by various scorpion variants and giant lobsters. Reanimating it grants 454 Prayer XP per head via the Basic Reanimation spell."
+  market_strategy:
+    notes:
+      - Modest 3,000 buy limit suits steady Prayer training stockpiling.
+      - High alch sits below GE price; profit comes from Prayer XP, not alching.
+  trading_tips:
+    - Stack with body and nature runes for full reanimation trips before buying.
+    - Watch price during Prayer XP events when scorpion heads spike.
+  history:
+    - date: "2016-01-07"
+      description: Released with the Zeah Great Kourend update.
+    - date: "2022-03-30"
+      description: Ensouled heads can now drop in instanced areas.
+  properties:
+    release_date: "2016-01-07"
+    update: "Zeah: Great Kourend"
+    tradeable: false
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,64 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 250
-  about: "Zombie pirate key is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Zombie pirate
+        combat_level: 22
+        quantity: "1"
+        rarity: 1/24
+        members_only: true
+        notes: Drop rate hotfixed from 1/50 to 1/24 on 2024-04-12; Wilderness Chaos Temple.
+      - source: Zombie pirate
+        combat_level: 28
+        quantity: "1"
+        rarity: 1/24
+        members_only: true
+        notes: Wilderness Chaos Temple.
+      - source: Zombie pirate
+        combat_level: 34
+        quantity: "1"
+        rarity: 1/24
+        members_only: true
+        notes: Wilderness Chaos Temple.
+  related_items:
+    - item_id: 29447
+      item_name: Teleport anchoring scroll
+      slug: teleport-anchoring-scroll
+      relationship: product
+      description: Locker reward with increased rate vs base drop table
+    - item_id: 29445
+      item_name: Pirate hook
+      slug: pirate-hook
+      relationship: alternative
+      description: Other zombie pirate themed reward
+  market_strategy:
+    notes:
+      - Always lost on PvP death and unprotectable
+      - Demand driven by doubled loot vs killing zombie pirates direct
+      - Supply tied to Wilderness Chaos Temple zombie pirate kills
+  history:
+    - date: "2024-04-10"
+      update: Undead Pirates, Colosseum Changes & more!
+      description: Released with the Undead Pirates content update.
+    - date: "2024-04-12"
+      description: Hotfix increased drop rate from 1/50 to 1/24.
+  about: Zombie pirate key is a Wilderness drop from zombie pirates at the Chaos Temple that opens lockers on a nearby shipwreck for doubled loot and increased teleport anchoring scroll rates.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-04-10"
+    update: Undead Pirates, Colosseum Changes & more!
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

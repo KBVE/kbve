@@ -17,20 +17,6 @@ osrs:
     cooking_level: 90
     cooking_xp: 215
     burn_level: 99
-  cooking:
-    level: 90
-    xp: 215
-    stop_burn_level: 99
-    stop_burn_level_gauntlets: 90
-    raw_item_id: 11934
-    raw_item_name: Raw dark crab
-    ticks: 4
-  fishing:
-    level: 85
-    xp: 130
-    method: Lobster pot
-    location: Wilderness Resource Area
-    bait: Dark fishing bait
   recipes:
     - skill: cooking
       level: 90
@@ -39,6 +25,8 @@ osrs:
         - item_name: Raw dark crab
           item_id: 11934
           quantity: 1
+      tools:
+        - Fire or range
       facility: Fire or range
       ticks: 4
       members_only: true
@@ -63,27 +51,39 @@ osrs:
       slug: dark-fishing-bait
       relationship: component
       description: Required bait for fishing
-  about: |-
-    Heals 22 HP - tied for second highest instant heal.
-
-    | Food | Heal | Notes |
-    |------|------|-------|
-    | Dark crab | 22 | Wilderness only fishing |
-    | Manta ray | 22 | No overheal |
-    | Anglerfish | 22 | Has overheal |
+  about: "Dark crab heals 22 HP, tied for second-highest single-consumption instant heal, caught in the Wilderness Resource Area at 85 Fishing and cooked at 90 Cooking."
   market_strategy:
     notes:
-      - Buy Raw dark crab → Cook → Sell
+      - Buy Raw dark crab, cook, sell
       - 90 Cooking required (high barrier)
       - Caught in Wilderness only
       - PKer risk while fishing
       - Premium price for safe cooked version
-      - Elite Wilderness Diary required for best rates
+      - Elite Wilderness Diary boosts catch rate
       - Alternative to manta rays
-      - Wilderness fishing = risky supply
+      - Wilderness fishing means risky supply
       - Price volatile with PvP activity
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2015-03-19"
+      description: Corrected animation when cooking on fire.
+    - date: "2015-03-05"
+      description: Increased catch rate bonus for players with the Elite Wilderness Diary completed.
+  properties:
+    release_date: "2014-03-13"
+    update: "Rejuvenating the Wilderness: More risk, more reward"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.35
+    options:
+      - Eat
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

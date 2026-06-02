@@ -12,9 +12,61 @@ osrs:
   lowalch: 250
   highalch: 375
   limit: 150
-  about: "Shirt (lilac) is a members-only item in Old School RuneScape. High alchemy value: 375 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: body
+    weight: 0.07
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Agmundi Quality Clothes
+      location: Keldagrim
+      price: 812
+    - shop_name: Miscellanian Clothes Shop
+      location: Miscellania/Etceteria Dungeon
+      price: 625
+  about: "Shirt (lilac) is a cosmetic dwarven-styled body slot garment sold by clothing merchants in Keldagrim and Miscellania, providing no combat bonuses."
+  market_strategy:
+    notes:
+      - "Cosmetic demand is thin and stable; shop floor at 625 coins caps downside."
+  trading_tips:
+    - "Flip near the shop floor for a small margin; do not over-stock given the low daily volume."
+  history:
+    - date: "2005-05-31"
+      description: Released with the Keldagrim update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-31"
+    update: "Keldagrim"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.07
+    options: [Wear, Drop]
+    worn_options: [Remove]
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,94 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 11000
-  about: "Dagannoth hide is a members-only item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: hide
+    tier: mid
+  drop_table:
+    sources:
+      - source: Dagannoth
+        combat_level: 90
+        quantity: "1"
+        rarity: 10/128
+        members_only: true
+        notes: Waterbirth Island dungeon.
+      - source: Dagannoth Rex
+        combat_level: 303
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Dagannoth Supreme
+        combat_level: 303
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Dagannoth Prime
+        combat_level: 303
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Ninja impling
+        combat_level: 28
+        quantity: "3 (noted)"
+        rarity: 1/19
+        members_only: true
+      - source: Ninja impling jar
+        quantity: "3 (noted)"
+        rarity: 1/19
+        members_only: true
+  recipes:
+    - skill: crafting
+      level: 47
+      xp: 84
+      materials:
+        - item_name: Dagannoth hide
+          quantity: 1
+      product: Spined helm
+      product_quantity: 1
+      facility: Fremennik tanner / crafting interface
+      notes: Requires The Fremennik Trials. Body uses 3 hides, legs use 2, helm uses 1.
+  related_items:
+    - item_id: 6151
+      item_name: Spined body
+      slug: spined-body
+      relationship: product
+      description: Crafted from 3 dagannoth hides.
+    - item_id: 6153
+      item_name: Spined chaps
+      slug: spined-chaps
+      relationship: product
+      description: Crafted from 2 dagannoth hides.
+    - item_id: 6157
+      item_name: Spined helm
+      slug: spined-helm
+      relationship: product
+      description: Crafted from 1 dagannoth hide.
+  market_strategy:
+    notes:
+      - Supply comes largely from Dagannoth Kings trips and Waterbirth Island.
+      - The Fremennik Trials is a hard requirement for any crafting use.
+      - Alternative use - exchange with Askeladden for cooked tuna (before quest) or lobster (after).
+  about: Dagannoth hide is a members-only crafting material dropped by dagannoths and the Dagannoth Kings, tanned and stitched into spined ranged armour after completing The Fremennik Trials.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-01"
+    update: "Waterbirth Island"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2005-08-01"
+      update: Waterbirth Island
+      description: Added to game with the Waterbirth Island update.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

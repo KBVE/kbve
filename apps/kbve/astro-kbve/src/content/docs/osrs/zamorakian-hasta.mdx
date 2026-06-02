@@ -12,33 +12,52 @@ osrs:
   lowalch: 120000
   highalch: 180000
   limit: 8
+  material:
+    type: metal
+    tier: zamorakian
   equipment:
     slot: weapon
-    type: stab_weapon
-    tradeable: true
+    weapon_type: spear
+    attack_speed: 4
     weight: 3
     requirements:
       attack: 70
-      quest: Barbarian Training
-    stats:
-      attack_stab: 85
-      attack_slash: 65
-      attack_crush: 65
+    attack_bonus:
+      stab: 85
+      slash: 65
+      crush: 65
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 13
+      slash: 13
+      crush: 12
+      magic: 0
+      ranged: 13
+    other_bonus:
       strength: 75
-      defence_stab: 13
-      defence_slash: 13
-      defence_ranged: 13
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 2
   special_attack:
     name: Shove
     energy: 25
-    description: Stuns and pushes opponent, 3 second disable
-  creation:
-    method: Take Zamorakian spear to Otto Godblessed
-    cost: 300000
-    diary_discount:
-      diary: Elite Kandarin Diary
-      cost: 150000
+    description: "Pushes opponent back and stuns them for three seconds; shared with the Dragon and Zamorakian spear."
+  recipes:
+    - skill: none
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Zamorakian spear
+          quantity: 1
+        - item_name: Coins
+          quantity: 300000
+      tools: []
+      product: Zamorakian hasta
+      product_id: 11889
+      facility: Otto Godblessed
+      members_only: true
+      notes: "Cost reduced to 150,000 coins with the Elite Kandarin Diary completed."
   related_items:
     - item_id: 11824
       item_name: Zamorakian spear
@@ -55,38 +74,34 @@ osrs:
       slug: hydras-claw
       relationship: component
       description: Upgrade material
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Stab | +85 |
-    | Slash | +65 |
-    | Crush | +65 |
-    | Strength | +75 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Stab | +13 |
-    | Slash | +13 |
-    | Ranged | +13 |
-
-    | Other | Bonus |
-    |-------|-------|
-    | Prayer | +2 |
-
-    Shove (25% energy)
-    - Stuns and pushes opponent
-    - 3 second disable
-
-    - One-handed (can use shield/defender)
-    - Third best stab weapon
-    - Cannot be poisoned
-
-    Used for:
-    - General stab combat
-    - DHL upgrade base
-    - Budget stab weapon
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Zamorakian hasta is a one-handed stab spear converted from the Zamorakian spear by Otto Godblessed, allowing shield use while keeping the Shove special attack."
+  market_strategy:
+    notes:
+      - Conversion sink burns gp at Otto
+      - Tied to Zamorakian spear supply from K'ril
+  trading_tips:
+    - Elite Kandarin Diary halves conversion cost
+    - Compare to DHL for slayer setups
+  history:
+    - date: "2014-01-09"
+      description: Released as a one-handed Zamorakian spear variant.
+  properties:
+    release_date: "2014-01-09"
+    update: God Wars Dungeon Improvements
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

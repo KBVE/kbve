@@ -12,9 +12,81 @@ osrs:
   lowalch: 2200
   highalch: 3300
   limit: 125
-  about: "Green d'hide shield is a members-only item in Old School RuneScape. High alchemy value: 3,300 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: shield
+    weapon_type: shield
+    weight: 8
+    requirements:
+      ranged: 40
+      defence: 40
+    attack_bonus:
+      stab: -15
+      slash: -15
+      crush: -11
+      magic: 0
+      ranged: 4
+    defence_bonus:
+      stab: 14
+      slash: 12
+      crush: 11
+      magic: 9
+      ranged: 11
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Crafting
+      level: 62
+      experience: 124
+      output_quantity: 1
+      tools:
+        - Needle
+        - Thread
+      materials:
+        - item_name: Green dragon leather
+          quantity: 2
+        - item_name: Maple shield
+          quantity: 1
+        - item_name: Steel nails
+          quantity: 15
+  related_items:
+    - item_id: 22281
+      item_name: Blue d'hide shield
+      slug: blue-d-hide-shield
+      relationship: upgrade
+      description: Higher tier Ranged shield
+    - item_id: 1135
+      item_name: Green d'hide body
+      slug: green-d-hide-body
+      relationship: set-piece
+      description: Matching dragonhide body armour
+  about: "Green d'hide shield is a Ranged-focused offhand crafted from two green dragon leather, a maple shield, and steel nails, requiring 40 Ranged and 40 Defence to equip."
+  market_strategy:
+    notes:
+      - Crafted at 62 Crafting; usually a small loss versus GE price
+      - Useful entry-level Ranged shield for mid-level slayer and pking
+      - 125 buy limit keeps flipping margins thin
+  history:
+    - date: "2018-02-01"
+      description: Released alongside the dragonhide shield set.
+  properties:
+    release_date: "2018-02-01"
+    update: Dragonhide Shields
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 8
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

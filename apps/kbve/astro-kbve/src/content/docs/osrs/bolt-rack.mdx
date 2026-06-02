@@ -12,9 +12,78 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 11000
-  about: "Bolt rack is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: ammo
+    weapon_type: crossbow
+    attack_speed: 4
+    weight: 0
+    requirements:
+      ranged: 70
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 55
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Barrows reward chest
+        quantity: "1"
+        rarity: Common
+  shops:
+    - shop_name: "Ak-Haranu's Exotic Items"
+      location: Port Phasmatys
+      price: 39
+    - shop_name: Last Man Standing Store
+      location: LMS lobby
+      price: Points
+  related_items:
+    - item_id: 4734
+      item_name: "Karil's crossbow"
+      slug: karil-s-crossbow
+      relationship: component
+      description: Exclusive crossbow that fires bolt racks
+  about: "Bolt racks are ammunition exclusive to Karil's crossbow, dropped through the Barrows reward chest and available from select shops; always consumed and never recovered via Ava's devices."
+  market_strategy:
+    notes:
+      - Barrows runs drive bulk supply
+      - Consumable for Karil's crossbow only
+      - Ava's devices do not recover them
+  trading_tips:
+    - Buy during high Barrows activity windows for the cheapest stocks
+    - Price pressure increases when LMS or PvP events spike
+  history:
+    - date: "2005-05-09"
+      description: Released alongside the Barrows update.
+  properties:
+    release_date: "2005-05-09"
+    update: Barrows
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

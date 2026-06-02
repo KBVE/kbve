@@ -22,7 +22,8 @@ RUN set -eux; \
         libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libxkbcommon0 \
         libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libgtk-3-0 \
         libasound2 libpango-1.0-0 libcairo2 libcups2 libdbus-1-3 fonts-liberation; \
-    if pip3 install --help 2>&1 | grep -q -- --break-system-packages; then \
+    PIP_MAJOR="$(pip3 --version | awk '{print $2}' | cut -d. -f1)"; \
+    if [ "${PIP_MAJOR}" -ge 23 ]; then \
       pip3 install --no-cache-dir --break-system-packages websocket-client==1.8.0; \
     else \
       pip3 install --no-cache-dir websocket-client==1.8.0; \

@@ -12,9 +12,56 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-42 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: cape
+    weight: 0.453
+    defence_bonus:
+      slash: 1
+      crush: 1
+      ranged: 2
+  shops:
+    - shop_name: Ian's Wilderness Cape Shop
+      location: Forgotten Cemetery
+      price: 50
+  related_items:
+    - item_id: 4313
+      item_name: Team-1 cape
+      slug: team-1-cape
+      relationship: variant
+      description: Other team cape variant
+  about: "Team-42 cape is a free-to-play team cape sold by Ian at the Wilderness Cape Shop in the Forgotten Cemetery. Worn primarily to identify same-team players in PvP — matching cape wearers show as blue minimap dots and cannot left-click attack each other. Offers minor defence bonuses."
+  market_strategy:
+    notes:
+      - Cheap supply from shop floor
+      - Demand from PvP/team events
+      - Very low margins, only viable in bulk
+  trading_tips:
+    - Stockpile cheaply during quiet PvP weeks
+    - Sell during clan wars / DMM seasons
+  history:
+    - date: "2005-02-22"
+      description: Released as part of the team capes set sold at Wilderness Cape Shops.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-02-22"
+    update: Team Capes
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

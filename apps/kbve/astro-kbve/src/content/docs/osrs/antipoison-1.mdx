@@ -12,6 +12,11 @@ osrs:
   lowalch: 57
   highalch: 86
   limit: 2000
+  potion:
+    effects:
+      - description: Cures poison on consumption.
+      - description: Grants 90 seconds of poison immunity.
+      - description: Two doses in succession can cure venom (first reduces venom to poison, second removes poison).
   related_items:
     - item_id: 175
       item_name: Antipoison(3)
@@ -23,12 +28,35 @@ osrs:
       slug: antipoison-2
       relationship: variant
       description: 2-dose version
-  about: |-
-    > _"1 dose of antipoison potion."_
-
-    A 1-dose antipoison. Cures poison and grants 90 seconds immunity.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "A 1-dose antipoison. Cures poison and grants 90 seconds immunity."
+  market_strategy:
+    notes:
+      - Single-dose antipoisons are typically obtained by drinking a multi-dose vial; standalone demand is thin compared to (3) and (4) doses.
+      - Liquidity is limited by the 2,000 GE buy limit; price tends to hover near alch value.
+  trading_tips:
+    - Decant 1-dose potions up to higher doses with Bob Barter in the Grand Exchange basement for resale margin.
+    - Compare against (2), (3), and (4) dose prices to spot decanting arbitrage windows.
+  history:
+    - date: "2002-02-27"
+      description: Antipoison potions added to the game alongside the Herblore skill.
+    - date: "2018-05-03"
+      description: Antipoison made purchasable from the Apothecary in Varrock for free-to-play players.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

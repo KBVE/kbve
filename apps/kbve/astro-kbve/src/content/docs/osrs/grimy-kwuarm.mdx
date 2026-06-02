@@ -12,18 +12,24 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 13000
-  herb:
-    type: grimy
-    tier: mid-high
-  herblore:
-    cleaning_level: 54
-    cleaning_xp: 11.3
-    clean_id: 263
-    clean_name: Kwuarm
+  material:
+    type: grimy-herb
+    tier: mid
+  recipes:
+    - skill: herblore
+      level: 54
+      xp: 11.3
+      materials:
+        - item_name: Grimy kwuarm
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      facility: Inventory
   farming:
     level: 56
-    seed_id: 5299
     seed_name: Kwuarm seed
+    seed_id: 5299
+    patch: Herb
   drop_table:
     sources:
       - source: Aberrant spectre
@@ -33,10 +39,17 @@ osrs:
         rarity: common
         members_only: true
       - source: Nechryael
-        source_id: 1
         combat_level: 115
         quantity: "1"
         rarity: common
+        members_only: true
+      - source: Abyssal demon
+        quantity: "1"
+        rarity: "1/172.5"
+        members_only: true
+      - source: Fire giant
+        quantity: "1"
+        rarity: "1/172.5"
         members_only: true
   related_items:
     - item_id: 263
@@ -59,22 +72,32 @@ osrs:
       slug: kwuarm-seed
       relationship: component
       description: Farming seed
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Grimy Herb |
-    | Tradeable | Yes |
-    | Weight | 0.007 kg |
-    | Herblore Level | 54 (to clean) |
-
-    Clean to produce kwuarm for Herblore.
-
-    Kwuarm used for:
-    - Super strength
-    - Weapon poison
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Grimy kwuarm is a members herb cleaned at level 54 Herblore for 11.3 XP, used to brew super strength potions and weapon poisons."
+  market_strategy:
+    notes:
+      - Steady demand from super strength brewers
+      - Slayer task drops keep supply consistent
+      - Wide buy limit makes it flippable in volume
+  history:
+    - date: "2002-02-27"
+      description: Released with the initial Herblore content.
+  properties:
+    release_date: "2002-02-27"
+    update: Latest RuneScape News (27 February 2002)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Clean
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

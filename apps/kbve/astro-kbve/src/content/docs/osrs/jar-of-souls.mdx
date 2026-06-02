@@ -1,56 +1,67 @@
 ---
 title: Jar of souls | OSRS Price Data
-description: "Jar of souls: This may be of use for a certain person.. High alch: 1 GP, GE limit: 4."
+description: "Jar of souls: This may be of use for a certain person. High alch: 1 GP, GE limit: 4."
 osrs:
   id: 13245
   name: Jar of souls
   slug: jar-of-souls
-  examine: This may be of use for a certain person.
+  examine: "This may be of use for a certain person."
   members: true
   icon: Jar of souls.png
   value: 1
   lowalch: 1
   highalch: 1
   limit: 4
-  item:
-    type: jar
-    tradeable: true
-    weight: 0.02
-  obtaining:
-    methods:
+  material:
+    type: boss jar
+    tier: mid-high
+  drop_table:
+    sources:
       - source: Cerberus
-        drop_rate: 1/2,000
-  usage:
-    description: Decoration for Achievement Gallery boss lair display
-    requirements: Defeating Cerberus at least once to place
-    cosmetic: true
+        quantity: "1"
+        rarity: 1/2000
   related_items:
-    - item_id: 0
-      item_name: Jar of miasma
-      slug: jar-of-miasma
+    - item_name: Hellpuppy
+      slug: hellpuppy
       relationship: alternative
-      description: Similar jar drop
-    - item_id: 0
-      item_name: Hellhound champion scroll
-      slug: hellhound-champion-scroll
+      description: Cerberus pet drop sharing the same boss drop table.
+    - item_name: Smouldering stone
+      slug: smouldering-stone
       relationship: alternative
-      description: Cerberus area drop
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Jar |
-    | Tradeable | Yes |
-    | Weight | 0.02 kg |
-    | Requirements | None |
-
-    Decoration for Achievement Gallery boss lair display.
-
-    Requires defeating Cerberus at least once to place.
-
-    Cosmetic/collectible item.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Cerberus unique used to create primordial, pegasian, and eternal boots.
+    - item_name: Jar of stone
+      slug: jar-of-stone
+      relationship: alternative
+      description: Similar collectible boss jar from the General Graardor drop table.
+  about: "Jar of souls is a Cerberus collectible jar that places a boss-lair display of Cerberus inside a player-owned house Achievement Gallery."
+  market_strategy:
+    notes:
+      - Pure collectible, no combat utility.
+      - Supply tracks Cerberus task popularity and Slayer meta.
+      - Buy limit of 4 keeps daily volume low.
+  trading_tips:
+    - Hold for long-term appreciation as Slayer collectibles climb over time.
+    - Buy after league or DMM events drain market supply.
+  history:
+    - date: "2015-08-27"
+      description: Released with the Cerberus boss update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-08-27"
+    update: "Cerberus"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

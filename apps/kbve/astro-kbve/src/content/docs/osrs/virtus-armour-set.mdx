@@ -12,9 +12,47 @@ osrs:
   lowalch: 58000
   highalch: 87000
   limit: 2
-  about: "Virtus armour set is a members-only item in Old School RuneScape. High alchemy value: 87,000 coins. Grand Exchange buy limit: 2 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: composite
+    tier: high
+  related_items:
+    - name: Virtus mask
+      relationship: set-piece
+    - name: Virtus robe top
+      relationship: set-piece
+    - name: Virtus robe bottom
+      relationship: set-piece
+    - name: Ancestral robes set
+      relationship: alternative
+  shops:
+    - shop_name: Grand Exchange
+  about: "Virtus armour set is a tradeable bundle in Old School RuneScape that contains the Virtus mask, Virtus robe top, and Virtus robe bottom for convenient exchange. Once unpacked, the three pieces form a high-tier Magic armour outfit granting strong magic attack bonuses and a flat Magic damage boost; the set form itself is not equipable."
+  market_strategy:
+    notes:
+      - "Set price often carries a premium over the sum of its parts; arbitrage in either direction when the spread inverts."
+      - "Limit of 2 sets per 4 hours caps short-term flips - scale across alts if available."
+  trading_tips:
+    - "Compare set price to mask + top + bottom individually before buying."
+    - "Convert sets to pieces at the Grand Exchange clerk if components trade higher individually."
+  history:
+    - date: "2025-08-20"
+      description: "Released as a tradeable Grand Exchange armour set bundling the Virtus mask, robe top, and robe bottom."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-08-20"
+    update: Virtus Armour
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Exchange
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

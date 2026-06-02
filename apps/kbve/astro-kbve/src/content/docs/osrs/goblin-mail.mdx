@@ -1,6 +1,6 @@
 ---
 title: Goblin mail | OSRS Price Data
-description: "Goblin mail: Some brown armour designed to fit goblins.. High alch: 24 GP, GE limit: 15."
+description: "Goblin mail: Some brown armour designed to fit goblins. High alch: 24 GP, GE limit: 15."
 osrs:
   id: 288
   name: Goblin mail
@@ -12,13 +12,61 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 15
-  related_items: []
-  about: |-
-    > _"Some brown armour designed to fit goblins."_
-
-    Goblin mail is a quest item required for Goblin Diplomacy (3 pieces) and Land of the Goblins (5 pieces). Can be dyed various colours using dyes for quest objectives.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  material:
+    type: cloth
+    tier: low
+  drop_table:
+    sources:
+      - source: Goblin
+        quantity: "1"
+        rarity: Uncommon
+      - source: Goblin Village crates
+        quantity: "1"
+        rarity: Always (3 available)
+  related_items:
+    - item_id: 9012
+      item_name: Orange goblin mail
+      slug: orange-goblin-mail
+      relationship: variant
+      description: Orange-dyed quest variant from Goblin Diplomacy.
+    - item_id: 9013
+      item_name: Blue goblin mail
+      slug: blue-goblin-mail
+      relationship: variant
+      description: Blue-dyed quest variant from Goblin Diplomacy.
+    - item_id: 9014
+      item_name: Black goblin mail
+      slug: black-goblin-mail
+      relationship: variant
+      description: Black-dyed variant used during Land of the Goblins.
+  about: A small piece of goblin armour dropped by goblins and looted from Goblin Village crates; required for Goblin Diplomacy and Land of the Goblins, dyeable into multiple colored variants.
+  market_strategy:
+    notes:
+      - Demand driven entirely by F2P questers running Goblin Diplomacy.
+      - Supply abundant from Goblin Village crate respawns and low-level goblin drops.
+  trading_tips:
+    - Buy in bulk before quest weekends; sell to questers ahead of new releases.
+    - Tiny GE limit of 15 caps flips but margins remain stable.
+  history:
+    - date: "2001-05-08"
+      description: Goblin mail introduced alongside early goblin content.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-05-08"
+    update: Early F2P content
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: true
+    quest: Goblin Diplomacy
+    weight: 3.628
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

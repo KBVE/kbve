@@ -12,9 +12,52 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "White dark bow paint is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Justine's stuff for the Last Man Standing
+      location: Last Man Standing lobby
+      price: 25
+      currency: Last Man Standing points
+  related_items:
+    - item_id: 11235
+      item_name: Dark bow
+      slug: dark-bow
+      relationship: component
+      description: Base bow recolored by this paint
+    - item_id: 12765
+      item_name: Dark bow (white)
+      slug: dark-bow-white
+      relationship: product
+      description: Resulting recolored dark bow
+  about: White dark bow paint is a cosmetic item used to recolor a dark bow white, purchased from Justine's shop in the Last Man Standing lobby for 25 LMS points.
+  market_strategy:
+    notes:
+      - Sourced only from Last Man Standing points
+      - Cosmetic recolor, no combat impact
+      - Limited supply tied to LMS engagement
+      - Buy limit of 4 throttles flips
+  trading_tips:
+    - Watch LMS participation patches for supply shifts
+    - Price spikes when cosmetic dark bows trend in PvP
+  history:
+    - date: "2014-09-18"
+      update: Bounty Hunter
+      description: Item released alongside the Bounty Hunter update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-09-18"
+    update: Bounty Hunter
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

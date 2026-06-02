@@ -12,9 +12,72 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Bookcase (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  construction:
+    construction_level: 4
+    xp: 115
+    materials:
+      - item_id: 960
+        item_name: Plank
+        quantity: "4"
+      - item_id: 1539
+        item_name: Steel nails
+        quantity: "4"
+    hotspot: Bookcase space
+    room: Parlour
+    tools:
+      - Hammer
+      - Saw
+    notes: Built at a Wooden workbench in a player-owned house workshop.
+  recipes:
+    - skill: construction
+      level: 4
+      xp: 115
+      materials:
+        - item_id: 960
+          item_name: Plank
+          quantity: 4
+        - item_id: 1539
+          item_name: Steel nails
+          quantity: 4
+      product: Bookcase (flatpack)
+      product_id: 8510
+  related_items:
+    - item_id: 960
+      item_name: Plank
+      slug: plank
+      relationship: component
+      description: Base material
+    - item_id: 1539
+      item_name: Steel nails
+      slug: steel-nails
+      relationship: component
+      description: Fasteners required for assembly
+  about: "Bookcase (flatpack) is a pre-built Construction flatpack assembled at a Wooden workbench from 4 planks and 4 steel nails."
+  market_strategy:
+    notes:
+      - Used in Parlour, Quest Hall and Study rooms
+      - Cheap entry-level Construction XP item
+      - Sold to other players for low-level XP gains
+  history:
+    - date: "2006-05-31"
+      update: Player-Owned Houses
+      description: Bookcase (flatpack) released alongside the Construction skill.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    update: Player-Owned Houses
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

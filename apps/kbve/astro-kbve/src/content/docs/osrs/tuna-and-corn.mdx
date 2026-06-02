@@ -12,9 +12,66 @@ osrs:
   lowalch: 45
   highalch: 67
   limit: 13000
-  about: "Tuna and corn is a members-only item in Old School RuneScape. High alchemy value: 67 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    effects:
+      - description: Heals 13 Hitpoints when eaten.
+      - description: Intermediate component for Tuna potato at 68 Cooking, which heals 22 Hitpoints.
+  recipes:
+    - skill: Cooking
+      level: 67
+      experience: 0
+      output_quantity: 1
+      tools:
+        - Knife
+      materials:
+        - item_name: Chopped tuna
+          quantity: 1
+        - item_name: Bowl of sweetcorn
+          quantity: 1
+      notes: "Alternatively combine cooked tuna with a bowl of sweetcorn or assemble from sweetcorn + tuna + bowl."
+  related_items:
+    - item_id: 7060
+      item_name: Tuna potato
+      slug: tuna-potato
+      relationship: product
+      description: Upgrade made by adding this to a potato with butter at 68 Cooking.
+    - item_id: 359
+      item_name: Tuna
+      slug: tuna
+      relationship: component
+      description: Cooked tuna used as the base ingredient.
+    - item_id: 7054
+      item_name: Bowl of sweetcorn
+      slug: bowl-of-sweetcorn
+      relationship: component
+      description: Sweetcorn portion of the dish.
+  about: "67 Cooking dish that heals 13 HP; primarily made as a stepping stone toward Tuna potato (22 HP)."
+  market_strategy:
+    notes:
+      - Volume is driven almost entirely by tuna potato production for high-level food stockpiles.
+      - Margin is thin per-bowl; profit usually comes from large batches assembled while training Cooking.
+  trading_tips:
+    - Pair purchases with cooked tuna and sweetcorn flips; the spread between inputs and tuna potato output is the real profit lane.
+    - Watch boss-meta shifts toward tuna potato to time buys.
+  history:
+    - date: "2006-01-30"
+      description: Tuna and corn added with the cooking expansion that introduced sweetcorn-based recipes.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-01-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

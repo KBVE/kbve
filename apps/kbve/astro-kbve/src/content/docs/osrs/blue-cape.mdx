@@ -12,9 +12,107 @@ osrs:
   lowalch: 12
   highalch: 19
   limit: 150
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: cape
+    weapon_type: not_applicable
+    weight: 0.453
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Valaine's Shop of Champions
+      location: Champions' Guild
+      stock: 5
+      price: 41
+      restock_time: 1 minute
+    - shop_name: Barkers' Haberdashery
+      location: Canifis
+      stock: 5
+      price: 41
+      restock_time: 1 minute
+    - shop_name: Shayzien Styles
+      location: Shayzien
+      stock: 5
+      price: 32
+      restock_time: 1 minute
+  recipes:
+    - skill: Crafting
+      level: 1
+      experience: 2.5
+      materials:
+        - item_name: Black cape
+          quantity: 1
+        - item_name: Blue dye
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      output_item: Blue cape
+      notes: Any plain cape (black, green, orange, pink, purple, red, yellow) accepted
+  related_items:
+    - item_id: 1019
+      item_name: Black cape
+      slug: black-cape
+      relationship: alternative
+      description: Plain cape variant
+    - item_id: 1027
+      item_name: Red cape
+      slug: red-cape
+      relationship: alternative
+      description: Plain cape variant
+    - item_id: 1037
+      item_name: Team cape zero
+      slug: team-cape-zero
+      relationship: alternative
+      description: Team cape series
+  market_strategy:
+    notes:
+      - "Cosmetic F2P cape with thin GE volume."
+      - "Crafted via Crafting 1 with blue dye on any plain cape; supply is elastic."
+  trading_tips:
+    - "Buy from Shayzien Styles at 32 gp for instant alch profit (19 high alch ignores tax, but break-even when stock low)."
+    - "Quest-related demand (Wanted!) drives short spikes."
   about: "Blue cape is a free-to-play item in Old School RuneScape. High alchemy value: 19 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  history:
+    - date: "2001-02-13"
+      description: Released in early RuneScape Classic.
+  properties:
+    release_date: "2001-02-13"
+    update: Early Capes update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

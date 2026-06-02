@@ -19,6 +19,7 @@ osrs:
     level: 59
     seed_id: 5105
     seed_name: Whiteberry seed
+    patch: Bush
   drop_table:
     sources:
       - source: Kurask
@@ -30,7 +31,7 @@ osrs:
       - source: Corporeal Beast
         source_id: 319
         combat_level: 785
-        quantity: 100-340 (noted)
+        quantity: "100-340 (noted)"
         rarity: uncommon
         members_only: true
   recipes:
@@ -67,37 +68,50 @@ osrs:
       item_name: Cadantine
       slug: cadantine
       relationship: component
-      description: Super defence herb
+      description: Super defence herb paired with white berries.
     - item_id: 2442
       item_name: Super defence(4)
       slug: super-defence-4
       relationship: product
-      description: Primary end product
+      description: Primary endgame product using white berries.
     - item_id: 5105
       item_name: Whiteberry seed
       slug: whiteberry-seed
       relationship: component
-      description: Farming source
+      description: Farming source for self-sustaining supply.
     - item_id: 133
       item_name: Defence potion(3)
       slug: defence-potion-3
       relationship: product
-      description: Basic product
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Herblore Secondary |
-    | Tradeable | Yes |
-    | Weight | 0.007 kg |
-
-    Secondary ingredient for:
-    - Defence potion (with ranarr potion unf)
-    - Super defence (with cadantine potion unf)
-
-    Also usable as supercompost material.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Low-level Herblore output using ranarr unf and white berries.
+  about: "White berries are a Herblore secondary used in Defence and Super defence potions, also feeding supercompost and Hand in the Sand quest progress."
+  market_strategy:
+    notes:
+      - Supply combines Farming harvests at 59 Farming and Kurask Slayer task loot.
+      - Buy limit of 13,000 per 4 hours sustains bulk Herblore mixing.
+      - Demand stays steady from Super defence potion brewing for PvP and ironmen.
+  trading_tips:
+    - Watch the Super defence margin to decide between flipping berries or mixing potions.
+    - Bundle whiteberry seed buys when planting alongside the berry resell loop.
+  history:
+    - date: "2002-02-27"
+      description: Added with the early Herblore expansion in the original RuneScape update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    update: RuneScape News
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

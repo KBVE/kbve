@@ -5,16 +5,89 @@ osrs:
   id: 7338
   name: Black shield (h2)
   slug: black-shield-h2
-  examine: A shield with a heraldic design
+  examine: A shield with a heraldic design.
   members: false
   icon: Black shield (h2).png
   value: 1632
   lowalch: 652
   highalch: 979
   limit: 70
-  about: "Black shield (h2) is a free-to-play item in Old School RuneScape. High alchemy value: 979 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: shield
+    weight: 5.443
+    requirements:
+      defence: 10
+    attack_bonus:
+      magic: -8
+      ranged: -3
+    defence_bonus:
+      stab: 17
+      slash: 19
+      crush: 18
+      magic: -1
+      ranged: 18
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_id: 1191
+      item_name: Black kiteshield
+      slug: black-kiteshield
+      relationship: alternative
+      description: Identical stats, non-trimmed
+    - item_id: 7336
+      item_name: Black shield (h1)
+      slug: black-shield-h1
+      relationship: variant
+      description: Heraldic variant 1
+    - item_id: 7340
+      item_name: Black shield (h3)
+      slug: black-shield-h3
+      relationship: variant
+      description: Heraldic variant 3
+    - item_id: 7342
+      item_name: Black shield (h4)
+      slug: black-shield-h4
+      relationship: variant
+      description: Heraldic variant 4
+    - item_id: 7344
+      item_name: Black shield (h5)
+      slug: black-shield-h5
+      relationship: variant
+      description: Heraldic variant 5
+  about: "Black shield (h2) is a cosmetic heraldic variant of the black kiteshield with identical combat stats, rewarded from easy Treasure Trails."
+  market_strategy:
+    notes:
+      - Easy clue scroll reward
+      - Identical stats to black kiteshield
+      - Worn for cosmetic heraldry
+  history:
+    - date: "2021-04-14"
+      description: "Ranged defence bonus reduced from -2 to -3."
+    - date: "2015-12-09"
+      description: "Item value decreased from 16,325 to 1,632 coins."
+    - date: "2006-02-20"
+      description: "Item released with the Updates, updates and more updates... update."
+  properties:
+    release_date: "2006-02-20"
+    update: "Updates, updates and more updates..."
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

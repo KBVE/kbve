@@ -12,9 +12,62 @@ osrs:
   lowalch: 1250
   highalch: 1875
   limit: 100
+  material:
+    type: adamantite
+    tier: mid-high
+  recipes:
+    - name: Smith adamant keel parts
+      skill: Smithing
+      level: 74
+      experience: 312.5
+      materials:
+        - item_name: Adamantite bar
+          quantity: 5
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+      requirements:
+        quest: Pandemonium
+  related_items:
+    - name: Adamantite bar
+      relationship: component
+    - name: Adamant keel
+      relationship: product
+    - name: Large adamant keel parts
+      relationship: product
+    - name: Steel keel parts
+      relationship: downgrade
+    - name: Rune keel parts
+      relationship: upgrade
   about: "Adamant keel parts is a members-only item in Old School RuneScape. High alchemy value: 1,875 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - Smithed from 5 adamantite bars at level 74 Smithing after Pandemonium.
+      - Used in the Sailing skill to construct adamant keels for skiffs.
+      - Currently shows a negative margin when smithed and sold to the GE.
+  trading_tips:
+    - Combine 10 adamant keel parts with 5 lead bars to assemble an adamant keel.
+    - 5 keel parts combine into a large adamant keel part for bigger vessels.
+  history:
+    - date: "2025-11-19"
+      description: Item released alongside the launch of the Sailing skill.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing is OUT TODAY!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

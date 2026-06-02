@@ -12,9 +12,65 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Sunlight antelope antler is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: secondary
+    tier: mid-high
+  recipes:
+    - name: Fletch Sunlight antler bolts
+      skill: Fletching
+      level: 62
+      xp: 10
+      output: Sunlight antler bolts
+      output_quantity: 12
+      tools: [Chisel]
+      materials:
+        - item_name: Sunlight antelope antler
+          quantity: 1
+      notes: "Each antler yields 12 bolts at 10 XP per bolt."
+    - name: Upgrade Hunters' crossbow
+      skill: Fletching
+      level: 74
+      output: Hunters' sunlight crossbow
+      output_quantity: 1
+      tools: [Chisel]
+      materials:
+        - item_name: Hunters' crossbow
+          quantity: 1
+        - item_name: Sunlight antelope antler
+          quantity: 1
+  related_items:
+    - item_name: Sunlight antler bolts
+      slug: sunlight-antler-bolts
+      relationship: product
+      description: Fletched twelve at a time from one antler at 62 Fletching.
+    - item_name: Hunters' sunlight crossbow
+      slug: hunters-sunlight-crossbow
+      relationship: product
+      description: Upgraded hunters' crossbow created with the antler at 74 Fletching.
+  about: "Sunlight antelope antler is a guaranteed drop from sunlight antelopes in the Avium Savannah requiring 72 Hunter, used to fletch sunlight antler bolts or upgrade the hunters' crossbow."
+  market_strategy:
+    notes:
+      - "Supply scales with Hunter training in Varlamore; demand follows hunters' sunlight crossbow and sunlight antler bolt usage."
+  trading_tips:
+    - "Buy in volume during bolt-craft meta windows when ranged setups switch to sunlight antler bolts."
+  history:
+    - date: "2024-03-20"
+      description: Released with the Varlamore Part One expansion.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.3
+    options: [Drop]
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

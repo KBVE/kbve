@@ -1,6 +1,6 @@
 ---
 title: Trinket of fortuity (inactive) | OSRS Price Data
-description: Trinket of fortuity (inactive) is a members-only OSRS item.
+description: Trinket of fortuity (inactive) is a members-only OSRS item from Deadman Mode breach bosses.
 osrs:
   id: 33047
   name: Trinket of fortuity (inactive)
@@ -8,13 +8,68 @@ osrs:
   examine: A magic rock! This one increases the chance of obtaining rare items when active.
   members: true
   icon: Trinket of fortuity (inactive).png
-  value: 0
-  lowalch: null
-  highalch: null
+  value: 100000
+  lowalch: 40000
+  highalch: 60000
   limit: null
-  about: Trinket of fortuity (inactive) is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  charges:
+    activation_cost: 50000000
+    notes: Charging with 50,000,000 coins activates the trinket (10,000,000 in Deadman Annihilation). Active version grants +100% drop rate at bosses and forces a 7-second skull-style teleport timer.
+  drop_table:
+    sources:
+      - source: Dagannoth Rex (breach)
+        rarity: 1/9576
+        members_only: true
+      - source: King Black Dragon (breach)
+        rarity: 1/9576
+        members_only: true
+      - source: Kree'arra (breach)
+        rarity: 1/9576
+        members_only: true
+      - source: TzTok-Jad (breach)
+        rarity: 1/9576
+        members_only: true
+      - source: Other breach monsters
+        rarity: 1/9576
+        members_only: true
+        notes: Shared 1/9,576 rate across 40+ breach bosses.
+  related_items:
+    - item_id: 33050
+      item_name: Trinket of fortuity
+      slug: trinket-of-fortuity
+      relationship: upgrade
+      description: Active version after charging with coins
+  market_strategy:
+    notes:
+      - Deadman-mode exclusive — liquidity tied to seasonal events
+      - 50M activation cost anchors floor pricing
+      - Breach boss rarity keeps supply scarce
+      - Annihilation discount changes seasonal demand curves
+  history:
+    - date: "2026-01-21"
+      update: Deadman Mode release
+      description: Trinket of fortuity (inactive) released for Deadman Mode on world 345 and event windows.
+    - date: "2026-02-11"
+      update: Teleport timer fix
+      description: Prevented bypassing the active teleport timer via looting bag storage and clarified the skull-style timer behaviour.
+  about: Trinket of fortuity (inactive) is a Deadman Mode breach boss drop charged with coins to activate a +100% boss drop rate buff.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2026-01-21"
+    update: Deadman Mode
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Charge
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

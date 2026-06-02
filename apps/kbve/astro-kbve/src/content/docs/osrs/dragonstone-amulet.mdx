@@ -1,6 +1,6 @@
 ---
 title: Dragonstone amulet | OSRS Price Data
-description: "Dragonstone amulet is a members neck slot item. High alch: 10,575 GP, GE limit: 10,000."
+description: "Dragonstone amulet is a members neck slot item enchantable into the Amulet of glory. High alch: 10,575 GP, GE limit: 10,000."
 osrs:
   id: 1702
   name: Dragonstone amulet
@@ -12,55 +12,103 @@ osrs:
   lowalch: 7050
   highalch: 10575
   limit: 10000
+  material:
+    type: gold
+    tier: high
   equipment:
     slot: neck
     requirements:
       crafting: 80
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 80
       xp: 150
-      inputs:
-        - item_name: Dragonstone
-          quantity: 1
+      materials:
         - item_name: Gold bar
           quantity: 1
+        - item_name: Dragonstone
+          quantity: 1
+        - item_name: Amulet mould
+          quantity: 1
+      tools:
+        - Furnace
+      output_item: Dragonstone amulet (unstrung)
+      output_quantity: 1
+    - skill: crafting
+      level: 1
+      xp: 4
+      materials:
+        - item_name: Dragonstone amulet (unstrung)
+          quantity: 1
+        - item_name: Ball of wool
+          quantity: 1
+      tools: []
+      output_item: Dragonstone amulet
       output_quantity: 1
   related_items:
     - item_id: 1700
       item_name: Diamond amulet
       slug: diamond-amulet
       relationship: downgrade
-      description: Previous tier amulet
+      description: Previous-tier gem amulet.
     - item_id: 6581
       item_name: Onyx amulet
       slug: onyx-amulet
       relationship: upgrade
-      description: Next tier amulet
+      description: Higher-tier gem amulet.
     - item_id: 1704
       item_name: Amulet of glory
       slug: amulet-of-glory
-      relationship: upgrade
-      description: Enchanted version (teleports + bonuses)
-  about: |-
-    Crafting (Level 80): Dragonstone + Gold bar at a furnace with amulet mould (150 XP). String with ball of wool.
-
-    > *"A dragonstone amulet."*
-
-    Lvl-5 Enchant (68 Magic): 1 cosmic rune + 15 earth runes + 15 water runes (78 XP)
-
-    The Amulet of glory is one of the most widely used amulets:
-    - +10 to all attack styles, +3 to all defence, +6 Strength, +3 Prayer
-    - 4 teleport charges (Edgeville, Karamja, Draynor, Al Kharid)
-    - Recharge at the Fountain of Heroes or Fountain of Rune (wilderness)
-    - Increases gem chance from gem rocks
+      relationship: product
+      description: "Enchanted form via Lvl-5 Enchant: teleports + combat bonuses."
+  about: "Dragonstone amulet is a Crafting product enchanted via Lvl-5 Enchant into the Amulet of glory, one of the most-used neck slot items in the game."
   market_strategy:
     notes:
-      - Glory is one of the most used amulets — steady demand
-      - Enchanting is often profitable
-      - Dragonstone cost drives the price
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Glory demand keeps a steady enchant-flip funnel through this base
+      - Dragonstone gem cost is the dominant input — track gem pricing together
+      - Watch DKS / dragon implings supply spikes that crash dragonstone
+  trading_tips:
+    - Buy in bulk before Crafting bonus weekends when enchanters arbitrage
+    - Compare GE margin to making your own dragonstone from rough gems
+  history:
+    - date: "2002-02-27"
+      description: Released alongside the Members beta launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    update: "Members release"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

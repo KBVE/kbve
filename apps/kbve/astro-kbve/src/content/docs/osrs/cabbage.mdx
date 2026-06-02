@@ -1,6 +1,6 @@
 ---
 title: Cabbage | OSRS Price Data
-description: "Cabbage: Yuck I don't like cabbage.. High alch: 1 GP, GE limit: 6,000."
+description: "Cabbage: Yuck I don't like cabbage. High alch: 1 GP, GE limit: 6,000."
 osrs:
   id: 1965
   name: Cabbage
@@ -12,17 +12,30 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 6000
-  produce:
-    type: allotment
-    tier: low
+  food:
+    heals: 1
+    eat_message: You eat the cabbage. Yuck!
   farming:
     seed_id: 5324
     seed_name: Cabbage seed
-    level: 7
+    farming_level: 7
     xp_plant: 10
     xp_harvest: 11.5
     growth_time: 40
     patches: 8
+  shops:
+    - shop_name: Grand Tree Groceries
+      location: Grand Tree
+      stock: 10
+      price: 1
+    - shop_name: Food Store
+      location: Port Sarim
+      stock: 3
+      price: 1
+    - shop_name: Cook (Blue Moon Inn)
+      location: Varrock
+      price: 1
+      notes: Unlimited stock
   related_items:
     - item_id: 5324
       item_name: Cabbage seed
@@ -39,28 +52,39 @@ osrs:
       slug: tomato
       relationship: alternative
       description: Alternative allotment produce
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Farming Level | 7 |
-    | Growth time | 40 minutes |
-    | XP (plant) | 10 |
-    | XP (harvest) | 11.5 per cabbage |
-
-    - Protection payment for onion seeds
-    - Used in cooking recipes
-    - Draynor Manor cabbage is special (Black Knight's Fortress quest)
+  about: Cabbage is a free-to-play allotment crop that heals 1 hitpoint when eaten, grown from cabbage seeds at 7 Farming and used as a Farming protection payment for onion seeds.
   market_strategy:
-    title: Ironman Notes
     notes:
       - Low-tier crop
       - Very low value
       - Good for early farming training
-      - Easy to obtain
       - Required for some quests
-      - Good early farming crop
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Draynor Manor cabbage has a unique role in Black Knights' Fortress
+  history:
+    - date: "2005-07-11"
+      description: Graphically updated with the release of Farming.
+    - date: "2005-04-18"
+      description: Graphically updated with the release of Desert Treasure.
+    - date: "2001-01-04"
+      update: Runescape beta is now online!
+      description: Added to the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    update: Runescape beta is now online!
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    alchable: false
+    destroy: Drop
+    options:
+      - Eat
+      - Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

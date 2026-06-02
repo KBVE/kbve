@@ -12,9 +12,78 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: null
-  about: "Felling axe handle is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: wood
+    tier: special
+  shops:
+    - shop_name: Forestry Shop
+      location: Forestry events
+      currency: Anima-infused bark
+      sell_price: 10000
+      notes: Also requires 500 noted oak logs alongside the bark cost.
+  recipes:
+    - skill: smithing
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Felling axe handle
+          item_id: 28177
+          quantity: 1
+        - item_name: Bronze axe
+          quantity: 1
+      product: Bronze felling axe
+      product_quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      members_only: true
+      notes: Any base axe (bronze through crystal) can be combined; transformation is irreversible.
+  related_items:
+    - item_id: 28184
+      item_name: Bronze felling axe
+      slug: bronze-felling-axe
+      relationship: product
+      description: Lowest-tier felling axe produced with the handle.
+    - item_id: 28196
+      item_name: Dragon felling axe
+      slug: dragon-felling-axe
+      relationship: product
+      description: Dragon-tier felling axe crafted via the handle.
+    - item_id: 28202
+      item_name: Crystal felling axe
+      slug: crystal-felling-axe
+      relationship: product
+      description: Crystal-tier felling axe crafted via the handle.
+  about: "Felling axe handle combines with any regular axe at an anvil to permanently convert it into the matching felling axe used in Forestry group woodcutting."
+  market_strategy:
+    notes:
+      - Supply gated behind Forestry Shop trades that cost 10,000 anima-infused bark and 500 noted oak logs.
+      - No Grand Exchange buy limit removes throughput caps for resellers.
+      - Demand follows Forestry meta - spikes when felling axe tiers are favoured for group woodcutting.
+  trading_tips:
+    - Compare GE price against anima-infused bark spot value to spot resale arbitrage.
+    - Stockpile for new Forestry content releases when handle demand temporarily outruns supply.
+  history:
+    - date: "2023-06-28"
+      description: Initially added as an unobtainable placeholder during the first Forestry update.
+    - date: "2023-10-25"
+      description: Became tradeable with Forestry Part Two, with revised name and 5,000 coin base value.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-10-25"
+    update: "Forestry: Part Two"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

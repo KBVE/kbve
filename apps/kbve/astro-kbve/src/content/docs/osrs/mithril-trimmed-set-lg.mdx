@@ -1,6 +1,6 @@
 ---
 title: Mithril trimmed set (lg) | OSRS Price Data
-description: "Mithril trimmed set (lg): A set containing a full helm, platebody, legs and kiteshield.. High alch: 3,000 GP, GE limit: 8."
+description: "Mithril trimmed set (lg): A set containing a full helm, platebody, legs and kiteshield. High alch: 3,000 GP, GE limit: 8."
 osrs:
   id: 13004
   name: Mithril trimmed set (lg)
@@ -12,9 +12,63 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 8
-  about: "Mithril trimmed set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Grand Exchange (Sets)
+      location: Varrock
+      notes: Bundled via the Grand Exchange clerk Sets interface.
+  related_items:
+    - item_id: 12283
+      item_name: Mithril full helm (t)
+      slug: mithril-full-helm-t
+      relationship: component
+      description: Trimmed helm bundled in the set
+    - item_id: 12281
+      item_name: Mithril platebody (t)
+      slug: mithril-platebody-t
+      relationship: component
+      description: Trimmed platebody bundled in the set
+    - item_id: 12285
+      item_name: Mithril platelegs (t)
+      slug: mithril-platelegs-t
+      relationship: component
+      description: Trimmed legs bundled in the set
+    - item_id: 12289
+      item_name: Mithril kiteshield (t)
+      slug: mithril-kiteshield-t
+      relationship: component
+      description: Trimmed kiteshield bundled in the set
+    - item_id: 13005
+      item_name: Mithril trimmed set (sk)
+      slug: mithril-trimmed-set-sk
+      relationship: alternative
+      description: Skirt variant of the trimmed set
+  about: "Mithril trimmed set (lg) bundles four trimmed mithril pieces (full helm, platebody, platelegs, kiteshield) into a single tradeable package via the Grand Exchange clerk."
+  market_strategy:
+    notes:
+      - Bundles four trimmed mithril pieces to save bank space
+      - Compare bundle GE price vs sum of individual pieces for arbitrage
+      - F2P tradeable cosmetic set, no combat advantage over plain mithril
+      - GE limit 8 per 4 hours throttles arbitrage volume
+      - Use sets-interface to unpack or repack as supply shifts
+  history:
+    - date: "2015-02-26"
+      update: The Grand Exchange
+      description: Set added when the Grand Exchange clerk's Sets interface was introduced.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-02-26"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 6.0
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

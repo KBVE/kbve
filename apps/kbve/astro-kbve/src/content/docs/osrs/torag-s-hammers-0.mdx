@@ -12,9 +12,74 @@ osrs:
   lowalch: 64000
   highalch: 96000
   limit: 15
-  about: "Torag's hammers 0 is a members-only item in Old School RuneScape. High alchemy value: 96,000 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: bludgeon
+    attack_speed: 5
+    weight: 3.628
+    requirements:
+      attack: 70
+      strength: 70
+    attack_bonus:
+      stab: -4
+      slash: -4
+      crush: 85
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 72
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  charges:
+    max_charges: 0
+    notes: "Fully degraded Torag's hammers; recharge at an armour repair stand or Bob's Brilliant Axes to restore charges."
+  drop_table:
+    primary_source: Barrows
+    best_drop_rate: 7/2448
+    sources:
+      - source: Barrows chest
+        rarity: rare
+        drop_rate: 7/2448
+        members_only: true
+  about: "Torag's hammers 0 are the fully degraded form of Torag the Corrupted's twin two-handed crush hammers from the Barrows minigame, requiring 70 Attack and 70 Strength to wield."
+  properties:
+    release_date: "2005-05-09"
+    update: Barrows
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Check
+      - Drop
+    worn_options:
+      - Check
+    alchable: true
+    destroy: "If you drop this item it will break. Are you sure you want to drop it?"
+  history:
+    - date: "2005-05-09"
+      description: Released with the Barrows minigame.
+    - date: "2005-05-17"
+      description: Updated in the Barrows Changes and Other Tweaks patch.
+    - date: "2014-12-10"
+      description: Renamed to include an apostrophe in Torag's.
+    - date: "2015-04-16"
+      description: Added a Check option to inspect durability.
+    - date: "2024-03-20"
+      description: Damage was split into two independent hitsplats.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

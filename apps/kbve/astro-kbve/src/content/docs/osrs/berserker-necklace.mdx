@@ -14,19 +14,26 @@ osrs:
   limit: 70
   equipment:
     slot: neck
-    type: amulet
-    requirements:
-      none: true
-    stats:
-      attack_all: -10
-      defence_all: -20
-      strength: 7
+    weight: 0.01
+    attack_bonus:
+      stab: -10
+      slash: -10
+      crush: -10
+      magic: -10
+      ranged: -10
+    defence_bonus:
+      stab: -20
+      slash: -20
+      crush: -20
+      magic: -20
+      ranged: -20
+    other_bonus:
+      melee_strength: 7
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 3
-  effect:
-    obsidian_damage_bonus: 20
-    stacks_with_armor: true
   recipes:
-    - skill: magic
+    - skill: Magic
       level: 87
       xp: 97
       materials:
@@ -42,10 +49,11 @@ osrs:
         - item_name: Cosmic rune
           item_id: 564
           quantity: 1
+      tools:
+        - Standard spellbook
       product: Berserker necklace
       product_id: 11128
       product_quantity: 1
-      facility: None
       members_only: true
   related_items:
     - item_id: 6528
@@ -63,47 +71,31 @@ osrs:
       slug: amulet-of-fury
       relationship: alternative
       description: General alternative
-  about: |-
-    Enchant Onyx necklace with Lvl-6 Enchant.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Magic | 87 (boostable) |
-    | Runes | 20 fire, 20 earth, 1 cosmic |
-
-    | Offense | Value |
-    |---------|-------|
-    | All attack styles | -10 |
-    | Strength | +7 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | -20 |
-
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +3 |
-
-    Obsidian Boost:
-    - +20% damage with obsidian melee weapons
-    - Stacks with full obsidian armor (+10%)
-    - Stacks with Slayer helm and Void
-
-    Total with armor: +30% damage bonus!
-
-    Essential for:
-    - Obsidian training setups
-    - TzHaar slayer tasks
-    - Fight Caves with obsidian
-
-    Core item for obsidian weapon builds.
+  about: Berserker necklace is enchanted from an Onyx necklace via Lvl-6 Enchant and grants a +20% damage boost with obsidian melee weapons that stacks with full obsidian armour.
   market_strategy:
     notes:
       - Use with obsidian weapons
       - Negative defences are significant
       - Great for training
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  properties:
+    release_date: "2007-04-30"
+    update: 24 Carat Update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  history:
+    - date: "2007-04-30"
+      description: Released in the 24 Carat Update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

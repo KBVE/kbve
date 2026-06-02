@@ -5,16 +5,58 @@ osrs:
   id: 32068
   name: Large teak hull parts
   slug: large-teak-hull-parts
-  examine: Parts for creating a teak hull for larger boats.
+  examine: Large parts for creating a teak hull for a large boat.
   members: true
   icon: Large teak hull parts.png
   value: 6250
   lowalch: 2500
   highalch: 3750
   limit: 100
-  about: "Large teak hull parts is a members-only item in Old School RuneScape. High alchemy value: 3,750 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: teak
+    tier: mid
+  recipes:
+    - materials:
+        - item_name: Teak hull parts
+          quantity: 5
+      tools:
+        - Saw
+        - Hammer
+      output_quantity: 1
+      skill: Construction
+      level: 23
+      facility: Shipwright's Workbench
+  related_items:
+    - item_name: Teak hull parts
+      relationship: component
+  about: "Large teak hull parts are members-only Construction materials used at the Shipwright's Workbench to build large teak hulls for sloops in the Sailing skill."
+  market_strategy:
+    notes:
+      - Created from 5 Teak hull parts at Construction 23 using a saw and hammer.
+      - Each sloop hull consumes 16 large teak hull parts plus nails, swamp tar, and lead bars.
+      - High alch returns 3,750 coins; GE buy limit is 100 per 4 hours.
+  trading_tips:
+    - Watch teak plank prices since they drive the cost of feeder hull parts.
+    - Demand spikes when new Sailing content or boat tiers release.
+  history:
+    - date: "2025-11-19"
+      description: Released alongside the Sailing skill launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing is OUT TODAY!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

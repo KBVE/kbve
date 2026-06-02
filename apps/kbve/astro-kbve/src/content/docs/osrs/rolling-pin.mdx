@@ -5,16 +5,73 @@ osrs:
   id: 7445
   name: Rolling pin
   slug: rolling-pin
-  examine: That's how I roll!
+  examine: "That's how I roll!"
   members: true
   icon: Rolling pin.png
   value: 14400
   lowalch: 5760
   highalch: 8640
   limit: 50
-  about: "Rolling pin is a members-only item in Old School RuneScape. High alchemy value: 8,640 coins. Grand Exchange buy limit: 50 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: rune
+  equipment:
+    slot: weapon
+    weapon_type: crush
+    attack_speed: 5
+    weight: 1.814
+    requirements:
+      attack: 40
+      quests: Recipe for Disaster (7 subquests for wielding)
+    attack_bonus:
+      stab: 20
+      crush: 39
+    other_bonus:
+      strength: 36
+      prayer: 4
+  shops:
+    - shop_name: Culinaromancer's Chest
+      location: Lumbridge Castle basement
+      stock: 0
+      price: 18720
+  related_items:
+    - item_id: 1432
+      item_name: Rune mace
+      slug: rune-mace
+      relationship: alternative
+      description: Standard rune-tier mace with identical stats
+  about: "Rune-tier crush weapon shaped like a rolling pin, sold by the Culinaromancer's Chest after six Recipe for Disaster subquests and used in an Elite emote clue step."
+  market_strategy:
+    notes:
+      - Niche melee novelty mirroring Rune mace stats with a unique skin
+      - Required for an Elite Treasure Trails emote clue at the Lava Maze Dungeon
+      - Buy limit of 50 keeps supply tight despite low daily volume
+  trading_tips:
+    - Stock before Elite clue events and emote-step content updates
+    - Compare to current Rune mace price for arbitrage on novelty premium
+  history:
+    - date: "2006-03-15"
+      description: Added to the game with the Recipe for Disaster quest update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-03-15"
+    update: Recipe for Disaster
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: Recipe for Disaster (6 subquests to buy, 7 to wield)
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

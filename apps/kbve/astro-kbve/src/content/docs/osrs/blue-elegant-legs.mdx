@@ -14,19 +14,68 @@ osrs:
   limit: 4
   equipment:
     slot: legs
+    weight: 1
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
     - item_id: 10408
       item_name: Blue elegant shirt
       slug: blue-elegant-shirt
       relationship: set-piece
-      description: Matching elegant shirt
-  about: |-
-    > *"A rather elegant pair of men's blue pantaloons."*
-
-    Purely cosmetic treasure trail reward with no combat stats. Part of the blue elegant clothing set.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Matching elegant shirt.
+  about: "Blue elegant legs is a purely cosmetic easy clue treasure trail reward forming half of the blue elegant gentlemen's set."
+  market_strategy:
+    notes:
+      - Supply is limited to easy clue completions, supporting a premium over alch value.
+      - Low daily volume makes pricing reactive to a few large orders.
+  trading_tips:
+    - List near the high alch value floor when accumulating sets.
+    - Pair with the matching shirt to flip as a full set.
+  history:
+    - date: "2006-12-05"
+      description: Added to the game as an easy clue reward.
+    - date: "2014-12-10"
+      description: Renamed from Blue ele' legs to Blue elegant legs.
+  properties:
+    release_date: "2006-12-05"
+    update: "Treasure Trails, spiders and sheep"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

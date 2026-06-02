@@ -12,9 +12,75 @@ osrs:
   lowalch: 36000
   highalch: 54000
   limit: null
-  about: "Dagon'hai robe bottom is a members-only item in Old School RuneScape. High alchemy value: 54,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: high
+  equipment:
+    slot: legs
+    weight: 1.814
+    requirements:
+      magic: 70
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 18
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 14
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 1
+      prayer: 2
+  drop_table:
+    sources:
+      - source: Larran's big chest
+        quantity: "1"
+        rarity: "1/256"
+  related_items:
+    - name: Dagon'hai hat
+      relationship: set-piece
+    - name: Dagon'hai robe top
+      relationship: set-piece
+  about: "Dagon'hai robe bottom is a members-only Magic legs slot item in Old School RuneScape. High alchemy value: 54,000 coins."
+  market_strategy:
+    notes:
+      - Sole supply via Larran's big chest in the Wilderness; supply tightly coupled to wildy slayer activity.
+      - High alch of 54,000 gp provides a strong price floor relative to GE price.
+      - Magic damage bonus buff in May 2024 lifted demand from PvMers running mid-tier magic setups.
+  trading_tips:
+    - Watch Wilderness slayer task popularity and Larran's chest key supply.
+    - Spread between set price and individual pieces is usually wide; usually flip pieces individually.
+  history:
+    - date: "2019-10-24"
+      description: Released as a unique drop from Larran's big chest with the Wilderness Slayer rework.
+    - date: "2024-05-08"
+      description: Magic damage bonus increased from 0% to 1%.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-10-24"
+    update: Wilderness Slayer Rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

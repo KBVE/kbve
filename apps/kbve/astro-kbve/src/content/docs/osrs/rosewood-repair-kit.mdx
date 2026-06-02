@@ -12,9 +12,72 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 13000
-  about: "Rosewood repair kit is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Veiled kraken
+        combat_level: 210
+        quantity: "1"
+        rarity: 1/272
+        members_only: true
+  recipes:
+    - skill: construction
+      level: 92
+      xp: 330
+      materials:
+        - item_name: Rosewood plank
+          quantity: 1
+        - item_name: Dragon nails
+          quantity: 5
+        - item_name: Swamp paste
+          quantity: 5
+      product: Rosewood repair kit
+      product_id: 31982
+      product_quantity: 3
+      facility: Shipwrights' workbench
+  related_items:
+    - item_id: 31980
+      item_name: Rosewood plank
+      slug: rosewood-plank
+      relationship: component
+      description: Primary crafting input
+    - item_id: 31978
+      item_name: Dragon nails
+      slug: dragon-nails
+      relationship: component
+      description: Crafting input
+    - item_id: 1975
+      item_name: Swamp paste
+      slug: swamp-paste
+      relationship: component
+      description: Crafting input
+  market_strategy:
+    notes:
+      - Sailing high-tier repair kit, gated behind 92 Construction
+      - Material cost approximately 59,786 coins per kit (cost divided by 3)
+      - Veiled kraken drop offers alternative supply for non-builders
+      - Demand tied to Sailing skill engagement and boat upkeep
+  history:
+    - date: "2025-11-19"
+      description: Construction XP from Sailing workbenches halved.
+    - date: "2025-11-05"
+      description: Item added with the Sailing release; initially unobtainable.
+  about: Rosewood repair kit is a high-tier Sailing repair item made at the shipwrights' workbench at 92 Construction or dropped by veiled krakens.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Apply
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Baked potato | OSRS Price Data
-description: "Baked potato: It'd taste even better with some toppings.. High alch: 2 GP, GE limit: 13,000."
+description: "Baked potato: It'd taste even better with some toppings. High alch: 2 GP, GE limit: 13,000."
 osrs:
   id: 6701
   name: Baked potato
@@ -12,9 +12,55 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 13000
-  about: "Baked potato is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    healing: 4
+    edible: true
+  recipes:
+    - skill: Cooking
+      level: 7
+      xp: 15
+      materials:
+        - item_name: Potato
+          quantity: 1
+      tools:
+        - Cooking range
+      output_quantity: 1
+      facility: Cooking range
+  about: "The baked potato is a members-only food in Old School RuneScape that heals 4 Hitpoints when consumed, and can be cooked at level 7 Cooking by using a raw potato on a range for 15 Cooking experience."
+  market_strategy:
+    notes:
+      - "Cheap potatoes plus a cooking range produces a steady profit margin"
+      - Buy limit 13,000 per 4 hours gives plenty of headroom for cooks
+      - Volume is consistent but margins move with potato price
+      - Toppings unlock the higher-tier baked potato variants
+      - High alch is too low to matter for disposal
+  trading_tips:
+    - Stock raw potatoes from farmers or the GE before mass cooking
+    - Track the spread vs raw potato to size production runs
+    - Note the item when banking large stacks for transport
+  history:
+    - date: "2005-10-24"
+      update: "Mogres, Lizards, Pet Fish, Potions and Potatoes"
+      description: Baked potato released alongside the new potato cooking line.
+    - date: "2006-01-30"
+      description: "Item value increased from 0 to 4 coins."
+  properties:
+    release_date: "2005-10-24"
+    update: "Mogres, Lizards, Pet Fish, Potions and Potatoes"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

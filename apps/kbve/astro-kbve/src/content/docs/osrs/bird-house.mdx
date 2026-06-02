@@ -12,9 +12,65 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 250
-  about: "Bird house is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - product: Bird house
+      skill: Crafting
+      level: 5
+      xp: 15
+      tools:
+        - Hammer
+        - Chisel
+      materials:
+        - item_name: Logs
+          quantity: 1
+        - item_name: Clockwork
+          quantity: 1
+  related_items:
+    - item_id: 21514
+      item_name: Oak bird house
+      slug: oak-bird-house
+      relationship: upgrade
+      description: Higher-tier oak bird house variant
+    - item_id: 21516
+      item_name: Willow bird house
+      slug: willow-bird-house
+      relationship: upgrade
+      description: Higher-tier willow variant
+    - item_id: 11065
+      item_name: Clockwork
+      slug: clockwork
+      relationship: component
+      description: Required component, returned on dismantle
+  about: "Bird house is the basic Fossil Island trap built at 5 Crafting that, when placed and seeded, passively gathers feathers, raw bird meat, and nests over about 50 minutes."
+  market_strategy:
+    notes:
+      - Crafted cheaply from logs and a returned clockwork
+      - Demand from passive hunter trainers
+      - Mostly self-supplied; GE flips are slim
+  trading_tips:
+    - Clockwork is reused; only logs are spent per cycle
+    - Strung rabbit foot boosts ring/egg nest odds
+  history:
+    - date: "2017-09-07"
+      description: Released with the Fossil Island update.
+    - date: "2025-02-12"
+      description: Added an option to automatically dismantle and rebuild bird houses.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-09-07"
+    update: Fossil Island
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.0
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

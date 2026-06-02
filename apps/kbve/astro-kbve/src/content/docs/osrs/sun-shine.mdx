@@ -12,9 +12,44 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: null
-  about: "Sun-shine is a members-only item in Old School RuneScape. High alchemy value: 60 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 1
+    effects:
+      - description: "Boosts Strength by 5% + 1 levels."
+      - description: "Reduces Attack by 4 levels."
+      - description: "Restores 5 Hitpoints on drink."
+  shops:
+    - shop_name: The Lost Pickaxe
+      location: Cam Torum
+      price: 100
+    - shop_name: Stick Your Ore Inn
+      location: Mistrock
+      price: 100
+  about: "Sun-shine is a Varlamore liquor sold in Cam Torum and Mistrock that trades Attack for a Strength boost and restores a small amount of Hitpoints on drink."
+  market_strategy:
+    notes:
+      - Untradeable on the Grand Exchange
+      - Infinite shop stock at 100 coins
+      - Niche use for Strength-focused boosting where Attack penalty is acceptable
+  history:
+    - date: "2024-03-20"
+      description: Released with the Varlamore content update.
+  properties:
+    release_date: "2024-03-20"
+    update: Varlamore
+    tradeable: false
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.8
+    options:
+      - Drink
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

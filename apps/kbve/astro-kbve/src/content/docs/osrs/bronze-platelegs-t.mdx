@@ -1,6 +1,6 @@
 ---
 title: Bronze platelegs (t) | OSRS Price Data
-description: "Bronze platelegs (t): Bronze platelegs with trim.. High alch: 48 GP, GE limit: 4."
+description: "Bronze platelegs (t): Bronze platelegs with trim. High alch: 48 GP, GE limit: 4."
 osrs:
   id: 12217
   name: Bronze platelegs (t)
@@ -12,9 +12,83 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 4
-  about: "Bronze platelegs (t) is a free-to-play item in Old School RuneScape. High alchemy value: 48 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bronze
+    tier: low
+  equipment:
+    slot: legs
+    weapon_type: none
+    weight: 9.071
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 8
+      slash: 7
+      crush: 6
+      magic: -4
+      ranged: 7
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_id: 1075
+      item_name: Bronze platelegs
+      slug: bronze-platelegs
+      relationship: variant
+      description: Untrimmed bronze platelegs with identical stats.
+    - item_id: 12219
+      item_name: Bronze platelegs (g)
+      slug: bronze-platelegs-g
+      relationship: variant
+      description: Gold-trimmed cosmetic variant.
+  about: "Bronze platelegs (t) is a free-to-play cosmetic trimmed variant of bronze platelegs obtained only from easy Treasure Trail reward caskets."
+  market_strategy:
+    notes:
+      - Cosmetic-only; demand driven by fashionscape and collectors.
+      - GE buy limit is only 4 per 4 hours.
+  trading_tips:
+    - Watch supply spikes after easy clue completions.
+    - List at margin above untrimmed bronze platelegs.
+  history:
+    - date: "2014-06-12"
+      description: Released as part of the Treasure Trail Expansion update.
+    - date: "2021-04-21"
+      description: Ranged attack bonus decreased from -7 to -11.
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

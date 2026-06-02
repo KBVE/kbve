@@ -12,9 +12,68 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 2000
-  about: "Sacred oil(3) is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: consumable
+    tier: mid
+  potion:
+    effects:
+      - description: "Applies sacred oil to logs to create pyre logs for shade remains"
+      - description: "Grants 5 Firemaking XP per dose used on a log"
+      - description: "Contains 3 doses; can be combined with other sacred oil vials"
+  recipes:
+    - materials:
+        - item_name: Olive oil(3)
+          quantity: 1
+      tools:
+        - Fire altar (Shades of Mort'ton)
+      output_quantity: 1
+      skill: Firemaking
+  related_items:
+    - item_id: 3430
+      item_name: Sacred oil(1)
+      slug: sacred-oil-1
+      relationship: variant
+      description: Single-dose variant
+    - item_id: 3431
+      item_name: Sacred oil(2)
+      slug: sacred-oil-2
+      relationship: variant
+      description: Two-dose variant
+    - item_id: 3433
+      item_name: Sacred oil(4)
+      slug: sacred-oil-4
+      relationship: variant
+      description: Full four-dose variant
+  about: "Sacred oil(3) holds three doses of consecrated olive oil used to convert ordinary logs into pyre logs at the Shades of Mort'ton minigame; it is made by applying olive oil to the Fire altar while keeping at least 10 percent sanctity."
+  market_strategy:
+    notes:
+      - Demand tied to Shades of Mort'ton shade pyre training
+      - Production requires Shades of Mort'ton quest plus sanctity upkeep
+      - Buy limit of 2,000 makes the market suitable for bulk shade trainers
+  trading_tips:
+    - Stock during Firemaking XP events when shade pyre training surges
+    - Compare cost per dose against the 1, 2 and 4 dose variants before buying
+  history:
+    - date: "2004-10-18"
+      description: Released as part of the Shades of Mort'ton minigame for creating pyre logs.
+  properties:
+    release_date: "2004-10-18"
+    update: Shades of Mort'ton
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest: Shades of Mort'ton
+    quest_item: false
+    weight: 0.02
+    options:
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,62 @@ osrs:
   lowalch: 220
   highalch: 330
   limit: 11000
-  about: "Opal dragon bolts is a members-only item in Old School RuneScape. High alchemy value: 330 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: ammo
+    weight: 0
+    requirements:
+      ranged: 64
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 122
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Fletching
+      level: 84
+      xp: 16
+      materials:
+        - item_name: Dragon bolts
+          quantity: 10
+        - item_name: Opal bolt tips
+          quantity: 10
+      tools: []
+      output_quantity: 10
+  about: "Opal dragon bolts are high-tier crossbow ammunition fletched at level 84, gaining the Lucky Lightning passive when enchanted for use with dragon crossbows."
+  history:
+    - date: "2018-01-04"
+      description: Released alongside Dragon Slayer II.
+  properties:
+    release_date: "2018-01-04"
+    update: Dragon Slayer II
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

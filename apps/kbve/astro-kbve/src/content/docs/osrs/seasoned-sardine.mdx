@@ -12,9 +12,36 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 15
-  about: "Seasoned sardine is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Seasoned sardine is a quest item from Gertrude's Cat, created by combining doogle leaves with a raw sardine; used to calm Fluffs's kittens and has no use after the quest."
+  related_items:
+    - item_id: 327
+      item_name: Sardine
+      slug: sardine
+      relationship: component
+      description: Base fish used to make the seasoned sardine
+    - item_id: 1573
+      item_name: Doogle leaves
+      slug: doogle-leaves
+      relationship: component
+      description: Seasoning ingredient
+  history:
+    - date: "2003-07-28"
+      description: Added to the game with the release of Gertrude's Cat quest.
+  properties:
+    release_date: "2003-07-28"
+    update: New Members Quest Online
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0.12
+    options:
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,75 @@ osrs:
   lowalch: 460
   highalch: 691
   limit: 125
-  about: "White sq shield is a members-only item in Old School RuneScape. High alchemy value: 691 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: shield
+    weight: 3.628
+    requirements:
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 15
+      slash: 16
+      crush: 14
+      magic: 0
+      ranged: 15
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  shops:
+    - shop_name: White Knight Armoury (Sir Vyvin)
+      location: White Knights' Castle, Falador
+      price: 1152
+      notes: Requires Page rank (300 Black Knight kills) and completion of Wanted!.
+  related_items:
+    - item_id: 1175
+      item_name: Black sq shield
+      slug: black-sq-shield
+      relationship: alternative
+      description: Same defence bonuses without the +1 prayer.
+    - item_id: 6601
+      item_name: White mace
+      slug: white-mace
+      relationship: set-piece
+      description: Matching White Knight crush weapon.
+  market_strategy:
+    notes:
+      - Wanted! quest + Page rank gate supply; +1 prayer differentiates from black sq shield.
+      - Ranged defence buffed to 0 in April 2021 (from -2), modest fashionscape lift.
+      - Low volume; mostly bought for prayer trips or completionist sets.
+  about: White sq shield is a members-only shield requiring 10 Defence and Wanted! completion, purchased from Sir Vyvin at Page rank and notable for its +1 prayer bonus over the otherwise-identical black sq shield.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-10-17"
+    update: "Wanted!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2005-10-17"
+      update: Wanted!
+      description: Added to game alongside the Wanted! quest and White Knight Armoury.
+    - date: "2021-04-21"
+      description: Ranged attack bonus increased from -2 to 0.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

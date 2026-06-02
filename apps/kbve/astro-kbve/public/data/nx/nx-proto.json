@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-01T09:58:43.548Z",
+  "generated_at": "2026-06-02T09:36:16.447Z",
   "summary": {
     "total_protos": 36,
     "registered": 27,
     "orphaned": 8,
     "utility_only": 1,
-    "total_messages": 667,
+    "total_messages": 668,
     "total_enums": 137
   },
   "protos": [
@@ -307,6 +307,7 @@
       "messages": [
         "GameEngineConfig",
         "SteamApp",
+        "FactorioMod",
         "ExternalPublish",
         "CiProject",
         "CiRegistry"
@@ -315,7 +316,7 @@
         "DispatchPipeline",
         "TestFramework"
       ],
-      "message_count": 5,
+      "message_count": 6,
       "enum_count": 2,
       "codegen": {
         "registered": true,
@@ -1423,7 +1424,7 @@
     "packages/data/proto/referral/referral.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-06-01T09:58:43Z",
+  "checked_at": "2026-06-02T09:36:16Z",
   "drift_detected": false,
   "drift_files": []
 }

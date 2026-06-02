@@ -12,41 +12,100 @@ osrs:
   lowalch: 1648
   highalch: 2472
   limit: 125
+  material:
+    type: adamant
+    tier: mid
   equipment:
     slot: weapon
-    type: warhammer
-    tradeable: true
+    weapon_type: blunt
+    attack_speed: 6
     weight: 2.041
     requirements:
       attack: 30
-    stats:
-      attack_stab: -4
-      attack_slash: -4
-      attack_crush: 35
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 39
+    attack_bonus:
+      stab: -4
+      slash: -4
+      crush: 35
+      magic: -4
+      ranged: -4
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 39
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  recipes:
+    - skill: smithing
+      level: 79
+      xp: 187.5
+      materials:
+        - item_name: Adamantite bar
+          item_id: 2361
+          quantity: 3
+      product: Adamant warhammer
+      product_id: 1345
+      product_quantity: 1
+      facility: Anvil
   related_items:
     - item_id: 1347
       item_name: Rune warhammer
       slug: rune-warhammer
       relationship: upgrade
-      description: Higher tier warhammer
+      description: Higher-tier warhammer
+    - item_id: 1343
+      item_name: Mithril warhammer
+      slug: mithril-warhammer
+      relationship: downgrade
+      description: Lower-tier warhammer
     - item_id: 1430
       item_name: Adamant mace
       slug: adamant-mace
       relationship: alternative
-      description: Alternative crush weapon
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Alternative same-tier crush weapon
+  treasure_trail:
+    tier: medium
+    is_reward: false
+    reward_tiers:
+      - medium
+  history:
+    - date: "2004-03-29"
+      update: RS2 Launch
+      description: Adamant warhammer released with RuneScape 2.
+    - date: "2021-04-01"
+      description: Strength bonus increased from 31 to 39 in the weapon rebalancing pass.
+  about: Adamant warhammer is an F2P two-handed crush weapon used at low to mid combat for crush-weak monsters and as a Bandos door substitute.
+  market_strategy:
+    notes:
+      - Cheap mid-tier crush option below rune warhammer
+      - Required for the medium clue scroll hammer emote
+      - Smithing 79 supply keeps prices near alch
+  trading_tips:
+    - Watch for clue-step demand spikes
+    - Hold stock when adamantite bar prices dip
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-03-29"
+    update: RS2 Launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.041
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

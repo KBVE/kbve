@@ -12,26 +12,108 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 125
-  item_id: 1295
-  item_type: equipment
-  slot: weapon
-  type: longsword
-  attack_style: slash
-  attack_speed: 5
-  tradeable: true
-  weight: 1.814
-  requirements:
-    attack: 5
-  stats:
-    stab_attack: 9
-    slash_attack: 14
-    crush_attack: -2
-    strength: 16
+  material:
+    type: steel
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: longsword
+    attack_speed: 5
+    weight: 1.814
+    requirements:
+      attack: 5
+    attack_bonus:
+      stab: 9
+      slash: 14
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 3
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 16
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 36
+      xp: 75
+      materials:
+        - item_name: Steel bar
+          item_id: 2353
+          quantity: 2
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: Common
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: Common
   related_items:
-    - slug: black-longsword
-    - slug: steel-scimitar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1291
+      item_name: Black longsword
+      slug: black-longsword
+      relationship: downgrade
+      description: Lower tier longsword
+    - item_id: 1297
+      item_name: Mithril longsword
+      slug: mithril-longsword
+      relationship: upgrade
+      description: Higher tier longsword
+    - item_id: 1325
+      item_name: Steel scimitar
+      slug: steel-scimitar
+      relationship: alternative
+      description: Faster steel weapon
+  about: "Steel longsword is a free-to-play one-handed slash weapon requiring level 5 Attack to wield. Smithed at level 36 from two steel bars and also available from shops, monster drops, and easy/medium treasure trails."
+  market_strategy:
+    notes:
+      - Entry-tier F2P weapon
+      - Common smithing training output
+      - Shop-purchasable at multiple locations
+      - High alch margin for ironmen
+      - Low GE price vs alch value
+  trading_tips:
+    - Buy near GE price and high alch for profit
+    - Stock during smithing skill events
+  history:
+    - date: "2001-01-04"
+      description: Released as part of the original Old School RuneScape weapon lineup.
+  properties:
+    release_date: "2001-01-04"
+    update: Original release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

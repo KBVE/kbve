@@ -1,20 +1,99 @@
 ---
 title: Pirate's hook | OSRS Price Data
-description: "Pirate's hook: You should see the shark.... High alch: 53 GP, GE limit: 4."
+description: "Pirate's hook: You should see the shark... High alch: 53 GP, GE limit: 4."
 osrs:
   id: 2997
   name: Pirate's hook
   slug: pirate-s-hook
-  examine: You should see the shark...
+  examine: "You should see the shark..."
   members: true
   icon: Pirate's hook.png
   value: 89
   lowalch: 35
   highalch: 53
   limit: 4
-  about: "Pirate's hook is a members-only item in Old School RuneScape. High alchemy value: 53 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: unarmed
+    weight: 0.3
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 5
+      crush: 3
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Pirate Jackie the Fruit's Hideout
+      location: Brimhaven Agility Arena
+      price: 800
+      currency: Brimhaven vouchers
+  recipes:
+    - name: Crabclaw hook
+      skill: None
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Pirate's hook
+          quantity: 1
+        - item_name: Crab claw
+          quantity: 1
+        - item_name: Coins
+          quantity: 500
+      tools: []
+      notes: Patchy on Mos Le'Harmless combines the hook and claw after Cabin Fever.
+  related_items:
+    - item_id: 7551
+      item_name: Crabclaw hook
+      slug: crabclaw-hook
+      relationship: upgrade
+      description: Combined hook+claw variant from Patchy.
+    - item_id: 2995
+      item_name: Pirate bandana (red)
+      slug: pirate-bandana-red
+      relationship: alternative
+      description: Another Brimhaven Agility Arena pirate cosmetic.
+  about: Cosmetic glove-slot hook bought from Pirate Jackie the Fruit with Brimhaven vouchers; combinable with a crab claw via Patchy after Cabin Fever.
+  market_strategy:
+    notes:
+      - Voucher cost gates supply from Brimhaven Agility Arena
+      - Elite Karamja Diary reduces ticket grind time
+  trading_tips:
+    - Buy when voucher farmers offload bulk stock after diary updates
+    - Pair flips with the crabclaw hook for upgrade demand
+  history:
+    - date: "2004-07-27"
+      description: Released with the Agility, Potions and Parties! update.
+  properties:
+    release_date: "2004-07-27"
+    update: Agility, Potions and Parties!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

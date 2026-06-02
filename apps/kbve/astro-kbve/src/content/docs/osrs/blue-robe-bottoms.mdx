@@ -14,6 +14,29 @@ osrs:
   limit: 150
   equipment:
     slot: legs
+    weight: 0.907
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Fine Fashions
+      location: Grand Tree, Tree Gnome Stronghold
+      price: 180
+      stock: 5
   related_items:
     - item_id: 640
       item_name: Blue robe top
@@ -25,12 +48,36 @@ osrs:
       slug: blue-hat
       relationship: set-piece
       description: Matching hat
-  about: |-
-    > _"A pair of blue robe bottoms."_
-
-    Blue robe bottoms are part of the gnome clothing set. Purely cosmetic with no stat bonuses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Blue robe bottoms are a members gnome cosmetic leg covering sold by Rometti at Fine Fashions in the Grand Tree, offering minor crush and slash defence."
+  market_strategy:
+    notes:
+      - Low GE limit keeps prices fashionscape-driven
+      - Shop restock cap limits arbitrage
+      - Primarily cosmetic demand
+  history:
+    - date: "2014-12-10"
+      description: Renamed from 'Robe bottoms' to 'Blue robe bottoms' during The Trading Post update.
+    - date: "2002-12-12"
+      description: Released with the Agility skill launch.
+  properties:
+    release_date: "2002-12-12"
+    update: Agility skill online
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

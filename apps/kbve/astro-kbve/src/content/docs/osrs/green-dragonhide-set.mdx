@@ -12,9 +12,60 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 125
-  about: "Green dragonhide set is a free-to-play item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: dragonhide
+    tier: mid
+  related_items:
+    - item_id: 1135
+      item_name: Green d'hide body
+      slug: green-dhide-body
+      relationship: component
+      description: Set component
+    - item_id: 1099
+      item_name: Green d'hide chaps
+      slug: green-dhide-chaps
+      relationship: component
+      description: Set component
+    - item_id: 1065
+      item_name: Green d'hide vambraces
+      slug: green-dhide-vambraces
+      relationship: component
+      description: Set component
+    - item_id: 12867
+      item_name: Blue dragonhide set
+      slug: blue-dragonhide-set
+      relationship: variant
+      description: Higher tier dragonhide set
+  about: "Green dragonhide set is a Grand Exchange convenience bundle containing the green d'hide body, chaps, and vambraces. Exchanged via the GE clerk Sets interface to save bank space when moving green dragonhide armour. Released in 2014 and opened to free-to-play in 2015."
+  market_strategy:
+    notes:
+      - Set price typically trades around the combined component value
+      - Cross-trade arbitrage opportunities between set and individual pieces
+      - Stable mid-tier ranged armour demand
+  trading_tips:
+    - Compare set vs unbundled component prices for flips
+    - Bulk buy components, package as set, sell during GE shortages
+  history:
+    - date: "2014-12-10"
+      description: Added with the Grand Exchange Sets interface update.
+    - date: "2015-02-26"
+      description: Made available to free-to-play players.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-12-10"
+    update: Grand Exchange Sets
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.05
+    options:
+      - Exchange
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

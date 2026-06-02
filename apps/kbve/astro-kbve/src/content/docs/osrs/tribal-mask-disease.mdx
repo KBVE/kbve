@@ -12,9 +12,72 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Tribal mask (disease) is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: wood
+    tier: low
+  equipment:
+    slot: head
+    weapon_type: none
+    weight: 2
+    requirements: {}
+    attack_bonus: {}
+    defence_bonus: {}
+    other_bonus: {}
+  drop_table:
+    sources:
+      - source: Broodoo victim (disease)
+        quantity: "1"
+        rarity: common
+  recipes:
+    - materials:
+        - item_name: Tribal mask (disease)
+          quantity: 1
+        - item_name: Snakeskin
+          quantity: 2
+        - item_name: Nails
+          quantity: 8
+      tools:
+        - Hammer
+      skill: Crafting
+      level: 35
+      output_quantity: 1
+  related_items:
+    - name: Tribal mask (poison)
+      relationship: variant
+    - name: Tribal mask (combat)
+      relationship: variant
+    - name: Disease broodoo shield
+      relationship: product
+  about: "Tribal mask (disease) is a Tai Bwo Wannai Cleanup drop used to craft the disease broodoo shield; wearing it makes village NPCs refuse to talk."
+  market_strategy:
+    notes:
+      - "Supply comes from broodoo-victim kills in Tai Bwo Wannai Cleanup."
+      - "GE buy limit 150 per 4 hours; mostly drives shield crafters."
+  trading_tips:
+    - "Broodoo shield demand for Crafting prayer/diary tasks anchors price."
+    - "Compare with poison and combat tribal masks for cheapest shield input."
+  history:
+    - date: "2005-08-09"
+      description: "Released with the Tai Bwo Wannai Cleanup minigame."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-09"
+    update: Tai Bwo Wannai Clean-Up
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

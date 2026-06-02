@@ -12,25 +12,80 @@ osrs:
   lowalch: 2080
   highalch: 3120
   limit: 125
-  item_id: 1121
-  item_type: armor
-  slot: body
-  type: platebody
-  tradeable: true
-  weight: 8.618
-  requirements:
-    defence: 20
-  stats:
-    stab_defence: 46
-    slash_defence: 44
-    crush_defence: 38
-    magic: -30
-    ranged: -15
+  material:
+    type: mithril
+    tier: mid
+  equipment:
+    slot: body
+    weight: 8.618
+    requirements:
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -15
+    defence_bonus:
+      stab: 46
+      slash: 44
+      crush: 38
+      magic: -6
+      ranged: 44
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Smithing
+      level: 68
+      experience: 250
+      materials:
+        - item_name: Mithril bar
+          quantity: 5
+      tools:
+        - Hammer
+        - Anvil
   related_items:
-    - slug: adamant-platebody
-    - slug: mithril-bar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Adamant platebody
+      slug: adamant-platebody
+      relationship: upgrade
+      description: Higher tier platebody armour
+    - item_name: Mithril bar
+      slug: mithril-bar
+      relationship: component
+      description: Smithing material used to create this item
+  about: "Mithril platebody is a free-to-play body slot armour piece in Old School RuneScape requiring level 20 Defence to wear. It is created by Smithing with 5 mithril bars at level 68 Smithing for 250 experience. Despite being free-to-play, it offers solid defensive bonuses against melee combat styles."
+  market_strategy:
+    notes:
+      - Common F2P armour with steady mid-level demand
+      - Smithing it for experience is rarely profitable; the GE is cheaper than bars
+      - Buy when the GE price drops below mithril bar cost for resale margin
+  history:
+    - date: "2001-01-04"
+      description: Released with the original RuneScape beta launch
+    - date: "2021-04-21"
+      description: Ranged attack bonus decreased from -10 to -15
+  properties:
+    release_date: "2001-01-04"
+    update: Runescape beta is now online!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 8.618
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

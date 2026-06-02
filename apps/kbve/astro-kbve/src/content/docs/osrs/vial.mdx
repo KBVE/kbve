@@ -30,14 +30,11 @@ osrs:
         - item_name: Molten glass
           item_id: 1775
           quantity: 1
+      tools:
+        - Glassblowing pipe
       product: Vial
       product_id: 229
       product_quantity: 1
-  uses:
-    - purpose: Vial of water
-      skill: N/A
-    - purpose: Potion storage
-      skill: herblore
   related_items:
     - item_id: 227
       item_name: Vial of water
@@ -54,18 +51,7 @@ osrs:
       slug: vial-of-blood
       relationship: variant
       description: Theatre of Blood variant
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Container |
-    | Tradeable | Yes |
-    | Weight | 0.007 kg |
-
-    | Purpose | Method |
-    |---------|--------|
-    | Vial of water | Fill at any water source |
-    | Potion making | Base for all standard potions |
+  about: "Vial is a free-to-play container used as the base for all standard potions in Herblore; can be filled with water at any source and crafted from molten glass at 33 Crafting for 35 XP."
   market_strategy:
     notes:
       - Base container for all potions
@@ -77,8 +63,26 @@ osrs:
       - Buy from shops for 1 gp each
       - Craft from molten glass for XP
       - Fill at any water source
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2002-02-27"
+      description: Added to the game.
+    - date: "2020-05-14"
+      description: Vials can now have water poured into them from buckets and related vessels.
+  properties:
+    release_date: "2002-02-27"
+    update: Latest RuneScape News
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.015
+    options:
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

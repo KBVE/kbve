@@ -12,9 +12,63 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 2000
-  about: "Stamina potion(1) is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: Restores 20% run energy on use.
+      - description: Reduces run energy depletion by 70% for 2 minutes; does not stack, drinking again resets the timer.
+  recipes:
+    - materials:
+        - item_name: Super energy potion(1)
+          quantity: 1
+        - item_name: Amylase crystal
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: Herblore
+      level: 77
+      experience: 25.5
+  related_items:
+    - slug: stamina-potion-2
+      relationship: variant
+    - slug: stamina-potion-3
+      relationship: variant
+    - slug: stamina-potion-4
+      relationship: variant
+    - slug: super-energy-potion
+      relationship: component
+    - slug: amylase-crystal
+      relationship: component
+  about: "Stamina potion(1) is a 1-dose Herblore potion that restores run energy and slows depletion for 2 minutes."
+  market_strategy:
+    notes:
+      - High GE buy limit of 2,000 enables steady flipping volume.
+      - Demand spikes during PvM events and league/skilling weekends.
+  trading_tips:
+    - Combine lower-dose potions with amylase to craft full vials for arbitrage.
+    - Watch DMM, Leagues, and raid-meta updates for short-term price moves.
+  history:
+    - date: "2014-07-03"
+      description: Released alongside the stamina potion family and Amylase crystal mechanic.
+    - date: "2025-01-08"
+      description: Decanting and drinking no longer cancels ongoing movement.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-07-03"
+    update: Stamina potion release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Stamina mix(1) | OSRS Price Data
-description: "Stamina mix(1): One dose of fishy stamina potion.. High alch: 54 GP, GE limit: 2,000."
+description: "Stamina mix(1): One dose of fishy stamina potion. High alch: 54 GP, GE limit: 2,000."
 osrs:
   id: 12635
   name: Stamina mix(1)
@@ -12,9 +12,55 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 2000
-  about: "Stamina mix(1) is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: Restores 20% run energy on consumption.
+      - description: Reduces run energy depletion by 70% for 2 minutes.
+      - description: Heals 6 Hitpoints per dose.
+  recipes:
+    - materials:
+        - item_name: Stamina potion(2)
+        - item_name: Caviar
+      tools:
+        - Herblore level 86
+        - Barbarian Herblore training
+      output_quantity: 2
+  related_items:
+    - item_name: Stamina mix(2)
+      slug: stamina-mix-2
+      relationship: variant
+    - item_name: Stamina potion(4)
+      slug: stamina-potion-4
+      relationship: alternative
+  about: "Stamina mix is a Barbarian Herblore variant of the stamina potion that adds 6 Hitpoints of healing per dose, useful for stamina-heavy training loops."
+  market_strategy:
+    notes:
+      - Heals 6 HP per dose making it niche food for skilling routes
+      - Profitability depends on caviar and stamina potion price spread
+      - Seers' Village rooftop runners regularly consume the 1-dose form
+  trading_tips:
+    - Track caviar GE price for production margin
+    - Spike around Elite Kandarin Diary requirement completions
+  history:
+    - date: "2014-07-03"
+      description: Released as part of the Barbarian Herblore expansion.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-07-03"
+    update: Barbarian Herblore
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

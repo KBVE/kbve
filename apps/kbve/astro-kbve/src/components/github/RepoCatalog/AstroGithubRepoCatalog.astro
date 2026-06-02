@@ -1,0 +1,352 @@
+---
+/**
+ * AstroGithubRepoCatalog - Build-time-rendered grid of KBVE org repos.
+ * Zero client-side JS. Groups by manual domain map.
+ */
+
+interface Repo {
+	id: number;
+	name: string;
+	full_name: string;
+	description: string | null;
+	html_url: string;
+	homepage: string | null;
+	language: string | null;
+	stargazers_count: number;
+	forks_count: number;
+	open_issues_count: number;
+	archived: boolean;
+	fork: boolean;
+	private: boolean;
+	pushed_at: string;
+	topics: string[];
+}
+
+interface Props {
+	title?: string;
+	subtitle?: string;
+	limit?: number;
+}
+
+const {
+	title = 'Repositories',
+	subtitle = 'Active open-source projects across the KBVE org',
+	limit = 60,
+} = Astro.props;
+
+const GITHUB_ORG = 'KBVE';
+const API_URL = `https://api.github.com/orgs/${GITHUB_ORG}/repos?per_page=${limit}&type=public&sort=updated`;
+
+const DOMAIN_GROUPS: Record<string, { label: string; description: string }> = {
+	infra: {
+		label: 'Infrastructure',
+		description: 'Kubernetes, observability, CI/CD, edge.',
+	},
+	web: {
+		label: 'Web + Apps',
+		description: 'Astro, React, Tauri.',
+	},
+	game: {
+		label: 'Games + Sim',
+		description: 'Unity, Bevy, Phaser, Lua.',
+	},
+	rust: {
+		label: 'Rust Services',
+		description: 'axum-kbve, jedi, codegen, FFI.',
+	},
+	docs: {
+		label: 'Docs + Tooling',
+		description: 'Knowledge, packages, devops.',
+	},
+	other: {
+		label: 'Other',
+		description: '',
+	},
+};
+
+function classify(repo: Repo): keyof typeof DOMAIN_GROUPS {
+	const name = repo.name.toLowerCase();
+	const topics = (repo.topics ?? []).map((t) => t.toLowerCase());
+	const lang = (repo.language ?? '').toLowerCase();
+	if (
+		topics.includes('kubernetes') ||
+		/kube|talos|cilium|argocd|helm/.test(name)
+	)
+		return 'infra';
+	if (lang === 'rust' || /axum|jedi|kbve-rs|cargo/.test(name)) return 'rust';
+	if (
+		/unity|bevy|phaser|game|rare(icon)?|isometric/.test(name) ||
+		topics.includes('game')
+	)
+		return 'game';
+	if (
+		lang === 'astro' ||
+		lang === 'typescript' ||
+		lang === 'javascript' ||
+		/astro|kbve\.com|web|app/.test(name)
+	)
+		return 'web';
+	if (/docs|wiki|manual|guide/.test(name) || topics.includes('documentation'))
+		return 'docs';
+	return 'other';
+}
+
+let repos: Repo[] = [];
+let error: string | null = null;
+try {
+	const response = await fetch(API_URL, {
+		headers: { Accept: 'application/vnd.github.v3+json' },
+	});
+	if (!response.ok) throw new Error(`GitHub API ${response.status}`);
+	const all = (await response.json()) as Repo[];
+	repos = all.filter((r) => !r.archived && !r.fork && !r.private);
+} catch (err) {
+	error = err instanceof Error ? err.message : 'fetch failed';
+	console.error('AstroGithubRepoCatalog fetch error:', error);
+}
+
+type DomainKey = keyof typeof DOMAIN_GROUPS;
+const DOMAIN_KEYS = Object.keys(DOMAIN_GROUPS) as DomainKey[];
+
+const grouped = new Map<DomainKey, Repo[]>();
+for (const key of DOMAIN_KEYS) {
+	grouped.set(key, []);
+}
+for (const r of repos) {
+	const k = classify(r);
+	grouped.get(k)!.push(r);
+}
+for (const [, list] of grouped) {
+	list.sort((a, b) => b.stargazers_count - a.stargazers_count);
+}
+
+const renderable = DOMAIN_KEYS.map((key) => ({
+	key,
+	meta: DOMAIN_GROUPS[key],
+	list: grouped.get(key) ?? [],
+})).filter((g) => g.list.length > 0);
+
+const LANG_COLOURS: Record<string, string> = {
+	Rust: '#dea584',
+	TypeScript: '#3178c6',
+	JavaScript: '#f1e05a',
+	Astro: '#ff5d01',
+	Python: '#3572A5',
+	Go: '#00ADD8',
+	Lua: '#000080',
+	CSharp: '#178600',
+	'C#': '#178600',
+	'C++': '#f34b7d',
+	Shell: '#89e051',
+	HTML: '#e34c26',
+};
+function langColor(lang: string | null): string {
+	if (!lang) return '#6b7280';
+	return LANG_COLOURS[lang] ?? '#8b5cf6';
+}
+function shortDate(iso: string): string {
+	const d = new Date(iso);
+	return d.toISOString().slice(0, 10);
+}
+---
+
+<section
+	class="github-repo-catalog"
+	aria-labelledby="github-repo-catalog-title">
+	<header class="github-repo-catalog__header">
+		<h2 id="github-repo-catalog-title">{title}</h2>
+		<p>{subtitle}</p>
+	</header>
+
+	{
+		error && (
+			<p class="github-repo-catalog__error" role="alert">
+				Unable to load repositories ({error}). See{' '}
+				<a href={`https://github.com/orgs/${GITHUB_ORG}/repositories`}>
+					github.com/orgs/{GITHUB_ORG}
+				</a>{' '}
+				directly.
+			</p>
+		)
+	}
+
+	{
+		!error && (
+			<div class="github-repo-catalog__groups">
+				{renderable.map((group) => (
+					<div class="github-repo-catalog__group">
+						<div class="github-repo-catalog__group-header">
+							<h3>{group.meta.label}</h3>
+							<span class="github-repo-catalog__group-count">
+								{group.list.length}
+							</span>
+						</div>
+						{group.meta.description && (
+							<p class="github-repo-catalog__group-desc">
+								{group.meta.description}
+							</p>
+						)}
+						<ul class="github-repo-catalog__grid" role="list">
+							{group.list.map((repo) => (
+								<li class="github-repo-catalog__card">
+									<a
+										href={repo.html_url}
+										target="_blank"
+										rel="noopener noreferrer">
+										<div class="github-repo-catalog__card-title">
+											<strong>{repo.name}</strong>
+											<span
+												class="github-repo-catalog__star"
+												aria-label={`${repo.stargazers_count} stars`}>
+												★ {repo.stargazers_count}
+											</span>
+										</div>
+										{repo.description && (
+											<p class="github-repo-catalog__card-desc">
+												{repo.description}
+											</p>
+										)}
+										<div class="github-repo-catalog__meta">
+											{repo.language && (
+												<span class="github-repo-catalog__lang">
+													<span
+														class="github-repo-catalog__lang-dot"
+														style={`background:${langColor(repo.language)}`}
+														aria-hidden="true"
+													/>
+													{repo.language}
+												</span>
+											)}
+											<span class="github-repo-catalog__pushed">
+												Updated{' '}
+												{shortDate(repo.pushed_at)}
+											</span>
+										</div>
+									</a>
+								</li>
+							))}
+						</ul>
+					</div>
+				))}
+			</div>
+		)
+	}
+</section>
+
+<style>
+	.github-repo-catalog {
+		margin: 3rem 0;
+		color: var(--sl-color-text, #e6edf3);
+	}
+	.github-repo-catalog__header {
+		text-align: center;
+		margin-bottom: 1.5rem;
+	}
+	.github-repo-catalog__header h2 {
+		font-size: 1.75rem;
+		font-weight: 700;
+		margin: 0 0 0.25rem;
+	}
+	.github-repo-catalog__header p {
+		color: var(--sl-color-gray-2, #8b949e);
+		margin: 0;
+	}
+	.github-repo-catalog__error {
+		text-align: center;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+	.github-repo-catalog__groups {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+	}
+	.github-repo-catalog__group-header {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+	}
+	.github-repo-catalog__group-header h3 {
+		font-size: 1.15rem;
+		font-weight: 600;
+		margin: 0;
+	}
+	.github-repo-catalog__group-count {
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-3, #8b949e);
+		background: var(--sl-color-gray-6, #1f2937);
+		padding: 0.1rem 0.5rem;
+		border-radius: 999px;
+	}
+	.github-repo-catalog__group-desc {
+		color: var(--sl-color-gray-3, #8b949e);
+		font-size: 0.85rem;
+		margin: 0.25rem 0 0.75rem;
+	}
+	.github-repo-catalog__grid {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+		gap: 0.75rem;
+	}
+	.github-repo-catalog__card {
+		background: var(--sl-color-bg-nav, #111);
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		border-radius: 8px;
+		transition:
+			border-color 0.15s,
+			transform 0.15s;
+	}
+	.github-repo-catalog__card:hover {
+		border-color: var(--sl-color-accent, #06b6d4);
+		transform: translateY(-1px);
+	}
+	.github-repo-catalog__card a {
+		display: block;
+		padding: 0.75rem 1rem;
+		color: inherit;
+		text-decoration: none;
+	}
+	.github-repo-catalog__card-title {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		font-size: 0.95rem;
+	}
+	.github-repo-catalog__star {
+		font-size: 0.8rem;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+	.github-repo-catalog__card-desc {
+		margin: 0.35rem 0 0.5rem;
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-2, #c9d1d9);
+		line-height: 1.4;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	.github-repo-catalog__meta {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		font-size: 0.7rem;
+		color: var(--sl-color-gray-3, #8b949e);
+		gap: 0.5rem;
+	}
+	.github-repo-catalog__lang {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+	}
+	.github-repo-catalog__lang-dot {
+		width: 0.55rem;
+		height: 0.55rem;
+		border-radius: 50%;
+		display: inline-block;
+	}
+</style>

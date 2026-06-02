@@ -1,6 +1,6 @@
 ---
 title: Vial of water | OSRS Price Data
-description: "Vial of water: A glass vial containing water.. High alch: 1 GP, GE limit: 13,000."
+description: "Vial of water: A glass vial containing water. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 227
   name: Vial of water
@@ -14,7 +14,7 @@ osrs:
   limit: 13000
   material:
     type: container
-    tier: basic
+    tier: low
   shops:
     - shop_name: General stores
       price: 2
@@ -22,22 +22,17 @@ osrs:
     - shop_name: Herblore shops
       price: 2
       currency: Coins
-  uses:
-    - purpose: Unfinished potions
-      skill: herblore
-    - purpose: Soft clay creation
-      skill: crafting
   related_items:
     - item_id: 229
       item_name: Vial
       slug: vial
       relationship: component
-      description: Empty container
+      description: Empty container filled at water source
     - item_id: 1781
       item_name: Soft clay
       slug: soft-clay
       relationship: product
-      description: Alternative use
+      description: Used to create soft clay
     - item_id: 249
       item_name: Grimy guam leaf
       slug: grimy-guam-leaf
@@ -48,11 +43,7 @@ osrs:
       slug: grimy-ranarr-weed
       relationship: component
       description: Herblore partner
-  about: |-
-    | Purpose | Skill |
-    |---------|-------|
-    | Unfinished potions | Herblore |
-    | Soft clay creation | Crafting |
+  about: "Vial of water is the base liquid for nearly every herblore potion in Old School RuneScape. Made by using an empty vial on any water source, then combined with grimy or clean herbs to make unfinished potions."
   market_strategy:
     notes:
       - Base for all potions
@@ -66,8 +57,27 @@ osrs:
       - Fill at any water source
       - Humidify spell efficient
       - Bulk buy for training
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2002-02-27"
+      update: Latest RuneScape News (27 February 2002)
+      description: Released into the game.
+    - date: "2024-01-10"
+      description: Soft clay can now be created with vials of water.
+  properties:
+    release_date: "2002-02-27"
+    update: Latest RuneScape News (27 February 2002)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.02
+    options: [Empty, Drop]
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

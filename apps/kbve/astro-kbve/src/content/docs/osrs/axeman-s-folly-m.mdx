@@ -1,20 +1,66 @@
 ---
 title: Axeman's folly(m) | OSRS Price Data
-description: "Axeman's folly(m): This looks a good deal stronger than normal Axeman's Folly.. High alch: 1 GP, GE limit: 2,000."
+description: "Axeman's folly(m): This looks a good deal stronger than normal Axeman's Folly. High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 5753
   name: Axeman's folly(m)
   slug: axeman-s-folly-m
   examine: This looks a good deal stronger than normal Axeman's Folly.
   members: true
-  icon: Axeman's folly(m).png
+  icon: "Axeman's folly(m).png"
   value: 2
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Axeman's folly(m) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: beer
+    tier: mid
+  potion:
+    effects:
+      - description: "Restores 2 Hitpoints when consumed."
+      - description: "Temporarily boosts Woodcutting level by 2."
+      - description: "Drains Attack level by 4."
+      - description: "Drains Strength level by 4."
+  recipes:
+    - skill: Cooking
+      level: 49
+      materials:
+        - item_name: Mature stew
+          quantity: 8
+      tools:
+        - Brewery
+        - Beer glass
+      product: "Axeman's folly(m)"
+      output_quantity: 8
+  about: "Axeman's folly(m) is the matured version of Axeman's Folly, brewed via Player-Owned House breweries. It restores 2 Hitpoints, boosts Woodcutting by 2, and drains both Attack and Strength by 4 levels. Members-only with a Grand Exchange buy limit of 2,000 per 4 hours."
+  market_strategy:
+    notes:
+      - Brewery output drives supply; price climbs when active brewers are scarce
+      - Niche utility — only Woodcutters seeking a +2 boost over the regular variant
+      - Bulk buyers tend to be 99 Woodcutting goal players
+  trading_tips:
+    - Watch GE volume; thin liquidity can spike prices on small buys
+    - Confirm matured (m) tag before purchase — easy to confuse with regular Axeman's Folly
+  history:
+    - date: "2005-07-11"
+      description: Released with the Farming update as a Player-Owned House brewery product.
+  properties:
+    release_date: "2005-07-11"
+    update: Farming update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,66 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Mahogany fancy dress box (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mahogany
+    tier: high
+  construction:
+    level: 80
+    xp: 280
+    facility: Bench with vice
+  recipes:
+    - skill: construction
+      level: 80
+      xp: 280
+      tools:
+        - Hammer
+        - Saw
+      materials:
+        - item_name: Mahogany plank
+          item_id: 8782
+          quantity: 2
+      product: Mahogany fancy dress box (flatpack)
+      product_id: 9867
+      members_only: true
+  related_items:
+    - item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: Material used to build the flatpack
+    - item_name: Teak fancy dress box (flatpack)
+      slug: teak-fancy-dress-box-flatpack
+      relationship: downgrade
+      description: Lower-tier costume room dress box
+  about: Mahogany fancy dress box flatpack is built on a bench with a vice and installed in the costume room space of a player-owned house.
+  market_strategy:
+    notes:
+      - Producing the flatpack from raw mahogany planks is typically a small loss after GE tax
+      - Demand is driven by player-owned house decoration so volume is thin
+  trading_tips:
+    - Compare GE price against the cost of two mahogany planks before crafting for profit
+    - Use it to consume excess mahogany planks while still earning Construction XP
+  history:
+    - date: "2006-10-18"
+      update: Player-Owned House Costume Room
+      description: Added to the game.
+    - date: "2015-02-26"
+      description: Renamed from Mahogany fdb to its full name.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-10-18"
+    update: Player-Owned House Costume Room
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

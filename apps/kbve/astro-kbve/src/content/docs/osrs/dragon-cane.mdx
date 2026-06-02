@@ -1,6 +1,6 @@
 ---
 title: Dragon cane | OSRS Price Data
-description: "Dragon cane: An onyx topped cane.. High alch: 18,000 GP, GE limit: 4."
+description: "Dragon cane: An onyx topped cane. High alch: 18,000 GP, GE limit: 4."
 osrs:
   id: 12373
   name: Dragon cane
@@ -12,9 +12,84 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: 4
-  about: "Dragon cane is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: weapon
+    weapon_type: polestaff
+    attack_speed: 5
+    weight: 1.814
+    requirements:
+      attack: 60
+    attack_bonus:
+      stab: 40
+      slash: -2
+      crush: 60
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 55
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 5
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  related_items:
+    - item_id: 11770
+      item_name: Reward casket (elite)
+      slug: reward-casket-elite
+      relationship: component
+      description: Source casket for the dragon cane
+    - item_id: 6562
+      item_name: Onyx
+      slug: onyx
+      relationship: component
+      description: Onyx tops the cane in lore and design
+    - item_id: 11924
+      item_name: Dragon thrownaxe
+      slug: dragon-thrownaxe
+      relationship: alternative
+      description: Other dragon weapons without special attacks
+  about: "Dragon cane is an elite Treasure Trails one-handed polestaff requiring 60 Attack, granting +60 crush, +55 strength and +5 prayer with no special attack."
+  market_strategy:
+    notes:
+      - Elite clue reward at 1/1,275 from elite caskets
+      - Buy limit 4 per 4 hours keeps prices volatile
+      - 60 Attack required, polestaff combat options
+      - Prayer bonus 5 enables ironman prayer training niche
+      - High alch 18,000 GP rarely beats GE price
+  history:
+    - date: "2014-06-12"
+      update: Treasure Trail Expansion
+      description: Dragon cane added as part of the Treasure Trail Expansion update.
+    - date: "2015-09-03"
+      update: Polygon adjustment
+      description: Model polygon count adjusted for performance.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

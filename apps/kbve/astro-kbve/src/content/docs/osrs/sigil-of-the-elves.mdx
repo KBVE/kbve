@@ -12,9 +12,51 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of the elves is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Deadman Mode drop table
+        quantity: "1"
+        rarity: varies
+        members_only: true
+        notes: Dropped by most monsters during Deadman events
+  related_items:
+    - item_id: 26088
+      item_name: Sigil of the elves (attuned)
+      slug: sigil-of-the-elves-attuned
+      relationship: variant
+      description: Attuned form that grants the XP bonus
+  about: "Sigil of the elves is a tier 2 Deadman: Reborn skilling sigil that grants 50 percent more XP in Agility, Fletching, Hunter, and Farming once attuned."
+  market_strategy:
+    notes:
+      - Only tradable while un-attuned
+      - Supply tied to Deadman event cycles
+      - Attuning permanently removes from the market
+      - Limit of 8 keeps liquidity tight
+  trading_tips:
+    - Stock during Deadman event windows
+    - Sell to skillers chasing Agility/Hunter goals
+  history:
+    - date: "2021-08-25"
+      update: "Deadman: Reborn"
+      description: Sigil of the elves released as a tier 2 skilling sigil during the Deadman:Reborn event.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-08-25"
+    update: "Deadman: Reborn"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    alchable: true
+    destroy: Destroy
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

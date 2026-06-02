@@ -12,9 +12,83 @@ osrs:
   lowalch: 180
   highalch: 270
   limit: 18000
-  about: "Gold necklace is a free-to-play item in Old School RuneScape. High alchemy value: 270 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: neck
+    weight: 0.007
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - product: Gold necklace
+      skill: Crafting
+      level: 6
+      xp: 20
+      materials:
+        - item_name: Gold bar
+          quantity: 1
+        - item_name: Necklace mould
+          quantity: 1
+      facility: Furnace
+      notes: Use gold bar on a furnace while carrying a necklace mould.
+  related_items:
+    - item_id: 2355
+      item_name: Gold bar
+      slug: gold-bar
+      relationship: component
+      description: Smelted bar used to craft the necklace
+    - item_id: 1692
+      item_name: Sapphire necklace
+      slug: sapphire-necklace
+      relationship: upgrade
+      description: First gem-tier neck piece, enchantable to games necklace
+    - item_id: 1727
+      item_name: Gold amulet
+      slug: gold-amulet-u
+      relationship: alternative
+      description: Alternative gold jewellery slot
+  market_strategy:
+    notes:
+      - Low-level Crafting training staple
+      - Cannot be enchanted, value capped by alch
+      - High alch profit vs gold bar cost varies with bar price
+  history:
+    - date: "2001-05-08"
+      description: Released with the initial jewellery system.
+    - date: "2007-04-30"
+      update: 24 Carat Update
+      description: Received a graphical update as part of the 24 Carat Update.
+  about: Gold necklace is a free-to-play neck-slot jewellery item crafted from a single gold bar at level 6 Crafting; provides no combat bonuses and cannot be enchanted.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-05-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.007
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

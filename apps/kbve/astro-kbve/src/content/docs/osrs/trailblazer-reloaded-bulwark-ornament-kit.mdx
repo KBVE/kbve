@@ -12,9 +12,53 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: null
-  about: "Trailblazer reloaded bulwark ornament kit is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Main game (post Leagues IV)
+      currency: League Points
+      price: 10000
+      notes: 10,000 League Points during Leagues IV claim window
+  related_items:
+    - item_id: 21015
+      item_name: Dinh's bulwark
+      slug: dinhs-bulwark
+      relationship: component
+      description: Shield this ornament kit reskins
+    - item_id: 28685
+      item_name: Dinh's blazing bulwark
+      slug: dinhs-blazing-bulwark
+      relationship: product
+      description: Resulting reskinned shield (reversible)
+  about: "Trailblazer reloaded bulwark ornament kit is a Leagues IV reward used on Dinh's Bulwark to create Dinh's Blazing Bulwark, a reversible cosmetic reskin."
+  market_strategy:
+    notes:
+      - No GE buy limit pads turnover
+      - Cannot be high alched
+      - Cosmetic, reversible reskin holds value
+      - Demand spikes with Bulwark meta
+  history:
+    - date: "2023-11-29"
+      update: Leagues IV Reward Shop
+      description: Item became obtainable from the Leagues Reward Shop.
+    - date: "2023-11-15"
+      update: Game Addition
+      description: Item added to the game files.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-11-29"
+    update: Leagues IV Reward Shop
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    alchable: false
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

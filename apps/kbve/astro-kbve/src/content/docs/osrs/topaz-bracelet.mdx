@@ -12,9 +12,91 @@ osrs:
   lowalch: 600
   highalch: 900
   limit: 10000
-  about: "Topaz bracelet is a members-only item in Old School RuneScape. High alchemy value: 900 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: jewellery
+    tier: silver
+  equipment:
+    slot: hands
+    weight: 0.25
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - product: Topaz bracelet
+      skill: Crafting
+      level: 38
+      xp: 75
+      materials:
+        - item_name: Silver bar
+          quantity: 1
+        - item_name: Red topaz
+          quantity: 1
+      tools:
+        - Bracelet mould
+        - Furnace
+  about: "Topaz bracelet is the entry-level silver gem bracelet, crafted at 38 Crafting from a silver bar and red topaz, and enchanted into a bracelet of slaughter via Lvl-3 Enchant."
+  market_strategy:
+    notes:
+      - Crafting profitable rarely; mostly a stepping stone to bracelet of slaughter
+      - Enchanted form (slaughter) is the demand driver
+      - High alch loses gp at most prices
+  trading_tips:
+    - Watch slaughter bracelet demand for slayer training spikes
+    - Buy silver bar plus red topaz under bracelet price for craft profit
+  history:
+    - date: "2017-02-02"
+      description: Added with the Zeah expansion gem update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-02-02"
+    update: Zeah Gem Update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_id: 21133
+      item_name: Bracelet of slaughter
+      slug: bracelet-of-slaughter
+      relationship: upgrade
+      description: Enchanted form via Lvl-3 Enchant
+    - item_id: 1746
+      item_name: Red topaz
+      slug: red-topaz
+      relationship: component
+      description: Gem used in crafting
+    - item_id: 2355
+      item_name: Silver bar
+      slug: silver-bar
+      relationship: component
+      description: Metal used in crafting
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

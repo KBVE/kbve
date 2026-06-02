@@ -1,6 +1,6 @@
 ---
 title: Mithril 2h sword | OSRS Price Data
-description: "Mithril 2h sword: A two handed sword.. High alch: 1,560 GP, GE limit: 125."
+description: "Mithril 2h sword: A two handed sword. High alch: 1,560 GP, GE limit: 125."
 osrs:
   id: 1315
   name: Mithril 2h sword
@@ -12,9 +12,82 @@ osrs:
   lowalch: 1040
   highalch: 1560
   limit: 125
-  about: "Mithril 2h sword is a free-to-play item in Old School RuneScape. High alchemy value: 1,560 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mithril
+    tier: mid
+  equipment:
+    slot: 2h
+    weapon_type: two-handed-sword
+    attack_speed: 7
+    weight: 3.175
+    requirements:
+      attack: 20
+    attack_bonus:
+      stab: -4
+      slash: 30
+      crush: 24
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -1
+    other_bonus:
+      melee_strength: 31
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 64
+      xp: 150
+      materials:
+        - item_name: Mithril bar
+          item_id: 2366
+          quantity: 3
+      tools: [Hammer, Anvil]
+      product: Mithril 2h sword
+      product_id: 1315
+      product_quantity: 1
+      members_only: false
+  related_items:
+    - item_id: 1311
+      item_name: Adamant 2h sword
+      slug: adamant-2h-sword
+      relationship: upgrade
+      description: Higher-tier two-handed sword
+    - item_id: 1309
+      item_name: Steel 2h sword
+      slug: steel-2h-sword
+      relationship: downgrade
+      description: Lower-tier two-handed sword
+  about: "Mithril 2h sword is a free-to-play two-handed slash weapon in Old School RuneScape requiring 20 Attack to wield. Smithed at level 64 from 3 mithril bars for 150 Smithing XP."
+  history:
+    - date: "2001-01-04"
+      update: Runescape beta is now online!
+      description: Released into the game.
+    - date: "2005-05-31"
+      description: Graphical update applied.
+    - date: "2005-08-23"
+      description: Equip animation changed.
+  properties:
+    release_date: "2001-01-04"
+    update: Runescape beta is now online!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 3.175
+    options: [Drop]
+    worn_options: [Wield]
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

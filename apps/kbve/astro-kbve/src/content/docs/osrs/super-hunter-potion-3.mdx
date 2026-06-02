@@ -12,9 +12,75 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: null
-  about: "Super hunter potion(3) is a members-only item in Old School RuneScape. High alchemy value: 102 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 3
+    effects:
+      - description: Boosts Hunter level by +6.
+    duration: Single boost, no persistent duration.
+  recipes:
+    - product: Super hunter potion(3)
+      skill: Herblore
+      level: 67
+      experience: 154
+      materials:
+        - item_name: Pillar potion (unf)
+          quantity: 1
+        - item_name: Crab paste
+          quantity: 1
+      notes: Creating this potion currently nets a loss of around 74 coins before GE tax.
+  related_items:
+    - item_id: 31626
+      item_name: Super hunter potion(1)
+      slug: super-hunter-potion-1
+      relationship: variant
+      description: 1-dose variant
+    - item_id: 31627
+      item_name: Super hunter potion(2)
+      slug: super-hunter-potion-2
+      relationship: variant
+      description: 2-dose variant
+    - item_id: 31631
+      item_name: Super hunter potion(4)
+      slug: super-hunter-potion-4
+      relationship: variant
+      description: 4-dose variant
+    - item_name: Pillar potion (unf)
+      slug: pillar-potion-unf
+      relationship: component
+      description: Unfinished base potion used in the recipe
+    - item_name: Crab paste
+      slug: crab-paste
+      relationship: component
+      description: Secondary ingredient
+  market_strategy:
+    notes:
+      - 67 Herblore gate limits supply scaling
+      - Pillar potion (unf) supply caps daily output
+      - Hunter boost niche — flippers watch Sailing demand
+      - Loss-per-mix means GE flips dominate over crafting
+  history:
+    - date: "2025-11-19"
+      update: Sailing is OUT TODAY!
+      description: Super hunter potion released with the Sailing launch.
+  about: Super hunter potion(3) is a 67 Herblore potion that boosts Hunter by +6 doses, brewed from a pillar potion (unf) and crab paste.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

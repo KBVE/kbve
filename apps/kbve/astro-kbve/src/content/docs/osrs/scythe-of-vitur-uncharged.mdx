@@ -12,95 +12,89 @@ osrs:
   lowalch: 1600000
   highalch: 2400000
   limit: 8
+  material:
+    type: metal
+    tier: high
   equipment:
     slot: weapon
-    type: scythe
-    tradeable: true
+    weapon_type: scythe
+    attack_speed: 5
     weight: 3.175
     requirements:
       attack: 80
       strength: 90
-    stats:
-      uncharged:
-        attack_stab: 50
-        attack_slash: 75
-        attack_crush: 10
-        attack_magic: -6
-        strength: 50
-        defence_stab: -2
-        defence_slash: 6
-      charged:
-        attack_stab: 70
-        attack_slash: 125
-        attack_crush: 30
-        strength: 75
-        defence_slash: 8
-        defence_crush: 10
-  special_mechanic:
-    name: Cleave
-    description: "Attacks in 1x3 arc, hitting up to 3 targets. Against large monsters (2x2+): 1st hit 100% damage, 2nd hit 50% damage, 3rd hit 25% damage."
-  charging:
-    cost: 1 Vial of blood + 200 Blood runes
-    charges_per_vial: 100
+    attack_bonus:
+      stab: 50
+      slash: 75
+      crush: 10
+      magic: -6
+      ranged: 0
+    defence_bonus:
+      stab: -2
+      slash: 6
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 50
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    description: "Cleave attack hits in a 1x3 arc on up to 3 tiles. Against large monsters (2x2 or larger), 1st hit deals 100 percent, 2nd hit 50 percent, and 3rd hit 25 percent damage."
+  charges:
     max_charges: 20000
+    charge_method: 1 vial of blood plus 200 blood runes per 100 charges at the Vyre well in Ver Sinhaza
     cost_per_attack: 537
+  drop_table:
+    sources:
+      - source: Theatre of Blood
+        quantity: "1"
+        rarity: Rare
   related_items:
-    - item_id: 22481
-      item_name: Sanguinesti staff
-      slug: sanguinesti-staff
+    - name: Scythe of vitur
+      relationship: upgrade
+    - name: Sanguinesti staff
       relationship: alternative
-      description: ToB mage weapon
-    - item_id: 22324
-      item_name: Ghrazi rapier
-      slug: ghrazi-rapier
+    - name: Ghrazi rapier
       relationship: alternative
-      description: ToB melee weapon
-    - item_id: 22446
-      item_name: Vial of blood
-      slug: vial-of-blood
+    - name: Vial of blood
       relationship: component
-      description: Required for charging
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Stab | +50 |
-    | Slash | +75 |
-    | Crush | +10 |
-    | Magic | -6 |
-    | Strength | +50 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Stab | -2 |
-    | Slash | +6 |
-
-    | Offence | Bonus |
-    |---------|-------|
-    | Stab | +70 |
-    | Slash | +125 |
-    | Crush | +30 |
-    | Strength | +75 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Slash | +8 |
-    | Crush | +10 |
-
-    Cleave: Attacks in 1x3 arc, hitting up to 3 targets. Against large monsters (2x2+):
-    - 1st hit: 100% damage
-    - 2nd hit: 50% damage
-    - 3rd hit: 25% damage
-
-    BiS for large monsters at ToB, Nightmare, and GWD.
-
-    | Cost | Charges |
-    |------|---------|
-    | 1 Vial of blood + 200 Blood runes | 100 |
-    | Max charges | 20,000 |
-
-    ~537 gp per attack. Charge at Vyre well in Ver Sinhaza.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Blood rune
+      relationship: component
+  about: "Scythe of vitur (uncharged) is the unpowered form of the powerful two-handed melee scythe from Theatre of Blood. Charged at the Vyre well in Ver Sinhaza with vials of blood and blood runes, it becomes BiS for large monsters at ToB, Nightmare, and GWD due to its cleave mechanic."
+  market_strategy:
+    notes:
+      - High-value item with limited daily volume; expect slow flips.
+      - Charging cost roughly 537 gp per attack determines effective DPS economics.
+  trading_tips:
+    - Charge at the Vyre well in Ver Sinhaza.
+    - Uncharge to trade or alch; charged form is untradeable.
+  history:
+    - date: "2018-06-07"
+      description: Released as part of the Theatre of Blood update.
+  properties:
+    release_date: "2018-06-07"
+    update: Theatre of Blood
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Wield
+      - Charge
+      - Drop
+    worn_options:
+      - Check
+      - Uncharge
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

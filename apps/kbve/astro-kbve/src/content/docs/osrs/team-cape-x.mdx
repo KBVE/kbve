@@ -5,7 +5,7 @@ osrs:
   id: 20214
   name: Team cape x
   slug: team-cape-x
-  examine: Ooohhh look at the dirty colours...
+  examine: "Ooohhh look at the dirty colours..."
   members: false
   icon: Team cape x.png
   value: 50
@@ -14,19 +14,71 @@ osrs:
   limit: 4
   equipment:
     slot: cape
+    weight: 0.453
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/5616
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
     - item_id: 20211
       item_name: Team cape zero
       slug: team-cape-zero
       relationship: variant
       description: Team cape zero variant
-  about: |-
-    > *"Ooohhh look at the dirty colours..."*
-
-    Team cape x is a cosmetic cape from easy treasure trails. A rare variant that cannot be bought from NPC team cape sellers. No stats or requirements.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: Team cape x is a rare cosmetic cape rewarded from Easy clue caskets at 1/5,616. Provides minor defence bonuses (+1 slash, +1 crush, +2 ranged) and qualifies for Wilderness Easy Diary tasks requiring a team cape. Usable in Entrana and Glarial's tomb despite stats.
+  market_strategy:
+    notes:
+      - "Easy clue rare: supply trickles in from clue grinders"
+      - Buy limit 4 per 4 hours severely caps flipping volume
+      - Demand from cape collectors keeps price elevated
+  trading_tips:
+    - Hold across diary completion waves for steady demand
+    - Stack alongside zero variant for collection log entries
+  history:
+    - date: "2016-07-06"
+      description: Added to the game as an Easy clue reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

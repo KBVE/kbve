@@ -12,9 +12,90 @@ osrs:
   lowalch: 7
   highalch: 10
   limit: null
+  potion:
+    effects:
+      - description: "Boosts Attack level by 4 + 15% of current Attack level (rounded down)."
+      - description: "Effect is shareable with up to 3 nearby players in multicombat areas if they have Accept Aid enabled."
+  recipes:
+    - materials:
+        - item_name: Jarred ruby harvest
+        - item_name: Raw wild kebbit
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+    - materials:
+        - item_name: Jarred ruby harvest
+        - item_name: Raw larupia
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+    - materials:
+        - item_name: Jarred ruby harvest
+        - item_name: Raw barb-tailed kebbit
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+    - materials:
+        - item_name: Jarred ruby harvest
+        - item_name: Raw graahk
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+    - materials:
+        - item_name: Jarred ruby harvest
+        - item_name: Raw kyatt
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+    - materials:
+        - item_name: Jarred ruby harvest
+        - item_name: Raw pyre fox
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+    - materials:
+        - item_name: Jarred ruby harvest
+        - item_name: Raw sunlight antelope
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+    - materials:
+        - item_name: Jarred ruby harvest
+        - item_name: Raw dashing kebbit
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+    - materials:
+        - item_name: Jarred ruby harvest
+        - item_name: Raw moonlight antelope
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+  related_items:
+    - name: Ruby harvest mix (2)
+      relationship: upgrade
   about: "Ruby harvest mix (1) is a members-only item in Old School RuneScape. High alchemy value: 10 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  history:
+    - date: "2024-03-20"
+      description: "Released as part of the Varlamore: Part One update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,6 +12,13 @@ osrs:
   lowalch: 44
   highalch: 66
   limit: 2000
+  potion:
+    doses: 1
+    type: combat
+    base_herb: kwuarm
+    effects:
+      - description: "Boosts Strength by 5 + 15% of current Strength level (floored)."
+      - description: "Effect decays at 1 level per minute, or 1 level per 90 seconds with the Preserve prayer active."
   related_items:
     - item_id: 157
       item_name: Super strength(3)
@@ -23,12 +30,48 @@ osrs:
       slug: super-strength-2
       relationship: variant
       description: 2-dose version
-  about: |-
-    > _"1 dose of super Strength potion."_
-
-    A 1-dose super strength potion. Boosts Strength by 5 + 15% of current level.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 163
+      item_name: Vial
+      slug: vial
+      relationship: component
+      description: Empty container left after drinking the last dose
+    - item_id: 219
+      item_name: Kwuarm potion (unf)
+      slug: kwuarm-potion-unf
+      relationship: component
+      description: Unfinished base before adding limpwurt root
+  history:
+    - date: "2002-02-27"
+      description: Super strength potions released alongside the Herblore skill expansion.
+    - date: "2004-10-26"
+      description: '"Empty" option added.'
+  about: Super strength(1) is the single-dose form of the super strength potion, providing a Strength boost of 5 + 15% of the player's level.
+  market_strategy:
+    notes:
+      - Often sold by raiders trimming inventory doses
+      - Decanters convert single doses into 3- or 4-dose flasks for profit
+      - Limited demand vs. 4-dose; thinner spread
+  trading_tips:
+    - Combine 1-doses into 4-doses via decanting NPCs
+    - Watch limpwurt root and kwuarm supply
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    update: Herblore expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.025
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

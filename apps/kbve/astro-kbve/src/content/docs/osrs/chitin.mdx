@@ -9,12 +9,88 @@ osrs:
   members: true
   icon: Chitin.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: null
-  about: "Chitin is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Dagannoth Rex (Deadman)
+        quantity: "1"
+        rarity: "1/2"
+      - source: Dagannoth Prime (Deadman)
+        quantity: "1"
+        rarity: "1/2"
+      - source: Dagannoth Supreme (Deadman)
+        quantity: "1"
+        rarity: "1/2"
+      - source: General Graardor (Deadman)
+        quantity: "1"
+        rarity: "1/2"
+      - source: K'ril Tsutsaroth (Deadman)
+        quantity: "1"
+        rarity: "1/2"
+      - source: Kree'arra (Deadman)
+        quantity: "1"
+        rarity: "1/2"
+      - source: Commander Zilyana (Deadman)
+        quantity: "1"
+        rarity: "1/2"
+      - source: TzTok-Jad (Deadman)
+        quantity: "1"
+        rarity: "1/2"
+      - source: Cerberus (Deadman)
+        quantity: "1"
+        rarity: "1/2"
+      - source: Vardorvis (Deadman)
+        quantity: "1"
+        rarity: "1/2"
+  recipes:
+    - skill: herblore
+      level: 83
+      xp: 125
+      materials:
+        - item_name: Super combat potion(4)
+          item_id: 12695
+          quantity: 1
+        - item_name: Chitin
+          item_id: 29643
+          quantity: 1
+      tools:
+        - Vial
+      product: Blighted super combat potion(4)
+      product_id: 29647
+  related_items:
+    - item_id: 29647
+      item_name: Blighted super combat potion(4)
+      slug: blighted-super-combat-potion-4
+      relationship: product
+      description: Crafted using chitin in Deadman mode
+  about: "Deadman Mode crafting material dropped at 1/2 from most breach bosses; combine with 4-dose super combat / ranging / magic potions at 83 Herblore for 125 XP to create blighted overloads."
+  market_strategy:
+    notes:
+      - Deadman Mode exclusive — no main-game market
+      - Stockpile for blighted overload crafting
+      - Burn through Slayer / boss tasks for supply
+  history:
+    - date: "2024-07-17"
+      update: "Deadman: Armageddon & While Guthix Sleeps Updates"
+      description: Released alongside the Deadman Armageddon launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-07-17"
+    update: "Deadman: Armageddon"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 0.01
+    options:
+      - Drop
+    alchable: false
+    quest_item: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

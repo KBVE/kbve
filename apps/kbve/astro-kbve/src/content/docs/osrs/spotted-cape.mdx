@@ -1,6 +1,6 @@
 ---
 title: Spotted cape | OSRS Price Data
-description: "Spotted cape: A surprisingly aerodynamic cape.. High alch: 240 GP, GE limit: 125."
+description: "Spotted cape: A surprisingly aerodynamic cape. High alch: 240 GP, GE limit: 125."
 osrs:
   id: 10069
   name: Spotted cape
@@ -12,9 +12,78 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 125
-  about: "Spotted cape is a members-only item in Old School RuneScape. High alchemy value: 240 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: cape
+    weight: 0.453
+    requirements:
+      hunter: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: hunter
+      level: 40
+      xp: 0
+      materials:
+        - item_name: Spotted kebbit fur
+          quantity: 2
+        - item_name: Coins
+          quantity: 400
+      facility: Fancy Clothes Store
+      output_quantity: 1
+  related_items:
+    - item_id: 10071
+      item_name: Spottier cape
+      slug: spottier-cape
+      relationship: upgrade
+      description: Higher-tier Hunter cape that reduces weight further
+    - item_id: 10125
+      item_name: Spotted kebbit fur
+      slug: spotted-kebbit-fur
+      relationship: component
+      description: Required fur for tailoring this cape
+  about: A spotted cape stitched at the Fancy Clothes Store from two spotted kebbit furs at 40 Hunter that reduces equipped weight by 2.267 kg.
+  market_strategy:
+    notes:
+      - Useful early-game weight reducer for Agility / runner accounts
+      - Outclassed by the spottier cape but cheaper to craft
+  history:
+    - date: "2006-11-21"
+      description: Released with the Hunter skill.
+    - date: "2015-09-10"
+      description: Fixed cape rack storage issues that prevented retrieval.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter skill
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

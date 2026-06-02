@@ -9,12 +9,79 @@ osrs:
   members: true
   icon: Kourend castle teleport (tablet).png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: null
-  about: "Kourend castle teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: teleport_tablet
+    tier: basic
+  teleport:
+    destination: Kourend Castle courtyard
+    type: tablet
+    requirements: Completion of Client of Kourend
+  recipes:
+    - skill: magic
+      level: 48
+      xp: 58
+      materials:
+        - item_name: Law rune
+          quantity: 2
+        - item_name: Water rune
+          quantity: 1
+        - item_name: Fire rune
+          quantity: 1
+        - item_name: Soft clay
+          quantity: 1
+      tools:
+        - Teak lectern
+        - Mahogany lectern
+        - Marble lectern
+      product: Kourend castle teleport (tablet)
+      members_only: true
+  related_items:
+    - item_name: Law rune
+      slug: law-rune
+      relationship: component
+      description: Required rune for making the tablet
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Required base material
+    - item_name: Civitas illa fortis teleport (tablet)
+      slug: civitas-illa-fortis-teleport-tablet
+      relationship: alternative
+      description: Similar regional teleport tablet
+  about: The Kourend castle teleport tablet is a single-use teleport to the Kourend Castle courtyard, crafted at a player-owned house lectern after completing Client of Kourend.
+  market_strategy:
+    notes:
+      - Cheap utility teleport with niche demand
+      - Useful for Slayer tasks and farming runs around Kourend
+      - Supply driven by Construction profit flippers
+  trading_tips:
+    - Stock up during Construction training spikes
+    - Check Mahogany Homes activity for supply changes
+  history:
+    - date: "2024-01-10"
+      description: Kourend castle teleport tablet introduced with the Children of the Sun update.
+    - date: "2025-05-29"
+      description: Standard teleport tablets exempted from the Grand Exchange convenience fee.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-01-10"
+    update: Children of the Sun
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    alchable: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

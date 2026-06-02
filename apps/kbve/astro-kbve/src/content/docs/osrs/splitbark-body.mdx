@@ -12,8 +12,15 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: 70
+  material:
+    type: splitbark
+    tier: mid
   equipment:
     slot: body
+    weight: 4.535
+    requirements:
+      magic: 40
+      defence: 40
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,28 +38,29 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      magic: 40
-      defence: 40
-    weight: 4.535
   recipes:
     - skill: crafting
       level: 62
       xp: 248
-      inputs:
+      materials:
         - item_name: Bark
+          item_id: 3239
           quantity: 4
         - item_name: Fine cloth
+          item_id: 3470
           quantity: 4
-      output_quantity: 1
+        - item_name: Thread
+          item_id: 1734
+          quantity: 1
+      tools:
+        - Needle
+      product: Splitbark body
+      product_id: 3387
   drop_table:
     sources:
       - source: Chaos Fanatic
-        combat_level: 202
         quantity: "1"
-        rarity: rare
-        drop_rate: 1/128
-        members_only: true
+        rarity: 5/128
   related_items:
     - item_id: 3385
       item_name: Splitbark helm
@@ -64,43 +72,37 @@ osrs:
       slug: splitbark-legs
       relationship: set-piece
       description: Matching leg piece
-  about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Magic | +10 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +36 |
-    | Slash | +26 |
-    | Crush | +42 |
-    | Magic | +15 |
-
-    Requirements: 40 Magic, 40 Defence
-
-    | Stat | Splitbark Body | Mystic Robe Top |
-    |------|---------------|-----------------|
-    | Magic Atk | +10 | +20 |
-    | Stab Def | +36 | 0 |
-    | Slash Def | +26 | 0 |
-    | Crush Def | +42 | 0 |
-    | Magic Def | +15 | +20 |
-
-    Half the magic attack bonus of mystic, but provides substantial melee defence. The body piece shows the largest stat trade-off in the set — 10 less magic attack for +36/+26/+42 melee defence.
-
-    - Bark: Hollow Trees in the Haunted Woods (east of Canifis)
-    - Fine cloth: Shades of Mort'ton minigame — burn shade remains on pyres
-    - The body requires the most materials of any splitbark piece (4 bark + 4 fine cloth)
-
-    - Swampbark body: Earth spell prayer effect variant
-    - Bloodbark body: Blood spell healing effect variant
+  about: Splitbark body is a hybrid magic and melee chestplate that requires 40 Magic and 40 Defence; it offers substantial stab, slash, crush, and magic defence at the cost of magic attack compared to mystic robes, and is crafted from bark and fine cloth at 62 Crafting.
   market_strategy:
     notes:
-      - Chaos Fanatic is a Wilderness boss — PvP risk for drops
-      - Material-intensive to craft (4+4)
-      - Niche hybrid and fashionscape demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Chaos Fanatic is a Wilderness boss so drops carry PvP risk
+      - Crafting recipe is material intensive (4 bark + 4 fine cloth)
+      - Niche hybrid and fashionscape demand keeps daily volume low
+  history:
+    - date: "2004-10-18"
+      description: Splitbark body added with the Splitbark armour update.
+    - date: "2004-10-26"
+      description: Graphical update applied.
+    - date: "2006-05-31"
+      description: Inventory sprite rotated.
+  properties:
+    release_date: "2004-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    weight: 4.535
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

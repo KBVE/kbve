@@ -12,9 +12,40 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Sigil of agile fortune is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  related_items:
+    - name: Mark of grace
+      relationship: alternative
+    - name: Pyramid top
+      relationship: alternative
+  about: "Sigil of agile fortune is a Deadman Mode sigil that drops bonus coins when Marks of Grace spawn on Rooftop Agility courses and triples the pyramid top hand-in reward at Simon Templeton."
+  market_strategy:
+    notes:
+      - "Untradeable Deadman event reward; no Grand Exchange market."
+      - "Only obtainable during temporary Deadman Mode events."
+  trading_tips:
+    - "No flipping route - sigil is bound to event characters and unattunes before destruction."
+    - "Track Deadman event schedules for windows when the sigil enters circulation."
+  history:
+    - date: "2023-08-23"
+      description: "Released as part of the Deadman Mode: Apocalypse sigil pool."
+  properties:
+    release_date: "2023-08-23"
+    update: "Deadman Mode: Apocalypse"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Unlock
+      - Inspect
+      - Destroy
+    alchable: false
+    destroy: "You must unattune the Sigil before you can destroy it."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

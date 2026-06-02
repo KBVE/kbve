@@ -1,6 +1,6 @@
 ---
 title: Marble block | OSRS Price Data
-description: "Marble block: A beautifully carved marble block.. High alch: 150,000 GP, GE limit: 11,000."
+description: "Marble block: A beautifully carved marble block. High alch: 150,000 GP, GE limit: 11,000."
 osrs:
   id: 8786
   name: Marble block
@@ -14,69 +14,78 @@ osrs:
   limit: 11000
   material:
     type: construction
-    tier: premium
+    tier: high
   construction:
     min_level: 50
-    cost: 325000
-    source: Keldagrim Stonemason
     common_builds:
-      - name: Marble lecterns
-        quantity: 1
+      - name: Marble lectern
+        quantity: "1"
         xp: 700
       - name: Gilded altar
-        quantity: 2
+        quantity: "2"
         xp: 1500
-      - name: Ornate pool
-        quantity: 8
+      - name: Ornate rejuvenation pool
+        quantity: "8"
         xp: 3200
-  shop_sources:
-    - name: Keldagrim Stonemason
+  shops:
+    - shop_name: Stonemason
+      location: Keldagrim
       price: 325000
-    - name: Stonecutter Supplies
+    - shop_name: Stonecutter Supplies
+      location: Stonecutter Outpost
       price: 325000
   related_items:
     - item_id: 8784
       item_name: Gold leaf
       slug: gold-leaf
       relationship: alternative
-      description: Another premium material
+      description: Premium construction material used alongside marble.
     - item_id: 8790
       item_name: Bolt of cloth
       slug: bolt-of-cloth
       relationship: alternative
-      description: Decoration material
+      description: Decoration material for POH furniture.
     - item_id: 8782
       item_name: Mahogany plank
       slug: mahogany-plank
       relationship: component
-      description: Often used together
+      description: Frequently used in the same high-tier builds.
     - item_id: 3420
       item_name: Limestone brick
       slug: limestone-brick
       relationship: alternative
-      description: Budget stone option
-  about: |-
-    | Furniture | Marble Blocks | Level | XP |
-    |-----------|---------------|-------|-----|
-    | Marble fireplace | 1 | 63 | 500 |
-    | Gilded decoration | 2 | 75 | 1020 |
-    | Gilded altar | 2 | 75 | 2230 |
-    | Ornate rejuvenation pool | 8 | 90 | 3200 |
-    | Spirit tree & fairy ring | 1 | 95 | 2500 |
-
-    Key POH Builds:
-    - Gilded altar (75 Construction) - Best Prayer training in POH
-    - Ornate pool (90 Construction) - Full stat restore
-    - Occult altar (90 Construction) - Spellbook swapping
+      description: Budget stone option for early Construction.
+  about: High-tier Construction stone bought from the Keldagrim Stonemason or Stonecutter Outpost; used in gilded altars and ornate pools.
   market_strategy:
     notes:
-      - "Gilded altar: 650,000 GP (2 blocks)"
-      - "Ornate pool: 2,600,000 GP (8 blocks)"
+      - "Gilded altar: 650,000 GP per build (2 blocks)"
+      - "Ornate pool: 2,600,000 GP per build (8 blocks)"
       - Buy in bulk to save trips to Keldagrim
       - Most builds also require Gold leaf
       - High Construction level unlocks best features
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  trading_tips:
+    - Margin tracks GE versus 325,000 shop price - watch for clips
+    - Stockpile before bonus XP weekends when Construction demand spikes
+  history:
+    - date: "2006-05-31"
+      description: Released with the Player-Owned Houses update.
+  properties:
+    release_date: "2006-05-31"
+    update: Player-Owned Houses
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 13.607
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

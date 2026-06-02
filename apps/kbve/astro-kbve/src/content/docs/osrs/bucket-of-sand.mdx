@@ -12,16 +12,6 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  material:
-    type: crafting_ingredient
-    tier: basic
-  sources:
-    - name: Sandpits
-      method: Fill bucket
-    - name: Bert (daily)
-      method: 84 sand after Hand in the Sand quest
-    - name: Sandstone grinder
-      method: Mining sandstone
   recipes:
     - skill: crafting
       level: 1
@@ -42,42 +32,54 @@ osrs:
       item_name: Molten glass
       slug: molten-glass
       relationship: product
-      description: Product
+      description: Smelted product
     - item_id: 1781
       item_name: Soda ash
       slug: soda-ash
       relationship: component
-      description: Partner ingredient
+      description: Partner ingredient for molten glass
     - item_id: 21504
       item_name: Giant seaweed
       slug: giant-seaweed
       relationship: component
-      description: Superglass Make
+      description: Used with sand in Superglass Make
     - item_id: 6971
-      item_name: Sandstone
-      slug: sandstone
+      item_name: Sandstone (10kg)
+      slug: sandstone-10kg
       relationship: component
-      description: Grinder input
-  about: |-
-    | Product | Other Ingredient |
-    |---------|------------------|
-    | Molten glass | Soda ash |
-    | Superglass Make | Giant seaweed |
+      description: Grinder input that yields buckets of sand
   market_strategy:
     notes:
-      - Molten glass production
-      - Sandstone grinder efficient
-      - Bert daily delivery
-      - Molten glass production
-      - Crafting training
-      - Ironman glassblowing
-      - Superglass Make
-      - Bert gives 84 daily (quest)
-      - Sandstone grinder best method
-      - Yanille sandpit close to bank
-      - High volume demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Bert delivers 84 buckets daily after Hand in the Sand quest
+      - Sandstone grinder in Lovakengj produces high-volume supply
+      - Yanille and Zanaris sandpits closest to banks
+      - Demand driven by Crafting glassblowing and Superglass Make
+      - High-volume staple with consistent ironman use
+  history:
+    - date: "2006-03-28"
+      description: Inventory sprite rotated for clarity.
+    - date: "2006-03-22"
+      description: Graphically updated.
+    - date: "2005-08-09"
+      description: '"Empty" option added.'
+    - date: "2002-03-18"
+      description: Released to the game.
+  about: Bucket of sand is the core glass-making ingredient, combined with soda ash at a furnace for 20 Crafting XP to produce molten glass.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-03-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.5
+    options:
+      - Empty
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

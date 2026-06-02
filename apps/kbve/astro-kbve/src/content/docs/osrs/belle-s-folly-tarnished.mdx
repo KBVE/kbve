@@ -1,6 +1,6 @@
 ---
 title: Belle's folly (tarnished) | OSRS Price Data
-description: "Belle's folly (tarnished): This blade needs some work before it will be useable.. High alch: 27,000 GP."
+description: "Belle's folly (tarnished): This blade needs some work before it will be useable. High alch: 27,000 GP."
 osrs:
   id: 31245
   name: Belle's folly (tarnished)
@@ -12,9 +12,72 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: null
-  about: "Belle's folly (tarnished) is a members-only item in Old School RuneScape. High alchemy value: 27,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: weapon_blank
+    tier: high
+  drop_table:
+    sources:
+      - source: Shellbane Gryphon
+        quantity: "1"
+        rarity: "1/256"
+  recipes:
+    - skill: smithing
+      level: 70
+      xp: 500
+      requirements:
+        smithing: 70
+        quest: Sleeping Giants
+      materials:
+        - item_name: Belle's folly (tarnished)
+          item_id: 31245
+          quantity: 1
+      tools:
+        - Polishing wheel
+      facility: Giants' Foundry
+      product: Belle's folly
+      product_id: 31248
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 31248
+      item_name: Belle's folly
+      slug: belle-s-folly
+      relationship: upgrade
+      description: Polished finished blade
+  about: "Tarnished blade dropped by Shellbane Gryphon; polish at Giants' Foundry with 70 Smithing for Belle's folly."
+  market_strategy:
+    title: Polish-to-flip blank
+    notes:
+      - 1/256 drop from Shellbane Gryphon
+      - 70 Smithing required to polish at Giants' Foundry
+      - Post-Sleeping Giants requirement gates supply
+      - Tracks finished Belle's folly market minus polish XP value
+  trading_tips:
+    - Watch tarnished vs polished spread for craft margin
+    - 500 Smithing XP per polish has minor extra value
+    - Drop rate boost in Feb 2026 expanded supply
+  history:
+    - date: "2025-11-19"
+      description: Released with the Sailing update as a Shellbane Gryphon drop.
+    - date: "2026-02-04"
+      description: Drop rate buffed from 1/400 to 1/256.
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Inspect
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

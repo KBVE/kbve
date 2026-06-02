@@ -12,9 +12,67 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 40
-  about: "Wrath tiara is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: runecraft
+    tier: mid
+  equipment:
+    slot: head
+    weight: 1
+    requirements:
+      runecraft: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Runecraft
+      level: 1
+      xp: 52.5
+      materials:
+        - item_name: Tiara
+        - item_name: Wrath talisman
+      tools:
+        - Wrath Altar
+      output: Wrath tiara
+  related_items:
+    - item_id: 21807
+      item_name: Wrath talisman
+      slug: wrath-talisman
+      relationship: component
+      description: Combined with tiara at Wrath Altar
+  about: Wrath tiara is a head slot item that allows left-click entry to the Wrath Altar ruins, removing the need to carry a wrath talisman separately.
+  history:
+    - date: "2018-01-04"
+      description: Released with the Dragon Slayer II update.
+  properties:
+    release_date: "2018-01-04"
+    update: Dragon Slayer II
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,65 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Hosidius hood is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: head
+    weight: 0.1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_id: 20119
+      item_name: Hosidius scarf
+      slug: hosidius-scarf
+      relationship: set-piece
+      description: Matching scarf from same Treasure Trail set
+  about: "Hosidius hood is a cosmetic head-slot reward from master Treasure Trails with no combat bonuses, dropped at roughly 1/851 from a Reward casket (master)."
+  market_strategy:
+    notes:
+      - Supply driven entirely by master clue completions
+      - GE limit of 4 keeps prices volatile on demand spikes
+      - Purely cosmetic so demand tracks fashionscape trends
+  history:
+    - date: "2019-01-10"
+      description: Renamed from 'Hosidius house hood' to 'Hosidius hood' with examine updated from 'A rare hood from house Hosidius.'
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion (2016)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

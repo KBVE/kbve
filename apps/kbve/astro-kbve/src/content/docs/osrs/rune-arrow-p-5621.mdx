@@ -12,9 +12,82 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 11000
-  about: "Rune arrow(p+) is a members-only item in Old School RuneScape. High alchemy value: 240 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: mid
+  equipment:
+    slot: ammo
+    weight: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 49
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 49
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Herblore
+      level: 73
+      experience: 0
+      materials:
+        - item_name: Rune arrow
+          quantity: 1
+        - item_name: Extra strong weapon poison
+          quantity: 1
+      tools: []
+  related_items:
+    - item_name: Rune arrow
+      slug: rune-arrow
+      relationship: variant
+      description: Unpoisoned variant of this arrow
+    - item_name: Rune arrow(p)
+      slug: rune-arrow-p-standard
+      relationship: variant
+      description: Standard poison variant
+    - item_name: Rune arrow(p++)
+      slug: rune-arrow-pp
+      relationship: variant
+      description: Super strong poison variant
+  about: "Rune arrow(p+) is the extra-strong-poison variant of the rune arrow, released on 25 March 2002. It carries the same +49 Ranged attack bonus and +49 Ranged strength as the base arrow while applying poison damage on hit. Players create them with Herblore by applying extra strong weapon poison to standard rune arrows."
+  market_strategy:
+    notes:
+      - High GE buy limit supports bulk Slayer and PvM use
+      - Margins versus unpoisoned rune arrows depend on weapon poison(+) costs
+      - Demand is steady from Ranged training and content where poison helps
+  history:
+    - date: "2002-03-25"
+      description: Released alongside the original rune arrow
+    - date: "2006-08-01"
+      description: "Renamed from 'Rune arrow(+)' to 'Rune arrow(p+)' for naming consistency"
+  properties:
+    release_date: "2002-03-25"
+    update: Latest RuneScape News
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Shade robe | OSRS Price Data
-description: "Shade robe is a F2P legs slot item. High alch: 18 GP, GE limit: 125."
+description: "Shade robe is a F2P legs slot item dropped by shades, granting +4 Prayer bonus. High alch: 18 GP, GE limit: 125."
 osrs:
   id: 548
   name: Shade robe
@@ -14,21 +14,64 @@ osrs:
   limit: 125
   equipment:
     slot: legs
+    weight: 0.907
     requirements: {}
     other_bonus:
       prayer: 4
+  drop_table:
+    - source: Shade
+      level: 140
+      quantity: "1"
+      rarity: 32/128
+    - source: Shade
+      level: 159
+      quantity: "1"
+      rarity: 32/128
   related_items:
     - item_id: 546
       item_name: Shade robe top
       slug: shade-robe-top
       relationship: set-piece
-      description: Matching shade robe top
-  about: |-
-    > *"If a shade had knees, this would keep them nice and warm."*
-
-    The shade robe is a free-to-play legs slot item that provides a +4 Prayer bonus. It is dropped by shades and is part of the shade robes set. No requirements to equip, making it useful for prayer-focused builds at any level.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Matching shade robe top with prayer bonus
+    - item_id: 542
+      item_name: Monk's robe
+      slug: monks-robe
+      relationship: alternative
+      description: Members alternative with +5 Prayer bonus
+  prayer:
+    bonus: 4
+  about: "The shade robe is a free-to-play legs slot drop from shades that grants a +4 Prayer bonus, slotting between the priest gown (+3) and monk's robe (+5) for budget prayer setups."
+  market_strategy:
+    notes:
+      - "Demand is steady from F2P prayer flickers and ironmen who cannot get monk's robes; supply scales with shade kills so prices climb during Shades of Mort'ton minigame attention."
+  trading_tips:
+    - "Buy when GE volume spikes after minigame rework news and resell into clue scroll and prayer-training cycles."
+  history:
+    - date: "2004-03-29"
+      description: "Released with the RuneScape 2 launch."
+    - date: "2004-07-01"
+      description: "Renamed from Black robe to Shade robe."
+    - date: "2004-10-01"
+      description: "Examine text updated to its current form."
+  properties:
+    release_date: "2004-03-29"
+    update: RS2 Launched!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

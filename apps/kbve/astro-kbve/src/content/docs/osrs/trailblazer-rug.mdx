@@ -12,9 +12,48 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 5
-  about: "Trailblazer rug is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  construction:
+    level: 60
+    xp: 60
+    materials:
+      - item_name: Trailblazer rug
+        quantity: 1
+      - item_name: Bolt of cloth
+        quantity: 4
+    tools:
+      - Hammer
+      - Saw
+    facility: League Hall rug hotspot
+  shops:
+    - shop_name: Leagues Reward Shop
+      currency: League Points
+      price: 5000
+      location: Leagues hub
+  related_items:
+    - item_id: 25092
+      item_name: Trailblazer banner
+      slug: trailblazer-banner
+      relationship: alternative
+      description: Companion Leagues Trophy Room reward
+  about: "Trailblazer rug is a Trailblazer League reward purchased from the Leagues Reward Shop for 5,000 League Points and built in the League Trophy Room of a Player-Owned House. High alchemy value: 30,000 coins. Grand Exchange buy limit: 5 per 4 hours."
+  history:
+    - date: "2020-10-28"
+      description: Item added to game ahead of Trailblazer League launch.
+    - date: "2021-01-06"
+      description: Made obtainable from the Leagues Reward Shop; value raised from 5,000 to 50,000 and made members-only.
+  properties:
+    release_date: "2021-01-06"
+    update: Soul Wars and 20th Anniversary Event
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -14,17 +14,52 @@ osrs:
   limit: 18000
   equipment:
     slot: neck
+    weight: 0.01
     requirements:
       crafting: 29
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 29
       xp: 60
-      inputs:
-        - item_name: Emerald
-          quantity: 1
+      materials:
         - item_name: Gold bar
           quantity: 1
+        - item_name: Emerald
+          quantity: 1
+        - item_name: Necklace mould
+          quantity: 1
+      tools:
+        - Necklace mould
+      facility: Furnace
+      output_quantity: 1
+    - skill: magic
+      level: 27
+      xp: 37
+      materials:
+        - item_name: Emerald necklace
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Air rune
+          quantity: 3
+      output_item: Binding necklace
       output_quantity: 1
   related_items:
     - item_id: 1656
@@ -37,28 +72,42 @@ osrs:
       slug: ruby-necklace
       relationship: upgrade
       description: Next tier necklace
-  about: |-
-    Crafting (Level 29): Emerald + Gold bar at a furnace with necklace mould (60 XP)
-
-    > *"An emerald necklace."*
-
-    Lvl-2 Enchant (27 Magic): 1 cosmic rune + 3 air runes (37 XP)
-
-    The Binding necklace guarantees 100% success when crafting combination runes (lava, mud, mist, smoke, steam, dust runes). Without it, combination runecrafting has only a ~50% success rate.
-
-    16 charges per necklace — each combination rune craft uses one charge.
-
-    Essential for:
-    - Lava rune crafting (fastest Runecrafting XP method)
-    - Any combination rune crafting
-    - Ironman rune production
+    - item_id: 5521
+      item_name: Binding necklace
+      slug: binding-necklace
+      relationship: product
+      description: Enchanted form used for combination runecrafting
+  about: An emerald necklace crafted from a gold bar and an emerald at level 29 Crafting that turns into a binding necklace when enchanted with Lvl-2 Enchant.
   market_strategy:
     notes:
-      - Extremely high demand — lava rune RC is the fastest XP method
-      - Consumed after 16 charges
+      - Extremely high demand — lava rune runecrafting is the fastest XP method
+      - Binding necklace consumed after 16 charges
       - Enchanting is consistently profitable
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2001-05-08"
+      description: Released with early jewellery crafting.
+    - date: "2007-04-30"
+      description: Graphically updated in the 24 Carat Update.
+    - date: "2018-02-22"
+      description: Inventory sprite rotated to distinguish from enchanted jewellery.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-05-08"
+    update: RuneScape updated (8 May 2001)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

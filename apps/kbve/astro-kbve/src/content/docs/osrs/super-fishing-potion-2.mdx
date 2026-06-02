@@ -12,9 +12,66 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: null
-  about: "Super fishing potion(2) is a members-only item in Old School RuneScape. High alchemy value: 54 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: mid
+  potion:
+    doses: 2
+    effects:
+      - description: "Boosts Fishing level by +6."
+        skill: Fishing
+        boost: 6
+  recipes:
+    - materials:
+        - item_name: Pillar potion (unf)
+          quantity: 1
+        - item_name: Haddock eye
+          quantity: 1
+      tools:
+        - Vial
+      skill: Herblore
+      level: 62
+      experience: 140.5
+      output_quantity: 1
+  related_items:
+    - name: Super fishing potion(1)
+      relationship: variant
+    - name: Super fishing potion(3)
+      relationship: variant
+    - name: Super fishing potion(4)
+      relationship: variant
+    - name: Fishing potion(2)
+      relationship: downgrade
+  about: "Super fishing potion(2) provides two doses of a +6 Fishing boost, brewed at 62 Herblore from a pillar potion (unf) and haddock eye."
+  market_strategy:
+    notes:
+      - "Cannot be stored in a tackle box — a known bug at release."
+      - "Pricing tracks haddock-eye availability from Sailing content."
+  trading_tips:
+    - "Watch pillar potion (unf) GE supply; it gates Herblore output."
+    - "Dose conversion (1-2-3-4) arbitrage often opens around skill events."
+  history:
+    - date: "2025-11-19"
+      description: "Released alongside the Sailing skill launch."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing is OUT TODAY!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

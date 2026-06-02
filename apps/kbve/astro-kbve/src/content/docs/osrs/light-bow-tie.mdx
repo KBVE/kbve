@@ -12,9 +12,77 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Light bow tie is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: clothing
+    tier: mid-high
+  equipment:
+    slot: neck
+    weight: 0.1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/12750
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  related_items:
+    - item_id: 19979
+      item_name: Light tuxedo jacket
+      slug: light-tuxedo-jacket
+      relationship: set-piece
+      description: Matching light tuxedo jacket
+  about: An elite Treasure Trail cosmetic neck slot accessory and part of the light tuxedo outfit; can be stored in the costume room treasure chest.
+  market_strategy:
+    notes:
+      - Limited supply from rare elite casket
+      - Cosmetic with fashionscape demand
+      - Tiny buy limit drives volatility
+  trading_tips:
+    - Pair listings with other light tuxedo pieces
+    - Watch elite Clue popularity for supply spikes
+  history:
+    - date: "2016-07-06"
+      description: Item released with the Treasure Trail Expansion (2016) update.
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion (2016)
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,19 +12,39 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 125
+  material:
+    type: blessed
+    tier: mid
   equipment:
     slot: body
-    type: armour
-    prayer_bonus: 6
     requirements:
       defence: 20
       prayer: 10
-    combat_stats:
-      stab_defence: 40
-      slash_defence: 44
-      crush_defence: 38
-      magic_defence: -6
-      ranged_defence: 44
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -15
+    defence_bonus:
+      stab: 46
+      slash: 44
+      crush: 38
+      magic: -6
+      ranged: 44
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 6
+    weight: 8.618
+  shops:
+    - shop_name: Initiate Temple Knight Armoury
+      location: Falador Park
+      price: 10000
+    - shop_name: Proselyte Temple Knight Armoury
+      location: Falador Park
+      price: 10000
   related_items:
     - item_id: 5576
       item_name: Initiate cuisse
@@ -46,34 +66,45 @@ osrs:
       slug: monks-robe-top
       relationship: downgrade
       description: No defence (+6 Prayer)
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Body |
-    | Prayer Bonus | +6 |
-    | Defence Req | 20 |
-    | Prayer Req | 10 |
-
-    - Mid-tier prayer armour
-    - Bridge to Proselyte
-    - Lower requirements than Proselyte
-
-    | Piece | Prayer Bonus |
-    |-------|--------------|
-    | Initiate sallet | +3 |
-    | Initiate hauberk | +6 |
-    | Initiate cuisse | +5 |
-    | Total | +14 |
+  about: Mid-tier prayer body armour locked behind Recruitment Drive, bridging Monk's robe top and Proselyte with mithril platebody defence plus a +6 prayer bonus.
   market_strategy:
     notes:
-      - Requires quest completion
-      - Shop purchase only
-      - No GE trading (untradeable)
-      - Must complete Recruitment Drive
+      - Requires Recruitment Drive completion
+      - Shop purchase from Sir Tiffy in Falador Park
       - Stepping stone to Proselyte
-      - Lower requirements good for pures
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Lower combat requirements suit pures
+  trading_tips:
+    - GE flips usually anchor near shop price
+    - Demand spikes with prayer training meta and pure builds
+  history:
+    - date: "2005-06-27"
+      description: Released with the Recruitment Drive quest.
+    - date: "2005-10-17"
+      description: Graphical updates rolled in with the Wanted! quest release.
+    - date: "2006-09-20"
+      description: Renamed from Initiate platemail.
+    - date: "2021-04-21"
+      description: Ranged attack bonus decreased from -10 to -15.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-06-27"
+    update: Recruitment Drive
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: Recruitment Drive
+    weight: 8.618
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

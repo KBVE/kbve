@@ -12,9 +12,58 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Dragon chainbody ornament kit is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  drop_table:
+    sources:
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/1275
+  related_items:
+    - item_id: 3140
+      item_name: Dragon chainbody
+      slug: dragon-chainbody
+      relationship: component
+      description: Base chainbody the kit ornaments
+    - item_id: 12535
+      item_name: Dragon chainbody (g)
+      slug: dragon-chainbody-g
+      relationship: product
+      description: Resulting gilded ornamented chainbody
+  about: "Elite Treasure Trails ornament reward that gilds a Dragon chainbody into Dragon chainbody (g); the gilded form is untradeable but the kit can be detached and resold."
+  market_strategy:
+    notes:
+      - Strict 4-per-4-hour GE buy limit caps bulk
+      - Drop rate is 1/1275 from elite reward caskets
+      - Untradeable once applied unless detached
+  trading_tips:
+    - Flip during elite clue completion surges
+    - Stock when cosmetic announcements drive cosmetic demand
+  history:
+    - date: "2014-06-12"
+      description: Released with the Treasure Trail expansion.
+    - date: "2018-01-25"
+      description: Received a graphical update.
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,83 @@ osrs:
   lowalch: 3
   highalch: 4
   limit: 11000
-  about: "Steel bolts (p) is a members-only item in Old School RuneScape. High alchemy value: 4 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: steel
+    tier: low
+  equipment:
+    slot: ammunition
+    weapon_type: Ammunition
+    weight: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 64
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Fletching
+      materials:
+        - item_name: Steel bolts
+          quantity: 5
+        - item_name: Weapon poison
+          quantity: 1
+      tools: []
+      output_quantity: 5
+      notes: Apply weapon poison to a stack of 5 steel bolts to produce 5 poisoned bolts.
+  related_items:
+    - item_id: 9141
+      item_name: Steel bolts
+      slug: steel-bolts
+      relationship: variant
+      description: Unpoisoned base bolt.
+    - item_name: Steel bolts (p+)
+      relationship: upgrade
+      description: Stronger poison variant from weapon poison(+).
+    - item_name: Steel bolts (p++)
+      relationship: upgrade
+      description: Strongest poison variant from weapon poison(++).
+    - item_name: Weapon poison
+      relationship: component
+      description: Consumable required to poison the bolts.
+  history:
+    - date: "2006-07-31"
+      description: Released with the Crossbows update.
+  about: "Steel bolts (p) are poisoned steel crossbow bolts used as ammunition for mid-tier crossbows, providing +64 ranged strength and a poison damage-over-time effect on hit."
+  market_strategy:
+    notes:
+      - Tight margins given low alch floor; rely on volume rather than per-bolt spread.
+      - Compare GE price vs steel bolts + weapon poison for fletching arbitrage.
+  trading_tips:
+    - Buy steel bolts and weapon poison cheaply, poison, and resell for the spread.
+    - Watch ranged-training meta — demand spikes around F2P-to-P2P bracket players.
+  properties:
+    release_date: "2006-07-31"
+    update: Crossbows
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

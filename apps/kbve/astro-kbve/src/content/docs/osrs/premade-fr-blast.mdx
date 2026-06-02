@@ -12,9 +12,57 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 2000
-  about: "Premade fr' blast is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 9
+    type: cocktail
+  shops:
+    - shop_name: Blurberry Bar
+      location: Grand Tree
+      buy_price: 30
+      sell_price: 18
+      stock: 10
+      restock_seconds: 60
+    - shop_name: Blurberry Bar
+      location: Gnome Stronghold (east of Gnomeball)
+      buy_price: 30
+      sell_price: 18
+      stock: 10
+      restock_seconds: 60
+  related_items:
+    - item_id: 2084
+      item_name: Fruit blast
+      slug: fruit-blast
+      relationship: alternative
+      description: Player-mixed cocktail equivalent
+  history:
+    - date: "2002-12-12"
+      update: Agility skill online
+      description: Premade Fruit Blast released alongside the Gnome Restaurant minigame.
+    - date: "2006-08-07"
+      description: Renamed from "Fruit blast" to "Premade fr' blast" with a graphical update.
+  about: Premade fr' blast is a Gnome Restaurant cocktail bought from Blurberry Bar that heals 9 Hitpoints when drunk.
+  market_strategy:
+    notes:
+      - Always available from Blurberry Bar at 30 coins
+      - Cheap members food alternative for early bossing or skilling
+      - Low GE turnover compared to monkfish or sharks
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    update: Agility skill online
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.45
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

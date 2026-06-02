@@ -1,20 +1,95 @@
 ---
-title: Chef's delight(m4) | OSRS Price Data
-description: "Chef's delight(m4): This keg contains 4 pints of mature Chef's Delight.. High alch: 1 GP, GE limit: 2,000."
+title: "Chef's delight(m4) | OSRS Price Data"
+description: "Chef's delight(m4): This keg contains 4 pints of mature Chef's Delight. Boosts Cooking by 5+. High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 5913
-  name: Chef's delight(m4)
+  name: "Chef's delight(m4)"
   slug: chef-s-delight-m4
-  examine: This keg contains 4 pints of mature Chef's Delight.
+  examine: "This keg contains 4 pints of mature Chef's Delight."
   members: true
-  icon: Chef's delight(m4).png
+  icon: "Chef's delight(m4).png"
   value: 1
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Chef's delight(m4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 4
+    effects:
+      - skill: Cooking
+        amount: 5
+        description: Boosts Cooking level by 5 + 11% of current level.
+      - skill: Attack
+        amount: -1
+        description: Drains Attack and Strength by 1 + 6% of current level (mature).
+      - skill: Hitpoints
+        amount: 1
+        description: Restores 1 hitpoint per dose.
+  recipes:
+    - skill: Cooking
+      level: 54
+      xp: 446
+      tools:
+        - Vat
+        - Fermenting vat
+      materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Chocolate dust
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: The stuff
+          quantity: 1
+  related_items:
+    - item_id: 5911
+      item_name: "Chef's delight(m)"
+      slug: chefs-delight-m
+      relationship: variant
+      description: Single glass mature variant
+    - item_id: 5907
+      item_name: "Chef's delight"
+      slug: chefs-delight
+      relationship: downgrade
+      description: Non-mature version
+    - item_id: 5915
+      item_name: "Chef's delight(m3)"
+      slug: chefs-delight-m3
+      relationship: variant
+      description: 3-dose keg
+  about: "Chef's delight(m4) is a 4-pint keg of mature Chef's Delight ale that boosts Cooking by 5 plus 11% of the player's current level."
+  market_strategy:
+    notes:
+      - Highly profitable Keldagrim brewery output
+      - 4-dose keg most efficient for skill boost stacking
+      - GE supply driven by brewery botters and skill brewers
+      - Used by Cooking pet hunters and Cooking diary tasks
+  trading_tips:
+    - Brew at Keldagrim or Port Phasmatys for max profit
+    - Buy ingredients in bulk during off-peak hours
+  history:
+    - date: "2005-07-11"
+      description: Chef's delight (mature) keg released with the Forgettable Tale of a Drunken Dwarf and the Keldagrim brewery.
+    - date: "2015-09-10"
+      description: Partially consumed kegs became untradeable.
+  properties:
+    release_date: "2005-07-11"
+    update: Forgettable Tale of a Drunken Dwarf
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

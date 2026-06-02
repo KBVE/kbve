@@ -1,6 +1,6 @@
 ---
 title: Wyrm bones | OSRS Price Data
-description: "Wyrm bones: I wonder how Wyrms have bones.... High alch: 96 GP, GE limit: 7,500."
+description: "Wyrm bones: I wonder how Wyrms have bones. High alch: 96 GP, GE limit: 7,500."
 osrs:
   id: 22780
   name: Wyrm bones
@@ -12,9 +12,55 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 7500
-  about: "Wyrm bones is a members-only item in Old School RuneScape. High alchemy value: 96 coins. Grand Exchange buy limit: 7,500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  prayer:
+    bury_xp: 50
+    altar_xp: 175
+    ectofuntus_xp: 200
+    sinister_offering_xp: 150
+  drop_table:
+    - source: Wyrm
+      quantity: "1"
+      rarity: Always
+    - source: Shadow Wyrm
+      quantity: "1"
+      rarity: Always
+  related_items:
+    - item_id: 22124
+      item_name: Drake bones
+      slug: drake-bones
+      relationship: upgrade
+      description: Higher-tier slayer dragon bones
+    - item_id: 6729
+      item_name: Dagannoth bones
+      slug: dagannoth-bones
+      relationship: alternative
+      description: Comparable mid-tier prayer bones
+  about: Wyrm bones are dropped by wyrms and shadow wyrms in the Karuulm Slayer Dungeon and give 50 Prayer XP per bone when buried or 175 XP on a gilded altar.
+  market_strategy:
+    notes:
+      - Strong prayer training material between dragon and superior dragon bones
+      - Best XP per coin via Chaos Altar / Gilded Altar
+  history:
+    - date: "2019-01-10"
+      description: Released with The Kebos Lowlands expansion.
+    - date: "2019-02-07"
+      description: Prayer experience increased — burying 30 to 50 XP, gilded altar 105 to 175 XP, Ectofuntus 120 to 200 XP.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-01-10"
+    update: The Kebos Lowlands
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.8
+    options:
+      - Bury
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

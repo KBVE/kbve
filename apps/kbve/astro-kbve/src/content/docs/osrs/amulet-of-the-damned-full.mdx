@@ -14,80 +14,80 @@ osrs:
   limit: 8
   equipment:
     slot: neck
-    type: amulet
-    stats:
-      attack_stab: 10
-      attack_slash: 10
-      attack_crush: 10
-      attack_magic: 10
-      attack_ranged: 10
-      strength: 6
-      defence_all: 3
+    weight: 0.1
+    attack_bonus:
+      stab: 10
+      slash: 10
+      crush: 10
+      magic: 10
+      ranged: 10
+    defence_bonus:
+      stab: 3
+      slash: 3
+      crush: 3
+      magic: 3
+      ranged: 3
+    other_bonus:
+      melee_strength: 6
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 3
-  barrows_set_effects:
-    - set: Dharok's
-      bonus: 25% reflect 15% damage
-    - set: Verac's
-      bonus: +7 Prayer bonus
-    - set: Torag's
-      bonus: +1% Def per missing HP
-    - set: Guthan's
-      bonus: Heal up to +10 over max
-    - set: Karil's
-      bonus: 25% double hit (half dmg)
-    - set: Ahrim's
-      bonus: Autocast Ancients, +25% dmg
+  drop_table:
+    sources:
+      - source: Silver shade chest
+        location: Shade Catacombs
+        quantity: "1"
+        rarity: ~1/143
+        members_only: true
+      - source: Gold shade chest
+        location: Shade Catacombs
+        quantity: "1"
+        rarity: ~1/143
+        members_only: true
   related_items:
-    - item_id: 0
-      item_name: Dharok's set
-      slug: dharoks-set
+    - item_name: Dharok's armour set
+      slug: dharoks-armour-set
       relationship: alternative
-      description: Reflect bonus
-    - item_id: 0
-      item_name: Ahrim's set
-      slug: ahrims-set
+      description: Reflect bonus when worn full set
+    - item_name: Ahrim's armour set
+      slug: ahrims-armour-set
       relationship: alternative
-      description: Magic boost
-    - item_id: 0
-      item_name: Shade Catacombs
-      slug: shade-catacombs
-      relationship: component
-      description: Drop source
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | +10 |
-    | Slash | +10 |
-    | Crush | +10 |
-    | Magic | +10 |
-    | Ranged | +10 |
-    | Strength | +6 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | +3 |
-
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +3 |
-
-    | Set | Bonus |
-    |-----|-------|
-    | Dharok's | 25% reflect 15% damage |
-    | Verac's | +7 Prayer bonus |
-    | Torag's | +1% Def per missing HP |
-    | Guthan's | Heal up to +10 over max |
-    | Karil's | 25% double hit (half dmg) |
-    | Ahrim's | Autocast Ancients, +25% dmg |
-
-    Essential for:
-    - Barrows set bonuses
-    - Enhanced Barrows armour
-    - Niche uses
-
-    Unlocks unique Barrows set effects.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Autocast Ancients + 25% damage
+    - item_name: Verac's armour set
+      slug: veracs-armour-set
+      relationship: alternative
+      description: +7 prayer bonus when worn
+  market_strategy:
+    notes:
+      - Tradeable only when undegraded (full charges)
+      - Niche demand from Barrows set-effect users
+      - Low buy limit (8) caps volume
+  history:
+    - date: "2024-10-23"
+      description: Effect now works with Ahrim's during manual casting.
+    - date: "2015-07-02"
+      description: Recoil damage targeting was improved.
+    - date: "2015-01-08"
+      description: Inventory appearance adjusted.
+  about: Amulet of the damned (full) is a members-only neck slot amulet that grants powerful set-specific effects when worn with a full Barrows armour set.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-11-06"
+    update: Amulet of the Damned and CWA
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    worn_options:
+      - Wear
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

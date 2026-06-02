@@ -12,9 +12,54 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 8
-  about: "Ancient rune armour set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: mid-high
+  related_items:
+    - item_name: Ancient full helm
+      relationship: set-piece
+      description: Helm piece included when the set is broken.
+    - item_name: Ancient platebody
+      relationship: set-piece
+      description: Body piece included when the set is broken.
+    - item_name: Ancient platelegs
+      relationship: set-piece
+      description: Legs piece included when the set is broken.
+    - item_name: Ancient kiteshield
+      relationship: set-piece
+      description: Shield piece included when the set is broken.
+    - item_name: Ancient rune armour set (sk)
+      relationship: alternative
+      description: Skirt-variant set with plateskirt instead of platelegs.
+  history:
+    - date: "2015-02-26"
+      description: Released with The Grand Exchange armour-set bundle update.
+    - date: "2016-04-14"
+      description: Made available to free-to-play players with the Bank Placeholders and PID update.
+  about: "Ancient rune armour set (lg) bundles Ancient-trimmed rune full helm, platebody, platelegs, and kiteshield into a single GE-tradable package."
+  market_strategy:
+    notes:
+      - Track set vs component delta; break sets when premium beats GE tax + spread.
+      - Higher daily volume than the (sk) variant — slightly faster flips.
+  trading_tips:
+    - Buy sets when premium turns negative versus component sum.
+    - List broken components individually when premium spikes.
+  properties:
+    release_date: "2015-02-26"
+    update: The Grand Exchange
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -193,7 +193,17 @@ if [ -n "$FACTORIO_SAVE" ]; then
         START_ARG="--start-server $SAVE_PATH"
         START_DESC="save=${FACTORIO_SAVE}"
     else
-        echo "[agones-shim] WARN FACTORIO_SAVE=${FACTORIO_SAVE} not found at ${SAVE_PATH}, falling back to scenario ${FACTORIO_SCENARIO}"
+        echo "[agones-shim] WARN FACTORIO_SAVE=${FACTORIO_SAVE} not found at ${SAVE_PATH}, falling back to latest save / scenario ${FACTORIO_SCENARIO}"
+    fi
+fi
+if [ "$START_DESC" = "scenario=${FACTORIO_SCENARIO}" ]; then
+    LATEST_SAVE=$(ls -1t "${FACTORIO_SAVES_DIR}"/*.zip 2>/dev/null | head -n 1 || true)
+    if [ -n "$LATEST_SAVE" ] && [ -f "$LATEST_SAVE" ]; then
+        START_ARG="--start-server $LATEST_SAVE"
+        START_DESC="save=$(basename "$LATEST_SAVE")"
+        echo "[agones-shim] resuming from latest save: ${LATEST_SAVE}"
+    else
+        echo "[agones-shim] no save found, starting fresh scenario ${FACTORIO_SCENARIO}"
     fi
 fi
 

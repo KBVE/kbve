@@ -12,9 +12,88 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: 150
-  about: "Menaphite red hat is a members-only item in Old School RuneScape. High alchemy value: 21 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic clothing
+    tier: menaphite
+  equipment:
+    slot: head
+    weight: 0.005
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Ali's Discount Wares"
+      location: Al Kharid
+      price: 35
+  related_items:
+    - item_id: 6402
+      item_name: Menaphite red top
+      slug: menaphite-red-top
+      relationship: set-piece
+      description: Torso piece of the red Menaphite outfit.
+    - item_id: 6404
+      item_name: Menaphite red robe
+      slug: menaphite-red-robe
+      relationship: set-piece
+      description: Robe piece of the red Menaphite outfit.
+    - item_id: 6406
+      item_name: Menaphite red kilt
+      slug: menaphite-red-kilt
+      relationship: set-piece
+      description: Kilt piece of the red Menaphite outfit.
+    - item_id: 6392
+      item_name: Menaphite purple hat
+      slug: menaphite-purple-hat
+      relationship: variant
+      description: Purple-coloured variant of the same hat.
+  about: "Menaphite red hat is a cosmetic head-slot item sold by Ali's Discount Wares that adds 12 seconds of desert heat resistance for desert travel."
+  market_strategy:
+    notes:
+      - Steady shop supply at 35 coins caps how high the GE price can climb.
+      - Demand driven by fashionscape and quest-related desert outfits.
+      - Buy limit of 150 makes flipping easy but margins thin.
+  trading_tips:
+    - Flip the gap between shop price and GE price during fashionscape trends.
+    - Pairs well with full red Menaphite outfit listings.
+    - Useful filler for desert quest playthroughs to delay heat damage.
+  history:
+    - date: "2005-08-15"
+      description: Added to the game with the Rogue Trader miniquest update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-15"
+    update: Rogue Trader
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

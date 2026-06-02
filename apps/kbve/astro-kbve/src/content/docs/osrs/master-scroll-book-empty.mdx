@@ -12,9 +12,45 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 100
-  about: "Master scroll book (empty) is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+      - master
+  about: "Master scroll book is a storage container that holds up to 1,000 of each Treasure Trails teleport scroll type and lets players assign a default left-click teleport. Empty books are awarded from clue caskets in place of a teleport scroll roll at roughly 1/23 across difficulties (easy through master), and can also be exchanged with Watson for Watson teleport scrolls."
+  related_items:
+    - item_name: Watson teleport
+      slug: watson-teleport
+      relationship: alternative
+      description: Watson exchanges empty books for Watson teleport scrolls.
+  market_strategy:
+    notes:
+      - Supply gated by Treasure Trail completion rate, primarily medium/hard caskets
+      - 100 buy limit constrains bulk flips
+      - Demand driven by clue hunters wanting compact scroll storage
+  history:
+    - date: "2017-07-13"
+      description: Added to the game with the Lizardman Shaman update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-07-13"
+    update: Lizardman Shaman
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Read
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

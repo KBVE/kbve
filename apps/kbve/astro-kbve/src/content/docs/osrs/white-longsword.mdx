@@ -1,6 +1,6 @@
 ---
 title: White longsword | OSRS Price Data
-description: "White longsword: A razor sharp longsword.. High alch: 576 GP, GE limit: 125."
+description: "White longsword: A razor sharp longsword. High alch: 576 GP, GE limit: 125."
 osrs:
   id: 6607
   name: White longsword
@@ -12,9 +12,69 @@ osrs:
   lowalch: 384
   highalch: 576
   limit: 125
-  about: "White longsword is a members-only item in Old School RuneScape. High alchemy value: 576 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: white-knight
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: slash_sword
+    attack_speed: 5
+    weight: 1.814
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: 13
+      slash: 18
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 3
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 16
+      prayer: 1
+  related_items:
+    - item_name: White sword
+      slug: white-sword
+      relationship: downgrade
+    - item_name: White 2h sword
+      slug: white-2h-sword
+      relationship: variant
+  about: "White longsword is a slash sword wielded by White Knights; players can purchase it from Sir Vyvin after attaining the rank of Noble within the White Knights' order."
+  market_strategy:
+    notes:
+      - Demand driven by mid-level F2P-style training builds on members
+      - Rank requirement gates supply; price tends to be steady
+      - Compare against rune longsword for marginal stat differences
+  trading_tips:
+    - Watch for Wanted! quest completionists picking up White Knight gear
+    - Bulk pricing can lag behind rune longsword movement
+  history:
+    - date: "2005-10-17"
+      description: Item released alongside the Wanted! quest update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-10-17"
+    update: Wanted!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,20 +1,62 @@
 ---
 title: Swift albatross feather | OSRS Price Data
-description: "Swift albatross feather: An elegant feather from an albatross, not so swift anymore.. High alch: 4,800 GP, GE limit: 15."
+description: "Swift albatross feather: An elegant feather from an albatross, not so swift anymore. High alch: 4,800 GP, GE limit: 15."
 osrs:
   id: 31952
   name: Swift albatross feather
   slug: swift-albatross-feather
-  examine: An elegant feather from an albatross, not so swift anymore.
+  examine: An elegant feather from an albatross. Not so swift anymore.
   members: true
   icon: Swift albatross feather.png
   value: 8000
   lowalch: 3200
   highalch: 4800
   limit: 15
-  about: "Swift albatross feather is a members-only item in Old School RuneScape. High alchemy value: 4,800 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: material
+    tier: mid-high
+  drop_table:
+    sources:
+      - source: Albatross
+        quantity: "1"
+        rarity: 1/35
+  related_items:
+    - item_id: 31934
+      item_name: Gale catcher
+      slug: gale-catcher
+      relationship: product
+      description: Sailing ship attachment built using five feathers (requires 79 Sailing, 70 Construction)
+  about: "A Sailing-era material dropped by Albatross (combat level 110). Five feathers are required to build a gale catcher on a boat at 79 Sailing and 70 Construction."
+  market_strategy:
+    notes:
+      - Demand rises with active Sailing players upgrading ships
+      - Low buy limit (15) constrains big flips; small-margin scalping only
+      - Drop rate 1/35 from Albatross — supply tied to combat farming
+  trading_tips:
+    - Watch GE volume for Sailing content patches
+    - Stack quietly across 4-hour windows due to the 15-unit cap
+  history:
+    - date: "2025-11-05"
+      description: Added to the game (Technical Pre-Release; unobtainable).
+    - date: "2025-11-19"
+      description: Made obtainable with the Sailing skill release.
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing is OUT TODAY!"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Inspect
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

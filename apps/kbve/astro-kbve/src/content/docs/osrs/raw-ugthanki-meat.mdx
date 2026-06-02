@@ -12,9 +12,58 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  about: "Raw ugthanki meat is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - product_name: Ugthanki meat
+      skill: Cooking
+      cooking_level: 1
+      experience: 40
+      materials:
+        - item_name: Raw ugthanki meat
+          quantity: 1
+  drop_table:
+    sources:
+      - source: Ugthanki
+        combat_level: 42
+        quantity: "1"
+        rarity: always
+        members_only: true
+  related_items:
+    - item_id: 1861
+      item_name: Ugthanki meat
+      slug: ugthanki-meat
+      relationship: product
+      description: Cooked form of raw ugthanki meat
+    - item_id: 1885
+      item_name: Ugthanki kebab
+      slug: ugthanki-kebab
+      relationship: product
+      description: Kebab made from cooked ugthanki meat
+  market_strategy:
+    notes:
+      - Supply tied to camel hunting in the Kharidian Desert
+      - Used in ugthanki kebab recipes for healing food
+      - Burn rate stays non-trivial even at high Cooking levels
+  history:
+    - date: "2003-04-14"
+      update: Tourist Trap Quest Online!
+      description: Raw ugthanki meat introduced alongside the Tourist Trap quest update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-04-14"
+    update: Tourist Trap Quest Online!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.8
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  about: "Raw ugthanki meat is a members-only food ingredient dropped by Ugthankis in the Kharidian Desert, cookable at level 1 Cooking for 40 XP and used in ugthanki kebab recipes."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

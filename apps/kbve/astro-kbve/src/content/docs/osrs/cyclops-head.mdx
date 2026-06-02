@@ -12,9 +12,66 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Cyclops head is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: head
+    weight: 0.2
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus: {}
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/1625
+  related_items:
+    - slug: dragon-mask
+      relationship: alternative
+  about: "Cyclops head is a cosmetic hard clue reward in Old School RuneScape, worn in the head slot with no combat bonuses."
+  market_strategy:
+    notes:
+      - Niche cosmetic; price driven by hard clue rarity and costume room collectors.
+      - Buy limit of 4 throttles flipping volume.
+  trading_tips:
+    - Hold during clue scroll content updates that boost hard-tier solving.
+    - Costume room collectors stabilise long-run demand.
+  history:
+    - date: "2016-07-06"
+      description: Added to the game as a hard clue reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trails clue scroll rewards expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.2
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

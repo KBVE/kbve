@@ -14,18 +14,63 @@ osrs:
   limit: 150
   equipment:
     slot: head
+    weapon_type: none
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements: {}
+  shops:
+    - shop_name: Fine Fashions
+      location: Tree Gnome Stronghold
+      price: 160
+    - shop_name: Rasolo the Wandering Merchant
+      location: Baxtorian Falls
+      price: 320
   related_items:
     - item_id: 640
       item_name: Blue robe top
       slug: blue-robe-top
       relationship: set-piece
-      description: Matching top
-  about: |-
-    > _"A blue hat."_
-
-    The blue hat is part of the gnome clothing set. Purely cosmetic with no stat bonuses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Matching blue robe top from the gnome clothing set.
+  about: The blue hat is a cosmetic gnome clothing head piece offering a small magic attack and defence bonus.
+  history:
+    - date: "2014-12-10"
+      description: Renamed from Hat to Blue hat alongside the Trading Post update.
+    - date: "2002-12-12"
+      description: Released with the Agility skill online update.
+  properties:
+    release_date: "2002-12-12"
+    update: Agility skill online
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

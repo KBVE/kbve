@@ -14,10 +14,10 @@ osrs:
   limit: 13000
   material:
     type: plant
-    tier: basic
+    tier: low
   recipes:
     - skill: crafting
-      level: 1
+      level: 10
       xp: 15
       materials:
         - item_name: Flax
@@ -27,43 +27,98 @@ osrs:
       product_id: 1777
       product_quantity: 1
       facility: Spinning wheel
+    - skill: magic
+      level: 76
+      xp: 75
+      materials:
+        - item_name: Flax
+          item_id: 1779
+          quantity: 5
+        - item_name: Nature rune
+          quantity: 2
+        - item_name: Astral rune
+          quantity: 1
+        - item_name: Air rune
+          quantity: 5
+      product: Bow string
+      product_id: 1777
+      product_quantity: 5
+      facility: Lunar spell (Spin Flax)
+      notes: Requires 61 Crafting and Lunar spellbook.
+  shops:
+    - shop_name: Dom Onion's Reward Shop
+      location: Yanille
+      price: 75
+    - shop_name: Durrik's Goods
+      location: Deepfin Mine
+      price: 12
+      stock: 10
+      restock_minutes: 1
+  drop_table:
+    sources:
+      - source: Kurask
+        rarity: uncommon
+        members_only: true
+      - source: King kurask
+        rarity: uncommon
+        members_only: true
+      - source: Zulrah
+        rarity: rare
+        members_only: true
+      - source: Baby impling
+        rarity: common
+        members_only: true
   related_items:
     - item_id: 1777
       item_name: Bow string
       slug: bow-string
       relationship: product
-      description: Spun product
+      description: Spun product from flax.
     - item_id: 66
       item_name: Yew longbow (u)
       slug: yew-longbow-u
-      relationship: product
-      description: Uses bow string
+      relationship: alternative
+      description: Strung with bow string into a finished yew longbow.
     - item_id: 64
       item_name: Magic longbow (u)
       slug: magic-longbow-u
-      relationship: product
-      description: Uses bow string
+      relationship: alternative
+      description: Strung with bow string into a finished magic longbow.
     - item_id: 9438
       item_name: Crossbow string
       slug: crossbow-string
       relationship: alternative
-      description: Alternative product (from sinew/roots)
+      description: Alternative bowstring crafted from sinew or roots.
   market_strategy:
     profit_formulas:
-      - Bow string price - Flax price = Profit
+      - Bow string price - Flax price = Crafting profit per spin
     notes:
-      - Buy Flax → Spin → Sell Bow string
-      - "Calculate:"
-      - Classic low-level money maker
-      - Lumbridge Castle (closest to bank with agility shortcut)
-      - Seers' Village (close to flax field)
-      - Crafting Guild (requires 40 Crafting)
-      - Very consistent margins
-      - Good for low-level accounts
-      - High volume item
-      - Flax can be picked for free near Seers' Village
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Classic low-level money maker; buy flax, spin into bow string at level 10 Crafting.
+      - Best banks - Lumbridge Castle (agility shortcut), Seers' Village (close to free flax field), Crafting Guild (40 Crafting).
+      - Lunar Spin Flax at 76 Magic processes 5 flax per cast.
+      - High volume item with consistent margins; supplemented by free Seers' Village picking.
+  about: Flax is a members-only crafting material picked from flax plants across Gielinor or bought from shops, spun into bow string for fletching at level 10 Crafting or via the Lunar Spin Flax spell at 76 Magic.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-03-25"
+    update: "Spinning wheel content"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2002-03-25"
+      description: Added to game with the introduction of spinning wheels and bow strings.
+    - date: "2026-05-27"
+      description: Updated alongside contemporary OSRS content patches.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Ancient statuette | OSRS Price Data
-description: "Ancient statuette: A mysterious artifact of ancient times, of substantial value to emblem traders.. High alch: 1,200,000 GP, GE limit: 250."
+description: "Ancient statuette: a mysterious artifact of ancient times, of substantial value to emblem traders. High alch: 1,200,000 GP, GE limit: 250."
 osrs:
   id: 21813
   name: Ancient statuette
@@ -12,9 +12,53 @@ osrs:
   lowalch: 800000
   highalch: 1200000
   limit: 250
-  about: "Ancient statuette is a members-only item in Old School RuneScape. High alchemy value: 1,200,000 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Revenant dragon
+        quantity: "1"
+        rarity: 1/4000
+      - source: Revenant knight
+        quantity: "1"
+        rarity: 1/4000
+      - source: Bounty crate
+        quantity: "1"
+        rarity: 15/1000
+  about: "Ancient statuette is a high-value Revenant Caves drop and bounty crate reward, chiselable into 4,000 revenant ether and treated as a tradeable wealth carrier in the Wilderness."
+  market_strategy:
+    notes:
+      - Wealth carrier dropped on death pre-2018 rework
+      - 9 July 2025 chisel conversion into 4,000 revenant ether sets a price floor
+  trading_tips:
+    - Track revenant ether price for arbitrage versus chisel output
+    - Demand spikes during Wilderness updates and double XP events
+  history:
+    - date: "2025-07-09"
+      description: Can now be chiseled into 4,000 revenant ether.
+    - date: "2020-09-10"
+      description: Grand Exchange buy limit reduced from 18,000 to 250.
+    - date: "2018-03-01"
+      description: Now always dropped on death regardless of protect-item.
+    - date: "2018-02-08"
+      description: Graphical redesign and examine text updated.
+    - date: "2017-11-23"
+      description: Released alongside the Mage Arena II and Revenant Caves update.
+  properties:
+    release_date: "2017-11-23"
+    update: "Mage Arena II, Revenant Caves & Deadman Beta"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Chisel
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

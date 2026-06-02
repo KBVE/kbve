@@ -12,6 +12,28 @@ osrs:
   lowalch: 70
   highalch: 105
   limit: 2000
+  potion:
+    doses: 3
+    effects:
+      - description: "Boosts Attack by 2 + 20% of base Attack level"
+      - description: "Boosts Strength by 2 + 12% of base Strength level"
+      - description: "Restores 10% of current Prayer points"
+      - description: "Drains Defence by 2 + 10% of current Defence level"
+      - description: "Drains 12% of current Hitpoints (minimum 1 HP remaining)"
+  recipes:
+    - skill: Herblore
+      level: 78
+      xp: 175
+      materials:
+        - item_name: Torstol potion (unf)
+          quantity: 1
+        - item_name: Jangerberries
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output:
+        item_name: Zamorak brew(3)
+        quantity: 1
   related_items:
     - item_id: 191
       item_name: Zamorak brew(2)
@@ -23,12 +45,48 @@ osrs:
       slug: zamorak-brew-1
       relationship: variant
       description: 1-dose version
-  about: |-
-    > _"3 doses of Zamorak brew."_
-
-    The Zamorak brew boosts Attack and Strength while draining Defence and Hitpoints. Also restores approximately 10% of Prayer. A high-risk, high-reward potion used in advanced PvM and PvP.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 2454
+      item_name: Torstol potion (unf)
+      slug: torstol-potion-unf
+      relationship: component
+      description: Unfinished base potion
+    - item_id: 247
+      item_name: Jangerberries
+      slug: jangerberries
+      relationship: component
+      description: Secondary ingredient
+  about: "Three-dose Zamorak brew that boosts Attack and Strength while draining Defence and Hitpoints, restoring ~10% Prayer per sip for risky PvM and PvP use."
+  market_strategy:
+    notes:
+      - Staple at Corporeal Beast for outsized Attack boost over super combats
+      - Doubles as budget Prayer restoration on Ironman Slayer tasks
+      - 2,000 buy limit and steady ingredient costs keep prices stable
+  trading_tips:
+    - Watch torstol and jangerberries swings to gauge production margins
+    - Stock ahead of Corp mass events and Inferno meta cycles
+  history:
+    - date: "2002-12-12"
+      description: Added to the game.
+    - date: "2014-01-23"
+      description: 1-dose version updated to restore Prayer points like other doses.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    update: Herblore Update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

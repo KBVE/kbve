@@ -12,9 +12,75 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  about: "Magic string is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: crafting material
+    tier: magic
+  recipes:
+    - skill: crafting
+      level: 19
+      experience: 30
+      materials:
+        - item_name: Magic root
+          quantity: 1
+      tools:
+        - Spinning wheel
+      product: Magic string
+    - skill: crafting
+      level: 50
+      materials:
+        - item_name: Emerald amulet (u)
+          quantity: 1
+        - item_name: Magic string
+          quantity: 1
+      tools:
+        - Hands
+      product: Pre-nature amulet
+  related_items:
+    - item_id: 6037
+      item_name: Magic root
+      slug: magic-root
+      relationship: component
+      description: Spun on a spinning wheel to create magic string.
+    - item_id: 1673
+      item_name: Emerald amulet (u)
+      slug: emerald-amulet-u
+      relationship: component
+      description: Combined with magic string to make the pre-nature amulet.
+    - item_id: 6040
+      item_name: Amulet of nature
+      slug: amulet-of-nature
+      relationship: product
+      description: Enchanted final form of the pre-nature amulet.
+  about: "Magic string is a members-only Crafting material spun from a magic root on a spinning wheel at level 19 Crafting, granting 30 experience."
+  market_strategy:
+    notes:
+      - Demand driven by amulet of nature crafting for farming patch notifications.
+      - Supply tied to Woodcutting magic tree availability and magic root drops.
+      - Buy limit of 11,000 makes it suitable for high-volume flipping.
+      - Profit margin tracks the gap between magic root cost and finished amulet price.
+  trading_tips:
+    - Watch magic root prices to anticipate magic string supply shifts.
+    - Most profitable when batched with amulet of nature production for crafting XP.
+    - Stockpile during low-demand periods before farming content updates.
+  history:
+    - date: "2005-07-11"
+      description: Added to the game with the Farming update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.014
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

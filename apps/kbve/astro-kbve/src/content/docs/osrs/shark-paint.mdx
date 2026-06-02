@@ -12,9 +12,71 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Shark paint is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Port task
+        notes: Rolled at a 1/36 rate upon completing a port task.
+        rarity: 1/36
+        members_only: true
+  recipes:
+    - product: Merchant's paint
+      skill: Sailing
+      notes: Exchange shark, angler's, inky, salvor's, and Barracuda paints to Trader Stan for merchant's paint.
+      materials:
+        - item_name: Shark paint
+          quantity: 1
+        - item_name: Angler's paint
+          quantity: 1
+        - item_name: Inky paint
+          quantity: 1
+        - item_name: Salvor's paint
+          quantity: 1
+        - item_name: Barracuda paint
+          quantity: 1
+  related_items:
+    - item_name: Merchant's paint
+      slug: merchant-s-paint
+      relationship: product
+      description: Traded to Trader Stan with the full paint set
+    - item_name: Skiff
+      slug: skiff
+      relationship: alternative
+      description: Recolour target — one paint per skiff
+    - item_name: Sloop
+      slug: sloop
+      relationship: alternative
+      description: Recolour target — two paints per sloop
+  market_strategy:
+    notes:
+      - Supply gated by Sailing port task volume
+      - Cosmetic demand from Sailing decorators
+      - Part of the merchant's paint full-set sink
+      - Buy limit not enforced — speculative inventory possible
+  history:
+    - date: "2025-11-19"
+      update: Sailing is OUT TODAY!
+      description: Shark paint released with the Sailing launch.
+    - date: "2025-11-26"
+      update: Typo fix
+      description: Corrected the receipt message from "recieved" to "received".
+  about: Shark paint is a cosmetic Sailing reward used to recolour skiffs and sloops or trade in to Trader Stan for merchant's paint.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Use
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

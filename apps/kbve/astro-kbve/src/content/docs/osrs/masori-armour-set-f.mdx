@@ -1,20 +1,62 @@
 ---
 title: Masori armour set (f) | OSRS Price Data
-description: "Masori armour set (f): A set containing a Masori mask (f), Masori body (f), Masori chaps (f). High alch: 87,000 GP, GE limit: 5."
+description: "Masori armour set (f): a Grand Exchange set containing fortified Masori mask, body, and chaps. High alch: 87,000 GP, GE limit: 5."
 osrs:
   id: 27355
   name: Masori armour set (f)
   slug: masori-armour-set-f
-  examine: A set containing a Masori mask (f), Masori body (f), Masori chaps (f)
+  examine: "A set containing a Masori mask (f), Masori body (f), Masori chaps (f)"
   members: true
   icon: Masori armour set (f).png
   value: 145000
   lowalch: 58000
   highalch: 87000
   limit: 5
-  about: "Masori armour set (f) is a members-only item in Old School RuneScape. High alchemy value: 87,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  related_items:
+    - item_id: 27238
+      item_name: Masori mask (f)
+      slug: masori-mask-f
+      relationship: component
+      description: Fortified mask included in the set
+    - item_id: 27241
+      item_name: Masori body (f)
+      slug: masori-body-f
+      relationship: component
+      description: Fortified body included in the set
+    - item_id: 27244
+      item_name: Masori chaps (f)
+      slug: masori-chaps-f
+      relationship: component
+      description: Fortified chaps included in the set
+  about: "Masori armour set (f) is a Grand Exchange placeholder bundle that exchanges into fortified Masori mask, body, and chaps for one-click bulk trading of the BiS ranged set."
+  market_strategy:
+    notes:
+      - GE set convenience wrapper, no other use
+      - Trades versus combined piece value with small premium
+      - Buy limit of 5 caps daily flipping volume
+  trading_tips:
+    - Monitor combined piece pricing for arbitrage entries
+    - Premium widens during high TOA invocation meta demand
+  history:
+    - date: "2022-08-24"
+      description: Released as part of the Tombs of Amascut raid update.
+  properties:
+    release_date: "2022-08-24"
+    update: Tombs of Amascut
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Exchange
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

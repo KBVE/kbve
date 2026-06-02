@@ -12,18 +12,95 @@ osrs:
   lowalch: 5
   highalch: 7
   limit: 13000
+  material:
+    type: herb
+    tier: low
+  drop_table:
+    sources:
+      - source: Aberrant spectre
+        combat_level: 96
+        quantity: "1-3"
+        rarity: 1/6.6
+        members_only: true
+      - source: Banshee
+        combat_level: 23
+        quantity: "1"
+        rarity: 1/15.1
+        members_only: true
+      - source: Thug
+        combat_level: 10
+        quantity: "1"
+        rarity: 1/21.3
+        members_only: true
+      - source: Fire giant
+        combat_level: 86
+        quantity: "1"
+        rarity: 1/26.9
+        members_only: true
+      - source: Green dragon
+        combat_level: 79
+        quantity: "1"
+        rarity: 1/34.1
+        members_only: true
+  farming:
+    farming_level: 9
+    seed: Guam seed
+    seed_id: 5291
+    patch: Herb patch
+  recipes:
+    - skill: herblore
+      level: 3
+      xp: 2.5
+      materials:
+        - item_name: Grimy guam leaf
+          item_id: 199
+          quantity: 1
+      product: Guam leaf
+      product_id: 249
+      product_quantity: 1
   related_items:
     - item_id: 249
       item_name: Guam leaf
       slug: guam-leaf
       relationship: product
       description: Cleaned version
-  about: |-
-    > _"It needs cleaning."_
-
-    Grimy guam leaf requires 3 Herblore to clean into a guam leaf (2.5 XP). Guam is the lowest-tier herb, used in attack potions and guam potions (unf).
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 5291
+      item_name: Guam seed
+      slug: guam-seed
+      relationship: component
+      description: Plant in herb patch to grow
+  market_strategy:
+    notes:
+      - Lowest-tier herb, cheap and abundant
+      - Used in attack potions (unf)
+      - Cleaning grants 2.5 Herblore XP at level 3
+      - Supply driven by low-level slayer tasks
+      - Farming guam seeds is profitable for ironmen
+  history:
+    - date: "2017-03-09"
+      description: Item's monetary value increased from 1 to 13 coins.
+    - date: "2015-02-26"
+      description: Visual update to differentiate from other grimy herbs; renamed to full name; became tradeable on Grand Exchange; interaction changed from identify to clean.
+    - date: "2013-02-25"
+      description: Renamed from "Grimy guam" to "Herb"; interaction changed from clean to identify.
+    - date: "2013-02-22"
+      description: Renamed from "Herb" to "Grimy guam"; interaction changed from identify to clean.
+  about: Grimy guam leaf requires 3 Herblore to clean into a guam leaf for 2.5 XP; guam is the lowest-tier herb used in attack potions.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Clean
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

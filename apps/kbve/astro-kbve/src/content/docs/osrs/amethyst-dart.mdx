@@ -12,31 +12,41 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 11000
+  material:
+    type: amethyst
+    tier: mid-high
   equipment:
     slot: ammo
-    type: dart
-    ranged_requirement: 50
-  ranged_bonuses:
-    ranged_strength: 28
-  fletching:
-    level: 90
-    xp: 21
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      ranged_strength: 28
   recipes:
-    - skill: fletching
-      level: 90
-      xp: 21
-      materials:
+    - materials:
         - item_name: Amethyst dart tip
-          item_id: 25853
           quantity: 1
         - item_name: Feather
-          item_id: 314
           quantity: 1
-      product: Amethyst dart
-      product_id: 25849
-      product_quantity: 1
-      facility: None
-      members_only: true
+      tools: []
+      output_quantity: 1
+      skill: Fletching
+      level: 90
+      xp: 21
   related_items:
     - item_id: 25853
       item_name: Amethyst dart tip
@@ -51,38 +61,45 @@ osrs:
     - item_id: 11230
       item_name: Dragon dart
       slug: dragon-dart
-      relationship: alternative
-      description: Higher tier
+      relationship: upgrade
+      description: Higher tier ranged ammo
     - item_id: 811
       item_name: Rune dart
       slug: rune-dart
-      relationship: alternative
-      description: Lower tier
-  about: |-
-    | Method | Level | XP |
-    |--------|-------|-----|
-    | Fletching | 90 | 21 (per dart) |
-    | Materials | Amethyst dart tip + Feather | - |
-
-    | Stat | Value |
-    |------|-------|
-    | Ranged requirement | 50 |
-    | Ranged strength | +28 |
+      relationship: downgrade
+      description: Lower tier ranged ammo
+  about: "Amethyst dart is a thrown ranged weapon sitting between rune and dragon darts in power, with +28 ranged strength. Fletched at level 90 from an amethyst dart tip and a feather for 21 experience, popular as toxic blowpipe ammo."
   market_strategy:
     notes:
-      - Between rune and dragon
-      - Cost-effective option
-      - No quest requirements
-      - Toxic blowpipe users
-      - Budget PvM
-      - Slayer tasks
-      - Training ammo
-      - Good balance of cost/damage
-      - 90 Fletching to make
-      - Amethyst from Mining Guild
-      - Popular budget option
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Buy limit 11,000 per 4 hours
+      - Common blowpipe ammo choice
+      - Fletching usually unprofitable; supply is mostly market-bought
+      - Tied to amethyst mining supply
+  trading_tips:
+    - Track Mining Guild amethyst supply
+    - Compare ammo cost against dragon dart per-hour DPS
+  history:
+    - date: "2021-06-30"
+      description: "Released alongside Phosani's Nightmare."
+  properties:
+    release_date: "2021-06-30"
+    update: "Phosani's Nightmare"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

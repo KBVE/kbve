@@ -1,6 +1,6 @@
 ---
 title: Cadantine potion (unf) | OSRS Price Data
-description: "Cadantine potion (unf) is a 4-dose members potion. High alch: 39 GP, GE limit: 10,000."
+description: "Cadantine potion (unf) is a members unfinished potion. High alch: 39 GP, GE limit: 10,000."
 osrs:
   id: 107
   name: Cadantine potion (unf)
@@ -12,13 +12,14 @@ osrs:
   lowalch: 26
   highalch: 39
   limit: 10000
+  material:
+    type: potion
+    tier: high
   potion:
     type: unfinished
     tier: high
-  herblore:
-    level: 66
-    xp: 0
-    method: Add cadantine to vial of water
+    effects:
+      - description: Used as a base for the Super defence potion when combined with white berries.
   recipes:
     - skill: herblore
       level: 66
@@ -30,8 +31,24 @@ osrs:
         - item_name: Cadantine
           item_id: 265
           quantity: 1
+      tools: []
       product: Cadantine potion (unf)
       product_id: 107
+      product_quantity: 1
+      members_only: true
+    - skill: herblore
+      level: 66
+      xp: 150
+      materials:
+        - item_name: Cadantine potion (unf)
+          item_id: 107
+          quantity: 1
+        - item_name: White berries
+          item_id: 239
+          quantity: 1
+      tools: []
+      product: Super defence(3)
+      product_id: 163
       product_quantity: 1
       members_only: true
   related_items:
@@ -39,7 +56,7 @@ osrs:
       item_name: Cadantine
       slug: cadantine
       relationship: component
-      description: Herb ingredient
+      description: Clean herb ingredient
     - item_id: 227
       item_name: Vial of water
       slug: vial-of-water
@@ -50,24 +67,31 @@ osrs:
       slug: white-berries
       relationship: component
       description: Secondary for super defence
-    - item_id: 2442
-      item_name: Super defence(4)
-      slug: super-defence-4
+    - item_id: 163
+      item_name: Super defence(3)
+      slug: super-defence-3
       relationship: product
-      description: Final product
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Unfinished Potion |
-    | Tradeable | Yes |
-    | Weight | 0.056 kg |
-    | Requirements | 66 Herblore |
-
-    Add secondary ingredient to create:
-    - Super defence (+ white berries)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Final product after adding white berries
+  about: "Cadantine potion (unf) is a members herblore intermediate made by adding clean cadantine to a vial of water at level 66 Herblore. Combine with white berries to brew a Super defence(3) for 150 Herblore XP."
+  history:
+    - date: "2002-02-27"
+      description: Released with the herblore system.
+    - date: "2014-01-01"
+      description: Renamed from "Unfinished potion" to "Cadantine potion (unf)".
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options: [Empty, Drop]
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

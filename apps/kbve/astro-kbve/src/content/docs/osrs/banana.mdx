@@ -12,9 +12,100 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Banana is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 2
+    type: fruit
+  drop_table:
+    sources:
+      - source: Banana tree (Musa Point, Karamja)
+        quantity: "1"
+        rarity: always
+        members_only: false
+      - source: Banana tree (Ape Atoll)
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Monkey
+        quantity: "1"
+        rarity: common
+        members_only: true
+  shops:
+    - shop_name: Solihib's Food Stall
+      location: Tai Bwo Wannai
+      buy_price: 2
+      sell_price: 1
+      stock: 50
+      members_only: true
+    - shop_name: Wydin's Food Store
+      location: Port Sarim
+      buy_price: 2
+      sell_price: 1
+      stock: 10
+  recipes:
+    - skill: farming
+      level: 33
+      xp: 47.5
+      materials:
+        - item_name: Banana tree seed
+          item_id: 5312
+          quantity: 1
+      product: Banana
+      product_id: 1963
+      product_quantity: 6
+      facility: Fruit tree patch
+      members_only: true
+  related_items:
+    - item_id: 5312
+      item_name: Banana tree seed
+      slug: banana-tree-seed
+      relationship: component
+      description: Grown via Farming for repeatable bananas
+    - item_id: 1973
+      item_name: Sliced banana
+      slug: sliced-banana
+      relationship: product
+      description: Made with a knife
+    - item_id: 2073
+      item_name: Half a pineapple
+      slug: half-a-pineapple
+      relationship: alternative
+      description: Comparable cocktail ingredient
+  farming:
+    farming_level: 33
+    xp: 47.5
+    patch: Fruit tree patch
+    growth_time_minutes: 960
+    protection: 4 baskets of apples (noted)
+  history:
+    - date: "2001-04-06"
+      update: Massive update!
+      description: Banana released as a tropical fruit food item.
+  about: Banana is an F2P fruit picked from trees on Musa Point, Karamja and Ape Atoll, healing 2 Hitpoints per bite.
+  market_strategy:
+    notes:
+      - Almost unlimited supply via Karamja banana trees and Bones to Bananas
+      - Bulk buyers stock for cooking gnomecookery or Monkey Madness needs
+      - Low margin per unit; flips depend on high volume at GE limit
+  trading_tips:
+    - Monitor Bones to Bananas spell costs vs. GE banana price for arbitrage
+    - Stock during quest update launches for surges
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-04-06"
+    update: Massive update!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.028
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

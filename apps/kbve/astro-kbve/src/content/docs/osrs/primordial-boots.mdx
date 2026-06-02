@@ -12,89 +12,99 @@ osrs:
   lowalch: 30000
   highalch: 45000
   limit: 15
+  material:
+    type: upgraded dragon
+    tier: high
   equipment:
     slot: feet
-    type: boots
-    attack_style: melee
+    weapon_type: unarmed
+    attack_speed: 4
+    weight: 1.814
     requirements:
       magic: 60
       runecraft: 60
-    stats:
-      attack_stab: 2
-      attack_slash: 2
-      attack_crush: 2
-      defence_stab: 22
-      defence_slash: 22
-      defence_crush: 22
-      defence_ranged: 22
-      attack_magic: -4
-      attack_ranged: -1
+    attack_bonus:
+      stab: 2
+      slash: 2
+      crush: 2
+      magic: -4
+      ranged: -1
+    defence_bonus:
+      stab: 22
+      slash: 22
+      crush: 22
+      magic: 0
+      ranged: 0
+    other_bonus:
       strength: 5
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
-    - skill: crafting
-      level: 1
+    - skill: magic
+      level: 60
       xp: 200
       materials:
         - item_name: Dragon boots
-          item_id: 11840
           quantity: 1
         - item_name: Primordial crystal
-          item_id: 13231
           quantity: 1
-      product: Primordial boots
-      product_id: 13239
-      product_quantity: 1
-      facility: None
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
     - item_id: 13235
       item_name: Eternal boots
       slug: eternal-boots
       relationship: alternative
-      description: Magic variant
+      description: Magic-focused crystal upgrade of dragon boots
     - item_id: 13237
       item_name: Pegasian boots
       slug: pegasian-boots
       relationship: alternative
-      description: Ranged variant
+      description: Ranged-focused crystal upgrade of dragon boots
     - item_id: 13231
       item_name: Primordial crystal
       slug: primordial-crystal
       relationship: component
-      description: From Cerberus
-  about: |-
-    Combine Dragon boots + Primordial crystal.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Magic | 60 |
-    | Runecraft | 60 |
-    | XP | 200 Magic, 200 Runecraft |
-
-    Process is irreversible.
-
-    | Stat | Value |
-    |------|-------|
-    | Stab/Slash/Crush attack | +2 |
-    | All melee defence | +22 |
-    | Strength | +5 |
-    | Magic attack | -4 |
-    | Ranged attack | -1 |
-
-    Second-best melee boots (behind Avernic treads)
-
-    BiS melee boots for:
-    - All melee combat
-    - Slayer
-    - Bossing
-    - Raids
+      description: Cerberus drop combined with dragon boots
+    - item_id: 11840
+      item_name: Dragon boots
+      slug: dragon-boots
+      relationship: component
+      description: Base footwear required for the upgrade
+  about: "Primordial boots are the strongest pure melee boots short of Avernic, combining dragon boots with a Cerberus-dropped primordial crystal at 60 Magic and 60 Runecraft."
   market_strategy:
     notes:
-      - Crystal from Cerberus
-      - Dragon boots are cheap base
-      - Essential for melee setups
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Crystal supply hinges entirely on Cerberus drop rate and player kill volume
+      - Dragon boots base remains cheap, so price tracks the crystal almost 1:1
+      - Buy limit of 15 per 4 hours throttles flips and rewards patient accumulation
+  trading_tips:
+    - Watch for Cerberus task week or Slayer rebalance updates
+    - Pair tracking with eternal and pegasian boots since drop rates are shared
+  history:
+    - date: "2015-08-27"
+      description: Released with the Cerberus boss update.
+    - date: "2023-06-21"
+      description: Ultimate Ironmen gained the ability to store the boots in the Fountain of Heroes STASH unit.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-08-27"
+    update: Cerberus
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

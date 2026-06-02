@@ -14,23 +14,19 @@ osrs:
   limit: 10000
   food:
     heals: 16
+    bites: 2
     cooking_level: 70
     cooking_xp: 210
+    fishing_boost: 5
   recipes:
     - skill: cooking
       level: 70
       xp: 210
-      inputs:
-        - item_name: Pastry dough
+      materials:
+        - item_name: Raw admiral pie
           quantity: 1
-        - item_name: Pie dish
-          quantity: 1
-        - item_name: Salmon
-          quantity: 1
-        - item_name: Tuna
-          quantity: 1
-        - item_name: Potato
-          quantity: 1
+      tools:
+        - Cooking range
       output_quantity: 1
   related_items:
     - item_id: 7208
@@ -43,26 +39,40 @@ osrs:
       slug: mud-pie
       relationship: alternative
       description: Run energy drain
-  about: |-
-    | Skill | Boost |
-    |-------|-------|
-    | Fishing | +5 levels |
-
-    Healing: 16 HP total (8 per bite, 2 bites)
-
-    The +5 Fishing boost is used for:
-    - Boosting to catch dark crabs (85 Fishing → 80 with pie)
-    - Accessing Minnows (82 Fishing → 77 with pie)
-    - Boosting for anglerfish (82 Fishing → 77 with pie)
-    - Completing diary tasks requiring high Fishing levels
-    - Reaching infernal eels (80 Fishing → 75 with pie)
+    - item_id: 7196
+      item_name: Raw admiral pie
+      slug: raw-admiral-pie
+      relationship: component
+      description: Uncooked pie ingredient
+  about: Admiral pie is a members food healing 16 HP across two bites and granting a +5 Fishing boost for breakpoints like dark crabs and anglerfish.
   market_strategy:
     notes:
       - Ingredients are cheap (salmon, tuna, potato)
       - Demand from players boosting for diary tasks
       - Bake Pie spell avoids burning
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  trading_tips:
+    - Stock before fishing diary pushes
+    - Flip between raw and cooked variants for cooking profit windows
+  history:
+    - date: "2006-02-20"
+      description: Released alongside the Cooking Guild pies update.
+    - date: "2015-02-09"
+      description: Half-eaten admiral pies became untradeable on the GE.
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Eat
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

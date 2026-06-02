@@ -14,6 +14,10 @@ osrs:
   limit: 70
   equipment:
     slot: head
+    weight: 0.907
+    requirements:
+      magic: 40
+      defence: 40
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,81 +35,64 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      magic: 40
-      defence: 40
-    weight: 0.907
   recipes:
     - skill: crafting
       level: 61
       xp: 124
-      inputs:
+      materials:
         - item_name: Bark
           quantity: 2
         - item_name: Fine cloth
           quantity: 2
-      output_quantity: 1
+        - item_name: Thread
+          quantity: 1
+      product: Splitbark helm
+      product_quantity: 1
+      facility: Wizard Jalarast (Wizards' Tower) or crafting interface
+      notes: Wizard Jalarast charges an additional 6,000 coins per helm.
   related_items:
     - item_id: 3387
       item_name: Splitbark body
       slug: splitbark-body
       relationship: set-piece
-      description: Matching body piece
+      description: Matching body piece in the splitbark set.
     - item_id: 3389
       item_name: Splitbark legs
       slug: splitbark-legs
       relationship: set-piece
-      description: Matching leg piece
+      description: Matching leg piece in the splitbark set.
     - item_id: 4091
       item_name: Mystic robe top
       slug: mystic-robe-top
       relationship: alternative
-      description: Higher magic bonus, no defence
-  about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Magic | +3 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +10 |
-    | Slash | +9 |
-    | Crush | +11 |
-    | Magic | +3 |
-
-    Requirements: 40 Magic, 40 Defence
-
-    - Bark: Obtained from Hollow Trees in the Haunted Woods (east of Canifis). Requires a knife. Each tree gives 1 bark.
-    - Fine cloth: Obtained from the Shades of Mort'ton minigame by burning remains on pyres and looting the chest.
-
-    | Stat | Splitbark Helm | Mystic Hat |
-    |------|---------------|------------|
-    | Magic Atk | +3 | +4 |
-    | Stab Def | +10 | 0 |
-    | Slash Def | +9 | 0 |
-    | Crush Def | +11 | 0 |
-    | Magic Def | +3 | +4 |
-
-    Trades 1 Magic attack for significant melee defence. Better for hybrid setups where you expect melee hits.
-
-    - Swampbark helm: Requires Nature Spirit quest. Adds prayer-boosting effects to Earth spells.
-    - Bloodbark helm: Requires A Taste of Hope quest. Adds blood spell healing effects.
-
-    | Stat | Total |
-    |------|-------|
-    | Magic Atk | +20 |
-    | Stab Def | +68 |
-    | Slash Def | +55 |
-    | Crush Def | +78 |
-    | Magic Def | +28 |
-    | Materials | 9 bark + 9 fine cloth |
+      description: Higher magic attack but no melee defence.
   market_strategy:
     notes:
-      - Material sourcing is the bottleneck (fine cloth from Shades of Mort'ton)
-      - Craftable for XP and slight profit
-      - Niche hybrid demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Fine cloth from Shades of Mort'ton is the supply bottleneck.
+      - Niche hybrid demand; trades 1 Magic attack for sizeable melee defence vs Mystic hat.
+      - Craftable for XP at 61 Crafting; small loss after material costs.
+  about: Splitbark helm is a members-only head slot hybrid armour piece requiring 40 Magic and 40 Defence, crafted from bark and fine cloth and offering both melee defence and a magic attack bonus.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  history:
+    - date: "2004-10-18"
+      description: Added to game.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

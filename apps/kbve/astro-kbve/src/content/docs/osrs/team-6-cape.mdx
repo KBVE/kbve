@@ -5,16 +5,85 @@ osrs:
   id: 4325
   name: Team-6 cape
   slug: team-6-cape
-  examine: Ooohhh look at the pretty colours...
+  examine: "Ooohhh look at the pretty colours..."
   members: false
   icon: Team-6 cape.png
   value: 50
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-6 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Team-6 cape is a free-to-play team cape that makes matching players appear as blue dots on the minimap."
+  equipment:
+    slot: cape
+    weight: 0.453
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Richard's Wilderness Cape Shop"
+      location: Edgeville
+      stock: 100
+      price: 50
+  properties:
+    release_date: "2005-02-22"
+    update: "Wilderness Capes, and Changes"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  related_items:
+    - item_id: 4315
+      item_name: Team-1 cape
+      slug: team-1-cape
+      relationship: variant
+      description: Alternate team cape colour
+    - item_id: 4323
+      item_name: Team-5 cape
+      slug: team-5-cape
+      relationship: variant
+      description: Alternate team cape colour
+    - item_id: 4327
+      item_name: Team-7 cape
+      slug: team-7-cape
+      relationship: variant
+      description: Alternate team cape colour
+  market_strategy:
+    notes:
+      - "GE price (~101 gp) tracks shop cost; minimal arbitrage."
+      - "Buy in bulk from Richard at 50 gp and flip on the GE for small margins."
+  trading_tips:
+    - "Identifies teammates on the minimap and changes attack option to right-click."
+    - "Cheap clan/team identifier; bulk shop buyout > 100 capes possible across worlds."
+  history:
+    - date: "2013-05-23"
+      description: "Made available to free-to-play players."
+    - date: "2005-02-22"
+      description: "Released with the Wilderness Capes update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

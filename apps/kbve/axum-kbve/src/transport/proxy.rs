@@ -2452,3 +2452,113 @@ fn reqwest_headers(headers: &HeaderMap) -> reqwest::header::HeaderMap {
     }
     out
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::http::{HeaderMap, HeaderValue, header};
+
+    fn hdrs(pairs: &[(&'static str, &'static str)]) -> HeaderMap {
+        let mut h = HeaderMap::new();
+        for (k, v) in pairs {
+            h.insert(*k, HeaderValue::from_static(*v));
+        }
+        h
+    }
+
+    #[test]
+    fn extract_auth_token_prefers_authorization_header() {
+        let h = hdrs(&[(header::AUTHORIZATION.as_str(), "Bearer abc123")]);
+        assert_eq!(extract_auth_token(&h, None), Some("abc123".to_string()));
+    }
+
+    #[test]
+    fn extract_auth_token_falls_back_to_query_access_token() {
+        let h = HeaderMap::new();
+        assert_eq!(
+            extract_auth_token(&h, Some("foo=1&access_token=xyz&bar=2")),
+            Some("xyz".to_string())
+        );
+    }
+
+    #[test]
+    fn extract_auth_token_accepts_kasm_session_cookie() {
+        let h = hdrs(&[("cookie", "other=1; kasm_session=ksm-token")]);
+        assert_eq!(extract_auth_token(&h, None), Some("ksm-token".to_string()));
+    }
+
+    #[test]
+    fn extract_auth_token_accepts_dashboard_session_cookie() {
+        let h = hdrs(&[("cookie", "dashboard_session=dash-token; foo=bar")]);
+        assert_eq!(extract_auth_token(&h, None), Some("dash-token".to_string()));
+    }
+
+    #[test]
+    fn extract_auth_token_returns_none_when_missing() {
+        let h = HeaderMap::new();
+        assert_eq!(extract_auth_token(&h, None), None);
+        assert_eq!(extract_auth_token(&h, Some("foo=1")), None);
+    }
+
+    #[test]
+    fn url_passes_policy_allows_public_https() {
+        assert!(url_passes_policy("https://example.com/").is_ok());
+        assert!(url_passes_policy("https://docs.kbve.com/foo?a=1").is_ok());
+    }
+
+    #[test]
+    fn url_passes_policy_rejects_localhost() {
+        assert_eq!(
+            url_passes_policy("http://localhost/").unwrap_err(),
+            "host not allowed"
+        );
+        assert_eq!(
+            url_passes_policy("http://api.localhost/").unwrap_err(),
+            "host not allowed"
+        );
+    }
+
+    #[test]
+    fn url_passes_policy_rejects_cluster_internal() {
+        assert!(url_passes_policy("http://argo.argocd.svc/").is_err());
+        assert!(url_passes_policy("http://foo.cluster.local/").is_err());
+        assert!(url_passes_policy("http://bar.internal/").is_err());
+    }
+
+    #[test]
+    fn url_passes_policy_rejects_private_ipv4() {
+        assert!(url_passes_policy("http://10.0.0.1/").is_err());
+        assert!(url_passes_policy("http://192.168.1.1/").is_err());
+        assert!(url_passes_policy("http://127.0.0.1/").is_err());
+    }
+
+    #[test]
+    fn url_passes_policy_rejects_embedded_credentials() {
+        assert_eq!(
+            url_passes_policy("https://user:pass@example.com/").unwrap_err(),
+            "embedded credentials rejected"
+        );
+    }
+
+    #[test]
+    fn url_passes_policy_rejects_non_http_scheme() {
+        assert_eq!(
+            url_passes_policy("file:///etc/passwd").unwrap_err(),
+            "scheme not allowed"
+        );
+        assert_eq!(
+            url_passes_policy("javascript:alert(1)").unwrap_err(),
+            "scheme not allowed"
+        );
+    }
+
+    #[test]
+    fn url_passes_policy_rejects_empty_and_oversized() {
+        assert_eq!(url_passes_policy("").unwrap_err(), "invalid url length");
+        let oversized = format!("https://example.com/{}", "x".repeat(MAX_LAUNCH_URL_LEN));
+        assert_eq!(
+            url_passes_policy(&oversized).unwrap_err(),
+            "invalid url length"
+        );
+    }
+}

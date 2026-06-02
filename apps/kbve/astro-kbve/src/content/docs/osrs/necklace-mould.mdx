@@ -1,6 +1,6 @@
 ---
 title: Necklace mould | OSRS Price Data
-description: "Necklace mould: Used to make necklaces.. High alch: 3 GP, GE limit: 40."
+description: "Necklace mould: Used to make necklaces. High alch: 3 GP, GE limit: 40."
 osrs:
   id: 1597
   name: Necklace mould
@@ -13,49 +13,30 @@ osrs:
   highalch: 3
   limit: 40
   material:
-    type: mould
-    tier: crafting_tool
-  crafting:
-    use: necklace
+    type: tool
+    tier: low
   shops:
-    - shop_name: Crafting shops
+    - shop_name: Aaron's Archery Appendages
+      location: Lletya
       price: 5
-      currency: Coins
-  uses:
-    - product: Gold necklace
+      stock: 10
+    - shop_name: Dommik's Crafting Store
+      location: Al Kharid
+      price: 5
+      stock: 5
+  recipes:
+    - skill: crafting
+      level: 6
+      xp: 20
+      materials:
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      tools:
+        - Necklace mould
+      product: Gold necklace
       product_id: 1654
-      bar: Gold bar
-      bar_id: 2357
-      crafting_level: 6
-      crafting_xp: 20
-    - product: Sapphire necklace
-      product_id: 1656
-      crafting_level: 22
-      crafting_xp: 55
-    - product: Emerald necklace
-      product_id: 1658
-      crafting_level: 29
-      crafting_xp: 60
-    - product: Ruby necklace
-      product_id: 1660
-      crafting_level: 40
-      crafting_xp: 75
-    - product: Diamond necklace
-      product_id: 1662
-      crafting_level: 56
-      crafting_xp: 90
-    - product: Dragon necklace
-      product_id: 1664
-      crafting_level: 72
-      crafting_xp: 105
-    - product: Onyx necklace
-      product_id: 6577
-      crafting_level: 82
-      crafting_xp: 120
-    - product: Zenyte necklace
-      product_id: 19535
-      crafting_level: 92
-      crafting_xp: 165
+      output_quantity: 1
   related_items:
     - item_id: 2357
       item_name: Gold bar
@@ -72,29 +53,35 @@ osrs:
       slug: games-necklace
       relationship: product
       description: Enchanted product
-  about: |-
-    Make necklaces at a furnace:
-
-    | Necklace | Level | XP | Gem Required |
-    |----------|-------|-----|--------------|
-    | Gold necklace | 6 | 20 | None |
-    | Sapphire necklace | 22 | 55 | Sapphire |
-    | Emerald necklace | 29 | 60 | Emerald |
-    | Ruby necklace | 40 | 75 | Ruby |
-    | Diamond necklace | 56 | 90 | Diamond |
-    | Dragon necklace | 72 | 105 | Dragonstone |
-    | Onyx necklace | 82 | 120 | Onyx |
-    | Zenyte necklace | 92 | 165 | Zenyte |
+  about: Necklace mould is a Crafting tool used at a furnace to make necklaces from a gold bar (with optional gem) at levels 6 through 92.
   market_strategy:
     notes:
-      - Necklace crafting
-      - Jewelry production
-      - One-time purchase
-      - Not consumed on use
-      - Essential for jewelry
-      - Buy from shop
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - One-time purchase, not consumed on use
+      - Essential for any necklace crafting
+      - Available cheaply from Crafting shops
+  trading_tips:
+    - Buy from shop if GE is overpriced
+    - Stable demand from Crafting skillers
+  history:
+    - date: "2001-04-30"
+      description: Released with the Crafting skill.
+    - date: "2003-05-27"
+      description: Used in Family Crest quest for goldsmith gauntlets prep.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-04-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.4
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

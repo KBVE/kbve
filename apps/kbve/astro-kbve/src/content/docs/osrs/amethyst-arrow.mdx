@@ -12,78 +12,85 @@ osrs:
   lowalch: 196
   highalch: 294
   limit: 11000
-  ammunition:
-    type: arrow
-    tradeable: true
-    stackable: true
+  material:
+    type: Amethyst
+    tier: mid-high
+  equipment:
+    slot: ammo
+    weapon_type: arrow
     weight: 0
     requirements:
       ranged: 1
-    stats:
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 55
-  creation:
-    method: Fletching
-    requirements:
-      fletching: 82
-    materials:
-      - item_id: 21350
-        item_name: Amethyst arrowtips
-        quantity: 15
-      - item_id: 53
-        item_name: Headless arrow
-        quantity: 15
-    xp: 202.5
-    product_quantity: 15
-  market:
-    buy_limit: 11000
-    price_estimate: 100
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Fletching
+      level: 82
+      xp: 202.5
+      materials:
+        - item_name: Amethyst arrowtips
+          quantity: 15
+        - item_name: Headless arrow
+          quantity: 15
+      tools: []
+      output_quantity: 15
   related_items:
-    - item_id: 21350
-      item_name: Amethyst arrowtips
-      slug: amethyst-arrowtips
+    - name: Amethyst arrowtips
       relationship: component
-      description: Crafting component
-    - item_id: 53
-      item_name: Headless arrow
-      slug: headless-arrow
+    - name: Headless arrow
       relationship: component
-      description: Base material
-    - item_id: 11212
-      item_name: Dragon arrow
-      slug: dragon-arrow
+    - name: Dragon arrow
       relationship: upgrade
-      description: Higher tier
-    - item_id: 892
-      item_name: Rune arrow
-      slug: rune-arrow
+    - name: Rune arrow
       relationship: downgrade
-      description: Lower tier
-  about: |-
-    | Method | Level | XP |
-    |--------|-------|-----|
-    | Fletching | 82 | 202.5 (per 15) |
-    | Materials | Amethyst arrowtips + Headless arrow | - |
-
-    | Stat | Value |
-    |------|-------|
-    | Ranged requirement | 1 |
-    | Ranged strength | +55 |
-    | Bow requirement | Magic shortbow or better |
+  about: "Amethyst arrows are members ranged ammunition sitting between rune and dragon arrows on the strength curve (+55 ranged strength). Crafted at 82 Fletching from amethyst arrowtips and headless arrows, they require a magic shortbow (or stronger) to wield and work with Ava's devices despite being non-metallic."
   market_strategy:
     notes:
-      - Between rune and dragon
-      - Popular PvM ammo
-      - No quest requirements
-      - Slayer tasks
-      - General PvM
-      - Cost-effective ammo
-      - Magic shortbow users
-      - +6 str over rune arrows
-      - Requires magic logs bow minimum
-      - Good balance of cost/damage
-      - Popular mid-game ammo
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Popular mid-game PvM ammunition for magic shortbow and bone shortbow users."
+      - "Fletching margin is tight — track amethyst arrowtip prices vs finished arrow demand daily."
+      - "GE buy limit 11,000 — easy to flip in modest volume without moving the price."
+      - "Demand peaks during slayer/PvM weekends when accounts gear up cheaply."
+  trading_tips:
+    - "Set instant-buy orders slightly above market to clear restock waves quickly."
+    - "Convert amethyst arrowtips into arrows only when the spread vs sold arrows turns positive after GE tax."
+    - "Consider buying in bulk before content updates that buff bows or amethyst itself."
+  history:
+    - date: "2017-06-22"
+      description: "Released as part of the Mining Guild Expansion update, alongside amethyst mining."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-06-22"
+    update: "Mining Guild Expansion"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

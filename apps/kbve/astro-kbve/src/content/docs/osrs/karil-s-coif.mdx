@@ -1,6 +1,6 @@
 ---
 title: Karil's coif | OSRS Price Data
-description: "Karil's coif is a members head slot item requiring 70 Defence. High alch: 7,800 GP, GE limit: 15."
+description: "Karil's coif is a members head slot item requiring 70 Defence and 70 Ranged. High alch: 7,800 GP, GE limit: 15."
 osrs:
   id: 4732
   name: Karil's coif
@@ -14,34 +14,38 @@ osrs:
   limit: 15
   equipment:
     slot: head
-    type: barrows
-    set: Karil
-    tradeable: true
-    degradeable: true
-    weight: 0.9
+    weight: 0.907
     requirements:
       defence: 70
       ranged: 70
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 0
-      attack_ranged: 7
-      defence_stab: 6
-      defence_slash: 9
-      defence_crush: 12
-      defence_magic: 6
-      defence_ranged: 10
-      strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -1
+      ranged: 7
+    defence_bonus:
+      stab: 6
+      slash: 9
+      crush: 12
+      magic: 6
+      ranged: 10
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  set_effect:
-    name: Tainted Shot
-    pieces_required: 4
-    description: 25% chance to lower opponent's Agility by 20%
-    amulet_of_damned: 25% chance to hit twice (second hit at 50% damage)
+  drop_table:
+    sources:
+      - source: Karil the Tainted
+        combat_level: 98
+        quantity: "1"
+        rarity: 1/2448
+        members_only: true
+      - source: Barrows chest
+        quantity: "1"
+        rarity: 1/2448
+        members_only: true
   related_items:
     - item_id: 4736
       item_name: Karil's leathertop
@@ -62,28 +66,39 @@ osrs:
       item_name: Armadyl helmet
       slug: armadyl-helmet
       relationship: upgrade
-      description: Upgrade path
-  about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Ranged attack | +7 |
-    | Stab defence | +6 |
-    | Slash defence | +9 |
-    | Crush defence | +12 |
-    | Magic defence | +6 |
-    | Ranged defence | +10 |
-
-    Tainted Shot:
-    When wearing full Karil's (coif, leathertop, leatherskirt, crossbow):
-    - 25% chance to lower opponent's Agility by 20%
-
-    With Amulet of the Damned:
-    - 25% chance to hit twice (second hit at 50% damage)
-
-    - 15 hours of combat use
-    - Repair at Bob in Lumbridge or POH armor stand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Higher tier ranged helm
+  market_strategy:
+    notes:
+      - Cheap entry barrows ranged helm
+      - 15 hours of combat per charge
+      - Repairs at Bob or POH stand
+      - Drops broken from chest
+  history:
+    - date: "2005-05-09"
+      description: Item released with the Barrows minigame.
+    - date: "2015-06-25"
+      description: Ranged attack bonus increased from +3 to +7.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-09"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Check
+      - Drop
+    worn_options:
+      - Remove
+      - Check
+    alchable: true
+    destroy: Drop
+  about: "Karil's coif is the members head piece of Karil the Tainted's barrows set, degrading over 15 hours of combat in Old School RuneScape."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

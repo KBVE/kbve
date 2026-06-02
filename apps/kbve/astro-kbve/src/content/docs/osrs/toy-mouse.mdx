@@ -1,6 +1,6 @@
 ---
 title: Toy mouse | OSRS Price Data
-description: "Toy mouse: Nice bit of crafting!. High alch: 6 GP, GE limit: 150."
+description: "Toy mouse: Nice bit of crafting! High alch: 6 GP, GE limit: 150."
 osrs:
   id: 7767
   name: Toy mouse
@@ -12,9 +12,65 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 150
-  about: "Toy mouse is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: clockwork
+    tier: low
+  recipes:
+    - skill: crafting
+      level: 33
+      xp: 15
+      materials:
+        - item_name: Clockwork
+          quantity: 1
+        - item_name: Plank
+          quantity: 1
+      tools: []
+      output_item: Toy mouse
+      output_quantity: 1
+      notes: "Built at the Crafting table 4 in a player-owned house Workshop (requires 42 Construction)."
+  related_items:
+    - item_id: 8792
+      item_name: Clockwork
+      slug: clockwork
+      relationship: component
+      description: Crafting table input made at any POH crafting table from a steel bar.
+    - item_id: 960
+      item_name: Plank
+      slug: plank
+      relationship: component
+      description: Regular plank used as the wooden body of the toy.
+    - item_id: 7765
+      item_name: Toy cat
+      slug: toy-cat
+      relationship: alternative
+      description: Similar clockwork toy crafted at the same workshop tables.
+  about: "Toy mouse is a wind-up Crafting product used for low-level Agility training and as an Ava's accumulator novelty pickup."
+  market_strategy:
+    notes:
+      - Niche Agility/POH curio — thin GE demand at 150/4h limit
+      - Crafting margin is usually positive vs clockwork + plank inputs
+  history:
+    - date: "2006-05-31"
+      description: Released alongside the Player-Owned Houses update.
+    - date: "2013-03-28"
+      description: Agility XP per catch reduced from previous higher value to 3 XP.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    update: "Player-Owned Houses"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wind
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

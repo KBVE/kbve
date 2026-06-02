@@ -1,6 +1,6 @@
 ---
 title: Ensouled dagannoth head | OSRS Price Data
-description: "Ensouled dagannoth head: The creature's soul is still in here.. High alch: 273 GP, GE limit: 7,500."
+description: "Ensouled dagannoth head: The creature's soul is still in here. High alch: 273 GP, GE limit: 7,500."
 osrs:
   id: 13493
   name: Ensouled dagannoth head
@@ -14,7 +14,7 @@ osrs:
   limit: 7500
   material:
     type: ensouled_head
-    tier: expert
+    tier: mid-high
   prayer:
     xp_reanimate: 936
     magic_level: 72
@@ -22,46 +22,70 @@ osrs:
   drop_table:
     sources:
       - source: Dagannoth
-        source_id: 970
         combat_level: 74
         quantity: "1"
-        rarity: uncommon
-        members_only: true
+        rarity: "1/40"
       - source: Dagannoth Rex
-        source_id: 2267
         combat_level: 303
         quantity: "1"
-        rarity: uncommon
-        members_only: true
+        rarity: "1/20"
+      - source: Dagannoth Supreme
+        combat_level: 303
+        quantity: "1"
+        rarity: "1/20"
+      - source: Dagannoth Prime
+        combat_level: 303
+        quantity: "1"
+        rarity: "1/20"
   related_items:
     - item_id: 13490
       item_name: Ensouled kalphite head
       slug: ensouled-kalphite-head
       relationship: downgrade
-      description: Lower XP (884)
+      description: Lower reanimation XP (884)
     - item_id: 13496
       item_name: Ensouled bloodveld head
       slug: ensouled-bloodveld-head
       relationship: upgrade
-      description: Higher XP (1,040)
+      description: Higher reanimation XP (1,040)
     - item_id: 13502
       item_name: Ensouled demon head
       slug: ensouled-demon-head
       relationship: upgrade
-      description: Higher XP (1,170)
-  about: |-
-    1. Cast Expert Reanimation spell on the head
-    2. Kill the reanimated creature
-    3. Receive Prayer XP
+      description: Higher reanimation XP (1,170)
+  about: "Ensouled dagannoth head drops from dagannoths and the Dagannoth Kings, granting 936 Prayer XP per reanimation at the Dark Altar with the Expert Reanimation spell at 72 Magic."
   market_strategy:
     notes:
-      - Good Prayer XP
-      - Supply from dagannoth tasks
-      - Lighthouse dagannoths popular
-      - DKs also drop these
-      - Compare to bloodveld heads
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Steady drop supply from popular Slayer task and DKs
+      - Prayer XP rate keeps demand high during training events
+      - Compare cost per XP against bloodveld and demon heads
+      - Buy limit 7,500 supports bulk Prayer sessions
+      - Rune cost adds materially to effective XP price
+  trading_tips:
+    - DKs accounts can flood supply after big trip clears
+    - Bond events lift Prayer training demand
+    - Lighthouse and Waterbirth dagannoths are top farming spots
+  history:
+    - date: "2016-01-07"
+      update: "Zeah: Great Kourend"
+      description: Ensouled dagannoth head added with the Arceuus Reanimation spells.
+  properties:
+    release_date: "2016-01-07"
+    update: "Zeah: Great Kourend"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Reanimate
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

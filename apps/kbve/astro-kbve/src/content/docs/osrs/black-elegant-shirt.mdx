@@ -12,21 +12,84 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
+  material:
+    type: cloth
+    tier: cosmetic
   equipment:
     slot: body
-    requirements: {}
+    weapon_type: none
+    weight: 1
+    requirements:
+      none: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
     - item_id: 10402
       item_name: Black elegant legs
       slug: black-elegant-legs
       relationship: set-piece
-      description: Matching elegant legs
-  about: |-
-    > *"A well made elegant men's black shirt."*
-
-    Purely cosmetic treasure trail reward with no combat stats. Part of the black elegant clothing set used for fashionscape and emote clue requirements.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Matching legs from the black elegant outfit.
+    - item_id: 10404
+      item_name: White elegant blouse
+      slug: white-elegant-blouse
+      relationship: alternative
+      description: Female counterpart in the elegant clothing collection.
+    - item_id: 10396
+      item_name: Red elegant shirt
+      slug: red-elegant-shirt
+      relationship: alternative
+      description: Red colour variant of the same elegant shirt design.
+  about: "Black elegant shirt is a medium clue treasure trail reward worn purely for fashionscape with no combat bonuses."
+  market_strategy:
+    notes:
+      - Supply comes entirely from medium clue caskets at roughly 8 in 18,128 rarity.
+      - Hard buy limit of 4 per 4 hours keeps daily inventory churn low.
+      - Emote clue requirement props up demand among ironmen completing master clues.
+  trading_tips:
+    - Flip in singles around emote clue events when fashionscape demand spikes.
+    - Pair purchases with matching black elegant legs to relist as a set.
+  history:
+    - date: "2006-12-05"
+      description: Added with the Treasure Trails update as a medium clue reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-12-05"
+    update: Treasure Trails
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

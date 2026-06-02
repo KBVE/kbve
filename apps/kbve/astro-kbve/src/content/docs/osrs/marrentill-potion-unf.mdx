@@ -15,10 +15,6 @@ osrs:
   potion:
     type: unfinished
     tier: basic
-  herblore:
-    level: 5
-    xp: 0
-    method: Add marrentill to vial of water
   recipes:
     - skill: herblore
       level: 5
@@ -32,6 +28,20 @@ osrs:
           quantity: 1
       product: Marrentill potion (unf)
       product_id: 93
+      product_quantity: 1
+      members_only: true
+    - skill: herblore
+      level: 5
+      xp: 37.5
+      materials:
+        - item_name: Marrentill potion (unf)
+          item_id: 93
+          quantity: 1
+        - item_name: Unicorn horn dust
+          item_id: 235
+          quantity: 1
+      product: Antipoison(3)
+      product_id: 175
       product_quantity: 1
       members_only: true
   related_items:
@@ -49,27 +59,35 @@ osrs:
       item_name: Unicorn horn dust
       slug: unicorn-horn-dust
       relationship: component
-      description: Secondary for antipoison
+      description: Secondary used to finish antipoison
     - item_id: 175
       item_name: Antipoison(3)
       slug: antipoison-3
       relationship: product
-      description: Cures poison
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Unfinished Potion |
-    | Tradeable | Yes |
-    | Weight | 0.056 kg |
-    | Requirements | 5 Herblore |
-
-    Add secondary ingredient to create:
-    - Antipoison (+ unicorn horn dust)
-
-    Essential early-game potion for poison protection.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Finished antipoison potion
+  market_strategy:
+    notes:
+      - Cleaning + brewing supply chain item
+      - Demand tracks early-game Herblore training
+      - Empty option allows quick vial recovery
+      - Antipoison floor sets price ceiling
+  about: Marrentill potion (unf) is a 4-dose unfinished potion made by adding a marrentill herb to a vial of water at level 5 Herblore and is the base for antipoison.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

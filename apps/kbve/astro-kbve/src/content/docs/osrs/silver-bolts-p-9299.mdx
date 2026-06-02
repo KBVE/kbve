@@ -12,9 +12,94 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 11000
-  about: "Silver bolts (p+) is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: silver
+    tier: low
+  equipment:
+    slot: ammo
+    weapon_type: crossbow
+    attack_speed: 1
+    weight: 0
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 36
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - product: Silver bolts (p+)
+      skill: Fletching
+      level: 73
+      xp: 0
+      tools: []
+      materials:
+        - item_name: Silver bolts
+          quantity: 10
+        - item_name: Weapon poison(+)
+          quantity: 1
+  related_items:
+    - item_id: 9286
+      item_name: Silver bolts
+      slug: silver-bolts
+      relationship: variant
+      description: Unpoisoned base bolt
+    - item_id: 9298
+      item_name: Silver bolts (p)
+      slug: silver-bolts-p
+      relationship: variant
+      description: Weaker poison variant
+    - item_id: 9300
+      item_name: Silver bolts (p++)
+      slug: silver-bolts-pp
+      relationship: upgrade
+      description: Strongest poison variant
+  about: "Silver bolts (p+) are silver crossbow bolts coated in weapon poison(+) that deal extra damage to undead and apply poison on hit."
+  market_strategy:
+    notes:
+      - Niche use against undead and Slayer tasks
+      - Margins track weapon poison(+) supply
+      - Volume is small versus mainstream bolt types
+  trading_tips:
+    - Apply weapon poison(+) at 73 Fletching for free
+    - Decant variants between (p), (p+), and (p++) for arbitrage
+  history:
+    - date: "2006-07-31"
+      description: Released with the Crossbows update.
+    - date: "2007-01-01"
+      description: Unpoisoned bolt values lowered from 30 to 5 coins while poisoned variants rose from 1 to 5 coins.
+    - date: "2018-01-01"
+      description: Naming standardised with proper spacing for (p+) and (p++) variants.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-31"
+    update: Crossbows
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

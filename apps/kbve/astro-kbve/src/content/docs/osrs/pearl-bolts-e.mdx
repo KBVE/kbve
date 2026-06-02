@@ -12,13 +12,50 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 11000
+  material:
+    type: ammunition
+    tier: mid
   equipment:
     slot: ammo
-    other_bonus:
-      ranged_strength: 48
+    weapon_type: crossbow
+    attack_speed: 6
+    weight: 0
     requirements:
       ranged: 1
-    weight: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 48
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    name: Sea Curse
+    description: 6% proc (6.6% with Kandarin Hard Diary) deals bonus water damage equal to 1/20 of Ranged level (1/15 vs fiery enemies); negated by water staff, amplified by fire staff. Bonus applies even if base attack misses.
+  recipes:
+    - product: Pearl bolts (e)
+      skill: Magic
+      level: 24
+      xp: 29.5
+      materials:
+        - item_name: Pearl bolts
+          quantity: 10
+        - item_name: Water rune
+          quantity: 2
+        - item_name: Cosmic rune
+          quantity: 1
+      facility: Inventory
+      notes: Cast Enchant Crossbow Bolt (Pearl) to enchant 10 pearl bolts per cast (~3 ticks).
   related_items:
     - item_id: 9236
       item_name: Opal bolts (e)
@@ -30,21 +67,45 @@ osrs:
       slug: topaz-bolts-e
       relationship: upgrade
       description: Next tier enchanted bolt
-  about: |-
-    | Other | Value |
-    |-------|-------|
-    | Ranged Strength | +48 |
-
-    Proc chance: 6% (6.6% with Kandarin hard diary)
-
-    On activation, deals extra water-based damage. Damage is increased against fire-based enemies (fire giants, fire elementals, etc.) but negated entirely against targets wielding a water staff.
+    - item_id: 880
+      item_name: Pearl bolts
+      slug: pearl-bolts
+      relationship: component
+      description: Unenchanted base bolts
   market_strategy:
     notes:
       - Effective against fire-type monsters
       - Cheap mid-tier enchanted bolt
       - Niche PvM use
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2006-07-31"
+      update: Crossbows
+      description: Released as part of the Crossbows update.
+    - date: "2007-06-18"
+      description: Item value increased from 1 to 15 coins.
+    - date: "2015-03-05"
+      description: Kandarin headgear 3 introduced a 10% activation boost to enchanted bolt special effects.
+    - date: "2015-04-16"
+      description: Hard Kandarin Diary completion made the +10% enchanted bolt activation permanent without requiring the headgear equipped.
+  about: Pearl bolts (e) are enchanted Sea Curse bolts that proc bonus water damage scaling with Ranged level; especially strong against fiery enemies and negated by water staves.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-31"
+    update: Crossbows
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

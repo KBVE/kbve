@@ -9,12 +9,75 @@ osrs:
   members: true
   icon: Bronze bolts (unf) 5.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 13000
-  about: "Bronze bolts (unf) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bronze
+    tier: bronze
+  recipes:
+    - skill: Smithing
+      level: 3
+      xp: 12.5
+      materials:
+        - item_name: Bronze bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output:
+        item_name: Bronze bolts (unf)
+        quantity: 10
+    - skill: Fletching
+      level: 9
+      xp: 5
+      materials:
+        - item_name: Bronze bolts (unf)
+          quantity: 10
+        - item_name: Feather
+          quantity: 10
+      output:
+        item_name: Bronze bolts
+        quantity: 10
+  related_items:
+    - item_id: 2349
+      item_name: Bronze bar
+      slug: bronze-bar
+      relationship: component
+      description: Material smithed into unfinished bolts
+    - item_id: 877
+      item_name: Bronze bolts
+      slug: bronze-bolts
+      relationship: product
+      description: Finished bolts after attaching feathers
+  about: "Entry-tier unfinished crossbow bolts smithed from a bronze bar, completed by attaching feathers via Fletching for low-level training XP."
+  market_strategy:
+    notes:
+      - Primary use is low-level Fletching XP via feather attachment
+      - 13,000 buy limit and ~35k daily volume keep the market liquid
+      - Not alchable so margins live entirely in the GE spread
+  trading_tips:
+    - Stack with cheap feathers during Fletching XP events
+    - Watch bronze bar price floors since they cap profitable spreads
+  history:
+    - date: "2006-07-31"
+      description: Added to the game with the Crossbows update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-31"
+    update: Crossbows
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: false
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

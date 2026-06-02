@@ -12,9 +12,63 @@ osrs:
   lowalch: 560
   highalch: 840
   limit: 8
-  about: "Steel set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 840 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: steel
+    tier: low
+  related_items:
+    - item_id: 1119
+      item_name: Steel platebody
+      slug: steel-platebody
+      relationship: component
+      description: Set component
+    - item_id: 1069
+      item_name: Steel platelegs
+      slug: steel-platelegs
+      relationship: component
+      description: Set component
+    - item_id: 1157
+      item_name: Steel full helm
+      slug: steel-full-helm
+      relationship: component
+      description: Set component
+    - item_id: 1191
+      item_name: Steel kiteshield
+      slug: steel-kiteshield
+      relationship: component
+      description: Set component
+    - item_id: 13066
+      item_name: Steel set (sk)
+      slug: steel-set-sk
+      relationship: variant
+      description: Skirt variant of the set
+  about: "Steel set (lg) is a Grand Exchange convenience bundle containing the steel full helm, platebody, platelegs, and kiteshield. Exchanged via the GE clerk Sets interface and primarily used to free bank/inventory space when moving full steel armour."
+  market_strategy:
+    notes:
+      - Set typically trades at a premium over the sum of its components
+      - Useful for arbitrage when GE prices misalign
+      - Free-to-play demand from new ironmen and shop suppliers
+  trading_tips:
+    - Compare set price vs combined component price for flips
+    - Buy components, package as set, sell during GE supply gaps
+  history:
+    - date: "2015-02-26"
+      description: Steel armour set added to the Grand Exchange Sets interface.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-02-26"
+    update: Grand Exchange Sets
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Exchange
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
