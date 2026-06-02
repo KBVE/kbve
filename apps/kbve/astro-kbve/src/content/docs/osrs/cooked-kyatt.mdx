@@ -12,9 +12,56 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 10000
-  about: "Cooked kyatt is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    effects:
+      - description: "Heals 17 Hitpoints total: 9 on consumption, then 8 more after a 7-tick (~4.2 second) delay."
+      - description: Behaves as a combo-style food that frees up an action while the delayed heal lands.
+  recipes:
+    - skill: Cooking
+      level: 51
+      experience: 143
+      output_quantity: 1
+      tools:
+        - Fire or cooking range
+      materials:
+        - item_name: Raw kyatt
+          quantity: 1
+      notes: "Requires 25 Hunters' Rumours completed before raw kyatt can be obtained."
+  related_items:
+    - item_id: 29150
+      item_name: Raw kyatt
+      slug: raw-kyatt
+      relationship: component
+      description: Raw form cooked into this product.
+  about: "Cooked kyatt is a Hunter-skill food cooked at 51 Cooking that delivers a 9 + 8 split heal totalling 17 HP."
+  market_strategy:
+    notes:
+      - Profit on cooked kyatt is tied to raw kyatt supply from Hunters' Rumours; raw price + small margin sets the floor.
+      - Split-heal design makes it attractive for tick-eating PvM content, supporting steady demand.
+  trading_tips:
+    - Buy raw kyatt, cook to 51+ Cooking, and flip for the gp/xp + margin combo.
+    - Watch Hunters' Rumours throughput in updates to anticipate raw kyatt price swings.
+  history:
+    - date: "2024-03-20"
+      description: Cooked kyatt added with the Hunters' Rumours / Varlamore content expansion.
+    - date: "2026-05-13"
+      description: Inventory icon graphically updated for improved vibrancy.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.283
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,23 +12,68 @@ osrs:
   lowalch: 48
   highalch: 72
   limit: 2000
+  potion:
+    doses: 3
+    effects:
+      - skill: Defence
+        description: "Boosts Defence by 3 + 10% of current Defence level (rounded down). Effect decays at 1 point per minute (90 seconds with Preserve)."
+  recipes:
+    - skill: Herblore
+      level: 30
+      experience: 75
+      materials:
+        - item_name: Ranarr potion (unf)
+          quantity: "1"
+        - item_name: White berries
+          quantity: "1"
+      tools: []
+      output_quantity: 1
+      notes: "Use white berries on a ranarr potion (unf) at 30 Herblore for 75 XP."
+  shops:
+    - shop_name: "Warrior Guild Potion Shop"
+      location: "Warriors' Guild, Burthorpe"
+      members: true
   related_items:
-    - item_id: 135
-      item_name: Defence potion(2)
-      slug: defence-potion-2
+    - name: Defence potion(4)
       relationship: variant
-      description: 2-dose version
-    - item_id: 137
-      item_name: Defence potion(1)
-      slug: defence-potion-1
+    - name: Defence potion(2)
       relationship: variant
-      description: 1-dose version
-  about: |-
-    > _"3 doses of Defence potion."_
-
-    The defence potion boosts Defence by 3 + 10% of current level (rounded down). A mid-level Herblore potion useful for early combat training.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Defence potion(1)
+      relationship: variant
+    - name: Super defence(3)
+      relationship: upgrade
+  about: "Defence potion(3) is a 3-dose Herblore potion in Old School RuneScape that boosts the drinker's Defence level by 3 + 10% of current Defence. A mid-level Herblore product used for early combat training and budget tanking; sold by the Warriors' Guild Potion Shop and crafted from ranarr potion (unf) + white berries at 30 Herblore."
+  market_strategy:
+    notes:
+      - "Mid-tier Herblore output; consumable demand is dwarfed by Super defence and Sara brews."
+      - "Mostly used by ironmen, early questers, and Warriors' Guild trips."
+      - "Buy limit of 2,000 per 4 hours allows decent bulk flipping when crafting decoupling appears."
+  trading_tips:
+    - "Compare GE price against ranarr potion (unf) + white berries — these are the canonical decant arbitrage inputs."
+    - "Watch for decanting opportunities: 3-dose vs 4-dose price gaps create steady profit from NPC decanters."
+    - "Stock up before Combat Academy or new low-level PvM content releases."
+  history:
+    - date: "2002-02-27"
+      description: "Released with the Herblore skill rework."
+    - date: "2004-03-29"
+      description: "4-dose variant added permanently with RuneScape 2 launch."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    alchable: true
+    options:
+      - Drink
+      - Empty
+      - Drop
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

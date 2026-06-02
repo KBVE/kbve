@@ -12,9 +12,66 @@ osrs:
   lowalch: 92
   highalch: 138
   limit: 2000
-  about: "Super energy(3) is a members-only item in Old School RuneScape. High alchemy value: 138 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: Restores 20% of run energy per dose.
+      - description: Does not slow energy depletion like Stamina potions; only restores energy.
+  recipes:
+    - skill: Herblore
+      level: 52
+      experience: 117.5
+      output_quantity: 1
+      tools:
+        - Vial of water (for Avantoe potion (unf))
+      materials:
+        - item_name: Avantoe potion (unf)
+          quantity: 1
+        - item_name: Mort myre fungus
+          quantity: 1
+      notes: "Produces Super energy(3); decant to any dose with Bob Barter."
+  related_items:
+    - item_id: 3016
+      item_name: Super energy(4)
+      slug: super-energy-4
+      relationship: variant
+      description: 4-dose version
+    - item_id: 3020
+      item_name: Super energy(2)
+      slug: super-energy-2
+      relationship: variant
+      description: 2-dose version
+    - item_id: 3022
+      item_name: Super energy(1)
+      slug: super-energy-1
+      relationship: variant
+      description: 1-dose version
+  about: "3-dose super energy potion — each sip refills 20% run energy. Made at 52 Herblore from Avantoe potion (unf) + Mort myre fungus."
+  market_strategy:
+    notes:
+      - Demand is steady from clue-runners, agility trainers, and PvMers who skip stamina mixes.
+      - Decanting margin between (3) and (4) is the usual flip; watch the 2,000 GE buy limit.
+  trading_tips:
+    - Buy unf + fungus and craft your own when GE prices spread; gp/xp is decent.
+    - Compare (1)/(2)/(3)/(4) per-dose pricing for decant arbitrage; Bob Barter is the fastest path.
+  history:
+    - date: "2004-09-01"
+      description: Super energy potions added to the Herblore skill.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-09-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.06
+    options:
+      - Drink
+      - Empty
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

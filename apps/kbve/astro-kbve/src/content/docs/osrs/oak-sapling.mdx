@@ -12,9 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 200
+  farming:
+    seed: Acorn
+    farming_level: 15
+    planting_xp: 14
+    check_xp: 467.3
+    growth_time_minutes: 160
+    patches:
+      - Tree patch
+    protection: "1 basket of tomatoes"
+  recipes:
+    - skill: Farming
+      level: 15
+      xp: 14
+      materials:
+        - item_name: Oak seedling
+          quantity: 1
+      tools:
+        - Watering can
+      output_quantity: 1
+  related_items:
+    - name: Acorn
+      relationship: component
+    - name: Oak seedling
+      relationship: component
+    - name: Oak tree
+      relationship: product
+    - name: Oak logs
+      relationship: product
+    - name: Plant pot (filled)
+      relationship: component
+  market_strategy:
+    notes:
+      - "Used by Farming trainers to plant oak trees once every growth window."
+      - "Demand driven by lower-level Farming methods and tree-run rotations."
+      - "Cheap to produce in bulk; profit lies in the planting/checking XP, not flips."
+  trading_tips:
+    - "Watch acorn price - oak saplings flip when seedling crafting profit turns positive."
+    - "Buy in noted bulk if questing or diary tasks demand specific Farming progress."
+  history:
+    - date: "2005-07-11"
+      description: "Released as part of the Farming skill launch."
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Plant
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   about: "Oak sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -11,10 +11,70 @@ osrs:
   value: 19500
   lowalch: 7800
   highalch: 11700
-  limit: null
+  limit: 15
+  equipment:
+    slot: shield
+    weapon_type: unarmed
+    weight: 1
+    requirements:
+      magic: 1
+    attack_bonus:
+      magic: 8
+    defence_bonus:
+      magic: 8
+  charges:
+    max_charges: 20000
+    charged_form: Tome of water
+    charge_item: Soaked pages
+    charges_per_item: 20
+    description: "Holds up to 20,000 charges via soaked pages (20 per page). When charged and equipped, supplies unlimited water runes and boosts water magic damage."
+  drop_table:
+    sources:
+      - source: Tempoross
+        quantity: "1"
+        rarity: "1/1,600"
+  related_items:
+    - name: Tome of water
+      relationship: variant
+    - name: Tome of fire (empty)
+      relationship: alternative
+    - name: Tome of earth (empty)
+      relationship: alternative
+    - name: Soaked pages
+      relationship: component
+    - name: Tempoross
+      relationship: alternative
+  market_strategy:
+    notes:
+      - "Drops from Tempoross at 1/1,600; supply rises with skiller activity at the boss."
+      - "Charged form gives unlimited water runes and 10-20% damage boost on water spells."
+      - "Empty tome flips against charged tome plus soaked-page production cost."
+  trading_tips:
+    - "Compare empty + (charges * page cost) vs. charged tome to spot arbitrage."
+    - "Demand jumps with new magic gear that pairs with high-tier spell rotations."
+  history:
+    - date: "2021-03-24"
+      description: "Released alongside the Tempoross fishing boss."
+  properties:
+    release_date: "2021-03-24"
+    update: Tempoross
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   about: "Tome of water (empty) is a members-only item in Old School RuneScape. High alchemy value: 11,700 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

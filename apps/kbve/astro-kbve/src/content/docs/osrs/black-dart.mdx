@@ -12,9 +12,68 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
-  about: "Black dart is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: black
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 6
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Burthorpe Imperial Guard soldiers
+        quantity: "1"
+        rarity: 9/128
+  related_items:
+    - item_id: 806
+      item_name: Bronze dart
+      slug: bronze-dart
+      relationship: alternative
+      description: Entry-tier thrown weapon
+    - item_id: 3094
+      item_name: Black dart(p)
+      slug: black-dart-p
+      relationship: variant
+      description: Poisoned variant
+  about: "Black dart is a thrown weapon obtained only from Burthorpe Imperial Guard soldiers, since it cannot be fletched. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
+  history:
+    - date: "2004-08-09"
+      description: Released with the Death Plateau quest update.
+    - date: "2021-06-30"
+      description: Ranged Attack bonus decreased from +7 to 0.
+  properties:
+    release_date: "2004-08-09"
+    update: Death Plateau
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    alchable: true
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

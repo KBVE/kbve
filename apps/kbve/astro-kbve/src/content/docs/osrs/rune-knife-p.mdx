@@ -12,21 +12,66 @@ osrs:
   lowalch: 66
   highalch: 99
   limit: 7000
+  material:
+    type: rune
+    tier: high
   equipment:
     slot: weapon
+    weapon_type: thrown
     attack_speed: 3
+    weight: 0
     requirements:
       ranged: 40
     attack_bonus:
       ranged: 15
-    ranged_strength: 24
-  related_items: []
+    other_bonus:
+      ranged_strength: 24
+  related_items:
+    - name: Rune knife
+      relationship: variant
+    - name: Rune knife(p+)
+      relationship: upgrade
+    - name: Rune knife(p++)
+      relationship: upgrade
+    - name: Adamant knife(p)
+      relationship: downgrade
+    - name: Dragon knife(p)
+      relationship: upgrade
+  market_strategy:
+    notes:
+      - "Poisoned variant of the rune knife, used for ranged combat with poison damage over time."
+      - "Demand driven by PvP players and slayer tasks where poison stacks help."
+      - "Often crafted by players (92 Smithing) then poisoned, so supply is steady."
+  trading_tips:
+    - "Compare margin against unpoisoned rune knife plus a weapon poison."
+    - "Bulk buyers usually prefer (p+) or (p++) for stronger poison ticks."
+  history:
+    - date: "2003-04-14"
+      description: "Rune knife and its poisoned variants released as part of the throwing knife update."
+  properties:
+    release_date: "2003-04-14"
+    update: Throwing Knives
+    tradeable: true
+    stackable: true
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Use
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   about: |-
     > _"A very sharp rune knife with a poisoned tip."_
 
     A rune knife tipped with basic weapon poison. Requires 40 Ranged. The highest standard tier of poisoned knife. Poison deals 2-4 damage over time.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

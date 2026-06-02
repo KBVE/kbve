@@ -1,6 +1,6 @@
 ---
 title: Uncut dragonstone | OSRS Price Data
-description: "Uncut dragonstone: This would be worth more cut.. High alch: 600 GP, GE limit: 10,000."
+description: "Uncut dragonstone: This would be worth more cut. High alch: 600 GP, GE limit: 10,000."
 osrs:
   id: 1631
   name: Uncut dragonstone
@@ -12,25 +12,45 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 10000
-  item:
-    type: material
-    tradeable: true
+  material:
+    type: gem
+    tier: high
+  drop_table:
+    sources:
+      - source: Crystal chest
+        quantity: "1"
+        rarity: Always
+      - source: Callisto
+        quantity: "1"
+        rarity: Common
+      - source: "Vet'ion"
+        quantity: "1"
+        rarity: Common
+      - source: Venenatis
+        quantity: "1"
+        rarity: Common
+  shops:
+    - shop_name: "TzHaar-Hur-Tel's Equipment Store"
+      location: Mor Ul Rek
+      currency: Tokkul
+      price: 1500
   recipes:
-    - skill: crafting
+    - skill: Crafting
       level: 55
       xp: 137.5
       materials:
-        - item_id: 1631
-          item_name: Uncut dragonstone
+        - item_name: Uncut dragonstone
           quantity: 1
+      tools:
+        - Chisel
       product: Dragonstone
-      product_id: 1615
+      output_quantity: 1
   related_items:
     - item_id: 1615
       item_name: Dragonstone
       slug: dragonstone
       relationship: product
-      description: Cut form
+      description: Cut form of the gem
     - item_id: 989
       item_name: Crystal key
       slug: crystal-key
@@ -44,8 +64,32 @@ osrs:
     | Weight | 0.003 kg |
 
     Cut with 55 Crafting for dragonstone (137.5 XP).
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+
+    Primary sources are the Crystal Chest in Taverley, the wilderness bosses (Callisto, Vet'ion, Venenatis), and TzHaar gem shops in Mor Ul Rek (1,500 Tokkul).
+  market_strategy:
+    notes:
+      - Stable demand from Crafting trainers and jewellery makers
+      - Crystal chest farming pushes consistent supply
+      - Watch for Tokkul exchange runs from TzHaar shops
+  history:
+    - date: "2002-02-27"
+      description: Added to the game.
+  properties:
+    release_date: "2002-02-27"
+    update: Quest - Heroes Quest
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.003
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

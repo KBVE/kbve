@@ -12,9 +12,50 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Cider(4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: Drinking a pint heals 1 Hitpoints and temporarily boosts Attack by 2 while reducing Strength by 2.
+      - description: Effects mirror drinking a glass of cider; each keg holds 4 pints.
+  related_items:
+    - name: Cider(3)
+      relationship: variant
+    - name: Cider(2)
+      relationship: variant
+    - name: Cider(1)
+      relationship: variant
+    - name: Beer glass
+      relationship: component
+  about: "Cider(4) is a members-only beverage keg in Old School RuneScape brewed at level 14 Cooking from 4 apple mush, 1 ale yeast, and 2 calquat kegs at a brewery, yielding 8 pints (two full kegs)."
+  market_strategy:
+    notes:
+      - Largely a brewing supply / cosmetic drink; no alch value.
+      - Partially drunk kegs were made untradeable in 2015, so only sealed Cider(4) kegs hit the GE.
+      - Buy limit of 2,000 per 4 hours allows decent flipping volume despite low unit price.
+  trading_tips:
+    - Watch brewery output cycles for supply gluts.
+    - Pair with Calquat keg price to estimate brewer margins.
+  history:
+    - date: "2005-07-11"
+      description: Released as part of the Farming update; brewed at a brewery via the Cooking skill.
+    - date: "2015-02-26"
+      description: Partially drunk versions made untradeable during the Grand Exchange update; only full Cider(4) kegs remain tradeable.
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drink
+      - Drop
+    alchable: false
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

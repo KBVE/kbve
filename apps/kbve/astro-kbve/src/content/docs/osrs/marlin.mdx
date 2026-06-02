@@ -12,9 +12,59 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: null
+  food:
+    heals: 24
+    cooking_level: 91
+    cooking_xp: 225
+  recipes:
+    - skill: Cooking
+      level: 91
+      xp: 225
+      materials:
+        - item_name: Raw marlin
+          quantity: 1
+      tools:
+        - Cooking range
+      output_quantity: 1
+  related_items:
+    - name: Raw marlin
+      relationship: component
+    - name: Shark
+      relationship: alternative
+    - name: Anglerfish
+      relationship: alternative
+    - name: Manta ray
+      relationship: alternative
+  market_strategy:
+    notes:
+      - "Highest single-bite heal in the game at 24 HP per bite."
+      - "Released with the Sailing skill; supply scales with Sailing/Fishing activity."
+      - "Approximately 743k/hr profit cooking raw marlin at level 99 Cooking."
+  trading_tips:
+    - "Watch raw marlin price relative to cooked marlin to model cook margin."
+    - "Spikes around new PvM content that values per-bite healing over total HP."
+  history:
+    - date: "2025-11-19"
+      description: "Released alongside the Sailing skill update."
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.65
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   about: "Marlin is a members-only item in Old School RuneScape. High alchemy value: 102 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

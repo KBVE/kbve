@@ -12,9 +12,53 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 10000
-  about: "Waterskin(0) is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  charges:
+    max_charges: 4
+    description: "Empty waterskin. Holds up to four doses of water for surviving the Kharidian Desert's heat."
+    refill_method: "Refill from any water source (fountain, sink, well), bucket of water, jug of water, bowl of water, vial of water, the Humidify spell, or by slicing a Kharidian cactus."
+  related_items:
+    - name: Waterskin(4)
+      relationship: variant
+    - name: Waterskin(3)
+      relationship: variant
+    - name: Waterskin(2)
+      relationship: variant
+    - name: Waterskin(1)
+      relationship: variant
+    - name: Circlet of water
+      relationship: alternative
+  about: "Waterskin(0) is the empty form of the Kharidian Desert survival waterskin in Old School RuneScape. Refill it at any water source or with the Humidify spell to convert it back to a Waterskin(4) before braving desert heat damage."
+  market_strategy:
+    notes:
+      - "Bulk consumable: high buy limit (10,000) makes it suitable for stocking up before long desert trips."
+      - "Empty skins are usually cheapest variant — pair with Humidify or bucket refills for bulk preparation."
+      - "Low alch value (9 gp) means alching is never profitable; flip on consumable demand."
+  trading_tips:
+    - "Stock empty skins when prepping for Pyramid Plunder, Smoke Devils, or Menaphos content."
+    - "Bulk-buy at GE then Humidify (Lunar Magic) to refill an entire inventory at once."
+    - "Watch for demand spikes around new desert content releases or Menaphos quests."
+  history:
+    - date: "2003-04-14"
+      description: "Released as part of the original Kharidian Desert heat survival system."
+    - date: "2005-07-05"
+      description: "Examine text corrected to fix a typo."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    alchable: true
+    options:
+      - Drink
+      - Empty
+      - Drop
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

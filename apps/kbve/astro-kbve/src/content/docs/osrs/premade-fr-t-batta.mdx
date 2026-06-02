@@ -12,9 +12,48 @@ osrs:
   lowalch: 48
   highalch: 72
   limit: 6000
-  about: "Premade fr't batta is a members-only item in Old School RuneScape. High alchemy value: 72 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 11
+  related_items:
+    - name: Fruit batta
+      relationship: variant
+  about: "Premade fr't batta is a members-only food item in Old School RuneScape sold by the Gnome Waiter at the Grand Tree for 120 coins. Eating it restores 11 Hitpoints, matching the player-crafted Fruit batta."
+  shops:
+    - shop_name: Hudo's Grocery Store
+      location: Grand Tree
+      stock: 3
+      price: 120
+      restock_time: 1 minute
+  market_strategy:
+    notes:
+      - Shop-sold premade food; supply is effectively unlimited via Gnome Waiter restocks.
+      - Healing of 11 HP is mid-tier; serves as cheap filler food when shrimp/swordfish are out.
+      - Buy limit of 6,000 per 4 hours allows large flips but daily volume is typically thin.
+  trading_tips:
+    - Compare against shop price (120 gp) — flips only work when GE bid drops well below shop cost.
+    - Bulk buy from the Gnome Waiter when restocking; sell on GE during quest spikes.
+  history:
+    - date: "2002-12-12"
+      description: Released alongside the Agility skill update; originally named "Fruit batta".
+    - date: "2006-08-07"
+      description: Renamed from "Fruit batta" to "Premade fr't batta" during the Gnome Cuisine update.
+  properties:
+    release_date: "2002-12-12"
+    update: Agility
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

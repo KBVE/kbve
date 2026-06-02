@@ -9,12 +9,47 @@ osrs:
   members: true
   icon: Sigil of the eternal jeweller.png
   value: 10000
-  lowalch: 4000
-  highalch: 6000
+  lowalch: null
+  highalch: null
   limit: 10
-  about: "Sigil of the eternal jeweller is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: "Deadman Mode drop table (most monsters)"
+        quantity: "1"
+        rarity: "Rare"
+  related_items:
+    - name: Sigil of the formidable mage
+      relationship: alternative
+    - name: Sigil of the menacing mage
+      relationship: alternative
+  about: "Sigil of the eternal jeweller is a Tier 1 utility sigil exclusive to temporary Deadman Mode events in Old School RuneScape. Once attuned, it prevents jewellery teleports — Ring of Duelling, Ring of Wealth, Amulet of Glory, Games Necklace, Skills Necklace, Combat Bracelet, Necklace of Passage, Slayer Ring, Digsite Pendant, Master Scroll Book and Burning Amulet — from consuming charges."
+  market_strategy:
+    notes:
+      - "Only obtainable inside temporary Deadman Mode seasons; untradeable in normal worlds."
+      - "GE limit and alch values listed are placeholders — the item is not on the live Grand Exchange."
+      - "Value is purely from in-event utility, not flipping."
+  trading_tips:
+    - "Not tradeable: there is no flipping market. Drop value is in survivability during DMM events."
+    - "Pair with high-charge teleport jewellery (Ring of Wealth, Amulet of Glory) to maximise the no-cost teleport benefit."
+  history:
+    - date: "2021-08-25"
+      description: "Released as a Tier 1 utility sigil for the Deadman: Reborn temporary tournament."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-08-25"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    alchable: false
+    options:
+      - Attune
+      - Drop
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,48 +12,54 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 10000
-  item:
-    type: teleport_scroll
-    destination: Piscatoris
-    tradeable: true
-    stackable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard/Elite/Master
-        drop_rate: Varies by tier
+  teleport:
+    destination: Piscatoris Fishing Colony (outside the tunnel entrance)
+    requirements: None
+    consumable: true
+    notes: "Quick access to Monkfish fishing spots, Hunter areas, and Western Provinces Diary tasks."
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+      - master
+    notes: "Dropped at all clue tiers except Beginner. Master 1/190.6, Elite 1/203, Hard 1/340.5, plus rare Medium/Easy hits."
   related_items:
     - item_id: 12409
       item_name: Tai bwo wannai teleport
       slug: tai-bwo-wannai-teleport
       relationship: alternative
       description: Another clue teleport scroll
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Teleport Scroll |
-    | Destination | Piscatoris |
-    | Tradeable | Yes |
-    | Stackable | Yes |
-
-    Right-click and select "Teleport" to travel to Piscatoris.
-
-    Teleport Location:
-    - Piscatoris Fishing Colony
-    - Near the fishing spots
-    - Close to monkfish area
-
-    - Monkfish fishing
-    - Western Provinces Diary
-    - Piscatoris Hunter area
-    - Clue scroll steps
+  about: "Stackable, tradeable scroll that teleports the player outside the Piscatoris Fishing Colony tunnel — handy for Monkfish, Hunter, and clue steps."
   market_strategy:
     notes:
-      - Useful for fishing
-      - Hunter activities nearby
-      - Stock up for clue hunting
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Demand is driven by Monkfish fishers, Hunter trainers, and clue-step efficiency runners.
+      - Supply is fully clue-scroll driven; price tracks clue-completion volume and reward roll rates.
+  trading_tips:
+    - Stockpile during clue-volume update spikes (HMT / DMM / leagues) when scroll supply increases.
+    - Compare per-cast cost vs alternative spellbook teleports to gauge fair value.
+  history:
+    - date: "2014-06-12"
+      description: Piscatoris teleport scroll added with the Treasure Trail Expansion update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Teleport
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

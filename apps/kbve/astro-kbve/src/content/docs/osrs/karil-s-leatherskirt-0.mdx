@@ -12,9 +12,80 @@ osrs:
   lowalch: 18800
   highalch: 28200
   limit: 15
+  material:
+    type: barrows
+    tier: high
+  equipment:
+    slot: legs
+    weapon_type: na
+    weight: 5.443
+    requirements:
+      ranged: 70
+      defence: 70
+    attack_bonus:
+      ranged: 17
+    defence_bonus:
+      stab: 26
+      slash: 20
+      crush: 28
+      magic: 35
+      ranged: 33
+    other_bonus: {}
+  charges:
+    max_charges: 0
+    note: "Stage 0 represents fully degraded Barrows equipment; must be repaired before use."
+  related_items:
+    - item_name: Karil's leatherskirt
+      slug: karils-leatherskirt
+      relationship: variant
+      description: Fully charged version
+    - item_name: Karil's leatherskirt 25
+      slug: karils-leatherskirt-25
+      relationship: variant
+      description: Partially used charges
+    - item_name: Karil's leatherskirt 50
+      slug: karils-leatherskirt-50
+      relationship: variant
+      description: Mid-degradation variant
+    - item_name: Karil's leatherskirt 75
+      slug: karils-leatherskirt-75
+      relationship: variant
+      description: Lightly used variant
+    - item_name: Karil's leathertop
+      slug: karils-leathertop
+      relationship: set-piece
+      description: Matching body piece
   about: "Karil's leatherskirt 0 is a members-only item in Old School RuneScape. High alchemy value: 28,200 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - Fully degraded Karil's leatherskirt; cannot be used until repaired
+      - Repair at Bob in Lumbridge or at an armour stand
+      - Holds liquidity from players repairing for resale arbitrage
+      - Drops from Karil the Tainted in the Barrows minigame
+      - Demand tied to ranged setups for ToA/CoX/PvM content
+  history:
+    - date: "2005-05-09"
+      description: "Released with the Barrows update."
+  properties:
+    release_date: "2005-05-09"
+    update: Barrows
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Check
+      - Drop
+    worn_options:
+      - Check
+    alchable: true
+    destroy: "If you drop this item it will break."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
