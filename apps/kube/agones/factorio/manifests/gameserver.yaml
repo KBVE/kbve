@@ -26,6 +26,7 @@ spec:
                 app: factorio
                 app.kubernetes.io/part-of: factorio
         spec:
+            terminationGracePeriodSeconds: 120
             securityContext:
                 runAsNonRoot: true
                 runAsUser: 1000
@@ -120,6 +121,11 @@ spec:
                       capabilities:
                           drop:
                               - ALL
+                  lifecycle:
+                      preStop:
+                          exec:
+                              command:
+                                  - /usr/local/bin/agones-shim-prestop
                 - name: factorio-relay
                   image: ghcr.io/kbve/agones-factorio-relay:0.0.5
                   imagePullPolicy: IfNotPresent
