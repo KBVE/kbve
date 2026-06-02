@@ -182,7 +182,11 @@ jobs:
               id: feats
               run: |
                   FEATS=$(echo '${{ inputs.features }}' | jq -r 'join(",")')
-                  echo "args=$([ -n \"$FEATS\" ] && echo \"--features $FEATS\" || true)" >> "$GITHUB_OUTPUT"
+                  if [ -n "$FEATS" ]; then
+                      echo "args=--features $FEATS" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "args=" >> "$GITHUB_OUTPUT"
+                  fi
             - name: cargo build --release
               working-directory: ${{ inputs.project_path }}
               run: cargo build --release --bin ${{ inputs.app_name }} --target ${{ matrix.target }} ${{ steps.feats.outputs.args }}
