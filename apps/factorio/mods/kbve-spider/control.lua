@@ -264,6 +264,49 @@ script.on_configuration_changed(function()
 	rehydrate_runtime_settings()
 end)
 
+-- on_configuration_changed only fires when the mod's version (or set of mods)
+-- actually changes between save loads. During local development we overwrite
+-- the same versioned zip repeatedly, so the registry stops getting rebuilt
+-- and existing-world allies disappear from `storage.allies` — the follow loop
+-- then short-circuits and the allies stand still. Rebuilding on
+-- on_player_joined_game catches every reload regardless of version.
+script.on_event(defines.events.on_player_joined_game, function()
+	storage.allies = storage.allies or {}
+	storage.ally_owners = storage.ally_owners or {}
+	storage.ally_names = storage.ally_names or {}
+	storage.ally_nametags = storage.ally_nametags or {}
+	rebuild_ally_registry()
+	backfill_nametags()
+end)
+
+commands.add_command(
+	"spider-debug",
+	"Prints kbve-spider runtime state for the calling player.",
+	function(event)
+		local player = game.players[event.player_index]
+		if not player then return end
+		local allies = storage.allies or {}
+		local n = 0
+		for _ in pairs(allies) do n = n + 1 end
+		player.print(string.format("[kbve-spider] registry: %d ally entries", n))
+		for unit_number, surface_index in pairs(allies) do
+			local ally = game.get_entity_by_unit_number(unit_number)
+			local name = storage.ally_names and storage.ally_names[unit_number] or "?"
+			local owner_idx = storage.ally_owners and storage.ally_owners[unit_number] or "?"
+			local valid = ally and ally.valid
+			local has_cmd = valid and ally.has_command() or false
+			local pos_str = valid and string.format("(%d,%d)", math.floor(ally.position.x), math.floor(ally.position.y)) or "<gone>"
+			player.print(string.format(
+				"  unit=%d name=%s owner=%s surface=%d pos=%s valid=%s has_command=%s",
+				unit_number, tostring(name), tostring(owner_idx), surface_index, pos_str, tostring(valid), tostring(has_cmd)
+			))
+		end
+		if n == 0 then
+			player.print("  registry empty — try /c remote.call or just walk around for one tick")
+		end
+	end
+)
+
 local function attach_nametag(ally, name, owner_player)
 	if not (ally and ally.valid) then return end
 	local label
