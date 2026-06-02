@@ -33,7 +33,7 @@ jobs:
               run: |
                   set -euo pipefail
                   bash <(curl --silent --show-error --fail \
-                      https://raw.githubusercontent.com/rhysd/actionlint/v1.7.7/scripts/download-actionlint.bash) 1.7.7
+                      https://raw.githubusercontent.com/rhysd/actionlint/v1.7.12/scripts/download-actionlint.bash) 1.7.12
                   echo "bin=$PWD/actionlint" >> "$GITHUB_OUTPUT"
 
             - name: Verify shellcheck is on PATH
