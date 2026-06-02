@@ -12,9 +12,56 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Dragon bitter is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 1
+    effects:
+      - description: "Boosts Strength by 2 levels"
+      - description: "Reduces Attack by 5% + 2 levels"
+  shops:
+    - shop_name: Dragon Inn
+      location: Yanille
+      stock: 5
+      price: 2
+    - shop_name: The Deeper Lode
+      location: Lovakengj
+      stock: 10
+      price: 2
+  related_items:
+    - name: Dragon bitter(m)
+      relationship: variant
+    - name: Beer glass
+      relationship: component
+  about: "Dragon bitter is a members-only alcoholic ale brewed and served in Yanille's Dragon Inn. Drinking it boosts Strength by 2 levels while temporarily reducing Attack, restoring 1 hitpoint per glass."
+  market_strategy:
+    notes:
+      - Shop-sold drives a stable supply ceiling near 2 gp
+      - High GE limit (2000) supports bulk flips
+      - Matured variant offers brewing upgrade path
+  trading_tips:
+    - Buy from shops at 2 gp and flip for marginal profit
+    - Watch for brewing skill events that boost ale demand
+  history:
+    - date: "2002-10-23"
+      description: Released as part of the Updates galore update.
+    - date: "2005-07-11"
+      description: Received a visual recolor during the Farming update.
+  properties:
+    release_date: "2002-10-23"
+    update: Updates galore
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

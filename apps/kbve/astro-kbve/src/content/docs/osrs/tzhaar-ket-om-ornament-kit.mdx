@@ -12,9 +12,50 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Tzhaar-ket-om ornament kit is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/1625
+  related_items:
+    - name: Tzhaar-ket-om
+      relationship: component
+    - name: Tzhaar-ket-om (or)
+      relationship: product
+  about: "Tzhaar-ket-om ornament kit is a cosmetic kit obtained as a rare reward from hard Treasure Trails. It can be applied to the Tzhaar-ket-om to create the ornamented variant, which becomes untradeable but can be reverted by detaching the kit."
+  market_strategy:
+    notes:
+      - Rare hard clue reward (1/1625) keeps supply scarce
+      - Demand driven by clue completionists and fashionscape collectors
+      - Detachable kit retains resale value after attachment
+  trading_tips:
+    - Track hard clue completion trends for supply shifts
+    - Compare price against base Tzhaar-ket-om for ornamented premium
+  history:
+    - date: "2019-04-11"
+      description: Released with the Treasure Trails Expansion and Easter 2019 update.
+  properties:
+    release_date: "2019-04-11"
+    update: Treasure Trails Expansion and Easter 2019
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Use
+      - Drop
+    alchable: true
+    destroy: "You can always get another from a reward casket from a Hard Treasure Trail."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

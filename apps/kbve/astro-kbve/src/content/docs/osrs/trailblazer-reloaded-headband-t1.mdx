@@ -12,9 +12,76 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: null
-  about: "Trailblazer reloaded headband (t1) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: mid
+  equipment:
+    slot: head
+    weight: 0.453
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Leagues IV - Trailblazer Reloaded
+      price: 1000
+      currency: League points
+  related_items:
+    - name: Trailblazer reloaded headband (t2)
+      relationship: upgrade
+    - name: Trailblazer reloaded headband (t3)
+      relationship: upgrade
+    - name: Trailblazer reloaded top (t1)
+      relationship: set-piece
+    - name: Trailblazer reloaded trousers (t1)
+      relationship: set-piece
+    - name: Trailblazer reloaded boots (t1)
+      relationship: set-piece
+  about: "Trailblazer reloaded headband (t1) is a cosmetic head slot item from the Trailblazer Reloaded Relic Hunter outfit. Players purchase it from the Leagues Reward Shop for 1,000 League points during Leagues IV."
+  market_strategy:
+    notes:
+      - Acquired with League points from Leagues IV
+      - Cosmetic only with no combat bonuses
+      - Storable in costume room armour case or outfit stand
+  trading_tips:
+    - Collector demand drives the secondary market
+    - Supply is fixed to league participants who unlocked the tier
+  history:
+    - date: "2023-11-29"
+      description: Released with the Chambers of Xeric Changes update as a Leagues IV reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-11-29"
+    update: "Chambers of Xeric Changes"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

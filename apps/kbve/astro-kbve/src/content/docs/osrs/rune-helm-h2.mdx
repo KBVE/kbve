@@ -1,6 +1,6 @@
 ---
 title: Rune helm (h2) | OSRS Price Data
-description: "Rune helm (h2): A rune helmet with a heraldic design.. High alch: 21,120 GP, GE limit: 70."
+description: "Rune helm (h2): A rune helmet with a heraldic design. High alch: 21,120 GP, GE limit: 70."
 osrs:
   id: 10288
   name: Rune helm (h2)
@@ -12,9 +12,76 @@ osrs:
   lowalch: 14080
   highalch: 21120
   limit: 70
-  about: "Rune helm (h2) is a free-to-play item in Old School RuneScape. High alchemy value: 21,120 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: mid-high
+  equipment:
+    slot: head
+    weight: 2.721
+    requirements:
+      defence: 40
+    attack_bonus:
+      magic: -6
+      ranged: -3
+    defence_bonus:
+      stab: 30
+      slash: 32
+      crush: 27
+      magic: -1
+      ranged: 30
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+      - elite
+  related_items:
+    - item_name: Rune full helm
+      slug: rune-full-helm
+      relationship: variant
+      description: Untrimmed base helm with identical defensive stats.
+  about: "Rune helm (h2) is a free-to-play heraldic variant of the rune full helm, obtained from hard and elite Treasure Trail clue scroll rewards. It shares the standard rune full helm's defensive stats and is valued by collectors for its rare heraldic design."
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: rare
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: rare
+  properties:
+    release_date: "2006-12-05"
+    update: "Treasure Trails Update"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  market_strategy:
+    notes:
+      - "Premium cosmetic clue reward with heraldic design; collector demand drives price."
+      - "Low GE buy limit of 70 caps flipping volume."
+      - "Stat parity with rune full helm makes value purely cosmetic."
+  trading_tips:
+    - "Stock up during hard/elite clue meta downturns when supply outpaces demand."
+    - "Track elite clue completion rates for long-term price trends."
+    - "Cross-check with other heraldic variants for spread plays."
+  history:
+    - date: "2006-12-05"
+      description: "Released as a heraldic Treasure Trail reward variant."
+    - date: "2021-04-21"
+      description: "Ranged attack penalty adjusted from -2 to -3 as part of an equipment stat pass."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

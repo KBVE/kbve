@@ -12,9 +12,47 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Unfired cup is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: Crafting
+      level: 3
+      experience: 8.5
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+      tools:
+        - Potter's wheel
+      output_quantity: 4
+  related_items:
+    - name: Soft clay
+      relationship: component
+    - name: Cup
+      relationship: product
+  about: "Unfired cup is a Crafting intermediate created at a potter's wheel from soft clay. It was originally intended for mass-producing empty cups for forester's tea, a feature that was scrapped before release."
+  market_strategy:
+    notes:
+      - "No GE buy limit; supply driven entirely by Crafting trainers."
+      - "Minimal demand because the planned forester's tea use never shipped."
+  trading_tips:
+    - "Better to buy soft clay and craft directly if you need Crafting xp; flipping unfired cups is rarely profitable."
+  history:
+    - date: "2023-06-28"
+      description: "Added to the game alongside the potter's wheel recipe."
+  properties:
+    release_date: "2023-06-28"
+    update: Forestry Part Two
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,25 +12,82 @@ osrs:
   lowalch: 1536
   highalch: 2304
   limit: 125
-  item_id: 1183
-  item_type: armor
-  slot: shield
-  type: square_shield
-  tradeable: true
-  weight: 4.082
-  requirements:
-    defence: 30
-  stats:
-    stab_defence: 24
-    slash_defence: 26
-    crush_defence: 22
-    magic_defence: 0
-    ranged_defence: 24
+  material:
+    type: Adamant
+    tier: mid
+  equipment:
+    slot: shield
+    weight: 4.082
+    requirements:
+      defence: 30
+    attack_bonus:
+      magic: -6
+    defence_bonus:
+      stab: 24
+      slash: 26
+      crush: 22
+      ranged: 24
+  recipes:
+    - skill: Smithing
+      level: 78
+      experience: 125
+      materials:
+        - item_name: Adamantite bar
+          quantity: 2
+      tools:
+        - Hammer
+      facilities:
+        - Anvil
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Cyclops
+        quantity: "1"
+        rarity: Uncommon
+      - source: Dark beast
+        quantity: "1"
+        rarity: Uncommon
+      - source: Crystal chest
+        quantity: "1"
+        rarity: Uncommon
   related_items:
-    - slug: rune-sq-shield
-    - slug: adamant-kiteshield
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Rune sq shield
+      relationship: upgrade
+    - name: Mithril sq shield
+      relationship: downgrade
+    - name: Adamant kiteshield
+      relationship: alternative
+  about: "Adamant sq shield is a free-to-play medium square shield craftable from 2 adamantite bars at 78 Smithing. It requires 30 Defence to equip and provides solid all-around melee defence at the adamant tier."
+  market_strategy:
+    notes:
+      - Smithing recipe sets a price floor near bar cost
+      - F2P availability widens demand pool
+      - Outclassed by kiteshield for most equipment purposes
+  trading_tips:
+    - Compare adamant bar cost vs shield price for smithing profit
+    - Watch F2P clue and skilling event spikes
+  history:
+    - date: "2001-01-04"
+      description: Released into the game.
+  properties:
+    release_date: "2001-01-04"
+    update: Old School RuneScape release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 4.082
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

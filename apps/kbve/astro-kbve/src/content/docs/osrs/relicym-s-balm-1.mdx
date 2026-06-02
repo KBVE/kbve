@@ -12,9 +12,60 @@ osrs:
   lowalch: 30
   highalch: 45
   limit: 2000
-  about: "Relicym's balm(1) is a members-only item in Old School RuneScape. High alchemy value: 45 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: low
+  potion:
+    effects:
+      - description: "Weakens the strength of disease when drunk; multiple doses fully suppress disease but do not grant immunity."
+        duration: 0
+  recipes:
+    - materials:
+        - item_name: Relicym's balm(2)
+          quantity: 1
+      tools: []
+      output_quantity: 2
+      requirements: "Obtained by drinking doses from a 2-, 3-, or 4-dose balm, or by decanting at a Grand Exchange decanter. Originally brewed by mixing rogue's purse with snake weed in a vial of water (8 Herblore, 40 Herblore xp) after partial completion of Zogre Flesh Eaters."
+  related_items:
+    - name: Relicym's balm(2)
+      relationship: variant
+    - name: Relicym's balm(3)
+      relationship: variant
+    - name: Relicym's balm(4)
+      relationship: variant
+    - name: Sanfew serum (1)
+      relationship: alternative
+  about: "Relicym's balm(1) is a members-only potion in Old School RuneScape. High alchemy value: 45 coins. Grand Exchange buy limit: 2,000 per 4 hours."
+  market_strategy:
+    notes:
+      - "Single-dose Relicym's balm produced by drinking down larger doses or decanting at the Grand Exchange."
+      - "Used for disease suppression in Zogre Flesh Eaters content; lacks Sanfew serum's full immunity."
+      - "Often arbitraged against the 4-dose version when decanters create dose imbalances."
+  trading_tips:
+    - "Watch decanter spreads — single doses often trade below 1/4 of the 4-dose price."
+    - "Demand is niche; bulk traders should keep limits in mind to avoid dead inventory."
+    - "Use as Herblore xp filler during low-supply ingredient markets."
+  history:
+    - date: "2005-05-17"
+      description: "Released alongside the Zogre Flesh Eaters quest, adding rogue's purse and snake weed potions."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-17"
+    update: "Zogre Flesh Eaters"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

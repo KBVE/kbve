@@ -12,9 +12,47 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 18000
-  about: "Essence impling jar is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: other
+    tier: low
+  related_items:
+    - slug: baby-impling-jar
+      name: Baby impling jar
+      relationship: alternative
+    - slug: young-impling-jar
+      name: Young impling jar
+      relationship: alternative
+    - slug: gourmet-impling-jar
+      name: Gourmet impling jar
+      relationship: alternative
+    - slug: empty-impling-jar
+      name: Empty impling jar
+      relationship: component
+  about: "Captured essence impling. Loot for pure essence, runes (mind, body, chaos, cosmic, death, law, blood, soul, nature) and 1/50 chance of a medium clue scroll. Returns an empty impling jar 90% of the time."
+  history:
+    - date: "2007-06-11"
+      description: Essence impling jar released as part of Impetuous Impulses minigame.
+    - date: "2015-03-25"
+      description: Essence impling jar became Grand Exchange tradeable.
+    - date: "2016-04-07"
+      description: Medium clue scrolls added to the loot table.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-06-11"
+    update: Impetuous Impulses
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Loot
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

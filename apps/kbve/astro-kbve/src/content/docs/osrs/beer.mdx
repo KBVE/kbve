@@ -12,9 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Beer is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: "Restores 1 Hitpoint when drunk."
+      - description: "Temporarily boosts Strength by 2% + 1."
+      - description: "Drains Attack by 6% + 1."
+  shops:
+    - shop_name: Blue Moon Inn
+      location: Varrock
+      price: 2
+      stock: 2
+    - shop_name: Flying Horse Inn
+      location: East Ardougne
+      price: 2
+      stock: 2
+    - shop_name: Rellekka Longhall Bar
+      location: Rellekka
+      price: 2
+      stock: 2
+  related_items:
+    - name: Beer glass
+      relationship: component
+    - name: Asgarnian ale
+      relationship: alternative
+    - name: Dwarven stout
+      relationship: alternative
+  about: "Beer is a free-to-play drink sold by tavern keepers across Gielinor. Drinking it restores a single Hitpoint, gives a small Strength boost, and temporarily drains Attack, making it a budget pre-fight strength enhancer."
+  market_strategy:
+    notes:
+      - "Large 2,000 buy limit and bottomless shop supply keep margins razor-thin."
+      - "Demand is mostly novelty / clue scroll requirements; tradeable at minimum GE prices."
+  trading_tips:
+    - "Buy direct from Varrock or Ardougne bartenders at 2 gp; flipping vs GE is rarely worthwhile."
+    - "Useful as a Strength micro-boost for low-level F2P combat tasks."
+  history:
+    - date: "2001-01-04"
+      description: "Added to the game with the original release."
+    - date: "2015-02-26"
+      description: "Player-owned house keg variants became members-only following the Grand Exchange update."
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape Launch
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

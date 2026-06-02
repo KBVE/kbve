@@ -12,6 +12,23 @@ osrs:
   lowalch: 35
   highalch: 52
   limit: 2000
+  potion:
+    effects:
+      - description: "Restores temporarily reduced Attack, Strength, Defence, Ranged, and Magic by 10 + 30% of the stat's max level (rounded down). Does not restore Prayer points and cannot boost a stat above its base level."
+        duration: 0
+  recipes:
+    - materials:
+        - item_name: Harralander potion (unf)
+          quantity: 1
+        - item_name: Red spiders' eggs
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+      skill: Herblore
+      level: 22
+      xp: 62.5
+      notes: "Mixing produces a 3-dose Restore potion."
   related_items:
     - item_id: 129
       item_name: Restore potion(2)
@@ -23,12 +40,34 @@ osrs:
       slug: restore-potion-1
       relationship: variant
       description: 1-dose version
-  about: |-
-    > _"3 doses of restore potion."_
-
-    The restore potion restores temporarily reduced Attack, Strength, Defence, Ranged, and Magic by 10 + 30% of the stat's max level. Does not restore Prayer or boost above base level.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "The restore potion restores temporarily reduced Attack, Strength, Defence, Ranged, and Magic by 10 + 30% of the stat's max level. Does not restore Prayer or boost above base level."
+  market_strategy:
+    notes:
+      - "Demand comes from mid-level PvM where players use it to recover combat stats drained by monsters."
+      - "Super restore (4) is generally preferred at higher levels, capping growth potential for plain restore potions."
+      - "Bulk crafting from harralander potion (unf) and red spiders' eggs is profitable when herb prices dip."
+  trading_tips:
+    - "Watch the price of harralander and red spiders' eggs to spot cheap crafting margins."
+    - "Convert between 1, 2, 3, and 4 dose versions to capture per-dose pricing inefficiencies."
+  history:
+    - date: "2002-02-27"
+      description: "Released as part of the original Herblore content."
+  properties:
+    release_date: "2002-02-27"
+    update: "Latest RuneScape News (27 February 2002)"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,81 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: null
-  about: "Shattered boots (t1) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: high
+  equipment:
+    slot: feet
+    weapon_type: none
+    weight: 0.34
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Leagues lobby
+      stock: 0
+      price: 1000
+      currency: League points
+  related_items:
+    - name: "Shattered hood (t1)"
+      relationship: set-piece
+    - name: "Shattered top (t1)"
+      relationship: set-piece
+    - name: "Shattered trousers (t1)"
+      relationship: set-piece
+    - name: "Shattered cape (t1)"
+      relationship: set-piece
+    - name: "Shattered boots (t2)"
+      relationship: upgrade
+  about: "Shattered boots (t1) are a cosmetic feet slot reward from the Leagues IV: Shattered Relics outfit, purchasable for 1,000 League points. They contribute no combat stats and act as a set-piece for the Shattered Relic Hunter outfit. High alchemy value: 9,000 coins."
+  market_strategy:
+    notes:
+      - "Demand is collector-driven; supply was capped at the Leagues IV event window."
+      - "Price tends to drift with rare-cosmetic flips and outfit-completion demand."
+  trading_tips:
+    - "Pair flips with other Shattered set pieces for completion premiums."
+    - "Costume room storage means listings come and go in waves."
+  history:
+    - date: "2022-01-19"
+      description: "Shattered boots (t1) added to the game as part of Leagues IV preparations."
+    - date: "2022-03-16"
+      description: "Made obtainable through the PvP Arena: Rewards Beta and Leagues reward shop."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2022-01-19"
+    update: "Leagues IV: Shattered Relics"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

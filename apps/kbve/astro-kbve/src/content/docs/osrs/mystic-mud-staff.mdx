@@ -12,9 +12,17 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: 8
+  material:
+    type: mystic
+    tier: high
   equipment:
     slot: weapon
+    weapon_type: staff
     attack_speed: 5
+    weight: 2.267
+    requirements:
+      attack: 40
+      magic: 40
     attack_bonus:
       stab: 10
       slash: -1
@@ -28,59 +36,62 @@ osrs:
       magic: 14
       ranged: 0
     other_bonus:
-      melee_strength: 50
+      strength: 50
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      attack: 40
-      magic: 40
-    weight: 2.267
+  recipes:
+    - materials:
+        - item_name: Mud battlestaff
+          quantity: 1
+      tools:
+        - Thormac (NPC)
+      output_quantity: 1
+      notes: "Thormac upgrades the Mud battlestaff for 40,000 coins (30,000 with Hard Kandarin Diary, 20,000 with Elite). Requires Scorpion Catcher quest."
   related_items:
-    - item_id: 6562
-      item_name: Mud battlestaff
-      slug: mud-battlestaff
+    - name: Mud battlestaff
       relationship: component
-      description: Base staff for upgrade
-    - item_id: 3054
-      item_name: Mystic lava staff
-      slug: mystic-lava-staff
+    - name: Mystic lava staff
       relationship: alternative
-      description: Earth+Fire combination
-  about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Magic | +14 |
-    | Crush | +40 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Magic | +14 |
-
-    | Other | Value |
-    |-------|-------|
-    | Strength | +50 |
-
-    Requirements: 40 Attack, 40 Magic
-
-    Provides unlimited water and earth runes simultaneously — the most valuable combination staff:
-    - Ice Barrage — saves water runes (death + blood still needed)
-    - Lunar spells — many require water + earth (Humidify, Fertile Soil, etc.)
-    - Mage Training Arena — saves runes during Alchemy room
-    - Charge Water/Earth Orb — saves respective runes
-    - Autocast with standard spellbook
-
-    A Mystic mud staff upgrade kit (from Master Treasure Trails) can be applied for a cosmetic variant. The kit is purely visual — no stat changes.
-
-    The mud battlestaff (base component) is a rare drop from Dagannoth Prime (1/128). Combined with Thormac's fee, the total cost is significantly higher than other mystic staves. The water+earth combination is also the most useful for high-level PvM.
+    - name: Mystic steam staff
+      relationship: alternative
+    - name: Mystic mud staff upgrade kit
+      relationship: variant
+  about: "Mystic mud staff is a members magic weapon that provides unlimited water and earth runes simultaneously, enabling efficient Lunar casting, Ice Barrage, and rune-orb charging. Created by Thormac after completing Scorpion Catcher. High alchemy value: 27,000 coins. Grand Exchange buy limit: 8 per 4 hours."
   market_strategy:
     notes:
-      - Mud battlestaff is the expensive component (DK Prime 1/128)
-      - Thormac cost varies with Kandarin diary tier
-      - Higher value than other mystic staves due to rarity + utility
-      - Used in endgame PvM (Barrage tasks, Lunar spells)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Mud battlestaff is the expensive component (Dagannoth Prime 1/128)."
+      - "Thormac cost varies with Kandarin diary tier."
+      - "Higher value than other mystic staves due to rarity and utility."
+      - "Used in endgame PvM (Barrage tasks, Lunar spells)."
+  trading_tips:
+    - "Compare Mud battlestaff + Thormac fee vs the Mystic mud staff GE price for an upgrade flip."
+    - "Hard/Elite Kandarin Diary cuts the upgrade fee, widening the margin window."
+  history:
+    - date: "2005-11-07"
+      description: "Mystic mud staff released alongside the mystic battle staff family."
+    - date: "2026-04-22"
+      description: "Wiki refresh confirmed alch, requirements, and recipe details."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-11-07"
+    update: "Mystic battle staves"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: "Scorpion Catcher"
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

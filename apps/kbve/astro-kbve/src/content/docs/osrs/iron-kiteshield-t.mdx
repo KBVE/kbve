@@ -12,9 +12,71 @@ osrs:
   lowalch: 96
   highalch: 144
   limit: 4
-  about: "Iron kiteshield (t) is a free-to-play item in Old School RuneScape. High alchemy value: 144 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: iron
+    tier: low
+  equipment:
+    slot: shield
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 8
+      slash: 10
+      crush: 9
+      magic: -1
+      ranged: 9
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 5.443
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - name: Iron kiteshield
+      relationship: variant
+    - name: Iron kiteshield (g)
+      relationship: alternative
+  about: "Iron kiteshield (t) is a trimmed cosmetic variant of the iron kiteshield obtained exclusively from easy clue scroll caskets. It cannot be smithed and offers the same defensive profile as the base shield."
+  market_strategy:
+    notes:
+      - "Supply tied entirely to easy clue scroll completions; price moves with clue activity."
+      - "Buy limit of 4 every 4 hours keeps volume thin; large fills take patience."
+  trading_tips:
+    - "Pairs with the (g) gold-trimmed variant; track both as cosmetic substitutes."
+    - "Demand spikes around clue scroll meta events or trimming completionist accounts."
+  history:
+    - date: "2014-06-12"
+      description: "Released as part of the Treasure Trail Expansion easy clue rewards."
+  properties:
+    release_date: "2014-06-12"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Iron full helm (t) | OSRS Price Data
-description: "Iron full helm (t): Iron full helm with trim.. High alch: 96 GP, GE limit: 4."
+description: "Iron full helm (t): Iron full helm with trim. High alch: 96 GP, GE limit: 4."
 osrs:
   id: 12231
   name: Iron full helm (t)
@@ -12,9 +12,69 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 4
-  about: "Iron full helm (t) is a free-to-play item in Old School RuneScape. High alchemy value: 96 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: low
+  equipment:
+    slot: head
+    weight: 2.721
+    requirements:
+      defence: 1
+    defence_bonus:
+      stab: 6
+      slash: 7
+      crush: 5
+      magic: -1
+      ranged: 6
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_name: Iron full helm
+      slug: iron-full-helm
+      relationship: variant
+      description: Untrimmed base helm with identical stats.
+  about: "Iron full helm (t) is a free-to-play cosmetic helm with gold trim awarded from easy Treasure Trail clue caskets. It shares defensive stats with the standard iron full helm and is valued mainly for its decorative appearance and clue-hunter status."
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  properties:
+    release_date: "2014-06-12"
+    update: "Treasure Trail Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  market_strategy:
+    notes:
+      - "Cosmetic clue reward with thin organic demand; price driven by collectors."
+      - "Tiny GE buy limit of 4 makes large-scale flipping impractical."
+      - "Easy-clue completion volume sets long-term supply."
+  trading_tips:
+    - "Buy slow during clue-event seasons and resell to costume collectors."
+    - "Compare with standard iron full helm to gauge cosmetic premium."
+    - "Watch for cosmetic overrides that could change demand."
+  history:
+    - date: "2014-06-12"
+      description: "Released with the Treasure Trail Expansion as an easy-clue casket reward."
+    - date: "2021-04-21"
+      description: "Ranged attack penalty adjusted as part of an equipment stat pass."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

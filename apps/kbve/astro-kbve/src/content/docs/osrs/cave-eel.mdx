@@ -1,20 +1,74 @@
 ---
 title: Cave eel | OSRS Price Data
-description: "Cave eel: It's a bit slimy.. High alch: 9 GP, GE limit: 10,000."
+description: "Cave eel: It's a bit slimy. High alch: 9 GP, GE limit: 10,000."
 osrs:
   id: 5003
   name: Cave eel
   slug: cave-eel
-  examine: It's a bit slimy.
+  examine: "It's a bit slimy."
   members: true
   icon: Cave eel.png
   value: 15
   lowalch: 6
   highalch: 9
   limit: 10000
-  about: "Cave eel is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 9
+    effect: Restores 8-12 Hitpoints when consumed.
+  recipes:
+    - materials:
+        - item_name: Raw cave eel
+          quantity: 1
+      tools:
+        - Fire or Range
+      output_quantity: 1
+  related_items:
+    - item_id: 5001
+      item_name: Raw cave eel
+      slug: raw-cave-eel
+      relationship: component
+      description: Uncooked version
+    - item_id: 5004
+      item_name: Burnt cave eel
+      slug: burnt-cave-eel
+      relationship: alternative
+      description: Failure result while cooking.
+    - item_id: 333
+      item_name: Trout
+      slug: trout
+      relationship: alternative
+      description: Comparable low-level cooked fish.
+  about: "Cave eel is a members-only cooked fish requiring Cooking level 38 from raw cave eel; it heals up to 12 Hitpoints and stops burning at Cooking 74."
+  market_strategy:
+    notes:
+      - Low GE volume because food meta favours higher-tier fish.
+      - Primary demand comes from low-level Cooking trainers.
+      - Heimlich-tier consumable, price tends to hug high alch floor.
+  trading_tips:
+    - Stock raw cave eels and cook to flip if alch margin allows.
+    - Avoid speculative buys; demand spikes are rare.
+    - Compare GE price to high alch before listing to ensure positive margin.
+  history:
+    - date: "2005-05-31"
+      description: Cave eel released alongside the Lumbridge Caves area.
+  properties:
+    release_date: "2005-05-31"
+    update: Lumbridge Caves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

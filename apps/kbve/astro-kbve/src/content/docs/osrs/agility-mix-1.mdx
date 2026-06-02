@@ -12,9 +12,65 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 2000
-  about: "Agility mix(1) is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: "Temporarily boosts Agility by 3 levels."
+        duration: 0
+      - description: "Heals 6 Hitpoints when consumed."
+        duration: 0
+  recipes:
+    - materials:
+        - item_name: Agility potion(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: Herblore
+      level: 37
+      xp: 27
+      notes: "Requires the Barbarian Herblore training to mix. Combining a 2-dose Agility potion with caviar yields two single-dose Agility mix vials."
+  related_items:
+    - item_id: 11461
+      item_name: Agility mix(2)
+      slug: agility-mix-2
+      relationship: variant
+      description: 2-dose version of the same potion
+    - item_id: 3033
+      item_name: Agility potion(4)
+      slug: agility-potion-4
+      relationship: alternative
+      description: Non-barbarian variant without the healing effect
+  about: "The Agility mix(1) is a single-dose Barbarian Herblore variant of the Agility potion that boosts Agility by 3 and heals 6 Hitpoints."
+  market_strategy:
+    notes:
+      - "Demand spikes during agility-heavy training events (Wilderness Agility, advanced rooftops, Sepulchre)."
+      - "Barbarian Herblore gating limits supply; only players past the unlock can mix the potion profitably."
+      - "Margin is dictated by Agility potion(2) and caviar input costs; track both for crafting flips."
+  trading_tips:
+    - "Watch caviar prices closely - it is the swing input that decides crafting profitability."
+    - "List during peak NA/EU evenings when agility training volumes drive same-day fills."
+  history:
+    - date: "2007-07-03"
+      description: "Released as part of the Barbarian Training update introducing Barbarian Herblore mixes."
+  properties:
+    release_date: "2007-07-03"
+    update: "Barbarian Training"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.045
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

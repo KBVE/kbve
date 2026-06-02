@@ -12,9 +12,50 @@ osrs:
   lowalch: 500
   highalch: 750
   limit: 100
-  about: "Large wooden hull parts is a members-only item in Old School RuneScape. High alchemy value: 750 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: wood
+    tier: low
+  recipes:
+    - materials:
+        - item_name: Wooden hull parts
+          quantity: 5
+      tools: []
+      output_quantity: 1
+      requirements: "Requires 1 Construction. Combined at a shipwrights' workbench, granting 2.5 Construction experience."
+  related_items:
+    - name: Wooden hull parts
+      relationship: component
+    - name: Wooden hull
+      relationship: product
+  about: "Large wooden hull parts is a members-only Sailing/Construction component in Old School RuneScape. High alchemy value: 750 coins. Grand Exchange buy limit: 100 per 4 hours."
+  market_strategy:
+    notes:
+      - "Crafted by combining 5 wooden hull parts at a shipwrights' workbench for 2.5 Construction experience."
+      - "Used to build wooden hulls for sloops; 16 large parts (400 planks) needed per sloop."
+      - "Sloops ship with a wooden hull by default, so primary demand comes from hull downgrades or off-meta builds."
+  trading_tips:
+    - "Profit margin tracks wooden hull parts spot price; flip when smaller parts dip."
+    - "Buy limit of 100 per 4 hours caps quick scaling — bulk traders need multiple windows."
+    - "Demand stays low because sloops come pre-fitted with wooden hulls; watch for Sailing meta shifts."
+  history:
+    - date: "2025-11-19"
+      description: "Released alongside the launch of the Sailing skill."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

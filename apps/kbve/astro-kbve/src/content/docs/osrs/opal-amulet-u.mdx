@@ -12,9 +12,64 @@ osrs:
   lowalch: 360
   highalch: 540
   limit: 10000
-  about: "Opal amulet (u) is a members-only item in Old School RuneScape. High alchemy value: 540 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: silver
+    tier: low
+  recipes:
+    - name: Craft Opal amulet (u)
+      skill: Crafting
+      level: 27
+      experience: 55
+      materials:
+        - item_name: Silver bar
+          quantity: 1
+        - item_name: Opal
+          quantity: 1
+      tools:
+        - Amulet mould
+      facility: Furnace
+      output_quantity: 1
+  related_items:
+    - name: Silver bar
+      relationship: component
+    - name: Opal
+      relationship: component
+    - name: Opal amulet
+      relationship: upgrade
+    - name: Amulet of bounty
+      relationship: upgrade
+    - name: Ball of wool
+      relationship: component
+  about: "Opal amulet (u) is an unstrung jewellery piece crafted at a furnace by combining a silver bar with an opal using an amulet mould, requiring level 27 Crafting and granting 55 Crafting experience."
+  market_strategy:
+    notes:
+      - Intermediate crafting product used by Crafting trainers to produce strung amulets.
+      - Supply is driven by silver bar and opal availability on the Grand Exchange.
+      - Demand spikes when Amulet of bounty (used in farming) is in fashion for clue scroll routes.
+  trading_tips:
+    - Buy silver bars and opals in bulk to craft the unstrung amulet for personal use or resale.
+    - String with a ball of wool to convert into an Opal amulet for further enchantment.
+    - Watch alch margins as the high alch value (540) often exceeds Grand Exchange price.
+  history:
+    - date: "2017-02-02"
+      description: Added to the game alongside the gem-amulet rework.
+  properties:
+    release_date: "2017-02-02"
+    update: Jagex Account Guardian
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.004
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

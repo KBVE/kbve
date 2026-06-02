@@ -12,9 +12,77 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 50
-  about: "Blighted overload (4) is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 50 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: "Boosts Attack and Strength by floor(0.15 x level) + 8."
+        duration: 300
+      - description: "Boosts Ranged by floor(level / 10) + 7."
+        duration: 300
+      - description: "Boosts Magic by floor(level / 10) + 1."
+        duration: 300
+      - description: "Reduces Defence by floor(level / 10) + 1."
+        duration: 300
+      - description: "Inflicts 10 damage over 6 seconds when consumed."
+        duration: 6
+  recipes:
+    - materials:
+        - item_name: Super combat potion (4)
+          quantity: 1
+        - item_name: Ranging potion (4)
+          quantity: 1
+        - item_name: Magic potion (4)
+          quantity: 1
+        - item_name: Chitin
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: Herblore
+      level: 83
+  related_items:
+    - name: Blighted overload (3)
+      relationship: variant
+    - name: Blighted overload (2)
+      relationship: variant
+    - name: Blighted overload (1)
+      relationship: variant
+    - name: Super combat potion (4)
+      relationship: component
+    - name: Ranging potion (4)
+      relationship: component
+    - name: Magic potion (4)
+      relationship: component
+    - name: Chitin
+      relationship: component
+  about: "Blighted overload (4) is a Deadman Mode exclusive potion holding four doses of a combined combat boost. It boosts Attack, Strength, Ranged, and Magic while reducing Defence, but inflicts 10 damage over 6 seconds when consumed."
+  market_strategy:
+    notes:
+      - "Tradeable on the Grand Exchange but only consumable on Deadman Mode worlds."
+      - "Made from a super combat potion, ranging potion, magic potion, and chitin at Herblore level 83."
+      - "Profit after tax was approximately 14,902 coins per craft as of release pricing."
+  trading_tips:
+    - "Demand spikes during Deadman Mode tournaments and seasonal events."
+    - "Watch the price of chitin and ranging/magic potions to time crafting profitably."
+  history:
+    - date: "2024-07-17"
+      description: "Released alongside the Deadman Mode: Apocalypse event."
+    - date: "2026-01-21"
+      description: "Self-damage on consumption reduced from 25 to 10; Defence decay threshold raised to 90% of base level."
+  properties:
+    release_date: "2024-07-17"
+    update: "Deadman Mode: Apocalypse"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.08
+    options:
+      - Drink
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

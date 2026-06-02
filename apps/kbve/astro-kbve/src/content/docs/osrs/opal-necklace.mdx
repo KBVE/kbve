@@ -1,6 +1,6 @@
 ---
 title: Opal necklace | OSRS Price Data
-description: "Opal necklace: I wonder if this is valuable.. High alch: 630 GP, GE limit: 10,000."
+description: "Opal necklace: I wonder if this is valuable. High alch: 630 GP, GE limit: 10,000."
 osrs:
   id: 21090
   name: Opal necklace
@@ -12,9 +12,75 @@ osrs:
   lowalch: 420
   highalch: 630
   limit: 10000
-  about: "Opal necklace is a members-only item in Old School RuneScape. High alchemy value: 630 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: gem
+    tier: low
+  equipment:
+    slot: neck
+    weight: 0.01
+    requirements:
+      defence: 1
+  about: "Opal necklace is a members-only Crafting product made by combining a silver bar and a cut opal at a furnace with a necklace mould. It is most commonly used as the base for the Lvl-1 Enchant spell to create dodgy necklaces, which protect against thieving NPC damage."
+  recipes:
+    - skill: Crafting
+      level: 16
+      experience: 35
+      materials:
+        - item_name: Silver bar
+          quantity: 1
+        - item_name: Opal
+          quantity: 1
+      tools:
+        - Necklace mould
+        - Furnace
+      output_quantity: 1
+      output_item: Opal necklace
+  related_items:
+    - item_name: Opal
+      slug: opal
+      relationship: component
+      description: Gem inset into the necklace.
+    - item_name: Silver bar
+      slug: silver-bar
+      relationship: component
+      description: Metal base for the necklace.
+    - item_name: Dodgy necklace
+      slug: dodgy-necklace
+      relationship: product
+      description: Enchanted form that protects against thieving damage.
+  properties:
+    release_date: "2017-02-02"
+    update: "Opals, Jades & Topaz"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  market_strategy:
+    notes:
+      - "Crafting product whose price tracks silver bar + opal input costs."
+      - "Demand driven by Magic enchanters making dodgy necklaces for Thieving."
+      - "Large 10,000 buy limit supports volume flips."
+  trading_tips:
+    - "Watch the silver bar + opal basket vs. necklace price for crafting margins."
+    - "Stock up before Thieving events that boost dodgy necklace demand."
+    - "Sell during Crafting bonus weekends for short-term price pops."
+  history:
+    - date: "2017-02-02"
+      description: "Released with the Opals, Jades & Topaz update."
+    - date: "2017-02-16"
+      description: "Sprite rotated for visual consistency with other necklaces."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

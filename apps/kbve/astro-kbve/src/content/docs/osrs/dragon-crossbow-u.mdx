@@ -12,9 +12,74 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: 10000
-  about: "Dragon crossbow (u) is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: dragon
+    tier: high
+  recipes:
+    - name: "Dragon crossbow (u)"
+      skill: Fletching
+      level: 78
+      xp: 135
+      materials:
+        - item_name: Magic stock
+          quantity: 1
+        - item_name: Dragon limbs
+          quantity: 1
+      tools:
+        - Hammer
+      output_quantity: 1
+    - name: Dragon crossbow
+      skill: Fletching
+      level: 78
+      xp: 70
+      materials:
+        - item_name: "Dragon crossbow (u)"
+          quantity: 1
+        - item_name: Crossbow string
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - name: Dragon crossbow
+      relationship: upgrade
+    - name: Dragon limbs
+      relationship: component
+    - name: Magic stock
+      relationship: component
+    - name: Crossbow string
+      relationship: component
+    - name: "Rune crossbow (u)"
+      relationship: downgrade
+  about: "Dragon crossbow (u) is the unstrung dragon crossbow produced from a magic stock and dragon limbs at 78 Fletching, requiring a crossbow string to finish into the dragon crossbow."
+  market_strategy:
+    notes:
+      - Price is anchored by dragon limbs cost and the strung dragon crossbow margin.
+      - Liquidity is moderate; volume rises around Fletching-related boosts.
+  trading_tips:
+    - Compare strung vs. unstrung price to find a stringing profit window.
+    - Watch dragon limb supply from Dragon Slayer II routing players.
+  history:
+    - date: "2018-01-04"
+      description: Added with the Dragon Slayer II update.
+    - date: "2021-07-07"
+      description: Female player stringing animation positioning corrected.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2018-01-04"
+    update: Dragon Slayer II
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 8
+    options:
+      - String
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

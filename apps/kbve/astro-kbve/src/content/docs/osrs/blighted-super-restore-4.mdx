@@ -12,9 +12,68 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 2000
-  about: "Blighted super restore(4) is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: "Restores Prayer points by 8 + 27% of player's Prayer level per dose, only usable in the Wilderness."
+        skill: Prayer
+        amount: "8 + 27% of level"
+        duration: 0
+      - description: "Restores all drained skills (except Hitpoints, Prayer, and Summoning) by 1 + 25% of their base level per dose."
+        skill: All skills (except Hitpoints/Prayer/Summoning)
+        amount: "1 + 25% of base level"
+        duration: 0
+  shops:
+    - shop_name: Justine's stuff for the Last Man Standing
+      location: Ferox Enclave
+      price: 1
+      currency: Last Man Standing points
+    - shop_name: Bounty Hunter Store
+      location: Edgeville
+      price: 2
+      currency: Bounty Hunter points
+    - shop_name: Soul Wars Reward Shop
+      location: Ferox Enclave
+      price: 10
+      currency: Zeal Tokens
+  related_items:
+    - name: Super restore(4)
+      relationship: alternative
+    - name: Blighted super restore(3)
+      relationship: variant
+    - name: Blighted super restore(2)
+      relationship: variant
+    - name: Blighted super restore(1)
+      relationship: variant
+  about: "Blighted super restore(4) is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 2,000 per 4 hours. Restricted to use inside the Wilderness."
+  market_strategy:
+    notes:
+      - Demand is tied to Wilderness PKing volume; price tracks PvP activity rather than skilling.
+      - Acquired via reward shops (LMS, Bounty Hunter, Soul Wars), so supply scales with minigame engagement.
+      - 2,000/4h buy limit per account permits bulk PK stockpiling without hitting cap fast.
+  trading_tips:
+    - Watch updates to Last Man Standing, Bounty Hunter, or Soul Wars rewards — point-cost changes shift supply.
+    - Price typically rises during double XP / PvP weekends as PKers re-stock supplies.
+  history:
+    - date: "2020-04-23"
+      description: Released as part of the Bounty Hunter Returns update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2020-04-23"
+    update: Bounty Hunter Returns
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.08
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

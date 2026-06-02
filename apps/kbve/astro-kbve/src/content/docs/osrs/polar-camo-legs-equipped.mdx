@@ -12,9 +12,79 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: null
-  about: "Polar camo legs (equipped) is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: legs
+    weight: 0.226
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -7
+    defence_bonus:
+      stab: 11
+      slash: 10
+      crush: 10
+      magic: 0
+      ranged: 10
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: Crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Polar kebbit fur
+          quantity: 2
+        - item_name: Coins
+          quantity: 20
+      tools: []
+      output: Polar camo legs
+      output_quantity: 1
+      members_only: true
+  related_items:
+    - name: Polar camo top
+      relationship: set-piece
+    - name: Larupia hat
+      relationship: alternative
+    - name: Desert camo legs
+      relationship: variant
+    - name: Woodland camo legs
+      relationship: variant
+    - name: Jungle camo legs
+      relationship: variant
+  about: "Polar camo legs is the legs slot piece of the polar Hunter camouflage outfit, crafted from 2 polar kebbit furs plus 20 coins at the Fancy Clothes Store, Hunter Guild, or Prifddinas Seamstress. Reduces equipped weight by 2 kg and provides ranged defence at the cost of ranged attack."
+  market_strategy:
+    notes:
+      - "Functional gear used for tracking polar kebbits and traversing polar Hunter areas without spooking quarry."
+      - "Supply is uncapped via player crafting; price tracks polar kebbit fur cost plus a thin convenience premium."
+  trading_tips:
+    - "Self-crafting from polar kebbit furs is almost always cheaper than buying assembled legs on GE."
+    - "Pair with the matching polar camo top for the full -4 kg outfit weight reduction in polar Hunter zones."
+  history:
+    - date: "2006-11-21"
+      description: "Released as part of the HUNTER SKILL! update."
+  properties:
+    release_date: "2006-11-21"
+    update: HUNTER SKILL!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

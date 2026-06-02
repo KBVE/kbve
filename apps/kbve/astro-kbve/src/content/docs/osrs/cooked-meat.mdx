@@ -12,9 +12,82 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 6000
-  about: "Cooked meat is a free-to-play item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 3
+    edible: true
+  recipes:
+    - name: Cook raw beef into Cooked meat
+      skill: Cooking
+      level: 1
+      experience: 30
+      materials:
+        - item_name: Raw beef
+          quantity: 1
+      tools: []
+      facility: Fire or Range
+      output_quantity: 1
+    - name: Cook raw rat meat into Cooked meat
+      skill: Cooking
+      level: 1
+      experience: 30
+      materials:
+        - item_name: Raw rat meat
+          quantity: 1
+      tools: []
+      facility: Fire or Range
+      output_quantity: 1
+    - name: Cook raw bear meat into Cooked meat
+      skill: Cooking
+      level: 1
+      experience: 30
+      materials:
+        - item_name: Raw bear meat
+          quantity: 1
+      tools: []
+      facility: Fire or Range
+      output_quantity: 1
+  related_items:
+    - name: Raw beef
+      relationship: component
+    - name: Raw rat meat
+      relationship: component
+    - name: Burnt meat
+      relationship: alternative
+    - name: Stew
+      relationship: product
+    - name: Meat pizza
+      relationship: product
+  about: "Cooked meat is a free-to-play level 1 Cooking food that heals 3 hitpoints, produced by cooking raw beef, rat meat, bear meat, boar meat, or yak meat on a fire or range for 30 Cooking experience."
+  market_strategy:
+    notes:
+      - Lowest tier cooked food, primarily used as early-game Cooking XP product.
+      - Demand from Witch's Potion questers and cheap food users keeps small volume moving.
+      - Buy limit of 6,000 enables modest flipping for cooks selling bulk.
+  trading_tips:
+    - Buy raw beef in bulk and cook through level 1-30 for cheap Cooking experience.
+    - Sell cooked meat to early-game ironmen and stew/pizza cooks.
+    - Stop burning entirely at level 34 (or 31 with Lumbridge range after Cook's Assistant).
+  history:
+    - date: "2001-01-04"
+      description: Added at game launch as the basic Cooking output.
+  properties:
+    release_date: "2001-01-04"
+    update: New skill - Cooking
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.283
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

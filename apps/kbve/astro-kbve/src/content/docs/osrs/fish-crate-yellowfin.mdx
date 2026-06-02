@@ -11,10 +11,64 @@ osrs:
   value: 5
   lowalch: 2
   highalch: 3
-  limit: null
-  about: "Fish crate (yellowfin) is a members-only item in Old School RuneScape. High alchemy value: 3 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: 250
+  recipes:
+    - name: Fish crate (yellowfin)
+      skill: Sailing
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Fish crate
+          quantity: 1
+        - item_name: Raw yellowfin
+          quantity: 10
+      tools: []
+      output_quantity: 1
+  related_items:
+    - name: Fish crate
+      relationship: component
+    - name: Raw yellowfin
+      relationship: component
+    - name: Camphor crate
+      relationship: product
+    - name: "Fish crate (haddock)"
+      relationship: alternative
+    - name: "Fish crate (halibut)"
+      relationship: alternative
+    - name: "Fish crate (bluefin)"
+      relationship: alternative
+    - name: "Fish crate (marlin)"
+      relationship: alternative
+    - name: "Fish crate (giant krill)"
+      relationship: alternative
+  about: "Fish crate (yellowfin) is a Sailing crate holding 10 raw yellowfin, produced by emptying a trawling net into an empty fish crate stored in a ship's cargo hold. Emptying at a bank returns a camphor crate."
+  market_strategy:
+    notes:
+      - Price tracks raw yellowfin plus empty crate cost minus emptying friction.
+      - Used by Sailing/Fishing routers transporting bulk yellowfin for processing.
+  trading_tips:
+    - Compare raw yellowfin per crate to crate price for filling-vs-buying decisions.
+    - Watch Sailing meta updates and trawling buffs that shift supply.
+  history:
+    - date: "2025-11-19"
+      description: Released alongside the Sailing skill.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

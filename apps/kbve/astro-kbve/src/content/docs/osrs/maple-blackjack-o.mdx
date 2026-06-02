@@ -12,9 +12,50 @@ osrs:
   lowalch: 640
   highalch: 960
   limit: 125
-  about: "Maple blackjack(o) is a members-only item in Old School RuneScape. High alchemy value: 960 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: wood
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: blackjack
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 30
+      thieving: 30
+    attack_bonus:
+      crush: 24
+    other_bonus:
+      strength: 20
+  related_items:
+    - name: Maple blackjack
+      relationship: alternative
+    - name: Maple blackjack(d)
+      relationship: alternative
+    - name: Oak blackjack(o)
+      relationship: alternative
+    - name: Willow blackjack(o)
+      relationship: alternative
+  about: "Maple blackjack(o) is a members-only offensive blackjack used to lure and knockout NPCs in the Rogue Trader miniquest. High alchemy value: 960 coins. Grand Exchange buy limit: 125 per 4 hours."
+  history:
+    - date: "2005-08-15"
+      description: "Released with the Rogue Trader update."
+    - date: "2006-08-22"
+      description: "Renamed from Maple blackjack(a) to Maple blackjack(o)."
+  properties:
+    release_date: "2005-08-15"
+    update: Rogue Trader
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,73 +12,68 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 2000
-  item:
+  material:
     type: potion
-    tradeable: true
+    tier: high
+  potion:
     doses: 1
-  effect:
-    boost:
-      - skill: ranged
-        amount: +4 + 10%
-        duration: 300
-    divine_effect: Stats cannot naturally drain below boosted level during duration
-    health_cost: 10
+    effects:
+      - description: "Boosts Ranged by 4 + 10% of current level for the duration"
+        duration: 500
+      - description: "Stat will not drain below the boosted level during the duration"
+      - description: "Drinking inflicts 10 damage to the player (requires more than 10 Hitpoints)"
   recipes:
-    - skill: herblore
-      level: 74
+    - name: Divine ranging potion(1)
       materials:
-        - item_id: 2444
-          item_name: Ranging potion
+        - item_name: Ranging potion(1)
           quantity: 1
-        - item_id: 23867
-          item_name: Crystal dust
+        - item_name: Crystal dust
           quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: Herblore
+      level: 74
   related_items:
-    - item_id: 2444
-      item_name: Ranging potion
-      slug: ranging-potion
+    - name: Ranging potion
       relationship: component
-      description: Base potion
-    - item_id: 23867
-      item_name: Crystal dust
-      slug: crystal-dust
+    - name: Crystal dust
       relationship: component
-      description: Ingredient from Gauntlet
-    - item_id: 23685
-      item_name: Divine super combat potion
-      slug: divine-super-combat-potion
+    - name: Divine super combat potion
       relationship: alternative
-      description: Melee equivalent
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Potion |
-    | Tradeable | Yes |
-    | Stackable | No |
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore | 74 |
-    | XP | Varies |
-
-    Ingredients:
-    - Ranging potion
-    - Crystal dust
-
-    Stat Boost: +4 + 10% to Ranged.
-
-    Duration: 5 minutes.
-
-    Divine Effect: Stats cannot naturally drain below boosted level during duration.
-
-    Health Cost: Deals 10 damage when consumed (need 11+ HP).
+    - name: Divine magic potion
+      relationship: alternative
+    - name: Divine bastion potion
+      relationship: alternative
+  about: "Divine ranging potion(1) is a single-dose Herblore potion that boosts Ranged by 4 + 10% of the player's current level for five minutes and prevents the boosted stat from draining naturally. Drinking inflicts 10 damage, so the player must have more than 10 Hitpoints."
   market_strategy:
     notes:
-      - Best ranged boost potion
-      - Use for bossing
-      - Crystal dust from Gauntlet
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Crafted at 74 Herblore from a ranging potion and crystal dust
+      - Best-in-slot ranged boost for bossing where stats must not drain
+      - Crystal dust supply comes from The Gauntlet
+  trading_tips:
+    - Track Gauntlet completion volume for crystal dust feed
+    - Tax-adjusted profit varies with ranging potion base price
+  history:
+    - date: "2019-07-25"
+      description: Released alongside Song of the Elves.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-07-25"
+    update: "Song of the Elves"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

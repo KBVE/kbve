@@ -12,18 +12,64 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 13000
+  drop_table:
+    sources:
+      - source: Bandit (level 22)
+        quantity: "1"
+        rarity: 1/24.6
+      - source: Elder Chaos druid
+        quantity: "1"
+        rarity: 1/16.7
+      - source: Aberrant spectre
+        quantity: "1"
+        rarity: 1/11.7
+      - source: Deviant spectre
+        quantity: "1"
+        rarity: 1/19.8
+      - source: Twisted Banshee
+        quantity: "1"
+        rarity: 1/26.8
+  farming:
+    seed: Tarromin seed
+    farming_level: 19
+    patches:
+      - Herb patch
   related_items:
-    - item_id: 253
-      item_name: Tarromin
-      slug: tarromin
+    - name: Tarromin
       relationship: product
-      description: Cleaned version
-  about: |-
-    > _"It needs cleaning."_
-
-    Grimy tarromin requires 11 Herblore to clean (5 XP). Used in strength potions and serum 207.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Tarromin seed
+      relationship: component
+    - name: Strength potion (unf)
+      relationship: product
+    - name: Serum 207 (unf)
+      relationship: product
+  about: "Grimy tarromin is the uncleaned form of the tarromin herb, requiring level 11 Herblore to clean for 5 Herblore experience. Cleaned tarromin is used to make strength potions, serum 207, and tarromin tar."
+  market_strategy:
+    notes:
+      - "Healthy 13,000 buy limit and very high daily volume; spread is usually tight."
+      - "Price tracks demand for strength potions and tarromin tar (serum 207) plus farmer supply from tarromin seeds."
+  trading_tips:
+    - "Cleaning at 11 Herblore yields 5 XP each; bulk-clean only when the price gap to clean tarromin exceeds the click value."
+    - "Bandits at level 22 and Elder Chaos druids are reliable farm targets if buying GE supply tightens."
+  history:
+    - date: "2002-02-27"
+      description: "Released into the game as part of the Herblore skill rollout."
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Clean
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

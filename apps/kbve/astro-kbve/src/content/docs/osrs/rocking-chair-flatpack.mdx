@@ -12,9 +12,72 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Rocking chair (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: flatpack
+    tier: low
+  construction:
+    skill: Construction
+    level: 14
+    xp: 87
+    facility: Wooden workbench
+    location: Parlour chair space
+  recipes:
+    - skill: Construction
+      level: 14
+      xp: 87
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+      materials:
+        - item_name: Plank
+          item_id: 960
+          quantity: 3
+        - item_name: Steel nails
+          item_id: 4824
+          quantity: 3
+  related_items:
+    - item_id: 8499
+      item_name: Wooden chair (flatpack)
+      slug: wooden-chair-flatpack
+      relationship: downgrade
+      description: Lower-tier parlour chair flatpack
+    - item_id: 8501
+      item_name: Oak chair (flatpack)
+      slug: oak-chair-flatpack
+      relationship: upgrade
+      description: Higher-tier parlour chair flatpack
+  about: "Construction flatpack assembled from 3 planks and 3 steel nails at a wooden workbench; gives 87 Construction XP per build and can be sold on the GE for chair-space training."
+  market_strategy:
+    notes:
+      - Low XP-per-GP versus higher-tier flatpacks
+      - Steady but small daily volume on the GE
+      - Useful for ironmen leveling Construction with limited resources
+      - Watch plank and steel nail prices for crafting margin
+  trading_tips:
+    - Buy planks and nails in bulk during off-peak hours
+    - Sell finished flatpacks during Construction training spikes
+    - Compare XP/gp with mahogany flatpacks before committing supply
+  history:
+    - date: "2006-05-31"
+      description: Rocking chair flatpack released with the Construction skill and Player-Owned Houses update.
+  properties:
+    release_date: "2006-05-31"
+    update: Construction
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

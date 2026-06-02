@@ -12,9 +12,44 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: null
-  about: "Raging echoes scrying pool scroll is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  construction:
+    description: "Applied to a Scrying Pool in a Player Owned House to retheme it to Leagues V: Raging Echoes. Removing the ornament in build mode returns the scroll."
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Reward shop
+      price: 3000
+      currency: League Points
+  related_items:
+    - name: Scrying pool
+      relationship: component
+  about: "Raging echoes scrying pool scroll is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Cosmetic POH decoration earned from Leagues V."
+  market_strategy:
+    notes:
+      - Very thin GE liquidity (around 4 trades/day) — expect long order fills.
+      - Supply only enters the game from Leagues V reward shop redemptions; price is collector-driven.
+      - No GE buy limit; large flips are still capped by available offers.
+  trading_tips:
+    - Place buy offers well above last GE price to actually fill, given the tiny volume.
+    - Demand spikes during Leagues anniversaries or POH content updates.
+  history:
+    - date: "2025-01-15"
+      description: Released with the Leagues V Raging Echoes reward shop.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-01-15"
+    update: "Leagues V: Raging Echoes Rewards Are Here"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    alchable: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
