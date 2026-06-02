@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	grafanaService,
@@ -53,6 +53,25 @@ const tooltipStyle = {
 const axisStroke = 'var(--sl-color-gray-3, #8b949e)';
 const gridStroke = 'var(--sl-color-gray-5, #262626)';
 
+// Skeleton keeps the chart container height reserved while the first
+// range query is in flight, preventing the late-arriving pods chart
+// from pushing siblings down on cold load.
+function ChartSkeleton({ height }: { height: number }) {
+	return (
+		<div
+			aria-hidden
+			style={{
+				width: '100%',
+				height,
+				borderRadius: '8px',
+				background:
+					'repeating-linear-gradient(90deg, var(--sl-color-gray-6, #1c1c1c) 0 24px, var(--sl-color-gray-5, #262626) 24px 48px)',
+				opacity: 0.5,
+			}}
+		/>
+	);
+}
+
 // ---------------------------------------------------------------------------
 // Sub-components
 // ---------------------------------------------------------------------------
@@ -77,28 +96,31 @@ function TrendIndicator({ trend }: { trend: TrendInfo }) {
 	);
 }
 
-function SparklineChart({
+function SparklineSlot({
 	data,
 	color,
 }: {
-	data: SparklinePoint[];
+	data?: SparklinePoint[];
 	color: string;
 }) {
-	if (data.length < 2) return null;
+	// Slot is always rendered to reserve 36px in the card layout — keeps
+	// StatCard at a stable height while sparkline data hydrates.
 	return (
 		<div style={{ width: '100%', height: 36, marginTop: 'auto' }}>
-			<ResponsiveContainer width="100%" height={36}>
-				<LineChart data={data}>
-					<Line
-						type="monotone"
-						dataKey="v"
-						stroke={color}
-						strokeWidth={1.5}
-						dot={false}
-						isAnimationActive={false}
-					/>
-				</LineChart>
-			</ResponsiveContainer>
+			{data && data.length >= 2 && (
+				<ResponsiveContainer width="100%" height={36}>
+					<LineChart data={data}>
+						<Line
+							type="monotone"
+							dataKey="v"
+							stroke={color}
+							strokeWidth={1.5}
+							dot={false}
+							isAnimationActive={false}
+						/>
+					</LineChart>
+				</ResponsiveContainer>
+			)}
 		</div>
 	);
 }
@@ -118,10 +140,11 @@ function StatCard({
 	sparkline?: SparklinePoint[];
 	onClick?: () => void;
 }) {
-	const [hovered, setHovered] = useState(false);
-
 	return (
 		<div
+			className={
+				onClick ? 'kbve-stat-card is-clickable' : 'kbve-stat-card'
+			}
 			style={{
 				display: 'flex',
 				flexDirection: 'column',
@@ -133,22 +156,11 @@ function StatCard({
 				background: 'var(--sl-color-bg-nav, #111)',
 				transition:
 					'border-color 0.2s, transform 0.15s, box-shadow 0.15s',
-				minHeight: 120,
+				minHeight: 156,
 				cursor: onClick ? 'pointer' : 'default',
 				borderTop: '2px solid var(--sl-color-accent, #06b6d4)',
-				borderColor:
-					hovered && onClick
-						? 'var(--sl-color-gray-4, #6b7280)'
-						: undefined,
-				transform: hovered && onClick ? 'translateY(-2px)' : undefined,
-				boxShadow:
-					hovered && onClick
-						? '0 4px 12px rgba(0,0,0,0.3)'
-						: undefined,
 			}}
-			onClick={onClick}
-			onMouseEnter={() => setHovered(true)}
-			onMouseLeave={() => setHovered(false)}>
+			onClick={onClick}>
 			<div
 				style={{
 					display: 'flex',
@@ -185,7 +197,7 @@ function StatCard({
 					: '--'}
 			</div>
 			{trend && <TrendIndicator trend={trend} />}
-			{sparkline && <SparklineChart data={sparkline} color="#06b6d4" />}
+			<SparklineSlot data={sparkline} color="#06b6d4" />
 		</div>
 	);
 }
@@ -274,20 +286,9 @@ export default function ReactGrafanaK8s() {
 	const timeRange = useStore(grafanaService.$timeRange);
 
 	return (
-		<section>
-			<h2
-				style={{
-					color: 'var(--sl-color-text, #e6edf3)',
-					margin: '0 0 1rem 0',
-					fontSize: '1.3rem',
-					fontWeight: 600,
-					paddingBottom: '0.5rem',
-					borderBottom: '1px solid var(--sl-color-gray-5, #262626)',
-				}}>
-				Kubernetes
-			</h2>
-
+		<>
 			<div
+				className="kbve-card-grid"
 				style={{
 					display: 'grid',
 					gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
@@ -396,24 +397,25 @@ export default function ReactGrafanaK8s() {
 			)}
 
 			{/* Running Pods chart */}
-			{k8sTimeSeries.length > 0 && (
-				<div
+			<div
+				className="kbve-chart-panel"
+				style={{
+					padding: '1.5rem',
+					borderRadius: '12px',
+					border: '1px solid var(--sl-color-gray-5, #262626)',
+					background: 'var(--sl-color-bg-nav, #111)',
+					marginTop: '1rem',
+				}}>
+				<h3
 					style={{
-						padding: '1.5rem',
-						borderRadius: '12px',
-						border: '1px solid var(--sl-color-gray-5, #262626)',
-						background: 'var(--sl-color-bg-nav, #111)',
-						marginTop: '1rem',
+						color: 'var(--sl-color-text, #e6edf3)',
+						margin: '0 0 1rem 0',
+						fontSize: '1.1rem',
+						fontWeight: 600,
 					}}>
-					<h3
-						style={{
-							color: 'var(--sl-color-text, #e6edf3)',
-							margin: '0 0 1rem 0',
-							fontSize: '1.1rem',
-							fontWeight: 600,
-						}}>
-						Running Pods ({timeRange})
-					</h3>
+					Running Pods ({timeRange})
+				</h3>
+				{k8sTimeSeries.length > 0 ? (
 					<ResponsiveContainer width="100%" height={250}>
 						<AreaChart data={k8sTimeSeries}>
 							<CartesianGrid
@@ -441,8 +443,10 @@ export default function ReactGrafanaK8s() {
 							/>
 						</AreaChart>
 					</ResponsiveContainer>
-				</div>
-			)}
-		</section>
+				) : (
+					<ChartSkeleton height={250} />
+				)}
+			</div>
+		</>
 	);
 }
