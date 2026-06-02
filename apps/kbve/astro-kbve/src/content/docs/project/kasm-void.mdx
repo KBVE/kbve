@@ -47,14 +47,15 @@ Chromium build and streams the window through Discord's video feature.
 
 ## Crash recovery
 
-`/dockerstartup/custom_startup.sh` spawns two background supervisors:
+`/dockerstartup/custom_startup.sh` spawns three background supervisors:
 
 | Loop | Process matched (`pgrep -f`) | Action |
 |------|------------------------------|--------|
 | `cloak_loop` | `cloakbrowser` | Relaunches `/opt/cloakbrowser/cloakbrowser $CLOAK_APP_ARGS $START_URL` |
 | `discord_loop` | `discord|electron` | Relaunches the upstream `discord_startup.sh` |
+| `nav_shim_loop` | `nav_shim.py` | Relaunches `python3 /dockerstartup/nav_shim.py` |
 
-Each loop polls every 3 seconds. Closing the Discord window or the browser
+Each loop polls every 3–5 seconds. Closing the Discord window or the browser
 window from the desktop triggers a respawn — no manual KASM session restart
 needed.
 
@@ -64,14 +65,37 @@ maximize logic continue to work unchanged.
 
 ## Runtime env
 
-| Variable          | Default              | Notes                                          |
-| ----------------- | -------------------- | ---------------------------------------------- |
-| `START_URL`       | `https://kbve.com`   | Launch URL for the cloakbrowser instance       |
-| `CLOAK_APP_ARGS`  | (chromium defaults)  | Override the full cloakbrowser arg list        |
-| `LAUNCH_DISCORD`  | `1`                  | Set to `0` to disable the Discord supervisor   |
-| `LAUNCH_CLOAK`    | `1`                  | Set to `0` to disable the browser supervisor   |
-| `VNC_PW`          | (k8s secret)         | Provided by the kasm `Deployment`              |
-| `APP_ARGS`        | (inherited)          | Discord-side Electron args, consumed upstream  |
+| Variable             | Default              | Notes                                          |
+| -------------------- | -------------------- | ---------------------------------------------- |
+| `START_URL`          | `https://kbve.com`   | Launch URL for the cloakbrowser instance       |
+| `CLOAK_APP_ARGS`     | (chromium defaults)  | Override the full cloakbrowser arg list        |
+| `LAUNCH_DISCORD`     | `1`                  | Set to `0` to disable the Discord supervisor   |
+| `LAUNCH_CLOAK`       | `1`                  | Set to `0` to disable the browser supervisor   |
+| `LAUNCH_NAV_SHIM`    | `1`                  | Set to `0` to disable the URL launcher shim    |
+| `NAV_SHIM_PORT`      | `9998`               | Shim listens on this port (0.0.0.0)            |
+| `CDP_PORT`           | `9222`               | Cloakbrowser CDP port (bound to 127.0.0.1)     |
+| `URL_LAUNCHER_TOKEN` | (k8s secret)         | Reuses `kasm-vnc-pw` value as bearer token     |
+| `VNC_PW`             | (k8s secret)         | Provided by the kasm `Deployment`              |
+| `APP_ARGS`           | (inherited)          | Discord-side Electron args, consumed upstream  |
+
+## URL launcher (`nav_shim`)
+
+The bundled browser opens whatever `START_URL` was at session start. To
+swap it without restarting the pod, the dashboard `POST`s a JSON body to
+`/dashboard/kasm/launch-url/{workspace}` (axum-kbve). axum forwards to the
+in-pod `nav_shim.py` over an internal `kasm-vpn-service:9998` route.
+
+The shim is a thin HTTP front for [CDP](https://chromedevtools.github.io/devtools-protocol/)
+`Page.navigate` and **only** exposes that one method. Defense in depth:
+
+| Layer | Mitigation |
+|-------|------------|
+| Cloakbrowser CDP | Bound to `127.0.0.1` inside the workspace container only |
+| Shim API surface | Only `POST /open {url}` and `GET /healthz` are routed; everything else 404s |
+| Bearer auth | Every request must carry the `URL_LAUNCHER_TOKEN` (= rotated `kasm-vnc-pw`) |
+| Cilium NetworkPolicy | Port 9998 is only reachable from the `kbve` namespace |
+| URL policy | Scheme allowlist (http/https), no embedded creds, no loopback/private/link-local hosts, no `.cluster.local`/`.svc` |
+| Audit | Each launch request and shim response is captured via the existing Vector → ClickHouse `project_logs` pipeline |
 
 ## Resources
 

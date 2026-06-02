@@ -260,7 +260,7 @@
 		{
 			"key": "kasm_void",
 			"app_name": "kasm-void",
-			"version": "0.0.1",
+			"version": "0.0.2",
 			"version_toml": "packages/docker/kasm-void/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kasm-void.mdx",
 			"source_path": "packages/docker/kasm-void",

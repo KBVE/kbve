@@ -66,3 +66,14 @@ spec:
               - ports:
                     - port: '6901'
                       protocol: TCP
+        # Nav shim — URL launcher endpoint. CDP is bound to
+        # 127.0.0.1 inside the workspace container; only this
+        # shim is reachable. Restricted to kbve namespace (axum
+        # is the only legitimate caller).
+        - fromEndpoints:
+              - matchLabels:
+                    k8s:io.kubernetes.pod.namespace: kbve
+          toPorts:
+              - ports:
+                    - port: '9998'
+                      protocol: TCP

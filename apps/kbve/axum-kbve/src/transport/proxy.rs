@@ -1511,6 +1511,229 @@ pub async fn kasm_launch_handler(req: Request<Body>) -> Response {
         .unwrap_or_else(|_| StatusCode::INTERNAL_SERVER_ERROR.into_response())
 }
 
+const KASM_NAV_SHIM_PORT: u16 = 9998;
+const MAX_LAUNCH_URL_LEN: usize = 2048;
+
+fn url_passes_policy(raw: &str) -> Result<(), &'static str> {
+    if raw.is_empty() || raw.len() > MAX_LAUNCH_URL_LEN {
+        return Err("invalid url length");
+    }
+    let parsed = url::Url::parse(raw).map_err(|_| "url parse failed")?;
+    match parsed.scheme() {
+        "http" | "https" => {}
+        _ => return Err("scheme not allowed"),
+    }
+    if !parsed.username().is_empty() || parsed.password().is_some() {
+        return Err("embedded credentials rejected");
+    }
+    let host = parsed.host().ok_or("host required")?;
+    match host {
+        url::Host::Domain(d) => {
+            let lower = d.to_ascii_lowercase();
+            if lower == "localhost"
+                || lower.ends_with(".localhost")
+                || lower.ends_with(".internal")
+                || lower.ends_with(".cluster.local")
+                || lower.ends_with(".svc")
+            {
+                return Err("host not allowed");
+            }
+        }
+        url::Host::Ipv4(ip) => {
+            if ip.is_loopback()
+                || ip.is_private()
+                || ip.is_link_local()
+                || ip.is_broadcast()
+                || ip.is_documentation()
+                || ip.is_unspecified()
+                || ip.is_multicast()
+            {
+                return Err("ipv4 host not allowed");
+            }
+        }
+        url::Host::Ipv6(ip) => {
+            if ip.is_loopback()
+                || ip.is_unspecified()
+                || ip.is_multicast()
+                || (ip.segments()[0] & 0xfe00) == 0xfc00
+            {
+                return Err("ipv6 host not allowed");
+            }
+        }
+    }
+    Ok(())
+}
+
+/// POST /dashboard/kasm/launch-url/{name} body `{"url": "..."}` — forwards
+/// to the kasm-void nav shim. Reuses `kasm-vnc-pw` as the bearer token; the
+/// nav shim only exposes Page.navigate on top of localhost-bound CDP.
+pub async fn kasm_launch_url_handler(Path(name): Path<String>, req: Request<Body>) -> Response {
+    let headers = req.headers().clone();
+    if let Err(resp) = require_dashboard_view(&headers, "KASM-LaunchURL").await {
+        return resp;
+    }
+
+    if !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') || name.len() > 63 {
+        return (
+            StatusCode::BAD_REQUEST,
+            axum::Json(json!({"error": "Invalid deployment name"})),
+        )
+            .into_response();
+    }
+
+    let body_bytes = match axum::body::to_bytes(req.into_body(), 4096).await {
+        Ok(b) => b,
+        Err(_) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                axum::Json(json!({"error": "Invalid request body"})),
+            )
+                .into_response();
+        }
+    };
+
+    let payload: serde_json::Value = match serde_json::from_slice(&body_bytes) {
+        Ok(v) => v,
+        Err(_) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                axum::Json(json!({"error": "Body is not valid JSON"})),
+            )
+                .into_response();
+        }
+    };
+
+    let url = match payload.get("url").and_then(|v| v.as_str()) {
+        Some(s) => s.trim().to_string(),
+        None => {
+            return (
+                StatusCode::BAD_REQUEST,
+                axum::Json(json!({"error": "Missing `url` field"})),
+            )
+                .into_response();
+        }
+    };
+
+    if let Err(reason) = url_passes_policy(&url) {
+        return (
+            StatusCode::BAD_REQUEST,
+            axum::Json(json!({"error": reason})),
+        )
+            .into_response();
+    }
+
+    let kasm = match KASM.get() {
+        Some(k) => k,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                axum::Json(json!({"error": "KASM proxy not configured"})),
+            )
+                .into_response();
+        }
+    };
+
+    let token = match cached_kasm_password(false).await {
+        Ok(p) => p,
+        Err(e) => {
+            warn!("KASM-LaunchURL token fetch failed: {e}");
+            return (
+                StatusCode::BAD_GATEWAY,
+                axum::Json(json!({"error": format!("token unavailable: {e}")})),
+            )
+                .into_response();
+        }
+    };
+
+    let nav_url = format!(
+        "http://kasm-vpn-service.{KASM_NAMESPACE}.svc.cluster.local:{KASM_NAV_SHIM_PORT}/open"
+    );
+    let body = json!({"url": url});
+
+    let attempt = |bearer: String| {
+        let nav_url = nav_url.clone();
+        let body = body.clone();
+        let client = kasm.client.clone();
+        async move {
+            client
+                .post(&nav_url)
+                .timeout(Duration::from_secs(10))
+                .bearer_auth(bearer)
+                .json(&body)
+                .send()
+                .await
+        }
+    };
+
+    let resp = match attempt(token.clone()).await {
+        Ok(r) => r,
+        Err(e) => {
+            return (
+                StatusCode::BAD_GATEWAY,
+                axum::Json(json!({"error": format!("nav shim unreachable: {e}")})),
+            )
+                .into_response();
+        }
+    };
+
+    if resp.status() != reqwest::StatusCode::UNAUTHORIZED {
+        return relay_nav_response(&name, resp).await;
+    }
+
+    // Token may be stale after a session-driven password rotation; refresh and retry once.
+    let refreshed = match cached_kasm_password(true).await {
+        Ok(p) => p,
+        Err(e) => {
+            warn!("KASM-LaunchURL token refresh failed: {e}");
+            return (
+                StatusCode::BAD_GATEWAY,
+                axum::Json(json!({"error": format!("token refresh failed: {e}")})),
+            )
+                .into_response();
+        }
+    };
+
+    match attempt(refreshed).await {
+        Ok(retry) => relay_nav_response(&name, retry).await,
+        Err(e) => (
+            StatusCode::BAD_GATEWAY,
+            axum::Json(json!({"error": format!("nav shim unreachable on retry: {e}")})),
+        )
+            .into_response(),
+    }
+}
+
+async fn relay_nav_response(workspace: &str, resp: reqwest::Response) -> Response {
+    let upstream_status = resp.status();
+    let body = resp.text().await.unwrap_or_default();
+    let truncated = &body[..body.len().min(512)];
+
+    if upstream_status.is_success() {
+        return axum::Json(json!({
+            "success": true,
+            "workspace": workspace,
+            "upstream": truncated,
+        }))
+        .into_response();
+    }
+
+    let mapped = if upstream_status == reqwest::StatusCode::UNAUTHORIZED {
+        StatusCode::BAD_GATEWAY
+    } else if upstream_status == reqwest::StatusCode::BAD_REQUEST {
+        StatusCode::BAD_REQUEST
+    } else {
+        StatusCode::BAD_GATEWAY
+    };
+
+    (
+        mapped,
+        axum::Json(json!({
+            "error": format!("nav shim {upstream_status}: {truncated}"),
+        })),
+    )
+        .into_response()
+}
+
 async fn resolve_account_for_token(token: &TokenInfo) -> Option<uuid::Uuid> {
     let user_id = token.user_id.parse::<uuid::Uuid>().ok()?;
     let wallet = crate::db::get_wallet_client()?;
