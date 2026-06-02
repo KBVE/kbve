@@ -1,6 +1,6 @@
 ---
 title: Teak plank | OSRS Price Data
-description: "Teak plank: A plank of fine teak.. High alch: 300 GP, GE limit: 13,000."
+description: "Teak plank: A plank of fine teak. High alch: 300 GP, GE limit: 13,000."
 osrs:
   id: 8780
   name: Teak plank
@@ -18,28 +18,24 @@ osrs:
   construction:
     xp_per_plank: 90
     min_level: 35
-    common_builds:
-      - name: Teak garden benches
-        planks: 6
-        xp: 540
-      - name: Teak dining tables
-        planks: 4
-        xp: 360
   recipes:
     - skill: construction
       materials:
         - item_name: Teak logs
           item_id: 6333
           quantity: 1
+      tools:
+        - Coins (500)
+      facility: Sawmill
       product: Teak plank
       product_id: 8780
       product_quantity: 1
-      facility: Sawmill
       cost: 500
       members_only: true
     - skill: magic
       level: 86
       xp: 90
+      spell: Plank Make
       materials:
         - item_name: Teak logs
           item_id: 6333
@@ -53,12 +49,12 @@ osrs:
         - item_name: Earth rune
           item_id: 557
           quantity: 15
+      tools: []
       product: Teak plank
       product_id: 8780
       product_quantity: 1
       cost: 350
       members_only: true
-      spell: Plank Make
   related_items:
     - item_id: 6333
       item_name: Teak logs
@@ -85,32 +81,38 @@ osrs:
       slug: nature-rune
       relationship: component
       description: For Plank Make
-  about: |-
-    | XP per plank | 90 |
-    |--------------|-----|
-    | Mythical cape rack | ~180 XP per plank |
-    | Buy limit | 13,000 per 4 hours |
-    | Min Construction level | 35 |
-
-    Best XP methods:
-    - Teak garden benches (6 planks, 540 XP)
-    - Mahogany Homes contracts (efficient XP)
-    - Teak dining tables (4 planks, 360 XP)
+  about: Mid-tier Construction plank giving 90 XP each, produced by paying the Sawmill 500 GP or casting Plank Make at 86 Magic.
   market_strategy:
-    profit_formulas:
-      - Teak plank price - Teak log price - 500 GP = Profit
+    title: Construction training feedstock
     notes:
-      - Buy Teak logs → Sawmill → Sell planks
-      - "Calculate:"
-      - 86 Magic required
-      - Only 350 GP per plank (saves 150 GP vs sawmill)
-      - Good middle ground between oak and mahogany
-      - Better XP/GP ratio than mahogany
-      - Cheaper than mahogany planks
-      - Popular for efficient Construction training
-      - Mythical cape rack is meta method
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Buy Teak logs and convert at Sawmill for resale margin
+      - Plank Make spell saves 150 GP per plank at 86 Magic
+      - Better XP per GP ratio than mahogany planks
+      - Mythical cape rack is current XP meta
+      - Strong demand from Mahogany Homes contracts
+  trading_tips:
+    - Watch teak log to plank spread for sawmill arbitrage
+    - Stockpile before Construction skill events
+    - 13,000 GE buy limit per 4 hours
+  history:
+    - date: "2006-05-31"
+      description: Released with the Construction skill and player-owned houses update.
+  properties:
+    release_date: "2006-05-31"
+    update: Construction
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.8
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

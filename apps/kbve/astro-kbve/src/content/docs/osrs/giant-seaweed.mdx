@@ -1,6 +1,6 @@
 ---
 title: Giant seaweed | OSRS Price Data
-description: "Giant seaweed: Seaweed of large size.. High alch: 1 GP, GE limit: 11,000."
+description: "Giant seaweed: Seaweed of large size. High alch: 1 GP, GE limit: 11,000."
 osrs:
   id: 21504
   name: Giant seaweed
@@ -15,35 +15,55 @@ osrs:
   material:
     type: farming_produce
     tier: high
-    tradeable: true
-    stackable: true
-    weight: 0
   farming:
     level: 23
+    seed_id: 21490
+    seed_name: Seaweed spore
     location: Fossil Island seaweed patch
-    yield_min: 3
-    yield_max: 30
     growth_time_minutes: 40
-  uses:
-    - method: Cooking
+    planting_xp: 19
+    harvest_xp: 21
+    yield_min: 3
+  recipes:
+    - skill: cooking
+      materials:
+        - item_name: Giant seaweed
+          item_id: 21504
+          quantity: 1
+      tools:
+        - Fire or range
+      product: Soda ash
       product_id: 1781
-      product_name: Soda ash
       product_quantity: 6
-    - method: Superglass Make
-      requirements:
-        magic: 77
-        spellbook: Lunar
-      product_id: 1775
-      product_name: Molten glass
-      product_quantity: 6
+      members_only: true
+    - skill: magic
+      level: 77
       xp: 78
-      runes:
-        - 2 Astral
-        - 6 Fire
-        - 10 Air
-  market:
-    buy_limit: 11000
-    price_estimate: 130
+      spell: Superglass Make
+      spellbook: Lunar
+      materials:
+        - item_name: Giant seaweed
+          item_id: 21504
+          quantity: 1
+        - item_name: Bucket of sand
+          item_id: 1783
+          quantity: 1
+        - item_name: Astral rune
+          item_id: 9075
+          quantity: 2
+        - item_name: Fire rune
+          item_id: 554
+          quantity: 6
+        - item_name: Air rune
+          item_id: 556
+          quantity: 10
+      tools: []
+      product: Molten glass
+      product_id: 1775
+      product_quantity: 6
+      members_only: true
+  drop_table:
+    sources: []
   related_items:
     - item_id: 21490
       item_name: Seaweed spore
@@ -65,26 +85,41 @@ osrs:
       slug: bucket-of-sand
       relationship: alternative
       description: Superglass partner
-  about: |-
-    | Product | Method |
-    |---------|--------|
-    | Soda ash (6) | Cooking |
-    | Superglass Make | 77 Magic, Lunar |
+  about: Giant seaweed is a Fossil Island farming crop used to produce soda ash and molten glass via Superglass Make.
   market_strategy:
+    title: Glass production demand
     notes:
-      - Best method for molten glass
-      - Underwater farming
-      - High volume demand
-      - Superglass Make spell
-      - Crafting training
-      - Molten glass production
-      - Ironman essentials
-      - 2 patches on Fossil Island
-      - Use seaweed spores
-      - Superglass Make gives bonus glass
-      - Very AFK farming
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Best raw material for Superglass Make
+      - Underwater farming patches on Fossil Island
+      - Use seaweed spores to plant
+      - Superglass Make yields 6 molten glass per seaweed
+      - Very AFK farming activity
+      - High demand from crafters and ironmen
+  trading_tips:
+    - Buy during off-peak hours for resale to glassmakers
+    - Stockpile before bond price spikes
+    - 11,000 buy limit allows bulk operations
+  history:
+    - date: "2017-09-07"
+      description: Released with the Fossil Island expansion.
+    - date: "2023-07-12"
+      description: Item received a graphical update.
+  properties:
+    release_date: "2017-09-07"
+    update: Fossil Island
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.2
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

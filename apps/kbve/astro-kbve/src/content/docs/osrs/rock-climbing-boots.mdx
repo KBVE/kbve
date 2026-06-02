@@ -11,10 +11,44 @@ osrs:
   value: 1
   lowalch: 1
   highalch: 1
-  limit: 0
-  about: "Rock-climbing boots is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: null
+  material:
+    type: joke item
+    tier: novelty
+  related_items:
+    - item_id: 3105
+      item_name: Climbing boots
+      slug: climbing-boots
+      relationship: alternative
+      description: Functional climbing boots sold by Tenzing on Death Plateau.
+  about: "Rock-climbing boots is an unobtainable members-only joke item parodying the climbing boots rebrand controversy from RuneScape 3."
+  market_strategy:
+    notes:
+      - Listed on the Grand Exchange but not actively obtainable in-game.
+      - Buy limit of 0 means no trading volume occurs.
+      - Treated as a collector curiosity, not an investment.
+  trading_tips:
+    - Do not attempt to flip; the item cannot be acquired through gameplay.
+    - Useful only as a historical reference to OSRS Grand Exchange jokes.
+  history:
+    - date: "2015-02-26"
+      description: Added to the game alongside the Grand Exchange update as an unobtainable joke item.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-02-26"
+    update: The Grand Exchange
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

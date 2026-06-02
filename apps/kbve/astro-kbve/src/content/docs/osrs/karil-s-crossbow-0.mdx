@@ -1,6 +1,6 @@
 ---
 title: Karil's crossbow 0 | OSRS Price Data
-description: "Karil's crossbow 0: Karil the Tainted's repeating crossbow.. High alch: 96,000 GP, GE limit: 15."
+description: "Karil's crossbow 0: Karil the Tainted's repeating crossbow. High alch: 96,000 GP, GE limit: 15."
 osrs:
   id: 4938
   name: Karil's crossbow 0
@@ -12,9 +12,102 @@ osrs:
   lowalch: 64000
   highalch: 96000
   limit: 15
-  about: "Karil's crossbow 0 is a members-only item in Old School RuneScape. High alchemy value: 96,000 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: barrows_equipment
+    tier: high
+  equipment:
+    slot: 2h
+    weapon_type: crossbow
+    attack_speed: 4
+    weight: 3.628
+    requirements:
+      ranged: 70
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 84
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      ranged_strength: 0
+  charges:
+    type: degradation
+    current: 0
+    max: 1
+    repair_cost: 100000
+    notes: Fully degraded; repair at NPC armour stand for up to 100,000 GP based on Smithing level.
+  drop_table:
+    sources:
+      - source: Barrows chest
+        quantity: "1"
+        rarity: "1/2448"
+  related_items:
+    - item_id: 4734
+      item_name: Karil's crossbow
+      slug: karil-s-crossbow
+      relationship: variant
+      description: Fully repaired version
+    - item_id: 4940
+      item_name: Karil's crossbow 25
+      slug: karil-s-crossbow-25
+      relationship: variant
+      description: Partially degraded version
+    - item_id: 4942
+      item_name: Karil's crossbow 50
+      slug: karil-s-crossbow-50
+      relationship: variant
+      description: Partially degraded version
+    - item_id: 4944
+      item_name: Karil's crossbow 75
+      slug: karil-s-crossbow-75
+      relationship: variant
+      description: Partially degraded version
+    - item_id: 4736
+      item_name: Karil's crossbow (broken)
+      slug: karil-s-crossbow-broken
+      relationship: variant
+      description: Fully broken state
+  about: Fully degraded Karil's repeating crossbow with 0 charges; requires NPC or armour-stand repair before reuse.
+  market_strategy:
+    title: Karil's repair flip
+    notes:
+      - Buy at 0 charges discount and repair via POH armour stand
+      - 100,000 GP NPC repair caps full cost
+      - Demand tracks Barrows set ranged meta
+      - GE limit of only 15 per 4 hours
+  trading_tips:
+    - Watch fully-charged Karil's price as upper bound
+    - Use 70+ Smithing for cheaper armour stand repair
+    - Light daily volume — expect overnight fills
+  history:
+    - date: "2005-05-09"
+      description: Released with the Barrows update.
+  properties:
+    release_date: "2005-05-09"
+    update: Barrows
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Check
+      - Remove
+    alchable: true
+    destroy: "If you drop this item it will break. Are you sure you want to drop it?"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

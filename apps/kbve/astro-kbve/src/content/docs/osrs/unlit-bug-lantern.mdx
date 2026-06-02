@@ -1,6 +1,6 @@
 ---
 title: Unlit bug lantern | OSRS Price Data
-description: "Unlit bug lantern: A lantern to aid attacking Harpie bugs.. High alch: 78 GP, GE limit: 40."
+description: "Unlit bug lantern: A lantern to aid attacking Harpie bugs. High alch: 78 GP, GE limit: 40."
 osrs:
   id: 7051
   name: Unlit bug lantern
@@ -12,9 +12,67 @@ osrs:
   lowalch: 52
   highalch: 78
   limit: 40
-  about: "Unlit bug lantern is a members-only item in Old School RuneScape. High alchemy value: 78 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: slayer_equipment
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: bladed
+    attack_speed: 6
+    weight: 2.267
+    requirements:
+      slayer: 33
+      firemaking: 33
+  shops:
+    - shop_name: Slayer Equipment
+      location: Burthorpe, Draynor, Edgeville, Canifis, Zanaris, Mount Karuulm and others
+      price: 130
+      members_only: true
+  related_items:
+    - item_id: 7053
+      item_name: Lit bug lantern
+      slug: lit-bug-lantern
+      relationship: variant
+      description: Lit version used in combat
+    - item_id: 590
+      item_name: Tinderbox
+      slug: tinderbox
+      relationship: component
+      description: Required to light the lantern
+  about: Slayer equipment required to fight Harpie Bug Swarms; light with a tinderbox to convert into the lit bug lantern.
+  market_strategy:
+    title: Slayer task pickup
+    notes:
+      - 130 GP fixed shop price floor
+      - 40 GE buy limit per 4 hours
+      - Demand tracks Harpie Bug Swarm task assignments
+      - Lit version also counts as Wintertodt warm clothing
+  trading_tips:
+    - Buy from Slayer shop and flip at GE markup
+    - Steady but thin daily volume
+    - Stock during low slayer master pricing windows
+  history:
+    - date: "2006-01-30"
+      description: Released with the Eagles' Peak / Harpie Bug Swarm slayer content.
+  properties:
+    release_date: "2006-01-30"
+    update: Slayer expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -14,68 +14,109 @@ osrs:
   limit: 11000
   material:
     type: leather
-    tier: high
-  tanning:
-    cost: 20
-    source_id: 1749
-    source_name: Red dragonhide
-  crafting_products:
+    tier: red
+  recipes:
+    - product: Red dragon leather
+      skill: Crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Red dragonhide
+          quantity: 1
+      tools:
+        - Tanner
     - product: Red d'hide vambraces
-      product_id: 2489
+      skill: Crafting
       level: 73
       xp: 78
-      leather: 1
+      materials:
+        - item_name: Red dragon leather
+          quantity: 1
+      tools:
+        - Needle
+        - Thread
     - product: Red d'hide chaps
-      product_id: 2495
+      skill: Crafting
       level: 75
       xp: 156
-      leather: 2
+      materials:
+        - item_name: Red dragon leather
+          quantity: 2
+      tools:
+        - Needle
+        - Thread
     - product: Red d'hide shield
-      product_id: 24370
+      skill: Crafting
       level: 76
       xp: 156
-      leather: 2
+      materials:
+        - item_name: Red dragon leather
+          quantity: 2
+      tools:
+        - Needle
+        - Thread
     - product: Red d'hide body
-      product_id: 2501
+      skill: Crafting
       level: 77
       xp: 234
-      leather: 3
+      materials:
+        - item_name: Red dragon leather
+          quantity: 3
+      tools:
+        - Needle
+        - Thread
+  about: "Red dragon leather is the second-best dragon leather tier, tanned from red dragonhide for 20 coins and crafted into the full red d'hide armour set at 73-77 Crafting."
+  market_strategy:
+    notes:
+      - Second-best dragonhide leather behind black
+      - Tan Leather spell at 78 Magic processes 5 hides per cast
+      - Crafting profit margin tight; volume play
+      - Steady demand from crafters training 73-77
+  trading_tips:
+    - Buy red dragonhide and pay 20 gp tanner fee per leather
+    - Watch d'hide body demand for crafting bot supply spikes
+  history:
+    - date: "2004-03-29"
+      description: Released with RuneScape 2 launch.
+    - date: "2005-11-01"
+      description: Renamed from Dragon leather to Red dragon leather for clarification.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-03-29"
+    update: RuneScape 2
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
   related_items:
     - item_id: 1749
       item_name: Red dragonhide
       slug: red-dragonhide
       relationship: component
-      description: Raw material
+      description: Raw material before tanning
     - item_id: 2501
       item_name: Red d'hide body
       slug: red-dhide-body
       relationship: product
-      description: Main product
+      description: Main armour product
     - item_id: 2509
       item_name: Black dragon leather
       slug: black-dragon-leather
-      relationship: alternative
-      description: Higher tier
+      relationship: upgrade
+      description: Higher tier leather
     - item_id: 2505
       item_name: Blue dragon leather
       slug: blue-dragon-leather
-      relationship: alternative
-      description: Lower tier
-  market_strategy:
-    notes:
-      - Second-best dragonhide
-      - Good Crafting XP
-      - Tan Leather profit
-      - Crafting training
-      - D'hide armor production
-      - Tan Leather spell
-      - Ironman progression
-      - Tan Leather spell efficient
-      - 20 GP tanner fee
-      - Red dragons drop hide
-      - Step below black
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: downgrade
+      description: Lower tier leather
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

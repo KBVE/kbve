@@ -12,9 +12,76 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: 5
-  about: "Shattered relics void ornament kit is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Lumbridge Castle
+      price: 6500
+      currency: League Points
+      members_only: true
+  related_items:
+    - item_id: 11665
+      item_name: Void knight top
+      slug: void-knight-top
+      relationship: component
+      description: Compatible cosmetic target
+    - item_id: 11676
+      item_name: Void knight robe
+      slug: void-knight-robe
+      relationship: component
+      description: Compatible cosmetic target
+    - item_id: 8842
+      item_name: Void knight gloves
+      slug: void-knight-gloves
+      relationship: component
+      description: Compatible cosmetic target
+    - item_id: 11663
+      item_name: Void melee helm
+      slug: void-melee-helm
+      relationship: component
+      description: Compatible cosmetic target
+    - item_id: 11664
+      item_name: Void mage helm
+      slug: void-mage-helm
+      relationship: component
+      description: Compatible cosmetic target
+    - item_id: 11675
+      item_name: Void ranger helm
+      slug: void-ranger-helm
+      relationship: component
+      description: Compatible cosmetic target
+  about: "Cosmetic kit themed to Leagues III - Shattered Relics; applies a recolour to the six Void Knight pieces (three helmets, top, robe, gloves) and is purchased from the Leagues Reward Shop for 6,500 League Points."
+  market_strategy:
+    notes:
+      - Pure cosmetic — fashion-driven price
+      - Limited Leagues supply windows
+      - Long-term hold candidate
+      - Compare other Leagues ornament kits before flipping
+  trading_tips:
+    - List ahead of Leagues IV/V announcements for nostalgia premium
+    - Watch GE volume — daily turnover is thin
+  history:
+    - date: "2022-03-16"
+      update: "PvP Arena: Rewards Beta"
+      description: Public release of the Leagues III reward shop, including the void ornament kit.
+    - date: "2022-01-19"
+      update: "Leagues III: Shattered Relics"
+      description: Added to the game alongside the Shattered Relics league.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2022-01-19"
+    update: "Leagues III: Shattered Relics"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 0.1
+    options:
+      - Drop
+    alchable: true
+    quest_item: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,61 +12,85 @@ osrs:
   lowalch: 66
   highalch: 100
   limit: 11000
+  material:
+    type: dragon
+    tier: dragon
   equipment:
     slot: weapon
-    type: thrown
-    attack_style: ranged
+    weapon_type: thrown
     attack_speed: 3
-  requirements:
-    ranged: 60
-  stats:
-    attack:
+    weight: 0.006
+    requirements:
+      ranged: 60
+    attack_bonus:
       ranged: 28
-    other:
+    other_bonus:
       ranged_strength: 30
   special_attack:
-    name: Draconic Puncture
+    name: Duality
     energy: 25
-    description: Two rapid attacks with 5% increased accuracy
-  obtaining:
-    - source: Hydra
-      location: Karuulm Slayer Dungeon
-      members_only: true
-    - source: Alchemical Hydra
-      location: Karuulm Slayer Dungeon
-      members_only: true
+    description: Throws two knives with independent accuracy and damage rolls.
+  drop_table:
+    sources:
+      - source: Wyrm
+        quantity: "1"
+        rarity: 1/2000
+      - source: Drake
+        quantity: "1"
+        rarity: 1/2000
+      - source: Hydra
+        quantity: "1"
+        rarity: 1/2000
+      - source: Alchemical Hydra
+        quantity: "1"
+        rarity: 1/2000
   related_items:
     - item_id: 868
       item_name: Rune knife
       slug: rune-knife
       relationship: downgrade
-      description: Lower tier knife
+      description: Lower tier throwing knife
     - item_id: 22806
       item_name: Dragon knife (p++)
       slug: dragon-knife-p++
       relationship: variant
-      description: Poisoned version
+      description: Poisoned variant
     - item_id: 11230
       item_name: Dragon dart
       slug: dragon-dart
       relationship: alternative
       description: Alternative dragon thrown
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Weapon |
-    | Type | Thrown |
-    | Tradeable | Yes |
-    | Weight | 0.006 kg |
-    | Requirements | 60 Ranged |
-
-    Draconic Puncture:
-    - 25% special energy
-    - Two rapid attacks
-    - 5% increased accuracy per hit
-    - Popular for PvP combos
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Dragon-tier throwing knife dropped by Kebos slayer creatures, with a Duality special that fires two independent knives for 25% energy."
+  market_strategy:
+    notes:
+      - Top-tier thrown weapon for PvP combos and burst Ranged DPS
+      - Steady drop supply from Wyrms, Drakes, and Hydras at 1/2,000
+      - High volume but price is sensitive to PvP meta shifts
+  trading_tips:
+    - Buy on PvE meta dips and resell when Bounty Hunter cycles back
+    - Compare to dragon dart pricing for the cheapest spec spam loadout
+  history:
+    - date: "2019-01-10"
+      description: Added to the game with The Kebos Lowlands update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-01-10"
+    update: The Kebos Lowlands
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.006
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

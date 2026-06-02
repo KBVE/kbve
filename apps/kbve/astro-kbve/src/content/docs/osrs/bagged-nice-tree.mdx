@@ -1,6 +1,6 @@
 ---
 title: Bagged nice tree | OSRS Price Data
-description: "Bagged nice tree: You can plant this in your garden.. High alch: 1,200 GP, GE limit: 10,000."
+description: "Bagged nice tree: You can plant this in your garden. High alch: 1,200 GP, GE limit: 10,000."
 osrs:
   id: 8419
   name: Bagged nice tree
@@ -12,9 +12,55 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 10000
-  about: "Bagged nice tree is a members-only item in Old School RuneScape. High alchemy value: 1,200 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  shops:
+    - shop_name: Garden Supplier
+      location: Falador
+      price: 2000
+    - shop_name: Garden Supplier
+      location: Farming Guild
+      price: 2000
+  construction:
+    builds:
+      - hotspot: Garden
+        level: 10
+        xp: 44
+        result: Nice tree
+      - hotspot: Menagerie habitat
+        level: 47
+        xp: 51
+        result: Forest habitat
+      - hotspot: Garden
+        level: 65
+        xp: 474
+        result: Zen theme tree
+  related_items: []
+  about: "Bagged nice tree is a Construction garden plant bought from Garden suppliers, planted for low-level Construction and Farming XP."
+  market_strategy:
+    notes:
+      - Steady Construction supply demand
+      - Shop price floors GE near 2000
+  trading_tips:
+    - Buy from shop for cheaper than GE
+    - Bulk needed for Zen theme upgrades
+  history:
+    - date: "2006-05-31"
+      description: Added with the launch of Construction and Player-Owned Houses.
+  properties:
+    release_date: "2006-05-31"
+    update: Player-Owned Houses
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

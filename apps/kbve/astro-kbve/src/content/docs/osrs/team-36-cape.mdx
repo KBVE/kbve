@@ -12,9 +12,73 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-36 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: cape
+    weight: 0.453
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Richard's Wilderness Cape Shop
+      location: Edgeville
+      price: 50
+      stock: 100
+      currency: coins
+      members_only: false
+  related_items:
+    - item_id: 4383
+      item_name: Team-35 cape
+      slug: team-35-cape
+      relationship: variant
+      description: Adjacent numbered team cape
+    - item_id: 4387
+      item_name: Team-37 cape
+      slug: team-37-cape
+      relationship: variant
+      description: Adjacent numbered team cape
+  about: "Team-36 cape is one of fifty numbered team capes sold by Richard at the Wilderness Cape Shop in Edgeville for 50 coins; players wearing matching team capes appear as blue dots on each other's minimaps and gain right-click attack protection against same-team players."
+  market_strategy:
+    notes:
+      - Steady free-to-play demand from team minigames and clue clues
+      - Shop price of 50gp acts as a hard floor
+      - Bulk lots flip slowly because daily volume is low
+  history:
+    - date: "2005-02-22"
+      description: Team-36 cape added with the team capes update.
+    - date: "2013-05-23"
+      description: Item made available to free-to-play players.
+  properties:
+    release_date: "2005-02-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

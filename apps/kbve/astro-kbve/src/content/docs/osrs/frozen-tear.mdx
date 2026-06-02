@@ -12,9 +12,61 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 13000
-  about: "Frozen tear is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Frozen tear is a stackable drop used to charge the Pendant of Ates; each tear grants one teleport charge."
+  drop_table:
+    sources:
+      - source: Brutal blue dragon
+        quantity: "1"
+        rarity: "1/32"
+      - source: Blue dragon
+        quantity: "1"
+        rarity: "1/100"
+      - source: Icefiend
+        quantity: "1"
+        rarity: "1/150"
+      - source: Frost crab
+        quantity: "1"
+        rarity: "1/90"
+  charges:
+    item: Pendant of Ates
+    per_charge: 1
+    full_restore: 100
+  properties:
+    release_date: "2024-09-25"
+    update: "Varlamore: The Rising Darkness"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+  related_items:
+    - item_id: 29893
+      item_name: Pendant of Ates (inert)
+      slug: pendant-of-ates-inert
+      relationship: product
+      description: Inert pendant; dismantle for 100 tears
+    - item_id: 29897
+      item_name: Pendant of Ates
+      slug: pendant-of-ates
+      relationship: product
+      description: Charged teleport pendant powered by frozen tears
+  market_strategy:
+    notes:
+      - "Very high volume (~174k daily); deep liquidity for bulk pendant charging."
+      - "GE price (~293 gp) sits just under high alch (300 gp); marginal alch profit on tax-free sources."
+  trading_tips:
+    - "Bulk buy when pendant demand spikes (post-update or DT2 grinds)."
+    - "Brutal blue dragons (1/32) are the most efficient farming source."
+  history:
+    - date: "2024-09-25"
+      description: "Released with the Varlamore: The Rising Darkness update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

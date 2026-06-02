@@ -12,9 +12,74 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Greenman's ale(m) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: beer
+    tier: mature
+  potion:
+    effects:
+      - description: "Boosts Herblore by 2 levels."
+      - description: "Drains Attack by 2 levels."
+      - description: "Drains Strength by 2 levels."
+      - description: "Restores 2 Hitpoints."
+  recipes:
+    - skill: cooking
+      level: 29
+      experience: 281
+      materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Harralander
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Beer glass
+          quantity: 8
+      tools:
+        - Brewing vat
+      product: Greenman's ale(m)
+  related_items:
+    - item_id: 1909
+      item_name: Greenman's ale
+      slug: greenman-s-ale
+      relationship: variant
+      description: Standard non-mature version of the brew.
+    - item_id: 5741
+      item_name: Harralander
+      slug: harralander
+      relationship: component
+      description: Key herb used during brewing.
+  about: "Greenman's ale(m) is a mature ale brewed at Cooking level 29 that gives a temporary +2 Herblore boost in exchange for Attack and Strength drains."
+  market_strategy:
+    notes:
+      - Demand spikes around Herblore boost requirements for high-level potion mixing.
+      - 5% maturation chance (64% with the stuff) limits supply per brewing batch.
+      - Buy limit of 2,000 supports mid-volume flipping during Herblore content updates.
+  trading_tips:
+    - Stockpile before major Herblore boosts are needed for clue scrolls or quests.
+    - Price tracks Herblore boost meta and DIY ironman brewing rates.
+    - Mature variant carries a premium over the regular Greenman's ale.
+  history:
+    - date: "2005-07-11"
+      description: Added to the game with the Farming update as a mature ale brewing reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

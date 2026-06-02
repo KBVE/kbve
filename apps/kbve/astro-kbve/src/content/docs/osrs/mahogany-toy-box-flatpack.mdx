@@ -12,9 +12,73 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Mahogany toy box (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: wood
+    tier: high
+  construction:
+    level: 86
+    xp: 280
+    builds: Mahogany toy box (costume room)
+  recipes:
+    - skill: construction
+      level: 86
+      xp: 280
+      materials:
+        - item_name: Mahogany plank
+          item_id: 8782
+          quantity: 2
+      product: Mahogany toy box (flatpack)
+      product_id: 9851
+      product_quantity: 1
+      tools:
+        - Hammer
+        - Saw
+      notes: Crafted at a workbench with lathe inside a Player-owned House workshop.
+      members_only: true
+  related_items:
+    - item_id: 8782
+      item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: Required material for crafting the flatpack.
+    - item_id: 9853
+      item_name: Magical cape rack (flatpack)
+      slug: magical-cape-rack-flatpack
+      relationship: alternative
+      description: Higher-tier costume room flatpack on the same workbench.
+    - item_id: 9849
+      item_name: Toy box (flatpack)
+      slug: toy-box-flatpack
+      relationship: downgrade
+      description: Teak-tier costume room toy box flatpack.
+  about: "Mahogany toy box (flatpack) is crafted at 86 Construction from 2 mahogany planks on a workbench with lathe and assembles into the costume room toy box."
+  market_strategy:
+    notes:
+      - Supply comes from high-level Construction players bulk-making flatpacks for XP.
+      - Buy limit of 500 per 4 hours suits mid-volume flips.
+      - Demand grows with costume room build-outs and Construction goals around 80-90.
+  trading_tips:
+    - Compare against mahogany plank cost to spot favourable buyout windows.
+    - List into builder bursts when Construction Sundays or DXP drive flatpack consumption.
+  history:
+    - date: "2006-10-18"
+      description: Added alongside the Costume Room player-owned house update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-10-18"
+    update: Costume Room
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

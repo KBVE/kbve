@@ -12,9 +12,41 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of the porcupine is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Sigil of the porcupine is a Deadman Mode damage recoil sigil that reflects damage to attackers when activated."
+  properties:
+    release_date: "2021-08-25"
+    update: "Deadman: Reborn"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    alchable: false
+    destroy: "You will lose this item permanently. You can get another from a Deadman Mode event."
+  related_items:
+    - item_id: 26063
+      item_name: Sigil of the porcupine
+      slug: sigil-of-the-porcupine
+      relationship: variant
+      description: Damage recoil sigil from Deadman Mode events
+  market_strategy:
+    notes:
+      - "Only obtainable during temporary Deadman Mode events; not available in the live game."
+      - "Duplicates can be sold via the deadman's skull during Deadman: Annihilation."
+  trading_tips:
+    - "Reflects damage to attackers; higher world tiers deal more recoil per hit."
+    - "Stack with other Deadman sigils for PvP survivability."
+  history:
+    - date: "2021-08-25"
+      description: "Released with the Deadman: Reborn event."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

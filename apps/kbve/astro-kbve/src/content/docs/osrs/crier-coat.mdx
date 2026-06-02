@@ -5,16 +5,78 @@ osrs:
   id: 20240
   name: Crier coat
   slug: crier-coat
-  examine: Don't shoot the messenger!
+  examine: "Don't shoot the messenger!"
   members: true
   icon: Crier coat.png
   value: 5000
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Crier coat is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Crier coat is a cosmetic body piece of the Crier outfit obtained from medium Treasure Trail reward caskets."
+  equipment:
+    slot: body
+    weight: 0.001
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  properties:
+    release_date: "2016-07-06"
+    update: "Treasure Trail Expansion (2016)"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  related_items:
+    - item_id: 20242
+      item_name: Crier hat
+      slug: crier-hat
+      relationship: set-piece
+      description: Headpiece of the Crier outfit
+    - item_id: 20244
+      item_name: Crier bell
+      slug: crier-bell
+      relationship: set-piece
+      description: Hand-held bell of the Crier outfit
+  market_strategy:
+    notes:
+      - "GE price (~2,888 gp) sits below high alch (3,000 gp); borderline alch."
+      - "Buy limit of 4 + low daily volume (~83) keeps supply thin."
+  trading_tips:
+    - "Purely cosmetic; price driven by fashionscape and clue completionists."
+    - "Costume room storage; UIM can't retrieve individual pieces until full set is stored."
+  history:
+    - date: "2016-07-06"
+      description: "Released with the 2016 Treasure Trail Expansion."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

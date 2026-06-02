@@ -12,39 +12,43 @@ osrs:
   lowalch: 22000
   highalch: 33000
   limit: 40
+  material:
+    type: 3rd-age
+    tier: high
   equipment:
     slot: weapon
-    type: axe
-    attack_style: melee
+    weapon_type: axe
     attack_speed: 5
+    weight: 1.36
     requirements:
       attack: 65
       woodcutting: 61
-    stats:
-      attack_stab: -2
-      attack_slash: 38
-      attack_crush: 32
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 1
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
+    attack_bonus:
+      stab: -2
+      slash: 38
+      crush: 32
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
       melee_strength: 42
-      prayer_bonus: 0
-  skilling:
-    skill: woodcutting
-    level: 61
-    speed_modifier: dragon_equivalent
-    special: Functions as dragon axe for woodcutting
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Master
-        rarity: Very Rare
-        description: Extremely rare reward from master clue scrolls
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    name: Lumber Up
+    energy: 100
+    description: Boosts the player's Woodcutting level by 3 for 3 minutes; shared with the dragon, infernal, and crystal axes.
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
   related_items:
     - item_id: 12426
       item_name: 3rd age longsword
@@ -65,29 +69,38 @@ osrs:
       item_name: 3rd age pickaxe
       slug: 3rd-age-pickaxe
       relationship: alternative
-      description: 3rd age skilling tool
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Woodcutting Level | 61 |
-    | Speed | Dragon equivalent |
-
-    The 3rd age axe has the same woodcutting speed as a dragon axe. It is compatible with all woodcutting activities that accept the dragon axe.
-
-    The 3rd age axe is a rare skilling tool obtained from Treasure Trails. It requires 61 Woodcutting to use for woodcutting and functions identically to a dragon axe in terms of woodcutting speed.
-
-    3rd age tools are highly sought after due to their extreme rarity and status symbol value. The axe is both a functional woodcutting tool and a prestigious item.
+      description: 3rd age skilling tool counterpart
+  about: "3rd age axe is an extremely rare master Treasure Trail reward (roughly 1/313,168) that requires 65 Attack to wield and 61 Woodcutting to chop trees; it shares the Lumber Up special attack and chops at dragon axe speed."
   market_strategy:
     title: Investment Notes
     notes:
-      - Extremely valuable due to rarity
-      - Functional skilling tool with prestige value
-      - Price fluctuates based on collector demand
-      - Verify authenticity when trading high-value items
-      - Use Grand Exchange for secure trades
-      - Monitor price trends before purchasing
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Routinely listed at the Grand Exchange maximum price
+      - Functional skilling tool with prestige and collector value
+      - Verify item authenticity and use trusted middlemen on private trades
+      - Monitor 3rd age set price trends before purchasing
+  history:
+    - date: "2016-07-06"
+      update: Treasure Trails Expansion
+      description: 3rd age axe added as a master Treasure Trails reward.
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trails Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    weight: 1.36
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

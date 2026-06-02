@@ -12,9 +12,75 @@ osrs:
   lowalch: 3200000
   highalch: 4800000
   limit: null
-  about: "Condensed gold is a members-only item in Old School RuneScape. High alchemy value: 4,800,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: construction material
+    tier: gold sink
+  shops:
+    - shop_name: "Stonemason"
+      location: Keldagrim
+      price: 10400000
+    - shop_name: "Metla"
+      location: Stonecutter Outpost
+      price: 10400000
+  construction:
+    level: 47
+    experience: 11144
+    product: Gold sink
+  recipes:
+    - skill: construction
+      level: 47
+      experience: 11144
+      materials:
+        - item_name: Condensed gold
+          quantity: 10
+        - item_name: Mahogany plank
+          quantity: 5
+        - item_name: Gold leaf
+          quantity: 5
+      tools:
+        - Hammer
+        - Saw
+      product: Gold sink (player-owned house kitchen)
+  related_items:
+    - item_id: 8784
+      item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: Required alongside condensed gold when building the kitchen gold sink.
+    - item_id: 8784
+      item_name: Gold leaf
+      slug: gold-leaf
+      relationship: component
+      description: Required alongside condensed gold when building the kitchen gold sink.
+  about: "Condensed gold is a high-value Construction material sold by the Keldagrim Stonemason and Metla, used as the core ingredient for the player-owned house kitchen gold sink."
+  market_strategy:
+    notes:
+      - Shop price rises with bulk purchases, creating soft ceiling pressure on flips.
+      - Demand tracks Construction training and gold sink build orders.
+      - No buy limit removes flipping volume restrictions but exposes traders to whale moves.
+  trading_tips:
+    - Buy from the Keldagrim Stonemason when GE price drifts above shop ceiling.
+    - Watch Construction XP rates for shifts that change gold sink demand.
+    - Treat as a quasi-bond-tier asset; price is anchored to in-game shop supply.
+  history:
+    - date: "2021-11-24"
+      description: Added to the game with the Android Beta and Gold Sink Changes update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-11-24"
+    update: Android Beta and Gold Sink Changes
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

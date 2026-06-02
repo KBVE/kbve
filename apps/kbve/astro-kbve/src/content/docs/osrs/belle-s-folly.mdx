@@ -1,6 +1,6 @@
 ---
 title: Belle's folly | OSRS Price Data
-description: "Belle's folly: A well balanced blade adorned with gold.. High alch: 27,000 GP."
+description: "Belle's folly: A well balanced blade adorned with gold. High alch: 27,000 GP."
 osrs:
   id: 31248
   name: Belle's folly
@@ -12,9 +12,89 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: null
-  about: "Belle's folly is a members-only item in Old School RuneScape. High alchemy value: 27,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: weapon
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: stab_sword
+    attack_speed: 4
+    weight: 1.36
+    requirements:
+      attack: 70
+    attack_bonus:
+      stab: 100
+      slash: 78
+      crush: -3
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+    other_bonus:
+      melee_strength: 102
+  recipes:
+    - skill: smithing
+      level: 70
+      xp: 500
+      requirements:
+        smithing: 70
+        quest: Sleeping Giants
+      materials:
+        - item_name: Belle's folly (tarnished)
+          item_id: 31245
+          quantity: 1
+      tools:
+        - Polishing wheel
+      facility: Giants' Foundry
+      product: Belle's folly
+      product_id: 31248
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 31245
+      item_name: Belle's folly (tarnished)
+      slug: belle-s-folly-tarnished
+      relationship: component
+      description: Tarnished version polished into this blade
+    - item_id: 0
+      item_name: Shellbane Gryphon
+      slug: shellbane-gryphon
+      relationship: alternative
+      description: Source monster for tarnished version
+  about: "Sailing-era stab rapier polished from Belle's folly (tarnished) at the Giants' Foundry polishing wheel."
+  market_strategy:
+    title: Sailing meta weapon
+    notes:
+      - Polish your own tarnished drop for 500 Smithing XP
+      - High alch value of 27,000 supports floor price
+      - No GE buy limit currently listed
+      - Demand tracks Sailing release meta
+  trading_tips:
+    - Compare against rapier-class weapons for margin
+    - Volume thin around release; watch first weeks
+    - Polished cost discount vs buying outright
+  history:
+    - date: "2025-11-19"
+      description: Released with the Sailing update.
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

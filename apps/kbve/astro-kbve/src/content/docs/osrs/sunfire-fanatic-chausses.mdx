@@ -14,9 +14,10 @@ osrs:
   limit: null
   equipment:
     slot: legs
-    type: melee_prayer
-    tradeable: true
-    weight: 5
+    weight: 7.711
+    requirements:
+      defence: 40
+      prayer: 60
     attack_bonus:
       stab: 0
       slash: 0
@@ -34,88 +35,64 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 8
-    requirements:
-      prayer: 60
-      defence: 40
-  set_effect:
-    name: Sunfire Fanatic
-    pieces:
-      - Sunfire fanatic helm
-      - Sunfire fanatic cuirass
-      - Sunfire fanatic chausses
-    description: Best-in-slot prayer bonus armor set
   drop_table:
-    primary_source: Fortis Colosseum
-    best_drop_rate: 1/24.47
     sources:
       - source: Fortis Colosseum
         quantity: "1"
-        rarity: uncommon
-        drop_rate: 1/24.47 (full completion)
-        members_only: true
-  market:
-    buy_limit: 8
-    price_estimate: 1800000
+        rarity: 1/24.47
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  about: "Sunfire fanatic chausses are the best-in-slot prayer bonus legs, dropped from the Fortis Colosseum and also obtainable as an Elite Treasure Trail reward."
+  market_strategy:
+    notes:
+      - Mid-priced piece in the Sunfire fanatic set
+      - Strong defence stats matching rune platelegs
+      - Pairs well with rest of the set for max prayer bonus
+      - Stable demand from PvM and prayer-heavy content
+  trading_tips:
+    - Watch Colosseum drop rate updates for supply shifts
+    - Full set demand spikes on Inferno or ToB releases
+  history:
+    - date: "2024-03-20"
+      description: Released as part of the Varlamore Fortis Colosseum update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: Varlamore - The Final Dawn
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 7.711
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   related_items:
     - item_id: 28933
       item_name: Sunfire fanatic helm
       slug: sunfire-fanatic-helm
       relationship: set-piece
-      description: Head piece
+      description: Head piece of the Sunfire fanatic set
     - item_id: 28936
       item_name: Sunfire fanatic cuirass
       slug: sunfire-fanatic-cuirass
       relationship: set-piece
-      description: Body piece
-  about: |-
-    ### Defensive Bonuses
-    | Defence Type | Bonus |
-    |--------------|-------|
-    | Stab | +51 |
-    | Slash | +49 |
-    | Crush | +47 |
-    | Magic | -4 |
-    | Ranged | +49 |
-
-    ### Other Bonuses
-    | Stat | Bonus |
-    |------|-------|
-    | Magic Attack | -4 |
-    | Ranged Attack | -11 |
-    | Prayer | +8 |
-
-    The Sunfire Fanatic set provides the best-in-slot prayer bonus when worn together:
-
-    Full Set Pieces:
-    - Sunfire fanatic helm (+6 Prayer)
-    - Sunfire fanatic cuirass (+10 Prayer)
-    - Sunfire fanatic chausses (+8 Prayer)
-
-    Total Set Prayer Bonus: +24
-
-    The chausses contribute a substantial +8 prayer bonus, making them the second-highest prayer bonus piece in the set.
-
-    Best uses for the Sunfire fanatic chausses:
-
-    - Inferno: Essential for prayer management
-    - Fight Caves: Extended Jad attempts
-    - GWD: Reduced prayer potion usage
-    - Cox/TOB: Prayer preservation in raids
-    - General PvM: Efficient for prayer-heavy content
-
-    Comparison to Proselyte:
-    - Proselyte cuisse: +6 Prayer
-    - Sunfire fanatic chausses: +8 Prayer (+2 more)
-    - Much better defensive stats than Proselyte
-  market_strategy:
-    notes:
-      - Mid-priced piece in the set
-      - Good balance of prayer and defence
-      - Pairs well with other prayer gear
-      - Consider full set for maximum efficiency
-      - Stable demand from PvM community
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Body piece of the Sunfire fanatic set
+    - item_id: 9472
+      item_name: Proselyte cuisse
+      slug: proselyte-cuisse
+      relationship: alternative
+      description: Cheaper prayer legs alternative
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

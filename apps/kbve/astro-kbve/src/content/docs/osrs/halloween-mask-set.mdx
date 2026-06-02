@@ -12,9 +12,55 @@ osrs:
   lowalch: 3
   highalch: 4
   limit: 5
-  about: "Halloween mask set is a free-to-play item in Old School RuneScape. High alchemy value: 4 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: holiday
+  related_items:
+    - item_id: 1057
+      item_name: Red halloween mask
+      slug: red-halloween-mask
+      relationship: component
+      description: Red mask packaged inside the set.
+    - item_id: 1053
+      item_name: Green halloween mask
+      slug: green-halloween-mask
+      relationship: component
+      description: Green mask packaged inside the set.
+    - item_id: 1055
+      item_name: Blue halloween mask
+      slug: blue-halloween-mask
+      relationship: component
+      description: Blue mask packaged inside the set.
+  about: "Halloween mask set bundles the red, green and blue Halloween masks together, awarded as noted set drops during multiple Halloween holiday events."
+  market_strategy:
+    notes:
+      - Supply is fixed - issued only during specific Halloween events from 2015 onwards.
+      - Buy limit of 5 per 4 hours keeps the set thin on the Grand Exchange.
+      - Set trades at a premium to the sum of individual masks during low-supply windows.
+  trading_tips:
+    - Track each mask price individually to spot arbitrage versus opening the set.
+    - Hold during off-season; events that drop sets can compress the premium temporarily.
+  history:
+    - date: "2015-03-19"
+      description: Introduced with the Boss Pets, Sets, Chat & More update.
+    - date: "2015-10-29"
+      description: First awarded as noted reward during the 2015 Halloween event.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-03-19"
+    update: Boss Pets, Sets, Chat & More
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

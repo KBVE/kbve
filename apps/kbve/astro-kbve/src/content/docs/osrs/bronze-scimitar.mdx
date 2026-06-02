@@ -12,24 +12,92 @@ osrs:
   lowalch: 12
   highalch: 19
   limit: 125
-  item_id: 1321
-  item_type: equipment
-  slot: weapon
-  type: scimitar
-  attack_style: slash
-  attack_speed: 4
-  tradeable: true
-  weight: 1.814
-  requirements:
-    attack: 1
-  stats:
-    slash_attack: 7
-    strength: 6
+  material:
+    type: bronze
+    tier: tier_1
+  equipment:
+    slot: weapon
+    weapon_type: slash_sword
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 1
+      slash: 7
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 6
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 5
+      xp: 25
+      materials:
+        - item_name: Bronze bar
+          quantity: 2
+      tools:
+        - Hammer
+        - Anvil
+      product: Bronze scimitar
+      members_only: false
   related_items:
-    - slug: iron-scimitar
-    - slug: bronze-bar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Iron scimitar
+      slug: iron-scimitar
+      relationship: upgrade
+      description: Next metal tier scimitar
+    - item_name: Bronze bar
+      slug: bronze-bar
+      relationship: component
+      description: Smelting material for the scimitar
+    - item_name: Bronze longsword
+      slug: bronze-longsword
+      relationship: alternative
+      description: Bronze tier longsword alternative
+  about: The bronze scimitar is the lowest-tier scimitar, smithed from 2 bronze bars at 5 Smithing for 25 experience and wielded with 1 Attack.
+  market_strategy:
+    notes:
+      - Cheap entry-level slash weapon
+      - Low Grand Exchange volume
+      - "Buy limit: 125 per 4 hours"
+      - Smithing supply usually exceeds demand
+  trading_tips:
+    - Use as Smithing XP material rather than a flip target
+    - Compare against iron scimitar for early Attack training value
+  history:
+    - date: "2001-01-04"
+      description: Bronze scimitar added with the RuneScape beta launch.
+    - date: "2005-06-13"
+      description: Examine text updated for punctuation.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-01-04"
+    update: RuneScape beta is now online
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

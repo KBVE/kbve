@@ -5,38 +5,95 @@ osrs:
   id: 4300
   name: Ham robe
   slug: ham-robe
-  examine: The label says 'Vivid Crimson', but it looks pink to me!
+  examine: "The label says 'Vivid Crimson', but it looks pink to me!"
   members: true
   icon: Ham robe.png
   value: 75
   lowalch: 30
   highalch: 45
   limit: 15
+  material:
+    type: cloth
+    tier: low
   equipment:
     slot: legs
-    requirements: {}
+    weapon_type: none
+    weight: 0.907
+    requirements:
+      none: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: H.A.M. Member (pickpocket)
+        thieving_level: 15
+        quantity: "1"
+        rarity: uncommon
+      - source: H.A.M. Guard
+        quantity: "1"
+        rarity: uncommon
   related_items:
     - item_id: 4302
       item_name: Ham hood
       slug: ham-hood
       relationship: set-piece
-      description: H.A.M. head piece
+      description: H.A.M. head piece in the same robe set.
     - item_id: 4298
       item_name: Ham shirt
       slug: ham-shirt
       relationship: set-piece
-      description: H.A.M. body piece
+      description: H.A.M. body piece worn with the robe.
     - item_id: 4304
       item_name: Ham cloak
       slug: ham-cloak
       relationship: set-piece
-      description: H.A.M. cape piece
-  about: |-
-    > *"The label says 'Vivid Crimson', but it looks pink to me!"*
-
-    The ham robe is the legs piece of the H.A.M. (Humans Against Monsters) robes set. Wearing more pieces reduces the chance of being ejected from the H.A.M. Hideout when caught pickpocketing. A members-only item with no combat stats.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: H.A.M. cape piece completing the disguise.
+  about: "Ham robe is the legs piece of the H.A.M. uniform; wearing more set pieces lowers the ejection chance when pickpocketing inside the Hideout."
+  market_strategy:
+    notes:
+      - Supply driven by pickpocket and H.A.M. Guard drops alongside Death to the Dorgeshuun rewards.
+      - Buy limit of 15 per 4 hours keeps margins thin and inventory turnover slow.
+      - Demand jumps from ironmen building the full H.A.M. ejection-reduction set.
+  trading_tips:
+    - Bundle with hood, shirt and cloak to resell as a complete H.A.M. set.
+    - Stay below high alch when bidding so worst-case losses are capped.
+  history:
+    - date: "2005-02-22"
+      description: Released with the Wilderness Capes, and Changes update as part of the H.A.M. outfit.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-02-22"
+    update: Wilderness Capes, and Changes
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,11 +12,9 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 7500
-  item_id: 6729
-  type: bones
-  tradeable: true
-  weight: 1.5
-  buy_limit: 7500
+  material:
+    type: bones
+    tier: high
   prayer:
     xp_bury: 125
     xp_gilded: 437.5
@@ -26,41 +24,71 @@ osrs:
   drop_table:
     sources:
       - source: Dagannoth Rex
-        rate: Always
+        source_id: 2882
+        combat_level: 303
+        quantity: "1"
+        rarity: always
         members_only: true
       - source: Dagannoth Prime
-        rate: Always
+        source_id: 2883
+        combat_level: 303
+        quantity: "1"
+        rarity: always
         members_only: true
       - source: Dagannoth Supreme
-        rate: Always
+        source_id: 2881
+        combat_level: 303
+        quantity: "1"
+        rarity: always
         members_only: true
   related_items:
-    - slug: dragon-bones
-      name: Dragon bones
-      relation: alternative
-    - slug: superior-dragon-bones
-      name: Superior dragon bones
-      relation: higher_tier
-    - slug: dagannoth-kings
-      name: Dagannoth Kings
-      relation: drop_source
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Bones |
-    | Tradeable | Yes |
-    | Weight | 1.5 kg |
-    | Prayer XP | 125 (buried) |
-
-    Prayer training: Bury for 125 XP.
-
-    Enhanced methods:
-    - Gilded/Chaos altar: 437.5 XP
-    - Ectofuntus: 500 XP
-    - Sinister Offering: 375 XP
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Dragon bones
+      slug: dragon-bones
+      relationship: alternative
+      description: Common Prayer training bones with same XP
+    - item_name: Superior dragon bones
+      slug: superior-dragon-bones
+      relationship: upgrade
+      description: Higher Prayer XP per bone
+    - item_name: Dagannoth Kings
+      slug: dagannoth-kings
+      relationship: alternative
+      description: Boss source for dagannoth bones
+  about: Dagannoth bones are dropped by the three Dagannoth Kings and grant 125 Prayer experience when buried, or up to 500 XP at the Ectofuntus.
+  market_strategy:
+    notes:
+      - "Buy limit: 7,500 per 4 hours"
+      - Supply driven by Dagannoth Kings hunters
+      - Gilded altar produces 437.5 XP per bone
+      - Chaos altar yields 50% bone-save chance
+      - Compare GP per Prayer XP against dragon bones
+  trading_tips:
+    - Buy during Dagannoth Kings trip resets when supply spikes
+    - Watch dragon bones spread for substitution effect
+  history:
+    - date: "2005-11-07"
+      description: Dagannoth bones added with the Waterbirth Island update.
+    - date: "2015-03-05"
+      description: Automatically noted when obtained after completing the Fremennik Elite Diary.
+    - date: "2018-02-08"
+      description: Item value changed from 1 to 150 coins for ground visibility.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-11-07"
+    update: Waterbirth Island - deeper, darker, deadlier!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.5
+    options:
+      - Bury
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
