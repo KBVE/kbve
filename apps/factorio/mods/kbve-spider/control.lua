@@ -260,11 +260,11 @@ script.on_event(defines.events.on_robot_mined_entity, function(event)
 	drop_pending(event.entity)
 end, egg_filter)
 
-script.on_nth_tick(60, function(event)
+local function hatch_sweep(tick)
 	if not storage.pending_eggs then return end
 	storage.ally_owners = storage.ally_owners or {}
 	for unit_number, info in pairs(storage.pending_eggs) do
-		if event.tick >= info.tick_due then
+		if tick >= info.tick_due then
 			local surface = game.surfaces[info.surface_index]
 			if surface then
 				local eggs = surface.find_entities_filtered{
@@ -299,13 +299,13 @@ script.on_nth_tick(60, function(event)
 			end
 			storage.pending_eggs[unit_number] = nil
 		else
-			local remaining = math.max(0, math.ceil((info.tick_due - event.tick) / 60))
+			local remaining = math.max(0, math.ceil((info.tick_due - tick) / 60))
 			if info.render_id and info.render_id.valid then
 				info.render_id.text = string.format("Hatching… %ds", remaining)
 			end
 		end
 	end
-end)
+end
 
 -- Follow loop: re-issued every second so the ally tracks the owner smoothly
 -- even when the owner is moving. We re-issue UNCONDITIONALLY (modulo the
@@ -408,7 +408,16 @@ local function follow_loop()
 	end
 end
 
-script.on_nth_tick(FOLLOW_TICK_INTERVAL, follow_loop)
+-- One 1 Hz handler. Factorio's script.on_nth_tick(n, fn) only allows a
+-- single callback per period — registering twice silently replaces the
+-- first registration, which previously stranded the hatch sweep when the
+-- follow loop was bumped to 60-tick cadence. Bundling both call sites
+-- inside one function keeps the behavior + saves the overhead of a second
+-- per-tick dispatch.
+script.on_nth_tick(FOLLOW_TICK_INTERVAL, function(event)
+	hatch_sweep(event.tick)
+	follow_loop()
+end)
 
 -- Build a set of surface indices that have at least one connected player.
 -- Sprint + nervous AI runs only on these surfaces — there's no value in
