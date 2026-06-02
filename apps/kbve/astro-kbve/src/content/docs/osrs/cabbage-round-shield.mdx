@@ -12,9 +12,67 @@ osrs:
   lowalch: 1200
   highalch: 1800
   limit: 125
-  about: "Cabbage round shield is a members-only item in Old School RuneScape. High alchemy value: 1,800 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: shield
+    weight: 4.535
+    requirements:
+      defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 24
+      slash: 26
+      crush: 22
+      magic: 0
+      ranged: 24
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    rarity: 1/1133
+  related_items:
+    - item_id: 1199
+      item_name: Adamant sq shield
+      slug: adamant-sq-shield
+      relationship: alternative
+      description: Standard adamant shield with identical stats
+  about: Adamant shield shaped like a cabbage from medium clue scrolls, referencing the pre-2005 cabbage model; wielded by the Brassican Mage NPC.
+  market_strategy:
+    notes:
+      - Medium clue exclusive, supply tied to clue completion rates
+      - Novelty cosmetic over identical adamant kiteshield stats
+      - Niche demand from cabbage cosmetic collectors
+      - Buy limit 125 keeps the float thin
+  history:
+    - date: "2016-07-06"
+      update: Released with the Treasure Trail Expansion
+      description: Released with the Treasure Trail Expansion
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trail Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.535
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

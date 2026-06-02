@@ -12,9 +12,86 @@ osrs:
   lowalch: 28800
   highalch: 43200
   limit: 10000
-  about: "Bracelet of ethereum (uncharged) is a members-only item in Old School RuneScape. High alchemy value: 43,200 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: hands
+    weight: 0.25
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  charges:
+    max_charges: 16000
+    charge_item_id: 21820
+    charge_item_name: Revenant ether
+    effect: Reduces revenant damage by 75% and makes revenants tolerant when worn while charged.
+  drop_table:
+    sources:
+      - source: Revenant dragon
+        combat_level: 252
+        quantity: "1"
+        rarity: 1/6.63
+        members_only: true
+      - source: Revenant maledictus
+        combat_level: 200
+        quantity: "1"
+        rarity: 1/6.63
+        members_only: true
+      - source: Revenant knight
+        combat_level: 140
+        quantity: "1"
+        rarity: 1/7.1
+        members_only: true
+  related_items:
+    - item_id: 21816
+      item_name: Bracelet of ethereum
+      slug: bracelet-of-ethereum
+      relationship: upgrade
+      description: Charged (untradeable) variant
+    - item_id: 21820
+      item_name: Revenant ether
+      slug: revenant-ether
+      relationship: component
+      description: Charge currency
+  about: Bracelet of ethereum (uncharged) is a Revenant Caves drop that holds up to 16,000 revenant ether charges to mitigate revenant damage, but becomes untradeable once charged.
+  market_strategy:
+    notes:
+      - Dismantles for 250 ether (small profit floor)
+      - Bulk buyers stockpile for revenant farming alts
+      - Untradeable when charged so flips happen at zero charges only
+  history:
+    - date: "2017-11-23"
+      description: Released alongside Mage Arena II and the Revenant Caves.
+    - date: "2025-03"
+      description: Bank option added for charge management.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-11-23"
+    update: Mage Arena II, Revenant Caves & Deadman Beta
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

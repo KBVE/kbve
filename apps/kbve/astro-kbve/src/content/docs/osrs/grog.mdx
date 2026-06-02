@@ -1,6 +1,6 @@
 ---
 title: Grog | OSRS Price Data
-description: "Grog: A murky glass of some sort of drink.. High alch: 1 GP, GE limit: 2,000."
+description: "Grog is a members drink that boosts Strength but drains Attack. High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 1915
   name: Grog
@@ -12,9 +12,53 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Grog is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heal: 3
+    type: drink
+    effects:
+      - description: Temporarily boosts Strength by 4% + 1.
+      - description: Drains Attack by 5% + 3.
+  shops:
+    - shop_name: Dead Man's Chest
+      location: Brimhaven
+    - shop_name: The Asp & Snake Bar
+      location: Pollnivneach
+    - shop_name: The Lighthouse Store
+      location: Lighthouse
+    - shop_name: The Pandemonium
+      location: Pandemonium pub
+    - shop_name: The Rolling Tide
+      location: Port Roberts
+  related_items:
+    - item_id: 1917
+      item_name: Beer
+      slug: beer
+      relationship: alternative
+      description: Standard tavern drink
+  about: Grog is a cheap pub drink that heals 3 HP, temporarily boosts Strength and drains Attack; unlike other ales it cannot be brewed.
+  market_strategy:
+    notes:
+      - Pub-only supply, no brewing
+      - Niche strength boost for low-level content
+      - Drains Attack, situational use
+  history:
+    - date: "2002-02-27"
+      description: Item added.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    update: Latest RuneScape News (27 February 2002)
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

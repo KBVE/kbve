@@ -12,9 +12,82 @@ osrs:
   lowalch: 260
   highalch: 390
   limit: 125
-  about: "Spined gloves is a members-only item in Old School RuneScape. High alchemy value: 390 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: hands
+    weight: 3.175
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Dagannoth
+        combat_level: 88
+        quantity: "1"
+        rarity: 2/128
+        members_only: true
+        notes: Waterbirth Island dagannoth
+  related_items:
+    - item_id: 6133
+      item_name: Spined helm
+      slug: spined-helm
+      relationship: alternative
+      description: Helm piece of Fremennik spined set
+    - item_id: 6135
+      item_name: Spined body
+      slug: spined-body
+      relationship: alternative
+      description: Body piece of Fremennik spined set
+    - item_id: 6137
+      item_name: Spined chaps
+      slug: spined-chaps
+      relationship: alternative
+      description: Legs piece of Fremennik spined set
+    - item_id: 6147
+      item_name: Spined boots
+      slug: spined-boots
+      relationship: alternative
+      description: Boots piece of Fremennik spined set
+  market_strategy:
+    notes:
+      - Direct drop from Waterbirth Island dagannoth at 2/128
+      - Storable in the Costume Room as part of the Spined set
+      - Low daily volume keeps GE price volatile
+  history:
+    - date: "2005-08-01"
+      description: Released with the Waterbirth Island update.
+  properties:
+    release_date: "2005-08-01"
+    update: Waterbirth Island
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  about: Spined gloves are Fremennik ranged hands armour stitched from spined dagannoth hide, dropped by dagannoths on Waterbirth Island.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

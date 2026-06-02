@@ -12,9 +12,56 @@ osrs:
   lowalch: 3
   highalch: 4
   limit: null
-  about: "Steamforge brew is a members-only item in Old School RuneScape. High alchemy value: 4 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: beverage
+    tier: low
+  potion:
+    doses: 1
+    effects:
+      - description: Restores 1 Hitpoint
+      - description: Temporarily boosts Mining by 1 level
+      - description: Temporarily boosts Magic by 1 level
+      - description: Reduces Attack by 5% + 2 of current level
+      - description: Reduces Defence by 5% + 2 of current level
+  shops:
+    - shop_name: The Lost Pickaxe
+      location: Cam Torum
+      price: 8
+    - shop_name: Stick Your Ore Inn
+      location: Mistrock, south of Aldarin
+      price: 8
+  related_items:
+    - item_id: 0
+      item_name: Cam Torum
+      slug: cam-torum
+      relationship: alternative
+      description: Source dwarven town in Varlamore
+  about: Steamforge brew is a members-only dwarven beverage from Cam Torum that boosts Mining and Magic by 1 while reducing Attack and Defence.
+  market_strategy:
+    notes:
+      - Sold by Cam Torum dwarven shops with infinite stock
+      - Niche Mining/Magic micro-boost
+      - Low alch value, limited demand
+  history:
+    - date: "2024-03-20"
+      update: Varlamore - Part One
+      description: Introduced with the Cam Torum release.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: 20 March 2024
+    update: Varlamore - Part One
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

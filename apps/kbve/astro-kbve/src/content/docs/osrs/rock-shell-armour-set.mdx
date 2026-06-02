@@ -12,9 +12,56 @@ osrs:
   lowalch: 58000
   highalch: 87000
   limit: null
-  about: "Rock-shell armour set is a members-only item in Old School RuneScape. High alchemy value: 87,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  related_items:
+    - item_id: 6128
+      item_name: Rock-shell helm
+      slug: rock-shell-helm
+      relationship: component
+      description: Helm piece of the set
+    - item_id: 6129
+      item_name: Rock-shell plate
+      slug: rock-shell-plate
+      relationship: component
+      description: Body piece of the set
+    - item_id: 6130
+      item_name: Rock-shell legs
+      slug: rock-shell-legs
+      relationship: component
+      description: Legs piece of the set
+    - item_id: 6145
+      item_name: Rock-shell gloves
+      slug: rock-shell-gloves
+      relationship: component
+      description: Gloves piece of the set
+    - item_id: 6143
+      item_name: Rock-shell boots
+      slug: rock-shell-boots
+      relationship: component
+      description: Boots piece of the set
+  market_strategy:
+    notes:
+      - Convenience set bundling five Rock-shell pieces
+      - Exchange at the Grand Exchange clerk for the individual pieces
+      - Premium over component value reflects packaging convenience
+  history:
+    - date: "2025-08-20"
+      description: Added to the game with the More Doom Tweaks, Poll 84, and Summer Sweep Up update.
+  properties:
+    release_date: "2025-08-20"
+    update: More Doom Tweaks, Poll 84, & Summer Sweep Up Changes
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    alchable: true
+  about: Rock-shell armour set is a Grand Exchange convenience bundle containing the Rock-shell helm, plate, legs, gloves, and boots.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,62 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 70
-  about: "Black dragonhide set is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: hide
+    tier: mid-high
+  recipes:
+    - name: Exchange components via Grand Exchange Sets clerk
+      materials:
+        - item_id: 2503
+          item_name: Black d'hide body
+          quantity: 1
+        - item_id: 2497
+          item_name: Black d'hide chaps
+          quantity: 1
+        - item_id: 2491
+          item_name: Black d'hide vambraces
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 2503
+      item_name: Black d'hide body
+      slug: black-d-hide-body
+      relationship: component
+      description: Body slot piece
+    - item_id: 2497
+      item_name: Black d'hide chaps
+      slug: black-d-hide-chaps
+      relationship: component
+      description: Legs slot piece
+    - item_id: 2491
+      item_name: Black d'hide vambraces
+      slug: black-d-hide-vambraces
+      relationship: component
+      description: Hands slot piece
+  about: Black dragonhide set bundles the black d'hide body, chaps, and vambraces into a single tradeable package via the Grand Exchange Sets clerk.
+  market_strategy:
+    notes:
+      - Spread between set and sum of parts is the only edge
+      - Saves bank space when buying ranged gear in bulk
+      - Low GE limit of 70 caps flipping volume
+  history:
+    - date: "2014-12-10"
+      description: Released with the Trading Post update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-12-10"
+    update: The Trading Post
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

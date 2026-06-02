@@ -12,9 +12,82 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Dwarven stout(m4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 4
+    effects:
+      - skill: Mining
+        description: Temporarily boosts Mining by 2 levels.
+      - skill: Smithing
+        description: Temporarily boosts Smithing by 2 levels.
+      - skill: Attack
+        description: Drains Attack by 3 levels.
+      - skill: Strength
+        description: Drains Strength by 2 levels.
+  recipes:
+    - skill: Cooking
+      level: 19
+      xp: 16
+      product: Dwarven stout(m4)
+      quantity: 1
+      requirements: Aged in calquat keg via the brewing process.
+      materials:
+        - item_name: Water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Hammerstone hops
+          quantity: 2
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Calquat keg
+          quantity: 1
+  related_items:
+    - item_id: 1913
+      item_name: Dwarven stout
+      slug: dwarven-stout
+      relationship: downgrade
+      description: Standard non-matured glass
+    - item_id: 5749
+      item_name: Dwarven stout (m)
+      slug: dwarven-stout-m
+      relationship: alternative
+      description: Single-glass matured variant
+    - item_id: 5793
+      item_name: Calquat keg
+      slug: calquat-keg
+      relationship: component
+      description: Container used to brew the keg
+  market_strategy:
+    notes:
+      - Mining and Smithing boost utility
+      - Long brewing cycle limits supply
+      - Keg holds four pints in one slot
+      - Bulk player-stat for Blast Furnace prep
+  history:
+    - date: "2015-02-26"
+      description: Partially consumed versions became untradeable on the Grand Exchange.
+    - date: "2005-10-04"
+      description: Item renamed during cooking and brewing updates.
+    - date: "2005-07-11"
+      description: Released with the Farming skill update.
+  about: A four-pint keg of matured dwarven stout that temporarily boosts Mining and Smithing by two while draining Attack and Strength, brewed via Cooking and the Farming brewing process.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drink
+      - Drop
+    alchable: false
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

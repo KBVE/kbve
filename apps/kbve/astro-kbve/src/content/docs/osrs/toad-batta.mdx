@@ -12,9 +12,85 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 6000
-  about: "Toad batta is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: low
+  food:
+    heals: 12
+    cooking_level: 26
+    cooking_xp: 152
+    burn_level: 38
+    special_effect: Gnome cuisine batta
+  recipes:
+    - skill: cooking
+      level: 26
+      xp: 152
+      materials:
+        - item_name: Half made batta (toad)
+          item_id: 0
+          quantity: 1
+        - item_name: Equa leaves
+          item_id: 2128
+          quantity: 1
+        - item_name: Cheese
+          item_id: 1985
+          quantity: 1
+        - item_name: Toad legs
+          item_id: 2152
+          quantity: 1
+        - item_name: Gnome spice
+          item_id: 2169
+          quantity: 1
+      facility: Cooking range
+      ticks: 4
+      members_only: true
+  shops:
+    - shop_name: Gnome waiters
+      location: Grand Tree
+      price: 120
+      members_only: true
+  related_items:
+    - item_id: 2217
+      item_name: Cheese+tom batta
+      slug: cheese-tom-batta
+      relationship: alternative
+      description: Other gnome batta variant
+    - item_id: 2225
+      item_name: Worm batta
+      slug: worm-batta
+      relationship: alternative
+      description: Other gnome batta variant
+  about: Gnome cuisine batta cooked from a half-made batta with equa leaves, cheese, toad legs, and gnome spice; heals 12 HP and is also served by Grand Tree waiters.
+  market_strategy:
+    notes:
+      - Low-tier gnome food, near-junk alch
+      - Used in gnome cuisine training and minigame
+      - Burns until level 38, capping flipping
+      - Mostly used by Gnome Restaurant runners
+  history:
+    - date: "2002-12-12"
+      update: Released
+      description: Released
+    - date: "2006-08-07"
+      update: Graphical update during Gnome Cuisine update
+      description: Graphical update during Gnome Cuisine update
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    update: Gnome cuisine
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

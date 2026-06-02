@@ -12,9 +12,71 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 2000
-  about: "Super potion set is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion-set
+    tier: mid
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Super attack(4)
+          item_id: 2436
+          quantity: 1
+        - item_name: Super strength(4)
+          item_id: 2440
+          quantity: 1
+        - item_name: Super defence(4)
+          item_id: 2442
+          quantity: 1
+      product: Super potion set
+      product_id: 13066
+      product_quantity: 1
+      facility: Grand Exchange
+  related_items:
+    - item_id: 2436
+      item_name: Super attack(4)
+      slug: super-attack-4
+      relationship: component
+      description: Set component
+    - item_id: 2440
+      item_name: Super strength(4)
+      slug: super-strength-4
+      relationship: component
+      description: Set component
+    - item_id: 2442
+      item_name: Super defence(4)
+      slug: super-defence-4
+      relationship: component
+      description: Set component
+  about: Super potion set bundles 4-dose Super attack, Super strength, and Super defence potions into a single tradeable item via the Grand Exchange Sets interface.
+  market_strategy:
+    notes:
+      - Sets-tab arbitrage vs. component pricing
+      - Combine/break flips work when discount/premium opens
+      - 2,000 buy limit gates volume
+  trading_tips:
+    - Watch the spread between set price and sum of components
+    - Use Grand Exchange clerk "Sets" option to combine or break
+  history:
+    - date: "2015-02-26"
+      update: Grand Exchange Sets
+      description: Released alongside the Grand Exchange Sets interface.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: 26 February 2015
+    update: Grand Exchange Sets
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

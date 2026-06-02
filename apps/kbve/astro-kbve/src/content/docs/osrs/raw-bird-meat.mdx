@@ -1,6 +1,6 @@
 ---
 title: Raw bird meat | OSRS Price Data
-description: "Raw bird meat: This certainly needs cooking!. High alch: 10 GP, GE limit: 11,000."
+description: "Raw bird meat is a Hunter drop that cooks into roast bird meat. High alch: 10 GP, GE limit: 11,000."
 osrs:
   id: 9978
   name: Raw bird meat
@@ -12,9 +12,93 @@ osrs:
   lowalch: 6
   highalch: 10
   limit: 11000
-  about: "Raw bird meat is a members-only item in Old School RuneScape. High alchemy value: 10 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: meat
+    tier: low
+  recipes:
+    - skill: Cooking
+      level: 11
+      xp: 62
+      product_id: 9980
+      product_name: Skewered bird meat
+      notes: Requires iron spit; then cook with 20 Firemaking for roast bird meat.
+      materials:
+        - item_id: 9978
+          item_name: Raw bird meat
+          quantity: 1
+        - item_id: 7228
+          item_name: Iron spit
+          quantity: 1
+  drop_table:
+    sources:
+      - source: Crimson Swift
+        quantity: "1"
+        rarity: always
+        members_only: true
+        notes: Hunter level 1, Jungle
+      - source: Golden Warbler
+        quantity: "1"
+        rarity: always
+        members_only: true
+        notes: Hunter level 5, Desert
+      - source: Copper Longtail
+        quantity: "1"
+        rarity: always
+        members_only: true
+        notes: Hunter level 9, Woodland
+      - source: Cerulean Twitch
+        quantity: "1"
+        rarity: always
+        members_only: true
+        notes: Hunter level 11, Snow
+      - source: Tropical Wagtail
+        quantity: "1"
+        rarity: always
+        members_only: true
+        notes: Hunter level 19, Jungle
+      - source: Bird house
+        quantity: "10"
+        rarity: varies
+        members_only: true
+        notes: Bird house trapping, levels 5-89
+  related_items:
+    - item_id: 9980
+      item_name: Skewered bird meat
+      slug: skewered-bird-meat
+      relationship: product
+      description: Skewered with iron spit
+    - item_id: 9982
+      item_name: Roast bird meat
+      slug: roast-bird-meat
+      relationship: product
+      description: Cooked over a fire
+  about: Raw bird meat is a Hunter byproduct from bird snares and bird houses, cooked via iron spit into roast bird meat.
+  market_strategy:
+    notes:
+      - Steady bird house byproduct supply
+      - Low-tier cooking food
+      - Used as familiar food and bird house byproduct
+  history:
+    - date: "2015-03-12"
+      description: Raw bird meat no longer has an Eat option.
+    - date: "2015-02-26"
+      description: Made tradeable on Grand Exchange.
+    - date: "2006-11-21"
+      description: Item added with Hunter skill release.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    update: Hunter
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    weight: 0.15
+    options:
+      - Drop
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

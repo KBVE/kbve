@@ -14,32 +14,45 @@ osrs:
   limit: 8
   equipment:
     slot: weapon
-    type: sword
-    tradeable: true
-    weight: 1.814
+    weapon_type: slash-sword
     attack_speed: 4
+    weight: 1.814
     requirements:
       attack: 80
-    stats:
-      attack_stab: 55
-      attack_slash: 94
-      attack_crush: 0
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 89
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  charging:
-    material_name: Crystal shard
+  charges:
+    material: Crystal shard
     charges_per_100_shards: 10000
+    max_charges: 20000
     corrupting_shards: 1000
-    corrupted_tradeable: false
+    note: Inactive form provides no combat bonuses until charged.
+  recipes:
+    - name: Blade of saeldor
+      skill: Smithing
+      level: 82
+      xp: 5000
+      facility: Singing bowl
+      materials:
+        - item_name: Enhanced crystal weapon seed
+          quantity: 1
+        - item_name: Crystal shard
+          quantity: 100
   related_items:
     - item_id: 25879
       item_name: Blade of saeldor (c)
@@ -61,33 +74,33 @@ osrs:
       slug: ghrazi-rapier
       relationship: alternative
       description: Stab alternative weapon
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Slash | +94 |
-    | Stab | +55 |
-    | Strength | +89 |
-
-    Requirements: 80 Attack
-
-    Note: This is the uncharged/inactive version. No combat bonuses until charged with crystal shards.
-
-    Charge with crystal shards to activate:
-    - 100 shards = 10,000 charges
-    - Recharge anytime before running out
-    - Becomes Blade of saeldor (c) when charged
-
-    Use 1,000 crystal shards to make permanently charged:
-    - Never needs recharging
-    - Becomes untradeable
-    - Worth it for consistent use
+  about: Blade of saeldor (inactive) is an elven slash sword crafted from an enhanced crystal weapon seed; it must be charged with crystal shards before it provides combat bonuses.
   market_strategy:
     notes:
       - Enhanced seed from Corrupted Gauntlet
       - Buy inactive, charge yourself for savings
       - Consider corrupting for convenience
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2019-07-25"
+      description: Released with the Song of the Elves update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-07-25"
+    update: Song of the Elves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

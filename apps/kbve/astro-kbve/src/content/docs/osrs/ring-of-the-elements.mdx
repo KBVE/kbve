@@ -14,61 +14,78 @@ osrs:
   limit: null
   equipment:
     slot: ring
-    type: utility ring
-    tradeable: true
     weight: 0.01
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  obtaining:
-    - source: Temple Supplies
-      cost: 400 abyssal pearls
-  charging:
+  shops:
+    - shop_name: Guardians of the Rift Reward Shop
+      location: Temple of the Eye
+      currency: abyssal_pearls
+      price: 400
+  charges:
     max_charges: 10000
-    cost_per_charge: 136 gp
-    materials: "1 each: Air, Water, Earth, Fire + Law rune"
-    notes: Becomes untradeable when charged
-  effect:
-    wintertodt: Counts as warm clothing (only ring with this effect)
-    teleports:
-      - Air altar
-      - Water altar
-      - Earth altar
-      - Fire altar
+    cost_per_charge: 139
+    materials_per_charge: "1 air rune + 1 water rune + 1 earth rune + 1 fire rune + 1 law rune"
+    notes: Becomes untradeable once charged; charges tracked per player account
+  teleport:
+    destinations:
+      - South of the Air altar
+      - West of the Water altar
+      - West of the Earth altar
+      - North of the Fire altar
+    notes: Counts as warm clothing at Wintertodt regardless of charge status
   related_items:
     - item_id: 26792
       item_name: Abyssal pearl
       slug: abyssal-pearl
       relationship: component
       description: Currency for purchase
-  about: |-
-    No combat bonuses.
-
-    Wintertodt: Counts as warm clothing (only ring with this effect).
-
-    Teleports: Air, Water, Earth, and Fire altars.
-
-    | Property | Value |
-    |----------|-------|
-    | Max charges | 10,000 |
-    | Cost per charge | 136 gp |
-    | Materials | 1 each: Air, Water, Earth, Fire + Law rune |
-
-    Becomes untradeable when charged.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - Only obtained through Guardians of the Rift minigame
+      - Tradeable when uncharged, untradeable once charged
+      - Steady Runecraft minigame demand keeps abyssal pearl supply flowing
+      - Wintertodt warm-clothing perk makes it a popular utility ring
+  history:
+    - date: "2022-03-23"
+      description: Released with the Guardians of the Rift launch.
+  properties:
+    release_date: "2022-03-23"
+    update: Guardians of the Rift
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Rub
+      - Drop
+    worn_options:
+      - Remove
+      - Last Destination
+      - Uncharge
+    alchable: true
+  about: Ring of the elements is a charged utility ring teleporting to all four elemental altars and counting as warm clothing at Wintertodt.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

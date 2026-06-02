@@ -12,9 +12,62 @@ osrs:
   lowalch: 100000
   highalch: 150000
   limit: null
-  about: "Corrupted tumeken's shadow (uncharged) is a members-only item in Old School RuneScape. High alchemy value: 150,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: 2h
+    weapon_type: powered-staff
+    attack_speed: 5
+    weight: 1.36
+    requirements:
+      magic: 85
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 35
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 20
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  charges:
+    type: soul-rune
+    base_uses_per_charge: 1
+    notes: Functions identically to Tumeken's shadow when charged; the corrupted variant was a Leagues IV reward and is untradeable in standard play.
+  related_items:
+    - item_id: 27277
+      item_name: Tumeken's shadow
+      slug: tumekens-shadow
+      relationship: alternative
+      description: Tradeable original from Tombs of Amascut
+  about: Corrupted Tumeken's shadow (uncharged) is the league/event-variant uncharged powered staff modelled on Tumeken's shadow; equip requires 85 Magic and it triples magic bonuses from worn gear.
+  market_strategy:
+    notes:
+      - Limited GE liquidity (league reward)
+      - Value driven by collector and ironman demand
+      - High alch floor at 150,000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    weight: 1.36
+    options:
+      - Charge
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

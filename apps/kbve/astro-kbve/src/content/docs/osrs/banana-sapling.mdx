@@ -12,9 +12,62 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 200
-  about: "Banana sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  farming:
+    farming_level: 33
+    patch: Fruit tree patch
+    plant_xp: 28
+    check_xp: 1750.5
+    harvest_xp: 10.5
+    growth_time_minutes: 960
+    protection_payment: 4 baskets of apples
+    yield: 6 bananas (regrowable)
+  recipes:
+    - skill: Farming
+      output_name: Banana sapling
+      materials:
+        - item_name: Banana seedling
+          quantity: 1
+      tools:
+        - Watering can
+      notes: Water a banana seedling (or use Humidify) and wait one crop cycle.
+  related_items:
+    - item_id: 5371
+      item_name: Banana tree seed
+      slug: banana-tree-seed
+      relationship: component
+      description: Sown into a plant pot to grow the seedling
+    - item_id: 5371
+      item_name: Banana seedling
+      slug: banana-seedling
+      relationship: component
+      description: Watered to become this sapling
+  market_strategy:
+    notes:
+      - Plant in fruit tree patch at 33 Farming
+      - Disease protection paid with 4 baskets of apples
+      - Strong checking XP per sapling
+      - Buy limit 200/4h, cheap GE flip
+  history:
+    - date: "2015-01-29"
+      description: Became tradeable after a Grand Exchange poll.
+    - date: "2005-07-11"
+      description: Released with the Farming update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    update: Farming Update
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    alchable: true
+  about: Banana sapling is a members-only Farming item planted into a fruit tree patch at 33 Farming, grown from a watered banana seedling.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

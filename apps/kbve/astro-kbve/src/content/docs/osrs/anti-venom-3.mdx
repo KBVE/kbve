@@ -12,9 +12,78 @@ osrs:
   lowalch: 132
   highalch: 198
   limit: 2000
-  about: "Anti-venom(3) is a members-only item in Old School RuneScape. High alchemy value: 198 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: mid-high
+  potion:
+    doses: 3
+    effects:
+      - description: Instantly cures venom and poison
+      - description: Grants 12 minutes of poison immunity
+      - description: Grants 36-54 seconds of venom immunity
+  recipes:
+    - skill: herblore
+      level: 87
+      xp: 90
+      materials:
+        - item_name: Antidote++(3)
+          item_id: 0
+          quantity: 1
+        - item_name: Zulrah's scales
+          item_id: 12934
+          quantity: 15
+      facility: Inventory
+      members_only: true
+  related_items:
+    - item_id: 12905
+      item_name: Anti-venom(1)
+      slug: anti-venom-1
+      relationship: variant
+      description: Single-dose version
+    - item_id: 12906
+      item_name: Anti-venom(2)
+      slug: anti-venom-2
+      relationship: variant
+      description: Two-dose version
+    - item_id: 12908
+      item_name: Anti-venom(4)
+      slug: anti-venom-4
+      relationship: variant
+      description: Four-dose version
+    - item_id: 12913
+      item_name: Anti-venom+(4)
+      slug: anti-venom-plus-4
+      relationship: upgrade
+      description: Upgrade with torstol at 94 Herblore
+  about: Anti-venom(3) is a three-dose potion that instantly cures venom and poison, providing 12 minutes of poison immunity and short venom immunity.
+  market_strategy:
+    notes:
+      - Required for Zulrah and venom content
+      - Crafted from Antidote++ + Zulrah's scales
+      - 87 Herblore gates supply
+      - Dose decanting affects price across (1)-(4)
+      - Stable demand during venomous boss events
+  history:
+    - date: "2015-01-08"
+      update: Released with Zulrah
+      description: Released with Zulrah
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-01-08"
+    update: Zulrah
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.025
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

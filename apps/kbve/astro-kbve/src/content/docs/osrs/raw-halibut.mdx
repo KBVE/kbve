@@ -12,9 +12,71 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: 15000
-  about: "Raw halibut is a members-only item in Old School RuneScape. High alchemy value: 102 coins. Grand Exchange buy limit: 15,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: fish
+    tier: mid-high
+  fishing:
+    level: 83
+    xp: 195.5
+    method: Trawling net
+    location: Halibut, Shimmering, and Glistening shoals
+    bait: Fine fish offcuts
+  recipes:
+    - skill: cooking
+      level: 83
+      xp: 212.5
+      materials:
+        - item_name: Raw halibut
+          item_id: 32333
+          quantity: 1
+      facility: Fire or range
+      ticks: 4
+      members_only: true
+  related_items:
+    - item_id: 0
+      item_name: Halibut
+      slug: halibut
+      relationship: upgrade
+      description: Cooked variant
+    - item_id: 0
+      item_name: Burnt halibut
+      slug: burnt-halibut
+      relationship: alternative
+      description: Burnt result on cooking failure
+  about: Raw halibut is caught at 83 Fishing using a trawling net during deep sea trawling, then cooked at 83 Cooking for 212.5 XP.
+  market_strategy:
+    notes:
+      - Sailing-era fish, supply scales with trawling activity
+      - Deep sea trawling yields ~1.25M gp/hr
+      - Cooking it converts to halibut at 83 Cooking
+      - Fine fish offcuts increase catch yield
+  history:
+    - date: "2025-06-26"
+      update: Added to Sailing Beta cache
+      description: Added to Sailing Beta cache
+    - date: "2025-07-03"
+      update: Removed from beta cache
+      description: Removed from beta cache
+    - date: "2025-11-19"
+      update: Released live with the Sailing update
+      description: Released live with the Sailing update
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.7
+    options:
+      - Use
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

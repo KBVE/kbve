@@ -12,9 +12,83 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: null
-  about: "Swampbark boots is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: feet
+    weight: 0.907
+    requirements:
+      magic: 50
+      defence: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 4
+      slash: 3
+      crush: 5
+      magic: 4
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - name: Swampbark boots
+      skill: Runecraft
+      level: 42
+      facility: Nature Altar
+      materials:
+        - item_name: Splitbark boots
+          quantity: 1
+        - item_name: Nature rune
+          quantity: 100
+  related_items:
+    - item_name: Splitbark boots
+      slug: splitbark-boots
+      relationship: component
+      description: Base item for swampbark conversion
+    - item_name: Nature rune
+      slug: nature-rune
+      relationship: component
+      description: Conversion reagent
+    - item_name: Runescroll of swampbark
+      slug: runescroll-of-swampbark
+      relationship: upgrade
+      description: Required to learn the craft
+    - item_name: Bloodbark boots
+      slug: bloodbark-boots
+      relationship: alternative
+      description: Higher tier swampbark relative
+  about: Swampbark boots are crafted by binding nature runes into splitbark boots at the Nature Altar and provide hybrid magic defence for level-50 mages.
+  market_strategy:
+    notes:
+      - Negative crafting margin discourages flips
+      - Demand tied to swampbark armour sets
+      - Runecrafters supply incidentally
+  history:
+    - date: "2021-01-27"
+      description: Released with the Shades of Mort'ton rework.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-01-27"
+    update: Shades of Mort'ton rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

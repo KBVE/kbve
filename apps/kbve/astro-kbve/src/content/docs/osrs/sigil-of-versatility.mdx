@@ -12,9 +12,48 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of versatility is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Deadman Mode drop table
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: Uncommon
+        members_only: true
+  related_items:
+    - item_id: 0
+      item_name: Attuned sigil of versatility
+      slug: attuned-sigil-of-versatility
+      relationship: upgrade
+      description: Untradeable attuned version after activation
+  about: Tier 2 Deadman Mode utility sigil that lets the holder swap spellbooks instantly outside combat once attuned; only obtainable during seasonal Deadman events.
+  market_strategy:
+    notes:
+      - Supply only flows during Deadman seasons
+      - Untradeable once attuned, gating circulation
+      - Dormant outside Deadman events
+      - Niche flip during event windows
+  history:
+    - date: "2021-08-25"
+      update: Released with Deadman Reborn
+      description: Released with Deadman Reborn
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-08-25"
+    update: "Deadman: Reborn"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Drop
+    alchable: false
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

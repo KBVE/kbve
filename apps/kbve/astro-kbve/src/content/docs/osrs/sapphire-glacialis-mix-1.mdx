@@ -12,9 +12,48 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: null
-  about: "Sapphire glacialis mix (1) is a members-only item in Old School RuneScape. High alchemy value: 18 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 1
+    effects:
+      - skill: Defence
+        description: Boosts Defence by floor(level*15/100)+4.
+      - skill: Multicombat
+        description: Shares the boost with up to three nearby players who have Accept Aid enabled.
+  related_items:
+    - item_id: 29199
+      item_name: Sapphire glacialis mix (2)
+      slug: sapphire-glacialis-mix-2
+      relationship: upgrade
+      description: Two-dose variant
+  market_strategy:
+    notes:
+      - Hunter mix demand from Varlamore PvM
+      - Defence boost niche for mid-game bosses
+      - Stack with Accept Aid for group support
+  history:
+    - date: "2024-04-03"
+      description: Group Ironmen can now share hunter mixes and butterflies with their group.
+    - date: "2024-03-20"
+      description: Released with Varlamore - Part One.
+  about: A one-dose hunter mixture made from a jarred sapphire glacialis butterfly that boosts Defence and can be shared with nearby Accept Aid players.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-03-20"
+    update: Varlamore - Part One
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: 30 coins
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

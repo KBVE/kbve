@@ -14,6 +14,10 @@ osrs:
   limit: 70
   equipment:
     slot: head
+    weight: 1.36
+    requirements:
+      defence: 40
+      magic: 40
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,10 +35,31 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 40
-      magic: 40
-    weight: 1.36
+  recipes:
+    - skill: none
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Dagannoth hide
+          item_id: 6155
+          quantity: 1
+        - item_name: Skull piece
+          item_id: 6165
+          quantity: 1
+        - item_name: Coins
+          quantity: 5000
+      product: Skeletal helm
+      product_id: 6137
+      product_quantity: 1
+      facility: Peer the Seer (Rellekka)
+  drop_table:
+    sources:
+      - source: Wallasalki
+        combat_level: 98
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+        notes: Drops skull piece used in helm creation.
   related_items:
     - item_id: 6139
       item_name: Skeletal top
@@ -51,45 +76,31 @@ osrs:
       slug: splitbark-helm
       relationship: alternative
       description: Craftable alternative with similar stats
-  about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Magic | +2 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +10 |
-    | Slash | +9 |
-    | Crush | +11 |
-    | Magic | +3 |
-
-    Requirements: 40 Defence, 40 Magic
-
-    | Stat | Skeletal Helm | Splitbark Helm |
-    |------|--------------|----------------|
-    | Magic Atk | +2 | +3 |
-    | Stab Def | +10 | +10 |
-    | Slash Def | +9 | +9 |
-    | Crush Def | +11 | +11 |
-    | Magic Def | +3 | +3 |
-
-    Nearly identical — splitbark has +1 more Magic attack. Skeletal requires Fremennik Trials and DK materials, making splitbark generally easier to obtain.
-
-    The skeletal set is the magic variant of the three Fremennik armour sets:
-    - Rock-shell — melee (Skulgrimen)
-    - Skeletal — magic (Peer the Seer)
-    - Spined — ranged (Sigli the Huntsman)
-
-    All require The Fremennik Trials and dagannoth hides.
-
-    Can be stored in a Costume Room armour case in a Player-owned House as part of the complete skeletal set.
+  about: Skeletal helm is the magic-variant Fremennik head piece requiring 40 Defence / 40 Magic and The Fremennik Trials, assembled by Peer the Seer from a skull piece, dagannoth hide and 5,000 coins.
   market_strategy:
     notes:
-      - Skull pieces from Wallasalki (Waterbirth Island Dungeon)
-      - Rarely used — splitbark is easier to obtain and slightly better
-      - Collector's/fashionscape piece
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Skull pieces from Wallasalki cap supply
+      - Splitbark helm is easier and slightly better
+      - Collector/fashionscape demand only
+      - Quest gate (Fremennik Trials) thins buyers
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-01"
+    update: Waterbirth Island
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    weight: 1.36
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

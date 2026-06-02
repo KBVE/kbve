@@ -12,26 +12,15 @@ osrs:
   lowalch: 180
   highalch: 270
   limit: 10000
+  material:
+    type: fish
+    tier: high
   food:
     heals: 22
     cooking_level: 84
     cooking_xp: 230
     burn_level: 99
     special_effect: Can overheal above max HP (outside PvP)
-  cooking:
-    level: 84
-    xp: 230
-    stop_burn_level: 99
-    stop_burn_level_gauntlets: 84
-    raw_item_id: 13439
-    raw_item_name: Raw anglerfish
-    ticks: 4
-  fishing:
-    level: 82
-    xp: 120
-    method: Fishing rod
-    location: Port Piscarilius
-    bait: Sandworms
   recipes:
     - skill: cooking
       level: 84
@@ -64,18 +53,10 @@ osrs:
       slug: saradomin-brew-4
       relationship: alternative
       description: Percentage-based healing
-  about: |-
-    Anglerfish can overheal above max HP (outside PvP):
-
-    | Hitpoints Level | Heal Amount | Max HP |
-    |-----------------|-------------|--------|
-    | 75 | 19 | 94 |
-    | 85 | 20 | 105 |
-    | 93+ | 22 | 115+ |
-    | 99 | 22 | 121 |
+  about: Anglerfish heals up to 22 HP and uniquely overheals above max HP outside PvP, making it a premium pre-fight food for raids, Inferno, and high-end Slayer.
   market_strategy:
     notes:
-      - Buy Raw anglerfish → Cook → Sell
+      - Buy Raw anglerfish, cook, sell
       - 84+ Cooking required, burns until 99 without gauntlets
       - Pre-fight overheal for bosses
       - Inferno attempts
@@ -84,8 +65,31 @@ osrs:
       - Premium price over sharks
       - Essential for difficult PvM
       - Caught at Port Piscarilius (Kourend)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2016-01-07"
+      update: Zeah
+      description: Released with Zeah.
+    - date: "2018-11-01"
+      description: Overheal restricted in Wilderness and PvP areas.
+    - date: "2020-09-01"
+      description: Overheal allowed in Target Worlds outside Wilderness.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-01-07"
+    update: Zeah
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

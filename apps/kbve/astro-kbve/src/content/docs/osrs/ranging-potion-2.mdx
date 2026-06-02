@@ -12,6 +12,22 @@ osrs:
   lowalch: 86
   highalch: 129
   limit: 2000
+  potion:
+    doses: 2
+    effects:
+      - description: Boosts Ranged by 4 + 10% of current Ranged level (rounded down) per dose.
+    skill_boosted: Ranged
+  recipes:
+    - skill: Herblore
+      level: 72
+      xp: 162.5
+      output_name: Ranging potion(3)
+      materials:
+        - item_name: Dwarf weed potion (unf)
+          quantity: 1
+        - item_name: Wine of zamorak
+          quantity: 1
+      notes: 3-dose potions are split/decanted into the 2-dose variant.
   related_items:
     - item_id: 169
       item_name: Ranging potion(3)
@@ -23,12 +39,39 @@ osrs:
       slug: ranging-potion-1
       relationship: variant
       description: 1-dose version
-  about: |-
-    > _"2 doses of ranging potion."_
-
-    A 2-dose ranging potion. Boosts Ranged by 4 + 10% of current level.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 11951
+      item_name: Divine ranging potion(4)
+      slug: divine-ranging-potion-4
+      relationship: upgrade
+      description: Divine variant with extended duration
+  market_strategy:
+    notes:
+      - Sourced by decanting 3-dose ranging potions
+      - Used at Ranged bosses for accuracy/strength boost
+      - 72 Herblore gate keeps supply tight
+      - Stack alongside imbued heart for higher buffs
+  history:
+    - date: "2004-10-26"
+      description: '"Empty" option added to potions.'
+    - date: "2002-02-27"
+      description: Released into the game.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.025
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+  about: Ranging potion(2) is a 2-dose Herblore potion that boosts Ranged by 4 plus 10% of the player's current Ranged level per dose.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
