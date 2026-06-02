@@ -235,17 +235,55 @@ local function place_chest(surface, position, items, indestructible)
 	return place_chest_named(surface, 'steel-chest', position, items, indestructible)
 end
 
-function Spawn.build_compound(surface)
-	storage.kbve = storage.kbve or {}
-	if storage.kbve.spawn_built then return end
+local CRASH_DEBRIS_NAMES = {
+	'crash-site-spaceship',
+	'crash-site-spaceship-wreck',
+	'crash-site-spaceship-wreck-big-1',
+	'crash-site-spaceship-wreck-big-2',
+	'crash-site-spaceship-wreck-big-3',
+	'crash-site-spaceship-wreck-medium-1',
+	'crash-site-spaceship-wreck-medium-2',
+	'crash-site-spaceship-wreck-medium-3',
+	'crash-site-spaceship-wreck-small-1',
+	'crash-site-spaceship-wreck-small-2',
+	'crash-site-spaceship-wreck-small-3',
+	'crash-site-spaceship-wreck-small-4',
+	'crash-site-spaceship-wreck-small-5',
+	'crash-site-spaceship-wreck-small-6',
+	'crash-site-fire-flame',
+	'crash-site-fire-smoke',
+	'crash-site-chest-1',
+	'crash-site-chest-2',
+	'cargo-pod',
+}
 
-	clear_area(surface, CENTER.x, CENTER.y, WALL_HALF + 3)
-	build_walls(surface, CENTER.x, CENTER.y, WALL_HALF)
+local function clear_crash_debris(surface, cx, cy, half)
+	local present = {}
+	for _, n in ipairs(CRASH_DEBRIS_NAMES) do
+		if prototypes.entity[n] then table.insert(present, n) end
+	end
+	if #present == 0 then return 0 end
+	local cleared = 0
+	for _, e in pairs(surface.find_entities_filtered({
+		area = { { cx - half, cy - half }, { cx + half, cy + half } },
+		name = present,
+	})) do
+		if e.valid then
+			e.destroy()
+			cleared = cleared + 1
+		end
+	end
+	return cleared
+end
 
+local function spawn_exchange(surface)
 	local kind = prototypes.entity['kbve-exchange'] and 'kbve-exchange' or 'market'
+	local pos = (storage.kbve.market_position)
+		or { x = CENTER.x, y = CENTER.y - 1 }
+	clear_crash_debris(surface, pos.x, pos.y, 3)
 	local market = surface.create_entity({
 		name = kind,
-		position = { CENTER.x, CENTER.y - 1 },
+		position = pos,
 		force = 'neutral',
 	})
 	if market and market.valid then
@@ -253,22 +291,69 @@ function Spawn.build_compound(surface)
 		market.minable = false
 		market.operable = false
 		storage.kbve.market_unit_number = market.unit_number
+		storage.kbve.market_position = { x = market.position.x, y = market.position.y }
 	end
+	return market
+end
 
-	local fleet_kind = prototypes.entity['kbve-fleet-commander'] and 'kbve-fleet-commander' or nil
-	if fleet_kind then
-		local fleet = surface.create_entity({
-			name = fleet_kind,
-			position = { CENTER.x + 7, CENTER.y - 1 },
-			force = 'neutral',
-		})
-		if fleet and fleet.valid then
-			fleet.destructible = false
-			fleet.minable = false
-			fleet.operable = false
-			storage.kbve.fleet_unit_number = fleet.unit_number
-		end
+local function spawn_fleet(surface)
+	if not prototypes.entity['kbve-fleet-commander'] then return nil end
+	local pos = (storage.kbve.fleet_position)
+		or { x = CENTER.x + 7, y = CENTER.y - 1 }
+	clear_crash_debris(surface, pos.x, pos.y, 3)
+	local fleet = surface.create_entity({
+		name = 'kbve-fleet-commander',
+		position = pos,
+		force = 'neutral',
+	})
+	if fleet and fleet.valid then
+		fleet.destructible = false
+		fleet.minable = false
+		fleet.operable = false
+		storage.kbve.fleet_unit_number = fleet.unit_number
+		storage.kbve.fleet_position = { x = fleet.position.x, y = fleet.position.y }
 	end
+	return fleet
+end
+
+local function exchange_alive(surface)
+	local pos = storage.kbve.market_position
+	if not pos then return false end
+	local kind = prototypes.entity['kbve-exchange'] and 'kbve-exchange' or 'market'
+	local found = surface.find_entity(kind, pos)
+	return found and found.valid
+end
+
+local function fleet_alive(surface)
+	if not prototypes.entity['kbve-fleet-commander'] then return true end
+	local pos = storage.kbve.fleet_position
+	if not pos then return false end
+	local found = surface.find_entity('kbve-fleet-commander', pos)
+	return found and found.valid
+end
+
+function Spawn.guard(surface)
+	storage.kbve = storage.kbve or {}
+	if not storage.kbve.spawn_built then return end
+	clear_crash_debris(surface, CENTER.x, CENTER.y, WALL_HALF + 3)
+	if not exchange_alive(surface) then
+		spawn_exchange(surface)
+	end
+	if not fleet_alive(surface) then
+		spawn_fleet(surface)
+	end
+end
+
+function Spawn.build_compound(surface)
+	storage.kbve = storage.kbve or {}
+	if storage.kbve.spawn_built then return end
+
+	clear_area(surface, CENTER.x, CENTER.y, WALL_HALF + 3)
+	clear_crash_debris(surface, CENTER.x, CENTER.y, WALL_HALF + 6)
+	build_walls(surface, CENTER.x, CENTER.y, WALL_HALF)
+
+	spawn_exchange(surface)
+	spawn_fleet(surface)
 
 	place_chest(surface, { CENTER.x - 4, CENTER.y - 1 }, STARTER_KIT_A, false)
 	place_chest(surface, { CENTER.x - 6, CENTER.y - 1 }, STARTER_KIT_B, false)
