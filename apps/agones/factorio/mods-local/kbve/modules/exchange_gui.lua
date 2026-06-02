@@ -3,6 +3,7 @@ local Market = require('modules.market')
 local Vault = require('modules.vault')
 local Spawn = require('modules.spawn')
 local Npcs = require('modules.npcs')
+local NpcPanel = require('modules.npc_panel')
 
 local ExchangeGui = {}
 
@@ -16,63 +17,10 @@ local CLOSE_NAME = 'kbve_close'
 local DEPOSIT_ALL = 'kbve_deposit_all'
 local BODY_NAME = 'kbve_exchange_body'
 local NPC_PANEL_NAME = 'kbve_npc_panel'
-local NPC_PORTRAIT_NAME = 'kbve_npc_portrait'
-local NPC_NAME_NAME = 'kbve_npc_name'
-local NPC_ROLE_NAME = 'kbve_npc_role'
-local NPC_DIALOG_NAME = 'kbve_npc_dialog'
-
-local function sprite_or_nil(path)
-	if path and helpers and helpers.is_valid_sprite_path and helpers.is_valid_sprite_path(path) then
-		return path
-	end
-	return nil
-end
+local NPC_NAME_PREFIX = 'kbve_exchange_npc_'
 
 local function render_npc_panel(panel, npc, line)
-	panel.clear()
-	panel.style.minimal_width = 220
-	panel.style.maximal_width = 240
-	local portrait_path = sprite_or_nil(npc.portrait)
-	if portrait_path then
-		local portrait = panel.add({
-			type = 'sprite',
-			name = NPC_PORTRAIT_NAME,
-			sprite = portrait_path,
-		})
-		portrait.style.minimal_width = 200
-		portrait.style.minimal_height = 300
-		portrait.style.stretch_image_to_widget_size = true
-	else
-		local placeholder = panel.add({
-			type = 'frame',
-			name = NPC_PORTRAIT_NAME,
-			direction = 'vertical',
-		})
-		placeholder.style.minimal_width = 200
-		placeholder.style.minimal_height = 300
-		placeholder.add({
-			type = 'label',
-			caption = '[portrait pending]',
-		}).style.font_color = { r = 0.6, g = 0.7, b = 1 }
-	end
-	panel.add({
-		type = 'label',
-		name = NPC_NAME_NAME,
-		caption = npc.name,
-		style = 'heading_2_label',
-	})
-	panel.add({
-		type = 'label',
-		name = NPC_ROLE_NAME,
-		caption = npc.role,
-	}).style.font_color = { r = 0.7, g = 0.75, b = 0.9 }
-	local dialog = panel.add({
-		type = 'label',
-		name = NPC_DIALOG_NAME,
-		caption = line,
-	})
-	dialog.style.single_line = false
-	dialog.style.maximal_width = 220
+	NpcPanel.render(panel, npc, line, NPC_NAME_PREFIX)
 end
 
 local function destroy(player)

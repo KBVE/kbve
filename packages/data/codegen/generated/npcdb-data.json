@@ -2445,7 +2445,7 @@
         "armor": 0
       },
       "behavior": {
-        "movementType": "MOVEMENT_TYPE_IDLE",
+        "movementType": "MOVEMENT_TYPE_STATIONARY",
         "firstStrike": false
       },
       "dialogue": [
@@ -2671,7 +2671,7 @@
         "armor": 0
       },
       "behavior": {
-        "movementType": "MOVEMENT_TYPE_IDLE",
+        "movementType": "MOVEMENT_TYPE_STATIONARY",
         "firstStrike": false
       },
       "dialogue": [
@@ -3482,7 +3482,7 @@
         "armor": 0
       },
       "behavior": {
-        "movementType": "MOVEMENT_TYPE_IDLE",
+        "movementType": "MOVEMENT_TYPE_STATIONARY",
         "firstStrike": false
       },
       "dialogue": [
@@ -4203,7 +4203,7 @@
         "armor": 0
       },
       "behavior": {
-        "movementType": "MOVEMENT_TYPE_IDLE",
+        "movementType": "MOVEMENT_TYPE_STATIONARY",
         "firstStrike": false
       },
       "dialogue": [
