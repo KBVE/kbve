@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
-Version: 0.0.4
-Date: 2026-06-02
+Version: 0.0.5
+Date: 2026-06-03
   Changes:
     - KBVE Exchange anchors to the right side of the screen and no longer
       hijacks player.opened, so the vanilla inventory can stay open while
