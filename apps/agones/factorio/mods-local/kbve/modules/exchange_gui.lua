@@ -11,7 +11,10 @@ local GUI_NAME = 'kbve_exchange'
 local TABBED_NAME = 'kbve_tabbed'
 local BUY_TAB_CONTENT = 'kbve_buy_content'
 local VAULT_TAB_CONTENT = 'kbve_vault_content'
+local BUY_BALANCE_NAME = 'kbve_buy_balance'
+local BUY_SCROLL_NAME = 'kbve_buy_scroll'
 local BUY_PREFIX = 'kbve_buy_'
+local EXCHANGE_RADIUS = 3
 local SLOT_PREFIX = 'kbve_vault_slot_'
 local CLOSE_NAME = 'kbve_close'
 local DEPOSIT_ALL = 'kbve_deposit_all'
@@ -29,13 +32,31 @@ local function destroy(player)
 	end
 end
 
+local function is_near_exchange(player)
+	if not (player and player.valid and player.character) then return false end
+	local surface = player.surface
+	if not surface then return false end
+	local nearby = surface.find_entities_filtered({
+		position = player.position,
+		radius = EXCHANGE_RADIUS,
+		name = 'kbve-exchange',
+	})
+	return #nearby > 0
+end
+
 local function render_buy(content, player)
 	content.clear()
+	local balance = Coins.get_balance(player.index)
 	content.add({
 		type = 'label',
-		caption = { '', 'Balance: [item=coin] ', Coins.get_balance(player.index) },
+		name = BUY_BALANCE_NAME,
+		caption = { '', 'Balance: [item=coin] ', balance },
 	})
-	local scroll = content.add({ type = 'scroll-pane', direction = 'vertical' })
+	local scroll = content.add({
+		type = 'scroll-pane',
+		name = BUY_SCROLL_NAME,
+		direction = 'vertical',
+	})
 	scroll.style.maximal_height = 480
 	scroll.style.minimal_width = 480
 	for i, entry in ipairs(Market.ITEMS) do
@@ -43,9 +64,8 @@ local function render_buy(content, player)
 		if proto then
 			local row = scroll.add({ type = 'flow', direction = 'horizontal' })
 			row.add({
-				type = 'sprite-button',
+				type = 'sprite',
 				sprite = 'item/' .. entry.item,
-				enabled = false,
 				tooltip = proto.localised_name,
 			})
 			row.add({
@@ -57,7 +77,35 @@ local function render_buy(content, player)
 				type = 'button',
 				name = BUY_PREFIX .. i,
 				caption = { '', 'Buy ', entry.price, ' [item=coin]' },
+				enabled = balance >= entry.price,
 			})
+		end
+	end
+end
+
+local function refresh_balance_state(player)
+	local frame = player.gui.screen[GUI_NAME]
+	if not frame then return end
+	local body = frame[BODY_NAME]
+	local tabbed = body and body[TABBED_NAME]
+	local content = tabbed and tabbed[BUY_TAB_CONTENT]
+	if not content then return end
+	local balance = Coins.get_balance(player.index)
+	local label = content[BUY_BALANCE_NAME]
+	if label then
+		label.caption = { '', 'Balance: [item=coin] ', balance }
+	end
+	local scroll = content[BUY_SCROLL_NAME]
+	if not scroll then return end
+	for _, row in ipairs(scroll.children) do
+		for _, child in ipairs(row.children) do
+			if child.type == 'button' and child.name:sub(1, #BUY_PREFIX) == BUY_PREFIX then
+				local i = tonumber(child.name:sub(#BUY_PREFIX + 1))
+				local entry = i and Market.ITEMS[i]
+				if entry then
+					child.enabled = balance >= entry.price
+				end
+			end
 		end
 	end
 end
@@ -99,7 +147,12 @@ function ExchangeGui.show(player)
 		direction = 'vertical',
 		caption = 'KBVE Exchange',
 	})
-	frame.auto_center = true
+	local res = player.display_resolution
+	local scale = player.display_scale or 1
+	local frame_width_est = 760 * scale
+	local x = math.max(20, res.width - frame_width_est - 20)
+	local y = 80 * scale
+	frame.location = { x, y }
 
 	local close_flow = frame.add({ type = 'flow', direction = 'horizontal' })
 	close_flow.add({ type = 'empty-widget' }).style.horizontally_stretchable = true
@@ -133,8 +186,6 @@ function ExchangeGui.show(player)
 	})
 	tabbed.add_tab(vault_tab, vault_content)
 	render_vault(vault_content, player)
-
-	player.opened = frame
 end
 
 function ExchangeGui.on_gui_closed(event)
@@ -173,6 +224,11 @@ local function refresh_vault(player)
 end
 
 local function handle_buy(player, index)
+	if not is_near_exchange(player) then
+		player.print('Too far from the KBVE Exchange.')
+		destroy(player)
+		return
+	end
 	local entry = Market.ITEMS[index]
 	if not entry then return end
 	local balance = Coins.get_balance(player.index)
@@ -244,14 +300,22 @@ end
 function ExchangeGui.on_custom_input(event)
 	local player = game.get_player(event.player_index)
 	if not player or not player.character then return end
-	if player.gui.screen[GUI_NAME] then return end
-	local nearby = player.surface.find_entities_filtered({
-		position = player.position,
-		radius = 3,
-		name = 'kbve-exchange',
-	})
-	if #nearby == 0 then return end
+	if player.gui.screen[GUI_NAME] then
+		destroy(player)
+		return
+	end
+	if not is_near_exchange(player) then return end
 	ExchangeGui.show(player)
+end
+
+function ExchangeGui.on_tick(event)
+	if (event.tick % 30) ~= 0 then return end
+	for _, player in pairs(game.connected_players) do
+		if player.gui.screen[GUI_NAME] and not is_near_exchange(player) then
+			destroy(player)
+			player.print('Too far from the KBVE Exchange — closing.')
+		end
+	end
 end
 
 function ExchangeGui.on_gui_click(event)
@@ -277,7 +341,7 @@ function ExchangeGui.on_gui_click(event)
 		local i = tonumber(name:sub(#BUY_PREFIX + 1))
 		if i then
 			handle_buy(player, i)
-			refresh_buy(player)
+			refresh_balance_state(player)
 		end
 		return
 	end
