@@ -1,6 +1,6 @@
 ---
 title: Super antifire mix(1) | OSRS Price Data
-description: "Super antifire mix(1): One dose of fishy super anti-firebreath potion.. High alch: 79 GP, GE limit: 2,000."
+description: "Super antifire mix(1) is a P2P Barbarian Herblore 1-dose potion blocking dragonfire. High alch: 79 GP, GE limit: 2,000."
 osrs:
   id: 21997
   name: Super antifire mix(1)
@@ -12,9 +12,82 @@ osrs:
   lowalch: 52
   highalch: 79
   limit: 2000
-  about: "Super antifire mix(1) is a members-only item in Old School RuneScape. High alchemy value: 79 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  weight: 0.045
+  properties:
+    release_date: "2018-01-04"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+  material:
+    type: potion
+    tier: bronze
+    category: consumable
+  potion:
+    doses: 1
+    boost: "Full dragonfire immunity"
+    duration_minutes: 3
+    skill: "Hitpoints"
+    notes: "Each sip also heals 6 Hitpoints; requires Dragon Slayer I started."
+  recipes:
+    - skill: "Herblore"
+      level: 92
+      xp: 70
+      output_quantity: 1
+      item_name: "Super antifire mix(2)"
+      tools: []
+      inputs:
+        - item_name: "Super antifire potion(2)"
+          quantity: 1
+        - item_name: "Caviar"
+          quantity: 1
+      notes: "Barbarian Herblore mixing; requires Barbarian Training (Herblore) unlocked. Makes a 2-dose mix that can be split into 1-dose."
+  related_items:
+    - item_id: 21993
+      item_name: Super antifire potion(4)
+      slug: super-antifire-potion-4
+      relationship: variant
+      description: "Standard 4-dose super antifire potion"
+    - item_id: 21999
+      item_name: Super antifire mix(2)
+      slug: super-antifire-mix-2
+      relationship: variant
+      description: "2-dose mix that heals Hitpoints"
+    - item_id: 11457
+      item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: "Required Barbarian Herblore ingredient"
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Buy at GE if you only need a single dose for a one-off dragon kill.\""
+      - "sell_strategy: \"Sell to PvMers running short Vorkath / dragon trips.\""
+      - "price_trend: \"Tracks super antifire and caviar prices.\""
+      - "profit_margin: \"Thin; mostly utility purchase.\""
+  trading_tips:
+    - "Heals 6 HP per sip — saves food on dragon tasks."
+    - "Requires Barbarian Training (Herblore) unlocked to make."
+    - "Pairs with antifire shield for total dragon protection."
+  history:
+    - date: "2018-01-04"
+      update: "Super antifire release"
+      description: "Super antifire and its Barbarian Herblore mix variants released alongside the wider antifire rework."
+  about: |-
+    Super antifire mix(1) is a Barbarian Herblore variant that grants full dragonfire immunity and minor healing.
+
+    | Property | Value |
+    |----------|-------|
+    | Dragonfire | Fully blocked (no shield required) |
+    | Heal per dose | 6 HP |
+    | Duration | 3 minutes |
+    | Herblore level | 92 (Barbarian) |
+    | XP per mix | 70 |
+
+    Often packed in 1-dose form for Vorkath KO / quick dragon kills.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

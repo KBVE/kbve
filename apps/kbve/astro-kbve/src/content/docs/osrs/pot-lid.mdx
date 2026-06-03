@@ -12,9 +12,65 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 15
-  about: "Pot lid is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-02-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0.198
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 20
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+      tools:
+        - Potter's wheel
+        - Pottery oven
+      output_quantity: 1
+  related_items:
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Raw material crafted into the lid
+    - item_name: Pot
+      slug: pot
+      relationship: component
+      description: Pairs with the lid for airtight pot creation
+    - item_name: Airtight pot
+      slug: airtight-pot
+      relationship: product
+      description: Sealed pot used in quests like Swan Song
+    - item_name: Breathing salts
+      slug: breathing-salts
+      relationship: product
+      description: Quest item formed using the lid
+  about: "The pot lid is a level 1 Crafting product fired from soft clay on a potter's wheel and pottery oven. Required for One Small Favour and Swan Song, it combines with a pot to create an airtight pot or breathing salts. Below 13 Crafting, unfired lids may crack during firing; from 13 onward the firing always succeeds."
+  market_strategy:
+    notes:
+      - "Tiny GE buy limit of 15 keeps liquidity narrow"
+      - "Quest demand is finite per account"
+      - "Self-craft route is profitable but slow"
+      - "GE arbitrage exists between raw soft clay and finished lid"
+  trading_tips:
+    - Quest-driven demand spikes around new player batches
+    - Buy spare lids before starting One Small Favour to avoid mid-quest hunts
+    - Compare against soft clay + crafting time when self-supplying
+  history:
+    - date: "2005-02-28"
+      description: "Released as part of crafting content."
+    - date: "2005-07-11"
+      description: "Item recolouring update applied between 11-19 July 2005."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

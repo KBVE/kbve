@@ -12,9 +12,78 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 150
-  about: "Pink cape is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-01-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 2.5
+      materials:
+        - item_name: Cape
+          quantity: 1
+        - item_name: Pink dye
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Pink dye
+      slug: pink-dye
+      relationship: component
+      description: Applied to a coloured cape to create the pink cape.
+    - item_name: Red cape
+      slug: red-cape
+      relationship: alternative
+      description: One of the base capes that can be dyed pink.
+  about: "Pink cape is a members cosmetic cape made by applying pink dye to any plain coloured cape. Released with The Hand in the Sand and renamed in 2014 to distinguish it from other capes. Provides minor slash, crush, and ranged defence bonuses."
+  market_strategy:
+    notes:
+      - "Crafting profit relies on the pink dye supply curve"
+      - "Cosmetic demand peaks during fashionscape events"
+      - "Low alch value means losses on overproduction"
+  trading_tips:
+    - Track pink dye vs finished cape spread for crafter margins
+    - Move stock during pink-themed cosmetic event cycles
+  history:
+    - date: "2006-01-10"
+      description: "Released with The Hand in the Sand quest update."
+    - date: "2014-12-10"
+      description: "Renamed from Cape to Pink cape for clarity."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

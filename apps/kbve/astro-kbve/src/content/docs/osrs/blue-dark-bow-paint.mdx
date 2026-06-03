@@ -1,6 +1,6 @@
 ---
 title: Blue dark bow paint | OSRS Price Data
-description: "Blue dark bow paint: Paints things blue!. High alch: 1 GP, GE limit: 4."
+description: "Blue dark bow paint: Paints things blue! GE limit: 4."
 osrs:
   id: 12757
   name: Blue dark bow paint
@@ -9,12 +9,78 @@ osrs:
   members: true
   icon: Blue dark bow paint.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 4
-  about: "Blue dark bow paint is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2014-09-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Drop
+    alchable: false
+  shops:
+    - shop_name: Justine's stuff for the Last Shopper Standing
+      location: Ferox Enclave
+      price: 25
+      currency: Last Man Standing points
+      stock: 0
+  recipes:
+    - skill: none
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Dark bow
+          quantity: 1
+        - item_name: Blue dark bow paint
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Dark bow
+      slug: dark-bow
+      relationship: component
+      description: Base bow recoloured by the paint
+    - item_name: Dark bow (blue)
+      slug: dark-bow-blue
+      relationship: product
+      description: Cosmetic blue variant created
+    - item_name: Green dark bow paint
+      slug: green-dark-bow-paint
+      relationship: alternative
+      description: Green recolour variant
+    - item_name: Yellow dark bow paint
+      slug: yellow-dark-bow-paint
+      relationship: alternative
+      description: Yellow recolour variant
+    - item_name: White dark bow paint
+      slug: white-dark-bow-paint
+      relationship: alternative
+      description: White recolour variant
+  about: "Blue dark bow paint is a cosmetic item purchased from Justine's Last Man Standing reward shop for 25 LMS points. When applied to a dark bow, it produces the Blue dark bow variant, which is a cosmetic recolour with identical stats. The paint is consumed on use and the recolour cannot be reverted directly without reapplying a base dark bow. Blue is the most popular dark bow paint colour and historically the most liquid of the four variants."
+  market_strategy:
+    notes:
+      - "Cosmetic LMS-shop unlock with thin GE liquidity"
+      - "Buy limit of 4 every 4 hours throttles bulk supply"
+      - "Price floor anchored by the 25 LMS point cost"
+      - "Most popular dark bow paint colour"
+  trading_tips:
+    - Compare against direct LMS grinding ROI
+    - Watch GE prices around LMS prize pool changes
+    - Demand favours blue variant over other colours
+  history:
+    - date: "2014-09-18"
+      description: "Item released with the Bounty Hunter update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

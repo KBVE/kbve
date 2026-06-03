@@ -1,6 +1,6 @@
 ---
 title: Relicym's balm(2) | OSRS Price Data
-description: "Relicym's balm(2): 2 doses of Relicym's balm, which helps cure disease.. High alch: 90 GP, GE limit: 2,000."
+description: "Relicym's balm(2): 2 doses of Relicym's balm, which helps cure disease. High alch: 90 GP, GE limit: 2,000."
 osrs:
   id: 4846
   name: Relicym's balm(2)
@@ -12,9 +12,86 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 2000
-  about: "Relicym's balm(2) is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: "2005-05-17"
+    quest_item: false
+    destroy: Drop
+  material:
+    type: potion
+    tier: potion
+  potion:
+    doses: 2
+    effect: Cures disease afflictions; useful against broodoo victims and Nightmare parasites.
+    duration: instant
+  recipes:
+    - skill: herblore
+      level: 8
+      xp: 40
+      item_name: Relicym's balm(4)
+      tools:
+        - Vial of water
+      materials:
+        - item_name: Rogue's purse
+          quantity: 1
+        - item_name: Snake weed
+          quantity: 1
+      product: Relicym's balm(4)
+      product_id: 4844
+      product_quantity: 1
+      output_quantity: 1
+      members_only: true
+  drop_table:
+    primary_source: Herblore
+    sources:
+      - source: Drink one dose of Relicym's balm(3)
+        quantity: "1"
+        rarity: craftable
+        members_only: true
+  related_items:
+    - item_id: 4844
+      item_name: Relicym's balm(4)
+      slug: relicym-s-balm-4
+      relationship: upgrade
+      description: 4-dose version
+    - item_id: 4848
+      item_name: Relicym's balm(1)
+      slug: relicym-s-balm-1
+      relationship: downgrade
+      description: 1-dose version
+    - item_id: 10925
+      item_name: Sanfew serum(4)
+      slug: sanfew-serum-4
+      relationship: alternative
+      description: Provides disease immunity unlike Relicym's
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Doses | 2 |
+    | Herblore level | 8 |
+    | Quest required | Zogre Flesh Eaters (partial) |
+
+    - Cures disease, does not grant immunity
+    - Used in Tai Bwo Wannai Cleanup vs broodoo victims
+    - Useful at The Nightmare for parasite cleanse
+
+    Niche disease cure:
+    - Made from Rogue's purse + Snake weed
+    - Compete with Sanfew serum for immunity buffs
+    - Cheap, high-volume Herblore option
+  market_strategy:
+    notes:
+      - "Demand tied to Nightmare and broodoo content"
+      - "Mid-volume potion with stable margin"
+      - "2-dose splits often arbitrage against 4-dose"
+  trading_tips:
+    - Compare dose-economy vs (4) and (1) for arb
+    - Stock up before raids/Nightmare team play
+    - Buy rogue's purse + snake weed cheap to craft (4) instead
+  history:
+    - date: "2005-05-17"
+      description: "Released with Zogre Flesh Eaters."
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,25 +12,76 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
     requirements: {}
     attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
       magic: 3
+      ranged: 0
     defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
       magic: 3
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 12455
-      item_name: Black wizard hat (t)
+    - item_name: Black wizard hat (t)
       slug: black-wizard-hat-t
       relationship: set-piece
-      description: Matching trimmed wizard hat
-  about: |-
-    > *"I can do magic better in this."*
-
-    The black wizard robe (t) is a trimmed cosmetic variant of the black wizard robe. It provides +3 magic attack and defence with no requirements. F2P item.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Matching trimmed wizard hat for the cosmetic set
+    - item_name: Black skirt (t)
+      slug: black-skirt-t
+      relationship: set-piece
+      description: Skirt piece that completes the trimmed black wizard look
+    - item_name: Black wizard robe
+      slug: black-wizard-robe
+      relationship: variant
+      description: Untrimmed counterpart with identical combat stats
+  about: "Black wizard robe (t) is the gold-trimmed cosmetic version of the standard black wizard robe and a free-to-play easy Treasure Trail reward at roughly a 1/1,404 drop rate from easy reward caskets. It provides +3 magic attack and +3 magic defence with no skill requirements, matching the base robe stats, and can be displayed in a costume room treasure chest alongside the matching hat and skirt."
+  market_strategy:
+    notes:
+      - "Supply is gated by easy clue completions, so only a few enter the market each day"
+      - "The 4-per-4-hour buy limit forces patient stocking for any flip attempt"
+      - "Best treated as a cosmetic collectible rather than an alch-margin item"
+  trading_tips:
+    - Pair offers with the matching hat (t) and skirt (t) to attract set buyers
+    - Time listings near double-clue or league events for spike demand
+    - Avoid undercutting too aggressively given the daily volume is well under 200
+  history:
+    - date: "2014-06-12"
+      description: "Added to Old School RuneScape as an easy Treasure Trails reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

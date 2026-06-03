@@ -12,102 +12,85 @@ osrs:
   lowalch: 80800
   highalch: 121200
   limit: 8
+  about: "Amulet of fury is the premier hybrid neck slot amulet, enchanted from an Onyx amulet with Lvl-6 Enchant. Offers strong all-style attack/defence/prayer bonuses; outclassed only by Zenyte jewelry per style. High alchemy value: 121,200 coins. Grand Exchange buy limit: 8."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: jewellery
+    tier: onyx
+  properties:
+    release_date: "2005-10-04"
+    tradeable: true
+    equipable: true
+    stackable: false
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.01
   equipment:
     slot: neck
-    type: amulet
-    stats:
-      attack_stab: 10
-      attack_slash: 10
-      attack_crush: 10
-      attack_magic: 10
-      attack_ranged: 10
-      defence_stab: 15
-      defence_slash: 15
-      defence_crush: 15
-      defence_magic: 15
-      defence_ranged: 15
+    weapon_type: none
+    attack_speed: 1
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 10
+      slash: 10
+      crush: 10
+      magic: 10
+      ranged: 10
+    defence_bonus:
+      stab: 15
+      slash: 15
+      crush: 15
+      magic: 15
+      ranged: 15
+    other_bonus:
       strength: 8
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 5
   recipes:
-    - skill: magic
+    - item_name: Amulet of fury
+      skill: magic
       level: 87
       xp: 97
+      output_quantity: 1
+      tools: []
       materials:
         - item_name: Onyx amulet
-          item_id: 6581
-          quantity: 1
+          quantity: "1"
         - item_name: Fire rune
-          item_id: 554
-          quantity: 20
+          quantity: "20"
         - item_name: Earth rune
-          item_id: 557
-          quantity: 20
+          quantity: "20"
         - item_name: Cosmic rune
-          item_id: 564
-          quantity: 1
-      product: Amulet of fury
-      product_id: 6585
-      product_quantity: 1
-      facility: None
-      members_only: true
-  related_items:
-    - item_id: 19553
-      item_name: Amulet of torture
-      slug: amulet-of-torture
+          quantity: "1"
+  relationships:
+    - item_name: Onyx amulet
+      relationship: component
+    - item_name: Amulet of blood fury
       relationship: upgrade
-      description: Melee upgrade
-    - item_id: 19547
-      item_name: Necklace of anguish
-      slug: necklace-of-anguish
-      relationship: upgrade
-      description: Ranged upgrade
-    - item_id: 12002
-      item_name: Occult necklace
-      slug: occult-necklace
-      relationship: upgrade
-      description: Magic upgrade
-  about: |-
-    Enchant Onyx amulet with Lvl-6 Enchant.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Magic | 87 (boostable) |
-    | Runes | 20 fire, 20 earth, 1 cosmic |
-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | +10 |
-    | Slash | +10 |
-    | Crush | +10 |
-    | Magic | +10 |
-    | Ranged | +10 |
-    | Strength | +8 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +15 |
-    | Slash | +15 |
-    | Crush | +15 |
-    | Magic | +15 |
-    | Ranged | +15 |
-
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +5 |
-
-    Best hybrid amulet for:
-    - All combat styles
-    - Switching between styles
-    - Budget all-around option
-
-    Outclassed by zenyte jewelry for specific styles.
+    - item_name: Amulet of fury (or)
+      relationship: variant
+    - item_name: Amulet of torture
+      relationship: alternative
+    - item_name: Necklace of anguish
+      relationship: alternative
+    - item_name: Occult necklace
+      relationship: alternative
   market_strategy:
     notes:
-      - Great all-around amulet
-      - Onyx from TzHaar or GE
-      - Still popular despite zenyte
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "short_term: \"Liquid, high-ticket neck slot; price moves with Zenyte alternative trends and TzHaar Onyx supply.\""
+      - "long_term: \"Stable hybrid pick; long-term floor supported by ornament-kit cosmetic demand and Blood Fury combine.\""
+      - "risk_level: \"medium\""
+  trading_tips:
+    - "Enchant Onyx amulets when GE spread covers Lvl-6 rune cost; converts cleanly to fury margin."
+    - "Pair flips with Blood shards for the Amulet of blood fury upgrade arbitrage."
+  history:
+    - date: "2005-10-04"
+      description: "Released with the TzHaar update introducing Onyx and Lvl-6 Enchant."
+    - date: "2017-08-10"
+      description: "Amulet of blood fury combine added via blood shard from Vampyric content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,77 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Waterbirth teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: teleport tablet
+    tier: mid
+  properties:
+    release_date: "2020-09-30"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: magic
+      level: 72
+      xp: 71
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Law rune
+          quantity: 1
+        - item_name: Water rune
+          quantity: 1
+        - item_name: Astral rune
+          quantity: 2
+      tools:
+        - Lunar lectern
+      output_quantity: 1
+  related_items:
+    - item_name: Moonclan teleport (tablet)
+      slug: moonclan-teleport-tablet
+      relationship: variant
+      description: Lunar spellbook teleport tablet variant.
+    - item_name: Barbarian teleport (tablet)
+      slug: barbarian-teleport-tablet
+      relationship: variant
+      description: Lunar spellbook teleport tablet variant.
+    - item_name: Khazard teleport (tablet)
+      slug: khazard-teleport-tablet
+      relationship: variant
+      description: Lunar spellbook teleport tablet variant.
+    - item_name: Fishing guild teleport (tablet)
+      slug: fishing-guild-teleport-tablet
+      relationship: variant
+      description: Lunar spellbook teleport tablet variant.
+    - item_name: Catherby teleport (tablet)
+      slug: catherby-teleport-tablet
+      relationship: variant
+      description: Lunar spellbook teleport tablet variant.
+    - item_name: Ice plateau teleport (tablet)
+      slug: ice-plateau-teleport-tablet
+      relationship: variant
+      description: Lunar spellbook teleport tablet variant.
+  about: "Waterbirth teleport (tablet) teleports the player beside Jarvald's ship on Waterbirth Island, right next to the snape grass spawns. Tablets are crafted at a Lunar lectern with 72 Magic for 71 experience using 1 soft clay, 1 law rune, 1 water rune, and 2 astral runes; activating the tablet does not require the Magic level."
+  market_strategy:
+    notes:
+      - "Volume is driven by snape grass farmers, Dagannoth Kings teleport flippers, and lectern grinders."
+      - "Astral and law rune prices are the primary cost driver — track those instead of GE price alone."
+      - "Margins are thin but consistent for bulk crafters."
+  trading_tips:
+    - Buy lots when astral runes dip; sell into Dagannoth Kings demand surges.
+    - Limit of 10,000 makes it a viable bulk flip.
+  history:
+    - date: "2020-09-30"
+      description: "Released with the Tablet Master Scroll Book updates expanding lectern tablet crafting."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

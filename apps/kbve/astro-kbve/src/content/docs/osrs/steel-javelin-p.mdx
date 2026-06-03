@@ -12,26 +12,86 @@ osrs:
   lowalch: 9
   highalch: 14
   limit: 7000
+  weight: 0
+  about: "Steel javelin(p) is the poisoned variant of the steel javelin, fired by ballistae. Applying weapon poison gives each shot a chance to inflict 2-4 damage over time, adding extra utility for low-level PvP and slayer tasks."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: steel
+    tier: tier_5
   equipment:
-    slot: weapon
+    slot: ammunition
+    weapon_type: thrown
     attack_speed: 6
     requirements:
       ranged: 5
     attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
       ranged: 12
-    ranged_strength: 40
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 40
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - item_name: Steel javelin(p)
+      skill: Herblore
+      level: 5
+      xp: 0
+      tools:
+        - Vial of weapon poison
+      materials:
+        - item_name: Steel javelin
+          quantity: 1
+        - item_name: Weapon poison
+          quantity: 1
+      output_quantity: 1
   related_items:
-    - item_id: 827
-      item_name: Steel javelin
-      slug: steel-javelin
+    - item_name: Steel javelin
       relationship: variant
-      description: Unpoisoned version
-  about: |-
-    > _"A steel tipped javelin with a poisoned tip."_
-
-    A steel javelin tipped with basic weapon poison. Poison deals 2-4 damage over time.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Steel javelin(p+)
+      relationship: variant
+    - item_name: Steel javelin(p++)
+      relationship: variant
+    - item_name: Weapon poison
+      relationship: component
+  market_strategy:
+    notes:
+      - "summary: \"Niche poisoned ammunition with thin daily volume but stable PvP demand.\""
+      - "buy_strategy: \"Pick up bulk steel javelins, poison them yourself with weapon poison vials for margin.\""
+      - "sell_strategy: \"List in 1k stacks to ballistae users and slayer accounts; expect slow but steady fills.\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Poisoning your own steel javelins is cheaper than buying p variants outright when weapon poison is cheap."
+    - "Useful as ammunition for the dorgeshuun crossbow players running low-tier ranged setups."
+    - "Stack up to 7,000 per GE slot, but expect listings to sit longer than the base steel javelin."
+  history:
+    - date: "2004-03-29"
+      description: "Released alongside the original javelin and ballista weapons."
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    equipable: true
+    stackable: true
+    noteable: false
+    destroy: "Drop"
+    quest_item: false
+  drop_table: []
+  special_attack:
+    has_special: false
+  charges:
+    has_charges: false
+  potion:
+    is_potion: false
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Barbarian teleport (tablet) | OSRS Price Data
-description: "Barbarian teleport (tablet): A teleport to Barbarian Outpost.. High alch: 1 GP, GE limit: 10,000."
+description: "Barbarian teleport (tablet): A teleport to Barbarian Outpost. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 24955
   name: Barbarian teleport (tablet)
@@ -12,9 +12,68 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Barbarian teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Barbarian teleport (tablet) is a members-only consumable teleport item in Old School RuneScape. Breaking it instantly teleports the player to Barbarian Outpost with no Magic level requirement."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: tablet
+    tier: common
+    category: teleport
+  properties:
+    release_date: "2020-09-30"
+    weight: 0
+    tradeable: true
+    equipable: false
+    stackable: true
+    noteable: false
+    quest_item: false
+    destroy: "Drop"
+  recipes:
+    - item_name: Barbarian teleport (tablet)
+      skill: Magic
+      level: 75
+      xp: 72
+      tools:
+        - Lunar lectern
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Law rune
+          quantity: 2
+        - item_name: Astral rune
+          quantity: 2
+        - item_name: Fire rune
+          quantity: 3
+      output_quantity: 1
+      notes: "Crafted at a lunar lectern in the player-owned house with the Lunar spellbook active."
+  relationships:
+    - item_name: Barbarian teleport
+      relationship: alternative
+      note: "Spell version cast directly from the Lunar spellbook."
+    - item_name: Soft clay
+      relationship: component
+    - item_name: Law rune
+      relationship: component
+    - item_name: Astral rune
+      relationship: component
+    - item_name: Fire rune
+      relationship: component
+  market_strategy:
+    notes:
+      - "summary: \"Steady mid-tier teleport tablet with consistent daily volume; profit margin tracks soft clay and rune prices.\""
+      - "buy_strategy: \"Buy soft clay and runes at GE mid-price during off-peak hours to maximise margin when crafting.\""
+      - "sell_strategy: \"List finished tablets at GE mid-price; market absorbs steady supply due to consistent daily turnover.\""
+      - "volatility: \"low\""
+  trading_tips:
+    - "Crafting requires Magic 75 and the Lunar spellbook active."
+    - "Tablet usage has no Magic level requirement, making it popular for low-level alts."
+    - "Profit per tablet varies with soft clay and astral rune prices; track GE before bulk runs."
+  history:
+    - date: "2020-09-30"
+      description: "Barbarian teleport (tablet) released alongside the Lunar spellbook tablet expansion."
+  examine_variants:
+    - context: Inventory
+      text: "A teleport to Barbarian Outpost."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

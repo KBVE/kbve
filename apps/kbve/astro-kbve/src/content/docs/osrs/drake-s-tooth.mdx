@@ -1,6 +1,6 @@
 ---
 title: Drake's tooth | OSRS Price Data
-description: "Drake's tooth: The tooth of a ferocious drake. They could be combined with holy sandals.. High alch: 60,000 GP, GE limit: 70."
+description: "Drake's tooth: The tooth of a ferocious drake. They could be combined with holy sandals. High alch: 60,000 GP, GE limit: 70."
 osrs:
   id: 22960
   name: Drake's tooth
@@ -12,9 +12,67 @@ osrs:
   lowalch: 40000
   highalch: 60000
   limit: 70
-  about: "Drake's tooth is a members-only item in Old School RuneScape. High alchemy value: 60,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-01-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Drake
+        quantity: "1"
+        rarity: "1/2,560"
+      - source: Guardian drake
+        quantity: "1"
+        rarity: "1/853"
+  recipes:
+    - skill: prayer
+      level: 60
+      xp: 0
+      materials:
+        - item_name: Drake's tooth
+          quantity: 1
+        - item_name: Holy sandals
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Devout boots
+      slug: devout-boots
+      relationship: product
+      description: Combined with holy sandals to produce the +5 prayer boots
+    - item_name: Holy sandals
+      slug: holy-sandals
+      relationship: component
+      description: Base footwear consumed when crafting devout boots
+    - item_name: Boots of brimstone
+      slug: boots-of-brimstone
+      relationship: alternative
+      description: Other premium boots crafted from a Karuulm Slayer drop
+  about: "A rare drop from drakes and guardian drakes in the Karuulm Slayer Dungeon, requiring 84 Slayer to harvest. The tooth is consumed when combined with holy sandals to create devout boots, upgrading the prayer bonus from +3 to +5. Drake tasks are a popular slayer-money rotation specifically because of this drop pipeline."
+  market_strategy:
+    notes:
+      - "Supply tied directly to drake task popularity at 84 Slayer"
+      - "Guardian drake spawns at significantly higher drop rate drive most production"
+      - "Long-term demand floor from prayer bonus min-maxers building devout boots"
+  trading_tips:
+    - Watch for Slayer drop-rate buffs or Brimstone key reworks that alter farming yields
+    - Pair purchases with holy sandals to lock in devout boots margin
+  history:
+    - date: "2019-01-10"
+      description: "Released with the Kebos Lowlands and Karuulm Slayer Dungeon update."
+    - date: "2019-01-17"
+      description: "Item value reduced from 200,000 to 100,000 coins."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

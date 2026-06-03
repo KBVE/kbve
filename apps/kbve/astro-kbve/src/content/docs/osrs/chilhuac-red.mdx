@@ -12,9 +12,49 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: null
-  about: "Chilhuac red is a members-only item in Old School RuneScape. High alchemy value: 240 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-09-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores 16 Hitpoints and boosts Firemaking by 1 while reducing Attack by 5 and Cooking by 1"
+        duration: 60
+  shops:
+    - shop_name: "Moonrise Wines"
+      location: "Aldarin"
+      price: 400
+      currency: "Coins"
+      stock: 20
+  related_items:
+    - item_name: "Tlati red"
+      slug: "tlati-red"
+      relationship: "variant"
+      description: "Standard Tlati red wine"
+  about: "Chilhuac red is a Varlamore wine sold by Moonrise Wines in Aldarin. Drinking it heals 16 Hitpoints and is currently the only consumable in the game that consistently boosts Firemaking by 1 level, at the cost of -5 Attack and -1 Cooking. The name is Nahuatl for a dried, smoked chili pepper."
+  market_strategy:
+    notes:
+      - "Niche Firemaking boost demand keeps the wine relevant for skilling pet hunters."
+      - "Supply is shop-limited from Moonrise Wines — sustained demand can keep GE prices well above alch."
+      - "No GE buy limit listed; price discovery is driven by skiller and collector interest."
+  trading_tips:
+    - "Restock checks at Moonrise Wines around prime-time can yield steady margin."
+    - "Watch for Firemaking pet showcase streams that push collector demand."
+  history:
+    - date: "2024-09-25"
+      description: "Released with the second Varlamore expansion update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

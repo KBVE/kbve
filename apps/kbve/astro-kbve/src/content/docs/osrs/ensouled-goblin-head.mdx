@@ -1,62 +1,90 @@
 ---
 title: Ensouled goblin head | OSRS Price Data
-description: "Ensouled goblin head: The creature's soul is still in here.. High alch: 31 GP, GE limit: 3,000."
+description: "Ensouled goblin head: The creature's soul is still in here. High alch: 31 GP."
 osrs:
   id: 13448
   name: Ensouled goblin head
   slug: ensouled-goblin-head
-  examine: The creature's soul is still in here.
+  examine: "The creature's soul is still in here."
   members: true
   icon: Ensouled goblin head.png
   value: 52
   lowalch: 20
   highalch: 31
-  limit: 3000
+  limit: null
+  weight: 0.453
+  about: "Ensouled goblin head is the lowest tier Arceuus reanimation target. Casting Basic Reanimation requires 16 Magic and gives 130 Prayer XP per kill, making it an extremely cheap entry into the reanimation training method."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
   material:
     type: ensouled_head
     tier: basic
-  prayer:
-    xp_reanimate: 130
-    magic_level: 3
-    spell: Basic Reanimation
+  recipes:
+    - item_name: Reanimated goblin
+      skill: Magic
+      level: 16
+      xp: 32
+      tools:
+        - Arceuus spellbook
+      materials:
+        - item_name: Ensouled goblin head
+          quantity: 1
+        - item_name: Body rune
+          quantity: 4
+        - item_name: Nature rune
+          quantity: 2
+      output_quantity: 1
   drop_table:
-    sources:
-      - source: Goblin
-        source_id: 655
-        combat_level: 2
-        quantity: "1"
-        rarity: uncommon
-        members_only: true
+    - source: Goblin
+      level: 2
+      quantity: "1"
+      rarity: "1/30"
+      members: true
+    - source: Goblin guard
+      level: 42
+      quantity: "1"
+      rarity: "1/30"
+      members: true
   related_items:
-    - item_id: 13454
-      item_name: Ensouled imp head
-      slug: ensouled-imp-head
-      relationship: upgrade
-      description: Higher XP (286)
-    - item_id: 13463
-      item_name: Ensouled bear head
-      slug: ensouled-bear-head
-      relationship: upgrade
-      description: Higher XP (480)
-    - item_id: 13511
-      item_name: Ensouled dragon head
-      slug: ensouled-dragon-head
-      relationship: upgrade
-      description: Best XP (1,560)
-  about: |-
-    1. Cast Basic Reanimation spell on the head
-    2. Kill the reanimated creature
-    3. Receive Prayer XP
+    - item_name: Ensouled imp head
+      relationship: variant
+    - item_name: Ensouled minotaur head
+      relationship: variant
+    - item_name: Ensouled bear head
+      relationship: variant
+    - item_name: Ensouled monkey head
+      relationship: variant
+    - item_name: Ensouled scorpion head
+      relationship: variant
+    - item_name: Ensouled unicorn head
+      relationship: variant
   market_strategy:
     notes:
-      - Lowest tier ensouled head
-      - Low supply and demand
-      - Budget Prayer training option
-      - Not commonly traded
-      - Better heads available
-      - Very cheap XP option
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "summary: \"Untradeable reanimation input; only relevant as a personal-use Prayer training drop.\""
+      - "buy_strategy: \"Cannot be bought from GE — farm goblins or collect from Slayer dust.\""
+      - "sell_strategy: \"Untradeable; reanimate for Prayer XP rather than holding inventory space.\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Untradeable on the GE — only Slayer/Combat drops supply this head."
+    - "Bury vs reanimate: reanimation requires the Arceuus spellbook and 16 Magic but gives 130 Prayer XP vs 25 from burial."
+    - "Useful as cheap Prayer XP for ultra-low Magic accounts before they unlock higher tier ensouled heads."
+  history:
+    - date: "2016-01-07"
+      description: "Released with the Arceuus House update introducing the reanimation spells."
+  properties:
+    release_date: "2016-01-07"
+    tradeable: false
+    equipable: false
+    stackable: false
+    noteable: false
+    destroy: "Drop"
+    quest_item: false
+  special_attack:
+    has_special: false
+  charges:
+    has_charges: false
+  potion:
+    is_potion: false
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

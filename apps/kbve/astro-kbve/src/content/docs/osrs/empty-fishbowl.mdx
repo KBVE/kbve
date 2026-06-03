@@ -12,65 +12,63 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 100
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
   material:
     type: glass_product
     tier: mid
-  crafting:
-    level: 42
-    xp: 42.5
+  properties:
+    release_date: "2005-10-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options: ["Fill", "Use"]
+    alchable: false
+    destroy: "Drop"
   recipes:
     - skill: crafting
       level: 42
       xp: 42.5
       materials:
-        - item_name: Molten glass
-          item_id: 1775
+        - item_name: "Molten glass"
           quantity: 1
-      product: Empty fishbowl
-      product_id: 6667
-      product_quantity: 1
-      facility: Glassblowing pipe
-      members_only: true
+      tools: ["Glassblowing pipe"]
+      output_quantity: 1
   related_items:
-    - item_id: 1775
-      item_name: Molten glass
-      slug: molten-glass
-      relationship: component
-      description: Raw material
-    - item_id: 6668
-      item_name: Fishbowl
-      slug: fishbowl
-      relationship: product
-      description: Filled with water
-    - item_id: 6670
-      item_name: Tiny net
-      slug: tiny-net
-      relationship: component
-      description: For catching fish
-  about: |-
-    | Method | Level | Materials |
-    |--------|-------|-----------|
-    | Glassblowing | 42 | 1 Molten glass |
-    | XP | 42.5 | - |
-
-    Used for pet fish and Rum Deal quest:
-
-    | Usage | Result |
-    |-------|--------|
-    | Fill with water | Fishbowl |
-    | Add seaweed | Fishbowl with seaweed |
-    | Catch fish | Pet fish |
+    - item_name: "Molten glass"
+      slug: "molten-glass"
+      relationship: "component"
+      description: "Raw material blown with a glassblowing pipe to produce the bowl."
+    - item_name: "Fishbowl"
+      slug: "fishbowl"
+      relationship: "product"
+      description: "Empty fishbowl filled with water - the next step toward a pet fish."
+    - item_name: "Tiny net"
+      slug: "tiny-net"
+      relationship: "alternative"
+      description: "Companion tool for catching guppy/swordy/cavefish into a fishbowl."
+  about: "The Empty fishbowl is a Crafting product made by blowing one Molten glass at level 42 Crafting for 42.5 XP. Released October 24, 2005 and renamed from Fishbowl on February 26, 2015. Used to start the pet-fish chain (fill with water, add seaweed, catch fish with a tiny net), as a Rum Deal quest item, and as a humidify-spell Magic-training target."
   market_strategy:
     notes:
-      - Pet fish keeping
-      - Rum Deal quest
-      - Fish collecting
-      - Niche item
-      - Quest requirement
-      - Can keep pet fish
-      - Low volume market
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Low-tier glassblowing product - GE price typically tracks Molten glass cost."
+      - "Demand is niche: pet-fish keepers, Rum Deal questers, and humidify trainers."
+      - "Buy limit is generous (100/4h) but daily traded volume is low."
+      - "Margin opportunities exist when Molten glass dumps below crafting cost."
+  trading_tips:
+    - "Cross-check Molten glass GE price - if bowls trade above input, buy glass and craft for XP plus profit."
+    - "Watch for Rum Deal quest cape sweeps - rare but real demand bumps."
+    - "Stockpile during glass-price dips; this item rarely spikes but stays stable."
+  history:
+    - date: "2005-10-24"
+      description: "Released into the game."
+    - date: "2006-04-03"
+      description: "Received a graphical update."
+    - date: "2015-02-26"
+      description: "Renamed from Fishbowl to Empty fishbowl to disambiguate the filled variant."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

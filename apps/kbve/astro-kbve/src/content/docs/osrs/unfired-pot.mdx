@@ -1,6 +1,6 @@
 ---
 title: Unfired pot | OSRS Price Data
-description: "Unfired pot: I need to put this in a pottery oven.. High alch: 1 GP, GE limit: 10,000."
+description: "Unfired pot: I need to put this in a pottery oven.. High alch: 0 GP, GE limit: 10,000."
 osrs:
   id: 1787
   name: Unfired pot
@@ -9,12 +9,17 @@ osrs:
   members: false
   icon: Unfired pot.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: 0
+  highalch: 0
   limit: 10000
+  weight: 0.68
   material:
     type: pottery
-    tier: unfired
+    tier: novice
+  properties:
+    release_date: "2001-05-08"
+    quest_item: false
+    destroy: "Drop"
   crafting:
     level: 1
     xp: 6.3
@@ -26,9 +31,11 @@ osrs:
         - item_name: Soft clay
           item_id: 1761
           quantity: 1
+      tools:
+        - Potter's wheel
       product: Unfired pot
       product_id: 1787
-      product_quantity: 1
+      output_quantity: 1
       facility: Potter's wheel
     - skill: crafting
       level: 1
@@ -37,9 +44,11 @@ osrs:
         - item_name: Unfired pot
           item_id: 1787
           quantity: 1
+      tools:
+        - Pottery oven
       product: Pot
       product_id: 1931
-      product_quantity: 1
+      output_quantity: 1
       facility: Pottery oven
   related_items:
     - item_id: 1761
@@ -50,7 +59,7 @@ osrs:
     - item_id: 1931
       item_name: Pot
       slug: pot
-      relationship: product
+      relationship: upgrade
       description: Fired version
   about: |-
     | Method | Level | Materials |
@@ -64,15 +73,20 @@ osrs:
     | Success rate | 100% at 13+ | - |
   market_strategy:
     notes:
-      - Pot crafting
-      - Crafting training
-      - F2P accessible
-      - May crack below level 13
-      - Guaranteed success at 13+
-      - Basic crafting training
-      - F2P accessible
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Pot crafting"
+      - "Crafting training"
+      - "F2P accessible"
+      - "May crack below level 13"
+      - "Guaranteed success at 13+"
+      - "Basic crafting training"
+      - "Buy soft clay in bulk for crafting training"
+      - "Low margin item but high volume"
+      - "Useful for early F2P crafting XP"
+  history:
+    - date: "2001-05-08"
+      description: "Item released with original pottery crafting system."
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

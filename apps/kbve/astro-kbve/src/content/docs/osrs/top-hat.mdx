@@ -12,9 +12,75 @@ osrs:
   lowalch: 720
   highalch: 1080
   limit: 4
-  about: "Top hat is a members-only item in Old School RuneScape. High alchemy value: 1,080 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 1.36
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/1275
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  related_items:
+    - item_name: Top hat and monocle
+      slug: top-hat-and-monocle
+      relationship: product
+      description: Combined cosmetic crafted by Patchy after Cabin Fever using this hat and a monocle.
+    - item_name: Monocle
+      slug: monocle
+      relationship: component
+      description: Required pairing piece to upgrade the top hat into the top hat and monocle.
+  about: "Top hat is a cosmetic head slot item from elite Treasure Trail reward caskets. Provides no combat bonuses and can be combined with a monocle via Patchy after Cabin Fever to create the top hat and monocle outfit."
+  market_strategy:
+    notes:
+      - "1/1275 elite drop rate keeps inventory thin"
+      - "Limit of 4 forces patience for bulk accumulation"
+      - "Demand spikes with fashionscape and clue scroll content"
+  trading_tips:
+    - Hold through low-volume weeks; sell into casket reward hype
+    - Consider crafting into top hat and monocle if monocle gap is favorable
+  history:
+    - date: "2014-06-12"
+      description: "Added with the elite Treasure Trails expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

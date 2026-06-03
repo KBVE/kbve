@@ -12,9 +12,77 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 70
-  about: "Mystic gloves (dusk) is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-01-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  equipment:
+    slot: hands
+    weight: 0.453
+    requirements:
+      magic: 40
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Brimstone chest
+        quantity: "1"
+        rarity: 1/1000
+  related_items:
+    - item_name: Mystic gloves
+      slug: mystic-gloves
+      relationship: variant
+      description: Standard blue mystic gloves with identical stats.
+    - item_name: Mystic gloves (light)
+      slug: mystic-gloves-light
+      relationship: variant
+      description: Light recolour with identical stats.
+    - item_name: Mystic gloves (dark)
+      slug: mystic-gloves-dark
+      relationship: variant
+      description: Dark recolour with identical stats.
+    - item_name: Mystic gloves (dawn)
+      slug: mystic-gloves-dawn
+      relationship: variant
+      description: Dawn recolour with identical stats.
+  about: "Mystic gloves (dusk) is a cosmetic recolour of mystic gloves released with the January 2019 Konar Loot Table Balancing update. They require 40 Magic and 20 Defence to wear and provide the standard mystic glove bonuses of +3 magic attack and +3 magic defence. The dusk pair drops from the Brimstone chest at roughly 1/1,000 and can be stored in a magic wardrobe in a player-owned house."
+  market_strategy:
+    notes:
+      - "Brimstone chest cosmetics scale with Konar Slayer throughput."
+      - "Dusk variant tends to trade in line with other mystic recolours."
+  trading_tips:
+    - Compare against dawn/dark variants — recolour pricing usually clusters together.
+    - Watch Slayer balancing updates for changes in Konar/Brimstone chest cadence.
+  history:
+    - date: "2019-01-11"
+      description: "Released with the Konar Loot Table Balancing update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

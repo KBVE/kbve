@@ -1,6 +1,6 @@
 ---
 title: Steel arrow(p+) | OSRS Price Data
-description: "Steel arrow(p+): Venomous-looking arrows.. High alch: 7 GP, GE limit: 7,000."
+description: "Steel arrow(p+): Venomous-looking arrows. High alch: 7 GP, GE limit: 7,000."
 osrs:
   id: 5618
   name: Steel arrow(p+)
@@ -12,9 +12,87 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 7000
-  about: "Steel arrow(p+) is a members-only item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: steel
+    tier: low
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammo
+    weapon_type: thrown
+    attack_speed: null
+    weight: 0
+    requirements:
+      ranged: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 16
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 30
+      xp: 5
+      materials:
+        - item_name: Steel arrow
+          quantity: 5
+        - item_name: Weapon poison+
+          quantity: 1
+      tools: []
+      output_quantity: 5
+  related_items:
+    - item_name: Steel arrow
+      slug: steel-arrow
+      relationship: variant
+      description: Unpoisoned base ammunition
+    - item_name: Steel arrow(p)
+      slug: steel-arrow-p
+      relationship: downgrade
+      description: Standard poison variant with weaker venom
+    - item_name: Steel arrow(p++)
+      slug: steel-arrow-p
+      relationship: upgrade
+      description: Stronger poison++ variant
+  about: "An upgraded poison-tipped variant of the steel arrow, coated with weapon poison+ to inflict heavier venom damage in combat. Created by applying weapon poison+ to a stack of five steel arrows, with each application producing five poisoned arrows. Plus-tier poison hits for higher initial venom damage than the standard variant, making the (p+) line popular for ranged poison setups in long fights."
+  market_strategy:
+    notes:
+      - "Crafting margin tracks the price gap between raw steel arrows and weapon poison+ vials"
+      - "Demand cycles up during slayer trips against poison-vulnerable targets"
+      - "Stack consolidation costs minimal time, so flipping liquidity stays high"
+  trading_tips:
+    - Buy steel arrows during weekend supply spikes from Fletching grinders
+    - Resell pre-poisoned stacks during weekday peak hours
+  history:
+    - date: "2002-03-25"
+      description: "Steel arrows released alongside the original Fletching update."
+    - date: "2006-08-01"
+      description: "Renamed from Steel arrow(+) to Steel arrow(p+) for consistency with other poison variants."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

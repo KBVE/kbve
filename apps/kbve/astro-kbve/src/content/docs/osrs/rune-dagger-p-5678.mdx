@@ -12,9 +12,85 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: 70
-  about: "Rune dagger(p+) is a members-only item in Old School RuneScape. High alchemy value: 4,800 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Rune dagger(p+) is a Rune dagger coated with Super weapon poison, increasing initial poison damage; popular as a poisoned alternative for stab attacks at lower levels."
+  material:
+    type: metal
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: stab_sword
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      attack: 40
+    attack_bonus:
+      stab: 25
+      slash: 12
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      magic: 1
+    other_bonus:
+      strength: 24
+  recipes:
+    - skill: Herblore
+      level: 1
+      xp: 0
+      tools: []
+      materials:
+        - item_name: Rune dagger
+          quantity: 1
+        - item_name: Weapon poison+
+          quantity: 1
+      output_quantity: 1
+      notes: "Use Weapon poison+ on a clean Rune dagger to coat the blade."
+  related_items:
+    - item_name: Rune dagger
+      relationship: variant
+    - item_name: Rune dagger(p)
+      relationship: variant
+    - item_name: Rune dagger(p++)
+      relationship: upgrade
+    - item_name: Adamant dagger(p+)
+      relationship: downgrade
+    - item_name: Dragon dagger(p+)
+      relationship: upgrade
+    - item_name: Weapon poison+
+      relationship: component
+  market_strategy:
+    notes:
+      - "Poisoned rune dagger sits between standard and p++; entry-level option for budget poison stabbers."
+      - "GE limit of 70 per 4h keeps liquidity modest."
+      - "Margin tracks weapon poison+ price plus base rune dagger value."
+  trading_tips:
+    - "Compare base rune dagger plus weapon poison+ cost vs the GE p+ price for craft-to-flip profit."
+    - "Common F2P-into-P2P upgrade — demand picks up around member trial promos."
+    - "Stack with antipoison potions for PvP / PvM bundle deals."
+  history:
+    - date: "2001-08-13"
+      description: "Rune dagger released alongside the Wilderness launch."
+    - date: "2006-08-22"
+      description: "Poison naming standardised to (p+) and (p++) suffixes."
+  properties:
+    release_date: "2001-08-13"
+    update: "Wilderness launch"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

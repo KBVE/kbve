@@ -1,6 +1,6 @@
 ---
 title: Empty sack | OSRS Price Data
-description: "Empty sack: An empty vegetable sack.. High alch: 1 GP, GE limit: 10,000."
+description: "Empty sack: An empty vegetable sack. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 5418
   name: Empty sack
@@ -12,9 +12,79 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Empty sack is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  weight: 0.453
+  about: "Empty sack is a vegetable storage item that holds up to ten potatoes, onions, or cabbages per sack. It is also used for sandbags in Enlightened Journey and to build scarecrows for Farming protection."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: cloth
+    tier: basic
+  recipes:
+    - item_name: Empty sack
+      skill: Crafting
+      level: 21
+      xp: 38
+      tools:
+        - Loom
+      materials:
+        - item_name: Jute fibre
+          quantity: 4
+      output_quantity: 1
+  shops:
+    - shop_name: Farming Guild Shop
+      location: Farming Guild
+      price: 1
+      currency: coins
+      stock: 5
+    - shop_name: Catherby Farming Shop
+      location: Catherby
+      price: 1
+      currency: coins
+      stock: 5
+    - shop_name: Ardougne Farming Shop
+      location: East Ardougne
+      price: 1
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Sack of potatoes
+      relationship: product
+    - item_name: Sack of onions
+      relationship: product
+    - item_name: Sack of cabbages
+      relationship: product
+    - item_name: Jute fibre
+      relationship: component
+    - item_name: Scarecrow
+      relationship: product
+  market_strategy:
+    notes:
+      - "summary: \"High-volume utility sack with bots and farmers driving ~460k daily trades.\""
+      - "buy_strategy: \"Buy directly from farming shops for 1 gp; GE arbitrage exists when sack price rises above 3 gp.\""
+      - "sell_strategy: \"Sell in 10k stacks during compost runs and Farming events; volume is enormous.\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Each sack holds 10 potatoes/onions/cabbages — saves inventory slots for bulk farming runs."
+    - "Required for scarecrow construction (Allotment patch protection); keep extras on Farming alts."
+    - "Used as ammunition for sandbag delivery during the Enlightened Journey quest."
+  history:
+    - date: "2005-07-11"
+      description: "Released with the Farming skill update."
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+  drop_table: []
+  special_attack:
+    has_special: false
+  charges:
+    has_charges: false
+  potion:
+    is_potion: false
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

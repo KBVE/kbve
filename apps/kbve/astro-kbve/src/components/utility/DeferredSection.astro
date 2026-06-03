@@ -160,12 +160,21 @@ const mobileHeight = minHeightMobile || minHeight;
 				this.appendChild(content);
 				this.classList.add('loaded');
 
-				// Remove skeleton after transition completes
+				requestAnimationFrame(() => {
+					// Lock min-height to the rendered content height so
+					// removing the skeleton can't collapse the box and
+					// jump the page below. Reading scrollHeight forces
+					// layout once; the value is then frozen.
+					const measured = this.scrollHeight;
+					if (measured > 0) {
+						this.style.minHeight = `${measured}px`;
+					}
+				});
+
+				// Remove skeleton after transition completes.
 				setTimeout(() => {
 					const skeleton = this.querySelector('.deferred-skeleton');
 					skeleton?.remove();
-					// Reset min-height after content is loaded
-					this.style.minHeight = 'auto';
 				}, 300);
 			}
 

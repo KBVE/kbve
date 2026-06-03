@@ -1,20 +1,97 @@
 ---
 title: Spiny helmet | OSRS Price Data
-description: "Spiny helmet: You don't want to wear it inside-out.. High alch: 390 GP, GE limit: 125."
+description: "Spiny helmet: You don't want to wear it inside-out. High alch: 390 GP, GE limit: 125."
 osrs:
   id: 4551
   name: Spiny helmet
   slug: spiny-helmet
-  examine: You don't want to wear it inside-out.
+  examine: "You don't want to wear it inside-out."
   members: true
   icon: Spiny helmet.png
   value: 650
   lowalch: 260
   highalch: 390
   limit: 125
-  about: "Spiny helmet is a members-only item in Old School RuneScape. High alchemy value: 390 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  weight: 2.267
+  about: "Spiny helmet is a Slayer-required headpiece needed to fight wall beasts in the Lumbridge Swamp Caves. It matches a steel full helm defensively and is one of six components needed to craft a slayer helmet."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: steel
+    tier: tier_5
+  equipment:
+    slot: head
+    weapon_type: none
+    attack_speed: 1
+    requirements:
+      defence: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 9
+      slash: 10
+      crush: 7
+      magic: -1
+      ranged: 9
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Slayer Equipment
+      location: Edgeville Slayer Master
+      price: 650
+      currency: coins
+      stock: 5
+    - shop_name: Slayer Equipment
+      location: Burthorpe
+      price: 650
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Slayer helmet
+      relationship: upgrade
+    - item_name: Slayer helmet (i)
+      relationship: upgrade
+    - item_name: Wall beast
+      relationship: alternative
+    - item_name: Mirror shield
+      relationship: alternative
+    - item_name: Reinforced goggles
+      relationship: alternative
+  market_strategy:
+    notes:
+      - "summary: \"Slayer protection helmet with low GE volume but consistent demand for slayer helm crafting.\""
+      - "buy_strategy: \"Buy from any Slayer Master shop for 650 gp when restocked; resell on GE around 1k for thin margin.\""
+      - "sell_strategy: \"Sell to slayer helm crafters; volume is thin but limit is only 125 per 4h.\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Required for wall beast slayer tasks — every slayer veteran will buy one eventually."
+    - "Component of the slayer helmet recipe (54 Crafting); often bulk-bought during ironman skilling."
+    - "Slayer Master shop sells for 650 gp — beat the GE price by sourcing directly when grinding tasks."
+  history:
+    - date: "2005-03-14"
+      description: "Released as protection against wall beasts in the Lumbridge Swamp Caves."
+  properties:
+    release_date: "2005-03-14"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+  drop_table: []
+  special_attack:
+    has_special: false
+  charges:
+    has_charges: false
+  potion:
+    is_potion: false
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

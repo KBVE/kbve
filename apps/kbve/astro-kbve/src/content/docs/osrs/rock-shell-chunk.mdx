@@ -12,9 +12,57 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 11000
-  about: "Rock-shell chunk is a members-only item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: rock-shell
+    tier: mid
+  properties:
+    release_date: "2005-08-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    alchable: true
+  drop_table:
+    sources:
+      - source: Giant Rock Crab
+        quantity: "1"
+        rarity: 2/128
+      - source: King Sand Crab
+        quantity: "1"
+        rarity: 2/128
+  related_items:
+    - item_name: Rock-shell helm
+      slug: rock-shell-helm
+      relationship: product
+      description: Crafted via Skulgrimen using the chunk as the head piece.
+    - item_name: Rock-shell plate
+      slug: rock-shell-plate
+      relationship: set-piece
+      description: Body slot piece in the same Fremennik armour set.
+    - item_name: Rock-shell legs
+      slug: rock-shell-legs
+      relationship: set-piece
+      description: Leg piece that completes the rock-shell set.
+  about: "Rock-shell chunk is a Fremennik crafting component dropped by Giant Rock Crabs in the Waterbirth Island Dungeon and by King Sand Crabs in the Catacombs of Kourend. Players bring chunks to Skulgrimen along with a dagannoth hide and 5,000 coins to receive a rock-shell helm. It is also accepted by Askeladden as a Fremennik favour token."
+  market_strategy:
+    notes:
+      - "Steady demand from Fremennik armour crafters and ironmen."
+      - "Supply depends on Wilderness and Kourend slayer engagement."
+      - "Tight stat profile keeps GE price volatile day to day."
+  trading_tips:
+    - Stock up before Fremennik themed leagues or quest reworks.
+    - Watch slayer task popularity for crab assignments.
+    - Sell helms directly if margin beats the chunk markup.
+  history:
+    - date: "2005-08-01"
+      description: "Added with the Waterbirth Island Fremennik content patch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

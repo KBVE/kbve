@@ -12,23 +12,67 @@ osrs:
   lowalch: 3
   highalch: 5
   limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  recipes:
+    - skill: herblore
+      level: 3
+      xp: 25
+      materials:
+        - item_name: Guam potion (unf)
+          quantity: 1
+        - item_name: Eye of newt
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Boosts Attack by 3 + 10% of current Attack level."
+        duration: 60
   related_items:
-    - item_id: 121
-      item_name: Attack potion(3)
+    - item_name: Attack potion(3)
       slug: attack-potion-3
       relationship: variant
-      description: 3-dose version
-    - item_id: 125
-      item_name: Attack potion(1)
+      description: 3-dose form yielded by Herblore.
+    - item_name: Attack potion(1)
       slug: attack-potion-1
       relationship: variant
-      description: 1-dose version
+      description: 1-dose form.
+    - item_name: Super attack(4)
+      slug: super-attack-4
+      relationship: upgrade
+      description: Stronger Attack-boost potion.
   about: |-
-    > _"2 doses of Attack potion."_
+    The Attack potion(2) is a 2-dose Herblore potion that temporarily boosts the Attack skill by 3 + 10% of the player's current Attack level. It is the first potion available to Herblore trainees.
 
-    A 2-dose attack potion. Boosts Attack by 3 + 10% of current level.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Crafted from a Guam potion (unf) and an eye of newt at level 3 Herblore for 25 XP, the 3-dose form is later decanted into 1, 2, or 4-dose vials. Boosts decay at 1 level per minute (90 seconds with the Preserve prayer), making it a low-tier but accessible combat aid for early game.
+  market_strategy:
+    notes:
+      - "Mostly used as Herblore training output."
+      - "Decanting demand creates baseline buy orders."
+      - "Low alch margin, high volume."
+      - "Buy limit 2,000 supports bulk decant flips."
+  trading_tips:
+    - Decant 3-dose into 2-dose for tiny consistent margins.
+    - Avoid stockpiling — supply ceiling is high.
+  history:
+    - date: "2002-02-27"
+      description: "Added with the launch of Herblore."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

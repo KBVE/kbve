@@ -12,9 +12,54 @@ osrs:
   lowalch: 18
   highalch: 27
   limit: 13000
-  about: "Mushroom & onion is a members-only item in Old School RuneScape. High alchemy value: 27 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Mushroom & onion is a members-only Cooking dish in Old School RuneScape, made at level 57 Cooking by combining a fried mushroom with a fried onion. It heals 11 Hitpoints and is a topping for the mushroom potato. High alchemy value: 27 coins. Grand Exchange buy limit: 13,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-01-30"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.5
+  recipes:
+    - item_name: "Mushroom & onion"
+      skill: "Cooking"
+      level: 57
+      xp: 0
+      materials:
+        - item_name: "Fried mushrooms"
+          quantity: 1
+        - item_name: "Fried onion"
+          quantity: 1
+      tools: []
+      output_quantity: 1
+    - item_name: "Mushroom potato"
+      skill: "Cooking"
+      level: 64
+      xp: 0
+      materials:
+        - item_name: "Mushroom & onion"
+          quantity: 1
+        - item_name: "Potato with butter"
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Pick up cheap stacks for mushroom potato recipe runs; daily volume is thin so place limit buys.\""
+      - "sell_strategy: \"Sell into mushroom potato Cooking trainers; price tends to drift up after meta updates.\""
+      - "price_trend: \"stable\""
+      - "investment_potential: \"low\""
+  trading_tips:
+    - "Cook personally if you have 57 Cooking and a stockpile of fried mushrooms + onions."
+    - "Volume is low; expect slow GE fills on either side of the book."
+    - "Pair sales with potato with butter listings to catch chained recipe buyers."
+  history:
+    - date: "2006-01-30"
+      description: "Released as part of the Gnome Restaurant menu expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

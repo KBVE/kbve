@@ -12,9 +12,57 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 125
-  about: "Snowy knight (item) is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Release
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Butterfly jar
+      slug: butterfly-jar
+      relationship: component
+      description: Container required to hold a caught butterfly
+    - item_name: Butterfly net
+      slug: butterfly-net
+      relationship: component
+      description: Hunter tool used to catch butterflies
+    - item_name: Magic butterfly net
+      slug: magic-butterfly-net
+      relationship: alternative
+      description: Faster Hunter net for butterfly hunting
+    - item_name: Snowy knight mix (2)
+      slug: snowy-knight-mix-2
+      relationship: product
+      description: Barbarian Herblore mix made from the released butterfly
+  about: "Snowy knight (item) is a jarred snowy knight butterfly caught with a butterfly net and butterfly jar at Weiss, the Rellekka Hunter area, outside the Farming Guild, or Mons Gratia. Catching requires level 35 Hunter, or level 45 to net them barehanded, granting 44 Hunter XP per success. Released from the jar, the butterfly restores 15 hitpoints to the user or another player in a multi-combat zone, and it can be combined with raw hunter meat and a pestle and mortar to make snowy knight mix (2) for Barbarian Herblore training."
+  market_strategy:
+    notes:
+      - "Tight buy limit of 125 per 4 hours throttles flipping volume"
+      - "Demand comes from PvM healers and Barbarian Herblore trainers"
+      - "Supply depends on active hunters at Weiss and Rellekka"
+      - "High alch returns only 30 coins so alching is unprofitable"
+      - "Spread can widen quickly outside peak hours"
+  trading_tips:
+    - Stockpile when Hunter event boosts active player counts at Weiss
+    - Pair with raw hunter meat purchases for combo Herblore flips
+  history:
+    - date: "2006-11-21"
+      description: "Released alongside the Hunter skill."
+    - date: "2024-04-03"
+      description: "Group Ironman item sharing for snowy knights fixed."
+    - date: "2024-09-25"
+      description: "Inventory icon adjusted for visual clarity."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

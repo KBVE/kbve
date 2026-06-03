@@ -12,9 +12,75 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-7 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: team cape
+    tier: low
+  properties:
+    release_date: "2005-02-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weight: 0.453
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 0
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Neil's Wilderness Cape Shop
+      location: Bandit Camp, Wilderness
+      price: 50
+      currency: Coins
+      stock: 30
+  related_items:
+    - item_name: Team-1 cape
+      slug: team-1-cape
+      relationship: variant
+      description: Same shape, different team colours.
+    - item_name: Team-50 cape
+      slug: team-50-cape
+      relationship: variant
+      description: Same shape, different team colours.
+    - item_name: Team cape zero
+      slug: team-cape-zero
+      relationship: variant
+      description: Special team cape variant.
+  about: "Team-7 cape is one of fifty colour-coded team capes purchased from Neil at Bandit Camp for 50 coins. When two players wear the same team cape they appear as allies on the minimap and cannot left-click attack each other, making team capes the easiest way to organise PvP groups without a clan."
+  market_strategy:
+    notes:
+      - "Supply is unlimited via Neil's stock; the GE price tracks shop-buy at 50 coins."
+      - "Demand spikes briefly during clan event seasons."
+      - "GE limit of 150 makes flipping pointless versus shop-running."
+  trading_tips:
+    - Buy from Neil rather than GE for the cheapest route.
+    - High alch return is positive but not worth a nature rune burn.
+  history:
+    - date: "2005-02-22"
+      description: "Released alongside the rest of the Team-1 through Team-50 cape series."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

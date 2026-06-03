@@ -1,6 +1,6 @@
 ---
 title: Mithril claws | OSRS Price Data
-description: "Mithril claws: A set of fighting claws.. High alch: 285 GP, GE limit: 125."
+description: "Mithril claws is a P2P two-handed claw weapon requiring 20 Attack. High alch: 285 GP, GE limit: 125."
 osrs:
   id: 3099
   name: Mithril claws
@@ -12,9 +12,106 @@ osrs:
   lowalch: 190
   highalch: 285
   limit: 125
-  about: "Mithril claws is a members-only item in Old School RuneScape. High alchemy value: 285 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  weight: 0.907
+  properties:
+    release_date: "2004-08-09"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+  material:
+    type: metal
+    tier: mithril
+    category: weapon
+  equipment:
+    slot: weapon
+    weapon_type: claws
+    attack_speed: 4
+    requirements:
+      attack: 20
+    attack_bonus:
+      stab: 11
+      slash: 16
+      crush: -4
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 4
+      slash: 8
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 17
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    has_special: false
+  recipes:
+    - skill: "Smithing"
+      level: 63
+      xp: 100
+      output_quantity: 1
+      item_name: "Mithril claws"
+      tools:
+        - "Hammer"
+        - "Anvil"
+      inputs:
+        - item_name: "Mithril bar"
+          quantity: 2
+      notes: "Requires completion of Death Plateau."
+  related_items:
+    - item_id: 3097
+      item_name: Steel claws
+      slug: steel-claws
+      relationship: alternative
+      description: "Lower-tier claw weapon"
+    - item_id: 3101
+      item_name: Adamant claws
+      slug: adamant-claws
+      relationship: alternative
+      description: "Higher-tier claw weapon"
+    - item_id: 3103
+      item_name: Rune claws
+      slug: rune-claws
+      relationship: alternative
+      description: "F2P-cap claw weapon"
+    - item_id: 13652
+      item_name: Dragon claws
+      slug: dragon-claws
+      relationship: alternative
+      description: "Best-in-slot offensive claw"
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Buy in bulk from Smithers training 63+ Smithing.\""
+      - "sell_strategy: \"Sell to mid-level slayers / quest cape pushers.\""
+      - "price_trend: \"Tracks mithril bar prices.\""
+      - "profit_margin: \"Crafting at 63 Smithing currently loses GP versus bar value.\""
+  trading_tips:
+    - "Death Plateau is the only quest gate for crafting claws."
+    - "Compare against rune scimitar (lower attack req) for budget melee."
+    - "Mithril claws are rarely used in PvM; mostly Smithing XP filler."
+  history:
+    - date: "2004-08-09"
+      update: "Death Plateau release"
+      description: "Mithril claws added alongside the claw weapon line."
+  about: |-
+    Mithril claws are a mid-tier two-handed claw weapon used for transitional melee training.
+
+    | Stat | Value |
+    |------|-------|
+    | Attack req | 20 |
+    | Strength | +17 |
+    | Slash | +16 |
+    | Speed | 4 ticks (2.4s) |
+    | Smithing req | 63 (100 XP, 2 mithril bars) |
+
+    Outclassed by mithril scimitar for accuracy and by rune claws for slash damage.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,33 +12,41 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 8
+  properties:
+    release_date: '2019-04-11'
+    quest_item: false
+    destroy: Drop
   equipment:
     slot: head
-    type: ranged_armour
+    weapon_type: ranged_armour
+    attack_speed: 1
     requirements:
       ranged: 40
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -1
-      attack_ranged: 4
-      defence_stab: 4
-      defence_slash: 7
-      defence_crush: 8
-      defence_magic: 4
-      defence_ranged: 6
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -1
+      ranged: 4
+    defence_bonus:
+      stab: 4
+      slash: 7
+      crush: 8
+      magic: 4
+      ranged: 6
+    other_bonus:
       melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
     weight: 0.9
-  obtaining:
-    methods:
-      - source: Reward casket (elite)
-        drop_rate: 1/14,662.5
-      - source: Reward casket (master)
-        drop_rate: 1/13,616
+  drop_table:
+    - source: Reward casket (elite)
+      quantity: "1"
+      rarity: 1/14,662.5
+    - source: Reward casket (master)
+      quantity: "1"
+      rarity: 1/13,616
   related_items:
     - item_id: 1169
       item_name: Coif
@@ -90,16 +98,19 @@ osrs:
     Stats are identical to the standard coif. The gilded version is purely cosmetic and significantly more expensive due to its rarity from Treasure Trails.
   market_strategy:
     notes:
-      - Fashionscape / cosmetic flex
-      - Elite clue reward rarity
-      - Collection log completionists
-      - Full gilded d'hide set completion
-      - Identical stats to standard coif
-      - Value is purely cosmetic rarity
-      - Completes the gilded d'hide set with body, chaps, and vambraces
-      - Low trade volume, watch for manipulation
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Fashionscape / cosmetic flex"
+      - "Elite clue reward rarity"
+      - "Collection log completionists"
+      - "Full gilded d'hide set completion"
+      - "Identical stats to standard coif"
+      - "Value is purely cosmetic rarity"
+      - "Completes the gilded d'hide set with body, chaps, and vambraces"
+      - "Low trade volume, watch for manipulation"
+  history:
+    - date: '2019-04-11'
+      description: Item released as part of the gilded dragonhide armour set from Treasure Trails.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

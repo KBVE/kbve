@@ -12,9 +12,59 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Mummy's head is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Mummy's head is a cosmetic head slot piece of the mummy outfit, rewarded exclusively from master-level Treasure Trails reward caskets."
+  equipment:
+    slot: head
+  drop_table:
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: "1/12,765"
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_name: Mummy's body
+      relationship: set-piece
+    - item_name: Mummy's legs
+      relationship: set-piece
+    - item_name: Mummy's hands
+      relationship: set-piece
+    - item_name: Mummy's feet
+      relationship: set-piece
+  market_strategy:
+    notes:
+      - "Cosmetic-only master clue reward — value is pure fashionscape."
+      - "GE limit of 4 per 4h plus low daily volume keeps liquidity thin and price volatile."
+      - "Demand spikes around clue scroll competitions and PvP cosmetic events."
+  trading_tips:
+    - "Buy individual pieces during clue oversupply, sell as a complete outfit during fashionscape hype."
+    - "Monitor master clue completion rates and active gilded pieces on the GE."
+    - "Long-hold cosmetic — limited supply since only master clues produce it."
+  history:
+    - date: "2016-07-06"
+      description: "Mummy's head added with the Treasure Trail Expansion update."
+  properties:
+    release_date: "2016-07-06"
+    update: "Treasure Trail Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

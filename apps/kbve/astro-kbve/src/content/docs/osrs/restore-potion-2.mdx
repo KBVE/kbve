@@ -12,23 +12,66 @@ osrs:
   lowalch: 26
   highalch: 39
   limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores reduced Attack, Strength, Defence, Ranged, and Magic by 10 + 30% of base level per skill."
+        duration: 0
+  drop_table:
+    sources:
+      - source: Dagannoth Rex
+        quantity: "1"
+        rarity: 1/128
+      - source: Jekyll and Hyde (random event)
+        quantity: "1"
+        rarity: Common
   related_items:
-    - item_id: 127
-      item_name: Restore potion(3)
+    - item_name: Restore potion(3)
       slug: restore-potion-3
       relationship: variant
-      description: 3-dose version
-    - item_id: 131
-      item_name: Restore potion(1)
+      description: 3-dose version of the same potion.
+    - item_name: Restore potion(1)
       slug: restore-potion-1
       relationship: variant
-      description: 1-dose version
-  about: |-
-    > _"2 doses of restore potion."_
-
-    A 2-dose restore potion. Restores reduced combat stats by 10 + 30% of max level.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: 1-dose version of the same potion.
+    - item_name: Super restore
+      slug: super-restore-4
+      relationship: upgrade
+      description: Enhanced potion that also restores Prayer and skills like Agility.
+    - item_name: Restore mix
+      slug: restore-mix-2
+      relationship: variant
+      description: Barbarian Herblore variant providing healing alongside the restore effect.
+  about: "Restore potion (2) is the two-dose stage of the restore potion line, brewed via Herblore by adding a harralander to vial of water then adding red spider's eggs. Drunk to recover temporarily reduced combat stats but does not restore Prayer."
+  market_strategy:
+    notes:
+      - "Cheap two-dose intermediate; usually decanted up to (3) or (4)"
+      - "Dagannoth Rex drop trickles supply alongside player brewers"
+      - "Useful component for Barbarian Herblore restore mix decanting"
+  trading_tips:
+    - Watch decanter price spreads against (3) and (4) variants
+    - Flip during Herblore double XP weekends when brewers offload doses
+  history:
+    - date: "2002-02-27"
+      description: "Restore potion line released with Herblore."
+    - date: "2004-03-29"
+      description: "Four-dose variant became permanently available with the RuneScape 2 launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

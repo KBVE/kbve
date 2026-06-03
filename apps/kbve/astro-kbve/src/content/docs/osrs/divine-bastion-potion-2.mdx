@@ -1,6 +1,6 @@
 ---
 title: Divine bastion potion(2) | OSRS Price Data
-description: "Divine bastion potion(2): 2 doses of divine bastion potion.. High alch: 216 GP, GE limit: 2,000."
+description: "Divine bastion potion(2): 2 doses of divine bastion potion. High alch: 216 GP, GE limit: 2,000."
 osrs:
   id: 24641
   name: Divine bastion potion(2)
@@ -12,9 +12,76 @@ osrs:
   lowalch: 144
   highalch: 216
   limit: 2000
-  about: "Divine bastion potion(2) is a members-only item in Old School RuneScape. High alchemy value: 216 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2020-04-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.06
+    options:
+      - Drink
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 86
+      xp: 1.0
+      materials:
+        - item_name: Bastion potion(2)
+          quantity: 1
+        - item_name: Crystal dust
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Boosts Ranged by 4 + 10% of the player's current Ranged level."
+        duration: 300
+      - description: "Boosts Defence by 5 + 15% of the player's current Defence level."
+        duration: 300
+      - description: "Prevents Ranged and Defence from draining below the boosted level for 5 minutes."
+        duration: 300
+      - description: "Deals 10 hitpoints of damage on consumption - player must have more than 10 HP to drink."
+        duration: 0
+  related_items:
+    - item_name: Divine bastion potion(4)
+      slug: divine-bastion-potion-4
+      relationship: variant
+      description: "Four-dose variant of the same potion."
+    - item_name: Divine bastion potion(3)
+      slug: divine-bastion-potion-3
+      relationship: variant
+      description: "Three-dose variant of the same potion."
+    - item_name: Divine bastion potion(1)
+      slug: divine-bastion-potion-1
+      relationship: variant
+      description: "Single-dose variant of the same potion."
+    - item_name: Bastion potion(2)
+      slug: bastion-potion-2
+      relationship: component
+      description: "Base bastion potion combined with crystal dust to create the divine version."
+    - item_name: Crystal dust
+      slug: crystal-dust
+      relationship: component
+      description: "Crushed crystal shard used to convert bastion potion into its divine form."
+  about: "Divine bastion potion(2) is a two-dose ranged-and-defence boosting potion made at 86 Herblore by adding crystal dust to a bastion potion. Each dose boosts Ranged by 4 + 10% and Defence by 5 + 15% of the player's current level, and prevents those stats from draining below the boost for five minutes. Drinking costs the player 10 hitpoints, making it a niche but powerful sustain option for ranged bossing and Wilderness PvP setups."
+  market_strategy:
+    notes:
+      - "Demand is driven by ranged bossing (Vorkath, ToA, ToB) and Wilderness PvP, where the no-drain effect is valuable."
+      - "Crystal dust supply (linked to Prif crystal shard income) caps how cheaply divine potions can be produced."
+      - "2-dose variant is the typical decanting middle ground - watch dose arbitrage vs (1) and (4) prices."
+  trading_tips:
+    - "Compare 2x price to a (4) - decanting profit exists when doses are mispriced."
+    - "Track crystal shard / dust prices to gauge Herblore floor."
+    - "10 HP self-damage limits casual users to a niche audience - flips are best during boss-week spikes."
+  history:
+    - date: "2020-04-30"
+      description: "Released alongside the divine potion overhaul tied to crystal shard sinks."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

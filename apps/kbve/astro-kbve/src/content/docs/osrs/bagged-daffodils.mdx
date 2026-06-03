@@ -1,6 +1,6 @@
 ---
 title: Bagged daffodils | OSRS Price Data
-description: "Bagged daffodils: You can plant this in your garden.. High alch: 6,000 GP, GE limit: 10,000."
+description: "Bagged daffodils: You can plant this in your garden. High alch: 6,000 GP, GE limit: 10,000."
 osrs:
   id: 8453
   name: Bagged daffodils
@@ -12,9 +12,61 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10000
-  about: "Bagged daffodils is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: poh-decoration
+    tier: mid-high
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Empty
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: "Garden Supplier"
+      location: "Falador"
+      price: 10000
+      currency: "Coins"
+      stock: 10
+    - shop_name: "Farming Guild garden shop"
+      location: "Farming Guild (Kebos Lowlands)"
+      price: 10000
+      currency: "Coins"
+      stock: 10
+  related_items:
+    - item_name: "Bagged rose"
+      slug: "bagged-rose"
+      relationship: variant
+      description: "Alternative POH flower decoration."
+    - item_name: "Bagged plant 1"
+      slug: "bagged-plant-1"
+      relationship: variant
+      description: "Lower-tier POH garden decoration."
+    - item_name: "Watering can"
+      slug: "watering-can"
+      relationship: component
+      description: "Required, filled, to plant the daffodils in a flower patch."
+  about: "Bagged daffodils are a player-owned house garden decoration purchased from the Garden Supplier in Falador or the Farming Guild for 10,000 coins. Planting them in the formal garden flower patch requires 70+ Construction and a filled watering can in the inventory, granting 100 Construction xp and 100 Farming xp."
+  market_strategy:
+    notes:
+      - "Steady shop supply at 10,000 gp caps the upside — GE price tracks shop price closely."
+      - "Demand is construction-driven and event-spiked (Falador house competitions, league hall projects)."
+      - "Buy limit 10,000 supports large flips, but margins above shop price are thin."
+  trading_tips:
+    - "If GE price drifts above 10k, restock from Falador — fixed price arbitrage."
+    - "Watch double Construction xp weekends for short demand spikes."
+    - "Free shop access means hard ceiling near 10k+overhead; do not chase momentum higher."
+  history:
+    - date: "2006-05-31"
+      description: "Added with the Player-Owned House garden expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

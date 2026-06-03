@@ -12,23 +12,73 @@ osrs:
   lowalch: 86
   highalch: 129
   limit: 2000
+  about: "Two-dose Super antipoison potion that cures poison and grants 6 minutes of poison immunity per dose; reduces venom to poison before clearing it."
+  potion:
+    doses: 2
+    effects:
+      - description: "Cures poison and grants 6 minutes of poison immunity per dose."
+        duration: 360
+      - description: "Reduces Zulrah-style venom to poison before clearing it."
+  recipes:
+    - skill: Herblore
+      level: 48
+      xp: 106.3
+      tools:
+        - Pestle and mortar
+      materials:
+        - item_name: Irit potion (unf)
+          quantity: 1
+        - item_name: Unicorn horn dust
+          quantity: 1
+      output_quantity: 1
+      notes: "Produces Superantipoison(3); 2-dose form is intermediate decanting."
   related_items:
-    - item_id: 181
-      item_name: Superantipoison(3)
-      slug: superantipoison-3
+    - item_name: Superantipoison(1)
       relationship: variant
-      description: 3-dose version
-    - item_id: 185
-      item_name: Superantipoison(1)
-      slug: superantipoison-1
+    - item_name: Superantipoison(3)
       relationship: variant
-      description: 1-dose version
-  about: |-
-    > _"2 doses of super antipoison potion."_
-
-    A 2-dose superantipoison. Cures poison and grants 6 minutes immunity.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Superantipoison(4)
+      relationship: variant
+    - item_name: Antipoison(2)
+      relationship: downgrade
+    - item_name: Antidote+(2)
+      relationship: upgrade
+  market_strategy:
+    notes:
+      - "Mid-tier antipoison; usually pricier per dose than Antidote++ during peak Zulrah hours."
+      - "Decanting service profit/loss varies — compare 2-dose GE price vs 1.5x the 4-dose price."
+      - "GE buy limit of 2,000 supports moderate flipping volume."
+  trading_tips:
+    - "Use 4-dose pricing as the baseline; 2-dose often trades at a small per-dose premium."
+    - "Stock up before Slayer tasks against poisonous monsters or new poison content drops."
+    - "Empty option lets you reclaim the vial — track vial price for full margin math."
+  history:
+    - date: "2002-02-27"
+      description: "Superantipoison line released."
+    - date: "2004-03-29"
+      description: "4-dose variant became permanently available with the RuneScape 2 launch."
+    - date: "2004-10-26"
+      description: "Empty option added to all potion doses."
+    - date: "2016-04-07"
+      description: "Drinking any kind of antipoison no longer decreases your poison immunity timer."
+  properties:
+    release_date: "2002-02-27"
+    update: "Herblore release"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.04
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

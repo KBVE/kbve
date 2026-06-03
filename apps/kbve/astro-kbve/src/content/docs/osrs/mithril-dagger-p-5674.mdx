@@ -12,9 +12,78 @@ osrs:
   lowalch: 130
   highalch: 195
   limit: 125
-  about: "Mithril dagger(p+) is a members-only item in Old School RuneScape. High alchemy value: 195 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: mithril
+    tier: mid
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.396
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: Drop
+  equipment:
+    slot: weapon
+    weapon_type: dagger
+    attack_speed: 4
+    weight: 0.396
+    requirements:
+      attack: 20
+    attack_bonus:
+      stab: 11
+      slash: 5
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
+      strength: 10
+      prayer: 0
+  related_items:
+    - item_name: Mithril dagger
+      slug: mithril-dagger
+      relationship: variant
+      description: Unpoisoned base variant.
+    - item_name: Mithril dagger(p)
+      slug: mithril-dagger-p-base
+      relationship: variant
+      description: Standard poisoned variant.
+    - item_name: Mithril dagger(p++)
+      slug: mithril-dagger-p-plus-plus
+      relationship: upgrade
+      description: Stronger poisoned variant.
+  about: |-
+    The Mithril dagger(p+) is a stab weapon enhanced with extra-strength weapon poison. It requires 20 Attack to wield and deals slightly more poison damage than a standard poisoned dagger, applying its toxin on successful hits.
+
+    The dagger weighs 0.396 kg and shares the same base attack stats as the unpoisoned variant — +11 Stab, +5 Slash, +10 Strength, and a 4-tick attack speed. Its low cost and quick speed make it a budget-friendly stab option for low-level combat training.
+  market_strategy:
+    notes:
+      - "Cheap entry stab weapon with poison support."
+      - "Demand tied to low-level PvP and slayer trainers."
+      - "Buy near high alch value as a price floor."
+      - "Limit 125 per 4h slows bulk flipping."
+  trading_tips:
+    - Sell to mid-level pures grinding combat XP.
+    - Stock up during ironman content updates that funnel new accounts into stab training.
+  history:
+    - date: "2001-01-04"
+      description: "Released with the original RuneScape beta launch."
+    - date: "2006-11-28"
+      description: "Poisoned variant suffix changed from (+) to (p+)."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

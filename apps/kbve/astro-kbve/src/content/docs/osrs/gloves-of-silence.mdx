@@ -12,9 +12,83 @@ osrs:
   lowalch: 240
   highalch: 360
   limit: 8000
-  about: "Gloves of silence is a members-only item in Old School RuneScape. High alchemy value: 360 coins. Grand Exchange buy limit: 8,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options: []
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: hands
+    weapon_type: null
+    attack_speed: null
+    weight: 0.226
+    requirements:
+      hunter: 54
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Dark kebbit fur
+          quantity: 2
+        - item_name: Coins
+          quantity: 600
+      tools:
+        - Fancy Clothes Store tailor
+      output_quantity: 1
+  related_items:
+    - item_name: Dark kebbit fur
+      slug: dark-kebbit-fur
+      relationship: component
+      description: Two furs required at the Fancy Clothes Store to tailor a fresh pair.
+    - item_name: Spottier cape
+      slug: spottier-cape
+      relationship: alternative
+      description: Other dark kebbit fur tailoring product from the same falconry catch.
+  about: "The gloves of silence are tailored from two dark kebbit furs by the Fancy Clothes Store seamstress for 600 coins, requiring 54 Hunter to equip. They grant a 5% boost to pickpocketing success but only have 62 failure charges before they wear out. Players with the Ardougne hard diary find them redundant because the diary's pickpocketing bonus overrides the gloves entirely."
+  market_strategy:
+    notes:
+      - "Buy limit of 8,000 makes mass production viable when dark kebbit fur prices stay below the price floor."
+      - "Falconry hunters keep raw supply tight, so glove prices track kebbit fur closely."
+      - "Demand is bounded by the Ardougne hard diary, which makes them obsolete for many mains."
+  trading_tips:
+    - Track dark kebbit fur GE price; if 2 furs + 600 gp under glove price, tailor and sell.
+    - List slightly under GE mid since pickpocketers grab cheapest pair first.
+    - Avoid stockpiling more than a few hundred; thin volume swings the price.
+  history:
+    - date: "2006-11-21"
+      description: "Released with the Hunter expansion that introduced the falconry catch and Fancy Clothes Store tailoring."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

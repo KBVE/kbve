@@ -12,9 +12,45 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Angler's paint is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: false
+    destroy: Drop
+  drop_table:
+    sources:
+      - source: Deep sea trawling
+        quantity: "1"
+        rarity: 1/18,000
+      - source: Mixed shoals (Shimmering, Glistening, Vibrant)
+        quantity: "1"
+        rarity: 1/16,200
+  about: |-
+    Angler's paint is a salmon pink cosmetic paint introduced with the Sailing skill release. It is used at the boat schematics board in the Shipyard to recolor the trim of skiffs and sloops.
+
+    The paint drops as a rare reward from deep sea trawling (1/18,000) and from mixed shoals fishing (1/16,200). Rod fishing and crewmate-driven catches cannot produce it. Players can also trade five matching paints to Trader Stan in exchange for merchant's paint, opening cosmetic palettes for higher-tier vessels.
+  market_strategy:
+    notes:
+      - "Cosmetic-only; demand purely vanity-driven."
+      - "Supply gated by Sailing playtime, so prices stay volatile."
+      - "High meta-game item early in Sailing's lifecycle."
+      - "Long-term value depends on Jagex adding new boat skins."
+  trading_tips:
+    - Watch for blog posts teasing boat customization updates.
+    - Sell during Sailing content drops when new boats appear.
+  history:
+    - date: "2025-11-19"
+      description: "Released with the Sailing skill launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

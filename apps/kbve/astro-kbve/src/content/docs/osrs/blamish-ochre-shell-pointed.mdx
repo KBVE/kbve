@@ -12,9 +12,69 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 13000
-  about: "Blamish ochre shell (pointed) is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: shell
+    tier: low
+  properties:
+    release_date: "2004-10-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Ochre Blamish Snail
+        quantity: "1"
+        rarity: Always
+  recipes:
+    - skill: crafting
+      level: 15
+      xp: 32.5
+      materials:
+        - item_name: Blamish ochre shell (pointed)
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+  related_items:
+    - item_name: Pointed ochre snelm
+      slug: pointed-ochre-snelm
+      relationship: product
+      description: Chiseled from this shell at 15 Crafting
+    - item_name: Blamish myre shell (pointed)
+      slug: blamish-myre-shell-pointed
+      relationship: variant
+      description: Myre coloured variant
+    - item_name: Blamish red shell (pointed)
+      slug: blamish-red-shell-pointed
+      relationship: variant
+      description: Red coloured variant
+    - item_name: Blamish ochre shell (round)
+      slug: blamish-ochre-shell-round
+      relationship: variant
+      description: Round shaped ochre variant
+  about: "Blamish ochre shell (pointed) is a guaranteed drop from Pointed Ochre Blamish Snails in Mort Myre Swamp. Players use a chisel on it at 15 Crafting to make a pointed ochre snelm for 32.5 Crafting xp, making it a low-tier crafting material primarily collected during early Morytania content."
+  market_strategy:
+    notes:
+      - "Supply trickles in from Mort Myre snail killers; demand is mostly snelm crafters and ironmen who self-supply."
+      - "Heavy 10kg weight discourages stockpiling outside the bank."
+      - "Buy limit of 13,000 per 4h is rarely touched given low volume."
+  trading_tips:
+    - High alch at 90 gp sets a soft floor; below alch + nature rune cost is risk-free.
+    - Mort Myre snail killing is unpopular so price can swing on small supply changes.
+    - Bulk listings may take days to fill — use patient limit orders.
+  history:
+    - date: "2004-10-14"
+      description: "Released during the Morytania Expansion update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

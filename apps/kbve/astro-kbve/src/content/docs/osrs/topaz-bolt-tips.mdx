@@ -12,9 +12,89 @@ osrs:
   lowalch: 5
   highalch: 7
   limit: 11000
-  about: "Topaz bolt tips is a members-only item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Topaz bolt tips is a members-only item in Old School RuneScape. Used to fletch topaz bolts. High alchemy value: 7 coins. Grand Exchange buy limit: 11,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-31"
+    weight: 0
+    tradeable: true
+    equipable: false
+    stackable: true
+    quest_item: false
+    destroy: "Drop"
+  material:
+    type: ammunition
+    tier: topaz
+  recipes:
+    - item_name: "Topaz bolt tips"
+      skill: "Fletching"
+      level_required: 48
+      xp: 3.9
+      tools:
+        - "Chisel"
+      materials:
+        - item_name: "Red topaz"
+          quantity: 1
+      output_quantity: 12
+      notes: "Cut a red topaz with a chisel to yield 12 bolt tips."
+    - item_name: "Topaz bolts"
+      skill: "Fletching"
+      level_required: 48
+      xp: 4
+      tools:
+        - "Hands"
+      materials:
+        - item_name: "Topaz bolt tips"
+          quantity: 10
+        - item_name: "Steel bolts"
+          quantity: 10
+      output_quantity: 10
+      notes: "Attach 10 tips to 10 steel bolts."
+    - item_name: "Topaz dragon bolts"
+      skill: "Fletching"
+      level_required: 84
+      xp: 0
+      tools:
+        - "Hands"
+      materials:
+        - item_name: "Topaz bolt tips"
+          quantity: 10
+        - item_name: "Dragon bolts"
+          quantity: 10
+      output_quantity: 10
+      notes: "Attach tips to dragon bolts."
+  relationships:
+    - item_name: "Red topaz"
+      relationship: component
+      notes: "Cut with a chisel to produce 12 bolt tips."
+    - item_name: "Topaz bolts"
+      relationship: component
+      notes: "Attached to steel bolts."
+    - item_name: "Topaz dragon bolts"
+      relationship: component
+      notes: "Attached to dragon bolts."
+    - item_name: "Sapphire bolt tips"
+      relationship: alternative
+      notes: "Lower-tier gem bolt tip variant."
+    - item_name: "Emerald bolt tips"
+      relationship: alternative
+      notes: "Adjacent-tier gem bolt tip variant."
+  history:
+    - date: "2006-07-31"
+      description: "Released with the Crossbows update."
+    - date: "2007-01-29"
+      description: "Vendor value reduced from 50 to 13 coins."
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Buy in bulk during low-volume periods; tips track red topaz cost.\""
+      - "sell_strategy: \"Fletch onto bolts for finished-product margin or sell raw to Fletching levelers.\""
+      - "profit_potential: \"Low per unit but high turnover; healthy daily volume.\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Daily volume around 80k — highly liquid."
+    - "Price ties closely to red topaz GE price."
+    - "Buy limit 11,000 lets sizable flips per cycle."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

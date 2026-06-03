@@ -12,9 +12,98 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 2000
-  about: "Battlemage potion(1) is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: "2018-06-07"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: Drop
+  material:
+    type: potion
+    tier: consumable
+    primary_material: potion
+  potion:
+    type: combat
+    doses: 1
+    description: "Boosts Magic by +4 and Defence by 5 + 15% of current Defence level (rounded down)."
+    duration_minutes: 5
+  recipes:
+    - item_name: Battlemage potion(3)
+      skill: Herblore
+      level: 80
+      xp: 155
+      tools:
+        - Vial
+      materials:
+        - item_id: 22446
+          item_name: Cadantine blood potion (unf)
+          slug: cadantine-blood-potion-unf
+          quantity: 1
+        - item_id: 3138
+          item_name: Potato cactus
+          slug: potato-cactus
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 22452
+      item_name: Battlemage potion(4)
+      slug: battlemage-potion-4
+      relationship: variant
+      description: 4-dose variant.
+    - item_id: 22454
+      item_name: Battlemage potion(3)
+      slug: battlemage-potion-3
+      relationship: variant
+      description: 3-dose variant (Herblore product).
+    - item_id: 22456
+      item_name: Battlemage potion(2)
+      slug: battlemage-potion-2
+      relationship: variant
+      description: 2-dose variant.
+    - item_id: 22446
+      item_name: Cadantine blood potion (unf)
+      slug: cadantine-blood-potion-unf
+      relationship: component
+      description: Unfinished potion base.
+    - item_id: 3138
+      item_name: Potato cactus
+      slug: potato-cactus
+      relationship: component
+      description: Secondary ingredient.
+  about: |-
+    Battlemage potion(1) is a single dose of a combined Magic and Defence boosting potion.
+
+    | Boost | Value |
+    |-------|-------|
+    | Magic | +4 |
+    | Defence | 5 + 15% of Defence level |
+
+    | Requirement | Value |
+    |-------------|-------|
+    | Herblore | 80 (155 XP) |
+
+    Created using cadantine blood potion (unf) + potato cactus.
+
+    Used for:
+    - Theatre of Blood Magic loadouts
+    - PvP magic bursts with defence padding
+    - Slayer hybrid setups
+  market_strategy:
+    notes:
+      - "Demand ties to ToB and PvP magic content"
+      - "Tracks cadantine blood potion + potato cactus cost"
+      - "1-dose has thinner liquidity than 3 or 4-dose"
+  trading_tips:
+    - Smash 4-dose into 1-dose for arbitrage when 4-dose trades cheap per-dose.
+    - GE buy limit 2,000 every 4 hours supports moderate flips.
+    - Watch ToB rotation and PvP event schedule for demand spikes.
+  history:
+    - date: "2018-06-07"
+      description: "Released alongside the Theatre of Blood update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

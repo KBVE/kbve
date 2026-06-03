@@ -1,6 +1,6 @@
 ---
 title: Attack mix(1) | OSRS Price Data
-description: "Attack mix(1): One dose of fishy Attack potion.. High alch: 3 GP, GE limit: 2,000."
+description: "Attack mix(1): One dose of fishy Attack potion. High alch: 3 GP, GE limit: 2,000."
 osrs:
   id: 11431
   name: Attack mix(1)
@@ -12,9 +12,71 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 2000
-  about: "Attack mix(1) is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Attack mix(1) is a single-dose Barbarian Herblore potion that boosts Attack and restores 3 Hitpoints, unlocked after starting Barbarian Herblore training."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: potion
+    tier: common
+    category: potion
+  properties:
+    release_date: "2007-07-03"
+    weight: 0.045
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+  potion:
+    skill: Attack
+    boost_type: stat_boost
+    boost_amount: "3 + 10 percent of current Attack level"
+    duration_seconds: 0
+    doses: 1
+    heals: 3
+    notes: "Boosts Attack and restores 3 Hitpoints per dose. Empties to a vial when fully consumed."
+  recipes:
+    - item_name: Attack mix(1)
+      skill: Herblore
+      level: 4
+      xp: 8
+      tools: []
+      materials:
+        - item_name: Attack potion(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      output_quantity: 2
+      notes: "Requires Barbarian Herblore training. Roe may be substituted for caviar."
+  relationships:
+    - item_name: Attack potion
+      relationship: alternative
+      note: "Standard attack potion with no Hitpoint restore component."
+    - item_name: Caviar
+      relationship: component
+    - item_name: Roe
+      relationship: component
+      note: "Alternative to caviar with the same recipe output."
+    - item_name: Attack mix(2)
+      relationship: variant
+      note: "Two-dose version of the same Barbarian mix potion."
+  market_strategy:
+    notes:
+      - "summary: \"Niche barbarian mix potion; thin daily volume tied to fishing and combat hybrid trainers.\""
+      - "buy_strategy: \"Buy attack potion(2) and caviar separately for the highest crafting margin.\""
+      - "sell_strategy: \"Sell at GE mid-price; volume cap of 2,000 limits flip throughput.\""
+      - "volatility: \"low\""
+  trading_tips:
+    - "Restores 3 Hitpoints per dose, useful for low-level Barbarian Fishing food efficiency."
+    - "Requires Barbarian Herblore training started in the Ancient Cavern."
+    - "Empties to a vial when fully consumed — recycle the vials for Herblore profit."
+  history:
+    - date: "2007-07-03"
+      description: "Attack mix(1) added as part of the Barbarian Herblore mix potion lineup."
+  examine_variants:
+    - context: Inventory
+      text: "One dose of fishy Attack potion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

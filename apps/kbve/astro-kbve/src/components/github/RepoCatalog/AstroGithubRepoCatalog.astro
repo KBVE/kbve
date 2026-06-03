@@ -235,17 +235,27 @@ function shortDate(iso: string): string {
 
 <style>
 	.github-repo-catalog {
-		margin: 3rem 0;
+		margin: 2rem 0;
 		color: var(--sl-color-text, #e6edf3);
+	}
+	@media (min-width: 768px) {
+		.github-repo-catalog {
+			margin: 3rem 0;
+		}
 	}
 	.github-repo-catalog__header {
 		text-align: center;
-		margin-bottom: 1.5rem;
+		margin-bottom: 1.25rem;
 	}
 	.github-repo-catalog__header h2 {
-		font-size: 1.75rem;
+		font-size: 1.4rem;
 		font-weight: 700;
 		margin: 0 0 0.25rem;
+	}
+	@media (min-width: 768px) {
+		.github-repo-catalog__header h2 {
+			font-size: 1.75rem;
+		}
 	}
 	.github-repo-catalog__header p {
 		color: var(--sl-color-gray-2, #8b949e);
@@ -287,8 +297,19 @@ function shortDate(iso: string): string {
 		padding: 0;
 		margin: 0;
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-		gap: 0.75rem;
+		grid-template-columns: 1fr;
+		gap: 0.6rem;
+	}
+	@media (min-width: 480px) {
+		.github-repo-catalog__grid {
+			grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+			gap: 0.75rem;
+		}
+	}
+	@media (min-width: 1024px) {
+		.github-repo-catalog__grid {
+			grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		}
 	}
 	.github-repo-catalog__card {
 		background: var(--sl-color-bg-nav, #111);

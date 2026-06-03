@@ -12,9 +12,70 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 70
-  about: "Mystic boots (dusk) is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: enchanted cloth
+    tier: mid
+  properties:
+    release_date: "2019-01-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weight: 0.453
+    requirements:
+      magic: 40
+      defence: 20
+    attack_bonus:
+      magic: 3
+    defence_bonus:
+      magic: 3
+    other_bonus: {}
+  drop_table:
+    sources:
+      - source: Brimstone chest
+        quantity: "1"
+        rarity: 1/1000
+  related_items:
+    - item_name: Mystic boots (dawn)
+      slug: mystic-boots-dawn
+      relationship: variant
+      description: Dawn coloured variant of the mystic boots
+    - item_name: Mystic boots (light)
+      slug: mystic-boots-light
+      relationship: variant
+      description: Light coloured mystic boots
+    - item_name: Mystic boots (dark)
+      slug: mystic-boots-dark
+      relationship: variant
+      description: Dark coloured mystic boots
+    - item_name: Mystic boots
+      slug: mystic-boots
+      relationship: variant
+      description: Standard blue mystic boots
+  about: "Mystic boots (dusk) are members-only cosmetic recolours of mystic boots dropped from the Brimstone chest. They share identical stats with all other mystic boot variants and require 40 Magic and 20 Defence to wear."
+  market_strategy:
+    notes:
+      - "Cosmetic recolour with identical stats to standard mystic boots, so price tracks rarity rather than performance."
+      - "Supply enters the GE only via Brimstone chest drops at 1/1000, so price is driven by Konar slayer participation."
+      - "Buy limit of 70 per 4h keeps flips small but spreads can be wide on dusk and dawn variants."
+  trading_tips:
+    - Watch slayer task popularity for Konar — higher engagement increases brimstone chest opens and supply.
+    - Compare price against other dusk-set pieces (hat, robe top, robe bottoms, gloves) for set arbitrage opportunities.
+    - These move slow; use limit orders rather than instant buys.
+  history:
+    - date: "2019-01-11"
+      description: "Released as part of the Brimstone chest rewards"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

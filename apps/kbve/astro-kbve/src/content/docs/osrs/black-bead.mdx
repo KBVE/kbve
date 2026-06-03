@@ -12,9 +12,58 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 11000
-  about: "Black bead is a free-to-play item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: gem
+    tier: low
+  properties:
+    release_date: "2001-02-16"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: true
+    weight: 0.003
+    options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Imp
+        quantity: "1"
+        rarity: "5/128"
+  related_items:
+    - item_name: Red bead
+      slug: red-bead
+      relationship: component
+      description: One of the four coloured beads required to complete Imp Catcher.
+    - item_name: White bead
+      slug: white-bead
+      relationship: component
+      description: One of the four coloured beads needed to finish Imp Catcher.
+    - item_name: Yellow bead
+      slug: yellow-bead
+      relationship: component
+      description: The final coloured bead in the Imp Catcher set.
+    - item_name: Amulet of accuracy
+      slug: amulet-of-accuracy
+      relationship: product
+      description: Crafted by combining all four coloured beads at the end of Imp Catcher.
+  about: "The black bead is one of the four coloured beads imps drop, gathered together during Imp Catcher to craft the amulet of accuracy. Outside of the quest it has near-zero economic role - the alch is 2 coins - but it is the easiest of the four beads to acquire since imps are densely populated in F2P. The four bead colours are widely believed to nod to the four alchemical steps of the Magnum Opus."
+  market_strategy:
+    notes:
+      - "GE buy limit of 11,000 is enormous compared to actual liquidity."
+      - "Demand is driven solely by Imp Catcher questers and occasional pure account flips."
+      - "Imp Catcher is short and quick; bead prices spike during league/Deadman seed days."
+  trading_tips:
+    - Killing imps in F2P drops all four bead colours faster than running back to GE.
+    - List beads as a 4-piece bundle to clue new players ready to start Imp Catcher.
+    - Avoid overstocking - a sudden quest update could collapse the boutique demand.
+  history:
+    - date: "2001-02-16"
+      description: "Released alongside the Imp Catcher quest as one of the four collectable imp beads."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

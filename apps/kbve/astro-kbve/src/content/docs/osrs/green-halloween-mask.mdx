@@ -12,9 +12,61 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 5
-  about: "Green halloween mask is a free-to-play item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: discontinued cosmetic
+    tier: high
+  properties:
+    release_date: "2002-10-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.34
+    options:
+      - Wear
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weight: 0.34
+    requirements: {}
+    attack_bonus: {}
+    defence_bonus: {}
+    other_bonus: {}
+  related_items:
+    - item_name: Blue halloween mask
+      slug: blue-halloween-mask
+      relationship: variant
+      description: Blue coloured halloween mask
+    - item_name: Red halloween mask
+      slug: red-halloween-mask
+      relationship: variant
+      description: Red coloured halloween mask
+    - item_name: Black halloween mask
+      slug: black-halloween-mask
+      relationship: variant
+      description: Black coloured halloween mask
+  about: "Green halloween mask is a discontinued cosmetic head-slot item from the 2002 Halloween event. It provides no combat bonuses but holds significant value as a tradeable rare. Originally Halloween mask, renamed Green h'ween mask in 2005, then renamed to its current name in 2015."
+  market_strategy:
+    notes:
+      - "Discontinued rare with fixed supply, so price moves on long-term wealth distribution rather than ordinary skilling demand."
+      - "GE buy limit of 5 per 4h prevents quick speculation; movements are slow and trend-driven."
+      - "Typically held as wealth storage; correlated with other halloween mask colours but trades at a discount to blue or black."
+  trading_tips:
+    - Buy during bear markets when wealthy players liquidate cosmetics, sell during bull markets when GP supply expands.
+    - Compare to blue and black masks for relative-value plays; green sits between black and blue typically.
+    - Avoid panic selling on bot-bust news — rares often dip then recover.
+  history:
+    - date: "2002-10-31"
+      description: "Released as Halloween mask during the 2002 Halloween event"
+    - date: "2005-01-01"
+      description: "Renamed to Green h'ween mask"
+    - date: "2015-01-01"
+      description: "Renamed to Green halloween mask"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

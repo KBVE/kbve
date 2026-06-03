@@ -131,18 +131,28 @@ const LINKS = [
 
 <style>
 	.github-contribute {
-		margin: 3rem auto;
+		margin: 2rem auto;
 		max-width: 880px;
 		color: var(--sl-color-text, #e6edf3);
+	}
+	@media (min-width: 768px) {
+		.github-contribute {
+			margin: 3rem auto;
+		}
 	}
 	.github-contribute__header {
 		text-align: center;
 		margin-bottom: 1.5rem;
 	}
 	.github-contribute__header h2 {
-		font-size: 1.75rem;
+		font-size: 1.4rem;
 		font-weight: 700;
 		margin: 0 0 0.25rem;
+	}
+	@media (min-width: 768px) {
+		.github-contribute__header h2 {
+			font-size: 1.75rem;
+		}
 	}
 	.github-contribute__header p {
 		color: var(--sl-color-gray-2, #8b949e);
@@ -160,7 +170,12 @@ const LINKS = [
 		background: var(--sl-color-bg-nav, #111);
 		border: 1px solid var(--sl-color-gray-5, #262626);
 		border-radius: 10px;
-		padding: 1rem 1.25rem;
+		padding: 0.85rem 0.95rem;
+	}
+	@media (min-width: 640px) {
+		.github-contribute__step {
+			padding: 1rem 1.25rem;
+		}
 	}
 	.github-contribute__step-head {
 		display: flex;
@@ -194,12 +209,25 @@ const LINKS = [
 		background: #0b1020;
 		border: 1px solid var(--sl-color-gray-6, #1f2937);
 		border-radius: 8px;
-		padding: 0.65rem 0.85rem;
+		padding: 0.6rem 0.75rem;
 		overflow-x: auto;
-		font-size: 0.78rem;
+		font-size: 0.72rem;
 		line-height: 1.55;
 		color: #cbd5e1;
 		margin: 0;
+		-webkit-overflow-scrolling: touch;
+	}
+	.github-contribute__code code {
+		font-family:
+			ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+			'Liberation Mono', monospace;
+		white-space: pre;
+	}
+	@media (min-width: 640px) {
+		.github-contribute__code {
+			padding: 0.65rem 0.85rem;
+			font-size: 0.78rem;
+		}
 	}
 	.github-contribute__links {
 		margin-top: 2rem;

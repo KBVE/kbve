@@ -13,8 +13,72 @@ osrs:
   highalch: 240
   limit: 10000
   about: "Bullseye lantern (empty) is a members-only item in Old School RuneScape. High alchemy value: 240 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-03-14"
+    weight: 1.36
+    tradeable: true
+    equipable: false
+    stackable: false
+    quest_item: false
+    destroy: "Drop"
+  material:
+    type: misc
+    tier: standard
+  shops:
+    - shop_name: "Miltog's Lamps"
+      location: "Dorgesh-Kaan"
+      price: 400
+      currency: "coins"
+      stock: 5
+    - shop_name: "Darkmeyer Lantern Shop"
+      location: "Darkmeyer"
+      price: 400
+      currency: "coins"
+      stock: 5
+  recipes:
+    - item_name: "Bullseye lantern (empty)"
+      skill: "Crafting"
+      level_required: 49
+      xp: 0
+      tools:
+        - "Hands"
+      materials:
+        - item_name: "Bullseye lantern (unf)"
+          quantity: 1
+        - item_name: "Lantern lens"
+          quantity: 1
+      output_quantity: 1
+      notes: "Combine unfinished lantern with a lens. Crafting level cannot be boosted."
+  relationships:
+    - item_name: "Bullseye lantern"
+      relationship: upgrade
+      notes: "Filled with lamp oil at a lamp oil still to become a functional bullseye lantern."
+    - item_name: "Bullseye lantern (unf)"
+      relationship: component
+      notes: "Unfinished base used in crafting."
+    - item_name: "Lantern lens"
+      relationship: component
+      notes: "Required to craft the empty lantern."
+    - item_name: "Lamp oil"
+      relationship: component
+      notes: "Added at a lamp oil still to fill the empty lantern."
+  history:
+    - date: "2005-03-14"
+      description: "Released."
+    - date: "2015-01-15"
+      description: "Renamed to clarify the empty state and avoid trade confusion with the filled bullseye lantern."
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Buy from Miltog's Lamps at 400gp or undercut GE listings when GE > shop price.\""
+      - "sell_strategy: \"Resell on GE at margin or use as Crafting profit loop with lantern lens.\""
+      - "profit_potential: \"Decent margin between unfinished+lens cost and GE sell price (~450gp after tax).\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Shop restock keeps a price floor near 400gp."
+    - "Daily volume is low (~62) — set patient offers."
+    - "Craft-and-flip loop needs 49 Crafting unboosted."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

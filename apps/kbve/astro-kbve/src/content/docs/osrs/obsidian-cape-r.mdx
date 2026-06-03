@@ -1,6 +1,6 @@
 ---
 title: Obsidian cape (r) | OSRS Price Data
-description: "Obsidian cape (r): A cape of woven obsidian plates.. High alch: 36,000 GP, GE limit: 70."
+description: "Obsidian cape (r): A cape of woven obsidian plates. High alch: 36,000 GP, GE limit: 70."
 osrs:
   id: 20050
   name: Obsidian cape (r)
@@ -12,9 +12,88 @@ osrs:
   lowalch: 24000
   highalch: 36000
   limit: 70
-  about: "Obsidian cape (r) is a members-only item in Old School RuneScape. High alchemy value: 36,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: "2016-07-06"
+    quest_item: false
+    destroy: Drop
+  material:
+    type: cloth
+    tier: cosmetic
+  equipment:
+    slot: cape
+    weapon_type: none
+    attack_speed: 1
+    weight: 1.814
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 9
+      slash: 9
+      crush: 9
+      magic: 9
+      ranged: 9
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      defence: 1
+    degradable: false
+  treasure_trail:
+    tier: master
+    role: reward
+  drop_table:
+    primary_source: Master clue rewards
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: "1/851"
+        members_only: true
+  related_items:
+    - item_id: 6568
+      item_name: Obsidian cape
+      slug: obsidian-cape
+      relationship: alternative
+      description: Original obsidian cape from TzHaar
+    - item_id: 21791
+      item_name: Reward casket (master)
+      slug: reward-casket-master
+      relationship: component
+      description: Drops Obsidian cape (r) at 1/851
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Defence (all) | +9 |
+    | GE limit | 70 |
+    | Source | Master clue casket |
+
+    - Cosmetic recolour of the obsidian cape
+    - Universal +9 defence across all styles
+    - Cannot substitute for obsidian cape in Zul-Andra emote step
+
+    Premium clue-scroll cosmetic:
+    - Same stats as obsidian cape, prestige colour
+    - Demanded by completionists and PvM cape collectors
+    - 1/851 from master casket
+  market_strategy:
+    notes:
+      - "Supply comes from master clue caskets only"
+      - "Sentiment swings with cosmetic clue meta"
+      - "Sweet spot for long-hold flips due to rarity"
+  trading_tips:
+    - Track master clue casket release cadence for supply
+    - GE limit 70 makes large flips capital intensive
+    - Pairs well with obsidian armour for full set roleplay
+  history:
+    - date: "2016-07-06"
+      description: "Released as a master clue reward."
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,63 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: null
-  about: "Seers icon is a members-only item in Old School RuneScape. High alchemy value: 4,800 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: ring component
+    tier: high
+  properties:
+    release_date: "2023-07-26"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.002
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 80
+      xp: 400
+      materials:
+        - item_name: Seers ring
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+  related_items:
+    - item_name: Seers ring
+      slug: seers-ring
+      relationship: component
+      description: Base ring chiseled to produce the Seers icon.
+    - item_name: Magus vestige
+      slug: magus-vestige
+      relationship: component
+      description: Combined with Seers icon and blood runes to craft Magus icon.
+    - item_name: Magus icon
+      slug: magus-icon
+      relationship: product
+      description: Resulting icon used at a furnace for Magus ring.
+    - item_name: Magus ring
+      slug: magus-ring
+      relationship: product
+      description: Final ring after furnace crafting.
+  about: "Seers icon is created by using a chisel on a Seers ring at 80 Crafting for 400 Crafting experience. It is combined with a Magus vestige and 500 blood runes to craft a Magus icon, which is then used at a furnace to finish the Magus ring after completion of Desert Treasure II."
+  market_strategy:
+    notes:
+      - "Liquidity is tied to Desert Treasure II progress on the player base; supply expands after major ring grind PRs."
+      - "Prefer flipping during demand windows for Magus ring construction."
+      - "Watch Seers ring drop rates from Whisperer; the icon tracks that supply curve."
+  trading_tips:
+    - Avoid bagholding — value can compress quickly if Magus ring demand stalls.
+    - Best used as personal progress rather than profit chase.
+  history:
+    - date: "2023-07-26"
+      description: "Added with the Desert Treasure II - The Fallen Empire ring crafting chain."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

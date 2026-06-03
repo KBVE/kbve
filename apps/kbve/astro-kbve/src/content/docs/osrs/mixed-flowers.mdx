@@ -12,9 +12,76 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "Mixed flowers is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: bladed
+    attack_speed: 4
+    weight: 0.028
+    attack_bonus:
+      stab: -100
+      slash: -100
+      crush: -50
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: -10
+      prayer: 0
+  shops:
+    - shop_name: Flower Girl
+      location: Miscellania Market
+      price: 15
+      currency: Coins
+      stock: 5
+  recipes:
+    - skill: farming
+      level: 15
+      xp: 0
+      materials:
+        - item_name: Mithril seed
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Imp repellent
+      slug: imp-repellent
+      relationship: product
+      description: Combined with anchovy oil via Herblore for imp repellent.
+  about: "Mixed flowers is a members-only posy obtainable from planting mithril or adamant seeds and picking the flowers, or purchased from the Flower Girl in Miscellania Market. Classified as a fun weapon when wielded, granting heavy negative attack bonuses. Used with anchovy oil to craft imp repellent."
+  market_strategy:
+    notes:
+      - "Niche supply from seed harvesters and Miscellania merchant"
+      - "Demand driven by imp repellent crafters and cosmetic flips"
+      - "Buy limit of 150 keeps margins thin on bulk flips"
+  trading_tips:
+    - Watch for spikes when imp-related content sees attention
+    - Flip during Wilderness or skilling events for novelty demand
+  history:
+    - date: "2004-03-29"
+      description: "Item released."
+    - date: "2014-12-10"
+      description: "Renamed from Flowers to Mixed flowers."
+    - date: "2024-04-03"
+      description: "Adamant seeds added as a harvesting source."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

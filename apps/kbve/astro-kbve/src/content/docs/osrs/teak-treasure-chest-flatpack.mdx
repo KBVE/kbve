@@ -12,9 +12,56 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Teak treasure chest (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: wood
+    tier: mid
+  properties:
+    release_date: "2006-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 66
+      xp: 180
+      materials:
+        - item_name: Teak plank
+          quantity: 2
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Teak plank
+      slug: teak-plank
+      relationship: component
+      description: Two planks are required to assemble the flatpack
+    - item_name: Oak treasure chest (flatpack)
+      slug: oak-treasure-chest-flatpack
+      relationship: downgrade
+      description: Lower-tier treasure chest using oak planks
+  about: "Teak treasure chest (flatpack) is a Construction flatpack made at a bench with a vice using two teak planks at 66 Construction for 180 experience. The flatpack can be placed on a treasure chest hotspot in the costume room of a player-owned house. Players typically buy flatpacks instead of self-building when training Construction is not the goal."
+  market_strategy:
+    notes:
+      - "Cost driven primarily by teak plank prices"
+      - "Profit margin per flatpack is thin; volume matters"
+      - "Low buy limit of 500 caps daily flipping volume"
+  trading_tips:
+    - Producing flatpacks generally loses gp versus selling teak planks raw
+    - Buy in bulk when planks dip to capture costume-room demand
+  history:
+    - date: "2006-10-18"
+      description: "Added to the game with the costume room update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

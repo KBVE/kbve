@@ -1,6 +1,6 @@
 ---
 title: Avernic defender hilt | OSRS Price Data
-description: "Avernic defender hilt: Perhaps this could be used to create a defensive weapon.. High alch: 1,500,000 GP, GE limit: 8."
+description: "Avernic defender hilt is a P2P upgrade material from Theatre of Blood for the Avernic defender. High alch: 1,500,000 GP, GE limit: 8."
 osrs:
   id: 22477
   name: Avernic defender hilt
@@ -12,52 +12,78 @@ osrs:
   lowalch: 1000000
   highalch: 1500000
   limit: 8
-  item:
-    type: upgrade material
+  weight: 0.453
+  properties:
+    release_date: "2018-06-07"
     tradeable: true
-    weight: 0.453
+    equipable: false
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+  material:
+    type: misc
+    tier: third_age
+    category: material
   recipes:
-    - skill: null
-      level: 0
-      materials:
-        - item_id: 12954
-          item_name: Dragon defender
+    - skill: "Smithing"
+      level: 1
+      xp: 0
+      output_quantity: 1
+      item_name: "Avernic defender"
+      tools: []
+      inputs:
+        - item_name: "Dragon defender"
           quantity: 1
-        - item_id: 22477
-          item_name: Avernic defender hilt
+        - item_name: "Avernic defender hilt"
           quantity: 1
-      product: Avernic defender
-      product_id: 22322
+      notes: "Combine hilt with a dragon defender to create the Avernic defender. Reversible, but the hilt is consumed if reversed."
+  drop_table:
+    - source: "Theatre of Blood"
+      quantity: "1"
+      rarity: "8/19 (Normal) / 7/18 (Hard)"
+      notes: "Dropped from the Monumental chest after Verzik Vitur."
   related_items:
     - item_id: 12954
       item_name: Dragon defender
       slug: dragon-defender
       relationship: component
-      description: Base item for upgrade
+      description: "Base defender combined with the hilt"
     - item_id: 22322
       item_name: Avernic defender
       slug: avernic-defender
       relationship: product
-      description: Best-in-slot melee defender
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Upgrade Material |
-    | Tradeable | Yes |
-    | Weight | 0.453 kg |
-
-    | Item Created | Materials |
-    |--------------|-----------|
-    | Avernic defender | Dragon defender + hilt |
-
-    Warning: Reversible but hilt is NOT returned.
+      description: "Best-in-slot melee defender result"
+    - item_id: 28207
+      item_name: Ghommal's avernic defender 6
+      slug: ghommals-avernic-defender-6
+      relationship: variant
+      description: "Combat Achievements-locked upgrade"
   market_strategy:
     notes:
-      - From Theatre of Blood
-      - Permanent upgrade cost
-      - BiS melee defender
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "buy_strategy: \"Buy from raid teams; price reflects ToB drop scarcity.\""
+      - "sell_strategy: \"Sell to ironman alts or new mains chasing BiS melee defender.\""
+      - "price_trend: \"Tracks Theatre of Blood completion volume.\""
+      - "profit_margin: \"High flat margin but slow daily volume (~340 trades).\""
+  trading_tips:
+    - "Always factor in the dragon defender cost on top of the hilt."
+    - "Reversal consumes the hilt — only do it for cosmetic resets."
+    - "Hard Mode ToB has a marginally better drop rate (7/18)."
+  history:
+    - date: "2018-06-07"
+      update: "Theatre of Blood release"
+      description: "Avernic defender hilt added as a unique reward from the Monumental chest."
+  about: |-
+    Avernic defender hilt is the only upgrade path to the Avernic defender, the best-in-slot melee defender.
+
+    | Property | Value |
+    |----------|-------|
+    | Source | Theatre of Blood (Monumental chest) |
+    | Drop rate | 8/19 Normal / 7/18 Hard |
+    | Upgrade target | Dragon defender → Avernic defender |
+    | Reversible | Yes (hilt lost) |
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

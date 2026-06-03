@@ -1,6 +1,6 @@
 ---
 title: Dragon dart(p) | OSRS Price Data
-description: "Dragon dart(p): A deadly poisoned dart with a dragon tip.. High alch: 300 GP, GE limit: 11,000."
+description: "Dragon dart(p) is a P2P poisoned thrown weapon requiring 60 Ranged. High alch: 300 GP, GE limit: 11,000."
 osrs:
   id: 11231
   name: Dragon dart(p)
@@ -12,9 +12,93 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 11000
-  about: "Dragon dart(p) is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  weight: 0.01
+  properties:
+    release_date: "2007-06-11"
+    tradeable: true
+    equipable: true
+    stackable: true
+    noteable: false
+    destroy: "Drop"
+    quest_item: false
+  material:
+    type: ammunition
+    tier: dragon
+    category: ammunition
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    requirements:
+      ranged: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 35
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    has_special: false
+  related_items:
+    - item_id: 11230
+      item_name: Dragon dart
+      slug: dragon-dart
+      relationship: alternative
+      description: "Unpoisoned variant"
+    - item_id: 11232
+      item_name: Dragon dart tip
+      slug: dragon-dart-tip
+      relationship: component
+      description: "Crafted via Smithing into dart tips"
+    - item_id: 314
+      item_name: Feather
+      slug: feather
+      relationship: component
+      description: "Combined with dart tip to make dart"
+    - item_id: 12926
+      item_name: Toxic blowpipe
+      slug: toxic-blowpipe
+      relationship: alternative
+      description: "Higher-tier ranged thrown weapon"
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Buy in bulk during low-demand windows; thrown stacks move fast.\""
+      - "sell_strategy: \"Sell to players grinding ranged training or specific PvM tasks.\""
+      - "price_trend: \"Tracks dragon dart tip and feather supply.\""
+      - "profit_margin: \"Thin; arbitrage requires Fletching at 95.\""
+  trading_tips:
+    - "Fletch at 95 Fletching from dart tip + feather for 25 XP each."
+    - "Poisoned variant is mainly for PvP; PvE prefers unpoisoned."
+    - "Dragon implings drop dragon darts at random."
+  history:
+    - date: "2007-06-11"
+      update: "Release"
+      description: "Dragon darts and poisoned variants released alongside dart-tip Smithing."
+  about: |-
+    Dragon dart(p) is a high-tier thrown weapon used primarily for PvP and certain PvM niches:
+
+    | Stat | Value |
+    |------|-------|
+    | Ranged level | 60 |
+    | Ranged strength | +35 |
+    | Attack speed | 3 ticks (Rapid: 2) |
+    | Fletching level | 95 |
+    | Fletching XP | 25 per dart |
+
+    Poison applies a damage-over-time effect on hit. Pairs with the toxic blowpipe for ammunition.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

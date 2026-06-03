@@ -12,9 +12,48 @@ osrs:
   lowalch: 58000
   highalch: 87000
   limit: 5
-  about: "Ancestral robes set is a members-only item in Old School RuneScape. High alchemy value: 87,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-01-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: "Ancestral hat"
+      slug: "ancestral-hat"
+      relationship: "component"
+      description: "Headpiece included when the set is unpacked at a GE clerk."
+    - item_name: "Ancestral robe top"
+      slug: "ancestral-robe-top"
+      relationship: "component"
+      description: "Body slot magic robe included in the set."
+    - item_name: "Ancestral robe bottom"
+      slug: "ancestral-robe-bottom"
+      relationship: "component"
+      description: "Legs slot magic robe included in the set."
+  about: "The Ancestral robes set is a Grand Exchange bundle containing the Ancestral hat, robe top, and robe bottom. Released January 19, 2017 alongside Raids tweaks, it lets players move all three Chambers of Xeric magic robes in a single trade. Exchange at any GE clerk's Sets interface to unpack into individual pieces."
+  market_strategy:
+    notes:
+      - "Premium magic gear bundle - typical price is hundreds of millions of GP."
+      - "Buy-set vs sell-pieces arbitrage is the dominant flip; track ~2-3M spreads."
+      - "Volume is thin (~150 trades/day) so large quantities move slowly."
+      - "Demand spikes when Tombs/CoX rebalance or new magic content drops."
+  trading_tips:
+    - "Compare Sets-tab price vs combined component price daily for arbitrage."
+    - "Unpack at the GE clerk and resell the three pieces individually for a margin when the set trades at a discount."
+    - "Use 4-hour buy limit windows carefully - 5 per slot is your cap."
+    - "Avoid offering above guide price during dead market hours; liquidity is sparse."
+  history:
+    - date: "2017-01-19"
+      description: "Released alongside the Raids Tweaks and QoL update as a Grand Exchange bundle for the Ancestral robes."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

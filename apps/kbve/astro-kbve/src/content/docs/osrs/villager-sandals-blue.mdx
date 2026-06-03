@@ -12,9 +12,60 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "Villager sandals (blue) is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Villager sandals (blue) are a members-only cosmetic footwear piece in Old School RuneScape, purchased from Gabooty's Tai Bwo Wannai Cooperative for trading sticks. They complete the blue villager outfit used during the Tai Bwo Wannai Trio quest. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.68
+  equipment:
+    slot: "feet"
+    weapon_type: "none"
+    attack_speed: 1
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Gabooty's Tai Bwo Wannai Cooperative"
+      location: "Tai Bwo Wannai"
+      price: 120
+      stock: 2
+      currency: "Trading sticks"
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Buy via trading sticks at Gabooty's shop; Karamja gloves 1+ drops the price to 100 sticks.\""
+      - "sell_strategy: \"List on the GE for cosmetic outfit completionists; volume is thin so set patient asks.\""
+      - "price_trend: \"stable\""
+      - "investment_potential: \"low\""
+  trading_tips:
+    - "Acquire matching blue villager set pieces for fashionscape resale."
+    - "Wear during Tai Bwo Wannai Trio quest sections to skip disguise checks."
+    - "Use Karamja gloves 1+ for the trading stick discount."
+  history:
+    - date: "2005-08-09"
+      description: "Released with the Tai Bwo Wannai Trio quest and village expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

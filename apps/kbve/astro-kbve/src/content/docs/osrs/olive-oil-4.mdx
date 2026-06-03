@@ -1,6 +1,6 @@
 ---
 title: Olive oil(4) | OSRS Price Data
-description: "Olive oil(4): 4 doses of olive oil.. High alch: 13 GP, GE limit: 10,000."
+description: "Olive oil(4): 4 doses of olive oil. High alch: 13 GP, GE limit: 10,000."
 osrs:
   id: 3422
   name: Olive oil(4)
@@ -12,9 +12,48 @@ osrs:
   lowalch: 8
   highalch: 13
   limit: 10000
-  about: "Olive oil(4) is a members-only item in Old School RuneScape. High alchemy value: 13 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Olive oil(4) holds 4 doses of olive oil, used to brew sacred oil for Shades of Mort'ton funeral pyres. Members-only. High alch 13 gp; GE limit 10,000."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  potion:
+    doses: 4
+    effect: "Used at the Temple of Mort'ton altar to create sacred oil for funeral pyre logs."
+    duration: "Persistent (until consumed)"
+  properties:
+    release_date: "2004-10-18"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: true
+    weight: 0.08
+  material:
+    type: misc
+    tier: standard
+  shops:
+    - shop_name: "Razmire's general store"
+      location: "Mort'ton"
+      price: 112
+      currency: "Coins"
+      stock: 10
+    - shop_name: "Rasolo the Wandering Merchant"
+      location: "Fremennik Province"
+      price: 160
+      currency: "Coins"
+      stock: 5
+  history:
+    - date: "2004-10-18"
+      description: "Released with the Shades of Mort'ton minigame."
+    - date: "2005-03-01"
+      description: "An 'Empty' option was added to the inventory interaction."
+  trading_tips:
+    - "Bulk buy from Razmire when stocked; Shades of Mort'ton runners absorb supply for sacred oil."
+    - "GE limit of 10,000 makes flipping with general-store restocks viable for free GP."
+  market_strategy:
+    notes:
+      - "relationship: \"component\""
+      - "Demand is tied to Shades of Mort'ton activity and the sacred oil pipeline for redwood/magic pyre logs."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

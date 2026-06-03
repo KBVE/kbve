@@ -12,9 +12,56 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 6000
-  about: "Cooked rabbit is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-09-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.141
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: "cooking"
+      level: 1
+      xp: 30
+      materials:
+        - item_name: "Raw rabbit"
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: "Raw rabbit"
+      slug: "raw-rabbit"
+      relationship: "component"
+      description: "Cook on a fire or range to make cooked rabbit"
+    - item_name: "Roast rabbit"
+      slug: "roast-rabbit"
+      relationship: "alternative"
+      description: "Iron-spit variant also accepted by the Regicide quest"
+    - item_name: "Burnt meat"
+      slug: "burnt-meat"
+      relationship: "alternative"
+      description: "Failure product when cooking raw rabbit"
+  about: "Cooked rabbit heals 5 Hitpoints when eaten and is one of the easiest low-level cooked foods to produce. Cooking raw rabbit only requires level 1 Cooking for 30 XP per cook, with burns stopping at level 34. It is also accepted as the food item in the Regicide quest, either in its cooked or roasted form."
+  market_strategy:
+    notes:
+      - "Steady demand from low-level cooking trainers and ironmen completing Regicide."
+      - "Buy limit of 6,000 makes it a viable bulk-cook flip when GE price drifts above raw rabbit + nominal margin."
+      - "Volume is modest — large stack orders may take a while to fill."
+  trading_tips:
+    - "Compare GE prices for raw vs cooked rabbit to confirm cook-and-sell is profitable after tax."
+    - "Mass buys are best around community 1–99 Cooking challenges and league relaunches."
+  history:
+    - date: "2004-09-20"
+      description: "Added with the original Cooking skill expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

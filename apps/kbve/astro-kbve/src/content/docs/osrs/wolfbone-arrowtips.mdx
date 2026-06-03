@@ -12,9 +12,59 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
-  about: "Wolfbone arrowtips is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: bone
+    tier: low
+  properties:
+    release_date: "2004-05-18"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 5
+      xp: 2.5
+      materials:
+        - item_name: Wolf bone
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 4
+  related_items:
+    - item_name: Wolf bones
+      slug: wolf-bones
+      relationship: component
+      description: Source bone chiselled into arrowtips
+    - item_name: Ogre arrow
+      slug: ogre-arrow
+      relationship: product
+      description: Completed ogre arrow assembled with flighted shafts
+    - item_name: Flighted ogre arrow
+      slug: flighted-ogre-arrow
+      relationship: component
+      description: Combined with wolfbone arrowtips to make ogre arrows
+  about: "Wolfbone arrowtips are crafted at 5 Fletching by chiselling wolf bones, yielding 2-6 tips per bone for 2.5 Fletching and Crafting experience each. They combine with flighted ogre arrows to produce ogre arrows used with the ogre bow. Players must have partially completed Big Chompy Bird Hunting before crafting them."
+  market_strategy:
+    notes:
+      - "Niche demand tied to chompy bird hunting and Rantz tasks"
+      - "Low GE price keeps the market thin"
+      - "Buy limit of 7,000 supports modest bulk fills"
+  trading_tips:
+    - Stock up when chompy hunting trends for diary completion
+    - Compare against buying completed ogre arrows directly
+  history:
+    - date: "2004-05-18"
+      description: "Added to the game with the Big Chompy Bird Hunting quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,62 @@ osrs:
   lowalch: 7500
   highalch: 11250
   limit: 100
-  about: "Rosewood hull parts is a members-only item in Old School RuneScape. High alchemy value: 11,250 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: wood
+    tier: mid-high
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 84
+      xp: 475
+      materials:
+        - item_name: Rosewood plank
+          quantity: 5
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Rosewood plank
+      slug: rosewood-plank
+      relationship: component
+      description: Five planks craft one hull-part set
+    - item_name: Large rosewood hull parts
+      slug: large-rosewood-hull-parts
+      relationship: upgrade
+      description: Five rosewood hull parts combine into a large variant for sloops
+    - item_name: Rosewood hull
+      slug: rosewood-hull
+      relationship: product
+      description: Assembled hull made from 10 rosewood hull parts and other components
+    - item_name: Mahogany hull parts
+      slug: mahogany-hull-parts
+      relationship: alternative
+      description: Adjacent-tier hull part in the Sailing line
+  about: "Rosewood hull parts are a Sailing-skill intermediate, crafted at a shipwrights' workbench from 5 rosewood planks for 475 Construction XP at level 84 Construction. Ten parts plus dragon nails, swamp tar, and cupronickel bars combine into a rosewood skiff hull, or five parts can be upgraded into a large rosewood hull part for sloop construction. Released with the initial Sailing rollout on 19 November 2025."
+  market_strategy:
+    notes:
+      - "Daily volume reflects active Sailing trainers; demand drops off sharply between game updates."
+      - "Plank cost dominates; whenever rosewood planks dip below ~5,100 each, building parts is profitable."
+      - "100-per-4-hour limit constrains arbitrage size."
+  trading_tips:
+    - Watch rosewood plank price - the spread between planks and parts is the only real margin.
+    - Sailing competitions spike all hull parts; flip into the announcement, not after.
+  history:
+    - date: "2025-11-19"
+      description: "Added with the Sailing skill launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
