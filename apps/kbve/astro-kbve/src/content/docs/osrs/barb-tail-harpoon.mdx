@@ -1,6 +1,6 @@
 ---
 title: Barb-tail harpoon | OSRS Price Data
-description: "Barb-tail harpoon: A mighty Hunter weapon. One previous owner.. High alch: 21 GP, GE limit: 40."
+description: "Barb-tail harpoon: A mighty Hunter weapon. One previous owner. High alch: 21 GP, GE limit: 40."
 osrs:
   id: 10129
   name: Barb-tail harpoon
@@ -12,9 +12,73 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: 40
-  about: "Barb-tail harpoon is a members-only item in Old School RuneScape. High alchemy value: 21 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: '2006-11-21'
+    quest_item: false
+    destroy: Drop
+  equipment:
+    slot: weapon
+    weapon_type: harpoon
+    attack_speed: 4
+    requirements:
+      hunter: 33
+    attack_bonus:
+      stab: 9
+      slash: 4
+      crush: -4
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 6
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 1.36
+  drop_table:
+    - source: Barb-tailed kebbit (deadfall trap)
+      quantity: "1"
+      rarity: Always
+  related_items:
+    - item_id: 311
+      item_name: Harpoon
+      slug: harpoon
+      relationship: alternative
+      description: Standard fishing harpoon
+    - item_id: 21028
+      item_name: Dragon harpoon
+      slug: dragon-harpoon
+      relationship: alternative
+      description: Faster fishing harpoon
+  about: |-
+    "A mighty Hunter weapon. One previous owner."
+
+    The barb-tail harpoon is a wieldable harpoon obtained by trapping barb-tailed kebbits with deadfall traps in the Piscatoris Hunter area. It requires 33 Hunter to obtain.
+
+    | Stat | Value |
+    |------|-------|
+    | Stab Attack | +9 |
+    | Slash Attack | +4 |
+    | Crush Attack | -4 |
+    | Strength | +6 |
+
+    Can be wielded as both a weapon and a harpoon, saving an inventory slot when fishing.
+  market_strategy:
+    notes:
+      - "Doubles as weapon and fishing harpoon"
+      - "Low buy limit (40/4h)"
+      - "Useful for Tempoross (cannot be lost)"
+      - "Niche but consistent demand from skillers"
+  history:
+    - date: '2006-11-21'
+      description: Item released with the Hunter skill.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

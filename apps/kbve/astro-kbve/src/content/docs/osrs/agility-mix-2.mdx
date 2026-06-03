@@ -12,9 +12,54 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 2000
-  about: "Agility mix(2) is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Agility mix(2) is a two-dose barbarian potion that boosts Agility by 3 levels and restores 6 hitpoints per dose. Created from Agility potion(2) and caviar at 37 Herblore after Otto Godblessed's Barbarian Herblore training. High alchemy value: 60 coins. Grand Exchange buy limit: 2,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.075
+  material:
+    type: potion
+    primary: liquid
+    tier: standard
+  potion:
+    doses: 2
+    boost_type: "Agility"
+    boost_amount: 3
+    duration: "Instant"
+    heal_amount: 6
+    notes: "Each dose grants +3 Agility boost plus 6 hitpoints restore; becomes an empty vial once emptied."
+  recipes:
+    - item_name: Agility mix(2)
+      tools: ["Pestle and mortar"]
+      materials:
+        - item_name: Agility potion(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      output_quantity: 1
+      skill: Herblore
+      level: 37
+      xp: 27
+      notes: "Requires completion of the Herblore portion of Barbarian Training with Otto Godblessed."
+  market_strategy:
+    notes:
+      - "buy_range: \"150 - 250 gp\""
+      - "sell_range: \"200 - 320 gp\""
+      - "Niche Agility boost item; flip alongside Agility pyramid and Wilderness Agility Course rushers."
+  trading_tips:
+    - "Demand rises when Agility XP weekends or rewards events go live."
+    - "Stack with caviar flips since one barbarian mix lot drives both prices."
+    - "Sell to ironmen training Agility around level 70-80."
+  history:
+    - date: "2007-07-03"
+      description: "Released with the Barbarian Herblore Training update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

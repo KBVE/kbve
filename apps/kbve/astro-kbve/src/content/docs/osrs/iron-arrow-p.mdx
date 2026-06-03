@@ -12,16 +12,84 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
+  material:
+    type: ammunition
+    tier: iron
   equipment:
     slot: ammo
-    ranged_strength: 10
-  related_items: []
+    weapon_type: arrow
+    attack_speed: 1
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 10
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - item_name: Iron arrow(p)
+      skill: Fletching
+      level: 1
+      xp: 0
+      output_quantity: 5
+      members: true
+      tools: []
+      materials:
+        - item_name: Iron arrow
+          quantity: 5
+        - item_name: Weapon poison
+          quantity: 1
+  related_items:
+    - item_id: 884
+      item_name: Iron arrow
+      slug: iron-arrow
+      relationship: variant
+      description: Unpoisoned base variant
+    - item_id: 5617
+      item_name: Iron arrow(p+)
+      slug: iron-arrow-p-plus
+      relationship: variant
+      description: Stronger poison variant
+    - item_id: 5618
+      item_name: Iron arrow(p++)
+      slug: iron-arrow-p-plus-plus
+      relationship: variant
+      description: Strongest poison variant
+  market_strategy:
+    notes:
+      - "summary: \"Niche poisoned ammo for low-level rangers; supply driven by weapon-poison combinations rather than monster drops.\""
+      - "target_audience: \"Low-level rangers and ironmen training Ranged with poison procs.\""
+  trading_tips:
+    - Combine cheap iron arrows with weapon poison; profit margin is typically negative on GE.
+    - GE limit 7,000 per 4 hours.
+  history:
+    - date: "2002-03-25"
+      description: Base iron arrows released; poisoned variant followed with weapon poison.
+    - date: "2025-05-29"
+      description: Exempted from Grand Exchange convenience fee.
   about: |-
     > _"Iron arrows with a poisoned tip."_
 
     Iron arrows tipped with basic weapon poison. Poison deals 2-4 damage over time.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  properties:
+    release_date: "2002-03-25"
+    weight: 0
+    quest_item: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

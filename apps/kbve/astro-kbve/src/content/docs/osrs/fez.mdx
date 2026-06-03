@@ -12,9 +12,69 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 150
-  about: "Fez is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Fez is a cosmetic head slot hat obtained from Ali Morrisane via the Rogue Trader miniquest. Delays desert heat onset by 12 seconds when worn. High alchemy value: 12 coins. Grand Exchange buy limit: 150 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: misc
+    tier: cloth
+  properties:
+    release_date: "2005-08-15"
+    tradeable: true
+    equipable: true
+    stackable: false
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.005
+  equipment:
+    slot: head
+    weapon_type: none
+    attack_speed: 1
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Ali's Discount Wares
+      location: Al Kharid
+      currency: coins
+      price: 20
+      stock: 25
+  relationships:
+    - item_name: Desert top
+      relationship: set-piece
+    - item_name: Desert robes
+      relationship: set-piece
+    - item_name: Desert legs
+      relationship: set-piece
+    - item_name: Desert boots
+      relationship: set-piece
+  market_strategy:
+    notes:
+      - "short_term: \"Cosmetic demand; price hovers well above shop value as Rogue Trader supply is bottlenecked.\""
+      - "long_term: \"Stable collector item; long-term creep with cosmetic interest.\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Bulk-stock from Ali's Discount Wares (25 stock, 30s restock) for steady margin vs GE."
+    - "Buy limit of 150 keeps flips tidy — no need to split orders."
+  history:
+    - date: "2005-08-15"
+      description: "Released with the Rogue Trader miniquest and Al Kharid trader content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

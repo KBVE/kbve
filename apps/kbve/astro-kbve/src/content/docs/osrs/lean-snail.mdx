@@ -12,9 +12,60 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 13000
-  about: "Lean snail is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: misc
+    tier: raw_food
+  recipes:
+    - item_name: Lean snail meat
+      skill: Cooking
+      level: 17
+      xp: 80
+      output_quantity: 1
+      members: true
+      tools:
+        - Range
+      materials:
+        - item_name: Lean snail
+          quantity: 1
+  drop_table:
+    - source: Blamish Bark Snail
+      quantity: "1"
+      rarity: always
+    - source: Giant snail
+      quantity: "1"
+      rarity: common
+  related_items:
+    - item_id: 3369
+      item_name: Lean snail meat
+      slug: lean-snail-meat
+      relationship: product
+      description: Cooked version
+    - item_id: 1779
+      item_name: Blamish snail slime
+      slug: blamish-snail-slime
+      relationship: component
+      description: Heroes' Quest ingredient
+  market_strategy:
+    notes:
+      - "summary: \"Raw cooking ingredient with niche quest and follower-food uses; mid-volume drop from Morytania snails.\""
+      - "target_audience: \"Cooks training mid-level, Heroes' Quest preppers, Temple Trekking runners.\""
+  trading_tips:
+    - GE buy limit is 13,000 per 4 hours - easy to bulk for follower food.
+    - Cook at level 17 for 80 XP each; burns until cooking 17 base.
+  history:
+    - date: "2004-10-14"
+      description: Released with the Morytania expansion alongside snail combat content.
+  about: |-
+    Lean snail is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 13,000 per 4 hours.
+
+    Drops from Blamish Bark Snails and giant snails in Morytania. Cook at Cooking 17 for 80 XP into lean snail meat (heals 5-7 HP).
+  properties:
+    release_date: "2004-10-14"
+    weight: 2
+    quest_item: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

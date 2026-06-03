@@ -1,6 +1,6 @@
 ---
 title: Super strength(2) | OSRS Price Data
-description: "Super strength(2): 2 doses of super Strength potion.. High alch: 99 GP, GE limit: 2,000."
+description: "Super strength(2) is a P2P 2-dose Herblore potion that boosts Strength. High alch: 99 GP, GE limit: 2,000."
 osrs:
   id: 159
   name: Super strength(2)
@@ -12,23 +12,81 @@ osrs:
   lowalch: 66
   highalch: 99
   limit: 2000
+  weight: 0.025
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+  material:
+    type: misc
+    tier: bronze
+    category: consumable
+  potion:
+    doses: 2
+    boost: "+5 + 15% of Strength level"
+    duration_minutes: 5
+    skill: "Strength"
+    notes: "Boost decays 1 point per minute (90s with Preserve)."
+  recipes:
+    - skill: "Herblore"
+      level: 55
+      xp: 125
+      output_quantity: 1
+      item_name: "Super strength(3)"
+      tools: []
+      inputs:
+        - item_name: "Kwuarm potion (unf)"
+          quantity: 1
+        - item_name: "Limpwurt root"
+          quantity: 1
+      notes: "Make a 3-dose potion, then split or drink down to 2 doses."
   related_items:
     - item_id: 157
       item_name: Super strength(3)
       slug: super-strength-3
       relationship: variant
-      description: 3-dose version
+      description: "3-dose version"
     - item_id: 161
       item_name: Super strength(1)
       slug: super-strength-1
       relationship: variant
-      description: 1-dose version
+      description: "1-dose version"
+    - item_id: 12625
+      item_name: Super combat potion(4)
+      slug: super-combat-potion-4
+      relationship: alternative
+      description: "Combined super strength/attack/defence potion"
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Buy doses cheap when combat potion making is unprofitable.\""
+      - "sell_strategy: \"Decant up to 4-dose for higher per-dose value.\""
+      - "price_trend: \"Tracks kwuarm and limpwurt root supply.\""
+      - "profit_margin: \"Decanting bots compress margins.\""
+  trading_tips:
+    - "Decant via Wise Old Man / Bob Barter to higher-dose versions for a small profit."
+    - "Combine with super attack/defence + torstol for super combat potions."
+    - "Bulk used for Slayer and PvM training stacks."
+  history:
+    - date: "2002-02-27"
+      update: "Herblore release"
+      description: "Super strength introduced as part of the original Herblore release."
   about: |-
-    > _"2 doses of super Strength potion."_
+    Super strength(2) is a 2-dose Herblore potion that grants a temporary Strength boost.
 
-    A 2-dose super strength potion. Boosts Strength by 5 + 15% of current level.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    | Property | Value |
+    |----------|-------|
+    | Boost | +5 + 15% of base Strength |
+    | Duration per dose | ~5 minutes |
+    | Herblore level (make) | 55 |
+    | Herblore XP (3-dose) | 125 |
+
+    Often combined with super attack and torstol for super combat potion brewing.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

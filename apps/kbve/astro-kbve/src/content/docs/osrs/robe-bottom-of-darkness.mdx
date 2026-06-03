@@ -12,9 +12,89 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 70
-  about: "Robe bottom of darkness is a members-only item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: magic_robe
+    tier: high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options: ["Wear"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 1.814
+    requirements:
+      magic: 40
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 15
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 15
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: "Reward casket (master)"
+        quantity: "1"
+        rarity: "1/851"
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers: ["master"]
+  related_items:
+    - item_name: "Hood of darkness"
+      slug: "hood-of-darkness"
+      relationship: "set-piece"
+      description: "Head slot piece of the Robes of darkness ensemble."
+    - item_name: "Robe top of darkness"
+      slug: "robe-top-of-darkness"
+      relationship: "set-piece"
+      description: "Body slot piece of the Robes of darkness ensemble."
+    - item_name: "Gloves of darkness"
+      slug: "gloves-of-darkness"
+      relationship: "set-piece"
+      description: "Hand slot piece of the Robes of darkness ensemble."
+    - item_name: "Boots of darkness"
+      slug: "boots-of-darkness"
+      relationship: "set-piece"
+      description: "Feet slot piece of the Robes of darkness ensemble."
+  about: "The Robe bottom of darkness is the legs slot piece of the Robes of darkness set, released July 6, 2016 as a master Treasure Trail reward at 1/851. Requires 40 Magic and 20 Defence to equip and grants +15 magic attack and +15 magic defence. The full set provides Zaros alignment protection in the Ancient Prison area of the God Wars Dungeon."
+  market_strategy:
+    notes:
+      - "Master-tier clue piece - supply tracks clue-completion grinders."
+      - "Niche utility: GWD Ancient Prison Zarosian alignment is its main mechanical reason to wear vs Ahrim's."
+      - "Daily volume ~166 - reasonably liquid for a clue cosmetic-ish piece."
+      - "Set demand is concentrated; full-set buyers move the market more than single pieces."
+  trading_tips:
+    - "Bundle with hood/top/gloves/boots for a complete set - bulk buyers pay margins."
+    - "Buy when master clue droprate guides go viral and supply floods."
+    - "Sell into GWD/Nex content updates - Zaros alignment use cases drive spikes."
+  history:
+    - date: "2016-07-06"
+      description: "Released as a master clue reward as part of the Robes of darkness set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

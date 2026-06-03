@@ -12,67 +12,81 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 5
+  about: "Peaceful blessing is the Guthix-aligned ammunition slot blessing, granting +1 Prayer bonus without sacrificing the ammo slot for ranged builds."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: misc
+    tier: rare
+    category: blessing
+  properties:
+    release_date: "2016-07-06"
+    weight: 0.51
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
   equipment:
     slot: ammo
-    type: blessing
-    attack_style: none
-    stats:
-      prayer_bonus: 1
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Master
-        rarity: Rare
-        description: Reward from master clue scrolls
-      - source: Treasure Trails
-        requirements:
-          clue_type: Elite
-        rarity: Rare
-        description: Reward from elite clue scrolls
-  related_items:
-    - item_id: 20220
-      item_name: Holy blessing
-      slug: holy-blessing
+    weapon_type: blessing
+    attack_speed: 1
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  treasure_trail:
+    tier: master
+    rarity: rare
+    notes: "Awarded from Easy through Master clue scrolls (excluding Beginner)."
+  relationships:
+    - item_name: Holy blessing
       relationship: alternative
-      description: Saradomin blessing
-    - item_id: 20223
-      item_name: Unholy blessing
-      slug: unholy-blessing
+      note: "Saradomin-aligned ammo slot blessing."
+    - item_name: Unholy blessing
       relationship: alternative
-      description: Zamorak blessing
-    - item_id: 20229
-      item_name: Honourable blessing
-      slug: honourable-blessing
+      note: "Zamorak-aligned ammo slot blessing."
+    - item_name: Honourable blessing
       relationship: alternative
-      description: Armadyl blessing
-    - item_id: 20232
-      item_name: War blessing
-      slug: war-blessing
+      note: "Armadyl-aligned ammo slot blessing."
+    - item_name: War blessing
       relationship: alternative
-      description: Bandos blessing
-    - item_id: 20235
-      item_name: Ancient blessing
-      slug: ancient-blessing
+      note: "Bandos-aligned ammo slot blessing."
+    - item_name: Ancient blessing
       relationship: alternative
-      description: Zaros blessing
-  about: |-
-    The peaceful blessing is a Guthix-aligned item worn in the ammunition slot, providing +1 prayer bonus. It is the Guthix equivalent of other god blessings.
-
-    Blessings are valuable because they provide prayer bonus in the ammunition slot, which normally has no prayer-boosting options. This makes them useful for any build that wants to maximize prayer bonus without sacrificing ranging capability.
-
-    Note: Guthix items do not provide protection in the God Wars Dungeon as Guthix has no faction there. However, the blessing still provides the +1 prayer bonus.
+      note: "Zaros-aligned ammo slot blessing."
   market_strategy:
-    title: Investment Notes
     notes:
-      - Prices vary between different god blessings
-      - Guthix version often cheapest due to no GWD utility
-      - Good budget option for prayer bonus in ammo slot
-      - Compare prices between all six blessings
-      - Often cheapest blessing option
-      - Popular with players wanting affordable prayer bonus
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "summary: \"Cheapest of the six god blessings due to lack of God Wars Dungeon protection utility.\""
+      - "buy_strategy: \"Buy when other blessings spike — peaceful tracks demand floor for budget prayer bonus builds.\""
+      - "sell_strategy: \"Sell to prayer-focused PvM and Ironman support buyers; turnover is steady but limited by GE buy cap of 5.\""
+      - "volatility: \"low\""
+  trading_tips:
+    - "Guthix items provide no protection in the God Wars Dungeon — Guthix has no faction there."
+    - "Often the cheapest blessing, making it the budget pick for ammo slot prayer bonus."
+    - "Storable in a costume room treasure chest to save bank space."
+  history:
+    - date: "2016-07-06"
+      description: "Peaceful blessing added with the Treasure Trail Expansion update."
+  examine_variants:
+    - context: Inventory
+      text: "Life and death, old and new, day and night. Balance is the key to all."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

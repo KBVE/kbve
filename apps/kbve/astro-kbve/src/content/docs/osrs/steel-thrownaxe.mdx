@@ -12,14 +12,41 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 7000
+  material:
+    type: ammunition
+    tier: steel
   equipment:
     slot: weapon
+    weapon_type: thrown
     attack_speed: 5
     requirements:
       ranged: 5
     attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
       ranged: 8
-    ranged_strength: 11
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 11
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    - source: Gorak
+      quantity: "1"
+      rarity: 3/128
+  shops:
+    - shop_name: Authentic Throwing Weapons
+      location: Ranging Guild
+      price: 33
+      stock: unlimited
   related_items:
     - item_id: 801
       item_name: Iron thrownaxe
@@ -31,12 +58,27 @@ osrs:
       slug: mithril-thrownaxe
       relationship: variant
       description: Higher tier thrownaxe
+  market_strategy:
+    notes:
+      - "summary: \"Niche ranged throwing weapon with low demand; supplied via shop and goblin-tier drops.\""
+      - "target_audience: \"Low-level rangers and ironmen leveling Ranged via thrownaxes.\""
+  trading_tips:
+    - Buy from Authentic Throwing Weapons in the Ranging Guild for steady stock at 33 gp.
+    - Watch GE limit of 7,000 per 4 hours when flipping.
+  history:
+    - date: "2004-03-29"
+      description: Steel thrownaxe released alongside other thrownaxe tiers.
   about: |-
     > _"A finely balanced throwing axe."_
 
     The steel thrownaxe requires 5 Ranged. Features the bouncing special attack shared by all thrownaxes.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  properties:
+    release_date: "2004-03-29"
+    weight: 0
+    quest_item: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

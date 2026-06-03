@@ -12,31 +12,75 @@ osrs:
   lowalch: 30
   highalch: 45
   limit: 15
+  about: "Ham boots are the feet piece of the H.A.M. (Humans Against Monsters) outfit. Wearing more H.A.M. pieces reduces the chance of being ejected from the H.A.M. Hideout when caught pickpocketing. High alchemy value: 45 coins. Grand Exchange buy limit: 15."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: cloth
+    tier: cloth
+  properties:
+    release_date: "2005-02-22"
+    tradeable: true
+    equipable: true
+    stackable: false
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.34
   equipment:
     slot: feet
-    requirements: {}
-  related_items:
-    - item_id: 4302
-      item_name: Ham hood
-      slug: ham-hood
+    weapon_type: none
+    attack_speed: 1
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    - source: H.A.M. Member (pickpocket)
+      quantity: "1"
+      rarity: "1/102"
+    - source: H.A.M. Guard
+      quantity: "1"
+      rarity: "2/110"
+    - source: Chest in Zanik's house
+      quantity: "1"
+      rarity: "1/23"
+  relationships:
+    - item_name: Ham hood
       relationship: set-piece
-      description: H.A.M. head piece
-    - item_id: 4298
-      item_name: Ham shirt
-      slug: ham-shirt
+    - item_name: Ham shirt
       relationship: set-piece
-      description: H.A.M. body piece
-    - item_id: 4308
-      item_name: Ham gloves
-      slug: ham-gloves
+    - item_name: Ham robe
       relationship: set-piece
-      description: H.A.M. hands piece
-  about: |-
-    > *"HAM boots as worn by the Humans Against Monsters group."*
-
-    The ham boots are the feet piece of the H.A.M. (Humans Against Monsters) robes set. Wearing more pieces reduces the chance of being ejected from the H.A.M. Hideout when caught pickpocketing. A members-only item with no combat stats.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Ham gloves
+      relationship: set-piece
+    - item_name: Ham cloak
+      relationship: set-piece
+  market_strategy:
+    notes:
+      - "short_term: \"Demand bumps when new players push H.A.M. pickpocketing for early Thieving XP.\""
+      - "long_term: \"Niche cosmetic / thieving aid; supply is steady from H.A.M. pickpocket loop.\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Buy-limit is only 15, so flips are best in bulk-listing batches not single high-volume orders."
+    - "Stack with other H.A.M. set pieces for a sellable bundle."
+  history:
+    - date: "2005-02-22"
+      description: "Released with the Death to the Dorgeshuun quest area expansion and H.A.M. Hideout content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

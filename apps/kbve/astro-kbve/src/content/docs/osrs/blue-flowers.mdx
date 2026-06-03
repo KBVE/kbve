@@ -12,9 +12,70 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "Blue flowers is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Blue flowers are a members-only posy in Old School RuneScape obtained by planting mithril or adamant seeds. They are a Herblore ingredient for imp repellent and double as a fun cosmetic weapon. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.028
+  equipment:
+    slot: "weapon"
+    weapon_type: "joke_weapon"
+    attack_speed: 4
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - item_name: "Imp repellent"
+      skill: "Herblore"
+      level: 3
+      xp: 0
+      materials:
+        - item_name: "Blue flowers"
+          quantity: 1
+        - item_name: "Anchovy oil"
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Accumulate during quiet hours; supply spikes from Farming runs planting mithril/adamant seeds.\""
+      - "sell_strategy: \"Sell ahead of Hand in the Sand or Trouble Brewing demand windows.\""
+      - "price_trend: \"stable\""
+      - "investment_potential: \"low\""
+  trading_tips:
+    - "Plant mithril or adamant seeds for self-supply during Farming runs."
+    - "Combine with anchovy oil for the imp repellent niche market."
+    - "Low daily volume; list patiently rather than dumping at instant-sell."
+  history:
+    - date: "2004-03-29"
+      description: "Released at the launch of RuneScape 2."
+    - date: "2014-12-10"
+      description: "Renamed from Flowers to Blue flowers to disambiguate colour variants."
+    - date: "2024-04-10"
+      description: "Adamant seeds added as an additional source for coloured flowers."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

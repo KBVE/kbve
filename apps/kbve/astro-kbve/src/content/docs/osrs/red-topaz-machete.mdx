@@ -1,6 +1,6 @@
 ---
 title: Red topaz machete | OSRS Price Data
-description: "Red topaz machete: A jungle specific slashing device.. High alch: 1,200 GP, GE limit: 15."
+description: "Red topaz machete: A jungle specific slashing device. High alch: 1,200 GP, GE limit: 15."
 osrs:
   id: 6317
   name: Red topaz machete
@@ -12,9 +12,94 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 15
-  about: "Red topaz machete is a members-only item in Old School RuneScape. High alchemy value: 1,200 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: gem-machete
+    tier: mid-high
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: slash_sword
+    attack_speed: 4
+    weight: 1.36
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 16
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 10
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Gabooty's Tai Bwo Wannai Cooperative"
+      location: "Tai Bwo Wannai"
+      price: 2400
+      currency: "Trading sticks"
+      stock: 0
+    - shop_name: "Safta Doc's shop"
+      location: "Tai Bwo Wannai"
+      price: 1200
+      currency: "Trading sticks"
+      stock: 0
+  related_items:
+    - item_name: "Machete"
+      slug: "machete"
+      relationship: downgrade
+      description: "Base machete — chops jungle vegetation at lower success."
+    - item_name: "Opal machete"
+      slug: "opal-machete"
+      relationship: downgrade
+      description: "Lower-tier gem machete with worse slash bonus."
+    - item_name: "Jade machete"
+      slug: "jade-machete"
+      relationship: downgrade
+      description: "Mid-tier gem machete between opal and red topaz."
+    - item_name: "Red topaz"
+      slug: "red-topaz"
+      relationship: component
+      description: "Three red topaz gems are required for Safta Doc's deal."
+    - item_name: "Gout tuber"
+      slug: "gout-tuber"
+      relationship: component
+      description: "Required alongside red topazes in Safta Doc's deal."
+  about: "Red topaz machete is the strongest member of the gem-machete line, used during Tai Bwo Wannai Cleanup and general Karamja jungle clearing. It has the highest cutting success rate among machetes for dense and red jungle vegetation. Purchase from Gabooty for 2,400 trading sticks (2,000 with Karamja gloves 1) or from Safta Doc for 1,200 trading sticks, a gout tuber, and three red topazes. Requires completion of Jungle Potion to access the shops."
+  market_strategy:
+    notes:
+      - "Demand is driven by Tai Bwo Wannai Cleanup grinders and Karamja diary completionists."
+      - "Supply is bottlenecked by trading-stick farmers and gout tuber availability."
+      - "Tiny 15 / 4h buy limit caps speculative size."
+  trading_tips:
+    - "Cross-check trading-stick conversion rate (around 2,000–2,400 gp per stick) before flipping."
+    - "Spikes correlate with Karamja achievement diary or league qualifiers featuring Cleanup."
+    - "High alch (1,200 gp) is far below GE — exit liquidity is the GE only."
+  history:
+    - date: "2005-08-09"
+      description: "Released with the Tai Bwo Wannai Cleanup minigame."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

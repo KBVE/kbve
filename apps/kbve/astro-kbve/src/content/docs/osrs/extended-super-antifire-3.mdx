@@ -12,9 +12,59 @@ osrs:
   lowalch: 304
   highalch: 456
   limit: 2000
-  about: "Extended super antifire(3) is a members-only item in Old School RuneScape. High alchemy value: 456 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Extended super antifire(3) grants complete dragonfire immunity for 18 minutes (3 doses x 6 minutes). Requires Dragon Slayer II for the Herblore recipe. High alchemy value: 456 coins. Grand Exchange buy limit: 2,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: potion
+    tier: standard
+  properties:
+    release_date: "2018-01-25"
+    tradeable: true
+    equipable: false
+    stackable: false
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.02
+  potion:
+    doses: 3
+    effect: "Grants complete immunity to dragonfire for 6 minutes per dose (18 minutes total). Does not fully cover Galvek, KBD special, or Vorkath."
+    duration: "18 minutes"
+  recipes:
+    - item_name: Extended super antifire(3)
+      skill: herblore
+      level: 98
+      xp: 120
+      output_quantity: 1
+      tools:
+        - Pestle and mortar
+      materials:
+        - item_name: Super antifire (3)
+          quantity: "1"
+        - item_name: Lava scale shard
+          quantity: "3"
+  relationships:
+    - item_name: Extended super antifire(4)
+      relationship: variant
+    - item_name: Extended super antifire(2)
+      relationship: variant
+    - item_name: Extended super antifire(1)
+      relationship: variant
+    - item_name: Super antifire potion(3)
+      relationship: component
+    - item_name: Lava scale shard
+      relationship: component
+  market_strategy:
+    notes:
+      - "short_term: \"Demand spikes during dragon-heavy bossing (Vorkath, Galvek, Chromatic dragons) and league events.\""
+      - "long_term: \"Tied to high-tier PvM activity; price tracks dragonfire content popularity and Lava scale shard supply.\""
+      - "risk_level: \"medium\""
+  trading_tips:
+    - "Buy 4-dose and decant if margins on (3) are tight."
+    - "Stock during raid week resets when bossers replenish supplies."
+  history:
+    - date: "2018-01-25"
+      description: "Released alongside Dragon Slayer II, requiring 98 Herblore to brew."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

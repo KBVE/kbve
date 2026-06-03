@@ -12,13 +12,40 @@ osrs:
   lowalch: 80800
   highalch: 121200
   limit: 70
+  properties:
+    weight: 0.006
+    release_date: '2005-10-04'
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: Drop
   equipment:
     slot: ring
-    stats: {}
-    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      none: true
   obtaining:
     methods:
       - source: Enchanting
+        quantity: "1"
         spell: Lvl-6 Enchant
         base_item: Onyx ring
         requirements:
@@ -32,24 +59,29 @@ osrs:
             quantity: 20
         xp: 97
   passive_effects:
-    - name: Transformation
-      description: Transforms the player into a rock. The effect ends when the player moves.
+    - name: Stone Transformation
+      description: Transforms the player's appearance into a rock resembling an empty mining rock. The effect ends when the player moves.
+    - name: Sarachnis Web Escape
+      description: Can be activated to break free from Sarachnis's sticky web attack when used immediately after the attack appears.
   related_items:
     - item_id: 6575
       item_name: Onyx ring
       slug: onyx-ring
       relationship: component
-      description: Unenchanted base ring
+      description: Unenchanted base ring used to create the Ring of stone.
     - item_id: 6577
       item_name: Onyx necklace
       slug: onyx-necklace
       relationship: alternative
-      description: Other onyx jewellery
+      description: Alternative onyx jewellery piece.
     - item_id: 6585
       item_name: Onyx amulet
       slug: onyx-amulet
       relationship: alternative
-      description: Other onyx jewellery
+      description: Alternative onyx jewellery piece.
+  history:
+    - date: '2005-10-04'
+      description: "Ring of stone was released as part of the onyx jewellery line."
   about: |-
     > *"An enchanted ring."*
 
@@ -68,12 +100,16 @@ osrs:
     The ring can also be used to break free from Sarachnis's sticky web attack when activated immediately after the attack appears.
   market_strategy:
     notes:
-      - Novelty item primarily used for cosmetic transformation
-      - High alch value due to onyx base material
-      - Low buy limit reflects niche demand
-      - Members only item
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Novelty item primarily used for cosmetic transformation"
+      - "High alch value due to onyx base material"
+      - "Low buy limit reflects niche demand"
+      - "Members only item"
+  trading_tips:
+    - Watch onyx ring prices since the base material drives most of the cost.
+    - Buy limit of 70 makes large-scale flipping slow.
+    - Demand is niche; expect thin order books.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

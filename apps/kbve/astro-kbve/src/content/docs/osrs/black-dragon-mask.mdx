@@ -12,9 +12,74 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 4
-  about: "Black dragon mask is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: misc
+    tier: cosmetic
+  equipment:
+    slot: head
+    weapon_type: none
+    attack_speed: 1
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: hard
+    rarity: 1/1625
+    source: Reward casket (hard)
+  related_items:
+    - item_id: 12518
+      item_name: Green dragon mask
+      slug: green-dragon-mask
+      relationship: variant
+      description: Sibling cosmetic mask
+    - item_id: 12520
+      item_name: Blue dragon mask
+      slug: blue-dragon-mask
+      relationship: variant
+      description: Sibling cosmetic mask
+    - item_id: 12522
+      item_name: Red dragon mask
+      slug: red-dragon-mask
+      relationship: variant
+      description: Sibling cosmetic mask
+  market_strategy:
+    notes:
+      - "summary: \"Hard clue cosmetic head; price driven by clue scroll completion rates.\""
+      - "target_audience: \"Clue scroll hunters and fashionscape collectors.\""
+      - "trading_strategy: \"Long-term hold during clue droughts; price moves with clue meta changes.\""
+  trading_tips:
+    - GE buy limit is only 4 per 4 hours - patient flipping required.
+    - Storable in the costume room's treasure chest to save bank space.
+  history:
+    - date: "2014-06-12"
+      description: Released as a hard clue reward alongside other dragon masks.
+  about: |-
+    Black dragon mask is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 4 per 4 hours.
+
+    Purely cosmetic head slot reward from hard Treasure Trails (1/1,625 rarity from a hard reward casket).
+  properties:
+    release_date: "2014-06-12"
+    weight: 2.267
+    quest_item: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

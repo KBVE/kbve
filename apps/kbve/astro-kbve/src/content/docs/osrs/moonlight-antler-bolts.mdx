@@ -12,8 +12,17 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 11000
+  properties:
+    release_date: "2024-03-20"
+    quest_item: false
+    destroy: Drop
+  material:
+    type: ammunition
+    tier: ranged-ammunition
   equipment:
     slot: ammo
+    weapon_type: bolts
+    attack_speed: 1
     weight: 0.001
     attack_bonus:
       stab: 0
@@ -39,12 +48,16 @@ osrs:
     - skill: fletching
       level: 72
       xp: 12.1
+      item_name: Moonlight antler bolts
+      tools:
+        - Chisel
       materials:
         - item_name: Moonlight antelope antler
           quantity: 1
       product: Moonlight antler bolts
       product_id: 28878
       product_quantity: 12
+      output_quantity: 12
       members_only: true
   drop_table:
     primary_source: Crafted
@@ -76,11 +89,18 @@ osrs:
     - Hunter-themed content
   market_strategy:
     notes:
-      - Requires hunting moonlight antelopes
-      - Good profit from Fletching
-      - Part of Hunter Guild content
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Requires hunting moonlight antelopes"
+      - "Good profit from Fletching"
+      - "Part of Hunter Guild content"
+  trading_tips:
+    - Crafted from moonlight antelope antlers via Fletching
+    - Hunters' sunlight crossbow is the intended launcher
+    - Compatible with Ava's devices for ammo recovery
+  history:
+    - date: "2024-03-20"
+      description: "Released with Varlamore: Part One."
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

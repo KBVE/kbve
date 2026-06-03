@@ -12,9 +12,77 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 125
-  about: "Iron hasta is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Iron hasta is a one-handed barbarian polearm. Functions like a spear but allows a shield. Smithed at the Barbarian anvil after completing the Barbarian Training Smithing tutorial."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    weight: 2.267
+    destroy: "Drop"
+  material:
+    type: ammunition
+    tier: iron
+    category: hasta
+  equipment:
+    slot: weapon
+    weapon_type: hasta
+    attack_speed: 4
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 8
+      slash: 8
+      crush: 8
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: -2
+      slash: -2
+      crush: -2
+      magic: 0
+      ranged: -2
+    other_bonus:
+      strength: 10
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - item_name: Iron hasta
+      skill: Smithing
+      level: 20
+      xp: 50
+      tools:
+        - Hammer
+        - Barbarian anvil
+      materials:
+        - item_name: Iron bar
+          quantity: 1
+        - item_name: Oak logs
+          quantity: 1
+      output_quantity: 1
+      members: true
+  market_strategy:
+    notes:
+      - "relationship: \"variant\""
+      - "Iron spear"
+      - "Bronze hasta"
+      - "Steel hasta"
+      - "Mithril hasta"
+      - "Adamant hasta"
+      - "Rune hasta"
+      - "Functions like a spear but classified as a one-hand, freeing the shield slot."
+      - "Smithing requires Barbarian Training Smithing tutorial completion."
+      - "Low GE volume and supply because most players skip Barbarian smithing."
+  history:
+    - date: "2007-07-03"
+      description: "Iron hasta released alongside the Barbarian Training miniquest update."
+    - date: "2021-04-21"
+      description: "Attack speed was improved from 5 ticks (3.0s) to 4 ticks (2.4s)."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

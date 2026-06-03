@@ -12,9 +12,82 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Royal sceptre is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.535
+    options: ["Wield"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: polestaff
+    attack_speed: 4
+    weight: 4.535
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: "Reward casket (elite)"
+        quantity: "1"
+        rarity: "1/1,275"
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers: ["elite"]
+  related_items:
+    - item_name: "Royal crown"
+      slug: "royal-crown"
+      relationship: "set-piece"
+      description: "Matching crown piece from the Royal outfit set."
+    - item_name: "Royal gown top"
+      slug: "royal-gown-top"
+      relationship: "set-piece"
+      description: "Matching gown top from the Royal outfit set."
+    - item_name: "Royal gown bottom"
+      slug: "royal-gown-bottom"
+      relationship: "set-piece"
+      description: "Matching gown bottom from the Royal outfit set."
+  about: "Royal sceptre is a cosmetic polestaff reward from elite Treasure Trails, released June 12, 2014. It is part of the Royal outfit and can be stored in the costume room treasure chest. All combat bonuses are +0 - it is purely a fashionscape piece."
+  market_strategy:
+    notes:
+      - "Elite-tier clue cosmetic with a 1/1,275 drop rate; supply trickles in slowly."
+      - "Low daily volume (~49) means market thickness is thin - use limit orders, not market buys."
+      - "Demand is tied to costume room collectors and roleplay setups, not combat metas."
+  trading_tips:
+    - "Place buy offers slightly above the GE average and wait several hours - this is a slow mover."
+    - "Stack the full 4/4h buy limit when prices dip below 22k for resale margin."
+    - "Cosmetics like this spike during clue scroll content updates - watch the patch notes."
+  history:
+    - date: "2014-06-12"
+      description: "Released as part of the Treasure Trail Expansion update as an elite clue reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

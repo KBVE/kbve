@@ -12,9 +12,71 @@ osrs:
   lowalch: 72
   highalch: 108
   limit: 2000
-  about: "Super restore mix(2) is a members-only item in Old School RuneScape. High alchemy value: 108 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: barbarian_potion
+    tier: mid
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.09
+    options: ["Drink"]
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 67
+      xp: 48
+      materials:
+        - item_name: "Super restore(2)"
+          quantity: 1
+        - item_name: "Caviar"
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Restores all lowered skills by 8 + 25% of the player's current level (excluding Hitpoints)."
+        duration: 0
+      - description: "Restores Prayer points by the same formula."
+        duration: 0
+      - description: "Heals 6 Hitpoints per dose as a Barbarian mix bonus."
+        duration: 0
+  related_items:
+    - item_name: "Super restore(2)"
+      slug: "super-restore-2"
+      relationship: "component"
+      description: "Base 2-dose potion combined with caviar to create the mix."
+    - item_name: "Caviar"
+      slug: "caviar"
+      relationship: "component"
+      description: "Barbarian Herblore ingredient that converts the potion into a mix."
+    - item_name: "Super restore mix(1)"
+      slug: "super-restore-mix-1"
+      relationship: "variant"
+      description: "Single-dose version of the same Barbarian mix."
+  about: "Super restore mix(2) is a Barbarian Herblore potion made at level 67 Herblore by combining a Super restore(2) with caviar for 48 XP. Released July 3, 2007 alongside Barbarian Training. Each dose restores all lowered stats (8 + 25% of level), restores Prayer points, and heals 6 Hitpoints. Renamed in February 2015 from Sup. restore mix to Super restore mix."
+  market_strategy:
+    notes:
+      - "Barbarian mix - typically loss-making to brew, so supply depends on Herblore XP grinders."
+      - "Demand is niche - speedrunners and HCIMs use it for the extra heal during prayer-heavy bosses."
+      - "Caviar price drives margin more than base super restore."
+      - "Volume thin; 2k buy limit rarely fills in a single window."
+  trading_tips:
+    - "Track caviar (roe-feathered) GE price - it sets the floor."
+    - "Bulk-buy when Herblore XP events flood the market with mix overflow."
+    - "Use 1-dose vs 2-dose price gap to flip into the cheaper-per-dose form."
+  history:
+    - date: "2007-07-03"
+      description: "Released alongside Barbarian Training as a Herblore mix potion."
+    - date: "2015-02-26"
+      description: "Renamed from Sup. restore mix to Super restore mix."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

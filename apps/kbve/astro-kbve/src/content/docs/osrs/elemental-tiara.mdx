@@ -1,6 +1,6 @@
 ---
 title: Elemental tiara | OSRS Price Data
-description: "Elemental tiara: A tiara infused with the properties of every elemental rune.. High alch: 60 GP."
+description: "Elemental tiara: A tiara infused with the properties of every elemental rune. High alch: 60 GP."
 osrs:
   id: 26804
   name: Elemental tiara
@@ -12,9 +12,73 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: null
-  about: "Elemental tiara is a members-only item in Old School RuneScape. High alchemy value: 60 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: '2022-03-23'
+    quest_item: false
+    destroy: Drop
+  equipment:
+    slot: head
+    weapon_type: tiara
+    attack_speed: 1
+    requirements:
+      runecraft: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 1
+  recipes:
+    - item_name: Elemental tiara
+      skill: runecraft
+      level: 1
+      xp: 40
+      tools:
+        - Elemental runic altar
+      inputs:
+        - item_name: Tiara
+          quantity: 1
+        - item_name: Elemental talisman
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 5527
+      item_name: Tiara
+      slug: tiara
+      relationship: component
+      description: Base tiara used in creation
+    - item_id: 26802
+      item_name: Elemental talisman
+      slug: elemental-talisman
+      relationship: component
+      description: Consumed when crafting the tiara
+  about: |-
+    "A tiara infused with the properties of every elemental rune."
+
+    Elemental tiara is created at the elemental runic altar by using a tiara or an elemental talisman on the altar, granting 40 Runecraft experience. When worn it allows direct entry to mysterious ruins via left-click without needing a talisman in inventory.
+  market_strategy:
+    notes:
+      - "Convenience tool for runecrafters"
+      - "Eliminates need to carry talisman while runecrafting"
+      - "Crafting costs typically exceed GE price"
+      - "Low volume, niche item"
+  history:
+    - date: '2022-03-23'
+      description: Item released alongside the elemental rune update.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

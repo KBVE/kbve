@@ -12,9 +12,92 @@ osrs:
   lowalch: 1728
   highalch: 2592
   limit: 125
-  about: "Black spiky vambraces is a members-only item in Old School RuneScape. High alchemy value: 2,592 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  weight: 0.283
+  material:
+    type: dragonhide
+    tier: black
+  properties:
+    release_date: "2006-11-21"
+    quest_item: false
+    destroy: "Drop"
+  equipment:
+    slot: hands
+    requirements:
+      ranged: 70
+    bonuses:
+      attack:
+        stab: 0
+        slash: 0
+        crush: 0
+        magic: 0
+        ranged: 11
+      defence:
+        stab: 6
+        slash: 5
+        crush: 7
+        magic: 8
+        ranged: 0
+      other:
+        strength: 2
+        ranged_strength: 0
+        magic_damage: 0
+        prayer: 0
+  crafting:
+    level: 32
+    xp: 6
+  recipes:
+    - skill: crafting
+      level: 32
+      xp: 6
+      materials:
+        - item_name: Black d'hide vambraces
+          item_id: 2497
+          quantity: 1
+        - item_name: Kebbit claws
+          item_id: 10113
+          quantity: 1
+      tools:
+        - Hands
+      product: Black spiky vambraces
+      product_id: 10085
+      output_quantity: 1
+      facility: Inventory
+  related_items:
+    - item_id: 2497
+      item_name: Black d'hide vambraces
+      slug: black-d-hide-vambraces
+      relationship: component
+      description: Base vambraces
+    - item_id: 10113
+      item_name: Kebbit claws
+      slug: kebbit-claws
+      relationship: component
+      description: Adds spikes
+    - item_id: 10083
+      item_name: Red spiky vambraces
+      slug: red-spiky-vambraces
+      relationship: variant
+      description: Higher tier variant
+  about: |-
+    Black spiky vambraces are ranged hand armour created by adding kebbit claws to black d'hide vambraces. The spikes deal extra damage in melee retaliation.
+
+    Requires 70 Ranged to equip and provides a notable upgrade over plain black d'hide vambraces.
+  market_strategy:
+    notes:
+      - "Hunter / crafting synergy"
+      - "Marginal upgrade over base vambraces"
+      - "Niche PvM use"
+      - "Kebbit claws from Hunter"
+      - "Craft yourself for small profit (~975 GP margin)"
+      - "Useful for hunter clue rewards"
+      - "Hands slot upgrade for 70+ Ranged builds"
+  history:
+    - date: "2006-11-21"
+      description: "Released alongside the Hunter skill."
+    - date: "2020-04-01"
+      description: "Renamed from Black spiky vambs to Black spiky vambraces."
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

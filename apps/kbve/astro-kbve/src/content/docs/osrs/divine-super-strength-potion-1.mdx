@@ -1,6 +1,6 @@
 ---
 title: Divine super strength potion(1) | OSRS Price Data
-description: "Divine super strength potion(1): 1 dose of divine super strength potion.. High alch: 24 GP, GE limit: 2,000."
+description: "Divine super strength potion(1): 1 dose of divine super strength potion. High alch: 24 GP, GE limit: 2,000."
 osrs:
   id: 23718
   name: Divine super strength potion(1)
@@ -12,9 +12,90 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 2000
-  about: "Divine super strength potion(1) is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    weight: 0.03
+    release_date: '2019-07-25'
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: Drop
+  potion:
+    doses: 1
+    base_potion: Super strength potion
+    boost_skill: Strength
+    boost_formula: "+5 +15% of player's Strength level"
+    duration_minutes: 5
+    drain_hitpoints: 10
+    minimum_hitpoints: 11
+  recipes:
+    - skill: Herblore
+      level: 70
+      xp: 0.5
+      output_quantity: 1
+      tools:
+        - Pestle and mortar
+      materials:
+        - item_name: Super strength potion(1)
+          quantity: 1
+        - item_name: Crystal dust
+          quantity: 1
+  related_items:
+    - item_id: 23716
+      item_name: Divine super strength potion(2)
+      slug: divine-super-strength-potion-2
+      relationship: alternative
+      description: Two-dose version of the same potion.
+    - item_id: 23714
+      item_name: Divine super strength potion(3)
+      slug: divine-super-strength-potion-3
+      relationship: alternative
+      description: Three-dose version of the same potion.
+    - item_id: 23712
+      item_name: Divine super strength potion(4)
+      slug: divine-super-strength-potion-4
+      relationship: alternative
+      description: Four-dose version of the same potion.
+    - item_id: 2440
+      item_name: Super strength(1)
+      slug: super-strength-1
+      relationship: component
+      description: Base potion used in the recipe.
+    - item_id: 23964
+      item_name: Crystal dust
+      slug: crystal-dust
+      relationship: component
+      description: Additive used to craft the divine variant.
+  history:
+    - date: '2019-07-25'
+      description: "Divine super strength potion was released as part of the Song of the Elves quest update."
+  about: |-
+    > *"1 dose of divine super strength potion."*
+
+    Divine super strength potion(1) is a single-dose Strength-boosting potion. Drinking it raises Strength by 5 + 15% of the player's Strength level and holds the boost steady for 5 minutes, but it costs 10 hitpoints per dose.
+
+    | Detail | Value |
+    |--------|-------|
+    | Herblore Req | 70 |
+    | XP | 0.5 per dose |
+    | Boost | +5 +15% of Strength |
+    | Duration | 5 minutes |
+    | HP Drain | 10 per dose |
+
+    The divine line of potions is valued in PvM because the boost does not decay, unlike traditional super potions. The HP drain limits use to higher-HP accounts and combat content where food is already required.
+  market_strategy:
+    notes:
+      - "Steady demand from PvM accounts using divine boosts"
+      - "Cost driven by crystal dust + super strength potion"
+      - "1-dose form often used as filler or for short combat tasks"
+      - "Members only item"
+  trading_tips:
+    - Compare 1/2/3/4-dose prices for arbitrage via decant NPCs.
+    - Track crystal shard and crystal dust prices on the GE.
+    - Buy limit of 2,000 supports moderate flipping.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

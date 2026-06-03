@@ -12,9 +12,73 @@ osrs:
   lowalch: 40000
   highalch: 60000
   limit: 15
-  about: "Guthan's warspear 0 is a members-only item in Old School RuneScape. High alchemy value: 60,000 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Guthan's warspear 0 is a degraded version of Guthan the Infested's warspear from the Barrows minigame. Requires 70 Attack to wield and is fully degraded with 0 charges; must be repaired before it can be used again. High alchemy value: 60,000 coins. Grand Exchange buy limit: 15 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-09"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 2.267
+  material:
+    type: metal
+    primary: metal
+    tier: barrows
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 5
+    two_handed: true
+    requirements:
+      attack: 70
+    attack_bonus:
+      stab: 75
+      slash: 75
+      crush: 75
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 7
+      slash: 7
+      crush: 7
+      magic: 0
+      ranged: 7
+    other_bonus:
+      strength: 75
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  charges:
+    max_charges: 15
+    current_charges: 0
+    degrades: true
+    repair_cost: 100000
+    repair_method: "Repair at Bob's Brilliant Axes in Lumbridge or an armour stand in a player-owned house for a discount based on Smithing level."
+    notes: "Degrades over 15 hours of combat. This 0-charge version is fully broken and must be repaired before it can be wielded effectively. When the full Guthan's set is worn, melee hits have a 25% chance to heal the wearer for damage dealt."
+  drop_table:
+    - source: "Barrows chest"
+      level: 115
+      quantity: "1"
+      rarity: "1/2448"
+      notes: "Awarded from the Barrows chest when at least one brother has been defeated."
+  market_strategy:
+    notes:
+      - "buy_range: \"95,000 - 110,000 gp\""
+      - "sell_range: \"105,000 - 120,000 gp\""
+      - "0-charge variants trade at a discount versus undamaged Guthan's warspear due to the repair cost; flip when the discount exceeds repair price."
+  trading_tips:
+    - "Compare price to the undamaged warspear minus the 100,000 gp repair fee."
+    - "Stock up after Barrows updates when drops temporarily spike supply."
+    - "Sell to Ironmen or set collectors who plan to repair and use the gear."
+  history:
+    - date: "2005-05-09"
+      description: "Released with the Barrows minigame."
+    - date: "2017-02-15"
+      description: "Added to the Grand Exchange after Barrows item tradeability rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

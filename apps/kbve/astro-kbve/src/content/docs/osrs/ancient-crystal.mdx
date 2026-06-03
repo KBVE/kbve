@@ -12,9 +12,92 @@ osrs:
   lowalch: 100000
   highalch: 150000
   limit: 250
-  about: "Ancient crystal is a members-only item in Old School RuneScape. High alchemy value: 150,000 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Ancient crystal is a members-only drop from Revenants in the Wilderness Revenant Caves of Old School RuneScape. Four crystals plus four marble blocks are used at 80 Construction to build the Obelisk teleport in a Superior Garden, granting 3,000 Construction experience. High alchemy value: 150,000 coins. Grand Exchange buy limit: 250 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-11-23"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 13.607
+  drop_table:
+    - source: "Revenant imp"
+      level: 7
+      quantity: "1"
+      rarity: "1/14666.67"
+    - source: "Revenant goblin"
+      level: 15
+      quantity: "1"
+      rarity: "1/14666.67"
+    - source: "Revenant pyrefiend"
+      level: 52
+      quantity: "1"
+      rarity: "1/9714.29"
+    - source: "Revenant hobgoblin"
+      level: 60
+      quantity: "1"
+      rarity: "1/8470.59"
+    - source: "Revenant cyclops"
+      level: 82
+      quantity: "1"
+      rarity: "1/6857.14"
+    - source: "Revenant hellhound"
+      level: 90
+      quantity: "1"
+      rarity: "1/6400"
+    - source: "Revenant demon"
+      level: 98
+      quantity: "1"
+      rarity: "1/5818.18"
+    - source: "Revenant ork"
+      level: 105
+      quantity: "1"
+      rarity: "1/5333.33"
+    - source: "Revenant dark beast"
+      level: 120
+      quantity: "1"
+      rarity: "1/4571.43"
+    - source: "Revenant knight"
+      level: 126
+      quantity: "1"
+      rarity: "1/4266.67"
+    - source: "Revenant dragon"
+      level: 135
+      quantity: "1"
+      rarity: "1/2666.67"
+  recipes:
+    - item_name: "Obelisk (Superior garden)"
+      skill: "Construction"
+      level: 80
+      xp: 3000
+      materials:
+        - item_name: "Ancient crystal"
+          quantity: 4
+        - item_name: "Marble block"
+          quantity: 4
+      tools:
+        - "Hammer"
+        - "Saw"
+      output_quantity: 1
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Accumulate slowly inside the 250 buy limit; long-term price moves with Wilderness mining-route activity.\""
+      - "sell_strategy: \"List on rebuild waves when high-level Construction is the META during DMM or league events.\""
+      - "price_trend: \"stable\""
+      - "investment_potential: \"medium\""
+  trading_tips:
+    - "Skull up at Revenants for improved drop rates if self-sourcing."
+    - "Bank crystals together with marble blocks to build all four Obelisk corners in one trip."
+    - "Buy limit of 250 sharply restricts flipping volume; small margins, not large flips."
+  history:
+    - date: "2017-11-23"
+      description: "Released as a Revenant Caves Wilderness drop tied to the Superior Garden Obelisk."
+    - date: "2020-09-10"
+      description: "Grand Exchange buy limit reduced from 11,000 to 250."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

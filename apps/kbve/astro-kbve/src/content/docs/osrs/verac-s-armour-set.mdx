@@ -1,6 +1,6 @@
 ---
 title: Verac's armour set | OSRS Price Data
-description: "Verac's armour set: A set containing a Verac's helm, plateskirt, brassard and flail.. High alch: 240,000 GP, GE limit: 8."
+description: "Verac's armour set: A set containing a Verac's helm, plateskirt, brassard and flail. High alch: 240,000 GP, GE limit: 8."
 osrs:
   id: 12875
   name: Verac's armour set
@@ -12,9 +12,50 @@ osrs:
   lowalch: 160000
   highalch: 240000
   limit: 8
-  about: "Verac's armour set is a members-only item in Old School RuneScape. High alchemy value: 240,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Verac's armour set bundles the four pieces of Verac the Defiled's Barrows equipment into a single tradeable container for convenient Grand Exchange transfer."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: misc
+    tier: rare
+    category: armour_set
+  properties:
+    release_date: "2014-12-10"
+    weight: 0.05
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+  relationships:
+    - item_name: Verac's helm
+      relationship: component
+    - item_name: Verac's brassard
+      relationship: component
+    - item_name: Verac's plateskirt
+      relationship: component
+    - item_name: Verac's flail
+      relationship: component
+    - item_name: Grand Exchange clerk
+      relationship: alternative
+      note: "Exchanges the set with the four individual Barrows pieces."
+  market_strategy:
+    notes:
+      - "summary: \"Convenience container that bundles all four Verac pieces; arbitrage opportunities depend on set vs component spread.\""
+      - "buy_strategy: \"Buy when component prices exceed the set price to profit from disassembly via the Grand Exchange clerk.\""
+      - "sell_strategy: \"Sell as a set when the bundle price exceeds the combined component cost; sets often outperform during high demand.\""
+      - "volatility: \"medium\""
+  trading_tips:
+    - "Exchange the set with a Grand Exchange clerk to obtain or split into the four Barrows pieces."
+    - "Compare set price to summed component prices before buying or assembling."
+    - "GE limit of 8 every 4 hours throttles bulk arbitrage flips."
+  history:
+    - date: "2014-12-10"
+      description: "Verac's armour set added to the Grand Exchange Sets interface for convenient component bundling."
+  examine_variants:
+    - context: Inventory
+      text: "A set containing a Verac's helm, plateskirt, brassard and flail."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

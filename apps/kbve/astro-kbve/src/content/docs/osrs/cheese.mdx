@@ -1,6 +1,6 @@
 ---
 title: Cheese | OSRS Price Data
-description: "Cheese: It's got holes in it.. High alch: 2 GP, GE limit: 13,000."
+description: "Cheese: It's got holes in it. F2P food and cooking ingredient. High alch: 2 GP, GE limit: 13,000."
 osrs:
   id: 1985
   name: Cheese
@@ -12,9 +12,80 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 13000
-  about: "Cheese is a free-to-play item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2001-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: true
+    weight: 0.2
+    options:
+      - Eat
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 48
+      xp: 64
+      materials:
+        - item_name: "Bucket of milk"
+          quantity: 1
+      tools:
+        - Dairy churn
+      output_quantity: 1
+  shops:
+    - shop_name: "Aggie's house"
+      location: "Draynor Village"
+      price: 4
+      currency: "Coins"
+      stock: 0
+    - shop_name: "Bandit Camp cooking shop"
+      location: "Bandit Camp (Kharidian Desert)"
+      price: 4
+      currency: "Coins"
+      stock: 0
+    - shop_name: "Culinaromancer's Chest"
+      location: "Lumbridge Castle cellar"
+      price: 5
+      currency: "Coins"
+      stock: 50
+  related_items:
+    - item_name: "Bucket of milk"
+      slug: "bucket-of-milk"
+      relationship: component
+      description: "Churned at 48 Cooking to produce cheese (64 xp)."
+    - item_name: "Pizza base"
+      slug: "pizza-base"
+      relationship: product
+      description: "Combine with cheese and tomato to start the pizza chain."
+    - item_name: "Potato with cheese"
+      slug: "potato-with-cheese"
+      relationship: product
+      description: "Add cheese to a baked potato for a higher-healing food."
+    - item_name: "Macaroni"
+      slug: "macaroni"
+      relationship: product
+      description: "Cheese is a core macaroni ingredient via the Gnome Cooking chain."
+  about: "Cheese is a free-to-play food and ingredient that heals 2 hitpoints when eaten. It is required for Witch's House (1 cheese), Ratcatchers (4 cheese for poisoned cheese), and is an ingredient in pizzas, potatoes with cheese, macaroni, and several gnome battas. Members can churn buckets of milk into cheese at 48 Cooking for 64 xp."
+  market_strategy:
+    notes:
+      - "Steady ingredient demand from pizza and potato-with-cheese cookers."
+      - "F2P availability keeps the spread tight; flips rely on volume not margin."
+      - "Cooking-skill events and quest re-runs (Ratcatchers) cause short spikes."
+  trading_tips:
+    - "Stock up from the Culinaromancer's Chest if buying for ironman pizza runs."
+    - "Bulk margins are thin — flip in chunks of 1k+ to make GE fees worthwhile."
+    - "Watch for cooking-skill double-XP weekends — price softens after the event."
+  history:
+    - date: "2001-06-11"
+      description: "Released with the launch of RuneScape."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
