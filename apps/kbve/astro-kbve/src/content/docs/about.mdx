@@ -1,0 +1,715 @@
+---
+title: About KBVE
+description: KBVE — KiloByte Virtual Enterprise & Engine. An open-source crew building tools, games, and infrastructure in public.
+ogTitle: "About KBVE — Open Source, Game Dev, and Infrastructure Built in Public"
+ogDescription: "Who we are, what we ship, how the monorepo runs, and the people behind it. KBVE has been building in the open since 2017."
+template: splash
+sidebar:
+    label: About
+    order: 10
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+---
+
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
+
+<div class="about-page">
+	<section class="about-hero" aria-label="About KBVE">
+		<div class="about-hero__bg" aria-hidden="true"></div>
+		<div class="about-hero__inner">
+			<div class="about-hero__badge">
+				<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+					<path
+						d="M12 2 2 7l10 5 10-5-10-5zm0 7L2 14l10 5 10-5-10-5zm0 7L2 21l10 5 10-5-10-5z"
+					/>
+				</svg>
+				<span>KiloByte Virtual Enterprise &amp; Engine</span>
+			</div>
+			<h1 class="about-hero__title">
+				A small crew shipping
+				<span class="about-hero__title-accent">tools, games, and infrastructure</span>
+				in public.
+			</h1>
+			<p class="about-hero__lede">
+				KBVE is an open-source studio and community that's been
+				building software since 2017. One monorepo, public CI, public
+				roadmap, public game dev. If it's worth building, it's worth
+				building where people can read the source.
+			</p>
+
+			<div class="about-hero__cta">
+				<a
+					class="about-hero__btn about-hero__btn--primary"
+					href="https://github.com/kbve/kbve"
+					target="_blank"
+					rel="noopener noreferrer">
+					Read the monorepo
+					<svg
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						aria-hidden="true">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M5 12h14M13 6l6 6-6 6"
+						/>
+					</svg>
+				</a>
+				<a
+					class="about-hero__btn about-hero__btn--discord"
+					href="https://kbve.com/discord/">
+					Join the Discord
+				</a>
+				<a class="about-hero__btn about-hero__btn--ghost" href="#what">
+					What we ship
+				</a>
+			</div>
+
+			<dl class="about-hero__stats">
+				<div class="about-hero__stat">
+					<dt>Founded</dt>
+					<dd>2017</dd>
+				</div>
+				<div class="about-hero__stat">
+					<dt>Repo</dt>
+					<dd>One monorepo</dd>
+				</div>
+				<div class="about-hero__stat">
+					<dt>License</dt>
+					<dd>MIT / Unlicense</dd>
+				</div>
+				<div class="about-hero__stat">
+					<dt>Funded by</dt>
+					<dd>The community</dd>
+				</div>
+			</dl>
+		</div>
+	</section>
+
+	<nav class="about-jump" aria-label="On this page">
+		<a href="#what">What we ship</a>
+		<a href="#how">How we work</a>
+		<a href="#crew">The crew</a>
+		<a href="#find">Find us</a>
+		<a href="#involved">Get involved</a>
+	</nav>
+
+	<section id="what" class="about-section">
+		<header class="about-section__header">
+			<h2>What we ship</h2>
+			<p>
+				Four lanes, one monorepo. Each lane is independently usable
+				and feeds back into the others.
+			</p>
+		</header>
+		<div class="about-grid">
+			<a
+				class="about-card"
+				href="https://github.com/kbve/kbve"
+				target="_blank"
+				rel="noopener noreferrer">
+				<span class="about-card__icon" aria-hidden="true">⚙</span>
+				<span class="about-card__title">Open-source tooling</span>
+				<span class="about-card__copy">
+					Rust crates, Astro components, Python helpers, Bevy and
+					Unity SDKs. Reusable building blocks for the rest of the
+					stack — and yours.
+				</span>
+				<span class="about-card__cta">Browse the monorepo →</span>
+			</a>
+			<a class="about-card" href="/arcade/">
+				<span class="about-card__icon" aria-hidden="true">▲</span>
+				<span class="about-card__title">Games</span>
+				<span class="about-card__copy">
+					Original titles built in Unity, Bevy, and Unreal —
+					including Rareicon, ChuckRPG, and an isometric arcade hub.
+					Source and design notes live in the same monorepo.
+				</span>
+				<span class="about-card__cta">Visit the arcade →</span>
+			</a>
+			<a class="about-card" href="/dashboard/">
+				<span class="about-card__icon" aria-hidden="true">◈</span>
+				<span class="about-card__title">Infrastructure</span>
+				<span class="about-card__copy">
+					Kubernetes, Cilium, Argo, Talos, Longhorn, KubeVirt — the
+					platform under everything. Dashboards and runbooks are
+					linked from the public dashboard.
+				</span>
+				<span class="about-card__cta">Open the dashboard →</span>
+			</a>
+			<a class="about-card" href="/guides/">
+				<span class="about-card__icon" aria-hidden="true">★</span>
+				<span class="about-card__title">Docs &amp; guides</span>
+				<span class="about-card__copy">
+					This site. Engineering notes, game design docs, recipes,
+					theory, and journal entries. Everything we learn we write
+					down here.
+				</span>
+				<span class="about-card__cta">Read the guides →</span>
+			</a>
+		</div>
+	</section>
+
+	<section id="how" class="about-section">
+		<header class="about-section__header">
+			<h2>How we work</h2>
+			<p>
+				A few principles that shape every PR, every commit, every
+				stream.
+			</p>
+		</header>
+		<ul class="about-list">
+			<li>
+				<strong>Build in the open.</strong> Repo public, CI public,
+				roadmap public. If you can read the code, you can review the
+				decisions behind it.
+			</li>
+			<li>
+				<strong>One monorepo, many lanes.</strong> Tools, games, infra,
+				and docs share a single Nx workspace so changes land
+				consistently across the stack.
+			</li>
+			<li>
+				<strong>Permissive licensing.</strong> Most of what we ship is
+				MIT or Unlicense. Fork it, ship it, sell it — just don't
+				pretend you wrote the parts you didn't.
+			</li>
+			<li>
+				<strong>Small surface, sharp tools.</strong> We'd rather ship
+				one well-tuned crate than ten half-finished ones. New
+				abstractions earn their place.
+			</li>
+			<li>
+				<strong>Community-funded.</strong> No VC, no investors. GitHub
+				Sponsors and Patreon keep the lights on, so the work answers
+				to the people who use it.
+			</li>
+		</ul>
+	</section>
+
+	<section id="crew" class="about-section">
+		<header class="about-section__header">
+			<h2>The crew</h2>
+			<p>
+				KBVE is a community-first project — contributors come and go,
+				the work stays public.
+			</p>
+		</header>
+		<div class="about-grid">
+			<div class="about-card about-card--ghost">
+				<span class="about-card__icon" aria-hidden="true">◇</span>
+				<span class="about-card__title">Maintainers</span>
+				<span class="about-card__copy">
+					A small core team reviewing PRs, cutting releases, and
+					running the public infrastructure. Decisions land in the
+					repo, not in a back room.
+				</span>
+			</div>
+			<div class="about-card about-card--ghost">
+				<span class="about-card__icon" aria-hidden="true">♥</span>
+				<span class="about-card__title">Contributors</span>
+				<span class="about-card__copy">
+					Anyone whose PR landed. Issues, bug reports, doc fixes,
+					art, audio — all of it counts. The contributor wall is the
+					git log.
+				</span>
+			</div>
+			<div class="about-card about-card--ghost">
+				<span class="about-card__icon" aria-hidden="true">▶</span>
+				<span class="about-card__title">Stream &amp; chat</span>
+				<span class="about-card__copy">
+					Saturday dev streams on Twitch. Discord runs 24/7 with
+					announcements, build help, and game-night channels.
+				</span>
+			</div>
+			<div class="about-card about-card--ghost">
+				<span class="about-card__icon" aria-hidden="true">★</span>
+				<span class="about-card__title">Sponsors</span>
+				<span class="about-card__copy">
+					GitHub Sponsors and Patreon backers funding open-source
+					work, bounties, and infrastructure. See the
+					<a href="/donate/">donate page</a> for what that pays for.
+				</span>
+			</div>
+		</div>
+	</section>
+
+	<section id="find" class="about-section">
+		<header class="about-section__header">
+			<h2>Find us</h2>
+			<p>
+				Same crew, different surfaces. Pick whichever fits how you
+				like to lurk.
+			</p>
+		</header>
+		<div class="about-grid">
+			<a
+				class="about-card"
+				href="https://github.com/kbve"
+				target="_blank"
+				rel="noopener noreferrer">
+				<span class="about-card__icon" aria-hidden="true">⌥</span>
+				<span class="about-card__title">GitHub</span>
+				<span class="about-card__copy">
+					The monorepo, releases, public discussions, and every CI
+					run. Start here if you want the source of truth.
+				</span>
+				<span class="about-card__cta">github.com/kbve →</span>
+			</a>
+			<a class="about-card" href="https://kbve.com/discord/">
+				<span class="about-card__icon" aria-hidden="true">◈</span>
+				<span class="about-card__title">Discord</span>
+				<span class="about-card__copy">
+					Community chat, dev help, game-night coordination, and
+					the bot lab. Easiest place to say hi.
+				</span>
+				<span class="about-card__cta">Join the server →</span>
+			</a>
+			<a
+				class="about-card"
+				href="https://twitch.tv/kbvepoint"
+				target="_blank"
+				rel="noopener noreferrer">
+				<span class="about-card__icon" aria-hidden="true">▶</span>
+				<span class="about-card__title">Twitch</span>
+				<span class="about-card__copy">
+					Live dev streams — debugging in public, game work, infra
+					tinkering. Catch us most Saturdays.
+				</span>
+				<span class="about-card__cta">twitch.tv/kbvepoint →</span>
+			</a>
+			<a
+				class="about-card"
+				href="https://kbve.itch.io/"
+				target="_blank"
+				rel="noopener noreferrer">
+				<span class="about-card__icon" aria-hidden="true">▲</span>
+				<span class="about-card__title">itch.io</span>
+				<span class="about-card__copy">
+					Game builds, demos, and "name your price" releases. The
+					storefront side of the studio.
+				</span>
+				<span class="about-card__cta">kbve.itch.io →</span>
+			</a>
+			<a
+				class="about-card"
+				href="https://store.steampowered.com/search/?developer=KBVE"
+				target="_blank"
+				rel="noopener noreferrer">
+				<span class="about-card__icon" aria-hidden="true">⛭</span>
+				<span class="about-card__title">Steam</span>
+				<span class="about-card__copy">
+					Wishlist upcoming KBVE titles. Rareicon and friends ship
+					to Steam alongside itch.
+				</span>
+				<span class="about-card__cta">Wishlist on Steam →</span>
+			</a>
+			<a class="about-card" href="/forum/">
+				<span class="about-card__icon" aria-hidden="true">💬</span>
+				<span class="about-card__title">Forum</span>
+				<span class="about-card__copy">
+					Long-form threads — feature requests, design discussions,
+					bug triage. Lives on kbve.com so it's searchable forever.
+				</span>
+				<span class="about-card__cta">Open the forum →</span>
+			</a>
+		</div>
+	</section>
+
+	<section id="involved" class="about-section">
+		<header class="about-section__header">
+			<h2>Get involved</h2>
+			<p>
+				Three doors. Walk through whichever fits. None of them require
+				permission.
+			</p>
+		</header>
+		<div class="about-grid">
+			<a
+				class="about-card"
+				href="https://github.com/kbve/kbve/issues"
+				target="_blank"
+				rel="noopener noreferrer">
+				<span class="about-card__icon" aria-hidden="true">⚙</span>
+				<span class="about-card__title">Open a PR</span>
+				<span class="about-card__copy">
+					Issues labelled <code>good first issue</code> are picked
+					for newcomers. Submit a draft early — we'd rather pair on
+					a half-baked idea than wait for a polished one.
+				</span>
+				<span class="about-card__cta">Browse issues →</span>
+			</a>
+			<a class="about-card" href="/donate/">
+				<span class="about-card__icon" aria-hidden="true">♥</span>
+				<span class="about-card__title">Sponsor the work</span>
+				<span class="about-card__copy">
+					GitHub Sponsors and Patreon. Recurring support is the most
+					useful — it lets us plan beyond the next month.
+				</span>
+				<span class="about-card__cta">Ways to give →</span>
+			</a>
+			<a class="about-card" href="https://kbve.com/discord/">
+				<span class="about-card__icon" aria-hidden="true">◇</span>
+				<span class="about-card__title">Hang out</span>
+				<span class="about-card__copy">
+					Lurk in Discord. Show up to a stream. Post in the forum.
+					Community presence is part of the work — not separate
+					from it.
+				</span>
+				<span class="about-card__cta">Open the server →</span>
+			</a>
+		</div>
+	</section>
+
+	<Adsense />
+</div>
+
+<style is:global>{`
+	.about-page {
+		--ab-accent: var(--sl-color-accent, #818cf8);
+		--ab-cyan: #38bdf8;
+		--ab-cyan-soft: color-mix(in srgb, #38bdf8 18%, transparent);
+		--ab-violet: #a78bfa;
+		--ab-bg: var(--sl-color-bg, #0d1117);
+		--ab-bg-soft: var(--sl-color-bg-nav, #131318);
+		--ab-bg-card: var(--sl-color-black, #0c0c10);
+		--ab-border: var(--sl-color-gray-5, #2a2a33);
+		--ab-text: var(--sl-color-text, #e6edf3);
+		--ab-muted: var(--sl-color-gray-2, #a1a1aa);
+		--ab-radius: 16px;
+		--ab-radius-sm: 10px;
+		max-width: 1180px;
+		margin: 0 auto;
+		padding: 1.5rem 1.25rem 4rem;
+		color: var(--ab-text);
+	}
+
+	.about-page .about-hero {
+		position: relative;
+		padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 3vw, 2.5rem);
+		border-radius: var(--ab-radius);
+		background:
+			radial-gradient(
+				circle at 0% 0%,
+				color-mix(in srgb, var(--ab-cyan) 24%, transparent),
+				transparent 55%
+			),
+			radial-gradient(
+				circle at 100% 100%,
+				color-mix(in srgb, var(--ab-violet) 22%, transparent),
+				transparent 60%
+			),
+			var(--ab-bg-card);
+		border: 1px solid var(--ab-border);
+		overflow: hidden;
+	}
+	.about-page .about-hero__bg {
+		position: absolute;
+		inset: -40% -10%;
+		background:
+			radial-gradient(
+				circle,
+				var(--ab-cyan-soft) 0%,
+				transparent 60%
+			);
+		filter: blur(80px);
+		opacity: 0.6;
+		pointer-events: none;
+	}
+	.about-page .about-hero__inner {
+		position: relative;
+		display: grid;
+		gap: 1.25rem;
+		max-width: 760px;
+	}
+	.about-page .about-hero__badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.55rem;
+		padding: 0.4rem 0.85rem;
+		background: var(--ab-cyan-soft);
+		border: 1px solid color-mix(in srgb, var(--ab-cyan) 35%, transparent);
+		border-radius: 999px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--ab-text);
+		width: fit-content;
+	}
+	.about-page .about-hero__badge svg {
+		width: 16px;
+		height: 16px;
+		color: var(--ab-cyan);
+	}
+	.about-page .about-hero__title {
+		font-size: clamp(2rem, 5vw, 3.25rem);
+		font-weight: 800;
+		line-height: 1.05;
+		letter-spacing: -0.02em;
+		margin: 0;
+	}
+	.about-page .about-hero__title-accent {
+		display: inline-block;
+		background: linear-gradient(135deg, var(--ab-cyan), var(--ab-violet));
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: transparent;
+	}
+	.about-page .about-hero__lede {
+		font-size: 1.0625rem;
+		line-height: 1.55;
+		color: var(--ab-muted);
+		margin: 0;
+		max-width: 58ch;
+	}
+	.about-page .about-hero__cta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin-top: 0.4rem;
+	}
+	.about-page .about-hero__btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		padding: 0.7rem 1.2rem;
+		border-radius: var(--ab-radius-sm);
+		font-size: 0.9375rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			transform 0.12s ease,
+			background 0.12s ease,
+			border-color 0.12s ease,
+			box-shadow 0.12s ease;
+	}
+	.about-page .about-hero__btn svg {
+		width: 18px;
+		height: 18px;
+	}
+	.about-page .about-hero__btn--primary {
+		background: var(--ab-cyan);
+		color: #07131f;
+		box-shadow: 0 6px 20px color-mix(in srgb, var(--ab-cyan) 35%, transparent);
+	}
+	.about-page .about-hero__btn--primary:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 10px 28px color-mix(in srgb, var(--ab-cyan) 45%, transparent);
+	}
+	.about-page .about-hero__btn--discord {
+		background: #5865f2;
+		color: white;
+		box-shadow: 0 6px 20px color-mix(in srgb, #5865f2 35%, transparent);
+	}
+	.about-page .about-hero__btn--discord:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 10px 28px color-mix(in srgb, #5865f2 45%, transparent);
+	}
+	.about-page .about-hero__btn--ghost {
+		color: var(--ab-text);
+		background: transparent;
+		border: 1px solid var(--ab-border);
+	}
+	.about-page .about-hero__btn--ghost:hover {
+		border-color: var(--ab-cyan);
+		background: var(--ab-cyan-soft);
+	}
+	.about-page .about-hero__stats {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 0.75rem;
+		margin: 1.5rem 0 0;
+		padding: 1rem;
+		background: color-mix(in srgb, var(--ab-bg) 60%, transparent);
+		border: 1px solid var(--ab-border);
+		border-radius: var(--ab-radius-sm);
+	}
+	.about-page .about-hero__stat {
+		display: grid;
+		gap: 0.15rem;
+		margin: 0;
+	}
+	.about-page .about-hero__stat dt {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--ab-muted);
+		margin: 0;
+	}
+	.about-page .about-hero__stat dd {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--ab-text);
+		margin: 0;
+	}
+
+	.about-page .about-jump {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin: 2rem 0 1rem;
+		padding: 0.4rem;
+		background: var(--ab-bg-soft);
+		border: 1px solid var(--ab-border);
+		border-radius: var(--ab-radius);
+		position: sticky;
+		top: 1rem;
+		z-index: 10;
+		backdrop-filter: blur(8px);
+	}
+	.about-page .about-jump a {
+		padding: 0.45rem 0.95rem;
+		border-radius: var(--ab-radius-sm);
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--ab-muted);
+		text-decoration: none;
+		transition:
+			background 0.12s ease,
+			color 0.12s ease;
+	}
+	.about-page .about-jump a:hover {
+		color: var(--ab-text);
+		background: color-mix(in srgb, var(--ab-text) 6%, transparent);
+	}
+
+	.about-page .about-section {
+		margin: 2rem 0;
+		scroll-margin-top: 5rem;
+	}
+	.about-page .about-section__header {
+		display: grid;
+		gap: 0.4rem;
+		margin-bottom: 1.25rem;
+		text-align: center;
+	}
+	.about-page .about-section__header h2 {
+		font-size: clamp(1.5rem, 3vw, 2rem);
+		font-weight: 700;
+		margin: 0;
+		letter-spacing: -0.01em;
+	}
+	.about-page .about-section__header p {
+		font-size: 1rem;
+		color: var(--ab-muted);
+		margin: 0;
+		max-width: 60ch;
+		margin-inline: auto;
+	}
+
+	.about-page .about-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+		gap: 1rem;
+	}
+	.about-page .about-card {
+		display: grid;
+		gap: 0.5rem;
+		padding: 1.25rem;
+		background: var(--ab-bg-card);
+		border: 1px solid var(--ab-border);
+		border-radius: var(--ab-radius);
+		text-decoration: none;
+		color: var(--ab-text);
+		transition:
+			transform 0.15s ease,
+			border-color 0.15s ease,
+			box-shadow 0.15s ease;
+	}
+	.about-page a.about-card:hover {
+		transform: translateY(-2px);
+		border-color: var(--ab-cyan);
+		box-shadow: 0 10px 28px color-mix(in srgb, var(--ab-cyan) 18%, transparent);
+	}
+	.about-page .about-card--ghost {
+		cursor: default;
+	}
+	.about-page .about-card--ghost:hover {
+		transform: none;
+		box-shadow: none;
+		border-color: var(--ab-border);
+	}
+	.about-page .about-card__icon {
+		font-size: 1.5rem;
+		line-height: 1;
+		color: var(--ab-cyan);
+	}
+	.about-page .about-card__title {
+		font-size: 1.0625rem;
+		font-weight: 600;
+	}
+	.about-page .about-card__copy {
+		font-size: 0.875rem;
+		color: var(--ab-muted);
+		line-height: 1.5;
+	}
+	.about-page .about-card__copy a {
+		color: var(--ab-cyan);
+		text-decoration: none;
+		border-bottom: 1px dashed color-mix(in srgb, var(--ab-cyan) 50%, transparent);
+	}
+	.about-page .about-card__copy a:hover {
+		border-bottom-style: solid;
+	}
+	.about-page .about-card__copy code {
+		font-size: 0.8125rem;
+		padding: 0.1rem 0.35rem;
+		border-radius: 4px;
+		background: color-mix(in srgb, var(--ab-cyan) 14%, transparent);
+		color: var(--ab-text);
+	}
+	.about-page .about-card__cta {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--ab-cyan);
+		margin-top: 0.25rem;
+	}
+
+	.about-page .about-list {
+		display: grid;
+		gap: 0.75rem;
+		padding: 1.25rem;
+		margin: 0;
+		list-style: none;
+		background: var(--ab-bg-card);
+		border: 1px solid var(--ab-border);
+		border-radius: var(--ab-radius);
+	}
+	.about-page .about-list li {
+		font-size: 0.9375rem;
+		line-height: 1.55;
+		color: var(--ab-muted);
+		padding-left: 1.25rem;
+		position: relative;
+	}
+	.about-page .about-list li::before {
+		content: "◆";
+		position: absolute;
+		left: 0;
+		top: 0;
+		color: var(--ab-cyan);
+		font-size: 0.75rem;
+		line-height: 1.6;
+	}
+	.about-page .about-list strong {
+		color: var(--ab-text);
+		font-weight: 600;
+	}
+
+	@media (max-width: 720px) {
+		.about-page .about-hero__cta {
+			flex-direction: column;
+			align-items: stretch;
+		}
+		.about-page .about-hero__btn {
+			justify-content: center;
+		}
+	}
+`}</style>
