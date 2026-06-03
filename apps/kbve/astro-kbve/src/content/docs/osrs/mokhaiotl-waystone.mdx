@@ -12,12 +12,54 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 100
-  about: "Mokhaiotl waystone is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: magical
+    tier: high
+  properties:
+    release_date: "2025-07-23"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Channel
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  charges:
+    type: teleport
+    description: "Single-use teleport shard that transports the channeller directly to the Ruins of Mokhaiotl. Requires completion of The Final Dawn before it can be activated."
+  drop_table:
+    sources:
+      - source: Doom of Mokhaiotl
+        quantity: "1"
+        rarity: 7/104
+  related_items:
+    - item_name: Doom of Mokhaiotl
+      slug: doom-of-mokhaiotl
+      relationship: alternative
+      description: Boss whose drop table includes the waystone.
+  about: "Mokhaiotl waystone is a consumable teleportation shard introduced on 23 July 2025 with Varlamore: The Final Dawn. Dropped by the Doom of Mokhaiotl boss at a rate of 7/104 (with one to two rolled per drop), the waystone lets players skip the trek back to the Ruins of Mokhaiotl after completing The Final Dawn. The stackable, alchable nature plus a 100 GE buy limit makes it both a logistic shortcut and a modest gp sink."
+  market_strategy:
+    notes:
+      - "Supply tied to Doom of Mokhaiotl killcounts; price reacts to boss DPS meta shifts."
+      - "High alch (6,000 gp) provides a floor for active flippers."
+  trading_tips:
+    - Hold during raid update droughts when boss farming slows.
+    - 100 GE buy limit makes large flips slow but predictable.
+  history:
+    - date: "2025-07-23"
+      description: "Released with Varlamore: The Final Dawn and the Doom of Mokhaiotl boss fight."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

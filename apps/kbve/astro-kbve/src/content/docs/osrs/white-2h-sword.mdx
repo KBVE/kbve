@@ -12,9 +12,73 @@ osrs:
   lowalch: 768
   highalch: 1152
   limit: 125
-  about: "White 2h sword is a members-only item in Old School RuneScape. High alchemy value: 1,152 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: white
+    tier: mid
+  properties:
+    release_date: "2005-10-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.628
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: 2h
+    weapon_type: slash_sword
+    attack_speed: 7
+    weight: 3.628
+    requirements:
+      attack: 10
+      quest: Wanted!
+    attack_bonus:
+      stab: -4
+      slash: 27
+      crush: 21
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -1
+    other_bonus:
+      strength: 26
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  related_items:
+    - item_name: Black 2h sword
+      slug: black-2h-sword
+      relationship: alternative
+      description: Identical attack bonuses without the prayer bonus
+    - item_name: White sword
+      slug: white-sword
+      relationship: variant
+      description: One-handed white sword variant
+    - item_name: Mithril 2h sword
+      slug: mithril-2h-sword
+      relationship: alternative
+      description: Comparable mid-tier two-handed weapon
+  about: "The white 2h sword is a two-handed slash weapon awarded by Sir Vyvin in Falador after reaching Master rank (1,300 Black Knight kills). It mirrors a black 2h sword's bonuses while adding a +1 prayer bonus, making it a niche option for low-level pures and prayer-flickers."
+  market_strategy:
+    notes:
+      - "Tight buy limit causes thin liquidity"
+      - "High alch leaves a small margin if buy price dips"
+      - "Prayer bonus draws collector demand"
+  history:
+    - date: "2005-10-17"
+      description: "Released as a reward in the White Knight ranking system."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

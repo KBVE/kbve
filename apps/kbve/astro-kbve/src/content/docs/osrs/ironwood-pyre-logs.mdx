@@ -12,12 +12,69 @@ osrs:
   lowalch: 288
   highalch: 432
   limit: null
-  about: "Ironwood pyre logs is a members-only item in Old School RuneScape. High alchemy value: 432 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: high
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: firemaking
+      level: 85
+      xp: 435
+      materials:
+        - item_name: Ironwood logs
+          quantity: 1
+        - item_name: Sacred oil(4)
+          quantity: 1
+      tools:
+        - Tinderbox
+      output_quantity: 1
+  related_items:
+    - item_name: Ironwood logs
+      slug: ironwood-logs
+      relationship: component
+      description: Base log soaked in sacred oil to create the pyre version.
+    - item_name: Sacred oil(4)
+      slug: sacred-oil-4
+      relationship: component
+      description: Olive oil consecrated at the Mort'ton temple, four doses per pyre log.
+    - item_name: Magic pyre logs
+      slug: magic-pyre-logs
+      relationship: upgrade
+      description: Higher tier funeral pyre logs.
+    - item_name: Redwood pyre logs
+      slug: redwood-pyre-logs
+      relationship: downgrade
+      description: Lower tier funeral pyre logs.
+  about: "Ironwood pyre logs are produced by applying four doses of sacred oil to ironwood logs, the new high-tier Sailing era log released on 19 November 2025. Burning them at a funeral pyre during Shades of Mort'ton awards 435 Firemaking experience (boosted to 652.5 with the Elite Morytania Diary) and is one of the fastest XP-per-hour Firemaking methods at level 85."
+  market_strategy:
+    notes:
+      - "Demand scales with Shades of Mort'ton popularity for high-tier shade remains."
+      - "Sacred oil bottlenecks supply because of the Mort'ton minigame cadence."
+  trading_tips:
+    - Pre-make pyre logs during quiet periods and sell into Firemaking XP events.
+    - Track ironwood logs prices; raw log spikes ripple into pyre log margins.
+  history:
+    - date: "2025-11-19"
+      description: Released as part of the Sailing update and tied into the Shades of Mort'ton minigame.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

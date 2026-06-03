@@ -12,9 +12,66 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: null
-  about: "Stockpiling charm is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: charm
+    tier: high
+  properties:
+    release_date: "2025-03-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.0
+    options: ["Activate", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Breach boss (Deadman Mode)
+        quantity: "1"
+        rarity: Rare
+      - source: Combat level 200+ monster (Deadman Mode)
+        quantity: "1"
+        rarity: Rare
+  passive_effects:
+    - name: Triple skilling minigame rewards
+      description: "While carried, triples rewards from Wintertodt, Tempoross, Guardians of the Rift, Barbarian Assault, Pest Control, Chompy Bird Hunting, Mage Training Arena, Forestry and Vale Totems."
+    - name: Clue scroll box stacking
+      description: "Caches incoming clue scrolls as scroll boxes that can only be unboxed while the charm is still in your inventory."
+    - name: Auto-bank gathered resources
+      description: "Automatically banks resources gained from Mining, Fishing, Woodcutting, and Farming as you collect them."
+  related_items:
+    - item_name: Clue scroll (master)
+      slug: clue-scroll-master
+      relationship: product
+      description: Example of the clue scrolls stacked into scroll boxes by the charm.
+    - item_name: Wintertodt supply crate
+      slug: supply-crate
+      relationship: product
+      description: One of the boosted minigame reward containers.
+    - item_name: Tempoross reward pool
+      slug: spirit-anglerfish
+      relationship: alternative
+      description: Tempoross rewards similarly tripled while the charm is held.
+  about: "The Stockpiling charm is a Deadman Mode artefact that supercharges skilling and clue progress when kept in the inventory. It triples rewards from a long list of skilling minigames, stacks incoming clue scrolls as boxes that only the charm can unwrap, and auto-banks resources from Mining, Fishing, Woodcutting, and Farming. It only drops from breach bosses and high-level monsters on the permanent Deadman world."
+  market_strategy:
+    notes:
+      - "Supply is entirely Deadman Mode driven, so listings are scarce and price is highly volatile."
+      - "No buy limit means a single whale can move the market in either direction."
+      - "Demand spikes alongside Deadman Mode seasonal patches that buff the charm's coverage."
+  trading_tips:
+    - "Watch Deadman Mode patch notes for new minigames added to the triple-reward list."
+    - "List into the post-patch hype window when Forestry and Vale Totems triples drive demand."
+  history:
+    - date: "2025-03-12"
+      description: "Released on permanent Deadman Mode world 345 with triple-reward, clue stacking, and auto-banking effects."
+    - date: "2026-01-21"
+      description: "Effect list expanded to Barbarian Assault, Pest Control, Chompy Bird Hunting, Mage Training Arena, Forestry, and Vale Totems; vendor value raised from 10,000 to 100,000 coins."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Snakeskin chaps | OSRS Price Data
-description: "Snakeskin chaps is a members legs slot item requiring 30 Defence. High alch: 705 GP, GE limit: 125."
+description: "Snakeskin chaps is a members legs slot item requiring 30 Ranged and 30 Defence. High alch: 705 GP, GE limit: 125."
 osrs:
   id: 6324
   name: Snakeskin chaps
@@ -12,8 +12,32 @@ osrs:
   lowalch: 470
   highalch: 705
   limit: 125
+  material:
+    type: snakeskin
+    tier: low
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
   equipment:
     slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 3.628
+    requirements:
+      ranged: 30
+      defence: 30
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,65 +55,50 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      ranged: 30
-      defence: 30
-    weight: 3.628
   recipes:
     - skill: crafting
       level: 51
       xp: 50
-      inputs:
+      materials:
         - item_name: Snakeskin
           quantity: 12
         - item_name: Thread
           quantity: 1
+      tools:
+        - Needle
       output_quantity: 1
   related_items:
-    - item_id: 6322
-      item_name: Snakeskin body
+    - item_name: Snakeskin body
       slug: snakeskin-body
       relationship: set-piece
-      description: Matching body piece
-    - item_id: 6328
-      item_name: Snakeskin boots
+      description: Matching body armour
+    - item_name: Snakeskin boots
       slug: snakeskin-boots
       relationship: set-piece
       description: Matching boots
-  about: |-
-    | Ranged | Value |
-    |--------|-------|
-    | Ranged Attack | +6 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab/Slash | +8 |
-    | Crush | +10 |
-    | Magic | +4 |
-    | Ranged | +10 |
-
-    Requirements: 30 Ranged, 30 Defence
-
-    | Stat | Snakeskin Chaps | Studded Chaps | Green D'hide Chaps |
-    |------|----------------|---------------|---------------------|
-    | Ranged Atk | +6 | +6 | +8 |
-    | Stab Def | +8 | +6 | +22 |
-    | Magic Def | +4 | +2 | +8 |
-    | Req | 30 Rng/Def | 20 Rng/Def | 40 Rng/Def |
-
-    Moderate upgrade from studded chaps. The ranged attack bonus is the same, but snakeskin chaps offer slightly better defensive stats across the board.
-
-    - Budget ranged legs for 30 Def bracket
-    - Crafting training product (51-53 range)
-    - Ironman progression piece
-    - 12 snakeskin per pair (~600 GP in materials)
+    - item_name: Studded chaps
+      slug: studded-chaps
+      relationship: downgrade
+      description: Lower-tier chaps with equivalent ranged attack
+    - item_name: Green d'hide chaps
+      slug: green-dhide-chaps
+      relationship: upgrade
+      description: Next-tier ranged chaps
+  about: "Snakeskin chaps are members-only ranged legs requiring 30 Ranged and 30 Defence, crafted from 12 snakeskin and 1 thread at level 51 Crafting for 50 XP. They provide +6 Ranged attack and modest defensive stats across all melee defence types, slotting between studded chaps and green d'hide chaps in the progression. While they are typically skipped for studded chaps (lower requirements with the same attack bonus), they remain a common crafting training product and ironman progression piece."
   market_strategy:
     notes:
-      - Low demand — quickly replaced by green d'hide chaps
-      - Crafting XP is the main reason to make these
-      - Low margins
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Crafting XP is the main reason to make these"
+      - "Quickly replaced by green d'hide chaps in main upgrade paths"
+      - "Low margins typical of training products"
+      - "12 snakeskin material cost defines floor price"
+  trading_tips:
+    - Buy chaps under snakeskin material price for arbitrage
+    - Flip during crafting bot waves
+  history:
+    - date: "2005-08-09"
+      description: Released with the snakeskin armour set.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

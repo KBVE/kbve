@@ -12,9 +12,53 @@ osrs:
   lowalch: 58000
   highalch: 87000
   limit: 2
-  about: "Blood moon armour set is a members-only item in Old School RuneScape. High alchemy value: 87,000 coins. Grand Exchange buy limit: 2 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: armour_set
+    tier: high
+  properties:
+    release_date: "2025-08-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  shops:
+    - shop_name: Grand Exchange (item sets)
+      location: Grand Exchange
+      price: 145000
+      currency: coins
+      stock: 0
+  related_items:
+    - item_name: Blood moon helm
+      slug: blood-moon-helm
+      relationship: set-piece
+      description: Head slot piece of the Blood moon set
+    - item_name: Blood moon chestplate
+      slug: blood-moon-chestplate
+      relationship: set-piece
+      description: Body slot piece of the Blood moon set
+    - item_name: Blood moon tassets
+      slug: blood-moon-tassets
+      relationship: set-piece
+      description: Legs slot piece of the Blood moon set
+    - item_name: Dual macuahuitl
+      slug: dual-macuahuitl
+      relationship: set-piece
+      description: Weapon paired with the Blood moon armour
+  about: "Blood moon armour set is a Grand Exchange item bundle containing the Blood moon helm, chestplate, tassets, and Dual macuahuitl. Players use the Grand Exchange clerk's item sets interface to consolidate the four pieces into one tradeable item or split it back into components."
+  market_strategy:
+    notes:
+      - "Set price tracks combined component cost closely"
+      - "Use sets to flip when individual pieces are cheaper than bundle"
+      - "Convert via GE clerk to capture arbitrage spread"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

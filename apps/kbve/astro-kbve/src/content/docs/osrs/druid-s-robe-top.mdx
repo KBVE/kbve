@@ -12,22 +12,77 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
     other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 4
+  drop_table:
+    sources:
+      - source: Druid (level 33, Taverley)
+        quantity: "1"
+        rarity: "6/128"
   related_items:
-    - item_id: 538
-      item_name: Druid's robe
+    - item_name: Druid's robe
       slug: druid-s-robe
       relationship: set-piece
-      description: Matching bottom
-  about: |-
-    > _"I feel closer to the gods when I wear this."_
-
-    The druid's robe top provides +4 Prayer bonus with no requirements. Combined with the bottom, gives +8 Prayer bonus — excellent for low-level prayer setups.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Matching robe bottom; pairs with the top for the full druid set."
+  about: "Druid's robe top is a members-only body slot prayer robe released on 27 February 2002 and renamed from 'Druid's robe' to 'Druid's robe top' on 10 December 2014. The top grants +4 Prayer with no skill requirements and is dropped by level 33 Druids in the Taverley druid camp at roughly 6/128. Combined with the matching Druid's robe bottom it forms an easily accessible +8 Prayer bonus setup popular for low-level prayer training. High alchemy value: 24 coins. Grand Exchange buy limit: 125 per 4 hours."
+  market_strategy:
+    notes:
+      - "Demand comes from early-game prayer setups and ironman uniques, but supply is limited by Druid kill rate."
+      - "Low buy limit (125) keeps flipping volume small; suit accounts that hold inventory."
+      - "Prices follow waves whenever low-level prayer content gets attention."
+  trading_tips:
+    - "Buy at GE during quiet hours and resell when prayer-focused guides go viral."
+    - "Pair with Druid's robe bottom for set sale listings on Discord trading hubs."
+    - "Avoid alching - the GE price is dramatically above the high alch value."
+  history:
+    - date: "2002-02-27"
+      description: "Released into the game."
+    - date: "2005-04-26"
+      description: "Examine text capitalization adjusted."
+    - date: "2014-12-10"
+      description: "Renamed from 'Druid's robe' to 'Druid's robe top'."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

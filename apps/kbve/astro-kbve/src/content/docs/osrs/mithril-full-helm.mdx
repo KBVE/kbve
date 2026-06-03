@@ -12,24 +12,105 @@ osrs:
   lowalch: 572
   highalch: 858
   limit: 125
-  item_id: 1159
-  item_type: armor
-  slot: head
-  type: full_helm
-  tradeable: true
-  weight: 2.267
-  requirements:
-    defence: 20
-  stats:
-    stab_defence: 13
-    slash_defence: 14
-    crush_defence: 11
-    ranged_defence: 13
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: mithril
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  equipment:
+    slot: head
+    weight: 2.267
+    requirements:
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 13
+      slash: 14
+      crush: 11
+      magic: -1
+      ranged: 13
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 57
+      xp: 100
+      materials:
+        - item_name: Mithril bar
+          quantity: 2
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: Peksa's Helmet Shop
+      location: Barbarian Village
+      price: 1430
+      currency: Coins
+      stock: 3
+    - shop_name: Skulgrimen's Battle Gear
+      location: Jatizso
+      price: 1573
+      currency: Coins
+      stock: 3
+    - shop_name: Aneirin's Armour
+      location: Prifddinas
+      price: 1430
+      currency: Coins
+      stock: 5
+  drop_table:
+    sources:
+      - source: Wall beast
+        quantity: "1"
+        rarity: 1/128
+      - source: Animated Mithril Armour
+        quantity: "1"
+        rarity: Always
   related_items:
-    - slug: adamant-full-helm
-    - slug: mithril-platebody
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Mithril med helm
+      slug: mithril-med-helm
+      relationship: downgrade
+      description: Medium helm with weaker defence
+    - item_name: Mithril platebody
+      slug: mithril-platebody
+      relationship: set-piece
+      description: Matching mithril body armour
+    - item_name: Adamant full helm
+      slug: adamant-full-helm
+      relationship: upgrade
+      description: Next tier full helm
+  about: "The mithril full helm is the fourth-best full helmet in OSRS, requiring 20 Defence to wear. Smithed from 2 mithril bars at level 57 Smithing for 100 XP. Offers better defensive stats than the mithril med helm at the cost of weight and minor magic/ranged attack penalties."
+  market_strategy:
+    notes:
+      - "Smithing margins vary — usually unprofitable to craft"
+      - "Steady demand from low-level F2P"
+      - "Shop-bought at Peksa's for arbitrage on busy worlds"
+  history:
+    - date: "2001-01-04"
+      description: Released with the original mithril armour set.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

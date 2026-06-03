@@ -12,9 +12,55 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 13000
-  about: "Blamish red shell (round) is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: snail-shell
+    tier: low
+  properties:
+    release_date: "2004-10-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    alchable: true
+  drop_table:
+    sources:
+      - source: Blood Blamish Snail (round)
+        quantity: "1"
+        rarity: Always
+  recipes:
+    - skill: crafting
+      level: 15
+      xp: 32.5
+      materials:
+        - item_name: Blamish red shell (round)
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+  related_items:
+    - item_name: Blood'n'tar snelm (round)
+      slug: bloodntar-snelm-round
+      relationship: product
+      description: Crafted from this shell at level 15 Crafting.
+    - item_name: Blamish red shell (pointed)
+      slug: blamish-red-shell-pointed
+      relationship: variant
+      description: Pointed variant from the same snail family.
+  about: "Blamish red shell (round) drops from Blood Blamish Snails in the Mort Myre Swamp. Members with 15 Crafting can use a chisel on the shell to fashion a Blood'n'tar snelm (round), a low-level helmet that requires the Priest in Peril quest. Released 14 October 2004."
+  market_strategy:
+    notes:
+      - "Snelm crafting demand keeps a steady but thin floor on shell prices."
+      - "GE limit of 13,000 supports bulk flips when craft margins widen."
+  history:
+    - date: "2004-10-14"
+      description: Added to the game alongside the Mort Myre snail family.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

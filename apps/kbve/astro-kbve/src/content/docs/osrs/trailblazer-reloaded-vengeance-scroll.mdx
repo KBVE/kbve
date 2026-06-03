@@ -1,6 +1,6 @@
 ---
 title: Trailblazer reloaded vengeance scroll | OSRS Price Data
-description: "Trailblazer reloaded vengeance scroll: A scroll which unlocks the Trailblazer Reloaded Vengeance animation.. High alch: 15,000 GP."
+description: "Trailblazer reloaded vengeance scroll: A scroll which unlocks the Trailblazer Reloaded Vengeance animation. High alch: 15,000 GP."
 osrs:
   id: 28696
   name: Trailblazer reloaded vengeance scroll
@@ -12,12 +12,43 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: null
-  about: "Trailblazer reloaded vengeance scroll is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: "2023-03-15"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options: ["Read", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Are you sure you want to destroy this item? You can reclaim it from Adventurer Jon in Lumbridge."
+  related_items:
+    - item_name: Vengeance
+      slug: vengeance
+      relationship: alternative
+      description: Lunar spellbook spell whose animation this scroll cosmetically replaces
+  about: "The Trailblazer reloaded vengeance scroll is a cosmetic scroll obtained from the Trailblazer Reloaded League. Reading it permanently unlocks the Trailblazer Reloaded variant of the Vengeance animation, giving players a way to flex league participation in PvP and PvM. Once unlocked the animation can be toggled from the spellbook interface."
+  market_strategy:
+    notes:
+      - "One-time cosmetic unlock - long-tail demand from completionists"
+      - "No GE buy limit but supply is fixed to league rewards"
+      - "Members-only animation override"
+      - "High alch sits well below market price - not an alch target"
+  trading_tips:
+    - Price drifts toward league hype cycles - cheaper between leagues
+    - Watch for new league announcements before flipping
+  history:
+    - date: "2023-03-15"
+      description: Released as a Trailblazer Reloaded League reward.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

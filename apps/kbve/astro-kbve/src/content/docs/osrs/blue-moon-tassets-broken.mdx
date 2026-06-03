@@ -12,9 +12,54 @@ osrs:
   lowalch: 115964
   highalch: 173946
   limit: 15
-  about: "Blue moon tassets (broken) is a members-only item in Old School RuneScape. High alchemy value: 173,946 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: magic armour
+    tier: high
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options: ["Repair", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Lunar Chest (Neypotzli)
+        quantity: "1"
+        rarity: "1/224"
+  related_items:
+    - item_name: Blue moon tassets
+      slug: blue-moon-tassets
+      relationship: variant
+      description: Repaired, equippable version.
+    - item_name: Blue moon helm (broken)
+      slug: blue-moon-helm-broken
+      relationship: set-piece
+      description: Head slot piece of the Blue Moon set.
+    - item_name: Blue moon chestplate (broken)
+      slug: blue-moon-chestplate-broken
+      relationship: set-piece
+      description: Body slot piece of the Blue Moon set.
+  about: "The broken Blue Moon tassets are the unrepaired legs from the Lunar Chest in Neypotzli. They must be repaired before wearing: 1,500,000 coins at an armour stand with a Smithing requirement, or roughly 757,500 coins at 99 Smithing for full self-repair discount. Once repaired, the tassets provide a +1 strength bonus and +1% magic damage at 75 Magic / 50 Defence."
+  market_strategy:
+    notes:
+      - "Repair cost arbitrage: buy broken cheap, repair, resell as functional tassets if margin clears."
+      - "Supply tracks Perilous Moons clear rates."
+  history:
+    - date: "2024-03-20"
+      description: Released as part of the Perilous Moons / Neypotzli content.
+    - date: "2024-04-24"
+      description: Weight reduced from 8 kg to 1.36 kg.
+    - date: "2024-05-29"
+      description: Magic damage bonus increased from 0% to 1%.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

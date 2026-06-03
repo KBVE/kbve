@@ -12,9 +12,34 @@ osrs:
   lowalch: 17000
   highalch: 25500
   limit: 18000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: mystic
+    tier: mid-high
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
   equipment:
     slot: weapon
+    weapon_type: staff
     attack_speed: 5
+    weight: 2.267
+    requirements:
+      attack: 40
+      magic: 40
     attack_bonus:
       stab: 10
       slash: -1
@@ -32,57 +57,44 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      attack: 40
-      magic: 40
-    weight: 2.267
+  drop_table:
+    sources:
+      - source: Dust devil
+        quantity: "1"
+        rarity: 1/128
+      - source: Lizardman shaman
+        quantity: "1"
+        rarity: 17/500
+      - source: Corporeal Beast
+        quantity: "1"
+        rarity: 1/384
   related_items:
-    - item_id: 1403
-      item_name: Mystic water staff
+    - item_name: Mystic water staff
       slug: mystic-water-staff
       relationship: set-piece
       description: Water elemental mystic staff
-    - item_id: 1401
-      item_name: Mystic fire staff
+    - item_name: Mystic fire staff
       slug: mystic-fire-staff
       relationship: set-piece
       description: Fire elemental mystic staff
-    - item_id: 6563
-      item_name: Mystic mud staff
+    - item_name: Mystic mud staff
       slug: mystic-mud-staff
       relationship: upgrade
-      description: Water+Earth combination staff
-  about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Magic | +14 |
-    | Crush | +40 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Magic | +14 |
-
-    | Other | Value |
-    |-------|-------|
-    | Strength | +50 |
-
-    Requirements: 40 Attack, 40 Magic
-
-    Provides unlimited earth runes. Useful for:
-    - Earth spells (Earth Blast through Earth Surge)
-    - Bones to Bananas/Peaches — requires earth runes
-    - Charge Earth Orb — saves earth runes
-    - Autocast with standard spellbook
-
-    Earth runes are among the cheapest runes, so the cost-saving benefit is modest compared to fire or water staves. The primary use case is convenience — not needing to carry earth runes in the inventory.
+      description: Water plus Earth combination staff
+    - item_name: Earth battlestaff
+      slug: earth-battlestaff
+      relationship: downgrade
+      description: Unenchanted base staff used in upgrade
+  about: "The mystic earth staff is created by Thormac the Sorcerer after the Scorpion Catcher quest, costing 40,000 coins plus an earth battlestaff. It provides unlimited earth runes and autocasts standard spellbook magic. Requires 40 Attack and 40 Magic to equip."
   market_strategy:
     notes:
-      - Thormac upgrade profitable with diary discounts
-      - High volume item — popular alch target
-      - GE price tracks near high alch value
-      - Least practical of the elemental mystic staves
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Thormac upgrade profitable with diary discounts"
+      - "High volume item — popular alch target"
+      - "GE price tracks near high alch value"
+      - "Least practical of the elemental mystic staves"
+  history:
+    - date: "2002-03-25"
+      description: Released alongside the Scorpion Catcher quest and Thormac's enchantment service.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

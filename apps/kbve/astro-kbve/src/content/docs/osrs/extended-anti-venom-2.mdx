@@ -12,9 +12,65 @@ osrs:
   lowalch: 88
   highalch: 133
   limit: 2000
-  about: "Extended anti-venom+(2) is a members-only item in Old School RuneScape. High alchemy value: 133 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2024-08-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.07
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: herblore
+      level: 94
+      xp: 40
+      materials:
+        - item_name: Anti-venom+(2)
+          quantity: 1
+        - item_name: Araxyte venom sack
+          quantity: 2
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: Instantly cures venom and poison, grants venom immunity for roughly 6.3 minutes per dose and poison immunity for about 17.7 minutes per dose.
+        duration: null
+  related_items:
+    - item_name: Extended anti-venom+(4)
+      slug: extended-anti-venom-4
+      relationship: variant
+      description: 4-dose version of the same potion
+    - item_name: Extended anti-venom+(3)
+      slug: extended-anti-venom-3
+      relationship: variant
+      description: 3-dose version of the same potion
+    - item_name: Extended anti-venom+(1)
+      slug: extended-anti-venom-1
+      relationship: variant
+      description: 1-dose version of the same potion
+    - item_name: Anti-venom+(2)
+      slug: anti-venom-2
+      relationship: component
+      description: Base potion combined with araxyte venom sacks to make this extended variant
+    - item_name: Araxyte venom sack
+      slug: araxyte-venom-sack
+      relationship: component
+      description: Dropped by Araxxor; required to extend anti-venom+ doses
+  about: "Extended anti-venom+(2) is a 2-dose Herblore potion released in the Araxxor update. It grants long-lasting venom and poison immunity, making it the best antivenom in the game for prolonged PvM trips. Players make it by combining anti-venom+ doses with araxyte venom sacks at 94 Herblore."
+  market_strategy:
+    notes:
+      - "Herblore profit from converting anti-venom+ doses with araxyte venom sacks"
+      - "Demand tied to Araxxor and Toxic team-based PvM uptake"
+      - "2-dose typically trades at a discount per-dose vs the (4)"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,64 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 10000
-  about: "Zul-andra teleport is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: teleport
+    tier: low
+  properties:
+    release_date: "2015-01-08"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Teleport
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Zulrah
+        quantity: "4"
+        rarity: 15/249
+  related_items:
+    - item_name: Varrock teleport
+      slug: varrock-teleport
+      relationship: alternative
+      description: Standard teleport tablet
+    - item_name: Zulrah's scales
+      slug: zulrahs-scales
+      relationship: alternative
+      description: Currency dropped alongside scrolls
+  about: |-
+    "Teleports you to Zul-Andra."
+
+    Zul-andra teleport scrolls drop from Zulrah at 4 per kill (rarity 15/249 × 2) and ferry players to the Zul-Andra dock for fast Zulrah re-supplies. Usage requires Regicide quest completion. The drop rate was reduced from 20 to 1 in October 2015, then raised to 4 in June 2017 to balance supply.
+  market_strategy:
+    notes:
+      - "Zulrah kill scaling drives supply"
+      - "Bossing convenience demand"
+      - "Buy limit 10,000 supports bulk flips"
+      - "Low alch value, near pure utility"
+      - "Price drifts with Zulrah meta shifts"
+  trading_tips:
+    - Bulk volume flips margins
+    - Watch Zulrah update events
+    - Sub-15gp margins are typical
+  history:
+    - date: "2015-01-08"
+      description: Released with Zulrah boss.
+    - date: "2015-10"
+      description: Drop quantity silently reduced from 20 to 1.
+    - date: "2017-06"
+      description: Drop quantity raised to 4 per kill.
+    - date: "2017-07"
+      description: Graphical update with Master scroll book release.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

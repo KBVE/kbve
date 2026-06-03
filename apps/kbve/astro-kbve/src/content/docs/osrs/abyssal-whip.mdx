@@ -12,12 +12,32 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: abyssal
+    tier: high
+  properties:
+    release_date: "2005-02-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
   equipment:
     slot: weapon
     weapon_type: whip
-    weight: 0.453
     attack_speed: 4
-    attack_range: 1
+    weight: 0.453
+    requirements:
+      attack: 70
     attack_bonus:
       stab: 0
       slash: 82
@@ -35,72 +55,48 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      attack: 70
-    degradable: false
   special_attack:
     name: Energy Drain
+    description: Consumes 50% special attack energy, increases accuracy by 25%, and transfers 10% of the target's run energy to the wielder in PvP.
     energy: 50
-    description: Hits with 25% increased accuracy and transfers 10% of the opponent's run energy to you
-    accuracy_modifier: 1.25
   drop_table:
-    primary_source: Abyssal demon
-    best_drop_rate: 1/512
     sources:
       - source: Abyssal demon
-        source_id: 415
-        combat_level: 124
         quantity: "1"
-        rarity: rare
-        drop_rate: 1/512
-        members_only: true
-      - source: Abyssal Sire
-        source_id: 5886
-        combat_level: 350
+        rarity: 1/512
+      - source: Greater abyssal demon
         quantity: "1"
-        rarity: uncommon
-        drop_rate: 1/100
-        members_only: true
+        rarity: 3/512
+      - source: Unsired (Abyssal Sire)
+        quantity: "1"
+        rarity: 12/128
   related_items:
-    - item_id: 12773
-      item_name: Abyssal tentacle
+    - item_name: Abyssal tentacle
       slug: abyssal-tentacle
       relationship: upgrade
-      description: Upgraded version with +8 attack/str, degrades
-    - item_id: 12774
-      item_name: Kraken tentacle
+      description: Whip combined with a kraken tentacle; +8 attack and strength, degrades
+    - item_name: Kraken tentacle
       slug: kraken-tentacle
       relationship: component
-      description: Required to create Abyssal tentacle
-    - item_id: 4178
-      item_name: Volcanic abyssal whip
+      description: Required to upgrade an abyssal whip into an abyssal tentacle
+    - item_name: Volcanic abyssal whip
       slug: volcanic-abyssal-whip
       relationship: variant
-      description: Red cosmetic recolor (untradeable)
-    - item_id: 4179
-      item_name: Frozen abyssal whip
+      description: Red cosmetic recolour applied with a volcanic whip mix (untradeable)
+    - item_name: Frozen abyssal whip
       slug: frozen-abyssal-whip
       relationship: variant
-      description: Blue cosmetic recolor (untradeable)
-    - item_id: 13265
-      item_name: Abyssal dagger
+      description: Blue cosmetic recolour applied with a frozen whip mix (untradeable)
+    - item_name: Abyssal dagger
       slug: abyssal-dagger
       relationship: alternative
-      description: Alternative Abyssal weapon for Strength training
-  about: |-
-    Best-in-slot for:
-    - 70 Attack training
-    - Slayer tasks
-    - Budget melee setup
-
-    Note: Cannot train Strength (controlled only gives shared XP)
+      description: Alternative abyssal weapon focused on strength training via spec
+  about: "The abyssal whip is a one-handed slash weapon dropped by abyssal demons and the Abyssal Sire. Requiring 70 Attack, it has +82 slash and +82 strength, attacks every 4 ticks, and has long been the go-to weapon for 70 Attack training and Slayer tasks. Although surpassed by the Ghrazi rapier and abyssal tentacle, the whip remains widely used due to its low price and non-degradable nature."
   market_strategy:
     notes:
-      - High volume item
-      - Steady demand from Slayer
-      - Tentacle upgrade consumes whip
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "High volume item with steady Slayer-driven demand"
+      - "Tentacle upgrade permanently consumes whips, creating a constant supply sink"
+      - "Price floored close to alch by mass dropouts; spikes track Slayer popularity"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

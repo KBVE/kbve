@@ -12,9 +12,79 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 150
-  about: "Bruise blue snelm is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: snail shell
+    tier: low
+  properties:
+    release_date: "2004-10-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Drop
+    worn_options:
+      - Wear
+    alchable: true
+  equipment:
+    slot: head
+    attack_speed: null
+    weight: 2
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: -1
+    defence_bonus:
+      stab: 7
+      slash: 8
+      crush: 6
+      magic: -1
+      ranged: 7
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 15
+      xp: 32.5
+      materials:
+        - item_name: Blamish blue shell (round)
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+  passive_effects:
+    - name: Snail damage reduction
+      description: Reduces damage taken from snails by 8.
+  related_items:
+    - item_name: Bruise blue snelm (pointed)
+      slug: bruise-blue-snelm-pointed
+      relationship: variant
+      description: Pointed-shell variant with the same colour
+    - item_name: Blamish blue shell (round)
+      slug: blamish-blue-shell-round
+      relationship: component
+      description: Round blue shell chiselled into the round bruise blue snelm
+    - item_name: Myre snelm
+      slug: myre-snelm
+      relationship: alternative
+      description: Other snelm colour variants found in Morytania
+  about: "The bruise blue snelm is a head-slot helmet crafted at 15 Crafting by chiselling a blamish blue shell (round). It offers defensive stats roughly equivalent to a steel medium helm with no requirements to wear and reduces snail damage by 8, making it useful while fighting blamish or giant rock snails. Note that snelms do not count for Treasure Trail full helm clue requirements."
+  market_strategy:
+    notes:
+      - "Cheap craftable shell helm — low GE volume"
+      - "Demand mostly from snail-fighting Slayer or low-level DIY accounts"
+      - "Limit of 150 supports occasional bulk dumps of snail loot"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

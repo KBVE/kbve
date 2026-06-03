@@ -12,25 +12,83 @@ osrs:
   lowalch: 72
   highalch: 108
   limit: 150
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Fine Fashions
+      location: Grand Tree, Tree Gnome Stronghold
+      price: 180
+      currency: coins
+      stock: 3
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 626
-      item_name: Pink boots
+    - item_name: Pink boots
       slug: pink-boots
       relationship: set-piece
       description: Matching boots
-    - item_id: 646
-      item_name: Pink robe bottoms
+    - item_name: Pink robe bottoms
       slug: pink-robe-bottoms
       relationship: set-piece
       description: Matching bottoms
-  about: |-
-    > _"A pink robe top."_
-
-    The pink robe top is part of the gnome clothing set. Purely cosmetic with no stat bonuses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Blue robe top
+      slug: blue-robe-top
+      relationship: variant
+      description: Blue colour gnome robe variant
+    - item_name: Green robe top
+      slug: green-robe-top
+      relationship: variant
+      description: Green colour gnome robe variant
+  about: "Pink robe top is a cosmetic gnome-themed body slot item sold by Heckel Funch at Fine Fashions in the Grand Tree (Tree Gnome Stronghold) for 180 coins. Carries only minor +2 slash and crush defence and otherwise no combat bonuses. Can also be received from easy Treasure Trails emote clues. Part of the gnome robes set with blue, cream, green, pink, and turquoise variants."
+  market_strategy:
+    notes:
+      - "Vendor-capped supply via Fine Fashions"
+      - "Demand from fashionscape gnome sets"
+      - "150 GE buy limit keeps flipping margins thin"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

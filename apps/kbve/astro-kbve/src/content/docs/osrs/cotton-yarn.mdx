@@ -12,9 +12,60 @@ osrs:
   lowalch: 48
   highalch: 72
   limit: 13000
-  about: "Cotton yarn is a members-only item in Old School RuneScape. High alchemy value: 72 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: textile
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    alchable: true
+  recipes:
+    - skill: crafting
+      level: 73
+      xp: 105
+      materials:
+        - item_name: Cotton boll
+          quantity: 1
+      tools:
+        - Spinning wheel
+      output_quantity: 1
+  related_items:
+    - item_name: Cotton boll
+      slug: cotton-boll
+      relationship: component
+      description: Spun on a spinning wheel to produce cotton yarn.
+    - item_name: Bolt of cotton
+      slug: bolt-of-cotton
+      relationship: product
+      description: Woven from cotton yarn for shipbuilding upgrades.
+    - item_name: Haemostatic dressing
+      slug: haemostatic-dressing
+      relationship: product
+      description: Surgery supply crafted from cotton yarn.
+    - item_name: Cotton trawling net
+      slug: cotton-trawling-net
+      relationship: product
+      description: Fishing trawling net produced from cotton yarn.
+  about: "Cotton yarn is a members-only textile created by spinning cotton bolls on a spinning wheel at Crafting level 73 for 105 experience per spin. The yarn feeds into multiple downstream products including bolts of cotton (used for shipbuilding upgrades), haemostatic dressings (a healing item), and cotton trawling nets. Released 19 November 2025."
+  market_strategy:
+    notes:
+      - "High Crafting level requirement narrows the supply pipeline."
+      - "Demand scales with shipbuilding and trawler content participation."
+  trading_tips:
+    - Track cotton boll vs cotton yarn spread - profit comes from spinning when GE tax-adjusted margin is positive.
+  history:
+    - date: "2025-11-19"
+      description: Released alongside cotton boll farming and downstream textile content.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

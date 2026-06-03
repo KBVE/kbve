@@ -12,63 +12,73 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
     type: pottery
-    tier: fired
-  crafting:
-    level: 1
-    xp: 15
+    tier: low
+  properties:
+    release_date: "2001-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: crafting
       level: 1
       xp: 15
       materials:
         - item_name: Unfired bowl
-          item_id: 1791
           quantity: 1
-      product: Bowl
-      product_id: 1923
-      product_quantity: 1
-      facility: Pottery oven
+      tools:
+        - Pottery oven
+      output_quantity: 1
+  shops:
+    - shop_name: Culinaromancer's Chest
+      location: Lumbridge
+      price: 5
+      currency: coins
+      stock: 10
+    - shop_name: Rimmington General Store
+      location: Rimmington
+      price: 5
+      currency: coins
+      stock: 2
+    - shop_name: Trader Stan's Trading Post
+      location: Port Sarim
+      price: 10
+      currency: coins
+      stock: 5
   related_items:
-    - item_id: 1791
-      item_name: Unfired bowl
+    - item_name: Unfired bowl
       slug: unfired-bowl
       relationship: component
-      description: Unfired version
-    - item_id: 1761
-      item_name: Soft clay
+      description: Soft clay shaped on a wheel, hardened in the pottery oven
+    - item_name: Soft clay
       slug: soft-clay
       relationship: component
-      description: Raw material
-    - item_id: 1921
-      item_name: Bowl of water
+      description: Raw material moulded into an unfired bowl
+    - item_name: Bowl of water
       slug: bowl-of-water
       relationship: product
-      description: Filled version
-  about: |-
-    | Method | Level | Materials |
-    |--------|-------|-----------|
-    | Pottery oven | 1 | 1 Unfired bowl |
-    | XP | 15 | - |
-
-    | Use | Skill | Result |
-    |-----|-------|--------|
-    | Fill with water | N/A | Bowl of water |
-    | Nettle tea | Cooking | Nettle tea |
-    | Stew | Cooking | Various stews |
-    | Curry | Cooking | Curry |
+      description: Filled at any water source
+  about: "Bowl is a free-to-play Crafting product made from one Unfired bowl on a pottery oven for 15 experience at level 1. It acts as a vessel for cooking inputs (water, stew, curry, kebab mix) and is sold cheap at Culinaromancer's Chest and several general stores, making it the go-to bulk container for low-level cooks."
   market_strategy:
     notes:
-      - Stew making
-      - Curry cooking
-      - Cooking training
-      - Used for stews
-      - F2P accessible
-      - Buy from shops
-      - Low value item
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Buy in bulk from Culinaromancer's Chest at 5 gp"
+      - "Demand driven by stew/curry cooking"
+      - "Margin is tiny, volume is the play"
+  history:
+    - date: "2001-06-11"
+      description: Added with the original RuneScape Classic Cooking skill rollout.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

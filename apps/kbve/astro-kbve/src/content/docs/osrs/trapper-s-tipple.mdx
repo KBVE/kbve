@@ -12,12 +12,62 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Trapper's tipple is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: drink
+    tier: low
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Temporarily boosts Hunter by +2 levels."
+        duration: null
+      - description: "Reduces Attack by 2 levels and Strength by 1 level."
+        duration: null
+  shops:
+    - shop_name: The Burrow
+      location: Hunter Guild
+      price: 9
+      currency: Coins
+      stock: 10
+  related_items:
+    - item_name: Hunter potion(4)
+      slug: hunter-potion-4
+      relationship: alternative
+      description: Brewed Hunter boost equivalent.
+    - item_name: Hunters' sausage
+      slug: hunters-sausage
+      relationship: alternative
+      description: Food that also boosts Hunter at the Hunter Guild.
+  about: "Trapper's tipple is a Hunter-boosting ale released with the Hunter Guild in Varlamore: Part One on 20 March 2024. Drinking it grants +2 Hunter at the cost of -1 Strength and -2 Attack, making it ideal for catching higher level creatures than your base Hunter level would otherwise allow. It is sold by Huntmaster Gilman at The Burrow pub or scavenged from table spawns inside the same building, but requires Hunter 46 to purchase."
+  market_strategy:
+    notes:
+      - "Sold cheaply from Huntmaster Gilman; little flip margin."
+      - "Useful inventory consumable for Hunter level-boost niches."
+  trading_tips:
+    - Stock up directly from The Burrow when training at the Hunter Guild.
+    - GE listings rarely beat the in-shop price of nine coins per drink.
+  history:
+    - date: "2024-03-20"
+      description: "Released with the Varlamore: Part One expansion and Hunter Guild update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

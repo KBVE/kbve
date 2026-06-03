@@ -1,6 +1,6 @@
 ---
 title: Super combat potion(1) | OSRS Price Data
-description: "Super combat potion(1): 1 dose of super combat potion.. High alch: 24 GP, GE limit: 2,000."
+description: "Super combat potion(1): 1 dose of super combat potion. High alch: 24 GP, GE limit: 2,000."
 osrs:
   id: 12701
   name: Super combat potion(1)
@@ -12,9 +12,86 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 2000
-  about: "Super combat potion(1) is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid-high
+  properties:
+    release_date: "2014-08-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 90
+      xp: 150
+      materials:
+        - item_name: Super attack(4)
+          quantity: 1
+        - item_name: Super strength(4)
+          quantity: 1
+        - item_name: Super defence(4)
+          quantity: 1
+        - item_name: Torstol
+          quantity: 1
+      tools:
+        - Vial
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Boosts Attack by floor(level x 15 / 100) + 5"
+        duration: 0
+      - description: "Boosts Strength by floor(level x 15 / 100) + 5"
+        duration: 0
+      - description: "Boosts Defence by floor(level x 15 / 100) + 5"
+        duration: 0
+  related_items:
+    - item_name: Super combat potion(4)
+      slug: super-combat-potion-4
+      relationship: variant
+      description: Full 4-dose version of the same potion
+    - item_name: Super combat potion(2)
+      slug: super-combat-potion-2
+      relationship: variant
+      description: 2-dose version of the same potion
+    - item_name: Super combat potion(3)
+      slug: super-combat-potion-3
+      relationship: variant
+      description: 3-dose version of the same potion
+    - item_name: Divine super combat potion(4)
+      slug: divine-super-combat-potion-4
+      relationship: upgrade
+      description: Divine variant with no boost decay
+  about: "Super combat potion(1) is the single-dose form of the Super combat potion, made at 90 Herblore for 150 XP by combining a Super attack(4), Super strength(4), Super defence(4) and a Torstol in a vial. Drinking it boosts Attack, Strength and Defence by floor(level x 15 / 100) + 5, decaying at 1 level per minute (or 90 seconds with the Preserve prayer/spell). Single-dose forms are typically the residue of decanting and rarely the primary purchase."
+  market_strategy:
+    notes:
+      - "Often the cheaper per-dose form due to decanting friction"
+      - "Demand from bossers topping off before encounters"
+      - "Tracks the cost of Torstol and component supers"
+  trading_tips:
+    - Decant single doses into 4-doses for higher per-dose value
+    - Buy during Herblore events when supply rises
+    - Compare dose price against (4)/(3)/(2) variants before flipping
+  history:
+    - date: "2014-08-14"
+      description: "Added to the game with the release of Super combat potions."
+    - date: "2015-03-19"
+      description: "Lunar potion-share spell support added."
+    - date: "2016-04-15"
+      description: "Bank placeholder functionality added."
+    - date: "2019-02-14"
+      description: "Unfinished torstol vials became acceptable substitutes for clean torstol in the recipe."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

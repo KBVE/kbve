@@ -12,62 +12,100 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: thrown
-    attack_style: ranged
+    weapon_type: thrown
     attack_speed: 3
-  requirements:
-    ranged: 1
-  stats:
-    attack:
+    weight: 0
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
       ranged: 0
-    other:
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
       ranged_strength: 2
-  fletching:
-    level: 22
-    xp: 3.8
-    method: Attach feathers to iron dart tips
-    quest: Tourist Trap
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 22
+      xp: 3.8
+      materials:
+        - item_name: Iron dart tip
+          quantity: 1
+        - item_name: Feather
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 820
-      item_name: Iron dart tip
+    - item_name: Iron dart tip
       slug: iron-dart-tip
       relationship: component
-      description: Fletching material
-    - item_id: 314
-      item_name: Feather
+      description: Fletching material used to craft iron darts.
+    - item_name: Feather
       slug: feather
       relationship: component
-      description: Fletching material
-    - item_id: 808
-      item_name: Steel dart
+      description: Attached to iron dart tips to complete the dart.
+    - item_name: Steel dart
       slug: steel-dart
       relationship: upgrade
-      description: Higher tier dart
-    - item_id: 806
-      item_name: Bronze dart
+      description: Next dart tier above iron, higher accuracy and strength.
+    - item_name: Bronze dart
       slug: bronze-dart
       relationship: downgrade
-      description: Lower tier dart
-    - item_id: 12924
-      item_name: Toxic blowpipe
+      description: Lower tier dart used before reaching iron.
+    - item_name: Toxic blowpipe
       slug: toxic-blowpipe
       relationship: alternative
-      description: Uses darts as ammo
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Weapon/Ammo |
-    | Type | Thrown |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 1 Ranged |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Ranged weapon that consumes darts as ammunition.
+  about: "Iron dart is a members-only thrown weapon released on 14 April 2003. It can be fletched at Fletching level 22 after completing Tourist Trap by attaching a feather to an iron dart tip for 3.8 experience per dart. With a Ranged Strength bonus of +2 and a base attack speed of 3 ticks, iron darts are a budget thrown option for low-level Ranged training and the toxic blowpipe."
+  market_strategy:
+    notes:
+      - "Cheap and stackable, useful in bulk for blowpipe ammo."
+      - "Lower margins than higher-tier darts; flips depend on volume."
+  trading_tips:
+    - Buy in bulk to take advantage of the 7,000 GE buy limit.
+    - Watch fletching XP events that spike feather demand alongside darts.
+  history:
+    - date: "2003-04-14"
+      description: Iron dart released to Old School RuneScape.
+    - date: "2021-06-30"
+      description: Ranged attack bonus reduced from +4 to +0 and ranged strength reduced from +3 to +2.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

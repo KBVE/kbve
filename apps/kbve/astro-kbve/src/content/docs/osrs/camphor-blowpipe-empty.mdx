@@ -12,9 +12,84 @@ osrs:
   lowalch: 880
   highalch: 1320
   limit: 8
-  about: "Camphor blowpipe (empty) is a members-only item in Old School RuneScape. High alchemy value: 1,320 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: camphor wood
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0.3
+    requirements:
+      ranged: 45
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 12
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 2
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 58
+      xp: 140
+      materials:
+        - item_name: Camphor logs
+          quantity: 2
+        - item_name: Squid beak
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+  related_items:
+    - item_name: Camphor blowpipe
+      slug: camphor-blowpipe
+      relationship: variant
+      description: Loaded camphor blowpipe with darts equipped
+    - item_name: Camphor logs
+      slug: camphor-logs
+      relationship: component
+      description: Required to fletch the blowpipe
+    - item_name: Squid beak
+      slug: squid-beak
+      relationship: component
+      description: Sailing-source mouthpiece for the blowpipe
+    - item_name: Toxic blowpipe
+      slug: toxic-blowpipe
+      relationship: upgrade
+      description: Higher-tier blowpipe with stronger ranged bonuses
+  about: "The camphor blowpipe (empty) is a Sailing-era thrown ranged weapon fletched at 58 Fletching from two camphor logs and a squid beak. It needs 45 Ranged to wield, fires up to mithril darts, and serves as a mid-tier alternative below the toxic blowpipe. The empty state is the tradeable form before darts are loaded."
+  market_strategy:
+    notes:
+      - "Sailing release item — supply driven by squid beak and camphor log throughput"
+      - "GE limit of 8 caps single-account flips"
+      - "Demand from mid-level ranged training and ironman crafting chains"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

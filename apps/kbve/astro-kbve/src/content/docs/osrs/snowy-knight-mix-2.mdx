@@ -1,6 +1,6 @@
 ---
 title: Snowy knight mix (2) | OSRS Price Data
-description: "Snowy knight mix (2): There's a snowy knight butterfly in here.. High alch: 30 GP."
+description: "Snowy knight mix (2): There's a snowy knight butterfly in here. High alch: 30 GP."
 osrs:
   id: 29183
   name: Snowy knight mix (2)
@@ -12,9 +12,49 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: null
-  about: "Snowy knight mix (2) is a members-only item in Old School RuneScape. High alchemy value: 30 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+  potion:
+    effects:
+      - description: Heals 8 hitpoints per dose; in multicombat areas, heals up to three nearby players with Accept Aid enabled.
+        duration: null
+  related_items:
+    - item_name: Snowy knight mix (1)
+      slug: snowy-knight-mix-1
+      relationship: variant
+      description: One-dose version of the same hunter's mix
+    - item_name: Snowy knight
+      slug: snowy-knight
+      relationship: component
+      description: Jarred butterfly used to brew the mix
+    - item_name: Hunter's mix
+      slug: hunters-mix
+      relationship: alternative
+      description: General hunter's mix category
+  about: "Snowy knight mix (2) is a members hunter's mix potion that heals 8 hitpoints per dose and can also heal nearby players in multicombat with Accept Aid enabled. It is made by combining a jarred snowy knight with raw hunter meat using a pestle and mortar."
+  market_strategy:
+    notes:
+      - "Niche potion with limited demand"
+      - "Self-supplied from snowy knight hunting"
+      - "Heal effect weaker than releasing the butterfly directly"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
