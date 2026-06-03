@@ -35,7 +35,14 @@ namespace RareIcon
             state.RequireForUpdate<CombatDBSingleton>();
             state.RequireForUpdate<ItemDBSingleton>();
 
-            _hexOccupancy = new NativeHashMap<int2, int>(64, Allocator.Persistent);
+            _hexOccupancy = new NativeHashMap<int2, int>(4096, Allocator.Persistent);
+        }
+
+        static bool CountsTowardHexOccupancy(byte kind)
+        {
+            return kind == ProfessionKind.Lumberjack
+                || kind == ProfessionKind.Miner
+                || kind == ProfessionKind.Looter;
         }
 
         public void OnDestroy(ref SystemState state)
@@ -71,9 +78,11 @@ namespace RareIcon
             bool hasCapital     = offersDB.HasCapital;
             bool capitalHasFood = offersDB.CapitalHasFood;
 
-            var offers        = offersDB.Offers;
-            var offersPerKind = offersDB.OffersPerKind;
-            var needyCaves    = offersDB.NeedyCaves;
+            var offersPerKind      = offersDB.OffersPerKind;
+            var offersSortedByKind = offersDB.OffersSortedByKind;
+            var offerKindStart     = offersDB.OfferKindStart;
+            var offerKindCount     = offersDB.OfferKindCount;
+            var needyCaves         = offersDB.NeedyCaves;
 
             var threats          = combatDB.Threats;
             var friendlyEmitters = combatDB.FriendlyEmitters;
@@ -81,7 +90,7 @@ namespace RareIcon
 
             var controlledLookup = SystemAPI.GetComponentLookup<ControlledUnitTag>(true);
 
-            var justAssignedPerKind = new NativeArray<int>(13, Allocator.Temp);
+            var justAssignedPerKind = new NativeArray<int>(ProfessionKind.Count, Allocator.Temp);
 
             BufferLookup<PackSlot> unitPackLookup = default;
             NativeArray<int> activePerKind   = default;
@@ -93,15 +102,18 @@ namespace RareIcon
 
                 _hexOccupancy.Clear();
 
-                activePerKind   = new NativeArray<int>(13, Allocator.Temp);
-                reservedPerKind = new NativeArray<int>(13, Allocator.Temp);
+                activePerKind   = new NativeArray<int>(ProfessionKind.Count, Allocator.Temp);
+                reservedPerKind = new NativeArray<int>(ProfessionKind.Count, Allocator.Temp);
 
                 foreach (var jobRO in
                          SystemAPI.Query<RefRO<ProfessionIntent>>().WithAll<ProfessionPriorities>())
                 {
                     byte ak = jobRO.ValueRO.Kind;
-                    if (jobRO.ValueRO.Kind != ProfessionKind.None)
-                        _hexOccupancy[jobRO.ValueRO.TargetHex] = _hexOccupancy.TryGetValue(jobRO.ValueRO.TargetHex, out var c0) ? c0 + 1 : 1;
+                    if (CountsTowardHexOccupancy(ak))
+                    {
+                        var hex = jobRO.ValueRO.TargetHex;
+                        _hexOccupancy[hex] = _hexOccupancy.TryGetValue(hex, out var c0) ? c0 + 1 : 1;
+                    }
                     if (ak < activePerKind.Length) activePerKind[ak]++;
                 }
 
@@ -269,66 +281,77 @@ namespace RareIcon
                 else
                     looterMode = 0xFF;  // forage fallback
 
-                for (int oi = 0; oi < offers.Length; oi++)
+                // Walk only the per-kind slices this unit has priority for.
+                // At 100k units this turns the inner work from O(all_offers)
+                // into O(sum(offers_per_active_kind)) — units with sparse
+                // JobPriorities skip most of the pool entirely.
+                for (byte kind = ProfessionKind.Default; kind < ProfessionKind.Count; kind++)
                 {
-                    var offer = offers[oi];
-                    byte prio = p.Get(offer.Kind);
+                    byte prio = p.Get(kind);
                     if (prio == 0) continue;
 
-                    if (offer.Kind == ProfessionKind.Looter)
+                    int kindStart = offerKindStart[kind];
+                    int kindCount = offerKindCount[kind];
+                    int oNk = offersPerKind[kind];
+                    int aNk = activePerKind[kind] + justAssignedPerKind[kind];
+                    int rNk = reservedPerKind[kind];
+                    int deficit = oNk - aNk;
+                    int reservationShortfall = rNk - aNk;
+                    long deficitBonus = deficit > 0
+                        ? (long)math.min(deficit, DeficitCap) * (PriorityWeight / 4)
+                        : 0L;
+                    long reservationBonus = reservationShortfall > 0
+                        ? (long)math.min(reservationShortfall, DeficitCap) * PriorityWeight
+                        : 0L;
+                    float pressure = (float)(oNk + 1) / (float)(aNk + 1);
+                    long pressureBonus = (long)(math.log(1f + pressure) * 30f);
+                    long perKindBonus = deficitBonus + reservationBonus + pressureBonus;
+
+                    for (int si = 0; si < kindCount; si++)
                     {
-                        if (looterMode == OfferVariant.LooterDeliver)
+                        var offer = offersSortedByKind[kindStart + si];
+
+                        if (kind == ProfessionKind.Looter)
                         {
-                            if (offer.Variant != OfferVariant.LooterDeliver) continue;
+                            if (looterMode == OfferVariant.LooterDeliver)
+                            {
+                                if (offer.Variant != OfferVariant.LooterDeliver) continue;
+                            }
+                            else if (looterMode == OfferVariant.LooterFetch)
+                            {
+                                if (offer.Variant != OfferVariant.LooterFetch) continue;
+                            }
+                            else
+                            {
+                                if (offer.Variant != OfferVariant.LooterForage
+                                    && offer.Variant != OfferVariant.LooterDropPickup) continue;
+                            }
                         }
-                        else if (looterMode == OfferVariant.LooterFetch)
+
+                        int dist = HexDistance(currentHex, offer.Hex);
+                        if (dist > OfferDistanceCap(kind, offer.Variant)) continue;
+
+                        int crowdOcc = 0;
+                        if (IsHarvestVariant(kind, offer.Variant)
+                            && _hexOccupancy.TryGetValue(offer.Hex, out var occ))
                         {
-                            if (offer.Variant != OfferVariant.LooterFetch) continue;
+                            if (occ >= HexClusterCap) continue;
+                            crowdOcc = occ;
                         }
-                        else
+
+                        long score = (long)prio * PriorityWeight - (long)dist + perKindBonus;
+                        if (crowdOcc > 0)
+                            score -= (long)crowdOcc * crowdOcc * CrowdingPenalty;
+                        if (offer.Target != Entity.Null && offer.Target == currentTarget)
+                            score += HysteresisBonus;
+
+                        if (score > bestScore)
                         {
-                            if (offer.Variant != OfferVariant.LooterForage
-                                && offer.Variant != OfferVariant.LooterDropPickup) continue;
+                            bestScore  = score;
+                            bestKind   = kind;
+                            bestHex    = offer.Hex;
+                            bestEntity = offer.Target;
                         }
-                    }
-
-                    int dist = HexDistance(currentHex, offer.Hex);
-                    if (dist > OfferDistanceCap(offer.Kind, offer.Variant)) continue;
-
-                    int crowdOcc = 0;
-                    if (IsHarvestVariant(offer.Kind, offer.Variant)
-                        && _hexOccupancy.TryGetValue(offer.Hex, out var occ))
-                    {
-                        if (occ >= HexClusterCap) continue;
-                        crowdOcc = occ;
-                    }
-
-                    long score = (long)prio * PriorityWeight - (long)dist;
-                    if (crowdOcc > 0)
-                        score -= (long)crowdOcc * crowdOcc * CrowdingPenalty;
-                    if (offer.Target != Entity.Null && offer.Target == currentTarget)
-                        score += HysteresisBonus;
-                    if (offer.Kind < offersPerKind.Length)
-                    {
-                        int oN = offersPerKind[offer.Kind];
-                        int aN = activePerKind[offer.Kind] + justAssignedPerKind[offer.Kind];
-                        int rN = reservedPerKind[offer.Kind];
-                        int deficit = oN - aN;
-                        if (deficit > 0)
-                            score += (long)math.min(deficit, DeficitCap) * (PriorityWeight / 4);
-                        int reservationShortfall = rN - aN;
-                        if (reservationShortfall > 0)
-                            score += (long)math.min(reservationShortfall, DeficitCap) * PriorityWeight;
-                        float pressure = (float)(oN + 1) / (float)(aN + 1);
-                        score += (long)(math.log(1f + pressure) * 30f);
-                    }
-
-                    if (score > bestScore)
-                    {
-                        bestScore  = score;
-                        bestKind   = offer.Kind;
-                        bestHex    = offer.Hex;
-                        bestEntity = offer.Target;
                     }
                 }
 
@@ -393,8 +416,13 @@ namespace RareIcon
 
                 var prevIntent = jobIntentRef.ValueRO;
                 var oldTarget  = prevIntent.TargetHex;
-                if (_hexOccupancy.TryGetValue(oldTarget, out var oldCount) && oldCount > 0)
-                    _hexOccupancy[oldTarget] = oldCount - 1;
+                if (CountsTowardHexOccupancy(prevIntent.Kind)
+                    && _hexOccupancy.TryGetValue(oldTarget, out var oldCount)
+                    && oldCount > 0)
+                {
+                    if (oldCount == 1) _hexOccupancy.Remove(oldTarget);
+                    else               _hexOccupancy[oldTarget] = oldCount - 1;
+                }
 
                 if (bestKind == ProfessionKind.None)
                 {
