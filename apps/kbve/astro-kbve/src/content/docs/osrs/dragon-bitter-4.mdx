@@ -12,9 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Dragon bitter(4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drink
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 39
+      xp: 0
+      materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Krandorian hops
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Calquat keg
+          quantity: 1
+      tools:
+        - Brewery vat
+      output_quantity: 2
+  related_items:
+    - item_name: Dragon bitter
+      slug: dragon-bitter
+      relationship: variant
+      description: Single pint glass version of Dragon Bitter.
+    - item_name: Calquat keg
+      slug: calquat-keg
+      relationship: component
+      description: Empty keg required to brew Dragon bitter at the Brewery.
+  about: "Dragon bitter (4) is a four-pint Brewery keg of Dragon Bitter, brewed via Cooking 39 at the Keldagrim and Port Phasmatys vats. Players can pour pints into beer glasses; refilling the keg from a glass is not possible."
+  market_strategy:
+    notes:
+      - "Brewed in batches of two kegs per cycle by Cooking trainers"
+      - "Bulk supply dominates the GE; high limit but minimal margin"
+      - "Demand is niche, mostly for collection log completionists"
+  trading_tips:
+    - Treat as a low-margin volume flip; not a long-term hold
+    - Watch for brewing efficiency updates that lift supply
+  history:
+    - date: "2005-07-11"
+      description: "Added with the Cooking guild Brewery update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

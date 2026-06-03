@@ -12,9 +12,87 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 18000
-  about: "Oak shield is a members-only item in Old School RuneScape. High alchemy value: 48 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2018-02-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: shield
+    attack_speed: null
+    weight: 3.175
+    requirements:
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 5
+      slash: 6
+      crush: 4
+      magic: 1
+      ranged: 5
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 27
+      xp: 50
+      materials:
+        - item_name: Oak logs
+          quantity: 2
+      tools:
+        - Knife
+      output_quantity: 1
+  related_items:
+    - item_name: Wooden shield
+      slug: wooden-shield
+      relationship: downgrade
+      description: Lower-tier wooden shield equivalent
+    - item_name: Willow shield
+      slug: willow-shield
+      relationship: upgrade
+      description: Next fletched wooden shield tier
+    - item_name: Oak logs
+      slug: oak-logs
+      relationship: component
+      description: Fletching material used to craft the shield
+  about: "Oak shield is a fletched shield introduced in 2018 that sits between the wooden shield and willow shield. It requires 10 Defence to wield and 27 Fletching plus a knife and two oak logs to craft for 50 Fletching XP. Members can find spawns of it around the Ranging Guild, but most stockpile shields by buying oak logs and converting them at the Grand Exchange limit cap."
+  market_strategy:
+    notes:
+      - "Craft from oak logs with a knife at 27 Fletching for 50 XP each"
+      - "Buy limit jumped from 125 to 18,000 in July 2025, enabling bulk alch flips"
+      - "Treat as a low-tier alch target only when oak log prices fall below break-even"
+  trading_tips:
+    - Bulk craft when oak logs trade below 32 GP for safer high alch margins
+    - Use the 18,000 buy limit to scoop discounted shields after large bot purges
+    - Stock spare shields for Vale offerings and low-level alch training inventories
+  history:
+    - date: "2018-02-01"
+      description: "Added to Old School RuneScape as a fletchable shield."
+    - date: "2025-07-30"
+      description: "Grand Exchange buy limit raised from 125 to 18,000."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

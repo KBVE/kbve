@@ -12,9 +12,59 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10000
-  about: "Nice hedge (bagged) is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  recipes:
+    - skill: construction
+      level: 60
+      xp: 100
+      materials:
+        - item_name: Bagged nice hedge
+          quantity: 1
+        - item_name: Watering can
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  shops:
+    - shop_name: Garden Supplier
+      location: Falador Park
+      price: 10000
+      currency: Coins
+      stock: 5
+    - shop_name: Garden Supplier
+      location: Farming Guild
+      price: 10000
+      currency: Coins
+      stock: 5
+  about: |-
+    The Nice hedge (bagged) is a Construction supply used to plant decorative hedges in the formal garden of a player-owned house. The hedge can only be built with both a watering can (filled) in the inventory and 60 Construction.
+
+    Planting awards 100 Construction XP and 100 Farming XP, making the activity attractive for players training both skills at once. The bagged form is purchased from garden suppliers at Falador Park and the Farming Guild for 10,000 coins each and is freely tradeable on the Grand Exchange.
+  market_strategy:
+    notes:
+      - "Bulk Construction supply — demand surges around house party weekends."
+      - "Generous 10,000 buy limit allows large flips."
+      - "GE price tracks shop price closely."
+      - "Margins compress when Falador stock refreshes."
+  trading_tips:
+    - Buy below 10k from GE, resell to lazy builders above shop price.
+    - Watch streamer POH renovations for short demand spikes.
+  history:
+    - date: "2006-05-31"
+      description: "Added with the launch of the Construction skill."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

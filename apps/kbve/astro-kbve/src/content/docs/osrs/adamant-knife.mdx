@@ -12,55 +12,100 @@ osrs:
   lowalch: 26
   highalch: 39
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: adamantite
+    tier: mid
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    alchable: true
   equipment:
     slot: weapon
-    type: thrown
-    attack_style: ranged
+    weapon_type: thrown
     attack_speed: 3
-  requirements:
-    ranged: 30
-  stats:
-    attack:
+    weight: 0
+    requirements:
+      ranged: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
       ranged: 15
-    other:
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
       ranged_strength: 14
-  smithing:
-    level: 77
-    xp: 62.5
-    method: Adamantite bar at anvil
-    bars: 1
-    quantity: 5
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 77
+      xp: 62.5
+      materials:
+        - item_name: Adamantite bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 5
+  drop_table:
+    sources:
+      - source: Brutal green dragon
+        quantity: "1"
+        rarity: Common
+      - source: Mutated Bloodveld
+        quantity: "1"
+        rarity: Uncommon
+      - source: Ferocious barbarian spirit
+        quantity: "1"
+        rarity: Uncommon
   related_items:
-    - item_id: 2361
-      item_name: Adamantite bar
+    - item_name: Adamantite bar
       slug: adamantite-bar
       relationship: component
-      description: Smithing material
-    - item_id: 868
-      item_name: Rune knife
+      description: Smithing material used to forge the knife
+    - item_name: Rune knife
       slug: rune-knife
       relationship: upgrade
-      description: Higher tier knife
-    - item_id: 866
-      item_name: Mithril knife
+      description: Next tier throwing knife
+    - item_name: Mithril knife
       slug: mithril-knife
       relationship: downgrade
-      description: Lower tier knife
-    - item_id: 810
-      item_name: Adamant dart
+      description: Previous tier throwing knife
+    - item_name: Adamant dart
       slug: adamant-dart
       relationship: alternative
-      description: Alternative thrown weapon
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Weapon |
-    | Type | Thrown |
-    | Tradeable | Yes |
-    | Weight | 0.006 kg |
-    | Requirements | 30 Ranged |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Faster alternative thrown weapon at the same tier
+  about: "Adamant knife is a tier 30 thrown ranged weapon that occupies the budget spot between mithril and rune knives. Smithers can forge five per adamantite bar at level 77 Smithing, making it a popular high-volume passive XP item alongside its combat use against low to mid level monsters."
+  market_strategy:
+    notes:
+      - "Smithing supply is bottlenecked on adamantite bar price; track bar margins for forecasting"
+      - "Buy limit of 11,000 supports bulk passive smithing flips"
+      - "Demand is consistent from low-level rangers and ironmen using cannons as a backup"
+  trading_tips:
+    - Buy bars and smith adamant knives when bar margin minus five times the knife price is positive
+    - Stack offers in the morning when GE limits reset for low-volume bulk-out
+    - Avoid overstocking right after Smithing buffs that lower bar requirements
+  history:
+    - date: "2003-04-14"
+      description: "Added to the game with the launch of the Ranged knife lineup."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

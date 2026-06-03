@@ -12,9 +12,64 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 8
-  about: "Guthix armour set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-02-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Guthix full helm
+      slug: guthix-full-helm
+      relationship: component
+      description: Helmet piece inside the packaged set
+    - item_name: Guthix platebody
+      slug: guthix-platebody
+      relationship: component
+      description: Body piece inside the packaged set
+    - item_name: Guthix platelegs
+      slug: guthix-platelegs
+      relationship: component
+      description: Leg piece inside the packaged set
+    - item_name: Guthix kiteshield
+      slug: guthix-kiteshield
+      relationship: component
+      description: Shield piece inside the packaged set
+    - item_name: Guthix armour set (sk)
+      slug: guthix-armour-set-sk
+      relationship: variant
+      description: Plateskirt variant of the same set
+    - item_name: Saradomin armour set (lg)
+      slug: saradomin-armour-set-lg
+      relationship: alternative
+      description: Saradomin god-armour set bundle
+    - item_name: Zamorak armour set (lg)
+      slug: zamorak-armour-set-lg
+      relationship: alternative
+      description: Zamorak god-armour set bundle
+  about: "Guthix armour set (lg) is a Grand Exchange Sets bundle that packages the Guthix full helm, platebody, platelegs, and kiteshield into a single tradeable item. The set is assembled or unpacked at a Grand Exchange clerk via the Sets option, saving bank space and simplifying transport of all four cosmetic pieces. It is free-to-play, noteable, and frequently flipped for the small premium that the packaged form commands over the sum of its components."
+  market_strategy:
+    notes:
+      - "Trades at a small premium above the sum of its component prices"
+      - "Buy limit of 8 per 4 hours throttles set-flipping volume"
+      - "Free-to-play tier so the buy pool is wide"
+      - "High alch returns 48,000 coins, useful as a price floor reference"
+      - "Component-set arbitrage works in both directions via the GE clerk"
+  trading_tips:
+    - Compare the set price against the sum of all four pieces before assembling or breaking
+    - Watch for skewed component supply after high-tier clue completions
+  history:
+    - date: "2015-02-26"
+      description: "Grand Exchange Sets feature released with packaged god armour bundles."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

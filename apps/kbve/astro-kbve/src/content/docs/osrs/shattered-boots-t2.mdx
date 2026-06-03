@@ -12,9 +12,74 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: null
-  about: "Shattered boots (t2) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: cloth
+    tier: high
+  properties:
+    release_date: "2022-03-16"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weapon_type: null
+    attack_speed: null
+    weight: 0.34
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Shattered helm (t2)
+      slug: shattered-helm-t2
+      relationship: set-piece
+      description: Helm component of the tier 2 Shattered Relic Hunter outfit.
+    - item_name: Shattered top (t2)
+      slug: shattered-top-t2
+      relationship: set-piece
+      description: Body component of the tier 2 Shattered Relic Hunter outfit.
+    - item_name: Shattered legs (t2)
+      slug: shattered-legs-t2
+      relationship: set-piece
+      description: Legs component of the tier 2 Shattered Relic Hunter outfit.
+  about: "Shattered boots (t2) is a cosmetic feet-slot reward from the Shattered Relics League. The boots are purchased from the Leagues Reward Shop for 3,000 League points and form part of the tier 2 Shattered Relic Hunter outfit. They have no combat bonuses and exist purely for fashionscape."
+  market_strategy:
+    notes:
+      - "Supply is fixed at the close of Shattered Relics League, so price drifts upward with demand."
+      - "Buy limit is null, allowing bulk acquisition in a single trade window."
+      - "Full t2 sets command a small premium over the sum of pieces; selling individually often nets more."
+  trading_tips:
+    - Watch GE history before reselling; thin volume creates wide spread.
+    - Pair with other t2 pieces and list the full outfit to fashionscape collectors.
+    - Use as a mid-tier flex item between t1 and t3 Shattered cosmetics.
+  history:
+    - date: "2022-03-16"
+      description: "Released to the Leagues Reward Shop after Shattered Relics League concluded."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

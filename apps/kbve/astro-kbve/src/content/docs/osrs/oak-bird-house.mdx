@@ -12,9 +12,62 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 250
-  about: "Oak bird house is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2017-09-07"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 15
+      xp: 20
+      materials:
+        - item_name: Oak logs
+          quantity: 1
+        - item_name: Clockwork
+          quantity: 1
+      tools:
+        - Chisel
+        - Hammer
+      output_quantity: 1
+  related_items:
+    - item_name: Bird house
+      slug: bird-house
+      relationship: downgrade
+      description: Lower-tier regular bird house
+    - item_name: Willow bird house
+      slug: willow-bird-house
+      relationship: upgrade
+      description: Next-tier bird house with better loot
+    - item_name: Clockwork
+      slug: clockwork
+      relationship: component
+      description: Required to craft any bird house
+  about: "Oak bird house is a Fossil Island bird-house trap requiring 14 Hunter to deploy and 15 Crafting to build, made from an oak log and a clockwork at a hammer-and-chisel station. After placing on a bird-house hotspot and baiting with hop or wildblood seeds, players are awarded 420 Hunter experience plus bird-nest loot when they empty the trap roughly 50 minutes later, making bird-house runs one of the most AFK ways to train Hunter."
+  market_strategy:
+    notes:
+      - "Demand is steady from low-Hunter accounts and bird-nest farmers; price moves slowly."
+      - "Clockwork cost dominates the build price floor."
+      - "Often quoted as a 20-50 gp arbitrage versus buying nests directly."
+  trading_tips:
+    - Buying full kits (all 4 houses) at once is more efficient than flipping single tier.
+    - Stock up before bot-nukes that wipe Hunter accounts; price ticks up post-event.
+  history:
+    - date: "2017-09-07"
+      description: "Released as part of the Fossil Island bird-house trap system."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

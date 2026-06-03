@@ -12,12 +12,33 @@ osrs:
   lowalch: 17000
   highalch: 25500
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: mystic
+    tier: high
+  properties:
+    release_date: "2014-04-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
     weapon_type: staff
-    weight: 2.267
     attack_speed: 5
-    attack_range: 1
+    weight: 2.267
+    requirements:
+      attack: 40
+      magic: 40
     attack_bonus:
       stab: 10
       slash: -1
@@ -35,54 +56,40 @@ osrs:
       ranged_strength: 0
       magic_damage: 10
       prayer: 0
-    requirements:
-      attack: 40
-      magic: 40
   drop_table:
-    primary_source: Created item
-    best_drop_rate: N/A
     sources:
-      - source: Thormac (Scorpion Catcher)
-        source_id: 0
-        combat_level: 0
+      - source: Thormac (Scorpion Catcher reward)
         quantity: "1"
         rarity: created
-        drop_rate: 40,000 coins
-        members_only: true
   related_items:
-    - item_id: 11998
-      item_name: Smoke battlestaff
+    - item_name: Smoke battlestaff
       slug: smoke-battlestaff
       relationship: component
-      description: Base staff required
-    - item_id: 12002
-      item_name: Occult necklace
+      description: Base staff required to create the mystic version
+    - item_name: Occult necklace
       slug: occult-necklace
       relationship: alternative
-      description: Stacks magic damage bonus
-    - item_id: 11791
-      item_name: Staff of the dead
+      description: Stacks magic damage bonus alongside the staff
+    - item_name: Staff of the dead
       slug: staff-of-the-dead
       relationship: upgrade
-      description: Higher tier magic staff
-  about: |-
-    Best-in-slot for:
-    - Standard spellbook combat spells
-    - 10% accuracy and damage boost to standard spells
-    - Unlimited air and fire runes
-
-    Special properties:
-    - Autocasts combat spells
-    - No rune consumption for air/fire
-    - Higher magic attack than smoke battlestaff
+      description: Higher tier magic staff with broader spellbook coverage
+  about: "The mystic smoke staff is a powered upgrade of the smoke battlestaff, created by Thormac after completing the Scorpion Catcher quest. It provides unlimited air and fire runes while granting a 10% accuracy and damage bonus to standard spellbook spells. The upgrade cost from Thormac drops with Kandarin Diary completion, reaching as low as 20,000 coins with the Elite tier."
   market_strategy:
     notes:
-      - Budget magic training option
-      - Popular for Fire Wave/Surge
-      - Upgrades from smoke battlestaff
-      - Consider diary completion for cheaper creation
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand driven by mid-game magic trainers and Fire Wave / Surge mains"
+      - "Supply expanded by smoke battlestaff and Thormac upgrade pipeline"
+      - "Splashing nerf history keeps price suppressed relative to other smoke staves"
+      - "Diary completion cheapens supply for self-creators"
+  trading_tips:
+    - Compare buy price against smoke battlestaff + Thormac upgrade cost for arbitrage
+    - Watch for magic content updates that boost standard spellbook viability
+    - GE limit of 8 means flips scale slowly without multiple accounts
+  history:
+    - date: "2014-04-10"
+      description: "Released alongside the smoke battlestaff and mystic upgrade path."
+    - date: "2015-01-15"
+      description: "Splashing nerf reduced magic training demand for the staff."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Leaves is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Baby tanglefoot
+        quantity: "1"
+        rarity: Always
+      - source: Tanglefoot (Nightmare Zone)
+        quantity: "1"
+        rarity: Always
+      - source: Diseased fruit tree (cured with secateurs)
+        quantity: "1"
+        rarity: Always
+      - source: Struggling sapling (Forestry event)
+        quantity: "1"
+        rarity: Common
+  related_items:
+    - item_name: Compost
+      slug: compost
+      relationship: product
+      description: Created by composting leaves in a compost bin
+    - item_name: Forester's ration
+      slug: foresters-ration
+      relationship: product
+      description: Forestry food cooked with leaves
+    - item_name: Greenman mask
+      slug: greenman-mask
+      relationship: product
+      description: Crafted from 300 leaves at the Forestry shop
+  about: "Leaves are a stackable Farming and Forestry byproduct introduced with Fairytale I in 2005. They drop from baby tanglefoots and Nightmare Zone tanglefoots, from curing diseased fruit trees and bushes with secateurs, and during Forestry events such as struggling saplings and friendly ents. Players use leaves to fill compost bins, cook Forester's rations, and craft the Greenman mask which costs 300 leaves at the Forestry rewards shop. Originally untradeable, they were added to the Grand Exchange in 2023 and made stackable later that year."
+  market_strategy:
+    notes:
+      - "Steady supply from Forestry events keeps prices firmly above GE minimum"
+      - "Greenman mask cosmetic floor sets a long-term price ceiling"
+      - "Stackable update made bulk buying viable for compost producers"
+      - "Tanglefoot supply spikes after every Fairytale I refresh in NMZ rotations"
+  trading_tips:
+    - Buy during NMZ tanglefoot waves when supply is highest
+    - Stack to 300 for instant Greenman mask conversions when fashion trends spike
+    - Watch GE volume - thin trading days swing percentage prices wildly
+  history:
+    - date: "2005-07-11"
+      description: Added with the Fairytale I - Growing Pains quest as a tanglefoot drop.
+    - date: "2023-06-28"
+      description: Made tradeable on the Grand Exchange and received a graphical update.
+    - date: "2023-10-25"
+      description: Made stackable in the inventory.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

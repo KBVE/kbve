@@ -1,6 +1,6 @@
 ---
 title: White full helm | OSRS Price Data
-description: "White full helm is a members head slot item requiring 25 Defence. High alch: 633 GP, GE limit: 125."
+description: "White full helm is a members head slot item requiring 10 Defence. High alch: 633 GP, GE limit: 125."
 osrs:
   id: 6623
   name: White full helm
@@ -12,69 +12,81 @@ osrs:
   lowalch: 422
   highalch: 633
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: white
+    tier: mid
+  properties:
+    release_date: "2005-10-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
-    type: armour
-    prayer_bonus: 1
+    weapon_type: null
+    attack_speed: null
+    weight: 2.721
     requirements:
-      defence: 25
-      quest: Wanted!
-    combat_stats:
-      stab_defence: 16
-      slash_defence: 18
-      crush_defence: 14
-      magic_defence: -1
-      ranged_defence: 17
+      defence: 10
+      quest: "Wanted!"
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -3
+    defence_bonus:
+      stab: 12
+      slash: 13
+      crush: 10
+      magic: -1
+      ranged: 12
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
   related_items:
-    - item_id: 6617
-      item_name: White platebody
+    - item_name: White platebody
       slug: white-platebody
       relationship: set-piece
-      description: Body (+1 Prayer)
-    - item_id: 6625
-      item_name: White platelegs
+      description: Body piece in the White Knight armour set, also +1 Prayer
+    - item_name: White platelegs
       slug: white-platelegs
       relationship: set-piece
-      description: Legs (+1 Prayer)
-    - item_id: 6633
-      item_name: White kiteshield
+      description: Legs piece in the White Knight armour set, also +1 Prayer
+    - item_name: White kiteshield
       slug: white-kiteshield
       relationship: set-piece
-      description: Shield (+1 Prayer)
-    - item_id: 9672
-      item_name: Proselyte sallet
+      description: Shield piece in the White Knight armour set, also +1 Prayer
+    - item_name: Proselyte sallet
       slug: proselyte-sallet
       relationship: upgrade
-      description: Better prayer bonus (+4)
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Head |
-    | Prayer Bonus | +1 |
-    | Defence Req | 25 |
-    | Quest Req | Wanted! |
-
-    - Low prayer bonus helm
-    - White Knight themed gear
-    - Stepping stone to Proselyte
-
-    | Piece | Prayer Bonus |
-    |-------|--------------|
-    | White full helm | +1 |
-    | White platebody | +1 |
-    | White platelegs | +1 |
-    | White kiteshield | +1 |
-    | Total | +4 |
+      description: Stronger prayer-focused head slot replacement
+  about: "A White Knight themed full helm dropped or purchased from White Knight quartermasters after completing the Wanted! quest. The helmet sits between mithril and adamant defensively while granting a small +1 prayer bonus, making it a budget prayer helm before Proselyte. The full white armour set adds up to +4 prayer, popular for low-level prayer training and themed cosmetic loadouts."
   market_strategy:
     notes:
-      - Requires Wanted! quest
-      - Shop purchase only
-      - Not tradeable on GE
-      - Inferior to Proselyte
-      - Cosmetic/collection value
-      - Low practical use
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Requires the Wanted! quest, capping organic supply"
+      - "Outclassed by Proselyte sallet for serious prayer setups"
+      - "Steady cosmetic and collector demand from White Knight themed builds"
+  trading_tips:
+    - Buy when Wanted! quest grinds spike supply from completionists
+    - Hold through cosmetic content updates for slow appreciation
+  history:
+    - date: "2005-10-17"
+      description: "Released with the Wanted! quest update."
+    - date: "2021-04-21"
+      description: "Ranged attack bonus reduced from -2 to -3."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

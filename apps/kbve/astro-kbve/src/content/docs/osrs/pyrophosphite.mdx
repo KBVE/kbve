@@ -12,9 +12,71 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 13000
-  about: "Pyrophosphite is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: mineral
+    tier: mid
+  properties:
+    release_date: "2017-09-07"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Petrified Pete's Ore Shop
+      location: Fossil Island
+      price: 70
+      currency: Numulites
+      stock: 0
+  drop_table:
+    sources:
+      - source: Volcanic Mine
+        quantity: "1-4"
+        rarity: 1/20 per ore
+      - source: Ancient Zygomite
+        quantity: "1"
+        rarity: Common
+      - source: Ammonite Crab
+        quantity: "1"
+        rarity: Uncommon
+      - source: Wyvern (Fossil Island)
+        quantity: "1"
+        rarity: Uncommon
+  related_items:
+    - item_name: Calcite
+      slug: calcite
+      relationship: alternative
+      description: Sister mineral used in fossil recalcification
+    - item_name: Numulite
+      slug: numulite
+      relationship: alternative
+      description: Currency used at Petrified Pete's Ore Shop
+    - item_name: Enriched bones
+      slug: enriched-bones
+      relationship: product
+      description: Output of recalcifying fossils with pyrophosphite
+  about: "Pyrophosphite is a stackable Fossil Island mineral used together with calcite at the mycelium pool to recalcify cleaned fossils into enriched bones for Prayer training at the Strange Machine in the House on the Hill. It drops from Fossil Island monsters such as Ancient zygomites, Ammonite Crabs, and Wyverns, can be mined at the Volcanic Mine (50 Mining), and is sold by Petrified Pete for 70 Numulites each. With a buy limit of 13,000 it tracks Prayer-training demand from Fossil Island bone enrichment routines."
+  market_strategy:
+    notes:
+      - "Prayer XP meta swings dictate pyrophosphite demand more than supply"
+      - "Volcanic Mine activity caps the natural supply faucet"
+      - "Petrified Pete's Numulite floor sets a soft price ceiling at high Numulite rates"
+      - "Bulk Prayer trainers stockpile thousands before major XP events"
+  trading_tips:
+    - Stack with calcite buys in 1:1 ratios for fossil recalcification flips
+    - Watch DMM and league events that surge Prayer training demand
+    - Pull Volcanic Mine clans' supply timing from forum drops to time buys
+  history:
+    - date: "2017-09-07"
+      description: Added with the Fossil Island expansion as a recalcification component.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

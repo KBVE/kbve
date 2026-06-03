@@ -12,92 +12,89 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
   material:
     type: leather
     tier: low
-  crafting:
-    source_id: 1753
-    source_name: Green dragonhide
-    tanning_cost: 20
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: crafting
       level: 57
       xp: 62
       materials:
         - item_name: Green dragon leather
-          item_id: 1745
           quantity: 1
-      product: Green d'hide vambraces
-      product_id: 1065
-      product_quantity: 1
+      tools:
+        - Needle
+        - Thread
+      output_quantity: 1
     - skill: crafting
       level: 60
       xp: 124
       materials:
         - item_name: Green dragon leather
-          item_id: 1745
           quantity: 2
-      product: Green d'hide chaps
-      product_id: 1099
-      product_quantity: 1
+      tools:
+        - Needle
+        - Thread
+      output_quantity: 1
     - skill: crafting
       level: 63
       xp: 186
       materials:
         - item_name: Green dragon leather
-          item_id: 1745
           quantity: 3
-      product: Green d'hide body
-      product_id: 1135
-      product_quantity: 1
+      tools:
+        - Needle
+        - Thread
+      output_quantity: 1
   related_items:
-    - item_id: 1753
-      item_name: Green dragonhide
+    - item_name: Green dragonhide
       slug: green-dragonhide
       relationship: component
-      description: Raw material
-    - item_id: 1135
-      item_name: Green d'hide body
+      description: Raw hide tanned into green dragon leather
+    - item_name: Green d'hide body
       slug: green-dhide-body
       relationship: product
-      description: Main product
-    - item_id: 2505
-      item_name: Blue dragon leather
+      description: Main armour body crafted from this leather
+    - item_name: Green d'hide vambraces
+      slug: green-d-hide-vambraces
+      relationship: product
+      description: Entry-level dragonhide gloves crafted from this leather
+    - item_name: Green d'hide chaps
+      slug: green-d-hide-chaps
+      relationship: product
+      description: Entry-level dragonhide legs crafted from this leather
+    - item_name: Blue dragon leather
       slug: blue-dragon-leather
       relationship: alternative
-      description: Higher tier
-    - item_id: 536
-      item_name: Dragon bones
-      slug: dragon-bones
-      relationship: alternative
-      description: Co-drop
-  about: |-
-    Take to any tanner to convert to Green dragon leather.
-
-    | Tanner | Cost |
-    |--------|------|
-    | Regular | 20 GP |
-    | Canifis | 45 GP |
+      description: Next-tier dragonhide leather
+  about: "Green dragon leather is the tanned form of green dragonhide and the entry-level crafting material for the dragonhide armour ladder. Players bring green dragonhide to any tanner in Al Kharid, the Ranging Guild, Forthos Dungeon, the Crafting Guild, the Kebos Lowlands, Auburnvale, or Canifis for 20 to 45 GP per hide, or cast Tan Leather at 78 Magic. The leather then crafts vambraces (1 leather, level 57), chaps (2 leather, level 60), and the body (3 leather, level 63)."
   market_strategy:
-    profit_formulas:
-      - Green dragon leather - Green dragonhide - 20 = Profit
-      - Body price - (Leather × 3) = Profit
     notes:
-      - Buy hides → Tan → Sell leather
-      - "Calculate:"
-      - Highest volume dragonhide
-      - Green d'hide body most traded
-      - "Check:"
-      - Entry-level dragonhide crafting
-      - Green dragons (Wilderness, Corsair Cove)
-      - Brutal green dragons
-      - Popular bot farming target
-      - Lowest tier dragonhide
-      - Entry-level ranged armor
-      - Very high trade volume
-      - Price volatile from bots
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Tanning margin equals leather price minus hide cost minus 20 GP standard fee"
+      - "Body flip equals body price minus three leather, factoring needle and thread"
+      - "High trade volume thanks to bot farming makes prices volatile day to day"
+  trading_tips:
+    - Buy hides during bot purge dips and tan in bulk for steady margins
+    - Compare Al Kharid (20 GP) and Canifis (45 GP) tanners depending on travel cost
+    - Track green d'hide body prices for crafting profit, the most active downstream product
+  history:
+    - date: "2004-03-29"
+      description: "Released alongside the dragonhide armour skill content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

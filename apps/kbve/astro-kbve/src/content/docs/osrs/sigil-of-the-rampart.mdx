@@ -12,9 +12,48 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: null
-  about: "Sigil of the rampart is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2024-07-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    alchable: true
+    destroy: "An alternative is to sell it on the Grand Exchange."
+  related_items:
+    - item_name: Sigil of the formidable bulwark
+      slug: sigil-of-the-formidable-bulwark
+      relationship: alternative
+      description: Another tier 3 Deadman defensive sigil
+    - item_name: Sigil of the menacing mage
+      slug: sigil-of-the-menacing-mage
+      relationship: alternative
+      description: Deadman Mode combat sigil
+  about: "Sigil of the rampart is a tier 3 Deadman Mode combat sigil obtained during temporary Deadman: Armageddon events. Once attuned, it grants +100 to stab, slash, crush, and ranged defence in qualifying Deadman content. The un-attuned version is tradeable on the Grand Exchange, allowing players to flip sigils between events; the attuned version must be unattuned before destruction. Outside Deadman seasons the item is unobtainable in the live game."
+  market_strategy:
+    notes:
+      - "Supply only refreshes during Deadman: Armageddon events; off-season inventory is finite"
+      - "Pre-event speculation can spike the price as PvPers stockpile defensive sigils"
+      - "High alch value of 6,000 gp is well below GE price, so alching is never the exit"
+      - "Watch Jagex announcements for sigil rebalances - a nerf can crater the price overnight"
+  trading_tips:
+    - Buy during the dead window between Deadman seasons when listings are cheap
+    - List slightly above competing un-attuned sigils as PvP demand returns
+    - Never attune speculative stock - attuned sigils are untradeable
+  history:
+    - date: "2024-07-17"
+      description: Released with Deadman Armageddon as a tier 3 combat sigil.
+    - date: "2026-01-21"
+      description: "Renamed from Sigil of rampart to Sigil of the rampart."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

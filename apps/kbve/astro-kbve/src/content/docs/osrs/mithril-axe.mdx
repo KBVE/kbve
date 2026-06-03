@@ -1,6 +1,6 @@
 ---
 title: Mithril axe | OSRS Price Data
-description: "Mithril axe: A powerful axe.. High alch: 312 GP, GE limit: 40."
+description: "Mithril axe: A powerful axe. High alch: 312 GP, GE limit: 40."
 osrs:
   id: 1355
   name: Mithril axe
@@ -12,26 +12,117 @@ osrs:
   lowalch: 208
   highalch: 312
   limit: 40
-  item_id: 1355
-  item_type: equipment
-  slot: weapon
-  type: axe
-  tradeable: true
-  weight: 1.133
-  requirements:
-    attack: 20
-    woodcutting: 21
-  stats:
-    stab: -2
-    slash: 12
-    crush: 10
-    strength: 13
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: metal
+    tier: mid
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.133
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: axe
+    attack_speed: 5
+    weight: 1.133
+    requirements:
+      attack: 20
+      woodcutting: 21
+    attack_bonus:
+      stab: -2
+      slash: 12
+      crush: 10
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 13
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 51
+      xp: 50
+      materials:
+        - item_name: Mithril bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: "Lunami's Axe Shop"
+      location: "Woodcutting Guild"
+      price: 520
+      currency: Coins
+      stock: 5
+    - shop_name: "Perry's Chop-chop Shop"
+      location: "Catherby"
+      price: 1664
+      currency: Coins
+      stock: 3
+  drop_table:
+    sources:
+      - source: "Hill Giant"
+        quantity: "1"
+        rarity: "Uncommon"
+      - source: "Cyclops"
+        quantity: "1"
+        rarity: "Uncommon"
+      - source: "Hobgoblin"
+        quantity: "1"
+        rarity: "Uncommon"
   related_items:
-    - slug: adamant-axe
-    - slug: black-axe
-  about: Woodcutting tool. Used for Animal Magnetism quest.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Steel axe
+      slug: steel-axe
+      relationship: downgrade
+      description: "Lower tier axe, predecessor in the smithing progression."
+    - item_name: Adamant axe
+      slug: adamant-axe
+      relationship: upgrade
+      description: "Next tier axe with higher slash and strength bonuses."
+    - item_name: Black axe
+      slug: black-axe
+      relationship: alternative
+      description: "Cosmetic-tier axe sitting between iron and mithril."
+    - item_name: Mithril bar
+      slug: mithril-bar
+      relationship: component
+      description: "Smelted at 50 Smithing and hammered into the axe at level 51."
+    - item_name: Blessed axe
+      slug: blessed-axe
+      relationship: upgrade
+      description: "Crafted from a mithril axe and holy symbol during Animal Magnetism."
+  about: "The mithril axe is a F2P mid-tier one-handed axe usable for both combat and Woodcutting. Requiring 20 Attack to wield and 21 Woodcutting to chop, it is smithed at level 51 from a single mithril bar for 50 XP. It is best known as the base for the blessed axe used in the Animal Magnetism quest, and it remains a budget pick for mid-level F2P combatants and woodcutters."
+  market_strategy:
+    notes:
+      - "GE price typically below Smithing cost - the axe is mainly a quest/Smithing XP item, not a profit play."
+      - "Lunami's shop in the Woodcutting Guild often beats the GE outright for direct purchase."
+      - "Demand spikes around Animal Magnetism rushes and ironman blessed axe runs."
+  trading_tips:
+    - "Smithing 1 axe from a bar burns ~750 GP - check GE price before smithing for profit."
+    - "Buy from Lunami's for quest purposes; reserve GE flips for resupply gaps."
+  history:
+    - date: "2001-01-04"
+      description: "Released as part of the original mithril tier weapons."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

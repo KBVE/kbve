@@ -12,9 +12,81 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 10000
-  about: "Steel limbs is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: steel
+    tier: mid
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 36
+      xp: 37.5
+      materials:
+        - item_name: Steel bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+    - skill: fletching
+      level: 46
+      xp: 54
+      materials:
+        - item_name: Steel limbs
+          quantity: 1
+        - item_name: Teak stock
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+  related_items:
+    - item_name: Steel crossbow
+      slug: steel-crossbow
+      relationship: product
+      description: Crossbow built from steel limbs plus a teak stock
+    - item_name: Steel bar
+      slug: steel-bar
+      relationship: component
+      description: Smithed into steel limbs at level 36
+    - item_name: Teak stock
+      slug: teak-stock
+      relationship: component
+      description: Combined with steel limbs to assemble the steel crossbow
+    - item_name: Iron limbs
+      slug: iron-limbs
+      relationship: downgrade
+      description: Lower-tier crossbow limbs
+    - item_name: Mithril limbs
+      slug: mithril-limbs
+      relationship: upgrade
+      description: Higher-tier crossbow limbs
+  about: "Steel limbs are a Smithing intermediate forged from a single steel bar at 36 Smithing for 37.5 XP. They combine with a teak stock at 46 Fletching for 54 XP to produce a steel crossbow (u), which is then strung with crossbow string. Originally released alongside the wider crossbow rework, steel limbs are mostly used by mid-level Smithing and Fletching trainers and rarely traded for direct combat use because the steel crossbow itself is quickly outclassed."
+  market_strategy:
+    notes:
+      - "Mid-game Fletching grinders set baseline demand for steel limbs"
+      - "Steel bar price floor caps how low limbs can trade"
+      - "Stock liquidity is thin; large orders take days to fill"
+      - "Smithing/Fletching combo XP routes drive correlated demand"
+  trading_tips:
+    - Stack steel limb buys with teak stock buys for paired Fletching grinds
+    - Avoid alching unless GE price falls below high alch and nature rune cost
+    - Watch wiki XP-rate guides - meta shifts can spike or kill demand overnight
+  history:
+    - date: "2006-07-31"
+      description: Added with the crossbow update introducing tiered limbs and stocks.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

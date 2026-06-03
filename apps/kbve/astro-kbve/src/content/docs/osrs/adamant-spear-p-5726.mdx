@@ -12,9 +12,78 @@ osrs:
   lowalch: 832
   highalch: 1248
   limit: 125
-  about: "Adamant spear(p++) is a members-only item in Old School RuneScape. High alchemy value: 1,248 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: adamant
+    tier: mid
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wield
+      - Drop
+    alchable: true
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    weight: 2.721
+    requirements:
+      attack: 30
+    attack_bonus:
+      stab: 24
+      slash: 24
+      crush: 24
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 28
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Adamant spear
+      slug: adamant-spear
+      relationship: variant
+      description: Unpoisoned base variant.
+    - item_name: Adamant spear(p)
+      slug: adamant-spear-p-1
+      relationship: variant
+      description: Weak weapon poison variant.
+    - item_name: Adamant spear(p+)
+      slug: adamant-spear-p-2
+      relationship: variant
+      description: Weapon poison+ variant.
+    - item_name: Rune spear(p++)
+      slug: rune-spear-p
+      relationship: upgrade
+      description: Stronger rune-tier spear with the same poison level.
+  about: "Adamant spear(p++) is a two-handed adamantite spear coated with weapon poison++, requiring 30 Attack to wield. It applies the strongest non-spec poison effect on hit and shares the adamant spear's combat profile — +24 across stab, slash, and crush attack with +28 melee strength on a 4-tick attack speed. The 4-tick speed dates from the April 2021 equipment rebalance, which sped spears up from 5 ticks."
+  market_strategy:
+    notes:
+      - "Poisoned variant carries a small premium over the base spear from weapon poison++ cost."
+      - "Demand is thin — primarily PvP and niche poison-meta consumers."
+  trading_tips:
+    - Compare against the base adamant spear plus the cost of weapon poison++ before flipping.
+    - PvP world updates and poison-meta changes drive short-term demand spikes.
+  history:
+    - date: "2003-04-14"
+      description: "Released alongside adamant spear variants."
+    - date: "2021-04-21"
+      description: "Attack speed improved from 5 ticks to 4 ticks in the equipment rebalance."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

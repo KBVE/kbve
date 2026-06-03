@@ -12,9 +12,68 @@ osrs:
   lowalch: 144
   highalch: 216
   limit: 2000
-  about: "Divine battlemage potion(2) is a members-only item in Old School RuneScape. High alchemy value: 216 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2020-04-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+  potion:
+    effects:
+      - description: "Boosts Magic by 4 and Defence by 5 + 15% of Defence level for 5 minutes while preventing natural stat drain."
+        duration: 300
+      - description: "Deals 10 Hitpoints damage when consumed; player must have more than 10 HP to drink."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 86
+      xp: 2
+      materials:
+        - item_name: Battlemage potion(2)
+          quantity: 1
+        - item_name: Crystal dust
+          quantity: 2
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Divine battlemage potion(1)
+      slug: divine-battlemage-potion-1
+      relationship: variant
+      description: 1-dose variant
+    - item_name: Divine battlemage potion(3)
+      slug: divine-battlemage-potion-3
+      relationship: variant
+      description: 3-dose variant
+    - item_name: Divine battlemage potion(4)
+      slug: divine-battlemage-potion-4
+      relationship: variant
+      description: 4-dose variant
+    - item_name: Battlemage potion(4)
+      slug: battlemage-potion-4
+      relationship: component
+      description: Base potion used in the divine recipe
+  about: "Divine battlemage potion(2) is a 2-dose Herblore consumable that combines a battlemage potion with crystal dust. Each dose boosts Magic by 4 and Defence by 5 plus 15% of the player's Defence level for five minutes and prevents natural stat drain during the buff window, at the cost of 10 Hitpoints per dose."
+  market_strategy:
+    notes:
+      - "Niche endgame buff potion for Magic-heavy PvM"
+      - "Tied closely to crystal dust supply and battlemage potion pricing"
+      - "High Herblore requirement (86) keeps suppliers thin"
+  trading_tips:
+    - Compare per-dose pricing across (1), (2), (3), (4) for arbitrage via decanting
+    - Demand spikes alongside Magic-focused content updates
+  history:
+    - date: "2020-04-30"
+      description: "Added to the game alongside the divine potion rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

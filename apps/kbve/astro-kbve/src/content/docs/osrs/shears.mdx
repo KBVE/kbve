@@ -1,6 +1,6 @@
 ---
 title: Shears | OSRS Price Data
-description: "Shears: For shearing sheep.. High alch: 1 GP, GE limit: 40."
+description: "Shears: For shearing sheep. GE limit: 40."
 osrs:
   id: 1735
   name: Shears
@@ -9,12 +9,70 @@ osrs:
   members: false
   icon: Shears.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 40
-  about: "Shears is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: tool
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.113
+    options:
+      - Drop
+    alchable: false
+  shops:
+    - shop_name: Rimmington General Store
+      location: Rimmington
+      price: 1
+      currency: Coins
+      stock: 2
+    - shop_name: Lumbridge General Store
+      location: Lumbridge
+      price: 1
+      currency: Coins
+      stock: 2
+    - shop_name: Falador General Store
+      location: Falador
+      price: 1
+      currency: Coins
+      stock: 2
+    - shop_name: Varrock General Store
+      location: Varrock
+      price: 1
+      currency: Coins
+      stock: 2
+  related_items:
+    - item_name: Wool
+      slug: wool
+      relationship: product
+      description: Obtained by shearing sheep
+    - item_name: Ball of wool
+      slug: ball-of-wool
+      relationship: product
+      description: Spun from wool on a spinning wheel
+  about: "Shears are a free-to-play tool used to obtain wool from sheep, found in various locations across Gielinor. They are the only item used to shear sheep and are sold by all general stores for 1 coin. Shears are also required for the Sheep Shearer quest and A Tail of Two Cats. Lumbridge sheep pens are the most popular early-game shearing location."
+  market_strategy:
+    notes:
+      - "Cheap general store staple"
+      - "Limited resale margin due to low price"
+      - "Demand driven by new player flow and quest starters"
+      - "Buy directly from general stores for 1 coin"
+  trading_tips:
+    - General stores stock shears at 1 coin
+    - Bulk-buying offers tiny margin opportunities
+    - Buy limit of 40 every 4 hours on GE
+  history:
+    - date: "2001-01-04"
+      description: "Item released as part of the original game."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

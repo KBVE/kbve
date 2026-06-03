@@ -12,56 +12,100 @@ osrs:
   lowalch: 870
   highalch: 1305
   limit: 18000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-05-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
+    weapon_type: null
+    attack_speed: null
+    weight: 0.01
     requirements:
       crafting: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 40
       xp: 75
-      inputs:
+      materials:
         - item_name: Ruby
           quantity: 1
         - item_name: Gold bar
           quantity: 1
+        - item_name: Necklace mould
+          quantity: 1
+      tools:
+        - Furnace
       output_quantity: 1
+  shops:
+    - shop_name: "Grum's Gold Exchange"
+      location: Port Sarim
+      price: 2175
+      currency: Coins
+      stock: 0
+    - shop_name: "Conara's Jewels"
+      location: Cam Torum
+      price: 2175
+      currency: Coins
+      stock: 0
   related_items:
-    - item_id: 1662
-      item_name: Diamond necklace
+    - item_name: Digsite pendant
+      slug: digsite-pendant
+      relationship: product
+      description: "Enchanted version with five Digsite, Fossil Island, and Lithkren teleports"
+    - item_name: Emerald necklace
+      slug: emerald-necklace
+      relationship: downgrade
+      description: Lower tier necklace, enchanted into Binding necklace
+    - item_name: Diamond necklace
       slug: diamond-necklace
       relationship: upgrade
-      description: Next tier necklace
-  about: |-
-    Crafting (Level 40): Ruby + Gold bar at a furnace with necklace mould (75 XP)
-
-    > *"I wonder if this is valuable."*
-
-    Lvl-3 Enchant (49 Magic): 1 cosmic rune + 5 fire runes (59 XP)
-
-    The Digsite pendant provides 5 charges of teleportation to:
-    - Digsite — near the Exam Centre
-    - House on the Hill — requires Bone Voyage completion (Fossil Island access)
-    - Lithkren — requires Dragon Slayer II (partial)
-
-    The House on the Hill teleport is particularly valuable — it's the primary way to reach Fossil Island for birdhouse runs, volcanic mine, and herbiboar.
-
-    Note: The enchantment must be learned from the archaeologists at the Varrock Museum before it can be cast.
-
-    | Necklace | Crafting | Gem | Enchant | Enchanted Version |
-    |----------|----------|-----|---------|------------------|
-    | Sapphire necklace | 22 | Sapphire | Lvl-1 (7) | Games necklace |
-    | Emerald necklace | 29 | Emerald | Lvl-2 (27) | Binding necklace |
-    | Ruby necklace | 40 | Ruby | Lvl-3 (49) | Digsite pendant |
-    | Diamond necklace | 56 | Diamond | Lvl-4 (57) | Phoenix necklace |
-    | Dragon necklace | 72 | Dragonstone | Lvl-5 (68) | Skills necklace |
+      description: Next tier necklace, enchanted into Phoenix necklace
+  about: "A gold and ruby necklace crafted at a furnace at level 40 Crafting using a ruby, a gold bar, and a necklace mould for 75 experience. The base necklace has no combat bonus, but its real value comes from Lvl-3 Enchant at 49 Magic, which converts it into a Digsite pendant offering five charged teleports to the Digsite, Fossil Island, and Lithkren. The enchantment requires first learning the spell from the archaeologists at the Varrock Museum."
   market_strategy:
     notes:
-      - Digsite pendant demand drives steady enchanting profits
-      - Fossil Island access makes this essential for birdhouse runs
-      - Enchantment requires museum mini-quest first
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Digsite pendant demand makes the unenchanted necklace a reliable enchanting feedstock"
+      - "Fossil Island access keeps a structural demand floor from birdhouse runners"
+      - "Margin tracks ruby and gold bar prices closely"
+  trading_tips:
+    - Buy when ruby supply spikes from Slayer or Hunter activity
+    - Flip into Digsite pendants when teleport demand outpaces necklace supply
+  history:
+    - date: "2001-05-08"
+      description: "Released as part of the original Crafting jewellery line."
+    - date: "2007-04-30"
+      description: "Sprite updated as part of the wider jewellery graphical refresh."
+    - date: "2018-02-22"
+      description: "Sprite rotated to differentiate it from its enchanted variant."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

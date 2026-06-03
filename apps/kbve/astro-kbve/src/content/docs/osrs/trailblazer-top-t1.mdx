@@ -12,9 +12,75 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: 5
-  about: "Trailblazer top (t1) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-01-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  equipment:
+    slot: body
+    weight: 0.907
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Trailblazer League rewards
+      price: 1000
+      currency: League points
+      stock: unlimited
+  related_items:
+    - item_name: Trailblazer hood (t1)
+      slug: trailblazer-hood-t1
+      relationship: set-piece
+      description: Matching hood from the tier 1 Trailblazer relic hunter outfit.
+    - item_name: Trailblazer trousers (t1)
+      slug: trailblazer-trousers-t1
+      relationship: set-piece
+      description: Matching trousers for the same outfit.
+    - item_name: Trailblazer boots (t1)
+      slug: trailblazer-boots-t1
+      relationship: set-piece
+      description: Matching footwear that completes the t1 set.
+  about: "Trailblazer top (t1) is a cosmetic body slot reward from the Trailblazer League Reward Shop. It carries no combat bonuses and exists purely to commemorate participation in the Trailblazer League. The piece pairs with the matching hood, trousers, and boots to form the tier 1 Trailblazer relic hunter outfit."
+  market_strategy:
+    notes:
+      - "Low GE buy limit of 5 keeps supply tight even though many players unlocked it."
+      - "High alch sits below GE price so flips, not alching, drive volume."
+      - "Cosmetic demand spikes during nostalgia events and league anniversaries."
+  trading_tips:
+    - Watch league teaser updates for renewed cosmetic interest.
+    - Stagger purchases across the 4 hour limit window when stocking up.
+    - Pair offers with hood and trousers to sell as a full set.
+  history:
+    - date: "2020-10-28"
+      description: "Added as Trailblazer coat (t1) with a 1,000 coin value."
+    - date: "2021-01-06"
+      description: "Renamed to Trailblazer top (t1), revalued to 15,000 coins, and matching hood received a graphical update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
