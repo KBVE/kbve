@@ -1,6 +1,6 @@
 ---
 title: Nickel ore | OSRS Price Data
-description: "Nickel ore: This needs refining.. High alch: 240 GP."
+description: "Nickel ore: This needs refining. High alch: 240 GP."
 osrs:
   id: 31719
   name: Nickel ore
@@ -12,9 +12,57 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: null
-  about: "Nickel ore is a members-only item in Old School RuneScape. High alchemy value: 240 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: '2025-11-19'
+    quest_item: false
+    destroy: Drop
+  material:
+    type: ore
+    tier: nickel
+    category: ore
+    weight: 2.267
+  drop_table:
+    - source: Nickel rock
+      quantity: "1"
+      rarity: Always (74 Mining)
+  recipes:
+    - item_name: Cupronickel bar
+      skill: smithing
+      level: 74
+      xp: 42
+      tools:
+        - Furnace
+      inputs:
+        - item_name: Nickel ore
+          quantity: 1
+        - item_name: Copper ore
+          quantity: 2
+      output_quantity: 1
+  related_items:
+    - item_id: 436
+      item_name: Copper ore
+      slug: copper-ore
+      relationship: component
+      description: Required with nickel to smelt cupronickel bars
+  about: |-
+    "This needs refining."
+
+    Nickel ore is mined from nickel rocks at 74 Mining, granting 80.5 Mining XP per ore. Two copper ore plus one nickel ore smelt into a cupronickel bar at 74 Smithing for 42 Smithing XP.
+
+    Released as part of the Sailing skill content.
+
+    Varrock armour 4 grants a 10% chance to mine an extra nickel ore. Other mining boost effects do not apply to nickel rocks.
+  market_strategy:
+    notes:
+      - "High XP/hr Mining at 74+"
+      - "Required for cupronickel bar (Sailing content)"
+      - "Varrock armour 4 boosts yield"
+      - "Demand tied to Sailing-related smithing"
+  history:
+    - date: '2025-11-19'
+      description: Item released with the Sailing skill update.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

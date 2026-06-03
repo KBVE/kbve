@@ -1,6 +1,6 @@
 ---
 title: Runite bolts (p+) | OSRS Price Data
-description: "Runite bolts (p+): Some poisoned runite bolts.. High alch: 180 GP, GE limit: 11,000."
+description: "Runite bolts (p+): Some poisoned runite bolts. High alch: 180 GP, GE limit: 11,000."
 osrs:
   id: 9298
   name: Runite bolts (p+)
@@ -12,9 +12,71 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 11000
-  about: "Runite bolts (p+) is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Runite bolts (p+) are members-only crossbow ammunition in Old School RuneScape, providing +115 ranged strength with the mid-tier weapon poison(+) coating. High alchemy value: 180 coins. Grand Exchange buy limit: 11,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    equipable: true
+    stackable: true
+    noteable: false
+    destroy: "Drop"
+    quest_item: false
+    weight: 0
+  material:
+    type: ammunition
+    tier: rune
+  equipment:
+    slot: ammo
+    weapon_type: bolts
+    attack_speed: null
+    requirements:
+      ranged: 61
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 115
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    has_special: false
+  recipes:
+    - item_name: "Runite bolts (p+)"
+      skill: Herblore
+      level: 73
+      xp: 190
+      tools: []
+      materials:
+        - item_name: "Runite bolts"
+          quantity: 1
+        - item_name: "Weapon poison(+)"
+          quantity: 1
+      output_quantity: 1
+      notes: "Apply weapon poison(+) to standard runite bolts; poisoning prevents bolt tip attachment."
+  market_strategy:
+    notes:
+      - "summary: \"Mid-tier poisoned runite bolts; demand is split between PvP setups valuing poison procs and PvE ranged training.\""
+      - "buy_strategy: \"Stock when poison(+) supply runs cheap; flip into the poison spread when runite bolt base price dips.\""
+      - "sell_strategy: \"Move during PvP-focused events and Bounty Hunter promotions when poison ammo demand rises.\""
+  trading_tips:
+    - "Spread between unpoisoned runite bolts and (p+) variant signals crafting margin."
+    - "Poisoned bolts cannot be enchanted or tipped, so demand is narrower than the unpoisoned variant."
+    - "Stackable ammo means bulk flips have minimal inventory friction."
+  history:
+    - date: "2006-07-31"
+      description: "Released as part of the original crossbow bolts expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

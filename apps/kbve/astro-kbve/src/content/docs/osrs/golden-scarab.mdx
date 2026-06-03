@@ -12,9 +12,57 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 13000
-  about: "Golden scarab is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Golden scarab is a Pyramid Plunder artefact sold to Simon Templeton for 1,000 GP; six are also consumed to recharge the Pharaoh's sceptre."
+  drop_table:
+    sources:
+      - source: Pyramid Plunder
+        quantity: "1"
+        rarity: Common
+  shops:
+    - shop_name: Simon Templeton's Antiques
+      location: Agility Pyramid
+      sells_for: 1000
+      currency: Coins
+      notes: "Player sells artefacts to Simon for fixed coin payouts."
+  related_items:
+    - item_name: Pharaoh's sceptre
+      relationship: product
+    - item_name: Golden statuette
+      relationship: alternative
+    - item_name: Stone scarab
+      relationship: alternative
+    - item_name: Jewelled scarab
+      relationship: alternative
+  market_strategy:
+    notes:
+      - "Pyramid Plunder common artefact — fixed Simon Templeton buyout sets a 1,000 GP floor."
+      - "GE limit of 13,000 supports large flips when price dips below 1,000 GP."
+      - "Demand spikes from Pharaoh's sceptre rechargers (6 scarabs per top-up)."
+  trading_tips:
+    - "Buy on GE below 1,000 GP and resell to Simon Templeton for guaranteed margin minus tax."
+    - "Plunder players who don't want to bank can simply sell at Simon for fast clears."
+    - "Watch sceptre meta — restocking pickups push scarab demand on event weekends."
+  history:
+    - date: "2006-07-17"
+      description: "Golden scarab released with the Pyramid Plunder update."
+    - date: "2015-02-26"
+      description: "Became tradeable on the Grand Exchange."
+  properties:
+    release_date: "2006-07-17"
+    update: "Pyramid Plunder"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

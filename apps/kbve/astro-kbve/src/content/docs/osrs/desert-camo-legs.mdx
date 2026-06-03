@@ -1,6 +1,6 @@
 ---
 title: Desert camo legs | OSRS Price Data
-description: "Desert camo legs: These should make me harder to spot in desert areas.. High alch: 12 GP."
+description: "Desert camo legs: These should make me harder to spot in desert areas. High alch: 12 GP."
 osrs:
   id: 10063
   name: Desert camo legs
@@ -12,9 +12,104 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: null
-  about: "Desert camo legs is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    weight: 0.226
+    release_date: '2006-11-21'
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: Drop
+  material:
+    type: misc
+    tier: hunter-gear
+    primary_resource: desert devil fur
+  equipment:
+    slot: legs
+    weight_reduction: 2
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -7
+    defence_bonus:
+      stab: 10
+      slash: 11
+      crush: 10
+      magic: 0
+      ranged: 11
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      hunter: 10
+  recipes:
+    - skill: Crafting
+      level: 1
+      xp: 0
+      output_quantity: 1
+      tools:
+        - Coins
+      facility: Fancy Clothes Store / Hunter Guild / Prifddinas Seamstress
+      materials:
+        - item_name: Desert devil fur
+          quantity: 2
+        - item_name: Coins
+          quantity: 20
+  shops:
+    - shop_name: Fancy Clothes Store
+      location: Varrock
+      price: 20
+      currency: Coins
+    - shop_name: Hunter Guild Shop
+      location: Avium Savannah
+      price: 20
+      currency: Coins
+  related_items:
+    - item_id: 10061
+      item_name: Desert camo top
+      slug: desert-camo-top
+      relationship: set-piece
+      description: Matching desert camouflage body piece.
+    - item_id: 10071
+      item_name: Desert devil fur
+      slug: desert-devil-fur
+      relationship: component
+      description: Raw fur used to craft Desert camo legs.
+  history:
+    - date: '2006-11-21'
+      description: "Desert camo legs were released alongside the Hunter skill."
+  about: |-
+    > *"These should make me harder to spot in desert areas."*
+
+    Desert camo legs are leg-slot camouflage gear in Old School RuneScape. They require 10 Hunter to equip and reduce worn weight by 2 kg.
+
+    | Detail | Value |
+    |--------|-------|
+    | Slot | Legs |
+    | Hunter Req | 10 |
+    | Weight Reduction | 2 kg |
+    | Defence (slash) | +11 |
+    | Defence (ranged) | +11 |
+    | Made From | 2 Desert devil furs + 20 coins |
+
+    Despite the examine text suggesting camouflage benefits, the legs do not provide any actual creature trapping bonus in the Hunter skill.
+  market_strategy:
+    notes:
+      - "Cheap entry-level Hunter cosmetic"
+      - "Cost driven by desert devil fur supply"
+      - "Often crafted by Hunter players for small profit"
+      - "Members only item"
+  trading_tips:
+    - Watch desert devil fur prices as the primary cost driver.
+    - Margins are thin; best treated as a Hunter crafting side income.
+    - Demand is steady but small; expect slow GE turnover.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

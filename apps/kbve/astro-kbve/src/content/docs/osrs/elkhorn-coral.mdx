@@ -12,9 +12,54 @@ osrs:
   lowalch: 20
   highalch: 31
   limit: 13000
-  about: "Elkhorn coral is a members-only item in Old School RuneScape. High alchemy value: 31 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Elkhorn coral is a members-only Farming resource in Old School RuneScape. Harvested from coral nurseries planted with elkhorn frags at 28 Farming, it feeds Herblore recipes including anti-odour salt and elkhorn potion (unf). High alchemy value: 31 coins. Grand Exchange buy limit: 13,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.028
+  recipes:
+    - item_name: "Anti-odour salt"
+      skill: "Herblore"
+      level: 49
+      xp: 0
+      materials:
+        - item_name: "Elkhorn coral"
+          quantity: 1
+        - item_name: "Crab paste"
+          quantity: 1
+      tools: []
+      output_quantity: 15
+    - item_name: "Elkhorn potion (unf)"
+      skill: "Herblore"
+      level: 56
+      xp: 0
+      materials:
+        - item_name: "Elkhorn coral"
+          quantity: 1
+        - item_name: "Vial of water"
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Accumulate during off-peak hours; high GE buy limit makes bulk fills realistic for Herblore stockpiles.\""
+      - "sell_strategy: \"Sell into Herblore demand spikes for anti-odour salt; volume is consistently high near 51,000 daily.\""
+      - "price_trend: \"stable\""
+      - "investment_potential: \"low\""
+  trading_tips:
+    - "Pair with crab paste purchases for anti-odour salt arbitrage."
+    - "Track Sailing/Farming meta updates that could spike demand."
+    - "Plant elkhorn frags on a coral nursery for self-supply if Farming level allows."
+  history:
+    - date: "2025-11-19"
+      description: "Added to the game with the Sailing update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

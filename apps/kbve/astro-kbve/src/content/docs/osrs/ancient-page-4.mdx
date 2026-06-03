@@ -12,43 +12,53 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 5
-  item:
-    type: god_page
-    god: Ancient
-    page_number: 4
+  about: "Ancient page 4 is one of four pages used to assemble the Book of darkness, a Zaros-aligned god book in Old School RuneScape. Pages are looted from Treasure Trails clue caskets at multiple difficulty tiers. High alchemy value: 240 coins. Grand Exchange buy limit: 5 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-07-03"
     tradeable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard/Elite
-        drop_rate: Varies by tier
+    equipable: false
+    stackable: true
+    noteable: false
+    quest_item: false
+    destroy: "Drop"
+    weight: 0
+  treasure_trail:
+    tier: "elite"
+    drop_rate: "1/775"
+    reward_type: "page"
   related_items:
     - item_id: 12621
-      item_name: Ancient page 1
-      slug: ancient-page-1
+      item_name: "Ancient page 1"
+      slug: "ancient-page-1"
       relationship: set-piece
-      description: Page 1 of 4
+      description: "Page 1 of 4 needed to complete Book of darkness."
     - item_id: 12622
-      item_name: Ancient page 2
-      slug: ancient-page-2
+      item_name: "Ancient page 2"
+      slug: "ancient-page-2"
       relationship: set-piece
-      description: Page 2 of 4
+      description: "Page 2 of 4 needed to complete Book of darkness."
     - item_id: 12623
-      item_name: Ancient page 3
-      slug: ancient-page-3
+      item_name: "Ancient page 3"
+      slug: "ancient-page-3"
       relationship: set-piece
-      description: Page 3 of 4
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | God Page |
-    | God | Ancient (Zaros) |
-    | Page | 4 of 4 |
-    | Tradeable | Yes |
-
-    Add to incomplete Book of darkness (Ancient god book) to complete it.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Page 3 of 4 needed to complete Book of darkness."
+  market_strategy:
+    notes:
+      - "buy_strategy: \"Buy individual pages when clue droppers flood the market; full sets price at a premium when assembled.\""
+      - "sell_strategy: \"Hold and sell during god book demand spikes from PKers or prayer flickers.\""
+      - "price_trend: \"stable\""
+      - "investment_potential: \"medium\""
+  trading_tips:
+    - "Buy limit of 5 makes accumulating a full set across alts straightforward."
+    - "Compare individual page prices vs assembled Book of darkness for arbitrage."
+    - "Hard and elite clue scrolls are the most common source per kill-hour."
+  history:
+    - date: "2014-07-03"
+      description: "Added to the game as part of Treasure Trails Treasure Trails clue rewards."
+    - date: "2019-01-24"
+      description: "Graphical update to match the Book of darkness colour scheme."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

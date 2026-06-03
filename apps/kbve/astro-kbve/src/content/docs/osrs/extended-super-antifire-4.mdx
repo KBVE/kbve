@@ -1,6 +1,6 @@
 ---
 title: Extended super antifire(4) | OSRS Price Data
-description: "Extended super antifire(4) is a 4-dose members potion that 6 minutes of complete dragonfire immunity (all dragons). High alch: 480 GP, GE limit: 2,000."
+description: "Extended super antifire(4) is a 4-dose members potion that provides 6 minutes of complete dragonfire immunity. High alch: 480 GP, GE limit: 2,000."
 osrs:
   id: 22209
   name: Extended super antifire(4)
@@ -12,82 +12,94 @@ osrs:
   lowalch: 320
   highalch: 480
   limit: 2000
+  properties:
+    weight: 0.08
+    release_date: '2018-01-25'
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: Drop
   potion:
     doses: 4
-    herblore_level: 98
-    herblore_xp: 160
-    effect: 6 minutes of complete dragonfire immunity (all dragons)
-    effects:
-      - stat: Dragonfire protection
-        boost_type: immunity
-        description: Complete immunity to all forms of dragonfire
+    base_potion: Super antifire potion
+    boost_skill: Dragonfire Immunity
+    boost_formula: "Complete dragonfire immunity"
+    duration_minutes: 24
+    drain_hitpoints: 0
+    minimum_hitpoints: 1
   recipes:
-    - skill: herblore
+    - skill: Herblore
       level: 98
       xp: 160
+      output_quantity: 1
+      tools:
+        - Pestle and mortar
       materials:
         - item_name: Super antifire potion(4)
-          item_id: 21978
           quantity: 1
         - item_name: Lava scale shard
-          item_id: 11994
           quantity: 4
-      ticks: 2
-      members_only: true
-    - skill: herblore
+    - skill: Herblore
       level: 98
-      xp: 160
+      xp: 180
+      output_quantity: 1
+      tools:
+        - Pestle and mortar
       materials:
         - item_name: Extended antifire(4)
-          item_id: 11951
           quantity: 1
         - item_name: Crushed superior dragon bones
-          item_id: 21975
           quantity: 1
-      ticks: 2
-      members_only: true
   related_items:
     - item_id: 21978
       item_name: Super antifire potion(4)
       slug: super-antifire-potion-4
       relationship: component
-      description: Base potion for lava scale method
+      description: Base potion for the lava scale method.
     - item_id: 11994
       item_name: Lava scale shard
       slug: lava-scale-shard
       relationship: component
-      description: Secondary ingredient
+      description: Secondary ingredient for the lava scale method.
     - item_id: 11951
       item_name: Extended antifire(4)
       slug: extended-antifire-4
       relationship: component
-      description: Base potion for dragon bone method
+      description: Base potion for the dragon bone method.
     - item_id: 2452
       item_name: Antifire(4)
       slug: antifire-4
       relationship: alternative
-      description: Basic antifire option
+      description: Basic antifire variant.
+  history:
+    - date: '2018-01-25'
+      description: "Extended super antifire was added with the lava dragon and Theatre of Blood content cycle."
   about: |-
-    Extended super antifire provides complete dragonfire immunity for 6 minutes per dose, making it essential for:
-    - Vorkath (elite void method)
-    - King Black Dragon
-    - Brutal black dragons
-    - Any dragon without requiring anti-dragon shield
+    > *"4 doses of extended super anti-firebreath potion."*
 
-    Two methods available at 98 Herblore:
+    Extended super antifire provides complete dragonfire immunity for 6 minutes per dose, making it essential for dragon-heavy PvM where an anti-dragon shield slot is needed for damage.
 
     | Method | Base Potion | Secondary |
     |--------|-------------|-----------|
     | Lava scale | Super antifire(4) | 4 Lava scale shards |
     | Dragon bone | Extended antifire(4) | 1 Crushed superior dragon bones |
+
+    Common use cases include Vorkath, King Black Dragon, brutal black dragons, and any other dragon content where the player wants to skip the anti-dragon shield slot.
   market_strategy:
     notes:
-      - Essential for efficient Vorkath kills
-      - Compare ingredient costs between both methods
-      - Lava scale shards from lava dragons/infernal eels
-      - Superior dragon bones from fossil island wyverns
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Essential for efficient Vorkath kills"
+      - "Compare ingredient costs between both methods"
+      - "Lava scale shards come from lava dragons / infernal eels"
+      - "Superior dragon bones come from fossil island wyverns"
+      - "Members only item"
+  trading_tips:
+    - Track lava scale shard vs. superior dragon bone economics to pick the cheaper method.
+    - Buy limit of 2,000 supports moderate flipping volume.
+    - Demand spikes during Vorkath farming events and new dragon content drops.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

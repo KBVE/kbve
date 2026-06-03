@@ -12,28 +12,76 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
+  material:
+    type: ammunition
+    tier: bronze
   equipment:
     slot: ammo
-    type: bolts
-    tradeable: true
-    weight: 0
+    weapon_type: bolt
+    attack_speed: 1
     requirements:
       ranged: 1
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
       strength: 0
       ranged_strength: 10
       magic_damage: 0
       prayer: 0
+  recipes:
+    - item_name: Bronze bolts
+      skill: Fletching
+      level: 9
+      xp: 0.5
+      output_quantity: 10
+      members: false
+      tools: []
+      materials:
+        - item_name: Bronze bolts (unf)
+          quantity: 10
+        - item_name: Feather
+          quantity: 10
+  drop_table:
+    - source: Goblin
+      quantity: "1"
+      rarity: common
+    - source: Mugger
+      quantity: "1"
+      rarity: common
+    - source: Imp
+      quantity: "1"
+      rarity: common
+  shops:
+    - shop_name: Hickton's Archery Emporium
+      location: Catherby
+      price: 6
+      stock: unlimited
+    - shop_name: Lowe's Archery Emporium
+      location: Varrock
+      price: 6
+      stock: unlimited
+    - shop_name: Gulluck and Sons
+      location: Grand Tree
+      price: 6
+      stock: unlimited
+    - shop_name: Lletya Archery Shop
+      location: Lletya
+      price: 6
+      stock: unlimited
+    - shop_name: Daryl's Ranging Surplus
+      location: Shayzien
+      price: 6
+      stock: unlimited
   related_items:
     - item_id: 9140
       item_name: Iron bolts
@@ -45,8 +93,25 @@ osrs:
       slug: bronze-crossbow
       relationship: alternative
       description: Compatible crossbow
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - "summary: \"Entry-tier crossbow ammo with deep shop supply; flips have razor-thin margins.\""
+      - "target_audience: \"New rangers and low-level ironmen using bronze crossbows.\""
+  trading_tips:
+    - Buy directly from any archery shop for steady 6 gp supply.
+    - GE limit of 7,000 per 4 hours, but margins are typically pennies.
+  history:
+    - date: "2001-01-04"
+      description: Originally released as 'bolts'; renamed to 'bronze bolts' during the 2006 crossbow rework.
+  about: |-
+    Bronze bolts are the F2P entry-tier crossbow ammunition. Requires 1 Ranged to fire and 9 Fletching to attach feathers to unfinished bolts.
+  properties:
+    release_date: "2001-01-04"
+    weight: 0
+    quest_item: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

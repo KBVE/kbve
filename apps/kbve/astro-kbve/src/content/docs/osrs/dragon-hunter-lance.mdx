@@ -1,6 +1,6 @@
 ---
 title: Dragon hunter lance | OSRS Price Data
-description: "Dragon hunter lance is a members two-handed weapon requiring 75 Attack. High alch: 180,000 GP, GE limit: 8."
+description: "Dragon hunter lance is a members one-handed spear requiring 78 Attack with +20% accuracy and damage vs draconic creatures. High alch: 180,000 GP, GE limit: 8."
 osrs:
   id: 22978
   name: Dragon hunter lance
@@ -12,99 +12,83 @@ osrs:
   lowalch: 120000
   highalch: 180000
   limit: 8
+  about: "Dragon hunter lance is a one-handed Zamorakian-derived spear created by combining a Hydra claw with a Zamorakian hasta. It grants 20% bonus accuracy and damage against draconic creatures (including wyverns) and stacks multiplicatively with Void and Slayer helm (i). Requires 78 Attack to wield. High alchemy value: 180,000 coins. Grand Exchange buy limit: 8 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-01-10"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 3
+  material:
+    type: misc
+    primary: metal
+    tier: dragon
   equipment:
-    slot: 2h
-    type: scythe
-    attack_style: melee
-    attack_speed: 5
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    two_handed: false
     requirements:
-      attack: 75
-      strength: 75
-    stats:
-      attack_slash: 125
-      attack_stab: 70
-      attack_crush: 30
-      strength: 75
-    degradeable: true
-  effect:
-    multi_hit: true
-    hit_pattern: 1x3 arc
-    hit_count_2x2: 2
-    hit_count_3x3: 3
-    damage_falloff: 50
-  charging:
-    material_id: 22446
-    material_name: Vial of blood
-    charges_per_material: 100
-    max_charges: 20000
-    alternate_material_id: 565
-    alternate_material_name: Blood rune
-    alternate_charges_per_material: 0.5
+      attack: 78
+    attack_bonus:
+      stab: 85
+      slash: 65
+      crush: 65
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 70
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    name: "Dragon-slaying lance"
+    energy: 0
+    description: "Passive: +20% accuracy and damage against draconic creatures including dragons and wyverns. Stacks multiplicatively with Void Knight equipment, Salve amulet (ei), and Slayer helm (i)."
+  recipes:
+    - item_name: Dragon hunter lance
+      tools: []
+      materials:
+        - item_name: Hydra claw
+          quantity: 1
+        - item_name: Zamorakian hasta
+          quantity: 1
+      output_quantity: 1
+      skill: "None"
+      level: 1
+      xp: 0
+      notes: "Use the Hydra claw on a Zamorakian hasta to combine them into the lance; irreversible."
   drop_table:
-    sources:
-      - source: Theatre of Blood
-        source_id: 8370
-        combat_level: 0
-        quantity: "1"
-        rarity: Rare
-        members_only: true
-  related_items:
-    - item_id: 22446
-      item_name: Vial of blood
-      slug: vial-of-blood
-      relationship: component
-      description: Charging material
-    - item_id: 565
-      item_name: Blood rune
-      slug: blood-rune
-      relationship: component
-      description: Charging material
-    - item_id: 22324
-      item_name: Ghrazi rapier
-      slug: ghrazi-rapier
-      relationship: alternative
-      description: ToB stab weapon
-    - item_id: 22323
-      item_name: Sanguinesti staff
-      slug: sanguinesti-staff
-      relationship: alternative
-      description: ToB mage weapon
-  about: |-
-    | Stat | Charged | Uncharged |
-    |------|---------|-----------|
-    | Slash attack | +125 | +75 |
-    | Stab attack | +70 | +50 |
-    | Crush attack | +30 | +10 |
-    | Strength | +75 | +50 |
-
-    Requirements: 75 Attack, 75 Strength
-
-    3-Hit Attack:
-    - Attacks in 1x3 arc in front of player
-    - Hits multiple times on large enemies:
-      - 2x2 monsters: 2 hits
-      - 3x3+ monsters: 3 hits
-    - Each successive hit deals 50% less damage
-
-    Best Against:
-    - Large bosses (Verzik, Nightmare, Nex)
-    - Multi-target scenarios
-
-    | Resource | Amount | Charges |
-    |----------|--------|---------|
-    | Vial of blood | 1 | 100 |
-    | Blood rune | 200 | 100 |
-
-    - Max charges: 20,000
-    - Cost per attack: ~535 gp
-    - Only uses charges on successful hits
+    - source: "Alchemical Hydra"
+      level: 426
+      quantity: "1"
+      rarity: "1/256 (Hydra claw)"
+      notes: "Drops the Hydra claw component used in crafting the lance."
   market_strategy:
     notes:
-      - Most expensive melee weapon
-      - Essential for efficient ToB/high-level PvM
-      - Charging costs add up - factor into profit calcs
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "buy_range: \"55,000,000 - 62,000,000 gp\""
+      - "sell_range: \"60,000,000 - 70,000,000 gp\""
+      - "Premium dragon slayer weapon; price tracks Hydra claw supply and dragon-focused PvM meta. Volume spikes during Slayer streamer events."
+  trading_tips:
+    - "Watch Alchemical Hydra droprate updates which directly shift Hydra claw supply."
+    - "Pair lance flips with Avernic defender for full melee setup buyers."
+    - "Premium during Vorkath or wyvern slayer task meta phases."
+  history:
+    - date: "2019-01-10"
+      description: "Released as part of the Hydra Slayer expansion, combining the Hydra claw with a Zamorakian hasta."
+    - date: "2019-08-15"
+      description: "Buff: passive damage and accuracy bonus reapplied to wyverns and other draconic creatures after early-release inconsistencies."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

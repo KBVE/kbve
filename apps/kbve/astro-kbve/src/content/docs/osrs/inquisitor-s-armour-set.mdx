@@ -12,9 +12,42 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: null
-  about: "Inquisitor's armour set is a members-only item in Old School RuneScape. High alchemy value: 300,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Inquisitor's armour set is a members-only item in Old School RuneScape obtained via the Grand Exchange Set Exchange interface. It bundles the Inquisitor's great helm, hauberk, and plateskirt for convenient trading."
+  related_items:
+    - item_name: Inquisitor's great helm
+      relationship: component
+    - item_name: Inquisitor's hauberk
+      relationship: component
+    - item_name: Inquisitor's plateskirt
+      relationship: component
+  market_strategy:
+    notes:
+      - "Set Exchange convenience item — bundles all three Inquisitor pieces for one-click trading."
+      - "Typically trades near the sum of its component prices, with small premium or discount based on demand."
+      - "No GE buy limit, but liquidity is thin so large orders can move the price."
+  trading_tips:
+    - "Watch the spread between set price and sum of components — arbitrage opportunities appear during volatile periods."
+    - "Use the Grand Exchange clerk's Sets tab to break the set into components or assemble one."
+    - "Long-term hold tied to Nightmare boss drop rates and crush weapon meta."
+  history:
+    - date: "2020-02-06"
+      description: "Inquisitor's armour set added with The Nightmare of Ashihama update."
+  properties:
+    release_date: "2020-02-06"
+    update: "The Nightmare of Ashihama"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

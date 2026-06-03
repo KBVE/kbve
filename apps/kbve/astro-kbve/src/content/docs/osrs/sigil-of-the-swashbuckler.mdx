@@ -1,20 +1,65 @@
 ---
 title: Sigil of the swashbuckler | OSRS Price Data
-description: "Sigil of the swashbuckler: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP."
+description: "Sigil of the swashbuckler reduces melee attack speed by 1 tick for 5-tick or slower weapons. Deadman Mode reward."
 osrs:
   id: 29673
   name: Sigil of the swashbuckler
   slug: sigil-of-the-swashbuckler
-  examine: A power enhancing sigil not yet attuned to you.
+  examine: "All melee weapons with a base attack speed above 4 will have it reduced by 1."
   members: true
   icon: Sigil of swashbuckler.png
-  value: 10000
-  lowalch: 4000
-  highalch: 6000
+  value: 1
+  lowalch: 0
+  highalch: 0
   limit: null
-  about: "Sigil of the swashbuckler is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  weight: 0.1
+  about: "Sigil of the swashbuckler is a Deadman Mode attunable sigil. When attuned, every melee weapon with a base attack speed slower than 4 ticks has its speed reduced by 1, dramatically improving slow weapon DPS."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: sigil
+    tier: special
+  related_items:
+    - item_name: Sigil of the gunslinger
+      relationship: alternative
+    - item_name: Sigil of arcane swiftness
+      relationship: alternative
+  market_strategy:
+    notes:
+      - "summary: \"Untradeable Deadman Mode reward; no GE market.\""
+      - "buy_strategy: \"Obtained exclusively from Deadman: Annihilation skull shop or past Armageddon drops — no GE supply.\""
+      - "sell_strategy: \"Untradeable; value is purely from personal attunement during Deadman seasons.\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Pair with 5-tick weapons like the Scythe of vitur or godswords for the biggest DPS gain."
+    - "Mutually exclusive with Sigil of the gunslinger and Sigil of arcane swiftness — pick one combat style sigil."
+    - "Up to three attunable sigils can be active at once; budget your sigil slots around combat priorities."
+  history:
+    - date: "2024-07-17"
+      description: "Released for Deadman: Annihilation as an attunable melee sigil."
+    - date: "2026-01-21"
+      description: "Renamed from Sigil of swashbuckler to Sigil of the swashbuckler."
+  properties:
+    release_date: "2024-07-17"
+    tradeable: false
+    equipable: false
+    stackable: false
+    noteable: false
+    destroy: "You must unattune the Sigil before you can destroy it."
+    quest_item: false
+  drop_table: []
+  shops:
+    - shop_name: Deadman Skull Shop
+      location: Deadman Annihilation
+      price: 0
+      currency: Skull tokens
+      stock: 1
+  special_attack:
+    has_special: false
+  charges:
+    has_charges: false
+  potion:
+    is_potion: false
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

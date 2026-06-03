@@ -1,6 +1,6 @@
 ---
 title: Egg and tomato | OSRS Price Data
-description: "Egg and tomato: A bowl of scrambled eggs and tomato.. High alch: 7 GP, GE limit: 13,000."
+description: "Egg and tomato: A bowl of scrambled eggs and tomato. High alch: 7 GP, GE limit: 13,000."
 osrs:
   id: 7064
   name: Egg and tomato
@@ -12,9 +12,73 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 13000
-  about: "Egg and tomato is a members-only item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    weight: 0.5
+    release_date: '2006-01-30'
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: Drop
+  consumable:
+    type: food
+    heal_amount: 8
+  recipes:
+    - skill: Cooking
+      level: 23
+      xp: 0
+      output_quantity: 1
+      tools: []
+      materials:
+        - item_name: Scrambled egg
+          quantity: 1
+        - item_name: Tomato
+          quantity: 1
+  related_items:
+    - item_id: 7078
+      item_name: Scrambled egg
+      slug: scrambled-egg
+      relationship: component
+      description: Base scrambled egg ingredient.
+    - item_id: 1982
+      item_name: Tomato
+      slug: tomato
+      relationship: component
+      description: Tomato ingredient combined with the scrambled egg.
+    - item_id: 7056
+      item_name: Egg potato
+      slug: egg-potato
+      relationship: upgrade
+      description: Higher-tier dish made by combining the egg and tomato with potato with butter at Cooking 51.
+  history:
+    - date: '2006-01-30'
+      description: "Egg and tomato was added with the Gnome cooking content update."
+  about: |-
+    > *"A bowl of scrambled eggs and tomato."*
+
+    Egg and tomato is a food item that restores 8 hitpoints when eaten. It is most commonly used as a component in higher-tier Cooking recipes.
+
+    | Detail | Value |
+    |--------|-------|
+    | Cooking Req | 23 |
+    | Heal | 8 HP |
+    | Ingredients | Scrambled egg + Tomato |
+    | Upgrade Path | Egg potato (Cooking 51) |
+
+    Players typically prepare this dish as a step toward egg potato rather than as a primary food, since its heal value is low.
+  market_strategy:
+    notes:
+      - "Used primarily as an intermediate in egg potato Cooking"
+      - "Cost driven by scrambled egg and tomato"
+      - "High GE limit supports bulk buys for skill training"
+      - "Members only item"
+  trading_tips:
+    - Watch scrambled egg and tomato prices to gauge spread.
+    - Most demand comes from Cooking trainers heading toward egg potato.
+    - High buy limit lets you accumulate stock fast.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

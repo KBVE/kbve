@@ -1,6 +1,6 @@
 ---
 title: Black set (lg) | OSRS Price Data
-description: "Black set (lg): A set containing a full helm, platebody, legs and kiteshield.. High alch: 2,700 GP, GE limit: 8."
+description: "Black set (lg): A set containing a full helm, platebody, legs and kiteshield. High alch: 2,700 GP, GE limit: 8."
 osrs:
   id: 12988
   name: Black set (lg)
@@ -12,9 +12,51 @@ osrs:
   lowalch: 1800
   highalch: 2700
   limit: 8
-  about: "Black set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 2,700 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Black set (lg) is a free-to-play armour set in Old School RuneScape that bundles the black full helm, platebody, platelegs, and kiteshield via the Grand Exchange sets booth. High alchemy value: 2,700 coins. Grand Exchange buy limit: 8 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2015-02-26"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+    weight: 6
+  material:
+    type: misc
+    tier: black
+  recipes:
+    - item_name: "Black set (lg)"
+      skill: None
+      level: 1
+      xp: 0
+      tools:
+        - "Grand Exchange sets booth"
+      materials:
+        - item_name: "Black full helm"
+          quantity: 1
+        - item_name: "Black platebody"
+          quantity: 1
+        - item_name: "Black platelegs"
+          quantity: 1
+        - item_name: "Black kiteshield"
+          quantity: 1
+      output_quantity: 1
+      notes: "Combine or exchange the four black armour pieces at the Grand Exchange sets booth."
+  market_strategy:
+    notes:
+      - "summary: \"Convenience bundle for the black armour kit; price floats around the sum of its components plus a premium for the single-trade purchase.\""
+      - "buy_strategy: \"Decombine and sell parts when the set premium widens; buy components and combine when set price exceeds parts.\""
+      - "sell_strategy: \"Flip to new free-to-play accounts gearing up for early bosses or PKing.\""
+  trading_tips:
+    - "Track component prices vs set price to spot arbitrage."
+    - "Free-to-play demand keeps black gear liquid in most market conditions."
+    - "Useful for quick bank organisation when noted for transport."
+  history:
+    - date: "2015-02-26"
+      description: "Released to the Grand Exchange sets booth as part of the standard armour set lineup."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

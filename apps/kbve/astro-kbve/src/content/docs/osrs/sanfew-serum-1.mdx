@@ -1,6 +1,6 @@
 ---
 title: Sanfew serum(1) | OSRS Price Data
-description: "Sanfew serum(1) is a 1-dose members potion that restores 4-16 prayer points, cures poison/venom, restores stats. High alch: 72 GP, GE limit: 2,000."
+description: "Sanfew serum(1) is a 1-dose members potion that restores prayer points, cures poison/venom, restores stats. High alch: 72 GP, GE limit: 2,000."
 osrs:
   id: 10931
   name: Sanfew serum(1)
@@ -12,41 +12,58 @@ osrs:
   lowalch: 48
   highalch: 72
   limit: 2000
+  about: "Sanfew serum(1) is a one-dose super potion that restores prayer (4 + 30% of base level) and stats, grants 6 minutes of poison immunity, and 15 minutes of disease immunity per dose. Made with 65 Herblore by combining unicorn horn dust, clean snake weed, and nail beast nails with a super restore. Requires Zogre Flesh Eaters completion. High alchemy value: 72 coins. Grand Exchange buy limit: 2,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2007-03-13"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.02
+  material:
+    type: potion
+    primary: liquid
+    tier: standard
   potion:
     doses: 1
-    herblore_level: 65
-    herblore_xp: 160
-    effect: Restores 4-16 Prayer points, cures poison/venom, restores stats
-    effects:
-      - stat: Prayer
-        boost_formula: 4 + floor(level / 4)
-      - stat: Cure poison
-        boost_type: cure
-        description: Cures poison and venom
-  related_items:
-    - item_id: 10925
-      item_name: Sanfew serum(4)
-      slug: sanfew-serum-4
-      relationship: variant
-      description: 4-dose version
-    - item_id: 10927
-      item_name: Sanfew serum(3)
-      slug: sanfew-serum-3
-      relationship: variant
-      description: 3-dose version
-    - item_id: 10929
-      item_name: Sanfew serum(2)
-      slug: sanfew-serum-2
-      relationship: variant
-      description: 2-dose version
-  about: 1-dose variant of Sanfew serum.
+    boost_type: "Prayer"
+    boost_amount: 4
+    duration: "Instant; 6 min poison immunity; 15 min disease immunity"
+    heal_amount: 0
+    notes: "Restores 4 prayer points + 30% of base prayer level per dose. Also restores reduced stats (excluding Hitpoints), cures poison/venom, and grants temporary poison and disease immunity."
+  recipes:
+    - item_name: Sanfew serum(1)
+      tools: ["Pestle and mortar"]
+      materials:
+        - item_name: Super restore(1)
+          quantity: 1
+        - item_name: Unicorn horn dust
+          quantity: 1
+        - item_name: Snake weed
+          quantity: 1
+        - item_name: Nail beast nails
+          quantity: 1
+      output_quantity: 1
+      skill: Herblore
+      level: 65
+      xp: 96
+      notes: "Requires completion of Zogre Flesh Eaters. XP scales upward to 192 for the 4-dose recipe."
   market_strategy:
     notes:
-      - Compare to 4-dose price
-      - Decanting can profit
-      - Use decanting NPC in GE
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "buy_range: \"1,500 - 1,900 gp\""
+      - "sell_range: \"1,800 - 2,300 gp\""
+      - "Lowest-dose variant; profit comes from decanting at the GE NPC to merge into 3- and 4-dose for higher margin per inventory slot."
+  trading_tips:
+    - "Decant 1-dose stock into 4-dose for resale premium."
+    - "Buy when 4-dose price drops; the 1-dose price lags behind."
+    - "Demand spikes around Dagannoth Kings and Nightmare team trips."
+  history:
+    - date: "2007-03-13"
+      description: "Released alongside the Zogre Flesh Eaters quest as a hybrid prayer + cure potion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

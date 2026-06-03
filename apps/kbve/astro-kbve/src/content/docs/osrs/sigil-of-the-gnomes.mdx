@@ -1,6 +1,6 @@
 ---
 title: Sigil of the gnomes | OSRS Price Data
-description: "Sigil of the gnomes: A power enhancing sigil not yet attuned to you.. High alch: 12,000 GP, GE limit: 8."
+description: "Sigil of the gnomes: A power enhancing sigil not yet attuned to you. High alch: 12,000 GP, GE limit: 8."
 osrs:
   id: 26093
   name: Sigil of the gnomes
@@ -12,9 +12,58 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of the gnomes is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: "2021-08-25"
+    quest_item: false
+    destroy: "You must unattune the Sigil before you can destroy it"
+  material:
+    type: sigil
+    tier: deadman-sigil
+  special_attack:
+    name: Tier 2 Skilling Sigil
+    description: "When attuned, grants 50% more XP in Cooking, Woodcutting, Thieving, and Runecraft."
+  drop_table:
+    primary_source: Deadman Mode drop table
+    sources:
+      - source: Deadman Mode monsters
+        quantity: "1"
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 26091
+      item_name: Sigil of the dwarves
+      slug: sigil-of-the-dwarves
+      relationship: alternative
+      description: Another Tier 2 skilling sigil
+  about: |-
+    | Property | Value |
+    |----------|-------|
+    | Type | Deadman Sigil (Tier 2) |
+    | Skills boosted | Cooking, Woodcutting, Thieving, Runecraft |
+    | XP bonus | +50% |
+
+    - Members-only sigil from Deadman Mode events
+    - Only appears in live game during DMM seasons
+    - Attune via right-click; attuned form is untradeable
+
+    Power-up for casual skillers during DMM:
+    - Strong XP multiplier on four common skills
+    - Tradeable in untuned form only
+    - Cannot be alched while attuned
+  market_strategy:
+    notes:
+      - "Supply only during active Deadman Mode seasons"
+      - "Price collapses when sigils are removed from live game"
+      - "Speculative hold for next DMM event"
+  trading_tips:
+    - Tradeable while un-attuned; lock in profit before attuning
+    - Watch DMM announcements for liquidity windows
+    - Pairs with other tier 2 sigils in skilling kits
+  history:
+    - date: "2021-08-25"
+      description: "Released with the Deadman: Reborn update."
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,69 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Teal hat is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Teal hat is a members-only cosmetic head slot item in Old School RuneScape, part of the Canifis robes set sold by Barkers' Haberdashery."
+  equipment:
+    slot: head
+    attack_bonus:
+      magic: 3
+    defence_bonus:
+      magic: 3
+  shops:
+    - shop_name: Barkers' Haberdashery
+      location: Canifis
+      stock: 5
+      price: 650
+      currency: Coins
+  related_items:
+    - item_name: Grey hat
+      relationship: variant
+    - item_name: Red hat
+      relationship: variant
+    - item_name: Yellow hat
+      relationship: variant
+    - item_name: Purple hat
+      relationship: variant
+    - item_name: Teal robe top
+      relationship: set-piece
+    - item_name: Teal robe bottoms
+      relationship: set-piece
+    - item_name: Teal gloves
+      relationship: set-piece
+    - item_name: Teal boots
+      relationship: set-piece
+  market_strategy:
+    notes:
+      - "Cosmetic-only Canifis robes piece — value driven by fashionscape demand, not combat utility."
+      - "Shop sells at 650 GP with steady restock; GE premium reflects convenience over the Canifis trip."
+      - "Magic +3 attack/defence bonuses are negligible compared with proper magic gear."
+  trading_tips:
+    - "Buy directly from Barkers' Haberdashery in Canifis for guaranteed 650 GP each."
+    - "Flip GE listings during fashionscape events when colored hats spike."
+    - "Low daily volume — large orders may take time to fill."
+  history:
+    - date: "2004-06-29"
+      description: "Hat released with the Priest in Peril update."
+    - date: "2014-12-10"
+      description: "Renamed from 'Hat' to 'Teal hat' to disambiguate colour variants."
+  properties:
+    release_date: "2004-06-29"
+    update: "Priest in Peril"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

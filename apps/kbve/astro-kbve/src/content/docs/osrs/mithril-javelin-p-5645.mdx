@@ -1,6 +1,6 @@
 ---
 title: Mithril javelin(p+) | OSRS Price Data
-description: "Mithril javelin(p+): A mithril tipped javelin.. High alch: 38 GP, GE limit: 7,000."
+description: "Mithril javelin(p+): A mithril tipped javelin. High alch: 38 GP, GE limit: 7,000."
 osrs:
   id: 5645
   name: Mithril javelin(p+)
@@ -12,9 +12,106 @@ osrs:
   lowalch: 25
   highalch: 38
   limit: 7000
-  about: "Mithril javelin(p+) is a members-only item in Old School RuneScape. High alchemy value: 38 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    weight: 0
+    release_date: '2004-03-29'
+    tradeable: true
+    equipable: true
+    stackable: true
+    noteable: false
+    quest_item: false
+    destroy: Drop
+  material:
+    type: ammunition
+    tier: mithril
+    primary_resource: mithril
+  equipment:
+    slot: ammo
+    weapon_type: thrown
+    attack_speed: 6
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 85
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      ranged: 20
+  special_attack:
+    name: Poison
+    description: Inflicts the strong poison effect (poison+) on the target, dealing damage over time.
+  recipes:
+    - skill: Herblore
+      level: 73
+      xp: 0
+      output_quantity: 1
+      tools:
+        - Weapon poison+
+      materials:
+        - item_name: Mithril javelin
+          quantity: 1
+        - item_name: Weapon poison(+)
+          quantity: 1
+  obtaining:
+    methods:
+      - source: Crafted from Mithril javelin + weapon poison(+)
+        quantity: "1"
+        description: Apply weapon poison(+) to a stack of Mithril javelins at Herblore level 73.
+  related_items:
+    - item_id: 828
+      item_name: Mithril javelin
+      slug: mithril-javelin
+      relationship: component
+      description: Unpoisoned base javelin.
+    - item_id: 5643
+      item_name: Mithril javelin(p)
+      slug: mithril-javelin-p-5643
+      relationship: alternative
+      description: Standard poisoned variant.
+    - item_id: 5647
+      item_name: Mithril javelin(p++)
+      slug: mithril-javelin-p-5647
+      relationship: alternative
+      description: Strongest poisoned variant.
+  history:
+    - date: '2004-03-29'
+      description: "Mithril javelins were released with the original ranged weaponry expansion."
+  about: |-
+    > *"A mithril tipped javelin."*
+
+    Mithril javelin(p+) is a stackable thrown weapon with the poison+ effect applied. It deals 85 ranged strength on hit and applies strong poison damage over time.
+
+    | Detail | Value |
+    |--------|-------|
+    | Ranged Strength | +85 |
+    | Attack Speed | 6 ticks |
+    | Stackable | Yes |
+    | Poison Tier | Poison+ |
+
+    These javelins are typically used as a budget thrown ranged option with the upside of inflicting poison damage on the target.
+  market_strategy:
+    notes:
+      - "Low GE price reflects niche demand"
+      - "Cost mostly driven by weapon poison(+) overhead"
+      - "Stack size makes it convenient for slayer kits"
+      - "Members only item"
+  trading_tips:
+    - Compare base Mithril javelin + weapon poison(+) cost vs. the poisoned listing.
+    - Buy limit 7,000 supports moderate bulk flipping.
+    - Demand is light; expect slow GE turnover.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

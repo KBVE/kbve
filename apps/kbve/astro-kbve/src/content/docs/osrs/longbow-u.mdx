@@ -1,6 +1,6 @@
 ---
 title: Longbow (u) | OSRS Price Data
-description: "Longbow (u): I need to find a string for this.. High alch: 36 GP, GE limit: 10,000."
+description: "Longbow (u): I need to find a string for this. High alch: 36 GP, GE limit: 10,000."
 osrs:
   id: 48
   name: Longbow (u)
@@ -23,12 +23,53 @@ osrs:
       slug: oak-longbow-u
       relationship: variant
       description: Higher tier unstrung longbow
-  about: |-
-    > _"I need to find a string for this."_
-
-    The longbow (u) is an unstrung longbow made from regular logs. String with a bowstring at 10 Fletching to create a longbow. Members only. One of the first items available for Fletching training.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "The longbow (u) is an unstrung longbow carved from regular logs at 10 Fletching. String it with a bowstring for the finished longbow. Members-only. High alch 36 gp; GE limit 10,000."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+    weight: 1.332
+  material:
+    type: misc
+    tier: standard
+  recipes:
+    - item_name: "Longbow (u)"
+      skill: "Fletching"
+      level: 10
+      xp: 10
+      tools:
+        - "Knife"
+      materials:
+        - item_name: "Logs"
+          quantity: 1
+      output_quantity: 1
+    - item_name: "Longbow"
+      skill: "Fletching"
+      level: 10
+      xp: 10
+      tools: []
+      materials:
+        - item_name: "Longbow (u)"
+          quantity: 1
+        - item_name: "Bowstring"
+          quantity: 1
+      output_quantity: 1
+  history:
+    - date: "2002-03-25"
+      description: "Introduced with the original Fletching skill release."
+  trading_tips:
+    - "Stringing into a longbow gives another 10 Fletching XP per bow."
+    - "Cheap, high-volume Fletching training stock; flip on margin between logs and strung longbows."
+  market_strategy:
+    notes:
+      - "relationship: \"component\""
+      - "Sits between logs and finished longbows; price is bounded by Fletching cost and bowstring spread."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

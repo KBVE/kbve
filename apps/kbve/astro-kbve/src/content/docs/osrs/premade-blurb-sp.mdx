@@ -12,9 +12,43 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 2000
-  about: "Premade blurb' sp. is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  properties:
+    release_date: '2002-12-12'
+    quest_item: false
+    destroy: Drop
+  potion:
+    effects:
+      - description: "Heals 7 hitpoints"
+      - description: "Boosts Strength by 5% + 2 levels"
+      - description: "Reduces Attack by 2% - 3 levels"
+    doses: 1
+  shops:
+    - shop_name: Blurberry Bar (Grand Tree)
+      location: Grand Tree
+      price: 30
+      stock: 5
+    - shop_name: Blurberry Bar (Gnome Stronghold)
+      location: Gnome Stronghold
+      price: 30
+      stock: 5
+  about: |-
+    "A premade Blurberry Special."
+
+    Premade blurb' sp. is a premade Blurberry Special drink sold at Blurberry Bar in the Grand Tree and the Gnome Stronghold. When consumed, it heals 7 hitpoints, boosts Strength by 5% + 2 levels, and lowers Attack by 2% - 3 levels.
+
+    A free copy spawns near the gnome glider on Karamja.
+  market_strategy:
+    notes:
+      - "Sold by gnome shops for 30 GP"
+      - "Useful for low-level strength training"
+      - "Heals 7 hitpoints"
+      - "Niche utility item with limited demand"
+      - "Free spawn on Karamja makes buying rare"
+  history:
+    - date: '2002-12-12'
+      description: Item released with Tree Gnome Stronghold expansion.
+  mdx_version: 3
+  mdx_updated: '2026-06-02'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

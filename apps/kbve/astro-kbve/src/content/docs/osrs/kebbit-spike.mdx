@@ -1,6 +1,6 @@
 ---
 title: Kebbit spike | OSRS Price Data
-description: "Kebbit spike: These bone spikes are both very tough and very sharp.. High alch: 54 GP, GE limit: 10,000."
+description: "Kebbit spike: These bone spikes are both very tough and very sharp. High alch: 54 GP, GE limit: 10,000."
 osrs:
   id: 10105
   name: Kebbit spike
@@ -12,9 +12,59 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 10000
-  about: "Kebbit spike is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Kebbit spike is a members-only Hunter byproduct from prickly kebbits in Old School RuneScape, used to fletch kebbit bolts. High alchemy value: 54 coins. Grand Exchange buy limit: 10,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+    weight: 0.02
+  material:
+    type: misc
+    tier: standard
+  drop_table:
+    - source: "Prickly kebbit"
+      level: "37 Hunter"
+      quantity: "1"
+      rarity: "Always"
+      notes: "Caught using deadfall traps at Hunter level 37."
+  recipes:
+    - item_name: "Kebbit bolts"
+      skill: Fletching
+      level: 32
+      xp: 5.8
+      tools:
+        - "Chisel"
+      materials:
+        - item_name: "Kebbit spike"
+          quantity: 1
+      output_quantity: 12
+      notes: "Yield increased from 6 to 12 bolts per spike on 20 March 2024."
+  shops:
+    - shop_name: "Aleck's Hunter Emporium"
+      location: "Yanille"
+      price: 20
+      stock: 0
+      notes: "Leon trades 12 kebbit bolts for one kebbit spike plus 20 coins."
+  market_strategy:
+    notes:
+      - "summary: \"Hunter byproduct used in low-level Fletching; price tracks bolt demand from ironmen and budget rangers.\""
+      - "buy_strategy: \"Stock during low Hunter content periods when supply dries up; profit on the conversion into 12 bolts.\""
+      - "sell_strategy: \"Move during ranged Slayer task spikes or new ammo-relevant content.\""
+  trading_tips:
+    - "Each spike fletches 12 kebbit bolts; compare bolt and spike GE prices for margin."
+    - "Limited supply outside dedicated Hunter trips keeps prices stable."
+    - "Alec's Hunter Emporium provides a deterministic NPC conversion route."
+  history:
+    - date: "2006-11-21"
+      description: "Released with the Hunter skill expansion to Eagles' Peak."
+    - date: "2024-03-20"
+      description: "Bolt yield from fletching a kebbit spike increased from 6 to 12."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

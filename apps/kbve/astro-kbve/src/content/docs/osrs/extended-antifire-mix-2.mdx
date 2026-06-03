@@ -1,6 +1,6 @@
 ---
 title: Extended antifire mix(2) | OSRS Price Data
-description: "Extended antifire mix(2): Two doses of fishy extended anti-firebreath potion.. High alch: 144 GP, GE limit: 2,000."
+description: "Extended antifire mix(2): Two doses of fishy extended anti-firebreath potion. High alch: 144 GP, GE limit: 2,000."
 osrs:
   id: 11960
   name: Extended antifire mix(2)
@@ -12,9 +12,50 @@ osrs:
   lowalch: 96
   highalch: 144
   limit: 2000
-  about: "Extended antifire mix(2) is a members-only item in Old School RuneScape. High alchemy value: 144 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Extended antifire mix(2) is a members-only barbarian potion in Old School RuneScape, providing 12 minutes of dragonfire resistance plus 6 Hitpoints restored per dose. High alchemy value: 144 coins. Grand Exchange buy limit: 2,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-03-27"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+    weight: 0.08
+  material:
+    type: potion
+    tier: standard
+  potion:
+    doses: 2
+    effect: "Provides 12 minutes of dragonfire resistance and restores 6 Hitpoints per dose. Requires completion of Barbarian Herblore training with Otto Godblessed and starting Dragon Slayer I."
+    duration_seconds: 720
+  recipes:
+    - item_name: "Extended antifire mix(2)"
+      skill: Herblore
+      level: 91
+      xp: 61
+      tools: []
+      materials:
+        - item_name: "Extended antifire(2)"
+          quantity: 1
+        - item_name: "Caviar"
+          quantity: 1
+      output_quantity: 1
+      notes: "Barbarian potion mix; requires Barbarian Herblore training."
+  market_strategy:
+    notes:
+      - "summary: \"Niche barbarian potion mix; demand limited to players seeking the Hitpoints restoration bonus during dragon encounters.\""
+      - "buy_strategy: \"Stock when extended antifire potions and caviar prices dip; useful for completing Barbarian Herblore tasks.\""
+      - "sell_strategy: \"Move during dragon-heavy content updates or Slayer task spikes.\""
+  trading_tips:
+    - "Recipe is loss-making at current GE rates; volume is low."
+    - "Caviar supply from Barbarian fishing limits production scale."
+    - "Stack with other barbarian potion mixes for Herblore training bulk runs."
+  history:
+    - date: "2014-03-27"
+      description: "Released alongside the wider extended antifire potion family."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,72 +12,49 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 5
-  item:
-    type: prayer_scroll
+  about: "Arcane prayer scroll is a members-only consumable in Old School RuneScape obtained as a rare reward from the Chambers of Xeric. Reading it permanently unlocks the Augury prayer, which boosts Magic attack, Magic defence, and Defence by 25% each. High alchemy value: 48,000 coins. Grand Exchange buy limit: 5 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-01-26"
     tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
     weight: 0.015
-  unlocks:
-    prayer_name: Augury
-    prayer_level: 77
-    requirements:
-      prayer: 77
-      defence: 70
-    effect:
-      magic_attack: +25%
-      magic_defence: +25%
-      defence: +25%
   drop_table:
-    sources:
-      - source: Chambers of Xeric
-        rate: ~29%
-        notes: From ancient chest
-  truemarket:
-    buy_limit: 5
-    price_estimate: 6100000
+    - source: "Chambers of Xeric"
+      level: null
+      quantity: "1"
+      rarity: "Rare (20/69 from Ancient chest unique table)"
   related_items:
     - item_id: 21034
-      item_name: Dexterous prayer scroll
-      slug: dexterous-prayer-scroll
+      item_name: "Dexterous prayer scroll"
+      slug: "dexterous-prayer-scroll"
       relationship: alternative
-      description: Rigour unlock
+      description: "Unlocks Rigour, the Ranged counterpart to Augury."
     - item_id: 21047
-      item_name: Torn prayer scroll
-      slug: torn-prayer-scroll
+      item_name: "Torn prayer scroll"
+      slug: "torn-prayer-scroll"
       relationship: alternative
-      description: Preserve unlock
-    - item_id: 7554
-      item_name: Chambers of Xeric
-      slug: chambers-of-xeric
-      relationship: component
-      description: Drop source
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Prayer Scroll |
-    | Tradeable | Yes |
-    | Weight | 0.015 kg |
-
-    Augury Prayer:
-    - +25% Magic Attack
-    - +25% Magic Defence
-    - +25% Defence
-
-    Requirements: 77 Prayer, 70 Defence
-
-    Essential for:
-    - All magic PvM
-    - Raids
-    - Inferno
-    - Any magic combat
-
-    Most important magic upgrade.
+      description: "Unlocks Preserve, extending stat boost durations."
   market_strategy:
     notes:
-      - One-time unlock
-      - Priority magic upgrade
-      - Much cheaper than Rigour
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "buy_strategy: \"Wait for post-CoX league dips when scroll supply spikes; long-term price grinds upward with magic meta updates.\""
+      - "sell_strategy: \"Sell into raids meta hype windows when new players push toward 77 Prayer.\""
+      - "price_trend: \"stable\""
+      - "investment_potential: \"high\""
+  trading_tips:
+    - "One-time consumable per account; only the first scroll matters unless flipping."
+    - "Cheaper than Dexterous prayer scroll despite identical unlock weight; remains the priority magic upgrade."
+    - "Stockpile during Chambers of Xeric special events for resale spikes."
+  history:
+    - date: "2017-01-26"
+      description: "Released alongside the Dexterous prayer scroll as a Chambers of Xeric unique."
+    - date: "2017-02-09"
+      description: "Drop rate doubled to keep Augury affordable relative to Rigour."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

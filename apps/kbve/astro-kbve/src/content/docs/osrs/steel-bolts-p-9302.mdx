@@ -13,8 +13,60 @@ osrs:
   highalch: 4
   limit: 11000
   about: "Steel bolts (p++) is a members-only item in Old School RuneScape. High alchemy value: 4 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: ammunition
+    tier: steel
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    equipable: true
+    stackable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0
+  equipment:
+    slot: ammo
+    weapon_type: thrown
+    attack_speed: 1
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 64
+      magic_damage: 0
+      prayer: 0
+  relationships:
+    - item_name: Steel bolts
+      relationship: upgrade
+    - item_name: Steel bolts (p)
+      relationship: variant
+    - item_name: Steel bolts (p+)
+      relationship: variant
+  market_strategy:
+    notes:
+      - "short_term: \"Super poisoned steel bolts cater to a niche PvM/poison playstyle; demand is thin so spreads can be wide.\""
+      - "long_term: \"Tied to mid-level Ranged training and poison utility; stable but low-volume.\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Check live GE volume before stacking large orders — turnover on (p++) bolts is slow."
+    - "List close to the guide price; thin markets punish aggressive overbids."
+  history:
+    - date: "2006-07-31"
+      description: "Released with the Steel bolts family and poison variants."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

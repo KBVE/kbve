@@ -12,9 +12,71 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: null
-  about: "Trailblazer reloaded boots (t3) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Trailblazer reloaded boots (t3) is the tier 3 cosmetic footwear from the Trailblazer Reloaded League reward shop, purchased for 18,000 League points. High alchemy value: 9,000 coins."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-11-29"
+    tradeable: true
+    stackable: false
+    equipable: true
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.34
+  material:
+    type: cloth
+    tier: cosmetic
+  equipment:
+    slot: feet
+    weapon_type: none
+    attack_speed: 1
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Leagues Reward Shop"
+      location: "Trailblazer Reloaded League"
+      price: 18000
+      stock: 0
+      currency: "League points"
+  market_strategy:
+    notes:
+      - "flip_potential: \"medium\""
+      - "Limited-supply cosmetic from a closed league; price drifts upward as supply stays static."
+  trading_tips:
+    - "Hold long-term — closed-league cosmetics tend to appreciate over years."
+    - "Pair with the matching hood, top, and trousers for full set premium."
+  history:
+    - date: "2023-11-29"
+      description: "Released as a tier 3 Trailblazer Reloaded League reward."
+  relationships:
+    - item_name: Trailblazer reloaded hood (t3)
+      relationship: set-piece
+    - item_name: Trailblazer reloaded top (t3)
+      relationship: set-piece
+    - item_name: Trailblazer reloaded trousers (t3)
+      relationship: set-piece
+    - item_name: Trailblazer reloaded boots (t1)
+      relationship: variant
+    - item_name: Trailblazer reloaded boots (t2)
+      relationship: variant
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

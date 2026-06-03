@@ -1,6 +1,6 @@
 ---
 title: Green cape | OSRS Price Data
-description: "Green cape: A thick green cape.. High alch: 19 GP, GE limit: 150."
+description: "Green cape: A thick green cape. High alch: 19 GP, GE limit: 150."
 osrs:
   id: 1027
   name: Green cape
@@ -12,9 +12,99 @@ osrs:
   lowalch: 12
   highalch: 19
   limit: 150
-  about: "Green cape is a free-to-play item in Old School RuneScape. High alchemy value: 19 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  weight: 0.453
+  about: "Green cape is a free-to-play cape obtainable by dyeing any plain cape with green dye at Crafting level 1. It sits in the cape equipment slot and offers a tiny defensive boost, making it a cheap cosmetic choice for low-level adventurers."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: cloth
+    tier: basic
+  equipment:
+    slot: cape
+    weapon_type: none
+    attack_speed: 1
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Barkers' Haberdashery
+      location: Canifis
+      price: 41
+      currency: coins
+      stock: 5
+    - shop_name: Floria's Fashion
+      location: Civitas illa Fortis
+      price: 32
+      currency: coins
+      stock: 5
+  recipes:
+    - item_name: Green cape
+      skill: Crafting
+      level: 1
+      xp: 2.5
+      tools:
+        - Green dye
+      materials:
+        - item_name: Cape
+          quantity: 1
+        - item_name: Green dye
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_name: Red cape
+      relationship: alternative
+    - item_name: Blue cape
+      relationship: alternative
+    - item_name: Yellow cape
+      relationship: alternative
+    - item_name: Green dye
+      relationship: component
+  market_strategy:
+    notes:
+      - "summary: \"Low-volume cosmetic cape with minor demand for fashionscape sets.\""
+      - "buy_strategy: \"Bid slightly below GE mid-price; volume of ~793/day means orders fill within hours.\""
+      - "sell_strategy: \"List near high alch threshold; flips are thin but stable for fashion collectors.\""
+      - "risk_level: \"low\""
+  trading_tips:
+    - "Crafting green capes from plain capes loses coins at every input price — buy direct from the GE."
+    - "Useful as a cheap cape slot filler for ironman accounts before unlocking cape of legends."
+    - "Hold supplies of green dye if you intend to flip dye markets together with capes."
+  history:
+    - date: "2001-12-08"
+      description: "Released alongside the original RuneScape cape colours."
+    - date: "2013-02-22"
+      description: "Carried into Old School RuneScape at launch."
+  properties:
+    release_date: "2001-12-08"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    destroy: "Drop"
+    quest_item: false
+  drop_table: []
+  special_attack:
+    has_special: false
+  charges:
+    has_charges: false
+  potion:
+    is_potion: false
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
