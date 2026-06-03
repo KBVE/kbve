@@ -50,24 +50,37 @@ type RowExtra = { items: OSRSIndexEntry[] };
 
 function Row({ index, style, items }: RowComponentProps<RowExtra>) {
 	const item = items[index];
+	const rowStyle: React.CSSProperties = {
+		...style,
+		// iOS Safari swallows taps on <a> elements that live inside a
+		// momentum-scrolling virtualized container (react-window 2) unless
+		// touchAction is set to `manipulation`; otherwise the browser
+		// queues the tap as a possible scroll-start and never fires the
+		// click. cursor + tap-highlight keep the affordance honest.
+		touchAction: 'manipulation',
+		WebkitTapHighlightColor: 'rgba(56, 189, 248, 0.18)',
+		cursor: 'pointer',
+	};
 	return (
 		<a
 			href={`/osrs/${item.slug}/`}
-			style={style}
-			className="flex items-center gap-3 border-b border-white/5 px-3 hover:bg-white/5 transition-colors">
+			data-osrs-row
+			data-osrs-slug={item.slug}
+			style={rowStyle}
+			className="flex items-center gap-3 border-b border-white/5 px-3 hover:bg-white/5 active:bg-white/10 transition-colors">
 			<img
 				src={iconUrl(item.icon)}
 				alt=""
 				loading="lazy"
 				width={32}
 				height={32}
-				className="h-8 w-8 flex-shrink-0 object-contain"
+				className="h-8 w-8 flex-shrink-0 object-contain pointer-events-none"
 				onError={(e) => {
 					(e.currentTarget as HTMLImageElement).style.visibility =
 						'hidden';
 				}}
 			/>
-			<div className="min-w-0 flex-1">
+			<div className="min-w-0 flex-1 pointer-events-none">
 				<div className="flex items-center gap-2">
 					<span className="truncate font-medium text-sm">
 						{item.name}
