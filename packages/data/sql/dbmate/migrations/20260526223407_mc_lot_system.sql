@@ -2111,12 +2111,31 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
 
+    -- Lock the lot row so concurrent queue-build / queue-demolish /
+    -- release flows serialize against this retry. They already take
+    -- FOR UPDATE on the same row.
+    SELECT current_schematic_id INTO v_lot_current_schem
+      FROM mc.lot WHERE lot_id = v_lot_id
+      FOR UPDATE;
+
+    -- Pre-empt the partial unique index (apply_state IN (0,3)) with an
+    -- explicit guard so callers see a clean error, not a 23505 from a
+    -- late constraint violation.
+    IF EXISTS (
+        SELECT 1
+          FROM mc.lot_build_log b
+         WHERE b.lot_id = v_lot_id
+           AND b.apply_state IN (0, 3)
+           AND b.build_id <> p_build_id
+    ) THEN
+        RAISE EXCEPTION 'lot % already has an active queued/claimed job', v_lot_id
+            USING ERRCODE = '23505';
+    END IF;
+
     -- Schematic-drift check covers both directions: NULL → set, set →
     -- NULL, and set → different. Skipping the NULL case let an
     -- intermediate successful build between queue and retry slip
     -- through (snapshot=NULL, current_schematic=set).
-    SELECT current_schematic_id INTO v_lot_current_schem
-      FROM mc.lot WHERE lot_id = v_lot_id;
     IF v_lot_current_schem IS DISTINCT FROM v_schematic_id_before THEN
         RAISE EXCEPTION 'lot % current_schematic changed since job % queued; cannot retry',
             v_lot_id, p_build_id USING ERRCODE = '22023';
@@ -2290,8 +2309,9 @@ COMMENT ON FUNCTION public.proxy_service_list_failed_builds(INTEGER, TIMESTAMPTZ
 -- ===========================================================================
 -- owner_user_id is ON DELETE RESTRICT; this RPC is the canonical path to
 -- relinquish lots before/during user deletion. By default refuses to
--- touch lots with an active worker job (state IN (3,4)); p_force = TRUE
--- skips that guard (admin escalation).
+-- touch lots with an active queued / claimed build job in
+-- mc.lot_build_log (apply_state IN (0, 3)); p_force = TRUE cancels those
+-- jobs first (apply_state = 4) and proceeds (admin escalation).
 CREATE OR REPLACE FUNCTION mc.service_release_user_lots(
     p_user_id UUID,
     p_force   BOOLEAN DEFAULT FALSE
