@@ -63,7 +63,7 @@
 					"docker run --rm --entrypoint /opt/cloakbrowser/cloakbrowser ghcr.io/kbve/kasm-void:dev --version && echo 'PASS: cloakbrowser binary runs --version'",
 					"docker run --rm --entrypoint readlink ghcr.io/kbve/kasm-void:dev -e /opt/cloakbrowser/cloakbrowser | grep -q . && echo 'PASS: cloakbrowser symlink resolves to a real file'",
 					"docker run --rm --entrypoint python3 ghcr.io/kbve/kasm-void:dev -c 'import websocket; assert websocket.__version__ == \"1.8.0\", websocket.__version__' && echo 'PASS: websocket-client 1.8.0 importable'",
-					"docker run --rm --entrypoint python3 ghcr.io/kbve/kasm-void:dev -m py_compile /dockerstartup/nav_shim.py && echo 'PASS: nav_shim.py compiles'",
+					"docker run --rm -e PYTHONPYCACHEPREFIX=/tmp/pycache --entrypoint python3 ghcr.io/kbve/kasm-void:dev -m py_compile /dockerstartup/nav_shim.py && echo 'PASS: nav_shim.py compiles'",
 					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /dockerstartup/nav_shim.py && echo 'PASS: nav_shim.py executable'",
 					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /dockerstartup/custom_startup.sh && echo 'PASS: custom_startup.sh executable'",
 					"docker run --rm --entrypoint cat ghcr.io/kbve/kasm-void:dev /dockerstartup/custom_startup.sh | grep -q cloak_loop && echo 'PASS: custom_startup.sh has cloak supervisor'",
