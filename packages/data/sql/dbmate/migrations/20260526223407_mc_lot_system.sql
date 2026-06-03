@@ -57,8 +57,7 @@ AS $$
 $$;
 
 ALTER FUNCTION mc._derive_idem_key(UUID, TEXT) OWNER TO postgres;
-REVOKE ALL ON FUNCTION mc._derive_idem_key(UUID, TEXT) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION mc._derive_idem_key(UUID, TEXT) TO service_role;
+REVOKE ALL ON FUNCTION mc._derive_idem_key(UUID, TEXT) FROM PUBLIC, anon, authenticated, service_role;
 
 
 -- ===========================================================================
@@ -87,7 +86,7 @@ CREATE TABLE mc.schematic (
         CHECK (category IN ('house', 'castle', 'tower', 'farm', 'shop', 'utility', 'monument')),
     -- Reject path traversal; lock to schematics/ dir in mod jar.
     CONSTRAINT mc_schematic_resource_path_chk
-        CHECK (resource_path !~ '(^/|\.\.)' AND
+        CHECK (resource_path !~ '(^/|\.\.|//|\\)' AND
                resource_path ~ '^schematics/[A-Za-z0-9_./-]+\.(nbt|schem)$')
 );
 
@@ -150,6 +149,8 @@ CREATE TABLE mc.lot (
 
     CONSTRAINT mc_lot_id_chk         CHECK (lot_id ~ '^[A-Za-z0-9:_-]{3,96}$'),
     CONSTRAINT mc_lot_flags_chk      CHECK (flags >= 0),
+    -- Phase-0 reserves the low 16 bits; reject undefined upper-half writes.
+    CONSTRAINT mc_lot_flags_mask_chk CHECK ((flags & ~65535) = 0),
     CONSTRAINT mc_lot_anchor_y_chk   CHECK (anchor_y BETWEEN -64 AND 319),
     CONSTRAINT mc_lot_price_chk      CHECK (price_credits >= 0 AND price_khash >= 0),
     CONSTRAINT mc_lot_x_range_chk    CHECK (NOT isempty(chunk_x_range)
@@ -212,24 +213,34 @@ CREATE INDEX idx_mc_lot_world_state_chunk_cursor
 CREATE INDEX idx_mc_lot_owner_world_chunk_cursor
     ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
     WHERE owner_user_id IS NOT NULL;
--- Marketplace map: vacant lots, index-only via INCLUDE.
 CREATE INDEX idx_mc_lot_vacant_world_chunk_cursor
     ON mc.lot (world, chunk_x_min, chunk_z_min, lot_id)
     INCLUDE (chunk_x_max, chunk_z_max, chunk_area, anchor_y,
+             block_x_min, block_x_max, block_z_min, block_z_max,
              price_credits, price_khash)
     WHERE state = 0;
--- "My lots" (state IN (1,2)), index-only.
 CREATE INDEX idx_mc_lot_owner_active_world_chunk_cursor
     ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
     INCLUDE (state, current_schematic_id, chunk_x_max, chunk_z_max,
-             chunk_area, anchor_y, price_credits, price_khash)
+             chunk_area, anchor_y,
+             block_x_min, block_x_max, block_z_min, block_z_max,
+             price_credits, price_khash)
     WHERE owner_user_id IS NOT NULL AND state IN (1, 2);
--- Transitional poll view (state IN (3,4)).
 CREATE INDEX idx_mc_lot_owner_transitional_world_chunk_cursor
     ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
     INCLUDE (state, current_schematic_id, chunk_x_max, chunk_z_max,
-             chunk_area, anchor_y, price_credits, price_khash)
+             chunk_area, anchor_y,
+             block_x_min, block_x_max, block_z_min, block_z_max,
+             price_credits, price_khash)
     WHERE owner_user_id IS NOT NULL AND state IN (3, 4);
+-- Global transitional scan: repair / admin sweep across all worlds + owners.
+CREATE INDEX idx_mc_lot_transitional_repair
+    ON mc.lot (lot_id)
+    INCLUDE (state, current_schematic_id)
+    WHERE state IN (3, 4);
+-- Viewport range scan via GIST on the int4range columns directly.
+CREATE INDEX idx_mc_lot_world_chunk_ranges_gist
+    ON mc.lot USING gist (world, chunk_x_range, chunk_z_range);
 
 ALTER TABLE mc.lot OWNER TO postgres;
 ALTER TABLE mc.lot ENABLE ROW LEVEL SECURITY;
@@ -513,7 +524,7 @@ AS $$
 $$;
 
 ALTER FUNCTION mc._user_account_id(UUID) OWNER TO postgres;
-REVOKE ALL ON FUNCTION mc._user_account_id(UUID) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION mc._user_account_id(UUID) FROM PUBLIC, anon, authenticated, service_role;
 
 
 -- ===========================================================================
@@ -763,11 +774,10 @@ BEGIN
         SELECT build_id
           FROM mc.lot_build_log
          WHERE apply_state = 0
-           -- Exhausted jobs stay dormant; admin unsticks via retry RPC.
            AND attempt_count < 5
          ORDER BY queued_at, build_id
          LIMIT GREATEST(0, LEAST(COALESCE(p_limit, 32), 256))
-         FOR UPDATE SKIP LOCKED
+         FOR NO KEY UPDATE SKIP LOCKED
     ),
     nowish AS (SELECT clock_timestamp() AS ts),
     claimed AS (
@@ -833,7 +843,7 @@ AS $$
                               LEAST(GREATEST(1, COALESCE(p_older_than_seconds, 300)), 86400))
          ORDER BY claimed_at, build_id
          LIMIT GREATEST(0, LEAST(COALESCE(p_limit, 128), 512))
-         FOR UPDATE SKIP LOCKED
+         FOR NO KEY UPDATE SKIP LOCKED
     ),
     requeued AS (
         UPDATE mc.lot_build_log b
@@ -1757,7 +1767,9 @@ SET search_path = ''
 ROWS 256
 AS $$
 BEGIN
-    -- Four-field cursor all-or-none; partial cursor would silent-empty.
+    IF auth.role() <> 'service_role' THEN
+        RAISE EXCEPTION 'service_role required' USING ERRCODE = '42501';
+    END IF;
     IF p_after_lot_id IS NOT NULL
        AND (p_after_world IS NULL
             OR p_after_chunk_x IS NULL
@@ -1940,12 +1952,17 @@ RETURNS TABLE (
     dims_y          SMALLINT,
     dims_z          SMALLINT
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 ROWS 32
 AS $$
-    SELECT * FROM mc.service_claim_pending_builds(p_worker_id, p_limit);
+BEGIN
+    IF auth.role() <> 'service_role' THEN
+        RAISE EXCEPTION 'service_role required' USING ERRCODE = '42501';
+    END IF;
+    RETURN QUERY SELECT * FROM mc.service_claim_pending_builds(p_worker_id, p_limit);
+END;
 $$;
 
 ALTER FUNCTION public.proxy_service_claim_pending_builds(TEXT, INTEGER) OWNER TO service_role;
@@ -1962,12 +1979,17 @@ CREATE OR REPLACE FUNCTION public.proxy_service_mark_build_applied(
     p_worker_id TEXT
 )
 RETURNS BOOLEAN
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 COST 100
 AS $$
-    SELECT mc.service_mark_build_applied(p_build_id, p_worker_id);
+BEGIN
+    IF auth.role() <> 'service_role' THEN
+        RAISE EXCEPTION 'service_role required' USING ERRCODE = '42501';
+    END IF;
+    RETURN mc.service_mark_build_applied(p_build_id, p_worker_id);
+END;
 $$;
 
 ALTER FUNCTION public.proxy_service_mark_build_applied(TEXT, TEXT) OWNER TO service_role;
@@ -1985,12 +2007,17 @@ CREATE OR REPLACE FUNCTION public.proxy_service_mark_build_failed(
     p_error     TEXT
 )
 RETURNS BOOLEAN
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 COST 100
 AS $$
-    SELECT mc.service_mark_build_failed(p_build_id, p_worker_id, p_error);
+BEGIN
+    IF auth.role() <> 'service_role' THEN
+        RAISE EXCEPTION 'service_role required' USING ERRCODE = '42501';
+    END IF;
+    RETURN mc.service_mark_build_failed(p_build_id, p_worker_id, p_error);
+END;
 $$;
 
 ALTER FUNCTION public.proxy_service_mark_build_failed(TEXT, TEXT, TEXT) OWNER TO service_role;
@@ -2010,12 +2037,17 @@ RETURNS TABLE (
     requeued_count  INTEGER,
     exhausted_count INTEGER
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 COST 100
 AS $$
-    SELECT * FROM mc.service_requeue_stale_claims(p_older_than_seconds, p_limit);
+BEGIN
+    IF auth.role() <> 'service_role' THEN
+        RAISE EXCEPTION 'service_role required' USING ERRCODE = '42501';
+    END IF;
+    RETURN QUERY SELECT * FROM mc.service_requeue_stale_claims(p_older_than_seconds, p_limit);
+END;
 $$;
 
 ALTER FUNCTION public.proxy_service_requeue_stale_claims(INTEGER, INTEGER) OWNER TO service_role;
@@ -2137,11 +2169,16 @@ CREATE OR REPLACE FUNCTION public.proxy_service_retry_failed_build(
     p_reset_attempts BOOLEAN DEFAULT FALSE
 )
 RETURNS BOOLEAN
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-    SELECT mc.service_retry_failed_build(p_build_id, p_reset_attempts);
+BEGIN
+    IF auth.role() <> 'service_role' THEN
+        RAISE EXCEPTION 'service_role required' USING ERRCODE = '42501';
+    END IF;
+    RETURN mc.service_retry_failed_build(p_build_id, p_reset_attempts);
+END;
 $$;
 
 ALTER FUNCTION public.proxy_service_retry_failed_build(TEXT, BOOLEAN) OWNER TO service_role;
@@ -2222,6 +2259,9 @@ SET search_path = ''
 ROWS 100
 AS $$
 BEGIN
+    IF auth.role() <> 'service_role' THEN
+        RAISE EXCEPTION 'service_role required' USING ERRCODE = '42501';
+    END IF;
     IF p_after_build_id IS NOT NULL AND p_after_failed_at IS NULL THEN
         RAISE EXCEPTION 'cursor must include after_failed_at and after_build_id together'
             USING ERRCODE = '22023';
@@ -2334,11 +2374,16 @@ CREATE OR REPLACE FUNCTION public.proxy_service_release_user_lots(
     p_force   BOOLEAN DEFAULT FALSE
 )
 RETURNS TABLE (lot_id TEXT, prior_state SMALLINT)
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-    SELECT * FROM mc.service_release_user_lots(p_user_id, p_force);
+BEGIN
+    IF auth.role() <> 'service_role' THEN
+        RAISE EXCEPTION 'service_role required' USING ERRCODE = '42501';
+    END IF;
+    RETURN QUERY SELECT * FROM mc.service_release_user_lots(p_user_id, p_force);
+END;
 $$;
 
 ALTER FUNCTION public.proxy_service_release_user_lots(UUID, BOOLEAN) OWNER TO service_role;
@@ -2466,11 +2511,16 @@ RETURNS TABLE (
     latest_failed_at    TIMESTAMPTZ,
     latest_apply_error  TEXT
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
-    SELECT * FROM mc.service_repair_orphan_transitional(p_dry_run);
+BEGIN
+    IF auth.role() <> 'service_role' THEN
+        RAISE EXCEPTION 'service_role required' USING ERRCODE = '42501';
+    END IF;
+    RETURN QUERY SELECT * FROM mc.service_repair_orphan_transitional(p_dry_run);
+END;
 $$;
 
 ALTER FUNCTION public.proxy_service_repair_orphan_transitional(BOOLEAN) OWNER TO service_role;
@@ -2504,13 +2554,18 @@ RETURNS TABLE (
     created_at      TIMESTAMPTZ,
     updated_at      TIMESTAMPTZ
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
 SET search_path = ''
 ROWS 1
 AS $$
-    SELECT * FROM mc.service_get_lot(p_lot_id);
+BEGIN
+    IF auth.role() <> 'service_role' THEN
+        RAISE EXCEPTION 'service_role required' USING ERRCODE = '42501';
+    END IF;
+    RETURN QUERY SELECT * FROM mc.service_get_lot(p_lot_id);
+END;
 $$;
 
 ALTER FUNCTION public.proxy_service_get_lot(TEXT) OWNER TO service_role;
@@ -2871,7 +2926,7 @@ GRANT EXECUTE ON FUNCTION public.proxy_list_lots_public(TEXT, SMALLINT, BOOLEAN,
     TO authenticated, service_role;
 COMMENT ON FUNCTION public.proxy_list_lots_public(TEXT, SMALLINT, BOOLEAN, INTEGER, INTEGER,
                                                   TEXT, INTEGER, INTEGER, TEXT) IS
-    'Public-safe generic lot listing. Mirrors proxy_list_lots but replaces owner_user_id with is_owned + is_owned_by_me so the dashboard does not leak ownership UUIDs of other players. Use the dedicated hot-path wrappers (proxy_list_vacant_lots / proxy_list_my_active_lots) when possible — they hit narrower partial indexes.';
+    'Admin/debug/compat-only. Generic lot listing fallback that does not pin a partial INCLUDE index, so heap fetches dominate on hot paths. Prefer the dedicated hot-path wrappers (proxy_list_vacant_lots / proxy_list_my_active_lots / proxy_list_my_transitional_lots) in app code. Replaces owner_user_id with is_owned + is_owned_by_me so it never leaks third-party UUIDs.';
 
 
 -- ===========================================================================

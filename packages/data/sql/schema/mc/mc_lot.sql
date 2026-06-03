@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS mc.schematic (
     CONSTRAINT mc_schematic_category_chk
         CHECK (category IN ('house', 'castle', 'tower', 'farm', 'shop', 'utility', 'monument')),
     CONSTRAINT mc_schematic_resource_path_chk
-        CHECK (resource_path !~ '(^/|\.\.)' AND
+        CHECK (resource_path !~ '(^/|\.\.|//|\\)' AND
                resource_path ~ '^schematics/[A-Za-z0-9_./-]+\.(nbt|schem)$')
 );
 
@@ -135,6 +135,7 @@ CREATE TABLE IF NOT EXISTS mc.lot (
 
     CONSTRAINT mc_lot_id_chk         CHECK (lot_id ~ '^[A-Za-z0-9:_-]{3,96}$'),
     CONSTRAINT mc_lot_flags_chk      CHECK (flags >= 0),
+    CONSTRAINT mc_lot_flags_mask_chk CHECK ((flags & ~65535) = 0),
     CONSTRAINT mc_lot_anchor_y_chk   CHECK (anchor_y BETWEEN -64 AND 319),
     CONSTRAINT mc_lot_price_chk      CHECK (price_credits >= 0 AND price_khash >= 0),
     CONSTRAINT mc_lot_x_range_chk    CHECK (NOT isempty(chunk_x_range)
@@ -191,18 +192,29 @@ CREATE INDEX IF NOT EXISTS idx_mc_lot_owner_world_chunk_cursor
 CREATE INDEX IF NOT EXISTS idx_mc_lot_vacant_world_chunk_cursor
     ON mc.lot (world, chunk_x_min, chunk_z_min, lot_id)
     INCLUDE (chunk_x_max, chunk_z_max, chunk_area, anchor_y,
+             block_x_min, block_x_max, block_z_min, block_z_max,
              price_credits, price_khash)
     WHERE state = 0;
 CREATE INDEX IF NOT EXISTS idx_mc_lot_owner_active_world_chunk_cursor
     ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
     INCLUDE (state, current_schematic_id, chunk_x_max, chunk_z_max,
-             chunk_area, anchor_y, price_credits, price_khash)
+             chunk_area, anchor_y,
+             block_x_min, block_x_max, block_z_min, block_z_max,
+             price_credits, price_khash)
     WHERE owner_user_id IS NOT NULL AND state IN (1, 2);
 CREATE INDEX IF NOT EXISTS idx_mc_lot_owner_transitional_world_chunk_cursor
     ON mc.lot (owner_user_id, world, chunk_x_min, chunk_z_min, lot_id)
     INCLUDE (state, current_schematic_id, chunk_x_max, chunk_z_max,
-             chunk_area, anchor_y, price_credits, price_khash)
+             chunk_area, anchor_y,
+             block_x_min, block_x_max, block_z_min, block_z_max,
+             price_credits, price_khash)
     WHERE owner_user_id IS NOT NULL AND state IN (3, 4);
+CREATE INDEX IF NOT EXISTS idx_mc_lot_transitional_repair
+    ON mc.lot (lot_id)
+    INCLUDE (state, current_schematic_id)
+    WHERE state IN (3, 4);
+CREATE INDEX IF NOT EXISTS idx_mc_lot_world_chunk_ranges_gist
+    ON mc.lot USING gist (world, chunk_x_range, chunk_z_range);
 CREATE INDEX IF NOT EXISTS idx_mc_lot_current_schematic
     ON mc.lot (current_schematic_id) WHERE current_schematic_id IS NOT NULL;
 
