@@ -12,9 +12,75 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 7000
-  about: "Bronze javelin(p++) is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammunition
+    weapon_type: javelin
+    attack_speed: null
+    weight: 0
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 25
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Bronze javelin
+      slug: bronze-javelin
+      relationship: variant
+      description: "Unpoisoned base javelin."
+    - item_name: Bronze javelin(p)
+      slug: bronze-javelin-p-825
+      relationship: variant
+      description: "Standard poison-tipped variant."
+    - item_name: Bronze javelin(p+)
+      slug: bronze-javelin-p-5642
+      relationship: variant
+      description: "Extra-strong poison variant."
+  about: "Bronze javelin(p++) is the strongest poisoned variant of the bronze javelin, used as Ranged ammunition for one-handed throwing weapons. High alchemy value: 2 coins. Grand Exchange buy limit: 7,000 per 4 hours."
+  market_strategy:
+    notes:
+      - "Volume is thin compared to the unpoisoned base; expect choppy spreads."
+      - "Super-strong poison adds little practical value at low tiers, keeping demand niche."
+  trading_tips:
+    - "Buy the unpoisoned base and apply weapon poison++ yourself if the (p++) spread is unfavourable."
+  history:
+    - date: "2004-03-29"
+      description: "Added with the RS2 launch as part of the javelin family."
+    - date: "2016-10-06"
+      description: "Ranged Strength bonus reduced from +30 to +25."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

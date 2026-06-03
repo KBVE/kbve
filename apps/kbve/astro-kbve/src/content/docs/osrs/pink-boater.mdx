@@ -12,9 +12,90 @@ osrs:
   lowalch: 90
   highalch: 135
   limit: 4
-  about: "Pink boater is a members-only item in Old School RuneScape. High alchemy value: 135 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "12 June 2014"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.01
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 1/1133
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - item_name: Red boater
+      slug: red-boater
+      relationship: variant
+      description: Color variant
+    - item_name: Orange boater
+      slug: orange-boater
+      relationship: variant
+      description: Color variant
+    - item_name: Green boater
+      slug: green-boater
+      relationship: variant
+      description: Color variant
+    - item_name: Blue boater
+      slug: blue-boater
+      relationship: variant
+      description: Color variant
+  about: |-
+    Pink boater is a purely cosmetic head slot hat from medium Treasure Trails. Storable in the costume room.
+  market_strategy:
+    notes:
+      - "Buy limit of 4 amplifies price swings"
+      - "Cosmetic demand follows fashionscape trends"
+      - "Medium clue grinder supply is steady but thin"
+  trading_tips:
+    - Buy after large clue grind streams
+    - Sell during fashionscape competitions and events
+  history:
+    - date: "12 June 2014"
+      description: "Added with the Treasure Trail Expansion update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

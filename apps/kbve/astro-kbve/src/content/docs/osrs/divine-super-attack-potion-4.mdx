@@ -12,9 +12,69 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 2000
-  about: "Divine super attack potion(4) is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2019-07-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Boosts Attack by 5 plus 15 percent of the player's Attack level, and prevents Attack from draining below the maximum boost for the duration. Drinking the potion costs 10 Hitpoints, so the player must have more than 10 HP to use it."
+        duration: 300
+  recipes:
+    - skill: herblore
+      level: 70
+      xp: 2
+      materials:
+        - item_name: Super attack(4)
+          quantity: 1
+        - item_name: Crystal dust
+          quantity: 4
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Super attack(4)
+      slug: super-attack-4
+      relationship: component
+      description: Base potion infused with crystal dust to create the divine variant.
+    - item_name: Crystal dust
+      slug: crystal-dust
+      relationship: component
+      description: Reagent obtained by crushing crystal shards.
+    - item_name: Divine super attack potion(3)
+      slug: divine-super-attack-potion-3
+      relationship: variant
+      description: Three-dose version of the same potion.
+  about: |-
+    Divine super attack potion(4) is a four-dose combat potion created with Herblore that grants a sustained Attack boost at the cost of 10 Hitpoints per dose. Unlocked after Song of the Elves, it is favoured for long PvM trips because the buff does not drain.
+  market_strategy:
+    notes:
+      - "Profit is tied to the spread between Super attack(4) and crystal dust costs."
+      - "PvM bossing demand tends to lift price after raids meta shifts."
+  trading_tips:
+    - Buy crystal shards in bulk when Prifddinas events flood supply.
+    - Sell decanted divine doses when high-tier PvM content rotates in.
+  history:
+    - date: "2019-07-25"
+      description: "Divine super attack potion released with the Song of the Elves expansion."
+    - date: "2020-07-02"
+      description: "Inventory icon updated graphically to match the look of normal potions."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

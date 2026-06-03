@@ -12,9 +12,74 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 15
-  about: "Black desert shirt is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: low
+  properties:
+    release_date: "2005-11-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Desert shirt
+      slug: desert-shirt
+      relationship: variant
+      description: "Undyed base shirt"
+    - item_name: Black dye
+      slug: black-dye
+      relationship: component
+      description: "Dye used to stain the shirt"
+    - item_name: Black desert robe
+      slug: black-desert-robe
+      relationship: set-piece
+      description: "Matching desert robe variant"
+  about: "Black desert shirt is a black-dyed variant of the regular desert shirt. It is worn in the body slot and is used during the Shadow of the Storm quest to appear evil."
+  market_strategy:
+    notes:
+      - "Cheap cosmetic body slot item"
+      - "Dyed from regular desert shirt with black dye"
+      - "Used in Shadow of the Storm quest"
+  history:
+    - date: "2005-11-14"
+      description: "Item released to the game."
+    - date: "2022-02-09"
+      description: "Examine text simplified to: \"A desert shirt stained black.\""
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

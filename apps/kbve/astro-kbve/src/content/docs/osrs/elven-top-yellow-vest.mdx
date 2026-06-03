@@ -12,9 +12,80 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: null
-  about: "Elven top (yellow vest) is a free-to-play item in Old School RuneScape. High alchemy value: 3,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2019-07-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Lliann's Wares
+      location: Prifddinas
+      price: 5000
+      currency: Coins
+      stock: 100
+  related_items:
+    - item_name: Elven top (white vest)
+      slug: elven-top-white-vest
+      relationship: variant
+      description: White vest variant
+    - item_name: Elven legwear
+      slug: elven-legwear
+      relationship: set-piece
+      description: Legs piece of the elven outfit
+    - item_name: Elven boots
+      slug: elven-boots
+      relationship: set-piece
+      description: Feet piece of the elven outfit
+  about: "Elven top (yellow vest) is a cosmetic body slot item available from Lliann's Wares in Prifddinas after Song of the Elves. Provides no combat bonuses; part of the broader elven outfit collection."
+  market_strategy:
+    notes:
+      - "Sourced directly from Lliann's Wares shop"
+      - "Fashionscape and outfit collection demand"
+      - "Quest gate (Song of the Elves) limits supply"
+  trading_tips:
+    - Buy from shop at 5,000 coins and sell on GE for higher
+    - Demand spikes when new fashionscape promotions launch
+  history:
+    - date: "2019-07-25"
+      description: "Item released with the Song of the Elves quest."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

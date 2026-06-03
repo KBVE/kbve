@@ -12,9 +12,63 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 6000
-  about: "Veg ball is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.35
+    options:
+      - Eat
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 35
+      xp: 175
+      materials:
+        - item_name: Unfinished bowl (veg ball)
+          quantity: 1
+        - item_name: Equa leaves
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Unfinished bowl
+      slug: unfinished-bowl
+      relationship: component
+      description: Intermediate Gnome Cooking item
+    - item_name: Equa leaves
+      slug: equa-leaves
+      relationship: component
+      description: Gnome cooking ingredient
+    - item_name: Worm hole
+      slug: worm-hole
+      relationship: alternative
+      description: Other gnome ball food
+  about: "Veg ball is a members Gnome Cooking food that heals 12 hitpoints in one bite. Made by completing the gnome bowl recipe with equa leaves at Cooking 35 for 175 XP."
+  market_strategy:
+    notes:
+      - "Limited demand; mostly used as Aleck shop turn-in"
+      - "Cooking XP rate makes it niche for training"
+      - "6,000 buy limit and low value reduce flipping potential"
+  trading_tips:
+    - Buy from Aleck's Hunter Emporium to flip for small margin
+    - Useful as low-cost healing food for ironmen
+  history:
+    - date: "2002-12-12"
+      description: "Item released with the Gnome Restaurant minigame."
+    - date: "2006-08-07"
+      description: "Graphically updated during Gnome Restaurant rework."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

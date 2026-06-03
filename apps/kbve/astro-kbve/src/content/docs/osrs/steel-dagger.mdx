@@ -12,26 +12,90 @@ osrs:
   lowalch: 50
   highalch: 75
   limit: 125
-  item_id: 1207
-  item_type: equipment
-  slot: weapon
-  type: dagger
-  attack_style: stab
-  attack_speed: 4
-  tradeable: true
-  weight: 0.453
-  requirements:
-    attack: 5
-  stats:
-    stab_attack: 8
-    slash_attack: 4
-    crush_attack: -4
-    strength: 7
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: steel
+    tier: low
+  properties:
+    release_date: "4 January 2001"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: dagger
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      attack: 5
+    attack_bonus:
+      stab: 8
+      slash: 4
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
+      strength: 7
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 30
+      xp: 37.5
+      materials:
+        - item_name: Steel bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: Varrock Swordshop
+      location: Varrock
+      price: 125
+      currency: coins
+      stock: 5
   related_items:
-    - slug: black-dagger
-    - slug: steel-sword
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Black dagger
+      slug: black-dagger
+      relationship: upgrade
+      description: Higher tier dagger
+    - item_name: Steel sword
+      slug: steel-sword
+      relationship: alternative
+      description: One-handed slash alternative
+  about: |-
+    Steel dagger is a free-to-play stab weapon requiring level 5 Attack to wield. It is smithed from a single steel bar at level 30 Smithing for 37.5 XP and is commonly used by low-level players for stab-weak monsters.
+  market_strategy:
+    notes:
+      - "Cheap entry-level stab weapon"
+      - "Stable demand from F2P Smithing trainers"
+      - "High alch only 75 gp - not profitable to alch"
+  trading_tips:
+    - Buy steel bars and smith for Smithing XP rather than profit
+    - Useful for low-level stab training against monsters weak to stab
+  history:
+    - date: "4 January 2001"
+      description: "Item released with the launch of RuneScape."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,88 @@ osrs:
   lowalch: 112
   highalch: 168
   limit: 125
-  about: "Iron plateskirt is a free-to-play item in Old School RuneScape. High alchemy value: 168 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2001-02-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 8.164
+    options:
+      - Drop
+    worn_options:
+      - Wear
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 8.164
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 11
+      slash: 10
+      crush: 10
+      magic: -4
+      ranged: 10
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 31
+      xp: 75
+      materials:
+        - item_name: Iron bar
+          quantity: 3
+      tools:
+        - Hammer
+      output_quantity: 1
+  related_items:
+    - item_name: Iron platelegs
+      slug: iron-platelegs
+      relationship: alternative
+      description: Heavy legs alternative for the same defensive slot.
+    - item_name: Iron platebody
+      slug: iron-platebody
+      relationship: set-piece
+      description: Matching body slot piece smithed from iron bars.
+    - item_name: Iron full helm
+      slug: iron-full-helm
+      relationship: set-piece
+      description: Matching head slot piece in the iron armour set.
+  about: |-
+    Iron plateskirts are smithed from 3 iron bars at level 31 Smithing for 75 XP and provide identical bonuses to iron platelegs at a cosmetic alternative. They are members and F2P safe.
+  market_strategy:
+    notes:
+      - "Profit is sensitive to iron bar price volatility."
+      - "High alch arbitrage rarely beats nature rune costs at this tier."
+  trading_tips:
+    - Buy iron bars at Varrock when 2t powermining floods supply.
+    - Resell smithed plateskirts to clue scroll cosmetic collectors.
+  history:
+    - date: "2001-02-13"
+      description: "Iron plateskirt released with the original RuneScape armour roster."
+    - date: "2021-04-21"
+      description: "Ranged attack bonus decreased from -7 to -11."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

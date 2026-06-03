@@ -12,9 +12,77 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 4
-  about: "Cow slippers is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2026-02-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.2
+    options:
+      - Wear
+      - Swap
+      - Drop
+    worn_options:
+      - Swap
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weapon_type: null
+    attack_speed: null
+    weight: 0.2
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Brutus
+        quantity: "1"
+        rarity: rare
+  related_items:
+    - item_name: Wintertodt
+      slug: wintertodt
+      relationship: alternative
+      description: Wintertodt warm-clothing slot equivalent
+  passive_effects:
+    - name: Warm clothing
+      description: Counts as warm clothing for the Wintertodt minigame.
+  about: |-
+    Cow slippers are a cosmetic feet-slot item dropped by Brutus after completing the related quest, offering no combat bonuses but counting as warm clothing for the Wintertodt. The drop carries a small chance to swap to a fourth Isle of Souls color variant and can be stored in a costume room magic wardrobe.
+  market_strategy:
+    notes:
+      - "Purely cosmetic with a tiny 4 buy limit"
+      - "Tight supply keeps the price elevated versus alch value"
+      - "Useful as a Wintertodt warm-clothing piece"
+  trading_tips:
+    - Watch for swap-variant pumps that can spike the price
+  history:
+    - date: "2026-02-25"
+      description: "Item added to the game with the Brutus quest update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

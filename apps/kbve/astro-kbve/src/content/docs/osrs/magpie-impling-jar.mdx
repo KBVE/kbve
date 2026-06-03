@@ -1,6 +1,6 @@
 ---
 title: Magpie impling jar | OSRS Price Data
-description: "Magpie impling jar: Magpie impling in a jar.. High alch: 30 GP, GE limit: 18,000."
+description: "Magpie impling jar is a members Hunter loot jar requiring 65 Hunter. High alch: 30 GP, GE limit: 18,000."
 osrs:
   id: 11252
   name: Magpie impling jar
@@ -12,9 +12,60 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 18000
-  about: "Magpie impling jar is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: impling-jar
+    tier: mid
+  properties:
+    release_date: "2007-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Loot
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "If you drop this it will disappear. Are you sure you want to do this?"
+  related_items:
+    - item_name: Magpie impling
+      slug: magpie-impling
+      relationship: component
+      description: Wild impling captured to create the jar
+    - item_name: Empty impling jar
+      slug: empty-impling-jar
+      relationship: component
+      description: Holds the impling; can be reused after looting
+    - item_name: Nature impling jar
+      slug: nature-impling-jar
+      relationship: alternative
+      description: Lower tier impling jar with seed-focused loot
+  about: |-
+    Magpie impling jar contains a captured Magpie impling, the fourth tier impling caught with 65 Hunter. Released 11 June 2007 with Impetuous Impulses, the jar can be looted for valuable rewards including gems, hard clue scrolls, and rings of recoil.
+
+    Looting destroys the impling and returns an empty impling jar 90% of the time. Players can also trade three jars to Elnock Inquisitor for additional empty jars, making bulk hunting profitable on the Grand Exchange.
+  market_strategy:
+    notes:
+      - "Loot table refresh in 2023 added rings of recoil to the rewards"
+      - "18,000 buy limit supports bulk loot flips"
+      - "Empty impling jar return rate is roughly 90% per loot action"
+  trading_tips:
+    - Open in bulk to convert into rare clue and ring of recoil loot
+    - Track Hunter task popularity to time GE flip windows
+  history:
+    - date: "2007-06-11"
+      description: "Released with the Impetuous Impulses minigame"
+    - date: "2015-03-05"
+      description: "Made tradeable on the Grand Exchange"
+    - date: "2016-04-21"
+      description: "Hard clue scrolls added to the loot table"
+    - date: "2023-03-09"
+      description: "Rings of recoil added to the loot table"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

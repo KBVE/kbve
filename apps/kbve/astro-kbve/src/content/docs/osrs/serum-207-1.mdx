@@ -12,9 +12,78 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 2000
-  about: "Serum 207 (1) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2004-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Temporarily cures afflicted villagers in Mort'ton during the Shades of Mort'ton minigame."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 15
+      xp: 50
+      materials:
+        - item_name: Tarromin potion (unf)
+          quantity: 1
+        - item_name: Ashes
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Serum 207 (2)
+      slug: serum-207-2
+      relationship: variant
+      description: "2-dose version of serum 207"
+    - item_name: Serum 207 (3)
+      slug: serum-207-3
+      relationship: variant
+      description: "3-dose version of serum 207"
+    - item_name: Serum 207 (4)
+      slug: serum-207-4
+      relationship: variant
+      description: "4-dose version of serum 207"
+    - item_name: Serum 208 (1)
+      slug: serum-208-1
+      relationship: upgrade
+      description: "Sanctified form created at the fire altar with 5% sanctity per dose"
+  about: |-
+    "1 dose serum 207 as described in Herbi Flax's diary."
+
+    Serum 207 (1) is a single dose of the herbal serum used during the Shades of Mort'ton minigame to temporarily cure afflicted villagers. Players brew the potion using a tarromin potion (unf) and ashes at 15 Herblore for 50 experience. Unlike most potions, Serum 207 has no make-X interface; the player keeps producing doses until reagents are exhausted.
+
+    A single dose can be upgraded to Serum 208 at the fire altar by spending 5% sanctity per dose, providing better minigame rewards. Players typically carry the 4-dose flask for efficiency and decant down to single doses only when topping off small leftovers from the brewing process.
+  market_strategy:
+    notes:
+      - "Demand follows Shades of Mort'ton activity, which is bursty"
+      - "Single doses are mostly leftovers from decanting; bulk supply often spikes after group runs"
+      - "Cheap to flip at scale due to the 2,000 buy limit and tight bid-ask spread"
+      - "Compare margins against the 3-dose to find which dose is mispriced"
+  trading_tips:
+    - Buy when minigame interest drops and decant to higher doses to relist
+    - Track high alch as a floor (6 gp) before bidding
+  history:
+    - date: "2004-10-18"
+      description: "Item released alongside Shades of Mort'ton."
+    - date: "2024-07-31"
+      description: "Sanctification was changed to consume 5% sanctity per dose."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

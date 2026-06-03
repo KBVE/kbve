@@ -12,9 +12,84 @@ osrs:
   lowalch: 260
   highalch: 390
   limit: 125
-  about: "Rock-shell boots is a members-only item in Old School RuneScape. High alchemy value: 390 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rock-shell
+    tier: mid
+  properties:
+    release_date: "2005-08-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weapon_type: null
+    attack_speed: null
+    weight: 3.175
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Giant Rock Crab
+        quantity: "1"
+        rarity: 2/128
+      - source: King Sand Crab
+        quantity: "1"
+        rarity: 2/128
+  related_items:
+    - item_name: Rock-shell helm
+      slug: rock-shell-helm
+      relationship: set-piece
+      description: Head slot of the rock-shell armour set.
+    - item_name: Rock-shell plate
+      slug: rock-shell-plate
+      relationship: set-piece
+      description: Body slot of the rock-shell armour set.
+    - item_name: Rock-shell legs
+      slug: rock-shell-legs
+      relationship: set-piece
+      description: Legs slot of the rock-shell armour set.
+  about: |-
+    Rock-shell boots are the boot slot of the Fremennik rock-shell armour set, dropped from the Giant Rock Crab and King Sand Crab. They equip with no stat or quest requirement, granting modest slash and crush defence and pairing with the rest of the rock-shell pieces stored in the costume room armour case.
+  market_strategy:
+    notes:
+      - "Steady but thin demand from rock-shell collectors and set fillers."
+      - "GE price tracks the alch floor; volume is modest."
+      - "Drop supply from crab grinders keeps the floor in place."
+  trading_tips:
+    - Buy when crab Slayer tasks spike and dump rock-shell drops.
+    - Set bundles (helm/plate/legs/boots) flip better than the boots alone.
+  history:
+    - date: "2005-08-01"
+      description: "Released with the Waterbirth Island update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

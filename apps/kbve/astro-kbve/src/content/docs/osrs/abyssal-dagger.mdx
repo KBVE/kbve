@@ -12,74 +12,93 @@ osrs:
   lowalch: 46000
   highalch: 69000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: abyssal
+    tier: high
+  properties:
+    release_date: "2015-10-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: dagger
-    attack_style: melee
+    weapon_type: dagger
     attack_speed: 4
+    weight: 0.453
     requirements:
       attack: 70
-    stats:
-      attack_stab: 75
-      attack_slash: 40
-      attack_crush: -4
-      attack_magic: 1
+    attack_bonus:
+      stab: 75
+      slash: 40
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
       strength: 75
-  special_attack:
-    name: Abyssal Puncture
-    energy: 25
-    description: Hits twice in rapid succession with +25% accuracy per hit and -15% damage per hit
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Abyssal Sire (via Unsired)
+        quantity: "1"
+        rarity: "~1/5"
+      - source: Abyssal demon
+        quantity: "1"
+        rarity: 1/32000
+      - source: Greater abyssal demon
+        quantity: "1"
+        rarity: 3/32000
+  passive_effects:
+    - name: Abyssal Puncture
+      description: "Special attack: consumes 25% energy, hits twice with +25% accuracy and -15% damage per hit; both hits share a single accuracy roll."
   related_items:
-    - item_id: 13263
-      item_name: Abyssal bludgeon
+    - item_name: Abyssal bludgeon
       slug: abyssal-bludgeon
       relationship: alternative
-      description: Crush weapon from Sire
-    - item_id: 4151
-      item_name: Abyssal whip
+      description: Crush weapon from the Abyssal Sire.
+    - item_name: Abyssal whip
       slug: abyssal-whip
       relationship: alternative
-      description: Slash weapon
-    - item_id: 22324
-      item_name: Ghrazi rapier
+      description: Standard slash training weapon.
+    - item_name: Ghrazi rapier
       slug: ghrazi-rapier
       relationship: upgrade
-      description: BiS stab upgrade
+      description: Best-in-slot stab upgrade from Theatre of Blood.
   about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | +75 |
-    | Slash | +40 |
-    | Crush | -4 |
-    | Magic | +1 |
-    | Strength | +75 |
+    The abyssal dagger is the dagger-class drop from the Abyssal Sire, sitting between the whip and the rapier as a stab option with a useful spec.
 
-    | Defence | Value |
-    |---------|-------|
-    | All | +0 |
-
-    Requirements: 70 Attack
-
-    Abyssal Puncture (25% energy):
-    - Hits twice in rapid succession
-    - +25% accuracy per hit
-    - -15% damage per hit
-    - Max hit: 44-44 (PvP)
-
-    Popular for:
-    - PvP (double hit spec)
-    - Abyssal Sire
-    - Cerberus
-    - Budget stab weapon
-
-    Strong spec weapon with guaranteed double hit.
+    Its Abyssal Puncture special attack costs 25% energy, lands two hits in rapid succession, and pairs a +25% accuracy boost with a -15% damage cut per hit, making it a strong stack-pusher in PvP and a workable burst tool against Sire, Cerberus, and other stab-weak bosses.
   market_strategy:
     notes:
-      - Sire is best source
-      - Good for PvP combos
-      - Cheaper than rapier alternatives
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Abyssal Sire's Unsired pet shop is the main supply path; supply tracks Sire popularity."
+      - "Spec utility keeps PvP demand steady even as PvM users push toward the rapier."
+      - "Prices below rapier alternatives, which sustains budget stab buyers."
+  trading_tips:
+    - Watch Sire drop-rate adjustments and Unsired sink changes for supply shocks.
+    - Compare spec value vs dragon dagger before listing in PvP-heavy windows.
+  history:
+    - date: "2015-10-01"
+      description: "Released alongside the Abyssal Sire boss."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

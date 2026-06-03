@@ -12,9 +12,73 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: null
-  about: "Polar camo top (equipped) is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Remove
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.226
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 10
+      slash: 15
+      crush: 19
+      magic: 0
+      ranged: 12
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Polar camo top
+      slug: polar-camo-top
+      relationship: variant
+      description: Unequipped (inventory) variant
+    - item_name: Polar camo legs
+      slug: polar-camo-legs
+      relationship: set-piece
+      description: Matching legs piece for the polar camouflage set
+    - item_name: Polar kebbit fur
+      slug: polar-kebbit-fur
+      relationship: component
+      description: Material used to craft the top at the Fancy Clothes Store
+  about: |-
+    Polar camo top (equipped) is the worn state of the Polar camo top, used by hunters to make polar kebbits and other polar creatures less likely to detect the player. It is crafted at the Fancy Clothes Store in Varrock, the Hunter Guild, or Prifddinas' Seamstress from 2 polar kebbit fur and 20 coins per piece.
+  market_strategy:
+    notes:
+      - "Untradeable in its equipped state; players must craft from polar kebbit fur"
+      - "Pair with the matching legs for the full camo set"
+  trading_tips:
+    - Stock polar kebbit fur to keep crafting cost low
+  history:
+    - date: "2006-11-21"
+      description: "Item added with the Hunter skill release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,97 @@ osrs:
   lowalch: 25600
   highalch: 38400
   limit: 8
-  about: "Zamorak platelegs is a free-to-play item in Old School RuneScape. High alchemy value: 38,400 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune
+    tier: high
+  properties:
+    release_date: "2004-05-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 9.071
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 51
+      slash: 49
+      crush: 47
+      magic: -4
+      ranged: 49
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/1625
+  passive_effects:
+    - name: Zamorak protection
+      description: Worn in the God Wars Dungeon, Zamorakian followers will not attack the player.
+  related_items:
+    - item_name: Rune platelegs
+      slug: rune-platelegs
+      relationship: alternative
+      description: Base rune platelegs variant
+    - item_name: Saradomin platelegs
+      slug: saradomin-platelegs
+      relationship: alternative
+      description: Saradomin god alignment
+    - item_name: Guthix platelegs
+      slug: guthix-platelegs
+      relationship: alternative
+      description: Guthix god alignment
+    - item_name: Zamorak plateskirt
+      slug: zamorak-plateskirt
+      relationship: variant
+      description: Skirt variant of Zamorak legs
+    - item_name: Zamorak platebody
+      slug: zamorak-platebody
+      relationship: set-piece
+      description: Matching body in the Zamorak set
+  about: "Zamorak platelegs are rune platelegs styled in Zamorakian colours, requiring 40 Defence to wear. Stats match rune platelegs plus a +1 Prayer bonus. Worn in the God Wars Dungeon they keep Zamorakian followers non-aggressive. Primary source is hard clue reward caskets at 1/1625."
+  market_strategy:
+    notes:
+      - "Tiny buy limit of 8 restricts flipping"
+      - "Demand driven by GWD Zamorak boss prep and clue cosmetics"
+      - "High alch close to break-even via nature rune cost"
+  trading_tips:
+    - Stock during hard clue patches and event spikes
+    - Compare against plateskirt for GWD camp setups
+  history:
+    - date: "2004-05-05"
+      description: "Released as part of the god armour cosmetic rune sets."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

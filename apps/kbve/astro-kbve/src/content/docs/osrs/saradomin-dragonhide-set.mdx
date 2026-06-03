@@ -12,9 +12,78 @@ osrs:
   lowalch: 3600
   highalch: 5400
   limit: 8
-  about: "Saradomin dragonhide set is a members-only item in Old School RuneScape. High alchemy value: 5,400 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: armour-set
+    tier: high
+  properties:
+    release_date: "2015-03-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Saradomin coif
+      slug: saradomin-coif
+      relationship: set-piece
+      description: "Head slot piece bundled in the set."
+    - item_name: Saradomin d'hide body
+      slug: saradomin-dhide-body
+      relationship: set-piece
+      description: "Torso slot piece bundled in the set."
+    - item_name: Saradomin chaps
+      slug: saradomin-chaps
+      relationship: set-piece
+      description: "Legs slot piece bundled in the set."
+    - item_name: Saradomin bracers
+      slug: saradomin-bracers
+      relationship: set-piece
+      description: "Hands slot piece bundled in the set."
+    - item_name: Zamorak dragonhide set
+      slug: zamorak-dragonhide-set
+      relationship: alternative
+      description: "Zamorak god-aligned dragonhide set sibling."
+    - item_name: Guthix dragonhide set
+      slug: guthix-dragonhide-set
+      relationship: alternative
+      description: "Guthix god-aligned dragonhide set sibling."
+    - item_name: Ancient dragonhide set
+      slug: ancient-dragonhide-set
+      relationship: alternative
+      description: "Zarosian god-aligned dragonhide set sibling."
+    - item_name: Armadyl dragonhide set
+      slug: armadyl-dragonhide-set
+      relationship: alternative
+      description: "Armadyl god-aligned dragonhide set sibling."
+    - item_name: Bandos dragonhide set
+      slug: bandos-dragonhide-set
+      relationship: alternative
+      description: "Bandos god-aligned dragonhide set sibling."
+  about: |-
+    > _"A set containing a Saradomin dragonhide coif, body, chaps and vambraces."_
+
+    The Saradomin dragonhide set is a Grand Exchange convenience bundle containing the coif, body, chaps, and vambraces in Saradomin trim. Exchanging the set unpacks the four pieces into the inventory; combining them via the GE clerk repacks them.
+  market_strategy:
+    notes:
+      - "Set markup of ~57k coins over component total — high enough to attract repackers when spreads widen."
+      - "Component prices are driven by hard clue scroll volume; demand spikes during clue grinding events."
+      - "Buy limit of 8 every 4 hours keeps single-account corner attempts slow."
+  trading_tips:
+    - "Watch component-vs-set spread; profitable arbitrage swings both directions as collectors and rangers consume pieces."
+    - "Pair flips with the other god dragonhide sets to spread risk across the same cosmetic demand pool."
+  history:
+    - date: "2015-03-19"
+      description: "Released as a Grand Exchange convenience bundle for the Saradomin dragonhide armour pieces."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

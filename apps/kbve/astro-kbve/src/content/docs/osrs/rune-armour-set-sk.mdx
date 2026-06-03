@@ -12,9 +12,59 @@ osrs:
   lowalch: 30000
   highalch: 45000
   limit: 8
-  about: "Rune armour set (sk) is a free-to-play item in Old School RuneScape. High alchemy value: 45,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune
+    tier: mid-high
+  properties:
+    release_date: "2015-02-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6.0
+    options:
+      - Exchange
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Rune full helm
+      slug: rune-full-helm
+      relationship: set-piece
+      description: Head slot piece included in the set
+    - item_name: Rune platebody
+      slug: rune-platebody
+      relationship: set-piece
+      description: Body slot piece included in the set
+    - item_name: Rune plateskirt
+      slug: rune-plateskirt
+      relationship: set-piece
+      description: Legs slot piece (skirt variant) included in the set
+    - item_name: Rune kiteshield
+      slug: rune-kiteshield
+      relationship: set-piece
+      description: Shield slot piece included in the set
+    - item_name: Rune armour set (lg)
+      slug: rune-armour-set-lg
+      relationship: alternative
+      description: Plate legs variant of the set
+  about: |-
+    Rune armour set (sk) is the skirt variant of the packaged rune armour set, containing a rune full helm, platebody, plateskirt, and kiteshield. Players assemble or break down the set via the Grand Exchange clerk's "Sets" tab to save bank space when buying or selling the complete kit.
+  market_strategy:
+    notes:
+      - "Useful for flipping versus the four individual components"
+      - "Saves bank slots for ironmen-style stash or muling"
+      - "Demand peaks around midgame Defence training"
+  trading_tips:
+    - Compare set price against component sum before buying or splitting
+    - Buy when set trades at a discount to components and break for profit
+  history:
+    - date: "2015-02-26"
+      description: "Item added to the game alongside other armour set packages."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

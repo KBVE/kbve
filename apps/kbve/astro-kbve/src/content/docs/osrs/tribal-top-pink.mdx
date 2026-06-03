@@ -12,9 +12,86 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 150
-  about: "Tribal top (pink) is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Gabooty's Tai Bwo Wannai Cooperative
+      location: Tai Bwo Wannai
+      price: 360
+      currency: trading sticks
+      stock: 5
+  related_items:
+    - item_name: Tribal top (blue)
+      slug: tribal-top-blue
+      relationship: variant
+      description: "Blue colour variant of the tribal top"
+    - item_name: Tribal top (brown)
+      slug: tribal-top-brown
+      relationship: variant
+      description: "Brown colour variant of the tribal top"
+    - item_name: Tribal top (yellow)
+      slug: tribal-top-yellow
+      relationship: variant
+      description: "Yellow colour variant of the tribal top"
+  about: |-
+    "Local dress."
+
+    The Tribal top (pink) is a cosmetic body slot item purchased from Gabooty's Tai Bwo Wannai Cooperative for 360 trading sticks (300 with Karamja gloves 1 or better). It is part of the villager clothing set sold by Gabooty alongside matching hats, robes, armbands, and sandals in multiple colours.
+
+    The top has no combat bonuses and exists purely as roleplay or Karamja-themed fashionscape. Players typically only own a copy to round out a costume room villager outfit or to fit in during Tai Bwo Wannai Cleanup activity.
+  market_strategy:
+    notes:
+      - "Tradeable sticks cap keeps shop supply available but inconvenient to obtain at scale"
+      - "GE volume is thin; price drifts with fashion trends not real demand"
+      - "Karamja gloves discount makes self-supply far cheaper than buying from GE"
+  trading_tips:
+    - Bulk supply usually comes from sticks farmers, watch for Cleanup updates
+    - Compare colour variants since pricing reflects cosmetic preference only
+  history:
+    - date: "2005-08-09"
+      description: "Released with the Tai Bwo Wannai Clean-Up update."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

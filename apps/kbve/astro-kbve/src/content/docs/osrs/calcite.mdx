@@ -12,9 +12,73 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 13000
-  about: "Calcite is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: mineral
+    tier: low
+  properties:
+    release_date: "2017-09-07"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Spitting wyvern
+        quantity: "2"
+        rarity: 2/123
+      - source: Ancient zygomite
+        quantity: "1"
+        rarity: 18/118
+      - source: Ammonite Crab
+        quantity: "1"
+        rarity: 1/128
+      - source: Volcanic Mine boulder
+        quantity: "1-4"
+        rarity: 1/20
+  shops:
+    - shop_name: Petrified Pete's Ore Shop
+      location: Volcanic Mine
+      price: 70
+      currency: numulite
+      stock: 0
+  related_items:
+    - item_name: Pyrophosphite
+      slug: pyrophosphite
+      relationship: alternative
+      description: Other mineral used to recalcify fossils
+    - item_name: Numulite
+      slug: numulite
+      relationship: alternative
+      description: Fossil Island shop currency
+    - item_name: Volcanic ash
+      slug: volcanic-ash
+      relationship: alternative
+      description: Fossil Island farming resource
+  about: "Calcite is a Fossil Island mineral combined with pyrophosphite at the mycelium pool to recalcify fossils into enriched bones. The enriched bones are then offered at the eastern strange machine in the House on the Hill for Prayer experience. Stack of 1-4 also drops while mining Volcanic Mine boulders."
+  market_strategy:
+    notes:
+      - "Demand tied to Fossil Island Prayer training"
+      - "Volcanic Mine bulk supply caps price ceiling"
+      - "Petrified Pete's shop sells at 70 numulite each"
+  trading_tips:
+    - Buy bulk before double XP weekends
+    - Watch supply during Volcanic Mine clue events
+  history:
+    - date: "2017-09-07"
+      description: "Released with the Fossil Island update."
+    - date: "2019-01-10"
+      description: "Examine text fixed: cabonate corrected to carbonate."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

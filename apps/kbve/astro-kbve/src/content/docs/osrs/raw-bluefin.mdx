@@ -12,9 +12,60 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: 15000
-  about: "Raw bluefin is a members-only item in Old School RuneScape. High alchemy value: 102 coins. Grand Exchange buy limit: 15,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "19 November 2025"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.7
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 87
+      xp: 215
+      materials:
+        - item_name: Raw bluefin
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Veiled kraken
+        quantity: "1"
+        rarity: 5/272
+  related_items:
+    - item_name: Bluefin
+      slug: bluefin
+      relationship: product
+      description: Cooked form of the raw bluefin
+  about: |-
+    Raw bluefin is a high-level Sailing-skill fish caught at bluefin shoals with level 87 Fishing, yielding 220.5 XP per catch with a trawling net or 44.1 XP with a fishing rod. It is also a rare drop from the veiled kraken. Cooking it requires level 87 Cooking and grants 215 XP per successful cook.
+  market_strategy:
+    notes:
+      - "High-level Sailing/Fishing supply with strong cooking demand"
+      - "Daily volume ~308k - liquid market"
+      - "Buy limit 15,000 supports bulk Cooking trainers"
+  trading_tips:
+    - Cook to bluefin for Cooking XP and resale margin
+    - Track Sailing engagement spikes for price movement
+  history:
+    - date: "20 March 2025"
+      description: "Raw bluefin added during Sailing Alpha testing."
+    - date: "26 June 2025"
+      description: "Adjusted during Sailing Beta."
+    - date: "3 July 2025"
+      description: "Final Sailing Beta tuning."
+    - date: "19 November 2025"
+      description: "Released to live game with the Sailing skill launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

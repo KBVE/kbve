@@ -12,9 +12,51 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 5
-  about: "Twisted relic hunter (t3) armour set is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: armour-set
+    tier: high
+  properties:
+    release_date: "2020-01-23"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Twisted boots (t3)
+      slug: twisted-boots-t3
+      relationship: set-piece
+      description: "Set component"
+    - item_name: Twisted trousers (t3)
+      slug: twisted-trousers-t3
+      relationship: set-piece
+      description: "Set component"
+    - item_name: Twisted coat (t3)
+      slug: twisted-coat-t3
+      relationship: set-piece
+      description: "Set component"
+    - item_name: Twisted hat (t3)
+      slug: twisted-hat-t3
+      relationship: set-piece
+      description: "Set component"
+  about: "Twisted relic hunter (t3) armour set bundles the four tier 3 Twisted League cosmetic pieces for convenient Grand Exchange trading. The components are cosmetic-only and grant no combat stats."
+  market_strategy:
+    notes:
+      - "Bundled via Grand Exchange Sets interface"
+      - "Cosmetic League III reward, purely visual"
+      - "Compare set price to individual pieces before buying"
+  history:
+    - date: "2020-01-23"
+      description: "Set released with the Twisted League reward shop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
