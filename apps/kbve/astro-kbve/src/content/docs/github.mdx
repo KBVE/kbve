@@ -12,6 +12,7 @@ sidebar:
 ---
 
 import DeferredAstroGithubHero from '@/components/github/GithubHero/DeferredAstroGithubHero.astro';
+import AstroGithubTabs from '@/components/github/Tabs/AstroGithubTabs.astro';
 import AstroGithubRepoCatalog from '@/components/github/RepoCatalog/AstroGithubRepoCatalog.astro';
 import AstroGithubActivity from '@/components/github/Activity/AstroGithubActivity.astro';
 import AstroGithubProjectBoard from '@/components/github/ProjectBoard/AstroGithubProjectBoard.astro';
@@ -24,7 +25,7 @@ import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
 
 Open-source games, cloud infrastructure, and the contributors building them.
 PRs land against `dev`, ship through CI to `main`. Pick an issue, fork the
-repo, open a worktree — the walkthrough is below.
+repo, open a worktree — the walkthrough lives under the **Contribute** tab.
 
 <DeferredAstroGithubHero
     title="Top Contributors"
@@ -40,13 +41,12 @@ repo, open a worktree — the walkthrough is below.
     newTabLabel="(opens in new tab)"
 />
 
-<AstroGithubActivity />
-
-<AstroGithubProjectBoard />
-
-<AstroGithubRepoCatalog />
-
-<AstroGithubContribute />
+<AstroGithubTabs>
+    <AstroGithubActivity slot="activity" />
+    <AstroGithubProjectBoard slot="board" />
+    <AstroGithubRepoCatalog slot="repos" />
+    <AstroGithubContribute slot="contribute" />
+</AstroGithubTabs>
 
 </div>
 
