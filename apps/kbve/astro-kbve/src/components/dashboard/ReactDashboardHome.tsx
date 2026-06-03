@@ -114,7 +114,7 @@ interface SecuritySummary {
 }
 
 // ---------------------------------------------------------------------------
-// Grafana datasource discovery (same pattern as ReactGrafanaDashboard)
+// Grafana datasource discovery (same pattern as grafanaService.ts)
 // ---------------------------------------------------------------------------
 
 async function findPrometheusDatasourceId(
