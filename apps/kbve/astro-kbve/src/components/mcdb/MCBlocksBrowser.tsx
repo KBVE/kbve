@@ -24,7 +24,11 @@ type Props = { lockedMaterial?: string };
 function BlockCard({ b }: { b: BlockEntry }) {
 	const tex = mcTextureUrls(b.ref, 'block');
 	return (
-		<a href={`/mc/blocks/${b.slug}/`} className="mcdb-browse__card">
+		<a
+			href={`/mc/blocks/${b.slug}/`}
+			data-mc-card="block"
+			data-mc-slug={b.slug}
+			className="mcdb-browse__card">
 			<div className="mcdb-browse__icon">
 				<img
 					src={tex.primary}
