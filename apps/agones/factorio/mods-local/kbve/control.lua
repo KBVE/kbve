@@ -78,6 +78,8 @@ script.on_event(defines.events.on_chunk_generated, on_chunk_generated)
 
 local function on_tick(event)
 	FleetMissions.on_tick(event)
+	ExchangeGui.on_tick(event)
+	FleetGui.on_tick(event)
 	if (event.tick % 600) == 0 then
 		local surface = game.surfaces['nauvis'] or game.surfaces[1]
 		if surface then Spawn.guard(surface) end

@@ -74,6 +74,20 @@ function Coins.spend(player_index, amount, reason)
 	return removed == amount
 end
 
+local STARTER_KIT = {
+	{ name = 'kbve-spider-egg', count = 2 },
+	{ name = 'pistol', count = 1 },
+	{ name = 'firearm-magazine', count = 100 },
+}
+
+local function grant_starter_kit(player)
+	for _, gift in ipairs(STARTER_KIT) do
+		if prototypes.item[gift.name] then
+			player.insert({ name = gift.name, count = gift.count })
+		end
+	end
+end
+
 function Coins.handle_player_joined(event)
 	Coins.init_state()
 	local player = game.get_player(event.player_index)
@@ -82,6 +96,7 @@ function Coins.handle_player_joined(event)
 	if not storage.kbve.seen_players[name] then
 		storage.kbve.seen_players[name] = true
 		Coins.grant(event.player_index, WELCOME_BONUS, 'welcome')
+		grant_starter_kit(player)
 		player.print({ 'kbve.coin_welcome', name, WELCOME_BONUS })
 	end
 end

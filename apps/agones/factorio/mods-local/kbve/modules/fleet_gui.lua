@@ -93,6 +93,20 @@ local function known_vehicle_names()
 	return out
 end
 
+local FLEET_RADIUS = 3
+
+local function is_near_fleet(player)
+	if not (player and player.valid and player.character) then return false end
+	local surface = player.surface
+	if not surface then return false end
+	local nearby = surface.find_entities_filtered({
+		position = player.position,
+		radius = FLEET_RADIUS,
+		name = 'kbve-fleet-commander',
+	})
+	return #nearby > 0
+end
+
 local function destroy(player)
 	if player.gui.screen[GUI_NAME] then
 		player.gui.screen[GUI_NAME].destroy()
@@ -960,14 +974,22 @@ end
 function FleetGui.on_custom_input(event)
 	local player = game.get_player(event.player_index)
 	if not player or not player.character then return end
-	if player.gui.screen[GUI_NAME] then return end
-	local nearby = player.surface.find_entities_filtered({
-		position = player.position,
-		radius = 3,
-		name = 'kbve-fleet-commander',
-	})
-	if #nearby == 0 then return end
+	if player.gui.screen[GUI_NAME] then
+		destroy(player)
+		return
+	end
+	if not is_near_fleet(player) then return end
 	FleetGui.show(player)
+end
+
+function FleetGui.on_tick(event)
+	if (event.tick % 30) ~= 0 then return end
+	for _, player in pairs(game.connected_players) do
+		if player.gui.screen[GUI_NAME] and not is_near_fleet(player) then
+			destroy(player)
+			player.print('Too far from the Fleet Commander — closing.')
+		end
+	end
 end
 
 local function mining_dispatch(player)
@@ -1095,6 +1117,12 @@ function FleetGui.on_gui_click(event)
 	if not player then return end
 
 	if name == CLOSE_NAME then
+		destroy(player)
+		return
+	end
+
+	if not is_near_fleet(player) then
+		player.print('Too far from the Fleet Commander.')
 		destroy(player)
 		return
 	end

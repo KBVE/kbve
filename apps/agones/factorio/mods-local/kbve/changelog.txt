@@ -1,4 +1,28 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.5
+Date: 2026-06-03
+  Changes:
+    - KBVE Exchange anchors to the right side of the screen and no longer
+      hijacks player.opened, so the vanilla inventory can stay open while
+      transferring items into the personal vault.
+    - Market Buy tab now sorts entries by ascending price and drops the
+      decorative disabled sprite-button on each row.
+    - Buy buttons are disabled for items the player cannot afford; the
+      enabled state refreshes after each purchase without rebuilding the
+      list, so scroll position survives purchases.
+    - Trigger key now toggles the Exchange GUI closed when pressed while
+      already open (was previously open-only).
+    - Server now enforces a 3-tile range to a kbve-exchange entity for
+      every purchase, and a 30-tick proximity sweep auto-closes the
+      Exchange GUI when a player wanders away from the market.
+    - Fleet Commander mirrors the same protection: clicks rejected and
+      GUI closed if the player drifts beyond 3 tiles from a
+      kbve-fleet-commander entity, plus a 30-tick sweep.
+  Features:
+    - Starter kit on first join: 2 spider eggs (when kbve-spider is
+      loaded), 1 pistol, and 100 firearm magazines, granted alongside the
+      existing 250 coin welcome bonus.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.3
 Date: 2026-06-01
   Features:

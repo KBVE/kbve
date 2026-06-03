@@ -1,6 +1,6 @@
 local Market = {}
 
-Market.ITEMS = {
+local RAW_ITEMS = {
 	{ item = 'repair-pack', price = 3, count = 5 },
 	{ item = 'iron-gear-wheel', price = 4, count = 25 },
 	{ item = 'steel-plate', price = 5, count = 10 },
@@ -37,5 +37,12 @@ Market.ITEMS = {
 	{ item = 'power-armor-mk2', price = 5000, count = 1 },
 	{ item = 'fusion-reactor-equipment', price = 6000, count = 1 },
 }
+
+table.sort(RAW_ITEMS, function(a, b)
+	if a.price ~= b.price then return a.price < b.price end
+	return a.item < b.item
+end)
+
+Market.ITEMS = RAW_ITEMS
 
 return Market

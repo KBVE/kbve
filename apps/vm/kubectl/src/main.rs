@@ -114,8 +114,12 @@ struct GuestExecStatusReturn {
 
 #[inline]
 async fn kubectl_output(args: &[&str]) -> Result<String, String> {
+    kubectl_output_with_timeout(args, DEFAULT_TIMEOUT).await
+}
+
+async fn kubectl_output_with_timeout(args: &[&str], timeout: Duration) -> Result<String, String> {
     let output = tokio::time::timeout(
-        DEFAULT_TIMEOUT,
+        timeout,
         tokio::process::Command::new("kubectl").args(args).output(),
     )
     .await
@@ -449,14 +453,18 @@ async fn cmd_rotate_gameserver(
     tracing::info!("image drift detected: {running} -> {desired}; rotating");
 
     let timeout_arg = format!("--timeout={delete_timeout}s");
-    match kubectl_output(&[
-        "-n",
-        namespace,
-        "delete",
-        &gs_ref,
-        &timeout_arg,
-        "--ignore-not-found",
-    ])
+    let wrapper_timeout = Duration::from_secs(delete_timeout.saturating_add(30));
+    match kubectl_output_with_timeout(
+        &[
+            "-n",
+            namespace,
+            "delete",
+            &gs_ref,
+            &timeout_arg,
+            "--ignore-not-found",
+        ],
+        wrapper_timeout,
+    )
     .await
     {
         Ok(_) => {
