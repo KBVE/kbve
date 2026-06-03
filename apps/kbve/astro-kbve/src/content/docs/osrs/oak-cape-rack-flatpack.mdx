@@ -12,9 +12,61 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Oak cape rack (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: Oak
+    tier: low
+  recipes:
+    - materials:
+        - item_name: Oak plank
+          quantity: 4
+      tools:
+        - Saw
+        - Hammer
+        - Steel framed workbench
+        - Construction level 54
+      output_quantity: 1
+      skill: Construction
+      experience: 240
+  construction:
+    level: 54
+    experience: 240
+    room: Costume room
+  related_items:
+    - name: Oak plank
+      relationship: component
+    - name: Cape rack
+      relationship: alternative
+    - name: Teak cape rack (flatpack)
+      relationship: upgrade
+  about: "Oak cape rack (flatpack) is a flatpacked Construction item built at a Steel framed workbench, used to install an oak cape rack in the Costume room of a player-owned house."
+  market_strategy:
+    notes:
+      - "Flatpack creation is a loss vs raw oak planks at current prices."
+      - "Used as a Construction XP method for ironmen / niche flippers."
+      - "High alch only 6 gp — never alchable for profit."
+  trading_tips:
+    - "Bulk demand from house decorators and ironmen filling Costume rooms."
+    - "Limit 500 / 4 hours allows moderate flip volume."
+  history:
+    - date: "2006-10-18"
+      description: "Released with the Player-Owned House Costume Room update."
+  properties:
+    release_date: "2006-10-18"
+    update: "Player-Owned House Costume Room"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Build
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

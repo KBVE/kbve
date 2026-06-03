@@ -12,79 +12,69 @@ osrs:
   lowalch: 24000
   highalch: 36000
   limit: 70
+  material:
+    type: metal
+    tier: mid
   equipment:
     slot: head
+    weight: 2.721
+    requirements:
+      defence: 45
     attack_bonus:
-      stab: 0
-      slash: 0
-      crush: 0
       magic: -5
       ranged: -5
     defence_bonus:
       stab: 31
       slash: 29
       crush: 33
-      magic: 0
       ranged: 30
     other_bonus:
-      melee_strength: 3
-      ranged_strength: 0
-      magic_damage: 0
-      prayer: 0
-    requirements:
-      defence: 45
-    weight: 2.721
+      strength: 3
+  shops:
+    - shop_name: Skulgrimen's Battle Gear
+      location: Rellekka
+      price: 78000
+  drop_table:
+    sources:
+      - source: Dagannoth
+        quantity: "1"
+        rarity: Rare
+      - source: Barbarian Assault (High Gamble)
+        quantity: "1"
+        rarity: Uncommon
   related_items:
-    - item_id: 3753
-      item_name: Warrior helm
-      slug: warrior-helm
+    - name: Warrior helm
       relationship: alternative
-      description: Slash attack variant
-    - item_id: 3755
-      item_name: Farseer helm
-      slug: farseer-helm
+    - name: Farseer helm
       relationship: alternative
-      description: Magic variant
-    - item_id: 3749
-      item_name: Archer helm
-      slug: archer-helm
+    - name: Archer helm
       relationship: alternative
-      description: Ranged variant
-    - item_id: 10828
-      item_name: Helm of neitiznot
-      slug: helm-of-neitiznot
+    - name: Helm of neitiznot
       relationship: upgrade
-      description: Superior melee helm (+3 Str, +3 Prayer)
-  about: |-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +31 |
-    | Slash | +29 |
-    | Crush | +33 |
-    | Ranged | +30 |
-
-    | Other | Value |
-    |-------|-------|
-    | Strength | +3 |
-
-    Requirements: 45 Defence | Weight: 2.72 kg
-
-    The +3 Strength bonus makes this the key Fremennik helm for melee. It matches the Helm of neitiznot's Strength bonus but lacks the +3 Prayer. Popular with combat pures at 45 Defence who can't access the Neitiznot helm (requires The Fremennik Isles).
-
-    | Stat | Berserker | Warrior | Farseer | Archer | Neitiznot |
-    |------|-----------|---------|---------|--------|-----------|
-    | Best Atk | +0 | +5 slash | +6 magic | +6 ranged | +3 crush |
-    | Str/Bonus | +3 Str | +0 | +0 | +0 | +3 Str, +3 Pray |
-    | Stab Def | +31 | +31 | +8 | +6 | +31 |
-    | Best Def | +33 crush | +33 slash | +12 crush | +10 crush | +34 crush |
-    | Req | 45 Def | 45 Def | 45 Def | 45 Def | 55 Def |
+  about: "Berserker helm is the strength-oriented Fremennik helm awarded after completing The Fremennik Trials. Its +3 strength bonus matches the helm of Neitiznot and obsidian helmet, making it the iconic 45 Defence pure helmet."
   market_strategy:
     notes:
       - Popular with 45 Defence pures
       - Cheaper alternative to Helm of neitiznot
       - Supply from Barbarian Assault and Dagannoth drops
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2004-11-02"
+      description: "Released via The Fremennik Trials update."
+  properties:
+    release_date: "2004-11-02"
+    update: The Fremennik Trials
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: The Fremennik Trials
+    weight: 2.721
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -74,7 +74,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: autologon
-                  image: ghcr.io/kbve/kubectl:0.1.2
+                  image: ghcr.io/kbve/kubectl:0.1.3
                   command: ['/bin/sh', '/scripts/autologon.sh']
                   securityContext:
                       allowPrivilegeEscalation: false

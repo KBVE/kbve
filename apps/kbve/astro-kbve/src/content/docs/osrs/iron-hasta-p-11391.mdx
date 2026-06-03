@@ -1,6 +1,6 @@
 ---
 title: Iron hasta(p++) | OSRS Price Data
-description: "Iron hasta(p++): A poison-tipped, one-handed iron hasta.. High alch: 54 GP, GE limit: 125."
+description: "Iron hasta(p++): A poison-tipped, one-handed iron hasta. High alch: 54 GP, GE limit: 125."
 osrs:
   id: 11391
   name: Iron hasta(p++)
@@ -12,9 +12,88 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 125
-  about: "Iron hasta(p++) is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Iron hasta(p++) is the strongest poisoned variant of the iron hasta, a one-handed stab spear made via Barbarian Smithing. The poison++ tip inflicts the highest-tier poison damage on hit, making it useful for low-Attack PvP and training."
+  properties:
+    release_date: "2007-07-03"
+    update: Barbarian Training
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  material:
+    type: Iron
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    weight: 2.267
+    requirements:
+      attack: 41
+    attack_bonus:
+      stab: 8
+      slash: 8
+      crush: 8
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: -2
+      slash: -2
+      crush: -2
+      magic: 0
+      ranged: -2
+    other_bonus:
+      strength: 10
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - name: Iron hasta
+      skill: Smithing
+      level: 20
+      experience: 50
+      materials:
+        - item_name: Iron bar
+          quantity: 1
+        - item_name: Oak logs
+          quantity: 1
+      tools:
+        - Barbarian Smithing anvil
+      output_quantity: 1
+  related_items:
+    - name: Iron hasta
+      relationship: variant
+    - name: Iron hasta(p)
+      relationship: variant
+    - name: Iron hasta(p+)
+      relationship: variant
+    - name: Iron hasta(kp)
+      relationship: variant
+    - name: Steel hasta(p++)
+      relationship: upgrade
+  market_strategy:
+    notes:
+      - "Niche item due to low-tier melee bonuses; demand mainly from poison PvP and pure builds."
+      - "Crafting cost typically exceeds GE price due to oak log + iron bar inputs."
+  trading_tips:
+    - "Compare to other low-tier poisoned spears for budget pure setups."
+    - "Buy limit of 125 limits scale; small-volume flips only."
+    - "Demand spikes with PvP events featuring stab requirements."
+  history:
+    - date: "2007-07-03"
+      description: "Iron hasta and poisoned variants added with Barbarian Training."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

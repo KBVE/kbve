@@ -12,62 +12,103 @@ osrs:
   lowalch: 40000
   highalch: 60000
   limit: null
-  item:
-    type: crafting material
-    tradeable: true
-    weight: 0.095
-  obtaining:
-    - source: Ancient Forge
-      method: Break down Bandos armour
-      requirements: Hammer and Ancient Forge access
-      yields:
-        - item_name: Bandos chestplate
-          components: 3
-        - item_name: Bandos tassets
-          components: 2
+  material:
+    type: crafting
+    tier: high
   recipes:
-    - skill: smithing
+    - name: Bandosian components (break down Bandos chestplate)
+      materials:
+        - item_name: Bandos chestplate
+          quantity: 1
+      tools:
+        - Hammer
+      output_quantity: 3
+      location: Ancient Forge
+    - name: Bandosian components (break down Bandos tassets)
+      materials:
+        - item_name: Bandos tassets
+          quantity: 1
+      tools:
+        - Hammer
+      output_quantity: 2
+      location: Ancient Forge
+    - name: Restore Torva full helm
+      materials:
+        - item_name: Torva full helm (damaged)
+          quantity: 1
+        - item_name: Bandosian components
+          quantity: 1
+      tools:
+        - Hammer
+      output_quantity: 1
+      skill: Smithing
       level: 90
       xp: 2250
-      uses:
-        - item_name: Torva full helm
-          components: 1
-        - item_name: Torva platebody
-          components: 2
-        - item_name: Torva platelegs
-          components: 2
+    - name: Restore Torva platebody
+      materials:
+        - item_name: Torva platebody (damaged)
+          quantity: 1
+        - item_name: Bandosian components
+          quantity: 2
+      tools:
+        - Hammer
+      output_quantity: 1
+      skill: Smithing
+      level: 90
+      xp: 2250
+    - name: Restore Torva platelegs
+      materials:
+        - item_name: Torva platelegs (damaged)
+          quantity: 1
+        - item_name: Bandosian components
+          quantity: 2
+      tools:
+        - Hammer
+      output_quantity: 1
+      skill: Smithing
+      level: 90
+      xp: 2250
   related_items:
-    - item_id: 11832
-      item_name: Bandos chestplate
-      slug: bandos-chestplate
+    - name: Bandos chestplate
       relationship: component
-      description: Source (yields 3 components)
-    - item_id: 11834
-      item_name: Bandos tassets
-      slug: bandos-tassets
+    - name: Bandos tassets
       relationship: component
-      description: Source (yields 2 components)
-    - item_id: 26384
-      item_name: Torva platebody
-      slug: torva-platebody
+    - name: Torva full helm
       relationship: product
-      description: Repaired with components
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 0.095 kg |
-
-    Restore damaged Torva armour (90 Smithing, 2,250 XP each):
-
-    | Item | Components Needed |
-    |------|-------------------|
-    | Torva full helm | 1 |
-    | Torva platebody | 2 |
-    | Torva platelegs | 2 |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Torva platebody
+      relationship: product
+    - name: Torva platelegs
+      relationship: product
+  about: "Bandosian components are a high-grade crafting material salvaged from Bandos armour at the Ancient Forge. They are consumed at 90 Smithing to restore damaged Torva armour, awarding 2,250 Smithing XP per repair."
+  market_strategy:
+    notes:
+      - Sourced by breaking down Bandos chestplate (3 components) or tassets (2 components)
+      - Required to repair damaged Torva armour at the Ancient Forge
+      - No GE buy limit makes bulk movement viable
+  trading_tips:
+    - Margin tracks Bandos armour GE prices closely
+    - Demand spikes when new Torva owners need repairs after Nex farming
+  history:
+    - date: "2022-01-05"
+      description: Released alongside Nex - The Fifth General.
+    - date: "2022-08-17"
+      description: Item value increased from 1 to 100,000 coins.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2022-01-05"
+    update: "Nex: The Fifth General"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.095
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

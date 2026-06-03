@@ -12,9 +12,49 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  about: "Iron bolts (p+) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: low
+  equipment:
+    slot: ammo
+    weight: 0
+    other_bonus:
+      ranged_strength: 46
+  recipes:
+    - skill: Fletching
+      materials:
+        - item_name: Iron bolts
+          quantity: 5
+        - item_name: Weapon poison(+)
+          quantity: 1
+      output_quantity: 5
+  related_items:
+    - name: Iron bolts
+      relationship: variant
+    - name: Iron bolts (p)
+      relationship: variant
+    - name: Iron bolts (p++)
+      relationship: upgrade
+  about: "Iron bolts (p+) are iron crossbow bolts treated with extra-strength weapon poison. They deal +46 ranged strength and can apply a poison effect on hit. High alchemy value: 1 coin. Grand Exchange buy limit: 11,000 per 4 hours."
+  history:
+    - date: "2006-07-31"
+      description: "Iron bolts released as part of the Crossbows update."
+    - date: "2018-01-04"
+      description: "Naming convention updated to add spaces around poison designations."
+  properties:
+    release_date: "2006-07-31"
+    update: Crossbows
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

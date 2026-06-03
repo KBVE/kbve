@@ -12,9 +12,49 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: null
+  material:
+    type: cosmetic
+    tier: high
+  shops:
+    - shop_name: "Leagues Reward Shop"
+      currency: "League Points"
+      cost: 4000
+      stock: 1
+  related_items:
+    - name: Crystalline portal nexus
+      relationship: alternative
+    - name: Trailblazer reloaded nexus scroll
+      relationship: alternative
   about: "Raging echoes nexus scroll is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - "Purchased from the Leagues Reward Shop for 4,000 League Points after completing Leagues V: Raging Echoes."
+      - "Cosmetic-only; applies a Raging Echoes themed skin to the crystalline portal nexus in a player-owned house."
+      - "Does not work on lower-tier nexus variants, only the top-tier crystalline portal nexus."
+  trading_tips:
+    - "Supply is capped by Leagues V participation; prices tend to spike after Leagues ends."
+    - "Players completing Leagues V can convert excess league points into scrolls for GE flipping."
+    - "Track end-of-season demand for collector premium pricing."
+  history:
+    - date: "2025-01-15"
+      description: "Released as part of the Leagues V: Raging Echoes reward shop offerings."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-01-15"
+    update: "Leagues V: Raging Echoes Rewards"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Use
+      - Drop
+    alchable: false
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

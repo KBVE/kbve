@@ -9,8 +9,8 @@ osrs:
   members: true
   icon: Magic roots.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 11000
   material:
     type: farming_product
@@ -20,75 +20,95 @@ osrs:
     source: Magic tree
     seed_id: 5316
     seed_name: Magic seed
+    notes: Dig the stump with a spade after felling a fully grown Magic tree to harvest 1-4 roots scaled with Farming level.
   recipes:
-    - skill: herblore
-      level: 79
-      xp: 155
-      materials:
+    - materials:
         - item_name: Irit potion (unf)
-          item_id: 2481
           quantity: 1
         - item_name: Magic roots
-          item_id: 6051
           quantity: 1
-      product: Antidote++(3)
-      product_id: 5954
-      members_only: true
-    - skill: herblore
-      level: 79
-      xp: 155
-      materials:
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+      output_item: Antidote++ (3)
+      requirements:
+        herblore: 79
+        xp: 155
+    - materials:
         - item_name: Coconut milk
-          item_id: 5935
           quantity: 1
         - item_name: Irit leaf
-          item_id: 259
           quantity: 1
         - item_name: Magic roots
-          item_id: 6051
           quantity: 1
-      product: Antidote++(3)
-      product_id: 5954
-      members_only: true
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+      output_item: Antidote++ (3)
+      requirements:
+        herblore: 79
+        xp: 155
+    - materials:
+        - item_name: Magic roots
+          quantity: 1
+      tools:
+        - Spinning wheel
+      output_quantity: 1
+      output_item: Magic string
+      requirements:
+        crafting: 19
   related_items:
     - item_id: 5316
       item_name: Magic seed
       slug: magic-seed
       relationship: component
-      description: Tree seed that yields roots
+      description: Tree seed that grows into the Magic tree
     - item_id: 5952
-      item_name: Antidote++(4)
+      item_name: Antidote++ (4)
       slug: antidote-4
       relationship: product
-      description: Main herblore product
+      description: Main Herblore product made with Magic roots
     - item_id: 5935
       item_name: Coconut milk
       slug: coconut-milk
-      relationship: component
-      description: Alternative base for antidote++
+      relationship: alternative
+      description: Alternative base for Antidote++
     - item_id: 259
       item_name: Irit leaf
       slug: irit-leaf
       relationship: component
-      description: Herb for antidote++
+      description: Herb used in the Antidote++ recipe
+    - item_name: Magic string
+      relationship: product
+      description: Spun from Magic roots at a spinning wheel
+  about: "Magic roots are a Farming by-product harvested by digging up a felled Magic tree stump; they feed the Antidote++ Herblore loop."
   market_strategy:
-    title: Antidote++ Chain
-    steps:
-      - order: 1
-        action: Magic roots for antidote++
-      - order: 2
-        action: Antidote++ + scales for anti-venom
-      - order: 3
-        action: Anti-venom + torstol for anti-venom+
     notes:
-      - Plant magic trees for seeds + XP + roots
-      - Roots are bonus income from tree runs
-      - Consider tree protection payments
-      - Can passively collect magic roots
-      - Set workers to hardwood/mahogany
-      - Roots as secondary reward
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Supply tied to Magic tree farm runs and dragonhide stringers leveling Crafting.
+      - Antidote++ → Anti-venom → Anti-venom+ chain is the primary demand sink.
+  trading_tips:
+    - Buy roots when Magic seeds spike (lower fresh supply incoming) and resell during PvM venom-poison demand windows.
+    - Stockpile during low Bounty Hunter PK seasons when antidote demand softens.
+  history:
+    - date: "2005-07-11"
+      description: Added with the Farming skill release.
+  properties:
+    release_date: "2005-07-11"
+    update: Farming
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

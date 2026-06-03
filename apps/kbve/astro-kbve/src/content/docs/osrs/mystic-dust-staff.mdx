@@ -5,16 +5,101 @@ osrs:
   id: 20739
   name: Mystic dust staff
   slug: mystic-dust-staff
-  examine: It's a slightly more magical stick.
+  examine: "It's a slightly more magical stick."
   members: true
   icon: Mystic dust staff.png
   value: 42500
   lowalch: 17000
   highalch: 25500
   limit: 8
-  about: "Mystic dust staff is a members-only item in Old School RuneScape. High alchemy value: 25,500 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mystic
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: bladed_staff
+    attack_speed: 5
+    weight: 2.267
+    requirements:
+      attack: 40
+      magic: 40
+    attack_bonus:
+      stab: 10
+      slash: -1
+      crush: 40
+      magic: 14
+    defence_bonus:
+      magic: 14
+    other_bonus:
+      melee_strength: 50
+  recipes:
+    - skill: Magic
+      level: 40
+      tools: []
+      output_quantity: 1
+      result: Mystic dust staff
+      materials:
+        - item_name: Dust battlestaff
+          item_id: 20736
+          quantity: 1
+        - item_name: Coins
+          item_id: 995
+          quantity: 40000
+  related_items:
+    - item_id: 20736
+      item_name: Dust battlestaff
+      slug: dust-battlestaff
+      relationship: downgrade
+      description: Base battlestaff upgraded into the mystic variant by Thormac
+    - item_id: 1409
+      item_name: Mystic mud staff
+      slug: mystic-mud-staff
+      relationship: variant
+      description: Other combination mystic staff
+    - item_id: 6563
+      item_name: Mystic lava staff
+      slug: mystic-lava-staff
+      relationship: variant
+      description: Lava combination mystic staff
+    - item_id: 6565
+      item_name: Mystic steam staff
+      slug: mystic-steam-staff
+      relationship: variant
+      description: Steam combination mystic staff
+  about: "Upgraded dust battlestaff from Thormac that provides unlimited air and earth runes plus autocast access; requires 40 Attack and 40 Magic to wield."
+  market_strategy:
+    notes:
+      - Demand follows dust rune (air+earth) combo spell usage
+      - Tight buy limit of 8 makes individual flips slow
+      - Kandarin Diary completion lowers Thormac fee, encouraging supply
+      - Niche compared to Trident or Sang setups
+  trading_tips:
+    - Compare against dust battlestaff + Thormac fee for crafted margin
+    - Buy when Kandarin Diary completion volumes rise
+    - Watch elemental combination spell meta updates for demand spikes
+  history:
+    - date: "2016-09-15"
+      description: Mystic dust staff added to Thormac's upgrade list following dust battlestaff release.
+  properties:
+    release_date: "2016-09-15"
+    update: Elemental Staves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    quest: Scorpion Catcher
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

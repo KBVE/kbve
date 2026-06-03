@@ -12,9 +12,49 @@ osrs:
   lowalch: 50
   highalch: 75
   limit: 13000
-  about: "Bale of flax is a members-only item in Old School RuneScape. High alchemy value: 75 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: raw
+    tier: low
+  drop_table:
+    sources:
+      - source: "Rummaging Vale offerings (Vale Totems minigame)"
+        quantity: "5-6"
+        rarity: "50/399"
+  related_items:
+    - name: Flax
+      relationship: product
+    - name: Bow string spool
+      relationship: alternative
+  about: "Bale of flax is a members-only resource pack in Old School RuneScape. High alchemy value: 75 coins. Grand Exchange buy limit: 13,000 per 4 hours."
+  market_strategy:
+    notes:
+      - "Each bale unpacks into 25 flax; requires 25 empty inventory slots, or unpack directly to the bank with the bank open."
+      - "Sourced from rummaging Vale offerings in the Vale Totems minigame (5-6 bales at 50/399 rarity)."
+      - "Common feedstock for bow string crafting via spinning wheel or Spin Flax spell with a bow string spool."
+  trading_tips:
+    - "Compare GE price to 25× flax spot price for unpack arbitrage."
+    - "Buy limit of 13,000 per 4 hours supports large-scale bow string production."
+    - "Watch for Spin Flax/bow string spool meta shifts that drive bale demand."
+  history:
+    - date: "2025-07-23"
+      description: "Released alongside the Varlamore: The Final Dawn update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-07-23"
+    update: "Varlamore: The Final Dawn"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Unpack
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

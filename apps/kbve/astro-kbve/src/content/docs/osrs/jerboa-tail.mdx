@@ -9,12 +9,70 @@ osrs:
   members: true
   icon: Jerboa tail.png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 18000
-  about: "Jerboa tail is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: hunter_drop
+    tier: mid
+  drop_table:
+    sources:
+      - source: Embertailed jerboa (Hunter)
+        quantity: "1"
+        rarity: Always
+  recipes:
+    - materials:
+        - item_name: Teak logs
+          quantity: 1
+        - item_name: Hunter spear tip
+          quantity: 1
+        - item_name: Jerboa tail
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+      output_item: Hunter's spear
+      requirements:
+        hunter: 39
+  related_items:
+    - item_name: Embertailed jerboa
+      relationship: alternative
+      description: Hunter creature that yields the tail
+    - item_name: Hunter's spear
+      relationship: product
+      description: Crafted with jerboa tail, teak logs, and a hunter spear tip
+    - item_name: Pyre fox
+      relationship: alternative
+      description: Hunter creature baited using jerboa tails (+3% catch rate)
+  about: "Jerboa tail is a Varlamore Hunter drop from embertailed jerboas, used as pyre fox bait and crafted into Hunter's spears during At First Light progression."
+  market_strategy:
+    notes:
+      - Supply scales with Hunter players grinding embertailed jerboas for 39+ Hunter XP.
+      - Demand split between pyre fox hunters and Hunter's spear crafters.
+  trading_tips:
+    - Buy on weekend Hunter XP spikes when supply briefly outruns crafting demand.
+    - Bundle with Hunter spear tips to flip Hunter's spears during pyre fox meta swings.
+  history:
+    - date: "2024-03-20"
+      description: Added with Varlamore Part One alongside embertailed jerboas and pyre foxes.
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: Part One"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    quest: At First Light
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

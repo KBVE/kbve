@@ -14,56 +14,59 @@ osrs:
   limit: 5
   material:
     type: upgrade_material
-    tradeable: true
-    weight: 0.001
+    tier: high
   drop_table:
     sources:
       - source: Grotesque Guardians
-        rate: 1/1,000
-        requirements:
-          slayer: 75
-  uses:
-    - result_id: 21733
-      result_name: Guardian boots
+        quantity: "2"
+        rarity: 1/1000
+  recipes:
+    - output: Guardian boots
+      output_quantity: 1
       materials:
-        - Bandos boots
-        - Black tourmaline core
-  market:
-    buy_limit: 8
-    price_estimate: 7500000
+        - item_name: Bandos boots
+          quantity: 1
+        - item_name: Black tourmaline core
+          quantity: 1
+      tools: []
+      requirements:
+        slayer: 75
   related_items:
-    - item_id: 11923
-      item_name: Grotesque Guardians
-      slug: grotesque-guardians
+    - name: Grotesque Guardians
       relationship: component
-      description: Boss drop
-    - item_id: 11836
-      item_name: Bandos boots
-      slug: bandos-boots
+    - name: Bandos boots
       relationship: component
-      description: Base item
-    - item_id: 21733
-      item_name: Guardian boots
-      slug: guardian-boots
+    - name: Guardian boots
       relationship: product
-      description: Created boots
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Upgrade Material |
-    | Tradeable | Yes |
-    | Weight | 0.001 kg |
-
-    | Item Created | Materials |
-    |--------------|-----------|
-    | Guardian boots | Bandos boots + Black tourmaline core |
+  about: "Black tourmaline core combines with Bandos boots to create Guardian boots, currently best-in-slot tank boots. Dropped 2-per-kill at 1/1,000 by the Grotesque Guardians on the Slayer Tower rooftop (75 Slayer)."
   market_strategy:
     notes:
-      - From Grotesque Guardians only
-      - 75 Slayer required for boss
-      - Creates BiS tank boots
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Sole drop source is Grotesque Guardians (1/1,000 for 2), so supply is bound to Slayer Tower rooftop activity.
+      - Low daily volume (~93) — patient market making beats trying to flip fast.
+      - Demand is upgrade-driven; Guardian boots BiS status keeps long-term floor.
+  trading_tips:
+    - Margin equation = Guardian boots price minus Bandos boots — buy core when that gap exceeds GE ask.
+    - Watch Slayer task buffs or Grotesque Guardians changes for supply shocks.
+  history:
+    - date: "2017-10-26"
+      description: Released with the Grotesque Guardians update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2017-10-26"
+    update: Grotesque Guardians
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Use
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

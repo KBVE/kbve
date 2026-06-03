@@ -12,9 +12,50 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 6000
-  about: "Premade veg ball is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: mid
+  food:
+    heal: 12
+  shops:
+    - shop_name: Gnome Waiter
+      location: The Grand Tree
+      price: 150
+      stock: 3
+  related_items:
+    - name: Veg ball
+      relationship: alternative
+  about: "Premade veg ball is a members-only gnome food item bought from the Gnome Waiter at the Grand Tree. Eating it restores 12 Hitpoints, but the premade variant cannot be used in the Gnome Restaurant minigame."
+  market_strategy:
+    notes:
+      - Bought from Gnome Waiter for 150 coins (stock of 3, 1-minute restock)
+      - Heals 12 Hitpoints when consumed
+      - Cannot substitute for player-cooked veg ball in the Gnome Restaurant minigame
+  trading_tips:
+    - Low GE volume - rely on shop buyout flips
+    - Spikes in demand correlate with new gnome content releases
+  history:
+    - date: "2002-12-12"
+      description: Released alongside the Agility skill update.
+    - date: "2006-08-08"
+      description: Renamed from "Veg ball" to "Premade veg ball" to distinguish it from the player-crafted version.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    update: "Agility"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.35
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

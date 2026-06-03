@@ -12,9 +12,46 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of the menacing mage is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Deadman Mode drop table
+        quantity: "1"
+        rarity: Rare
+  related_items:
+    - name: Sigil of the guardian angel
+      relationship: alternative
+    - name: Sigil of the ranging fortunes
+      relationship: alternative
+    - name: Sigil of the formidable fighter
+      relationship: alternative
+  about: "Sigil of the menacing mage is a tier 2 combat sigil for Deadman Mode that gives a 15% chance on magic hits to curse the target, dealing 18 damage over 6 seconds (33% less in worlds 3-60) and healing the caster for the same amount."
+  market_strategy:
+    notes:
+      - "Only obtainable during temporary Deadman Mode events."
+      - "Duplicates can be exchanged on Deadman's skull for points or coins."
+      - "Stacks well with magic-focused Deadman builds."
+  trading_tips:
+    - "Use as a starting sigil for high-volume magic loadouts in Deadman: Annihilation."
+    - "Sell duplicate sigils on Deadman's skull rather than alching since alch value is zero."
+  history:
+    - date: "2021-08-25"
+      description: "Released alongside the Deadman: Reborn event."
+  properties:
+    release_date: "2021-08-25"
+    update: "Deadman: Reborn"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Activate
+    alchable: false
+    destroy: "You can sell duplicate sigils by using them on Deadman's skull."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

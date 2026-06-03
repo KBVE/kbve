@@ -1,6 +1,6 @@
 ---
 title: Eye of newt | OSRS Price Data
-description: "Eye of newt: It seems to be looking at me.. High alch: 1 GP, GE limit: 13,000."
+description: "Eye of newt: It seems to be looking at me. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 221
   name: Eye of newt
@@ -12,93 +12,97 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
+  about: "Eye of newt is a free-to-play Herblore secondary ingredient used to make Attack potions and Super attack potions. It's widely available from shops and drops from various low-level monsters."
+  properties:
+    release_date: "2001-04-06"
+    update: Runescape Launched
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.007
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
   material:
-    type: secondary
-    tier: basic
+    type: Secondary
+    tier: low
   drop_table:
     sources:
       - source: Banshee
-        source_id: 1612
-        combat_level: 23
         quantity: "1"
-        rarity: common
-        members_only: true
+        rarity: Common
       - source: Cave bug
-        source_id: 481
-        combat_level: 6
         quantity: "1"
-        rarity: common
-        members_only: true
+        rarity: Common
       - source: Cave crawler
-        source_id: 406
-        combat_level: 23
         quantity: "1"
-        rarity: common
-        members_only: true
+        rarity: Common
+      - source: Newtroost
+        quantity: "4-10"
+        rarity: Always
+  shops:
+    - shop_name: Betty's Magic Emporium
+      location: Port Sarim
+      stock: 50
+      price: 3
+      restock_time: 60
+    - shop_name: Jatix's Herblore Shop
+      location: Taverley
+      stock: 50
+      price: 3
+      restock_time: 60
   recipes:
-    - skill: herblore
+    - name: Attack potion(3)
+      skill: Herblore
       level: 3
-      xp: 25
+      experience: 25
       materials:
         - item_name: Guam potion (unf)
-          item_id: 91
           quantity: 1
         - item_name: Eye of newt
-          item_id: 221
           quantity: 1
-      product: Attack potion(3)
-      product_id: 121
-      product_quantity: 1
-    - skill: herblore
+      tools: []
+      output_quantity: 1
+    - name: Super attack(3)
+      skill: Herblore
       level: 45
-      xp: 100
+      experience: 100
       materials:
         - item_name: Irit potion (unf)
-          item_id: 101
           quantity: 1
         - item_name: Eye of newt
-          item_id: 221
           quantity: 1
-      product: Super attack(3)
-      product_id: 2428
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 91
-      item_name: Guam potion (unf)
-      slug: guam-potion-unf
+    - name: Guam potion (unf)
       relationship: component
-      description: For attack potion
-    - item_id: 121
-      item_name: Attack potion(3)
-      slug: attack-potion-3
+    - name: Attack potion(3)
       relationship: product
-      description: Basic combat potion
-    - item_id: 2428
-      item_name: Super attack(3)
-      slug: super-attack-3
+    - name: Super attack(3)
       relationship: product
-      description: Advanced combat potion
-    - item_id: 249
-      item_name: Guam leaf
-      slug: guam-leaf
+    - name: Guam leaf
       relationship: component
-      description: Partner herb
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Herblore Secondary |
-    | Tradeable | Yes |
-    | Weight | 0.007 kg |
-
-    Secondary ingredient for:
-    - Attack potion (with guam potion unf)
-    - Super attack (with irit potion unf)
-
-    Essential low-level herblore ingredient.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - "Essential low-level Herblore secondary; demand tied to potion training meta."
+      - "Cheap, high-volume item; large buy limit (13,000) supports bulk purchases."
+      - "Shop sources keep the price stable; flips have thin margins."
+  trading_tips:
+    - "Buy in bulk for low-level Herblore training potions."
+    - "Compare GE price vs. shop price (3gp) for arbitrage opportunities."
+    - "Stockpile during Herblore double-XP events."
+  history:
+    - date: "2001-04-06"
+      description: "Eye of newt added at game launch."
+    - date: "2007-02-26"
+      description: "Item became available on the Grand Exchange."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

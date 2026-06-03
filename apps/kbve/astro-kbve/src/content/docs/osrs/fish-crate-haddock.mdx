@@ -12,9 +12,57 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: null
+  material:
+    type: fish
+    tier: low
+  recipes:
+    - materials:
+        - item_name: Empty fish crate
+          quantity: 1
+        - item_name: Raw haddock
+          quantity: 10
+      tools: []
+      output_quantity: 1
+      requirements: "Created via Sailing's deep sea trawling: empty a trawling net carrying 10 raw haddock with an empty fish crate in the cargo hold, or use raw haddock on an empty crate."
+  related_items:
+    - name: Empty fish crate
+      relationship: component
+    - name: Raw haddock
+      relationship: component
+    - name: Fish crate (shrimps)
+      relationship: alternative
+    - name: Fish crate (anchovies)
+      relationship: alternative
   about: "Fish crate (haddock) is a members-only item in Old School RuneScape. High alchemy value: 3 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  market_strategy:
+    notes:
+      - "Output of the Sailing skill's deep sea trawling pipeline; emptied at a bank to return its raw haddock for cooking or resale."
+      - "Filled fish crates can only be emptied while standing inside a bank; emptying elsewhere destroys the contents."
+      - "Margin depends on raw haddock and empty fish crate spot prices; compare bundle GE value against component sum."
+  trading_tips:
+    - "Always empty filled crates with a banking interface open to avoid item loss."
+    - "Bulk traders should track raw haddock GE price to size the arbitrage window."
+    - "Check Sailing meta updates; new players grinding the skill can flood supply."
+  history:
+    - date: "2025-11-19"
+      description: "Released alongside the launch of the Sailing skill."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

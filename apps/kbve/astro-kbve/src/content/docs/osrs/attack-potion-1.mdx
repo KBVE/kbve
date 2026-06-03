@@ -1,6 +1,6 @@
 ---
 title: Attack potion(1) | OSRS Price Data
-description: "Attack potion(1): 1 dose of Attack potion.. High alch: 3 GP, GE limit: 2,000."
+description: "Attack potion(1): 1 dose of Attack potion. High alch: 3 GP, GE limit: 2,000."
 osrs:
   id: 125
   name: Attack potion(1)
@@ -12,23 +12,53 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 2000
+  potion:
+    doses: 1
+    effects:
+      - skill: Attack
+        description: "Temporarily boosts the player's Attack level by floor(level x 0.10) + 3."
+        duration: 60
   related_items:
     - item_id: 121
       item_name: Attack potion(3)
       slug: attack-potion-3
       relationship: variant
-      description: 3-dose version
+      description: 3-dose version.
     - item_id: 123
       item_name: Attack potion(2)
       slug: attack-potion-2
       relationship: variant
-      description: 2-dose version
-  about: |-
-    > _"1 dose of Attack potion."_
-
-    A 1-dose attack potion. Boosts Attack by 3 + 10% of current level.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: 2-dose version.
+  about: "Attack potion(1) is a single-dose Herblore potion that temporarily boosts the player's Attack level by 3 plus 10% of the base level. It is the lowest-tier Attack-boosting potion and the first potion most players brew while training Herblore."
+  properties:
+    release_date: "2002-02-27"
+    update: "Herblore release"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  market_strategy:
+    notes:
+      - "Low-margin Herblore byproduct with tiny per-unit profit potential."
+      - "Demand is intermittent; mostly consumed by low-level pures and ironmen alts."
+      - "2,000 buy limit constrains bulk flipping volume."
+  trading_tips:
+    - "Buy partial doses for decanting into higher-dose attack potions."
+    - "Track guam + eye of newt prices to gauge production cost floor."
+    - "Sell stacks before low-level combat events when pures stock up."
+  history:
+    - date: "2002-02-27"
+      description: "Released with the Herblore skill as the entry-level Attack-boosting potion."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,87 @@ osrs:
   lowalch: 66
   highalch: 99
   limit: 7000
-  about: "Dragon knife(p) is a members-only item in Old School RuneScape. High alchemy value: 99 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: dragon
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 60
+    attack_bonus:
+      ranged: 28
+    defence_bonus: {}
+    other_bonus:
+      ranged_strength: 30
+  special_attack:
+    name: Duality
+    description: "Throws two knives in quick succession at the target."
+    energy_cost: 25
+  recipes:
+    - skill: Herblore
+      level: 73
+      tools: []
+      output_quantity: 1
+      result: Dragon knife(p)
+      materials:
+        - item_name: Dragon knife
+          item_id: 22804
+          quantity: 1
+        - item_name: Weapon poison
+          item_id: 187
+          quantity: 1
+  related_items:
+    - item_id: 22804
+      item_name: Dragon knife
+      slug: dragon-knife
+      relationship: variant
+      description: Unpoisoned base variant
+    - item_id: 22808
+      item_name: Dragon knife(p+)
+      slug: dragon-knife-p-plus
+      relationship: upgrade
+      description: Stronger weapon poison variant
+    - item_id: 22810
+      item_name: Dragon knife(p++)
+      slug: dragon-knife-p-plus-plus
+      relationship: upgrade
+      description: Strongest weapon poison variant
+  about: "Poisoned variant of the dragon throwing knife with a Duality special attack that throws two knives in quick succession; staple ranged spec weapon for PvP and certain PvM phases."
+  market_strategy:
+    notes:
+      - Used heavily as a PvP/PvM special attack weapon
+      - Demand pulses with PKing meta and bossing strategies
+      - Poison tier upgrades (p+, p++) cannibalize base p demand
+      - Stackable inventory makes bulk purchases efficient
+  trading_tips:
+    - Buy base dragon knife and poison yourself when herblore margins are wide
+    - Track Duality use in popular boss guides as a demand signal
+    - Watch p+/p++ price spreads to decide tier to apply
+  history:
+    - date: "2019-01-10"
+      description: Dragon knife released with the Wrath of the Rangers update.
+  properties:
+    release_date: "2019-01-10"
+    update: Wrath of the Rangers
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
