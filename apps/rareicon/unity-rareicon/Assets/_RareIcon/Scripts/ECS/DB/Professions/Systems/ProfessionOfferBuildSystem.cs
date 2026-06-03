@@ -22,10 +22,13 @@ namespace RareIcon
 
             var db = new ProfessionOffersSingleton
             {
-                Offers        = new NativeList<TaskOffer>(256, Allocator.Persistent),
-                OffersPerKind = new NativeArray<int>(13, Allocator.Persistent),
-                NeedyCaves    = new NativeList<NeedyCave>(4, Allocator.Persistent),
-                BuildVersion  = 0,
+                Offers             = new NativeList<TaskOffer>(256, Allocator.Persistent),
+                OffersPerKind      = new NativeArray<int>(ProfessionKind.Count, Allocator.Persistent),
+                OffersSortedByKind = new NativeList<TaskOffer>(256, Allocator.Persistent),
+                OfferKindStart     = new NativeArray<int>(ProfessionKind.Count, Allocator.Persistent),
+                OfferKindCount     = new NativeArray<int>(ProfessionKind.Count, Allocator.Persistent),
+                NeedyCaves         = new NativeList<NeedyCave>(4, Allocator.Persistent),
+                BuildVersion       = 0,
             };
             _singleton = state.EntityManager.CreateEntity(typeof(ProfessionOffersSingleton));
             state.EntityManager.SetName(_singleton, "ProfessionOffers");
@@ -38,9 +41,12 @@ namespace RareIcon
         {
             if (!state.EntityManager.Exists(_singleton)) return;
             var db = state.EntityManager.GetComponentData<ProfessionOffersSingleton>(_singleton);
-            if (db.Offers.IsCreated)        db.Offers.Dispose();
-            if (db.OffersPerKind.IsCreated) db.OffersPerKind.Dispose();
-            if (db.NeedyCaves.IsCreated)    db.NeedyCaves.Dispose();
+            if (db.Offers.IsCreated)             db.Offers.Dispose();
+            if (db.OffersPerKind.IsCreated)      db.OffersPerKind.Dispose();
+            if (db.OffersSortedByKind.IsCreated) db.OffersSortedByKind.Dispose();
+            if (db.OfferKindStart.IsCreated)     db.OfferKindStart.Dispose();
+            if (db.OfferKindCount.IsCreated)     db.OfferKindCount.Dispose();
+            if (db.NeedyCaves.IsCreated)         db.NeedyCaves.Dispose();
         }
 
         [BurstCompile]
@@ -180,6 +186,32 @@ namespace RareIcon
                 byte ok = offers[oi].Kind;
                 if (ok < opk.Length) opk[ok]++;
             }
+
+            // Counting sort offers by Kind into OffersSortedByKind so
+            // ProfessionDispatchSystem can walk the slice for each kind
+            // the unit cares about instead of scanning the global pool.
+            var oks = db.OfferKindStart;
+            var okc = db.OfferKindCount;
+            int running = 0;
+            for (int k = 0; k < ProfessionKind.Count; k++)
+            {
+                oks[k] = running;
+                okc[k] = opk[k];
+                running += opk[k];
+            }
+
+            var sorted = db.OffersSortedByKind;
+            sorted.Clear();
+            sorted.Length = offers.Length;
+            var cursor = new NativeArray<int>(ProfessionKind.Count, Allocator.Temp);
+            for (int oi = 0; oi < offers.Length; oi++)
+            {
+                var o = offers[oi];
+                if (o.Kind >= ProfessionKind.Count) continue;
+                int idx = oks[o.Kind] + cursor[o.Kind]++;
+                sorted[idx] = o;
+            }
+            cursor.Dispose();
 
             db.BuildVersion++;
         }
