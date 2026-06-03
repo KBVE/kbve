@@ -247,12 +247,17 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 
 <style is:global>{`
 	.donate-page {
-		--do-accent: var(--sl-color-accent, #f472b6);
-		--do-pink: #f472b6;
-		--do-pink-soft: color-mix(in srgb, #f472b6 18%, transparent);
+		/* Pull every base color from Starlight's theme so the page tracks
+		   light/dark switches and the site's gold accent automatically. */
+		--do-accent: var(--sl-color-accent, #a67d43);
+		--do-accent-high: var(--sl-color-accent-high, #c9a56a);
+		--do-accent-low: var(--sl-color-accent-low, #3a2615);
+		--do-accent-text: var(--sl-color-text-accent, #c9a56a);
+		--do-accent-soft: color-mix(in srgb, var(--do-accent) 18%, transparent);
+		--do-accent-border: color-mix(in srgb, var(--do-accent) 35%, transparent);
 		--do-bg: var(--sl-color-bg, #0d1117);
 		--do-bg-soft: var(--sl-color-bg-nav, #131318);
-		--do-bg-card: var(--sl-color-black, #0c0c10);
+		--do-bg-card: var(--sl-color-bg-sidebar, var(--sl-color-black, #0c0c10));
 		--do-border: var(--sl-color-gray-5, #2a2a33);
 		--do-text: var(--sl-color-text, #e6edf3);
 		--do-muted: var(--sl-color-gray-2, #a1a1aa);
@@ -271,12 +276,12 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 		background:
 			radial-gradient(
 				circle at 0% 0%,
-				color-mix(in srgb, var(--do-pink) 24%, transparent),
+				color-mix(in srgb, var(--do-accent) 24%, transparent),
 				transparent 55%
 			),
 			radial-gradient(
 				circle at 100% 100%,
-				color-mix(in srgb, var(--do-accent) 14%, transparent),
+				color-mix(in srgb, var(--do-accent-high) 18%, transparent),
 				transparent 60%
 			),
 			var(--do-bg-card);
@@ -289,7 +294,7 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 		background:
 			radial-gradient(
 				circle,
-				var(--do-pink-soft) 0%,
+				var(--do-accent-soft) 0%,
 				transparent 60%
 			);
 		filter: blur(80px);
@@ -307,8 +312,8 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 		align-items: center;
 		gap: 0.55rem;
 		padding: 0.4rem 0.85rem;
-		background: var(--do-pink-soft);
-		border: 1px solid color-mix(in srgb, var(--do-pink) 35%, transparent);
+		background: var(--do-accent-soft);
+		border: 1px solid var(--do-accent-border);
 		border-radius: 999px;
 		font-size: 0.75rem;
 		font-weight: 600;
@@ -320,7 +325,9 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 	.donate-page .donate-hero__badge svg {
 		width: 16px;
 		height: 16px;
-		color: var(--do-pink);
+		display: block;
+		flex-shrink: 0;
+		color: var(--do-accent-text);
 	}
 	.donate-page .donate-hero__title {
 		font-size: clamp(2rem, 5vw, 3.25rem);
@@ -331,7 +338,7 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 	}
 	.donate-page .donate-hero__title-accent {
 		display: inline-block;
-		background: linear-gradient(135deg, var(--do-pink), #fbbf24);
+		background: linear-gradient(135deg, var(--do-accent-text), var(--do-accent-high));
 		-webkit-background-clip: text;
 		background-clip: text;
 		-webkit-text-fill-color: transparent;
@@ -353,11 +360,13 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 	.donate-page .donate-hero__btn {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.45rem;
+		justify-content: center;
+		gap: 0.5rem;
 		padding: 0.7rem 1.2rem;
 		border-radius: var(--do-radius-sm);
 		font-size: 0.9375rem;
 		font-weight: 600;
+		line-height: 1;
 		text-decoration: none;
 		transition:
 			transform 0.12s ease,
@@ -368,19 +377,24 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 	.donate-page .donate-hero__btn svg {
 		width: 18px;
 		height: 18px;
+		display: block;
+		flex-shrink: 0;
 	}
 	.donate-page .donate-hero__btn--primary {
-		background: var(--do-pink);
-		color: #1a0a14;
-		box-shadow: 0 6px 20px color-mix(in srgb, var(--do-pink) 35%, transparent);
+		background: var(--do-accent);
+		color: var(--sl-color-white, #fff);
+		box-shadow: 0 6px 20px color-mix(in srgb, var(--do-accent) 35%, transparent);
 	}
 	.donate-page .donate-hero__btn--primary:hover {
 		transform: translateY(-1px);
-		box-shadow: 0 10px 28px color-mix(in srgb, var(--do-pink) 45%, transparent);
+		background: var(--do-accent-high);
+		box-shadow: 0 10px 28px color-mix(in srgb, var(--do-accent) 45%, transparent);
 	}
 	.donate-page .donate-hero__btn--patreon {
+		/* Patreon brand orange — exception to the Starlight palette so
+		   the official brand button stays recognisable. */
 		background: #f96854;
-		color: white;
+		color: #fff;
 		box-shadow: 0 6px 20px color-mix(in srgb, #f96854 35%, transparent);
 	}
 	.donate-page .donate-hero__btn--patreon:hover {
@@ -393,8 +407,8 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 		border: 1px solid var(--do-border);
 	}
 	.donate-page .donate-hero__btn--ghost:hover {
-		border-color: var(--do-pink);
-		background: var(--do-pink-soft);
+		border-color: var(--do-accent);
+		background: var(--do-accent-soft);
 	}
 	.donate-page .donate-hero__stats {
 		display: grid;
@@ -501,8 +515,8 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 	}
 	.donate-page .donate-card:hover {
 		transform: translateY(-2px);
-		border-color: var(--do-pink);
-		box-shadow: 0 10px 28px color-mix(in srgb, var(--do-pink) 18%, transparent);
+		border-color: var(--do-accent);
+		box-shadow: 0 10px 28px color-mix(in srgb, var(--do-accent) 18%, transparent);
 	}
 	.donate-page .donate-card--ghost:hover {
 		box-shadow: none;
@@ -510,7 +524,7 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 	.donate-page .donate-card__icon {
 		font-size: 1.5rem;
 		line-height: 1;
-		color: var(--do-pink);
+		color: var(--do-accent);
 	}
 	.donate-page .donate-card__title {
 		font-size: 1.0625rem;
@@ -524,7 +538,7 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 	.donate-page .donate-card__cta {
 		font-size: 0.8125rem;
 		font-weight: 600;
-		color: var(--do-pink);
+		color: var(--do-accent);
 		margin-top: 0.25rem;
 	}
 
@@ -550,7 +564,7 @@ import Adsense from '@/components/astropad/adsense/Adsense.astro';
 		position: absolute;
 		left: 0;
 		top: 0;
-		color: var(--do-pink);
+		color: var(--do-accent);
 		font-size: 0.75rem;
 		line-height: 1.6;
 	}
