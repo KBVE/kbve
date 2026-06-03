@@ -12,12 +12,76 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Axeman's folly is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ale
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: cooking
+      level: 49
+      xp: 413
+      materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Oak roots
+          quantity: 1
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Beer glass
+          quantity: 8
+      tools: []
+      output_quantity: 8
+  shops:
+    - shop_name: Auburn Pub
+      location: Auburnvale
+      price: 2
+      currency: Coins
+      stock: 5
+    - shop_name: Nemus Retreat pub
+      location: Nemus Retreat
+      price: 2
+      currency: Coins
+      stock: 5
+  passive_effects:
+    - name: Woodcutting boost
+      description: Temporarily boosts Woodcutting by 1 level while draining Attack and Strength by 3 levels each. Restores 1 Hitpoint.
+  related_items:
+    - item_name: Axeman's folly(m)
+      slug: axeman-s-folly-m
+      relationship: variant
+      description: Matured ale variant with stronger effect.
+  about: "Axeman's folly is a members-only ale brewed in the Player-owned house Brewery at Cooking level 49. It temporarily boosts Woodcutting at the cost of Attack and Strength, making it niche for wood gathering."
+  market_strategy:
+    notes:
+      - "Low-volume niche ale; supply tied to PoH brewers and shop runs."
+      - "Pure utility item for Woodcutting boosts, not combat."
+  trading_tips:
+    - Stock up before high-level Woodcutting events.
+    - Shops in Auburnvale offer cheap restocks at 2 gp each.
+  history:
+    - date: "2005-07-11"
+      description: "Item released with the Farming and brewing update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

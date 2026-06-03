@@ -5,19 +5,42 @@ osrs:
   id: 28988
   name: Blue moon spear
   slug: blue-moon-spear
-  examine: A magical staff of ancient origin...
+  examine: A magical staff of ancient origin.
   members: true
   icon: Blue moon spear.png
   value: 100000
   lowalch: 40000
   highalch: 60000
   limit: 15
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: high
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    weapon_type: staff
-    weight: 3
+    weapon_type: bladed_staff
     attack_speed: 5
-    attack_range: 1
+    weight: 3
+    requirements:
+      attack: 70
+      magic: 75
     attack_bonus:
       stab: 70
       slash: 62
@@ -35,68 +58,39 @@ osrs:
       ranged_strength: 0
       magic_damage: 5
       prayer: 0
-    requirements:
-      attack: 70
-      magic: 75
-    degradable: false
-    two_handed: true
   drop_table:
-    primary_source: Lunar Chest (Neypotzli)
-    best_drop_rate: 1/224
     sources:
-      - source: Lunar Chest
+      - source: Lunar Chest (Neypotzli)
         quantity: "1"
-        rarity: rare
-        drop_rate: 1/224
-        members_only: true
+        rarity: 1/224
+  passive_effects:
+    - name: Frostweaver (set bonus)
+      description: "With the full Blue moon armour set equipped, after casting a bind or freeze spell there is a 20% chance the next melee attack is unaffected by action delays, enabling instant follow-up melee."
   related_items:
-    - item_id: 29019
-      item_name: Blue moon helm
+    - item_name: Blue moon helm
       slug: blue-moon-helm
       relationship: set-piece
       description: Required for Frostweaver effect
-    - item_id: 29013
-      item_name: Blue moon chestplate
+    - item_name: Blue moon chestplate
       slug: blue-moon-chestplate
       relationship: set-piece
       description: Required for Frostweaver effect
-    - item_id: 29016
-      item_name: Blue moon tassets
+    - item_name: Blue moon tassets
       slug: blue-moon-tassets
       relationship: set-piece
       description: Required for Frostweaver effect
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Attack speed | 5 ticks (3.0s) |
-    | Attack range | 1 tile |
-    | Combat style | Bladed Staff |
-
-    Unique hybrid weapon with both melee and magic capabilities.
-
-    When wearing full Blue moon armour:
-    - Frostweaver: After casting a bind or freeze spell, 20% chance for next melee attack to be unaffected by action delays
-
-    Allows instant follow-up melee attacks after freeze spells.
-
-    | Bonus | Value |
-    |-------|-------|
-    | Stab | +70 |
-    | Magic | +30 |
-    | Strength | +71 |
-    | Magic damage | +5% |
-
-    Powerful for magic-melee hybrid combat:
-    - Freeze then stab combos
-    - Neypotzli content
-    - PvP hybrid builds
+  about: "Blue moon spear is a hybrid melee-magic bladed staff dropped by the Lunar Chest in Neypotzli. With +70 stab, +30 magic, +71 strength and +5% magic damage it shines in freeze-then-stab combos when paired with the rest of the Blue moon armour for the Frostweaver effect. High alchemy value: 60,000 coins. Grand Exchange buy limit: 15 per 4 hours."
   market_strategy:
     notes:
-      - Best used with Blue moon armour
-      - Unique hybrid playstyle
-      - High value for set synergy
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Best used with the full Blue moon armour set for Frostweaver synergy"
+      - "Unique hybrid playstyle covers both freeze magic and melee follow-up"
+      - "Demand tied to Neypotzli boss popularity and set-piece arbitrage"
+  trading_tips:
+    - Track Lunar Chest completion volume after Varlamore updates
+    - Compare spot price vs combined helm+chestplate+tassets to gauge set premium
+  history:
+    - date: "2024-03-20"
+      description: "Released with Varlamore: Part One as a Lunar Chest reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

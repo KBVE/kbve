@@ -12,9 +12,69 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 8
-  about: "Fangs of venenatis is a members-only item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2023-01-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Venenatis
+        quantity: "1"
+        rarity: 1/196
+      - source: Spindel
+        quantity: "1"
+        rarity: 1/618
+  recipes:
+    - skill: fletching
+      level: 85
+      xp: 0
+      materials:
+        - item_name: Craw's bow
+          quantity: 1
+        - item_name: Fangs of venenatis
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Webweaver bow
+      slug: webweaver-bow
+      relationship: product
+      description: Upgrade result when combining Craw's bow with the fangs.
+    - item_name: Craw's bow
+      slug: craws-bow
+      relationship: component
+      description: Base bow upgraded with the fangs.
+    - item_name: Voidwaker hilt
+      slug: voidwaker-hilt
+      relationship: alternative
+      description: Sibling Wilderness boss upgrade component from Venenatis.
+    - item_name: Treasonous ring
+      slug: treasonous-ring
+      relationship: alternative
+      description: Another unique drop from Venenatis and Spindel.
+  about: "Fangs of venenatis are a rare drop from Venenatis (1/196) and Spindel (1/618) used to upgrade Craw's bow into the Webweaver bow. The upgrade requires either 85 Fletching or a 500,000 coin payment to Derse Venator at Ferox Enclave."
+  market_strategy:
+    notes:
+      - "Price tracks Webweaver bow demand and Wilderness boss meta shifts."
+      - "Drop scarcity gives strong long-term floor; PvP supply pressure swings short-term price."
+  trading_tips:
+    - Compare fangs price against Webweaver / Craw's bow spread to find arbitrage.
+    - Watch DMM and Wilderness flash events for supply shocks.
+  history:
+    - date: "2023-01-25"
+      description: "Released with the Wilderness Boss Rework as a Venenatis and Spindel unique drop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

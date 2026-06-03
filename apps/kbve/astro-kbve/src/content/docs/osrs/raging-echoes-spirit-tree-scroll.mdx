@@ -12,9 +12,57 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: null
-  about: "Raging echoes spirit tree scroll is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2025-01-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Read
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: "Leagues Reward Shop (6,000 League Points)"
+        quantity: "1"
+        rarity: Always
+  related_items:
+    - item_name: Raging echoes portal frame scroll
+      slug: raging-echoes-portal-frame-scroll
+      relationship: set-piece
+      description: Matching Leagues V POH cosmetic
+    - item_name: Raging echoes portal nexus scroll
+      slug: raging-echoes-portal-nexus-scroll
+      relationship: set-piece
+      description: Matching Leagues V POH cosmetic
+    - item_name: Raging echoes scrying pool scroll
+      slug: raging-echoes-scrying-pool-scroll
+      relationship: set-piece
+      description: Matching Leagues V POH cosmetic
+  about: |-
+    > *"Used on a Spirit Tree inside your Player Owned House to decorate it in the style of Leagues V: Raging Echoes."*
+
+    Redecorates a POH spirit tree (or spirit tree and fairy ring combo) in the Raging Echoes style. Removing the tree refunds the scroll but consumes the original sapling.
+  market_strategy:
+    notes:
+      - "Supply tied to Leagues V participation"
+      - "No GE buy limit recorded; rare flips of multiples possible"
+  history:
+    - date: "2025-01-15"
+      description: "Added as a Leagues V: Raging Echoes reward."
+    - date: "2025-01-22"
+      description: "Became tradeable on the Grand Exchange."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

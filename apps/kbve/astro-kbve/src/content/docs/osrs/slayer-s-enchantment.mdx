@@ -12,9 +12,54 @@ osrs:
   lowalch: 480
   highalch: 720
   limit: 500
-  about: "Slayer's enchantment is a members-only item in Old School RuneScape. High alchemy value: 720 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2017-04-13"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Wilderness Slayer monsters (Krystilia task)
+        quantity: "1"
+        rarity: Variable by HP
+      - source: Wilderness bosses (on task)
+        quantity: "1"
+        rarity: 1/30
+  related_items:
+    - item_name: Slayer's staff
+      slug: slayer-s-staff
+      relationship: component
+      description: Base staff that gets enchanted
+    - item_name: Slayer's staff (e)
+      slug: slayer-s-staff-e
+      relationship: product
+      description: Enchanted staff with 2500 charges
+  about: |-
+    Slayer's enchantment is a parchment used to enchant a Slayer's staff into a Slayer's staff (e), granting 2,500 charges of an empowered Magic Dart spell. The enchanted staff requires 75 Magic and 55 Slayer to wield. Dropped exclusively by Wilderness Slayer monsters when assigned by Krystilia, with drop rate scaling by monster HP.
+  market_strategy:
+    notes:
+      - "Demand from PvM and Wilderness Slayer training"
+      - "Supply tied to Krystilia task participation"
+      - "Buy limit of 500 per 4 hours"
+      - "Stackable, easy to bank in volume"
+  trading_tips:
+    - Watch for price dips during Wilderness DMM events
+    - Pairs with Slayer's staff supply for combo flipping
+  history:
+    - date: "2017-04-13"
+      description: "Released as part of the Wilderness Slayer expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

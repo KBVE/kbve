@@ -12,46 +12,66 @@ osrs:
   lowalch: 45
   highalch: 68
   limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   potion:
-    doses: 2
-    herblore_level: 38
-    herblore_xp: 87.5
-    effect: Restores 7-31 Prayer points based on Prayer level
     effects:
-      - stat: Prayer
-        boost_formula: 7 + floor(level / 4)
+      - description: "Restores Prayer points using the formula 7 + floor(Prayer level / 4) per dose."
+        duration: 0
+      - description: "When wearing a Prayer cape, Max cape, or ring of the gods (i), or carrying a Holy wrench: restores 7 + floor(Prayer level * 0.27) per dose."
+        duration: 0
   related_items:
-    - item_id: 2434
-      item_name: Prayer potion(4)
+    - item_name: Prayer potion(4)
       slug: prayer-potion-4
       relationship: variant
-      description: 4-dose version
-    - item_id: 139
-      item_name: Prayer potion(3)
+      description: 4-dose version with the same effect
+    - item_name: Prayer potion(3)
       slug: prayer-potion-3
       relationship: variant
       description: 3-dose version
-    - item_id: 143
-      item_name: Prayer potion(1)
+    - item_name: Prayer potion(1)
       slug: prayer-potion-1
       relationship: variant
       description: 1-dose version
-    - item_id: 3024
-      item_name: Super restore(4)
+    - item_name: Super restore(4)
       slug: super-restore-4
       relationship: upgrade
-      description: Also restores stats
-  about: 2-dose variant of Prayer potion.
+      description: Also restores stats and prayer
+  about: "Prayer potion(2) is a 2-dose Herblore potion that restores Prayer points. Each dose heals 7 + floor(Prayer level / 4) prayer, increased to 7 + floor(Prayer level * 0.27) when wearing a Holy wrench, Prayer cape, Max cape, or ring of the gods (i). Brewed at 38 Herblore by combining a ranarr potion (unf) with snape grass for a Prayer potion(3); doses split or decant to this 2-dose variant."
   market_strategy:
     notes:
-      - Compare to 4-dose price
-      - Decanting can profit
-      - Use decanting NPC in GE
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Compare 2-dose price against 1/2 of a 4-dose for decant arbitrage"
+      - "Decanting NPCs at the Grand Exchange convert doses for profit when ratios diverge"
+      - "Buy limit of 2,000 supports large-scale flipping"
+  trading_tips:
+    - Watch the per-dose spread across all four prayer potion variants
+    - Buy when the per-dose price is below the 4-dose equivalent, then decant up
+  history:
+    - date: "2002-02-27"
+      description: "Released as part of the Herblore skill launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

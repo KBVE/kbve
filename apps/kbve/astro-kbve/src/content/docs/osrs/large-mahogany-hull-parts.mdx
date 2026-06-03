@@ -1,6 +1,6 @@
 ---
 title: Large mahogany hull parts | OSRS Price Data
-description: "Large mahogany hull parts: Parts for creating a mahogany hull for larger boats.. High alch: 11,250 GP, GE limit: 100."
+description: "Large mahogany hull parts: Parts for creating a mahogany hull for larger boats. High alch: 11,250 GP, GE limit: 100."
 osrs:
   id: 32071
   name: Large mahogany hull parts
@@ -12,9 +12,64 @@ osrs:
   lowalch: 7500
   highalch: 11250
   limit: 100
-  about: "Large mahogany hull parts is a members-only item in Old School RuneScape. High alchemy value: 11,250 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: mid-high
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 41
+      xp: 2.5
+      materials:
+        - item_name: Mahogany hull parts
+          quantity: 5
+      tools:
+        - Saw
+        - Hammer
+      output_quantity: 1
+  related_items:
+    - item_name: Mahogany hull parts
+      slug: mahogany-hull-parts
+      relationship: component
+      description: Five small mahogany hull parts are combined to produce one large set.
+    - item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: Planks used to fabricate mahogany hull parts upstream.
+  about: |-
+    Large mahogany hull parts are intermediate Construction materials used to assemble mahogany hulls for sloops at the Shipwrights' Workbench. Each large set is built from five regular mahogany hull parts.
+
+    Construction takes 5 ticks (3 seconds) and grants 2.5 Construction experience. A complete sloop requires sixteen large hull parts, equating to 400 mahogany planks worth of upstream material.
+
+    Requirements: 41 Construction | Tools: Saw, Hammer | Facility: Shipwrights' Workbench.
+  market_strategy:
+    notes:
+      - "High GE price relative to mahogany planks - profit pipeline for Construction grinders."
+      - "Buy limit of 100 caps speculation but allows steady flipping."
+      - "Demand tied to sloop production cycles and shipwright content."
+  trading_tips:
+    - Watch mahogany plank cost vs assembled price for live arbitrage.
+    - Volume spikes shortly after new shipwright content updates.
+  history:
+    - date: "2025-11-19"
+      description: "Hotfix halved the Construction experience gained from the Shipwrights' Workbench."
+    - date: "2025-11-19"
+      description: "Released alongside the Shipwrights' Workbench Construction content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

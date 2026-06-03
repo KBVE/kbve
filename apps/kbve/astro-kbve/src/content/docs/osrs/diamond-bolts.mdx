@@ -12,67 +12,96 @@ osrs:
   lowalch: 76
   highalch: 115
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: adamantite
+    tier: mid
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ammo
-    stats:
+    weapon_type: crossbow_bolts
+    attack_speed: null
+    weight: 0
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 105
-    requirements: {}
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: fletching
       level: 65
       xp: 70
-      inputs:
+      materials:
         - item_name: Adamant bolts
           quantity: 10
         - item_name: Diamond bolt tips
           quantity: 10
+      tools: []
       output_quantity: 10
   related_items:
-    - item_id: 9243
-      item_name: Diamond bolts (e)
+    - item_name: Diamond bolts (e)
       slug: diamond-bolts-e
       relationship: product
-      description: Enchanted version with Armour Piercing special
-    - item_id: 9143
-      item_name: Adamant bolts
+      description: Enchanted version with Armour Piercing special effect
+    - item_name: Adamant bolts
       slug: adamant-bolts
       relationship: component
-      description: Base bolt used in creation
-    - item_id: 9192
-      item_name: Diamond bolt tips
+      description: Base bolt used in fletching
+    - item_name: Diamond bolt tips
       slug: diamond-bolt-tips
       relationship: component
-      description: Gem tips used in creation
+      description: Gem tips attached to adamant bolts
   about: |-
-    > *"Diamond tipped Adamantite crossbow bolts."*
+    Diamond bolts are members-only adamantite crossbow bolts tipped with cut diamonds. They are crafted by attaching diamond bolt tips to adamant bolts at level 65 Fletching, yielding 70 experience per set of 10.
 
-    | Bonus | Value |
-    |-------|-------|
-    | Ranged Strength | +105 |
-    | All other bonuses | +0 |
-
-    | Detail | Value |
-    |--------|-------|
-    | Skill | Fletching |
-    | Level | 65 |
-    | XP | 70 (per 10 bolts) |
-    | Inputs | 10 Adamant bolts + 10 Diamond bolt tips |
-    | Output | 10 Diamond bolts |
-
-    Diamond bolt tips are crafted by using a chisel on a cut diamond, requiring 65 Crafting.
-
-    Diamond bolts can be enchanted into Diamond bolts (e) using the Enchant Crossbow Bolt spell at level 57 Magic. The enchanted version has the Armour Piercing special effect, which has a chance to ignore a portion of the target's ranged defence.
+    The bolts provide a strong +105 Ranged Strength bonus, making them a popular mid-game ammunition. They can be enchanted into Diamond bolts (e) using the Enchant Crossbow Bolt spell at 57 Magic, gaining the Armour Piercing special effect widely used at bosses like Vorkath.
   market_strategy:
     notes:
-      - Popular bolt choice for mid-level PvM and PvP
-      - Enchanted version widely used at bosses like Vorkath
-      - Price fluctuates with diamond bolt tip supply
-      - Members only item
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Popular bolt choice for mid-level PvM and PvP"
+      - "Enchanted version widely used at bosses like Vorkath"
+      - "Price fluctuates with diamond bolt tip supply"
+      - "Members only item"
+  trading_tips:
+    - Buy unenchanted, enchant in bulk for profit when alch margins are tight
+    - Track diamond bolt tip and adamant bolt prices for fletching margins
+  history:
+    - date: "2006-07-31"
+      description: "Diamond bolts released as part of the Crossbows update."
+    - date: "2007-01-29"
+      description: "Base value adjusted upward from 1 coin to 192 coins."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

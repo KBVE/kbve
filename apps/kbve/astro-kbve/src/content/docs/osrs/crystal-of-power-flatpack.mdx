@@ -12,12 +12,40 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Crystal of power (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: flatpack
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options: []
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: |-
+    The Crystal of power (flatpack) is an unobtainable flatpack item that exists in the game files but cannot be created. It was originally designed for the Construction skill's study room but was scrapped before launch.
+
+    According to Mod John C, these flatpacks "exist as objects in the game but you can't actually create them" because they were abandoned during Construction's initial development around 2005-2006.
+  market_strategy:
+    notes:
+      - "Currently unobtainable through normal gameplay"
+      - "No active supply on the Grand Exchange"
+      - "Historical curio with no practical use"
+  history:
+    - date: "2006-05-31"
+      description: "Crystal of power (flatpack) introduced as an unobtainable flatpack item alongside the Player-Owned Houses update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

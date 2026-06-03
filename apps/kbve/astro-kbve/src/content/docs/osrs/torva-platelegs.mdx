@@ -12,86 +12,93 @@ osrs:
   lowalch: 160000
   highalch: 240000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: torva
+    tier: high
+  properties:
+    release_date: "2022-01-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
-    type: melee_armour
+    weapon_type: null
+    attack_speed: null
+    weight: 9.071
     requirements:
       defence: 80
-    stats:
-      defence_stab: 87
-      defence_slash: 78
-      defence_crush: 79
-      defence_magic: -9
-      defence_ranged: 102
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 87
+      slash: 78
+      crush: 79
+      magic: -9
+      ranged: 102
+    other_bonus:
       strength: 4
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 1
   recipes:
     - skill: smithing
       level: 90
-      xp: 500
+      xp: 2250
       materials:
         - item_name: Torva platelegs (damaged)
-          item_id: 26380
           quantity: 1
         - item_name: Bandosian components
-          item_id: 26348
-          quantity: 1
-      product: Torva platelegs
-      product_id: 26386
-      product_quantity: 1
-      facility: Anvil
-      members_only: true
+          quantity: 2
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
   related_items:
-    - item_id: 26382
-      item_name: Torva full helm
+    - item_name: Torva full helm
       slug: torva-full-helm
       relationship: set-piece
-      description: Head slot
-    - item_id: 26384
-      item_name: Torva platebody
+      description: Matching head piece
+    - item_name: Torva platebody
       slug: torva-platebody
       relationship: set-piece
-      description: Body slot
-    - item_id: 11834
-      item_name: Bandos tassets
+      description: Matching body piece
+    - item_name: Bandos tassets
       slug: bandos-tassets
       relationship: alternative
-      description: Budget option
-  about: |-
-    Repair Torva platelegs (damaged) with Bandosian components at an anvil.
-
-    | Component | Source | Price |
-    |-----------|--------|-------|
-    | Torva platelegs (damaged) | Nex | ~260M gp |
-    | Bandosian components | Disassemble Bandos armour | N/A |
-
-    | Stat | Value |
-    |------|-------|
-    | Stab defence | +87 |
-    | Slash defence | +78 |
-    | Crush defence | +79 |
-    | Ranged defence | +102 |
-    | Magic defence | -9 |
-    | Strength bonus | +4 |
-    | Prayer bonus | +1 |
-    | Requirements | 80 Defence |
-
-    PvM:
-    - Best-in-slot strength legs
-    - Highest melee defence legs
-    - All high-level melee content
-
-    Best For:
-    - Max melee setups
-    - Solo bossing
-    - Slayer
+      description: Budget BiS alternative
+    - item_name: Sanguine torva platelegs
+      slug: sanguine-torva-platelegs
+      relationship: upgrade
+      description: Cosmetic recolour upgrade via Magic
+  about: "Torva platelegs are the best-in-slot melee legs for both strength bonus and stab/slash/crush defence. Repair Torva platelegs (damaged) from Nex with 2 Bandosian components at an anvil: 90 Smithing for 2,250 xp. Also grants Zarosian-faction protection inside the God Wars Dungeon."
   market_strategy:
     notes:
-      - Nex kills affect supply
-      - BiS melee legs
-      - +2 str over Bandos tassets
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Nex kill rate drives damaged-leg supply"
+      - "Bandosian components bottleneck the repair, sustaining premium"
+      - "Used in nearly every high-end melee setup"
+  trading_tips:
+    - Buy damaged + components separately during raid resets, repair for a margin
+    - Sanguine recolour offers no stat gain — value is purely cosmetic
+  history:
+    - date: "2022-01-05"
+      description: "Released as a repaired-Nex drop in the Nex boss update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

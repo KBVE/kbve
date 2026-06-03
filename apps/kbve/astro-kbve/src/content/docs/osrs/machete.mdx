@@ -1,6 +1,6 @@
 ---
 title: Machete | OSRS Price Data
-description: "Machete is a members weapon slot item. High alch: 24 GP, GE limit: 15."
+description: "Machete is a members weapon slot item used to cut jungle vegetation on Karamja. High alch: 24 GP, GE limit: 15."
 osrs:
   id: 975
   name: Machete
@@ -12,15 +12,89 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 15
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: tool
+    tier: low
+  properties:
+    release_date: "2003-08-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-  related_items: []
+    weapon_type: slash_sword
+    attack_speed: 5
+    weight: 1.36
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 6
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 5
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Jiminua's Jungle Store
+      location: Tai Bwo Wannai, Karamja
+      price: 40
+      currency: coins
+      stock: 5
+    - shop_name: Obli's General Store
+      location: Shilo Village
+      price: 40
+      currency: coins
+      stock: 3
+  related_items:
+    - item_name: Opal machete
+      slug: opal-machete
+      relationship: upgrade
+      description: Faster jungle cutting speed
+    - item_name: Jade machete
+      slug: jade-machete
+      relationship: upgrade
+      description: Even faster jungle cutting speed
+    - item_name: Red topaz machete
+      slug: red-topaz-machete
+      relationship: upgrade
+      description: Fastest jungle cutting speed variant
   about: |-
-    > _"Good for\"cutting\" through\"vegetation\"."_
+    > _"Good for cutting through vegetation."_
 
-    The machete is used to cut through jungle undergrowth on Karamja and in Tai Bwo Wannai Cleanup. Required for accessing various areas on Karamja. Can be upgraded to jade, red topaz, or opal machetes for faster cutting.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The machete is a jungle-specific slashing tool used to clear undergrowth on Karamja and in Tai Bwo Wannai Cleanup. It is required to access several Karamja areas without using the 79 Agility shortcut. Three upgraded variants (opal, jade, red topaz) cut faster.
+  market_strategy:
+    notes:
+      - "Cheap entry-level jungle tool"
+      - "Demand tied to Tai Bwo Wannai Cleanup activity"
+      - "Upgraded variants outclass on speed for serious harvesting"
+  trading_tips:
+    - Buy at shop price from Jiminua when GE markup is high
+    - Sell to questers ahead of Legends' Quest pushes
+  history:
+    - date: "2003-08-20"
+      description: "Released with the Legends' Quest update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

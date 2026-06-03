@@ -12,9 +12,94 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 5
-  about: "Yellow partyhat is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: holiday rare
+    tier: high
+  properties:
+    release_date: "2001-12-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.056
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.056
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Christmas cracker
+        quantity: "1"
+        rarity: Random
+  related_items:
+    - item_name: Red partyhat
+      slug: red-partyhat
+      relationship: variant
+      description: Red partyhat colour variant
+    - item_name: Purple partyhat
+      slug: purple-partyhat
+      relationship: variant
+      description: Purple partyhat colour variant
+    - item_name: Blue partyhat
+      slug: blue-partyhat
+      relationship: variant
+      description: Blue partyhat colour variant
+    - item_name: Green partyhat
+      slug: green-partyhat
+      relationship: variant
+      description: Green partyhat colour variant
+    - item_name: White partyhat
+      slug: white-partyhat
+      relationship: variant
+      description: White partyhat colour variant
+  about: |-
+    The yellow partyhat is one of six original partyhat colours released during the 2001 Christmas event. Like its peers, it offers no combat bonuses and exists purely as a cosmetic status symbol. Yellow has historically traded near the lower end of the partyhat colour spectrum, making it a relatively accessible entry into rare wealth ownership.
+  market_strategy:
+    notes:
+      - "Lowest-priced partyhat colour in most market cycles"
+      - "Acts as floor reference for the partyhat index"
+      - "Volume is consistently the highest of all colours"
+      - "GP inflation lifts the whole partyhat set together"
+      - "Use it as a hedge into rare items without top-tier capital"
+  trading_tips:
+    - Stagger offers within 1 percent of GE mid for clean fills
+    - Track partyhat ratio spreads for relative-value flips
+    - Watch holiday seasons for demand-driven price spikes
+  history:
+    - date: "2001-12-24"
+      description: "Released as a reward from the 2001 Christmas event Christmas cracker."
+    - date: "2013-07-04"
+      description: "Re-released temporarily during the Rare Drops event from July 4 to July 14."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

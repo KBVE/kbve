@@ -12,18 +12,73 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 40
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: tool
+    tier: low
+  properties:
+    release_date: "2001-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 4.535
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Gerrant's Fishy Business
+      location: Port Sarim
+      price: 5
+      currency: coins
+      stock: 5
+    - shop_name: Harry's Fishing Shop
+      location: Catherby
+      price: 5
+      currency: coins
+      stock: 5
+    - shop_name: Fremennik Fish Monger
+      location: Rellekka
+      price: 6
+      currency: coins
+      stock: 5
+    - shop_name: Fishing Guild Shop
+      location: Fishing Guild
+      price: 5
+      currency: coins
+      stock: 5
+    - shop_name: Arnold's Eclectic Supplies
+      location: Piscatoris Fishing Colony
+      price: 5
+      currency: coins
+      stock: 2
   related_items:
-    - item_id: 305
-      item_name: Big fishing net
+    - item_name: Big fishing net
       slug: big-fishing-net
       relationship: variant
       description: Catches multiple fish at once
+    - item_name: Drift net
+      slug: drift-net
+      relationship: alternative
+      description: Fossil Island net fishing tool
   about: |-
     > _"Useful for catching small fish."_
 
     The small fishing net is used to catch shrimps (1 Fishing) and anchovies (15 Fishing) at net/bait fishing spots. The first fishing tool most players use.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - "Shop supply is abundant and cheap — flipping margins are razor-thin"
+      - "Used heavily by low-level Fishing trainers, ironmen craft alternatives"
+  history:
+    - date: "2001-06-11"
+      description: "Released with the original Fishing skill."
+    - date: "2025-08-01"
+      description: "Patched a bug preventing Ironmen from picking up nets in Sunset Coast and Shipwreck Cove."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

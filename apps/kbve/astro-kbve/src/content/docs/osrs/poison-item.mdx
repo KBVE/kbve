@@ -12,18 +12,57 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15
+  material:
+    type: quest-utility
+    tier: low
+  properties:
+    release_date: "2001-01-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: true
+    weight: 0.02
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Rasolo the Wandering Merchant
+      location: South of Baxtorian Falls
+      price: 2
+      currency: coins
+      stock: 1
+    - shop_name: The Lighthouse Store
+      location: Lighthouse
+      price: 1
+      currency: coins
+      stock: 1
   related_items:
-    - item_id: 272
-      item_name: Fish food
+    - item_name: Fish food
       slug: fish-food
       relationship: component
-      description: Combined to make poisoned fish food
-  about: |-
-    > _"This stuff looks nasty."_
-
-    Poison is a quest item used in Ernest the Chicken (combined with fish food) and Hazeel Cult. A simple utility item with no combat application.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Combined with poison to make poisoned fish food
+    - item_name: Poisoned fish food
+      slug: poisoned-fish-food
+      relationship: product
+      description: Used in Ernest the Chicken to kill piranhas
+  about: "Poison is a quest item used in Ernest the Chicken — combined with fish food to poison the piranhas in the Draynor Manor fountain — and applied to the Carnillean household's food during Hazeel Cult. Attempting to use it on the sheep in Sheep Herder is refused. Also spawns at Draynor Manor for free-to-play players."
+  market_strategy:
+    notes:
+      - "Almost no flip margin; mostly self-supplied via Draynor spawn"
+      - "Buy limit of 15 caps any speculative play"
+      - "Demand is steady-trickle from quest-grinders"
+  trading_tips:
+    - Just grab a spawn for personal use rather than flipping
+    - Shop refresh at Rasolo gives a thin instant fill if needed
+  history:
+    - date: "2001-01-21"
+      description: "Added with Ernest the Chicken on the original RuneScape release wave."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,12 +12,65 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Oak fancy dress box (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: flatpack
+    tier: low
+  properties:
+    release_date: "2006-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: construction
+      level: 44
+      xp: 120
+      materials:
+        - item_name: Oak plank
+          quantity: 2
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Teak fancy dress box (flatpack)
+      slug: teak-fancy-dress-box-flatpack
+      relationship: upgrade
+      description: Higher-tier teak variant of this furniture flatpack.
+    - item_name: Mahogany fancy dress box (flatpack)
+      slug: mahogany-fancy-dress-box-flatpack
+      relationship: upgrade
+      description: Top-tier mahogany variant.
+    - item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: Primary material used to build this flatpack.
+  about: "Oak fancy dress box (flatpack) is a Player-owned house furniture pack built at a steel framed workbench. Used on the fancy dress box space in the costume room to store outfits."
+  market_strategy:
+    notes:
+      - "Cheap construction XP method when oak planks are inexpensive."
+      - "Demand fluctuates with PoH costume room popularity."
+  trading_tips:
+    - Buy bulk during oak plank price dips for resale flips.
+    - Pairs with teak and mahogany variants for diversified flatpack inventory.
+  history:
+    - date: "2006-10-18"
+      description: "Item released with the Costume Room update."
+    - date: "2015-02-26"
+      description: "Item renamed from \"Oak fdb\" to its full name."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
