@@ -12,9 +12,70 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Asgarnian ale(4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "11 July 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 24
+      xp: 248
+      materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Asgarnian hops
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Calquat keg
+          quantity: 2
+      tools: []
+      output_quantity: 2
+  potion:
+    effects:
+      - description: "Temporarily boosts Strength by 2 levels."
+        duration: 180
+      - description: "Reduces Attack by 4 levels."
+        duration: 180
+  related_items:
+    - item_name: Asgarnian ale(1)
+      slug: asgarnian-ale-1
+      relationship: variant
+      description: One-dose keg variant
+    - item_name: Asgarnian hops
+      slug: asgarnian-hops
+      relationship: component
+      description: Primary brewing ingredient
+  about: |-
+    Asgarnian ale(4) is a four-pint keg of Asgarnian Ale brewed at the Keldagrim brewery with level 24 Cooking, granting 248 brewing XP per batch. Drinking a dose temporarily raises Strength by 2 while lowering Attack by 4. Partially consumed kegs cannot be traded on the Grand Exchange following the 26 February 2015 update.
+  market_strategy:
+    notes:
+      - "Not alchable - alch values display as 1 gp placeholder"
+      - "Brewery output makes high-volume profit when hop prices are low"
+      - "Buy limit 2,000 supports bulk brewing flips"
+  trading_tips:
+    - Watch Asgarnian hops prices - they drive brewing margin
+    - Sell full 4-pint kegs only; partial kegs cannot be GE listed
+  history:
+    - date: "11 July 2005"
+      description: "Released as part of the Farming/brewing update."
+    - date: "26 February 2015"
+      description: "Partially consumed kegs became untradeable on the Grand Exchange."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

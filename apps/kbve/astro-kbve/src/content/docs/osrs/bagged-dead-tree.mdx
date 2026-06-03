@@ -12,9 +12,49 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 10000
-  about: "Bagged dead tree is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: organic
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options: ["Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: "Bagged dead tree is a members-only Construction and Farming decoration in Old School RuneScape. Plant it in a player-owned house garden (requires Construction 5+ and a watering can) for 31 Construction and Farming XP, or combine with 2 compost in a menagerie grassland habitat (Construction 37+) for 37 Construction XP. High alchemy value: 600 coins. Grand Exchange buy limit: 10,000 per 4 hours."
+  market_strategy:
+    notes:
+      - "Bulk demand comes from Construction and Farming training in player-owned house gardens"
+      - "Stable shop-restocked supply keeps GE prices close to spawn cost"
+      - "Higher value than other bagged plants due to slower restock and dead aesthetic for haunted-themed POHs"
+  trading_tips:
+    - Buy in bulk when training Construction tea-stalls or POH garden layouts
+    - Cheaper than buying individual seeds + waiting for growth cycles
+  related_items:
+    - item_name: Bagged nice tree
+      slug: bagged-nice-tree
+      relationship: alternative
+      description: Cheaper bagged tree variant for POH gardens
+    - item_name: Bagged oak tree
+      slug: bagged-oak-tree
+      relationship: alternative
+      description: Oak variant for higher-tier garden decoration
+    - item_name: Bagged willow tree
+      slug: bagged-willow-tree
+      relationship: alternative
+      description: Willow variant for POH gardens
+  history:
+    - date: "2006-05-31"
+      description: "Added to the game with the Player-Owned Houses update."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

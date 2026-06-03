@@ -12,25 +12,83 @@ osrs:
   lowalch: 600
   highalch: 900
   limit: 125
-  item_id: 1385
-  item_type: equipment
-  slot: weapon
-  type: staff
-  tradeable: true
-  weight: 2.267
-  requirements:
-    magic: 0
-  stats:
-    magic_attack: 10
-    magic_defence: 10
-  effect:
-    description: Provides unlimited earth runes when equipped.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: staff
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: staff
+    attack_speed: 5
+    weight: 2.267
+    requirements: {}
+    attack_bonus:
+      stab: 1
+      slash: -1
+      crush: 9
+      magic: 10
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 10
+      ranged: 0
+    other_bonus:
+      melee_strength: 5
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Unlimited Earth Runes
+      description: Provides unlimited amounts of earth runes when equipped, removing the need to carry earth runes for any spell.
+  shops:
+    - shop_name: Zaff's Superior Staffs
+      location: Varrock
+      price: 1500
+      currency: Coins
+      stock: 5
   related_items:
-    - slug: earth-battlestaff
-    - slug: mystic-earth-staff
-  about: Provides unlimited earth runes when equipped.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Earth battlestaff
+      slug: earth-battlestaff
+      relationship: upgrade
+      description: Higher-tier earth staff with better stats
+    - item_name: Mystic earth staff
+      slug: mystic-earth-staff
+      relationship: upgrade
+      description: Mystic-tier upgrade of the earth battlestaff
+  about: |-
+    The Staff of earth is a free-to-play one-handed magic staff that provides an unlimited supply of earth runes while equipped. It can be autocast with Standard spellbook spells and offers a +10 magic attack bonus.
+
+    Sold by Zaff's Superior Staffs in Varrock for 1,500 coins or traded on the Grand Exchange. Players with 42 Construction can modify it using a crystal ball in their player-owned house to swap the elemental type to fire, water or air.
+  market_strategy:
+    notes:
+      - "Cheap budget option for earth-based spells"
+      - "F2P accessible and shop-bought floor keeps price stable"
+      - "Outclassed by earth battlestaff for higher Magic levels"
+  trading_tips:
+    - Useful for low-level Magic training without rune costs
+    - Hold for Construction-related crystal ball flips
+  history:
+    - date: "2001-01-04"
+      description: "Released in RuneScape Classic as part of the original elemental staves."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

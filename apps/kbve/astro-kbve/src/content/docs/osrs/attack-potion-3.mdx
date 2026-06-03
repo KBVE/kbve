@@ -1,6 +1,6 @@
 ---
 title: Attack potion(3) | OSRS Price Data
-description: "Attack potion(3): 3 doses of Attack potion.. High alch: 7 GP, GE limit: 2,000."
+description: "Attack potion(3): 3 doses of Attack potion. High alch: 7 GP, GE limit: 2,000."
 osrs:
   id: 121
   name: Attack potion(3)
@@ -12,23 +12,67 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options: ["Drink", "Empty", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 3
+      xp: 25
+      materials:
+        - item_name: Guam potion (unf)
+          quantity: 1
+        - item_name: Eye of newt
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Boosts Attack by 3 + 10% of current Attack level (rounded down)"
+        duration: 60
   related_items:
-    - item_id: 123
-      item_name: Attack potion(2)
+    - item_name: Attack potion(2)
       slug: attack-potion-2
       relationship: variant
       description: 2-dose version
-    - item_id: 125
-      item_name: Attack potion(1)
+    - item_name: Attack potion(1)
       slug: attack-potion-1
       relationship: variant
       description: 1-dose version
+    - item_name: Super attack(3)
+      slug: super-attack-3
+      relationship: upgrade
+      description: Stronger Attack boost
   about: |-
     > _"3 doses of Attack potion."_
 
-    The attack potion boosts Attack by 3 + 10% of current level (rounded down). The lowest-level potion brewable with Herblore.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The lowest-level Herblore potion. Boosts Attack by 3 + 10% of current level (rounded down); the boost decays at 1 level per minute (90 seconds with Preserve prayer).
+  market_strategy:
+    notes:
+      - "Low-level Herblore product"
+      - "High GE limit supports bulk flipping"
+      - "Useful for early Herblore XP"
+  trading_tips:
+    - Buy unfinished guam potions for cheap conversion XP
+    - Demand spikes during bonus XP weekends
+  history:
+    - date: "2002-02-27"
+      description: "Released with the Herblore skill."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

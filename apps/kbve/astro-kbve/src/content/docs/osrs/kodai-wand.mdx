@@ -12,90 +12,97 @@ osrs:
   lowalch: 60000
   highalch: 90000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: kodai
+    tier: high
+  properties:
+    release_date: "2017-01-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.198
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: wand
-    attack_style: magic
-    attack_speed: 4
+    weapon_type: wand
+    attack_speed: 5
+    weight: 0.198
     requirements:
       magic: 80
-    stats:
-      attack_magic: 28
-      magic_damage_percent: 15
-  effect:
-    unlimited_water_runes: true
-    rune_save_chance: 15
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 28
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 3
+      crush: 3
+      magic: 20
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 15
+      prayer: 0
   recipes:
     - skill: none
       level: 0
       xp: 0
       materials:
         - item_name: Master wand
-          item_id: 6914
           quantity: 1
         - item_name: Kodai insignia
-          item_id: 21043
           quantity: 1
-      product: Kodai wand
-      product_id: 21006
-      product_quantity: 1
-      facility: None
-      members_only: true
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Unlimited water runes
+      description: "Acts as an infinite water rune source when equipped; combines with the tome of water for accuracy and damage on water spells."
+    - name: Rune conservation
+      description: "15% chance to negate rune costs when casting an offensive spell."
   related_items:
-    - item_id: 6914
-      item_name: Master wand
+    - item_name: Master wand
       slug: master-wand
       relationship: component
-      description: Base wand
-    - item_id: 21043
-      item_name: Kodai insignia
+      description: Base wand obtained from Mage Training Arena.
+    - item_name: Kodai insignia
       slug: kodai-insignia
       relationship: component
-      description: From Chambers of Xeric
-    - item_id: 24423
-      item_name: Harmonised nightmare staff
+      description: Rare drop from Chambers of Xeric used to upgrade the wand.
+    - item_name: Harmonised nightmare staff
       slug: harmonised-nightmare-staff
       relationship: alternative
-      description: Faster casting
+      description: Faster cast speed on the standard spellbook.
   about: |-
-    Attach Kodai insignia to Master wand.
+    The kodai wand is the best-in-slot magic damage one-handed at 80 Magic, built by attaching a Kodai insignia from the Chambers of Xeric to a master wand. The process is irreversible.
 
-    | Component | Source | Price |
-    |-----------|--------|-------|
-    | Master wand | Mage Training Arena | ~1.5M gp |
-    | Kodai insignia | Chambers of Xeric | ~75M gp |
-
-    | Stat | Value |
-    |------|-------|
-    | Magic attack | +28 |
-    | Magic damage | +15% |
-    | Attack speed | 4 tick (2.4s) |
-    | Requirements | 80 Magic |
-
-    Unlimited Water Runes:
-    - Acts as infinite water rune source
-    - Great for ice spells
-
-    Rune Saving:
-    - 15% chance to not consume runes
-    - Works with all offensive spells
-
-    PvM:
-    - Best-in-slot for ice barrage
-    - Bursting/barraging slayer
-    - Chambers of Xeric
-    - Inferno
-
-    PvP:
-    - Ice barrage in tribrid fights
-    - Saves runes over time
+    Combined with the tome of water it dominates Ice Barrage bursting, raids, and tribrid PvP, while the 15% rune save and infinite water runes meaningfully cut the cost of long magic sessions.
   market_strategy:
     notes:
-      - Insignia from CoX drives price
-      - Essential for mage setups
-      - Always strong demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Insignia supply from Chambers of Xeric raid throughput sets the floor."
+      - "Demand tracks CoX team usage and ice-barrage slayer popularity."
+      - "Stable best-in-slot since release; no direct replacement on standard spellbook."
+  trading_tips:
+    - Watch CoX scaling/loot changes for supply shifts.
+    - Compare against shadow staff for raids spend decisions before flipping volume.
+  history:
+    - date: "2017-01-05"
+      description: "Kodai insignia released as a CoX drop; players upgrade master wand into the kodai wand."
+    - date: "2022-05-04"
+      description: "Magic requirement raised from 75 to 80."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

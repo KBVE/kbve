@@ -1,6 +1,6 @@
 ---
 title: Tangled toad's legs | OSRS Price Data
-description: "Tangled toad's legs: It actually smells quite good.. High alch: 1 GP, GE limit: 6,000."
+description: "Tangled toad's legs: It actually smells quite good. High alch: 1 GP, GE limit: 6,000."
 osrs:
   id: 2187
   name: Tangled toad's legs
@@ -12,9 +12,49 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 6000
-  about: "Tangled toad's legs is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: herblore-secondary
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.35
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Mutated Tortoise
+        quantity: "1"
+        rarity: Common
+      - source: Warped Tortoise
+        quantity: "1"
+        rarity: Common
+  about: |-
+    > *"It actually smells quite good."*
+
+    Tangled toad's legs are a gnome cuisine ingredient and Herblore secondary used in higher-level potion recipes. They drop in stacks from mutated and warped tortoises and serve as a delivery item during The Path of Glouphrie quest.
+  market_strategy:
+    notes:
+      - "Generous 6,000/4hr buy limit means bulk orders rarely move price."
+      - "Cheap floor near alch value keeps margins thin but consistent."
+      - "Demand spikes when high-level Herblore potions trend on streamer content."
+  trading_tips:
+    - Stock up during quest-prep cycles when newcomers need bulk for Path of Glouphrie.
+    - Treat as a volume play rather than a flip target given the 1 gp alch floor.
+  history:
+    - date: "2002-12-12"
+      description: "Introduced as a gnome cooking ingredient at 40 Cooking."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

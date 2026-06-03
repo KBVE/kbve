@@ -12,72 +12,92 @@ osrs:
   lowalch: 1360
   highalch: 2040
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ranged-armour
+    tier: high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options: ["Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: hands
-    type: ranged_gloves
-    tradeable: true
-    weight: 0.05
+    weapon_type: null
+    attack_speed: null
+    weight: 0.226
     requirements:
       ranged: 40
-    stats:
-      attack_ranged: 11
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Master
-        drop_rate: Rare from reward casket
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: 11
+    defence_bonus:
+      stab: 1
+      slash: 2
+      crush: 1
+      magic: 2
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/1275
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers: ["elite"]
   related_items:
-    - item_id: 2581
-      item_name: Robin hood hat
+    - item_name: Robin hood hat
       slug: robin-hood-hat
       relationship: set-piece
       description: Matching headgear
-    - item_id: 12596
-      item_name: Rangers' tunic
+    - item_name: Rangers' tunic
       slug: rangers-tunic
       relationship: set-piece
       description: Matching body armour
-    - item_id: 2577
-      item_name: Ranger boots
+    - item_name: Ranger boots
       slug: ranger-boots
       relationship: set-piece
       description: Matching boots
-    - item_id: 22981
-      item_name: Barrows gloves
+    - item_name: Barrows gloves
       slug: barrows-gloves
       relationship: alternative
-      description: Higher ranged bonus gloves
+      description: Higher ranged attack bonus gloves
   about: |-
     | Offense | Value |
     |---------|-------|
     | Ranged attack | +11 |
 
-    Requirements: 40 Ranged
-
-    Master clue ranged gloves:
-    - +11 ranged attack bonus
-    - Fashionscape with ranger set
-    - Master clue exclusive
-
-    | Item | Ranged attack | Notes |
-    |------|---------------|-------|
-    | Ranger gloves | +11 | Master clue |
-    | Barrows gloves | +12 | Quest reward |
-    | Black d'hide vambs | +8 | Budget option |
-
-    Complete the ranger set with:
-    - Robin hood hat (hard clue)
-    - Rangers' tunic (hard clue)
-    - Ranger boots (medium clue)
-    - Rangers' tights (elite clue)
+    Requires 40 Ranged. Elite clue exclusive gloves with +11 ranged attack — slightly weaker than Barrows gloves but iconic fashionscape for the ranger set.
   market_strategy:
     notes:
-      - Master clue exclusive
-      - Fashionscape value
-      - Slightly weaker than Barrows gloves
-      - Part of ranger outfit
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Elite clue exclusive"
+      - "Fashionscape demand"
+      - "Slightly weaker than Barrows gloves"
+      - "Part of full ranger outfit"
+  trading_tips:
+    - List with matching ranger set pieces for bundled appeal
+    - Price spikes during elite clue droughts
+  history:
+    - date: "2016-07-06"
+      description: "Added as an Elite Treasure Trails reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

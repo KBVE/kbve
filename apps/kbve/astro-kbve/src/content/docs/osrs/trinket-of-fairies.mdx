@@ -12,9 +12,64 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: null
-  about: "Trinket of fairies is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: teleport
+    tier: high
+  properties:
+    release_date: "2023-08-23"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Fairy-ring
+      - Spirit-tree
+      - Tool-leprechauns
+      - Last-destination
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Breach monsters (Deadman Mode)
+        quantity: "1"
+        rarity: 20/9576
+  passive_effects:
+    - name: Remote fairy ring access
+      description: "Use to open the fairy ring network from anywhere outside level 30 Wilderness."
+    - name: Remote spirit tree access
+      description: "Use to open the spirit tree teleport menu outside level 30 Wilderness."
+    - name: Remote tool leprechaun access
+      description: "Use to summon a tool leprechaun interface for fast tool/produce management outside level 30 Wilderness."
+  related_items:
+    - item_name: Fairy ring
+      slug: fairy-ring
+      relationship: alternative
+      description: "Static fairy ring network this trinket can call remotely"
+    - item_name: Spirit tree
+      slug: spirit-tree
+      relationship: alternative
+      description: "Static spirit tree network this trinket can call remotely"
+  about: "Trinket of fairies is a Deadman Mode reward dropped by Breach monsters. It lets a player invoke the fairy ring, spirit tree, and tool leprechaun networks from anywhere outside level 30 Wilderness."
+  market_strategy:
+    notes:
+      - "Only available during active Deadman Mode events"
+      - "Drop rate is 20/9576 from Breach monsters"
+      - "Value bumped to 100,000 with tool leprechaun rework"
+  trading_tips:
+    - "Stockpile during Deadman events when supply spikes"
+    - "Long-term value depends on Jagex's future Deadman cadence"
+  history:
+    - date: "2023-08-23"
+      description: "Released for Deadman: Apocalypse."
+    - date: "2026-01-22"
+      description: "Tool leprechaun access added and value raised from 10,000 to 100,000 coins."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

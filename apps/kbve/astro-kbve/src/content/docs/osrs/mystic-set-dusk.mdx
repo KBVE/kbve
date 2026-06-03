@@ -1,6 +1,6 @@
 ---
 title: Mystic set (dusk) | OSRS Price Data
-description: "Mystic set (dusk): A set containing dusk mystic hat, robe top and bottom, gloves and boots.. High alch: 141,000 GP, GE limit: 70."
+description: "Mystic set (dusk): A set containing dusk mystic hat, robe top and bottom, gloves and boots. High alch: 141,000 GP, GE limit: 70."
 osrs:
   id: 23119
   name: Mystic set (dusk)
@@ -12,9 +12,61 @@ osrs:
   lowalch: 94000
   highalch: 141000
   limit: 70
-  about: "Mystic set (dusk) is a members-only item in Old School RuneScape. High alchemy value: 141,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: armour-set
+    tier: high
+  properties:
+    release_date: "2019-03-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Mystic hat (dusk)
+      slug: mystic-hat-dusk
+      relationship: set-piece
+      description: Head slot piece included in the dusk set.
+    - item_name: Mystic robe top (dusk)
+      slug: mystic-robe-top-dusk
+      relationship: set-piece
+      description: Body slot piece included in the dusk set.
+    - item_name: Mystic robe bottom (dusk)
+      slug: mystic-robe-bottom-dusk
+      relationship: set-piece
+      description: Legs slot piece included in the dusk set.
+    - item_name: Mystic gloves (dusk)
+      slug: mystic-gloves-dusk
+      relationship: set-piece
+      description: Hands slot piece included in the dusk set.
+    - item_name: Mystic boots (dusk)
+      slug: mystic-boots-dusk
+      relationship: set-piece
+      description: Feet slot piece included in the dusk set.
+  about: |-
+    > *"A set containing dusk mystic hat, robe top and bottom, gloves and boots."*
+
+    Mystic set (dusk) is a Grand Exchange convenience bundle for the dusk-coloured mystic robes. Players assemble it through a Grand Exchange clerk to trade all five pieces in a single listing.
+  market_strategy:
+    notes:
+      - "Compare the GE set price against the sum of the five component prices for arbitrage opportunities."
+      - "Sets are typically used by sellers to clear inventory quickly rather than buyers seeking discounts."
+      - "GE limit of 70 sets every 4 hours allows steady wholesale flipping."
+  trading_tips:
+    - Break the set with a GE clerk to sell pieces individually when the component sum exceeds the set price.
+    - Build sets to consolidate stock when set price runs above component sum.
+  history:
+    - date: "2019-03-14"
+      description: "Added with the Mystic robes (dusk) cosmetic recolour update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,51 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 100
-  about: "Granite (2kg) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: stone
+    tier: low
+  properties:
+    release_date: "2006-01-23"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - item_name: Granite (500g)
+      slug: granite-500g
+      relationship: variant
+      description: "Smaller 500 gram chunk yielding less Mining XP"
+    - item_name: Granite (5kg)
+      slug: granite-5kg
+      relationship: variant
+      description: "Larger 5 kilogram chunk yielding more Mining XP"
+  about: |-
+    "A small chunk of granite."
+
+    Granite (2kg) is the mid-size chunk mined from granite rocks at 45 Mining for 60 experience per ore. The most common training spots are the Bandit Camp Quarry in the Kharidian Desert, the Necropolis mine, and the Cape Conch mine. Each rock respawns after 5 seconds, making granite one of the fastest XP/hour mining methods in the mid-game once the player can carry the weight efficiently.
+
+    Beyond Mining XP, granite is used in the Enakhra's Lament and King's Ransom quests, as a Construction material for the volcanic habitat in player-owned houses, and to recolour the Rock Golem pet. The 2kg chunk is the standard size most players default to because it balances XP per ore against inventory weight.
+  market_strategy:
+    notes:
+      - "High alch is 1 gp so the floor is effectively zero"
+      - "Granite is rarely traded as players mine it themselves; thin volume makes flipping unreliable"
+      - "Ironmen drive most of the marginal demand for construction projects"
+  trading_tips:
+    - Treat the GE listing as a convenience tax rather than a real market
+    - If you actually need granite at scale, mine it yourself
+  history:
+    - date: "2006-01-23"
+      description: "Granite introduced with the Enakhra's Lament quest update."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

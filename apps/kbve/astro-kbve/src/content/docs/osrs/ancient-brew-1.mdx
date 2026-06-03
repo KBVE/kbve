@@ -12,10 +12,27 @@ osrs:
   lowalch: 50
   highalch: 75
   limit: 2000
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
     type: potion
+    tier: mid
+  properties:
+    release_date: "2022-01-05"
     tradeable: true
-    doses: 1
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: herblore
       level: 85
@@ -25,58 +42,44 @@ osrs:
           quantity: 1
         - item_name: Nihil dust
           quantity: 1
-  effect:
-    boost:
-      - skill: magic
-        amount: +2 + 5%
-      - skill: prayer
-        amount: +2 + 10%
-    drain:
-      - skill: attack
-        amount: -2 - 10%
-      - skill: strength
-        amount: -2 - 10%
-      - skill: defence
-        amount: -2 - 10%
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Magic boost: +2 + 5% of base Magic level."
+        duration: 0
+      - description: "Prayer restore: +2 + 10% of base Prayer level."
+        duration: 0
+      - description: "Drains Attack, Strength, and Defence by 2 + 10% of current level each."
+        duration: 0
   related_items:
-    - item_id: 26229
-      item_name: Nihil dust
+    - item_name: Nihil dust
       slug: nihil-dust
       relationship: component
-      description: From Nihil shards
-    - item_id: 26348
-      item_name: Forgotten brew
-      slug: forgotten-brew
+      description: "Crafted from Nihil shards dropped by Nex"
+    - item_name: Dwarf weed potion (unf)
+      slug: dwarf-weed-potion-unf
+      relationship: component
+      description: "Unfinished base potion"
+    - item_name: Ancient brew(4)
+      slug: ancient-brew-4
+      relationship: variant
+      description: "Full 4-dose vial"
+    - item_name: Forgotten brew(4)
+      slug: forgotten-brew-4
       relationship: upgrade
-      description: Enhanced version
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Potion |
-    | Tradeable | Yes |
-    | Stackable | No |
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore | 85 |
-    | XP | 190 |
-
-    Ingredients:
-    - Dwarf weed potion (unf)
-    - Nihil dust
-
-    Magic Boost: +2 + 5% of Magic level.
-
-    Prayer Restore: +2 + 10% of Prayer level.
-
-    Stat Drain: -2 - 10% to Attack, Strength, Defence.
+      description: "Enhanced version made with ancient essence"
+  about: "Ancient brew(1) is a single-dose magic and prayer boosting potion designed for magic-only content. The Magic and Prayer gains come at the cost of melee defensive stats."
   market_strategy:
     notes:
-      - Nihil dust from Nex
-      - Good for magic-only content
-      - Can upgrade to Forgotten brew
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Useful for Nex, ToB mage rooms, and other magic-only encounters"
+      - "Nihil dust supply tied to Nex drop rates"
+      - "Upgrade to Forgotten brew with ancient essence for stronger boost"
+  history:
+    - date: "2022-01-05"
+      description: "Released alongside Nex: The Fifth General."
+    - date: "2021-12-16"
+      description: "Added to the game as unobtainable in preparation for release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

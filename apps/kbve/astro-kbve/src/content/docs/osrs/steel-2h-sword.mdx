@@ -12,41 +12,88 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: steel
+    tier: low
+  properties:
+    release_date: "4 January 2001"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: 2h
-    type: two-handed sword
-    tradeable: true
+    weapon_type: two-handed sword
+    attack_speed: 7
     weight: 3.628
     requirements:
       attack: 5
-    stats:
-      attack_stab: -4
-      attack_slash: 21
-      attack_crush: 16
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
+    attack_bonus:
+      stab: -4
+      slash: 21
+      crush: 16
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -1
+    other_bonus:
       strength: 22
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  recipes:
+    - skill: smithing
+      level: 44
+      xp: 112.5
+      materials:
+        - item_name: Steel bar
+          quantity: 3
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
   related_items:
-    - item_id: 1313
-      item_name: Black 2h sword
+    - item_name: Black 2h sword
       slug: black-2h-sword
       relationship: upgrade
       description: Higher tier 2h sword
-    - item_id: 1295
-      item_name: Steel longsword
+    - item_name: Steel longsword
       slug: steel-longsword
       relationship: alternative
       description: One-handed alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: |-
+    Steel 2h sword is a free-to-play two-handed weapon requiring 5 Attack to wield. It is smithed from 3 steel bars at level 44 Smithing for 112.5 XP. The high strength bonus makes it a budget choice for low-level slash training despite the slow 7-tick attack speed.
+  market_strategy:
+    notes:
+      - "High alch 600 gp - can be profitable when bought below alch + nature rune cost"
+      - "Demand from F2P Smithing trainers buying steel bars"
+      - "Slow attack speed limits PvM viability"
+  trading_tips:
+    - Check GE price vs 3 steel bars + 35 XP value before crafting to sell
+    - Pair with strength amulet for early-game strength training
+  history:
+    - date: "4 January 2001"
+      description: "Item released with the launch of RuneScape."
+    - date: "31 May 2005"
+      description: "Item graphically updated."
+    - date: "23 August 2005"
+      description: "Equip animation changed."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

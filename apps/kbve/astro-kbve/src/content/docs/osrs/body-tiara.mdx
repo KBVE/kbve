@@ -12,9 +12,80 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 40
-  about: "Body tiara is a free-to-play item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "13 June 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: runecraft
+      level: 1
+      xp: 37.5
+      materials:
+        - item_name: Tiara
+          quantity: 1
+        - item_name: Body talisman
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Body talisman
+      slug: body-talisman
+      relationship: component
+      description: Required to imbue the tiara at the Body Altar
+    - item_name: Tiara
+      slug: tiara
+      relationship: component
+      description: Base silver tiara used in the runecrafting process
+  about: |-
+    Body tiara is a free-to-play runecrafting tiara created by using a body talisman on a tiara while standing on the Body Altar pedestal, yielding 37.5 Runecrafting XP. When worn it allows left-click entry to the Body Altar ruins, freeing the inventory slot otherwise needed for a body talisman.
+  market_strategy:
+    notes:
+      - "Limited demand from body rune runners"
+      - "Buy limit is only 40 per 4 hours"
+      - "More valuable as a convenience item than for alch"
+  trading_tips:
+    - Compare price against a tiara + body talisman crafted yourself
+    - Useful for ironmen training low-level runecrafting
+  history:
+    - date: "13 June 2005"
+      description: "Body tiara released as part of the tiara update for Runecrafting."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

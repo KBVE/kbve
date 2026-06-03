@@ -1,6 +1,6 @@
 ---
 title: Tarromin potion (unf) | OSRS Price Data
-description: "Tarromin potion (unf) is a 4-dose members potion. High alch: 6 GP, GE limit: 10,000."
+description: "Tarromin potion (unf) is a members unfinished potion. High alch: 6 GP, GE limit: 10,000."
 osrs:
   id: 95
   name: Tarromin potion (unf)
@@ -12,65 +12,68 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 10000
-  potion:
-    type: unfinished
-    tier: basic
-  herblore:
-    level: 12
-    xp: 0
-    method: Add tarromin to vial of water
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: unfinished-potion
+    tier: low
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: herblore
       level: 12
       xp: 0
       materials:
         - item_name: Vial of water
-          item_id: 227
           quantity: 1
         - item_name: Tarromin
-          item_id: 253
           quantity: 1
-      product: Tarromin potion (unf)
-      product_id: 95
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 253
-      item_name: Tarromin
+    - item_name: Tarromin
       slug: tarromin
       relationship: component
-      description: Herb ingredient
-    - item_id: 227
-      item_name: Vial of water
+      description: Clean herb added to the vial of water
+    - item_name: Vial of water
       slug: vial-of-water
       relationship: component
-      description: Base liquid
-    - item_id: 225
-      item_name: Limpwurt root
+      description: Base liquid for any unfinished potion
+    - item_name: Limpwurt root
       slug: limpwurt-root
       relationship: component
-      description: Secondary for strength potion
-    - item_id: 115
-      item_name: Strength potion(3)
+      description: Secondary used to finish a Strength potion
+    - item_name: Strength potion(3)
       slug: strength-potion-3
       relationship: product
-      description: Boosts strength
+      description: Finished potion that boosts Strength
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Unfinished Potion |
-    | Tradeable | Yes |
-    | Weight | 0.056 kg |
-    | Requirements | 12 Herblore |
+    Tarromin potion (unf) is the unfinished base used to craft Strength potions, Serum 207, and Shrink-me-quick. It is made at level 12 Herblore by adding a clean tarromin to a vial of water for 0 XP.
 
-    Add secondary ingredient to create:
-    - Strength potion (+ limpwurt root)
-    - Serum 207 (+ ashes)
-
-    Strength potions popular for combat training.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Bulk crafters buy these to skip the cleaning step when working toward Strength potions, which remain a popular low-level combat boost.
+  market_strategy:
+    notes:
+      - "Demand driven by Strength potion production for combat training"
+      - "10,000 buy limit allows high-volume potion makers to stock up"
+      - "0 XP recipe means margins, not training, dictate price"
+  trading_tips:
+    - Buy when tarromin spikes to lock in unfinished stock
+    - Sell finished Strength potions back into the market for better profit
+  history:
+    - date: "2002-02-27"
+      description: "Released with the Herblore skill rework"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

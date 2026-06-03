@@ -12,9 +12,65 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 6000
-  about: "Cooked slimy eel is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2004-10-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 28
+      xp: 95
+      materials:
+        - item_name: Raw slimy eel
+          quantity: 1
+      tools:
+        - Cooking range or fire
+      output_quantity: 1
+  passive_effects:
+    - name: Heal
+      description: "Eat to restore 6 to 10 Hitpoints depending on Cooking level."
+  related_items:
+    - item_name: Raw slimy eel
+      slug: raw-slimy-eel
+      relationship: component
+      description: Raw fish required to cook the slimy eel.
+    - item_name: Cooked karambwan
+      slug: cooked-karambwan
+      relationship: alternative
+      description: Higher-heal combo eat used over slimy eel.
+  about: |-
+    Cooked slimy eel is the cooked form of the raw slimy eel from Morytania, requiring 28 Cooking and granting 95 XP per success. It heals between 6 and 10 Hitpoints with the actual amount scaling slightly with Cooking level.
+
+    Burn rate stops entirely at level 61 Cooking, but the modest heal pushes most players toward sharks or karambwans well before that.
+  market_strategy:
+    notes:
+      - "Pure Cooking-training output; demand mostly from F2P/ironman snack fillers."
+      - "Buy limit is high; bulk movement requires patience."
+      - "High alch value of 1 gp means no alch margin."
+  trading_tips:
+    - Profitable mainly when sold in bulk to ironmen who skip karambwans.
+    - Stockpile during fishing/cooking Bingo events and clue food demand spikes.
+  history:
+    - date: "2004-10-14"
+      description: "Released with the Morytania Expansion update."
+    - date: "2005-07-04"
+      description: "Renamed from 'Cooked slimey eel' to 'Cooked slimy eel' with examine text corrected."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,81 +12,90 @@ osrs:
   lowalch: 420
   highalch: 630
   limit: 15000
+  material:
+    type: jewellery
+    tier: mid
+  properties:
+    release_date: "2017-02-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
-    type: skilling_amulet
-    tradeable: true
-    weight: 0.015
-    charges: 5
-  creation:
-    method: Enchant Jade amulet with Lvl-2 Enchant
-    requirements:
-      magic: 27
-    runes:
-      - rune: Cosmic
-        quantity: "1"
-      - rune: Air
-        quantity: "3"
-  special_effect:
-    name: Extra Dose
-    description: 5% chance to create 4-dose potion instead of 3-dose
-    charges: 5
-    notes:
-      - No extra XP granted
-      - ~100 potions per amulet
-  market:
-    buy_limit: 15000
-    price_estimate: 1500
+    weapon_type: null
+    attack_speed: null
+    weight: 0.007
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Extra Dose
+      description: "5% chance to create a 4-dose potion instead of a 3-dose potion when brewing. No extra Herblore XP is awarded. The amulet has 5 charges; on average ~100 potions are brewed before it crumbles to dust."
+  recipes:
+    - skill: magic
+      level: 27
+      xp: 37
+      materials:
+        - item_name: Jade amulet
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Air rune
+          quantity: 3
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 1658
-      item_name: Jade amulet
+    - item_name: Jade amulet
       slug: jade-amulet
       relationship: component
-      description: Base item
-    - item_id: 7178
-      item_name: Botanical pie
-      slug: botanical-pie
-      relationship: alternative
-      description: Herblore boost
-    - item_id: 21160
-      item_name: Amulet of bounty
+      description: Base item enchanted with Lvl-2 Enchant
+    - item_name: Alchemist's amulet
+      slug: alchemist-s-amulet
+      relationship: upgrade
+      description: Upgraded version of the amulet
+    - item_name: Amulet of bounty
       slug: amulet-of-bounty
       relationship: alternative
-      description: Farming equivalent
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Neck |
-    | Type | Skilling Amulet |
-    | Tradeable | Yes |
-    | Weight | 0.015 kg |
-
-    Enchant Jade amulet with Lvl-2 Enchant.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Magic | 27 |
-    | Cosmic rune | 1 |
-    | Air rune | 3 |
-
-    Extra Dose:
-    - 5% chance to create 4-dose
-    - No extra XP
-    - 5 charges (~100 potions)
-
-    Great for:
-    - Herblore training
-    - Potion making profit
-    - Ironman efficiency
-
-    Effectively 5% more potions.
+      description: Farming-focused equivalent jewellery
+  about: "The Amulet of chemistry grants a 5% chance to brew a 4-dose potion instead of a 3-dose when worn. Made by enchanting a Jade amulet with Lvl-2 Enchant at Magic 27. Holds 5 charges before crumbling."
   market_strategy:
     notes:
-      - Very cheap
-      - Works on all potions
-      - ~5% profit increase
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Cheap consumable; demand scales with Herblore activity"
+      - "Ironmen craft directly from jade amulets"
+      - "Effective ~5% boost to potion output value"
+  trading_tips:
+    - Stockpile during Herblore double XP events
+    - Compare against Alchemist's amulet upgrade cost
+  history:
+    - date: "2017-02-02"
+      description: "Item released alongside the dragonstone jewellery rework."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

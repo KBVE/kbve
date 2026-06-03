@@ -1,6 +1,6 @@
 ---
 title: Dragon dagger(p+) | OSRS Price Data
-description: "Dragon dagger(p+): A powerful dagger.. High alch: 14,400 GP, GE limit: 70."
+description: "Dragon dagger(p+): A powerful dagger. High alch: 14,400 GP, GE limit: 70."
 osrs:
   id: 5680
   name: Dragon dagger(p+)
@@ -12,9 +12,100 @@ osrs:
   lowalch: 9600
   highalch: 14400
   limit: 70
-  about: "Dragon dagger(p+) is a members-only item in Old School RuneScape. High alchemy value: 14,400 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragon-weapon
+    tier: high
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options: ["Wield", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: stab_sword
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      attack: 60
+    attack_bonus:
+      stab: 40
+      slash: 25
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 40
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: herblore
+      level: 73
+      xp: 0
+      materials:
+        - item_name: Dragon dagger
+          quantity: 1
+        - item_name: Weapon poison++
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Puncture (special attack)
+      description: "Consumes 25% special attack energy to deal two hits with +15% accuracy and +15% damage per hit"
+    - name: Weapon poison++
+      description: "Has a chance to inflict the stronger weapon poison++ effect on hit"
+  related_items:
+    - item_name: Dragon dagger
+      slug: dragon-dagger
+      relationship: variant
+      description: Unpoisoned base dagger
+    - item_name: Dragon dagger(p)
+      slug: dragon-dagger-p
+      relationship: variant
+      description: Standard poisoned variant
+    - item_name: Dragon dagger(p++)
+      slug: dragon-dagger-pp
+      relationship: upgrade
+      description: Stronger poison variant
+    - item_name: Weapon poison+
+      slug: weapon-poison-plus
+      relationship: component
+      description: Poison used to upgrade the dagger
+  about: |-
+    | Bonus | Value |
+    |-------|-------|
+    | Stab attack | +40 |
+    | Strength | +40 |
+    | Attack speed | 4 ticks |
+
+    Requires 60 Attack and Lost City completion. Carries the iconic Puncture special — two hits at 25% spec, with +15% accuracy and damage per hit — and applies the upgraded weapon poison+ effect.
+  market_strategy:
+    notes:
+      - "Classic PKing and PvM special-attack weapon"
+      - "Poison variants priced by tier of weapon poison applied"
+      - "Members-only post-Lost City quest"
+  trading_tips:
+    - Track price gap vs unpoisoned dragon dagger to spot arbitrage on weapon poison+
+    - Demand spikes during bossing weeks and Wilderness events
+  history:
+    - date: "2004-03-29"
+      description: "Released as part of the RuneScape 2 launch alongside the dragon dagger."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

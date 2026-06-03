@@ -12,9 +12,91 @@ osrs:
   lowalch: 640000
   highalch: 960000
   limit: 70
-  about: "Dragon kiteshield is a members-only item in Old School RuneScape. High alchemy value: 960,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "2018-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 6.803
+    options: ["Wield", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 6.803
+    requirements:
+      defence: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -8
+      ranged: -3
+    defence_bonus:
+      stab: 56
+      slash: 60
+      crush: 58
+      magic: -1
+      ranged: 58
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 75
+      xp: 1000
+      materials:
+        - item_name: Dragon sq shield
+          quantity: 1
+        - item_name: Dragon metal slice
+          quantity: 1
+        - item_name: Dragon metal shard
+          quantity: 1
+      tools:
+        - Hammer
+      output_quantity: 1
+  about: "Dragon kiteshield is a high-tier members shield introduced with Dragon Slayer II. Forged at the Dragon Forge from a dragon sq shield, dragon metal slice and dragon metal shard at 75 Smithing (1,000 XP). Requires 60 Defence to wield and provides best-in-slot melee defensive bonuses for non-degradable shields, though it does NOT protect against dragonfire. High alchemy value: 960,000 coins. Grand Exchange buy limit: 70 per 4 hours."
+  market_strategy:
+    notes:
+      - "Demand driven by 60 Defence pures and PvM mid-game builds wanting a strong tradeable shield"
+      - "Supply throttled by Dragon Slayer II completion and Dragon Forge access"
+      - "Cosmetic upgradable with the dragon kiteshield ornament kit"
+  trading_tips:
+    - Pair smithing cost vs GE arbitrage when dragon metal slice/shard prices dip
+    - Watch for content updates that introduce new shields (can suppress demand)
+  related_items:
+    - item_name: Dragon sq shield
+      slug: dragon-sq-shield
+      relationship: component
+      description: Base shield needed to forge the kiteshield
+    - item_name: Dragon metal slice
+      slug: dragon-metal-slice
+      relationship: component
+      description: Smithing material from Dragon Slayer II
+    - item_name: Dragon metal shard
+      slug: dragon-metal-shard
+      relationship: component
+      description: Smithing material from Dragon Slayer II
+    - item_name: Dragon kiteshield ornament kit
+      slug: dragon-kiteshield-ornament-kit
+      relationship: upgrade
+      description: Cosmetic recolor for the dragon kiteshield
+  history:
+    - date: "2018-01-04"
+      description: "Added with the Dragon Slayer II update."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,80 +12,113 @@ osrs:
   lowalch: 3720
   highalch: 5580
   limit: 8
+  material:
+    type: dragonhide
+    tier: mid-high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.4
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: feet
-    type: ranged armour
-    attack_style: ranged
+    weapon_type: null
+    attack_speed: null
+    weight: 1.4
     requirements:
       ranged: 70
       defence: 40
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -10
-      attack_ranged: 7
-      defence_stab: 4
-      defence_slash: 4
-      defence_crush: 4
-      defence_magic: 4
-      defence_ranged: 4
-      melee_strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: 7
+    defence_bonus:
+      stab: 4
+      slash: 4
+      crush: 4
+      magic: 4
+      ranged: 4
+    other_bonus:
+      strength: 0
       ranged_strength: 0
       magic_damage: 0
-      prayer_bonus: 1
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Hard
-        rarity: Rare
-        description: Reward from hard clue scroll caskets (1/1,625)
+      prayer: 1
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: "1/1,625"
   related_items:
-    - item_id: 19933
-      item_name: Saradomin d'hide boots
+    - item_name: Saradomin d'hide boots
       slug: saradomin-d-hide-boots
       relationship: variant
-      description: Saradomin variant of blessed d'hide boots
-    - item_id: 19927
-      item_name: Guthix d'hide boots
+      description: "Saradomin-aligned blessed dragonhide boots variant"
+    - item_name: Guthix d'hide boots
       slug: guthix-d-hide-boots
       relationship: variant
-      description: Guthix variant of blessed d'hide boots
-    - item_id: 19930
-      item_name: Armadyl d'hide boots
+      description: "Guthix-aligned blessed dragonhide boots variant"
+    - item_name: Armadyl d'hide boots
       slug: armadyl-d-hide-boots
       relationship: variant
-      description: Armadyl variant of blessed d'hide boots
-    - item_id: 19924
-      item_name: Bandos d'hide boots
+      description: "Armadyl-aligned blessed dragonhide boots variant"
+    - item_name: Bandos d'hide boots
       slug: bandos-d-hide-boots
       relationship: variant
-      description: Bandos variant of blessed d'hide boots
-    - item_id: 19921
-      item_name: Ancient d'hide boots
+      description: "Bandos-aligned blessed dragonhide boots variant"
+    - item_name: Ancient d'hide boots
       slug: ancient-d-hide-boots
       relationship: variant
-      description: Ancient variant of blessed d'hide boots
+      description: "Ancient-aligned blessed dragonhide boots variant"
+    - item_name: Ranger boots
+      slug: ranger-boots
+      relationship: alternative
+      description: "Same plus 7 ranged attack but no prayer bonus"
+    - item_name: Pegasian boots
+      slug: pegasian-boots
+      relationship: upgrade
+      description: "Direct upgrade with stronger ranged stats"
   about: |-
     "Zamorak blessed dragonhide boots."
 
-    The Zamorak d'hide boots are blessed dragonhide boots aligned with the god Zamorak. They require 70 Ranged and 40 Defence to equip and occupy the feet slot. Like all blessed d'hide boots, they offer a +7 ranged attack bonus and a +1 prayer bonus, making them a direct upgrade over regular snakeskin boots for players on a budget.
+    The Zamorak d'hide boots are blessed dragonhide boots aligned with the god Zamorak, awarded from hard clue scroll caskets at a 1/1,625 rate. They require 70 Ranged and 40 Defence to equip and occupy the feet slot. Like all blessed d'hide boots, they offer a plus 7 ranged attack bonus and a plus 1 prayer bonus, making them a direct upgrade over snakeskin boots for ranged setups on a budget.
 
     All six god d'hide boots share identical combat stats, so the choice between them is purely cosmetic or based on God Wars Dungeon faction protection. The Zamorak d'hide boots provide protection from Zamorak-aligned NPCs in the God Wars Dungeon, making them useful for K'ril Tsutsaroth trips.
 
-    Blessed d'hide boots are the best ranged boots available that also provide a prayer bonus, aside from the much more expensive pegasian boots. They share the same +7 ranged attack bonus as ranger boots but add a +1 prayer bonus on top. For players who cannot afford ranger boots or pegasian boots, blessed d'hide boots are the go-to choice for the feet slot in ranged setups.
+    Blessed d'hide boots are the best ranged boots available that also provide a prayer bonus, aside from the much more expensive pegasian boots. They share the plus 7 ranged attack bonus of ranger boots but add a prayer bonus on top. For players who cannot afford ranger boots or pegasian boots, blessed d'hide boots are the go-to choice for the feet slot in ranged setups.
   market_strategy:
-    title: Investment Notes
     notes:
-      - All god d'hide boot variants share the same stats, so price differences are driven by cosmetic demand
-      - Zamorak variants are popular due to the recognizable red-and-black aesthetic
-      - Strong demand from mid-level players building ranged gear sets
-      - Compare prices across all six god variants before buying since stats are identical
-      - Particularly useful for Zamorak protection in the God Wars Dungeon
-      - Buy limit of 8 per 4 hours on the Grand Exchange
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "All god d'hide boot variants share the same stats, so price differences are driven by cosmetic demand"
+      - "Zamorak variants are popular due to the recognizable red-and-black aesthetic"
+      - "Strong demand from mid-level players building ranged gear sets"
+      - "Compare prices across all six god variants before buying since stats are identical"
+      - "Particularly useful for Zamorak protection in the God Wars Dungeon"
+      - "Buy limit of 8 per 4 hours on the Grand Exchange"
+  trading_tips:
+    - Cross-check Saradomin/Guthix prices first when buying for stats only
+    - Spikes during clue-scroll events from boosted hard casket throughput
+  history:
+    - date: "2016-07-06"
+      description: "Released as part of the Treasure Trails expansion update."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,65 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 250
-  about: "Green firelighter is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: consumable
+    tier: low
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+      - master
+  related_items:
+    - item_name: Red firelighter
+      slug: red-firelighter
+      relationship: variant
+      description: "Red-colored firelighter variant."
+    - item_name: Blue firelighter
+      slug: blue-firelighter
+      relationship: variant
+      description: "Blue-colored firelighter variant."
+    - item_name: Purple firelighter
+      slug: purple-firelighter
+      relationship: variant
+      description: "Purple-colored firelighter variant."
+    - item_name: White firelighter
+      slug: white-firelighter
+      relationship: variant
+      description: "White-colored firelighter variant."
+  about: "Green firelighters are obtained from Treasure Trails reward caskets across all difficulty tiers and combine with logs to create green-colored fires. 250 green firelighters can be used to recolor a Phoenix pet to green; the recolor mechanic prompted the GE buy limit to be raised from 150 to 250."
+  market_strategy:
+    notes:
+      - "Demand spikes around Phoenix pet recolor projects (250-unit bulk consumption)."
+      - "Master tier supply (20-38 per drop, 1/151.6) is the dominant source."
+  trading_tips:
+    - "Stockpile during clue-event weekends when supply increases."
+    - "Sell into Phoenix recolor demand for short bursts of premium pricing."
+  history:
+    - date: "2006-02-20"
+      description: "Released as treasure trail rewards alongside other firelighter colors."
+    - date: "2020-01-29"
+      description: "Phoenix pet recolor mechanic added; GE buy limit raised from 150 to 250."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

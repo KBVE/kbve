@@ -12,9 +12,51 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 13000
-  about: "Roe is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: organic
+    tier: low
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options: ["Eat", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: "Roe is a members ingredient harvested by cutting open leaping trout or leaping salmon with a knife during Barbarian fishing. Heals 3 hitpoints when eaten and is the primary ingredient for five Barbarian-mix potions (Attack, Strength, Restore, Antipoison, Relicym's). Roe yield scales with Cooking level. High alchemy value: 12 coins. Grand Exchange buy limit: 13,000 per 4 hours."
+  market_strategy:
+    notes:
+      - "Demand driven by Barbarian-mix potion crafters and Herblore training"
+      - "Reagent pouch and prescription goggles (Oct 2024) reduced consumption per mix"
+      - "Supply tied to Barbarian fishing throughput — volatile during fishing meta shifts"
+  trading_tips:
+    - Bulk-buy when Barbarian fishing is unpopular for cheap Herblore-mix supply
+    - Sell into demand spikes when new Barbarian potion content launches
+  related_items:
+    - item_name: Caviar
+      slug: caviar
+      relationship: alternative
+      description: Higher-tier sturgeon roe used for the other Barbarian mixes
+    - item_name: Leaping salmon
+      slug: leaping-salmon
+      relationship: component
+      description: Fish that yields roe when cut with a knife
+    - item_name: Leaping trout
+      slug: leaping-trout
+      relationship: component
+      description: Fish that yields roe when cut with a knife
+  history:
+    - date: "2007-07-03"
+      description: "Added to the game with the introduction of Barbarian Training fishing."
+    - date: "2024-10-16"
+      description: "Added reagent pouch compatibility and prescription goggles interaction to save roe during Barbarian potion-making."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
