@@ -27,17 +27,21 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 
 				<!-- Section: Nodes — title is server-rendered at build time
 				     so it lands in the initial HTML; React island only owns
-				     the dynamic stat cards / drill-downs / charts. -->
+				     the dynamic stat cards / drill-downs / charts.
+				     client:visible defers React hydration until the section
+				     scrolls into view. grafanaService keeps fetching from
+				     ReactGrafanaAuth.initAuth() above, so the nanostores are
+				     already populated by the time the island mounts. -->
 				<section id="grafana-nodes" class="kbve-dash-section">
 					<h2 class="kbve-dash-section-title">Nodes</h2>
-					<ReactGrafanaNodes client:only="react" />
+					<ReactGrafanaNodes client:visible />
 				</section>
 
-				<!-- Section: Kubernetes — same pattern, static title +
-				     React-only dynamic body. -->
+				<!-- Section: Kubernetes — below the fold on most viewports,
+				     same lazy-hydration pattern as Nodes. -->
 				<section id="grafana-k8s" class="kbve-dash-section">
 					<h2 class="kbve-dash-section-title">Kubernetes</h2>
-					<ReactGrafanaK8s client:only="react" />
+					<ReactGrafanaK8s client:visible />
 				</section>
 			</div>
 		</ReactGrafanaAuth>
