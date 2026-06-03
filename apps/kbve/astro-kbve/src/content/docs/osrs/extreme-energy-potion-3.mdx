@@ -12,9 +12,65 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: null
-  about: "Extreme energy potion(3) is a members-only item in Old School RuneScape. High alchemy value: 102 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.09
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: herblore
+      level: 66
+      xp: 63
+      materials:
+        - item_name: Super energy potion(3)
+          quantity: 1
+        - item_name: Yellow fin
+          quantity: 3
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: Restores 40% of the player's run energy per dose. Cannot be used to create stamina potions.
+        duration: null
+  related_items:
+    - item_name: Extreme energy potion(4)
+      slug: extreme-energy-potion-4
+      relationship: variant
+      description: 4-dose version of the same potion
+    - item_name: Extreme energy potion(2)
+      slug: extreme-energy-potion-2
+      relationship: variant
+      description: 2-dose version of the same potion
+    - item_name: Extreme energy potion(1)
+      slug: extreme-energy-potion-1
+      relationship: variant
+      description: 1-dose version of the same potion
+    - item_name: Super energy potion(3)
+      slug: super-energy-potion-3
+      relationship: component
+      description: Base potion upgraded with yellow fin into extreme energy
+    - item_name: Yellow fin
+      slug: yellow-fin
+      relationship: component
+      description: Sailing-source fish added to super energy potions to make extreme energy
+  about: "Extreme energy potion(3) is a 3-dose run energy restore released with the Sailing update. Each dose restores 40% run energy, and the potion is made at 66 Herblore by adding yellow fin to super energy potions. It cannot be used as a stamina potion base."
+  market_strategy:
+    notes:
+      - "Sailing-era potion — supply scales with yellow fin catch rates"
+      - "Doses trade against stamina potion alternative pricing"
+      - "Bulk runners and ironmen are the main consumer base"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

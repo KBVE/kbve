@@ -12,51 +12,82 @@ osrs:
   lowalch: 810
   highalch: 1215
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ruby
+    tier: mid
+  properties:
+    release_date: "2001-05-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.007
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
+    weight: 0.007
     requirements:
       crafting: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 50
       xp: 85
-      inputs:
-        - item_name: Ruby
+      materials:
+        - item_name: Ruby amulet (u)
           quantity: 1
-        - item_name: Gold bar
+        - item_name: Ball of wool
           quantity: 1
+      tools: []
       output_quantity: 1
   related_items:
-    - item_id: 1696
-      item_name: Emerald amulet
+    - item_name: Emerald amulet
       slug: emerald-amulet
       relationship: downgrade
       description: Previous tier amulet
-    - item_id: 1700
-      item_name: Diamond amulet
+    - item_name: Diamond amulet
       slug: diamond-amulet
       relationship: upgrade
       description: Next tier amulet
-  about: |-
-    Crafting (Level 50): Ruby + Gold bar at a furnace with amulet mould (85 XP). String with ball of wool.
-
-    > *"A ruby amulet."*
-
-    Lvl-3 Enchant (49 Magic): 1 cosmic rune + 5 fire runes (59 XP)
-
-    The Amulet of strength provides +10 melee Strength — the best F2P Strength amulet. Essential for:
-    - F2P melee training (highest Strength bonus available)
-    - Budget P2P training before glory/fury
-    - F2P PKing
-
-    In F2P, the amulet of strength is best-in-slot for melee Strength bonus. Combined with a rune scimitar, it's the core F2P melee setup.
+    - item_name: Amulet of strength
+      slug: amulet-of-strength
+      relationship: product
+      description: Enchanted with Lvl-3 Enchant for +10 Strength bonus
+  about: "Ruby amulet is crafted by stringing an unstrung ruby amulet with a ball of wool, granting 4 Crafting experience. The unstrung amulet is created at a furnace from a ruby, gold bar, and amulet mould at level 50 Crafting (85 XP). When enchanted with Lvl-3 Enchant (49 Magic, 1 cosmic + 5 fire runes), it becomes the Amulet of strength providing +10 melee Strength — the best F2P Strength amulet."
   market_strategy:
     notes:
-      - High F2P demand — BiS Strength amulet for free players
-      - Popular crafting/enchanting training
-      - Cheap to make
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "High F2P demand for Amulet of strength conversion"
+      - "Popular crafting and enchanting training item"
+      - "Cheap to produce"
+  history:
+    - date: "2001-05-08"
+      description: Released with the introduction of jewellery crafting.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

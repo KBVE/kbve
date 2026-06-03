@@ -12,9 +12,75 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "Bandana eyepatch (brown) is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2006-07-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weight: 1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Bandana eyepatch (blue)
+      slug: bandana-eyepatch-blue
+      relationship: variant
+      description: Blue colour variant
+    - item_name: Bandana eyepatch (red)
+      slug: bandana-eyepatch-red
+      relationship: variant
+      description: Red colour variant
+    - item_name: Bandana eyepatch (white)
+      slug: bandana-eyepatch-white
+      relationship: variant
+      description: White colour variant
+    - item_name: Pirate bandana (brown)
+      slug: pirate-bandana-brown
+      relationship: component
+      description: Base bandana combined with an eyepatch
+  about: "Bandana eyepatch (brown) is a cosmetic pirate headwear item created after Cabin Fever by combining a brown pirate bandana and right eye patch with Patchy on Mos Le'Harmless for 500 coins. It carries no combat bonuses but is accepted for elite clue scroll tasks requiring a bandana."
+  market_strategy:
+    notes:
+      - "Cosmetic-only demand from clue scroll completionists"
+      - "Crafted supply keeps margins thin near the 735 coin material cost"
+  history:
+    - date: "2006-07-04"
+      description: Bandana eyepatches released with the Cabin Fever quest.
+    - date: "2025-09-24"
+      description: Accepted as the bandana for elite clue scroll tasks.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,73 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 150
-  about: "Stripy pirate shirt (beige) is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2006-02-07"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Dodgy Mike's Second-hand Clothing
+      location: Mos Le'Harmless
+      price: 300
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Stripy pirate shirt (blue)
+      slug: stripy-pirate-shirt-blue
+      relationship: variant
+      description: Blue-coloured variant sold from the same shop.
+    - item_name: Stripy pirate shirt (brown)
+      slug: stripy-pirate-shirt-brown
+      relationship: variant
+      description: Brown-coloured variant of the pirate shirt.
+    - item_name: Stripy pirate shirt (red)
+      slug: stripy-pirate-shirt-red
+      relationship: variant
+      description: Red-coloured variant of the pirate shirt.
+    - item_name: Pirate bandana (beige)
+      slug: pirate-bandana-beige
+      relationship: set-piece
+      description: Matching beige bandana that completes the pirate outfit.
+  about: "Stripy pirate shirt (beige) is a cosmetic body slot garment sold by Dodgy Mike's Second-hand Clothing on Mos Le'Harmless. It grants no combat bonuses and is purely decorative, popular with players completing themed pirate outfits alongside matching bandanas, leggings, and eyepatches. The Grand Exchange buy limit of 150 keeps prices reactive to outfit trends and Mos Le'Harmless activity."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

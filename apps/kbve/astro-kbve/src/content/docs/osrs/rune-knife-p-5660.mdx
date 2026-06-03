@@ -12,9 +12,87 @@ osrs:
   lowalch: 66
   highalch: 99
   limit: 7000
-  about: "Rune knife(p+) is a members-only item in Old School RuneScape. High alchemy value: 99 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune
+    tier: mid-high
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 2
+    weight: 0
+    requirements:
+      ranged: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 25
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 24
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: herblore
+      level: 73
+      xp: 190
+      materials:
+        - item_name: Rune knife
+          quantity: 5
+        - item_name: Weapon poison(+)
+          quantity: 1
+      tools: []
+      output_quantity: 5
+  related_items:
+    - item_name: Rune knife
+      slug: rune-knife
+      relationship: variant
+      description: Unpoisoned version
+    - item_name: Rune knife(p)
+      slug: rune-knife-p-lower
+      relationship: variant
+      description: Standard poison variant
+    - item_name: Rune knife(p++)
+      slug: rune-knife-p-plus-plus
+      relationship: upgrade
+      description: Stronger poison variant
+    - item_name: Dragon knife(p+)
+      slug: dragon-knife-p-plus
+      relationship: upgrade
+      description: Dragon-tier alternative
+  about: "Rune knife(p+) is a poisoned variant of the rune throwing knife, created by applying Weapon poison(+) at 73 Herblore. Equippable at 40 Ranged with +25 Ranged attack and +24 Ranged strength at a 2-tick rapid attack speed, matching the unpoisoned knife but with an enhanced poison effect. Popular in PvP for its rapid throw rate and animation cancel windows."
+  market_strategy:
+    notes:
+      - "PvP-driven demand from rune-knife stake players"
+      - "High alch 99 caps downside near vendor floor"
+      - "Stackable variant makes inventory storage cheap"
+  trading_tips:
+    - Buy stacks during off-peak hours to flip into PvP weekends
+    - Track 92 Smithing supply via runite bar prices for cost basis
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

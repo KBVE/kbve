@@ -12,9 +12,37 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 100
-  about: "Thatch spar med is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    alchable: true
+  related_items:
+    - item_name: Thatch spar light
+      slug: thatch-spar-light
+      relationship: variant
+      description: Light-grade thatch pole harvested from light jungle in Tai Bwo Wannai.
+    - item_name: Thatch spar dense
+      slug: thatch-spar-dense
+      relationship: variant
+      description: Dense-grade thatch pole harvested from dense jungle.
+    - item_name: Machete
+      slug: machete
+      relationship: component
+      description: Required tool for clearing jungle and collecting thatch spars.
+  about: "Thatch spar med is the medium-grade wooden pole harvested by clearing medium jungle during the Tai Bwo Wannai Cleanup activity. It requires level 20 Woodcutting and a machete to chop, with the resulting pole used to repair Mort'ton's fences during Shades of Mort'ton or to fashion skewer sticks for cooking spider on stick. The Grand Exchange buy limit is 100 per four hours, reflecting its niche role outside of those minigame loops."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,52 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of slaughter is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: sigil
+    tier: high
+  properties:
+    release_date: "2021-08-25"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Unlock
+      - Inspect
+      - Destroy
+    worn_options: []
+    alchable: false
+    destroy: "You must unattune the Sigil before you can destroy it."
+  passive_effects:
+    - name: Slayer task selection
+      description: "Spend Slayer reward points (30-60 per event) to choose specific non-boss Slayer tasks."
+    - name: Superior boost
+      description: "Doubles the appearance rate of Superior slayer monsters while on task."
+    - name: Toggleable kill modifier
+      description: "Toggle either a 25% chance that kills do not consume task count (while still granting XP) or a 25% chance that kills count twice toward the task."
+  related_items:
+    - item_name: Bracelet of slaughter
+      slug: bracelet-of-slaughter
+      relationship: alternative
+      description: "Standard slayer bracelet providing the kills-don't-count effect; does not stack with the sigil."
+  about: "Sigil of slaughter is a members-only Deadman Mode sigil released on 25 August 2021. It is an event-exclusive reward dropped by most monsters during temporary Deadman Mode tournaments and is currently unobtainable in the live game. When attuned the sigil lets the player spend Slayer reward points to lock in specific non-boss slayer tasks, doubles the spawn chance of superior slayer monsters and provides a toggle between a 25% chance kills do not consume the task counter (still granting XP) or a 25% chance kills count twice. It does not stack with the equivalent bracelet effects and must be unattuned before it can be destroyed. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
+  market_strategy:
+    notes:
+      - "Only enters the economy during Deadman events; long-term holders bet on future event reruns."
+      - "Strong demand among Slayer mains during events because it stacks with Slayer reward shop point sinks."
+      - "Buy limit of 8 keeps event-time market thin and volatile."
+  trading_tips:
+    - "Track Jagmod Deadman event announcements to time accumulation."
+    - "Combine with bracelet of slaughter charge stockpiles for slayer task throughput sales."
+    - "Avoid over-leveraging - the item becomes untradeable when Deadman events close."
+  history:
+    - date: "2021-08-25"
+      description: "Released as a Deadman Mode reward drop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

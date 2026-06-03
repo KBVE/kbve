@@ -12,118 +12,108 @@ osrs:
   lowalch: 7050
   highalch: 10575
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragonstone
+    tier: mid-high
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Rub
+      - Drop
+    worn_options:
+      - Rub
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
-    type: amulet
-    stats:
-      attack_stab: 10
-      attack_slash: 10
-      attack_crush: 10
-      attack_magic: 10
-      attack_ranged: 10
+    weapon_type: null
+    attack_speed: null
+    weight: 0.01
+    requirements: {}
+    attack_bonus:
+      stab: 10
+      slash: 10
+      crush: 10
+      magic: 10
+      ranged: 10
+    defence_bonus:
+      stab: 3
+      slash: 3
+      crush: 3
+      magic: 3
+      ranged: 3
+    other_bonus:
       strength: 6
-      defence_all: 3
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 3
-  effect:
-    teleports:
-      - destination: Edgeville
-      - destination: Karamja
-      - destination: Draynor Village
-      - destination: Al Kharid
-    charges: 4
-    recharge: Fountain of Heroes (4), Fountain of Rune (6)
   recipes:
     - skill: magic
       level: 68
       xp: 78
       materials:
-        - item_id: 1702
-          item_name: Dragonstone amulet
+        - item_name: Dragonstone amulet
           quantity: 1
-        - item_id: 555
-          item_name: Water rune
+        - item_name: Water rune
           quantity: 15
-        - item_id: 557
-          item_name: Earth rune
+        - item_name: Earth rune
           quantity: 15
-        - item_id: 564
-          item_name: Cosmic rune
+        - item_name: Cosmic rune
           quantity: 1
-      product: Amulet of glory(4)
-      product_id: 1712
-      facility: N/A
+      tools: []
+      output_quantity: 1
+  charges:
+    type: teleport
+    description: "Holds four teleport charges to Edgeville, Karamja, Draynor Village, or Al Kharid. Recharge at the Fountain of Heroes (4 charges) after Heroes' Quest or at the Fountain of Rune (6 charges) for a full inventory of glories."
   related_items:
-    - item_id: 6585
-      item_name: Amulet of fury
-      slug: amulet-of-fury
+    - item_name: Amulet of glory(6)
+      slug: amulet-of-glory-6
       relationship: upgrade
-      description: Combat upgrade
-    - item_id: 19707
-      item_name: Amulet of eternal glory
+      description: Six-charge variant obtained from the Fountain of Rune.
+    - item_name: Amulet of glory
+      slug: amulet-of-glory
+      relationship: variant
+      description: Uncharged amulet, enchant to recharge it.
+    - item_name: Amulet of eternal glory
       slug: amulet-of-eternal-glory
       relationship: upgrade
-      description: Unlimited charges
-    - item_id: 11105
-      item_name: Skills necklace
+      description: Rare 1/25,000 transformation with unlimited teleports.
+    - item_name: Amulet of fury
+      slug: amulet-of-fury
+      relationship: upgrade
+      description: End-game neck slot upgrade for combat bonuses.
+    - item_name: Skills necklace
       slug: skills-necklace
       relationship: alternative
-      description: Different teleports
-  about: |-
-    Enchant Dragonstone amulet with Lvl-5 Enchant.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Magic | 68 (boostable) |
-    | Runes | 15 water, 15 earth, 1 cosmic |
-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | +10 |
-    | Slash | +10 |
-    | Crush | +10 |
-    | Magic | +10 |
-    | Ranged | +10 |
-    | Strength | +6 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | +3 |
-
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +3 |
-
-    | Destination | Charges |
-    |-------------|---------|
-    | Edgeville | 1 |
-    | Karamja | 1 |
-    | Draynor Village | 1 |
-    | Al Kharid | 1 |
-
-    Recharge: Fountain of Heroes (4), Fountain of Rune (6)
-
-    Popular for:
-    - Early-mid game teleports
-    - Gem mining (dragonstone chance)
-    - Budget combat amulet
-
-    Required for upgrade:
-    - 8x Amulet of glory(4)
-    - 8x Ring of wealth (5)
-    - 2x Gold leaf
-    - 91 Construction
-
-    Provides unlimited teleports to all glory destinations from POH.
+      description: Alternative dragonstone jewellery offering skill teleports.
+  about: "Amulet of glory(4) is the most common charged form of the amulet of glory, released alongside Old School RuneScape's dragonstone jewellery in February 2002. Enchanting a dragonstone amulet with Lvl-5 Enchant at Magic 68 produces the four-charge version. Each rub teleports the wearer to Edgeville, Karamja, Draynor Village, or Al Kharid, while the +10 attack and +6 strength bonuses make it a workhorse mid-game neck slot piece."
   market_strategy:
     notes:
-      - Very affordable
-      - Buy 8 for ornate jewellery box
-      - Upgrade to fury for combat later
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand spikes around Construction goals that require eight glories for an ornate jewellery box."
+      - "Recharging at the Fountain of Rune trades player time for an extra two charges per glory."
+  trading_tips:
+    - Buying in bulk near the 10,000 limit suits Construction grinders.
+    - Watch dragonstone amulet prices; the (4) version flips alongside enchant material costs.
+  history:
+    - date: "2002-02-27"
+      description: Released with the original dragonstone jewellery batch.
+    - date: "2015-04-23"
+      description: Partial charges were made untradeable to combat exploit chains.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

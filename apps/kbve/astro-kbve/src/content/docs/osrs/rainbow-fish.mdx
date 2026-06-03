@@ -1,6 +1,6 @@
 ---
 title: Rainbow fish | OSRS Price Data
-description: "Rainbow fish: Well, this would certainly add some colour to a meal.. High alch: 72 GP, GE limit: 6,000."
+description: "Rainbow fish: Well, this would certainly add some colour to a meal. High alch: 72 GP, GE limit: 6,000."
 osrs:
   id: 10136
   name: Rainbow fish
@@ -12,12 +12,62 @@ osrs:
   lowalch: 48
   highalch: 72
   limit: 6000
-  about: "Rainbow fish is a members-only item in Old School RuneScape. High alchemy value: 72 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: fish
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options: ["Eat", "Drop"]
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: cooking
+      level: 35
+      xp: 110
+      materials:
+        - item_name: Raw rainbow fish
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Raw rainbow fish
+      slug: raw-rainbow-fish
+      relationship: component
+      description: Uncooked source caught from gourmet impling jars
+    - item_name: Burnt rainbow fish
+      slug: burnt-rainbow-fish
+      relationship: alternative
+      description: Failure result when cooking below level 63
+    - item_name: Gourmet impling jar
+      slug: gourmet-impling-jar
+      relationship: component
+      description: Jar that can contain a rainbow fish
+  about: "Rainbow fish is a members-only cooked food made by cooking a raw rainbow fish at level 35 Cooking for 110 experience. It heals 11 hitpoints when eaten and stops burning at level 63 Cooking on a fire or range. The raw form is obtained from gourmet implings, making rainbow fish a niche but solid early-to-mid game cooking method for players hunting implings."
+  market_strategy:
+    notes:
+      - "Cooking training food with 110 XP per fish"
+      - "Supply tied to gourmet impling hunting"
+      - "6,000 GE buy limit makes bulk flips viable"
+      - "High alch only 72 GP - not an alch candidate"
+  trading_tips:
+    - Watch impling spawn updates - they can shift supply quickly
+    - Cooking training spikes can move price short term
+  history:
+    - date: "2006-11-21"
+      description: Released with the Hunter skill rework that added implings.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

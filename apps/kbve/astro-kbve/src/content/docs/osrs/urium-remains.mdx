@@ -12,9 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7500
-  about: "Urium remains is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: remains
+    tier: high
+  properties:
+    release_date: "2021-01-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Urium Shade
+        quantity: "1"
+        rarity: Always
+  related_items:
+    - item_name: Loar remains
+      slug: loar-remains
+      relationship: alternative
+      description: "Lowest-tier shade remains used in the Shades of Mort'ton minigame."
+    - item_name: Phrin remains
+      slug: phrin-remains
+      relationship: alternative
+      description: "Mid-low tier shade remains burned on pyres."
+    - item_name: Riyl remains
+      slug: riyl-remains
+      relationship: alternative
+      description: "Mid-tier shade remains burned on pyres."
+    - item_name: Asyn remains
+      slug: asyn-remains
+      relationship: alternative
+      description: "High-tier shade remains burned on pyres."
+    - item_name: Fiyr remains
+      slug: fiyr-remains
+      relationship: alternative
+      description: "Premium-tier shade remains burned on pyres."
+  about: "Urium remains are the highest-tier shade remains in Old School RuneScape, dropped exclusively by Urium Shades (combat level 140) located behind the solid gold door in the Shade Catacombs beneath Mort'ton. Released on 27 January 2021 with the Shades of Mort'ton Rework, the remains are cremated on a funeral pyre with redwood or rosewood pyre logs and a tinderbox to grant the largest Firemaking and Prayer experience yields of any shade. Each cremation has a 79% chance to drop a gold shade key colour and a 21% chance to drop 2,000-7,000 coins. As of May 2024 dropped remains persist for 5 minutes instead of 30 seconds during the exclusive-pickup window. Grand Exchange buy limit: 7,500 per 4 hours."
+  market_strategy:
+    notes:
+      - "Value scales with redwood pyre log price and the demand for gold shade keys; track both together."
+      - "Supply is bottlenecked by Urium Shade kill rate, so prices spike during double-XP weekends."
+      - "GE buy limit of 7,500 makes accumulation feasible without splitting accounts."
+  trading_tips:
+    - "Buy in bulk during slow weekday hours; resell into weekend Firemaking demand."
+    - "Bundle with redwood pyre logs and tinderboxes for one-stop Firemaking/Prayer XP buyers."
+    - "Monitor gold key drop rates and chest reward patches that may alter cremation profitability."
+  history:
+    - date: "2021-01-27"
+      description: "Released with the Shades of Mort'ton Rework update."
+    - date: "2024-05-15"
+      description: "Dropped remains now despawn after 5 minutes instead of 30 seconds, with exclusive pickup during that window."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

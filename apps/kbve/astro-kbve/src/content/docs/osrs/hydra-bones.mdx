@@ -12,43 +12,55 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 7500
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
     type: bones
+    tier: high
+  properties:
+    release_date: "2019-01-10"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 1.8
-    prayer_xp:
-      buried: 110
-      gilded_altar: 385
-      ectofuntus: 440
-      sinister_offering: 330
+    options:
+      - Bury
+      - Drop
+    worn_options: []
+    alchable: true
+  drop_table:
+    sources:
+      - source: Hydra
+        quantity: "1"
+        rarity: Always
+      - source: Alchemical Hydra
+        quantity: "1"
+        rarity: Always
+      - source: Colossal Hydra
+        quantity: "1"
+        rarity: Always
   related_items:
-    - item_id: 536
-      item_name: Dragon bones
+    - item_name: Dragon bones
       slug: dragon-bones
       relationship: alternative
-      description: Similar tier bones
-    - item_id: 6729
-      item_name: Dagannoth bones
+      description: Lower-tier prayer bone alternative
+    - item_name: Dagannoth bones
       slug: dagannoth-bones
       relationship: alternative
-      description: Higher XP option
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Bones |
-    | Tradeable | Yes |
-    | Weight | 1.8 kg |
-    | Prayer XP | 110 (buried) |
-
-    Prayer training: Bury for 110 XP.
-
-    Enhanced methods:
-    - Gilded/Chaos altar: 385 XP
-    - Ectofuntus: 440 XP
-    - Sinister Offering: 330 XP
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Higher-XP prayer alternative
+  about: "Hydra bones drop from Hydra, Alchemical Hydra, and Colossal Hydra in the Karuulm Slayer Dungeon. They grant 110 Prayer XP when buried, 385 XP at a Gilded/Chaos altar with two burners, 440 XP at the Ectofuntus, and 330 XP via Sinister Offering, making them one of the strongest bone options in the game."
+  market_strategy:
+    notes:
+      - "Demand scales with Hydra slayer task popularity and Prayer training cost"
+      - "Gilded altar method offers the best XP-to-cost ratio"
+  history:
+    - date: "2019-01-10"
+      description: Introduced with the Karuulm Slayer Dungeon update.
+    - date: "2019-02-07"
+      description: Prayer XP values increased (bury 90 to 110, altar 315 to 385, Ectofuntus 360 to 440).
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

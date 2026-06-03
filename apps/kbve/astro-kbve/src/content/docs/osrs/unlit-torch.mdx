@@ -12,13 +12,52 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 40
-  related_items: []
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: utility
+    tier: low
+  properties:
+    release_date: "2002-09-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Lit torch
+      slug: lit-torch
+      relationship: upgrade
+      description: Activated form, light source
+    - item_name: Tinderbox
+      slug: tinderbox
+      relationship: component
+      description: Required to light the torch
   about: |-
-    > _"An unlit torch."_
+    > _"An unlit home-made torch."_
 
-    An unlit torch can be lit with a tinderbox to create a lit torch, providing a light source in dark areas like the Lumbridge Swamp Caves. Burns out over time.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The unlit torch becomes a light source when lit with a tinderbox, useful in dark areas like the Lumbridge Swamp Caves. Players can equip up to three lit torches for enhanced brightness. In Hunter at 39+, lit torches smoke traps to boost catch rates by 2%. Renamed from "Torch" in May 2006 when player-owned houses arrived.
+  market_strategy:
+    notes:
+      - "Low-value utility item"
+      - "Demand tied to Lumbridge caves and Hunter"
+      - "Buy limit 40, low liquidity"
+      - "Cheap entry for new players"
+  trading_tips:
+    - Negligible margins, not a flip target
+    - Easier to buy than craft for some
+  history:
+    - date: "2002-09-09"
+      description: Released as "Torch" with original game launch content.
+    - date: "2006-05-30"
+      description: Renamed to "Unlit torch" with POH update.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

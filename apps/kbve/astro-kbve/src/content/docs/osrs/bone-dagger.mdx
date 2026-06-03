@@ -12,9 +12,84 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 70
-  about: "Bone dagger is a members-only item in Old School RuneScape. High alchemy value: 1,200 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bone
+    tier: mid
+  properties:
+    release_date: "2006-06-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options: ["Wield", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: dagger
+    attack_speed: 4
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 5
+      slash: 3
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 4
+      prayer: 0
+  shops:
+    - shop_name: Nardok's Bone Weapons
+      location: Dorgesh-Kaan
+      price: 2000
+      currency: coins
+      stock: 5
+  special_attack:
+    name: Backstab
+    description: Drains the target's Defence by the damage dealt. Cannot miss if the target has not yet been damaged in the fight.
+    energy: 75
+  related_items:
+    - item_name: Bone dagger(p)
+      slug: bone-dagger-p
+      relationship: variant
+      description: Poisoned variant.
+    - item_name: Bone dagger(p+)
+      slug: bone-dagger-p
+      relationship: variant
+      description: Stronger-poison variant.
+    - item_name: Bone dagger(p++)
+      slug: bone-dagger-p
+      relationship: variant
+      description: Strongest-poison variant.
+    - item_name: Dorgeshuun crossbow
+      slug: dorgeshuun-crossbow
+      relationship: alternative
+      description: Other Dorgeshuun-tier weapon with stat-draining special.
+  about: "The Bone dagger is a Dorgeshuun weapon purchased from Nardok's Bone Weapons in Dorgesh-Kaan (requires the Death to the Dorgeshuun quest). Its Backstab special attack drains the target's Defence and is guaranteed to land on a target that has not been damaged yet in combat, making it useful for opening attacks in PvP."
+  market_strategy:
+    notes:
+      - "Shop price (2,000 gp) caps GE upside; demand driven by PKers and ironmen."
+      - "Buy limit 70 / 4h keeps flips modest."
+  history:
+    - date: "2006-06-21"
+      description: Released with the Death to the Dorgeshuun quest content.
+    - date: "2006-08-29"
+      description: Poisoned variants renamed to (p+)/(p++).
+    - date: "2021-07-21"
+      description: Female-character weapon positioning corrected.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

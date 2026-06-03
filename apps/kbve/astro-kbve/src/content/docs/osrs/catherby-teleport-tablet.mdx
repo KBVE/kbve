@@ -12,9 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Catherby teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: tablet
+    tier: mid
+  properties:
+    release_date: "2020-09-30"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: magic
+      level: 87
+      xp: 89
+      materials:
+        - item_name: Law rune
+          quantity: 3
+        - item_name: Water rune
+          quantity: 10
+        - item_name: Astral rune
+          quantity: 3
+        - item_name: Soft clay
+          quantity: 1
+      tools:
+        - Lunar lectern
+      output_quantity: 1
+  related_items:
+    - item_name: Moonclan teleport (tablet)
+      slug: moonclan-teleport-tablet
+      relationship: variant
+      description: Another Lunar spellbook teleport tablet
+    - item_name: Fishing Guild teleport (tablet)
+      slug: fishing-guild-teleport-tablet
+      relationship: variant
+      description: Sibling Lunar teleport tablet
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Required tablet material
+  about: "The Catherby teleport tablet teleports the player to Catherby bank when broken. Crafted at a Lunar lectern in a player-owned house at 87 Magic with the Lunar spellbook active. The user does not need the Magic level to break it, making it popular for low-level skillers fishing or farming in Catherby."
+  market_strategy:
+    notes:
+      - "Demand tracks Fishing and Farming activity"
+      - "Buy limit raised to 10,000 in 2020 keeps spreads tight"
+      - "Soft clay and astral rune prices drive cost basis"
+  history:
+    - date: "2020-09-30"
+      description: "Released with the Lunar tablets update."
+    - date: "2020-10-14"
+      description: "Buy limit raised from 100 to 10,000."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

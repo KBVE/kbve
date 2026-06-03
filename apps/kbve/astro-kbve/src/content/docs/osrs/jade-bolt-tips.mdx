@@ -1,6 +1,6 @@
 ---
 title: Jade bolt tips | OSRS Price Data
-description: "Jade bolt tips: Jade bolt tips.. High alch: 6 GP, GE limit: 11,000."
+description: "Jade bolt tips: Jade bolt tips. High alch: 6 GP, GE limit: 11,000."
 osrs:
   id: 9187
   name: Jade bolt tips
@@ -12,12 +12,63 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 11000
-  about: "Jade bolt tips is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: jade
+    tier: low
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options: ["Drop"]
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: fletching
+      level: 26
+      xp: 2
+      materials:
+        - item_name: Jade
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 12
+  related_items:
+    - item_name: Jade
+      slug: jade
+      relationship: component
+      description: Cut gem used to craft the tips
+    - item_name: Jade bolts
+      slug: jade-bolts
+      relationship: product
+      description: Blurite bolts tipped with jade
+    - item_name: Jade dragon bolts
+      slug: jade-dragon-bolts
+      relationship: product
+      description: Dragon bolts tipped with jade
+  about: "Jade bolt tips are members-only fletching components made by using a chisel on a cut jade at level 26 Fletching for 2 experience, producing 12 tips per gem. Attach them to blurite bolts (level 26 Fletching) or dragon bolts (level 84 Fletching) to make jade bolts or jade dragon bolts, both of which can be enchanted for special effects."
+  market_strategy:
+    notes:
+      - "High GE buy limit of 11,000 enables bulk flipping"
+      - "Members-only fletching commodity"
+      - "Supply driven by chisel-on-jade processing"
+      - "Alch value of 6 GP makes alching irrelevant"
+  trading_tips:
+    - Track cut jade price for raw-material arbitrage
+    - Spikes follow ranged content or bolt-enchant updates
+  history:
+    - date: "2006-07-31"
+      description: Released as part of the Crossbows update.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

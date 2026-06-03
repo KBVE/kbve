@@ -1,6 +1,6 @@
 ---
 title: Team-30 cape | OSRS Price Data
-description: "Team-30 cape: Ooohhh look at the pretty colours.... High alch: 30 GP, GE limit: 150."
+description: "Team-30 cape: Ooohhh look at the pretty colours. High alch: 30 GP, GE limit: 150."
 osrs:
   id: 4373
   name: Team-30 cape
@@ -12,9 +12,74 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-30 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2005-02-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Team-29 cape
+      slug: team-29-cape
+      relationship: variant
+      description: Adjacent numbered team cape variant
+    - item_name: Team-31 cape
+      slug: team-31-cape
+      relationship: variant
+      description: Adjacent numbered team cape variant
+  about: "The Team-30 cape is one of fifty numbered team capes used for player-organised team events and PvP. Wearing a matching cape causes teammates to appear as blue dots on the minimap, with the attack option shifted to right-click. Originally a members item, the team capes were released to free-to-play players on 23 May 2013. They have minor defensive bonuses but are primarily cosmetic and organisational."
+  market_strategy:
+    notes:
+      - "Cheap free-to-play item with low GE volume"
+      - "Occasional spikes around clan event seasons"
+      - "Profit margins are tight given the 30 gp alch value"
+  trading_tips:
+    - Bulk flip near the 150 buy limit for small consistent margins
+    - Watch for in-game events that drive demand for team capes
+    - Compare against neighbouring numbered team capes for relative value
+  history:
+    - date: "2005-02-22"
+      description: "Added to the game as a members item."
+    - date: "2013-05-23"
+      description: "Made available to free-to-play players."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

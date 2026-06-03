@@ -12,9 +12,83 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 11000
-  about: "Chaos talisman is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: talisman
+    tier: low
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.015
+    options: ["Locate", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Chaos druid
+        quantity: "1"
+        rarity: Common
+      - source: Abyssal leech
+        quantity: "1"
+        rarity: Common
+      - source: Abyssal walker
+        quantity: "1"
+        rarity: Common
+      - source: Abyssal guardian
+        quantity: "1"
+        rarity: Common
+      - source: Rare drop table
+        quantity: "1"
+        rarity: Uncommon
+  recipes:
+    - skill: runecraft
+      level: 1
+      xp: 42.5
+      materials:
+        - item_name: Tiara
+          quantity: 1
+        - item_name: Chaos talisman
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Chaos tiara
+      slug: chaos-tiara
+      relationship: product
+      description: Wearable headgear crafted from a chaos talisman and a regular tiara.
+    - item_name: Chaos rune
+      slug: chaos-rune
+      relationship: product
+      description: Runecrafting output created at the Chaos Altar using a pure essence.
+    - item_name: Elemental talisman
+      slug: elemental-talisman
+      relationship: alternative
+      description: Other elemental talismans used to enter their respective altars.
+    - item_name: Pure essence
+      slug: pure-essence
+      relationship: component
+      description: Essence required for crafting chaos runes at the altar.
+  about: "The chaos talisman lets a member enter the Chaos Altar in the Wilderness, just north-west of Edgeville, and is one of the talismans used to bind raw essence into chaos runes. Most players quickly convert their first talisman into a chaos tiara so the altar can be entered with a single click and the inventory slot can be freed for essence. The talisman drops commonly from chaos druids and abyssal creatures, making it an early money-maker for chaos rune farmers."
+  market_strategy:
+    notes:
+      - "Volume is driven by ironmen crafting chaos tiaras and by Runecrafters bulk-buying talismans for tiara production."
+      - "Price tends to track chaos rune demand more than talisman supply itself."
+      - "High buy limit of 11,000 makes this a reliable low-margin flip."
+  trading_tips:
+    - "Watch for buy-spike days when chaos rune prices climb - tiara crafting demand follows."
+    - "Convert leftover stock into chaos tiaras and resell when tiara margins exceed talisman flip margin."
+  history:
+    - date: "2004-03-29"
+      description: "Released with Runecraft to allow entry to the Chaos Altar."
+    - date: "2005-04-12"
+      description: "Chaos tiara crafting added, letting players combine the talisman with a tiara for one-click altar entry."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

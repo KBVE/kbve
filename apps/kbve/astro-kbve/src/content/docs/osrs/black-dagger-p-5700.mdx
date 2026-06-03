@@ -12,9 +12,73 @@ osrs:
   lowalch: 96
   highalch: 144
   limit: 125
-  about: "Black dagger(p++) is a members-only item in Old School RuneScape. High alchemy value: 144 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: black
+    tier: low
+  properties:
+    release_date: "2001-12-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options: ["Wield", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: dagger
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: 10
+      slash: 5
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 7
+      prayer: 0
+  related_items:
+    - item_name: Black dagger
+      slug: black-dagger
+      relationship: variant
+      description: Unpoisoned base dagger.
+    - item_name: Black dagger(p)
+      slug: black-dagger-p
+      relationship: variant
+      description: Weakly poisoned variant.
+    - item_name: Black dagger(p+)
+      slug: black-dagger-p
+      relationship: variant
+      description: Moderately poisoned variant.
+  about: "The Black dagger(p++) is the strongest-poison variant of the black dagger, requiring 10 Attack to wield. Used by ironmen and low-level PvP for the +7 strength bonus combined with extra-strength poison; functionally identical to the base dagger in combat stats."
+  market_strategy:
+    notes:
+      - "Cheap niche weapon; expect thin margins around alch value."
+      - "Demand tied to budget PKers and ironman bridging."
+  history:
+    - date: "2001-12-08"
+      description: Black dagger released.
+    - date: "2002-02-25"
+      description: Poisoned dagger variants introduced.
+    - date: "2006-08-29"
+      description: Poisoned variants renamed from (+)/(s) to (p+)/(p++).
+    - date: "2021-07-21"
+      description: Female-character weapon positioning corrected.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

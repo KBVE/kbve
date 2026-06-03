@@ -12,9 +12,93 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
-  about: "Bronze dart(p+) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 2
+    weight: 0
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 1
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: herblore
+      level: 73
+      xp: 0
+      materials:
+        - item_name: Bronze dart
+          quantity: 1
+        - item_name: Weapon poison(+)
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Bronze dart
+      slug: bronze-dart
+      relationship: variant
+      description: Unpoisoned base dart
+    - item_name: Bronze dart(p)
+      slug: bronze-dart-p-806
+      relationship: variant
+      description: Standard poison variant
+    - item_name: Bronze dart(p++)
+      slug: bronze-dart-p-5635
+      relationship: upgrade
+      description: Extra-strength poison variant
+  about: |-
+    "A deadly poisoned dart with a bronze tip."
+
+    Bronze dart(p+) is the +-poisoned variant of the base bronze dart, made by applying weapon poison(+) to an unpoisoned dart. Acts identically to the base dart in combat (+1 Ranged Strength, 2-tick attack speed) with the added chance to inflict stronger poison. Requires only level 1 Ranged to wield.
+  market_strategy:
+    notes:
+      - "Low-tier PKing dart variant"
+      - "Poison cost rarely justified"
+      - "Bronze base limits damage ceiling"
+      - "Buy limit 7,000 sustains bulk flips"
+      - "Niche demand vs unpoisoned"
+  trading_tips:
+    - Margins minimal due to 1gp alch
+    - Volume tied to PK event spikes
+    - Usually flip the base dart instead
+  history:
+    - date: "2003-04-14"
+      description: Released with throwing weapon expansion.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Zamorak brew(4) | OSRS Price Data
-description: "Zamorak brew(4): 4 doses of Zamorak brew.. High alch: 120 GP, GE limit: 2,000."
+description: "Zamorak brew(4): 4 doses of Zamorak brew. High alch: 120 GP, GE limit: 2,000."
 osrs:
   id: 2450
   name: Zamorak brew(4)
@@ -12,9 +12,76 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 2000
-  about: "Zamorak brew(4) is a members-only item in Old School RuneScape. High alchemy value: 120 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.08
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+  potion:
+    effects:
+      - description: Boosts Attack by 2 + 20% of base Attack level (rounded down)
+        duration: null
+      - description: Boosts Strength by 2 + 12% of base Strength level (rounded down)
+        duration: null
+      - description: Restores Prayer by 10% of current Prayer level
+        duration: null
+      - description: Drains Defence by 2 + 10% of current Defence level (rounded down)
+        duration: null
+      - description: Drains Hitpoints by 12% (rounded down, minimum 1 HP)
+        duration: null
+  recipes:
+    - skill: herblore
+      level: 78
+      xp: 175
+      materials:
+        - item_name: Torstol potion (unf)
+          quantity: 1
+        - item_name: Jangerberries
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Zamorak brew(1)
+      slug: zamorak-brew-1
+      relationship: variant
+      description: 1-dose version of the same potion
+    - item_name: Zamorak brew(2)
+      slug: zamorak-brew-2
+      relationship: variant
+      description: 2-dose version of the same potion
+    - item_name: Zamorak brew(3)
+      slug: zamorak-brew-3
+      relationship: variant
+      description: 3-dose version of the same potion
+    - item_name: Zamorak mix(2)
+      slug: zamorak-mix-2
+      relationship: alternative
+      description: Barbarian-brewed variant that also heals hitpoints
+  about: "Zamorak brew(4) is a members combat potion that aggressively boosts Attack and Strength while restoring Prayer at the cost of Defence and Hitpoints. The four-dose flask is favoured at bosses such as Zulrah and the Theatre of Blood where the offensive boost outweighs the defensive penalty."
+  market_strategy:
+    notes:
+      - "Decanting from 3-dose can produce arbitrage spread"
+      - "Demand spikes during high-tier PvM events"
+      - "Bulk consumption keeps liquidity strong"
+  trading_tips:
+    - Buy 3-dose during inactive hours and decant for margin
+    - Track GE volume during raid weekends for price floors
+    - Stockpile during double XP weekends ahead of Herblore demand
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Carved teak bench (flatpack) | OSRS Price Data
-description: "Carved teak bench (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Carved teak bench (flatpack) is a members Construction flatpack. High alch: 6 GP, GE limit: 500."
 osrs:
   id: 8570
   name: Carved teak bench (flatpack)
@@ -12,9 +12,61 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Carved teak bench (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: teak
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: construction
+      level: 44
+      xp: 360
+      materials:
+        - item_name: Teak plank
+          quantity: 4
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Teak plank
+      slug: teak-plank
+      relationship: component
+      description: Construction material used to build the flatpack
+    - item_name: Carved teak bench
+      slug: carved-teak-bench
+      relationship: product
+      description: Furniture built from this flatpack in a player-owned house
+    - item_name: Steel framed workbench
+      slug: steel-framed-workbench
+      relationship: component
+      description: Workbench required to assemble the flatpack
+  about: "Carved teak bench (flatpack) is a Construction flatpack made on a steel framed workbench in a player-owned house workshop, requiring 44 Construction and 4 teak planks to produce for 360 XP. It packages a carved teak bench that can be unflatpacked and built inside another player's house, commonly sold to mid-level Construction trainers via the Grand Exchange. Crafting these incurs a loss versus material cost, so they are usually a training byproduct rather than a profit play."
+  market_strategy:
+    notes:
+      - "Training byproduct for Construction levellers"
+      - "Loses GP vs teak plank cost after GE tax"
+      - "Useful supply for house parties and Construction services"
+      - "Buy limit 500 caps speculation"
+  trading_tips:
+    - Buy below teak plank break-even for resale
+    - Stockpile during double XP weekends
+  history:
+    - date: "2006-05-31"
+      description: Released with the Construction skill.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

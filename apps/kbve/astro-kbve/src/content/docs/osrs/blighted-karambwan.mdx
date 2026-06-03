@@ -12,9 +12,65 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 10000
-  about: "Blighted karambwan is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: mid
+  properties:
+    release_date: "2020-04-23"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.65
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+  shops:
+    - shop_name: "Justine's stuff for the Last Shopper Standing"
+      location: Last Man Standing lobby
+      price: 1
+      currency: Last Man Standing points
+      stock: 1000
+    - shop_name: Bounty Hunter Store
+      location: Daimon's Crater
+      price: 2
+      currency: Bounty Hunter points
+      stock: 1000
+    - shop_name: Soul Wars Reward Shop
+      location: Isle of Souls
+      price: 10
+      currency: Zeal Tokens
+      stock: 1000
+  related_items:
+    - item_name: Cooked karambwan
+      slug: cooked-karambwan
+      relationship: alternative
+      description: Non-Wilderness combo-eating equivalent
+    - item_name: Blighted anglerfish
+      slug: blighted-anglerfish
+      relationship: alternative
+      description: Higher-healing Wilderness blighted food option
+    - item_name: Blighted manta ray
+      slug: blighted-manta-ray
+      relationship: alternative
+      description: Mid-tier blighted food alternative
+  about: "Blighted karambwan is the Wilderness-restricted version of the cooked karambwan, restoring 18 Hitpoints and retaining the karambwan combo-eat property that lets it be consumed almost immediately after another food. It is purchased with Last Man Standing, Bounty Hunter, or Soul Wars currencies and can only be eaten in PvP-enabled areas such as the Wilderness, Ferox Enclave, Mage Arena bank, PvP worlds, Castle Wars lobby, and Clan Wars."
+  market_strategy:
+    notes:
+      - "Pricing tracks Last Man Standing and Bounty Hunter point payouts"
+      - "Demand spikes around PvP tournament weekends and Wilderness events"
+  trading_tips:
+    - Stack with Blighted anglerfish for high-tier Wilderness combo eating
+    - Watch for arbitrage between LMS-point cost and GE price
+  history:
+    - date: "2020-04-23"
+      description: Introduced as part of the Last Man Standing rework, adding blighted Wilderness foods.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

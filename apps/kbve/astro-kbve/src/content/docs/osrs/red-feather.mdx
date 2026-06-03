@@ -1,6 +1,6 @@
 ---
 title: Red feather | OSRS Price Data
-description: "Red feather: A vivid red feather.. High alch: 6 GP, GE limit: 8,000."
+description: "Red feather is a members hunter and fletching material. High alch: 6 GP, GE limit: 8,000."
 osrs:
   id: 10088
   name: Red feather
@@ -12,9 +12,64 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 8000
-  about: "Red feather is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 8,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: feather
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  shops:
+    - shop_name: Fancy Clothes Store
+      location: Varrock
+      price: 13
+      currency: coins
+      stock: 0
+  drop_table:
+    sources:
+      - source: Crimson swift (Hunter)
+        quantity: "1"
+        rarity: Always
+  related_items:
+    - item_name: Feather
+      slug: feather
+      relationship: alternative
+      description: Standard white feather used for fletching and fly fishing
+    - item_name: Blue feather
+      slug: blue-feather
+      relationship: variant
+      description: Coloured feather from Tropical wagtail
+    - item_name: Yellow feather
+      slug: yellow-feather
+      relationship: variant
+      description: Coloured feather from Cerulean twitch
+  about: "Red feather is a members-only hunter drop obtained by catching crimson swifts in the Feldip Hunter area, yielding 5-10 feathers per catch at level 1 Hunter. It substitutes for white feathers when fletching arrows, though the finished arrows retain their default appearance. Unlike standard feathers, red feathers cannot be used for fly fishing, limiting their practical role. The Fancy Clothes Store in Varrock both stocks and buys them for cosmetic crafting."
+  market_strategy:
+    notes:
+      - "Supply driven by Hunter training at crimson swifts"
+      - "Niche fletching substitute keeps demand thin"
+      - "Buy limit 8000 enables bulk plays"
+      - "Margins are tight due to low base price"
+  trading_tips:
+    - Flip in bulk for thin per-unit gains
+    - Watch Hunter XP updates for supply shocks
+    - Pair with arrow fletching restocks
+  history:
+    - date: "2006-11-21"
+      description: Added with the introduction of Hunter and crimson swifts.
+    - date: "2007-07-09"
+      description: Visual update following the crimson swift graphical refresh.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

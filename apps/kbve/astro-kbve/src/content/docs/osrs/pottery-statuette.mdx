@@ -12,9 +12,62 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 13000
-  about: "Pottery statuette is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: pottery
+    tier: low
+  properties:
+    release_date: "2006-07-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "You can get another from Pyramid Plunder."
+  drop_table:
+    sources:
+      - source: Pyramid Plunder sarcophagus (Room 1)
+        quantity: "1"
+        rarity: 1/2
+      - source: Pyramid Plunder sarcophagus (Room 2)
+        quantity: "1"
+        rarity: 1/2
+      - source: Pyramid Plunder sarcophagus (Room 3)
+        quantity: "1"
+        rarity: 1/4
+  shops:
+    - shop_name: Simon Templeton
+      location: Agility Pyramid
+      price: 100
+      currency: Coins
+      stock: 0
+  related_items:
+    - item_name: Pharaoh's sceptre
+      slug: pharaohs-sceptre
+      relationship: product
+      description: Recharged with 24 pottery statuettes
+    - item_name: Pottery scarab
+      slug: pottery-scarab
+      relationship: alternative
+      description: Another Pyramid Plunder artefact
+  about: "Pottery statuette is an artefact obtained through the Pyramid Plunder minigame by looting sarcophagi at three difficulty levels. It can be sold to Simon Templeton at the Agility Pyramid for 100 coins, or used in sets of 24 to recharge the Pharaoh's sceptre. Requires 21/31/41 Thieving depending on room."
+  market_strategy:
+    notes:
+      - "Common Pyramid Plunder drop"
+      - "Used to recharge Pharaoh's sceptre"
+      - "High buy limit reflects high supply"
+  history:
+    - date: "2006-07-17"
+      description: Released with the Pyramid Plunder minigame.
+    - date: "2015-02-26"
+      description: Made tradeable on the Grand Exchange.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

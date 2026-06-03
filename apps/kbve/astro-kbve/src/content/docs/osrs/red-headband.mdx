@@ -12,9 +12,61 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 4
-  about: "Red headband is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic-headwear
+    tier: low
+  properties:
+    release_date: "2004-05-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.04
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.04
+    requirements: {}
+    attack_bonus: {}
+    defence_bonus: {}
+    other_bonus: {}
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  related_items:
+    - item_name: Blue headband
+      slug: blue-headband
+      relationship: variant
+      description: Alternate colour reward from hard clue scrolls.
+    - item_name: Black headband
+      slug: black-headband
+      relationship: variant
+      description: Another colour variant of this cosmetic.
+    - item_name: Brown headband
+      slug: brown-headband
+      relationship: variant
+      description: Another colour variant of this cosmetic.
+  about: "The red headband is a cosmetic head slot item awarded from hard treasure trails as an emote clue reward when players perform the Panic emote south of the bridge on the Blighted Volcano. It offers no combat bonuses and is members-only. A low GE buy limit of 4 reflects its status as a rare clue reward. Released 5 May 2004."
+  market_strategy:
+    notes:
+      - "Cosmetic clue reward; price tied to clue completion volume."
+      - "GE limit of 4 makes large flips impractical; treat as long hold."
+  history:
+    - date: "2004-05-05"
+      description: Added as a Treasure Trails emote clue reward.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

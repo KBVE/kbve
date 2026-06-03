@@ -12,96 +12,101 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 30000
-  item_type: currency
-  stackable: true
-  tradeable: true
-  members_only: true
-  uses:
-    - type: charging
-      items:
-        - item_id: 22550
-          item_name: Craw's bow
-        - item_id: 22545
-          item_name: Viggora's chainmace
-        - item_id: 22555
-          item_name: Thammaron's sceptre
-        - item_id: 27655
-          item_name: Webweaver bow
-        - item_id: 27660
-          item_name: Ursine chainmace
-        - item_id: 27665
-          item_name: Accursed sceptre
-        - item_id: 21816
-          item_name: Bracelet of ethereum
-  obtaining:
-    methods:
-      - source: Revenants
-        location: Revenant Caves
-        drop_rate: Always
-      - source: Ancient artefacts
-        method: Use chisel (1 ether per 500 coins value)
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: currency
+    tier: high
+  properties:
+    release_date: "2017-11-23"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Revenant imp
+        quantity: "1"
+        rarity: Always
+      - source: Revenant goblin
+        quantity: "1"
+        rarity: Always
+      - source: Revenant icefiend
+        quantity: "1"
+        rarity: Always
+      - source: Revenant pyrefiend
+        quantity: "1"
+        rarity: Always
+      - source: Revenant hobgoblin
+        quantity: "1"
+        rarity: Always
+      - source: Revenant cyclops
+        quantity: "1"
+        rarity: Always
+      - source: Revenant hellhound
+        quantity: "1"
+        rarity: Always
+      - source: Revenant demon
+        quantity: "1"
+        rarity: Always
+      - source: Revenant ork
+        quantity: "1"
+        rarity: Always
+      - source: Revenant dark beast
+        quantity: "1"
+        rarity: Always
+      - source: Revenant knight
+        quantity: "1"
+        rarity: Always
+      - source: Revenant dragon
+        quantity: "1"
+        rarity: Always
   related_items:
-    - item_id: 22550
-      item_name: Craw's bow
+    - item_name: Craw's bow
       slug: craws-bow
-      relationship: variant
-      description: Uses ether for charges
-    - item_id: 22545
-      item_name: Viggora's chainmace
+      relationship: product
+      description: Charged using revenant ether
+    - item_name: Webweaver bow
+      slug: webweaver-bow
+      relationship: product
+      description: Upgraded Craw's bow, also ether fuelled
+    - item_name: Viggora's chainmace
       slug: viggoras-chainmace
-      relationship: variant
-      description: Uses ether for charges
-    - item_id: 22555
-      item_name: Thammaron's sceptre
+      relationship: product
+      description: Wilderness mace charged with ether
+    - item_name: Ursine chainmace
+      slug: ursine-chainmace
+      relationship: product
+      description: Upgraded chainmace, also ether fuelled
+    - item_name: Thammaron's sceptre
       slug: thammarons-sceptre
-      relationship: variant
-      description: Uses ether for charges
-    - item_id: 21816
-      item_name: Bracelet of ethereum
+      relationship: product
+      description: Wilderness sceptre charged with ether
+    - item_name: Accursed sceptre
+      slug: accursed-sceptre
+      relationship: product
+      description: Upgraded sceptre, also ether fuelled
+    - item_name: Bracelet of ethereum
       slug: bracelet-of-ethereum
-      relationship: variant
-      description: Uses ether for charges
-    - item_id: 22557
-      item_name: Amulet of avarice
-      slug: amulet-of-avarice
-      relationship: alternative
-      description: Revenant amulet
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Currency |
-    | Tradeable | Yes |
-    | Stackable | Yes |
-    | Weight | 0 kg |
-
-    Charges Wilderness Weapons:
-    - Craw's bow
-    - Viggora's chainmace
-    - Thammaron's sceptre
-    - Webweaver bow
-    - Ursine chainmace
-    - Accursed sceptre
-
-    Charges Bracelet of Ethereum:
-    - Provides revenant protection
-    - 1 charge consumed per revenant attack
-
-    | Weapon | Activation | Max Charges |
-    |--------|------------|-------------|
-    | Craw's bow | 1,000 | 17,000 |
-    | Viggora's chainmace | 1,000 | 17,000 |
-    | Thammaron's sceptre | 1,000 | 17,000 |
-    | Webweaver bow | 1,000 | 17,000 |
-    | Ursine chainmace | 1,000 | 17,000 |
-    | Accursed sceptre | 1,000 | 17,000 |
-    | Bracelet of ethereum | 1 | 16,000 |
+      relationship: product
+      description: Stores ether to absorb revenant aggression damage
+  about: "Revenant ether is the always-dropped currency of every revenant in the Revenant Caves, used to charge wilderness-exclusive weapons (Craw's bow, Viggora's chainmace, Thammaron's sceptre and their upgrades) plus the Bracelet of ethereum. Players can also turn ancient artefacts into ether with a chisel at one ether per 500 coins of artefact value. Ether is always dropped on death in the Wilderness, even when stored as weapon charges."
   market_strategy:
     notes:
-      - Always dropped by revenants
-      - Essential for wilderness weapons
-      - High daily volume traded
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Charge cost moves with ether GE price, not weapon price"
+      - "Buy on revenant-killing days, sell during PvM events"
+      - "Ornate undead combat dummy bulk-burns 500 ether"
+  history:
+    - date: "2017-11-23"
+      description: Released with the Revenant Caves rework as the new charging currency.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
