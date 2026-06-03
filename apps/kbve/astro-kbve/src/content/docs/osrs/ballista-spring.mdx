@@ -12,9 +12,83 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 8
-  about: "Ballista spring is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: weapon component
+    tier: high
+  properties:
+    release_date: "2016-05-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 47
+      xp: 15
+      materials:
+        - item_name: Incomplete light ballista
+          quantity: 1
+        - item_name: Ballista spring
+          quantity: 1
+      tools: []
+      output_quantity: 1
+    - skill: fletching
+      level: 72
+      xp: 30
+      materials:
+        - item_name: Incomplete heavy ballista
+          quantity: 1
+        - item_name: Ballista spring
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Demonic gorilla
+        quantity: "1"
+        rarity: 1/500
+      - source: Tortured gorilla
+        quantity: "1"
+        rarity: 1/5000
+  related_items:
+    - item_name: Light ballista
+      slug: light-ballista
+      relationship: product
+      description: Two-handed ranged weapon assembled with this spring
+    - item_name: Heavy ballista
+      slug: heavy-ballista
+      relationship: product
+      description: Higher-tier ballista crafted with this spring
+    - item_name: Monkey tail
+      slug: monkey-tail
+      relationship: component
+      description: Companion drop used in the same fletching chain
+    - item_name: Ballista limbs
+      slug: ballista-limbs
+      relationship: component
+      description: Paired component required to assemble incomplete ballistae
+  about: "Ballista spring is a rare drop from Demonic gorillas (and Tortured gorillas) in the Crash Site Cavern after Monkey Madness II. The spring is the keystone piece in assembling Light and Heavy ballistae, both endgame two-handed crossbow-style ranged weapons."
+  market_strategy:
+    notes:
+      - "Supply throttled by the 1/500 demonic gorilla drop rate"
+      - "Demand tracks heavy ballista usage at bosses such as Zulrah and Vorkath"
+      - "Tight 8-per-4h buy limit keeps the price reactive to news spikes"
+  trading_tips:
+    - Buy on weekend gorilla farming dumps when sellers fund Magic supplies
+    - Flip alongside monkey tails and ballista limbs to capture full part bundles
+  history:
+    - date: "2016-05-06"
+      description: "Released with Monkey Madness II as a Demonic gorilla drop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

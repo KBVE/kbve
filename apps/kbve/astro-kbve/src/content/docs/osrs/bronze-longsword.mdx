@@ -12,26 +12,100 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 125
-  item_id: 1291
-  item_type: equipment
-  slot: weapon
-  type: longsword
-  attack_style: slash
-  attack_speed: 5
-  tradeable: true
-  weight: 1.814
-  requirements:
-    attack: 1
-  stats:
-    stab_attack: 4
-    slash_attack: 5
-    crush_attack: -2
-    strength: 7
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: slash sword
+    attack_speed: 5
+    weight: 1.814
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 4
+      slash: 5
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 3
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 7
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 6
+      xp: 25
+      materials:
+        - item_name: Bronze bar
+          quantity: 2
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: Varrock Swordshop
+      location: Varrock
+      price: 80
+      currency: Coins
+      stock: 3
+  drop_table:
+    sources:
+      - source: Hobgoblin (level 28)
+        quantity: "1"
+        rarity: "1/128"
+      - source: Black Knight
+        quantity: "1"
+        rarity: Uncommon
   related_items:
-    - slug: iron-longsword
-    - slug: bronze-sword
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Iron longsword
+      slug: iron-longsword
+      relationship: upgrade
+      description: "Same attack tier, better stats."
+    - item_name: Bronze sword
+      slug: bronze-sword
+      relationship: alternative
+      description: "Faster but weaker one-handed bronze blade."
+    - item_name: Bronze bar
+      slug: bronze-bar
+      relationship: component
+      description: "Smelted metal used to forge the longsword."
+  about: "The bronze longsword is the entry-level longsword in OSRS, requiring only level 1 Attack. Smithed at level 6 Smithing using 2 bronze bars (25 xp). Rarely used since the iron longsword offers superior stats with the same Attack requirement, making it primarily a Smithing training byproduct."
+  market_strategy:
+    notes:
+      - "Crafting cost (~120 gp in bars) exceeds GE value — unprofitable to smith for profit."
+      - "Demand is mostly Smithing trainers high-alching the output (24 gp each)."
+  trading_tips:
+    - "Buy if doing alching tasks where 24 gp per cast partially offsets nature rune cost."
+    - "Avoid hoarding — supply is large and price is sticky."
+  history:
+    - date: "2001-01-04"
+      description: "Released with the launch of RuneScape Classic-era melee tiers."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

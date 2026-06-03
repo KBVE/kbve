@@ -12,28 +12,90 @@ osrs:
   lowalch: 72
   highalch: 108
   limit: 150
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Fine Fashions
+      location: Grand Tree (Rometti)
+      price: 180
+      currency: Coins
+      stock: 5
   related_items:
-    - item_id: 642
-      item_name: Cream robe top
+    - item_name: Cream robe top
       slug: cream-robe-top
       relationship: set-piece
-      description: Matching top
-    - item_id: 662
-      item_name: Cream hat
+      description: Matching top half
+    - item_name: Cream hat
       slug: cream-hat
       relationship: set-piece
       description: Matching hat
+    - item_name: Cream boots
+      slug: cream-boots
+      relationship: set-piece
+      description: Matching boots
   about: |-
-    > _"A pair of cream robe bottoms."_
+    Cream robe bottoms are sold by Rometti at Fine Fashions in the Grand Tree for 180 coins. They are a cosmetic gnome clothing set piece with negligible defensive bonuses (+2 slash, +2 crush defence).
 
-    Cream robe bottoms are part of the gnome clothing set. Purely cosmetic with no stat bonuses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Renamed from "Robe bottoms" on 10 December 2014 to disambiguate the cream colour variant.
+  market_strategy:
+    notes:
+      - "Tight buy limit (150) and shop supply makes pricing reactive"
+      - "Demand is purely cosmetic — collection log and fashionscape only"
+      - "Shop-buy floor sets a clean cost basis"
+  trading_tips:
+    - Buy from Rometti at shop price, flip into the GE during fashionscape trends
+    - Stack with the cream top, hat, and boots when selling sets
+  history:
+    - date: "2002-12-12"
+      description: "Released with the Agility skill update."
+    - date: "2014-12-10"
+      description: "Renamed from \"Robe bottoms\" to \"Cream robe bottoms\"."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

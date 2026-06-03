@@ -1,6 +1,6 @@
 ---
 title: Mithril javelin(p) | OSRS Price Data
-description: "Mithril javelin(p) is a members weapon slot item requiring 20 Ranged. High alch: 38 GP, GE limit: 7,000."
+description: "Mithril javelin(p) is a members ballista ammunition slot item. High alch: 38 GP, GE limit: 7,000."
 osrs:
   id: 834
   name: Mithril javelin(p)
@@ -12,26 +12,77 @@ osrs:
   lowalch: 25
   highalch: 38
   limit: 7000
+  material:
+    type: mithril
+    tier: mid
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
   equipment:
-    slot: weapon
-    attack_speed: 6
-    requirements:
-      ranged: 20
+    slot: ammo
+    weapon_type: javelin
+    attack_speed: null
+    weight: 0
+    requirements: {}
     attack_bonus:
-      ranged: 17
-    ranged_strength: 49
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 85
+      magic_damage: 0
+      prayer: 0
   related_items:
-    - item_id: 828
-      item_name: Mithril javelin
+    - item_name: Mithril javelin
       slug: mithril-javelin
       relationship: variant
-      description: Unpoisoned version
-  about: |-
-    > _"A mithril tipped javelin with a poisoned tip."_
-
-    A mithril javelin tipped with basic weapon poison. Poison deals 2-4 damage over time.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Unpoisoned base ammunition.
+    - item_name: Light ballista
+      slug: light-ballista
+      relationship: component
+      description: Ranged weapon that fires mithril javelins.
+    - item_name: Heavy ballista
+      slug: heavy-ballista
+      relationship: component
+      description: High-tier ballista that fires mithril javelins.
+  about: "Mithril javelin(p) is the basic-poisoned variant of mithril javelins, used as ammunition for both the light and heavy ballista. The poison deals 2-4 damage over time on a successful hit, supplementing the ballista's strong per-shot ranged damage. Since the May 2016 rework, javelins function exclusively as ammunition rather than throwable weapons."
+  market_strategy:
+    notes:
+      - "Steady ballista ammunition demand; price tracks the broader javelin market."
+      - "7,000 buy limit accommodates bulk supply for PvM consumers."
+      - "Poison variant carries a small premium over the unpoisoned base."
+  trading_tips:
+    - Buy unpoisoned mithril javelins and apply weapon poison for margin if the spread allows.
+    - Demand rises during light ballista training events and PvP focus weekends.
+  history:
+    - date: "2004-03-29"
+      description: "Released with the RuneScape 2 launch."
+    - date: "2016-05-12"
+      description: "Reworked into ballista ammunition; ranged strength bumped from prior value."
+    - date: "2016-10-31"
+      description: "Ranged strength reduced from +100 to +85."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

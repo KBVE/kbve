@@ -12,9 +12,77 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Fremennik hat is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-11-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Yrsa's Shoe Store
+      location: Rellekka
+      price: 650
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Fremennik shirt
+      slug: fremennik-shirt
+      relationship: set-piece
+      description: "Matching Fremennik clothing torso slot"
+    - item_name: Fremennik cloak
+      slug: fremennik-cloak
+      relationship: set-piece
+      description: "Matching Fremennik cape-slot piece"
+  about: "The Fremennik hat is a members-only green pointed hat sold by Yrsa in Rellekka after completing The Fremennik Trials. It grants +3 magic attack and +3 magic defence, making it a budget cosmetic with a small magic bonus."
+  market_strategy:
+    notes:
+      - "Supply is uncapped from Yrsa's shop at 650 coins per stock unit"
+      - "Quest gate on The Fremennik Trials limits casual flippers, keeping listings thin"
+      - "Demand is cosmetic / low-level magic outfit rather than meta combat use"
+  trading_tips:
+    - "When GE price drifts above 1k, restock directly from Yrsa for guaranteed margin"
+    - "Bundle with other Fremennik items for cosmetic-set buyers"
+  history:
+    - date: "2004-11-02"
+      description: "Released with The Fremennik Trials quest as part of the Fremennik clothing line"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

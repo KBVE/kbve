@@ -12,89 +12,95 @@ osrs:
   lowalch: 3120
   highalch: 4680
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: trimmed dragonhide
+    tier: mid
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 6.803
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
-    type: ranged_armour
+    weapon_type: null
+    attack_speed: null
+    weight: 6.803
     requirements:
       ranged: 40
       defence: 40
-      quest: Dragon Slayer I
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -15
-      attack_ranged: 15
-      defence_stab: 18
-      defence_slash: 27
-      defence_crush: 24
-      defence_magic: 20
-      defence_ranged: 35
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -15
+      ranged: 15
+    defence_bonus:
+      stab: 18
+      slash: 27
+      crush: 24
+      magic: 20
+      ranged: 35
+    other_bonus:
       melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    weight: 6.803
-  obtaining:
-    methods:
+  drop_table:
+    sources:
       - source: Reward casket (medium)
-        drop_rate: 1/1,133
+        quantity: "1"
+        rarity: 1/1,133
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
-    - item_id: 1135
-      item_name: Green d'hide body
+    - item_name: Green d'hide body
       slug: green-dhide-body
       relationship: alternative
-      description: Same stats, non-trimmed
-    - item_id: 7370
-      item_name: Green d'hide body (g)
+      description: Same stats, non-trimmed standard version
+    - item_name: Green d'hide body (g)
       slug: green-dhide-body-g
       relationship: alternative
-      description: Gold-trimmed variant, same stats
-    - item_id: 7376
-      item_name: Blue d'hide body (t)
+      description: Gold-trimmed variant with identical stats
+    - item_name: Blue d'hide body (t)
       slug: blue-dhide-body-t
-      relationship: alternative
-      description: Higher tier trimmed body
+      relationship: upgrade
+      description: Higher tier trimmed dragonhide body
   about: |-
-    "Made from 100% real dragonhide. With colourful trim!"
+    > *"Made from 100% real dragonhide. With colourful trim!"*
 
-    | Stat | Value |
-    |------|-------|
-    | Stab Attack | +0 |
-    | Slash Attack | +0 |
-    | Crush Attack | +0 |
-    | Magic Attack | -15 |
-    | Ranged Attack | +15 |
-    | Stab Defence | +18 |
-    | Slash Defence | +27 |
-    | Crush Defence | +24 |
-    | Magic Defence | +20 |
-    | Ranged Defence | +35 |
-    | Melee Strength | +0 |
-    | Ranged Strength | +0 |
-    | Magic Damage | +0% |
-    | Prayer | +0 |
+    Trimmed green d'hide body is a cosmetic variant of the standard green dragonhide body, obtained exclusively from medium Treasure Trails. Stats are identical to the untrimmed version (Dragon Slayer I no longer required since the September 2021 rebalance removed the quest gate on hide bodies for body-slot pieces beyond 40 Defence/Ranged).
 
-    Requirements: 40 Ranged, 40 Defence, Dragon Slayer I
-
-    | Item | Ranged Atk | Ranged Def | Magic Def | Source |
-    |------|-----------|-----------|----------|--------|
-    | Green d'hide body (t) | +15 | +35 | +20 | Medium clues |
-    | Green d'hide body | +15 | +35 | +20 | Crafting (63) |
-
-    Stats are identical to the standard green d'hide body. The trimmed version is purely cosmetic and more expensive due to its rarity from Treasure Trails.
+    Provides +15 Ranged Attack and strong Ranged defence (+35), making it a solid mid-tier ranger body for F2P clue hunters and fashionscape collectors.
   market_strategy:
     notes:
-      - Fashionscape / cosmetic flex
-      - Medium clue reward rarity
-      - Collection log completionists
-      - Trimmed d'hide set completion
-      - Identical stats to green d'hide body
-      - Value is purely cosmetic rarity
-      - Price fluctuates with clue scroll activity
-      - Low trade volume, watch for manipulation
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Cosmetic only - identical stats to standard green d'hide body"
+      - "Medium clue rarity drives price floor"
+      - "Collection log completionist demand"
+      - "Low buy limit (8) and low volume - watch for manipulation"
+  trading_tips:
+    - Use limit orders rather than instant flips - low volume
+    - Watch medium clue completion rates for supply shifts
+    - Premium over standard body is purely cosmetic rarity
+  history:
+    - date: "2006-02-20"
+      description: "Item released as a reward from medium Treasure Trails."
+    - date: "2021-09-22"
+      description: "Defence bonuses rebalanced across the trimmed d'hide body line."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

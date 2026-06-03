@@ -12,9 +12,85 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Left eye patch is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "6 July 2016"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.006
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.006
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: rare
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_name: Right eye patch
+      slug: right-eye-patch
+      relationship: component
+      description: Pairs with left eye patch to make double eye patch
+    - item_name: Eye patch
+      slug: eye-patch
+      relationship: alternative
+      description: Standard pirate eye patch
+  about: |-
+    Left eye patch is a cosmetic head-slot item rewarded from master Treasure Trails. It provides no combat bonuses.
+
+    It can be combined with a right eye patch and 500 coins via Patchy (after completing Cabin Fever) to create a double eye patch. Storable in the costume room's mahogany treasure chest.
+  market_strategy:
+    notes:
+      - "Rare master clue drop with thin supply"
+      - "Demand driven by fashionscape collectors"
+      - "Strict GE buy limit of 4 per 4 hours caps flips"
+      - "Pair value spikes when right eye patch is also expensive"
+  trading_tips:
+    - Watch double eye patch ingredient costs to time buys
+    - Master clue droughts swing the spread fast
+  history:
+    - date: "6 July 2016"
+      description: "Released as a Treasure Trail reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

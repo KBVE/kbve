@@ -12,71 +12,95 @@ osrs:
   lowalch: 80400
   highalch: 120600
   limit: 8
+  material:
+    type: zenyte jewellery
+    tier: high
+  properties:
+    release_date: "2016-05-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.006
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ring
+    weapon_type: null
+    attack_speed: null
+    weight: 0.006
     requirements:
       crafting: 89
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 89
       xp: 150
-      inputs:
-        - item_id: 19493
-          item_name: Zenyte
+      materials:
+        - item_name: Zenyte
           quantity: 1
-        - item_id: 2357
-          item_name: Gold bar
+        - item_name: Gold bar
           quantity: 1
+        - item_name: Ring mould
+          quantity: 1
+      tools: []
       output_quantity: 1
   related_items:
-    - item_id: 6575
-      item_name: Onyx ring
+    - item_name: Onyx ring
       slug: onyx-ring
       relationship: downgrade
-      description: Previous tier ring
-    - item_id: 19550
-      item_name: Ring of suffering
+      description: Previous tier ring crafted from onyx and gold bar.
+    - item_name: Ring of suffering
       slug: ring-of-suffering
       relationship: upgrade
-      description: Enchanted version (BiS defensive ring)
-    - item_id: 19493
-      item_name: Zenyte
+      description: Enchanted form via Lvl-7 Enchant; best-in-slot defensive ring.
+    - item_name: Zenyte
       slug: zenyte
       relationship: component
-      description: Key component from demonic gorillas
+      description: Crafted gem from Monkey Madness II content; main ingredient.
   about: |-
-    Crafting (Level 89): Zenyte + Gold bar at a furnace (150 XP)
+    Crafted at level 89 Crafting by combining a Zenyte with a gold bar at a furnace for 150 XP. Players use the Lvl-7 Enchant spell (93 Magic) on the ring to create the Ring of suffering, the strongest defensive ring in the game.
 
-    > *"A zenyte ring."*
-
-    Lvl-7 Enchant (93 Magic): 1 cosmic rune + 20 blood runes + 20 soul runes (110 XP)
-
-    The Ring of suffering is the best-in-slot defensive ring:
-    - +20 to all defence styles (highest of any ring)
-    - +4 Prayer bonus
-    - Can store up to 100,000 ring of recoil charges — automatically reflects damage without consuming individual recoil rings
-    - Can be imbued at the Nightmare Zone for doubled stats (+20 → +20 stays, but adds offensive bonuses)
-
-    Zenyte is crafted from:
-    1. Zenyte shard — dropped by Demonic gorillas (1/300, after Monkey Madness II)
-    2. Combine with an Onyx at a furnace using the Crafting skill (89 Crafting)
-
-    This makes zenyte jewelry the most valuable craftable jewelry in the game.
-
-    | Jewelry | Slot | Key Stat | Enchanted |
-    |---------|------|----------|-----------|
-    | Zenyte ring | Ring | → Ring of suffering | BiS defensive ring |
-    | Zenyte necklace | Neck | → Necklace of anguish | BiS ranged necklace |
-    | Zenyte bracelet | Hands | → Tormented bracelet | BiS magic bracelet |
-    | Zenyte amulet | Neck | → Amulet of torture | BiS melee amulet |
+    Because zenyte shards drop from Demonic gorillas (1/300) and require Monkey Madness II, supply is bottlenecked behind a long mid-game quest chain. This makes zenyte jewellery the most valuable craftable jewellery line.
   market_strategy:
     notes:
-      - Zenyte shard from Demonic gorillas (requires MM2)
-      - Very high value enchant — check margins
-      - Ring of suffering has permanent demand as BiS defensive ring
-      - Blood and soul runes for Lvl-7 Enchant add to enchant cost
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand floor set by Ring of suffering as the BiS defensive ring"
+      - "Zenyte shard supply gated behind Monkey Madness II and Demonic gorillas"
+      - "Lvl-7 Enchant cost (cosmic + 20 blood + 20 soul runes) eats most of the enchant margin"
+      - "Buy limit 8 — flip in small lots, watch overnight volume"
+  history:
+    - date: "2016-05-06"
+      description: "Added with the Monkey Madness II quest update."
+    - date: "2018-02-22"
+      description: "Inventory sprite rotated for visual consistency."
+    - date: "2018-12-13"
+      description: "Inventory sprite adjusted again."
+    - date: "2020-09-10"
+      description: "Grand Exchange buy limit reduced from 10,000 to 8."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

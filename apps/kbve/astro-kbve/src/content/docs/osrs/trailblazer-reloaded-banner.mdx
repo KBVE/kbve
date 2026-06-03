@@ -12,9 +12,77 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: null
-  about: "Trailblazer reloaded banner is a members-only item in Old School RuneScape. High alchemy value: 600 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic banner
+    tier: mid
+  properties:
+    release_date: "2023-11-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: null
+    attack_speed: null
+    weight: 2.267
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Trailblazer banner
+      slug: trailblazer-banner
+      relationship: variant
+      description: Original Leagues III banner cosmetic
+    - item_name: Twisted banner
+      slug: twisted-banner
+      relationship: alternative
+      description: Earlier Leagues banner from Twisted League
+    - item_name: Shattered banner
+      slug: shattered-banner
+      relationship: alternative
+      description: Leagues II Shattered Relics cosmetic banner
+  about: "Trailblazer reloaded banner is the Leagues IV: Trailblazer Reloaded cosmetic weapon awarded from the league reward shop. Players can wield it for show, hang it on a player-owned house banner stand, or use it as a single-slot bank substitute for ironmen displays."
+  market_strategy:
+    notes:
+      - "Cosmetic with no combat stats; price tracks collector demand"
+      - "Limited initial supply because banners are bought with finite League Points"
+      - "GE price tends to drift up as supply ages without re-issuance"
+  trading_tips:
+    - Pick up dips when Leagues nostalgia events resurface
+    - Hold long-term given the inability to re-mint banners post-league
+  history:
+    - date: "2023-11-15"
+      description: "Initially added to the game files."
+    - date: "2023-11-29"
+      description: "Released as a Leagues IV reward shop purchase for 500 League Points."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

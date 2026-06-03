@@ -12,9 +12,93 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 70
-  about: "Tzhaar-ket-om is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: obsidian
+    tier: mid-high
+  properties:
+    release_date: "2005-09-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: bludgeon
+    attack_speed: 7
+    weight: 3.628
+    requirements:
+      strength: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 80
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 85
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: TzHaar-Ket (level 149)
+        quantity: "1"
+        rarity: "1/512"
+      - source: TzHaar-Ket (level 221)
+        quantity: "1"
+        rarity: "1/512"
+  shops:
+    - shop_name: Tzhaar-Hur-Lek's Ore and Gem Store
+      location: Mor Ul Rek
+      price: 375000
+      currency: Tokkul
+      stock: 0
+  related_items:
+    - item_name: Obsidian cape
+      slug: obsidian-cape
+      relationship: set-piece
+      description: "Worn with obsidian armour and weapon for damage bonus."
+    - item_name: Berserker necklace
+      slug: berserker-necklace
+      relationship: set-piece
+      description: "Adds +20 percent strength when wielding obsidian melee weapons."
+    - item_name: Toktz-xil-ak
+      slug: toktz-xil-ak
+      relationship: alternative
+      description: "Faster obsidian sword alternative with stab/slash."
+    - item_name: Toktz-xil-ek
+      slug: toktz-xil-ek
+      relationship: alternative
+      description: "Obsidian dagger alternative."
+  about: "Tzhaar-ket-om is a two-handed obsidian maul requiring 60 Strength. Popular with mid-level PvP 'obby maulers' for its +85 strength bonus and synergy with the Berserker necklace (+20 percent strength). Slow attack speed (7 ticks) limits its DPS at higher tiers."
+  market_strategy:
+    notes:
+      - "Demand is steady from obby pure builds and PvP world flippers."
+      - "Tokkul purchase route caps incoming supply when chaos rune prices stay high."
+  trading_tips:
+    - "Watch chaos rune prices — chaos-to-Tokkul conversion sets the floor."
+    - "Stock up before bossing leagues that favor low-defence pures."
+  history:
+    - date: "2005-09-19"
+      description: "Released with the Karamja Volcano update introducing TzHaar."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

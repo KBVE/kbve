@@ -12,12 +12,68 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 40
-  about: "Candle lantern (white) is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: light-source
+    tier: low
+  properties:
+    release_date: "2005-03-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: firemaking
+      level: 4
+      xp: 0
+      materials:
+        - item_name: Empty candle lantern
+          quantity: 1
+        - item_name: Candle
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Candle lantern (black)
+      slug: candle-lantern-black
+      relationship: variant
+      description: Black candle variant
+    - item_name: Empty candle lantern
+      slug: empty-candle-lantern
+      relationship: component
+      description: Lantern frame
+    - item_name: Candle
+      slug: candle
+      relationship: component
+      description: White wax candle
+  about: |-
+    The white candle lantern is a light source crafted by placing an unlit candle in an empty candle lantern. It requires 4 Firemaking to assemble and a tinderbox to light. Once lit, it cannot be traded.
+
+    Useful for low-level cave exploration; the black candle variant is dropped by Dark Wizards and Black Knights.
+  market_strategy:
+    notes:
+      - "Low buy limit (40) — niche flips only"
+      - "Demand from quest preppers (Lumbridge Swamp Caves, Witch's House)"
+      - "Margins are coppers; not worth chasing volume"
+  trading_tips:
+    - Stockpile lanterns ahead of Halloween events or cave-themed releases
+    - Combine with bulk candles when crafting for personal use rather than GE flipping
+  history:
+    - date: "2005-03-14"
+      description: "Released as part of the Lumbridge Swamp Caves update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

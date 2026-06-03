@@ -12,9 +12,61 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: null
-  about: "Red crab is a members-only item in Old School RuneScape. High alchemy value: 60 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: hunter-catch
+    tier: low
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.6
+    options:
+      - Cut
+      - Crush
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: hunter
+      level: 21
+      xp: 64
+      materials: []
+      tools:
+        - Crab cage
+      output_quantity: 1
+  related_items:
+    - item_name: Raw red crab meat
+      slug: raw-red-crab-meat
+      relationship: product
+      description: Cut a red crab with a knife to obtain raw meat
+    - item_name: Crab paste
+      slug: crab-paste
+      relationship: product
+      description: Crush a red crab with a pestle and mortar for paste
+  about: |-
+    > *"You'll need something to break through that shell."*
+
+    The red crab is a members-only Hunter catch released with the Sailing skill update on 19 November 2025. Players trap it on the Pandemonium at level 21 Hunter for 64 Hunter experience per catch.
+
+    The crab is processed in two ways. Cutting it with a knife yields raw red crab meat that can be cooked at level 21 Cooking, while crushing it with a pestle and mortar produces crab paste used in Herblore for anti-odour salt and super hunter potions.
+  market_strategy:
+    notes:
+      - "Hunter throughput grew with Sailing, keeping supply consistent."
+      - "Herblore demand from anti-odour salt and super hunter potions sets the price floor."
+      - "No buy limit makes bulk crab paste processing viable."
+  trading_tips:
+    - Margins are tight; flip in bulk through Hunter rush windows.
+    - Track Sailing event spikes for short-term price moves.
+  history:
+    - date: "2025-11-19"
+      description: "Added to OSRS as part of the Sailing skill launch."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

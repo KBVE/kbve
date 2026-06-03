@@ -12,9 +12,64 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Raw dashing kebbit is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: raw food
+    tier: mid
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 82
+      xp: 215
+      materials:
+        - item_name: Raw dashing kebbit
+          quantity: 1
+      tools:
+        - Fire or range
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Dashing kebbit
+        quantity: "1"
+        rarity: Always
+  related_items:
+    - item_name: Dashing kebbit
+      slug: dashing-kebbit
+      relationship: product
+      description: "Cooked version that heals when eaten."
+    - item_name: Burnt kebbit
+      slug: burnt-kebbit
+      relationship: alternative
+      description: "Failed cooking attempt below mastery threshold."
+    - item_name: Quetzal whistle
+      slug: quetzal-whistle
+      relationship: alternative
+      description: "Trade 1 raw kebbit to Soar Leader Pitri for 3 whistle charges."
+  about: "Raw dashing kebbit is caught with level 69 Hunter from dashing kebbits in the Avium Savannah (Varlamore). Cooking it requires 82 Cooking plus 50 Hunters' Rumours completions, granting 215 cooking xp on success. Players also exchange them with Soar Leader Pitri for quetzal whistle charges."
+  market_strategy:
+    notes:
+      - "Supply driven by Hunter trainers chasing 99 in the savannah."
+      - "Cooking it is unprofitable at current prices — flip raw rather than cook."
+  trading_tips:
+    - "Resell to whistle-charge buyers during Varlamore traversal grinds."
+    - "Watch for Hunter XP rate updates that change supply pressure."
+  history:
+    - date: "2024-03-20"
+      description: "Added with Varlamore: The Final Dawn (Avium Savannah hunting area)."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,74 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 18000
-  about: "Fur is a free-to-play item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: hide
+    tier: low
+  properties:
+    release_date: "2005-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 3
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Werewolf (level 88)
+        quantity: "1"
+        rarity: Always
+      - source: Werewolf (level 93)
+        quantity: "1"
+        rarity: Always
+  shops:
+    - shop_name: Baraek's Fur Stall
+      location: Varrock square
+      price: 12
+      currency: Coins
+      stock: 0
+  recipes:
+    - skill: crafting
+      level: 15
+      xp: 15
+      materials:
+        - item_name: Fur
+          quantity: 1
+        - item_name: Plank
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Grey wolf fur
+      slug: grey-wolf-fur
+      relationship: variant
+      description: "Higher-tier fur from grey wolves used in Tailoring/Crafting."
+    - item_name: Wooden cat
+      slug: wooden-cat
+      relationship: product
+      description: "Crafted from fur and a plank at level 15 Crafting."
+    - item_name: Plank
+      slug: plank
+      relationship: component
+      description: "Paired with fur to craft a wooden cat."
+  about: "Fur is dropped by werewolves in Canifis and certain humanoid creatures. F2P-tradeable on the Grand Exchange. It can be sold to Baraek in Varrock square (20 gp with Ring of Charos), used to craft wooden cats at 15 Crafting, or held for The Great Brain Robbery quest."
+  market_strategy:
+    notes:
+      - "Mostly a quest-prep buy — demand spikes around Great Brain Robbery starters."
+      - "Crafting wooden cats yields modest XP but the item itself is cheap; small profit margins."
+  trading_tips:
+    - "Buy in bulk during off-peak hours; sell into questing surges."
+    - "Use Ring of Charos when selling to Baraek to double npc payout."
+  history:
+    - date: "2005-12-12"
+      description: "Released with the Creature of Fenkenstrain quest and Canifis werewolves."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

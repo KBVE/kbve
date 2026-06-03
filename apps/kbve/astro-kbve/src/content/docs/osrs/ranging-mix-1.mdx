@@ -12,9 +12,70 @@ osrs:
   lowalch: 57
   highalch: 86
   limit: 2000
-  about: "Ranging mix(1) is a members-only item in Old School RuneScape. High alchemy value: 86 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.022
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 80
+      xp: 54
+      materials:
+        - item_name: Ranging potion(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Ranging mix(2)
+      slug: ranging-mix-2
+      relationship: variant
+      description: Two-dose version of the same Barbarian mix
+    - item_name: Ranging potion(2)
+      slug: ranging-potion-2
+      relationship: component
+      description: Base potion used during Barbarian Herblore mixing
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: Barbarian Herblore additive that converts the potion into a mix
+  potion:
+    effects:
+      - description: Boosts Ranged level by 4 + 10% of the player's Ranged level
+        duration: null
+      - description: Heals 6 Hitpoints per dose drunk
+        duration: null
+  about: "Ranging mix is the Barbarian Herblore variant of the ranging potion, made by combining a 2-dose ranging potion with caviar at 80 Herblore for 54 experience. Each dose boosts the player's Ranged level and also restores 6 Hitpoints, making the one-dose flask a popular emergency sip during PvM trips. The single-dose version trades weightless after sip and is most often used to top off inventory slots without committing to a full 4-dose potion."
+  market_strategy:
+    notes:
+      - "Demand spikes around Barbarian Herblore training and boss prep"
+      - "Profit hinges on caviar supply from Pyre logs and fishing diaries"
+      - "Lower stack value than 2-dose mix; flip in tandem with sister item"
+  trading_tips:
+    - Pair flips with Ranging potion(2) and caviar to ride margin moves on both sides
+    - Use during ranged boss rushes such as Zulrah PvM rotations for HP top-ups
+  history:
+    - date: "2007-07-03"
+      description: "Released with Barbarian Herblore as part of the Barbarian Training update."
+
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

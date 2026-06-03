@@ -12,9 +12,72 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: null
-  about: "Squid paste is a members-only item in Old School RuneScape. High alchemy value: 60 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: crafting material
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Raw swordtip squid
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Raw jumbo squid
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+  related_items:
+    - item_name: Raw swordtip squid
+      slug: raw-swordtip-squid
+      relationship: component
+      description: "Crushed with a pestle and mortar to make squid paste"
+    - item_name: Raw jumbo squid
+      slug: raw-jumbo-squid
+      relationship: component
+      description: "Alternate crushable squid for squid paste"
+    - item_name: Haemostatic poultice
+      slug: haemostatic-poultice
+      relationship: product
+      description: "Made from squid paste as part of the haemostatic dressing chain"
+  about: |-
+    Squid paste is a crafting material produced by crushing raw swordtip squid or raw jumbo squid with a pestle and mortar. Both raw squid types come from lantern harpooning content released alongside the Sailing skill.
+
+    The paste is used to make haemostatic poultice, the penultimate ingredient in haemostatic dressings.
+  market_strategy:
+    notes:
+      - "Profitability depends on which squid source is used (swordtip favourable)"
+      - "No GE buy limit gives flexibility for bulk listings"
+      - "Demand tied to haemostatic dressing crafting throughput"
+  trading_tips:
+    - Crush raw swordtip squid for the better profit margin
+    - Watch GE volume - over 30k daily indicates steady market depth
+  history:
+    - date: "2025-11-19"
+      description: "Item added to the game with the Sailing skill release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

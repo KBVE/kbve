@@ -12,25 +12,84 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
     requirements: {}
     attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
       magic: 2
+      ranged: 0
     defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
       magic: 2
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: "1/1,404"
   related_items:
-    - item_id: 7390
-      item_name: Blue wizard robe (g)
+    - item_name: Blue wizard hat
+      slug: blue-wizard-hat
+      relationship: variant
+      description: "Standard untrimmed blue wizard hat."
+    - item_name: Blue wizard robe (g)
       slug: blue-wizard-robe-g
       relationship: set-piece
-      description: Matching gold-trimmed wizard robe
-  about: |-
-    > *"A silly pointed hat, with colourful trim."*
-
-    The blue wizard hat (g) is a gold-trimmed cosmetic variant of the standard wizard hat. It provides +2 magic attack and defence with no requirements. Popular with pure accounts as a wealth indicator. F2P item.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Matching gold-trimmed body slot piece."
+    - item_name: Black wizard hat (g)
+      slug: black-wizard-hat-g
+      relationship: alternative
+      description: "Black-and-gold trimmed wizard hat alternative."
+  about: "Blue wizard hat (g) is a gold-trimmed cosmetic variant of the standard blue wizard hat. It provides +2 magic attack and defence with no requirements, making it usable by pure accounts as a wealth-display alternative. Awarded from easy-tier clue reward caskets at 1/1,404."
+  market_strategy:
+    notes:
+      - "Supply is gated by easy clue completions; limit of 4 per 4h keeps spreads wide."
+      - "Demand spikes when costume/fashion competitions or league cosmetics trend."
+  trading_tips:
+    - "Flip slowly — daily volume is thin, so set patient buy offers."
+    - "Pair with the matching robe (g) for set bonuses to listings."
+  history:
+    - date: "2006-02-20"
+      description: "Released as part of the trimmed clue reward expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,93 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 11000
-  about: "Silver bolts (p++) is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: silver
+    tier: low
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammo
+    weapon_type: crossbow
+    attack_speed: null
+    weight: 0
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 36
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 43
+      xp: 50
+      materials:
+        - item_name: Silver bolts (unf)
+          quantity: 10
+        - item_name: Feather
+          quantity: 10
+      tools: []
+      output_quantity: 10
+  related_items:
+    - item_name: Silver bolts
+      slug: silver-bolts
+      relationship: variant
+      description: "Unpoisoned silver bolts."
+    - item_name: Silver bolts (p)
+      slug: silver-bolts-p
+      relationship: variant
+      description: "Standard poison-tipped silver bolts."
+    - item_name: Silver bolts (p+)
+      slug: silver-bolts-p-plus
+      relationship: variant
+      description: "Stronger poison-tipped silver bolts."
+    - item_name: Silver bolts (unf)
+      slug: silver-bolts-unf
+      relationship: component
+      description: "Unfeathered base used during fletching."
+    - item_name: Feather
+      slug: feather
+      relationship: component
+      description: "Required to fletch the bolt heads."
+  about: "Silver bolts (p++) are the strongest poisoned variant of silver bolts. Crafted by adding extra-strength weapon poison to silver bolts, they apply poison damage on hit and remain particularly effective against vampyre juvinates and similar undead targets. Ranged strength bonus is +36."
+  market_strategy:
+    notes:
+      - "Demand is niche — mainly Morytania vampyre tasks and certain Slayer assignments."
+      - "Profit comes from making p++ from base silver bolts plus extra-strength poison vials."
+  trading_tips:
+    - "Bulk-buy silver bolts and weapon poison (++) during low-volume hours."
+    - "Sell pre-stacked thousands for vampyre Slayer flippers."
+  history:
+    - date: "2006-07-31"
+      description: "Added when poisoned bolts were introduced."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

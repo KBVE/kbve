@@ -12,9 +12,87 @@ osrs:
   lowalch: 480
   highalch: 720
   limit: 125
-  about: "Maple blackjack is a members-only item in Old School RuneScape. High alchemy value: 720 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: mid
+  properties:
+    release_date: "2005-08-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: blackjack
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      thieving: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 20
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Ali's Discount Wares
+      location: Pollnivneach
+      price: 1200
+      currency: coins
+      stock: 3
+  related_items:
+    - item_name: Willow blackjack
+      slug: willow-blackjack
+      relationship: upgrade
+      description: Higher tier blackjack for stronger knockout chance
+    - item_name: Oak blackjack
+      slug: oak-blackjack
+      relationship: downgrade
+      description: Lower tier blackjack used before maple
+    - item_name: Maple blackjack(o)
+      slug: maple-blackjack-o
+      relationship: variant
+      description: Offensive variant favouring KO chance
+    - item_name: Maple blackjack(d)
+      slug: maple-blackjack-d
+      relationship: variant
+      description: Defensive variant favouring successful blocks
+  about: "The maple blackjack is the mid-tier knockout weapon used for blackjacking bandits in Pollnivneach. After progressing through The Feud and reaching 30 Thieving, players wield it to knock out menaphite thugs and bandits as part of one of the fastest Thieving training methods available. Unlike standard melee weapons its sole equip stat is +20 strength, since blackjacking interactions resolve through Thieving rolls rather than combat bonuses."
+  market_strategy:
+    notes:
+      - "Niche demand tied to mid-game Thieving training routes"
+      - "Shop stock at Ali's Discount Wares caps natural price ceiling"
+      - "Variant (o) and (d) blackjacks trade more frequently than plain version"
+  trading_tips:
+    - List buy orders below shop value to scoop up resold copies cheap
+    - Pair with the (o) variant flip when Thieving content patches release
+  history:
+    - date: "2005-08-15"
+      description: "Added during The Feud quest update as one of three blackjack tiers."
+
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
