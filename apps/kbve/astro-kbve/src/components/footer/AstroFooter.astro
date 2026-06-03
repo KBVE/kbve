@@ -288,6 +288,8 @@ const currentYear = new Date().getFullYear();
 	.kf-social {
 		display: flex;
 		align-items: center;
+		flex-wrap: wrap;
+		justify-content: flex-end;
 		gap: 1.5rem;
 	}
 
@@ -301,6 +303,20 @@ const currentYear = new Date().getFullYear();
 		.kf-brand {
 			grid-column: 1 / -1;
 		}
+
+		/* Tablet: tighter spacing, allow wrap. SocialTooltip ships a
+		   fixed 56px trigger from packages/npm/astro — override via
+		   :global() since the child markup is unscoped. */
+		.kf-social {
+			gap: 1rem;
+			justify-content: center;
+			width: 100%;
+		}
+		.kf-social :global(.stt__trigger),
+		.kf-social :global(.stt__trigger .stt__layer) {
+			width: 48px;
+			height: 48px;
+		}
 	}
 
 	@media (max-width: 480px) {
@@ -313,6 +329,28 @@ const currentYear = new Date().getFullYear();
 			flex-direction: column;
 			gap: 1rem;
 			text-align: center;
+		}
+
+		/* Phone: 10 socials wrap to 2 rows. Five per row at 40px +
+		   0.6rem gap fits a 360px viewport without horizontal
+		   scroll. */
+		.kf-social {
+			gap: 0.6rem;
+			row-gap: 0.75rem;
+			justify-content: center;
+		}
+		.kf-social :global(.stt__trigger),
+		.kf-social :global(.stt__trigger .stt__layer) {
+			width: 40px;
+			height: 40px;
+		}
+		.kf-social :global(.stt__icon) {
+			width: 40px;
+			height: 40px;
+		}
+		.kf-social :global(.kf-social-glyph svg) {
+			width: 18px;
+			height: 18px;
 		}
 	}
 </style>
