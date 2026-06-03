@@ -86,41 +86,40 @@ function TrendIndicator({ trend }: { trend: TrendInfo }) {
 	const sign = isUp ? '+' : '';
 
 	return (
-		<div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-			<Icon size={12} style={{ color }} />
-			<span style={{ color, fontSize: '0.75rem', fontWeight: 500 }}>
+		<span className="kbve-stat-card__trend" style={{ color }}>
+			<Icon size={11} style={{ color }} />
+			<span style={{ color, fontSize: '0.7rem', fontWeight: 500 }}>
 				{sign}
 				{trend.percentChange.toFixed(1)}%
 			</span>
-		</div>
+		</span>
 	);
 }
 
-function SparklineSlot({
+function SparklineBg({
 	data,
 	color,
 }: {
 	data?: SparklinePoint[];
 	color: string;
 }) {
-	// Slot is always rendered to reserve 36px in the card layout — keeps
-	// StatCard at a stable height while sparkline data hydrates.
+	if (!data || data.length < 2) return null;
 	return (
-		<div style={{ width: '100%', height: 36, marginTop: 'auto' }}>
-			{data && data.length >= 2 && (
-				<ResponsiveContainer width="100%" height={36}>
-					<LineChart data={data}>
-						<Line
-							type="monotone"
-							dataKey="v"
-							stroke={color}
-							strokeWidth={1.5}
-							dot={false}
-							isAnimationActive={false}
-						/>
-					</LineChart>
-				</ResponsiveContainer>
-			)}
+		<div className="kbve-stat-card__spark">
+			<ResponsiveContainer width="100%" height="100%">
+				<LineChart
+					data={data}
+					margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+					<Line
+						type="monotone"
+						dataKey="v"
+						stroke={color}
+						strokeWidth={1.5}
+						dot={false}
+						isAnimationActive={false}
+					/>
+				</LineChart>
+			</ResponsiveContainer>
 		</div>
 	);
 }
@@ -132,6 +131,7 @@ function StatCard({
 	trend,
 	sparkline,
 	onClick,
+	tip,
 }: {
 	icon: React.ReactNode;
 	label: string;
@@ -139,65 +139,30 @@ function StatCard({
 	trend?: TrendInfo;
 	sparkline?: SparklinePoint[];
 	onClick?: () => void;
+	tip?: string;
 }) {
+	const accentColor = 'var(--sl-color-accent, #06b6d4)';
+	const valueText =
+		value != null
+			? Number.isInteger(value)
+				? value
+				: value.toFixed(1)
+			: '--';
 	return (
 		<div
-			className={
-				onClick ? 'kbve-stat-card is-clickable' : 'kbve-stat-card'
-			}
-			style={{
-				display: 'flex',
-				flexDirection: 'column',
-				alignItems: 'flex-start',
-				gap: '0.5rem',
-				padding: '1rem 1.25rem',
-				borderRadius: '10px',
-				border: '1px solid var(--sl-color-gray-5, #262626)',
-				background: 'var(--sl-color-bg-nav, #111)',
-				transition:
-					'border-color 0.2s, transform 0.15s, box-shadow 0.15s',
-				minHeight: 156,
-				cursor: onClick ? 'pointer' : 'default',
-				borderTop: '2px solid var(--sl-color-accent, #06b6d4)',
-			}}
-			onClick={onClick}>
-			<div
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					gap: '0.5rem',
-					width: '100%',
-				}}>
-				<span style={{ color: 'var(--sl-color-accent, #06b6d4)' }}>
-					{icon}
-				</span>
-				<span
-					style={{
-						color: 'var(--sl-color-gray-3, #8b949e)',
-						fontSize: '0.75rem',
-						fontWeight: 500,
-						textTransform: 'uppercase' as const,
-						letterSpacing: '0.06em',
-					}}>
-					{label}
-				</span>
+			className={`kbve-stat-card${onClick ? ' is-clickable' : ''}`}
+			style={{ borderTopColor: accentColor }}
+			onClick={onClick}
+			data-tip={tip}>
+			<div className="kbve-stat-card__header">
+				<span style={{ color: accentColor }}>{icon}</span>
+				<span>{label}</span>
 			</div>
-			<div
-				style={{
-					fontSize: '1.75rem',
-					fontWeight: 700,
-					color: 'var(--sl-color-text, #e6edf3)',
-					fontVariantNumeric: 'tabular-nums',
-					whiteSpace: 'nowrap' as const,
-				}}>
-				{value != null
-					? Number.isInteger(value)
-						? value
-						: value.toFixed(1)
-					: '--'}
+			<div className="kbve-stat-card__value">
+				{valueText}
+				{trend && <TrendIndicator trend={trend} />}
 			</div>
-			{trend && <TrendIndicator trend={trend} />}
-			<SparklineSlot data={sparkline} color="#06b6d4" />
+			<SparklineBg data={sparkline} color={accentColor} />
 		</div>
 	);
 }
@@ -287,47 +252,47 @@ export default function ReactGrafanaK8s() {
 
 	return (
 		<>
-			<div
-				className="kbve-card-grid"
-				style={{
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-					gap: '0.75rem',
-				}}>
+			<div className="kbve-card-grid">
 				<StatCard
-					icon={<Activity size={20} />}
+					icon={<Activity size={16} />}
 					label="Running Pods"
 					value={snapshot.pods}
 					trend={trends.pods}
 					sparkline={sparklines.pods}
 					onClick={() => grafanaService.toggleCard('pods')}
+					tip="Pods currently in Running phase. Click for namespace breakdown."
 				/>
 				<StatCard
-					icon={<Clock size={20} />}
+					icon={<Clock size={16} />}
 					label="Pending Pods"
 					value={snapshot.pendingPods}
+					tip="Pods in Pending phase — likely waiting on scheduling or images."
 				/>
 				<StatCard
-					icon={<AlertTriangle size={20} />}
+					icon={<AlertTriangle size={16} />}
 					label="Failed Pods"
 					value={snapshot.failedPods}
+					tip="Pods in Failed phase — non-zero exit + restartPolicy=Never."
 				/>
 				<StatCard
-					icon={<Box size={20} />}
+					icon={<Box size={16} />}
 					label="Containers"
 					value={snapshot.containers}
 					trend={trends.containers}
+					tip="Container instances running across all pods."
 				/>
 				<StatCard
-					icon={<RotateCcw size={20} />}
+					icon={<RotateCcw size={16} />}
 					label={`Restarts (${timeRange})`}
 					value={snapshot.podRestarts}
+					tip="Container restart count over the selected window."
 				/>
 				<StatCard
-					icon={<Layers size={20} />}
+					icon={<Layers size={16} />}
 					label="Deployments"
 					value={snapshot.deployments}
 					trend={trends.deployments}
+					tip="Total Deployment objects across all namespaces."
 				/>
 			</div>
 
