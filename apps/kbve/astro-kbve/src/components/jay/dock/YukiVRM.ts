@@ -114,11 +114,31 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 	key.position.set(1, 2, 1.5);
 	scene.add(key);
 
+	console.warn('[yuki-vrm] mount start', {
+		vrmUrl,
+		hostSize: { w: host.clientWidth, h: host.clientHeight },
+		transparent,
+	});
+
 	const loader = new GLTFLoader();
 	loader.register((parser) => new VRMLoaderPlugin(parser));
-	const gltf = await loader.loadAsync(vrmUrl);
+	let gltf;
+	try {
+		gltf = await loader.loadAsync(vrmUrl);
+	} catch (err) {
+		console.error('[yuki-vrm] loadAsync failed', vrmUrl, err);
+		throw err;
+	}
 	const vrm: VRM | undefined = gltf.userData.vrm;
-	if (!vrm) throw new Error('VRM payload missing on loaded GLTF');
+	if (!vrm) {
+		console.error('[yuki-vrm] gltf has no userData.vrm', gltf);
+		throw new Error('VRM payload missing on loaded GLTF');
+	}
+	console.warn('[yuki-vrm] gltf loaded', {
+		hasVrm: !!vrm,
+		hasHumanoid: !!vrm.humanoid,
+		sceneChildrenBeforeAdd: scene.children.length,
+	});
 
 	try {
 		(
@@ -136,18 +156,15 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 	scene.add(vrm.scene);
 	applyRestPose(vrm);
 
-	if (
-		typeof window !== 'undefined' &&
-		/[?&]yuki-debug=1/.test(window.location.search)
-	) {
-		console.warn('[yuki-vrm] loaded', {
-			hasHumanoid: !!vrm.humanoid,
-			sceneChildren: scene.children.length,
-			canvasSize: { w: canvas.width, h: canvas.height },
-			hostSize: { w: host.clientWidth, h: host.clientHeight },
-			vrmUrl,
-		});
-	}
+	const gl = renderer.getContext();
+	console.warn('[yuki-vrm] mount ready', {
+		hasHumanoid: !!vrm.humanoid,
+		sceneChildren: scene.children.length,
+		canvasSize: { w: canvas.width, h: canvas.height },
+		hostSize: { w: host.clientWidth, h: host.clientHeight },
+		webglContextLost: gl ? gl.isContextLost() : 'no-context',
+		vrmUrl,
+	});
 
 	const humanoid = vrm.humanoid;
 	const spineBone = humanoid?.getNormalizedBoneNode(VRMHumanBoneName.Spine);
@@ -268,6 +285,7 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 	let rafId = 0;
 	let disposed = false;
 	let active = true;
+	let firstRenderLogged = false;
 
 	const tick = (now: number) => {
 		if (disposed) return;
@@ -339,7 +357,30 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		}
 
 		vrm.update(delta);
-		renderer.render(scene, camera);
+		try {
+			renderer.render(scene, camera);
+		} catch (err) {
+			if (!firstRenderLogged) {
+				console.error('[yuki-vrm] renderer.render threw', err);
+				firstRenderLogged = true;
+			}
+			return;
+		}
+		if (!firstRenderLogged) {
+			firstRenderLogged = true;
+			const ctx = renderer.getContext();
+			console.warn('[yuki-vrm] first render', {
+				canvasSize: { w: canvas.width, h: canvas.height },
+				canvasClientSize: {
+					w: canvas.clientWidth,
+					h: canvas.clientHeight,
+				},
+				hostSize: { w: host.clientWidth, h: host.clientHeight },
+				visibility: document.visibilityState,
+				webglContextLost: ctx ? ctx.isContextLost() : 'no-context',
+				vrmSceneVisible: vrm.scene.visible,
+			});
+		}
 	};
 	rafId = requestAnimationFrame(tick);
 
