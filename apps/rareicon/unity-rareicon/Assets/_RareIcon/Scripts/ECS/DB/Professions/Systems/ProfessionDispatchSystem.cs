@@ -186,7 +186,7 @@ namespace RareIcon
                 CapitalHasFood   = offersDB.CapitalHasFood,
                 AnyHostile       = combatDB.Threats.Length > 0,
                 DoFullDispatch   = doFullDispatch,
-                NowTick          = (uint)SystemAPI.Time.ElapsedTime,
+                NowTick          = (uint)(SystemAPI.Time.ElapsedTime * 1000d),
             };
 
             state.Dependency = job.ScheduleParallel(state.Dependency);
@@ -398,7 +398,7 @@ namespace RareIcon
                         && head.Kind != ProfessionKind.Guard
                         && priorities.Guard >= GuardPreemptThreshold
                         && TryFindClosestThreat(Threats, transform.Position,
-                                                out var preemptHex, out var preemptHostile, out _))
+                                                out var preemptHex, out var preemptHostile))
                     {
                         tasks.Clear();
                         var preemptedIntent = intent;
@@ -519,20 +519,20 @@ namespace RareIcon
                 {
                     int2   hostileHex    = default;
                     Entity hostileEntity = Entity.Null;
-                    int    hostileDist   = int.MaxValue;
                     bool   foundHostile  = false;
                     if (AnyHostile && p.Guard >= GuardPreemptThreshold)
                     {
                         foundHostile = TryFindClosestThreat(
                             Threats, transform.Position,
-                            out hostileHex, out hostileEntity, out hostileDist);
+                            out hostileHex, out hostileEntity);
                     }
 
                     int guardReservationShortfall = math.max(0, ReservedPerKind[ProfessionKind.Guard] - ActivePerKind[ProfessionKind.Guard]);
 
                     if (foundHostile)
                     {
-                        long gScore = (long)p.Guard * PriorityWeight - (long)hostileDist;
+                        int hostileHexDist = HexDistance(currentHex, hostileHex);
+                        long gScore = (long)p.Guard * PriorityWeight - (long)hostileHexDist;
                         if (hostileEntity != Entity.Null && hostileEntity == currentTarget)
                             gScore += HysteresisBonus;
                         if (guardReservationShortfall > 0)
@@ -553,6 +553,18 @@ namespace RareIcon
                         int dq = (int)(rng % (uint)span) - e.Radius;
                         rng ^= rng >> 7; rng *= 0x27D4EB2Fu;
                         int dr = (int)(rng % (uint)span) - e.Radius;
+
+                        // Axial dq/dr in a square overshoots the hex disc at
+                        // the corners. Walk back toward origin one step at a
+                        // time until the point is inside e.Radius — preserves
+                        // the rng-seeded direction while keeping patrol within
+                        // the emitter's actual territory.
+                        while (AxialDistance(dq, dr) > e.Radius)
+                        {
+                            if (math.abs(dq) > math.abs(dr)) dq -= (int)math.sign(dq);
+                            else                             dr -= (int)math.sign(dr);
+                        }
+
                         int2 patrolHex = new int2(e.Center.x + dq, e.Center.y + dr);
                         int patrolDist = HexDistance(currentHex, patrolHex);
 
@@ -692,10 +704,15 @@ namespace RareIcon
                      || variant == OfferVariant.LooterDropPickup));
         }
 
+        // Picks the nearest threat by world distance for in-territory
+        // selection (Euclidean is the correct shape for the scan radius
+        // gate), but emits only hex + entity — callers convert to
+        // HexDistance for scoring so guard scoring scales the same way
+        // as the rest of the dispatcher.
         static bool TryFindClosestThreat(
             NativeArray<ThreatRecord> threats,
             float3 originWorld,
-            out int2 outHex, out Entity outEntity, out int outDist)
+            out int2 outHex, out Entity outEntity)
         {
             const float ScanRadiusSq = 6f * 6f;
 
@@ -725,19 +742,17 @@ namespace RareIcon
             {
                 outHex    = inBestHex;
                 outEntity = inBestEntity;
-                outDist   = (int)math.round(math.sqrt(inBestSq));
                 return true;
             }
 
             if (bestEntity == Entity.Null)
             {
-                outHex = default; outEntity = Entity.Null; outDist = int.MaxValue;
+                outHex = default; outEntity = Entity.Null;
                 return false;
             }
 
             outHex    = bestHex;
             outEntity = bestEntity;
-            outDist   = (int)math.round(math.sqrt(bestSq));
             return true;
         }
 
