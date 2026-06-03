@@ -12,9 +12,49 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 40
-  about: "Gnomebowl mould is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: tool
+    tier: low
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.15
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Grand Tree Groceries
+      location: Grand Tree
+      price: 10
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Gianne dough
+      slug: gianne-dough
+      relationship: component
+      description: Dough shaped by this mould
+    - item_name: Raw gnomebowl
+      slug: raw-gnomebowl
+      relationship: product
+      description: Output of using the mould on gianne dough
+  about: "Gnomebowl mould is a members-only cooking tool used to shape gianne dough into raw gnomebowls, the foundation for gnome bowl recipes. Buy from Hudo at Grand Tree Groceries for 10 coins or grab one free from the Grand Tree kitchen cabinet. High alchemy value: 6 coins. Grand Exchange buy limit: 40 per 4 hours."
+  trading_tips:
+    - Free spawn in Grand Tree kitchen makes GE arbitrage low-yield
+    - Useful as a buffer stock for gnome cooking sessions
+  history:
+    - date: "2004-03-29"
+      description: "Released with the RuneScape 2 launch."
+    - date: "2006-08-07"
+      description: "Item value increased from 1 to 10 coins during the Gnome Cuisine update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

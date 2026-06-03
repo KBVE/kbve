@@ -12,9 +12,74 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Senntisten teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: tablet
+    tier: mid
+  properties:
+    release_date: "2014-09-18"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: magic
+      level: 60
+      xp: 70
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Law rune
+          quantity: 2
+        - item_name: Soul rune
+          quantity: 1
+      tools:
+        - Ancient lectern
+      output_quantity: 1
+  related_items:
+    - item_name: Law rune
+      slug: law-rune
+      relationship: component
+      description: Required rune for crafting the tablet
+    - item_name: Soul rune
+      slug: soul-rune
+      relationship: component
+      description: Required rune for crafting the tablet
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Base material for any teleport tablet
+  about: "The Senntisten teleport tablet breaks to teleport the player to the Digsite Exam Centre, mirroring the Senntisten teleport spell. Created at an ancient lectern in the Ancient Pyramid using the Ancient Magicks spellbook (60 Magic) from soft clay, 2 law runes and 1 soul rune — granting 70 Magic XP per tablet. Casting the tablet does not award XP and does not require the spellbook to be active."
+  market_strategy:
+    notes:
+      - "Crafted by Magic trainers running soft clay and runes"
+      - "Used by PvMers travelling to Dagannoth Kings and Senntisten dig site"
+      - "High buy limit (10,000) suits bulk supply"
+      - "No alch value — utility-only flips"
+      - "Profit per cast depends on soul rune supply"
+  trading_tips:
+    - Make in bulk at the Ancient Pyramid lectern
+    - Watch soul rune prices — they dominate margin
+    - Demand spikes with DT2 boss and dig site content
+  history:
+    - date: "2014-09-18"
+      description: "Item added to the game alongside Ancient spellbook tablets."
+    - date: "2015-04-01"
+      description: "Graphical update to the tablet sprite."
+    - date: "2016-05-01"
+      description: "Second graphical update applied."
+    - date: "2020-09-01"
+      description: "Ancient spellbook tablet crafting expanded with broader content support."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

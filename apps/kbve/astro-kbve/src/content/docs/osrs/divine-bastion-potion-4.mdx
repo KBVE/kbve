@@ -12,12 +12,89 @@ osrs:
   lowalch: 288
   highalch: 432
   limit: 2000
-  about: "Divine bastion potion(4) is a members-only item in Old School RuneScape. High alchemy value: 432 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "2020-04-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.135
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+  potion:
+    effects:
+      - description: "Boosts Ranged level by floor(level * 0.10) + 4."
+        duration: 300
+      - description: "Boosts Defence level by floor(level * 0.15) + 5."
+        duration: 300
+      - description: "Prevents the boosted stats from draining below the boosted ceiling for the duration."
+        duration: 300
+      - description: "Deals 10 Hitpoints of damage to the player upon drinking."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 86
+      xp: 2
+      materials:
+        - item_name: Bastion potion(4)
+          quantity: 1
+        - item_name: Crystal dust
+          quantity: 4
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Divine bastion potion(3)
+      slug: divine-bastion-potion-3
+      relationship: variant
+      description: 3-dose variant of this potion.
+    - item_name: Divine bastion potion(2)
+      slug: divine-bastion-potion-2
+      relationship: variant
+      description: 2-dose variant.
+    - item_name: Divine bastion potion(1)
+      slug: divine-bastion-potion-1
+      relationship: variant
+      description: 1-dose variant.
+    - item_name: Bastion potion(4)
+      slug: bastion-potion-4
+      relationship: component
+      description: Base potion used in the divine variant recipe.
+    - item_name: Divine super combat potion(4)
+      slug: divine-super-combat-potion-4
+      relationship: alternative
+      description: Related divine potion focused on melee combat.
+    - item_name: Divine super defence potion(4)
+      slug: divine-super-defence-potion-4
+      relationship: alternative
+      description: Related divine potion focused on Defence boosts only.
+  about: "Divine bastion potion(4) is a high-end Herblore brew combining Ranged and Defence boosts that resist drain for 5 minutes. Created at 86 Herblore from a Bastion potion(4) and 4 crystal dust, ideal for Ranged bossing."
+  market_strategy:
+    notes:
+      - "Tied to crystal dust supply and Bastion potion pricing."
+      - "Demand spikes during Ranged-focused PvM metas."
+  trading_tips:
+    - Decants between dose sizes via Bob Barter for inventory efficiency.
+    - Watch crystal dust prices for arbitrage opportunities.
+  history:
+    - date: "2020-04-30"
+      description: "Item released alongside divine bastion and other divine variants."
+    - date: "2020-07-02"
+      description: "Inventory icon updated to match the standard potion look."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

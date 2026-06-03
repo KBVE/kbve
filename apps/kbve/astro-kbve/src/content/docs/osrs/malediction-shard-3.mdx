@@ -12,9 +12,56 @@ osrs:
   lowalch: 12400
   highalch: 18600
   limit: 10000
-  about: "Malediction shard 3 is a members-only item in Old School RuneScape. High alchemy value: 18,600 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: shard
+    tier: mid
+  properties:
+    release_date: "2014-03-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Scorpia
+        quantity: "1"
+        rarity: 1/256
+  related_items:
+    - item_name: Malediction shard 1
+      slug: malediction-shard-1
+      relationship: component
+      description: First shard required for Malediction ward
+    - item_name: Malediction shard 2
+      slug: malediction-shard-2
+      relationship: component
+      description: Second shard required for Malediction ward
+    - item_name: Malediction ward
+      slug: malediction-ward
+      relationship: product
+      description: Combined product of all three shards
+  about: |-
+    Malediction shard 3 is one of three broken shield pieces that combine at the Blighted Volcano to create the Malediction ward, a strong magic shield. It drops from Scorpia in the Wilderness at a 1/256 rarity, making the shard chase a Wilderness PvM grind.
+  market_strategy:
+    notes:
+      - "Only obtainable from Scorpia in the Wilderness"
+      - "Demand driven by Malediction ward assembly orders"
+      - "Price typically lockstep across all three shards"
+  trading_tips:
+    - Buy the cheapest of the three shards when assembling a ward
+    - Flip on PvM updates that buff Wilderness boss XP
+  history:
+    - date: "2014-03-13"
+      description: "Added with the Wilderness Rejuvenation update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,46 +12,91 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 5
-  item:
-    type: god_page
-    god: Guthix
-    page_number: 3
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: god-page
+    tier: mid
+  properties:
+    release_date: "2004-11-17"
     tradeable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Easy/Medium/Hard/Elite
-        drop_rate: Varies by tier
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Read
+      - Drop
+    worn_options: []
+    alchable: true
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+      - master
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 11/9504
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 10/8184
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/650
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/775
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/702
   related_items:
-    - item_id: 3835
-      item_name: Guthix page 1
+    - item_name: Guthix page 1
       slug: guthix-page-1
       relationship: set-piece
-      description: Page 1 of 4
-    - item_id: 3836
-      item_name: Guthix page 2
+      description: Page 1 of 4 for the Book of balance.
+    - item_name: Guthix page 2
       slug: guthix-page-2
       relationship: set-piece
-      description: Page 2 of 4
-    - item_id: 3838
-      item_name: Guthix page 4
+      description: Page 2 of 4 for the Book of balance.
+    - item_name: Guthix page 4
       slug: guthix-page-4
       relationship: set-piece
-      description: Page 4 of 4
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | God Page |
-    | God | Guthix |
-    | Page | 3 of 4 |
-    | Tradeable | Yes |
-
-    Add to incomplete Book of balance (Guthix god book) to complete it.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Page 4 of 4 for the Book of balance.
+    - item_name: Book of balance
+      slug: book-of-balance
+      relationship: product
+      description: Completed Guthix god book once all four pages are inserted.
+    - item_name: Damaged book (Guthix)
+      slug: damaged-book-guthix
+      relationship: component
+      description: Base damaged book obtained from Horror from the Deep that accepts the pages.
+  about: "Guthix page 3 is one of four torn pages used to assemble the Book of balance, the Guthix god book equipped in the shield slot. Pages are obtained from Treasure Trails reward caskets across all clue tiers except Beginner."
+  market_strategy:
+    notes:
+      - "Tight buy limit (5) keeps prices firm despite multi-tier supply."
+      - "Demand driven by god book completionists and clue scroll farmers."
+  trading_tips:
+    - Collect all four Guthix pages to assemble a Book of balance for resale.
+    - Page set decant available via Grand Exchange Clerk.
+  history:
+    - date: "2004-11-17"
+      description: "Item released with the Horror from the Deep update."
+    - date: "2004-11-29"
+      description: "Originally listed as \"Torn page 3\" before later renaming."
+    - date: "2006-07-11"
+      description: "Renamed from \"Torn page 3(g)\" to \"Guthix page 3\"."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

@@ -12,9 +12,77 @@ osrs:
   lowalch: 88
   highalch: 132
   limit: 2000
-  about: "Anti-venom(2) is a members-only item in Old School RuneScape. High alchemy value: 132 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2015-01-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Cures poison and venom instantly, then grants venom immunity for 36 to 54 seconds and poison immunity for 12 minutes."
+        duration: 54
+      - description: "Long poison immunity that persists after the venom immunity wears off."
+        duration: 720
+  recipes:
+    - skill: herblore
+      level: 87
+      xp: 60
+      materials:
+        - item_name: Antidote++ (2)
+          quantity: 1
+        - item_name: Zulrah's scales
+          quantity: 10
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Anti-venom(4)
+      slug: anti-venom-4
+      relationship: variant
+      description: 4-dose version
+    - item_name: Anti-venom+(4)
+      slug: anti-venom-plus-4
+      relationship: upgrade
+      description: Longer venom immunity duration
+    - item_name: Antidote++
+      slug: antidote-plus-plus
+      relationship: component
+      description: Base potion for Anti-venom
+    - item_name: Zulrah's scales
+      slug: zulrahs-scales
+      relationship: component
+      description: Required to convert Antidote++ into Anti-venom
+  about: "Anti-venom(2) is a 2-dose members potion that immediately cures poison and venom, then grants venom immunity for roughly 36 to 54 seconds plus poison immunity for 12 minutes. Created at 87 Herblore by adding 5 Zulrah's scales per dose to an Antidote++. High alchemy value: 132 coins. Grand Exchange buy limit: 2,000 per 4 hours."
+  market_strategy:
+    notes:
+      - "Demand spikes with Zulrah, Theatre of Blood and other venom-heavy content"
+      - "Supply is gated by Zulrah's scales availability"
+      - "87 Herblore decant route gives steady scale-to-coin conversion margin"
+  trading_tips:
+    - Convert Anti-venom(4) into 2-dose forms via a NPC decanter for arbitrage
+    - Stockpile Zulrah's scales on price dips to hedge production cost
+  history:
+    - date: "2015-01-08"
+      description: "Anti-venom potions released alongside the Zulrah boss."
+    - date: "2016-04-07"
+      description: "Drinking any kind of antipoison no longer decreases poison immunity."
+    - date: "2025-01-08"
+      description: "Players can now initiate Make-X processes without cancelling movement."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

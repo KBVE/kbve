@@ -12,68 +12,71 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 600
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
     type: seed
+    tier: mid
+  properties:
+    release_date: "2005-06-06"
     tradeable: true
     stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0
-  farming:
-    level: 38
-    growth_time: 80
-    plant_xp: 34
-    harvest_xp: 38.5
-    patch_type: herb
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: farming
+      level: 38
+      xp: 38.5
+      materials:
+        - item_name: Toadflax seed
+          quantity: 1
+      tools:
+        - Seed dibber
+        - Rake
+      output_quantity: 1
   related_items:
-    - item_id: 2998
-      item_name: Toadflax
+    - item_name: Toadflax
       slug: toadflax
       relationship: product
-      description: Harvested herb
-    - item_id: 6687
-      item_name: Saradomin brew(4)
+      description: Harvested herb used in Saradomin brews
+    - item_name: Saradomin brew(4)
       slug: saradomin-brew-4
       relationship: alternative
-      description: End product potion
-    - item_id: 21483
-      item_name: Ultracompost
+      description: End-product potion driving toadflax demand
+    - item_name: Ultracompost
       slug: ultracompost
-      relationship: alternative
-      description: Best compost for yield
-    - item_id: 7409
-      item_name: Magic secateurs
+      relationship: component
+      description: Best compost for higher yield and disease resistance
+    - item_name: Magic secateurs
       slug: magic-secateurs
-      relationship: alternative
-      description: Yield boost tool
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Farming Level | 38 |
-    | Growth Time | 80 minutes |
-    | Plant XP | 34 |
-    | Harvest XP | 38.5 per herb |
-
-    | Compost Type | Min Harvest | Avg at 99 |
-    |--------------|-------------|-----------|
-    | None | 3 | ~5 herbs |
-    | Compost | 4 | ~6 herbs |
-    | Supercompost | 5 | ~7.5 herbs |
-    | Ultracompost | 6 | ~9.2 herbs |
-
-    Tip: Use magic secateurs and attas plant for maximum yield.
-
-    Toadflax is used to create:
-    - Saradomin brew(4) - Essential PvM potion
-    - Agility potion(4) - Run restoration
+      relationship: component
+      description: Yield boost tool from Fairy Tale Part I
+  about: "Toadflax seed is a herb seed planted in a herb patch at 38 Farming. Each seed grows into toadflax over 80 minutes (four 20 minute stages) and yields at least 3 herbs per patch, more with compost. Toadflax is the primary herb for Saradomin brews and is a major PvM economy driver."
   market_strategy:
     notes:
-      - Profitable herb to farm
-      - Saradomin brew demand drives price
-      - Often farmed alongside other valuable herbs
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Profitable herb to farm thanks to Saradomin brew demand"
+      - "Stack across multiple herb patches for compounding runs"
+      - "Magic secateurs and attas plant maximise per-patch yield"
+  trading_tips:
+    - Buy seeds in bulk during Wintertodt seed pack waves
+    - Sell harvested toadflax over the seed for higher margin
+  history:
+    - date: "2005-06-06"
+      description: "Added with the Farming skill release."
+    - date: "2020-04-23"
+      description: "Experience moved from planting to harvesting to prevent click-spam farming."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

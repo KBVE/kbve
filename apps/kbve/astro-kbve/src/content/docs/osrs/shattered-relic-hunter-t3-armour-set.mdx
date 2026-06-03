@@ -1,6 +1,6 @@
 ---
 title: Shattered relic hunter (t3) armour set | OSRS Price Data
-description: "Shattered relic hunter (t3) armour set is a members-only OSRS item. High alch: 30,000 GP."
+description: "Shattered relic hunter (t3) armour set: A set containing Shattered boots (t3), trousers (t3), top (t3) and hood (t3). High alch: 30,000 GP."
 osrs:
   id: 26560
   name: Shattered relic hunter (t3) armour set
@@ -12,9 +12,62 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: null
-  about: "Shattered relic hunter (t3) armour set is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2022-03-16"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: "Shattered hood (t3)"
+      slug: shattered-hood-t3
+      relationship: set-piece
+      description: "Hood component of the t3 outfit."
+    - item_name: "Shattered top (t3)"
+      slug: shattered-top-t3
+      relationship: set-piece
+      description: "Top component of the t3 outfit."
+    - item_name: "Shattered trousers (t3)"
+      slug: shattered-trousers-t3
+      relationship: set-piece
+      description: "Trousers component of the t3 outfit."
+    - item_name: "Shattered boots (t3)"
+      slug: shattered-boots-t3
+      relationship: set-piece
+      description: "Boots component of the t3 outfit."
+    - item_name: "Shattered relic hunter (t1) armour set"
+      slug: shattered-relic-hunter-t1-armour-set
+      relationship: downgrade
+      description: "Lower tier cosmetic outfit set."
+    - item_name: "Shattered relic hunter (t2) armour set"
+      slug: shattered-relic-hunter-t2-armour-set
+      relationship: downgrade
+      description: "Mid tier cosmetic outfit set."
+  about: "The Shattered relic hunter (t3) armour set is a Grand Exchange bundle of the four-piece tier-3 Leagues III cosmetic outfit. It is created by exchanging the components with a GE clerk and is mainly used to ship the whole outfit in one slot when listing or merching."
+  market_strategy:
+    notes:
+      - "No GE buy limit; set premium above part sum varies sharply when leagues nostalgia spikes."
+      - "Long-term cosmetic - price floor depends on Jagex never reissuing the outfit."
+  trading_tips:
+    - "Buy individual pieces below set price and merge with the GE clerk for arbitrage."
+    - "List in sets to clear all four parts faster during low cosmetic demand."
+  history:
+    - date: "2022-03-16"
+      description: "Released as a tradeable cosmetic bundle of the Leagues III tier-3 hunter outfit."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

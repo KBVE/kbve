@@ -12,102 +12,88 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
     type: plank
     tier: low
-  construction:
-    xp_per_plank: 60
-    common_builds:
-      - name: Oak larders
-        planks: 8
-        xp: 480
-      - name: Oak dungeon doors
-        planks: 10
-        xp: 600
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.8
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: construction
+      level: 15
+      xp: 60
       materials:
         - item_name: Oak logs
-          item_id: 1521
           quantity: 1
-      product: Oak plank
-      product_id: 8778
-      product_quantity: 1
-      facility: Sawmill
-      cost: 250
-      members_only: true
+        - item_name: Coins
+          quantity: 250
+      tools: []
+      output_quantity: 1
     - skill: magic
       level: 86
       xp: 90
       materials:
         - item_name: Oak logs
-          item_id: 1521
           quantity: 1
         - item_name: Astral rune
-          item_id: 9075
           quantity: 2
         - item_name: Nature rune
-          item_id: 561
           quantity: 1
         - item_name: Earth rune
-          item_id: 557
           quantity: 15
-      product: Oak plank
-      product_id: 8778
-      product_quantity: 1
-      cost: 175
-      members_only: true
-      spell: Plank Make
+        - item_name: Coins
+          quantity: 175
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 1521
-      item_name: Oak logs
+    - item_name: Oak logs
       slug: oak-logs
       relationship: component
-      description: Raw material
-    - item_id: 960
-      item_name: Plank
+      description: Raw material converted to planks at the sawmill
+    - item_name: Plank
       slug: plank
       relationship: alternative
-      description: Lower tier (regular logs)
-    - item_id: 8780
-      item_name: Teak plank
+      description: Lower-tier plank from regular logs
+    - item_name: Teak plank
       slug: teak-plank
       relationship: alternative
-      description: Mid tier
-    - item_id: 8782
-      item_name: Mahogany plank
+      description: Mid-tier construction plank
+    - item_name: Mahogany plank
       slug: mahogany-plank
       relationship: alternative
-      description: Highest tier
-    - item_id: 9075
-      item_name: Astral rune
+      description: Highest-tier construction plank
+    - item_name: Astral rune
       slug: astral-rune
       relationship: component
-      description: For Plank Make
+      description: Required for the Plank Make spell
   about: |-
-    | XP per plank | 60 |
-    |--------------|-----|
-    | Buy limit | 13,000 per 4 hours |
-
-    Common builds:
-    - Oak larders (8 planks, 480 XP) - popular training method
-    - Oak dungeon doors (10 planks, 600 XP)
-    - Mahogany Homes contracts (~variable XP)
+    Oak plank is a construction material made by paying 250 coins per oak log at a sawmill, or by casting Plank Make (Lunar Magic, requires Dream Mentor) for 86 Magic and 90 XP. Grants 60 Construction XP when built into furniture. Used in popular training methods like Oak larders and Oak dungeon doors.
   market_strategy:
-    profit_formulas:
-      - Oak plank price - Oak log price - 250 GP = Profit
     notes:
-      - Buy Oak logs → Sawmill → Sell Oak planks
-      - "Calculate:"
-      - 86 Magic required
-      - "Uses: 2 Astral rune, 1 Nature rune, 15 Earth rune"
-      - Only 175 GP per plank (cheaper than sawmill)
-      - Can profit if rune costs are lower than 75 GP savings
-      - High volume item for Construction training
-      - Steady demand from Mahogany Homes
-      - Compare sawmill vs Plank Make profitability
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Buy oak logs cheap, convert at sawmill, sell planks"
+      - "Plank Make spell cuts cost to 175 GP per plank"
+      - "High buy limit of 13,000 per 4 hours"
+      - "Steady demand from Mahogany Homes contracts"
+  trading_tips:
+    - Compare oak log spot price to plank price for sawmill margin
+    - Plank Make profitability swings with rune prices
+  history:
+    - date: "2006-05-31"
+      description: "Released with the Construction skill and Player-Owned Houses update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

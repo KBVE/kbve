@@ -12,9 +12,68 @@ osrs:
   lowalch: 810
   highalch: 1215
   limit: 10000
-  about: "Ruby amulet (u) is a free-to-play item in Old School RuneScape. High alchemy value: 1,215 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ruby
+    tier: mid
+  properties:
+    release_date: "2001-05-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.004
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 50
+      xp: 85
+      materials:
+        - item_name: Gold bar
+          quantity: 1
+        - item_name: Ruby
+          quantity: 1
+        - item_name: Amulet mould
+          quantity: 1
+      tools:
+        - Furnace
+      output_quantity: 1
+  related_items:
+    - item_name: Ruby amulet
+      slug: ruby-amulet
+      relationship: upgrade
+      description: Strung version after applying ball of wool
+    - item_name: Amulet of strength
+      slug: amulet-of-strength
+      relationship: product
+      description: Enchanted via Lvl-3 Enchant
+    - item_name: Sapphire amulet (u)
+      slug: sapphire-amulet-u
+      relationship: downgrade
+      description: Lower tier unstrung amulet
+    - item_name: Emerald amulet (u)
+      slug: emerald-amulet-u
+      relationship: downgrade
+      description: Lower tier unstrung amulet
+  about: "Ruby amulet (u) is the unstrung output of crafting a gold bar plus cut ruby at a furnace with an amulet mould at 50 Crafting (85 XP). Add a ball of wool (or cast Lunar string spell) to string it, then cast Lvl-3 Enchant to produce an Amulet of strength."
+  market_strategy:
+    notes:
+      - "Profit margin tracks ruby and gold bar prices"
+      - "Demand driven by Magic enchanting alts and amulet of strength supply"
+      - "F2P availability widens buyer pool"
+  trading_tips:
+    - Watch ruby vs gold bar spreads — both inputs affect floor
+    - Bulk demand during DXP for Magic and Crafting training
+  history:
+    - date: "2001-05-08"
+      description: "Released as part of the original Crafting jewellery line."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

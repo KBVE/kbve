@@ -12,9 +12,58 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  about: "Sigil of the potion master is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: sigil
+    tier: high
+  properties:
+    release_date: "2021-08-25"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Unlock
+      - Inspect
+      - Destroy
+    worn_options: []
+    alchable: false
+    destroy: "You will need to obtain another sigil from the Deadman skull shop."
+  passive_effects:
+    - name: Potion Conservation
+      description: "Once attuned, grants a 20% chance to not consume a dose when drinking a potion, with a 6-second cooldown between activations (5% chance in Deadman: Annihilation, no cooldown)."
+  related_items:
+    - item_name: Sigil of the smith
+      slug: sigil-of-the-smith
+      relationship: alternative
+      description: Smithing-focused Deadman sigil
+    - item_name: Sigil of the chef
+      slug: sigil-of-the-chef
+      relationship: alternative
+      description: Cooking-focused Deadman sigil
+  about: "Sigil of the potion master is a power-enhancing sigil obtained from Deadman Mode events. When attuned via the Unlock option, it grants a permanent 20% chance to not consume a potion dose upon use, with a 6-second cooldown between activations. The sigil is exclusive to temporary Deadman seasons and is generally not obtainable in the standard live game."
+  market_strategy:
+    notes:
+      - "Deadman Mode exclusive — not tradeable on live game GE"
+      - "Originally purchased from the Deadman skull shop"
+      - "Duplicates can be sold back to the skull shop"
+      - "Single attune unlock — multiple sigils can stack effects"
+      - "Value tag of 10,000 coins is informational only"
+  trading_tips:
+    - Cannot be traded — Deadman event reward
+    - High alch not possible
+    - Attune as soon as obtained for permanent buff
+  history:
+    - date: "2021-08-25"
+      description: "Item added to the game as part of Deadman: Reborn season."
+    - date: "Deadman: Annihilation"
+      description: "Earlier event variant featured a 5% chance with no cooldown."
+    - date: "Deadman: Armageddon / Apocalypse / Reborn"
+      description: "Effect rebalanced to 20% chance with a 6-second cooldown between procs."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

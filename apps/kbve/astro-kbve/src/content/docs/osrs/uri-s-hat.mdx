@@ -12,9 +12,80 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 4
-  about: "Uri's hat is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2019-04-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 2.267
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Elite Treasure Trails reward casket
+        quantity: "1"
+        rarity: 1/1275
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  related_items:
+    - item_name: Uri's gloves
+      slug: uri-s-gloves
+      relationship: set-piece
+      description: Matching elite clue cosmetic
+    - item_name: Elite clue scroll
+      slug: clue-scroll-elite
+      relationship: component
+      description: Source of the reward casket
+  about: |-
+    > *"This is top secret comrade..."*
+
+    Cosmetic head slot reward from elite clue caskets at 1/1,275. Worn by NPC Uri and Watson; stat profile is purely cosmetic.
+  market_strategy:
+    notes:
+      - "Supply tied directly to elite clue completion volume"
+      - "Buy limit of 4 keeps short-term flips thin"
+  history:
+    - date: "2019-04-11"
+      description: "Added as an elite clue scroll reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Adamant javelin(p++) | OSRS Price Data
-description: "Adamant javelin(p++): An adamant tipped javelin.. High alch: 96 GP, GE limit: 11,000."
+description: "Adamant javelin(p++): An adamant tipped javelin. High alch: 96 GP, GE limit: 11,000."
 osrs:
   id: 5652
   name: Adamant javelin(p++)
@@ -12,9 +12,69 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 11000
-  about: "Adamant javelin(p++) is a members-only item in Old School RuneScape. High alchemy value: 96 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: adamant
+    tier: mid-high
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammo
+    weapon_type: thrown
+    attack_speed: 6
+    weight: 0
+    requirements:
+      ranged: 30
+    attack_bonus:
+      ranged: 0
+    defence_bonus: {}
+    other_bonus:
+      ranged_strength: 102
+  related_items:
+    - item_name: Adamant javelin
+      slug: adamant-javelin
+      relationship: variant
+      description: Unpoisoned variant
+    - item_name: Adamant javelin(p)
+      slug: adamant-javelin-p-5638
+      relationship: variant
+      description: Weak poison variant
+    - item_name: Adamant javelin(p+)
+      slug: adamant-javelin-p-5645
+      relationship: variant
+      description: Stronger poison variant
+    - item_name: Rune javelin(p++)
+      slug: rune-javelin-p-5653
+      relationship: upgrade
+      description: Higher tier poisoned javelin
+  about: "Adamant javelin(p++) is the extra-strength poisoned adamant javelin used as ballista ammunition. With +102 ranged strength and the strongest weapon poison applied, it's a popular choice for ironmen and PvMers who need consistent poison damage on heavy ballista hits."
+  market_strategy:
+    notes:
+      - "Demand tracks Heavy ballista usage at slayer and PvM bosses"
+      - "Poison++ variant trades at a small premium over base javelin"
+  trading_tips:
+    - Buy in bulk while ballista metas are quiet for cheap stock
+  history:
+    - date: "2005-07-11"
+      description: "Poisoned javelin variants added to the game."
+    - date: "2016-05-06"
+      description: "Moved to ammunition slot only; ranged strength increased significantly."
+    - date: "2016-10-31"
+      description: "Ranged strength adjusted to +102."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

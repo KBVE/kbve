@@ -12,9 +12,70 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 70
-  about: "Bone dagger (p++) is a members-only item in Old School RuneScape. High alchemy value: 1,200 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bone
+    tier: mid
+  properties:
+    release_date: "2006-06-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: dagger
+    attack_speed: 4
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 5
+      slash: 3
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
+      strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Bone dagger
+      slug: bone-dagger
+      relationship: variant
+      description: Unpoisoned base dagger
+    - item_name: Weapon poison++
+      slug: weapon-poison-pp
+      relationship: component
+      description: Poison applied to upgrade to p++
+  about: "Bone dagger (p++) is the strongest-poison variant of the Dorgeshuun bone dagger, obtained as a drop in the Lumbridge Catacombs or by applying weapon poison++ to a regular bone dagger. Its Backstab special attack will never miss while the target is undamaged and reduces Defence by the damage dealt, costing 75% special energy."
+  passive_effects:
+    - name: Backstab
+      description: "Special attack: cannot miss against undamaged targets and lowers Defence by damage dealt; 75% special energy cost."
+  market_strategy:
+    notes:
+      - "Niche stab special-attack tool, lower volume than dragon dagger"
+      - "Premium over base bone dagger reflects weapon poison++ scarcity"
+  history:
+    - date: "2006-06-21"
+      description: "Released alongside the Death to the Dorgeshuun quest update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

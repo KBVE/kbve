@@ -12,12 +12,68 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 10000
-  about: "Cooked sunlight antelope is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: mid
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.283
+    options:
+      - Eat
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 68
+      xp: 175
+      materials:
+        - item_name: Raw sunlight antelope
+          quantity: 1
+      tools:
+        - Fire or range
+      output_quantity: 1
+  related_items:
+    - item_name: Raw sunlight antelope
+      slug: raw-sunlight-antelope
+      relationship: component
+      description: Raw form cooked into this food
+    - item_name: Cooked moonlight antelope
+      slug: cooked-moonlight-antelope
+      relationship: alternative
+      description: Nocturnal Varlamore hunter food counterpart
+  about: |-
+    Cooked sunlight antelope is a members-only food obtained by cooking a raw sunlight antelope at level 68 Cooking, yielding 175 experience. Players must complete 50 Hunters' Rumours before they can cook these.
+
+    When eaten, it restores a combined 21 Hitpoints — 12 immediately, plus 9 more after a 7-tick delay (4.2 seconds). Eating another hunter meat quickly cancels the pending heal from the prior bite, so it is best used as a primary food.
+  potion:
+    effects:
+      - description: "Restores 12 Hitpoints immediately on consumption."
+        duration: 0
+      - description: "Restores an additional 9 Hitpoints after a 7-tick delay."
+        duration: 4
+  market_strategy:
+    notes:
+      - "Cooking from raw is currently unprofitable due to material costs"
+      - "Used by hunter pet farmers leveling cooking with side meat"
+      - "Demand spikes during Varlamore content patches"
+  history:
+    - date: "2024-03-20"
+      description: "Cooked sunlight antelope released as part of the Varlamore update."
+    - date: "2026-05-13"
+      description: "Graphical update made the cooked sunlight antelope sprite more vibrant."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

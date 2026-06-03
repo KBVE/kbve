@@ -12,9 +12,91 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 7000
-  about: "Steel knife(p+) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: steel
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 8
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 7
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Weapon poison(+)
+      description: Has a chance to inflict extra strong poison on hit, dealing 5 damage initially.
+  recipes:
+    - skill: herblore
+      level: 73
+      xp: 0
+      materials:
+        - item_name: Steel knife
+          quantity: 5
+        - item_name: Weapon poison(+)
+          quantity: 1
+      tools: []
+      output_quantity: 5
+  related_items:
+    - item_name: Steel knife
+      slug: steel-knife
+      relationship: component
+      description: Unpoisoned base knife combined with weapon poison(+).
+    - item_name: Steel knife(p)
+      slug: steel-knife-p
+      relationship: downgrade
+      description: Standard weapon poison variant of the steel knife.
+    - item_name: Steel knife(p++)
+      slug: steel-knife-p-plus-plus
+      relationship: upgrade
+      description: Stronger weapon poison(++) variant.
+  about: "Steel knife(p+) is a thrown weapon crafted by applying weapon poison(+) to five steel knives. It requires 5 Ranged to wield and inflicts extra-strong poison on hit, useful for early-tier ranged pures and PvP setups."
+  market_strategy:
+    notes:
+      - "Cheap stackable throwing weapon; demand pulses with PvP events."
+      - "Crafted in batches of five which can spike supply briefly after Herblore training."
+  trading_tips:
+    - Buy unpoisoned steel knives and apply weapon poison(+) when the spread justifies it.
+    - Stack up for Bounty Hunter events; demand spikes during PvP weekends.
+  history:
+    - date: "2006-09-01"
+      description: "Renamed from 'Steel knife(+)' to 'Steel knife(p+)' to standardise poison suffixes."
+    - date: "2005-07-11"
+      description: "Released alongside the Herblore weapon poison(+) update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

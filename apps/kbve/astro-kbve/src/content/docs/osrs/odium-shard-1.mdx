@@ -12,9 +12,58 @@ osrs:
   lowalch: 12400
   highalch: 18600
   limit: 10000
-  about: "Odium shard 1 is a members-only item in Old School RuneScape. High alchemy value: 18,600 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: shield_shard
+    tier: high
+  properties:
+    release_date: "2014-03-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Chaos Fanatic
+        quantity: "1"
+        rarity: 1/256
+  related_items:
+    - item_name: Odium shard 2
+      slug: odium-shard-2
+      relationship: set-piece
+      description: Second shard, combines into Odium ward
+    - item_name: Odium shard 3
+      slug: odium-shard-3
+      relationship: set-piece
+      description: Third shard, combines into Odium ward
+    - item_name: Odium ward
+      slug: odium-ward
+      relationship: product
+      description: Combined ranged shield at Blighted Volcano
+    - item_name: Malediction shard 1
+      slug: malediction-shard-1
+      relationship: alternative
+      description: Magic shield counterpart shard
+  about: |-
+    Odium shard 1 is one of three shards used to forge an Odium ward, a ranged-attack shield. Combine all three Odium shards at the Blighted Volcano in the northeastern Wilderness; no skills or XP required. Dropped exclusively by the Chaos Fanatic at 1/256.
+  market_strategy:
+    notes:
+      - "Supply gated by Wilderness boss kills"
+      - "High alch value supports floor price"
+      - "Demand swings with Odium ward popularity"
+      - "Buy limit of 10,000 per 4 hours"
+  history:
+    - date: "2014-03-13"
+      description: "Released alongside the Odium ward as part of the Wilderness boss expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

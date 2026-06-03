@@ -12,86 +12,81 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
     type: nails
-    tier: steel
-  smithing:
-    level: 34
-    xp: 37.5
-    bars: 1
-    nails_per_bar: 15
-  construction:
-    bend_rate: Medium
-    min_level: 1
+    tier: mid
+  properties:
+    release_date: "23 September 2001"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Sawmill operator
+      location: Varrock Lumber Yard
+      price: 3
+      currency: Coins
+      stock: 1000
   recipes:
     - skill: smithing
       level: 34
       xp: 37.5
       materials:
         - item_name: Steel bar
-          item_id: 2353
           quantity: 1
-      product: Steel nails
-      product_id: 1539
-      product_quantity: 15
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 15
   related_items:
-    - item_id: 2353
-      item_name: Steel bar
+    - item_name: Steel bar
       slug: steel-bar
       relationship: component
-      description: Smelting material
-    - item_id: 4820
-      item_name: Iron nails
+      description: Smithing material for nails
+    - item_name: Iron nails
       slug: iron-nails
       relationship: downgrade
-      description: Higher bend rate
-    - item_id: 4822
-      item_name: Mithril nails
+      description: Higher bend rate, cheaper alternative
+    - item_name: Mithril nails
       slug: mithril-nails
       relationship: upgrade
       description: Lower bend rate
-    - item_id: 960
-      item_name: Plank
+    - item_name: Plank
       slug: plank
-      relationship: component
-      description: Used with planks
-    - item_id: 8778
-      item_name: Oak plank
+      relationship: product
+      description: Used with regular planks in Construction
+    - item_name: Oak plank
       slug: oak-plank
-      relationship: component
-      description: Construction material
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Bend rate | Medium |
-    | Construction level | 1+ |
-    | Used with | Planks |
-
-    Most common nails for Construction training. Reasonable bend rate with affordable cost.
-
-    Required for:
-    - Furniture using regular planks
-    - Some quest builds (e.g., Priest in Peril bridge)
-
-    | Nails | Bend Rate | Shop Price |
-    |-------|-----------|------------|
-    | Bronze | Highest | 1 GP |
-    | Iron | High | 2 GP |
-    | Steel | Medium | 5 GP |
-    | Mithril | Low | 10 GP |
-    | Adamantite | Very Low | 25 GP |
-    | Rune | Never bends | 100 GP |
+      relationship: product
+      description: Used with oak planks in Construction
+  about: "Steel nails are a stackable Construction reagent smithed from steel bars at level 34 Smithing (15 nails per bar, 37.5 XP). Used together with planks to build a variety of furniture and quest constructions, including the Priest in Peril bridge. Offer a medium bend rate — a balance between the cheaper iron nails and the more reliable mithril and adamantite versions. Also sold by the Sawmill operator at the Varrock Lumber Yard."
   market_strategy:
     notes:
-      - Best value nails for Construction
-      - Good balance of cost and bend rate
-      - Popular for early Construction training
-      - Required for various quests
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Best value nails for Construction training"
+      - "High daily GE volume keeps prices liquid"
+      - "Shop floor at 3 coins from Sawmill operator"
+      - "Smithing recipe loses money pre-tax"
+  trading_tips:
+    - Buy from Sawmill operator for arbitrage to GE
+    - Watch Construction event weekends for demand spikes
+    - Stockpile during Smithing events when steel bars dip
+  history:
+    - date: "23 September 2001"
+      description: "Item was added to the game alongside the original nails set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

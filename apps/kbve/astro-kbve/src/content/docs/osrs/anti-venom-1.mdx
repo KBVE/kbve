@@ -1,6 +1,6 @@
 ---
 title: Anti-venom(1) | OSRS Price Data
-description: "Anti-venom(1): 1 dose of antivenom potion.. High alch: 66 GP, GE limit: 2,000."
+description: "Anti-venom(1): 1 dose of antivenom potion. High alch: 66 GP, GE limit: 2,000."
 osrs:
   id: 12911
   name: Anti-venom(1)
@@ -12,9 +12,66 @@ osrs:
   lowalch: 44
   highalch: 66
   limit: 2000
-  about: "Anti-venom(1) is a members-only item in Old School RuneScape. High alchemy value: 66 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid-high
+  properties:
+    release_date: "2015-01-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Instantly cures venom and poison and grants immunity to poison for 12 minutes."
+        duration: 720
+      - description: "Grants immunity to venom for 36-54 seconds depending on dose."
+        duration: 54
+  related_items:
+    - item_name: Anti-venom(2)
+      slug: anti-venom-2
+      relationship: variant
+      description: "Two-dose variant of the same potion."
+    - item_name: Anti-venom(3)
+      slug: anti-venom-3
+      relationship: variant
+      description: "Three-dose variant."
+    - item_name: Anti-venom(4)
+      slug: anti-venom-4
+      relationship: variant
+      description: "Four-dose variant; most efficient stack size."
+    - item_name: "Anti-venom+(4)"
+      slug: anti-venom-plus-4
+      relationship: upgrade
+      description: "Stronger version with longer venom immunity."
+  about: "Anti-venom(1) is a single-dose members potion that cures and prevents venom and poison. Crafted from Zulrah's scales and antidote++ at 87 Herblore, it is the staple anti-poison potion at Zulrah, Vorkath, and other venomous bosses."
+  market_strategy:
+    notes:
+      - "Demand spikes with Zulrah and Vorkath activity; one-dose vials are a byproduct of decanting."
+      - "Buy limit of 2,000 per 4 hours allows large rotations for decanters."
+      - "High alch under value, so always exit via GE rather than nature runes."
+  trading_tips:
+    - "Buy single doses cheap and decant into 4-dose potions for profit."
+    - "Watch for Zulrah scale price swings as they drive antivenom margins."
+  history:
+    - date: "2015-01-08"
+      description: "Released alongside the Zulrah boss update."
+    - date: "2016-04-07"
+      description: "Drinking antipoison no longer decreases poison immunity granted by anti-venom."
+    - date: "2025-01-08"
+      description: "Players can now initiate potion-making without canceling movement."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

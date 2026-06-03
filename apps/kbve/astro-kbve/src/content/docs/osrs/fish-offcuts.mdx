@@ -12,12 +12,60 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 8000
-  about: "Fish offcuts is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 8,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bait
+    tier: low
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - item_name: Knife
+      slug: knife
+      relationship: component
+      description: Used on raw fish to produce offcuts
+    - item_name: Raw leaping trout
+      slug: raw-leaping-trout
+      relationship: component
+      description: Barbarian Fishing source for offcuts
+    - item_name: Feather
+      slug: feather
+      relationship: alternative
+      description: Alternative bait at certain fishing spots
+  about: "Fish offcuts are a stackable bait obtained by using a knife on most raw fish, including barbarian leaping fish and aerial fishing catches. They serve as bait for barbarian fishing, aerial cormorant feeding, deep sea trawling, and crab trapping, and are also fed to cats and used to fill some Hunter Rumours."
+  market_strategy:
+    notes:
+      - "Large 8,000 buy limit suits high-volume aerial fishers stocking up"
+      - "Price is anchored close to the value of a single coin"
+      - "Supply scales with Barbarian and Aerial Fishing popularity"
+  trading_tips:
+    - Buy in bulk before long aerial fishing sessions
+    - Resell stacks left over from finished Hunter Rumours
+  history:
+    - date: "2007-07-03"
+      description: "Released with Barbarian Fishing as a knife-cut byproduct of raw fish."
+    - date: "2015-09-10"
+      description: "Granted priority bait status during Barbarian Fishing."
+    - date: "2022-10-26"
+      description: "Cutting leaping fish became automatic on knife use, although manual cuts remained slightly faster."
+    - date: "2025-04-16"
+      description: "Item appearance updated; obtainable from most raw fish and aerial fishing chunks were converted to offcuts."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

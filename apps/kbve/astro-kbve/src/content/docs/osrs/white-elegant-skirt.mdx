@@ -1,6 +1,6 @@
 ---
 title: White elegant skirt | OSRS Price Data
-description: "White elegant skirt is a members legs slot item. High alch: 1,200 GP, GE limit: 4."
+description: "White elegant skirt is a cosmetic medium clue legs reward. High alch: 1,200 GP, GE limit: 4."
 osrs:
   id: 10422
   name: White elegant skirt
@@ -12,21 +12,86 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2006-12-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 1
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
-    - item_id: 10420
-      item_name: White elegant blouse
+    - item_name: White elegant blouse
       slug: white-elegant-blouse
       relationship: set-piece
-      description: Matching elegant blouse
+      description: Matching elegant top
+    - item_name: Black elegant skirt
+      slug: black-elegant-skirt
+      relationship: variant
+      description: Black colour variant
+    - item_name: Red elegant skirt
+      slug: red-elegant-skirt
+      relationship: variant
+      description: Red colour variant
+    - item_name: Blue elegant skirt
+      slug: blue-elegant-skirt
+      relationship: variant
+      description: Blue colour variant
   about: |-
-    > *"A rather elegant white skirt."*
+    > _"A rather elegant white skirt."_
 
-    Purely cosmetic treasure trail reward with no combat stats. Part of the white elegant clothing set.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Purely cosmetic medium Treasure Trail reward (drop rate 8/18,128 from medium reward caskets). Part of the white elegant clothing set and storable in costume rooms.
+  market_strategy:
+    notes:
+      - "Buy limit of 4 makes the item a low-volume cosmetic flip."
+      - "Set completion drives outsized demand for matching blouse + skirt."
+  trading_tips:
+    - List blouse and skirt as a set to hit the costume-set premium.
+    - Avoid overstocking; thin liquidity means single high-margin sales beat bulk.
+  history:
+    - date: "2006-12-05"
+      description: "Released as part of the elegant clothing set reward pool."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

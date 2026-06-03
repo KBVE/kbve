@@ -1,6 +1,6 @@
 ---
 title: Dragon knife(p++) | OSRS Price Data
-description: "Dragon knife(p++): A finely balanced and powerful throwing knife.. High alch: 99 GP, GE limit: 7,000."
+description: "Dragon knife(p++): A finely balanced and powerful throwing knife. High alch: 99 GP, GE limit: 7,000."
 osrs:
   id: 22810
   name: Dragon knife(p++)
@@ -12,9 +12,83 @@ osrs:
   lowalch: 66
   highalch: 99
   limit: 7000
-  about: "Dragon knife(p++) is a members-only item in Old School RuneScape. High alchemy value: 99 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "2019-01-10"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 28
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 30
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Dragon knife
+      slug: dragon-knife
+      relationship: variant
+      description: Unpoisoned base variant.
+    - item_name: Dragon knife(p)
+      slug: dragon-knife-p-22808
+      relationship: variant
+      description: Poisoned variant inflicting weaker damage over time.
+    - item_name: Dragon knife(p+)
+      slug: dragon-knife-p-plus
+      relationship: variant
+      description: Strong poison variant.
+  about: |-
+    Dragon knife(p++) is the top-tier poisoned dragon throwing knife, requiring 60 Ranged to wield. With +28 Ranged attack and +30 Ranged strength on a 2-tick rapid attack speed, it's one of the fastest single-target damage tools in the game.
+
+    The (p++) suffix carries weapon poison++, dealing the highest poison damage tier and making this knife a strong pick for short bursts on bosses where poison sticks.
+
+    Requirements: 60 Ranged | Slot: Weapon | Attack speed: 2 ticks (rapid)
+  market_strategy:
+    notes:
+      - "Used in burst-damage setups where poison procs matter."
+      - "Demand scales with PvM activity and slayer task popularity."
+      - "Stacks let big buyers liquidate quickly without margin pressure."
+  trading_tips:
+    - Watch margin against the unpoisoned dragon knife to spot poison-up arbitrage.
+    - Boss release weeks reliably push price upward.
+  history:
+    - date: "2021-07-07"
+      description: "Female character weapon positioning adjusted for proper display."
+    - date: "2019-01-10"
+      description: "Released with The Kebos Lowlands update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

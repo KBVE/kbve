@@ -12,12 +12,100 @@ osrs:
   lowalch: 7
   highalch: 10
   limit: 7000
-  about: "Black dart(p) is a members-only item in Old School RuneScape. High alchemy value: 10 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dart
+    tier: low
+  properties:
+    release_date: "9 August 2004"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 6
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Black dart
+          quantity: 1
+        - item_name: Weapon poison
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Weapon poison
+      description: "Has a chance to inflict regular weapon poison damage on hit, starting at 2 damage and ticking down over time."
+  related_items:
+    - item_name: Black dart
+      slug: black-dart
+      relationship: component
+      description: Base unpoisoned dart
+    - item_name: Black dart(p+)
+      slug: black-dart-p-plus
+      relationship: upgrade
+      description: Stronger poison variant
+    - item_name: Black dart(p++)
+      slug: black-dart-p-plus-plus
+      relationship: upgrade
+      description: Strongest poison variant
+    - item_name: Adamant dart(p)
+      slug: adamant-dart-p
+      relationship: upgrade
+      description: Higher tier poisoned dart
+  about: "The black dart(p) is the weapon poison variant of the black dart, a thrown ranged weapon requiring level 10 Ranged. Created by applying weapon poison to a regular black dart. Each thrown dart has a chance to inflict weapon poison damage, useful for low-level slayer tasks and PK setups. Black darts are only obtainable from Burthorpe soldiers, which makes the supply chain narrow."
+  market_strategy:
+    notes:
+      - "Black darts only drop from Burthorpe soldiers"
+      - "Constrained supply keeps base price elevated"
+      - "Poison version uses cheap weapon poison"
+      - "Demand from low-level rangers and pures"
+  trading_tips:
+    - Stockpile base black darts when farmed in bulk
+    - Apply weapon poison during Herblore events for cheap margins
+    - Watch pure account meta for demand spikes
+  history:
+    - date: "9 August 2004"
+      description: "Item was added to the game alongside the Burthorpe and Trollheim content release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

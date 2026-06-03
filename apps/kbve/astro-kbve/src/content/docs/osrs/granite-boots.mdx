@@ -12,84 +12,101 @@ osrs:
   lowalch: 5000
   highalch: 7500
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: granite
+    tier: high
+  properties:
+    release_date: "2017-09-07"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: feet
-    type: melee_boots
+    weapon_type: null
+    attack_speed: null
+    weight: 2.721
     requirements:
       defence: 50
       strength: 50
-    stats:
-      attack_magic: -6
-      attack_ranged: -3
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -3
+    defence_bonus:
+      stab: 15
+      slash: 16
+      crush: 17
+      magic: 0
+      ranged: 5
+    other_bonus:
       strength: 2
-      defence_stab: 15
-      defence_slash: 16
-      defence_crush: 17
-      defence_ranged: 5
+      prayer: 0
+      ranged_strength: 0
+      magic_damage: 0
   drop_table:
-    primary_source: Spiritual ranger
-    best_drop_rate: 1/128
     sources:
       - source: Spiritual ranger
-        source_id: 2242
-        combat_level: 115
         quantity: "1"
         rarity: 1/128
-        members_only: true
       - source: Spiritual ranger (Zaros)
-        source_id: 6219
-        combat_level: 118
         quantity: "1"
         rarity: 1/128
-        members_only: true
+      - source: Long-tailed Wyvern
+        quantity: "1"
+        rarity: 1/2560
+      - source: Spitting Wyvern
+        quantity: "1"
+        rarity: 1/2560
+      - source: Taloned Wyvern
+        quantity: "1"
+        rarity: 1/600
+      - source: Ancient Wyvern
+        quantity: "1"
+        rarity: 1/600
   related_items:
-    - item_id: 11840
-      item_name: Dragon boots
+    - item_name: Dragon boots
       slug: dragon-boots
       relationship: alternative
-      description: Better strength bonus for melee
-    - item_id: 4131
-      item_name: Rune boots
+      description: Lighter melee boots with higher strength bonus
+    - item_name: Rune boots
       slug: rune-boots
       relationship: downgrade
-      description: Lower tier alternative with no requirements
-    - item_id: 21733
-      item_name: Guardian boots
+      description: Free-to-play tier melee boots with no stat requirement
+    - item_name: Guardian boots
       slug: guardian-boots
       relationship: upgrade
-      description: Best defensive boots
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Magic | -6 |
-    | Ranged | -3 |
-    | Strength | +2 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +15 |
-    | Slash | +16 |
-    | Crush | +17 |
-    | Ranged | +5 |
-
-    Requirements: 50 Defence, 50 Strength
-
-    Heavy defensive boots used for:
-    - Tank setups
-    - High-defence builds
-    - Alternative to Dragon boots
-
-    Heavier but more defensive than Dragon boots.
+      description: Best in slot defensive melee boots
+  about: "Granite boots are heavy feet slot armour requiring 50 Defence and 50 Strength. They give the strongest defensive bonuses of any granite gear and add a small strength bonus, making them a niche tank option. Dropped exclusively by the Wyvern Cave fossil island wyverns."
   market_strategy:
     notes:
-      - Less popular than Dragon boots
-      - Used by tank builds
-      - Good for activities requiring high defence
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Less popular than Dragon boots due to weight and strength gap"
+      - "Demand spikes during Wyvern Cave drop hunts and tank-build metas"
+      - "Buy limit of 70 keeps price elastic to small supply shifts"
+  trading_tips:
+    - Track Fossil Island slayer task popularity for entry-price dips
+    - Decant alongside Guardian boots flips when defensive metas trend
+  history:
+    - date: "2017-09-07"
+      description: "Added to the drop tables of Wyvern Cave wyverns in the Fossil Island update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

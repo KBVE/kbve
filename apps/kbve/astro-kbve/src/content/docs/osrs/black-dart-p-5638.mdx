@@ -12,12 +12,86 @@ osrs:
   lowalch: 7
   highalch: 10
   limit: 7000
-  about: "Black dart(p++) is a members-only item in Old School RuneScape. High alchemy value: 10 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: thrown
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 6
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Super strong poison
+      description: Inflicts a stronger poison damage-over-time effect on hit, with longer poison duration than the (p) and (p+) variants.
+  related_items:
+    - item_name: Black dart
+      slug: black-dart
+      relationship: variant
+      description: Unpoisoned base variant of this thrown weapon.
+    - item_name: Black dart(p)
+      slug: black-dart-p-standard
+      relationship: variant
+      description: Standard poison variant.
+    - item_name: Black dart(p+)
+      slug: black-dart-p-plus
+      relationship: variant
+      description: Strong poison variant.
+    - item_name: Weapon poison(++)
+      slug: weapon-poison-plus-plus
+      relationship: component
+      description: Herblore poison applied to create this variant.
+  about: "Black dart(p++) is the super-poisoned form of the black thrown dart, requiring 10 Ranged to wield. Created by applying weapon poison(++) to five unpoisoned black darts, it is a niche pick for poison-stacking strategies."
+  market_strategy:
+    notes:
+      - "Niche demand tied to PvM poison tactics and PvP setups."
+      - "Crafted from weapon poison(++) at 82 Herblore."
+  trading_tips:
+    - Buy unpoisoned darts in bulk to poison and resell.
+    - Watch weapon poison(++) prices for arbitrage opportunities.
+  history:
+    - date: "2005-07-11"
+      description: "Item released alongside the dart variant set."
+    - date: "2006-08-22"
+      description: "Renamed from \"Black dart(s)\" to \"Black dart(p++)\"."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

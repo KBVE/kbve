@@ -1,6 +1,6 @@
 ---
 title: Iron set (sk) | OSRS Price Data
-description: "Iron set (sk): A set containing a full helm, platebody, skirt and kiteshield.. High alch: 540 GP, GE limit: 8."
+description: "Iron set (sk): A set containing a full helm, platebody, skirt and kiteshield. High alch: 540 GP, GE limit: 8."
 osrs:
   id: 12974
   name: Iron set (sk)
@@ -12,9 +12,58 @@ osrs:
   lowalch: 360
   highalch: 540
   limit: 8
-  about: "Iron set (sk) is a free-to-play item in Old School RuneScape. High alchemy value: 540 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2015-02-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6.0
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Iron full helm
+      slug: iron-full-helm
+      relationship: set-piece
+      description: "Helm component of the set."
+    - item_name: Iron platebody
+      slug: iron-platebody
+      relationship: set-piece
+      description: "Body component of the set."
+    - item_name: Iron plateskirt
+      slug: iron-plateskirt
+      relationship: set-piece
+      description: "Skirt component of the set."
+    - item_name: Iron kiteshield
+      slug: iron-kiteshield
+      relationship: set-piece
+      description: "Shield component of the set."
+    - item_name: Iron set (lg)
+      slug: iron-set-lg
+      relationship: alternative
+      description: "Same set but with platelegs instead of skirt."
+  about: "Iron set (sk) bundles iron full helm, platebody, plateskirt, and kiteshield into a single tradeable item via the Grand Exchange clerk. It is a free-to-play bank-saver primarily used to ship low-level smithing or armour suite resells in one slot."
+  market_strategy:
+    notes:
+      - "Set price is usually slightly above component sum; small arbitrage by buying parts and merging."
+      - "Buy limit of only 8 throttles volume; large flips need rotating accounts."
+  trading_tips:
+    - "Combine cheap components from the GE then list as a set for a small premium."
+    - "Useful for f2p ironman gift swaps via the Grand Exchange clerk."
+  history:
+    - date: "2015-02-26"
+      description: "Released alongside other armour set bundles to relieve bank pressure."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

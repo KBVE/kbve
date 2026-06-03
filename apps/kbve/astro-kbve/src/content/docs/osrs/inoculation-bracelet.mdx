@@ -12,9 +12,90 @@ osrs:
   lowalch: 1024
   highalch: 1536
   limit: 10000
-  about: "Inoculation bracelet is a members-only item in Old School RuneScape. High alchemy value: 1,536 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2007-04-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Check
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: hands
+    weapon_type: null
+    attack_speed: null
+    weight: 0.25
+    requirements:
+      quest: Zogre Flesh Eaters
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: magic
+      level: 49
+      xp: 59
+      materials:
+        - item_name: Ruby bracelet
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Fire rune
+          quantity: 5
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Disease protection
+      description: Absorbs up to 275 disease damage while worn, then degrades to dust
+  related_items:
+    - item_name: Ruby bracelet
+      slug: ruby-bracelet
+      relationship: component
+      description: Unenchanted base bracelet
+    - item_name: Relicym's balm
+      slug: relicym-s-balm
+      relationship: alternative
+      description: Cures disease via potion
+    - item_name: Cosmic rune
+      slug: cosmic-rune
+      relationship: component
+      description: Required for the Lvl-3 Enchant spell
+  about: |-
+    Inoculation bracelet protects the wearer from disease damage, absorbing up to 275 disease hits before crumbling to dust. Requires completion of Zogre Flesh Eaters. Useful at Skogres/Zogres and in the Trouble Brewing minigame. Created by casting Lvl-3 Enchant on a ruby bracelet (49 Magic, 59 XP).
+  market_strategy:
+    notes:
+      - "Niche demand from disease content"
+      - "Quest gate limits buyer pool"
+      - "Buy limit of 10,000 per 4 hours"
+      - "Supply from ruby bracelet enchanters"
+  history:
+    - date: "2007-04-30"
+      description: "Released alongside ruby bracelet enchantment options."
+    - date: "2015-02-26"
+      description: "Renamed from Inoculation brace to Inoculation bracelet."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

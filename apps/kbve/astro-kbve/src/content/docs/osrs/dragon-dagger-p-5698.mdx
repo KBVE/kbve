@@ -12,9 +12,97 @@ osrs:
   lowalch: 9600
   highalch: 14400
   limit: 70
-  about: "Dragon dagger(p++) is a members-only item in Old School RuneScape. High alchemy value: 14,400 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: dagger
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      attack: 60
+    attack_bonus:
+      stab: 40
+      slash: 25
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
+      strength: 40
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: herblore
+      level: 95
+      xp: 190
+      materials:
+        - item_name: Dragon dagger
+          quantity: 1
+        - item_name: Weapon poison(++)
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Puncture special attack
+      description: "Costs 25 percent special energy to deliver two simultaneous hits with plus 15 percent accuracy and damage each, capped at 50 damage per hit."
+    - name: Weapon poison++
+      description: "Applies the strongest weapon poison variant, dealing repeated venom-tier damage on hit until the poison charges expire."
+  related_items:
+    - item_name: Dragon dagger
+      slug: dragon-dagger
+      relationship: variant
+      description: Base unpoisoned dagger used to craft the poisoned variants.
+    - item_name: Dragon dagger(p)
+      slug: dragon-dagger-p
+      relationship: variant
+      description: Lowest poison tier of the dragon dagger family.
+    - item_name: Dragon dagger(p+)
+      slug: dragon-dagger-p-5680
+      relationship: variant
+      description: Mid-tier poisoned variant using Weapon poison(+).
+    - item_name: Abyssal dagger
+      slug: abyssal-dagger
+      relationship: upgrade
+      description: Stronger stab dagger that outpaces the dragon dagger in most PvM scenarios.
+  about: "Dragon dagger(p++) is the strongest poisoned dagger tier outside the abyssal dagger, requiring 60 Attack and Lost City to wield. Its Puncture special attack costs 25 percent energy and is a staple opener for PvP burst combos and slayer boss damage spikes."
+  market_strategy:
+    notes:
+      - "Demand follows PvP weekends and Bounty Hunter events when DDS specs are king."
+      - "Buy limit of 70 per 4 hours keeps daily flip volume capped; spread is wide."
+      - "Poisoned variant sells faster than unpoisoned for PvPers who skip the Herblore step."
+  trading_tips:
+    - Buy the unpoisoned dragon dagger and poison yourself for the highest margin.
+    - Watch league economies - dagger demand collapses during Trailblazer reset windows.
+    - Track Bounty Hunter resets; spec weapons spike right before tournaments.
+  history:
+    - date: "2004-03-29"
+      description: "Dragon dagger introduced with RuneScape 2, later joined by p, p+, and p++ poison tiers."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

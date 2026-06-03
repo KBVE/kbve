@@ -12,9 +12,54 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: null
-  about: "Raging echoes relic hunter (t1) armour set is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic-set
+    tier: mid-high
+  properties:
+    release_date: "2024-11-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - item_name: Raging echoes hood (t1)
+      slug: raging-echoes-hood-t1
+      relationship: set-piece
+      description: Head piece bundled in the set
+    - item_name: Raging echoes top (t1)
+      slug: raging-echoes-top-t1
+      relationship: set-piece
+      description: Body piece bundled in the set
+    - item_name: Raging echoes trousers (t1)
+      slug: raging-echoes-trousers-t1
+      relationship: set-piece
+      description: Legs piece bundled in the set
+    - item_name: Raging echoes boots (t1)
+      slug: raging-echoes-boots-t1
+      relationship: set-piece
+      description: Boots piece bundled in the set
+  about: "Raging echoes relic hunter (t1) armour set bundles all four tier 1 Leagues V cosmetic pieces (hood, top, trousers, boots) into a single tradeable container. Assembled or unpacked through a Grand Exchange clerk's Sets interface for convenient bulk listing."
+  market_strategy:
+    notes:
+      - "Bundle typically trades at a premium over the sum of components"
+      - "Premium reflects GE convenience, not utility — set has no combat stats"
+      - "Not alchemisable; arbitrage is buy-pieces / sell-set"
+  trading_tips:
+    - Watch component vs set spread; flip when premium exceeds GE tax overhead
+    - Demand spikes when Leagues V nostalgia content surfaces
+  history:
+    - date: "2024-11-27"
+      description: "Released as part of Leagues V: Raging Echoes."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
