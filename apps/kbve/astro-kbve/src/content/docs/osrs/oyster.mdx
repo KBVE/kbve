@@ -12,23 +12,81 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 11000
+  material:
+    type: crafting material
+    tier: low
+  properties:
+    release_date: "2002-09-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Open
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Rock crab
+        quantity: "1"
+        rarity: Uncommon
+      - source: Sand crab
+        quantity: "1"
+        rarity: Uncommon
+      - source: Ammonite crab
+        quantity: "1"
+        rarity: Uncommon
+      - source: Mogre
+        quantity: "1"
+        rarity: Uncommon
+      - source: Mudskipper
+        quantity: "1"
+        rarity: Uncommon
+      - source: Waterfiend
+        quantity: "1"
+        rarity: Uncommon
+      - source: Giant lobster
+        quantity: "1"
+        rarity: Uncommon
+      - source: River troll
+        quantity: "1"
+        rarity: Uncommon
+      - source: Cave kraken
+        quantity: "1"
+        rarity: Uncommon
   related_items:
-    - item_id: 411
-      item_name: Oyster pearl
+    - item_name: Oyster pearl
       slug: oyster-pearl
       relationship: product
-      description: Possible contents
-    - item_id: 413
-      item_name: Oyster pearls
+      description: Common reward from opening an oyster.
+    - item_name: Oyster pearls
       slug: oyster-pearls
       relationship: product
-      description: Possible contents
+      description: Rare double-pearl reward from opening an oyster.
+    - item_name: Empty oyster
+      slug: empty-oyster
+      relationship: product
+      description: 7/32 chance of an empty oyster on opening.
   about: |-
-    > _"It's a big oyster."_
+    Oysters are obtained by fishing with a big fishing net at level 16 Fishing, drift net fishing, panning at the Digsite, and as drops from many sea-themed monsters. They were introduced with the Sea Slug Quest in 2002.
 
-    Opening an oyster may yield an oyster pearl or oyster pearls, used in Crafting to make pearl items. Can also be empty.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Opening an oyster has a 25/32 chance to yield an oyster pearl (worth around 33 coins) and a 7/32 chance to be empty. Oyster pearls are used in Crafting to make pearl bolt tips, pearl items, and other crafting outputs.
+  market_strategy:
+    notes:
+      - "Drop volume from rock/sand/ammonite crabs gives a steady supply floor"
+      - "High 11,000 buy limit suits bulk crafting flips"
+      - "7/32 empty chance is the main loss on opening — factor into ROI"
+      - "Oyster pearl bolt tip demand drives mid-game spikes"
+  history:
+    - date: "2002-09-09"
+      description: "Added to the game with the Sea Slug quest."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

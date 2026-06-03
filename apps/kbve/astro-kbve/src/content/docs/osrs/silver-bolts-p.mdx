@@ -1,6 +1,6 @@
 ---
 title: Silver bolts (p) | OSRS Price Data
-description: "Silver bolts (p): Some poisoned silver bolts.. High alch: 3 GP, GE limit: 11,000."
+description: "Silver bolts (p): Some poisoned silver bolts. Poisoned silver crossbow bolts effective against Vampyre Juvinates. High alch: 3 GP, GE limit: 11,000."
 osrs:
   id: 9292
   name: Silver bolts (p)
@@ -12,9 +12,75 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 11000
-  about: "Silver bolts (p) is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: silver
+    tier: low
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammo
+    weapon_type: bolts
+    attack_speed: null
+    weight: 0
+    requirements:
+      ranged: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 36
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Silver bolts
+      slug: silver-bolts
+      relationship: variant
+      description: Unpoisoned base bolts.
+    - item_name: Silver bolts (p+)
+      slug: silver-bolts-p-plus
+      relationship: upgrade
+      description: Stronger poison variant.
+    - item_name: Silver bolts (p++)
+      slug: silver-bolts-p-plus-plus
+      relationship: upgrade
+      description: Strongest poison variant.
+  about: "Silver bolts (p) are silver crossbow bolts coated in weak poison. They are most notable for their effectiveness against Vampyre Juvinates, where silver-based ammunition is one of the few options that deal meaningful damage. Fired from a crossbow at 46+ Ranged."
+  market_strategy:
+    notes:
+      - "Niche demand tied to Vampyre Juvinate killing in Morytania content."
+      - "Crafted by poisoning silver bolts with weapon poison, narrow supply pool."
+  trading_tips:
+    - Buy in 11,000 stacks for resale around vampyric Slayer tasks.
+    - Compare against unpoisoned silver bolts to gauge poison premium.
+  history:
+    - date: "2006-07-31"
+      description: "Silver bolts (p) released alongside silver bolts and other crossbow bolt variants."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

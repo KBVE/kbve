@@ -12,9 +12,81 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Thunder khopesh is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: weapon
+    tier: high
+  properties:
+    release_date: "2024-11-27"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: slash_sword
+    attack_speed: 4
+    weight: 1.36
+    requirements:
+      attack: 75
+    attack_bonus:
+      stab: 65
+      slash: 110
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 100
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Lightning Strike
+      description: 20% chance on hit to summon a delayed lightning bolt at the target's location, damaging enemies in a 3x3 area for up to 50% of the player's max hit.
+    - name: Lingering Lightning
+      description: Special attack consuming 50% special energy that deals two rapid hits; on success it triggers an additional lightning bolt dealing damage up to 100% of the player's maximum hit.
+  related_items:
+    - item_name: Keris partisan of the sun
+      slug: keris-partisan-of-the-sun
+      relationship: alternative
+      description: Alternative high-tier one-handed slash weapon
+    - item_name: Osmumten's fang
+      slug: osmumtens-fang
+      relationship: alternative
+      description: Top-tier stab weapon comparable in slot
+  about: |
+    Thunder khopesh is a Leagues V: Raging Echoes weapon (released 27 November 2024) that returned via the Grid Master demonic throne event. It's a 4-tick slash sword with +110 slash and +100 strength, plus a 20% chance lightning AoE passive and a 50% special attack that fires two hits and a follow-up lightning bolt. Untradeable and currently retired from standard gameplay.
+  market_strategy:
+    notes:
+      - "Untradeable - no GE pricing"
+      - "Acquired only via Leagues V or Grid Master event"
+      - "Out of game since 12 November 2025"
+  trading_tips:
+    - Not on the Grand Exchange
+    - Was a 1/25 drop from Echo King Black Dragon during Leagues V
+    - Returned briefly via the Grid Master demonic throne build
+  history:
+    - date: "2024-11-27"
+      description: "Thunder khopesh released with Leagues V: Raging Echoes."
+    - date: "2025-11-12"
+      description: "Thunder khopesh removed from the live game."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,40 @@ osrs:
   lowalch: 48
   highalch: 72
   limit: 6000
-  about: "Premade w'm batta is a members-only item in Old School RuneScape. High alchemy value: 72 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: |-
+    Premade w'm batta is a Gnome Cuisine food item sold by Gnome waiters in the Grand Tree and other gnome establishments. It is a pre-made version of the Worm batta, which players can craft themselves at higher Cooking levels.
+
+    Right-click "Eat" heals a small amount of Hitpoints, making it a budget healing snack while questing through the gnome stronghold or running gnome restaurant deliveries for the Gnome Restaurant minigame.
+  market_strategy:
+    notes:
+      - "Stable low-margin snack tied to Gnome Restaurant deliveries"
+      - "High alch break-even close to GE — flip only on dips"
+      - "Buy limit 6,000 supports steady mid-volume flipping"
+      - "Demand is driven by minigame turn-ins, not combat use"
+  history:
+    - date: "2002-12-12"
+      description: "Added to the game alongside the Gnome Cuisine update."
+    - date: "2006-08-07"
+      description: "Renamed from \"Worm batta\" to \"Premade w'm batta\" to disambiguate the shop-bought version from the player-cooked version."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

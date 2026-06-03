@@ -12,9 +12,75 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: null
-  about: "Snowy knight mix (1) is a members-only item in Old School RuneScape. High alchemy value: 30 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Heals 8 Hitpoints to the player on consumption."
+        duration: 0
+      - description: "Heals nearby players with Accept Aid enabled in multicombat areas."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Jarred snowy knight
+          quantity: 1
+        - item_name: Hunter creature meat
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+  related_items:
+    - item_name: Snowy knight mix (2)
+      slug: snowy-knight-mix-2
+      relationship: variant
+      description: Two-dose variant of the same potion
+    - item_name: Jarred snowy knight
+      slug: jarred-snowy-knight
+      relationship: component
+      description: Base ingredient combined with hunter meat
+  about: |-
+    > *"There's a snowy knight butterfly in here."*
+
+    The snowy knight mix is a members-only healing potion released alongside Varlamore: Part One on 20 March 2024. Each dose heals the drinker for 8 Hitpoints and applies the same heal to nearby players running Accept Aid in multicombat zones, making it a popular group support item.
+
+    It is created by combining a jarred snowy knight with hunter creature meat (wild kebbit, larupia, barb-tailed kebbit, graahk, kyatt, pyre fox, sunlight antelope, dashing kebbit, or moonlight antelope) using a pestle and mortar.
+  market_strategy:
+    notes:
+      - "Group-content metas drive most buying pressure for stacks of mixes."
+      - "Supply scales with Hunter activity in Varlamore."
+      - "Healing nerf from 15 to 8 per dose softens long-term demand."
+  trading_tips:
+    - Watch group bossing events for spike opportunities.
+    - Bulk decanting is sometimes profitable when 1-dose stock outpaces 2-dose.
+  history:
+    - date: "2024-03-20"
+      description: "Released with Varlamore: Part One."
+    - date: "2024-03-21"
+      description: "Heal per dose reduced from 15 to 8 Hitpoints."
+    - date: "2026-01-07"
+      description: "Patched so the heal no longer triggers when a player is at zero Hitpoints."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

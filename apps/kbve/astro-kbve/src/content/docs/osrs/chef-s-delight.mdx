@@ -1,6 +1,6 @@
 ---
 title: Chef's delight | OSRS Price Data
-description: "Chef's delight: A fruity, full-bodied ale.. High alch: 1 GP, GE limit: 2,000."
+description: "Chef's delight: A fruity, full-bodied ale. Members ale that boosts Cooking by up to +5 while draining Attack and Strength. High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 5755
   name: Chef's delight
@@ -12,9 +12,73 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Chef's delight is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 54
+      xp: 446
+      materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Chocolate dust
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Beer glass
+          quantity: 8
+      tools:
+        - Fermenting vat
+      output_quantity: 8
+  potion:
+    effects:
+      - description: "Restores 1 Hitpoint."
+        duration: 0
+      - description: "Boosts Cooking by 5 percent + 1 (scaling +1 to +5)."
+        duration: 0
+      - description: "Drains Attack and Strength by 5 percent + 2 (scaling -2 to -6)."
+        duration: 0
+  related_items:
+    - item_name: Chef's delight (m)
+      slug: chef-s-delight-m
+      relationship: upgrade
+      description: Mature variant with stronger Cooking boost.
+    - item_name: Gourmet impling jar
+      slug: gourmet-impling-jar
+      relationship: alternative
+      description: Hunter source that often contains Chef's delight.
+    - item_name: Beer glass
+      slug: beer-glass
+      relationship: component
+      description: Vessel used in the brewing recipe.
+  about: "Chef's delight is a brewable ale introduced with the Farming update. It is most often used by cooks to boost the Cooking level for a single tier-locked dish, and it can be stored inside a player-owned house ale rack with 48 Construction and 44 Cooking."
+  market_strategy:
+    notes:
+      - "Brewing is loss-making at GE prices; supply is mostly from impling jars and ironmen."
+      - "Mature variant typically retains far more value than the base ale."
+  trading_tips:
+    - Flip near the buy limit of 2,000 when prices dip below alch value.
+    - Stock up when Cooking boosts are needed for boostable Cooking tasks.
+  history:
+    - date: "2005-07-11"
+      description: "Chef's delight released with the Farming update and brewing system."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

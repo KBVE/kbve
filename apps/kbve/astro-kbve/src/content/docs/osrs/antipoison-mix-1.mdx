@@ -12,9 +12,71 @@ osrs:
   lowalch: 57
   highalch: 86
   limit: 2000
-  about: "Antipoison mix(1) is a members-only item in Old School RuneScape. High alchemy value: 86 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.045
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Cures poison on consumption."
+        duration: 0
+      - description: "Grants immunity to poison."
+        duration: 90
+      - description: "Heals 3 Hitpoints on consumption."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 6
+      xp: 12
+      materials:
+        - item_name: Antipoison(2)
+          quantity: 1
+        - item_name: Roe
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Antipoison(2)
+      slug: antipoison-2
+      relationship: component
+      description: Base potion mixed with roe to produce the fishy variant.
+    - item_name: Roe
+      slug: roe
+      relationship: component
+      description: Low-tier Barbarian Herblore secondary used to create mixes.
+    - item_name: Antipoison mix(2)
+      slug: antipoison-mix-2
+      relationship: variant
+      description: Two-dose variant of the same Barbarian potion.
+  about: "Antipoison mix(1) is a Barbarian Herblore variant of the regular antipoison. It cures poison, grants 90 seconds of poison immunity, and heals 3 Hitpoints on drink. Roe is used in place of caviar; healing does not increase with caviar."
+  market_strategy:
+    notes:
+      - "Mostly bought by early Herblore trainers grinding 6+ Herblore"
+      - "Buy limit of 2,000 caps speculative volume"
+      - "Margin is sensitive to Roe supply from fishing colonies"
+  trading_tips:
+    - Pair purchases with Antipoison(2) buy orders to capture mixing margin
+    - Sell during early-game ironman seasons / leagues with poison content
+  history:
+    - date: "2007-07-03"
+      description: "Added with the Barbarian Training Herblore expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

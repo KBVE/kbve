@@ -12,52 +12,76 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: null
-  item_type: material
-  tradeable: true
-  weight: 0.5
-  high_alch: 4800
-  low_alch: 3200
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: crafting material
+    tier: high
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Inspect
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   drop_table:
-    primary_source: Vampyre kraken
-    best_drop_rate: 1/512
     sources:
       - source: Vampyre kraken
         quantity: "1"
-        rarity: rare
-        drop_rate: 1/512
-        members_only: true
+        rarity: "1/512"
       - source: Armoured kraken
         quantity: "1"
-        rarity: very_rare
-        drop_rate: 1/1024
-        members_only: true
-  obtaining:
-    source: Vampyre kraken, Armoured kraken
-    location: Kraken encounters while Sailing
-    requirements: Sailing skill access
+        rarity: "1/1024"
+  recipes:
+    - skill: construction
+      level: 69
+      xp: 0
+      materials:
+        - item_name: Ironwood plank
+          quantity: 8
+        - item_name: Rune nails
+          quantity: 32
+        - item_name: Cupronickel bar
+          quantity: 4
+        - item_name: Magic stone
+          quantity: 2
+        - item_name: Bottled storm
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 32230
-      item_name: Greater teleport focus
+    - item_name: Greater teleport focus
       slug: greater-teleport-focus
       relationship: product
-      description: Used to craft the Greater teleport focus facility
+      description: "Crafted using the bottled storm as a key component"
+    - item_name: Vampyre kraken
+      slug: vampyre-kraken
+      relationship: alternative
+      description: "Primary drop source with 1/512 rarity"
   about: |-
-    "The container shakes violently, thrumming with magical energy. You reckon it might be useful for shipbuilding."
+    The Bottled storm is a rare crafting material obtained from kraken encounters while Sailing. The container shakes violently, thrumming with magical energy, and is used to construct the Greater teleport focus facility on player boats.
 
-    The Bottled storm is a crafting material used to create the Greater teleport focus facility on boats.
-
-    Crafting Uses:
-    - Required component for Greater teleport focus (requires 75 Sailing, 69 Construction)
-    - Combined with Ironwood planks, Rune nails, Cupronickel bars, and Magic stones
+    Vampyre krakens offer the best drop rate at 1/512, while Armoured krakens drop the item at a rarer 1/1,024.
   market_strategy:
     notes:
-      - Very valuable crafting material
-      - Vampyre krakens have better drop rate than Armoured krakens
-      - Required for high-level teleport facility
-      - High demand due to Greater teleport focus utility
-      - Consider selling if not building teleport facilities
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Very valuable crafting material with consistent demand"
+      - "Vampyre krakens have better drop rate than Armoured krakens"
+      - "Required for high-level Greater teleport focus facility"
+      - "Consider selling if not actively building teleport facilities"
+  trading_tips:
+    - Check daily price trends before listing - sailing content can shift demand
+    - Bulk drops from successful kraken hunts can flood the market briefly
+  history:
+    - date: "2025-11-19"
+      description: "Item added to the game with the Sailing skill release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

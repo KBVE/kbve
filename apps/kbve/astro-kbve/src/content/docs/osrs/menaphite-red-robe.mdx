@@ -12,9 +12,92 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 150
-  about: "Menaphite red robe is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic robe
+    tier: low
+  properties:
+    release_date: "2005-08-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.005
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Ali's Discount Wares
+      location: Al Kharid
+      price: 40
+      currency: Coins
+      stock: 25
+  passive_effects:
+    - name: Desert heat delay
+      description: Wearing the robe delays the onset of desert heat damage by 12 seconds per equipped Menaphite piece.
+  related_items:
+    - item_name: Menaphite red hat
+      slug: menaphite-red-hat
+      relationship: set-piece
+      description: Matching headpiece in the red Menaphite outfit
+    - item_name: Menaphite red top
+      slug: menaphite-red-top
+      relationship: set-piece
+      description: Matching upper-body piece in the red Menaphite outfit
+    - item_name: Menaphite red kilt
+      slug: menaphite-red-kilt
+      relationship: set-piece
+      description: Matching kilt variant for the bottom slot
+    - item_name: Menaphite purple robe
+      slug: menaphite-purple-robe
+      relationship: variant
+      description: Purple recolour of the same robe worn in Pollnivneach
+  about: "Menaphite red robe is the legwear half of the red Menaphite outfit, the casual Sophanem-themed cosmetic set. Each equipped piece extends the player's desert heat grace timer by 12 seconds, making the set a cheap quality-of-life option for desert questing and clue scrolls."
+  market_strategy:
+    notes:
+      - "Shop-priced at 40 coins, GE often trades slightly above"
+      - "Demand spikes during desert clue and quest waves"
+      - "Heat-delay buff added long-term floor value for skillers"
+  trading_tips:
+    - Restock from Ali's Discount Wares in Al Kharid for cheap GE flips
+    - Stockpile before major desert content releases
+  history:
+    - date: "2005-08-15"
+      description: "Released as part of the Menaphite clothing line."
+    - date: "2014-12-04"
+      description: "Renamed from Menaphite robe to Menaphite red robe to differentiate colour variants."
+    - date: "2023-03-15"
+      description: "Update: granted a 12-second desert heat delay per equipped Menaphite piece."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

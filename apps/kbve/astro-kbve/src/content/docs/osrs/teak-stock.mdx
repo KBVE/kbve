@@ -12,9 +12,80 @@ osrs:
   lowalch: 30
   highalch: 46
   limit: 10000
-  about: "Teak stock is a members-only item in Old School RuneScape. High alchemy value: 46 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: fletching-component
+    tier: mid
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options: []
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 46
+      xp: 27
+      materials:
+        - item_name: Teak logs
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+  shops:
+    - shop_name: Lowe's Archery Emporium
+      location: Varrock
+      price: 77
+      currency: Coins
+      stock: 0
+    - shop_name: Hirko's crossbow shop
+      location: Keldagrim
+      price: 46
+      currency: Coins
+      stock: 5
+    - shop_name: Dargaud's bow and arrow shop
+      location: White Wolf Mountain
+      price: 38
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Teak logs
+      slug: teak-logs
+      relationship: component
+      description: Raw material used to fletch the teak stock.
+    - item_name: Teak stock (u)
+      slug: teak-stock-u
+      relationship: product
+      description: Combined with steel limbs to create an unstrung steel crossbow.
+    - item_name: Maple stock
+      slug: maple-stock
+      relationship: downgrade
+      description: Lower-tier crossbow stock requiring less Fletching.
+    - item_name: Mahogany stock
+      slug: mahogany-stock
+      relationship: upgrade
+      description: Higher-tier crossbow stock requiring more Fletching.
+  about: "Teak stock is a members-only Fletching component crafted from teak logs at level 46 Fletching for 27 experience. It serves as the stock for the steel crossbow, accepting steel limbs to form an unstrung steel crossbow. Sold in dwarven crossbow shops and tradeable on the Grand Exchange with a 10,000 buy limit."
+  market_strategy:
+    notes:
+      - "Profit margins are tight; teak log costs frequently exceed alch value."
+      - "Demand is driven by Fletching trainers and steel crossbow producers."
+      - "Shop restocks in Keldagrim and White Wolf Mountain can undercut GE pricing during low-volume hours."
+  trading_tips:
+    - "Buy teak logs in bulk and fletch stocks if Fletching level permits cheaper supply."
+    - "Watch for steel limbs price spikes — paired demand can briefly lift stock prices."
+    - "Use noted stocks when stockpiling for crossbow production."
+  history:
+    - date: "2006-07-31"
+      description: "Added to the game alongside the Fletching expansion for crossbow components."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

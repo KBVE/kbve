@@ -12,9 +12,63 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Ourania teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: teleport-tablet
+    tier: mid
+  properties:
+    release_date: "2020-09-30"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: magic
+      level: 71
+      xp: 69
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Law rune
+          quantity: 1
+        - item_name: Earth rune
+          quantity: 6
+        - item_name: Astral rune
+          quantity: 2
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Ourania Teleport
+      slug: ourania-teleport
+      relationship: alternative
+      description: Spell version requiring Lunar spellbook to cast directly
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Tablet substrate used at the lunar lectern
+  about: "The Ourania teleport tablet transports players to the entrance of the Ourania Cave, the home of the Ourania Altar, a popular runecrafting location for unique rune-mix outputs. Players craft the tablet at the lunar lectern in the ceremonial building on Lunar Isle, requiring 71 Magic, Lunar Diplomacy completion, and Baba Yaga's permission. Breaking the tablet does not require the lunar spellbook, making it a convenient access option for any spellbook user."
+  market_strategy:
+    notes:
+      - "Demand tied to Runecrafting training at the Ourania Altar"
+      - "Mass-produced by Lunar spellbook players keeping supply consistent"
+      - "Soft clay and law rune costs anchor the production floor price"
+  trading_tips:
+    - Track law rune and soft clay swings to anticipate tablet price moves
+    - Bulk-buy ahead of Runecrafting double-XP events for predictable demand
+  history:
+    - date: "2020-09-30"
+      description: "Released alongside other lunar teleport tablets giving non-Lunar players altar access."
+
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

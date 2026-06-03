@@ -12,9 +12,98 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 125
-  about: "Leather body is a free-to-play item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: leather
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 2.721
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -2
+      ranged: 2
+    defence_bonus:
+      stab: 8
+      slash: 9
+      crush: 10
+      magic: 4
+      ranged: 9
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 14
+      xp: 25
+      materials:
+        - item_name: Leather
+          quantity: 1
+        - item_name: Thread
+          quantity: 1
+      tools:
+        - Needle
+      output_quantity: 1
+  shops:
+    - shop_name: Thessalia's Fine Clothes
+      location: Varrock
+      price: 21
+      currency: coins
+      stock: 10
+    - shop_name: Aaron's Archery Appendages
+      location: Ranging Guild
+      price: 21
+      currency: coins
+      stock: 10
+  related_items:
+    - item_name: Studded body
+      slug: studded-body
+      relationship: upgrade
+      description: Crafted by adding steel studs at 41 Crafting
+    - item_name: Hardleather body
+      slug: hardleather-body
+      relationship: variant
+      description: Tougher leather torso variant
+  about: "Leather body is the entry-level Ranged torso in Old School RuneScape, available to both free-to-play and members. It requires only level 1 Ranged to wear and is the weakest tradeable Ranged body armour. Crafters can fashion it from a single piece of leather and thread at level 14 Crafting, and it can later be upgraded to a studded body at level 41 Crafting using steel studs."
+  market_strategy:
+    notes:
+      - "Cheap entry-point for new Crafters levelling tanning recipes"
+      - "Steady low-level demand from F2P Rangers and ironmen"
+      - "Often flipped in bulk thanks to the 125 GE limit and tight spread"
+  trading_tips:
+    - List buy orders slightly above shop price to skip Thessalia restocks
+    - Pair with leather chaps and leather cowl for full beginner Ranged kit
+  history:
+    - date: "2001-01-04"
+      description: "Added to the game alongside the original release of Crafting."
+    - date: "2014-03-06"
+      description: "Stats unchanged but armour tooltip reformatted to the modern interface."
+
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

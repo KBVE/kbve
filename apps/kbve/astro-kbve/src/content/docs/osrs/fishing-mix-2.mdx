@@ -12,9 +12,71 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 2000
-  about: "Fishing mix(2) is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.075
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: Boosts Fishing level by 3
+        duration: 0
+      - description: Restores 6 Hitpoints per dose
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 53
+      xp: 38
+      materials:
+        - item_name: Fishing potion(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Fishing potion
+      slug: fishing-potion
+      relationship: component
+      description: Base potion mixed with caviar to make the Barbarian variant
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: Barbarian Herblore secondary added to the potion
+    - item_name: Fishing mix(1)
+      slug: fishing-mix-1
+      relationship: variant
+      description: Single-dose version of the same potion
+  about: "Fishing mix(2) is a two-dose Barbarian Herblore variant of the Fishing potion. It briefly boosts the Fishing level by 3 and restores 6 Hitpoints per dose, making it a budget self-heal for Barbarian fishing trips at Otto's Grotto."
+  market_strategy:
+    notes:
+      - "Niche skilling consumable with thin volume but stable value"
+      - "Caviar supply (Karambwanji-fed pyre or chompy stew chains) sets price floor"
+      - "Net loss per mix means most supply comes from XP-focused herbloreists"
+  trading_tips:
+    - Buy from XP grinders dumping after Barbarian Herblore sessions
+    - Pair with sturgeon trips to flip into Cooking goods later
+  history:
+    - date: "2007-07-03"
+      description: "Added with the Barbarian Training Herblore expansion."
+    - date: "2016-04-07"
+      description: "Update: became bankable as a placeholder."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Rainbow crab (1) | OSRS Price Data
-description: "Rainbow crab (1): You'll need something to break through that shell.. High alch: 180 GP."
+description: "Rainbow crab (1): You'll need something to break through that shell. High alch: 180 GP."
 osrs:
   id: 31677
   name: Rainbow crab (1)
@@ -12,9 +12,58 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: null
-  about: "Rainbow crab (1) is a members-only item in Old School RuneScape. High alchemy value: 180 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: crustacean
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.6
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Crab trap (Crown Jewel)
+        quantity: "1"
+        rarity: Common
+  related_items:
+    - item_name: Rainbow crab (2)
+      slug: rainbow-crab-2
+      relationship: variant
+      description: Second colour variant from the same trapping content.
+    - item_name: Rainbow crab (3)
+      slug: rainbow-crab-3
+      relationship: variant
+      description: Third colour variant from the same trapping content.
+    - item_name: Raw rainbow crab meat
+      slug: raw-rainbow-crab-meat
+      relationship: product
+      description: Extracted with a knife to access cooking and brewing chains.
+  about: |-
+    Rainbow crab (1) is one of three colour variants caught via crab trapping on the Crown Jewel after the Sailing update. Each catch grants 216 Hunter XP at level 77 Hunter and yields the closed crab item, which players then process for meat or brewing paste.
+
+    The three variants are functionally identical and exist purely for visual flavour at the catch site.
+  market_strategy:
+    notes:
+      - "Sailing content keeps Hunter demand steady"
+      - "Three-way variant supply keeps any single colour cheaper than the pool average"
+      - "Meat and paste downstream sustain consumption"
+  trading_tips:
+    - Stock raw crabs ahead of herblore XP events
+    - Compare variant prices and arbitrage the cheapest into shelled product
+  history:
+    - date: "2025-11-19"
+      description: "Released with the Sailing update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

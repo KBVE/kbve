@@ -12,9 +12,63 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Swamp toad (item) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: herblore secondary
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Remove-legs
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Swamp toad (item)
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Toad's legs
+      slug: toads-legs
+      relationship: product
+      description: "Obtained by removing the legs from a swamp toad"
+    - item_name: Agility potion
+      slug: agility-potion
+      relationship: product
+      description: "Toad's legs are a herblore secondary for agility potions"
+    - item_name: Toad batta
+      slug: toad-batta
+      relationship: product
+      description: "Gnome cooking dish using toad's legs"
+  about: |-
+    The Swamp toad (item) is a herblore-adjacent ingredient obtained from gnome thieving (75 Thieving) or from various spawn locations including the Tree Gnome Stronghold swamp and west of Taverley lake.
+
+    Using the Remove-legs option yields toad's legs, which heal 3 hitpoints and serve as a herblore secondary for agility potions plus several gnome cooking dishes such as tangled toad's legs, toad batta, and toad crunchies.
+  market_strategy:
+    notes:
+      - "Cheap herblore secondary chain (toad to legs to agility potion)"
+      - "High GE limit (13,000) supports volume listings"
+      - "Gnome cooking demand keeps the price floor stable"
+  trading_tips:
+    - Buy swamp toads in bulk and convert to toad's legs for resale margin
+    - Useful filler for herblore alts training agility potions
+  history:
+    - date: "2002-12-12"
+      description: "Item added to the game with the original Tree Gnome Stronghold release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

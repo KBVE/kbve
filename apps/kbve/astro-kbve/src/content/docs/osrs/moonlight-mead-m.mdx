@@ -1,6 +1,6 @@
 ---
 title: Moonlight mead(m) | OSRS Price Data
-description: "Moonlight mead(m): This looks a good deal stronger than normal Moonlight Mead.. High alch: 3 GP, GE limit: 2,000."
+description: "Moonlight mead(m): This looks a good deal stronger than normal Moonlight Mead. High alch: 3 GP, GE limit: 2,000."
 osrs:
   id: 5749
   name: Moonlight mead(m)
@@ -12,9 +12,53 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 2000
-  about: "Moonlight mead(m) is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: drink
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: Restores 6 Hitpoints when drunk.
+        duration: 0
+  related_items:
+    - item_name: Moonlight mead
+      slug: moonlight-mead
+      relationship: downgrade
+      description: Standard non-mature variant
+    - item_name: Beer glass
+      slug: beer-glass
+      relationship: component
+      description: Used to extract mead from the keg
+  about: |
+    Moonlight mead(m) is the mature variant of moonlight mead, produced as a chance outcome when brewing the standard drink. Players extract it from a brewing keg using a beer glass (one pint per use). Drinking it heals 6 Hitpoints with no other notable stat effects.
+  market_strategy:
+    notes:
+      - "Mature variant chance gates supply"
+      - "Limit 2,000 keeps flips modest"
+      - "Brewing batch yields drive pricing swings"
+  trading_tips:
+    - Always extract with a beer glass for one pint
+    - Brewing the regular variant produces this as a chance drop
+    - 6 HP heal makes it a niche food
+  history:
+    - date: "2005-07-11"
+      description: "Moonlight mead(m) added with the Brewing update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

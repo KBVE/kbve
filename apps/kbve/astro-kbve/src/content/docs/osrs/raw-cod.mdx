@@ -12,18 +12,65 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 15000
+  material:
+    type: raw fish
+    tier: low
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.45
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 18
+      xp: 75
+      materials:
+        - item_name: Raw cod
+          quantity: 1
+      tools:
+        - Range or fire
+      output_quantity: 1
   related_items:
-    - item_id: 339
-      item_name: Cod
+    - item_name: Cod
       slug: cod
       relationship: product
-      description: Cooked version
+      description: Cooked form; gained at level 18 Cooking for 75 XP.
+    - item_name: Big fishing net
+      slug: big-fishing-net
+      relationship: component
+      description: Tool used to net raw cod at sea fishing spots.
   about: |-
-    > _"I should try cooking this."_
+    Raw cod is netted alongside mackerel and bass at big-net fishing spots from level 23 Fishing, granting 45 Fishing XP per catch. Players cook it at level 18 Cooking on a range or fire for 75 Cooking XP, producing the cooked Cod.
 
-    Raw cod can be cooked at 18 Cooking. Caught alongside mackerel, bass, and other sea fish.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Although Raw cod is members-only, it is one of the cheapest tradeable raw fishes, making it useful for low-level Cooking training when buying bulk on the Grand Exchange.
+  market_strategy:
+    notes:
+      - "15,000 buy limit supports bulk Cooking XP routes"
+      - "Margin between raw and cooked cod typically tight — cook only for XP, not profit"
+      - "Supply varies with big-net fishing popularity at Catherby and Fishing Trawler"
+      - "Watch for spikes during Cooking-themed events"
+  history:
+    - date: "2002-02-27"
+      description: "Added to the game."
+    - date: "2015-02-26"
+      description: "Briefly made available to free-to-play players via the Grand Exchange."
+    - date: "2015-03-05"
+      description: "Removed from free-to-play availability."
+    - date: "2018-09-26"
+      description: "Base value reduced from 25 to 10 coins."
+    - date: "2024-11-06"
+      description: "Catch message updated from \"You catch a cod\" to \"You catch a raw cod\" for consistency."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

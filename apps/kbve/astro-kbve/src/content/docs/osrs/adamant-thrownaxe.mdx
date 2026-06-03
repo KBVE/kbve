@@ -12,31 +12,87 @@ osrs:
   lowalch: 70
   highalch: 105
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ammunition
+    tier: mid
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
+    weapon_type: thrown
     attack_speed: 5
+    weight: 0
     requirements:
       ranged: 30
     attack_bonus:
-      ranged: 15
-    ranged_strength: 23
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 17
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 23
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Tribal Weapons Shop
+      location: Ranging Guild
+      price: 228
+      currency: Coins
+      stock: 50
   related_items:
-    - item_id: 803
-      item_name: Mithril thrownaxe
+    - item_name: Mithril thrownaxe
       slug: mithril-thrownaxe
-      relationship: variant
-      description: Lower tier thrownaxe
-    - item_id: 805
-      item_name: Rune thrownaxe
+      relationship: downgrade
+      description: Lower-tier thrownaxe requiring less Ranged.
+    - item_name: Rune thrownaxe
       slug: rune-thrownaxe
-      relationship: variant
-      description: Higher tier thrownaxe
-  about: |-
-    > _"A finely balanced throwing axe."_
-
-    The adamant thrownaxe requires 30 Ranged. Features the bouncing special attack.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: upgrade
+      description: Higher-tier thrownaxe with stronger ranged bonus.
+    - item_name: Steel thrownaxe
+      slug: steel-thrownaxe
+      relationship: downgrade
+      description: Mid-low tier predecessor in the thrownaxe progression.
+  about: "The adamant thrownaxe is a members-only thrown Ranged weapon requiring level 30 Ranged. It deals +17 Ranged attack and +23 Ranged Strength with a 5-tick attack speed (4 on Rapid) and features the bouncing special attack. It is purchasable from the Tribal Weapons shop at the Ranging Guild and stackable for convenient bank storage."
+  special_attack:
+    name: Ricochet
+    description: "Throws the axe with extra accuracy; on a successful hit, it ricochets to nearby targets up to two additional times. Consumes 35% special attack energy."
+    energy: 35
+  market_strategy:
+    notes:
+      - "Ranging Guild shop supply keeps GE price tethered slightly above shop value."
+      - "Demand from low-level Ranged trainers and Wilderness PKers keeps it liquid."
+      - "Special-attack ricochet niche keeps a steady, low-volume buyer pool."
+  trading_tips:
+    - "Run Ranging Guild shop circuits for cheap supply when GE price spikes."
+    - "Stockpile before bounty/PvP events that favour cheap throwing weapons."
+    - "Compare against rune thrownaxe demand for tier-shift trades."
+  history:
+    - date: "2004-03-29"
+      description: "Added with the introduction of thrownaxes in the Ranged weapon update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

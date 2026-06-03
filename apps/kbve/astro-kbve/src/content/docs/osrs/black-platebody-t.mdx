@@ -12,33 +12,91 @@ osrs:
   lowalch: 1536
   highalch: 2304
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: mid
+  properties:
+    release_date: "2004-05-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.979
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 9.979
     requirements:
       defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -15
     defence_bonus:
       stab: 41
       slash: 40
       crush: 30
       magic: -6
       ranged: 40
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Easy Clue Scroll
+        quantity: "1"
+        rarity: "1/1,404"
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 2585
-      item_name: Black platelegs (t)
+    - item_name: Black platelegs (t)
       slug: black-platelegs-t
       relationship: set-piece
-      description: Matching trimmed platelegs
-    - item_id: 2591
-      item_name: Black platebody (g)
+      description: Matching trimmed black platelegs.
+    - item_name: Black platebody (g)
       slug: black-platebody-g
       relationship: variant
-      description: Gold-trimmed variant
-  about: |-
-    > *"Black platebody with trim."*
-
-    The black platebody (t) is a trimmed cosmetic variant of the standard black platebody. Identical stats, requiring 10 Defence. Cannot be made through Smithing — clue scroll exclusive. Popular with low-level fashionscape builds.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Gold-trimmed cosmetic variant with identical stats.
+    - item_name: Black platebody
+      slug: black-platebody
+      relationship: alternative
+      description: Untrimmed standard version smithable in Smithing.
+    - item_name: Black full helm (t)
+      slug: black-full-helm-t
+      relationship: set-piece
+      description: Matching trimmed helmet for the trimmed black set.
+  about: "The black platebody (t) is a trimmed cosmetic variant of the standard black platebody with identical defensive stats and a 10 Defence requirement. It cannot be created via Smithing and is exclusively obtained from easy Treasure Trails, making it a popular low-level fashionscape body."
+  market_strategy:
+    notes:
+      - "Supply is fully clue-driven; price tracks easy clue completion volume."
+      - "Demand is fashionscape-focused — bundles with matching trim pieces lift price."
+      - "Compare to gold-trim variant to gauge cosmetic premium."
+  trading_tips:
+    - "Buy during easy clue grind spikes when supply rises."
+    - "Sell as part of a full trimmed black set for higher margin."
+    - "GE buy limit of 8 means patience is required for large stockpiles."
+  history:
+    - date: "2004-05-05"
+      description: "Added to the game as an easy Treasure Trail reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

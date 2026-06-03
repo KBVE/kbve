@@ -12,9 +12,95 @@ osrs:
   lowalch: 160000
   highalch: 240000
   limit: null
-  about: "Oathplate legs is a members-only item in Old School RuneScape. High alchemy value: 240,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: infernal metal
+    tier: high
+  properties:
+    release_date: "2025-05-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 9.071
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 9.071
+    requirements:
+      defence: 78
+    attack_bonus:
+      stab: 0
+      slash: 12
+      crush: 0
+      magic: -12
+      ranged: -14
+    defence_bonus:
+      stab: 75
+      slash: 100
+      crush: 73
+      magic: -3
+      ranged: 81
+    other_bonus:
+      melee_strength: 2
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 83
+      xp: 2000
+      materials:
+        - item_name: Infernal plate
+          quantity: 9
+      tools:
+        - Hammer
+      output_quantity: 1
+  passive_effects:
+    - name: Zamorakian alignment
+      description: Provides protection in the Zamorakian boss area of the God Wars Dungeon.
+  related_items:
+    - item_name: Oathplate helm
+      slug: oathplate-helm
+      relationship: set-piece
+      description: Matching head slot of the Oathplate armour set
+    - item_name: Oathplate chest
+      slug: oathplate-chest
+      relationship: set-piece
+      description: Matching torso slot of the Oathplate armour set
+    - item_name: Oathplate shards
+      slug: oathplate-shards
+      relationship: component
+      description: Produced by breaking down at the Ancient Forge
+  about: |-
+    Oathplate legs are part of the Oathplate armour set forged from infernal metal at the Ancient Forge. Requiring 78 Defence to wear and 83 Smithing to create (using 9 infernal plates), they are the only leg-slot item to grant a slash bonus aside from Vesta's plateskirt.
+
+    As a Zamorakian-aligned piece, they provide automatic protection in the Zamorak section of the God Wars Dungeon, removing the need for an Unholy book or Zamorak monk top.
+
+    Can be broken down at the Ancient Forge for 50 oathplate shards.
+  market_strategy:
+    notes:
+      - "High-tier defence gear with Zamorakian GWD utility"
+      - "No GE buy limit"
+      - "Tied to infernal plate / Ancient Forge supply"
+      - "Shard breakdown sets a hard price floor relative to shard value"
+  trading_tips:
+    - Watch infernal plate price - drives the production cost floor
+    - Demand spikes during GWD rushes and PvM events
+    - Premium item - use larger order spreads
+  history:
+    - date: "2025-05-14"
+      description: "Item released with the Forestry: The Way of the Forester / Oathplate update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
