@@ -12,9 +12,63 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Raw moonlight antelope is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: raw food
+    tier: mid-high
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 92
+      xp: 220
+      materials:
+        - item_name: Raw moonlight antelope
+          quantity: 1
+      tools:
+        - Range
+      output_quantity: 1
+  related_items:
+    - item_name: Moonlight antelope
+      slug: moonlight-antelope
+      relationship: product
+      description: "Cooked version of the raw moonlight antelope"
+    - item_name: Quetzal whistle
+      slug: quetzal-whistle
+      relationship: alternative
+      description: "Can be exchanged with Soar Leader Pitri for whistle charges"
+    - item_name: Hunters' loot sack (master)
+      slug: hunters-loot-sack-master
+      relationship: component
+      description: "Source of raw moonlight antelopes via Hunter loot sacks"
+  about: |-
+    Raw moonlight antelope is obtained by hunting moonlight antelopes with level 91 Hunter in the Varlamore region. Players can also receive them from Hunters' loot sacks (expert, master, or supplies).
+
+    Cooking requires level 92 Cooking and 50 completed Hunters' Rumours, granting 220 experience per successful cook. Alternative uses include exchanging three raw antelopes with Soar Leader Pitri for quetzal whistle charges.
+  market_strategy:
+    notes:
+      - "Top-tier raw food with strong cooking XP rate"
+      - "Locked behind 92 Cooking plus 50 Hunters' Rumours"
+      - "Hourly profit from cooking around 399k coins"
+  trading_tips:
+    - Cooks net solid margins - buy raw, cook, sell as moonlight antelope
+    - Hunters with the rumour unlock can clear surplus stock at premium
+  history:
+    - date: "2024-03-20"
+      description: "Item added to the game with Varlamore: Part One."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

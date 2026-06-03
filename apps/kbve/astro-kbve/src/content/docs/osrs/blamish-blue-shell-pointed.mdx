@@ -12,9 +12,61 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 13000
-  about: "Blamish blue shell (pointed) is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: shell
+    tier: low
+  properties:
+    release_date: "2004-10-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Bruise blue snail
+        quantity: "1"
+        rarity: Always
+  recipes:
+    - skill: crafting
+      level: 15
+      xp: 32.5
+      materials:
+        - item_name: Blamish blue shell (pointed)
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+  related_items:
+    - item_name: Pointed bruise blue snelm
+      slug: pointed-bruise-blue-snelm
+      relationship: product
+      description: "Crafting product made by chiseling this shell at 15 Crafting"
+    - item_name: Bruise blue snail
+      slug: bruise-blue-snail
+      relationship: component
+      description: "Mort Myre Swamp snail that drops this shell on kill"
+  about: "The blamish blue shell (pointed) is a Crafting material dropped by bruise blue snails in Mort Myre Swamp. Released with the Morytania Expansion, it can be chiseled at 15 Crafting into a pointed bruise blue snelm for 32.5 experience."
+  market_strategy:
+    notes:
+      - "Supply is entirely driven by snail kills in Mort Myre, keeping the floor low"
+      - "Demand comes from low-level Crafters training snelms for cheap XP"
+      - "Bulk listings are common since the buy limit is 13,000 per 4 hours"
+  trading_tips:
+    - "Watch low-level Crafting training meta posts; shifts there move the snelm shell stack"
+    - "Compare with other coloured shells before listing - blue commonly trades below red and green"
+  history:
+    - date: "2004-10-14"
+      description: "Added with the Morytania Expansion update alongside bruise blue snails"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

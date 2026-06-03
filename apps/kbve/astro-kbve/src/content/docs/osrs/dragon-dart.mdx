@@ -12,77 +12,91 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dart
+    tier: high
+  properties:
+    release_date: "2007-06-11"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ammo
-    type: dart
-    ranged_requirement: 60
-  ranged_bonuses:
-    ranged_strength: 35
-  fletching:
-    level: 95
-    xp: 25
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 35
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 35
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: fletching
       level: 95
       xp: 25
       materials:
         - item_name: Dragon dart tip
-          item_id: 11232
           quantity: 1
         - item_name: Feather
-          item_id: 314
           quantity: 1
-      product: Dragon dart
-      product_id: 11230
-      product_quantity: 1
-      facility: None
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 11232
-      item_name: Dragon dart tip
+    - item_name: Dragon dart tip
       slug: dragon-dart-tip
       relationship: component
-      description: Crafting component
-    - item_id: 314
-      item_name: Feather
+      description: Required tip; obtained from Tooth half of a key combine or Wyrms.
+    - item_name: Feather
       slug: feather
       relationship: component
-      description: Base material
-    - item_id: 12926
-      item_name: Toxic blowpipe
+      description: Attached to each dart tip during fletching.
+    - item_name: Toxic blowpipe
       slug: toxic-blowpipe
       relationship: alternative
-      description: Primary weapon
-    - item_id: 25849
-      item_name: Amethyst dart
+      description: Endgame ranged weapon that consumes darts as ammo.
+    - item_name: Amethyst dart
       slug: amethyst-dart
-      relationship: alternative
-      description: Alternative
-  about: |-
-    | Method | Level | XP |
-    |--------|-------|-----|
-    | Fletching | 95 | 25 (per dart) |
-    | Materials | Dragon dart tip + Feather | - |
-
-    | Stat | Value |
-    |------|-------|
-    | Ranged requirement | 60 |
-    | Ranged strength | +35 |
+      relationship: downgrade
+      description: Slightly weaker dart used as a budget blowpipe feeder.
+  about: "Dragon darts are the strongest throwable darts in the game, requiring 60 Ranged to wield. They are the primary ammo for the Toxic blowpipe at endgame PvM content including Chambers of Xeric, Theatre of Blood, Tombs of Amascut, and the Inferno."
   market_strategy:
     notes:
-      - Highest damage darts
-      - Toxic blowpipe meta
-      - High demand always
-      - Toxic blowpipe users
-      - High-level PvM
-      - Raids (CoX/ToB/ToA)
-      - Inferno attempts
-      - Best DPS for blowpipe
-      - Dragon dart tips from bosses
-      - 95 Fletching to make
-      - Always in demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand floor is set by blowpipe users grinding raids and Inferno"
+      - "Dragon dart tips drop from Wyrms; supply tracks slayer task popularity"
+      - "95 Fletching gates self-production, sustaining margin for sellers"
+  trading_tips:
+    - Stack up when wyrm slayer tasks see XP buffs
+    - Resell during major PvM events or league launches
+  history:
+    - date: "2007-06-11"
+      description: "Released with the While Guthix Sleeps quest update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

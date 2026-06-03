@@ -1,6 +1,6 @@
 ---
 title: Ironwood sapling | OSRS Price Data
-description: "Ironwood sapling: This sapling is ready to be replanted in a tree patch.. High alch: 1 GP."
+description: "Ironwood sapling: This sapling is ready to be replanted in a tree patch. Sailing-update Farming sapling for the ironwood hardwood tree."
 osrs:
   id: 31505
   name: Ironwood sapling
@@ -12,9 +12,57 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Ironwood sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: farming
+      level: 80
+      xp: 145
+      materials:
+        - item_name: Ironwood seedling (w)
+          quantity: 1
+      tools:
+        - Gardening trowel
+        - Watering can
+      output_quantity: 1
+  related_items:
+    - item_name: Ironwood seed
+      slug: ironwood-seed
+      relationship: component
+      description: Planted in a filled plant pot to grow the sapling.
+    - item_name: Ironwood logs
+      slug: ironwood-logs
+      relationship: product
+      description: Harvested from the mature ironwood tree.
+    - item_name: Plant pot (filled)
+      slug: plant-pot-filled
+      relationship: component
+      description: Needed alongside the seed and trowel.
+  about: "Ironwood sapling is created by planting an ironwood seed in a filled plant pot and watering it; once mature it can be planted in a hardwood tree patch at level 80 Farming for 145 XP (20,380 XP when fully grown). Curry leaves protect the patch from disease."
+  market_strategy:
+    notes:
+      - "Pricing is tightly tied to ironwood seed supply from Sailing content."
+      - "Demand pulses when high-level hardwood Farming methods are profitable."
+  trading_tips:
+    - Convert seeds to saplings in bulk when the spread is positive.
+    - Watch new Sailing patches and rebalances that may shift seed drop rates.
+  history:
+    - date: "2025-11-19"
+      description: "Ironwood sapling added with the Sailing update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

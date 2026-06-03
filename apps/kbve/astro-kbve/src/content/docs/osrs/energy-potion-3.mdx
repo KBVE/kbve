@@ -1,6 +1,6 @@
 ---
 title: Energy potion(3) | OSRS Price Data
-description: "Energy potion(3): 3 doses of energy potion.. High alch: 66 GP, GE limit: 2,000."
+description: "Energy potion(3): 3 doses of energy potion. High alch: 66 GP, GE limit: 2,000."
 osrs:
   id: 3010
   name: Energy potion(3)
@@ -12,9 +12,73 @@ osrs:
   lowalch: 44
   highalch: 66
   limit: 2000
-  about: "Energy potion(3) is a free-to-play item in Old School RuneScape. High alchemy value: 66 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2004-09-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.06
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores 10% of the player's run energy per dose."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 26
+      xp: 67.5
+      materials:
+        - item_name: Harralander potion (unf)
+          quantity: 1
+        - item_name: Chocolate dust
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Energy potion(4)
+      slug: energy-potion-4
+      relationship: variant
+      description: Four-dose variant
+    - item_name: Energy potion(2)
+      slug: energy-potion-2
+      relationship: variant
+      description: Two-dose variant
+    - item_name: Energy potion(1)
+      slug: energy-potion-1
+      relationship: variant
+      description: One-dose variant
+    - item_name: Energy mix
+      slug: energy-mix
+      relationship: upgrade
+      description: Barbarian variant that also heals 3 HP
+  about: "Energy potion(3) restores 10% run energy per dose. Made from a Harralander potion (unf) and chocolate dust at Herblore 26. F2P since March 2017."
+  market_strategy:
+    notes:
+      - "Low-margin Herblore output"
+      - "F2P available since 2017-03-09"
+      - "Steady demand for skiller travel"
+  trading_tips:
+    - Margins follow chocolate dust and harralander prices
+    - Stamina potion competes for high-end demand
+  history:
+    - date: "2004-09-01"
+      description: "Added with the Herblore skill."
+    - date: "2017-03-09"
+      description: "Made available to free-to-play players."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,76 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Moonlight mead(m4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ale keg
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Mature dose: heals 6 Hitpoints per pint, restoring 24 HP across a full 4-pint keg."
+        duration: 0
+  recipes:
+    - skill: cooking
+      level: 44
+      xp: 0
+      materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Mushroom
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Calquat keg
+          quantity: 2
+      tools: []
+      output_quantity: 2
+  related_items:
+    - item_name: Moonlight mead
+      slug: moonlight-mead
+      relationship: variant
+      description: Standard single-pint version of the mead
+    - item_name: Calquat keg
+      slug: calquat-keg
+      relationship: component
+      description: Container used to bottle and mature 4-pint kegs
+    - item_name: Ale yeast
+      slug: ale-yeast
+      relationship: component
+      description: Brewing secondary needed for any mead in the vat
+    - item_name: Barley malt
+      slug: barley-malt
+      relationship: component
+      description: Processed barley input for the brewing vat
+  about: "Moonlight mead(m4) is the mature 4-pint keg version of the namesake mead. After fermenting for 1-1.5 days in a brewing vat and filling Calquat kegs, drinking a pint heals 6 Hitpoints, making the keg a cheap food-like supply for low-level skillers."
+  market_strategy:
+    notes:
+      - "Effectively a junk-value drink; GE alch values are 1 coin"
+      - "Niche bulk supply for low-level mead collectors"
+      - "Limited brewers feed the supply because mature flag adds time risk"
+  trading_tips:
+    - Treat as flavour content rather than profit; flip only for collector demand
+    - Hold inventory minimal because spoiled brews tank profit
+  history:
+    - date: "2005-07-11"
+      description: "Released with the Farming and brewing vat expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

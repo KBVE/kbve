@@ -12,9 +12,92 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 15
-  about: "Tome of fire (empty) is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: magical
+    tier: high
+  properties:
+    release_date: "2016-09-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wield
+      - Pages
+      - Drop
+    worn_options:
+      - Pages
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 1
+    requirements:
+      magic: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 8
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 8
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward Cart (Wintertodt)
+        quantity: "1"
+        rarity: 1/1000
+  passive_effects:
+    - name: Infinite fire runes
+      description: When charged with burnt or searing pages, the tome supplies unlimited fire runes to cast spells
+    - name: Fire spell damage boost
+      description: Charged tome boosts fire spell damage by 10% against NPCs and 50% against players, consuming one charge per cast
+  related_items:
+    - item_name: Tome of fire
+      slug: tome-of-fire
+      relationship: variant
+      description: Charged form holding up to 1,000 burnt or searing pages
+    - item_name: Burnt page
+      slug: burnt-page
+      relationship: component
+      description: Standard charge fuel for the tome
+    - item_name: Searing page
+      slug: searing-page
+      relationship: component
+      description: Premium charge fuel from the Wintertodt
+    - item_name: Tome of water (empty)
+      slug: tome-of-water-empty
+      relationship: alternative
+      description: Water-spell equivalent shield tome
+  about: "The empty tome of fire is the tradeable form of the fire spell shield, dropped at 1/1,000 from the Wintertodt reward cart. Once charged with burnt or searing pages it provides infinite fire runes and a 10% damage boost to fire spells in PvM (50% in PvP), holding up to 1,000 charges that each consume one page per cast."
+  market_strategy:
+    notes:
+      - "Only tradeable empty; charged tomes are locked to the owner"
+      - "Supply is gated by Wintertodt activity and high-level firemaker farming"
+      - "Buy limit of 15 makes large flips slow"
+  trading_tips:
+    - Buy after Wintertodt content spikes flood the market with drops
+    - Page price (burnt vs searing) often shifts demand for empty tomes
+  history:
+    - date: "2016-09-08"
+      description: "Released as a Wintertodt reward alongside the Wintertodt minigame."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

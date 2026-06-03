@@ -1,6 +1,6 @@
 ---
 title: Adamant bolts | OSRS Price Data
-description: "Adamant bolts is a members ammo slot item requiring 46 Ranged. High alch: 34 GP, GE limit: 11,000."
+description: "Adamant bolts: Adamantite crossbow bolts. Members ammo requiring 46 Ranged, fired from adamant crossbows or higher. High alch: 34 GP, GE limit: 11,000."
 osrs:
   id: 9143
   name: Adamant bolts
@@ -12,49 +12,101 @@ osrs:
   lowalch: 23
   highalch: 34
   limit: 11000
-  item_id: 9143
-  type: ammunition
-  tradeable: true
-  weight: 0
-  buy_limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: adamant
+    tier: mid
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ammo
-    type: bolts
+    weapon_type: bolts
+    attack_speed: null
+    weight: 0
     requirements:
       ranged: 46
-  fletching:
-    level: 61
-    materials:
-      - item: Adamant bolts (unf)
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 100
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 61
+      xp: 70
+      materials:
+        - item_name: Adamant bolts (unf)
+          quantity: 10
+        - item_name: Feather
+          quantity: 10
+      tools: []
+      output_quantity: 10
+  drop_table:
+    sources:
+      - source: Iron dragon
         quantity: "1"
-      - item: Feathers
+        rarity: "1/21.33"
+      - source: Skeletal wyvern
         quantity: "1"
-  obtaining:
-    fletching: Smith adamantite bars, then fletch with feathers (61 Fletching)
-    drops:
-      - Iron dragons
-      - Skeletal wyverns
+        rarity: "1/42.67"
+      - source: Hallowed Sepulchre
+        quantity: "1"
+        rarity: Uncommon
   related_items:
-    - slug: adamant-crossbow
-      name: Adamant crossbow
-      relation: required_weapon
-    - slug: adamant-bolts-e
-      name: Adamant bolts (e)
-      relation: enchanted_variants
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Ammo |
-    | Type | Crossbow Bolts |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 46 Ranged |
-
-    Used with adamant crossbow or higher.
-
-    Can be tipped with gems and enchanted for special effects.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Adamant crossbow
+      slug: adamant-crossbow
+      relationship: component
+      description: Crossbow that fires adamant bolts at minimum required tier.
+    - item_name: Adamant bolts (unf)
+      slug: adamant-bolts-unf
+      relationship: component
+      description: Unfinished adamant bolts before feathering.
+    - item_name: Adamant bolts (e)
+      slug: adamant-bolts-e
+      relationship: variant
+      description: Enchanted adamant bolts with proc effects.
+    - item_name: Rune bolts
+      slug: runite-bolts
+      relationship: upgrade
+      description: Next bolt tier with higher ranged strength.
+  about: "Adamant bolts are mid-game ranged ammunition for adamant or higher crossbows. They are fletched at 61 Fletching from unfinished adamant bolts and feathers, dropped commonly by iron dragons and skeletal wyverns, and can be tipped with gems to make enchanted variants like (e) bolts with strong proc effects."
+  market_strategy:
+    notes:
+      - "Iron dragon and skeletal wyvern droprates control supply; price tracks Slayer task assignments."
+      - "Enchanted variants (e.g. ruby bolts (e), diamond bolts (e)) are the main demand sink."
+  trading_tips:
+    - Buy 11,000 per 4 hours when ranged content is meta and resupply the (e) crafters.
+    - Watch out for downward swings after major Slayer rebalances.
+  history:
+    - date: "2006-07-31"
+      description: "Adamant bolts released alongside the bolt rework and fletching unlock at 61."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

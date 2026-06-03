@@ -12,9 +12,62 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15
-  about: "Wooden cat is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2007-03-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0.03
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 16
+      xp: 15
+      materials:
+        - item_name: Wooden plank
+          quantity: 1
+        - item_name: Fur
+          quantity: 1
+      tools:
+        - Crafting table
+      output_quantity: 1
+  related_items:
+    - item_name: Wooden plank
+      slug: wooden-plank
+      relationship: component
+      description: "Plank consumed when crafting the wooden cat at a crafting table"
+    - item_name: Fur
+      slug: fur
+      relationship: component
+      description: "Fur consumed during crafting; bear fur and grey wolf fur also work"
+    - item_name: The Great Brain Robbery
+      slug: the-great-brain-robbery
+      relationship: alternative
+      description: "Quest that requires 10 wooden cats during a deception sequence"
+  about: "The wooden cat is a quest item used in The Great Brain Robbery, where players need ten of them to deceive Caroline's son into thinking the toys are real cats. Outside the quest it remains craftable at 16 Crafting on a crafting table, using a wooden plank and any fur piece for 15 Crafting experience."
+  market_strategy:
+    notes:
+      - "Tiny 15/4h buy limit chokes flipping despite cheap unit cost"
+      - "Demand spikes only when players progress The Great Brain Robbery"
+      - "Crafting alternative undercuts GE pricing for self-suppliers"
+  trading_tips:
+    - "Sniping at GE during quest event weeks usually beats crafting"
+    - "Grey wolf fur is the cheapest craft input - track that price for cost basis"
+  history:
+    - date: "2007-03-06"
+      description: "Released with The Great Brain Robbery quest"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

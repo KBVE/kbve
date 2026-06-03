@@ -12,9 +12,34 @@ osrs:
   lowalch: 480
   highalch: 720
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wand
+    tier: mid
+  properties:
+    release_date: "4 January 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.283
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: wand
+    weapon_type: wand
+    attack_speed: 4
+    weight: 0.283
+    requirements:
+      magic: 45
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,37 +57,41 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      magic: 45
-    weight: 0.283
-    attack_speed: 4
-    combat_style: staff
-    autocast: standard
-  shop:
-    currency: pizazz_points
-    cost:
-      telekinetic: 30
-      alchemist: 30
-      enchantment: 300
-      graveyard: 30
+  shops:
+    - shop_name: Mage Training Arena rewards
+      location: Mage Training Arena
+      price: 30
+      currency: telekinetic pizazz points
+      stock: infinite
+    - shop_name: Mage Training Arena rewards
+      location: Mage Training Arena
+      price: 30
+      currency: alchemist pizazz points
+      stock: infinite
+    - shop_name: Mage Training Arena rewards
+      location: Mage Training Arena
+      price: 300
+      currency: enchantment pizazz points
+      stock: infinite
+    - shop_name: Mage Training Arena rewards
+      location: Mage Training Arena
+      price: 30
+      currency: graveyard pizazz points
+      stock: infinite
   related_items:
-    - item_id: 6910
-      item_name: Apprentice wand
+    - item_name: Apprentice wand
       slug: apprentice-wand
       relationship: upgrade
       description: Next tier MTA wand (50 Magic)
-    - item_id: 6912
-      item_name: Teacher wand
+    - item_name: Teacher wand
       slug: teacher-wand
       relationship: upgrade
       description: Third tier MTA wand (55 Magic)
-    - item_id: 6914
-      item_name: Master wand
+    - item_name: Master wand
       slug: master-wand
       relationship: upgrade
       description: Highest tier MTA wand (60 Magic)
-    - item_id: 11998
-      item_name: Kodai wand
+    - item_name: Kodai wand
       slug: kodai-wand
       relationship: upgrade
       description: Best-in-slot wand from Chambers of Xeric
@@ -75,7 +104,7 @@ osrs:
     | Magic | +5 | +5 |
     | Ranged | 0 | 0 |
 
-    Requirements: 45 Magic | Weight: 0.28 kg | Speed: 4 ticks (2.4s)
+    Requirements: 45 Magic | Weight: 0.283 kg | Speed: 4 ticks (2.4s)
 
     The beginner wand supports Standard Spellbook autocast with both offensive and defensive casting styles. It cannot autocast Ancient Magicks or Arceuus spells. As a one-handed weapon, it allows a shield or book in the off-hand slot.
 
@@ -90,17 +119,19 @@ osrs:
     | Kodai wand | +28 | +20 | 75 | Best-in-slot, Chambers of Xeric |
 
     The beginner wand offers modest stats. Its primary value is as the starting point for the wand upgrade chain.
-
-    The beginner wand is the cheapest MTA reward, requiring only 30 points in three categories and 300 enchantment points. Players typically acquire it early in the MTA grind and trade it in for the apprentice wand shortly after. Each subsequent upgrade requires trading in the previous tier plus additional points.
   market_strategy:
     notes:
-      - GE price (~176K gp) reflects the time spent at MTA rather than raw stats
-      - Most buyers purchase it to skip early MTA grinding
-      - Demand is steady from players progressing through the wand chain
-      - Significantly cheaper than higher-tier wands
-      - One-handed slot is the main mechanical advantage over staves
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "GE price reflects MTA time saved, not raw stats"
+      - "Most buyers want to skip early MTA grinding"
+      - "Demand steady from players progressing the wand chain"
+      - "One-handed slot is the main mechanical edge over staves"
+      - "Cheaper than higher-tier MTA wands"
+  trading_tips:
+    - Bank-stand wands when MTA point prices spike
+    - Flips work best around major skilling updates
+  history:
+    - date: "4 January 2006"
+      description: "Released with the Mage Training Arena minigame."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

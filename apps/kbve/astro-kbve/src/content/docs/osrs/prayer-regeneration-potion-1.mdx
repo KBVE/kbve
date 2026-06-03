@@ -12,9 +12,82 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 2000
-  about: "Prayer regeneration potion(1) is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2024-09-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores one Prayer point every 12 ticks for the duration of the effect."
+        duration: 480
+      - description: "Total restoration of approximately 66 Prayer points per dose."
+        duration: 480
+  related_items:
+    - item_name: Prayer regeneration potion(2)
+      slug: prayer-regeneration-potion-2
+      relationship: variant
+      description: Two-dose variant
+    - item_name: Prayer regeneration potion(3)
+      slug: prayer-regeneration-potion-3
+      relationship: variant
+      description: Three-dose variant
+    - item_name: Prayer regeneration potion(4)
+      slug: prayer-regeneration-potion-4
+      relationship: variant
+      description: Four-dose variant
+    - item_name: Huasca potion (unf)
+      slug: huasca-potion-unf
+      relationship: component
+      description: Unfinished base used to brew the potion
+    - item_name: Aldarium
+      slug: aldarium
+      relationship: component
+      description: Secondary ingredient added to huasca unf
+  about: |-
+    > *"1 dose of Prayer Regeneration potion."*
+
+    The prayer regeneration potion is a members-only buff potion released with Varlamore on 25 September 2024. Each dose passively restores one Prayer point every 12 ticks for eight minutes, yielding roughly 66 Prayer points total.
+
+    Players brew it at 58 Herblore by combining a huasca potion (unf) with aldarium for 132 Herblore experience, producing a three-dose potion. It is also obtained from lost ironwood crates from level 95 Sailing voyages at a 1/8 rate.
+  recipes:
+    - skill: herblore
+      level: 58
+      xp: 132
+      materials:
+        - item_name: Huasca potion (unf)
+          quantity: 1
+        - item_name: Aldarium
+          quantity: 1
+      tools: []
+      output_quantity: 3
+  market_strategy:
+    notes:
+      - "Demand spikes around longform PvM trips where Prayer drain is high."
+      - "Sailing crate drops keep supply elevated when Sailing is active."
+      - "The 2,000 buy limit supports volume flipping for steady margins."
+  trading_tips:
+    - Brewing 3-dose and decanting often outperforms straight 1-dose flips.
+    - Watch Sailing crate yield patches for supply-side price swings.
+  history:
+    - date: "2024-09-25"
+      description: "Added with the Varlamore: The Final Dawn update."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

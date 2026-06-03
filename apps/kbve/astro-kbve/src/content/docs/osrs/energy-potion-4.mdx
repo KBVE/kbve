@@ -12,62 +12,76 @@ osrs:
   lowalch: 58
   highalch: 87
   limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2004-09-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   potion:
-    doses: 4
-    herblore_xp: 0
-    effect: Restores 10% of run energy
     effects:
-      - stat: Run energy
-        boost_type: restore
-        boost_value: 10
-        description: Restores 10% run energy per dose
+      - description: Restores 10% of run energy per dose
+        duration: 0
   recipes:
-    - skill: null
-      level: 0
-      xp: 0
+    - skill: herblore
+      level: 26
+      xp: 67
       materials:
-        - item_name: Limpwurt root
-          item_id: 225
-          quantity: 2
-        - item_name: Chocolate dust
-          item_id: 1975
+        - item_name: Harralander potion (unf)
           quantity: 1
-      facility: Apothecary
+        - item_name: Chocolate dust
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 225
-      item_name: Limpwurt root
+    - item_name: Limpwurt root
       slug: limpwurt-root
       relationship: component
-      description: Required ingredient
-    - item_id: 1975
-      item_name: Chocolate dust
+      description: Required ingredient at the Apothecary recipe
+    - item_name: Chocolate dust
       slug: chocolate-dust
       relationship: component
-      description: Required ingredient
-    - item_id: 3016
-      item_name: Super energy(4)
+      description: Required ingredient for both Apothecary and Herblore recipes
+    - item_name: Super energy(4)
       slug: super-energy-4
       relationship: upgrade
-      description: Better energy restoration
-    - item_id: 12625
-      item_name: Stamina potion(4)
+      description: Restores 20% run energy per dose
+    - item_name: Stamina potion(4)
       slug: stamina-potion-4
       relationship: upgrade
-      description: Best energy option
+      description: Restores energy and reduces drain rate
   about: |-
-    Restores 10% run energy per dose. While weak compared to modern alternatives, useful for:
-    - F2P players
-    - Early-game ironmen
-    - Budget option for walking content
+    Energy potion(4) is a free-to-play potion that restores 10% run energy per dose. Useful for:
+    - F2P players with no access to stamina potions
+    - Early-game ironmen building Herblore
+    - Budget option for walking-heavy content
   market_strategy:
     notes:
-      - Only energy restoration available in F2P
-      - Low volume market
-      - Consider making at Apothecary for profit
-      - Super energy(4) - 20% restore
-      - Stamina potion(4) - 20% + reduced drain
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Only run-energy restoration available in F2P"
+      - "Low volume market with thin spreads"
+      - "Crafting at the Varrock Apothecary can yield profit"
+      - "Outclassed by Super energy(4) and Stamina potion(4) for members"
+  trading_tips:
+    - Bulk Apothecary crafting beats GE flipping for F2P arbitrage
+    - Watch limpwurt root and chocolate bar supply for cost shifts
+  history:
+    - date: "2004-09-01"
+      description: "Released as one of the original Herblore potions in RuneScape 2."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

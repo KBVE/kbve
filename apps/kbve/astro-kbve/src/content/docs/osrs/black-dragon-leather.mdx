@@ -1,6 +1,6 @@
 ---
 title: Black dragon leather | OSRS Price Data
-description: "Black dragon leather: It's a piece of prepared black dragonhide.. High alch: 66 GP, GE limit: 11,000."
+description: "Black dragon leather: It's a piece of prepared black dragonhide. Top-tier crafting material. High alch: 66 GP, GE limit: 11,000."
 osrs:
   id: 2509
   name: Black dragon leather
@@ -12,70 +12,93 @@ osrs:
   lowalch: 44
   highalch: 66
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
     type: leather
-    tier: highest
-  tanning:
-    cost: 20
-    source_id: 1747
-    source_name: Black dragonhide
-  crafting_products:
-    - product: Black d'hide vambraces
-      product_id: 2491
+    tier: high
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options: []
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
       level: 79
       xp: 86
-      leather: 1
-    - product: Black d'hide chaps
-      product_id: 2497
+      materials:
+        - item_name: Black dragon leather
+          quantity: 1
+        - item_name: Thread
+          quantity: 1
+      tools:
+        - Needle
+      output_quantity: 1
+    - skill: crafting
       level: 82
       xp: 172
-      leather: 2
-    - product: Black d'hide shield
-      product_id: 2503
-      level: 83
-      xp: 172
-      leather: 2
-    - product: Black d'hide body
-      product_id: 2503
+      materials:
+        - item_name: Black dragon leather
+          quantity: 2
+        - item_name: Thread
+          quantity: 1
+      tools:
+        - Needle
+      output_quantity: 1
+    - skill: crafting
       level: 84
       xp: 258
-      leather: 3
+      materials:
+        - item_name: Black dragon leather
+          quantity: 3
+        - item_name: Thread
+          quantity: 1
+      tools:
+        - Needle
+      output_quantity: 1
   related_items:
-    - item_id: 1747
-      item_name: Black dragonhide
+    - item_name: Black dragonhide
       slug: black-dragonhide
       relationship: component
-      description: Raw material
-    - item_id: 2503
-      item_name: Black d'hide body
-      slug: black-dhide-body
+      description: Raw hide tanned into this leather
+    - item_name: Black d'hide body
+      slug: black-d-hide-body
       relationship: product
-      description: Main product
-    - item_id: 2507
-      item_name: Red dragon leather
+      description: Highest-xp leather product
+    - item_name: Red dragon leather
       slug: red-dragon-leather
-      relationship: alternative
-      description: Lower tier
-    - item_id: 2505
-      item_name: Blue dragon leather
+      relationship: downgrade
+      description: Lower-tier dragonhide leather
+    - item_name: Blue dragon leather
       slug: blue-dragon-leather
-      relationship: alternative
-      description: Lower tier
+      relationship: downgrade
+      description: Lower-tier dragonhide leather
+  about: |-
+    > _"It's a piece of prepared black dragonhide."_
+
+    Black dragon leather is the highest-tier dragonhide crafting material. Tan black dragonhides for 20 coins each at standard tanners, 45 at Sbott in Canifis, or 5 per cast via the Tan Leather spell (78 Magic). Crafts into vambraces (79 Crafting), chaps (82), shield (83), and body (84) for high-tier Crafting XP.
   market_strategy:
     notes:
-      - Best dragonhide leather
-      - Good Crafting XP
-      - Tan Leather profit
-      - Crafting training
-      - D'hide armor production
-      - Tan Leather profit
-      - High alch targets
-      - Tan Leather spell efficient
-      - 20 GP tanner fee
-      - Black dragons drop hide
-      - Bodies best XP
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Best dragonhide leather tier"
+      - "Strong Crafting XP per leather"
+      - "Black d'hide bodies maximise XP"
+      - "Tan Leather spell remains efficient"
+      - "20 GP per tan at standard NPCs"
+      - "Hide supply tied to black dragon kills"
+  trading_tips:
+    - Watch tanning margin vs raw hide GE price
+    - Bulk craft d'hide bodies when leather dips below alch
+  history:
+    - date: "2004-03-29"
+      description: "Released with the RuneScape 2 engine update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

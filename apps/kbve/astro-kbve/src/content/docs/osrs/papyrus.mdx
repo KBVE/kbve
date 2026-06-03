@@ -12,18 +12,67 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: crafting-component
+    tier: low
+  properties:
+    release_date: "2003-08-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Ali Morrisane's Discount Goods
+      location: Al Kharid
+      price: 30
+      currency: Coins
+      stock: 5
+    - shop_name: Razmire Builders' Merchants
+      location: Mort'ton
+      price: 20
+      currency: Coins
+      stock: 2
+    - shop_name: Wingstone Agility Shop
+      location: Pollnivneach
+      price: 20
+      currency: Coins
+      stock: 5
   related_items:
-    - item_id: 973
-      item_name: Charcoal
+    - item_name: Charcoal
       slug: charcoal
       relationship: component
-      description: Used together for notes
-  about: |-
-    > _"A\"piece\" of\"papyrus\"."_
-
-    Papyrus is used with charcoal to make notes and maps. Required in several quests including Nature Spirit and Shilo Village. Also used in Treasure Trails.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Combined with papyrus to write notes and maps.
+    - item_name: Note (item)
+      slug: note
+      relationship: product
+      description: Created when papyrus is paired with charcoal in inventory.
+    - item_name: Bowl of hot water
+      slug: bowl-of-hot-water
+      relationship: component
+      description: Used with papyrus for origami balloon construction in Enlightened Journey.
+  about: "Papyrus is a members crafting component used to make notes (with charcoal), maps, origami balloons, and several Construction items. It is required across multiple quests including Legends' Quest, Nature Spirit, Shilo Village, Enlightened Journey, and While Guthix Sleeps, and is also consumed when constructing a balloon hot-air balloon."
+  market_strategy:
+    notes:
+      - "Shop supply is plentiful; GE price stays well above alch due to convenience demand."
+      - "Quest and Construction usage drives steady throughput."
+      - "Bulk shop runs (Ali Morrisane / Razmire / Wingstone) profit consistently versus GE flips."
+  trading_tips:
+    - "Run multi-shop circuits during quest hype to undercut GE listings."
+    - "Stockpile during league or event prep windows when balloon and notes usage spikes."
+    - "Pair with charcoal supply chains for combined-item flips."
+  history:
+    - date: "2003-08-20"
+      description: "Added to the game alongside the Legends' Quest content update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

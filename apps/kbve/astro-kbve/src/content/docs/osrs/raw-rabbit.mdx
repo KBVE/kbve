@@ -1,6 +1,6 @@
 ---
 title: Raw rabbit | OSRS Price Data
-description: "Raw rabbit: Might taste better cooked.. High alch: 12 GP, GE limit: 13,000."
+description: "Raw rabbit: Might taste better cooked. High alch: 12 GP, GE limit: 13,000."
 osrs:
   id: 3226
   name: Raw rabbit
@@ -12,9 +12,100 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 13000
-  about: "Raw rabbit is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: raw-food
+    tier: low
+  properties:
+    release_date: "2004-09-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.17
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Rabbit (Isafdar)
+        quantity: "1"
+        rarity: Always
+      - source: Rabbit (Miscellania)
+        quantity: "1"
+        rarity: Always
+      - source: Rabbit (Isle of Souls)
+        quantity: "1"
+        rarity: Always
+  shops:
+    - shop_name: Trader Stan's Trading Post
+      location: Port Sarim / Karamja
+      price: 50
+      currency: Coins
+      stock: 20
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 30
+      materials:
+        - item_name: Raw rabbit
+          quantity: 1
+      tools:
+        - Fire or range
+      output_quantity: 1
+    - skill: cooking
+      level: 16
+      xp: 0
+      materials:
+        - item_name: Raw rabbit
+          quantity: 1
+        - item_name: Iron spit
+          quantity: 1
+      tools:
+        - Fire
+      output_quantity: 1
+    - skill: cooking
+      level: 85
+      xp: 0
+      materials:
+        - item_name: Raw rabbit
+          quantity: 1
+        - item_name: Pie shell
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Cooked rabbit
+      slug: cooked-rabbit
+      relationship: product
+      description: Cooked at 1 Cooking for 30 XP
+    - item_name: Skewered rabbit
+      slug: skewered-rabbit
+      relationship: product
+      description: Iron spit + raw rabbit at 16 Cooking
+    - item_name: Raw wild pie
+      slug: raw-wild-pie
+      relationship: product
+      description: Used to make wild pie at 85 Cooking
+  about: |
+    Raw rabbit is a Hunter and Cooking pipeline staple. Hunters at Piscatoris (27+) catch rabbits with snares, and they also drop from rabbits across Isafdar, Miscellania, and Isle of Souls. Cook at level 1 for 30 XP, or upgrade into skewered rabbit or wild pie at higher tiers. Required (cooked or roasted) for Regicide.
+  market_strategy:
+    notes:
+      - "Margin sits between Hunter loot and Cooking demand"
+      - "Buy limit 13,000 supports volume flipping"
+      - "Trader Stan stocks at 50 gp - sometimes cheaper than GE"
+  trading_tips:
+    - 1 Cooking + fire is the cheapest cook
+    - Iron spit unlocks skewered rabbit at 16 Cooking
+    - Wild pie filling at 85 Cooking is a high-XP path
+  history:
+    - date: "2004-09-20"
+      description: "Raw rabbit added with the Hunter skill expansion preview."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

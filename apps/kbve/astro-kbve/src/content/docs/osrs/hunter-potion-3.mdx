@@ -12,9 +12,74 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 2000
-  about: "Hunter potion(3) is a members-only item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Temporarily boosts Hunter level by 3."
+        duration: 360
+  recipes:
+    - skill: herblore
+      level: 53
+      xp: 130
+      materials:
+        - item_name: Avantoe potion (unf)
+          quantity: 1
+        - item_name: Kebbit teeth dust
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Hunter potion(4)
+      slug: hunter-potion-4
+      relationship: variant
+      description: "Full 4-dose version."
+    - item_name: Hunter potion(2)
+      slug: hunter-potion-2
+      relationship: variant
+      description: "2-dose version after one sip."
+    - item_name: Hunter potion(1)
+      slug: hunter-potion-1
+      relationship: variant
+      description: "1-dose version after three sips."
+    - item_name: Avantoe potion (unf)
+      slug: avantoe-potion-unf
+      relationship: component
+      description: "Unfinished base for Hunter potions."
+    - item_name: Kebbit teeth dust
+      slug: kebbit-teeth-dust
+      relationship: component
+      description: "Secondary ingredient ground from kebbit teeth."
+  about: "Hunter potion(3) temporarily boosts the Hunter skill by 3 levels. Useful for catching creatures slightly above your level, like reaching a higher kebbit or chinchompa tier. Made at level 53 Herblore by combining an avantoe potion (unf) with kebbit teeth dust."
+  market_strategy:
+    notes:
+      - "Demand spikes around Hunter level milestones (e.g., 80 for red chinchompas, 73 for chinchompas)."
+      - "Cheaper than the 4-dose per dose in some market conditions; arbitrage by decanting."
+  trading_tips:
+    - "Decant 3-dose into 4-dose if the per-dose price is favourable."
+    - "Stock up before bossing trips that rely on Hunter-level checks."
+  history:
+    - date: "2006-11-21"
+      description: "Released with the Hunter skill."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

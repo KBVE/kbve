@@ -12,9 +12,73 @@ osrs:
   lowalch: 1000
   highalch: 1500
   limit: 13000
-  about: "Mahogany repair kit is a members-only item in Old School RuneScape. High alchemy value: 1,500 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Apply
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Plundered salvage
+        quantity: "1"
+        rarity: 1/1036
+      - source: Spined kraken
+        quantity: "1"
+        rarity: 1/109
+  recipes:
+    - skill: construction
+      level: 47
+      xp: 210
+      materials:
+        - item_name: Mahogany plank
+          quantity: 2
+        - item_name: Mithril nails
+          quantity: 10
+        - item_name: Swamp paste
+          quantity: 5
+      tools:
+        - Shipwrights' workbench
+      output_quantity: 2
+  related_items:
+    - item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: "Plank consumed when building the kit at a Shipwrights' workbench"
+    - item_name: Mithril nails
+      slug: mithril-nails
+      relationship: component
+      description: "Nails consumed when building the kit"
+    - item_name: Swamp paste
+      slug: swamp-paste
+      relationship: component
+      description: "Paste consumed when building the kit"
+  about: "The mahogany repair kit is a Sailing utility item that heals 30 HP per use on a damaged ship during ship combat. Multiple players can stack applications, making it a staple consumable for Sailing crews. It can be crafted at a Shipwrights' workbench with 47 Construction or dropped from plundered salvage and the spined kraken."
+  market_strategy:
+    notes:
+      - "Construction recipe sets a hard cost floor near material price; sub-cost listings are usually bait"
+      - "Demand scales with active Sailing content participation"
+      - "13k buy limit allows whales to corner short-term supply"
+  trading_tips:
+    - "Track Sailing XP rates after balance patches - repair kit demand follows ship combat hours"
+    - "Use Spined kraken drop rate (1/109) as a supply baseline once it goes live"
+  history:
+    - date: "2025-11-19"
+      description: "Released alongside the Shipwrights' workbench; Construction XP from Sailing workbenches halved on the same date"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Super fishing potion(3) | OSRS Price Data
-description: "Super fishing potion(3): 3 doses of super fishing potion.. High alch: 102 GP."
+description: "Super fishing potion(3): 3 doses of super fishing potion. +6 Fishing boost. High alch: 102 GP."
 osrs:
   id: 31605
   name: Super fishing potion(3)
@@ -12,9 +12,77 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: null
-  about: "Super fishing potion(3) is a members-only item in Old School RuneScape. High alchemy value: 102 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.09
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Temporarily boosts the Fishing level by +6."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 62
+      xp: 140
+      materials:
+        - item_name: Pillar potion (unf)
+          quantity: 1
+        - item_name: Haddock eye
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Super fishing potion(4)
+      slug: super-fishing-potion-4
+      relationship: variant
+      description: 4-dose version of the same potion
+    - item_name: Super fishing potion(2)
+      slug: super-fishing-potion-2
+      relationship: variant
+      description: 2-dose version
+    - item_name: Super fishing potion(1)
+      slug: super-fishing-potion-1
+      relationship: variant
+      description: 1-dose version
+    - item_name: Fishing potion
+      slug: fishing-potion
+      relationship: downgrade
+      description: Standard fishing potion (+3 Fishing) before the Sailing rework
+  about: |-
+    > *"3 doses of super fishing potion."*
+
+    The super fishing potion is a Sailing-update potion (released 19 November 2025) that grants a +6 Fishing boost on consumption. It is brewed at 62 Herblore by combining an unfinished pillar potion with a haddock eye for 140.5 XP per dose set.
+
+    Unlike the standard fishing potion, the super version cannot be stored in a tackle box, which limits inventory strategies for long Sailing trips.
+  market_strategy:
+    notes:
+      - "Demand driven by Sailing content and Fishing XP boosting"
+      - "Cannot be stored in a tackle box — limits supply-side carry strategies"
+      - "No GE buy limit listed currently"
+      - "3-dose form decants down from 4-dose, supporting a small flipping margin"
+  trading_tips:
+    - Decant 4-dose into 3-dose for small flips when 3-dose is in demand
+    - Watch haddock eye and unfinished pillar potion supply for inputs
+  history:
+    - date: "2025-11-19"
+      description: "Released with the Sailing skill update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
