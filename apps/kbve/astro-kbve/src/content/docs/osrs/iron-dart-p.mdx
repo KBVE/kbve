@@ -1,6 +1,6 @@
 ---
 title: Iron dart (p) | OSRS Price Data
-description: "Iron dart (p) is a members weapon slot item requiring 1 Ranged. High alch: 1 GP, GE limit: 7,000."
+description: "Iron dart (p): A deadly poisoned dart with an iron tip. High alch: 1 GP, GE limit: 7,000."
 osrs:
   id: 813
   name: Iron dart (p)
@@ -12,31 +12,78 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
+    weapon_type: thrown
     attack_speed: 3
+    weight: 0
     requirements:
       ranged: 1
     attack_bonus:
-      ranged: 4
-    ranged_strength: 3
+      ranged: 0
+    defence_bonus: {}
+    other_bonus:
+      ranged_strength: 2
+  recipes:
+    - skill: fletching
+      level: 22
+      xp: 38
+      materials:
+        - item_name: Iron dart tip
+          quantity: 10
+        - item_name: Feather
+          quantity: 10
+      tools: []
+      output_quantity: 10
   related_items:
-    - item_id: 812
-      item_name: Bronze dart (p)
+    - item_name: Iron dart
+      slug: iron-dart
+      relationship: variant
+      description: Unpoisoned version
+    - item_name: Bronze dart (p)
       slug: bronze-dart-p
-      relationship: variant
+      relationship: downgrade
       description: Lower tier poisoned dart
-    - item_id: 814
-      item_name: Steel dart (p)
+    - item_name: Steel dart (p)
       slug: steel-dart-p
-      relationship: variant
+      relationship: upgrade
       description: Higher tier poisoned dart
-  about: |-
-    > _"An iron tipped dart with a poisoned tip."_
-
-    An iron dart tipped with basic weapon poison. Requires 1 Ranged. Poison deals 2-4 damage over time.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Weapon poison
+      slug: weapon-poison
+      relationship: component
+      description: Applied to base dart to make poisoned version
+  about: "Iron dart (p) is a basic poisoned thrown weapon, fletched from iron dart tips and feathers at 22 Fletching, then dipped in weapon poison. With +0 ranged attack and +2 ranged strength, it's an entry-level option for low-Ranged accounts wanting poison damage."
+  market_strategy:
+    notes:
+      - "Niche demand from low-level pures wanting poison procs"
+      - "Limited margin given low alch and cheap fletch"
+  trading_tips:
+    - Better as a fletching by-product than a market focus
+  history:
+    - date: "2003-04-14"
+      description: "Released in the New Throwing Weapons update."
+    - date: "2021-06-30"
+      description: "Ranged attack reduced from +4 to 0; ranged strength reduced from +3 to +2."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

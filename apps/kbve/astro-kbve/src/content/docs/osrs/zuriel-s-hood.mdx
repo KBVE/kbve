@@ -1,6 +1,6 @@
 ---
 title: Zuriel's hood | OSRS Price Data
-description: "Zuriel's hood: A powerful hood.. High alch: 150,000 GP, GE limit: 10."
+description: "Zuriel's hood: A powerful hood. High alch: 150,000 GP, GE limit: 10."
 osrs:
   id: 22650
   name: Zuriel's hood
@@ -12,12 +12,91 @@ osrs:
   lowalch: 100000
   highalch: 150000
   limit: 10
-  about: "Zuriel's hood is a members-only item in Old School RuneScape. High alchemy value: 150,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ancient
+    tier: high
+  properties:
+    release_date: "2023-05-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Charge
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements:
+      defence: 78
+      magic: 78
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 18
+      ranged: -2
+    defence_bonus:
+      stab: 20
+      slash: 16
+      crush: 22
+      magic: 8
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 1
+      prayer: 0
+  shops:
+    - shop_name: Bounty Hunter Store
+      location: Edgeville
+      price: 300
+      currency: Bounty points
+      stock: 1
+  passive_effects:
+    - name: PvP-only set bonus
+      description: When worn with Zuriel's robe top and bottom, grants a 25% magic accuracy bonus inside designated PvP areas (Daimon's Crater, Castle Wars, Clan Wars, Soul Wars, TzHaar Fight Pit, POH or Clan Hall combat rings).
+    - name: Charge cost
+      description: Must be charged with 5,000,000 coins before use; uncharges after combat exposure.
+  related_items:
+    - item_name: Zuriel's robe top
+      slug: zuriel-s-robe-top
+      relationship: set-piece
+      description: Body piece of the Zuriel's set
+    - item_name: Zuriel's robe bottom
+      slug: zuriel-s-robe-bottom
+      relationship: set-piece
+      description: Leg piece of the Zuriel's set
+    - item_name: Zuriel's staff
+      slug: zuriel-s-staff
+      relationship: set-piece
+      description: Weapon piece of the Zuriel's set
+  about: "Zuriel's hood is the PvP-restricted head slot of the Zuriel's ancient set, purchased from the Bounty Hunter Store for 300 points and charged with 5M coins to activate. Inside designated PvP areas the full set grants 25% magic accuracy."
+  market_strategy:
+    notes:
+      - "Supply tied to Bounty Hunter activity"
+      - "5M activation fee compresses the price floor"
+  trading_tips:
+    - PvP-area restriction limits buyer pool to PKers
+  history:
+    - date: "2023-05-24"
+      description: "Released with the 'Bounty Hunter is Back!' update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

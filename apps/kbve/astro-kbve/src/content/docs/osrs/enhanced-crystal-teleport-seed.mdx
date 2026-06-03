@@ -1,6 +1,6 @@
 ---
 title: Enhanced crystal teleport seed | OSRS Price Data
-description: "Enhanced crystal teleport seed: A seed to be sung into a infinite teleport crystal.. High alch: 60,000 GP, GE limit: 100."
+description: "Enhanced crystal teleport seed: A seed to be sung into a infinite teleport crystal. High alch: 60,000 GP, GE limit: 100."
 osrs:
   id: 23959
   name: Enhanced crystal teleport seed
@@ -12,12 +12,72 @@ osrs:
   lowalch: 40000
   highalch: 60000
   limit: 100
-  about: "Enhanced crystal teleport seed is a members-only item in Old School RuneScape. High alchemy value: 60,000 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: crystal
+    tier: high
+  properties:
+    release_date: "2019-07-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Sing
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Elf (Thieving, 85+)
+        quantity: "1"
+        rarity: 1/1024
+      - source: Guard (Prifddinas)
+        quantity: "1"
+        rarity: 1/1024
+      - source: Iorwerth Warrior
+        quantity: "1"
+        rarity: 1/1024
+  recipes:
+    - skill: smithing
+      level: 80
+      xp: 1000
+      materials:
+        - item_name: Enhanced crystal teleport seed
+          quantity: 1
+        - item_name: Crystal shard
+          quantity: 100
+      tools:
+        - Singing bowl
+      output_quantity: 1
+  related_items:
+    - item_name: Crystal teleport seed
+      slug: crystal-teleport-seed
+      relationship: downgrade
+      description: Basic limited-charge version
+    - item_name: Eternal teleport crystal
+      slug: eternal-teleport-crystal
+      relationship: product
+      description: Infinite-charge teleport crystal sung from this seed
+  about: "Enhanced crystal teleport seed is sung at a singing bowl with 100 crystal shards (80 Smithing/Crafting) to produce the eternal teleport crystal with unlimited Prifddinas teleports. Players short on stats can pay Conwenna or Reese 50 extra shards to do the work."
+  market_strategy:
+    notes:
+      - "Steady demand from Prifddinas teleport unlock seekers"
+      - "Rogue equipment doubles seed drops, boosting supply"
+  trading_tips:
+    - Stock typically thin; check GE several hours after buy offer
+  history:
+    - date: "2019-07-25"
+      description: "Released with the Song of the Elves quest update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

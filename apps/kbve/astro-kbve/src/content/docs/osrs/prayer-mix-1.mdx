@@ -1,6 +1,6 @@
 ---
 title: Prayer mix(1) | OSRS Price Data
-description: "Prayer mix(1): One dose of fishy Prayer potion.. High alch: 45 GP, GE limit: 2,000."
+description: "Prayer mix(1): One dose of fishy Prayer potion. High alch: 45 GP, GE limit: 2,000."
 osrs:
   id: 11467
   name: Prayer mix(1)
@@ -12,9 +12,72 @@ osrs:
   lowalch: 30
   highalch: 45
   limit: 2000
-  about: "Prayer mix(1) is a members-only item in Old School RuneScape. High alchemy value: 45 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.045
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores 7-31 Prayer points (8-33 with a holy wrench equipped) and heals 6 Hitpoints per dose."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 42
+      xp: 29
+      materials:
+        - item_name: Prayer potion(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Prayer mix(2)
+      slug: prayer-mix-2
+      relationship: variant
+      description: Two-dose version of the same Barbarian Herblore mix.
+    - item_name: Prayer potion(2)
+      slug: prayer-potion-2
+      relationship: component
+      description: Base potion mixed with caviar to create Prayer mix.
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: Barbarian Herblore secondary required for the mix.
+  about: |-
+    Prayer mix(1) is the Barbarian Herblore variant of a Prayer potion - a single dose that restores 7-31 Prayer points and incidentally heals 6 Hitpoints when sipped. With a holy wrench equipped the Prayer restore range becomes 8-33.
+
+    The mix is created by using caviar on a Prayer potion(2) at 42 Herblore, granting 29 Herblore experience and turning the 2-dose into a single-dose Prayer mix. Barbarian Training (Otto Godblessed) must be completed before mixing.
+
+    Requirements: 42 Herblore | Slot: None | Single dose.
+  market_strategy:
+    notes:
+      - "Niche product - mostly an intermediate for those grinding Herblore XP."
+      - "High alch (45 gp) keeps a hard price floor near alch parity."
+      - "GE limit of 2,000 means bulk buyers cap out quickly."
+  trading_tips:
+    - Watch caviar and Prayer potion(2) margins for mix arbitrage.
+    - Best margin moves come during DMM/league prep weeks.
+  history:
+    - date: "2007-07-03"
+      description: "Released with the Barbarian Training update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

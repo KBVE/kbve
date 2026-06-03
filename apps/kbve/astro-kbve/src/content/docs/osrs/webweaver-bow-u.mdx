@@ -1,6 +1,6 @@
 ---
 title: Webweaver bow (u) | OSRS Price Data
-description: "Webweaver bow (u): A bow of a follower of Armadyl, corrupted by the power of Venenatis.. High alch: 105,000 GP."
+description: "Webweaver bow (u): A bow of a follower of Armadyl, corrupted by the power of Venenatis. High alch: 105,000 GP."
 osrs:
   id: 27652
   name: Webweaver bow (u)
@@ -12,12 +12,99 @@ osrs:
   lowalch: 70000
   highalch: 105000
   limit: null
-  about: "Webweaver bow (u) is a members-only item in Old School RuneScape. High alchemy value: 105,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: corrupted
+    tier: high
+  properties:
+    release_date: "2023-01-25"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Wield
+      - Charge
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: bow
+    attack_speed: 4
+    weight: 3.175
+    requirements:
+      ranged: 70
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 85
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 65
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Venenatis
+        quantity: "1"
+        rarity: 1/256
+      - source: Spindel
+        quantity: "1"
+        rarity: 1/384
+  recipes:
+    - skill: fletching
+      level: 85
+      xp: 1000
+      materials:
+        - item_name: Craw's bow (u)
+          quantity: 1
+        - item_name: Fangs of Venenatis
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Wilderness damage boost
+      description: Grants a 50% accuracy and damage boost against NPCs while in the Wilderness.
+    - name: Swarm special attack
+      description: For 50% special energy, fires four arrows in rapid succession with doubled accuracy.
+  related_items:
+    - item_name: Craw's bow (u)
+      slug: craws-bow-u
+      relationship: component
+      description: Base bow combined with fangs of Venenatis to create webweaver
+    - item_name: Webweaver bow
+      slug: webweaver-bow
+      relationship: variant
+      description: Charged form usable for the special attack
+  about: "Webweaver bow (u) is the uncharged form of the corrupted ranged weapon obtained from Venenatis or by combining Craw's bow (u) with Fangs of Venenatis at 85 Fletching (or 500,000 coins to Derse Venator). It uses revenant ether, requires 1,000 to charge, and holds up to 17,000."
+  market_strategy:
+    notes:
+      - "Supply tied to Venenatis kill rate; price tracks wilderness boss meta"
+      - "Untradeable charged form means uncharged is the only GE liquidity"
+  trading_tips:
+    - Uncharge before sale to convert from the charged variant
+  history:
+    - date: "2023-01-25"
+      description: "Released with the Wilderness Boss Rework update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

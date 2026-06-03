@@ -12,9 +12,98 @@ osrs:
   lowalch: 338
   highalch: 507
   limit: 125
-  about: "Mithril spear(p+) is a members-only item in Old School RuneScape. High alchemy value: 507 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mithril
+    tier: mid
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: two-handed
+    weapon_type: spear
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 20
+    attack_bonus:
+      stab: 17
+      slash: 17
+      crush: 17
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 18
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Mount Karuulm Weapon Shop
+      location: Mount Karuulm
+      price: 845
+      currency: coins
+      stock: 0
+    - shop_name: Fortis Blacksmith
+      location: Fortis
+      price: 845
+      currency: coins
+      stock: 0
+    - shop_name: Elder Blunn's Spear and Shield Stall
+      location: Land's End
+      price: 845
+      currency: coins
+      stock: 0
+  related_items:
+    - item_name: Mithril spear
+      slug: mithril-spear
+      relationship: variant
+      description: Unpoisoned base spear
+    - item_name: Mithril spear(p)
+      slug: mithril-spear-p-1247
+      relationship: variant
+      description: Standard poison variant
+    - item_name: Mithril spear(p++)
+      slug: mithril-spear-p-5716
+      relationship: upgrade
+      description: Super strong poison variant
+    - item_name: Mithril spear(kp)
+      slug: mithril-spear-kp
+      relationship: variant
+      description: Karambwan poison variant
+  about: "Mithril spear(p+) is the strong-poison variant of the mithril spear, a two-handed stab weapon requiring 20 Attack. Applies a stronger poison than the standard (p) variant on hit, useful for slayer tasks and PvM where venom is desired. Created via Barbarian Smithing using a mithril bar plus maple logs."
+  market_strategy:
+    notes:
+      - "Niche demand limited to early-game spearing or poison utility"
+      - "Crafted via Barbarian Smithing — supply tied to training activity"
+      - "Attack speed buff in 2021 (5 to 4 ticks) modestly improved viability"
+  trading_tips:
+    - Flip in low volume; depth is thin
+    - Check Wintertodt / Slayer event days for spikes
+  history:
+    - date: "2003-04-14"
+      description: "Item released alongside the original mithril spear line."
+    - date: "2021-04-21"
+      description: "Attack speed increased from 5 to 4 ticks."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

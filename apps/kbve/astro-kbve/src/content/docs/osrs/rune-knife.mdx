@@ -12,55 +12,90 @@ osrs:
   lowalch: 66
   highalch: 100
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: runite
+    tier: mid-high
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: thrown
-    attack_style: ranged
+    weapon_type: thrown
     attack_speed: 3
-  requirements:
-    ranged: 40
-  stats:
-    attack:
+    weight: 0
+    requirements:
+      ranged: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
       ranged: 25
-    other:
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
       ranged_strength: 24
-  smithing:
-    level: 92
-    xp: 75
-    method: Runite bar at anvil
-    bars: 1
-    quantity: 5
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 92
+      xp: 75
+      materials:
+        - item_name: Runite bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 5
   related_items:
-    - item_id: 2363
-      item_name: Runite bar
+    - item_name: Runite bar
       slug: runite-bar
       relationship: component
       description: Smithing material
-    - item_id: 22804
-      item_name: Dragon knife
+    - item_name: Dragon knife
       slug: dragon-knife
       relationship: upgrade
-      description: Best throwing knife
-    - item_id: 867
-      item_name: Adamant knife
+      description: Best throwing knife tier
+    - item_name: Adamant knife
       slug: adamant-knife
       relationship: downgrade
-      description: Lower tier knife
-    - item_id: 811
-      item_name: Rune dart
+      description: Previous tier throwing knife
+    - item_name: Rune dart
       slug: rune-dart
       relationship: alternative
       description: Alternative thrown weapon
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Weapon |
-    | Type | Thrown |
-    | Tradeable | Yes |
-    | Weight | 0.006 kg |
-    | Requirements | 40 Ranged |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Rune knife is a members-only thrown weapon requiring 40 Ranged. Smith from a runite bar at level 92 Smithing for 75 xp, producing 5 knives per bar. Sometimes preferred over dragon knives in PKing because the throwing animation can be cancelled earlier, keeping the attacker more mobile."
+  market_strategy:
+    notes:
+      - "Smithing cost typically exceeds GE price — net loss to craft"
+      - "PvP demand keeps volume high despite dragon knife dominance in PvM"
+  trading_tips:
+    - Stock up on bars when GE rune knife price spikes during PvP events
+    - Pair with weapon poison variants to flip into the poisoned versions
+  history:
+    - date: "2003-04-14"
+      description: "Released as part of the New Throwing Weapons update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

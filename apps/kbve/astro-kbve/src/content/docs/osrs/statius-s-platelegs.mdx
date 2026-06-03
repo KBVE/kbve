@@ -1,6 +1,6 @@
 ---
 title: Statius's platelegs | OSRS Price Data
-description: "Statius's platelegs: A powerful pair of platelegs.. High alch: 300,000 GP, GE limit: 10."
+description: "Statius's platelegs: A powerful pair of platelegs. High alch: 300,000 GP, GE limit: 10."
 osrs:
   id: 22631
   name: Statius's platelegs
@@ -12,9 +12,87 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: 10
-  about: "Statius's platelegs is a members-only item in Old School RuneScape. High alchemy value: 300,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: high
+  properties:
+    release_date: "2023-05-24"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 9.071
+    options:
+      - Uncharge
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 9.071
+    requirements:
+      defence: 78
+    attack_bonus:
+      stab: 1
+      slash: 1
+      crush: 10
+      magic: -30
+      ranged: -12
+    defence_bonus:
+      stab: 73
+      slash: 71
+      crush: 68
+      magic: -14
+      ranged: 95
+    other_bonus:
+      melee_strength: 3
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 3
+  related_items:
+    - item_name: Statius's full helm
+      slug: statius-s-full-helm
+      relationship: set-piece
+      description: Helmet half of the Statius's wargear set.
+    - item_name: Statius's platebody
+      slug: statius-s-platebody
+      relationship: set-piece
+      description: Chest piece of the Statius's wargear set.
+    - item_name: Statius's warhammer
+      slug: statius-s-warhammer
+      relationship: set-piece
+      description: Iconic crush weapon associated with the set's special.
+    - item_name: Corrupted statius's platelegs
+      slug: corrupted-statius-s-platelegs
+      relationship: variant
+      description: Corrupted version with the same role in Bounty Hunter combat.
+  about: |-
+    Statius's platelegs is a high-end pair of legs purchased from the Bounty Hunter Store for 500 Bounty Hunter points, with a 5,000,000 coin activation fee. Worn alongside the matching helm and platebody, it boosts melee special-attack accuracy by 15%.
+
+    Use is restricted to Bounty Hunter-style PvP arenas, Castle Wars, Clan Wars, Soul Wars, the TzHaar Fight Pit and POH combat rings. The item is untradeable and not alchable.
+
+    Requirements: 78 Defence | Slot: Legs | Weight: 9.071 kg
+  market_strategy:
+    notes:
+      - "Untradeable - no Grand Exchange market; value is in BH points spent."
+      - "Set bonus only fires inside the allowed arenas."
+      - "Activation fee of 5m coins is unavoidable on every fresh purchase."
+  trading_tips:
+    - Plan BH point budgets across the full Statius's set instead of one piece at a time.
+    - If only Castle Wars / Soul Wars use is planned, weigh cost vs ZGS/Bandos legs.
+  history:
+    - date: "2023-06-14"
+      description: "Set bonuses adjusted post-release."
+    - date: "2023-05-24"
+      description: "Released as part of the revamped Bounty Hunter Store."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,52 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of the fortune farmer is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2021-08-25"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    worn_options: []
+    alchable: true
+    destroy: "Are you sure you want to destroy this sigil? You must unattune it before destroying."
+  drop_table:
+    sources:
+      - source: Deadman Mode global drop table
+        quantity: "1"
+        rarity: Rare
+  passive_effects:
+    - name: Stackable Clue Scrolls
+      description: While attuned, newly-dropped clue scrolls become stackable in the inventory.
+  related_items:
+    - item_name: Sigil of the menacing mage
+      slug: sigil-of-the-menacing-mage
+      relationship: alternative
+      description: Another tier 2 utility sigil from Deadman Mode events.
+    - item_name: Sigil of the ranging rogue
+      slug: sigil-of-the-ranging-rogue
+      relationship: alternative
+      description: Combat sigil sibling from the same Deadman drop pool.
+  about: "Sigil of the fortune farmer is a tier 2 utility sigil from temporary Deadman Mode events (Armageddon, Apocalypse, Reborn). When attuned, newly-dropped clue scrolls become stackable. It is currently unobtainable outside of a live Deadman event."
+  market_strategy:
+    notes:
+      - "Static unobtainable supply means price action is driven by collector demand on legacy servers only."
+      - "Effect is highly desired by clue-hunters during Deadman tournaments."
+  trading_tips:
+    - Unattune before destroying; the sigil refuses destruction while bound.
+    - Track Jagex Deadman event announcements for re-availability windows.
+  history:
+    - date: "2021-08-25"
+      description: "Released for the Deadman: Reborn tournament as part of the utility sigil set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

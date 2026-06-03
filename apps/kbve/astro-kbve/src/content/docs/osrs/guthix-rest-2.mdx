@@ -12,9 +12,76 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 2000
-  about: "Guthix rest(2) is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2005-02-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores 5 Hitpoints (can exceed max HP by 5)"
+        duration: 0
+      - description: "Restores 5 percent run energy"
+        duration: 0
+      - description: "Reduces venom to poison or decreases poison damage by 1"
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 18
+      xp: 59
+      materials:
+        - item_name: Cup of hot water
+          quantity: 1
+        - item_name: Guam leaf
+          quantity: 2
+        - item_name: Harralander
+          quantity: 1
+        - item_name: Marrentill
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Guthix rest(1)
+      slug: guthix-rest-1
+      relationship: variant
+      description: One-dose variant
+    - item_name: Guthix rest(3)
+      slug: guthix-rest-3
+      relationship: upgrade
+      description: Three-dose variant
+    - item_name: Guthix rest(4)
+      slug: guthix-rest-4
+      relationship: upgrade
+      description: Four-dose variant
+  about: |-
+    Guthix rest is a tea brewed via the Herblore skill that restores hit points, run energy, and reduces venom or poison damage. The two-dose version is a mid-tier carry of the four sizes. It was introduced via One Small Favour and remains a popular cheap utility tea.
+  market_strategy:
+    notes:
+      - "Cheap utility potion with steady demand from low-level players"
+      - "Bulk Herblore xp grinders supply the GE"
+      - "Price tracks guam, harralander, and marrentill herb costs"
+  trading_tips:
+    - Buy raw herbs and craft when GE markup is below brew cost
+    - Sell into clue scroll spikes that demand poison cures
+  history:
+    - date: "2005-02-28"
+      description: "Released with the One Small Favour quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

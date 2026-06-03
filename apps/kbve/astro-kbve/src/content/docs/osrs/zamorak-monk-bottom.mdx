@@ -1,6 +1,6 @@
 ---
 title: Zamorak monk bottom | OSRS Price Data
-description: "Zamorak monk bottom: A robe worn by worshippers of Zamorak.. High alch: 18 GP, GE limit: 15."
+description: "Zamorak monk bottom: A robe worn by worshippers of Zamorak. High alch: 18 GP, GE limit: 15."
 osrs:
   id: 1033
   name: Zamorak monk bottom
@@ -12,23 +12,77 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 15
-  item_id: 1033
-  item_type: equipment
-  slot: legs
-  type: robes
-  tradeable: true
-  weight: 0.907
-  requirements:
-    defence: 0
-  stats:
-    magic_attack: 2
-    magic_defence: 3
-    prayer: 3
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2002-05-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 2
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 3
   related_items:
-    - slug: zamorak-monk-top
-    - slug: chaos-fanatic
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Zamorak monk top
+      slug: zamorak-monk-top
+      relationship: set-piece
+      description: Matching top to complete the Zamorak monk robe set.
+  about: |-
+    Zamorak monk bottom is a free-to-play leg slot robe worn by Zamorakian monks. It is one of the very few F2P leg items that grants a Magic attack bonus, making it useful for budget mages.
+
+    The robe drops from Zamorak monks at the Chaos Temple south of Varrock, and is also occasionally a clue scroll reward. It pairs with the Zamorak monk top to complete the set.
+
+    Weight: 0.907 kg | Requirements: None | Slot: Legs
+  market_strategy:
+    notes:
+      - "Modest +2 Magic attack bonus is unusual for an F2P legs item."
+      - "Cheap drop from low-level Zamorak monks; supply is steady."
+      - "Demand spikes when free players gear up for early magic training."
+  trading_tips:
+    - Buy in bulk when GE price is near the alch threshold.
+    - Pair sales with the Zamorak monk top for set buyers.
+  history:
+    - date: "2018-06-28"
+      description: "Renamed from \"Zamorak robe\" to \"Zamorak monk bottom\"."
+    - date: "2017-07-20"
+      description: "Made available to free-to-play players."
+    - date: "2005-06-22"
+      description: "Renamed from \"Robe of zamorak\"."
+    - date: "2002-05-28"
+      description: "Item released to Old School RuneScape."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

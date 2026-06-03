@@ -1,6 +1,6 @@
 ---
 title: Raw larupia | OSRS Price Data
-description: "Raw larupia: I should probably cook this first.. High alch: 1 GP, GE limit: 13,000."
+description: "Raw larupia: I should probably cook this first. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 29122
   name: Raw larupia
@@ -12,12 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Raw larupia is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Cook
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Spined larupia (Hunter, 31)
+        quantity: "1"
+        rarity: always
+  recipes:
+    - skill: cooking
+      level: 31
+      xp: 92
+      materials:
+        - item_name: Raw larupia
+          quantity: 1
+      tools:
+        - Range
+      output_quantity: 1
+  related_items:
+    - item_name: Cooked larupia
+      slug: cooked-larupia
+      relationship: product
+      description: Cooked version produced at 31 Cooking
+    - item_name: Quetzal whistle
+      slug: quetzal-whistle
+      relationship: alternative
+      description: Exchange raw larupia with Soar Leader Pitri for whistle charges
+  about: "Raw larupia drops from spined larupias caught with 31 Hunter in Varlamore. Cook at 31 Cooking for 92 xp or trade with Soar Leader Pitri to recharge quetzal whistles. Burns to a 'burnt large beast' on cook failure."
+  market_strategy:
+    notes:
+      - "Always-drop from Hunter creature keeps supply abundant"
+      - "High buy limit and low value mean thin per-unit margins"
+  trading_tips:
+    - Buy in bulk for quetzal whistle recharging
+  history:
+    - date: "2024-03-20"
+      description: "Released with the Varlamore: The Hunter Update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

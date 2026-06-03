@@ -1,6 +1,6 @@
 ---
 title: Jade machete | OSRS Price Data
-description: "Jade machete: A jungle specific slashing device.. High alch: 600 GP, GE limit: 15."
+description: "Jade machete: A jungle specific slashing device. High alch: 600 GP, GE limit: 15."
 osrs:
   id: 6315
   name: Jade machete
@@ -12,9 +12,86 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 15
-  about: "Jade machete is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: jade
+    tier: mid
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: slash_sword
+    attack_speed: 4
+    weight: 1.36
+    requirements:
+      attack: 30
+    attack_bonus:
+      stab: -2
+      slash: 11
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 6
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Safta Doc's machete shop"
+      location: "Tai Bwo Wannai"
+      price: 600
+      currency: "Trading sticks"
+      stock: 5
+    - shop_name: "Gabooty's Cooperative"
+      location: "Tai Bwo Wannai"
+      price: 1200
+      currency: "Trading sticks"
+      stock: 5
+  related_items:
+    - item_name: Machete
+      slug: machete
+      relationship: downgrade
+      description: "Base tier machete without gem inlay."
+    - item_name: Opal machete
+      slug: opal-machete
+      relationship: alternative
+      description: "First-tier gem machete."
+    - item_name: Red topaz machete
+      slug: red-topaz-machete
+      relationship: upgrade
+      description: "Best-in-slot for Tai Bwo Wannai cleanup."
+  about: "The jade machete is a slashing weapon used in Tai Bwo Wannai Cleanup to chop jungle and unlock gem hotspots. It is the second-best machete, beaten only by the red topaz variant, and doubles as a viable 30 Attack one-handed slash weapon for low-level training."
+  market_strategy:
+    notes:
+      - "Tiny 15 buy limit keeps GE liquidity thin; flips are slow but margins healthy."
+      - "Demand tracks Karamja Diary completion and gem cleanup grinders."
+  trading_tips:
+    - "Stock up before each league/seasonal mode that resets Karamja Diary tasks."
+    - "Buy from Safta Doc with Karamja gloves for cheapest acquisition."
+  history:
+    - date: "2005-08-09"
+      description: "Released with the Tai Bwo Wannai Cleanup update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

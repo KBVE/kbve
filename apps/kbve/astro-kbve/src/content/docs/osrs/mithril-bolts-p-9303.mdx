@@ -12,9 +12,81 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 11000
-  about: "Mithril bolts (p++) is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: mithril
+    tier: low
+  properties:
+    release_date: "31 July 2006"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammo
+    weapon_type: crossbow_ammunition
+    attack_speed: null
+    weight: 0
+    requirements:
+      ranged: 36
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 82
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Super poison
+      description: "Has a chance to apply a stronger poison than the standard (p+) variant when striking opponents."
+  related_items:
+    - item_name: Mithril bolts
+      slug: mithril-bolts
+      relationship: variant
+      description: "Unpoisoned base variant of the bolt"
+    - item_name: Mithril bolts (p)
+      slug: mithril-bolts-p
+      relationship: variant
+      description: "Standard poison-tipped variant"
+    - item_name: Mithril bolts (p+)
+      slug: mithril-bolts-p-plus
+      relationship: variant
+      description: "Stronger poison-tipped variant"
+  about: |-
+    Mithril bolts (p++) are super-poisoned mithril bolts, fired from a mithril crossbow or higher. They share the ranged strength of regular mithril bolts but apply a stronger poison effect.
+
+    The bolts are produced by applying super weapon poison to a stack of mithril bolts.
+  market_strategy:
+    notes:
+      - "Niche poison-application bolt; demand is thin compared to base mithril bolts"
+      - "Bound to weapon poison++ supply cycles"
+  trading_tips:
+    - Stock up when weapon poison++ flips below 1k
+    - Often profitable to craft from base bolts + poison rather than buy direct
+  history:
+    - date: "31 July 2006"
+      description: "Released alongside the poisoned bolt family."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

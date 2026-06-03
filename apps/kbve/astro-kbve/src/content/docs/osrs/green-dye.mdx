@@ -12,12 +12,87 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 150
-  about: "Green dye is a free-to-play item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dye
+    tier: low
+  properties:
+    release_date: "8 December 2001"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Lletya Seamstress
+      location: Lletya
+      price: 6
+      currency: Coins
+      stock: 10
+    - shop_name: Guinevere's Dyes
+      location: Prifddinas
+      price: 6
+      currency: Coins
+      stock: 10
+    - shop_name: Dyes to Die For
+      location: Tal Teklan
+      price: 6
+      currency: Coins
+      stock: 10
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Blue dye
+          quantity: 1
+        - item_name: Yellow dye
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Blue dye
+      slug: blue-dye
+      relationship: component
+      description: Mixed to create green dye
+    - item_name: Yellow dye
+      slug: yellow-dye
+      relationship: component
+      description: Mixed to create green dye
+    - item_name: Red dye
+      slug: red-dye
+      relationship: alternative
+      description: Alternative primary dye
+    - item_name: Orange dye
+      slug: orange-dye
+      relationship: alternative
+      description: Alternative mixed dye
+  about: "Green dye is a free-to-play crafting reagent created by combining blue dye and yellow dye, or purchased from various dye shops for 6 coins. It is primarily used to colour capes green (granting 2.5 Crafting XP per cape), dye goblin mail, and to apply colour to other miscellaneous items such as orange slices and ogre bellows. Cheap, plentiful, and stable in price."
+  market_strategy:
+    notes:
+      - "F2P accessible, large supply"
+      - "Stable low-price commodity"
+      - "Demand from cape dyers and goblin diplomats"
+      - "Shop floor at 6 coins limits downside"
+  trading_tips:
+    - Bulk craft from blue + yellow dye when prices dip
+    - Useful for fashionscape resellers
+    - Low margins, volume play only
+  history:
+    - date: "8 December 2001"
+      description: "Item was added to the game."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

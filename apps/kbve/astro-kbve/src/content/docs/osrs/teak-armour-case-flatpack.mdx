@@ -12,12 +12,65 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Teak armour case (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: teak
+    tier: low
+  properties:
+    release_date: "2006-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 64
+      xp: 270
+      materials:
+        - item_name: Teak plank
+          quantity: 3
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Teak plank
+      slug: teak-plank
+      relationship: component
+      description: Required material to flatpack the armour case
+    - item_name: Armour case
+      slug: armour-case
+      relationship: product
+      description: Costume room furniture built from this flatpack
+    - item_name: Mahogany armour case (flatpack)
+      slug: mahogany-armour-case-flatpack
+      relationship: upgrade
+      description: Higher tier armour case flatpack
+  about: "Teak armour case (flatpack) is built at a bench with a vice in the workshop of a player owned house, requiring level 64 Construction, 3 teak planks, and granting 270 Construction XP. The flatpack version can be sold on the Grand Exchange or moved between houses, where it builds the costume room teak armour case for armour storage."
+  market_strategy:
+    notes:
+      - "Common XP farm for Construction trainers selling planks worth of XP"
+      - "500 buy limit makes it easy to flip in volume at thin margins"
+      - "Demand driven by mid-game costume room builders"
+  trading_tips:
+    - Buy when teak plank price spikes drive flatpack price up
+    - Sell rather than build personally if low Construction is the bottleneck
+  history:
+    - date: "2006-10-18"
+      description: "Added with the launch of the Construction skill."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

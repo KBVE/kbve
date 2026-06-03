@@ -12,9 +12,73 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: null
-  about: "Claws of callisto is a members-only item in Old School RuneScape. High alchemy value: 48,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: boss-drop
+    tier: high
+  properties:
+    release_date: "2023-01-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Callisto
+        quantity: "1"
+        rarity: 1/196
+      - source: Artio
+        quantity: "1"
+        rarity: 1/618
+  recipes:
+    - skill: smithing
+      level: 85
+      xp: 0
+      materials:
+        - item_name: Viggora's chainmace
+          quantity: 1
+        - item_name: Claws of callisto
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Ursine chainmace
+      slug: ursine-chainmace
+      relationship: product
+      description: Upgraded chainmace using these claws
+    - item_name: Viggora's chainmace
+      slug: viggoras-chainmace
+      relationship: component
+      description: Base weapon for the upgrade
+    - item_name: Tyrannical ring
+      slug: tyrannical-ring
+      relationship: alternative
+      description: Other unique drop from Callisto / Artio
+    - item_name: Callisto cub
+      slug: callisto-cub
+      relationship: alternative
+      description: Pet from Callisto / Artio
+  about: "Claws of callisto is a unique Wilderness boss drop from Callisto and Artio used to upgrade Viggora's chainmace into the Ursine chainmace. The upgrade requires either 85 Smithing or a 500,000 gp fee paid to Andros Mai in Ferox Enclave."
+  market_strategy:
+    notes:
+      - "Price floors near alch value when supply spikes after Wilderness events"
+      - "Demand cycles with Wilderness combat meta and chainmace popularity"
+      - "Supply concentrated in a small set of PvM mains"
+  trading_tips:
+    - Watch Wilderness Wars / bounty events for sell-side pressure
+    - Bid into the alch floor when sentiment is bearish
+  history:
+    - date: "2023-01-25"
+      description: "Added alongside the Wilderness boss rework, dropping from Callisto and Artio."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

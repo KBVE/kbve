@@ -12,9 +12,87 @@ osrs:
   lowalch: 422
   highalch: 633
   limit: 70
-  about: "Black helm (h2) is a free-to-play item in Old School RuneScape. High alchemy value: 633 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: black
+    tier: low
+  properties:
+    release_date: "2006-12-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 2.721
+    requirements:
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -3
+    defence_bonus:
+      stab: 12
+      slash: 13
+      crush: 10
+      magic: -1
+      ranged: 12
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_name: Black full helm
+      slug: black-full-helm
+      relationship: variant
+      description: Standard untrimmed version with identical stats
+    - item_name: Black helm (h1)
+      slug: black-helm-h1
+      relationship: variant
+      description: First heraldic design variant
+    - item_name: Black helm (h3)
+      slug: black-helm-h3
+      relationship: variant
+      description: Third heraldic design variant
+  about: |-
+    The black helm (h2) is a heraldic variant of the black full helm awarded from easy Treasure Trails. It shares identical stats with the base black full helm and is purely cosmetic, displaying a unique crest. It requires 10 Defence to wear and is available to free-to-play players.
+  market_strategy:
+    notes:
+      - "Cosmetic-only over the base black full helm"
+      - "Supply tracks easy clue scroll completions"
+      - "Low buy limit keeps the market thin"
+  trading_tips:
+    - Flip on holiday cosmetic spikes
+    - Compare against (h1)/(h3) variants when buying
+  history:
+    - date: "2006-12-05"
+      description: "Released as an easy Treasure Trails reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
