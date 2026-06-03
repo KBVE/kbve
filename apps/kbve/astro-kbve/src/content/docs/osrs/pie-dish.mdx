@@ -12,66 +12,86 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 500
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
     type: pottery
-    tier: fired
-  crafting:
-    level: 1
-    xp: 10
+    tier: low
+  properties:
+    release_date: "2001-03-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: crafting
       level: 1
       xp: 10
       materials:
         - item_name: Unfired pie dish
-          item_id: 1789
           quantity: 1
-      product: Pie dish
-      product_id: 2313
-      product_quantity: 1
-      facility: Pottery oven
+      tools:
+        - Pottery oven
+      output_quantity: 1
+  shops:
+    - shop_name: Culinaromancer's Chest
+      location: Lumbridge Castle cellar
+      price: 3
+      currency: Coins
+      stock: 10
+    - shop_name: Frenita's Cookery Shop
+      location: Yanille
+      price: 3
+      currency: Coins
+      stock: 10
+    - shop_name: Logava Gricoller's Cooking Supplies
+      location: Zanaris
+      price: 3
+      currency: Coins
+      stock: 10
+    - shop_name: Cam Torum General Store
+      location: Cam Torum
+      price: 3
+      currency: Coins
+      stock: 5
   related_items:
-    - item_id: 1789
-      item_name: Unfired pie dish
+    - item_name: Unfired pie dish
       slug: unfired-pie-dish
       relationship: component
-      description: Unfired version
-    - item_id: 1761
-      item_name: Soft clay
+      description: Unfired clay version, baked into a finished pie dish
+    - item_name: Soft clay
       slug: soft-clay
       relationship: component
-      description: Raw material
-    - item_id: 2327
-      item_name: Meat pie
+      description: Raw material used to mould an unfired pie dish
+    - item_name: Meat pie
       slug: meat-pie
       relationship: product
-      description: Cooking product
+      description: Common cooking product made with a pie dish
   about: |-
-    | Method | Level | Materials |
-    |--------|-------|-----------|
-    | Pottery oven | 1 | 1 Unfired pie dish |
-    | XP | 10 | - |
+    The Pie dish is a free-to-play pottery item used to cook pies. Each dish is crafted at level 1 Crafting from an unfired pie dish baked in a pottery oven for 10 Crafting experience. Players with 13 Crafting or higher always succeed at firing the dish.
 
-    | Use | Cooking Level | Product |
-    |-----|---------------|---------|
-    | Redberry pie | 10 | Redberry pie |
-    | Meat pie | 20 | Meat pie |
-    | Apple pie | 30 | Apple pie |
-    | Garden pie | 34 | Garden pie |
-    | Fish pie | 47 | Fish pie |
-    | Wild pie | 85 | Wild pie |
-    | Summer pie | 95 | Summer pie |
+    Pie dishes accept pastry dough to form pie shells, which combine with various fillings to make pies ranging from redberry pie (10 Cooking) all the way up to summer pie (95 Cooking). They can also be bought cheaply from cooking-supply shops across Gielinor.
   market_strategy:
     notes:
-      - Pie making
-      - Cooking training
-      - Summer pie production
-      - Essential for pie cooking
-      - Summer pie very popular
-      - F2P accessible
-      - Buy from shops
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Pie making and Cooking training staple"
+      - "Summer pie demand keeps consumption high"
+      - "Essential for pie cooking"
+      - "F2P accessible"
+      - "Shop-bought floor keeps GE price low"
+  trading_tips:
+    - Bulk-buy from Frenita or Logava and resell on GE
+    - Pair with pastry dough for one-step pie shell production
+  history:
+    - date: "2001-03-17"
+      description: "Released with the initial RuneScape Classic Cooking and Crafting content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

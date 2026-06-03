@@ -1,6 +1,6 @@
 ---
 title: Cider | OSRS Price Data
-description: "Cider: A glass of cider.. High alch: 1 GP, GE limit: 2,000."
+description: "Cider is a members brewed beverage with a temporary Farming boost. High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 5763
   name: Cider
@@ -12,9 +12,83 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Cider is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: beverage
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: The Golden Field
+      location: Hosidius
+      price: 2
+      currency: coins
+      stock: 10
+    - shop_name: Hefin Inn
+      location: Prifddinas
+      price: 2
+      currency: coins
+      stock: 10
+    - shop_name: The Lost Pickaxe
+      location: Cam Torum
+      price: 2
+      currency: coins
+      stock: 10
+  recipes:
+    - skill: cooking
+      level: 14
+      xp: 182
+      materials:
+        - item_name: Apple mush
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Beer glass
+          quantity: 8
+      tools: []
+      output_quantity: 8
+  related_items:
+    - item_name: Apple mush
+      slug: apple-mush
+      relationship: component
+      description: Crushed cooking apples used in the brew
+    - item_name: Ale yeast
+      slug: ale-yeast
+      relationship: component
+      description: Fermenting agent required by every brewed drink
+    - item_name: Beer glass
+      slug: beer-glass
+      relationship: component
+      description: Glass that holds the final cider serving
+  about: |-
+    Cider is a brewed beverage available across members shops in Hosidius, Prifddinas, Cam Torum, and other Varlamore-area inns. Drinking grants +1 Hitpoints and a temporary +1 Farming boost while draining 2 Attack and 2 Strength.
+
+    Players can also brew cider with the Cooking skill at level 14 by combining 4 apple mush, 1 ale yeast, and 8 beer glasses in a brewing vat, then waiting for the fermentation period to finish. The shop price of 2 coins per glass keeps it the go-to cheap Farming boost.
+  market_strategy:
+    notes:
+      - "Shops stock cider at 2 GP, capping the realistic ceiling price"
+      - "Buy limit of 2,000 covers most personal use cases"
+      - "High alch yields 1 GP which is below shop value; never alch"
+  trading_tips:
+    - Stock up before farming contracts that benefit from Farming boosts
+    - Hosidius shops are the most reliable bulk source thanks to favour
+  history:
+    - date: "2005-07-11"
+      description: "Added with the cooking skill brewing rework"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

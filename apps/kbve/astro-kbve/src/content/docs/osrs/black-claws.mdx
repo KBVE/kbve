@@ -1,6 +1,6 @@
 ---
 title: Black claws | OSRS Price Data
-description: "Black claws: A set of fighting claws.. High alch: 216 GP, GE limit: 125."
+description: "Black claws: A set of fighting claws. High alch: 216 GP, GE limit: 125."
 osrs:
   id: 3098
   name: Black claws
@@ -12,9 +12,81 @@ osrs:
   lowalch: 144
   highalch: 216
   limit: 125
-  about: "Black claws is a members-only item in Old School RuneScape. High alchemy value: 216 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: black
+    tier: low
+  properties:
+    release_date: "2004-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: claws
+    attack_speed: 4
+    weight: 0.907
+    requirements:
+      attack: 10
+    attack_bonus:
+      stab: 10
+      slash: 14
+      crush: -4
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 4
+      slash: 7
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 14
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Steel claws
+      slug: steel-claws
+      relationship: downgrade
+      description: Lower tier claws available to free-to-play.
+    - item_name: Mithril claws
+      slug: mithril-claws
+      relationship: alternative
+      description: Lighter-weight mid-tier alternative.
+    - item_name: Adamant claws
+      slug: adamant-claws
+      relationship: upgrade
+      description: Stronger members' claws sitting one tier above black.
+  about: |-
+    > *"A set of fighting claws."*
+
+    Black claws are a members-only two-handed slash weapon requiring 10 Attack, sitting in the black tier of the claws progression. They cannot be smithed and only enter the game via monster drops.
+
+    Speed-4 attack with +14 slash and +14 strength makes them a viable budget low-level option in early member training.
+  market_strategy:
+    notes:
+      - "Cannot be smithed, so supply depends entirely on monster drop activity."
+      - "125 GE limit absorbs most low-level training demand without price pressure."
+      - "High alch floor sits well under GE price, keeping speculation muted."
+  trading_tips:
+    - Stocks tend to refresh around new account waves; flip during early-game streamer pushes.
+    - Pair with steel/mithril/adamant claws when scouting the full ladder for arbitrage.
+  history:
+    - date: "2004-08-09"
+      description: "Released as part of the claws weapon family expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

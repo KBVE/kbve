@@ -12,9 +12,100 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 40
-  about: "Air tiara is a free-to-play item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: silver
+    tier: low
+  properties:
+    release_date: "2005-06-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1
+    options: ["Wear", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: runecraft
+      level: 1
+      xp: 25
+      materials:
+        - item_name: Tiara
+          quantity: 1
+        - item_name: Air talisman
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: emote clue
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers: ["easy"]
+  about: "Air tiara is a free-to-play head item that allows direct left-click entry to the Air Altar without carrying an air talisman, freeing inventory space during Runecrafting. Created by using an air talisman on the Air Altar with a tiara equipped (1 Runecraft, 25 XP). Also drops as an emote clue reward from easy Treasure Trails. Crafting at the altar during Guardians of the Rift prevents imbuement. High alchemy value: 60 coins. Grand Exchange buy limit: 40 per 4 hours."
+  market_strategy:
+    notes:
+      - "Crafting is unprofitable — materials cost more than the finished tiara"
+      - "Demand from F2P runecrafters and clue-scroll outfit collectors"
+      - "Easy-clue casket supply keeps GE prices low and stable"
+  trading_tips:
+    - Buy off GE rather than crafting — the talisman alone outprices the finished tiara
+    - Stock alongside other elemental tiaras for runecrafting bundle resellers
+  related_items:
+    - item_name: Tiara
+      slug: tiara
+      relationship: component
+      description: Base item infused with the talisman to create the air tiara
+    - item_name: Air talisman
+      slug: air-talisman
+      relationship: component
+      description: Talisman consumed when crafting the air tiara at the altar
+    - item_name: Water tiara
+      slug: water-tiara
+      relationship: alternative
+      description: Elemental tiara variant for the Water Altar
+    - item_name: Earth tiara
+      slug: earth-tiara
+      relationship: alternative
+      description: Elemental tiara variant for the Earth Altar
+    - item_name: Fire tiara
+      slug: fire-tiara
+      relationship: alternative
+      description: Elemental tiara variant for the Fire Altar
+  history:
+    - date: "2005-06-13"
+      description: "Added to the game with the introduction of tiaras as Runecrafting convenience items."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

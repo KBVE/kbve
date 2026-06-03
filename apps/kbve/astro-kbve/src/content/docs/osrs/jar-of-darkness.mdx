@@ -1,6 +1,6 @@
 ---
 title: Jar of darkness | OSRS Price Data
-description: "Jar of darkness: It smells like it's been where the sun doesn't shine.. High alch: 1 GP, GE limit: 4."
+description: "Jar of darkness: It smells like it's been where the sun doesn't shine. High alch: 1 GP, GE limit: 4."
 osrs:
   id: 19701
   name: Jar of darkness
@@ -12,45 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  item:
-    type: jar
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: collectible
+    tier: high
+  properties:
+    release_date: "2016-06-16"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.04
-  obtaining:
-    methods:
+    options: ["View", "Drop"]
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  drop_table:
+    sources:
       - source: Skotizo
-        drop_rate: 1/200
-  usage:
-    description: Decoration for Achievement Gallery boss lair display
-    requirements: Defeating Skotizo at least once to place
-    cosmetic: true
+        quantity: "1"
+        rarity: 1/200
   related_items:
-    - item_id: 0
-      item_name: Jar of souls
+    - item_name: Jar of souls
       slug: jar-of-souls
       relationship: alternative
-      description: Similar jar drop
-    - item_id: 19685
-      item_name: Dark totem
+      description: Similar boss jar drop
+    - item_name: Dark totem
       slug: dark-totem
+      relationship: component
+      description: Required to summon Skotizo
+    - item_name: Skotizo's club
+      slug: skotos
       relationship: alternative
-      description: Used to fight Skotizo
+      description: Other unique drop from Skotizo
   about: |-
     | Property | Value |
     |----------|-------|
     | Slot | N/A |
-    | Type | Jar |
+    | Type | Boss jar |
     | Tradeable | Yes |
     | Weight | 0.04 kg |
-    | Requirements | None |
+    | Source | Skotizo |
+    | Drop rate | 1/200 |
 
-    Decoration for Achievement Gallery boss lair display.
-
-    Requires defeating Skotizo at least once to place.
-
-    Cosmetic/collectible item.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Collectible jar drop from Skotizo. Viewing it briefly blacks the screen with "You view the darkness." Can be displayed in the Achievement Gallery boss lair after defeating Skotizo at least once.
+  market_strategy:
+    notes:
+      - "Skotizo collectible — low buy limit (4)"
+      - "Drop rate buffed from 1/2,500 to 1/200 in November 2022"
+      - "Demand driven by Achievement Gallery completionists"
+  trading_tips:
+    - Supply rises in tandem with Dark totem trade volume
+    - Price floor follows nostalgia / completionist cycles
+  history:
+    - date: "2016-06-16"
+      description: "Released as a rare Skotizo drop with the Catacombs of Kourend update."
+    - date: "2022-11-30"
+      description: "Drop rate buffed from 1/2,500 to 1/200 after community poll."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

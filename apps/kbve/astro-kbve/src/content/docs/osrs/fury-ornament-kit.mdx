@@ -12,60 +12,59 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
     type: ornament_kit
+    tier: high
+  properties:
+    release_date: "12 June 2014"
     tradeable: true
-    target_item: Amulet of fury
-    target_id: 6585
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Elite
-        drop_rate: Rare from reward casket
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/1275
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
   related_items:
-    - item_id: 6585
-      item_name: Amulet of fury
+    - item_name: Amulet of fury
       slug: amulet-of-fury
-      relationship: product
-      description: Base item to upgrade
-    - item_id: 12436
-      item_name: Amulet of fury (or)
+      relationship: component
+      description: Base amulet that receives the ornament
+    - item_name: Amulet of fury (or)
       slug: amulet-of-fury-or
       relationship: product
-      description: Ornamented version
+      description: Ornamented result
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Ornament Kit |
-    | Target | Amulet of fury |
-    | Tradeable | Yes |
-
-    Use on an Amulet of fury to create an Amulet of fury (or).
-
-    The ornament kit:
-    - Adds gold decoration to the amulet
-    - Purely cosmetic change
-    - Does not affect stats
-    - Can be reverted
-
-    Materials:
-    - Amulet of fury
-    - Fury ornament kit
-
-    Result:
-    - Amulet of fury (or) - ornamented version
-
-    The ornamented amulet can be reverted to return:
-    - Amulet of fury
-    - Fury ornament kit
+    Fury ornament kit is an elite Treasure Trails cosmetic that converts an Amulet of fury into the (or) variant. The kit can be detached at any time.
   market_strategy:
     notes:
-      - Elite clue exclusive
-      - Popular amulet upgrade
-      - Prestigious fashionscape item
-      - Collection log item
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Elite clue exclusivity holds the floor"
+      - "Buy limit of 4 amplifies short-term swings"
+      - "Collection log demand drives long-tail value"
+  trading_tips:
+    - Buy during clue droughts when supply thins
+    - Sell when fashionscape and ornament hype is trending
+  history:
+    - date: "12 June 2014"
+      description: "Released with the Treasure Trail Expansion update."
+    - date: "25 January 2018"
+      description: "Graphical update applied alongside other ornament kits."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,75 @@ osrs:
   lowalch: 133
   highalch: 199
   limit: 2000
-  about: "Extended anti-venom+(3) is a members-only item in Old School RuneScape. High alchemy value: 199 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "2024-08-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Cures poison and venom on consumption."
+        duration: 0
+      - description: "Grants immunity to poison for approximately 17.7 minutes."
+        duration: 1062
+      - description: "Grants immunity to venom for approximately 6.3 minutes."
+        duration: 378
+  recipes:
+    - skill: herblore
+      level: 94
+      xp: 20
+      materials:
+        - item_name: Anti-venom+(4)
+          quantity: 1
+        - item_name: Araxyte venom sack
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Extended anti-venom+(4)
+      slug: extended-anti-venom-4
+      relationship: variant
+      description: 4-dose version
+    - item_name: Extended anti-venom+(2)
+      slug: extended-anti-venom-2
+      relationship: variant
+      description: 2-dose version
+    - item_name: Extended anti-venom+(1)
+      slug: extended-anti-venom-1
+      relationship: variant
+      description: 1-dose version
+    - item_name: Anti-venom+(4)
+      slug: anti-venom-4
+      relationship: component
+      description: Base potion required for creation
+  about: "Extended anti-venom+(3) is a 3-dose members potion that cures poison and venom, granting extended immunity. Made with Herblore 94 by combining Anti-venom+ with Araxyte venom sack."
+  market_strategy:
+    notes:
+      - "High Herblore requirement keeps supply tight"
+      - "Demand from PvM at Araxxor and other venom encounters"
+      - "4-dose splits into lower doses if profitable"
+  trading_tips:
+    - Compare per-dose price against 4-dose and 1-dose variants
+    - Best alch profit is low; sell on GE
+  history:
+    - date: "2024-08-28"
+      description: "Item released alongside Araxxor content."
+    - date: "2024-09-04"
+      description: "Recolored for distinction from Anti-venom+ and gained priority for auto-cure via health orb."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

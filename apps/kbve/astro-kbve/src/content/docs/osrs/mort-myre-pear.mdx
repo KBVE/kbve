@@ -12,9 +12,59 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Mort myre pear is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: quest
+    tier: low
+  properties:
+    release_date: "2004-07-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0.113
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Bloom on small bush, Mort Myre Swamp (silver sickle (b))
+        quantity: "1"
+        rarity: Uncommon
+  related_items:
+    - item_name: Mort myre fungus
+      slug: mort-myre-fungus
+      relationship: alternative
+      description: More common bloom drop used for druid pouch charges.
+    - item_name: Mort myre stem
+      slug: mort-myre-stem
+      relationship: alternative
+      description: Bloom drop used for druid pouch and Nature Spirit progress.
+    - item_name: Silver sickle (b)
+      slug: silver-sickle-b
+      relationship: component
+      description: Blessed sickle required to cast Bloom in Mort Myre.
+    - item_name: Druid pouch
+      slug: druid-pouch
+      relationship: product
+      description: Pear adds three charges, protecting against ghasts in Mort Myre.
+  about: |-
+    Mort myre pears are a Bloom drop from small bushes in Mort Myre Swamp. They charge druid pouches and are a possible material for Fairytale I - Growing Pains.
+  market_strategy:
+    notes:
+      - "Bloom RNG keeps supply low and demand collector-driven."
+      - "Demand spikes during quest pushes that require Mort Myre exploration."
+  trading_tips:
+    - Stack pears alongside fungus and stems for druid pouch resale bundles.
+    - Watch for player events that route through the Theatre of Blood path.
+  history:
+    - date: "2004-07-13"
+      description: "Mort myre pear released with the Nature Spirit quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

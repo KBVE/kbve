@@ -12,23 +12,62 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Are you sure you want to drop this?"
+  potion:
+    effects:
+      - description: "Boosts Defence by 3 + 10% of current level for two doses."
+        duration: 60
   related_items:
-    - item_id: 133
-      item_name: Defence potion(3)
+    - item_name: Defence potion(3)
       slug: defence-potion-3
       relationship: variant
-      description: 3-dose version
-    - item_id: 137
-      item_name: Defence potion(1)
+      description: Three-dose variant
+    - item_name: Defence potion(1)
       slug: defence-potion-1
       relationship: variant
-      description: 1-dose version
-  about: |-
-    > _"2 doses of Defence potion."_
-
-    A 2-dose defence potion. Boosts Defence by 3 + 10% of current level.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: One-dose variant
+    - item_name: Defence potion(4)
+      slug: defence-potion-4
+      relationship: variant
+      description: Four-dose variant
+    - item_name: Defence mix(2)
+      slug: defence-mix-2
+      relationship: upgrade
+      description: Barbarian Herblore upgrade adding healing
+  about: "Defence potion(2) is a two-dose Herblore potion boosting Defence by 3 + 10% of the player's current level. It can be combined with other doses or made into Defence mix."
+  market_strategy:
+    notes:
+      - "Cheap entry-level Defence boost"
+      - "Often produced as a by-product of decanting four-dose potions"
+      - "Buy limit of 2,000 per 4 hours"
+  trading_tips:
+    - Two-dose flips often track four-dose spreads
+    - Decanting can quickly normalise stock between dose sizes
+  history:
+    - date: "2002-02-27"
+      description: "Released alongside the Herblore skill expansion."
+    - date: "2004-10-26"
+      description: "Empty option added for vial recovery."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

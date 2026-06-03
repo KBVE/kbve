@@ -12,9 +12,79 @@ osrs:
   lowalch: 26
   highalch: 39
   limit: 7000
-  about: "Adamant knife(p+) is a members-only item in Old School RuneScape. High alchemy value: 39 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: adamant
+    tier: mid
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 15
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 14
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Adamant knife
+      slug: adamant-knife
+      relationship: variant
+      description: Base non-poisoned variant
+    - item_name: Adamant knife(p)
+      slug: adamant-knife-p
+      relationship: variant
+      description: Weak poison variant
+    - item_name: Adamant knife(p++)
+      slug: adamant-knife-p
+      relationship: upgrade
+      description: Strongest poison variant
+    - item_name: Rune knife(p+)
+      slug: rune-knife-p
+      relationship: upgrade
+      description: Stronger ranged knife with extra-strong poison
+  about: "Adamant knife(p+) is a poisoned throwing knife with +15 ranged attack and +14 ranged strength, requiring 30 Ranged. The (p+) variant applies extra-strength poison. Adamant knives are made via Smithing 77 from adamantite bars."
+  market_strategy:
+    notes:
+      - "Niche demand for poisoned variants"
+      - "Stackable; bulk trades common"
+      - "Ironmen craft from adamantite bars"
+  trading_tips:
+    - Compare base knife price plus poison cost
+    - Sell into PvP demand windows for slight margin
+  history:
+    - date: "2003-04-14"
+      description: "Item released with adamant throwing knives."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

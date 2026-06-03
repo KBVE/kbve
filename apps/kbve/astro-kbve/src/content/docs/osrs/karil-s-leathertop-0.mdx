@@ -12,9 +12,89 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 15
-  about: "Karil's leathertop 0 is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: barrows
+    tier: high
+  properties:
+    release_date: "9 May 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 6.803
+    options:
+      - Wear
+      - Check
+      - Drop
+    worn_options:
+      - Check
+      - Remove
+    alchable: true
+    destroy: "If you drop this item it will break. Are you sure you want to drop it?"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 6.803
+    requirements:
+      defence: 70
+      ranged: 70
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -15
+      ranged: 30
+    defence_bonus:
+      stab: 47
+      slash: 42
+      crush: 50
+      magic: 65
+      ranged: 57
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Barrows reward chest
+        quantity: "1"
+        rarity: 7/2448
+  related_items:
+    - item_name: Karil's leathertop
+      slug: karil-s-leathertop
+      relationship: variant
+      description: Fully charged version
+    - item_name: Karil's leathertop 25
+      slug: karil-s-leathertop-25
+      relationship: variant
+      description: Partially charged variant
+    - item_name: Karil's leathertop 100
+      slug: karil-s-leathertop-100
+      relationship: variant
+      description: Fully repaired variant
+    - item_name: Karil's crossbow
+      slug: karil-s-crossbow
+      relationship: set-piece
+      description: Matching Karil's set weapon
+  about: |-
+    Karil's leathertop 0 is the broken state of Karil the Tainted's ranged body armour, requiring repair before further use. Provides best-in-slot ranged defence within the Barrows set.
+  market_strategy:
+    notes:
+      - "Repaired versions retain charge value, raising margin potential"
+      - "Broken stock floods after Barrows mass spins"
+      - "Ranged tank meta drives off-cycle demand"
+  trading_tips:
+    - Buy broken, repair at NPC for spread profit
+    - Sell into Barrows set demand windows
+  history:
+    - date: "9 May 2005"
+      description: "Released as part of the Barrows update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

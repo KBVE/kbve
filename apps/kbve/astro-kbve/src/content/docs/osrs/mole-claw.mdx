@@ -12,47 +12,67 @@ osrs:
   lowalch: 240
   highalch: 360
   limit: 50
-  item_id: 7416
-  type: boss_drop
-  tradeable: true
-  weight: 0.001
-  buy_limit: 50
-  obtaining:
-    primary:
-      source: Giant Mole
-      location: Beneath Falador Park
-    other_sources:
-      - Molanisks
-      - Experiment No.2
-  usage:
-    exchange:
-      npc: Wyson the gardener
-      location: Falador Park
-      product: Bird nest
-      rate: 1:1
+  material:
+    type: boss_drop
+    tier: mid-high
+  properties:
+    release_date: "2006-03-07"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Giant Mole
+        quantity: "1"
+        rarity: Always
+      - source: Molanisk
+        quantity: "1"
+        rarity: 1/128
+      - source: Experiment No.2
+        quantity: "1"
+        rarity: 1/128
   related_items:
-    - slug: mole-skin
-      name: Mole skin
-      relation: also_dropped
-    - slug: bird-nest
-      name: Bird nest
-      relation: exchange_reward
-    - slug: giant-mole
-      name: Giant Mole
-      relation: drop_source
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Boss Drop |
-    | Tradeable | Yes |
-    | Weight | 0.001 kg |
-
-    Trade to Wyson the gardener (Falador Park) for bird nests.
-
-    Exchange rate: 1 mole claw = 1 bird nest
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Mole skin
+      slug: mole-skin
+      relationship: alternative
+      description: Other Giant Mole drop traded to Wyson
+    - item_name: Bird nest
+      slug: bird-nest
+      relationship: product
+      description: Received from Wyson in exchange for mole claws
+    - item_name: Baby mole
+      slug: baby-mole
+      relationship: alternative
+      description: Pet from Giant Mole; can transform into baby mole-rat using claws
+  about: "Mole claw is a guaranteed Giant Mole drop traded to Wyson the gardener in Falador Park for bird nests at a 1:1 rate. Also drops rarely from Molanisks and Experiment No.2."
+  market_strategy:
+    notes:
+      - "Tight buy limit of 50 limits bulk flipping"
+      - "Demand driven by bird nest seed money-makers"
+      - "Daily volume is high relative to buy limit"
+  trading_tips:
+    - Stock daily and resell into bird nest crash windows
+    - Pair with mole skin trades for max output
+  history:
+    - date: "2006-03-07"
+      description: "Item released with Giant Mole boss."
+    - date: "2015-03-25"
+      description: "Giant Mole began dropping noted claws after Falador Hard Diary completion."
+    - date: "2016-02-25"
+      description: "Bird nests from Wyson updated to contain more valuable seeds."
+    - date: "2021-04-14"
+      description: "Baby mole transformation into baby mole-rat using mole claws added."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

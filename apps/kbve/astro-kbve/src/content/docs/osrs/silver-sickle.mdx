@@ -12,9 +12,82 @@ osrs:
   lowalch: 70
   highalch: 105
   limit: 15
-  about: "Silver sickle is a members-only item in Old School RuneScape. High alchemy value: 105 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: silver
+    tier: low
+  properties:
+    release_date: "2004-07-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.587
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: slash
+    attack_speed: 5
+    weight: 1.587
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 1
+      ranged: 1
+    other_bonus:
+      strength: 1
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 18
+      xp: 50
+      materials:
+        - item_name: Silver bar
+          quantity: 1
+        - item_name: Sickle mould
+          quantity: 1
+      tools:
+        - Furnace
+      output_quantity: 1
+  related_items:
+    - item_name: Silver sickle (b)
+      slug: silver-sickle-b
+      relationship: upgrade
+      description: "Blessed silver sickle obtained during Nature Spirit; enables Bloom."
+    - item_name: Silver bar
+      slug: silver-bar
+      relationship: component
+      description: "Smelted silver used to craft the sickle."
+  about: "The silver sickle is introduced during the Nature Spirit quest and can be blessed by Filliman Tarlock to enable the Bloom spell in Mort Myre Swamp for gathering snakes, branches and fungi. Craftable at level 18 Crafting from a silver bar and sickle mould."
+  market_strategy:
+    notes:
+      - "Low GE volume but cheap entry item; demand tracks new players starting Nature Spirit."
+      - "Crafting from silver bars at level 18 yields a small profit if silver prices stay low."
+  trading_tips:
+    - "Stock 1 sickle for the Nature Spirit quest; bless it for the upgraded version."
+    - "Useful for Mort Myre resource runs after blessing."
+  history:
+    - date: "2004-07-13"
+      description: "Added to the game with the Nature Spirit quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

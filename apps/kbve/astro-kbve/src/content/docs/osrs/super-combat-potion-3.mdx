@@ -12,9 +12,83 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: 2000
-  about: "Super combat potion(3) is a members-only item in Old School RuneScape. High alchemy value: 102 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "2014-08-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 90
+      xp: 150
+      materials:
+        - item_name: Super attack(4)
+          quantity: 1
+        - item_name: Super strength(4)
+          quantity: 1
+        - item_name: Super defence(4)
+          quantity: 1
+        - item_name: Torstol
+          quantity: 1
+      tools:
+        - Vial
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Boosts Attack, Strength, and Defence by floor(SkillLevel * 15 / 100) + 5 (+19 at level 99 in each stat)."
+        duration: 300
+      - description: "Boosted stats decay at 1 level per minute (or every 90 seconds with the Preserve prayer)."
+        duration: 300
+  related_items:
+    - item_name: Super combat potion(4)
+      slug: super-combat-potion-4
+      relationship: variant
+      description: Four-dose variant of the same potion.
+    - item_name: Super combat potion(2)
+      slug: super-combat-potion-2
+      relationship: variant
+      description: Two-dose variant of the same potion.
+    - item_name: Super combat potion(1)
+      slug: super-combat-potion-1
+      relationship: variant
+      description: One-dose variant of the same potion.
+    - item_name: Divine super combat potion(4)
+      slug: divine-super-combat-potion-4
+      relationship: upgrade
+      description: Divine variant with a fixed 5-minute boost.
+  about: |-
+    Super combat potion(3) is a three-dose version of the super combat potion, boosting Attack, Strength, and Defence at the standard 5 + 15% formula.
+
+    Brewed at 90 Herblore for 150 XP per dose set by combining a super attack(4), super strength(4), super defence(4), and a torstol, or by drinking down from a four-dose.
+  market_strategy:
+    notes:
+      - "Supply driven by Herblore training, with most output sold as (4) doses."
+      - "Three-dose variants accumulate from PvM partial usage."
+      - "GE flip room is narrow; alch margin is negative without nature savings."
+  trading_tips:
+    - "Decant chains: buy (3) cheap, decant up to (4) for resale on demand."
+    - Watch torstol and super attack/strength/defence cost shifts for production margin.
+  history:
+    - date: "2014-08-14"
+      description: "Released with the super combat potion update."
+    - date: "2019-02-14"
+      description: "Update allowed unfinished torstol potions to substitute for clean torstol when brewing."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

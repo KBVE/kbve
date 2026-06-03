@@ -1,6 +1,6 @@
 ---
 title: Granite (5kg) | OSRS Price Data
-description: "Granite (5kg): A medium-sized chunk of granite.. High alch: 1 GP, GE limit: 100."
+description: "Granite (5kg) is a heavy mining drop used for Construction, quests, and house theme upgrades. GE limit: 100."
 osrs:
   id: 6983
   name: Granite (5kg)
@@ -9,12 +9,71 @@ osrs:
   members: true
   icon: Granite (5kg).png
   value: 1
-  lowalch: 1
-  highalch: 1
+  lowalch: null
+  highalch: null
   limit: 100
-  about: "Granite (5kg) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: mining-resource
+    tier: mid
+  properties:
+    release_date: "2006-01-23"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 5
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Granite rock (Bandit Camp Quarry)
+        quantity: "1"
+        rarity: always
+      - source: Granite rock (Necropolis mine)
+        quantity: "1"
+        rarity: always
+      - source: Granite rock (Cape Conch mine)
+        quantity: "1"
+        rarity: always
+  related_items:
+    - item_name: Granite (500g)
+      slug: granite-500g
+      relationship: variant
+      description: Smaller granite chunk variant
+    - item_name: Granite (2kg)
+      slug: granite-2kg
+      relationship: variant
+      description: Medium granite chunk variant
+    - item_name: Sandstone (10kg)
+      slug: sandstone-10kg
+      relationship: alternative
+      description: Comparable Desert mining drop
+  about: |-
+    Granite (5kg) is the largest of the three granite chunks mined from granite rocks at the Bandit Camp Quarry, Necropolis mine, and Cape Conch mine. It requires 45 Mining and is members-only. Unlike sandstone, granite cannot be chiselled down into smaller sizes.
+
+    Five 5kg pieces are required to upgrade a player-owned house to the volcanic habitat and two pieces are required for the volcanic theme. The 5kg variant is also consumed during Enakhra's Lament and is used as the dye source when recolouring the Rock golem pet.
+  market_strategy:
+    notes:
+      - "Demand is driven by POH theme upgrades and pet recolours"
+      - "Heavy weight discourages bank-running without weight reduction"
+      - "Price tied to mining bot supply at Bandit Camp Quarry"
+      - "Spikes possible around any POH or pet-related update"
+  trading_tips:
+    - Buy in bulk when mining bot activity floods supply
+    - Sell during POH update hype windows
+    - Pair with stamina potions when collecting personally
+  history:
+    - date: "2006-01-23"
+      description: "Released alongside granite rocks south of the Bandit Camp."
+    - date: "2006-02-06"
+      description: "Renamed from 'Granite (medium)' to 'Granite (5kg)'."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

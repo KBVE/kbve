@@ -12,9 +12,70 @@ osrs:
   lowalch: 44
   highalch: 66
   limit: 2000
-  about: "Menaphite remedy(4) is a members-only item in Old School RuneScape. High alchemy value: 66 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid-high
+  properties:
+    release_date: "2022-08-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.14
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores 6 + 16% of the player's combat stats (excluding Prayer) every 15 seconds, over the course of five minutes; counteracts the stat-draining effect of Saradomin brews."
+        duration: 300
+  recipes:
+    - skill: herblore
+      level: 88
+      xp: 200
+      materials:
+        - item_name: Dwarf weed potion (unf)
+          quantity: 1
+        - item_name: Lily of the sands
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Menaphite remedy(3)
+      slug: menaphite-remedy-3
+      relationship: variant
+      description: "3-dose variant of the Menaphite remedy."
+    - item_name: Menaphite remedy(2)
+      slug: menaphite-remedy-2
+      relationship: variant
+      description: "2-dose variant of the Menaphite remedy."
+    - item_name: Menaphite remedy(1)
+      slug: menaphite-remedy-1
+      relationship: variant
+      description: "1-dose variant of the Menaphite remedy."
+  about: |-
+    > _"4 doses of Menaphite remedy."_
+
+    Menaphite remedy is a herblore potion introduced with the Tombs of Amascut. The 4-dose flask restores 6 + 16% of combat stats (Prayer excluded) every 15 seconds for five minutes, making it the standard counter to Saradomin brew drains in PvM.
+  market_strategy:
+    notes:
+      - "Highly liquid: daily volume hovers near 28k units, so flips fill quickly even at tight margins."
+      - "Per-dose price closely tracks dwarf weed potion (unf) + lily of the sands; spikes when Herblore inputs gap up."
+      - "Demand pulses around new ToA challenge mode rotations and group raid resets."
+  trading_tips:
+    - "Cross-check with the (1)/(2)/(3) variants — decanting flips can extract value when 4-dose trades at a discount per dose."
+    - "Stockpile during Herblore double-XP events when grinders dump excess output."
+  history:
+    - date: "2022-08-24"
+      description: "Released alongside the Tombs of Amascut update as a Saradomin-brew counter."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,21 +12,82 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.1
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 8/18128
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
-    - item_id: 12315
-      item_name: Pink elegant shirt
+    - item_name: Pink elegant shirt
       slug: pink-elegant-shirt
       relationship: set-piece
-      description: Matching elegant shirt
+      description: Matching elegant shirt for the pink elegant outfit.
   about: |-
     > *"A rather elegant pair of men's pink pantaloons."*
 
-    Purely cosmetic treasure trail reward with no combat stats. Part of the pink elegant clothing set.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Pink elegant legs are a purely cosmetic medium clue scroll reward with no combat stats. They form the bottom half of the men's pink elegant clothing set.
+  market_strategy:
+    notes:
+      - "Demand is driven by fashionscape collectors completing the elegant outfit."
+      - "Low GE buy limit of 4 per 4 hours can sustain price spikes."
+      - "Supply scales with medium clue completion activity."
+  trading_tips:
+    - Pair flips with the pink elegant shirt for set arbitrage on the GE.
+    - Check both elegant shirt and legs prices to identify mispriced set pieces.
+  history:
+    - date: "2014-06-12"
+      description: "Released with the Treasure Trail Expansion as a medium clue reward."
+    - date: "2014-12-10"
+      description: "Renamed from \"Pink ele' legs\" to \"Pink elegant legs\"."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

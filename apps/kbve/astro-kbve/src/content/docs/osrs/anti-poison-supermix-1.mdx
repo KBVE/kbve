@@ -12,9 +12,74 @@ osrs:
   lowalch: 57
   highalch: 86
   limit: 2000
-  about: "Anti-poison supermix(1) is a members-only item in Old School RuneScape. High alchemy value: 86 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "3 July 2007"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.045
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Cures poison and grants full poison immunity"
+        duration: 360
+      - description: "Restores 6 Hitpoints on drink"
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 51
+      xp: 35
+      materials:
+        - item_name: Superantipoison(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Superantipoison(4)
+      slug: superantipoison-4
+      relationship: component
+      description: Base potion for the supermix
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: Secondary ingredient
+    - item_name: Anti-poison supermix(2)
+      slug: anti-poison-supermix-2
+      relationship: variant
+      description: Two-dose variant
+  about: |-
+    Anti-poison supermix(1) is a Barbarian Herblore mix that grants poison immunity for 6 minutes and heals 6 Hitpoints on drink. Requires Barbarian Herblore training unlocked.
+  market_strategy:
+    notes:
+      - "Barbarian Herblore prerequisite limits the producer pool"
+      - "Demand spikes around poison-heavy bosses"
+      - "Caviar supply cap pressures availability"
+  trading_tips:
+    - Stockpile when caviar prices dip
+    - Sell into peak boss meta windows
+  history:
+    - date: "3 July 2007"
+      description: "Released alongside the Barbarian Training update."
+    - date: "April 2015"
+      description: "Renamed from Anti-p supermix to Anti-poison supermix."
+    - date: "April 2016"
+      description: "Bank placeholder support enabled for half-full mixes."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

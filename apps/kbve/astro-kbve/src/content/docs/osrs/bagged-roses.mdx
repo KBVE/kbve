@@ -12,9 +12,62 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: 10000
-  about: "Bagged roses is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: construction
+    tier: high
+  properties:
+    release_date: "31 May 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Garden Supplier
+      location: Falador Park
+      price: 15000
+      currency: coins
+      stock: 20
+    - shop_name: Garden Supplier
+      location: Farming Guild
+      price: 15000
+      currency: coins
+      stock: 20
+  related_items:
+    - item_name: Bagged plant 1
+      slug: bagged-plant-1
+      relationship: alternative
+      description: Cheaper formal garden flower
+    - item_name: Bagged nice tree
+      slug: bagged-nice-tree
+      relationship: alternative
+      description: Tree variant for formal gardens
+    - item_name: Watering can
+      slug: watering-can
+      relationship: component
+      description: Filled watering can required when planting
+  about: |-
+    Bagged roses are a formal-garden Construction item planted at 76 Construction for 122 XP in both Construction and Farming. Purely decorative.
+  market_strategy:
+    notes:
+      - "Shop floor at 15,000 coins anchors price"
+      - "Demand driven by player-owned house decoration sprees"
+      - "Low daily volume amplifies swings"
+  trading_tips:
+    - Bulk buy from Garden Supplier when GE price spikes
+    - List at slight premium during PoH update cycles
+  history:
+    - date: "31 May 2006"
+      description: "Released with the Construction skill update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
