@@ -12,46 +12,72 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 5
-  item:
-    type: god_page
-    god: Zamorak
-    page_number: 2
+  properties:
+    release_date: "2004-11-17"
     tradeable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Easy/Medium/Hard/Elite
-        drop_rate: Varies by tier
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options: ["Drop"]
+    worn_options: []
+    alchable: true
+  drop_table:
+    sources:
+      - source: Easy clue casket
+        quantity: "1"
+        rarity: 11/9504
+      - source: Medium clue casket
+        quantity: "1"
+        rarity: 10/8184
+      - source: Hard clue casket
+        quantity: "1"
+        rarity: 1/650
+      - source: Elite clue casket
+        quantity: "1"
+        rarity: 1/775
+      - source: Master clue casket
+        quantity: "1"
+        rarity: 1/702
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers: ["easy", "medium", "hard", "elite", "master"]
   related_items:
-    - item_id: 3831
-      item_name: Zamorak page 1
+    - item_name: Zamorak page 1
       slug: zamorak-page-1
       relationship: set-piece
-      description: Page 1 of 4
-    - item_id: 3833
-      item_name: Zamorak page 3
+      description: Page 1 of 4 of the Unholy book
+    - item_name: Zamorak page 3
       slug: zamorak-page-3
       relationship: set-piece
-      description: Page 3 of 4
-    - item_id: 3834
-      item_name: Zamorak page 4
+      description: Page 3 of 4 of the Unholy book
+    - item_name: Zamorak page 4
       slug: zamorak-page-4
       relationship: set-piece
-      description: Page 4 of 4
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | God Page |
-    | God | Zamorak |
-    | Page | 2 of 4 |
-    | Tradeable | Yes |
-
-    Add to incomplete Unholy book (Zamorak god book) to complete it.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Page 4 of 4 of the Unholy book
+    - item_name: Unholy book
+      slug: unholy-book
+      relationship: product
+      description: Completed Zamorak god book
+  about: "Zamorak page 2 is one of four pages torn from the Unholy book of Zamorak. Combining all four pages with an incomplete Unholy book finishes the god book, which is an equipable shield-slot item used for blessing unholy symbols and requires 50 Prayer to wield. The page is obtained as a reward from Treasure Trails of every tier except beginner."
+  market_strategy:
+    notes:
+      - "Set-piece market - demand tied to Unholy book assembly"
+      - "Members-only reward from all clue tiers except beginner"
+      - "GE buy limit of 5 keeps page flips small but steady"
+      - "High alch value of 120 GP makes it useless for alching"
+  history:
+    - date: "2004-11-17"
+      description: Introduced with the original god books update.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

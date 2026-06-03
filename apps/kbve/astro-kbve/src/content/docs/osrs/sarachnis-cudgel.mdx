@@ -12,69 +12,84 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: mid-high
+  properties:
+    release_date: "2019-07-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: blunt
-    attack_style: crush
+    weapon_type: crush
     attack_speed: 4
+    weight: 0.453
     requirements:
       attack: 65
-    stats:
-      attack_stab: 30
-      attack_crush: 70
+    attack_bonus:
+      stab: 30
+      slash: 0
+      crush: 70
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
       strength: 70
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   drop_table:
     sources:
       - source: Sarachnis
-        source_id: 8713
-        combat_level: 318
         quantity: "1"
-        rarity: Rare
-        drop_rate: 1/384
-        members_only: true
+        rarity: "1/384"
   related_items:
-    - item_id: 13263
-      item_name: Abyssal bludgeon
+    - item_name: Abyssal bludgeon
       slug: abyssal-bludgeon
       relationship: upgrade
-      description: Upgrade path
-    - item_id: 24417
-      item_name: Inquisitor's mace
+      description: Upgrade path with higher strength bonus
+    - item_name: Inquisitor's mace
       slug: inquisitors-mace
       relationship: upgrade
-      description: BiS crush
-    - item_id: 11902
-      item_name: Leaf-bladed battleaxe
+      description: Best-in-slot crush weapon
+    - item_name: Leaf-bladed battleaxe
       slug: leaf-bladed-battleaxe
       relationship: alternative
-      description: Alternative
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | +30 |
-    | Crush | +70 |
-    | Strength | +70 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | +0 |
-
-    Requirements: 65 Attack
-
-    Budget crush weapon for:
-    - Sarachnis
-    - Gargoyles
-    - Mid-game crush content
-    - Kalphite tasks
-
-    Does not degrade - no maintenance cost.
+      description: Alternative crush option for Slayer tasks
+  about: "The Sarachnis cudgel is a one-handed crush weapon dropped exclusively by Sarachnis at a rate of 1/384. Requiring 65 Attack to wield, it offers +70 crush attack and +70 strength bonus, making it a strong budget option for mid-game crush content such as Gargoyles, Kalphite tasks, and Sarachnis itself. The cudgel does not degrade and has no maintenance cost."
   market_strategy:
     notes:
-      - Easy boss to farm
-      - No Slayer requirement
-      - Good mid-game weapon
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Sarachnis is an accessible boss with no Slayer requirement"
+      - "Strong mid-game crush weapon keeps demand steady"
+      - "Supply tied directly to boss farming popularity"
+  trading_tips:
+    - Watch boss-of-the-week rotations for price dips
+    - Buy during off-peak hours when farmers flip drops
+    - Long-term hold value as a staple crush weapon
+  history:
+    - date: "2019-07-04"
+      description: "Added to the game with the release of Sarachnis."
+    - date: "2025-05-29"
+      description: "Removed from the Grand Exchange item sink list."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

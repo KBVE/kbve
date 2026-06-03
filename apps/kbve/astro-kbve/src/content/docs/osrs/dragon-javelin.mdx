@@ -12,81 +12,99 @@ osrs:
   lowalch: 180
   highalch: 270
   limit: 11000
-  ammunition:
-    type: javelin
-    tier: dragon
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "2016-05-06"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
   equipment:
-    ranged_strength: 150
+    slot: ammo
+    weapon_type: javelin
+    attack_speed: null
+    weight: 0
     requirements:
       ranged: 75
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 150
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: fletching
       level: 92
       xp: 225
       materials:
         - item_name: Javelin shaft
-          item_id: 19582
           quantity: 15
         - item_name: Dragon javelin heads
-          item_id: 19570
           quantity: 15
-      product: Dragon javelin
-      product_id: 19484
-      product_quantity: 15
-      members_only: true
+      tools: []
+      output_quantity: 15
   related_items:
-    - item_id: 19582
-      item_name: Javelin shaft
+    - item_name: Javelin shaft
       slug: javelin-shaft
       relationship: component
-      description: Component
-    - item_id: 19570
-      item_name: Dragon javelin heads
+      description: Crafting component
+    - item_name: Dragon javelin heads
       slug: dragon-javelin-heads
       relationship: component
-      description: Component
-    - item_id: 19478
-      item_name: Rune javelin
+      description: Crafting component (Vorkath drop)
+    - item_name: Rune javelin
       slug: rune-javelin
+      relationship: downgrade
+      description: Lower tier javelin
+    - item_name: Amethyst javelin
+      slug: amethyst-javelin
       relationship: alternative
-      description: Lower tier
-    - item_id: 19481
-      item_name: Heavy ballista
+      description: Alternative javelin
+    - item_name: Heavy ballista
       slug: heavy-ballista
       relationship: alternative
       description: Best launcher
-    - item_id: 21318
-      item_name: Amethyst javelin
-      slug: amethyst-javelin
-      relationship: alternative
-      description: Alternative
-  about: |-
-    Combine 15× Javelin shaft + 15× Dragon javelin tips.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Fletching Level | 92 |
-    | XP gained | 225 (per 15) |
+  about: "The Dragon javelin is the highest-tier standard javelin in Old School RuneScape, requiring 75 Ranged to wield with a light or heavy ballista. Released with Monkey Madness II on 6 May 2016, it provides +150 Ranged Strength. Players can fletch 15 javelins at a time at 92 Fletching from 15 javelin shafts and 15 dragon javelin heads for 225 XP. Heavy ballista with dragon javelins is a popular PvP special attack weapon."
   market_strategy:
-    profit_formulas:
-      - (Dragon javelin × 15) - (Shaft × 15) - (Tips × 15) = Profit
     notes:
-      - "Calculate:"
-      - 92 Fletching required
-      - Check tip vs javelin margins
-      - Dragon javelin tips from Vorkath
-      - Zulrah drops
-      - CoX raids
-      - Heavy ballista primary ammo
-      - PKing spec weapon
-      - CoX raids
-      - Vorkath farmers selling tips
-      - Ballista spec popular in PvP
-      - Tips mainly from Vorkath
-      - Check tip supply vs demand
-      - Good fletching profit margin
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Heavy ballista primary ammunition"
+      - "PKing special attack weapon"
+      - "Dragon javelin heads sourced from Vorkath"
+      - "Check tip vs javelin margins for fletching profit"
+      - "92 Fletching required to craft"
+  trading_tips:
+    - Ballista spec popular in PvP, drives demand
+    - Tips mainly come from Vorkath farmers
+    - Track tip supply vs javelin demand for arbitrage
+  history:
+    - date: "2016-05-06"
+      description: Added to the game with Monkey Madness II.
+    - date: "2016-10-31"
+      description: Ranged Strength bonus decreased from +175 to +150.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

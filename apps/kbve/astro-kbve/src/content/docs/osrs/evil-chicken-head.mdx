@@ -1,6 +1,6 @@
 ---
 title: Evil chicken head | OSRS Price Data
-description: "Evil chicken head: Cock-a-doodle-do!. High alch: 1 GP, GE limit: 4."
+description: "Evil chicken head: Cock-a-doodle-do! Part of the evil chicken outfit. GE limit: 4."
 osrs:
   id: 20439
   name: Evil chicken head
@@ -12,9 +12,73 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Evil chicken head is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: low
+  properties:
+    release_date: "2016-07-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.25
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Woodcutting Guild shrine (offering bird's eggs)
+        quantity: "1"
+        rarity: 1/300
+  related_items:
+    - item_name: Evil chicken wings
+      slug: evil-chicken-wings
+      relationship: set-piece
+      description: Cape slot of the evil chicken outfit
+    - item_name: Evil chicken legs
+      slug: evil-chicken-legs
+      relationship: set-piece
+      description: Legs slot of the evil chicken outfit
+    - item_name: Evil chicken feet
+      slug: evil-chicken-feet
+      relationship: set-piece
+      description: Feet slot of the evil chicken outfit
+  about: "Evil chicken head is a members cosmetic head slot item obtained by offering bird's eggs at the Woodcutting Guild shrine with a 1/300 chance per offering. Wearing the complete outfit with the Flap emote unlocked plays an enhanced animation where the character briefly lifts off the ground."
+  market_strategy:
+    notes:
+      - "Supply gated by Woodcutting Guild egg offerings"
+      - "Demand from completionists collecting full set"
+      - "Low buy limit keeps prices volatile"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

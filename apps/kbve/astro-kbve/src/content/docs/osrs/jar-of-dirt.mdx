@@ -12,9 +12,50 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Jar of dirt is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: collectible
+    tier: low
+  properties:
+    release_date: "2014-04-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "You can get another by killing the Kraken."
+  drop_table:
+    sources:
+      - source: Kraken
+        quantity: "1"
+        rarity: 1/1000
+  related_items:
+    - item_name: Jar of sand
+      slug: jar-of-sand
+      relationship: alternative
+      description: Dagannoth Rex boss jar drop
+    - item_name: Jar of stone
+      slug: jar-of-stone
+      relationship: alternative
+      description: Skotizo boss jar drop
+  about: "Jar of dirt is a rare drop from the Kraken boss with a 1/1000 drop rate. It can be placed on a boss lair display in an Achievement Gallery to commemorate defeating Kraken at least once. The item is a tribute to Pirates of the Caribbean: Dead Man's Chest, referencing Jack Sparrow's jar of dirt."
+  market_strategy:
+    notes:
+      - "Rare collectible from Kraken boss"
+      - "Demand from collection log hunters"
+      - "Limited supply due to low drop rate"
+  history:
+    - date: "2014-04-10"
+      description: Released as a rare drop from Kraken.
+    - date: "2014-04-10"
+      description: Originally intended to be untradeable but was accidentally left tradeable, influencing the design of all subsequent boss jar drops.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

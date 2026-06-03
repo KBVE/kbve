@@ -12,9 +12,69 @@ osrs:
   lowalch: 3600
   highalch: 5400
   limit: 8
-  about: "Zamorak dragonhide set is a members-only item in Old School RuneScape. High alchemy value: 5,400 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: set
+    tier: mid
+  properties:
+    release_date: "2015-03-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Grand Exchange
+      location: Varrock
+      price: 539360
+      currency: Coins
+      stock: 0
+  related_items:
+    - item_name: Zamorak coif
+      slug: zamorak-coif
+      relationship: set-piece
+      description: Head slot piece in the set
+    - item_name: Zamorak dragonhide body
+      slug: zamorak-dragonhide-body
+      relationship: set-piece
+      description: Body slot piece in the set
+    - item_name: Zamorak chaps
+      slug: zamorak-chaps
+      relationship: set-piece
+      description: Legs slot piece in the set
+    - item_name: Zamorak bracers
+      slug: zamorak-bracers
+      relationship: set-piece
+      description: Hands slot piece (vambraces) in the set
+    - item_name: Saradomin dragonhide set
+      slug: saradomin-dragonhide-set
+      relationship: alternative
+      description: Saradomin-aligned god dragonhide set
+    - item_name: Guthix dragonhide set
+      slug: guthix-dragonhide-set
+      relationship: alternative
+      description: Guthix-aligned god dragonhide set
+  about: "Zamorak dragonhide set is a Grand Exchange storage convenience containing Zamorak dragonhide coif, body, chaps, and vambraces. The set is constructed by exchanging individual components with a Grand Exchange clerk. When equipped individually, the four pieces provide +65 ranged attack, +110 ranged defence, and +94 magic defence with a -36 magic attack penalty. Note: this set excludes the shield and boots variants."
+  market_strategy:
+    notes:
+      - "Set premium over component cost"
+      - "Convenience for bulk PvM gearing"
+      - "Cosmetic god-aligned demand"
+  trading_tips:
+    - Compare set price vs component total to spot arbitrage
+    - Low buy limit can constrain bulk dealers
+  history:
+    - date: "2015-03-19"
+      description: Released as a Grand Exchange equipment set.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

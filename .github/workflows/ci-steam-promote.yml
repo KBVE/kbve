@@ -146,10 +146,18 @@ jobs:
                     exit 1
                   fi
 
+                  # Steam Partner API returns response.result as a numeric
+                  # EResult code (1 = OK, 2 = Fail, …). Older docs / some
+                  # endpoints emit the string "OK" instead, so accept both.
                   RESULT=$(jq -r '.response.result // empty' "$HTTP_BODY" 2>/dev/null || echo "")
-                  if [ "$RESULT" != "OK" ] && [ -n "$RESULT" ]; then
-                    echo "::error::Steam API result=$RESULT — promotion failed"
+                  MESSAGE=$(jq -r '.response.message // ""' "$HTTP_BODY" 2>/dev/null || echo "")
+                  if [ -z "$RESULT" ]; then
+                    echo "::error::Steam API returned no response.result field"
+                    exit 1
+                  fi
+                  if [ "$RESULT" != "1" ] && [ "$RESULT" != "OK" ]; then
+                    echo "::error::Steam API result=$RESULT (${MESSAGE:-no message}) — promotion failed"
                     exit 1
                   fi
 
-                  echo "::notice::Promotion succeeded — $APP_ID build $BUILD_ID is now live on $TO_BRANCH"
+                  echo "::notice::Promotion succeeded — $APP_ID build $BUILD_ID is now live on ${BETAKEY:-<default/public>}"

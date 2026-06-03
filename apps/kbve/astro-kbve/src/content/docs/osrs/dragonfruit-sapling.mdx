@@ -1,6 +1,6 @@
 ---
 title: Dragonfruit sapling | OSRS Price Data
-description: "Dragonfruit sapling: This sapling is ready to be replanted in a fruit tree patch.. High alch: 1 GP, GE limit: 200."
+description: "Dragonfruit sapling: This sapling is ready to be replanted in a fruit tree patch. High alch: 1 GP, GE limit: 200."
 osrs:
   id: 22866
   name: Dragonfruit sapling
@@ -12,9 +12,52 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 200
-  about: "Dragonfruit sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: sapling
+    tier: low
+  properties:
+    release_date: "2019-01-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+  recipes:
+    - skill: farming
+      level: 81
+      xp: 140
+      materials:
+        - item_name: Dragonfruit seedling (w)
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Dragonfruit tree seed
+      slug: dragonfruit-tree-seed
+      relationship: component
+      description: Seed planted to grow this sapling
+    - item_name: Dragonfruit seedling
+      slug: dragonfruit-seedling
+      relationship: component
+      description: Intermediate growth stage before sapling
+    - item_name: Dragonfruit
+      slug: dragonfruit
+      relationship: product
+      description: Harvestable fruit from the grown tree
+  about: "Dragonfruit sapling is a members farming item planted in a fruit tree patch to grow a dragonfruit tree. It requires level 81 Farming and yields 17,335 experience on checking the grown tree."
+  market_strategy:
+    notes:
+      - "Demand driven by high-level Farming training"
+      - "Buy seedlings to produce saplings for profit margin"
+      - "81 Farming is a major bottleneck for supply"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

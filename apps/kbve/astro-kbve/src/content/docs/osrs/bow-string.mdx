@@ -12,83 +12,81 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
     type: string
-    tier: basic
-  crafting:
-    level: 1
-    xp: 15
-    method: Spin flax on spinning wheel
+    tier: low
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.014
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "I need a bow stave to attach this to."
   recipes:
     - skill: crafting
       level: 1
       xp: 15
       materials:
         - item_name: Flax
-          item_id: 1779
           quantity: 1
-      product: Bow string
-      product_id: 1777
-      product_quantity: 1
-      facility: Spinning wheel
+      tools:
+        - Spinning wheel
+      output_quantity: 1
+    - skill: magic
+      level: 76
+      xp: 75
+      materials:
+        - item_name: Flax
+          quantity: 5
+        - item_name: Nature rune
+          quantity: 2
+        - item_name: Astral rune
+          quantity: 1
+        - item_name: Air rune
+          quantity: 5
+      tools: []
+      output_quantity: 5
   related_items:
-    - item_id: 1779
-      item_name: Flax
+    - item_name: Flax
       slug: flax
       relationship: component
-      description: Raw material
-    - item_id: 66
-      item_name: Yew longbow (u)
+      description: Raw material spun on a spinning wheel
+    - item_name: Yew longbow (u)
       slug: yew-longbow-u
       relationship: product
       description: Popular stringing target
-    - item_id: 64
-      item_name: Magic longbow (u)
+    - item_name: Magic longbow (u)
       slug: magic-longbow-u
       relationship: product
       description: High value stringing
-    - item_id: 855
-      item_name: Yew longbow
+    - item_name: Yew longbow
       slug: yew-longbow
       relationship: product
       description: Strung yew bow
-    - item_id: 859
-      item_name: Magic longbow
+    - item_name: Magic longbow
       slug: magic-longbow
       relationship: product
       description: Strung magic bow
-  about: |-
-    Spin Flax on a spinning wheel to create Bow string.
-
-    | Action | Crafting Level | XP |
-    |--------|----------------|-----|
-    | Spin flax | 1 | 15 |
-
-    Bow strings are used to string unstrung bows:
-
-    | Bow | Fletching Level |
-    |-----|-----------------|
-    | Shortbow | 5 |
-    | Longbow | 10 |
-    | Oak shortbow | 20 |
-    | Oak longbow | 25 |
-    | Willow shortbow | 35 |
-    | Willow longbow | 40 |
-    | Maple shortbow | 50 |
-    | Maple longbow | 55 |
-    | Yew shortbow | 65 |
-    | Yew longbow | 70 |
-    | Magic shortbow | 80 |
-    | Magic longbow | 85 |
+  about: "Bow string is a core Fletching material produced by spinning flax on a spinning wheel for 15 Crafting experience, or via the 76 Magic Spin Flax Lunar spell for 5 strings per cast. It is used to string every wooden shortbow and longbow in the game, making it a staple money-making material for low-level Crafters."
   market_strategy:
     notes:
-      - Buy Flax → Spin → Sell Bow string
-      - Low effort, decent GP/hr for low levels
-      - Buy unstrung bows + bow strings
-      - String and sell finished bows
-      - Works well with Yew longbow (u)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Buy flax, spin into bow string, sell finished strings"
+      - "String unstrung yew or magic longbows for stable Fletching margins"
+      - "Lunar Spin Flax scales bow string output for higher-level players"
+  history:
+    - date: "2002-03-25"
+      description: Bow string introduced with the Crafting skill.
+    - date: "2005-01-26"
+      description: Inventory sprite refreshed during the early 2005 art pass.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

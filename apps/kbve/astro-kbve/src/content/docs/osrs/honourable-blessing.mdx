@@ -12,69 +12,84 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 5
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.51
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
   equipment:
     slot: ammo
-    type: blessing
-    attack_style: none
-    stats:
-      prayer_bonus: 1
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Master
-        rarity: Rare
-        description: Reward from master clue scrolls
-      - source: Treasure Trails
-        requirements:
-          clue_type: Elite
-        rarity: Rare
-        description: Reward from elite clue scrolls
+    weapon_type: null
+    attack_speed: null
+    weight: 0.51
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+      - master
   related_items:
-    - item_id: 20220
-      item_name: Holy blessing
+    - item_name: Holy blessing
       slug: holy-blessing
       relationship: alternative
-      description: Saradomin blessing
-    - item_id: 20223
-      item_name: Unholy blessing
+      description: Saradomin-aligned blessing.
+    - item_name: Unholy blessing
       slug: unholy-blessing
       relationship: alternative
-      description: Zamorak blessing
-    - item_id: 20226
-      item_name: Peaceful blessing
+      description: Zamorak-aligned blessing.
+    - item_name: Peaceful blessing
       slug: peaceful-blessing
       relationship: alternative
-      description: Guthix blessing
-    - item_id: 20232
-      item_name: War blessing
+      description: Guthix-aligned blessing.
+    - item_name: War blessing
       slug: war-blessing
       relationship: alternative
-      description: Bandos blessing
-    - item_id: 20235
-      item_name: Ancient blessing
+      description: Bandos-aligned blessing.
+    - item_name: Ancient blessing
       slug: ancient-blessing
       relationship: alternative
-      description: Zaros blessing
-  about: |-
-    The honourable blessing is an Armadyl-aligned item worn in the ammunition slot, providing +1 prayer bonus. It is the Armadyl equivalent of other god blessings.
-
-    Blessings are valuable because they provide prayer bonus in the ammunition slot, which normally has no prayer-boosting options. This makes them useful for any build that wants to maximize prayer bonus without sacrificing ranging capability.
-
-    God Wars Protection:
-    - Counts as an Armadyl item in the God Wars Dungeon
-    - Armadyl followers will not be aggressive when worn
+      description: Zaros-aligned blessing.
   market_strategy:
-    title: Investment Notes
     notes:
-      - Prices vary between different god blessings
-      - Armadyl version useful for Kree'arra
-      - Popular for ranging setups at Armadyl
-      - Compare prices between all six blessings
-      - Consider God Wars Dungeon utility when pricing
-      - Popular with players wanting prayer bonus in ammo slot
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Prices vary between the six god blessings; compare all of them before committing."
+      - "Armadyl-aligned version is sought after for trips to Kree'arra and the Armadyl bastion."
+      - "Counts as an Armadyl item inside the God Wars Dungeon, keeping Armadyl followers passive."
+      - "Demand spikes follow clue scroll updates and Bounty Hunter prayer-bonus meta shifts."
+      - "Buy limit of five per four hours rewards patient flippers monitoring the spread."
+  about: "Honourable blessing is the Armadyl-aligned ammunition-slot blessing, awarded from medium, hard, elite, and master clue scroll caskets. Equipping it grants +1 prayer bonus in a slot that has almost no other prayer options, and it also functions as an Armadyl item inside the God Wars Dungeon, keeping aviansie followers from attacking. Its examine text quotes Armadyl's philosophy: 'Law is not law if it violates the principles of eternal justice.'"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,67 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 8
-  about: "Ancient rune armour set (sk) is a free-to-play item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: set
+    tier: mid-high
+  properties:
+    release_date: "2015-02-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Grand Exchange
+      location: Varrock
+      price: 186410
+      currency: Coins
+      stock: 0
+  related_items:
+    - item_name: Ancient full helm
+      slug: ancient-full-helm
+      relationship: set-piece
+      description: Head slot piece in the set
+    - item_name: Ancient platebody
+      slug: ancient-platebody
+      relationship: set-piece
+      description: Body slot piece in the set
+    - item_name: Ancient plateskirt
+      slug: ancient-plateskirt
+      relationship: set-piece
+      description: Legs slot piece in the set
+    - item_name: Ancient kiteshield
+      slug: ancient-kiteshield
+      relationship: set-piece
+      description: Shield slot piece in the set
+    - item_name: Ancient rune armour set (lg)
+      slug: ancient-rune-armour-set-lg
+      relationship: variant
+      description: Legs variant set with platelegs instead of plateskirt
+  about: "Ancient rune armour set (sk) is a Grand Exchange equipment set containing an ancient full helm, platebody, plateskirt, and kiteshield. The set is constructed by exchanging individual components using the Sets interface with a Grand Exchange clerk. The complete set provides +207 stab, +209 slash, and +192 crush defence with minor magic (-65) and ranged (-31) penalties. Free-to-play accessible since 14 April 2016."
+  market_strategy:
+    notes:
+      - "Set premium over component total"
+      - "F2P accessible since April 2016"
+      - "Cosmetic appeal of ancient-themed armour"
+  trading_tips:
+    - Compare set price vs unpacked component total to spot arbitrage
+    - Skirt variant historically trades at slight premium vs (lg) version
+  history:
+    - date: "2015-02-26"
+      description: Released as a Grand Exchange equipment set.
+    - date: "2016-04-14"
+      description: Made accessible to free-to-play players.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,107 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  about: "Mith grapple is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: mithril
+    tier: mid
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.001
+    options: ["Wield", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammunition
+    weapon_type: grapple
+    attack_speed: null
+    weight: 0.001
+    requirements:
+      ranged: 1
+      agility: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 59
+      xp: 0
+      materials:
+        - item_name: Mith grapple tip
+          quantity: 1
+        - item_name: Mithril bolts (unf)
+          quantity: 1
+        - item_name: Rope
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Mithril dragon
+        quantity: "1"
+        rarity: Uncommon
+      - source: Waterfiend
+        quantity: "1"
+        rarity: Uncommon
+      - source: Brutal black dragon
+        quantity: "1"
+        rarity: Uncommon
+      - source: Armadyl's Eyrie crate
+        quantity: "1"
+        rarity: Drop trick
+  related_items:
+    - item_name: Mith grapple tip
+      slug: mith-grapple-tip
+      relationship: component
+      description: Smithed grapple head crafted before attaching to bolt and rope.
+    - item_name: Rope
+      slug: rope
+      relationship: component
+      description: Required cord for assembling the finished mith grapple.
+    - item_name: Mithril crossbow
+      slug: mithril-crossbow
+      relationship: product
+      description: Common crossbow paired with the mith grapple for agility shortcuts.
+    - item_name: Mithril grapple
+      slug: mith-grapple
+      relationship: variant
+      description: Same item under its full name.
+  about: "The mith grapple is a specialised ammunition slot bolt that fires from a crossbow to unlock agility-based grappling shortcuts across Gielinor. It has no combat use - all stats are zero - and exists almost entirely as a transportation tool. There is a 1/25 chance per use that the grapple breaks, although the Hallowed Sepulchre and Shayzien Agility Course never destroy it, making the item effectively reusable in those areas."
+  market_strategy:
+    notes:
+      - "Demand spikes when popular guides recommend grapple shortcuts, especially around new agility content."
+      - "Drop sources from mithril dragons and waterfiends mean supply scales with PvM activity."
+      - "Buy limit of 11,000 with low alch of 1 keeps this a thin-margin volume flip."
+  trading_tips:
+    - "Stock up before content updates that lean on grapple shortcuts, like new Wilderness training routes."
+    - "Convert mith grapple tips and rope into finished grapples when the assembled price beats parts plus tax."
+  history:
+    - date: "2006-07-31"
+      description: "Released with grappling crossbow mechanics for agility shortcuts."
+    - date: "2019-09-26"
+      description: "Hallowed Sepulchre and Shayzien Agility Course added grapple shortcuts that never break the bolt."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

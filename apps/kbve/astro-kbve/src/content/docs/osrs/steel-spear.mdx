@@ -12,9 +12,91 @@ osrs:
   lowalch: 130
   highalch: 195
   limit: 125
-  about: "Steel spear is a members-only item in Old School RuneScape. High alchemy value: 195 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: steel
+    tier: low
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 5
+    weight: 2.267
+    requirements:
+      attack: 5
+    attack_bonus:
+      stab: 12
+      slash: 12
+      crush: 12
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 12
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Mount Karuulm Weapon Shop
+      location: Mount Karuulm
+      price: 325
+      currency: Coins
+      stock: 5
+    - shop_name: Fortis Blacksmith
+      location: Fortis
+      price: 325
+      currency: Coins
+      stock: 5
+  recipes:
+    - skill: smithing
+      level: 35
+      xp: 75
+      materials:
+        - item_name: Steel bar
+          quantity: 1
+        - item_name: Willow logs
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  related_items:
+    - item_name: Mithril spear
+      slug: mithril-spear
+      relationship: upgrade
+      description: Higher tier spear
+    - item_name: Iron spear
+      slug: iron-spear
+      relationship: downgrade
+      description: Lower tier spear
+    - item_name: Steel spear (p)
+      slug: steel-spear-p
+      relationship: variant
+      description: Poisoned variant
+  about: "The Steel spear is a two-handed members-only melee weapon requiring 5 Attack to wield. It is created via Barbarian Smithing at level 35 from one steel bar and one willow log (requires Tai Bwo Wannai Trio completion), or purchased from Mount Karuulm Weapon Shop and Fortis Blacksmith. It is dropped by Earth warriors, Hobgoblins and skeletons, and can be poisoned with standard or Karambwan poison."
+  history:
+    - date: "2003-04-14"
+      description: Added to the game.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

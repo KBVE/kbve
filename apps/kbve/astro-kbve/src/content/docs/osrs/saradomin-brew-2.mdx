@@ -12,72 +12,73 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 2000
-  item_id: 6689
-  type: potion
-  tradeable: true
-  buy_limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "2005-10-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
   potion:
-    doses: 2
-    base_item: Saradomin brew(4)
-    base_item_id: 6685
-    herblore_level: 81
-    herblore_xp: 180
     effects:
-      - stat: Hitpoints
-        boost_formula: floor(level * 0.15) + 2
-        description: Heals 15% + 2 of max HP
-      - stat: Defence
-        boost_formula: floor(level * 0.20) + 2
-        description: Boosts Defence by 20% + 2
-      - stat: Attack
-        boost_formula: -(floor(level * 0.10) + 2)
-        description: Lowers Attack by 10% + 2
-      - stat: Strength
-        boost_formula: -(floor(level * 0.10) + 2)
-        description: Lowers Strength by 10% + 2
-      - stat: Magic
-        boost_formula: -(floor(level * 0.10) + 2)
-        description: Lowers Magic by 10% + 2
-      - stat: Ranged
-        boost_formula: -(floor(level * 0.10) + 2)
-        description: Lowers Ranged by 10% + 2
+      - description: Heals Hitpoints by 15% + 2 of base level (rounded down)
+        duration: null
+      - description: Boosts Defence by 20% + 2 of base level (rounded down)
+        duration: null
+      - description: Lowers Attack by 10% + 2 of current level
+        duration: null
+      - description: Lowers Strength by 10% + 2 of current level
+        duration: null
+      - description: Lowers Magic by 10% + 2 of current level
+        duration: null
+      - description: Lowers Ranged by 10% + 2 of current level
+        duration: null
   related_items:
-    - slug: saradomin-brew-4
-      name: Saradomin brew(4)
-      relation: full_dose_variant
-    - slug: super-restore-4
-      name: Super restore(4)
-      relation: counters_stat_drain
-    - slug: crushed-nest
-      name: Crushed nest
-      relation: creation_material
-  about: |-
-    2-dose variant of Saradomin brew(4).
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 81 |
-    | XP gained | 180 (when making 4-dose) |
-
-    Per dose:
-    - Heals: 15% + 2 of max HP (max +16 at 99 HP)
-    - Boosts Defence: 20% + 2 of base level (max +21 at 99)
-    - Lowers: Attack, Strength, Magic, Ranged by 10% + 2
-
-    Essential for high-level PvM:
-    - Raids (CoX, ToB, ToA)
-    - Inferno attempts
-    - Boss fights (GWD, Nex, etc.)
-    - PvP (combo with Super restore)
-
-    Brew to Restore Ratio: Use 3 doses of brew per 1 dose of super restore to maintain combat stats.
+    - item_name: Saradomin brew(4)
+      slug: saradomin-brew-4
+      relationship: variant
+      description: Full 4-dose version of the same potion
+    - item_name: Saradomin brew(3)
+      slug: saradomin-brew-3
+      relationship: variant
+      description: 3-dose decant variant
+    - item_name: Saradomin brew(1)
+      slug: saradomin-brew-1
+      relationship: variant
+      description: 1-dose decant variant
+    - item_name: Super restore(4)
+      slug: super-restore-4
+      relationship: alternative
+      description: Restores the offensive stats that brew drains
+    - item_name: Crushed nest
+      slug: crushed-nest
+      relationship: component
+      description: Required ingredient when brewing the full 4-dose potion
+  about: "Saradomin brew(2) is a 2-dose variant of the high-level healing potion produced by combining a Toadflax potion (unf) with a Crushed nest at Herblore level 81 for 180 XP. Each dose heals 15% + 2 of max Hitpoints and boosts Defence by 20% + 2, while temporarily lowering Attack, Strength, Magic, and Ranged by 10% + 2. The brew is a staple at raids, Inferno, GWD, and PvP, almost always paired with Super restore to undo the stat drain."
   market_strategy:
     notes:
-      - Decants to/from 4-dose version
-      - Lower doses often used for inventory optimization
-      - Bob Barter in GE can decant potions
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Decants to and from 4-dose for inventory optimisation"
+      - "Bob Barter in the Grand Exchange handles dose conversion"
+      - "2-dose stock often follows raid and high-level PvM demand"
+  trading_tips:
+    - Pair with Super restore at roughly a 3:1 brew-to-restore ratio
+    - Watch decanting margins between (1), (2), (3), and (4) doses
+  history:
+    - date: "2005-10-24"
+      description: Released alongside the Herblore Saradomin brew recipe.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

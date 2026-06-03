@@ -12,9 +12,44 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 13000
-  about: "Bowl of water is a free-to-play item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2001-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.907
+    options:
+      - Empty
+      - Drop
+    alchable: true
+  related_items:
+    - item_name: Bowl
+      slug: bowl
+      relationship: component
+      description: Filled with water at any source (except a well) to produce a bowl of water.
+    - item_name: Jug of water
+      slug: jug-of-water
+      relationship: alternative
+      description: Equivalent water container made with a jug instead of a bowl.
+    - item_name: Bowl of hot water
+      slug: bowl-of-hot-water
+      relationship: product
+      description: Heated form used as a tea-making intermediate.
+    - item_name: Nettle-water
+      slug: nettle-water
+      relationship: product
+      description: Combine with nettles in a bowl of hot water to brew nettle tea.
+  history:
+    - date: "2005-03-21"
+      description: An Empty option was added to the bowl of water.
+    - date: "2006-01-30"
+      description: The bowl of water received a graphical update.
+  about: "Bowl of water is a basic utility item created by using an empty bowl on a water source other than a well, or by casting Humidify on an empty bowl. It is consumed in a wide range of cooking and herblore recipes, including tea brewing, stew preparation, and several quest interactions. The Grand Exchange buy limit of 13,000 per four hours keeps it abundant for free-to-play crafters and cooks."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

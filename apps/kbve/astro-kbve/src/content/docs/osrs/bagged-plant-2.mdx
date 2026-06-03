@@ -12,9 +12,54 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 10000
-  about: "Bagged plant 2 is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: garden-supply
+    tier: mid
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: construction
+      level: 6
+      xp: 70
+      materials:
+        - item_name: Bagged plant 2
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  shops:
+    - shop_name: Garden Centre
+      location: Falador Park
+      price: 5000
+      currency: coins
+      stock: 10
+  related_items:
+    - item_name: Bagged plant 1
+      slug: bagged-plant-1
+      relationship: variant
+      description: Smaller bagged garden plant variant
+    - item_name: Bagged plant 3
+      slug: bagged-plant-3
+      relationship: variant
+      description: Larger bagged garden plant variant
+  about: "Bagged plant 2 is a decorative garden item used in player-owned houses. When planted with a filled watering can, it grows into one of four plant variants (bush, large leaf bush, small fern, or thistle) requiring 6 Construction and 1 Farming for 70 XP in each skill. Purchased from the Garden Centre in Falador Park or the Farming Guild for 5,000 coins."
+  market_strategy:
+    notes:
+      - "Stable demand from house decorators"
+      - "Garden Centre cap controls price floor"
+      - "All variant plants are visually distinct but share the same item"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

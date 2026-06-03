@@ -12,9 +12,69 @@ osrs:
   lowalch: 57
   highalch: 86
   limit: 4000
-  about: "Antidote+(1) is a members-only item in Old School RuneScape. High alchemy value: 86 coins. Grand Exchange buy limit: 4,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: Cures poison and grants immunity to poison for 9 minutes; two doses convert venom to poison, then cure it entirely.
+        duration: 540
+  recipes:
+    - skill: herblore
+      level: 68
+      xp: 38.75
+      materials:
+        - item_name: Antidote+ (unf)
+          quantity: 1
+        - item_name: Yew roots
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Antidote+(2)
+      slug: antidote-2
+      relationship: variant
+      description: Two-dose vial of the same potion
+    - item_name: Antidote+(3)
+      slug: antidote-3
+      relationship: variant
+      description: Three-dose vial of the same potion
+    - item_name: Antidote+(4)
+      slug: antidote-4
+      relationship: variant
+      description: Four-dose vial of the same potion
+    - item_name: Antidote++(4)
+      slug: antidote-4-1
+      relationship: upgrade
+      description: Stronger antipoison variant lasting 12 minutes
+  about: "Antidote+(1) is a single dose of an extra strong antipoison potion that cures existing poison and grants 9 minutes of poison immunity, three minutes longer than super antipoison. Two doses are required to cure venom by converting it to poison first. It is brewed at 68 Herblore from antidote+ (unf) and yew roots, with the four-dose batch awarding 155 experience."
+  market_strategy:
+    notes:
+      - "Single-dose stocks lag higher-dose siblings on price per dose"
+      - "Demand spikes during venomous boss content like Zulrah and Vorkath"
+  history:
+    - date: "2005-07-11"
+      description: Antidote+ added with the Tai Bwo Wannai Trio cleanup content.
+    - date: "2007-07-03"
+      description: Potion store values increased across antidote+ doses.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

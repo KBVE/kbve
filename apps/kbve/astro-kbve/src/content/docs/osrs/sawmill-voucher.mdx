@@ -12,9 +12,48 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 10000
-  about: "Sawmill voucher is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: forestry-token
+    tier: mid
+  properties:
+    release_date: "2023-10-25"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  shops:
+    - shop_name: Forestry Shop
+      location: Various forestry locations
+      price: 15
+      currency: anima-infused bark
+      stock: 10
+  related_items:
+    - item_name: Anima-infused bark
+      slug: anima-infused-bark
+      relationship: component
+      description: Currency used to purchase vouchers
+    - item_name: Plank
+      slug: plank
+      relationship: product
+      description: Produced from logs at the sawmill
+  about: "Sawmill voucher is a Forestry-themed consumable purchased from the Forestry Shop for 150 anima-infused bark (yields 10 vouchers). Each voucher redeems for one extra plank per log when used at a sawmill or with the Plank Make spell, effectively doubling output. Requires inventory space for both base and bonus planks; otherwise excess logs convert without consuming a voucher. Cannot be used through butlers."
+  market_strategy:
+    notes:
+      - "Doubles plank yield at sawmills"
+      - "Steady demand from Construction trainers"
+      - "Forestry Shop ceiling keeps price tethered to bark cost"
+  trading_tips:
+    - Stack into Construction training sessions to halve plank cost
+    - Pair with bulk oak/teak logs for fastest XP per voucher
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

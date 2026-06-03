@@ -12,9 +12,77 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
-  about: "Goblin mask is a members-only item in Old School RuneScape. High alchemy value: 1,200 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.002
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.002
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_name: Imp mask
+      slug: imp-mask
+      relationship: alternative
+      description: "Another monster cosmetic mask from the same Treasure Trails monster mask line."
+    - item_name: Ankou mask
+      slug: ankou-mask
+      relationship: alternative
+      description: "Higher-tier monster mask reward from medium clue caskets."
+  about: "Goblin mask is a members-only cosmetic head slot reward released on 12 June 2014 with the Treasure Trail Expansion. It is obtained from easy reward caskets at a roughly 1 in 1,404 drop rate and is part of the monster mask collection alongside the imp, ankou and demon masks. The mask gives no combat bonuses, weighs almost nothing and is purely a fashionscape piece, with its examine text referencing the classic RuneScape Goblin Raids event. It can be stored in a costume room treasure chest. High alchemy value: 1,200 coins. Grand Exchange buy limit: 4 per 4 hours."
+  market_strategy:
+    notes:
+      - "Pure cosmetic demand from fashionscape collectors and goblin-themed transmog setups."
+      - "Easy clue supply trickles in but daily volume is low (~50/day), creating thin price walls."
+      - "Buy limit of 4 makes the market resistant to large dumps; expect slow price recovery after spikes."
+  trading_tips:
+    - "Stockpile during easy clue droughts; resell during clue meta events."
+    - "Bundle with other goblin-themed cosmetics (goblin armour) for theme-set Discord sales."
+    - "Watch holidays / Halloween for cosmetic mask price waves."
+  history:
+    - date: "2014-06-12"
+      description: "Released as part of the Treasure Trail Expansion update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

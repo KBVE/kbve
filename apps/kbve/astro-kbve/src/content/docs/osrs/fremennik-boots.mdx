@@ -12,9 +12,76 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Fremennik boots is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: leather
+    tier: low
+  properties:
+    release_date: "2004-11-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weight: 0.34
+    requirements:
+      quest: The Fremennik Trials
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Yrsa's Shoe Store
+      location: Rellekka
+      price: 325
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Fremennik sea boots
+      slug: fremennik-sea-boots
+      relationship: variant
+      description: Upgraded Fremennik footwear from Lunar Diplomacy
+    - item_name: Fremennik helm
+      slug: fremennik-helm
+      relationship: set-piece
+      description: Matching Fremennik headwear
+    - item_name: Fremennik robe
+      slug: fremennik-robe
+      relationship: set-piece
+      description: Matching Fremennik body armour
+  about: "Fremennik boots are dark green footwear exclusive to the Fremennik people. Sold by Yrsa in Rellekka after completing The Fremennik Trials, they can also be obtained as a reward through the Managing Miscellania activity. Provides minor slash and crush defence."
+  market_strategy:
+    notes:
+      - "Steady supply from Miscellania thrall labour"
+      - "Demand limited to fashionscape and quest stragglers"
+      - "High alch sets a near floor on GE price"
+  history:
+    - date: "2004-11-02"
+      description: "Released with The Fremennik Trials quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

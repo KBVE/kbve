@@ -108,6 +108,31 @@ const DS_CACHE_KEY = 'cache:grafana:ds-id';
 const TR_STORAGE_KEY = 'grafana:timeRange';
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const PROXY_BASE = '/dashboard/grafana/proxy';
+const FETCH_TIMEOUT_MS = 15_000;
+
+const inflight = new Map<string, Promise<unknown>>();
+
+function dedupedQuery<T>(key: string, run: () => Promise<T>): Promise<T> {
+	const existing = inflight.get(key) as Promise<T> | undefined;
+	if (existing) return existing;
+	const p = run().finally(() => inflight.delete(key));
+	inflight.set(key, p);
+	return p;
+}
+
+async function fetchWithTimeout(
+	url: string,
+	init: RequestInit = {},
+	ms: number = FETCH_TIMEOUT_MS,
+): Promise<Response> {
+	const controller = new AbortController();
+	const handle = setTimeout(() => controller.abort(), ms);
+	try {
+		return await fetch(url, { ...init, signal: controller.signal });
+	} finally {
+		clearTimeout(handle);
+	}
+}
 
 export const TIME_RANGES: Record<TimeRangeKey, TimeRangeConfig> = {
 	'1h': { label: '1h', seconds: 3600, step: 60, restartWindow: '1h' },
@@ -260,14 +285,9 @@ function getCachedDashboard(
 
 function setCachedDashboard(data: CachedDashboard): void {
 	try {
-		for (const k of TIME_RANGE_KEYS) {
-			if (k !== data.timeRange) {
-				localStorage.removeItem(cacheKey(k));
-			}
-		}
 		localStorage.setItem(cacheKey(data.timeRange), JSON.stringify(data));
 	} catch {
-		/* quota exceeded */
+		/* quota */
 	}
 }
 
@@ -285,28 +305,33 @@ async function findPrometheusDatasourceId(
 		/* ignore */
 	}
 
-	try {
-		const resp = await fetch(`${PROXY_BASE}/api/datasources`, {
-			headers: { Authorization: `Bearer ${token}` },
-		});
-		if (resp.status === 403) throw new AccessRestrictedError();
-		if (!resp.ok) return null;
-		const sources: Array<{ id: number; type: string; name: string }> =
-			await resp.json();
-		const prom = sources.find(
-			(s) => s.type === 'prometheus' || s.name === 'Prometheus',
-		);
-		if (!prom) return null;
+	return dedupedQuery('ds:list', async () => {
 		try {
-			localStorage.setItem(DS_CACHE_KEY, String(prom.id));
-		} catch {
-			/* ignore */
+			const resp = await fetchWithTimeout(
+				`${PROXY_BASE}/api/datasources`,
+				{
+					headers: { Authorization: `Bearer ${token}` },
+				},
+			);
+			if (resp.status === 403) throw new AccessRestrictedError();
+			if (!resp.ok) return null;
+			const sources: Array<{ id: number; type: string; name: string }> =
+				await resp.json();
+			const prom = sources.find(
+				(s) => s.type === 'prometheus' || s.name === 'Prometheus',
+			);
+			if (!prom) return null;
+			try {
+				localStorage.setItem(DS_CACHE_KEY, String(prom.id));
+			} catch {
+				/* ignore */
+			}
+			return prom.id;
+		} catch (e) {
+			if (e instanceof AccessRestrictedError) throw e;
+			return null;
 		}
-		return prom.id;
-	} catch (e) {
-		if (e instanceof AccessRestrictedError) throw e;
-		return null;
-	}
+	});
 }
 
 async function queryInstant(
@@ -314,25 +339,27 @@ async function queryInstant(
 	dsId: number,
 	expr: string,
 ): Promise<number | null> {
-	try {
-		const resp = await fetch(
-			`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query`,
-			{
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/x-www-form-urlencoded',
+	return dedupedQuery(`instant:${dsId}:${expr}`, async () => {
+		try {
+			const resp = await fetchWithTimeout(
+				`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query`,
+				{
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${token}`,
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: `query=${encodeURIComponent(expr)}`,
 				},
-				body: `query=${encodeURIComponent(expr)}`,
-			},
-		);
-		if (!resp.ok) return null;
-		const data = await resp.json();
-		const val = data?.data?.result?.[0]?.value?.[1];
-		return val != null ? parseFloat(val) : null;
-	} catch {
-		return null;
-	}
+			);
+			if (!resp.ok) return null;
+			const data = await resp.json();
+			const val = data?.data?.result?.[0]?.value?.[1];
+			return val != null ? parseFloat(val) : null;
+		} catch {
+			return null;
+		}
+	});
 }
 
 async function queryInstantAt(
@@ -341,25 +368,27 @@ async function queryInstantAt(
 	expr: string,
 	time: number,
 ): Promise<number | null> {
-	try {
-		const resp = await fetch(
-			`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query`,
-			{
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/x-www-form-urlencoded',
+	return dedupedQuery(`instant-at:${dsId}:${time}:${expr}`, async () => {
+		try {
+			const resp = await fetchWithTimeout(
+				`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query`,
+				{
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${token}`,
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: `query=${encodeURIComponent(expr)}&time=${time}`,
 				},
-				body: `query=${encodeURIComponent(expr)}&time=${time}`,
-			},
-		);
-		if (!resp.ok) return null;
-		const data = await resp.json();
-		const val = data?.data?.result?.[0]?.value?.[1];
-		return val != null ? parseFloat(val) : null;
-	} catch {
-		return null;
-	}
+			);
+			if (!resp.ok) return null;
+			const data = await resp.json();
+			const val = data?.data?.result?.[0]?.value?.[1];
+			return val != null ? parseFloat(val) : null;
+		} catch {
+			return null;
+		}
+	});
 }
 
 async function queryInstantMulti(
@@ -367,32 +396,34 @@ async function queryInstantMulti(
 	dsId: number,
 	expr: string,
 ): Promise<InstantResult[]> {
-	try {
-		const resp = await fetch(
-			`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query`,
-			{
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/x-www-form-urlencoded',
+	return dedupedQuery(`instant-multi:${dsId}:${expr}`, async () => {
+		try {
+			const resp = await fetchWithTimeout(
+				`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query`,
+				{
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${token}`,
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: `query=${encodeURIComponent(expr)}`,
 				},
-				body: `query=${encodeURIComponent(expr)}`,
-			},
-		);
-		if (!resp.ok) return [];
-		const data = await resp.json();
-		return (data?.data?.result ?? []).map(
-			(r: {
-				metric: Record<string, string>;
-				value: [number, string];
-			}) => ({
-				metric: r.metric,
-				value: r.value?.[1] != null ? parseFloat(r.value[1]) : null,
-			}),
-		);
-	} catch {
-		return [];
-	}
+			);
+			if (!resp.ok) return [];
+			const data = await resp.json();
+			return (data?.data?.result ?? []).map(
+				(r: {
+					metric: Record<string, string>;
+					value: [number, string];
+				}) => ({
+					metric: r.metric,
+					value: r.value?.[1] != null ? parseFloat(r.value[1]) : null,
+				}),
+			);
+		} catch {
+			return [];
+		}
+	});
 }
 
 async function queryRange(
@@ -403,24 +434,29 @@ async function queryRange(
 	end: number,
 	step: number,
 ): Promise<Array<[number, string]>> {
-	try {
-		const resp = await fetch(
-			`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query_range`,
-			{
-				method: 'POST',
-				headers: {
-					Authorization: `Bearer ${token}`,
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: `query=${encodeURIComponent(expr)}&start=${start}&end=${end}&step=${step}`,
-			},
-		);
-		if (!resp.ok) return [];
-		const data = await resp.json();
-		return data?.data?.result?.[0]?.values ?? [];
-	} catch {
-		return [];
-	}
+	return dedupedQuery(
+		`range:${dsId}:${start}:${end}:${step}:${expr}`,
+		async () => {
+			try {
+				const resp = await fetchWithTimeout(
+					`${PROXY_BASE}/api/datasources/proxy/${dsId}/api/v1/query_range`,
+					{
+						method: 'POST',
+						headers: {
+							Authorization: `Bearer ${token}`,
+							'Content-Type': 'application/x-www-form-urlencoded',
+						},
+						body: `query=${encodeURIComponent(expr)}&start=${start}&end=${end}&step=${step}`,
+					},
+				);
+				if (!resp.ok) return [];
+				const data = await resp.json();
+				return data?.data?.result?.[0]?.values ?? [];
+			} catch {
+				return [];
+			}
+		},
+	);
 }
 
 // ---------------------------------------------------------------------------
@@ -864,6 +900,7 @@ class GrafanaService {
 	// --- Actions ---
 
 	public setTimeRange(tr: TimeRangeKey): void {
+		if (tr === this.$timeRange.get()) return;
 		this.$timeRange.set(tr);
 		this.$expandedCard.set(null);
 		try {
@@ -873,7 +910,7 @@ class GrafanaService {
 		}
 		const token = this.$accessToken.get();
 		const uid = this.$userId.get();
-		if (token && uid) {
+		if (token && uid && !this.$refreshing.get()) {
 			this.fetchMetrics(token, uid, tr, true);
 		}
 	}
@@ -1224,7 +1261,7 @@ export async function fetchAlerts(
 		if (cached) return cached;
 	}
 
-	const resp = await fetch(
+	const resp = await fetchWithTimeout(
 		`${PROXY_BASE}/api/prometheus/grafana/api/v1/alerts`,
 		{ headers: { Authorization: `Bearer ${token}` } },
 	);

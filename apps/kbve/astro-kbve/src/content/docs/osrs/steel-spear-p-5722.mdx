@@ -1,6 +1,6 @@
 ---
 title: Steel spear(p++) | OSRS Price Data
-description: "Steel spear(p++): A poisoned steel tipped spear.. High alch: 195 GP, GE limit: 125."
+description: "Steel spear(p++) is a members two-handed melee weapon requiring 5 Attack. High alch: 195 GP, GE limit: 125."
 osrs:
   id: 5722
   name: Steel spear(p++)
@@ -12,9 +12,82 @@ osrs:
   lowalch: 130
   highalch: 195
   limit: 125
-  about: "Steel spear(p++) is a members-only item in Old School RuneScape. High alchemy value: 195 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: steel
+    tier: low
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    weight: 2.267
+    requirements:
+      attack: 5
+    attack_bonus:
+      stab: 12
+      slash: 12
+      crush: 12
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 12
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Steel spear
+      slug: steel-spear
+      relationship: variant
+      description: Unpoisoned base version
+    - item_name: Steel spear(p)
+      slug: steel-spear-p-1241
+      relationship: variant
+      description: Standard poison variant
+    - item_name: Steel spear(p+)
+      slug: steel-spear-p-5716
+      relationship: variant
+      description: Poison+ variant
+    - item_name: Mithril spear(p++)
+      slug: mithril-spear-p
+      relationship: upgrade
+      description: Higher-tier poison++ spear
+  about: "Steel spear(p++) is a steel tipped spear coated in the strongest poison++. It is a two-handed stab weapon usable from the weapon slot, requiring 5 Attack to wield, and benefits from spear-specific mechanics such as bypassing the Dagannoth Supreme's defensive immunity from certain attack styles. The poison++ coating delivers stronger damage-over-time ticks than the standard poison or poison+ variants. Its 4-tick attack speed (post-2021 rebalance) makes it competitive among low-tier spear options for niche slayer and PvP tasks."
+  market_strategy:
+    notes:
+      - "Niche poison weapon for slayer immunities"
+      - "Buy limit 125 caps bulk flips"
+      - "Demand spikes during dagannoth task chains"
+      - "Poison++ tier commands premium over base poison"
+  trading_tips:
+    - Buy after price dips from PvP nerfs
+    - Watch slayer rework chatter for niche demand bumps
+  history:
+    - date: "2003-04-14"
+      description: Released with the original spear weapon set.
+    - date: "2021-04-21"
+      description: Attack speed improved from 5 ticks to 4 ticks.
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

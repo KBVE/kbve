@@ -1,6 +1,6 @@
 ---
 title: Super fishing potion(1) | OSRS Price Data
-description: "Super fishing potion(1): 1 dose of super fishing potion.. High alch: 24 GP."
+description: "Super fishing potion(1): 1 dose of super fishing potion. High alch: 24 GP."
 osrs:
   id: 31611
   name: Super fishing potion(1)
@@ -12,9 +12,72 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: null
-  about: "Super fishing potion(1) is a members-only item in Old School RuneScape. High alchemy value: 24 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 62
+      xp: 140.5
+      materials:
+        - item_name: Pillar potion (unf)
+          quantity: 1
+        - item_name: Haddock eye
+          quantity: 1
+      tools:
+        - Vial
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Boosts Fishing level by 6"
+        duration: 0
+  related_items:
+    - item_name: Super fishing potion(4)
+      slug: super-fishing-potion-4
+      relationship: variant
+      description: Full 4-dose version of the same potion
+    - item_name: Super fishing potion(3)
+      slug: super-fishing-potion-3
+      relationship: variant
+      description: 3-dose version of the same potion
+    - item_name: Super fishing potion(2)
+      slug: super-fishing-potion-2
+      relationship: variant
+      description: 2-dose version of the same potion
+    - item_name: Fishing potion(4)
+      slug: fishing-potion-4
+      relationship: downgrade
+      description: Standard +3 Fishing boost potion
+  about: "Super fishing potion(1) is the single-dose form of the Super fishing potion, a +6 Fishing boost made at 62 Herblore for 140.5 XP from a Pillar potion (unf) and a Haddock eye. Released alongside the November 2025 Herblore expansion, the potion serves Fishing training, Tempoross runs and master-clue Fishing steps. Note that the super variant cannot currently be stored in a tackle box, which is flagged as a bug on the wiki."
+  market_strategy:
+    notes:
+      - "Newly released potion; price volatility expected during the first months"
+      - "Demand from Tempoross runners and high-level Fishing training"
+      - "Supply depends on Haddock eye availability"
+  trading_tips:
+    - Track Haddock eye price to estimate fair production cost
+    - Decant single doses into 4-doses for higher per-dose value
+    - Expect spreads to tighten as the post-release hype settles
+  history:
+    - date: "2025-11-19"
+      description: "Added to the game with the Fishing/Herblore expansion update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

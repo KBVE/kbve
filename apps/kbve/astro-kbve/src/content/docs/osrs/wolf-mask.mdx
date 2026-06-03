@@ -1,6 +1,6 @@
 ---
 title: Wolf mask | OSRS Price Data
-description: "Wolf mask: Howwwallll!. High alch: 1,440 GP, GE limit: 4."
+description: "Wolf mask: Howwwallll! High alch: 1,440 GP, GE limit: 4."
 osrs:
   id: 23407
   name: Wolf mask
@@ -12,9 +12,78 @@ osrs:
   lowalch: 960
   highalch: 1440
   limit: 4
-  about: "Wolf mask is a members-only item in Old School RuneScape. High alchemy value: 1,440 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2019-04-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 2.267
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 1/1133
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - item_name: Cat mask
+      slug: cat-mask
+      relationship: variant
+      description: Another animal mask from medium clue rewards
+    - item_name: Penguin mask
+      slug: penguin-mask
+      relationship: variant
+      description: Another animal mask from clue rewards
+    - item_name: Unicorn mask
+      slug: unicorn-mask
+      relationship: variant
+      description: Another animal mask from clue rewards
+  about: "Wolf mask is a members cosmetic head slot item rewarded from medium reward caskets with a 1/1,133 rarity. It provides no combat stats but counts as warm clothing for the Wintertodt minigame and can be stored in a costume room treasure chest."
+  market_strategy:
+    notes:
+      - "Clue-only supply with 1/1,133 rarity keeps prices firm"
+      - "Low buy limit causes price spikes during cosmetic trends"
+      - "Doubles as warm clothing for Wintertodt utility play"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

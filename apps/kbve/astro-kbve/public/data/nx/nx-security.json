@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-02T09:39:37Z",
+  "generated_at": "2026-06-03T09:48:38Z",
   "summary": {
     "critical": 3,
     "high": 44,
@@ -458,18 +458,18 @@
       },
       "advisories": [
         {
-          "id": "RUSTSEC-2026-0118",
-          "title": "NSEC3 closest-encloser proof validation enters unbounded loop on cross-zone responses",
-          "severity": "medium",
-          "package": "hickory-proto",
-          "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465"
-        },
-        {
           "id": "RUSTSEC-2026-0119",
           "title": "CPU exhaustion during message encoding due to O(n\u00b2) name compression",
           "severity": "medium",
           "package": "hickory-proto",
           "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp"
+        },
+        {
+          "id": "RUSTSEC-2026-0118",
+          "title": "NSEC3 closest-encloser proof validation enters unbounded loop on cross-zone responses",
+          "severity": "medium",
+          "package": "hickory-proto",
+          "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465"
         },
         {
           "id": "RUSTSEC-2023-0071",

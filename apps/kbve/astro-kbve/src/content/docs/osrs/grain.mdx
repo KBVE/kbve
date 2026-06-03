@@ -12,9 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Grain is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: produce
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.6
+    options:
+      - Drop
+    alchable: true
+  drop_table:
+    sources:
+      - source: Goblin
+        quantity: "1"
+        rarity: Uncommon
+      - source: Imp
+        quantity: "1"
+        rarity: Uncommon
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Grain
+          quantity: 1
+        - item_name: Pot
+          quantity: 1
+      tools:
+        - Windmill
+      output_quantity: 1
+  related_items:
+    - item_name: Pot of flour
+      slug: pot-of-flour
+      relationship: product
+      description: Made by milling grain at a windmill.
+    - item_name: Pot
+      slug: pot
+      relationship: component
+      description: Required to catch flour from the windmill hopper.
+    - item_name: Barley
+      slug: barley
+      relationship: alternative
+      description: Alternative cereal harvested from members fields.
+  about: "Grain is harvested by picking it from wheat fields scattered around Gielinor, including the prominent Draynor Village, Lumbridge, and east of the Champions' Guild fields in free-to-play. Players mill grain at a windmill while holding an empty pot to produce a Pot of flour, a staple Cooking ingredient. Grain is also required in quantities of 10 for the Eadgar's Ruse quest. Released 4 January 2001."
+  market_strategy:
+    notes:
+      - "Free supply from wheat fields keeps GE prices around the alch floor."
+      - "Bulk demand spikes during cooking events and Mahogany Homes baking surges."
+  trading_tips:
+    - Skillers picking wheat fields can flip surplus grain for steady low-volume gp.
+  history:
+    - date: "2001-01-04"
+      description: Released with the original RuneScape Cooking skill.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

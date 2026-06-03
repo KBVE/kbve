@@ -12,9 +12,60 @@ osrs:
   lowalch: 98
   highalch: 147
   limit: null
-  about: "Headless atlatl dart is a members-only item in Old School RuneScape. High alchemy value: 147 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: fletching-component
+    tier: mid
+  properties:
+    release_date: "2025-07-23"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: fletching
+      level: 74
+      xp: 20
+      materials:
+        - item_name: Atlatl dart shaft
+          quantity: 1
+        - item_name: Feather
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Atlatl dart
+      slug: atlatl-dart
+      relationship: product
+      description: Finished dart created by adding a dart tip
+    - item_name: Atlatl dart shaft
+      slug: atlatl-dart-shaft
+      relationship: component
+      description: Wooden shaft fletched from logs to start the chain
+    - item_name: Atlatl dart tip
+      slug: atlatl-dart-tip
+      relationship: component
+      description: Tip chiselled from a broken antler that completes the finished dart
+    - item_name: Broken antler
+      slug: broken-antler
+      relationship: component
+      description: Source of atlatl dart tips when used with a chisel
+  about: "Headless atlatl dart is an intermediate Fletching component made by attaching a feather to an atlatl dart shaft at Fletching level 74 for 20 XP. Adding an atlatl dart tip produces the finished Atlatl dart used with the Twin Fang Atlatl ranged weapon."
+  market_strategy:
+    notes:
+      - "Profit ties to the spread between shaft + feather inputs and the finished dart"
+      - "Fletcher supply scales with Sleeper Cave and broken antler drop rates"
+  history:
+    - date: "2025-07-23"
+      description: Released alongside the Twin Fang Atlatl and the atlatl dart fletching chain.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
