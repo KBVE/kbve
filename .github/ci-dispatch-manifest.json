@@ -3,7 +3,7 @@
 		{
 			"key": "agones_factorio",
 			"app_name": "agones-factorio",
-			"version": "0.0.12",
+			"version": "0.0.13",
 			"version_toml": "apps/agones/factorio/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-factorio.mdx",
 			"source_path": "apps/agones/factorio",
@@ -21,6 +21,10 @@
 					{
 						"name": "kbve-spider",
 						"source_path": "apps/factorio/mods/kbve-spider"
+					},
+					{
+						"name": "kbve-orc",
+						"source_path": "apps/factorio/mods/kbve-orc"
 					}
 				]
 			}
@@ -28,7 +32,7 @@
 		{
 			"key": "agones_factorio_relay",
 			"app_name": "agones-factorio-relay",
-			"version": "0.0.6",
+			"version": "0.0.7",
 			"version_toml": "apps/agones/factorio/relay/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-factorio-relay.mdx",
 			"source_path": "apps/agones/factorio/relay",
@@ -134,7 +138,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.17",
+			"version": "0.1.18",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -282,7 +286,7 @@
 		{
 			"key": "kubectl",
 			"app_name": "kbve-kubectl",
-			"version": "0.1.2",
+			"version": "0.1.3",
 			"version_toml": "apps/vm/kubectl/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kubectl.mdx",
 			"version_target": "apps/vm/kubectl/Cargo.toml",

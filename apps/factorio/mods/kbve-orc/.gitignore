@@ -1,0 +1,5 @@
+dist/
+*.png.opt
+*.original.md
+__pycache__/
+.DS_Store
