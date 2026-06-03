@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Decluster pass: assigns every unit a unique intra-hex slot so two units targeting the same hex don't stack on the same pixel. Build-bucket job partitions units by TargetHex into a NativeParallelMultiHashMap, then the assign job walks each unit's bucket and ranks by Entity.Index so the N-th smallest-index unit on a hex lands at slot N. Slot offset comes from a 19-point table (1 centre + 6-point ring at r=0.06 + 12-point ring at r=0.12) — keeps everyone inside the 0.25 hex radius. Missing HexSlotOffset components are added via ECB on first sight so spawn code doesn't have to remember to seed it. Runs in MovementSystemGroup before UnitMovementSystem so the target used for locomotion already carries the slot offset.</summary>
+    /// <summary>Decluster pass: assigns every unit a unique intra-hex slot so two units targeting the same hex don't stack on the same pixel. Build-bucket job partitions units by TargetHex into a NativeParallelMultiHashMap, then the assign job walks each unit's bucket and ranks by Entity.Index so the N-th smallest-index unit on a hex lands at slot N. Slot offset uses Vogel's phyllotaxis (golden-angle spiral): radius = c·sqrt(rank), angle = rank·goldenAngle. Every rank lands at a distinct (x, y) so 20+ units on one hex no longer wrap back onto the centre, and density stays roughly uniform across the disc. Capped at the hex inner radius so units stay inside the tile. Missing HexSlotOffset components are added via ECB on first sight so spawn code doesn't have to remember to seed it. Runs in MovementSystemGroup before UnitMovementSystem so the target used for locomotion already carries the slot offset.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(MovementSystemGroup))]
     [UpdateBefore(typeof(UnitMovementSystem))]
@@ -100,18 +100,16 @@ namespace RareIcon
             offset.Value = SlotOffset(rank);
         }
 
+        const float GoldenAngle    = 2.39996323f;
+        const float SpiralScale    = 0.07f;
+        const float HexInnerRadius = 0.22f;
+
         static float2 SlotOffset(int rank)
         {
-            int slot = rank % 19;
-            if (slot == 0) return float2.zero;
-            if (slot <= 6)
-            {
-                float a = (slot - 1) * (math.PI / 3f);
-                return new float2(math.cos(a), math.sin(a)) * 0.08f;
-            }
-            int outerIdx = slot - 7;
-            float ao = outerIdx * (math.PI / 6f);
-            return new float2(math.cos(ao), math.sin(ao)) * 0.16f;
+            if (rank <= 0) return float2.zero;
+            float r = math.min(SpiralScale * math.sqrt(rank), HexInnerRadius);
+            float a = rank * GoldenAngle;
+            return new float2(math.cos(a), math.sin(a)) * r;
         }
     }
 }
