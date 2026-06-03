@@ -57,7 +57,8 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 DO $$ BEGIN
-    CREATE DOMAIN mc.build_apply_state AS SMALLINT CHECK (VALUE BETWEEN 0 AND 3);
+    -- 0 queued, 1 applied, 2 failed, 3 claimed, 4 cancelled
+    CREATE DOMAIN mc.build_apply_state AS SMALLINT CHECK (VALUE BETWEEN 0 AND 4);
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 
@@ -296,10 +297,20 @@ CREATE TABLE IF NOT EXISTS mc.lot_build_log (
     CONSTRAINT mc_lot_build_log_snapshot_state_chk CHECK (
         lot_state_before IS NULL OR lot_state_before IN (1, 2)
     ),
+    CONSTRAINT mc_lot_build_log_snapshot_built_schematic_chk CHECK (
+        lot_state_before IS NULL
+        OR lot_state_before <> 2
+        OR schematic_id_before IS NOT NULL
+    ),
     CONSTRAINT mc_lot_build_log_demolish_snapshot_chk CHECK (
         action_kind <> 1
         OR lot_state_before IS NULL
         OR lot_state_before = 2
+    ),
+    CONSTRAINT mc_lot_build_log_demolish_snapshot_schematic_chk CHECK (
+        action_kind <> 1
+        OR lot_state_before IS NULL
+        OR schematic_id_before IS NOT NULL
     ),
     CONSTRAINT mc_lot_build_log_claimed_consistency_chk
         CHECK (

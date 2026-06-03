@@ -21,12 +21,20 @@ REVOKE ALL ON SCHEMA mc FROM PUBLIC, anon, authenticated;
 
 -- State domains: centralize enum bounds so RPCs/CHECKs don't drift
 -- from each other when ranges expand. Storage stays SMALLINT.
-CREATE DOMAIN mc.lot_state AS SMALLINT
-    CHECK (VALUE BETWEEN 0 AND 4);
-CREATE DOMAIN mc.build_action_kind AS SMALLINT
-    CHECK (VALUE IN (0, 1));
-CREATE DOMAIN mc.build_apply_state AS SMALLINT
-    CHECK (VALUE BETWEEN 0 AND 3);
+-- DO-block guards make local-dev partial replays safe.
+DO $$ BEGIN
+    CREATE DOMAIN mc.lot_state AS SMALLINT CHECK (VALUE BETWEEN 0 AND 4);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+    CREATE DOMAIN mc.build_action_kind AS SMALLINT CHECK (VALUE IN (0, 1));
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+    -- 0 queued, 1 applied, 2 failed, 3 claimed, 4 cancelled
+    CREATE DOMAIN mc.build_apply_state AS SMALLINT CHECK (VALUE BETWEEN 0 AND 4);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 ALTER DOMAIN mc.lot_state OWNER TO postgres;
 ALTER DOMAIN mc.build_action_kind OWNER TO postgres;
 ALTER DOMAIN mc.build_apply_state OWNER TO postgres;
@@ -327,7 +335,7 @@ CREATE TABLE mc.lot_build_log (
     wallet_credits_ledger_id BIGINT,
     wallet_khash_ledger_id   BIGINT,
     idempotency_key UUID NOT NULL,
-    -- 0 = queued, 1 = applied, 2 = failed, 3 = claimed (worker holding it)
+    -- 0=queued, 1=applied, 2=failed, 3=claimed, 4=cancelled
     apply_state     mc.build_apply_state NOT NULL DEFAULT 0,
     apply_error     TEXT,
     claimed_at      TIMESTAMPTZ,
@@ -370,11 +378,26 @@ CREATE TABLE mc.lot_build_log (
     CONSTRAINT mc_lot_build_log_snapshot_state_chk CHECK (
         lot_state_before IS NULL OR lot_state_before IN (1, 2)
     ),
+    -- Built snapshot (state=2) must carry the schematic; otherwise
+    -- failure recovery would try to restore state=2 with NULL schematic
+    -- and trip mc_lot_built_has_schematic_chk on mc.lot.
+    CONSTRAINT mc_lot_build_log_snapshot_built_schematic_chk CHECK (
+        lot_state_before IS NULL
+        OR lot_state_before <> 2
+        OR schematic_id_before IS NOT NULL
+    ),
     -- Demolish snapshots must be built (or legacy NULL).
     CONSTRAINT mc_lot_build_log_demolish_snapshot_chk CHECK (
         action_kind <> 1
         OR lot_state_before IS NULL
         OR lot_state_before = 2
+    ),
+    -- Demolish targets a built lot, so the snapshot schematic is
+    -- required (mirror of the snapshot_built_schematic invariant).
+    CONSTRAINT mc_lot_build_log_demolish_snapshot_schematic_chk CHECK (
+        action_kind <> 1
+        OR lot_state_before IS NULL
+        OR schematic_id_before IS NOT NULL
     ),
     -- Claimed state must carry full worker identity; non-claimed states
     -- must not.
@@ -445,6 +468,12 @@ ALTER TABLE mc.lot SET (
 );
 
 -- Extended stats for correlated columns (state distribution skewed).
+-- Inert until ANALYZE runs. Seed/import migrations should follow up
+-- with:
+--   ANALYZE mc.lot;
+--   ANALYZE mc.lot_build_log;
+--   ANALYZE mc.schematic;
+-- so the planner sees the new column dependencies before traffic hits.
 CREATE STATISTICS st_mc_lot_world_state
     ON world, state
     FROM mc.lot;
@@ -543,7 +572,7 @@ AS $$
            l.anchor_y,
            l.owner_user_id,
            l.current_schematic_id,
-           l.state,
+           l.state::SMALLINT,
            l.price_credits,
            l.price_khash,
            l.created_at,
@@ -626,7 +655,7 @@ AS $$
            l.block_z_min, l.block_z_max,
            l.chunk_area, l.anchor_y,
            l.owner_user_id, l.current_schematic_id,
-           l.state, l.price_credits, l.price_khash,
+           l.state::SMALLINT, l.price_credits, l.price_khash,
            l.created_at, l.updated_at
     FROM mc.lot l
     WHERE l.lot_id = p_lot_id;
@@ -754,7 +783,7 @@ BEGIN
                   b.action_kind, b.schematic_id, b.queued_at
     )
     -- Denormalize lot + schematic so workers skip follow-up reads.
-    SELECT c.build_id, c.lot_id, c.actor_user_id, c.action_kind,
+    SELECT c.build_id, c.lot_id, c.actor_user_id, c.action_kind::SMALLINT,
            c.schematic_id, c.queued_at,
            l.world, l.chunk_x_min, l.chunk_x_max,
            l.chunk_z_min, l.chunk_z_max,
@@ -1541,7 +1570,7 @@ AS $$
            l.owner_user_id,
            (l.owner_user_id IS NOT NULL AND l.owner_user_id = me.uid) AS is_owned_by_me,
            l.current_schematic_id,
-           l.state,
+           l.state::SMALLINT,
            l.price_credits,
            l.price_khash
     FROM mc.lot l, me
@@ -2026,6 +2055,9 @@ BEGIN
         RAISE EXCEPTION 'build_id cannot be empty' USING ERRCODE = '22004';
     END IF;
 
+    -- apply_state = 2 (failed) only — cancelled (4) is terminal by
+    -- admin action and cannot be retried without re-queueing through
+    -- the normal RPC.
     SELECT lot_id, action_kind, schematic_id, schematic_id_before
       INTO v_lot_id, v_action_kind, v_schematic_id, v_schematic_id_before
       FROM mc.lot_build_log
@@ -2145,7 +2177,7 @@ SECURITY DEFINER
 SET search_path = ''
 ROWS 100
 AS $$
-    SELECT b.build_id, b.lot_id, b.actor_user_id, b.action_kind,
+    SELECT b.build_id, b.lot_id, b.actor_user_id, b.action_kind::SMALLINT,
            b.schematic_id, b.apply_error, b.failed_at, b.attempt_count
     FROM mc.lot_build_log b
     WHERE b.apply_state = 2
@@ -2237,22 +2269,30 @@ BEGIN
         RAISE EXCEPTION 'user_id cannot be null' USING ERRCODE = '22004';
     END IF;
 
+    -- Job-driven guard: drifted system could have apply_state IN (0,3)
+    -- rows even when no lot is in state (3,4). Check the build_log
+    -- side directly so the guard is the source of truth.
     IF NOT p_force AND EXISTS (
-        SELECT 1 FROM mc.lot
-         WHERE owner_user_id = p_user_id AND state IN (3, 4)
+        SELECT 1
+          FROM mc.lot l
+          JOIN mc.lot_build_log b ON b.lot_id = l.lot_id
+         WHERE l.owner_user_id = p_user_id
+           AND b.apply_state IN (0, 3)
     ) THEN
-        RAISE EXCEPTION 'user % has lots with active jobs; pass p_force = TRUE to override',
+        RAISE EXCEPTION 'user % has active build jobs; pass p_force = TRUE to override',
             p_user_id USING ERRCODE = '22023';
     END IF;
 
     -- p_force: cancel any active build/demolish jobs first so worker
     -- ACKs against the now-vacant lots can't violate
-    -- mc_lot_owner_state_chk or leave stuck claimed rows.
+    -- mc_lot_owner_state_chk or leave stuck claimed rows. Cancelled
+    -- (4) is distinct from failed (2) so retry/listing/dashboards can
+    -- tell the difference.
     IF p_force THEN
         UPDATE mc.lot_build_log b
-           SET apply_state = 2,
+           SET apply_state = 4,
                apply_error = 'cancelled by forced user lot release',
-               failed_at = clock_timestamp(),
+               failed_at = NULL,
                claimed_at = NULL,
                claimed_by = NULL
           FROM mc.lot l
@@ -2626,7 +2666,7 @@ BEGIN
            l.block_z_min, l.block_z_max,
            l.chunk_area,
            l.anchor_y,
-           l.state,
+           l.state::SMALLINT,
            l.current_schematic_id,
            l.price_credits,
            l.price_khash
@@ -2718,7 +2758,7 @@ BEGIN
            l.block_x_min, l.block_x_max,
            l.block_z_min, l.block_z_max,
            l.chunk_area, l.anchor_y,
-           l.state, l.current_schematic_id,
+           l.state::SMALLINT, l.current_schematic_id,
            l.price_credits, l.price_khash
     FROM mc.lot l
     WHERE l.owner_user_id = v_uid
@@ -2911,7 +2951,7 @@ BEGIN
            l.chunk_area, l.anchor_y,
            (l.owner_user_id IS NOT NULL) AS is_owned,
            (l.owner_user_id IS NOT NULL AND l.owner_user_id = v_uid) AS is_owned_by_me,
-           l.current_schematic_id, l.state,
+           l.current_schematic_id, l.state::SMALLINT,
            l.price_credits, l.price_khash
     FROM mc.lot l
     WHERE l.world = p_world
