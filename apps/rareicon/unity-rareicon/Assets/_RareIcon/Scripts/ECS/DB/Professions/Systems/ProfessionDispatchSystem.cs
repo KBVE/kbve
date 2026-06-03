@@ -9,11 +9,10 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Picks the highest-priority profession with nearby work for each Player unit; writes ProfessionIntent. If no scored offer wins, assigns ProfessionKind.Default and rolls a Wander MovementGoal so units never sit idle. Reads the dispatch context + TaskOffer pool from ProfessionOffersSingleton (rebuilt on cadence by ProfessionOfferBuildSystem). Emits ProfessionChangedMessage via ProfessionEventSink on any kind/target change — coalesced + published by ProfessionMessagePipeBridgeSystem. Per-unit scoring runs as a [BurstCompile] IJobEntity parallel job — the main thread builds the snapshot inputs (occupancy / activePerKind / reservedPerKind / WriteBuffer capacity), schedules ScheduleParallel, and publishes the handle through ProfessionsDBSingleton.PipelineHandle so downstream consumers chain on it instead of forcing a sync.</summary>
+    /// <summary>Third phase of the split dispatcher pipeline (#11 from #11716) — runs after ProfessionTaskReconcileSystem and ProfessionPreemptSystem. Only acts on units left with an empty task queue, no controlled-unit override, and a doFullDispatch tick: scores TaskOffers against per-unit priorities, picks a best, writes ProfessionIntent + task head, and emits Assigned / Retargeted / Fallback events. Units that Reconcile committed (Active head) or Preempt re-targeted are skipped via the tasks.Length check — no chunk-level filtering needed. Pre-pass jobs (Clear / BuildActive / BuildReserved / Reduce) populate the singleton accumulators on worker threads before the scoring job starts.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
-    [UpdateAfter(typeof(ReliefSystem))]
-    [UpdateAfter(typeof(ProfessionsDomainSystem))]
+    [UpdateAfter(typeof(ProfessionPreemptSystem))]
     [UpdateAfter(typeof(ProfessionOfferBuildSystem))]
     [UpdateAfter(typeof(CombatThreatScanSystem))]
     public partial struct ProfessionDispatchSystem : ISystem
@@ -145,18 +144,8 @@ namespace RareIcon
                     JobHandle.CombineDependencies(activeHandle, reservedHandle));
             }
 
-            // Pre-allocate WriteBuffer headroom so AddNoResize is safe under
-            // ParallelWriter contention. Worst case = one event per unit per
-            // dispatch tick (Relief / Manual / Preempt / Retarget / Fallback
-            // are exclusive paths). The query count is an upper bound; we
-            // never trim, the bridge consumes the buffer next frame.
-            var unitQuery = SystemAPI.QueryBuilder()
-                .WithAll<ProfessionPriorities, ReliefIntent, ProfessionIntent, UnitMovement, LocalTransform, MovementGoal, TaskMemory>()
-                .Build();
-            int unitCount = unitQuery.CalculateEntityCount();
-            int requiredCapacity = writeBuffer.Length + unitCount;
-            if (writeBuffer.Capacity < requiredCapacity)
-                writeBuffer.SetCapacity(math.max(requiredCapacity, writeBuffer.Capacity * 2));
+            // ProfessionTaskReconcileSystem pre-grows WriteBuffer for the
+            // whole pipeline this tick, so no capacity grow needed here.
 
             var job = new DispatchJob
             {
@@ -339,92 +328,15 @@ namespace RareIcon
                 ref MovementGoal goal,
                 DynamicBuffer<TaskMemory> tasks)
             {
-                if (reliefIntent.Kind != ReliefKind.None)
-                {
-                    if (tasks.Length > 0)
-                    {
-                        var head = tasks[0];
-                        if (head.State == TaskState.Active)
-                        {
-                            head.State = TaskState.Pending;
-                            tasks[0]   = head;
-                        }
-                    }
-                    var prev = intent;
-                    if (prev.Kind != ProfessionKind.None)
-                    {
-                        intent = default;
-                        ProfessionEventSink.Add(ref Events, entity, prev.Kind, ProfessionKind.None, default, Entity.Null, NowTick, ProfessionChangeReason.ReliefOverride);
-                    }
-                    return;
-                }
-
-                if (ControlledLookup.HasComponent(entity))
-                {
-                    if (tasks.Length > 0) tasks.Clear();
-                    var prev = intent;
-                    if (prev.Kind != ProfessionKind.None)
-                    {
-                        intent = default;
-                        ProfessionEventSink.Add(ref Events, entity, prev.Kind, ProfessionKind.None, default, Entity.Null, NowTick, ProfessionChangeReason.ManualOverride);
-                    }
-                    return;
-                }
-
-                while (tasks.Length > 0 &&
-                       (tasks[0].State == TaskState.Invalidated ||
-                        tasks[0].State == TaskState.Completed))
-                {
-                    tasks.RemoveAt(0);
-                }
-
-                if (tasks.Length > 0)
-                {
-                    var head = tasks[0];
-                    if (head.State == TaskState.Pending)
-                    {
-                        head.State = TaskState.Active;
-                        tasks[0]   = head;
-                        intent = new ProfessionIntent
-                        {
-                            Kind         = head.Kind,
-                            TargetHex    = head.TargetHex,
-                            TargetEntity = head.TargetEntity,
-                        };
-                        return;
-                    }
-                    if (AnyHostile
-                        && head.State == TaskState.Active
-                        && head.Kind != ProfessionKind.Guard
-                        && priorities.Guard >= GuardPreemptThreshold
-                        && TryFindClosestThreat(Threats, transform.Position,
-                                                out var preemptHex, out var preemptHostile))
-                    {
-                        tasks.Clear();
-                        var preemptedIntent = intent;
-                        intent = new ProfessionIntent
-                        {
-                            Kind         = ProfessionKind.Guard,
-                            TargetHex    = preemptHex,
-                            TargetEntity = preemptHostile,
-                        };
-                        tasks.Add(new TaskMemory
-                        {
-                            Kind         = ProfessionKind.Guard,
-                            TargetHex    = preemptHex,
-                            TargetEntity = preemptHostile,
-                            State        = TaskState.Active,
-                            IssuedTick   = NowTick,
-                        });
-                        if (preemptedIntent.Kind != ProfessionKind.Guard)
-                            ProfessionEventSink.Add(ref Events, entity, preemptedIntent.Kind, ProfessionKind.Guard, preemptHex, preemptHostile, NowTick, ProfessionChangeReason.Preempted);
-                        return;
-                    }
-                    if (head.State == TaskState.Active)
-                        return;
-                }
-
-                if (!DoFullDispatch) return;
+                // Reconcile + Preempt ran first this tick. If they left
+                // anything on the queue (Pending under relief, Active
+                // committed, or Guard from preempt), or if the unit is
+                // under relief / manual control, skip — only a healthy
+                // empty queue means this unit needs fresh scoring.
+                if (reliefIntent.Kind != ReliefKind.None)   return;
+                if (tasks.Length > 0)                       return;
+                if (ControlledLookup.HasComponent(entity))  return;
+                if (!DoFullDispatch)                        return;
 
                 var p = priorities;
                 var currentHex = movement.CurrentHex;
