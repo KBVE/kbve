@@ -213,8 +213,6 @@ CREATE INDEX IF NOT EXISTS idx_mc_lot_transitional_repair
     ON mc.lot (lot_id)
     INCLUDE (state, current_schematic_id)
     WHERE state IN (3, 4);
-CREATE INDEX IF NOT EXISTS idx_mc_lot_world_chunk_ranges_gist
-    ON mc.lot USING gist (world, chunk_x_range, chunk_z_range);
 CREATE INDEX IF NOT EXISTS idx_mc_lot_current_schematic
     ON mc.lot (current_schematic_id) WHERE current_schematic_id IS NOT NULL;
 

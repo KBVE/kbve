@@ -238,9 +238,9 @@ CREATE INDEX idx_mc_lot_transitional_repair
     ON mc.lot (lot_id)
     INCLUDE (state, current_schematic_id)
     WHERE state IN (3, 4);
--- Viewport range scan via GIST on the int4range columns directly.
-CREATE INDEX idx_mc_lot_world_chunk_ranges_gist
-    ON mc.lot USING gist (world, chunk_x_range, chunk_z_range);
+-- Viewport && reads ride mc_lot_no_overlap_excl (gist on world, chunk_x_range,
+-- chunk_z_range with the same WITH operators). A second explicit gist on the
+-- same columns would double write-amp on lot create without changing plans.
 
 ALTER TABLE mc.lot OWNER TO postgres;
 ALTER TABLE mc.lot ENABLE ROW LEVEL SECURITY;
@@ -500,10 +500,10 @@ ALTER TABLE mc.lot_build_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mc.lot_build_log FORCE ROW LEVEL SECURITY;
 
 COMMENT ON TABLE mc.lot_build_log IS
-    'Audit + work queue. action_kind: 0=build, 1=demolish. apply_state: 0=queued, 1=applied, 2=failed, 3=claimed. RPC-only — RLS forced.';
+    'Audit + work queue. action_kind: 0=build, 1=demolish. apply_state: 0=queued, 1=applied, 2=failed, 3=claimed, 4=cancelled. RPC-only — RLS forced.';
 COMMENT ON COLUMN mc.lot_build_log.action_kind IS '0=build, 1=demolish';
 COMMENT ON COLUMN mc.lot_build_log.apply_state IS
-    '0=queued, 1=applied, 2=failed, 3=claimed (worker holding the row)';
+    '0=queued, 1=applied, 2=failed, 3=claimed (worker holding the row), 4=cancelled (forced user-lot release)';
 
 
 -- ===========================================================================
