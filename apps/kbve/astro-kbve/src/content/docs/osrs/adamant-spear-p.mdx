@@ -1,6 +1,6 @@
 ---
 title: Adamant spear(p) | OSRS Price Data
-description: "Adamant spear(p): A poisoned adamantite tipped spear.. High alch: 1,248 GP, GE limit: 125."
+description: "Adamant spear(p): A poisoned adamantite tipped spear. High alch: 1,248 GP, GE limit: 125."
 osrs:
   id: 1259
   name: Adamant spear(p)
@@ -12,9 +12,77 @@ osrs:
   lowalch: 832
   highalch: 1248
   limit: 125
-  about: "Adamant spear(p) is a members-only item in Old School RuneScape. High alchemy value: 1,248 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: metal
+    tier: mid
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wield
+      - Drop
+    alchable: true
+  equipment:
+    slot: 2h
+    weapon_type: Spear
+    attack_speed: 4
+    weight: 2.721
+    requirements:
+      attack: 30
+    attack_bonus:
+      stab: 24
+      slash: 24
+      crush: 24
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 28
+      prayer: 0
+  related_items:
+    - item_name: Adamant spear
+      slug: adamant-spear
+      relationship: variant
+      description: Unpoisoned variant
+    - item_name: Adamant spear(p+)
+      slug: adamant-spear-p-plus
+      relationship: upgrade
+      description: Stronger poison variant
+    - item_name: Adamant spear(p++)
+      slug: adamant-spear-p-plus-plus
+      relationship: upgrade
+      description: Strongest poison variant
+    - item_name: Rune spear(p)
+      slug: rune-spear-p
+      relationship: upgrade
+      description: Higher tier poisoned spear
+  about: "Adamant spear(p) is the poisoned variant of the adamant spear, a two-handed stab weapon requiring level 30 Attack to wield. Poison-tipped spears apply standard poison on hit, dealing 4 damage starting at the first successful strike, with damage decreasing over time until the poison wears off. The spear shares the same offensive stats as its unpoisoned counterpart and uses a 4-tick attack speed."
+  market_strategy:
+    notes:
+      - "Niche poison weapon with limited demand"
+      - "Most players craft their own poison variants from base spears"
+      - "Poison effect useful for slower-killed monsters"
+      - "Consider unpoisoned variant for general use"
+  trading_tips:
+    - Buy limit of 125 every 4 hours
+    - Compare against unpoisoned spear + weapon poison cost
+    - Demand spikes during poison-relevant content updates
+  history:
+    - date: "2003-04-14"
+      description: "Item released with the original spear set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

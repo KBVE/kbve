@@ -12,23 +12,74 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 19
+      xp: 25
+      materials:
+        - item_name: Iron bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 10
+    - skill: fletching
+      level: 22
+      xp: 3.8
+      materials:
+        - item_name: Iron dart tip
+          quantity: 1
+        - item_name: Feather
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 819
-      item_name: Bronze dart tip
+    - item_name: Bronze dart tip
       slug: bronze-dart-tip
-      relationship: variant
+      relationship: downgrade
       description: Lower tier dart tip
-    - item_id: 821
-      item_name: Steel dart tip
+    - item_name: Steel dart tip
       slug: steel-dart-tip
-      relationship: variant
+      relationship: upgrade
       description: Higher tier dart tip
-  about: |-
-    > _"Can be used to make iron darts."_
-
-    Iron dart tips are used with feathers at 22 Fletching to create iron darts (3.8 XP each). One bar makes 10 tips.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Iron dart
+      slug: iron-dart
+      relationship: product
+      description: Final dart produced by attaching a feather
+    - item_name: Iron bar
+      slug: iron-bar
+      relationship: component
+      description: Smelted into 10 dart tips at level 19 Smithing
+  about: "Iron dart tip is an intermediate ranged crafting material: smith one iron bar at level 19 Smithing for 25 experience to produce 10 tips, then attach feathers at level 22 Fletching for 3.8 XP per dart. The Tourist Trap quest is required before any dart tip can be smithed. Iron darts are a popular early-Slayer thrown weapon, and tip flipping is one of the simplest break-even Smithing/Fletching routes."
+  market_strategy:
+    notes:
+      - "Tip price closely tracks iron bar price plus a small fletching premium."
+      - "Buy limit of 13,000 is large; flipping in bulk is feasible."
+      - "Steel and mithril tips dominate XP/hr discussions; iron sees mostly low-level usage."
+  trading_tips:
+    - Watch the iron bar / dart tip spread; when tips trade close to alch, just stockpile darts instead.
+    - Bulk Fletching trainers sometimes drain GE supply, brief profit windows on tips.
+  history:
+    - date: "2003-04-14"
+      description: "Released with the original dart family during the Members beta era."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

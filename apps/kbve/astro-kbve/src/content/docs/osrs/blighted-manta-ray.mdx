@@ -12,9 +12,66 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 10000
-  about: "Blighted manta ray is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: food
+    tier: mid
+  properties:
+    release_date: "2020-04-23"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: "Justine's stuff for the Last Shopper Standing"
+      location: Ferox Enclave
+      price: 1
+      currency: Last Man Standing point
+      stock: 125
+    - shop_name: Bounty Hunter Store
+      location: Daimon's Crater
+      price: 2
+      currency: Bounty Hunter point
+      stock: 125
+    - shop_name: Soul Wars Reward Shop
+      location: Isle of Souls
+      price: 10
+      currency: Zeal Token
+      stock: 125
+  related_items:
+    - item_name: Manta ray
+      slug: manta-ray
+      relationship: alternative
+      description: Non-blighted variant usable anywhere
+    - item_name: Blighted karambwan
+      slug: blighted-karambwan
+      relationship: alternative
+      description: Combo-eat blighted food for Wilderness PvP
+    - item_name: Blighted anglerfish
+      slug: blighted-anglerfish
+      relationship: alternative
+      description: Higher-healing blighted food for Wilderness
+  about: "Blighted manta ray is a Wilderness-only food restored to 22 Hitpoints per bite. Bought primarily with Last Man Standing, Bounty Hunter, and Soul Wars points, blighted manta is the staple food of PvPers who do not want to risk their entire supply outside the Wilderness because blighted food can only be consumed in PvP areas, Ferox Enclave, the Mage Arena bank, PvP worlds, the Castle Wars lobby, and Clan Wars."
+  market_strategy:
+    notes:
+      - "Daily volume is in the millions; the GE acts mostly as a pass-through from minigame shoppers to PKers."
+      - "LMS-point conversion sets the effective floor price; if GE drifts under that floor, point grinders just sit on supply."
+      - "Demand spikes during PvP events, Wilderness boss reworks, and Deadman seasons."
+  trading_tips:
+    - Buying near alch value is rare but happens after a points-shop adjustment or large dumps.
+    - Sell into PKer demand during weekend Wilderness peaks and dropped-item events.
+  history:
+    - date: "2020-04-23"
+      description: "Released alongside the rest of the blighted food line for the new Last Man Standing rewards shop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,23 +12,77 @@ osrs:
   lowalch: 105
   highalch: 158
   limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: "herblore"
+      level: 66
+      xp: 150
+      materials:
+        - item_name: "Cadantine potion (unf)"
+          quantity: 1
+        - item_name: "White berries"
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Boosts Defence by 5 + 15% of the player's current Defence level (rounded down)"
+        duration: 300
   related_items:
-    - item_id: 165
-      item_name: Super defence(2)
-      slug: super-defence-2
-      relationship: variant
-      description: 2-dose version
-    - item_id: 167
-      item_name: Super defence(1)
-      slug: super-defence-1
-      relationship: variant
-      description: 1-dose version
-  about: |-
-    > _"3 doses of super Defence potion."_
-
-    The super defence potion boosts Defence by 5 + 15% of current level (rounded down). Part of the "super" combat potion trio alongside super attack and super strength. Can be combined into a super combat potion at 90 Herblore.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: "Super defence(4)"
+      slug: "super-defence-4"
+      relationship: "variant"
+      description: "4-dose version"
+    - item_name: "Super defence(2)"
+      slug: "super-defence-2"
+      relationship: "variant"
+      description: "2-dose version"
+    - item_name: "Super defence(1)"
+      slug: "super-defence-1"
+      relationship: "variant"
+      description: "1-dose version"
+    - item_name: "Cadantine potion (unf)"
+      slug: "cadantine-potion-unf"
+      relationship: "component"
+      description: "Base potion used to brew super defence"
+    - item_name: "White berries"
+      slug: "white-berries"
+      relationship: "component"
+      description: "Secondary ingredient"
+    - item_name: "Super combat potion"
+      slug: "super-combat-potion"
+      relationship: "product"
+      description: "Combines with super attack, super strength and torstol at 90 Herblore"
+  about: "Super defence(3) is a 3-dose Herblore potion that boosts Defence by 5 + 15% of current level when drunk. It decays at one point per minute (90 seconds with Preserve). Brewed at 66 Herblore from a cadantine potion (unf) and white berries for 150 XP, and combinable with super attack, super strength and a torstol to produce a super combat potion at 90 Herblore."
+  market_strategy:
+    notes:
+      - "Pricing is tightly coupled to cadantine and white berries — track all three to spot brew margins."
+      - "Demand spikes around super combat potion making since 3-dose stacks well with the recipe."
+      - "Buy limit of 2,000 makes mid-size flips viable."
+  trading_tips:
+    - "Decant between 1/2/3/4-dose at the apothecary or Lunar Decant spell to chase the highest gp/dose."
+    - "Buy unfinished cadantines + white berries on dips; brewing yields steady XP and a small gp/hr."
+  history:
+    - date: "2002-02-27"
+      description: "Added with the original Herblore release."
+    - date: "2008-05-19"
+      description: "Updated to use the modern 5 + 15% Defence boost formula."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,65 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: null
-  about: "Archer icon is a members-only item in Old School RuneScape. High alchemy value: 4,800 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2023-07-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.002
+    options:
+      - Inspect
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Archers ring
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+  related_items:
+    - item_name: Warrior icon
+      slug: warrior-icon
+      relationship: alternative
+      description: Companion icon chiseled from Warrior ring
+    - item_name: Berserker icon
+      slug: berserker-icon
+      relationship: alternative
+      description: Companion icon chiseled from Berserker ring
+    - item_name: Seers icon
+      slug: seers-icon
+      relationship: alternative
+      description: Companion icon chiseled from Seers ring
+    - item_name: Venator ring
+      slug: venator-ring
+      relationship: component
+      description: Combined with the four icons toward the ancient ring upgrade path
+  about: "Archer icon is a Desert Treasure II - The Fallen Empire reward item produced by using a chisel on an Archer's ring. Alongside the Warrior, Berserker, and Seers icons it forms one quarter of the components used in the Venator ring and ancient ring upgrade path introduced with the Forgotten Four. The Inspect option, added shortly after release, displays usage instructions so players do not destroy the icon by mistake. The item itself is tradeable and noteable but has no equippable function on its own."
+  market_strategy:
+    notes:
+      - "Demand is gated by ancient ring crafting throughput, not by general PvM use"
+      - "Archer's ring supply from the Dagannoth Kings floor sets the base cost"
+      - "Patch notes touching the Forgotten Four ring path can swing icon prices sharply"
+      - "High alch is well below GE price - never alch unless price collapses"
+  trading_tips:
+    - Buy when Dagannoth Kings ring drops trend on the GE feed
+    - List in matched sets of all four icons for ancient ring crafters
+    - Avoid speculative stockpiles - Jagex can rework the upgrade recipe at any time
+  history:
+    - date: "2023-07-26"
+      description: Released with Desert Treasure II - The Fallen Empire as a Forgotten Four ring component.
+    - date: "2023-08-09"
+      description: Added an Inspect option to clarify the upgrade path.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

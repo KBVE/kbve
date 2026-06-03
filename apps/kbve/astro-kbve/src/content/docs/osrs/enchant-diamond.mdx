@@ -12,9 +12,67 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Enchant diamond is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Info
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: magic
+      level: 57
+      xp: 50.3
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Earth rune
+          quantity: 10
+      tools:
+        - Teak demon lectern
+      output_quantity: 1
+  related_items:
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Base material for the tablet
+    - item_name: Cosmic rune
+      slug: cosmic-rune
+      relationship: component
+      description: Enchantment rune used during tablet creation
+    - item_name: Enchant ruby
+      slug: enchant-ruby
+      relationship: alternative
+      description: Lower-tier enchantment tablet using ruby
+    - item_name: Enchant dragonstone
+      slug: enchant-dragonstone
+      relationship: alternative
+      description: Higher-tier enchantment tablet using dragonstone
+  about: "Enchant diamond is a magic tablet that casts Lvl-4 Enchant on diamond jewellery without needing runes at the moment of use. The tablet is crafted at 57 Magic at a demon lectern in a player-owned house study using soft clay, a cosmic rune, and ten earth runes for 50.3 Magic experience. Tablets stack in the inventory, making them convenient for portable enchanting trips."
+  market_strategy:
+    notes:
+      - "Profit is driven by the gap between rune cost and tablet GE price"
+      - "Best produced with Staff of Earth to suppress earth rune cost"
+      - "Low alch value means no alch fallback"
+  trading_tips:
+    - Watch cosmic rune price; it dominates per-tablet cost
+    - Combo runes (dust of earth) can squeeze additional margin
+  history:
+    - date: "2006-05-31"
+      description: "Added to the game with the player-owned house update."
+    - date: "2018-03-01"
+      description: "Replaced the Break right-click option with Info."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

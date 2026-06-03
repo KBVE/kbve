@@ -12,9 +12,58 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 11000
-  about: "Raw beast meat is a members-only item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Drop
+    alchable: true
+  recipes:
+    - skill: cooking
+      level: 21
+      xp: 82.5
+      materials:
+        - item_name: Raw beast meat
+          quantity: 1
+        - item_name: Iron spit
+          quantity: 1
+      tools:
+        - Fire
+      output_quantity: 1
+  related_items:
+    - item_name: Roast beast meat
+      slug: roast-beast-meat
+      relationship: product
+      description: Cooked output when skewered on an iron spit and cooked on a fire.
+    - item_name: Skewered beast
+      slug: skewered-beast
+      relationship: product
+      description: Intermediate skewered form before cooking.
+    - item_name: Iron spit
+      slug: iron-spit
+      relationship: component
+      description: Required tool to skewer raw beast meat.
+  about: "Raw beast meat is a Hunter byproduct obtained from noosing kebbits in the Piscatoris Hunter Area, ranging from the level 1 Polar kebbit to the level 49 Razor-backed kebbit. To cook it, the meat must first be skewered with an iron spit to make skewered beast, then cooked on a fire at 21 Cooking and 20 Firemaking for 82.5 Cooking experience. It can be stored in small or large meat pouches and was made tradeable on the Grand Exchange on 26 February 2015."
+  market_strategy:
+    notes:
+      - "Supply tied to Hunter training throughput at kebbit hunting grounds."
+      - "Cooked roast beast meat is a viable mid-tier food, supporting steady demand."
+  trading_tips:
+    - Buy raw, cook into roast beast meat for Cooking XP plus margin.
+    - Watch Hunter XP events — raw supply floods and price dips on bonus XP weekends.
+  history:
+    - date: "2006-11-21"
+      description: "Released with the Hunter skill."
+    - date: "2015-02-26"
+      description: "Made tradeable on the Grand Exchange."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

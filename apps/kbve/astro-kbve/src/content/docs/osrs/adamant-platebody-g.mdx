@@ -12,33 +12,95 @@ osrs:
   lowalch: 6656
   highalch: 9984
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: adamant
+    tier: mid
+  properties:
+    release_date: "2004-05-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 11.339
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 11.339
     requirements:
       defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -15
     defence_bonus:
       stab: 65
       slash: 63
       crush: 55
       magic: -6
       ranged: 63
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
-    - item_id: 2609
-      item_name: Adamant platelegs (g)
+    - item_name: Adamant platelegs (g)
       slug: adamant-platelegs-g
       relationship: set-piece
-      description: Matching gold-trimmed platelegs
-    - item_id: 2599
-      item_name: Adamant platebody (t)
+      description: Matching gold-trimmed adamant platelegs
+    - item_name: Adamant kiteshield (g)
+      slug: adamant-kiteshield-g
+      relationship: set-piece
+      description: Matching gold-trimmed adamant kiteshield
+    - item_name: Adamant full helm (g)
+      slug: adamant-full-helm-g
+      relationship: set-piece
+      description: Matching gold-trimmed adamant full helm
+    - item_name: Adamant platebody (t)
       slug: adamant-platebody-t
       relationship: variant
-      description: Trimmed variant
-  about: |-
-    > *"Adamant platebody with gold trim."*
-
-    The adamant platebody (g) is a gold-trimmed cosmetic variant of the standard adamant platebody. Identical stats, requiring 30 Defence. Clue scroll exclusive. More prestigious appearance than the trimmed variant.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Trimmed cosmetic variant with the same stats
+    - item_name: Adamant platebody
+      slug: adamant-platebody
+      relationship: alternative
+      description: Untrimmed standard version with identical combat stats
+  about: "A gold-trimmed cosmetic variant of the adamant platebody obtained from medium Treasure Trails reward caskets at roughly 1 in 1,133. Combat stats are identical to the standard adamant platebody, requiring 30 Defence to wear. The gold trim is purely fashionscape value, and the item is widely chased by F2P clue completionists and collection log hunters who prize the gold trim over the standard or t variants."
+  market_strategy:
+    notes:
+      - "Supply driven by medium clue scroll throughput"
+      - "F2P availability widens the demand base versus members-only trims"
+      - "Buy limit of eight keeps daily turnover thin for flippers"
+  trading_tips:
+    - Watch for medium clue rebalances or DMM events that flood supply
+    - Stack purchases across days when targeting a full set build
+  history:
+    - date: "2004-05-05"
+      description: "Released with the original Treasure Trails reward expansion."
+    - date: "2005-07-05"
+      description: "Sprite graphically updated."
+    - date: "2014-06-12"
+      description: "Renamed from Adam platebody (g) to Adamant platebody (g)."
+    - date: "2014-10-02"
+      description: "Alchemy value raised from 7,680 to 9,984 coins."
+    - date: "2021-04-21"
+      description: "Ranged attack penalty increased to -15."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

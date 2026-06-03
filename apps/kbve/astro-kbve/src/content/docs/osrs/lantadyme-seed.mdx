@@ -12,65 +12,68 @@ osrs:
   lowalch: 3
   highalch: 5
   limit: 200
-  seed:
-    type: herb
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: seed
     tier: high
-  farming:
-    level: 73
-    xp_plant: 134.5
-    xp_harvest: 151.5
-    growth_time: 80
-    patches: 9
-    product_id: 2485
-    product_name: Grimy lantadyme
+  properties:
+    release_date: "2005-06-06"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Aberrant spectre
+        quantity: "1"
+        rarity: "1/319"
+      - source: Master Farmer
+        quantity: "1"
+        rarity: "1/4167"
+      - source: K'ril Tsutsaroth
+        quantity: "3"
+        rarity: "8/127"
   related_items:
-    - item_id: 2485
-      item_name: Grimy lantadyme
+    - item_name: Grimy lantadyme
       slug: grimy-lantadyme
       relationship: product
-      description: Harvested product
-    - item_id: 2481
-      item_name: Lantadyme
+      description: Harvested directly from a mature lantadyme herb patch.
+    - item_name: Lantadyme
       slug: lantadyme
       relationship: product
-      description: Cleaned herb
-    - item_id: 2452
-      item_name: Antifire(4)
-      slug: antifire-4
+      description: Cleaned form of grimy lantadyme used in Herblore.
+    - item_name: Antifire potion
+      slug: antifire-potion
       relationship: product
-      description: Made from lantadyme
-    - item_id: 5301
-      item_name: Cadantine seed
+      description: Primary Herblore use - lantadyme is the key herb for the antifire line.
+    - item_name: Cadantine seed
       slug: cadantine-seed
-      relationship: alternative
-      description: Lower tier herb seed
-    - item_id: 5303
-      item_name: Dwarf weed seed
+      relationship: downgrade
+      description: Lower-tier herb seed sharing the same general farming run.
+    - item_name: Dwarf weed seed
       slug: dwarf-weed-seed
       relationship: upgrade
-      description: Next tier herb seed
-  about: |-
-    Plant in a herb patch to grow Grimy lantadyme.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Farming Level | 73 |
-    | Growth time | 80 minutes |
-    | XP (plant) | 134.5 |
-    | XP (harvest) | 151.5 per herb |
+      description: Next-tier herb seed in the high-level farming rotation.
+  about: "The lantadyme seed is a 73 Farming herb seed that grows into grimy lantadyme over four 20-minute growth cycles. The cleaned herb feeds the antifire potion line and a few magic potion variants, which keeps demand steady from dragon hunters and casual Herblore xp runs. Master Farmers and aberrant spectres are the most common sources outside the GE."
   market_strategy:
     notes:
-      - High-tier herb seed
-      - Used for antifire and magic potions
-      - Good profit potential
-      - Ultracompost (essential)
-      - Magic secateurs (10% more yield)
-      - Farming cape (5% more yield)
-      - 9 herb patches available
-      - ~10 minute runs, 80 minute regrowth
-      - Antifire potions essential for dragon slaying
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Buy limit of 200 every 4 hours throttles bulk speculation."
+      - "Price is sensitive to antifire potion demand spikes (dragon Slayer tasks, raids)."
+      - "Magic secateurs and Farming cape yield bonuses make own-grown lantadyme strictly profitable when seed prices stay below herb price."
+  trading_tips:
+    - Pair lantadyme runs with other 73+ herb seeds for the same 80-minute tick.
+    - Ultracompost is mandatory; the protect-by-payment option is unavailable for herbs.
+    - When stockpiling, time buys around weekly slayer task resets to dodge price spikes.
+  history:
+    - date: "2005-06-06"
+      description: "Released in the major Farming skill expansion alongside the rest of the herb seed list."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

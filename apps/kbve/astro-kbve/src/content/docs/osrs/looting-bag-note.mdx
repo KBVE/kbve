@@ -12,9 +12,51 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 40
-  about: "Looting bag note is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: voucher
+    tier: mid-high
+  properties:
+    release_date: "2020-04-23"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Read
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Justine's stuff for the Last Shopper Standing
+      location: Last Man Standing lobby
+      price: 1
+      currency: Last Man Standing point
+      stock: 30
+  related_items:
+    - item_name: Looting bag
+      slug: looting-bag
+      relationship: product
+      description: Redeemed at any banker for the actual looting bag.
+    - item_name: Rune pouch note
+      slug: rune-pouch-note
+      relationship: alternative
+      description: Similar Last Man Standing voucher item.
+  about: "Looting bag note is a Last Man Standing voucher purchased from Justine for 1 LMS point and exchanged at any banker or bank booth/chest for a Looting Bag. Because players cannot own multiple looting bags simultaneously, the note acts as a portable replacement for ironmen and Wilderness PKers who lose their original bag on death."
+  market_strategy:
+    notes:
+      - "Supply tracks LMS engagement and bot bans — quiet weeks tighten the float."
+      - "Demand is dominated by Wilderness deaths; spikes after major PvP events."
+      - "GE limit of 40 caps the flip ceiling per cycle."
+  trading_tips:
+    - Stack at floor during LMS XP weekends when voucher supply floods.
+    - Sell into Wilderness PvP boost weekends for the highest exit price.
+  history:
+    - date: "2020-04-23"
+      description: "Added to Justine's Last Man Standing reward store as an out-of-Wilderness looting bag replacement."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,72 @@ osrs:
   lowalch: 216
   highalch: 324
   limit: 2000
-  about: "Divine battlemage potion(3) is a members-only item in Old School RuneScape. High alchemy value: 324 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2020-04-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Boosts Magic by 4 and Defence by 5 + 15 percent of the Defence level, and prevents those stats from draining below the boost during the duration."
+        duration: 300
+      - description: "Drinking costs 10 Hitpoints, so the player must have more than 10 HP available."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 86
+      xp: 1.5
+      materials:
+        - item_name: Battlemage potion(3)
+          quantity: 1
+        - item_name: Crystal dust
+          quantity: 3
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Divine battlemage potion(4)
+      slug: divine-battlemage-potion-4
+      relationship: variant
+      description: Four-dose version of the same potion
+    - item_name: Divine battlemage potion(2)
+      slug: divine-battlemage-potion-2
+      relationship: variant
+      description: Two-dose version after one sip
+    - item_name: Divine battlemage potion(1)
+      slug: divine-battlemage-potion-1
+      relationship: variant
+      description: One-dose version of the same potion
+    - item_name: Battlemage potion(3)
+      slug: battlemage-potion-3
+      relationship: component
+      description: Base potion combined with crystal dust to make the divine variant
+  about: "Divine battlemage potion(3) is the three-dose form of the divine battlemage potion released in 2020 with the Crystal of Memories update. Each sip boosts Magic by 4 and Defence by 5 plus 15 percent of the Defence level for five minutes, prevents those stats from draining below that boost, and consumes 10 Hitpoints. It is produced at 86 Herblore by combining a battlemage potion(3) with three crystal dust for 1.5 XP per dose."
+  market_strategy:
+    notes:
+      - "Profit ties directly to crystal dust and battlemage potion(3) input costs"
+      - "Steady demand from PvMers running magic-tank gear at Vorkath, Zulrah, and high-tier raids"
+      - "The 10 HP self-damage discourages PKers from chugging mid-fight, keeping demand stable"
+  trading_tips:
+    - Watch crystal shard prices since crystal dust drives the largest portion of input cost
+    - Decant between three and four-dose forms when the GE spread inverts
+    - Stack with potions during Wilderness boss events for short-term spikes
+  history:
+    - date: "2020-04-30"
+      description: "Released with the Crystal of Memories update."
+    - date: "2020-07-02"
+      description: "Inventory icon updated to match the standard potion appearance."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

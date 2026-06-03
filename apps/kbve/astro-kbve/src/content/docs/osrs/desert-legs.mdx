@@ -1,6 +1,6 @@
 ---
 title: Desert legs | OSRS Price Data
-description: "Desert legs: Better than factor 50 sun cream.. High alch: 15 GP, GE limit: 150."
+description: "Desert legs: Better than factor 50 sun cream. High alch: 15 GP, GE limit: 150."
 osrs:
   id: 6390
   name: Desert legs
@@ -12,9 +12,73 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 150
-  about: "Desert legs is a members-only item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2005-08-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options: []
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.005
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Desert top
+      slug: desert-top
+      relationship: set-piece
+      description: "Matching body slot piece of the Desert outfit."
+    - item_name: Desert boots
+      slug: desert-boots
+      relationship: set-piece
+      description: "Matching boots slot piece of the Desert outfit."
+    - item_name: Desert robe
+      slug: desert-robe
+      relationship: alternative
+      description: "Alternative low-tier leg covering for desert travel."
+  about: "Desert legs are part of the Desert outfit obtained from Ali Morrisane after completing the Rogue Trader miniquest and supplying Siamun with three matching animal skins. Wearing them delays the desert heat effect by 12 additional seconds, helping travellers cross the Kharidian Desert without taking damage from heat."
+  market_strategy:
+    notes:
+      - "Demand is tied to desert content - clue scrolls, Pyramid Plunder runners, and Diary completionists drive most volume."
+      - "Cheap to acquire via Rogue Trader once unlocked; many players just craft on demand."
+      - "Waterskins and enchanted Slayer helms can replace the heat protection, capping price upside."
+  trading_tips:
+    - "Pair with desert top + boots for the full outfit margin play."
+    - "Watch for desert-related update spikes (eg new desert quests or Pyramid Plunder reworks)."
+  history:
+    - date: "2005-08-15"
+      description: "Released alongside the Rogue Trader miniquest as part of the Desert outfit."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

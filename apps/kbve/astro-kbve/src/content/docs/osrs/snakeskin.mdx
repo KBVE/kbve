@@ -12,118 +12,123 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
   material:
     type: hide
     tier: mid
-  crafting:
-    level: 45
-    xp: 30
-    method: Crafting with needle and thread
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
-      - source: Snakes
-        source_id: 1479
-        combat_level: 35
-        quantity: 1-5
+      - source: Zulrah
+        quantity: "1"
         rarity: common
-        members_only: true
+      - source: Lost Oak Crate
+        quantity: "1"
+        rarity: common
   recipes:
     - skill: crafting
       level: 45
       xp: 35
       materials:
         - item_name: Snakeskin
-          item_id: 6289
           quantity: 8
         - item_name: Thread
-          item_id: 1734
           quantity: 1
-      product: Snakeskin body
-      product_id: 6322
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
     - skill: crafting
       level: 51
       xp: 50
       materials:
         - item_name: Snakeskin
-          item_id: 6289
           quantity: 12
         - item_name: Thread
-          item_id: 1734
           quantity: 1
-      product: Snakeskin chaps
-      product_id: 6324
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
     - skill: crafting
-      level: 48
+      level: 47
       xp: 35
       materials:
         - item_name: Snakeskin
-          item_id: 6289
-          quantity: 6
+          quantity: 8
         - item_name: Thread
-          item_id: 1734
           quantity: 1
-      product: Snakeskin vambraces
-      product_id: 6330
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
     - skill: crafting
       level: 48
       xp: 45
       materials:
         - item_name: Snakeskin
-          item_id: 6289
           quantity: 5
         - item_name: Thread
-          item_id: 1734
           quantity: 1
-      product: Snakeskin bandana
-      product_id: 6326
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
     - skill: crafting
-      level: 47
+      level: 45
       xp: 30
       materials:
         - item_name: Snakeskin
-          item_id: 6289
           quantity: 6
         - item_name: Thread
-          item_id: 1734
           quantity: 1
-      product: Snakeskin boots
-      product_id: 6328
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 6322
-      item_name: Snakeskin body
+    - item_name: Snakeskin body
       slug: snakeskin-body
       relationship: product
-      description: Crafted armor
-    - item_id: 6324
-      item_name: Snakeskin chaps
+      description: Crafted body armour requiring 15 snakeskin
+    - item_name: Snakeskin chaps
       slug: snakeskin-chaps
       relationship: product
-      description: Crafted legs
-    - item_id: 1734
-      item_name: Thread
+      description: Crafted leg armour requiring 12 snakeskin
+    - item_name: Snakeskin vambraces
+      slug: snakeskin-vambraces
+      relationship: product
+      description: Crafted hand armour
+    - item_name: Snakeskin bandana
+      slug: snakeskin-bandana
+      relationship: product
+      description: Crafted head armour
+    - item_name: Snakeskin boots
+      slug: snakeskin-boots
+      relationship: product
+      description: Crafted foot armour
+    - item_name: Thread
       slug: thread
       relationship: component
-      description: Crafting supply
+      description: Required to sew snakeskin armour
+  about: "Snakeskin is a tanned hide used to craft the snakeskin armour set, a mid-tier ranged equipment line that bridges leather and green dragonhide gear. Players obtain raw snake hide from snakes or Zulrah, then tan it into snakeskin at a tanner for a small fee or via the Tan Leather spell. The hide is then sewn into bandanas, bodies, chaps, vambraces, and boots using thread and a needle. Snakeskin is members-only and trades briskly on the Grand Exchange thanks to steady supply from Zulrah."
   market_strategy:
     notes:
-      - Snakeskin armor crafting
-      - Mid-level ranged gear
-      - Members only material
-      - Dropped by various snakes
-      - Alternative to dragonhide
-      - Decent crafting XP
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Zulrah drops the bulk of supply pushing the price low"
+      - "Mid-tier ranged crafting material between leather and d-hide"
+      - "Buy limit of 13,000 per 4 hours supports bulk crafting flips"
+      - "Snakeskin body at 15 hides per craft is the largest consumer"
+      - "Watch tanner price differences across Al Kharid, Canifis and the Crafting Guild"
+  trading_tips:
+    - Tan in bulk at the closest tanner to your bank to minimise time per hide
+    - Craft snakeskin bodies for highest XP per snakeskin sink
+    - Use the Tan Leather spell with 78 Magic and Hard Fremennik for 5-hide casts
+  history:
+    - date: "2005-08-09"
+      description: "Released alongside the snakeskin armour line."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

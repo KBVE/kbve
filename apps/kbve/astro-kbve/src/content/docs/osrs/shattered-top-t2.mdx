@@ -12,9 +12,75 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: null
-  about: "Shattered top (t2) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2022-03-16"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    alchable: true
+  equipment:
+    slot: body
+    weight: 0.907
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Shattered hood (t2)
+      slug: shattered-hood-t2
+      relationship: set-piece
+      description: Matching tier 2 head piece
+    - item_name: Shattered trousers (t2)
+      slug: shattered-trousers-t2
+      relationship: set-piece
+      description: Matching tier 2 leg piece
+    - item_name: Shattered boots (t2)
+      slug: shattered-boots-t2
+      relationship: set-piece
+      description: Matching tier 2 feet piece
+    - item_name: Shattered top (t1)
+      slug: shattered-top-t1
+      relationship: downgrade
+      description: Tier 1 variant of the same body piece
+    - item_name: Shattered top (t3)
+      slug: shattered-top-t3
+      relationship: upgrade
+      description: Tier 3 variant of the same body piece
+  about: "Shattered top (t2) is the tier 2 body piece of the Shattered Relic Hunter outfit from Leagues III. Bought from the Leagues Reward Shop for 3,000 League points, it carries no combat stats and exists strictly as cosmetic fashionscape for Leagues participants."
+  market_strategy:
+    notes:
+      - "Supply is a one-time Leagues III payout; circulation only shrinks over time"
+      - "Untradeable buy limit absence is offset by very low daily volume"
+      - "Demand follows nostalgia for Leagues III and any future Shattered Relics callbacks"
+  trading_tips:
+    - Buy during long stretches between Leagues content when interest is low
+    - List into Leagues IV teaser weeks or any Shattered Relics anniversary post
+    - Compare against tier 1 and tier 3 spreads to find the cheapest tier on margin
+  history:
+    - date: "2022-03-16"
+      description: "Added to the Leagues Reward Shop with the launch of Leagues III - Shattered Relics."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

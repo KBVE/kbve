@@ -12,9 +12,55 @@ osrs:
   lowalch: 80000
   highalch: 120000
   limit: 8
-  about: "Karil's armour set is a members-only item in Old School RuneScape. High alchemy value: 120,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-12-10"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Karil's coif
+      slug: karil-s-coif
+      relationship: set-piece
+      description: Head slot of Karil the Tainted's Barrows set
+    - item_name: Karil's leathertop
+      slug: karil-s-leathertop
+      relationship: set-piece
+      description: Body slot of Karil the Tainted's Barrows set
+    - item_name: Karil's leatherskirt
+      slug: karil-s-leatherskirt
+      relationship: set-piece
+      description: Legs slot of Karil the Tainted's Barrows set
+    - item_name: Karil's crossbow
+      slug: karil-s-crossbow
+      relationship: set-piece
+      description: Two-handed crossbow that completes Karil's set effect
+    - item_name: Ahrim's armour set
+      slug: ahrim-s-armour-set
+      relationship: alternative
+      description: Magic-focused Barrows bundle for the magic combat triangle
+  about: "Karil's armour set is a Grand Exchange placeholder bundle of Karil the Tainted's Barrows equipment, including the coif, leathertop, leatherskirt, and crossbow. Players exchange the individual pieces through the GE clerk's Sets interface to receive the single item, which is most commonly used to flip or sell all four Karil pieces at once after a Barrows trip."
+  market_strategy:
+    notes:
+      - "Bundle price tracks the combined value of all four Karil components"
+      - "Common flip is buying components individually then selling the bundled set"
+      - "Demand surges around Barrows-related events and league grinds"
+  trading_tips:
+    - Compare set price to the sum of the four components before exchanging at the GE clerk
+    - Sell after Barrows update hype to clear stock at a premium
+    - Watch crossbow degradation prices since they anchor the bundle floor
+  history:
+    - date: "2014-12-10"
+      description: "Released as part of the Grand Exchange armour set additions."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,94 +12,70 @@ osrs:
   lowalch: 300000
   highalch: 450000
   limit: 5
-  equipment:
-    slot: shield
-    type: magic_shield
-    requirements:
-      defence: 75
-      magic: 65
-      prayer: 70
-    stats:
-      attack_magic: 20
-      magic_damage: 3
-      defence_stab: 53
-      defence_slash: 55
-      defence_crush: 73
-      defence_magic: 2
-      defence_ranged: 52
-      prayer: 3
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: sigil
+    tier: high
+  properties:
+    release_date: "2014-10-16"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Corporeal Beast
+        quantity: "1"
+        rarity: "1/1,365"
   recipes:
     - skill: smithing
       level: 85
       xp: 0
       materials:
-        - item_id: 12827
-          item_name: Arcane sigil
+        - item_name: Arcane sigil
           quantity: 1
-        - item_id: 12831
-          item_name: Blessed spirit shield
+        - item_name: Blessed spirit shield
           quantity: 1
-      product: Arcane spirit shield
-      product_id: 12825
-      facility: Anvil
-      members_only: true
+      tools:
+        - Anvil
+      output_quantity: 1
   related_items:
-    - item_id: 12817
-      item_name: Elysian spirit shield
-      slug: elysian-spirit-shield
-      relationship: alternative
-      description: Tank version
-    - item_id: 12821
-      item_name: Spectral spirit shield
-      slug: spectral-spirit-shield
-      relationship: alternative
-      description: Prayer drain reduction
-    - item_id: 12827
-      item_name: Arcane sigil
-      slug: arcane-sigil
+    - item_name: Arcane spirit shield
+      slug: arcane-spirit-shield
+      relationship: product
+      description: Attach to a blessed spirit shield to assemble the finished shield.
+    - item_name: Blessed spirit shield
+      slug: blessed-spirit-shield
       relationship: component
-      description: From Corp
-  about: |-
-    Attach Arcane sigil to Blessed spirit shield.
-
-    | Method | Requirements |
-    |--------|--------------|
-    | Smithing | 90 Prayer, 85 Smithing |
-    | Abbot Langley | 1.5M gp fee |
-
-    | Offense | Value |
-    |---------|-------|
-    | Magic attack | +20 |
-    | Magic damage | +3% |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +53 |
-    | Slash | +55 |
-    | Crush | +73 |
-    | Magic | +2 |
-    | Ranged | +52 |
-
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +3 |
-
-    Requirements: 75 Defence, 65 Magic, 70 Prayer
-
-    BiS magic shield for:
-    - All magic combat
-    - Raids
-    - Bossing
-    - Max magic setups
-
-    Best magic attack and damage from shield slot.
+      description: Base shield combined with the sigil.
+    - item_name: Spectral sigil
+      slug: spectral-sigil
+      relationship: alternative
+      description: Alternative Corporeal Beast sigil for a prayer-drain shield.
+    - item_name: Elysian sigil
+      slug: elysian-sigil
+      relationship: alternative
+      description: Alternative Corporeal Beast sigil for a tank shield.
+  about: "Arcane sigil is a rare drop from the Corporeal Beast at 1/1,365 and is the magical sigil in the Spirit shield family. Combined with a blessed spirit shield via 85 Smithing and 90 Prayer (or for a 1.5M coin fee from Abbot Langley) it forms the Arcane spirit shield, the best magical shield in the game with +20 magic attack and +3% magic damage."
   market_strategy:
     notes:
-      - Sigil from Corporeal Beast
-      - Very expensive but BiS
-      - Essential for max magic
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply is gated on Corporeal Beast clears; long droughts compress the bid/ask spread."
+      - "Demand is anchored to high-end magic setups for raids and bossing."
+      - "GE limit of 5 per four hours makes accumulation slow but predictable."
+  trading_tips:
+    - Buy during Corporeal Beast meta posts that flood weekend supply.
+    - Track Arcane spirit shield premium versus the sigil + blessed shield + Abbot fee.
+  history:
+    - date: "2014-10-16"
+      description: "Released with the Corporeal Beast and the Spirit shield family."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

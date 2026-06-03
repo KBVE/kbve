@@ -12,9 +12,55 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of the serpent is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-08-25"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    alchable: true
+    destroy: "You must unattune the Sigil before you can destroy it."
+  drop_table:
+    sources:
+      - source: Deadman Mode drop table
+        quantity: "1"
+        rarity: rare
+  related_items:
+    - item_name: Sigil of prosperity
+      slug: sigil-of-prosperity
+      relationship: alternative
+      description: Tier 2 utility sigil from the Deadman Mode pool
+    - item_name: Sigil of slaughter
+      slug: sigil-of-slaughter
+      relationship: alternative
+      description: Combat-oriented Deadman sigil
+    - item_name: Sigil of preservation
+      slug: sigil-of-preservation
+      relationship: alternative
+      description: Death protection sigil from the Deadman pool
+  about: "The Sigil of the serpent is a Deadman Mode utility sigil that grants poison and venom immunity once attuned. Released for Deadman: Reborn, it drops from most monsters via the Deadman Mode drop table during temporary events and is tradeable on the Grand Exchange in its unattuned form. The item is currently unobtainable outside active Deadman events, with effect durations and cooldowns retuned each season."
+  market_strategy:
+    notes:
+      - "Tradeable only during active Deadman events"
+      - "No live-game supply between seasons keeps liquidity thin"
+      - "Demand spikes early in each Deadman season for venom-heavy content"
+      - "Buy limit of 8 caps speculative stockpiling"
+  trading_tips:
+    - Stockpile near end-of-season fire-sales if effect stays competitive next season
+    - Compare against other utility sigils for relative value within the season
+    - Monitor Deadman event announcements for entry/exit timing
+  history:
+    - date: "2021-08-25"
+      description: "Released during Deadman: Reborn as part of the sigil pool."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

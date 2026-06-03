@@ -12,12 +12,33 @@ osrs:
   lowalch: 116004
   highalch: 174006
   limit: 15
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: obsidian
+    tier: high
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    weapon_type: crush
-    weight: 3.628
+    weapon_type: spiked
     attack_speed: 4
-    attack_range: 1
+    weight: 3.628
+    requirements:
+      attack: 70
+      strength: 75
     attack_bonus:
       stab: 115
       slash: -4
@@ -35,61 +56,42 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      attack: 70
-      strength: 75
-    degradable: false
-    two_handed: true
+  special_attack:
+    name: Blood Infusion
+    description: "Requires full blood moon armour. Removes the second-hit accuracy check, increases minimum and maximum hit by 25 percent, and costs 25 percent of current Hitpoints."
+    energy: 25
   drop_table:
-    primary_source: Lunar Chest (Neypotzli)
-    best_drop_rate: 1/224
     sources:
       - source: Lunar Chest
         quantity: "1"
-        rarity: rare
-        drop_rate: 1/224
-        members_only: true
+        rarity: 1/224
   related_items:
-    - item_id: 29028
-      item_name: Blood moon helm
+    - item_name: Blood moon helm
       slug: blood-moon-helm
       relationship: set-piece
-      description: Required for Bloodrager effect
-    - item_id: 29022
-      item_name: Blood moon chestplate
+      description: Required for the Bloodrager set effect
+    - item_name: Blood moon chestplate
       slug: blood-moon-chestplate
       relationship: set-piece
-      description: Required for Bloodrager effect
-    - item_id: 29025
-      item_name: Blood moon tassets
+      description: Required for the Bloodrager set effect
+    - item_name: Blood moon tassets
       slug: blood-moon-tassets
       relationship: set-piece
-      description: Required for Bloodrager effect
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Attack speed | 4 ticks (2.4s) |
-    | Attack range | 1 tile |
-    | Combat style | Crush/Stab |
-
-    Two-handed weapon with high crush and stab attack bonuses.
-
-    When wearing full Blood moon armour:
-    - Bloodrager: 33% chance upon successful hit to attack one tick earlier
-
-    This effectively means occasional 3-tick attacks for massive DPS increase.
-
-    Powerful crush weapon for:
-    - Neypotzli content
-    - Crush-weak monsters
-    - DPS builds with set effect
+      description: Required for the Bloodrager set effect
+  about: "Dual macuahuitl is a two-handed spiked weapon obtained from the Lunar Chest in Neypotzli. It hits twice per attack, one tick apart, with each hit's max damage halved and the second strike gated by the first's accuracy roll. Paired with the full Blood moon set, the Bloodrager effect grants a 33 percent chance per hit to fire one tick earlier, enabling occasional 3-tick attacks for major DPS gains."
   market_strategy:
     notes:
-      - Value tied to full set synergy
-      - High attack speed for two-handed weapon
-      - Best used with Blood moon armour
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Value tied to full Blood moon set synergy"
+      - "Low buy limit of 15 caps daily flipping volume"
+      - "DPS niche against crush-weak Neypotzli content"
+  trading_tips:
+    - Track Lunar Chest drop rates when streamers grind the boss
+    - Sell into hype windows tied to Blood moon set rebalances
+  history:
+    - date: "2024-03-20"
+      description: "Added to the game with the Varlamore Part One update."
+    - date: "2024-04-03"
+      description: "Reclassified from blunt to spiked weapon and the special attack damage boost was corrected."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

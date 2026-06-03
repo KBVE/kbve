@@ -12,9 +12,61 @@ osrs:
   lowalch: 108
   highalch: 162
   limit: 10000
-  about: "Dashing kebbit fur is a members-only item in Old School RuneScape. High alchemy value: 162 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: fur
+    tier: mid
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Dashing kebbit
+        quantity: "1"
+        rarity: Always
+  shops:
+    - shop_name: Fancy Clothes Store
+      location: Varrock
+      price: 800
+      currency: Coins
+      stock: 0
+  related_items:
+    - item_name: Spottier cape
+      slug: spottier-cape
+      relationship: product
+      description: Made from 2 dashing kebbit furs at the Fancy Clothes Store
+    - item_name: Spotted kebbit fur
+      slug: spotted-kebbit-fur
+      relationship: downgrade
+      description: Lower tier kebbit fur for spotted cape
+    - item_name: Larupia fur
+      slug: larupia-fur
+      relationship: alternative
+      description: Another Hunter fur with crafting uses
+  about: "Dashing kebbit fur is obtained by trapping dashing kebbits at 69 Hunter in the Piscatoris falconry area. Two furs and 800 coins at the Fancy Clothes Store in Varrock produces a spottier cape, which requires 66 Hunter to wear and reduces weight by 4.5 kg."
+  market_strategy:
+    notes:
+      - "Demand is steady from hunters chasing spottier capes and from achievement diary completionists."
+      - "Supply is bottlenecked by 69 Hunter falconry which is click-intensive, keeping prices stable."
+      - "Buy limit of 10,000 per 4h is generous; bulk flips are viable but volume can be low."
+  trading_tips:
+    - Buy when falconry training is popular (off-meta) and sell when spottier cape demand spikes.
+    - Stock up before achievement diary updates that involve hunter requirements.
+    - Compare GE price against high alch — alch floor protects against bottom drops.
+  history:
+    - date: "2006-11-21"
+      description: "Released with the Hunter skill"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

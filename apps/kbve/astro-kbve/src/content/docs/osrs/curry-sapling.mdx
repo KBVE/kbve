@@ -12,9 +12,49 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 200
-  about: "Curry sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    alchable: false
+  related_items:
+    - item_name: Curry tree seed
+      slug: curry-tree-seed
+      relationship: component
+      description: Seed planted in a plant pot to begin the sapling
+    - item_name: Curry seedling (w)
+      slug: curry-seedling-w
+      relationship: component
+      description: Watered seedling that grows into the sapling
+    - item_name: Curry tree
+      slug: curry-tree
+      relationship: product
+      description: Grown tree once the sapling matures in a fruit tree patch
+    - item_name: Curry leaf
+      slug: curry-leaf
+      relationship: product
+      description: Harvested crop from a grown curry tree
+  about: "Curry sapling is a Farming intermediate used to grow curry trees in fruit tree patches. Players plant a curry tree seed in a plant pot with a gardening trowel, water it, and after one crop cycle the seedling becomes a sapling ready to be replanted at level 42 Farming."
+  market_strategy:
+    notes:
+      - "Time-gated supply since saplings require a crop cycle to grow"
+      - "Demand tied to fruit tree run popularity at mid-Farming levels"
+      - "200 buy limit and 1 gp alch values keep margins thin"
+  trading_tips:
+    - Bulk producers stockpile saplings overnight to feed daily fruit tree runs
+    - Curry tree seed price largely sets the sapling floor
+  history:
+    - date: "2005-07-11"
+      description: "Added to the game with the Farming skill release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

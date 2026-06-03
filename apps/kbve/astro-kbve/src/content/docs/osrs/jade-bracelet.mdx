@@ -12,9 +12,88 @@ osrs:
   lowalch: 520
   highalch: 780
   limit: 10000
-  about: "Jade bracelet is a members-only item in Old School RuneScape. High alchemy value: 780 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: silver
+    tier: mid
+  properties:
+    release_date: "2017-02-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: hands
+    weapon_type: null
+    attack_speed: null
+    weight: 0.25
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 29
+      xp: 60
+      materials:
+        - item_name: Silver bar
+          quantity: 1
+        - item_name: Jade
+          quantity: 1
+        - item_name: Bracelet mould
+          quantity: 1
+      tools:
+        - Furnace
+      output_quantity: 1
+  related_items:
+    - item_name: Flamtaer bracelet
+      slug: flamtaer-bracelet
+      relationship: product
+      description: Enchanted version cast via Lvl-2 Enchant, used in Shades of Mort'ton.
+    - item_name: Silver bar
+      slug: silver-bar
+      relationship: component
+      description: Base metal for the bracelet half of the cast.
+    - item_name: Jade
+      slug: jade
+      relationship: component
+      description: Cut gem inset into the bracelet mould.
+  about: "Jade bracelet is a hands-slot silver bracelet crafted at level 29 Crafting from a silver bar, a jade gem, and a bracelet mould for 60 experience. It is most valuable as the precursor to the Flamtaer bracelet, which is created with Lvl-2 Enchant and used during Shades of Mort'ton."
+  market_strategy:
+    notes:
+      - "Buy limit of 10,000 supports bulk crafting and enchanting flips."
+      - "GE price tracks combined silver bar plus jade input cost closely."
+      - "Demand spikes when Shades of Mort'ton events run."
+  trading_tips:
+    - Crafters can sell directly to GE at level 29 for steady silver-and-jade conversion profit.
+    - Watch jade and silver bar prices; pinch points create margin for finished bracelets.
+    - Enchant to Flamtaer bracelet for a better sell price when Shades is active.
+  history:
+    - date: "2017-02-02"
+      description: "Added alongside the Shades of Mort'ton rework that introduced the Flamtaer bracelet."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

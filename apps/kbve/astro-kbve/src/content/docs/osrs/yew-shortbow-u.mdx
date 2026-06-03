@@ -12,23 +12,66 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: yew wood
+    tier: mid
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.992
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 65
+      xp: 67.5
+      materials:
+        - item_name: Yew logs
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
   related_items:
-    - item_id: 64
-      item_name: Maple shortbow (u)
+    - item_name: Maple shortbow (u)
       slug: maple-shortbow-u
-      relationship: variant
+      relationship: downgrade
       description: Lower tier unstrung shortbow
-    - item_id: 66
-      item_name: Yew longbow (u)
+    - item_name: Magic shortbow (u)
+      slug: magic-shortbow-u
+      relationship: upgrade
+      description: Higher tier unstrung shortbow
+    - item_name: Yew longbow (u)
       slug: yew-longbow-u
       relationship: variant
       description: Matching unstrung yew longbow
-  about: |-
-    > _"An unstrung yew shortbow; I need a bowstring for this."_
-
-    The yew shortbow (u) is an unstrung shortbow made from yew logs. String with a bowstring at 65 Fletching to create a yew shortbow. Members only.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Yew shortbow
+      slug: yew-shortbow
+      relationship: product
+      description: Strung result after adding a bowstring
+  about: "Yew shortbow (u) is the unstrung intermediate created by cutting a yew log at 65 Fletching for 67.5 xp. Adding a bowstring at the same level grants another 67.5 xp and produces a yew shortbow, making it a staple step in stringing-based fletching xp."
+  market_strategy:
+    notes:
+      - "Margin tracks the yew log + bowstring vs strung yew shortbow spread; flipping unstrung directly is rarely profitable."
+      - "Used in bulk by fletchers training to 99, so volume is consistently high."
+      - "Buy limit of 10,000 every 4h supports sizeable bulk flips."
+  trading_tips:
+    - Compare price of yew logs plus knife labour vs unstrung yew shortbow before fletching from scratch.
+    - When bowstring price spikes, strung yew shortbow margins widen — consider stringing rather than reselling unstrung.
+    - Bulk-list during peak Australian/EU evenings for fastest fills.
+  history:
+    - date: "2002-03-25"
+      description: "Released alongside the yew shortbow"
+    - date: "2005-05-17"
+      description: "Renamed from Yew shortbow to Yew shortbow (u) when unstrung variants were standardised"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

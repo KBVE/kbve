@@ -12,9 +12,36 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: 10000
-  about: "Bagged bluebells is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    alchable: true
+  related_items:
+    - item_name: Watering can
+      slug: watering-can
+      relationship: component
+      description: Required to plant bluebells in a formal garden.
+  about: "Bagged bluebells is a decorative farming item used to plant bluebells in a formal garden of a player-owned house. Planting requires 76 Construction with a filled watering can in the inventory and yields 122 experience in both Construction and Farming. Purchased from Garden suppliers in Falador Park or the Farming Guild for 15,000 coins."
+  market_strategy:
+    notes:
+      - "Demand driven by player-owned house decoration."
+      - "GE price typically sits above the shop value, leaving margin for shop-buying flips."
+  trading_tips:
+    - Buy from the Falador Park or Farming Guild garden supplier when GE price exceeds 15,000 coins.
+    - Hold a small stockpile during construction-themed events when POH activity spikes.
+  history:
+    - date: "2006-05-31"
+      description: "Added to the game alongside formal gardens in the Construction expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

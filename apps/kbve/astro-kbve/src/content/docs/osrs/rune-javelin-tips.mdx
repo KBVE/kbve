@@ -12,9 +12,66 @@ osrs:
   lowalch: 540
   highalch: 810
   limit: 10000
-  about: "Rune javelin tips is a members-only item in Old School RuneScape. High alchemy value: 810 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: metal
+    tier: high
+  properties:
+    release_date: "2016-05-06"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 91
+      xp: 75
+      materials:
+        - item_name: Runite bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 5
+    - skill: fletching
+      level: 77
+      xp: 13
+      materials:
+        - item_name: Rune javelin tips
+          quantity: 1
+        - item_name: Javelin shaft
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: Source bar smithed into javelin tips
+    - item_name: Rune javelin
+      slug: rune-javelin
+      relationship: product
+      description: Finished javelin made by attaching a shaft
+  about: "Rune javelin tips are smithed at 91 Smithing from one runite bar at an anvil, producing five tips per bar for 75 Smithing experience. They are combined with javelin shafts at 77 Fletching to produce rune javelins. The tips are typically alched as a profitable Magic XP outlet because their GE price stays below high alch."
+  market_strategy:
+    notes:
+      - "Common high-alch target due to favorable nature rune margin"
+      - "Smithing the tips at GE prices is loss-making"
+      - "Demand sensitive to Fletching and high alch trends"
+  trading_tips:
+    - Buy ahead of major Magic XP weekend events
+    - Compare alch margin against other rune-tier products before committing
+  history:
+    - date: "2016-05-06"
+      description: "Added to the game alongside the rune javelin Smithing recipe."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

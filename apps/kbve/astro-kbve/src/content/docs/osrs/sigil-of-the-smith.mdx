@@ -12,9 +12,44 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  about: "Sigil of the smith is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2021-08-25"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Inspect
+      - Destroy
+    alchable: false
+    destroy: "You must unattune the Sigil before you can destroy it."
+  drop_table:
+    sources:
+      - source: Deadman Mode global loot table
+        quantity: "1"
+        rarity: Rare
+  about: |-
+    The Sigil of the smith is a tier 1 skilling sigil exclusive to the Deadman Mode seasonal event. The un-attuned form is tradeable on the Grand Exchange and drops from monsters via the Deadman global loot table.
+
+    Once attuned, the sigil processes ores, bars, and cannonballs in a single action rather than one at a time, dramatically accelerating Smithing tasks during the event. Attuned sigils become untradeable and must be unattuned before they can be destroyed.
+  market_strategy:
+    notes:
+      - "Price is event-driven; spikes at the start of Deadman seasons."
+      - "Stock dries up the moment the event ends."
+      - "Tight 10 per 4h buy limit punishes speculation."
+      - "Best to flip during the first week of a season when smiths attune en masse."
+  trading_tips:
+    - Watch Deadman season schedules; demand collapses post-event.
+    - Avoid hoarding past the final week — sigil utility is zero outside Deadman.
+  history:
+    - date: "2021-08-25"
+      description: "Released with Deadman: Reborn."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

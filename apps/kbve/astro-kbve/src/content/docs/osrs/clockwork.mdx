@@ -12,61 +12,63 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 11000
-  item_id: 8792
-  type: crafting_material
-  tradeable: true
-  weight: 1
-  buy_limit: 10000
-  crafting:
-    level: 8
-    xp: 15
-    materials:
-      - item: Steel bar
-        item_id: 2353
-        quantity: "1"
-    facility: Crafting table 2+ in POH workshop
-    ticks: 3
-  uses:
-    birdhouses: All tiers (Oak through Redwood)
-    clocks: Oak, Teak, Gilded clocks
-    toys: Toy soldier, doll, mouse, cat
-    other: Clockwork suit, Watch, Trapdoor
-  money_making:
-    gp_per_hour: 765000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: crafting material
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+  recipes:
+    - skill: crafting
+      level: 8
+      xp: 15
+      materials:
+        - item_name: Steel bar
+          quantity: 1
+      tools:
+        - Crafting table 2
+      output_quantity: 1
   related_items:
-    - slug: steel-bar
-      name: Steel bar
-      relation: creation_material
-    - slug: crafting-table-2
-      name: Crafting table 2
-      relation: required_furniture
-    - slug: redwood-birdhouse
-      name: Redwood birdhouse
-      relation: product
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 1 kg |
-
-    Crafting (8 Crafting):
-    - Steel bar + Crafting table 2+
-    - 15 XP per clockwork
-    - Takes 3 ticks (1.8s)
-
-    Made in POH workshop.
-
-    | Category | Items |
-    |----------|-------|
-    | Bird houses | All tiers (Oak through Redwood) |
-    | Clocks | Oak, Teak, Gilded clocks |
-    | Toys | Toy soldier, doll, mouse, cat |
-    | Other | Clockwork suit, Watch, Trapdoor |
-
-    ~765K gp/hr profit crafting clockwork.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Steel bar
+      slug: steel-bar
+      relationship: component
+      description: Smelted into clockwork at a crafting table
+    - item_name: Crafting table 2
+      slug: crafting-table-2
+      relationship: component
+      description: Player-owned house workshop furniture required to craft clockwork
+    - item_name: Redwood birdhouse
+      slug: redwood-birdhouse
+      relationship: product
+      description: Top-tier birdhouse fletched with clockwork
+    - item_name: Watch
+      slug: watch
+      relationship: product
+      description: Cosmetic POH watch built from clockwork
+  about: "Clockwork is a crafting material produced from a steel bar at a level 2 or higher crafting table in a player-owned house workshop. It is consumed when fletching birdhouses, building POH clocks and toys, and assembling the watch, trapdoor, and clockwork suit, making it a steady passive moneymaker."
+  market_strategy:
+    notes:
+      - "Supply is bottlenecked on player POH crafting and steel bar price"
+      - "Demand is driven by birdhouse runs at every Hunter tier, especially redwood"
+      - "Buy limit of 11,000 supports large daily flips and steel bar arbitrage"
+  trading_tips:
+    - Buy steel bars and craft clockwork when the spread covers GE tax with profit
+    - Stack offers into birdhouse-friendly hours when Hunter players restock seeds
+    - Track steel bar floor; clockwork rarely trades far above bar plus 700 coins
+  history:
+    - date: "2006-05-31"
+      description: "Added to the game with the Construction skill and player-owned houses."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

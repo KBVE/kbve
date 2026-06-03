@@ -12,9 +12,78 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 125
-  about: "Iron spear(p++) is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 5
+    weight: 2.267
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 8
+      slash: 8
+      crush: 8
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 10
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Iron spear
+      slug: iron-spear
+      relationship: variant
+      description: Unpoisoned base spear
+    - item_name: Iron spear(p)
+      slug: iron-spear-p-1234
+      relationship: variant
+      description: Lightly poisoned variant
+    - item_name: Iron spear(p+)
+      slug: iron-spear-p-5716
+      relationship: variant
+      description: Mid-poisoned variant
+    - item_name: Steel spear(p++)
+      slug: steel-spear-p-5722
+      relationship: upgrade
+      description: Higher-tier extra-strong poisoned spear
+  about: "Iron spear(p++) is an iron spear coated with weapon poison++, dealing the strongest tier of weapon poison applied through standard means. Like every spear it is two-handed, swings at speed 5, and is one of the few weapons that can be wielded with a shield-free style for spec lockouts. The (p++) variant is mostly used for early-Wilderness PKing alts and Tai Bwo Wannai-quest hopefuls who want a cheap, poisoned stab weapon with usable strength bonus."
+  market_strategy:
+    notes:
+      - "Tiny 125-per-4-hour buy limit means even a few buyers can move price 10-20%."
+      - "Effectively gated by weapon poison++ supply; if poison++ price spikes, the poisoned spear follows."
+      - "Mostly held by PvPers and quest twinks - very low daily volume."
+  trading_tips:
+    - Stocks of low-tier (p++) gear thin out during Wilderness events; pre-buy before announcements.
+    - If you only need the spear stats, the unpoisoned Iron spear is usually cheaper per cast.
+  history:
+    - date: "2003-04-14"
+      description: "Iron spear and its poisoned variants released with the spear weapon family."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,23 +12,102 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
+    type: "mithril"
+    tier: "mid"
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: "smithing"
+      level: 55
+      xp: 50
+      materials:
+        - item_name: "Mithril bar"
+          quantity: 1
+      tools:
+        - "Hammer"
+        - "Anvil"
+      output_quantity: 15
+  shops:
+    - shop_name: "Hickton's Archery Emporium"
+      location: "Catherby"
+      price: 16
+      currency: "Coins"
+      stock: 50
+    - shop_name: "Void Knight Archery Store"
+      location: "Void Knights' Outpost"
+      price: 16
+      currency: "Coins"
+      stock: 50
+    - shop_name: "Gulluck and Sons"
+      location: "Grand Tree"
+      price: 16
+      currency: "Coins"
+      stock: 50
+    - shop_name: "Dargaud's Bow and Arrows"
+      location: "Ranging Guild"
+      price: 16
+      currency: "Coins"
+      stock: 50
+    - shop_name: "Combat Training Camp Archery Shop"
+      location: "Combat Training Camp"
+      price: 24
+      currency: "Coins"
+      stock: 50
   related_items:
-    - item_id: 41
-      item_name: Steel arrowtips
-      slug: steel-arrowtips
-      relationship: variant
-      description: Lower tier arrowtips
-    - item_id: 43
-      item_name: Adamant arrowtips
-      slug: adamant-arrowtips
-      relationship: variant
-      description: Higher tier arrowtips
-  about: |-
-    > _"I can make some arrows with these."_
-
-    Mithril arrowtips are members-only Fletching supplies. Attach to headless arrows at 45 Fletching to create mithril arrows.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: "Mithril bar"
+      slug: "mithril-bar"
+      relationship: "component"
+      description: "Smelted to produce 15 mithril arrowtips at 55 Smithing"
+    - item_name: "Headless arrow"
+      slug: "headless-arrow"
+      relationship: "component"
+      description: "Combined with arrowtips to produce mithril arrows"
+    - item_name: "Mithril arrow"
+      slug: "mithril-arrow"
+      relationship: "product"
+      description: "Fletched from 15 arrowtips + 15 headless arrows at 45 Fletching"
+    - item_name: "Steel arrowtips"
+      slug: "steel-arrowtips"
+      relationship: "downgrade"
+      description: "Lower tier arrowtip"
+    - item_name: "Adamant arrowtips"
+      slug: "adamant-arrowtips"
+      relationship: "upgrade"
+      description: "Higher tier arrowtip"
+  drop_table:
+    sources:
+      - source: "Bull shark"
+        quantity: "1"
+        rarity: "Common"
+      - source: "Tiger shark"
+        quantity: "1"
+        rarity: "Common"
+  about: "Mithril arrowtips are produced by smithing a mithril bar at 55 Smithing for 50 XP (15 tips per bar) and are also stocked at every major archery shop for 16 coins. Combine 15 mithril arrowtips with 15 headless arrows at 45 Fletching to create mithril arrows for 112.5 XP per batch."
+  market_strategy:
+    notes:
+      - "GE price tracks the spread between mithril bars, headless arrows and finished mithril arrows."
+      - "Volume is decent thanks to mid-level fletching trainers; large limits make 10k+ flips realistic."
+      - "Shop floor at 16 gp caps downside — prices rarely sustain below it for long."
+  trading_tips:
+    - "Buy bars on dips and craft arrowtips for combined Smithing + Fletching profit chains."
+    - "Watch league/relay events that push mid-level Fletching engagement for demand spikes."
+  history:
+    - date: "2002-03-25"
+      description: "Added with the original ranged update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

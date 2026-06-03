@@ -1,6 +1,6 @@
 ---
 title: Lava scale | OSRS Price Data
-description: "Lava scale: A scale from the hide of a lava dragon.. High alch: 30 GP, GE limit: 11,000."
+description: "Lava scale: A scale from the hide of a lava dragon. High alch: 30 GP, GE limit: 11,000."
 osrs:
   id: 11992
   name: Lava scale
@@ -12,75 +12,77 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
   material:
     type: monster_drop
     tier: mid
+  properties:
+    release_date: "2014-03-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Drop
+    alchable: true
   drop_table:
-    primary_source: Lava dragon
     sources:
       - source: Lava dragon
-        source_id: 6593
-        combat_level: 252
         quantity: "1"
-        rarity: always
-        members_only: true
+        rarity: Always
       - source: Brutal black dragon
-        source_id: 7273
-        combat_level: 318
         quantity: "1"
-        rarity: common
-        drop_rate: 3/128
-        members_only: true
+        rarity: 4/128
   recipes:
     - skill: herblore
-      level: 0
+      level: 1
       xp: 0
       materials:
         - item_name: Lava scale
-          item_id: 11992
           quantity: 1
-      product: Lava scale shard
-      product_id: 11994
-      product_quantity: 3-6
-      tool: Pestle and mortar
-      members_only: true
+      tools:
+        - Pestle and mortar
+      output_quantity: 4
   related_items:
-    - item_id: 11994
-      item_name: Lava scale shard
+    - item_name: Lava scale shard
       slug: lava-scale-shard
       relationship: product
-      description: Ground shards (3-6 per scale)
-    - item_id: 22209
-      item_name: Extended super antifire(4)
-      slug: extended-super-antifire-4
-      relationship: product
-      description: Final potion product
-    - item_id: 11951
-      item_name: Extended antifire(4)
+      description: Ground from lava scales (3-6 per scale)
+    - item_name: Extended antifire(4)
       slug: extended-antifire-4
       relationship: product
-      description: Made with shards
-    - item_id: 233
-      item_name: Pestle and mortar
+      description: Potion brewed using shards
+    - item_name: Extended super antifire(4)
+      slug: extended-super-antifire-4
+      relationship: product
+      description: High-end antifire variant
+    - item_name: Pestle and mortar
       slug: pestle-and-mortar
       relationship: component
-      description: Tool for grinding
+      description: Required grinding tool
+  about: "Lava scales are dropped by lava dragons in the deep Wilderness and by brutal black dragons. Ground with a pestle and mortar, each scale yields 3-6 lava scale shards, increased to 4-9 with the Wilderness Hard Diary completed. The shards are used to brew extended antifire and extended super antifire potions, making lava scales a key Herblore-supply item. The yield scales with Herblore level."
   market_strategy:
     notes:
-      - "Base yield: 3-6 shards per scale"
-      - "Hard Wilderness Diary: 4-9 shards per scale"
-      - Higher Herblore = higher average yield
-      - Lava dragons are guaranteed drops
-      - Deep wilderness (41-44 level)
-      - Bring minimal risk gear
-      - Bank scales or grind on-site
-      - Compare whole scale price vs (avg shards × shard price)
-      - Usually profitable to grind yourself
-      - Hard diary makes grinding very profitable
-      - Extended antifire (4 shards each)
-      - Extended super antifire (4 shards each)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Base yield is 3-6 shards per scale"
+      - "Hard Wilderness Diary boosts yield to 4-9 shards"
+      - "Higher Herblore favours the upper end of the yield range"
+      - "Lava dragons are a guaranteed source but deep-Wilderness PKers are common"
+      - "Bring minimal risk gear and bank or grind on-site"
+      - "Compare whole scale price vs average shards times shard price"
+      - "Usually profitable to grind yourself with the diary done"
+  trading_tips:
+    - Compare scale vs shard market premiums before buying
+    - Buy limit of 11,000 every 4 hours
+    - PvP weekends often shift the supply/demand balance
+  history:
+    - date: "2014-03-27"
+      description: "Item released with the Lava dragon update."
+    - date: "2015-03-05"
+      description: "Wilderness Hard Diary boost added, increasing shard yield to 4-9 per scale."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

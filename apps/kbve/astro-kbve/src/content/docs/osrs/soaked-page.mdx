@@ -12,49 +12,57 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: 11000
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  material:
     type: charging material
+    tier: mid
+  properties:
+    release_date: "2021-03-24"
     tradeable: true
     stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0
-  obtaining:
-    - source: Tempoross reward pool
-      notes: Fishing with permits
-    - source: Book of Storms
-      notes: Desiccated pages + 50 Runecraft
-    - source: Retired sailor exchange
-      notes: 25 for various items
-  uses:
-    - item: Tome of water
-      charges_per_page: 20
-  effect:
-    damaging_spells: +10% accuracy/damage
-    non_damaging_spells: +20% accuracy
-    curse_spells: +50% stat drain
+    options:
+      - Read
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Tempoross
+        quantity: "1"
+        rarity: Common
+  charges:
+    type: Tome of water charge
+    description: "Each page adds 20 charges to the Tome of water. Active charges boost damaging spells by +10% accuracy and damage, non-damaging spells by +20% accuracy, and curse-spell stat drains by +50%."
   related_items:
-    - item_id: 25574
-      item_name: Tome of water
+    - item_name: Tome of water
       slug: tome-of-water
       relationship: alternative
-      description: Charging target
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Charging Material |
-    | Tradeable | Yes |
-    | Stackable | Yes |
-    | Weight | 0 kg |
-
-    | Use | Effect |
-    |-----|--------|
-    | Tome of water | 20 charges per page |
-
-    Spell Effects (per charge):
-    - Damaging spells: +10% accuracy/damage
-    - Non-damaging spells: +20% accuracy
-    - Curse spells: +50% stat drain
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Off-hand water spell tome charged by soaked pages.
+    - item_name: Tome of water (empty)
+      slug: tome-of-water-empty
+      relationship: component
+      description: Empty tome exchanged from the Retired sailor.
+    - item_name: Desiccated page
+      slug: desiccated-page
+      relationship: component
+      description: Wet via the Book of Storms with 50 Runecraft to produce soaked pages.
+  about: "Soaked page is a Tempoross reward used to recharge the Tome of water, granting magical boosts across damaging, non-damaging, and curse spells. It can be obtained from the Tempoross reward pool, by exchanging empty Tempoross rewards with the Retired sailor, or by soaking desiccated pages at the Book of Storms with 50 Runecraft."
+  market_strategy:
+    notes:
+      - "Volume is dominated by Tempoross players selling reward outputs to ironmen and stake-skill setups."
+      - "Price floor is anchored to tome charge demand from low to mid-level mages."
+      - "Holidays and double-XP weekends spike consumption — buy before announcements."
+  trading_tips:
+    - Buy small lots between events when supply outpaces demand.
+    - Avoid alching — high alch is below the GE floor.
+  history:
+    - date: "2021-03-24"
+      description: "Released alongside Tempoross as the dedicated recharge item for the Tome of water."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
