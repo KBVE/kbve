@@ -12,9 +12,67 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 70
-  about: "Proselyte tasset is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: mid
+  equipment:
+    slot: legs
+    weapon_type: none
+    weight: 8.164
+    requirements:
+      defence: 30
+      prayer: 20
+    attack_bonus:
+      magic: -4
+    defence_bonus:
+      stab: 33
+      slash: 31
+      crush: 29
+      ranged: 31
+    other_bonus:
+      prayer: 6
+  shops:
+    - shop_name: Proselyte Temple Knight Armoury
+      location: Falador Park
+      currency: coins
+      price: 10000
+  related_items:
+    - slug: proselyte-sallet
+      name: Proselyte sallet
+      relationship: set-piece
+    - slug: proselyte-hauberk
+      name: Proselyte hauberk
+      relationship: set-piece
+    - slug: proselyte-cuisse
+      name: Proselyte cuisse
+      relationship: alternative
+    - slug: initiate-cuisse
+      name: Initiate cuisse
+      relationship: downgrade
+  about: "Proselyte Temple Knight leg armour with +6 prayer bonus. Requires The Slug Menace quest completion, 30 Defence and 20 Prayer to equip. Sold by the Proselyte Temple Knight Armoury in Falador Park."
+  history:
+    - date: "2006-09-20"
+      description: Proselyte tasset released alongside The Slug Menace quest.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-09-20"
+    update: The Slug Menace
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: true
+    quest: The Slug Menace
+    weight: 8.164
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

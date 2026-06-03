@@ -1,6 +1,6 @@
 ---
 title: Dynamite | OSRS Price Data
-description: "Dynamite: A pot of dynamite for blast mining, with a fuse ready to light.. High alch: 30 GP, GE limit: 13,000."
+description: "Dynamite: A pot of dynamite for blast mining, with a fuse ready to light. High alch: 30 GP, GE limit: 13,000."
 osrs:
   id: 13573
   name: Dynamite
@@ -12,9 +12,63 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 13000
-  about: "Dynamite is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Dynamite is a members-only consumable used in the Blast Mining minigame in Lovakengj. Players insert it into rock cavities to expose ore veins and gain Firemaking experience. It can be crafted from a dynamite pot and a ball of wool or purchased from the Blast Mining supply shop."
+  recipes:
+    - skill: Firemaking
+      level: 1
+      experience: 0
+      materials:
+        - item_name: Dynamite pot
+          quantity: 1
+        - item_name: Ball of wool
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      output_item: Dynamite
+  shops:
+    - shop_name: Blast Mining supply shop
+      location: Lovakengj
+      price: 575
+      currency: coins
+      stock: 2000
+  related_items:
+    - item_name: Dynamite pot
+      slug: dynamite-pot
+      relationship: component
+      description: Combined with a ball of wool to create dynamite.
+  properties:
+    release_date: "2016-01-07"
+    update: "Blast Mining"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Light
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  market_strategy:
+    notes:
+      - "Bulk consumable for Blast Mining XP runs; demand tied to active blast miners."
+      - "Shop stock of 2,000 at 575 gp caps long-term GE price ceiling."
+      - "Large 13,000 buy limit supports high-volume flipping."
+  trading_tips:
+    - "Buy bulk from the Blast Mining shop when stock refreshes for shop-arbitrage."
+    - "Sell on the GE during peak Lovakengj training hours."
+    - "Track price relative to volcanic sulphur and saltpetre inputs."
+  history:
+    - date: "2016-01-07"
+      description: "Released as part of the Blast Mining minigame in Lovakengj."
+    - date: "2017-02-16"
+      description: "Players gained the ability to left-click place dynamite directly into rock cavities."
+    - date: "2024-05-15"
+      description: "Blast Mining shop price reduced from 1,150 to 575 coins and stock doubled to 2,000 units."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,55 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 40
-  about: "Candle lantern (black) is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  recipes:
+    - skill: Firemaking
+      level: 4
+      experience: 0
+      materials:
+        - item_name: Candle lantern (empty)
+          quantity: 1
+        - item_name: Black candle
+          quantity: 1
+      tools:
+        - Tinderbox
+      output_quantity: 1
+  related_items:
+    - name: Candle lantern (empty)
+      relationship: component
+    - name: Black candle
+      relationship: component
+    - name: Candle lantern (white)
+      relationship: alternative
+    - name: Candle lantern (black) lit
+      relationship: variant
+  about: "Candle lantern (black) is an unlit light source built by inserting a black candle into an empty candle lantern at Firemaking 4. Once lit it can be carried into dark areas such as the Lumbridge Swamp Caves."
+  market_strategy:
+    notes:
+      - "Low buy limit (40) and niche demand cap volume; price is anchored to the candle-lantern crafting chain."
+      - "Mostly purchased by clue scroll and emote completionists exploring Lumbridge caves."
+  trading_tips:
+    - "Source empty lanterns plus a stack of black candles and combine; flipping the lit version is rarely worthwhile."
+  history:
+    - date: "2005-03-14"
+      description: "Released alongside the Lumbridge Swamp Caves and the new light source mechanics."
+    - date: "2021-11-17"
+      description: "Placing a lit candle into the lantern now requires Firemaking level 4."
+  properties:
+    release_date: "2005-03-14"
+    update: Lumbridge Swamp Caves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

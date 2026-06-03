@@ -12,9 +12,58 @@ osrs:
   lowalch: 160000
   highalch: 240000
   limit: 8
-  about: "Burning claw is a members-only item in Old School RuneScape. High alchemy value: 240,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: demonic
+    tier: high
+  drop_table:
+    sources:
+      - source: Tormented Demon
+        quantity: "1"
+        rarity: 499/250000
+  recipes:
+    - materials:
+        - item_name: Burning claw
+          quantity: 2
+      tools: []
+      output_quantity: 1
+      output_item: Burning claws
+  related_items:
+    - item_id: 29577
+      item_name: Burning claws
+      slug: burning-claws
+      relationship: product
+      description: Combine two burning claws to form the finished weapon
+    - item_name: Tormented Demon
+      relationship: alternative
+      description: Source NPC that drops the burning claw
+  about: Burning claw is a rare Tormented Demon drop; two are combined to forge the Burning claws weapon.
+  market_strategy:
+    notes:
+      - High capital lock per flip with only 8 buy limit per 4 hours.
+      - Price tracks Tormented Demon popularity and Burning claws weapon demand.
+  trading_tips:
+    - Buy individual claws when their combined cost is meaningfully below the assembled Burning claws price.
+    - Watch DT2 boss meta shifts; demand surges when Burning claws are buffed or trend in PvM guides.
+  history:
+    - date: "2024-07-10"
+      description: Added with the While Guthix Sleeps update as a Tormented Demon drop.
+  properties:
+    release_date: "2024-07-10"
+    update: While Guthix Sleeps
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.8
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

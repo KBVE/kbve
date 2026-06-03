@@ -12,9 +12,71 @@ osrs:
   lowalch: 144
   highalch: 216
   limit: 2000
-  about: "Superantipoison(4) is a members-only item in Old School RuneScape. High alchemy value: 216 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 4
+    effects:
+      - description: "Cures poison and grants 6 minutes of poison immunity per dose (24 minutes total at 4 doses); two doses cures venom by stepping it down through poison."
+        duration: 1440
+    skill_requirements:
+      herblore: 48
+  recipes:
+    - materials:
+        - item_name: "Irit potion (unf)"
+          quantity: 1
+        - item_name: "Unicorn horn dust"
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: herblore
+      level: 48
+      experience: 106.3
+      notes: "Produces a 3-dose superantipoison; combine doses to make a 4-dose flask."
+  related_items:
+    - item_name: "Superantipoison(3)"
+      relationship: variant
+    - item_name: "Superantipoison(2)"
+      relationship: variant
+    - item_name: "Superantipoison(1)"
+      relationship: variant
+    - item_name: "Antidote+(4)"
+      relationship: upgrade
+    - item_name: "Antipoison(4)"
+      relationship: downgrade
+    - item_name: "Irit potion (unf)"
+      relationship: component
+    - item_name: "Unicorn horn dust"
+      relationship: component
+  about: "Superantipoison(4) is a members anti-poison potion that cures poison and steps down venom; 24 minutes of immunity across all 4 doses."
+  market_strategy:
+    notes:
+      - "Demand tracks venom-heavy bosses (Zulrah, Vorkath, ToB) and high-level slayer."
+      - "Antidote+ has eclipsed it for most PvM; price floor anchored to herblore alch / inputs."
+  trading_tips:
+    - "Pair stock with herb-run cycles; unicorn horn dust spikes drag this potion with it."
+    - "Bulk flip into raid resets; demand pulses around boss events."
+  history:
+    - date: "2002-02-27"
+      description: "Released alongside the original superantipoison three-dose flask."
+    - date: "2004-03-29"
+      description: "Four-dose variant added with the launch of RuneScape 2."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-02-27"
+    update: "Herblore Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,74 @@ osrs:
   lowalch: 50
   highalch: 75
   limit: 2000
-  about: "Zamorak mix(1) is a members-only item in Old School RuneScape. High alchemy value: 75 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 1
+    effects:
+      - description: "Boosts Attack by 20% + 2"
+      - description: "Boosts Strength by 12% + 2"
+      - description: "Drains Defence by 10% + 2"
+        duration: 0
+      - description: "Restores Prayer points by 10% of total Prayer level"
+      - description: "Deals damage equal to floor((current HP - 1) / 8) and heals 6 Hitpoints on the same tick"
+  recipes:
+    - materials:
+        - item_name: Zamorak brew (2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      output_item: Zamorak mix (1)
+      requirements:
+        herblore: 85
+        xp: 58
+        quest: Heroes' Quest
+  related_items:
+    - item_name: Zamorak brew (2)
+      relationship: component
+      description: Two-dose Zamorak brew combined with caviar to produce the mix
+    - item_name: Caviar
+      relationship: component
+      description: Barbarian Herblore ingredient added to the brew
+    - item_id: 11522
+      item_name: Zamorak mix (2)
+      slug: zamorak-mix-2
+      relationship: variant
+      description: Two-dose Zamorak mix variant
+    - item_name: Zamorak brew (4)
+      relationship: alternative
+      description: Standard non-mix Zamorak brew used in PvP and PvM
+  about: "Zamorak mix (1) is a one-dose Barbarian Herblore mix made from Zamorak brew(2) and caviar; restores prayer and HP on top of the standard Zamorak brew boost."
+  market_strategy:
+    notes:
+      - Niche use case (free prayer restore + heal) keeps demand thin but consistent.
+      - Caviar supply via Barbarian fishing dictates production cost more than Zamorak brew price.
+  trading_tips:
+    - Profitable when Zamorak brew (2) and caviar combined cost is below GE price of the mix minus tax.
+    - Stack ahead of league/seasonal events where Barbarian Herblore receives buffs.
+  history:
+    - date: "2007-07-03"
+      description: Added with the Barbarian Training (Barbarian Herblore) update.
+  properties:
+    release_date: "2007-07-03"
+    update: Barbarian Training
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    quest: Heroes' Quest
+    weight: 0.045
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

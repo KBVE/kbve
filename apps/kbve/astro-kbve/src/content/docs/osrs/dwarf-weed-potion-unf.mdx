@@ -12,62 +12,59 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: 10000
-  potion:
-    type: unfinished
-    tier: high
-  herblore:
-    level: 72
-    xp: 0
-    method: Add dwarf weed to vial of water
   recipes:
-    - skill: herblore
+    - skill: Herblore
       level: 72
       xp: 0
       materials:
         - item_name: Vial of water
-          item_id: 227
           quantity: 1
         - item_name: Dwarf weed
-          item_id: 267
           quantity: 1
-      product: Dwarf weed potion (unf)
-      product_id: 109
-      product_quantity: 1
+      tools: []
+      output: Dwarf weed potion (unf)
+      output_quantity: 1
       members_only: true
   related_items:
-    - item_id: 267
-      item_name: Dwarf weed
-      slug: dwarf-weed
+    - name: Dwarf weed
       relationship: component
-      description: Herb ingredient
-    - item_id: 227
-      item_name: Vial of water
-      slug: vial-of-water
+    - name: Vial of water
       relationship: component
-      description: Base liquid
-    - item_id: 245
-      item_name: Wine of zamorak
-      slug: wine-of-zamorak
+    - name: Wine of zamorak
       relationship: component
-      description: Secondary for ranging potion
-    - item_id: 2444
-      item_name: Ranging potion(4)
-      slug: ranging-potion-4
+    - name: Ranging potion(3)
       relationship: product
-      description: Final product
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Unfinished Potion |
-    | Tradeable | Yes |
-    | Weight | 0.056 kg |
-    | Requirements | 72 Herblore |
-
-    Add secondary ingredient to create:
-    - Ranging potion (+ wine of zamorak)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - name: Ancient brew(3)
+      relationship: product
+    - name: Menaphite remedy(3)
+      relationship: product
+  about: "Dwarf weed potion (unf) is an unfinished potion made by adding dwarf weed to a vial of water at 72 Herblore. Finishing with wine of zamorak yields a Ranging potion (72), nihil dust yields Ancient brew (85), and lily of the sands yields Menaphite remedy (88)."
+  market_strategy:
+    notes:
+      - "Bulk Herblore intermediate; buy limit 10,000 makes it easy to scale ranging potion and ancient brew runs."
+      - "Price sits between dwarf weed + vial of water cost and the cheapest finishing route; arbitrage swings on dwarf weed supply."
+  trading_tips:
+    - "Finishing into Ranging potion (3) gives 162.5 XP at 72 Herblore, Ancient brew (3) gives 190 XP at 85, Menaphite remedy (3) gives 200 XP at 88."
+    - "Making the unf yourself awards 0 XP, so only press the combine step if dwarf weed + vial is meaningfully cheaper than the unf on GE."
+  history:
+    - date: "2002-02-27"
+      description: "Released with the Herblore skill launch."
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - Drink
+      - Drop
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

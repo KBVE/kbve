@@ -12,43 +12,64 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 5
-  item:
-    type: god_page
-    god: Zamorak
-    page_number: 3
-    tradeable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Easy/Medium/Hard/Elite
-        drop_rate: Varies by tier
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
   related_items:
     - item_id: 3831
       item_name: Zamorak page 1
       slug: zamorak-page-1
       relationship: set-piece
-      description: Page 1 of 4
+      description: Page 1 of 4 of the Unholy book (Zamorak)
     - item_id: 3832
       item_name: Zamorak page 2
       slug: zamorak-page-2
       relationship: set-piece
-      description: Page 2 of 4
+      description: Page 2 of 4 of the Unholy book (Zamorak)
     - item_id: 3834
       item_name: Zamorak page 4
       slug: zamorak-page-4
       relationship: set-piece
-      description: Page 4 of 4
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | God Page |
-    | God | Zamorak |
-    | Page | 3 of 4 |
-    | Tradeable | Yes |
-
-    Add to incomplete Unholy book (Zamorak god book) to complete it.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Page 4 of 4 of the Unholy book (Zamorak)
+    - item_id: 3840
+      item_name: Unholy book
+      slug: unholy-book
+      relationship: product
+      description: Completed Zamorak god book formed from all 4 pages
+  about: Zamorak page 3 is one of four torn pages used to complete the Unholy book (Zamorak god book). Obtained as a reward from Treasure Trails (Easy through Elite).
+  market_strategy:
+    notes:
+      - Niche demand tied to god-book completion; price spikes during clue scroll events.
+      - GE limit of 5 every 4 hours makes bulk flipping slow.
+  trading_tips:
+    - Buy pages individually when cheaper than the assembled book / 4.
+    - Sell to Grand Exchange Clerk as an unholy book page set for slightly better margins during demand spikes.
+  history:
+    - date: "2004-11-17"
+      description: Added to the game with the Horror From The Deep update.
+  properties:
+    release_date: "2004-11-17"
+    update: Horror From The Deep
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Read
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

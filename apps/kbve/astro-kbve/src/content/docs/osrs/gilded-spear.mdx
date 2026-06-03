@@ -12,9 +12,86 @@ osrs:
   lowalch: 8320
   highalch: 12480
   limit: 70
-  about: "Gilded spear is a members-only item in Old School RuneScape. High alchemy value: 12,480 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: mid-high
+  equipment:
+    slot: weapon
+    weapon_type: two-handed
+    attack_speed: 4
+    weight: 2.267
+    requirements:
+      attack: 40
+    attack_bonus:
+      stab: 36
+      slash: 36
+      crush: 36
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 42
+      prayer: 0
+  drop_table:
+    sources:
+      - source: "Reward casket (hard)"
+        quantity: "1"
+        rarity: "1/35,750"
+      - source: "Reward casket (elite)"
+        quantity: "1"
+        rarity: "1/32,257.5"
+      - source: "Reward casket (master)"
+        quantity: "1"
+        rarity: "1/149,776"
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - hard
+      - elite
+      - master
+  related_items:
+    - item_name: "Rune spear"
+      relationship: alternative
+    - item_name: "Gilded scimitar"
+      relationship: set-piece
+    - item_name: "Gilded 2h sword"
+      relationship: set-piece
+  about: "Gilded spear is a cosmetic two-handed weapon obtained as a rare clue scroll reward; shares stats with the rune spear but cannot be poisoned."
+  market_strategy:
+    notes:
+      - "Cosmetic showpiece; demand driven by gilded-set collectors, not PvM viability."
+      - "Tiny GE volume (single digits/day) makes price swings sharp."
+  trading_tips:
+    - "List asks near recent merch averages — thin order book rewards patience."
+    - "Anchor buy bids during clue scroll bonus weekends when supply spikes."
+  history:
+    - date: "2016-07-06"
+      description: "Added with the Treasure Trail Expansion update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2016-07-06"
+    update: "Treasure Trail Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,54 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: 150
-  about: "Menaphite purple hat is a members-only item in Old School RuneScape. High alchemy value: 21 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: head
+    weapon_type: none
+    weight: 0.005
+    requirements: {}
+    attack_bonus: {}
+    defence_bonus: {}
+    other_bonus: {}
+  shops:
+    - shop_name: Ali's Discount Wares
+      location: Al Kharid
+      currency: coins
+  related_items:
+    - slug: menaphite-purple-robe
+      name: Menaphite purple robe
+      relationship: set-piece
+    - slug: menaphite-purple-kilt
+      name: Menaphite purple kilt
+      relationship: set-piece
+    - slug: menaphite-red-hat
+      name: Menaphite red hat
+      relationship: alternative
+  about: "Menaphite purple hat is a members-only item in Old School RuneScape. Delays desert heat effects by 12 additional seconds when worn. Used in master-tier emote clues."
+  history:
+    - date: "2005-08-15"
+      description: Menaphite purple hat released alongside The Feud quest area.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-08-15"
+    update: The Feud
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

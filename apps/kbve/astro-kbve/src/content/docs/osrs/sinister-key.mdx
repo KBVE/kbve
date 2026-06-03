@@ -12,9 +12,50 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 11000
-  about: "Sinister key is a members-only item in Old School RuneScape. High alchemy value: 48 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  drop_table:
+    sources:
+      - source: Magpie impling jar
+        quantity: "1"
+        rarity: 1/21
+      - source: Salarin the Twisted
+        quantity: "1"
+        rarity: 10/128
+      - source: Chaos Fanatic
+        quantity: "1"
+        rarity: 4/128
+  related_items:
+    - name: Sinister chest
+      relationship: component
+    - name: Lockpick
+      relationship: alternative
+  about: "Sinister key opens the sinister chest in the Yanille Agility dungeon, yielding nine noted grimy herbs (2 harralander, 3 ranarr, 1 irit, 1 avantoe, 1 kwuarm, 1 torstol)."
+  market_strategy:
+    notes:
+      - Strong daily demand from herb-flippers; the chest payout sets a price floor.
+      - Drops scale with Salarin the Twisted and Chaos Fanatic kills plus Magpie impling rates (1/21).
+      - 11,000/4h GE limit suits bulk flipping when chest contents trend upward.
+  trading_tips:
+    - Profit = (ranarr + torstol + kwuarm + irit + avantoe + 2 harralander) noted prices minus (sinister key + travel) — track this gap.
+    - Watch herb prices, especially ranarr and torstol, for the dominant signal on key valuation.
+  history:
+    - date: "2002-12-12"
+      description: Added with the Agility skill release.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2002-12-12"
+    update: Agility skill release
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

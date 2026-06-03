@@ -12,9 +12,71 @@ osrs:
   lowalch: 9600
   highalch: 14400
   limit: 8
-  about: "Katana is a members-only item in Old School RuneScape. High alchemy value: 14,400 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: steel
+    tier: mid-high
+  equipment:
+    slot: weapon
+    weapon_type: two-handed
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      attack: 40
+    attack_bonus:
+      stab: 7
+      slash: 45
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 3
+      slash: 7
+      crush: 7
+      magic: 0
+      ranged: -3
+    other_bonus:
+      strength: 40
+      prayer: 0
+  drop_table:
+    sources:
+      - source: "Reward casket (elite)"
+        quantity: "1"
+        rarity: "1/1,275"
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  about: "Katana is a members-only two-handed sword in Old School RuneScape, obtained from elite Treasure Trails. High alchemy value: 14,400 coins. Grand Exchange buy limit: 8 per 4 hours."
+  market_strategy:
+    notes:
+      - "Casual flavor weapon; demand limited to collectors and Kill Bill cosplay setups."
+      - "Buy limit of 8 keeps inventory rotation slow; flips need patience."
+  trading_tips:
+    - "Track elite clue completion rate spikes for supply influxes."
+    - "Stat-stick value is irrelevant; only cosmetic appeal drives the price."
+  history:
+    - date: "2014-06-12"
+      description: "Added to the game as part of the Treasure Trail Expansion update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-06-12"
+    update: "Treasure Trail Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

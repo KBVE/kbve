@@ -12,9 +12,82 @@ osrs:
   lowalch: 422
   highalch: 633
   limit: 70
-  about: "Black helm (h3) is a free-to-play item in Old School RuneScape. High alchemy value: 633 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: metal
+    tier: low
+  equipment:
+    slot: head
+    weight: 2.721
+    requirements:
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 12
+      slash: 13
+      crush: 10
+      magic: -1
+      ranged: -3
+    other_bonus:
+      strength: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: "Reward casket (easy)"
+        quantity: "1"
+        rarity: "1/1,404"
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - name: Black full helm
+      relationship: alternative
+    - name: Black helm (h1)
+      relationship: variant
+    - name: Black helm (h2)
+      relationship: variant
+    - name: Black helm (h4)
+      relationship: variant
+    - name: Black helm (h5)
+      relationship: variant
+  about: "Black helm (h3) is a free-to-play heraldic helm in Old School RuneScape. High alchemy value: 633 coins. Grand Exchange buy limit: 70 per 4 hours."
+  market_strategy:
+    notes:
+      - "Easy clue scroll reward from Reward casket (easy) at approximately 1/1,404."
+      - "Shares defence stats with the Black full helm but features a unique heraldic crest."
+      - "Storable in a costume room treasure chest, keeping bank slots free for collectors."
+  trading_tips:
+    - "Demand is collector-driven; check costume room popularity and clue scroll meta."
+    - "Buy limit of 70 per 4 hours allows steady accumulation but limits quick flips."
+    - "Compare against other h-series variants when assembling a full clue set."
+  history:
+    - date: "2006-12-05"
+      description: "Released as part of the Treasure Trails, spiders and sheep update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2006-12-05"
+    update: "Treasure Trails, spiders and sheep"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

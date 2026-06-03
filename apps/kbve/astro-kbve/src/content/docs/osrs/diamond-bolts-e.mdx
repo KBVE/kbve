@@ -1,6 +1,6 @@
 ---
 title: Diamond bolts (e) | OSRS Price Data
-description: "Diamond bolts (e) is a members ammo slot item requiring 61 Ranged. High alch: 126 GP, GE limit: 11,000."
+description: "Diamond bolts (e) is a members ammo slot item. High alch: 126 GP, GE limit: 11,000."
 osrs:
   id: 9243
   name: Diamond bolts (e)
@@ -12,27 +12,38 @@ osrs:
   lowalch: 84
   highalch: 126
   limit: 11000
+  material:
+    type: metal
+    tier: mid
   equipment:
     slot: ammo
-    type: enchanted_bolts
-    tradeable: true
+    weapon_type: crossbow
     weight: 0
     requirements:
-      ranged: 61
-  effect:
+      ranged: 1
+    attack_bonus:
+      ranged: 0
+    other_bonus:
+      ranged_strength: 105
+  special_attack:
     name: Armour Piercing
-    description: Ignores portion of target's defence
-  enchanting:
-    spell: Enchant Crossbow Bolt (Diamond)
-    magic_level: 57
-    runes:
-      - item_name: Earth rune
-        quantity: "10"
-      - item_name: Law rune
-        quantity: "2"
-      - item_name: Cosmic rune
-        quantity: "1"
-    bolts_per_cast: 10
+    description: "10% activation chance (5% in PvP) to increase max hit by 15% and guarantee a successful hit, ignoring a portion of the target's defence. Rises to 11% with the Kandarin Hard Diary."
+  recipes:
+    - skill: Magic
+      level: 57
+      experience: 67
+      materials:
+        - item_name: Diamond bolts
+          quantity: 10
+        - item_name: Earth rune
+          quantity: 10
+        - item_name: Law rune
+          quantity: 2
+        - item_name: Cosmic rune
+          quantity: 1
+      tools: []
+      output_quantity: 10
+      output_item: Diamond bolts (e)
   related_items:
     - item_id: 9340
       item_name: Diamond bolts
@@ -44,20 +55,38 @@ osrs:
       slug: ruby-bolts-e
       relationship: alternative
       description: High HP boss alternative
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Ammo |
-    | Type | Enchanted Bolts |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 61 Ranged |
-
-    Armour Piercing: Ignores portion of target's defence.
-
-    Effective against high-defence targets.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Diamond bolts (e) are enchanted diamond-tipped adamantite crossbow bolts with an Armour Piercing effect that bypasses defence and boosts maximum damage. They are popular for high-defence PvM targets and PvP setups."
+  properties:
+    release_date: "2006-07-31"
+    update: "Crossbows update"
+    tradeable: true
+    stackable: true
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  market_strategy:
+    notes:
+      - "Staple high-tier crossbow ammo; demand remains stable across the metagame."
+      - "Price tied to diamond gem supply, magic enchanting throughput, and PvM trends."
+      - "11,000 buy limit supports large bulk purchases for ironmen alts and resellers."
+  trading_tips:
+    - "Watch the unenchanted-to-enchanted spread for crafting profit windows."
+    - "Stock up before raid resets and seasonal boss events."
+    - "Compare margins versus Ruby bolts (e) when bossing meta shifts."
+  history:
+    - date: "2006-07-31"
+      description: "Released as part of the crossbows expansion update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

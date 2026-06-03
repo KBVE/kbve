@@ -12,9 +12,72 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 5
-  about: "Green partyhat is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: head
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    weight: 0.056
+  related_items:
+    - name: Red partyhat
+      relationship: alternative
+    - name: Yellow partyhat
+      relationship: alternative
+    - name: Blue partyhat
+      relationship: alternative
+    - name: White partyhat
+      relationship: alternative
+    - name: Purple partyhat
+      relationship: alternative
+  about: "Green partyhat is a free-to-play rare holiday cosmetic in Old School RuneScape originally distributed during the 2001 Christmas event. It carries no combat bonuses but is a prestigious wealth item due to its scarcity."
+  market_strategy:
+    notes:
+      - "Extreme rarity holiday item; price driven by collectors and wealth display rather than utility."
+      - "GE buy limit of 5 means whales tend to fill orders slowly; small flips are viable."
+      - "Watch for player-economy events that briefly re-introduce partyhats (e.g., World 666 in 2016)."
+  trading_tips:
+    - "Use the Grand Exchange history tab to detect long-term trend reversals before committing capital."
+    - "Cross-check with other partyhat colours; the set typically moves together."
+  history:
+    - date: "2001-12-24"
+      description: "Released during the original Christmas event as a holiday drop."
+    - date: "2016-06-04"
+      description: "Briefly available again as a reward during the World 666 event."
+  properties:
+    release_date: "2001-12-24"
+    update: Christmas Event 2001
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.056
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

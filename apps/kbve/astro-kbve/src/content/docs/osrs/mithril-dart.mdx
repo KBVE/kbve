@@ -12,62 +12,88 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 7000
+  material:
+    type: mithril
+    tier: low
   equipment:
     slot: weapon
-    type: thrown
-    attack_style: ranged
-    attack_speed: 3
-  requirements:
-    ranged: 20
-  stats:
-    attack:
+    weapon_type: thrown
+    attack_speed: 2
+    weight: 0
+    requirements:
+      ranged: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
       ranged: 0
-    other:
-      ranged_strength: 11
-  fletching:
-    level: 52
-    xp: 11.2
-    method: Attach feathers to mithril dart tips
-    quest: Tourist Trap
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 9
+      prayer: 0
+  recipes:
+    - materials:
+        - item_name: "Mithril dart tip"
+          quantity: 1
+        - item_name: "Feather"
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: fletching
+      level: 52
+      experience: 11.2
+      notes: "Requires completion of The Tourist Trap quest."
   drop_table:
     sources:
-      - source: Cyclops
-        source_id: 4291
-        combat_level: 56
-        quantity: 5-12
-        rarity: common
-        members_only: true
+      - source: "Cyclops"
+        quantity: "1"
+        rarity: "Common"
   related_items:
-    - item_id: 822
-      item_name: Mithril dart tip
-      slug: mithril-dart-tip
+    - item_name: "Mithril dart tip"
       relationship: component
-      description: Fletching material
-    - item_id: 314
-      item_name: Feather
-      slug: feather
+    - item_name: "Feather"
       relationship: component
-      description: Fletching material
-    - item_id: 810
-      item_name: Adamant dart
-      slug: adamant-dart
+    - item_name: "Adamant dart"
       relationship: upgrade
-      description: Higher tier
-    - item_id: 806
-      item_name: Steel dart
-      slug: steel-dart
+    - item_name: "Steel dart"
       relationship: downgrade
-      description: Lower tier
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Weapon/Ammo |
-    | Type | Thrown |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 20 Ranged |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Mithril dart is a members thrown weapon used for cheap ranged training; 20 Ranged to wield and stackable in the inventory."
+  market_strategy:
+    notes:
+      - "Massive daily volume (10M+) makes price discovery instant; margins compress to single gp."
+      - "Demand driven by training accounts, low-level slayer, and Vorkath dart-stacking."
+  trading_tips:
+    - "Flip in 7k limit chunks; chase 1–2 gp margin on bulk."
+    - "Watch mithril dart tip + feather inputs — net cost gates the floor."
+  history:
+    - date: "2003-04-14"
+      description: "Released alongside the other tiered throwing darts."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2003-04-14"
+    update: "Members Beta"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

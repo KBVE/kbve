@@ -1,6 +1,6 @@
 ---
 title: Antidote+ mix(1) | OSRS Price Data
-description: "Antidote+ mix(1): One dose of fishy extra strength antidote potion.. High alch: 86 GP, GE limit: 2,000."
+description: "Antidote+ mix(1): One dose of fishy extra strength antidote potion. High alch: 86 GP, GE limit: 2,000."
 osrs:
   id: 11503
   name: Antidote+ mix(1)
@@ -12,9 +12,67 @@ osrs:
   lowalch: 57
   highalch: 86
   limit: 2000
-  about: "Antidote+ mix(1) is a members-only item in Old School RuneScape. High alchemy value: 86 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Antidote+ mix(1) is a single-dose barbarian potion that cures poison, grants 9 minutes of poison immunity, and restores 6 Hitpoints. It is created by combining an antidote+(2) with caviar after completing the Barbarian Herblore training."
+  properties:
+    release_date: "2007-07-03"
+    update: Barbarian Training
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.045
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Cures poison."
+        duration: 0
+      - description: "Grants 9 minutes of poison immunity."
+        duration: 540
+      - description: "Restores 6 Hitpoints on consumption."
+        skill: Hitpoints
+        duration: 0
+  recipes:
+    - name: Antidote+ mix(1)
+      skill: Herblore
+      level: 74
+      experience: 52
+      materials:
+        - item_name: Antidote+(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - name: Antidote+(2)
+      relationship: component
+    - name: Antidote+ mix(2)
+      relationship: upgrade
+    - name: Antidote++ mix(1)
+      relationship: upgrade
+    - name: Antidote+
+      relationship: variant
+  market_strategy:
+    notes:
+      - "Barbarian mixes cost more to make than the base antidote+, trading the extra cost for 6 HP healing."
+      - "Demand from PvM where poison protection plus hp regen is wanted in a single sip."
+      - "Buy limit 2,000 supports moderate-scale flipping."
+  trading_tips:
+    - "Compare antidote+(2) + caviar cost vs GE to spot creation arbitrage."
+    - "Most useful for low-Prayer bossing where every HP matters."
+    - "Stocks spike during bounty/PVM weekends."
+  history:
+    - date: "2007-07-03"
+      description: "Antidote+ mix added with the Barbarian Herblore update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

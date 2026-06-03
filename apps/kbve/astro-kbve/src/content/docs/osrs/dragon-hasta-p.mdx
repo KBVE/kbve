@@ -5,16 +5,92 @@ osrs:
   id: 22734
   name: Dragon hasta(p)
   slug: dragon-hasta-p
-  examine: A poison-tipped, one-handed dragon hasta
+  examine: A poison-tipped, one-handed dragon hasta.
   members: true
   icon: Dragon hasta(p).png
   value: 62400
   lowalch: 24960
   highalch: 37440
   limit: 70
-  about: "Dragon hasta(p) is a members-only item in Old School RuneScape. High alchemy value: 37,440 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: dragon
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    weight: 2.267
+    requirements:
+      attack: 60
+    attack_bonus:
+      stab: 55
+      slash: 55
+      crush: 55
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: -1
+      slash: -1
+      crush: -1
+      magic: 0
+      ranged: -1
+    other_bonus:
+      strength: 60
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    name: Unleash
+    description: "Increases accuracy and damage by 5% per 5% special attack energy and ignores the Protect from Melee prayer's damage reduction."
+    energy_cost: 50
+  recipes:
+    - materials:
+        - item_name: Dragon hasta
+          quantity: 1
+        - item_name: Weapon poison
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      notes: "Apply weapon poison to a Dragon hasta to create the poisoned variant."
+  related_items:
+    - name: Dragon hasta
+      relationship: variant
+    - name: "Dragon hasta(p+)"
+      relationship: upgrade
+    - name: "Dragon hasta(kp)"
+      relationship: variant
+  about: "Dragon hasta(p) is a poisoned, one-handed dragon spear obtained by applying weapon poison to a Dragon hasta. Requires 60 Attack plus Barbarian Training and shares stats with the unpoisoned hasta. High alchemy value: 37,440 coins. Grand Exchange buy limit: 70 per 4 hours."
+  market_strategy:
+    notes:
+      - "Demand is niche; flips revolve around Barbarian Assault and poisoned-variant collectors."
+      - "Margins follow weapon poison and base Dragon hasta prices."
+  trading_tips:
+    - "Cross-check poisoned and unpoisoned hasta prices for cheap conversion arbitrage."
+    - "Keep an eye on Barbarian Training meta updates for demand spikes."
+  history:
+    - date: "2019-01-10"
+      description: "Dragon hasta released with The Kebos Lowlands update."
+    - date: "2025-03-19"
+      description: "Adjusted as part of the Clan Events Improvements update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2019-01-10"
+    update: "The Kebos Lowlands"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

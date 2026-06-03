@@ -12,9 +12,64 @@ osrs:
   lowalch: 132
   highalch: 198
   limit: 2000
-  about: "Extended antifire(3) is a members-only item in Old School RuneScape. High alchemy value: 198 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    doses: 3
+    effects:
+      - description: "Grants partial dragonfire protection for 12 minutes per dose (36 minutes total at 3 doses); full immunity when paired with an anti-dragon or dragonfire shield."
+        duration: 2160
+    skill_requirements:
+      herblore: 84
+  recipes:
+    - materials:
+        - item_name: "Antifire potion(3)"
+          quantity: 1
+        - item_name: "Lava scale shard"
+          quantity: 3
+      tools: []
+      output_quantity: 1
+      skill: herblore
+      level: 84
+      experience: 82.5
+  related_items:
+    - item_name: "Extended antifire(4)"
+      relationship: variant
+    - item_name: "Extended antifire(2)"
+      relationship: variant
+    - item_name: "Extended antifire(1)"
+      relationship: variant
+    - item_name: "Antifire potion(3)"
+      relationship: component
+    - item_name: "Lava scale shard"
+      relationship: component
+  about: "Extended antifire(3) is a members three-dose herblore potion that extends dragonfire protection to 12 minutes per dose."
+  market_strategy:
+    notes:
+      - "Demand spikes around dragon-slayer slayer tasks and Vorkath rotations."
+      - "Three-dose pricing tracks four-dose / inputs; arbitrage windows are short."
+  trading_tips:
+    - "Watch lava scale shard supply from Konar/Wyrm tasks for floor changes."
+    - "Sell stacks ahead of new draconic content events."
+  history:
+    - date: "2014-03-27"
+      description: "Released alongside the Wilderness Feedback / Anti-dragon updates and lava scale shard introduction."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2014-03-27"
+    update: "Wilderness Feedback"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

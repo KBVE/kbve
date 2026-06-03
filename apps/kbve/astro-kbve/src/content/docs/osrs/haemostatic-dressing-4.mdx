@@ -12,9 +12,61 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 2000
-  about: "Haemostatic dressing (4) is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: "Cures the bleed status effect on application and heals 5 Hitpoints if a bleed was successfully stopped. Can also be used outside of combat."
+        duration: 0
+  recipes:
+    - name: "Haemostatic dressing (4)"
+      skill: Herblore
+      level: 56
+      xp: 100
+      materials:
+        - item_name: Haemostatic poultice
+          quantity: 1
+        - item_name: Cotton yarn
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - name: "Haemostatic dressing (3)"
+      relationship: variant
+    - name: "Haemostatic dressing (2)"
+      relationship: variant
+    - name: "Haemostatic dressing (1)"
+      relationship: variant
+    - name: Haemostatic poultice
+      relationship: component
+    - name: Cotton yarn
+      relationship: component
+  about: "Haemostatic dressing (4) is a four-application Herblore bleed cure made from a haemostatic poultice and cotton yarn, healing 5 Hitpoints when it successfully stops a bleed."
+  market_strategy:
+    notes:
+      - Demand is driven by bossing and PvP setups where bleed effects are common.
+      - Price reflects haemostatic poultice secondaries and cotton yarn cost.
+  trading_tips:
+    - Track poultice and cotton yarn spreads for Herblore profit windows.
+    - Stock up before PvP weeks and bleed-heavy boss updates.
+  history:
+    - date: "2025-11-19"
+      description: Released with the Sailing update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing is OUT TODAY!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Apply
+      - Drop
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,63 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: null
-  about: "Chain is a members-only item in Old School RuneScape. High alchemy value: 90 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: steel
+    tier: low
+  recipes:
+    - materials:
+        - item_name: "Steel bar"
+          quantity: 1
+      tools:
+        - "Hammer"
+        - "Anvil"
+      output_quantity: 1
+      skill: smithing
+      level: 34
+      experience: 37.5
+  related_items:
+    - item_name: "Steel bar"
+      relationship: component
+    - item_name: "Bronze chainshot"
+      relationship: product
+    - item_name: "Iron chainshot"
+      relationship: product
+    - item_name: "Steel chainshot"
+      relationship: product
+    - item_name: "Mithril chainshot"
+      relationship: product
+    - item_name: "Adamant chainshot"
+      relationship: product
+    - item_name: "Rune chainshot"
+      relationship: product
+  about: "Chain is a members-only smithed item used as a component for chainshot cannonball variants and the Ivandis flail in Old School RuneScape. High alchemy value: 90 coins."
+  market_strategy:
+    notes:
+      - "Margins versus steel-bar input are razor thin; only profitable in bulk through chainshot demand."
+      - "Volume is tied to cannon-using boss meta; supply scales with smithing AFK farms."
+  trading_tips:
+    - "Track steel bar price as the floor; chain rarely undercuts the bar by more than a few gp."
+    - "Spikes around Sailing-themed content and chainshot DPS testing windows."
+  history:
+    - date: "2025-11-19"
+      description: "Released as part of the Sailing update."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.628
+    options:
+      - Use
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

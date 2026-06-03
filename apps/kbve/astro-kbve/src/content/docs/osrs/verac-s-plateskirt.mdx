@@ -12,81 +12,67 @@ osrs:
   lowalch: 110000
   highalch: 165000
   limit: 15
+  material:
+    type: barrows
+    tier: high
   equipment:
     slot: legs
-    type: barrows
-    set: Verac
-    tradeable: true
-    degradeable: true
-    weight: 4.5
+    weapon_type: none
+    weight: 4.535
     requirements:
       defence: 70
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -21
-      attack_ranged: 0
-      defence_stab: 85
-      defence_slash: 82
-      defence_crush: 83
-      defence_magic: 0
-      defence_ranged: 84
-      strength: 0
-      ranged_strength: 0
-      magic_damage: 0
+    attack_bonus:
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 85
+      slash: 82
+      crush: 83
+      ranged: 84
+    other_bonus:
       prayer: 4
-  set_effect:
-    name: Defiler
-    pieces_required: 4
-    description: 25% chance to ignore target's Defence and Protection prayers
   related_items:
-    - item_id: 4753
-      item_name: Verac's helm
-      slug: veracs-helm
+    - slug: veracs-helm
+      name: Verac's helm
       relationship: set-piece
-      description: Head slot set piece (+3 prayer)
-    - item_id: 4757
-      item_name: Verac's brassard
-      slug: veracs-brassard
+    - slug: veracs-brassard
+      name: Verac's brassard
       relationship: set-piece
-      description: Body slot set piece (+5 prayer)
-    - item_id: 4755
-      item_name: Verac's flail
-      slug: veracs-flail
+    - slug: veracs-flail
+      name: Verac's flail
       relationship: set-piece
-      description: Weapon set piece (+6 prayer)
-  about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Stab defence | +85 |
-    | Slash defence | +82 |
-    | Crush defence | +83 |
-    | Magic defence | +0 |
-    | Ranged defence | +84 |
-    | Prayer | +4 |
-    | Magic attack | -21 |
-
-    Note: Same melee defence as Dharok/Torag legs but with +4 prayer bonus.
-
-    Defiler:
-    When wearing full Verac's (helm, brassard, plateskirt, flail):
-    - 25% chance to ignore target's Defence and Protection prayers
-    - Hits through Protect from Melee
-
-    Best For:
-    - Prayer bonus legs option
-    - Same defence as other Barrows legs
-    - Lighter than other platelegs
-
-    - 15 hours of combat use
-    - Repair at Bob in Lumbridge or POH armor stand
+  about: "Same melee defence as Dharok/Torag legs but with +4 prayer bonus. Part of Verac's Defiler set effect (25% chance to ignore target Defence and Protection prayers)."
   market_strategy:
     notes:
       - Useful for prayer setups
       - Combines well with Proselyte
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  history:
+    - date: "2005-05-09"
+      description: "Verac's plateskirt released with the Barrows update."
+    - date: "2015-04-16"
+      description: '"Check" option added for durability viewing.'
+    - date: "2021-04-28"
+      description: Ranged attack bonus reduced from -7 to -11.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2005-05-09"
+    update: Barrows
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.535
+    options:
+      - Wear
+      - Check
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

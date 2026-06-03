@@ -12,9 +12,86 @@ osrs:
   lowalch: 1200
   highalch: 1800
   limit: 125
-  about: "Blue spiky vambraces is a members-only item in Old School RuneScape. High alchemy value: 1,800 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: Blue dragonhide
+    tier: mid
+  equipment:
+    slot: hands
+    weapon_type: gloves
+    weight: 0.283
+    requirements:
+      ranged: 50
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: 9
+    defence_bonus:
+      stab: 4
+      slash: 3
+      crush: 5
+      magic: 4
+      ranged: 0
+    other_bonus:
+      strength: 2
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - materials:
+        - item_name: Blue d'hide vambraces
+          quantity: 1
+        - item_name: Kebbit claws
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      skill: Crafting
+      level: 32
+  related_items:
+    - name: Blue d'hide vambraces
+      relationship: component
+    - name: Kebbit claws
+      relationship: component
+    - name: Green spiky vambraces
+      relationship: alternative
+    - name: Red spiky vambraces
+      relationship: alternative
+    - name: Black spiky vambraces
+      relationship: alternative
+  about: "Blue spiky vambraces are ranged gloves crafted by adding kebbit claws to blue d'hide vambraces at Crafting level 32, granting a small +2 strength bonus over the plain version while keeping the same +9 ranged attack."
+  market_strategy:
+    notes:
+      - "Requires 50 Ranged to equip and 32 Crafting to produce."
+      - "Profit margin tracks the spread between blue d'hide vambraces, kebbit claws, and the spiky output."
+      - "Buy limit of 125 per 4h fits mid-volume crafting flips."
+  trading_tips:
+    - "Watch hunter kebbit supplies and craft batches when claws dip below break-even."
+    - "Stay aware of newer ranged glove releases that can sap demand for the spiky tier."
+  history:
+    - date: "2006-11-21"
+      description: "Released as part of the spiky vambraces line alongside falconry hunter rewards."
+    - date: "2020-04-01"
+      description: "Renamed from 'Blue spiky vambs' to 'Blue spiky vambraces'."
+  properties:
+    release_date: "2006-11-21"
+    update: "Hunter Skill Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.283
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

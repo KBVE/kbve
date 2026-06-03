@@ -1,6 +1,6 @@
 ---
 title: Rosewood sapling | OSRS Price Data
-description: "Rosewood sapling: This sapling is ready to be replanted in a tree patch.. High alch: 1 GP."
+description: "Rosewood sapling: This sapling is ready to be replanted in a tree patch. High alch: 1 GP."
 osrs:
   id: 31508
   name: Rosewood sapling
@@ -12,9 +12,69 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Rosewood sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  farming:
+    level: 92
+    patch: Hardwood tree
+    xp_plant: 252
+    xp_check_health: 23100
+    growth_minutes: 5760
+    protection: 8 dragonfruit
+  recipes:
+    - materials:
+        - item_name: Rosewood seed
+          quantity: 1
+        - item_name: Plant pot (filled)
+          quantity: 1
+      tools:
+        - Watering can
+      output_quantity: 1
+  related_items:
+    - item_id: 31506
+      item_name: Rosewood seed
+      slug: rosewood-seed
+      relationship: component
+      description: Sown in a plant pot to grow the sapling.
+    - item_id: 31510
+      item_name: Rosewood logs
+      slug: rosewood-logs
+      relationship: product
+      description: Harvested from a fully grown rosewood tree.
+    - item_id: 22871
+      item_name: Mahogany sapling
+      slug: mahogany-sapling
+      relationship: alternative
+      description: Lower-tier hardwood sapling.
+  about: "Rosewood sapling is a Sailing-era hardwood sapling planted in hardwood tree patches at Farming 92; it grows over four days into a rosewood tree that yields rosewood logs."
+  market_strategy:
+    notes:
+      - Demand driven by Farming 92+ players growing rosewood for Sailing builds.
+      - Supply requires a watering can, plant pot, and Farming time investment.
+      - No GE buy limit lets bulk farmers offload runs quickly.
+  trading_tips:
+    - Compare sapling vs. seed + plant pot cost for production margin.
+    - Track rosewood log demand from Sailing shipbuilding for downstream signals.
+    - Avoid alching; high alch yields only 1 coin.
+  history:
+    - date: "2025-11-19"
+      description: Rosewood sapling released with the Sailing skill and hardwood tree expansion.
+  properties:
+    release_date: "2025-11-19"
+    update: Sailing
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Plant
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

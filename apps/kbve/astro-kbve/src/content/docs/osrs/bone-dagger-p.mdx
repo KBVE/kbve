@@ -12,9 +12,73 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 70
-  about: "Bone dagger (p) is a members-only item in Old School RuneScape. High alchemy value: 1,200 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bone
+    tier: mid
+  equipment:
+    slot: weapon
+    weapon_type: stab_sword
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 5
+      slash: 3
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
+      strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    name: Backstab
+    energy_cost: 75
+    description: "Guarantees a hit if the target has not been previously damaged in combat or if you were not their last attacker. Reduces the target's Defence by the damage dealt, but only when their Defence is still at base level."
+  related_items:
+    - name: Bone dagger
+      relationship: variant
+    - name: "Bone dagger (p+)"
+      relationship: upgrade
+    - name: "Bone dagger (p++)"
+      relationship: upgrade
+  about: "Bone dagger (p) is a poisoned variant of the Dorgeshuun stab sword, available from Nardok's Bone Weapons in the Dorgeshuun Mines and from medium Treasure Trail caskets. Its Backstab special attack costs 75% energy and guarantees a hit on undamaged targets, reducing their Defence by the damage dealt."
+  market_strategy:
+    notes:
+      - "Buy limit 70 per 4 hours; low GE volume with niche PvP and clue collector demand."
+      - "Price sits at a small premium over the un-poisoned bone dagger; arbitrage depends on weapon poison cost."
+  trading_tips:
+    - "Backstab spec is strongest as an opener in PvP/PvM when you have not yet attacked the target."
+    - "Shop refresh from Nardok's Bone Weapons (2,000 coins) caps the upside on the un-poisoned variant; poison premium is what trades on GE."
+  history:
+    - date: "2006-06-21"
+      description: "Released as part of the Death to the Dorgeshuun! update."
+  properties:
+    release_date: "2006-06-21"
+    update: "Death to the Dorgeshuun!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

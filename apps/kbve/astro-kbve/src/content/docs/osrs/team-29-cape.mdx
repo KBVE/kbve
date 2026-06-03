@@ -12,9 +12,70 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-29 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: cape
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Simon's Wilderness Cape Shop"
+      location: Chaos Temple
+      stock: 30
+      price: 50
+  related_items:
+    - item_id: 4315
+      item_name: Team-1 cape
+      slug: team-1-cape
+      relationship: variant
+      description: Another team cape with different colours
+  about: "The Team-29 cape is one of the many team capes purchased from Simon Templeton's Wilderness Cape Shop. Matching team capes change PvP attack interactions and minimap dots."
+  market_strategy:
+    notes:
+      - "Player-matching mechanics drive most demand, especially during organised team events or PvP gatherings."
+      - "Shop restock price is 50 coins, so the GE rarely drifts far above that floor."
+      - "Volume is thin; flips are best executed when a team event spike pushes the price above shop value."
+  trading_tips:
+    - "Stock up cheaply from Simon Templeton when planning to participate in team events."
+    - "Avoid bulk speculation; long-term price ceiling is constrained by shop availability."
+  history:
+    - date: "2005-02-22"
+      description: "Released as part of the Wilderness Capes, and Changes update."
+    - date: "2013-05-23"
+      description: "Made available to free-to-play players."
+  properties:
+    release_date: "2005-02-22"
+    update: "Wilderness Capes, and Changes"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

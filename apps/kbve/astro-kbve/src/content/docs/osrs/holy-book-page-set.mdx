@@ -5,16 +5,46 @@ osrs:
   id: 13149
   name: Holy book page set
   slug: holy-book-page-set
-  examine: A set containing the four pages of Saradomin's Holy Book.
+  examine: "A set containing the four pages of Saradomin's Holy Book."
   members: true
   icon: Holy book page set.png
   value: 7000
   lowalch: 2800
   highalch: 4200
   limit: 5
-  about: "Holy book page set is a members-only item in Old School RuneScape. High alchemy value: 4,200 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  related_items:
+    - name: Saradomin page 1
+      relationship: component
+    - name: Saradomin page 2
+      relationship: component
+    - name: Saradomin page 3
+      relationship: component
+    - name: Saradomin page 4
+      relationship: component
+    - name: Holy book
+      relationship: product
+  about: "Holy book page set bundles all four Saradomin pages into a single tradeable set. Players exchange one of each Saradomin page (1-4) at a Grand Exchange clerk via the Sets option. High alchemy value: 4,200 coins. Grand Exchange buy limit: 5 per 4 hours."
+  history:
+    - date: "2015-03-19"
+      description: "Released via the Boss Pets, Sets, Chat & More update."
+    - date: "2015-03-26"
+      description: "God page sets became noteable when packed."
+    - date: "2017-04-27"
+      description: "Recoloured during the Diverse Dungeons update."
+  properties:
+    release_date: "2015-03-19"
+    update: "Boss Pets, Sets, Chat & More"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,63 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 10000
-  about: "Unblessed symbol is a free-to-play item in Old School RuneScape. High alchemy value: 120 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  equipment:
+    slot: neck
+    weight: 0.007
+  recipes:
+    - name: Unblessed symbol
+      skill: Crafting
+      level: 1
+      xp: 4
+      materials:
+        - item_name: Unstrung symbol
+          quantity: 1
+        - item_name: Ball of wool
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Skeleton (Tarn's Lair)
+        quantity: "1"
+        rarity: Uncommon
+  related_items:
+    - name: Unstrung symbol
+      relationship: component
+    - name: Ball of wool
+      relationship: component
+    - name: Holy symbol
+      relationship: upgrade
+  about: "The unblessed symbol is a free-to-play Crafting product made from an unstrung symbol and a ball of wool, used as the base for the holy symbol after a Prayer altar blessing."
+  market_strategy:
+    notes:
+      - Demand mostly tracks holy symbol routing for low Prayer setups.
+      - Crafting tax keeps it close to materials cost; volume is shallow.
+  trading_tips:
+    - Compare unstrung symbol plus ball of wool against this item's price for craft-flip profit.
+    - Buy in bulk before league/DMM events that boost low-tier symbol demand.
+  history:
+    - date: "2001-07-12"
+      description: Released with the improved prayer system update.
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2001-07-12"
+    update: Improved prayer system and more!
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.007
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

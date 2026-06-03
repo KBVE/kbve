@@ -9,12 +9,54 @@ osrs:
   members: false
   icon: Sliced banana.png
   value: 2
-  lowalch: 1
+  lowalch: 0
   highalch: 1
   limit: 15
-  about: "Sliced banana is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  food:
+    heals: 2
+  recipes:
+    - materials:
+        - item_name: Banana
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+      notes: "Slash weapons such as whips and claws also work."
+  related_items:
+    - name: Banana
+      relationship: component
+    - name: "Karamjan rum (sliced banana)"
+      relationship: product
+  about: "Sliced banana is a free-to-play food item in Old School RuneScape. Sliced from a banana using a knife or slash weapon; combine with Karamjan rum to make Karamjan rum (sliced banana). High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
+  market_strategy:
+    notes:
+      - "Crafting margin vs raw banana is small; profit depends on banana spot price."
+      - "Low alch returns 0 coins; not a viable alch target."
+  trading_tips:
+    - "Buy bananas in bulk for slicing flips."
+    - "Useful inventory item during the Pirate's Treasure quest setup."
+  history:
+    - date: "2004-09-14"
+      description: "Sliced banana released alongside the Pirate's Treasure quest update."
+    - date: "2026-04-22"
+      description: "Wiki refresh confirmed alch values and recipe details."
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
+  properties:
+    release_date: "2004-09-14"
+    update: "Pirate's Treasure"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.028
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

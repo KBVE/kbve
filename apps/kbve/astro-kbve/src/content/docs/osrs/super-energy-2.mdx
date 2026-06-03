@@ -12,9 +12,49 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 2000
-  about: "Super energy(2) is a members-only item in Old School RuneScape. High alchemy value: 96 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  potion:
+    effects:
+      - description: "Restores 20% run energy per dose, totalling 40% across the 2 doses."
+        duration: 0
+  related_items:
+    - name: Super energy(4)
+      relationship: variant
+    - name: Super energy(3)
+      relationship: variant
+    - name: Super energy(1)
+      relationship: variant
+    - name: Stamina potion(4)
+      relationship: upgrade
+    - name: Energy potion(4)
+      relationship: downgrade
+  about: "Super energy(2) is a two-dose run energy restoration potion. Each dose restores 20% run energy, giving a total of 40% across both doses, making it a budget alternative to stamina potions for travel-heavy activities."
+  market_strategy:
+    notes:
+      - "Made by combining amylase crystals with a super energy potion at Herblore level 77 to upgrade into stamina potions."
+      - "Two-dose vials are common decants from four-dose stock; price tends to track 1/2 of a (4)."
+      - "Demand is steady from agility, slayer, and bossing trips that can't justify stamina costs."
+  trading_tips:
+    - "Convert into stamina potions whenever amylase crystals dip below the spread vs stamina (4)."
+    - "Decant batches with Bob Barter at the GE to flip 2-dose stock into 4-dose units."
+  history:
+    - date: "2004-09-01"
+      description: "Released with the Herblore expansion that introduced super energy potions."
+  properties:
+    release_date: "2004-09-01"
+    update: "Herblore Skill Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-02"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
