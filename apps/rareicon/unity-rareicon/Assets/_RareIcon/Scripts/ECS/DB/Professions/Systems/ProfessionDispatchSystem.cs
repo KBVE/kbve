@@ -23,6 +23,7 @@ namespace RareIcon
         const int PriorityWeight  = 10000;
         const int HysteresisBonus = 50;
         const int DeficitCap      = 2;
+        const int CrowdingPenalty = 200;
 
         uint _lastSeenBuildVersion;
 
@@ -294,11 +295,17 @@ namespace RareIcon
                     int dist = HexDistance(currentHex, offer.Hex);
                     if (dist > OfferDistanceCap(offer.Kind, offer.Variant)) continue;
 
+                    int crowdOcc = 0;
                     if (IsHarvestVariant(offer.Kind, offer.Variant)
-                        && _hexOccupancy.TryGetValue(offer.Hex, out var occ)
-                        && occ >= HexClusterCap) continue;
+                        && _hexOccupancy.TryGetValue(offer.Hex, out var occ))
+                    {
+                        if (occ >= HexClusterCap) continue;
+                        crowdOcc = occ;
+                    }
 
                     long score = (long)prio * PriorityWeight - (long)dist;
+                    if (crowdOcc > 0)
+                        score -= (long)crowdOcc * crowdOcc * CrowdingPenalty;
                     if (offer.Target != Entity.Null && offer.Target == currentTarget)
                         score += HysteresisBonus;
                     if (offer.Kind < offersPerKind.Length)
