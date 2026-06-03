@@ -83,10 +83,7 @@
 					"docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'touch /tmp/probe && rm /tmp/probe' && echo 'PASS: /tmp writable by uid 1000'",
 					"docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'command -v python3 && command -v pip3' >/dev/null && echo 'PASS: python3 + pip3 on PATH'",
 					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /dockerstartup/maximize_window.sh && echo 'PASS: upstream maximize_window.sh preserved'",
-					"cid=$(docker run -d --rm -e URL_LAUNCHER_TOKEN=test --entrypoint python3 ghcr.io/kbve/kasm-void:dev /dockerstartup/nav_shim.py); for i in $(seq 1 15); do docker exec $cid curl -fsS http://127.0.0.1:9998/healthz >/tmp/healthz.out 2>/dev/null && break; sleep 1; done; docker rm -f $cid >/dev/null 2>&1; grep -q '\"ok\":true' /tmp/healthz.out && echo 'PASS: nav_shim /healthz returns ok'",
-					"cid=$(docker run -d --rm -e URL_LAUNCHER_TOKEN=test --entrypoint python3 ghcr.io/kbve/kasm-void:dev /dockerstartup/nav_shim.py); sleep 3; code=$(docker exec $cid curl -s -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:9998/open -H 'Content-Type: application/json' -d '{\"url\":\"https://example.com\"}'); docker rm -f $cid >/dev/null 2>&1; [ \"$code\" = \"401\" ] && echo 'PASS: nav_shim /open rejects missing bearer with 401'",
-					"cid=$(docker run -d --rm -e URL_LAUNCHER_TOKEN=test --entrypoint python3 ghcr.io/kbve/kasm-void:dev /dockerstartup/nav_shim.py); sleep 3; code=$(docker exec $cid curl -s -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:9998/open -H 'Authorization: Bearer test' -H 'Content-Type: application/json' -d '{\"url\":\"http://127.0.0.1/secret\"}'); docker rm -f $cid >/dev/null 2>&1; [ \"$code\" = \"400\" ] && echo 'PASS: nav_shim rejects loopback URL with 400'",
-					"cid=$(docker run -d --rm -e URL_LAUNCHER_TOKEN=test --entrypoint python3 ghcr.io/kbve/kasm-void:dev /dockerstartup/nav_shim.py); sleep 3; code=$(docker exec $cid curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9998/does-not-exist); docker rm -f $cid >/dev/null 2>&1; [ \"$code\" = \"404\" ] && echo 'PASS: nav_shim returns 404 for unknown route'"
+					"bash packages/docker/kasm-void/tests/nav-shim-smoke.sh"
 				],
 				"parallel": false
 			}
