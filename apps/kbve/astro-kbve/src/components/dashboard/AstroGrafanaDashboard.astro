@@ -17,16 +17,31 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 					<ReactGrafanaHeader client:only="react" />
 				</div>
 
-				<div id="grafana-alerts">
-					<ReactGrafanaAlerts client:only="react" />
-				</div>
+				<nav class="kbve-dash-nav" aria-label="Dashboard sections">
+					<a href="#grafana-alerts">Alerts</a>
+					<a href="#grafana-nodes">Nodes</a>
+					<a href="#grafana-k8s">Kubernetes</a>
+				</nav>
 
-				<section id="grafana-nodes" class="kbve-dash-section">
+				<section
+					id="grafana-alerts"
+					class="kbve-dash-section"
+					aria-label="Alerts">
+					<ReactGrafanaAlerts client:only="react" />
+				</section>
+
+				<section
+					id="grafana-nodes"
+					class="kbve-dash-section"
+					aria-label="Nodes">
 					<h2 class="kbve-dash-section-title">Nodes</h2>
 					<ReactGrafanaNodes client:only="react" />
 				</section>
 
-				<section id="grafana-k8s" class="kbve-dash-section">
+				<section
+					id="grafana-k8s"
+					class="kbve-dash-section"
+					aria-label="Kubernetes">
 					<h2 class="kbve-dash-section-title">Kubernetes</h2>
 					<ReactGrafanaK8s client:only="react" />
 				</section>
@@ -58,13 +73,69 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 	.grafana-dashboard {
 		display: flex;
 		flex-direction: column;
-		gap: 1.5rem;
+		gap: 1.25rem;
+	}
+
+	.kbve-dash-nav {
+		position: sticky;
+		top: 0;
+		z-index: 5;
+		display: flex;
+		gap: 0.25rem;
+		padding: 0.4rem;
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		border-radius: 10px;
+		background: color-mix(
+			in srgb,
+			var(--sl-color-bg-nav, #111) 92%,
+			transparent
+		);
+		backdrop-filter: saturate(140%) blur(8px);
+		-webkit-backdrop-filter: saturate(140%) blur(8px);
+		overflow-x: auto;
+	}
+
+	.kbve-dash-nav a {
+		flex: 0 0 auto;
+		padding: 0.35rem 0.85rem;
+		border-radius: 6px;
+		color: var(--sl-color-gray-2, #c9d1d9);
+		font-size: 0.8rem;
+		font-weight: 500;
+		text-decoration: none;
+		transition:
+			background-color 0.15s,
+			color 0.15s,
+			border-color 0.15s;
+		border: 1px solid transparent;
+	}
+
+	.kbve-dash-nav a:hover {
+		background: var(--sl-color-gray-6, #1c1c1c);
+		color: var(--sl-color-text, #e6edf3);
+		border-color: var(--sl-color-gray-5, #262626);
+	}
+
+	.kbve-dash-nav a:target,
+	.kbve-dash-nav a.is-active {
+		background: color-mix(
+			in srgb,
+			var(--sl-color-accent, #06b6d4) 18%,
+			transparent
+		);
+		color: var(--sl-color-accent-high, #67e8f9);
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-accent, #06b6d4) 40%,
+			transparent
+		);
 	}
 
 	.kbve-dash-section {
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;
+		scroll-margin-top: 72px;
 	}
 
 	.kbve-dash-section-title {
@@ -82,14 +153,96 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 		}
 	}
 
+	:global(.kbve-card-grid) {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+		gap: 0.6rem;
+	}
+
+	:global(.kbve-stat-card) {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		gap: 0.35rem;
+		padding: 0.65rem 0.8rem 1.1rem;
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		border-top-width: 2px;
+		border-radius: 9px;
+		background: var(--sl-color-bg-nav, #111);
+		min-height: 96px;
+		overflow: hidden;
+		transition:
+			border-color 0.18s,
+			transform 0.15s,
+			box-shadow 0.18s;
+	}
+
+	:global(.kbve-stat-card__header) {
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.65rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+
+	:global(.kbve-stat-card__header svg) {
+		flex: 0 0 auto;
+	}
+
+	:global(.kbve-stat-card__value) {
+		display: flex;
+		align-items: baseline;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		font-size: 1.45rem;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+		line-height: 1.05;
+		color: var(--sl-color-text, #e6edf3);
+	}
+
+	:global(.kbve-stat-card__trend) {
+		font-size: 0.7rem;
+		font-weight: 500;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
+
+	:global(.kbve-stat-card__spark) {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: 18px;
+		opacity: 0.65;
+		pointer-events: none;
+	}
+
 	:global(.kbve-stat-card.is-clickable) {
+		cursor: pointer;
 		-webkit-tap-highlight-color: transparent;
 	}
 
 	:global(.kbve-stat-card.is-clickable:hover) {
-		border-color: var(--sl-color-gray-4, #6b7280);
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-accent, #06b6d4) 55%,
+			var(--sl-color-gray-4, #6b7280)
+		);
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+		box-shadow:
+			0 6px 18px -8px rgba(0, 0, 0, 0.55),
+			0 0 0 1px
+				color-mix(
+					in srgb,
+					var(--sl-color-accent, #06b6d4) 20%,
+					transparent
+				);
 	}
 
 	@media (hover: none) {
@@ -103,11 +256,55 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 		}
 	}
 
+	:global(.kbve-stat-card[data-tip]:hover::after) {
+		content: attr(data-tip);
+		position: absolute;
+		bottom: calc(100% + 6px);
+		left: 50%;
+		transform: translateX(-50%);
+		padding: 0.35rem 0.55rem;
+		border-radius: 6px;
+		background: var(--sl-color-bg-inline-code, #0f1115);
+		color: var(--sl-color-text, #e6edf3);
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		font-size: 0.7rem;
+		font-weight: 400;
+		letter-spacing: 0;
+		text-transform: none;
+		white-space: nowrap;
+		max-width: 220px;
+		z-index: 10;
+		pointer-events: none;
+		box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.6);
+	}
+
+	@media (hover: none) {
+		:global(.kbve-stat-card[data-tip]:hover::after) {
+			display: none;
+		}
+	}
+
 	:global(.kbve-chart-panel) {
-		padding: clamp(0.75rem, 3vw, 1.5rem) !important;
+		padding: clamp(0.75rem, 3vw, 1.25rem) !important;
 	}
 
 	:global(.kbve-chart-panel h3) {
-		font-size: clamp(0.95rem, 2.4vw, 1.1rem) !important;
+		font-size: clamp(0.95rem, 2.4vw, 1.05rem) !important;
 	}
 </style>
+
+<script>
+	const setActive = () => {
+		const hash = window.location.hash || '#grafana-alerts';
+		document
+			.querySelectorAll<HTMLAnchorElement>('.kbve-dash-nav a')
+			.forEach((a) => {
+				a.classList.toggle(
+					'is-active',
+					a.getAttribute('href') === hash,
+				);
+			});
+	};
+	setActive();
+	window.addEventListener('hashchange', setActive);
+</script>

@@ -102,41 +102,40 @@ function TrendIndicator({
 	const sign = isUp ? '+' : '';
 
 	return (
-		<div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-			<Icon size={12} style={{ color }} />
-			<span style={{ color, fontSize: '0.75rem', fontWeight: 500 }}>
+		<span className="kbve-stat-card__trend" style={{ color }}>
+			<Icon size={11} style={{ color }} />
+			<span style={{ color, fontSize: '0.7rem', fontWeight: 500 }}>
 				{sign}
 				{trend.percentChange.toFixed(1)}%
 			</span>
-		</div>
+		</span>
 	);
 }
 
-function SparklineSlot({
+function SparklineBg({
 	data,
 	color,
 }: {
 	data?: SparklinePoint[];
 	color: string;
 }) {
-	// Slot is always rendered to reserve 36px in the card layout — keeps
-	// EnhancedStatCard at a stable height while sparkline data hydrates.
+	if (!data || data.length < 2) return null;
 	return (
-		<div style={{ width: '100%', height: 36, marginTop: 'auto' }}>
-			{data && data.length >= 2 && (
-				<ResponsiveContainer width="100%" height={36}>
-					<LineChart data={data}>
-						<Line
-							type="monotone"
-							dataKey="v"
-							stroke={color}
-							strokeWidth={1.5}
-							dot={false}
-							isAnimationActive={false}
-						/>
-					</LineChart>
-				</ResponsiveContainer>
-			)}
+		<div className="kbve-stat-card__spark">
+			<ResponsiveContainer width="100%" height="100%">
+				<LineChart
+					data={data}
+					margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+					<Line
+						type="monotone"
+						dataKey="v"
+						stroke={color}
+						strokeWidth={1.5}
+						dot={false}
+						isAnimationActive={false}
+					/>
+				</LineChart>
+			</ResponsiveContainer>
 		</div>
 	);
 }
@@ -152,6 +151,7 @@ function EnhancedStatCard({
 	thresholds,
 	invertTrend,
 	onClick,
+	tip,
 }: {
 	icon: React.ReactNode;
 	label: string;
@@ -163,73 +163,37 @@ function EnhancedStatCard({
 	thresholds?: { warn: number; crit: number };
 	invertTrend?: boolean;
 	onClick?: () => void;
+	tip?: string;
 }) {
 	const hasThreshold = thresholds && value != null;
 	const thresholdColor = hasThreshold
 		? getThresholdColor(value, thresholds)
 		: undefined;
-	const valueColor = thresholdColor ?? 'var(--sl-color-text, #e6edf3)';
-	const sparkColor = thresholdColor ?? '#06b6d4';
 	const accentColor = thresholdColor ?? 'var(--sl-color-accent, #06b6d4)';
-
+	const valueText = displayValue
+		? displayValue
+		: value != null
+			? `${Number.isInteger(value) ? value : value.toFixed(1)}${unit || ''}`
+			: '--';
 	return (
 		<div
-			className={
-				onClick ? 'kbve-stat-card is-clickable' : 'kbve-stat-card'
-			}
-			style={{
-				display: 'flex',
-				flexDirection: 'column',
-				alignItems: 'flex-start',
-				gap: '0.5rem',
-				padding: '1rem 1.25rem',
-				borderRadius: '10px',
-				border: '1px solid var(--sl-color-gray-5, #262626)',
-				background: 'var(--sl-color-bg-nav, #111)',
-				transition:
-					'border-color 0.2s, transform 0.15s, box-shadow 0.15s',
-				minHeight: 156,
-				cursor: onClick ? 'pointer' : 'default',
-				borderTop: `2px solid ${accentColor}`,
-			}}
-			onClick={onClick}>
-			<div
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					gap: '0.5rem',
-					width: '100%',
-				}}>
+			className={`kbve-stat-card${onClick ? ' is-clickable' : ''}`}
+			style={{ borderTopColor: accentColor }}
+			onClick={onClick}
+			data-tip={tip}>
+			<div className="kbve-stat-card__header">
 				<span style={{ color: accentColor }}>{icon}</span>
-				<span
-					style={{
-						color: 'var(--sl-color-gray-3, #8b949e)',
-						fontSize: '0.75rem',
-						fontWeight: 500,
-						textTransform: 'uppercase' as const,
-						letterSpacing: '0.06em',
-					}}>
-					{label}
-				</span>
+				<span>{label}</span>
 			</div>
 			<div
-				style={{
-					fontSize: '1.75rem',
-					fontWeight: 700,
-					color: valueColor,
-					fontVariantNumeric: 'tabular-nums',
-					whiteSpace: 'nowrap' as const,
-				}}>
-				{displayValue
-					? displayValue
-					: value != null
-						? `${Number.isInteger(value) ? value : value.toFixed(1)}${unit || ''}`
-						: '--'}
+				className="kbve-stat-card__value"
+				style={thresholdColor ? { color: thresholdColor } : undefined}>
+				{valueText}
+				{trend && (
+					<TrendIndicator trend={trend} invertColors={invertTrend} />
+				)}
 			</div>
-			{trend && (
-				<TrendIndicator trend={trend} invertColors={invertTrend} />
-			)}
-			<SparklineSlot data={sparkline} color={sparkColor} />
+			<SparklineBg data={sparkline} color={accentColor} />
 		</div>
 	);
 }
@@ -334,15 +298,9 @@ export default function ReactGrafanaNodes() {
 
 	return (
 		<>
-			<div
-				className="kbve-card-grid"
-				style={{
-					display: 'grid',
-					gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
-					gap: '0.75rem',
-				}}>
+			<div className="kbve-card-grid">
 				<EnhancedStatCard
-					icon={<Cpu size={20} />}
+					icon={<Cpu size={16} />}
 					label="CPU Usage"
 					value={snapshot.cpu}
 					unit="%"
@@ -351,9 +309,10 @@ export default function ReactGrafanaNodes() {
 					invertTrend
 					sparkline={sparklines.cpu}
 					onClick={() => grafanaService.toggleCard('cpu')}
+					tip="Cluster-wide CPU utilization (avg, 5m). Click for per-node breakdown."
 				/>
 				<EnhancedStatCard
-					icon={<HardDrive size={20} />}
+					icon={<HardDrive size={16} />}
 					label="Memory"
 					value={snapshot.memory}
 					unit="%"
@@ -362,9 +321,10 @@ export default function ReactGrafanaNodes() {
 					invertTrend
 					sparkline={sparklines.memory}
 					onClick={() => grafanaService.toggleCard('memory')}
+					tip="Cluster memory used vs total. Click for per-node breakdown."
 				/>
 				<EnhancedStatCard
-					icon={<HardDrive size={20} />}
+					icon={<HardDrive size={16} />}
 					label="Disk"
 					value={snapshot.disk}
 					unit="%"
@@ -373,30 +333,35 @@ export default function ReactGrafanaNodes() {
 					invertTrend
 					sparkline={sparklines.disk}
 					onClick={() => grafanaService.toggleCard('disk')}
+					tip="Root filesystem usage. Click for per-node breakdown."
 				/>
 				<EnhancedStatCard
-					icon={<Network size={20} />}
+					icon={<Network size={16} />}
 					label="Net RX"
 					value={snapshot.networkRx}
 					displayValue={formatBytes(snapshot.networkRx)}
+					tip="Inbound network throughput (excludes lo / veth / cni)."
 				/>
 				<EnhancedStatCard
-					icon={<Network size={20} />}
+					icon={<Network size={16} />}
 					label="Net TX"
 					value={snapshot.networkTx}
 					displayValue={formatBytes(snapshot.networkTx)}
+					tip="Outbound network throughput (excludes lo / veth / cni)."
 				/>
 				<EnhancedStatCard
-					icon={<Server size={20} />}
+					icon={<Server size={16} />}
 					label="Nodes"
 					value={snapshot.nodes}
+					tip="Total nodes registered with the kubelet."
 				/>
 				<EnhancedStatCard
-					icon={<Database size={20} />}
+					icon={<Database size={16} />}
 					label="PVC Usage"
 					value={snapshot.pvcUsage}
 					unit="%"
 					thresholds={RESOURCE_THRESHOLDS}
+					tip="Aggregate persistent volume claim utilization."
 				/>
 			</div>
 
