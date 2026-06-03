@@ -1,7 +1,9 @@
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Jobs;
+using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
 using Unity.Transforms;
 
@@ -28,7 +30,13 @@ namespace RareIcon
 
         uint _lastSeenBuildVersion;
 
-        NativeHashMap<int2, int> _hexOccupancy;
+        NativeHashMap<int2, int>                    _hexOccupancy;
+        NativeParallelMultiHashMap<int2, byte>      _occupancyMulti;
+        NativeArray<int>                            _perThreadActive;
+        NativeArray<int>                            _perThreadReserved;
+        NativeArray<int>                            _activePerKind;
+        NativeArray<int>                            _reservedPerKind;
+        int                                         _threadSlotCount;
 
         public void OnCreate(ref SystemState state)
         {
@@ -38,11 +46,32 @@ namespace RareIcon
             state.RequireForUpdate<ProfessionsDBSingleton>();
 
             _hexOccupancy = new NativeHashMap<int2, int>(4096, Allocator.Persistent);
+
+            // Per-thread accumulators sized to the worker pool. Indexed via
+            // [NativeSetThreadIndex] so each chunk writes into its own slot
+            // without atomics. Reduce job folds across slots after the
+            // parallel build completes.
+            _threadSlotCount   = JobsUtility.MaxJobThreadCount;
+            _perThreadActive   = new NativeArray<int>(_threadSlotCount * ProfessionKind.Count, Allocator.Persistent);
+            _perThreadReserved = new NativeArray<int>(_threadSlotCount * ProfessionKind.Count, Allocator.Persistent);
+            _activePerKind     = new NativeArray<int>(ProfessionKind.Count, Allocator.Persistent);
+            _reservedPerKind   = new NativeArray<int>(ProfessionKind.Count, Allocator.Persistent);
+
+            // Occupancy contributions land in a parallel multi-map so the
+            // BuildActiveAndOccupancyJob can append without locking. Reduce
+            // job folds entries into _hexOccupancy = count-per-hex.
+            _occupancyMulti = new NativeParallelMultiHashMap<int2, byte>(8192, Allocator.Persistent);
         }
 
         public void OnDestroy(ref SystemState state)
         {
-            if (_hexOccupancy.IsCreated) _hexOccupancy.Dispose();
+            state.CompleteDependency();
+            if (_hexOccupancy.IsCreated)      _hexOccupancy.Dispose();
+            if (_occupancyMulti.IsCreated)    _occupancyMulti.Dispose();
+            if (_perThreadActive.IsCreated)   _perThreadActive.Dispose();
+            if (_perThreadReserved.IsCreated) _perThreadReserved.Dispose();
+            if (_activePerKind.IsCreated)     _activePerKind.Dispose();
+            if (_reservedPerKind.IsCreated)   _reservedPerKind.Dispose();
         }
 
         static bool CountsTowardHexOccupancy(byte kind)
@@ -71,44 +100,49 @@ namespace RareIcon
             ref var dbRef = ref SystemAPI.GetSingletonRW<ProfessionsDBSingleton>().ValueRW;
             var writeBuffer = dbRef.WriteBuffer;
 
-            // activePerKind / reservedPerKind / occupancy build runs on the
-            // main thread when a full dispatch tick fires. Cheap O(units +
-            // reserved-role entities), no per-unit cost in the inner loop.
-            var activePerKind   = new NativeArray<int>(ProfessionKind.Count, Allocator.TempJob);
-            var reservedPerKind = new NativeArray<int>(ProfessionKind.Count, Allocator.TempJob);
-
+            // Full-dispatch pre-pass — moved off the main thread. A clear
+            // job resets the persistent accumulators on a worker, two
+            // parallel build jobs scan units + reserved roles concurrently,
+            // and a Burst reduce folds the per-thread shards into the
+            // shapes the dispatch job consumes (activePerKind /
+            // reservedPerKind / _hexOccupancy). Main thread only chains
+            // handles; the 100k-unit foreach is gone from its budget.
             if (doFullDispatch)
             {
-                state.CompleteDependency();
-                _hexOccupancy.Clear();
-
-                foreach (var jobRO in
-                         SystemAPI.Query<RefRO<ProfessionIntent>>().WithAll<ProfessionPriorities>())
+                var clearJob = new ClearPrePassJob
                 {
-                    byte ak = jobRO.ValueRO.Kind;
-                    if (CountsTowardHexOccupancy(ak))
-                    {
-                        var hex = jobRO.ValueRO.TargetHex;
-                        _hexOccupancy[hex] = _hexOccupancy.TryGetValue(hex, out var c0) ? c0 + 1 : 1;
-                    }
-                    if (ak < activePerKind.Length) activePerKind[ak]++;
-                }
+                    PerThreadActive   = _perThreadActive,
+                    PerThreadReserved = _perThreadReserved,
+                    Occupancy         = _hexOccupancy,
+                    OccupancyMulti    = _occupancyMulti,
+                };
+                state.Dependency = clearJob.Schedule(state.Dependency);
 
-                foreach (var reservedRO in SystemAPI.Query<RefRO<ReservedRoles>>())
+                var buildActiveJob = new BuildActiveAndOccupancyJob
                 {
-                    var r = reservedRO.ValueRO;
-                    reservedPerKind[ProfessionKind.Lumberjack] += r.Lumberjack;
-                    reservedPerKind[ProfessionKind.Miner]      += r.Miner;
-                    reservedPerKind[ProfessionKind.Guard]      += r.Guard;
-                    reservedPerKind[ProfessionKind.Looter]     += r.Looter;
-                    reservedPerKind[ProfessionKind.Farmer]     += r.Farmer;
-                    reservedPerKind[ProfessionKind.Builder]    += r.Builder;
-                    reservedPerKind[ProfessionKind.Chef]       += r.Chef;
-                    reservedPerKind[ProfessionKind.Hunter]     += r.Hunter;
-                    reservedPerKind[ProfessionKind.Blacksmith] += r.Blacksmith;
-                    reservedPerKind[ProfessionKind.Craftsman]  += r.Craftsman;
-                    reservedPerKind[ProfessionKind.Medic]      += r.Medic;
-                }
+                    PerThreadActive = _perThreadActive,
+                    OccupancyWriter = _occupancyMulti.AsParallelWriter(),
+                };
+                var activeHandle = buildActiveJob.ScheduleParallel(state.Dependency);
+
+                var buildReservedJob = new BuildReservedJob
+                {
+                    PerThreadReserved = _perThreadReserved,
+                };
+                var reservedHandle = buildReservedJob.ScheduleParallel(state.Dependency);
+
+                var reduceJob = new ReducePrePassJob
+                {
+                    PerThreadActive   = _perThreadActive,
+                    PerThreadReserved = _perThreadReserved,
+                    ActivePerKind     = _activePerKind,
+                    ReservedPerKind   = _reservedPerKind,
+                    OccupancyMulti    = _occupancyMulti,
+                    Occupancy         = _hexOccupancy,
+                    ThreadSlotCount   = _threadSlotCount,
+                };
+                state.Dependency = reduceJob.Schedule(
+                    JobHandle.CombineDependencies(activeHandle, reservedHandle));
             }
 
             // Pre-allocate WriteBuffer headroom so AddNoResize is safe under
@@ -136,8 +170,8 @@ namespace RareIcon
                 FriendlyEmitters = combatDB.FriendlyEmitters.AsArray(),
 
                 HexOccupancy     = _hexOccupancy,
-                ActivePerKind    = activePerKind,
-                ReservedPerKind  = reservedPerKind,
+                ActivePerKind    = _activePerKind,
+                ReservedPerKind  = _reservedPerKind,
 
                 ItemDefs         = itemDB.Defs,
                 ItemValidBits    = itemDB.ValidBits,
@@ -161,9 +195,107 @@ namespace RareIcon
             // ProfessionIntent reader can chain on it without forcing the
             // main thread to sync here.
             dbRef.PipelineHandle = state.Dependency;
+        }
 
-            activePerKind.Dispose(state.Dependency);
-            reservedPerKind.Dispose(state.Dependency);
+        [BurstCompile]
+        struct ClearPrePassJob : IJob
+        {
+            public NativeArray<int>                       PerThreadActive;
+            public NativeArray<int>                       PerThreadReserved;
+            public NativeHashMap<int2, int>               Occupancy;
+            public NativeParallelMultiHashMap<int2, byte> OccupancyMulti;
+
+            public void Execute()
+            {
+                for (int i = 0; i < PerThreadActive.Length; i++)   PerThreadActive[i] = 0;
+                for (int i = 0; i < PerThreadReserved.Length; i++) PerThreadReserved[i] = 0;
+                Occupancy.Clear();
+                OccupancyMulti.Clear();
+            }
+        }
+
+        [BurstCompile]
+        [WithAll(typeof(ProfessionPriorities))]
+        partial struct BuildActiveAndOccupancyJob : IJobEntity
+        {
+            [NativeDisableParallelForRestriction] public NativeArray<int> PerThreadActive;
+            public NativeParallelMultiHashMap<int2, byte>.ParallelWriter OccupancyWriter;
+            [NativeSetThreadIndex] internal int ThreadIndex;
+
+            public void Execute(in ProfessionIntent intent)
+            {
+                byte k = intent.Kind;
+                if (k < ProfessionKind.Count)
+                {
+                    int slot = ThreadIndex * ProfessionKind.Count + k;
+                    PerThreadActive[slot] = PerThreadActive[slot] + 1;
+                }
+                if (k == ProfessionKind.Lumberjack
+                 || k == ProfessionKind.Miner
+                 || k == ProfessionKind.Looter)
+                {
+                    OccupancyWriter.Add(intent.TargetHex, 1);
+                }
+            }
+        }
+
+        [BurstCompile]
+        partial struct BuildReservedJob : IJobEntity
+        {
+            [NativeDisableParallelForRestriction] public NativeArray<int> PerThreadReserved;
+            [NativeSetThreadIndex] internal int ThreadIndex;
+
+            public void Execute(in ReservedRoles r)
+            {
+                int b = ThreadIndex * ProfessionKind.Count;
+                PerThreadReserved[b + ProfessionKind.Lumberjack] = PerThreadReserved[b + ProfessionKind.Lumberjack] + r.Lumberjack;
+                PerThreadReserved[b + ProfessionKind.Miner]      = PerThreadReserved[b + ProfessionKind.Miner]      + r.Miner;
+                PerThreadReserved[b + ProfessionKind.Guard]      = PerThreadReserved[b + ProfessionKind.Guard]      + r.Guard;
+                PerThreadReserved[b + ProfessionKind.Looter]     = PerThreadReserved[b + ProfessionKind.Looter]     + r.Looter;
+                PerThreadReserved[b + ProfessionKind.Farmer]     = PerThreadReserved[b + ProfessionKind.Farmer]     + r.Farmer;
+                PerThreadReserved[b + ProfessionKind.Builder]    = PerThreadReserved[b + ProfessionKind.Builder]    + r.Builder;
+                PerThreadReserved[b + ProfessionKind.Chef]       = PerThreadReserved[b + ProfessionKind.Chef]       + r.Chef;
+                PerThreadReserved[b + ProfessionKind.Hunter]     = PerThreadReserved[b + ProfessionKind.Hunter]     + r.Hunter;
+                PerThreadReserved[b + ProfessionKind.Blacksmith] = PerThreadReserved[b + ProfessionKind.Blacksmith] + r.Blacksmith;
+                PerThreadReserved[b + ProfessionKind.Craftsman]  = PerThreadReserved[b + ProfessionKind.Craftsman]  + r.Craftsman;
+                PerThreadReserved[b + ProfessionKind.Medic]      = PerThreadReserved[b + ProfessionKind.Medic]      + r.Medic;
+            }
+        }
+
+        [BurstCompile]
+        struct ReducePrePassJob : IJob
+        {
+            [ReadOnly] public NativeArray<int>                       PerThreadActive;
+            [ReadOnly] public NativeArray<int>                       PerThreadReserved;
+            public NativeArray<int>                                  ActivePerKind;
+            public NativeArray<int>                                  ReservedPerKind;
+            [ReadOnly] public NativeParallelMultiHashMap<int2, byte> OccupancyMulti;
+            public NativeHashMap<int2, int>                          Occupancy;
+            public int                                               ThreadSlotCount;
+
+            public void Execute()
+            {
+                for (int k = 0; k < ProfessionKind.Count; k++)
+                {
+                    int sumActive = 0;
+                    int sumReserved = 0;
+                    for (int t = 0; t < ThreadSlotCount; t++)
+                    {
+                        int idx = t * ProfessionKind.Count + k;
+                        sumActive   += PerThreadActive[idx];
+                        sumReserved += PerThreadReserved[idx];
+                    }
+                    ActivePerKind[k]   = sumActive;
+                    ReservedPerKind[k] = sumReserved;
+                }
+
+                var enumer = OccupancyMulti.GetEnumerator();
+                while (enumer.MoveNext())
+                {
+                    var kvp = enumer.Current;
+                    Occupancy[kvp.Key] = Occupancy.TryGetValue(kvp.Key, out var c) ? c + 1 : 1;
+                }
+            }
         }
 
         [BurstCompile]
@@ -176,7 +308,7 @@ namespace RareIcon
             [ReadOnly] public NativeArray<NeedyCave> NeedyCaves;
 
             [ReadOnly] public NativeArray<ThreatRecord>    Threats;
-            [ReadOnly] public NativeArray<FriendlyEmitter> FriendlyEmitters;
+            [ReadOnly] public NativeArray<TerritoryEmitter> FriendlyEmitters;
 
             [ReadOnly] public NativeHashMap<int2, int> HexOccupancy;
             [ReadOnly] public NativeArray<int>         ActivePerKind;
