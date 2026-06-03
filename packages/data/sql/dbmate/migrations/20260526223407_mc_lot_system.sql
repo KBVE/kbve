@@ -236,6 +236,7 @@ BEGIN
     IF NEW.owner_user_id        IS DISTINCT FROM OLD.owner_user_id
        OR NEW.current_schematic_id IS DISTINCT FROM OLD.current_schematic_id
        OR NEW.state                IS DISTINCT FROM OLD.state
+       OR NEW.flags                IS DISTINCT FROM OLD.flags
        OR NEW.price_credits        IS DISTINCT FROM OLD.price_credits
        OR NEW.price_khash          IS DISTINCT FROM OLD.price_khash
        OR NEW.world                IS DISTINCT FROM OLD.world
@@ -364,6 +365,16 @@ CREATE TABLE mc.lot_build_log (
             AND price_khash = 0
             AND wallet_credits_ledger_id IS NULL
             AND wallet_khash_ledger_id IS NULL)
+    ),
+    -- Queueable jobs only start from owned (1) or built (2).
+    CONSTRAINT mc_lot_build_log_snapshot_state_chk CHECK (
+        lot_state_before IS NULL OR lot_state_before IN (1, 2)
+    ),
+    -- Demolish snapshots must be built (or legacy NULL).
+    CONSTRAINT mc_lot_build_log_demolish_snapshot_chk CHECK (
+        action_kind <> 1
+        OR lot_state_before IS NULL
+        OR lot_state_before = 2
     ),
     -- Claimed state must carry full worker identity; non-claimed states
     -- must not.
@@ -783,7 +794,8 @@ AS $$
     -- release the lot — prevents poisoned rows from blocking via
     -- the partial one-active-per-lot unique slot.
     WITH picked AS (
-        SELECT build_id, lot_id, action_kind, attempt_count, lot_state_before
+        SELECT build_id, lot_id, action_kind, attempt_count,
+               lot_state_before, schematic_id_before
           FROM mc.lot_build_log
          WHERE apply_state = 3
            AND claimed_at IS NOT NULL
@@ -814,10 +826,10 @@ AS $$
           FROM picked p
          WHERE b.build_id = p.build_id
            AND p.attempt_count >= 5
-        RETURNING b.lot_id, b.action_kind, b.lot_state_before
+        RETURNING b.lot_id, b.action_kind, b.lot_state_before, b.schematic_id_before
     ),
-    -- Release lot: snapshot wins; else demolish → built (2), build
-    -- uses schematic heuristic.
+    -- Snapshot-based release: restore state AND schematic together
+    -- when the snapshot exists; else fall back to the legacy heuristic.
     released AS (
         UPDATE mc.lot l
            SET state = CASE
@@ -825,6 +837,12 @@ AS $$
                   WHEN e.action_kind = 1 THEN 2
                   WHEN l.current_schematic_id IS NULL THEN 1
                   ELSE 2
+               END,
+               current_schematic_id = CASE
+                  WHEN e.lot_state_before IS NULL THEN l.current_schematic_id
+                  WHEN e.lot_state_before IN (0, 1) THEN NULL
+                  WHEN e.lot_state_before IN (2, 4) THEN e.schematic_id_before
+                  ELSE l.current_schematic_id
                END
           FROM exhausted e
          WHERE l.lot_id = e.lot_id
@@ -938,10 +956,11 @@ SET search_path = ''
 COST 100
 AS $$
 DECLARE
-    v_lot_id            TEXT;
-    v_action_kind       SMALLINT;
-    v_lot_state_before  SMALLINT;
-    v_rowcount          INTEGER;
+    v_lot_id               TEXT;
+    v_action_kind          SMALLINT;
+    v_lot_state_before     SMALLINT;
+    v_schematic_id_before  TEXT;
+    v_rowcount             INTEGER;
 BEGIN
     IF p_build_id IS NULL OR btrim(p_build_id) = '' THEN
         RAISE EXCEPTION 'build_id cannot be empty' USING ERRCODE = '22004';
@@ -965,22 +984,28 @@ BEGIN
      WHERE build_id = p_build_id
        AND apply_state = 3
        AND claimed_by = p_worker_id
-    RETURNING lot_id, action_kind, lot_state_before
-        INTO v_lot_id, v_action_kind, v_lot_state_before;
+    RETURNING lot_id, action_kind, lot_state_before, schematic_id_before
+        INTO v_lot_id, v_action_kind, v_lot_state_before, v_schematic_id_before;
 
     IF NOT FOUND THEN
         RETURN FALSE;
     END IF;
 
-    -- Restore to the snapshot if it was preserved; else fall back to
-    -- the schematic heuristic (rows queued before lot_state_before
-    -- existed).
+    -- Restore from snapshot when present (state AND schematic). Fall
+    -- back to the legacy schematic heuristic for rows queued before
+    -- snapshot columns existed.
     UPDATE mc.lot
        SET state = CASE
               WHEN v_lot_state_before IS NOT NULL THEN v_lot_state_before
               WHEN v_action_kind = 1 THEN 2
               WHEN current_schematic_id IS NULL THEN 1
               ELSE 2
+           END,
+           current_schematic_id = CASE
+              WHEN v_lot_state_before IS NULL THEN current_schematic_id
+              WHEN v_lot_state_before IN (0, 1) THEN NULL
+              WHEN v_lot_state_before IN (2, 4) THEN v_schematic_id_before
+              ELSE current_schematic_id
            END
      WHERE lot_id = v_lot_id
        AND state IN (3, 4);
@@ -2022,16 +2047,15 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
 
-    -- Block retry if the lot's current schematic drifted from the
-    -- snapshot taken at queue time. Prevents cross-build interference
-    -- when an intermediate successful build changed the lot.
-    IF v_schematic_id_before IS NOT NULL THEN
-        SELECT current_schematic_id INTO v_lot_current_schem
-          FROM mc.lot WHERE lot_id = v_lot_id;
-        IF v_lot_current_schem IS DISTINCT FROM v_schematic_id_before THEN
-            RAISE EXCEPTION 'lot % current_schematic changed since job % queued; cannot retry',
-                v_lot_id, p_build_id USING ERRCODE = '22023';
-        END IF;
+    -- Schematic-drift check covers both directions: NULL → set, set →
+    -- NULL, and set → different. Skipping the NULL case let an
+    -- intermediate successful build between queue and retry slip
+    -- through (snapshot=NULL, current_schematic=set).
+    SELECT current_schematic_id INTO v_lot_current_schem
+      FROM mc.lot WHERE lot_id = v_lot_id;
+    IF v_lot_current_schem IS DISTINCT FROM v_schematic_id_before THEN
+        RAISE EXCEPTION 'lot % current_schematic changed since job % queued; cannot retry',
+            v_lot_id, p_build_id USING ERRCODE = '22023';
     END IF;
 
     IF v_action_kind = 0 THEN
@@ -2201,7 +2225,7 @@ CREATE OR REPLACE FUNCTION mc.service_release_user_lots(
     p_force   BOOLEAN DEFAULT FALSE
 )
 RETURNS TABLE (
-    lot_id   TEXT,
+    lot_id      TEXT,
     prior_state SMALLINT
 )
 LANGUAGE plpgsql
@@ -2221,16 +2245,40 @@ BEGIN
             p_user_id USING ERRCODE = '22023';
     END IF;
 
+    -- p_force: cancel any active build/demolish jobs first so worker
+    -- ACKs against the now-vacant lots can't violate
+    -- mc_lot_owner_state_chk or leave stuck claimed rows.
+    IF p_force THEN
+        UPDATE mc.lot_build_log b
+           SET apply_state = 2,
+               apply_error = 'cancelled by forced user lot release',
+               failed_at = clock_timestamp(),
+               claimed_at = NULL,
+               claimed_by = NULL
+          FROM mc.lot l
+         WHERE b.lot_id = l.lot_id
+           AND l.owner_user_id = p_user_id
+           AND b.apply_state IN (0, 3);
+    END IF;
+
+    -- candidates CTE pins the prior state before the UPDATE so
+    -- RETURNING can surface it (UPDATE...RETURNING reads NEW).
     RETURN QUERY
-    WITH cleared AS (
-        UPDATE mc.lot
+    WITH candidates AS (
+        SELECT l.lot_id, l.state::SMALLINT AS prior_state
+          FROM mc.lot l
+         WHERE l.owner_user_id = p_user_id
+    ),
+    cleared AS (
+        UPDATE mc.lot l
            SET state = 0,
                owner_user_id = NULL,
                current_schematic_id = NULL
-         WHERE owner_user_id = p_user_id
-        RETURNING lot_id, state
+          FROM candidates c
+         WHERE l.lot_id = c.lot_id
+        RETURNING l.lot_id, c.prior_state
     )
-    SELECT cleared.lot_id, cleared.state FROM cleared;
+    SELECT cleared.lot_id, cleared.prior_state FROM cleared;
 END;
 $$;
 
@@ -2273,47 +2321,88 @@ CREATE OR REPLACE FUNCTION mc.service_repair_orphan_transitional(
     p_dry_run BOOLEAN DEFAULT TRUE
 )
 RETURNS TABLE (
-    lot_id      TEXT,
-    prior_state SMALLINT,
-    new_state   SMALLINT
+    lot_id              TEXT,
+    prior_state         SMALLINT,
+    new_state           SMALLINT,
+    latest_build_id     TEXT,
+    latest_apply_state  SMALLINT,
+    latest_failed_at    TIMESTAMPTZ,
+    latest_apply_error  TEXT
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
 BEGIN
+    -- Candidates first; UPDATE RETURNING sees NEW only, so prior_state
+    -- needs to be captured before the write.
     IF p_dry_run THEN
         RETURN QUERY
-        SELECT l.lot_id,
-               l.state::SMALLINT,
-               (CASE WHEN l.current_schematic_id IS NULL THEN 1 ELSE 2 END)::SMALLINT
-          FROM mc.lot l
-          LEFT JOIN mc.lot_build_log b
-            ON b.lot_id = l.lot_id
-           AND b.apply_state IN (0, 3)
-         WHERE l.state IN (3, 4)
-           AND b.build_id IS NULL;
+        SELECT c.lot_id,
+               c.prior_state,
+               c.new_state,
+               c.latest_build_id,
+               c.latest_apply_state,
+               c.latest_failed_at,
+               c.latest_apply_error
+          FROM (
+            SELECT l.lot_id,
+                   l.state::SMALLINT AS prior_state,
+                   (CASE WHEN l.current_schematic_id IS NULL THEN 1 ELSE 2 END)::SMALLINT AS new_state,
+                   latest.build_id        AS latest_build_id,
+                   latest.apply_state::SMALLINT AS latest_apply_state,
+                   latest.failed_at       AS latest_failed_at,
+                   latest.apply_error     AS latest_apply_error
+              FROM mc.lot l
+              LEFT JOIN mc.lot_build_log b
+                ON b.lot_id = l.lot_id
+               AND b.apply_state IN (0, 3)
+              LEFT JOIN LATERAL (
+                SELECT build_id, apply_state, failed_at, apply_error
+                  FROM mc.lot_build_log
+                 WHERE lot_id = l.lot_id
+                 ORDER BY queued_at DESC, build_id DESC
+                 LIMIT 1
+              ) latest ON TRUE
+             WHERE l.state IN (3, 4)
+               AND b.build_id IS NULL
+          ) c;
     ELSE
         RETURN QUERY
-        UPDATE mc.lot l
-           SET state = CASE WHEN l.current_schematic_id IS NULL THEN 1 ELSE 2 END
-         WHERE l.lot_id IN (
-            SELECT l2.lot_id
-              FROM mc.lot l2
+        WITH candidates AS (
+            SELECT l.lot_id,
+                   l.state::SMALLINT AS prior_state,
+                   (CASE WHEN l.current_schematic_id IS NULL THEN 1 ELSE 2 END)::SMALLINT AS new_state,
+                   latest.build_id        AS latest_build_id,
+                   latest.apply_state::SMALLINT AS latest_apply_state,
+                   latest.failed_at       AS latest_failed_at,
+                   latest.apply_error     AS latest_apply_error
+              FROM mc.lot l
               LEFT JOIN mc.lot_build_log b
-                ON b.lot_id = l2.lot_id
+                ON b.lot_id = l.lot_id
                AND b.apply_state IN (0, 3)
-             WHERE l2.state IN (3, 4)
+              LEFT JOIN LATERAL (
+                SELECT build_id, apply_state, failed_at, apply_error
+                  FROM mc.lot_build_log
+                 WHERE lot_id = l.lot_id
+                 ORDER BY queued_at DESC, build_id DESC
+                 LIMIT 1
+              ) latest ON TRUE
+             WHERE l.state IN (3, 4)
                AND b.build_id IS NULL
-         )
-        RETURNING l.lot_id,
-                  -- prior_state captured pre-update via OLD; UPDATE
-                  -- RETURNING doesn't expose OLD, so fall back to a
-                  -- placeholder: 3 or 4 was the source state but we
-                  -- can't distinguish per row here. Use the new state
-                  -- inverse as a proxy.
-                  (CASE WHEN l.state = 1 THEN 3 ELSE 4 END)::SMALLINT,
-                  l.state::SMALLINT;
+        ),
+        updated AS (
+            UPDATE mc.lot l
+               SET state = c.new_state
+              FROM candidates c
+             WHERE l.lot_id = c.lot_id
+            RETURNING l.lot_id
+        )
+        SELECT c.lot_id, c.prior_state, c.new_state,
+               c.latest_build_id, c.latest_apply_state,
+               c.latest_failed_at, c.latest_apply_error
+          FROM candidates c
+          JOIN updated u ON u.lot_id = c.lot_id;
     END IF;
 END;
 $$;
@@ -2328,7 +2417,15 @@ GRANT EXECUTE ON FUNCTION mc.service_repair_orphan_transitional(BOOLEAN)
 CREATE OR REPLACE FUNCTION public.proxy_service_repair_orphan_transitional(
     p_dry_run BOOLEAN DEFAULT TRUE
 )
-RETURNS TABLE (lot_id TEXT, prior_state SMALLINT, new_state SMALLINT)
+RETURNS TABLE (
+    lot_id              TEXT,
+    prior_state         SMALLINT,
+    new_state           SMALLINT,
+    latest_build_id     TEXT,
+    latest_apply_state  SMALLINT,
+    latest_failed_at    TIMESTAMPTZ,
+    latest_apply_error  TEXT
+)
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = ''

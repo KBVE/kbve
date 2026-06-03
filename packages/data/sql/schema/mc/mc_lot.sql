@@ -293,6 +293,14 @@ CREATE TABLE IF NOT EXISTS mc.lot_build_log (
             AND wallet_credits_ledger_id IS NULL
             AND wallet_khash_ledger_id IS NULL)
     ),
+    CONSTRAINT mc_lot_build_log_snapshot_state_chk CHECK (
+        lot_state_before IS NULL OR lot_state_before IN (1, 2)
+    ),
+    CONSTRAINT mc_lot_build_log_demolish_snapshot_chk CHECK (
+        action_kind <> 1
+        OR lot_state_before IS NULL
+        OR lot_state_before = 2
+    ),
     CONSTRAINT mc_lot_build_log_claimed_consistency_chk
         CHECK (
             (apply_state = 3 AND claimed_at IS NOT NULL AND claimed_by IS NOT NULL)
