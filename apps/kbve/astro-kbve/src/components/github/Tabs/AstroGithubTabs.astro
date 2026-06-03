@@ -1,0 +1,232 @@
+---
+/**
+ * AstroGithubTabs - Pure-CSS radio-driven tab group for /github/.
+ * Zero JS. Uses :has() so panels can sit next to (not after) the radios.
+ * Each tab is a named slot: activity, board, repos, contribute.
+ */
+
+interface Props {
+	idPrefix?: string;
+}
+
+const { idPrefix = 'github-tabs' } = Astro.props;
+
+const TABS = [
+	{ key: 'activity', label: 'Recent Activity', icon: '🟢' },
+	{ key: 'board', label: 'In Flight', icon: '🎯' },
+	{ key: 'repos', label: 'Repositories', icon: '📦' },
+	{ key: 'contribute', label: 'Contribute', icon: '🚀' },
+];
+---
+
+<section
+	class="github-tabs"
+	aria-label="GitHub ecosystem sections"
+	data-tab-prefix={idPrefix}>
+	{
+		TABS.map((t, i) => (
+			<input
+				type="radio"
+				name={`${idPrefix}-radio`}
+				id={`${idPrefix}-${t.key}`}
+				class={`github-tabs__radio github-tabs__radio--${t.key}`}
+				checked={i === 0}
+				aria-hidden="true"
+				tabindex="-1"
+			/>
+		))
+	}
+
+	<div class="github-tabs__nav" role="tablist" aria-label="GitHub sections">
+		{
+			TABS.map((t) => (
+				<label
+					for={`${idPrefix}-${t.key}`}
+					class={`github-tabs__tab github-tabs__tab--${t.key}`}
+					role="tab"
+					tabindex="0">
+					<span class="github-tabs__icon" aria-hidden="true">
+						{t.icon}
+					</span>
+					<span class="github-tabs__label">{t.label}</span>
+				</label>
+			))
+		}
+	</div>
+
+	<div class="github-tabs__panels">
+		<section
+			class="github-tabs__panel github-tabs__panel--activity"
+			role="tabpanel"
+			aria-labelledby={`${idPrefix}-activity`}>
+			<slot name="activity" />
+		</section>
+		<section
+			class="github-tabs__panel github-tabs__panel--board"
+			role="tabpanel"
+			aria-labelledby={`${idPrefix}-board`}>
+			<slot name="board" />
+		</section>
+		<section
+			class="github-tabs__panel github-tabs__panel--repos"
+			role="tabpanel"
+			aria-labelledby={`${idPrefix}-repos`}>
+			<slot name="repos" />
+		</section>
+		<section
+			class="github-tabs__panel github-tabs__panel--contribute"
+			role="tabpanel"
+			aria-labelledby={`${idPrefix}-contribute`}>
+			<slot name="contribute" />
+		</section>
+	</div>
+</section>
+
+<style>
+	.github-tabs {
+		margin: 2rem 0;
+		color: var(--sl-color-text, #e6edf3);
+	}
+
+	.github-tabs__radio {
+		position: absolute;
+		opacity: 0;
+		pointer-events: none;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		margin: -1px;
+	}
+
+	.github-tabs__nav {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		justify-content: center;
+		padding: 0.4rem;
+		background: var(--sl-color-bg-nav, #0f172a);
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		border-radius: 12px;
+		margin-bottom: 1.5rem;
+	}
+
+	.github-tabs__tab {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.55rem 1rem;
+		background: transparent;
+		border: 1px solid transparent;
+		border-radius: 8px;
+		color: var(--sl-color-gray-2, #c9d1d9);
+		font-size: 0.85rem;
+		font-weight: 500;
+		cursor: pointer;
+		user-select: none;
+		transition:
+			background 0.15s,
+			color 0.15s,
+			border-color 0.15s,
+			transform 0.15s;
+	}
+
+	.github-tabs__tab:hover {
+		color: var(--sl-color-text, #e6edf3);
+		background: var(--sl-color-bg-sidebar, #1e293b);
+	}
+
+	.github-tabs__tab:focus-visible {
+		outline: 2px solid var(--sl-color-accent, #06b6d4);
+		outline-offset: 2px;
+	}
+
+	.github-tabs__icon {
+		font-size: 1rem;
+		line-height: 1;
+	}
+
+	.github-tabs__panels {
+		position: relative;
+	}
+
+	.github-tabs__panel {
+		display: none;
+	}
+
+	/* :has() drives both the active-tab style and the visible panel
+	   without any JS. Modern browsers all support it. */
+	.github-tabs:has(.github-tabs__radio--activity:checked)
+		.github-tabs__panel--activity,
+	.github-tabs:has(.github-tabs__radio--board:checked)
+		.github-tabs__panel--board,
+	.github-tabs:has(.github-tabs__radio--repos:checked)
+		.github-tabs__panel--repos,
+	.github-tabs:has(.github-tabs__radio--contribute:checked)
+		.github-tabs__panel--contribute {
+		display: block;
+		animation: github-tabs-fade-in 0.2s ease-out;
+	}
+
+	.github-tabs:has(.github-tabs__radio--activity:checked)
+		.github-tabs__tab--activity,
+	.github-tabs:has(.github-tabs__radio--board:checked)
+		.github-tabs__tab--board,
+	.github-tabs:has(.github-tabs__radio--repos:checked)
+		.github-tabs__tab--repos,
+	.github-tabs:has(.github-tabs__radio--contribute:checked)
+		.github-tabs__tab--contribute {
+		background: var(--sl-color-accent, #06b6d4);
+		color: #0b1220;
+		border-color: var(--sl-color-accent, #06b6d4);
+	}
+
+	.github-tabs:has(.github-tabs__radio--activity:checked)
+		.github-tabs__tab--activity
+		.github-tabs__icon,
+	.github-tabs:has(.github-tabs__radio--board:checked)
+		.github-tabs__tab--board
+		.github-tabs__icon,
+	.github-tabs:has(.github-tabs__radio--repos:checked)
+		.github-tabs__tab--repos
+		.github-tabs__icon,
+	.github-tabs:has(.github-tabs__radio--contribute:checked)
+		.github-tabs__tab--contribute
+		.github-tabs__icon {
+		filter: brightness(0) saturate(100%);
+	}
+
+	@keyframes github-tabs-fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(4px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	/* Keyboard activation: pressing Enter / Space on a focused tab label
+	   is delegated to its associated radio by the browser, so no JS
+	   needed. Arrow-key roving focus is a future enhancement. */
+	@media (max-width: 640px) {
+		.github-tabs__tab {
+			padding: 0.55rem 0.75rem;
+			font-size: 0.78rem;
+		}
+		.github-tabs__label {
+			font-size: 0.78rem;
+		}
+	}
+
+	/* Reduced-motion: drop the fade. */
+	@media (prefers-reduced-motion: reduce) {
+		.github-tabs__panel {
+			animation: none !important;
+		}
+		.github-tabs__tab {
+			transition: none;
+		}
+	}
+</style>
