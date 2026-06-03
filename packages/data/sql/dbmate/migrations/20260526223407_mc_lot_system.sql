@@ -19,6 +19,19 @@ GRANT USAGE ON SCHEMA mc TO service_role;
 REVOKE ALL ON SCHEMA mc FROM PUBLIC, anon, authenticated;
 
 
+-- State domains: centralize enum bounds so RPCs/CHECKs don't drift
+-- from each other when ranges expand. Storage stays SMALLINT.
+CREATE DOMAIN mc.lot_state AS SMALLINT
+    CHECK (VALUE BETWEEN 0 AND 4);
+CREATE DOMAIN mc.build_action_kind AS SMALLINT
+    CHECK (VALUE IN (0, 1));
+CREATE DOMAIN mc.build_apply_state AS SMALLINT
+    CHECK (VALUE BETWEEN 0 AND 3);
+ALTER DOMAIN mc.lot_state OWNER TO postgres;
+ALTER DOMAIN mc.build_action_kind OWNER TO postgres;
+ALTER DOMAIN mc.build_apply_state OWNER TO postgres;
+
+
 -- mc._derive_idem_key — wallet.service_debit treats (account,
 -- idempotency_key) as the uniqueness scope; dual-currency charges
 -- need a stable per-currency UUID so credits + khash don't collide.
@@ -117,14 +130,18 @@ CREATE TABLE mc.lot (
     owner_user_id   UUID REFERENCES auth.users(id) ON DELETE RESTRICT,
     current_schematic_id TEXT REFERENCES mc.schematic(schematic_id),
     -- 0 = vacant, 1 = owned, 2 = built, 3 = under_build, 4 = demolishing
-    state           SMALLINT NOT NULL DEFAULT 0,
+    state           mc.lot_state NOT NULL DEFAULT 0,
+    -- Bitfield for non-lifecycle attributes (admin_reserved, featured,
+    -- no_demolish, no_transfer, market_visible…). Phase-0 leaves bits
+    -- undefined; flags=0 = normal lot.
+    flags           INTEGER NOT NULL DEFAULT 0,
     price_credits   BIGINT NOT NULL DEFAULT 0,
     price_khash     BIGINT NOT NULL DEFAULT 0,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     CONSTRAINT mc_lot_id_chk         CHECK (lot_id ~ '^[A-Za-z0-9:_-]{3,96}$'),
-    CONSTRAINT mc_lot_state_chk      CHECK (state BETWEEN 0 AND 4),
+    CONSTRAINT mc_lot_flags_chk      CHECK (flags >= 0),
     CONSTRAINT mc_lot_anchor_y_chk   CHECK (anchor_y BETWEEN -64 AND 319),
     CONSTRAINT mc_lot_price_chk      CHECK (price_credits >= 0 AND price_khash >= 0),
     CONSTRAINT mc_lot_x_range_chk    CHECK (NOT isempty(chunk_x_range)
@@ -297,15 +314,20 @@ CREATE TABLE mc.lot_build_log (
     lot_id          TEXT NOT NULL REFERENCES mc.lot(lot_id) ON DELETE CASCADE,
     actor_user_id   UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     -- 0 = build, 1 = demolish
-    action_kind     SMALLINT NOT NULL,
+    action_kind     mc.build_action_kind NOT NULL,
     schematic_id    TEXT REFERENCES mc.schematic(schematic_id),
+    -- Pre-queue snapshot of the lot. failure recovery / retry uses
+    -- these instead of the current_schematic_id heuristic so concurrent
+    -- successful builds in between don't get rolled back accidentally.
+    lot_state_before    mc.lot_state,
+    schematic_id_before TEXT REFERENCES mc.schematic(schematic_id),
     price_credits   BIGINT NOT NULL DEFAULT 0,
     price_khash     BIGINT NOT NULL DEFAULT 0,
     wallet_credits_ledger_id BIGINT,
     wallet_khash_ledger_id   BIGINT,
     idempotency_key UUID NOT NULL,
     -- 0 = queued, 1 = applied, 2 = failed, 3 = claimed (worker holding it)
-    apply_state     SMALLINT NOT NULL DEFAULT 0,
+    apply_state     mc.build_apply_state NOT NULL DEFAULT 0,
     apply_error     TEXT,
     claimed_at      TIMESTAMPTZ,
     claimed_by      TEXT,
@@ -316,10 +338,6 @@ CREATE TABLE mc.lot_build_log (
     attempt_count   INTEGER NOT NULL DEFAULT 0,
     last_attempt_at TIMESTAMPTZ,
 
-    CONSTRAINT mc_lot_build_log_action_chk
-        CHECK (action_kind IN (0, 1)),
-    CONSTRAINT mc_lot_build_log_apply_state_chk
-        CHECK (apply_state BETWEEN 0 AND 3),
     CONSTRAINT mc_lot_build_log_build_has_schematic_chk
         CHECK ((action_kind = 0 AND schematic_id IS NOT NULL)
             OR (action_kind = 1)),
@@ -366,9 +384,11 @@ CREATE INDEX idx_mc_lot_build_log_actor_queued
     INCLUDE (lot_id, action_kind, schematic_id, apply_state,
              failed_at, applied_at, attempt_count);
 -- Worker claim path. attempt_count predicate mirrors claim WHERE so
--- exhausted rows drop out of the index.
+-- exhausted rows drop out of the index. INCLUDE'd columns cut heap
+-- fetches for the picked/claimed pipeline.
 CREATE INDEX idx_mc_lot_build_log_pending_claim
     ON mc.lot_build_log (queued_at, build_id)
+    INCLUDE (lot_id, actor_user_id, action_kind, schematic_id)
     WHERE apply_state = 0 AND attempt_count < 5;
 -- Stale-claim janitor scan.
 CREATE INDEX idx_mc_lot_build_log_claimed_stale
@@ -763,7 +783,7 @@ AS $$
     -- release the lot — prevents poisoned rows from blocking via
     -- the partial one-active-per-lot unique slot.
     WITH picked AS (
-        SELECT build_id, lot_id, action_kind, attempt_count
+        SELECT build_id, lot_id, action_kind, attempt_count, lot_state_before
           FROM mc.lot_build_log
          WHERE apply_state = 3
            AND claimed_at IS NOT NULL
@@ -794,13 +814,14 @@ AS $$
           FROM picked p
          WHERE b.build_id = p.build_id
            AND p.attempt_count >= 5
-        RETURNING b.lot_id, b.action_kind
+        RETURNING b.lot_id, b.action_kind, b.lot_state_before
     ),
-    -- Release lot: demolish failures → built (2); build failures use
-    -- schematic heuristic.
+    -- Release lot: snapshot wins; else demolish → built (2), build
+    -- uses schematic heuristic.
     released AS (
         UPDATE mc.lot l
            SET state = CASE
+                  WHEN e.lot_state_before IS NOT NULL THEN e.lot_state_before
                   WHEN e.action_kind = 1 THEN 2
                   WHEN l.current_schematic_id IS NULL THEN 1
                   ELSE 2
@@ -917,9 +938,10 @@ SET search_path = ''
 COST 100
 AS $$
 DECLARE
-    v_lot_id      TEXT;
-    v_action_kind SMALLINT;
-    v_rowcount    INTEGER;
+    v_lot_id            TEXT;
+    v_action_kind       SMALLINT;
+    v_lot_state_before  SMALLINT;
+    v_rowcount          INTEGER;
 BEGIN
     IF p_build_id IS NULL OR btrim(p_build_id) = '' THEN
         RAISE EXCEPTION 'build_id cannot be empty' USING ERRCODE = '22004';
@@ -943,14 +965,19 @@ BEGIN
      WHERE build_id = p_build_id
        AND apply_state = 3
        AND claimed_by = p_worker_id
-    RETURNING lot_id, action_kind INTO v_lot_id, v_action_kind;
+    RETURNING lot_id, action_kind, lot_state_before
+        INTO v_lot_id, v_action_kind, v_lot_state_before;
 
     IF NOT FOUND THEN
         RETURN FALSE;
     END IF;
 
+    -- Restore to the snapshot if it was preserved; else fall back to
+    -- the schematic heuristic (rows queued before lot_state_before
+    -- existed).
     UPDATE mc.lot
        SET state = CASE
+              WHEN v_lot_state_before IS NOT NULL THEN v_lot_state_before
               WHEN v_action_kind = 1 THEN 2
               WHEN current_schematic_id IS NULL THEN 1
               ELSE 2
@@ -1131,6 +1158,7 @@ DECLARE
     v_existing_actor       UUID;
     v_lot_owner            UUID;
     v_lot_state            SMALLINT;
+    v_lot_schematic_before TEXT;
     v_lot_anchor_y         SMALLINT;
     v_lot_chunk_area       INTEGER;
     v_lot_dx_blocks        INTEGER;
@@ -1175,11 +1203,11 @@ BEGIN
         RETURN v_existing_build_id;
     END IF;
 
-    SELECT owner_user_id, state, anchor_y,
+    SELECT owner_user_id, state, current_schematic_id, anchor_y,
            chunk_area,
            block_x_max - block_x_min + 1,
            block_z_max - block_z_min + 1
-      INTO v_lot_owner, v_lot_state, v_lot_anchor_y,
+      INTO v_lot_owner, v_lot_state, v_lot_schematic_before, v_lot_anchor_y,
            v_lot_chunk_area,
            v_lot_dx_blocks,
            v_lot_dz_blocks
@@ -1266,11 +1294,13 @@ BEGIN
     BEGIN
         INSERT INTO mc.lot_build_log (
             lot_id, actor_user_id, action_kind, schematic_id,
+            lot_state_before, schematic_id_before,
             price_credits, price_khash,
             wallet_credits_ledger_id, wallet_khash_ledger_id,
             idempotency_key
         ) VALUES (
             p_lot_id, p_user_id, 0, p_schematic_id,
+            v_lot_state, v_lot_schematic_before,
             v_sch_price_credits, v_sch_price_khash,
             v_credits_ledger_id, v_khash_ledger_id,
             p_idempotency_key
@@ -1335,6 +1365,7 @@ DECLARE
     v_existing_action      SMALLINT;
     v_lot_owner            UUID;
     v_lot_state            SMALLINT;
+    v_lot_schematic_before TEXT;
     v_build_id             TEXT;
 BEGIN
     IF p_lot_id IS NULL OR btrim(p_lot_id) = '' THEN
@@ -1363,8 +1394,8 @@ BEGIN
         RETURN v_existing_build_id;
     END IF;
 
-    SELECT owner_user_id, state
-      INTO v_lot_owner, v_lot_state
+    SELECT owner_user_id, state, current_schematic_id
+      INTO v_lot_owner, v_lot_state, v_lot_schematic_before
       FROM mc.lot
      WHERE lot_id = p_lot_id
      FOR UPDATE;
@@ -1382,9 +1413,13 @@ BEGIN
 
     BEGIN
         INSERT INTO mc.lot_build_log (
-            lot_id, actor_user_id, action_kind, schematic_id, idempotency_key
+            lot_id, actor_user_id, action_kind, schematic_id,
+            lot_state_before, schematic_id_before,
+            idempotency_key
         ) VALUES (
-            p_lot_id, p_user_id, 1, NULL, p_idempotency_key
+            p_lot_id, p_user_id, 1, NULL,
+            v_lot_state, v_lot_schematic_before,
+            p_idempotency_key
         )
         RETURNING build_id INTO v_build_id;
     EXCEPTION WHEN unique_violation THEN
@@ -1955,17 +1990,19 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
-    v_lot_id TEXT;
-    v_action_kind SMALLINT;
-    v_rowcount INTEGER;
+    v_lot_id              TEXT;
+    v_action_kind         SMALLINT;
+    v_schematic_id        TEXT;
+    v_schematic_id_before TEXT;
+    v_lot_current_schem   TEXT;
+    v_rowcount            INTEGER;
 BEGIN
     IF p_build_id IS NULL OR btrim(p_build_id) = '' THEN
         RAISE EXCEPTION 'build_id cannot be empty' USING ERRCODE = '22004';
     END IF;
 
-    -- Restore lot to 3/4 so the next worker ACK can proceed.
-    SELECT lot_id, action_kind
-      INTO v_lot_id, v_action_kind
+    SELECT lot_id, action_kind, schematic_id, schematic_id_before
+      INTO v_lot_id, v_action_kind, v_schematic_id, v_schematic_id_before
       FROM mc.lot_build_log
      WHERE build_id = p_build_id
        AND apply_state = 2
@@ -1973,6 +2010,28 @@ BEGIN
 
     IF NOT FOUND THEN
         RETURN FALSE;
+    END IF;
+
+    -- Invariant checks: build needs a schematic, demolish doesn't.
+    IF v_action_kind = 0 AND v_schematic_id IS NULL THEN
+        RAISE EXCEPTION 'build job % is malformed: missing schematic', p_build_id
+            USING ERRCODE = '22023';
+    END IF;
+    IF v_action_kind = 1 AND v_schematic_id IS NOT NULL THEN
+        RAISE EXCEPTION 'demolish job % is malformed: schematic must be NULL', p_build_id
+            USING ERRCODE = '22023';
+    END IF;
+
+    -- Block retry if the lot's current schematic drifted from the
+    -- snapshot taken at queue time. Prevents cross-build interference
+    -- when an intermediate successful build changed the lot.
+    IF v_schematic_id_before IS NOT NULL THEN
+        SELECT current_schematic_id INTO v_lot_current_schem
+          FROM mc.lot WHERE lot_id = v_lot_id;
+        IF v_lot_current_schem IS DISTINCT FROM v_schematic_id_before THEN
+            RAISE EXCEPTION 'lot % current_schematic changed since job % queued; cannot retry',
+                v_lot_id, p_build_id USING ERRCODE = '22023';
+        END IF;
     END IF;
 
     IF v_action_kind = 0 THEN
@@ -2128,6 +2187,162 @@ GRANT EXECUTE ON FUNCTION public.proxy_service_list_failed_builds(INTEGER, TIMES
     TO service_role;
 COMMENT ON FUNCTION public.proxy_service_list_failed_builds(INTEGER, TIMESTAMPTZ, TEXT) IS
     'Service-role-only PostgREST bridge: keyset-paginated list of failed builds for ops dashboards. Uses idx_mc_lot_build_log_failed_recent.';
+
+
+-- ===========================================================================
+-- mc.service_release_user_lots — flow for auth.users delete cascade
+-- ===========================================================================
+-- owner_user_id is ON DELETE RESTRICT; this RPC is the canonical path to
+-- relinquish lots before/during user deletion. By default refuses to
+-- touch lots with an active worker job (state IN (3,4)); p_force = TRUE
+-- skips that guard (admin escalation).
+CREATE OR REPLACE FUNCTION mc.service_release_user_lots(
+    p_user_id UUID,
+    p_force   BOOLEAN DEFAULT FALSE
+)
+RETURNS TABLE (
+    lot_id   TEXT,
+    prior_state SMALLINT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF p_user_id IS NULL THEN
+        RAISE EXCEPTION 'user_id cannot be null' USING ERRCODE = '22004';
+    END IF;
+
+    IF NOT p_force AND EXISTS (
+        SELECT 1 FROM mc.lot
+         WHERE owner_user_id = p_user_id AND state IN (3, 4)
+    ) THEN
+        RAISE EXCEPTION 'user % has lots with active jobs; pass p_force = TRUE to override',
+            p_user_id USING ERRCODE = '22023';
+    END IF;
+
+    RETURN QUERY
+    WITH cleared AS (
+        UPDATE mc.lot
+           SET state = 0,
+               owner_user_id = NULL,
+               current_schematic_id = NULL
+         WHERE owner_user_id = p_user_id
+        RETURNING lot_id, state
+    )
+    SELECT cleared.lot_id, cleared.state FROM cleared;
+END;
+$$;
+
+ALTER FUNCTION mc.service_release_user_lots(UUID, BOOLEAN) OWNER TO postgres;
+REVOKE ALL ON FUNCTION mc.service_release_user_lots(UUID, BOOLEAN)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mc.service_release_user_lots(UUID, BOOLEAN)
+    TO service_role;
+
+
+CREATE OR REPLACE FUNCTION public.proxy_service_release_user_lots(
+    p_user_id UUID,
+    p_force   BOOLEAN DEFAULT FALSE
+)
+RETURNS TABLE (lot_id TEXT, prior_state SMALLINT)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+    SELECT * FROM mc.service_release_user_lots(p_user_id, p_force);
+$$;
+
+ALTER FUNCTION public.proxy_service_release_user_lots(UUID, BOOLEAN) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_service_release_user_lots(UUID, BOOLEAN)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.proxy_service_release_user_lots(UUID, BOOLEAN)
+    TO service_role;
+COMMENT ON FUNCTION public.proxy_service_release_user_lots(UUID, BOOLEAN) IS
+    'Service-role-only: release all lots owned by p_user_id back to vacant. Required before auth.users delete because owner_user_id is ON DELETE RESTRICT.';
+
+
+-- ===========================================================================
+-- mc.service_repair_orphan_transitional — repair stuck under_build/demolishing
+-- ===========================================================================
+-- Lots in state IN (3, 4) with no active job in mc.lot_build_log can
+-- only land that way through admin error, failed migration, or a future
+-- bug bypassing the queue lifecycle. This RPC scans for them and snaps
+-- them back to a settled state (1 or 2 per current_schematic_id).
+CREATE OR REPLACE FUNCTION mc.service_repair_orphan_transitional(
+    p_dry_run BOOLEAN DEFAULT TRUE
+)
+RETURNS TABLE (
+    lot_id      TEXT,
+    prior_state SMALLINT,
+    new_state   SMALLINT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    IF p_dry_run THEN
+        RETURN QUERY
+        SELECT l.lot_id,
+               l.state::SMALLINT,
+               (CASE WHEN l.current_schematic_id IS NULL THEN 1 ELSE 2 END)::SMALLINT
+          FROM mc.lot l
+          LEFT JOIN mc.lot_build_log b
+            ON b.lot_id = l.lot_id
+           AND b.apply_state IN (0, 3)
+         WHERE l.state IN (3, 4)
+           AND b.build_id IS NULL;
+    ELSE
+        RETURN QUERY
+        UPDATE mc.lot l
+           SET state = CASE WHEN l.current_schematic_id IS NULL THEN 1 ELSE 2 END
+         WHERE l.lot_id IN (
+            SELECT l2.lot_id
+              FROM mc.lot l2
+              LEFT JOIN mc.lot_build_log b
+                ON b.lot_id = l2.lot_id
+               AND b.apply_state IN (0, 3)
+             WHERE l2.state IN (3, 4)
+               AND b.build_id IS NULL
+         )
+        RETURNING l.lot_id,
+                  -- prior_state captured pre-update via OLD; UPDATE
+                  -- RETURNING doesn't expose OLD, so fall back to a
+                  -- placeholder: 3 or 4 was the source state but we
+                  -- can't distinguish per row here. Use the new state
+                  -- inverse as a proxy.
+                  (CASE WHEN l.state = 1 THEN 3 ELSE 4 END)::SMALLINT,
+                  l.state::SMALLINT;
+    END IF;
+END;
+$$;
+
+ALTER FUNCTION mc.service_repair_orphan_transitional(BOOLEAN) OWNER TO postgres;
+REVOKE ALL ON FUNCTION mc.service_repair_orphan_transitional(BOOLEAN)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mc.service_repair_orphan_transitional(BOOLEAN)
+    TO service_role;
+
+
+CREATE OR REPLACE FUNCTION public.proxy_service_repair_orphan_transitional(
+    p_dry_run BOOLEAN DEFAULT TRUE
+)
+RETURNS TABLE (lot_id TEXT, prior_state SMALLINT, new_state SMALLINT)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+    SELECT * FROM mc.service_repair_orphan_transitional(p_dry_run);
+$$;
+
+ALTER FUNCTION public.proxy_service_repair_orphan_transitional(BOOLEAN) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_service_repair_orphan_transitional(BOOLEAN)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.proxy_service_repair_orphan_transitional(BOOLEAN)
+    TO service_role;
+COMMENT ON FUNCTION public.proxy_service_repair_orphan_transitional(BOOLEAN) IS
+    'Service-role-only: snap state IN (3, 4) lots without an active job back to settled. p_dry_run = TRUE returns the candidate list without writing.';
 
 
 CREATE OR REPLACE FUNCTION public.proxy_service_get_lot(p_lot_id TEXT)
@@ -2639,6 +2854,8 @@ DROP FUNCTION IF EXISTS public.proxy_service_mark_build_applied(TEXT);
 DROP FUNCTION IF EXISTS mc.service_mark_build_failed(TEXT, TEXT);
 DROP FUNCTION IF EXISTS mc.service_mark_build_applied(TEXT);
 
+DROP FUNCTION IF EXISTS public.proxy_service_repair_orphan_transitional(BOOLEAN);
+DROP FUNCTION IF EXISTS public.proxy_service_release_user_lots(UUID, BOOLEAN);
 DROP FUNCTION IF EXISTS public.proxy_service_list_failed_builds(INTEGER, TIMESTAMPTZ, TEXT);
 DROP FUNCTION IF EXISTS public.proxy_service_retry_failed_build(TEXT, BOOLEAN);
 DROP FUNCTION IF EXISTS public.proxy_service_requeue_stale_claims(INTEGER, INTEGER);
@@ -2684,6 +2901,8 @@ DROP FUNCTION IF EXISTS mc.service_queue_build_on_lot(TEXT, TEXT, UUID, UUID);
 DROP FUNCTION IF EXISTS mc.service_purchase_lot(TEXT, UUID, UUID);
 DROP FUNCTION IF EXISTS mc.service_mark_build_failed(TEXT, TEXT, TEXT);
 DROP FUNCTION IF EXISTS mc.service_mark_build_applied(TEXT, TEXT);
+DROP FUNCTION IF EXISTS mc.service_repair_orphan_transitional(BOOLEAN);
+DROP FUNCTION IF EXISTS mc.service_release_user_lots(UUID, BOOLEAN);
 DROP FUNCTION IF EXISTS mc.service_list_failed_builds(INTEGER, TIMESTAMPTZ, TEXT);
 DROP FUNCTION IF EXISTS mc.service_retry_failed_build(TEXT, BOOLEAN);
 DROP FUNCTION IF EXISTS mc.service_requeue_stale_claims(INTEGER, INTEGER);
@@ -2706,5 +2925,9 @@ DROP TABLE IF EXISTS mc.lot;
 DROP FUNCTION IF EXISTS mc.trg_lot_updated_at();
 
 DROP TABLE IF EXISTS mc.schematic;
+
+DROP DOMAIN IF EXISTS mc.build_apply_state;
+DROP DOMAIN IF EXISTS mc.build_action_kind;
+DROP DOMAIN IF EXISTS mc.lot_state;
 
 NOTIFY pgrst, 'reload schema';

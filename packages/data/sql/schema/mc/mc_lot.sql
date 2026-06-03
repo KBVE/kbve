@@ -48,6 +48,19 @@
 -- calls extensions.digest explicitly.
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
+DO $$ BEGIN
+    CREATE DOMAIN mc.lot_state AS SMALLINT CHECK (VALUE BETWEEN 0 AND 4);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+    CREATE DOMAIN mc.build_action_kind AS SMALLINT CHECK (VALUE IN (0, 1));
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+DO $$ BEGIN
+    CREATE DOMAIN mc.build_apply_state AS SMALLINT CHECK (VALUE BETWEEN 0 AND 3);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
 
 -- ========== TABLE: mc.schematic ==========
 
@@ -112,14 +125,15 @@ CREATE TABLE IF NOT EXISTS mc.lot (
     -- RPC that resets state, owner, and schematic together.
     owner_user_id   UUID REFERENCES auth.users(id) ON DELETE RESTRICT,
     current_schematic_id TEXT REFERENCES mc.schematic(schematic_id),
-    state           SMALLINT NOT NULL DEFAULT 0,
+    state           mc.lot_state NOT NULL DEFAULT 0,
+    flags           INTEGER NOT NULL DEFAULT 0,
     price_credits   BIGINT NOT NULL DEFAULT 0,
     price_khash     BIGINT NOT NULL DEFAULT 0,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     CONSTRAINT mc_lot_id_chk         CHECK (lot_id ~ '^[A-Za-z0-9:_-]{3,96}$'),
-    CONSTRAINT mc_lot_state_chk      CHECK (state BETWEEN 0 AND 4),
+    CONSTRAINT mc_lot_flags_chk      CHECK (flags >= 0),
     CONSTRAINT mc_lot_anchor_y_chk   CHECK (anchor_y BETWEEN -64 AND 319),
     CONSTRAINT mc_lot_price_chk      CHECK (price_credits >= 0 AND price_khash >= 0),
     CONSTRAINT mc_lot_x_range_chk    CHECK (NOT isempty(chunk_x_range)
@@ -233,14 +247,16 @@ CREATE TABLE IF NOT EXISTS mc.lot_build_log (
     build_id        TEXT PRIMARY KEY DEFAULT public.gen_ulid(),
     lot_id          TEXT NOT NULL REFERENCES mc.lot(lot_id) ON DELETE CASCADE,
     actor_user_id   UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    action_kind     SMALLINT NOT NULL,
+    action_kind     mc.build_action_kind NOT NULL,
     schematic_id    TEXT REFERENCES mc.schematic(schematic_id),
+    lot_state_before    mc.lot_state,
+    schematic_id_before TEXT REFERENCES mc.schematic(schematic_id),
     price_credits   BIGINT NOT NULL DEFAULT 0,
     price_khash     BIGINT NOT NULL DEFAULT 0,
     wallet_credits_ledger_id BIGINT,
     wallet_khash_ledger_id   BIGINT,
     idempotency_key UUID NOT NULL,
-    apply_state     SMALLINT NOT NULL DEFAULT 0,
+    apply_state     mc.build_apply_state NOT NULL DEFAULT 0,
     apply_error     TEXT,
     claimed_at      TIMESTAMPTZ,
     claimed_by      TEXT,
@@ -252,10 +268,6 @@ CREATE TABLE IF NOT EXISTS mc.lot_build_log (
     -- NOTE: 'failed_at' replaces the prior use of applied_at for failure
     -- timestamps; mark_build_failed writes failed_at and NULLs applied_at.
 
-    CONSTRAINT mc_lot_build_log_action_chk
-        CHECK (action_kind IN (0, 1)),
-    CONSTRAINT mc_lot_build_log_apply_state_chk
-        CHECK (apply_state BETWEEN 0 AND 3),
     CONSTRAINT mc_lot_build_log_build_has_schematic_chk
         CHECK ((action_kind = 0 AND schematic_id IS NOT NULL)
             OR (action_kind = 1)),
@@ -297,6 +309,7 @@ CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_actor_queued
              failed_at, applied_at, attempt_count);
 CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_pending_claim
     ON mc.lot_build_log (queued_at, build_id)
+    INCLUDE (lot_id, actor_user_id, action_kind, schematic_id)
     WHERE apply_state = 0 AND attempt_count < 5;
 CREATE INDEX IF NOT EXISTS idx_mc_lot_build_log_claimed_stale
     ON mc.lot_build_log (claimed_at, build_id)
