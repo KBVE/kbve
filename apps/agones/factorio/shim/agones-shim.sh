@@ -79,28 +79,52 @@ sync_mod() {
     for skip in $BASE_MODS; do
         [ "$name" = "$skip" ] && return 0
     done
-    if ls "${FACTORIO_MODS_DIR}/${name}_"*.zip >/dev/null 2>&1; then
-        return 0
-    fi
     if [ -d "${FACTORIO_MODS_DIR}/${name}" ] && [ -f "${FACTORIO_MODS_DIR}/${name}/info.json" ]; then
         return 0
     fi
+    existing_zip=$(ls "${FACTORIO_MODS_DIR}/${name}_"*.zip 2>/dev/null | head -n 1)
+    cached_version=""
+    if [ -n "$existing_zip" ]; then
+        cached_version=$(basename "$existing_zip" | sed -E "s|^${name}_||; s|\\.zip$||")
+    fi
     if [ -z "$FACTORIO_USERNAME" ] || [ -z "$FACTORIO_TOKEN" ]; then
+        if [ -n "$existing_zip" ]; then
+            echo "[agones-shim] using cached ${name}_${cached_version}.zip (no portal credentials)"
+            return 0
+        fi
         echo "[agones-shim] WARN cannot download mod ${name}: FACTORIO_USERNAME or FACTORIO_TOKEN unset"
         return 1
     fi
     echo "[agones-shim] fetching mod portal metadata for ${name}..."
     info=$(wget -q -O - "https://mods.factorio.com/api/mods/${name}") || {
+        if [ -n "$existing_zip" ]; then
+            echo "[agones-shim] WARN portal metadata fetch failed for ${name}, keeping cached ${cached_version}"
+            return 0
+        fi
         echo "[agones-shim] WARN portal metadata fetch failed for ${name}"
         return 1
     }
     dl_url=$(printf '%s' "$info" | jq -r '.releases | sort_by(.released_at) | last | .download_url // empty')
     file_name=$(printf '%s' "$info" | jq -r '.releases | sort_by(.released_at) | last | .file_name // empty')
+    portal_version=$(printf '%s' "$info" | jq -r '.releases | sort_by(.released_at) | last | .version // empty')
     if [ -z "$dl_url" ] || [ -z "$file_name" ]; then
+        if [ -n "$existing_zip" ]; then
+            echo "[agones-shim] WARN no releases for ${name}, keeping cached ${cached_version}"
+            return 0
+        fi
         echo "[agones-shim] WARN no releases for ${name}"
         return 1
     fi
-    echo "[agones-shim] downloading ${file_name}..."
+    if [ -n "$cached_version" ] && [ "$cached_version" = "$portal_version" ]; then
+        echo "[agones-shim] ${name} cached=${cached_version} matches portal, skipping"
+        return 0
+    fi
+    if [ -n "$existing_zip" ]; then
+        echo "[agones-shim] ${name} cached=${cached_version} portal=${portal_version}, replacing"
+        rm -f "${FACTORIO_MODS_DIR}/${name}_"*.zip
+    else
+        echo "[agones-shim] downloading ${file_name}..."
+    fi
     if wget -q -O "${FACTORIO_MODS_DIR}/${file_name}" \
         "https://mods.factorio.com${dl_url}?username=${FACTORIO_USERNAME}&token=${FACTORIO_TOKEN}"; then
         echo "[agones-shim] installed ${file_name}"
