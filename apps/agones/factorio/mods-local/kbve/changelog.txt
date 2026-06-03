@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.0.6
+Date: 2026-06-03
+  Features:
+    - Chopping a tree now grants 2 coins per tree (any vanilla or
+      modded entity with entity.type == 'tree').
+    - Enemy kills now roll a 10% jackpot bonus on top of the existing
+      KILL_REWARD payout (jackpot = ceil(reward * 1.5)).
+    - Hostile entities outside the listed KILL_REWARD table (mod biters,
+      demolishers, etc.) now roll a 20% chance for 1 coin.
+---------------------------------------------------------------------------------------------------
 Version: 0.0.5
 Date: 2026-06-03
   Changes:

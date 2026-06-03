@@ -11,6 +11,12 @@ local MINE_DROP = {
 	['uranium-ore'] = { chance = 0.02, amount = 2 },
 }
 
+local TREE_COINS = 2
+local JACKPOT_CHANCE = 0.10
+local JACKPOT_MULT = 1.5
+local UNLISTED_KILL_CHANCE = 0.20
+local UNLISTED_KILL_COINS = 1
+
 local KILL_REWARD = {
 	['small-biter'] = 1,
 	['medium-biter'] = 3,
@@ -104,6 +110,10 @@ end
 function Coins.handle_pre_player_mined(event)
 	local entity = event.entity
 	if not (entity and entity.valid) then return end
+	if entity.type == 'tree' then
+		Coins.grant(event.player_index, TREE_COINS, 'chop')
+		return
+	end
 	local rule = MINE_DROP[entity.name]
 	if not rule then return end
 	if math.random() < rule.chance then
@@ -123,18 +133,38 @@ end
 function Coins.handle_entity_died(event)
 	local entity = event.entity
 	if not (entity and entity.valid) then return end
-	local reward = KILL_REWARD[entity.name]
-	if not reward then return end
 	local cause = event.cause
 	if not (cause and cause.valid) then return end
+
+	local reward = KILL_REWARD[entity.name]
+	local force = entity.force
+	local is_enemy = force and force.name == 'enemy'
+
+	if not reward and not is_enemy then return end
+
+	local jackpot = 0
+	if reward and math.random() < JACKPOT_CHANCE then
+		jackpot = math.ceil(reward * JACKPOT_MULT)
+	end
+
+	if not reward then
+		if math.random() < UNLISTED_KILL_CHANCE then
+			reward = UNLISTED_KILL_COINS
+		else
+			return
+		end
+	end
+
+	local total = reward + jackpot
+
 	if cause.type == 'character' then
 		local player = cause.player
 		if not player then return end
-		Coins.grant(player.index, reward, 'kill')
+		Coins.grant(player.index, total, jackpot > 0 and 'kill_jackpot' or 'kill')
 		return
 	end
 	if cause.type == 'car' or cause.type == 'spider-vehicle' then
-		grant_to_all_admins(math.max(1, math.floor(reward * 0.5)), 'fleet_kill')
+		grant_to_all_admins(math.max(1, math.floor(total * 0.5)), 'fleet_kill')
 	end
 end
 
