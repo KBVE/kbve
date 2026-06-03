@@ -110,10 +110,6 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 const PROXY_BASE = '/dashboard/grafana/proxy';
 const FETCH_TIMEOUT_MS = 15_000;
 
-// In-flight dedupe map — collapses identical concurrent requests so the
-// user smashing the time-range picker (1h → 6h → 1h within 200 ms) only
-// hits the proxy once per unique (key, args) tuple instead of 3× fanned
-// across the full query matrix.
 const inflight = new Map<string, Promise<unknown>>();
 
 function dedupedQuery<T>(key: string, run: () => Promise<T>): Promise<T> {
@@ -124,10 +120,6 @@ function dedupedQuery<T>(key: string, run: () => Promise<T>): Promise<T> {
 	return p;
 }
 
-// fetch + abort timeout — Grafana proxy can hang on a stuck Prometheus
-// upstream. Browser had no timeout safety net before; the axum side has
-// a 15 s server-timeout but the client would still wait on a TCP socket
-// that's gone quiet.
 async function fetchWithTimeout(
 	url: string,
 	init: RequestInit = {},
@@ -292,13 +284,10 @@ function getCachedDashboard(
 }
 
 function setCachedDashboard(data: CachedDashboard): void {
-	// Keep all four time-range caches independently so 1h ↔ 6h ↔ 24h
-	// thrashing doesn't keep invalidating the previously-loaded view. Each
-	// cacheKey(tr) is its own slot; quota-exceeded just drops this write.
 	try {
 		localStorage.setItem(cacheKey(data.timeRange), JSON.stringify(data));
 	} catch {
-		/* quota exceeded — let the next user action re-attempt */
+		/* quota */
 	}
 }
 
@@ -911,12 +900,7 @@ class GrafanaService {
 	// --- Actions ---
 
 	public setTimeRange(tr: TimeRangeKey): void {
-		if (tr === this.$timeRange.get()) {
-			// Same range — no-op so rapid clicks on the active button don't
-			// flood fetchMetrics. The cache check below would still help but
-			// short-circuiting here keeps the function honest.
-			return;
-		}
+		if (tr === this.$timeRange.get()) return;
 		this.$timeRange.set(tr);
 		this.$expandedCard.set(null);
 		try {
@@ -926,10 +910,6 @@ class GrafanaService {
 		}
 		const token = this.$accessToken.get();
 		const uid = this.$userId.get();
-		// Mirror refresh() guard — picker thrash (1h → 6h → 24h within
-		// a second) used to fan out three full query matrices in parallel.
-		// fetchMetrics still does its own cache check first, so the user
-		// gets the cached snapshot if one exists for the target range.
 		if (token && uid && !this.$refreshing.get()) {
 			this.fetchMetrics(token, uid, tr, true);
 		}

@@ -13,35 +13,22 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 	<div id="dashboard-content" class="dashboard-content">
 		<ReactGrafanaAuth client:only="react">
 			<div class="not-content grafana-dashboard">
-				<!-- Island: Header (title, cache badge, time range, refresh) -->
 				<div id="grafana-header">
 					<ReactGrafanaHeader client:only="react" />
 				</div>
 
-				<!-- Island: Alerts (firing PrometheusRules from Grafana
-				     unified alerting). Anchor target for the firing-count
-				     chip in the header. -->
 				<div id="grafana-alerts">
 					<ReactGrafanaAlerts client:only="react" />
 				</div>
 
-				<!-- Section: Nodes — title is server-rendered at build time
-				     so it lands in the initial HTML; React island only owns
-				     the dynamic stat cards / drill-downs / charts.
-				     client:visible defers React hydration until the section
-				     scrolls into view. grafanaService keeps fetching from
-				     ReactGrafanaAuth.initAuth() above, so the nanostores are
-				     already populated by the time the island mounts. -->
 				<section id="grafana-nodes" class="kbve-dash-section">
 					<h2 class="kbve-dash-section-title">Nodes</h2>
-					<ReactGrafanaNodes client:visible />
+					<ReactGrafanaNodes client:only="react" />
 				</section>
 
-				<!-- Section: Kubernetes — below the fold on most viewports,
-				     same lazy-hydration pattern as Nodes. -->
 				<section id="grafana-k8s" class="kbve-dash-section">
 					<h2 class="kbve-dash-section-title">Kubernetes</h2>
-					<ReactGrafanaK8s client:visible />
+					<ReactGrafanaK8s client:only="react" />
 				</section>
 			</div>
 		</ReactGrafanaAuth>
@@ -74,8 +61,6 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 		gap: 1.5rem;
 	}
 
-	/* Server-rendered section titles — moved out of React so they land
-	   in the initial HTML and don't wait on hydration. */
 	.kbve-dash-section {
 		display: flex;
 		flex-direction: column;
@@ -97,10 +82,6 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 		}
 	}
 
-	/* Card hover lifted out of React state — kills the per-render
-	   hover-state work that was forcing every sibling card to re-render
-	   on pointer enter, and removes the sticky-hover bug on touch
-	   devices where a tap leaves the card raised until the next tap. */
 	:global(.kbve-stat-card.is-clickable) {
 		-webkit-tap-highlight-color: transparent;
 	}
@@ -122,9 +103,6 @@ import ReactGrafanaAlerts from './ReactGrafanaAlerts';
 		}
 	}
 
-	/* Mobile: shrink chart panel padding + heading so the inner
-	   ResponsiveContainer claws back horizontal space the 1.5rem
-	   padding would steal on a narrow viewport. */
 	:global(.kbve-chart-panel) {
 		padding: clamp(0.75rem, 3vw, 1.5rem) !important;
 	}
