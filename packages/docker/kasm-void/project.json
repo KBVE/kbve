@@ -33,10 +33,11 @@
 					"tags": ["ghcr.io/kbve/kasm-void:dev"]
 				},
 				"production": {
-					"tags": ["ghcr.io/kbve/kasm-void:latest"],
-					"push": true,
+					"load": true,
+					"push": false,
 					"metadata": {
-						"images": ["ghcr.io/kbve/kasm-void"]
+						"images": ["ghcr.io/kbve/kasm-void", "kbve/kasm-void"],
+						"tags": ["latest"]
 					},
 					"cache-from": [
 						"type=registry,ref=ghcr.io/kbve/kasm-void:buildcache"
