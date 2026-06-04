@@ -111,16 +111,20 @@ CREATE TABLE profile.discord_bootstrap_cache (
 );
 
 COMMENT ON TABLE profile.discord_bootstrap_cache IS
-    'Per-user Discord bootstrap cache. Populated exclusively via profile.service_upsert_discord_bootstrap_cache RPC; service_role has SELECT only (no direct INSERT/UPDATE/DELETE) so all writes are funnelled through the RPC for centralised validation, canonicalisation, advisory-lock serialisation, and account-relink handling. SELECT is granted to service_role specifically so dashboard freshness peeks and the RPC''s ON CONFLICT visibility work without going through another RPC layer. supabase_auth_admin has SELECT for custom_access_token_hook at JWT mint.';
+    'Per-user Discord bootstrap cache. Populated exclusively via profile.service_upsert_discord_bootstrap_cache RPC; service_role has SELECT only (no direct INSERT/UPDATE/DELETE) so all writes are funnelled through the RPC for centralised validation, canonicalisation, advisory-lock serialisation, and account-relink handling. SELECT is granted to service_role specifically for dashboard freshness peeks; the RPC''s ON CONFLICT path is satisfied by the SECURITY DEFINER owner (postgres) and does not require caller SELECT. supabase_auth_admin has SELECT for custom_access_token_hook at JWT mint.';
 
 REVOKE ALL ON TABLE profile.discord_bootstrap_cache
     FROM PUBLIC, anon, authenticated;
 
 GRANT USAGE  ON SCHEMA profile                         TO supabase_auth_admin;
 GRANT SELECT ON TABLE  profile.discord_bootstrap_cache TO supabase_auth_admin;
--- service_role keeps SELECT (dashboard freshness peeks + ON CONFLICT
--- visibility for the RPC's internal INSERT, even though that runs
--- under SECURITY DEFINER as the RPC owner).
+-- Round 8 #4: corrected justification. The RPC runs SECURITY
+-- DEFINER as postgres, so ON CONFLICT visibility is satisfied by
+-- the RPC owner's privileges — service_role SELECT is NOT needed
+-- for the upsert path. The real reason service_role keeps SELECT
+-- is dashboard freshness peeks (e.g. P5.8c surfacing "last
+-- refreshed N minutes ago" without going through another RPC
+-- layer). Writes still flow only through the SECURITY DEFINER RPC.
 GRANT SELECT ON TABLE profile.discord_bootstrap_cache TO service_role;
 
 ALTER TABLE profile.discord_bootstrap_cache ENABLE ROW LEVEL SECURITY;
@@ -209,9 +213,20 @@ BEGIN
     -- open: concurrent calls A→Y / B→X each locked their own keys
     -- but neither held the other side's lock before DELETE'ing the
     -- target provider row. A single namespace lock serialises ALL
-    -- relinks. The cost is one global serialisation point at human-
-    -- OAuth call rates (≤ hundreds/sec at peak), which is well
-    -- within Postgres advisory-lock contention budgets.
+    -- relinks. This is acceptable because the RPC runs at OAuth /
+    -- session-refresh rates, not per-request application traffic.
+    -- If write volume grows enough that this serialisation point
+    -- shows up in metrics, the alternative is deterministic row-
+    -- level locking across affected rows:
+    --   SELECT 1 FROM profile.discord_bootstrap_cache
+    --   WHERE user_id = p_user_id
+    --      OR discord_provider_id = p_discord_provider_id
+    --   ORDER BY user_id
+    --   FOR UPDATE;
+    -- Row locks alone don't cover the "row does not yet exist" case
+    -- that the advisory lock handles, so the migration would need
+    -- to combine both — keep the simple coarse lock until metrics
+    -- justify the complexity.
     PERFORM pg_advisory_xact_lock(
         hashtextextended('profile.discord_bootstrap_cache.relink', 0)
     );
@@ -452,7 +467,7 @@ BEGIN
         RAISE EXCEPTION 'supabase_auth_admin must hold SELECT on profile.username for custom_access_token_hook.';
     END IF;
     IF NOT has_table_privilege('service_role', 'profile.discord_bootstrap_cache', 'SELECT') THEN
-        RAISE EXCEPTION 'service_role must hold SELECT on profile.discord_bootstrap_cache (dashboard peek + ON CONFLICT visibility).';
+        RAISE EXCEPTION 'service_role must hold SELECT on profile.discord_bootstrap_cache for dashboard freshness peeks.';
     END IF;
     IF has_table_privilege('service_role', 'profile.discord_bootstrap_cache', 'INSERT') THEN
         RAISE EXCEPTION 'service_role must NOT have direct INSERT on profile.discord_bootstrap_cache; use service_upsert RPC.';
@@ -477,6 +492,20 @@ BEGIN
           AND r.rolname = 'postgres'
     ) THEN
         RAISE EXCEPTION 'profile.service_upsert_discord_bootstrap_cache must be owned by postgres.';
+    END IF;
+    -- Round 8 #6: hook owner must be supabase_auth_admin. The SQL
+    -- helper get_discord_owned_guilds_claim is INVOKER and relies on
+    -- being called under the hook's SECURITY DEFINER owner — if the
+    -- hook owner drifts, the helper would run as a different role
+    -- without SELECT on the cache and silently emit empty claims.
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_proc p
+        JOIN pg_roles r ON r.oid = p.proowner
+        WHERE p.oid = 'public.custom_access_token_hook(jsonb)'::regprocedure
+          AND r.rolname = 'supabase_auth_admin'
+    ) THEN
+        RAISE EXCEPTION 'public.custom_access_token_hook must be owned by supabase_auth_admin.';
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -539,6 +568,22 @@ BEGIN
     IF jsonb_array_length(v_out->'claims'->'owned_guilds') <> 0 THEN
         RAISE EXCEPTION 'smoke 4: no cache row, expected empty owned_guilds, got %',
             v_out->'claims'->'owned_guilds';
+    END IF;
+
+    -- Round 8 #5: scalar-event regression guard for the round-7
+    -- top-level event-object guard. A NULL or scalar event must
+    -- coerce to {} and emit an object-shaped response.
+    v_out := public.custom_access_token_hook('"not-an-object"'::jsonb);
+    IF jsonb_typeof(v_out) <> 'object' THEN
+        RAISE EXCEPTION 'smoke 5: scalar event must coerce to object, got %', v_out;
+    END IF;
+    IF jsonb_typeof(v_out->'claims') <> 'object' THEN
+        RAISE EXCEPTION 'smoke 5: claims must be object after scalar coerce, got %', v_out;
+    END IF;
+
+    v_out := public.custom_access_token_hook(NULL);
+    IF jsonb_typeof(v_out) <> 'object' THEN
+        RAISE EXCEPTION 'smoke 6: NULL event must coerce to object, got %', v_out;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -606,6 +651,13 @@ DECLARE
     v_username text;
     v_claims   jsonb;
 BEGIN
+    -- Round 8 #1: top-level event guard mirrors v2 hardening so the
+    -- restored v1 hook doesn't regress against malformed/manual
+    -- invocations after rollback.
+    IF event IS NULL OR jsonb_typeof(event) <> 'object' THEN
+        event := '{}'::jsonb;
+    END IF;
+
     v_claims :=
         CASE
             WHEN jsonb_typeof(event->'claims') = 'object'
