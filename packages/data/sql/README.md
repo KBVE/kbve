@@ -46,6 +46,38 @@ export DATABASE_URL='postgres://postgres:postgres@localhost:5432/postgres?sslmod
 dbmate --migrations-dir migrations up
 ```
 
+### Smoke testing the full migration chain
+
+Two end-to-end smoke flows are wired as nx targets. Each one nukes the
+volume, brings the stack up fresh, applies every migration, prints
+`dbmate status`, and tears the stack back down. Failure at any step
+exits non-zero.
+
+```bash
+# Vanilla postgres:17-alpine — fast feedback loop, ~10s end-to-end
+npx nx run data-sql:smoke-vanilla
+
+# Production-replica CNPG image (kilobase) — real auth.* schema +
+# Supabase trigger surface; the only locally-runnable parity test
+# for the live cluster. Slower (Rosetta on ARM Macs).
+npx nx run data-sql:smoke-kilobase
+
+# Run both stacks sequentially (vanilla first, then kilobase)
+npx nx run data-sql:smoke
+
+# Leave the stack up after smoke (useful for follow-up psql probes)
+npx nx run data-sql:smoke-vanilla-keep
+npx nx run data-sql:smoke-kilobase-keep
+```
+
+The wrapper script is [`dbmate/smoke.sh`](./dbmate/smoke.sh); it also
+takes `--rollback` to exercise the latest migration's down path.
+
+Every meaningful PR that touches `migrations/` should pass at minimum
+`smoke-vanilla` and ideally `smoke-kilobase` before merge. See
+[`dbmate/README.md`](./dbmate/README.md#smoke-testing-the-full-chain-via-nx)
+for full target reference.
+
 ## Conventions
 
 - **Never edit applied migrations.** Add a new one with `dbmate new <name>`.

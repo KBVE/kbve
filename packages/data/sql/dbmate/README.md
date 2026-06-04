@@ -145,7 +145,44 @@ schema/
 
 ## Local Testing
 
-### Quick test (vanilla Postgres)
+### Smoke testing the full chain via nx
+
+The fastest way to verify a migration is to run the full chain against a
+fresh database. Two nx targets handle the lifecycle (volume nuke →
+compose up → wait for health → `dbmate up` → status → tear down):
+
+| Target                                | Stack                              | When to use                                         |
+| ------------------------------------- | ---------------------------------- | --------------------------------------------------- |
+| `nx run data-sql:smoke-vanilla`       | `postgres:17-alpine`               | Fast feedback loop on iteration (≈ 10s end-to-end). |
+| `nx run data-sql:smoke-kilobase`      | `ghcr.io/kbve/postgres:…-kilobase` | Prod-parity check before opening a migration PR.    |
+| `nx run data-sql:smoke`               | Both, sequential                   | Full sweep — what CI/the merge gate should run.     |
+| `nx run data-sql:smoke-vanilla-keep`  | vanilla, stack left running        | Iterate with `psql`/`dbmate` against a primed DB.   |
+| `nx run data-sql:smoke-kilobase-keep` | kilobase, stack left running       | Same, against the prod image.                       |
+
+Underlying script: [`smoke.sh`](./smoke.sh). Pass `--keep` to leave the
+compose stack up, or `--rollback` to additionally exercise the latest
+migration's `down` path before tearing down:
+
+```bash
+./smoke.sh vanilla --rollback
+./smoke.sh kilobase --keep
+```
+
+Both stacks bind the same host port (54322), so the script defensively
+takes both composes down before bringing the requested one up — no need
+to worry about port collisions when switching stacks.
+
+Other granular nx targets if you only want one phase:
+
+| Target                                                             | What it does                                                                                          |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `nx run data-sql:dev-up` / `dev-down` / `dev-reset`                | Lifecycle for the vanilla stack.                                                                      |
+| `nx run data-sql:kilobase-up` / `kilobase-down` / `kilobase-reset` | Lifecycle for the kilobase stack.                                                                     |
+| `nx run data-sql:migrate-up`                                       | `dbmate up` against whichever stack is running.                                                       |
+| `nx run data-sql:migrate-status`                                   | Print applied / pending status.                                                                       |
+| `nx run data-sql:test-migration -- <basename>`                     | Per-migration smoke via companion `.test.sql` files (see [`test-migration.sh`](./test-migration.sh)). |
+
+### Manual quick test (vanilla Postgres) — what the nx wrapper does
 
 ```bash
 cp dev-docker-compose.yml docker-compose.yml
