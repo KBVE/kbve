@@ -818,6 +818,67 @@ build_pnpm_nx() {
     pnpm nx build "$argument"
 }
 
+# Git LFS endpoint router.
+#
+# Stock git-lfs only honors `lfs.url` from the repository-root .lfsconfig.
+# Per-tree routing isn't supported, so this wrapper injects the correct
+# Forgejo endpoint per-game via `git -c lfs.url=…` and then forwards the
+# remaining args straight to `git lfs`.
+#
+# Usage:
+#   ./kbve.sh -lfs <game> <lfs-subcommand> [args...]
+#
+# Games:
+#   chuck      → KBVE/chuck     (apps/chuckrpg/unreal-chuck/**)
+#   rareicon   → KBVE/rareicon  (apps/rareicon/**) — matches root .lfsconfig
+#
+# Examples:
+#   ./kbve.sh -lfs chuck push origin dev
+#   ./kbve.sh -lfs chuck pull
+#   ./kbve.sh -lfs chuck ls-files
+kbve_lfs() {
+    local game="$1"
+    shift 2>/dev/null || true
+    if [ -z "$game" ] || [ "$game" = "-h" ] || [ "$game" = "--help" ]; then
+        cat <<'EOF'
+Usage: ./kbve.sh -lfs <game> <lfs-subcommand> [args...]
+
+Games:
+  chuck      → https://git.kbve.com/KBVE/chuck.git/info/lfs
+  rareicon   → https://git.kbve.com/KBVE/rareicon.git/info/lfs
+
+Examples:
+  ./kbve.sh -lfs chuck push origin dev
+  ./kbve.sh -lfs chuck pull
+  ./kbve.sh -lfs chuck fetch --all
+  ./kbve.sh -lfs chuck ls-files
+EOF
+        return 1
+    fi
+
+    local url
+    case "$game" in
+        chuck)
+            url="https://git.kbve.com/KBVE/chuck.git/info/lfs"
+            ;;
+        rareicon)
+            url="https://git.kbve.com/KBVE/rareicon.git/info/lfs"
+            ;;
+        *)
+            echo "Unknown game '$game'. Known: chuck, rareicon" >&2
+            return 1
+            ;;
+    esac
+
+    if [ $# -eq 0 ]; then
+        echo "Missing lfs subcommand (e.g. push, pull, fetch, ls-files)." >&2
+        return 1
+    fi
+
+    echo "→ git -c lfs.url=$url lfs $*"
+    git -c "lfs.url=$url" lfs "$@"
+}
+
 # Main execution
 case "$1" in
     -check)
@@ -940,6 +1001,10 @@ case "$1" in
         PROJECT="${1:-chuck}"
         shift 2>/dev/null || true
         bash "$(git rev-parse --show-toplevel)/apps/rows/scripts/deploy-server.sh" "$@" "--project=${PROJECT}"
+        ;;
+    -lfs)
+        shift
+        kbve_lfs "$@"
         ;;
     -worktree)
         shift
@@ -1076,6 +1141,12 @@ case "$1" in
         echo "  -ue <project> [ver] Build + deploy UE5 dedicated server"
         echo "                      Projects: chuck (default), hubworld"
         echo "                      Flags: --shipping, --skip-build, --skip-deploy"
+        echo ""
+        echo "Git LFS:"
+        echo "  -lfs <game> <cmd>  Route git-lfs to per-game Forgejo endpoint"
+        echo "                     Games: chuck, rareicon"
+        echo "                     Examples: -lfs chuck push origin dev"
+        echo "                               -lfs chuck pull"
         echo ""
         echo "Utilities:"
         echo "  -check [cmds...]   Check if commands are installed"

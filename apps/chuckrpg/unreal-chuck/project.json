@@ -1,0 +1,51 @@
+{
+	"name": "unreal-chuck",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/chuckrpg/unreal-chuck/Source",
+	"tags": ["scope:chuckrpg", "type:unreal-app"],
+	"targets": {
+		"lfs-push": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs chuck push"
+			},
+			"forwardAllArgs": true
+		},
+		"lfs-pull": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs chuck pull"
+			},
+			"forwardAllArgs": true
+		},
+		"lfs-fetch": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs chuck fetch --all"
+			},
+			"forwardAllArgs": true
+		},
+		"lfs-ls": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs chuck ls-files"
+			}
+		},
+		"sync": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"commands": [
+					"./kbve.sh -lfs chuck fetch --all",
+					"./kbve.sh -lfs chuck pull"
+				],
+				"parallel": false
+			}
+		}
+	}
+}

@@ -1,0 +1,37 @@
+# Unreal Engine generated / per-user artifacts
+
+# Build output
+Binaries/
+Build/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# Per-user editor module dylibs (UE writes UnrealEditor-<module>.dylib here on macOS)
+/Mac/
+/Win64/
+/Linux/
+
+# Generated IDE projects
+*.sln
+*.suo
+*.xcworkspace/
+*.xcodeproj/
+.vs/
+.vscode/
+.idea/
+
+# UE crash dumps + logs
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+
+# Per-developer content sandbox (UE templates create this for the current user)
+Content/Developers/*
+
+# Local user editor config
+*.user
+
+# macOS junk
+.DS_Store
