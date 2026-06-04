@@ -18,6 +18,9 @@
 			]
 		}
 	],
+	"AdditionalPluginDirectories": [
+		"../../../packages/unreal"
+	],
 	"Plugins": [
 		{
 			"Name": "ModelingToolsEditorMode",
@@ -49,6 +52,22 @@
 		{
 			"Name": "AnimationBudgetAllocator",
 			"Enabled": true
+		},
+		{
+			"Name": "KBVEYYJson",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEXXHash",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVESQLite",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEROWS",
+			"Enabled": false
 		}
 	]
 }
