@@ -1,6 +1,6 @@
 ---
 title: Shattered teleport scroll | OSRS Price Data
-description: "Shattered teleport scroll: A scroll which unlocks the Shattered Relics home teleport animation.. High alch: 15,000 GP."
+description: "Shattered teleport scroll: A scroll which unlocks the Shattered Relics home teleport animation. High alch: 15,000 GP."
 osrs:
   id: 26500
   name: Shattered teleport scroll
@@ -12,9 +12,50 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: null
-  about: "Shattered teleport scroll is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic unlock
+    tier: high
+  properties:
+    release_date: "2022-01-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options: ["Read", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Trailblazer teleport scroll
+      slug: trailblazer-teleport-scroll
+      relationship: alternative
+      description: "Equivalent home teleport scroll from the Trailblazer League"
+    - item_name: Twisted teleport scroll
+      slug: twisted-teleport-scroll
+      relationship: alternative
+      description: "Equivalent home teleport scroll from the Twisted League"
+  about: "The Shattered teleport scroll is a cosmetic reward purchased from the Leagues Reward Shop for 1,000 League Points during the Shattered Relics League. Reading the scroll unlocks the Shattered Relics-themed home teleport animation, consuming the item in the process."
+  market_strategy:
+    notes:
+      - "One-time cosmetic unlock for the Shattered Relics home teleport animation"
+      - "Limited supply from a closed League event drives high market value"
+      - "Once read, the scroll is consumed and the unlock is account-bound"
+  trading_tips:
+    - "Confirm the buyer wants the unlock before selling, it cannot be reversed once read"
+    - "Pricing follows other League cosmetic unlocks like Trailblazer and Twisted scrolls"
+    - "Volume is thin, expect wider buy/sell spreads on the Grand Exchange"
+  history:
+    - date: "2022-01-19"
+      description: "Shattered teleport scroll added to the game."
+    - date: "2022-03-16"
+      description: "Made obtainable through the Leagues Reward Shop for 1,000 League Points."
+    - date: "2023-11-15"
+      description: "Item's visual orientation adjusted."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,57 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 6000
-  about: "Spider on shaft is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.9
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 16
+      xp: 80
+      materials:
+        - item_name: Spider carcass
+          quantity: 1
+        - item_name: Arrow shaft
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Spider on stick
+      slug: spider-on-stick
+      relationship: alternative
+      description: "Stick variant cooked on a skewer"
+    - item_name: Arrow shaft
+      slug: arrow-shaft
+      relationship: component
+      description: "Base shaft used to skewer the spider"
+  about: "Spider on shaft is a members-only cooked food made by using an arrow shaft on a spider carcass at 16 Cooking. It heals 7-10 hitpoints and stops burning at 48 Cooking. Cooking one counts toward the Karamja Diary (medium)."
+  market_strategy:
+    notes:
+      - "Demand is driven by Karamja Diary completionists and budget food seekers."
+      - "Volume is low; price tends to track the cost of arrow shafts plus spider carcass scarcity."
+  trading_tips:
+    - "Buy in bulk when arrow shaft prices dip to flip into cooked stock."
+    - "Limit of 6,000 per 4 hours leaves room for sizeable runs."
+  history:
+    - date: "2005-08-09"
+      description: "Released alongside the Tai Bwo Wannai Cleanup minigame."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

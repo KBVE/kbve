@@ -12,22 +12,88 @@ osrs:
   lowalch: 25600
   highalch: 38400
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: runite
+    tier: high
+  properties:
+    release_date: "2004-10-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 9.071
     requirements:
       defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 51
+      slash: 49
+      crush: 47
+      magic: -4
+      ranged: 49
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
-    - item_id: 3477
-      item_name: Rune plateskirt (t)
+    - item_name: Rune plateskirt
+      slug: rune-plateskirt
+      relationship: variant
+      description: "Untrimmed base plateskirt with identical stats"
+    - item_name: Rune plateskirt (t)
       slug: rune-plateskirt-t
       relationship: variant
-      description: Trimmed variant
+      description: "Trimmed cosmetic variant"
+    - item_name: Rune platelegs (g)
+      slug: rune-platelegs-g
+      relationship: alternative
+      description: "Matching gold-trimmed legs slot variant"
+    - item_name: Rune platebody (g)
+      slug: rune-platebody-g
+      relationship: set-piece
+      description: "Matching gold-trimmed body piece"
   about: |-
-    > *"Rune plateskirt with gold trim."*
+    > _"Rune plateskirt with gold trim."_
 
-    The rune plateskirt (g) is a gold-trimmed cosmetic variant of the rune plateskirt. Same stats as rune platelegs with slightly less weight, requiring 40 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The rune plateskirt (g) is a gold-trimmed cosmetic variant of the rune plateskirt, dropped from hard Treasure Trails reward caskets at 1/1,625. Mechanically identical to the base rune plateskirt and rune platelegs in defence bonuses while sitting in the legs slot. Free-to-play and stores in a costume room treasure chest as part of the rune gold-trimmed armour set.
+  market_strategy:
+    notes:
+      - "Hard clue supply is the only major source — cannot be smithed"
+      - "GE buy limit of 8 caps flip volume hard"
+      - "Cosmetic demand drives most of the price premium over base plateskirt"
+  trading_tips:
+    - "Compare gold-trim vs base rune plateskirt for relative premium"
+    - "Hard clue update windows shift supply heavily"
+  history:
+    - date: "2004-10-26"
+      description: "Released with the trimmed and gold-trimmed Treasure Trails rewards expansion"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

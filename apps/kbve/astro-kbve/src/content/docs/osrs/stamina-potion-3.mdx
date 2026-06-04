@@ -12,9 +12,80 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 2000
-  about: "Stamina potion(3) is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: mid-high
+  properties:
+    release_date: "3 July 2014"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - "Drink"
+      - "Empty"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores 20% of run energy per dose and reduces run energy depletion by 70% for 2 minutes."
+        duration: 120
+  recipes:
+    - skill: herblore
+      level: 77
+      xp: 25.5
+      materials:
+        - item_name: Super energy potion
+          quantity: 1
+        - item_name: Amylase crystal
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  shops:
+    - shop_name: Theatre of Blood Chest
+      location: Ver Sinhaza
+      price: 0
+      currency: coins
+      stock: 1
+  related_items:
+    - item_name: Stamina potion(1)
+      slug: stamina-potion-1
+      relationship: variant
+      description: "1-dose variant"
+    - item_name: Stamina potion(2)
+      slug: stamina-potion-2
+      relationship: variant
+      description: "2-dose variant"
+    - item_name: Stamina potion(4)
+      slug: stamina-potion-4
+      relationship: variant
+      description: "4-dose variant"
+    - item_name: Stamina mix(2)
+      slug: stamina-mix-2
+      relationship: upgrade
+      description: "Barbarian-mixed variant with healing"
+  about: "Stamina potion(3) is a members-only Herblore potion that restores run energy and dramatically slows energy depletion, making it essential for long-distance running tasks, slayer trips, and PvM activities like Theatre of Blood."
+  market_strategy:
+    notes:
+      - "High daily volume keeps spreads tight; flips work best on bulk orders."
+      - "Demand spikes during DMM, leagues, and ToB hard-mode windows."
+      - "Decant between (3) and (4) doses when per-dose price diverges."
+  trading_tips:
+    - "Track Amylase crystal cost: stamina prices follow crystal supply."
+    - "Buy during quiet evenings, sell during weekend PvM peaks."
+    - "Convert (3) doses to (4) doses via decanting NPCs when arbitrage opens."
+  history:
+    - date: "3 July 2014"
+      description: "Stamina potions added to the game alongside Amylase crystals from Barbarian Assault."
+    - date: "8 January 2025"
+      description: "Make-X process updated so that drinking no longer cancels movement."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

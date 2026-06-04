@@ -12,9 +12,86 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: null
-  about: "Aquanite hopper is a members-only item in Old School RuneScape. High alchemy value: 4,800 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: metal
+    tier: high
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options: ["Wield", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 0.01
+    requirements:
+      ranged: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Autoloader
+      description: "Grants crossbows an 11% chance to fire a second shot; the bonus shot has reduced accuracy and damage"
+  recipes:
+    - skill: smithing
+      level: 60
+      xp: 0
+      materials:
+        - item_name: Aquanite tendon
+          quantity: 1
+        - item_name: Mithril bar
+          quantity: 1
+      tools: ["Hammer", "Anvil"]
+      output_quantity: 1
+  related_items:
+    - item_name: Aquanite tendon
+      slug: aquanite-tendon
+      relationship: component
+      description: "Crafting input pulled from aquanite Slayer kills"
+    - item_name: Mithril bar
+      slug: mithril-bar
+      relationship: component
+      description: "Bar consumed when smithing the hopper"
+  about: |-
+    > *"An autoloading contraption made of aquanite bits. Slimy."*
+
+    Sailing-era shield-slot crossbow accessory smithed at 60 Smithing from an aquanite tendon and a mithril bar. Wielded as an off-hand it gives crossbows an 11% chance to autoload a second shot at reduced accuracy and damage, making it a niche DPS option for ranged setups that can absorb the accuracy hit.
+  market_strategy:
+    notes:
+      - "Tendon supply is gated by aquanite Slayer task availability"
+      - "Newer release — price discovery still settling around mid-tier ranged demand"
+      - "Compare DPS uplift versus competing off-hand defenders before bulk buying"
+  trading_tips:
+    - "Watch aquanite Slayer rotation for tendon supply spikes"
+    - "Track ranged DPS calculators — passive value scales with crossbow tier"
+  history:
+    - date: "2025-11-19"
+      description: "Released as part of the Sailing skill update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

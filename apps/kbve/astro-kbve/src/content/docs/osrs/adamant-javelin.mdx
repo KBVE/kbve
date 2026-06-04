@@ -12,26 +12,108 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: adamantite
+    tier: mid
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
-    slot: weapon
-    attack_speed: 6
+    slot: ammo
+    weapon_type: thrown
+    attack_speed: null
+    weight: 0
     requirements:
       ranged: 30
     attack_bonus:
-      ranged: 20
-    ranged_strength: 59
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 102
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 62
+      xp: 10
+      materials:
+        - item_name: Adamant javelin heads
+          quantity: 1
+        - item_name: Javelin shaft
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  shops:
+    - shop_name: Ranging Guild
+      location: Ranging Guild
+      price: 208
+      currency: coins
+      stock: 500
+    - shop_name: Void Knight Archery Store
+      location: Void Knights' Outpost
+      price: 160
+      currency: coins
+      stock: 5
+    - shop_name: Oobapohk's Javelin Store
+      location: Marim
+      price: 160
+      currency: coins
+      stock: 500
   related_items:
-    - item_id: 828
-      item_name: Mithril javelin
+    - item_name: Mithril javelin
       slug: mithril-javelin
-      relationship: variant
-      description: Lower tier javelin
+      relationship: downgrade
+      description: "Lower tier javelin (Ranged 20)"
+    - item_name: Rune javelin
+      slug: rune-javelin
+      relationship: upgrade
+      description: "Higher tier javelin (Ranged 40)"
+    - item_name: Adamant javelin heads
+      slug: adamant-javelin-heads
+      relationship: component
+      description: "Fletched onto a javelin shaft to make this javelin"
   about: |-
     > _"An adamant tipped javelin."_
 
-    The adamant javelin requires 30 Ranged. Commonly used as affordable heavy ballista ammunition.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The adamant javelin is a members-only thrown weapon requiring 30 Ranged. Commonly loaded into heavy ballistae as affordable ranged ammunition with a strong +102 Ranged strength bonus.
+  market_strategy:
+    notes:
+      - "Fletching: 15 javelin heads + 15 shafts at level 62 yields 150 XP"
+      - "Stack with heavy ballista for budget Wilderness PKing"
+      - "Buy limit 11,000 per 4 hours"
+  trading_tips:
+    - "Check fletching margins vs raw javelin price"
+    - "Shop restocks at 208 GP from Ranging Guild can flip to GE"
+  history:
+    - date: "2004-03-29"
+      description: "Released alongside thrown weapons rework"
+    - date: "2016-05-05"
+      description: "Converted from weapon slot to ammunition slot; ranged strength increased from +28 to +102"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,90 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 125
-  about: "Spiky vambraces is a members-only item in Old School RuneScape. High alchemy value: 96 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: leather
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: hands
+    weapon_type: null
+    attack_speed: null
+    weight: 0.226
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 4
+    defence_bonus:
+      stab: 2
+      slash: 2
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 2
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 32
+      xp: 6
+      materials:
+        - item_name: Leather vambraces
+          quantity: 1
+        - item_name: Kebbit claws
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Leather vambraces
+      slug: leather-vambraces
+      relationship: component
+      description: Base vambraces used in the crafting recipe
+    - item_name: Kebbit claws
+      slug: kebbit-claws
+      relationship: component
+      description: Hunter drop used to spike the vambraces
+    - item_name: Hard leather vambraces
+      slug: hard-leather-vambraces
+      relationship: upgrade
+      description: Higher-defence vambraces from hard leather
+    - item_name: Green spiky vambraces
+      slug: green-spiky-vambraces
+      relationship: variant
+      description: Dragonhide-tier spiked variant in green
+  about: "Spiky vambraces are leather vambraces fitted with kebbit claws; they keep the base leather defences but tack on +2 Strength and +4 Ranged attack, and they remain Entrana-legal despite the offensive bonuses."
+  market_strategy:
+    notes:
+      - "Crafting recipe ties price to kebbit-claw supply — low-level hunters set the floor."
+      - "Niche niche niche: barely used outside ironman early-game and fashionscape."
+  trading_tips:
+    - "Buy kebbit claws + leather vambraces separately when craft margin > GE price."
+    - "Volume is thin — list at margin and wait, do not chase the buy line."
+  history:
+    - date: "2006-11-21"
+      description: Added with the original Hunter skill release.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

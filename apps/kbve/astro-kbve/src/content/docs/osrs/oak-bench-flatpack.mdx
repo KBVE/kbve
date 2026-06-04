@@ -12,9 +12,58 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Oak bench (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 22
+      xp: 240
+      materials:
+        - item_name: Oak plank
+          quantity: 4
+      tools:
+        - Saw
+        - Hammer
+        - Oak workbench
+      output_quantity: 1
+  related_items:
+    - item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: "Four oak planks are consumed per flatpack at the oak workbench"
+    - item_name: Oak bench
+      slug: oak-bench
+      relationship: variant
+      description: "Player-owned house dining hotspot built from this flatpack"
+  about: Oak bench (flatpack) is a Construction flatpack made at an oak workbench using 4 oak planks at level 22 Construction for 240 xp. Used in player-owned house dining rooms; flatpacks let players furnish a house without an in-room workbench.
+  market_strategy:
+    notes:
+      - "Negative crafting margin once GE tax applies"
+      - "Low daily volume, often unprofitable alone"
+      - "Convenience product for high-Construction houses"
+  trading_tips:
+    - "Profitability lives in oak plank cost; flip only when plank prices dip"
+    - "Useful XP-buy for Construction grinders; bulk demand is event-driven"
+  history:
+    - date: "2006-05-31"
+      description: "Added with the introduction of flatpack furniture"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

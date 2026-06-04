@@ -12,59 +12,66 @@ osrs:
   lowalch: 6
   highalch: 10
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: food
+    tier: low
   properties:
+    release_date: "2005-07-11"
     tradeable: true
-    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.028
-  food:
-    heals: 1
-    heals_max: 6
-    heals_formula: based on Hitpoints level
-  skilling_sources:
+    options:
+      - "Eat"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
     - skill: farming
       level: 31
       xp: 26
+      materials:
+        - item_name: Strawberry seed
+          quantity: 1
+      tools: []
+      output_quantity: 1
   drop_table:
     sources:
-      - source: Fruit stall
-        source_id: 0
-        combat_level: 0
+      - source: Fruit stall (Thieving 25)
         quantity: "1"
-        rarity: common
-        drop_rate: 7/100
-        members_only: true
-      - source: Gourmet impling
-        source_id: 1643
-        combat_level: 0
+        rarity: "7/100"
+      - source: Gourmet impling jar
         quantity: "1"
-        rarity: rare
-        drop_rate: 1/100
-        members_only: true
+        rarity: "1/100"
+      - source: Strawberry spawn near Shayziens' Wall
+        quantity: "1"
+        rarity: respawn
   related_items:
-    - item_id: 5323
-      item_name: Strawberry seed
+    - item_name: Strawberry seed
       slug: strawberry-seed
       relationship: component
-      description: Farming source
-    - item_id: 5405
-      item_name: Strawberry basket
+      description: Farming seed grown in an allotment patch
+    - item_name: Strawberry basket
       slug: strawberry-basket
       relationship: product
-      description: Processed form
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Farming Product / Food |
-    | Tradeable | Yes |
-    | Weight | 0.028 kg |
-    | Requirements | 31 Farming |
-
-    Food: Heals 1-6 HP based on hitpoints level
-
-    Cooking: Strawberry basket ingredient
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Basket holding five strawberries: 30 HP of food per slot"
+  about: "Strawberry is a Farming-grown food healing 1 plus 6 percent of maximum Hitpoints per bite; five fit into a strawberry basket to compress the heal into one inventory slot."
+  market_strategy:
+    notes:
+      - "Volume is dominated by Tithe-Farm / allotment skillers dumping harvests."
+      - "Demand rises when herblore brews need them as a backup heal."
+  trading_tips:
+    - "Bulk-buy on weekends when farmers flood the GE."
+    - "Convert into baskets when basket prices outpace raw fruit five-fold."
+  history:
+    - date: "2005-07-11"
+      description: Released with the original Farming skill launch.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

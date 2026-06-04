@@ -12,52 +12,78 @@ osrs:
   lowalch: 400000
   highalch: 600000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: unique
+    tier: high
+  properties:
+    release_date: "2022-08-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: stab-sword
-    attack_style: stab
-    attack_speed: 4
+    weapon_type: stab-sword
+    attack_speed: 5
+    weight: 1.814
     requirements:
       attack: 82
-    stats:
-      attack_stab: 105
-      attack_slash: 75
+    attack_bonus:
+      stab: 105
+      slash: 75
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
       strength: 103
-  effect:
-    double_accuracy_roll: true
-    damage_normalization: true
-    damage_range: 15-85% of max hit
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Double accuracy roll
+      description: "When using a stab attack style, the weapon rerolls accuracy on an unsuccessful hit, effectively doubling the chance to land a hit"
+    - name: Damage normalisation
+      description: "Damage rolls are confined to between 15% and 85% of the maximum hit, lowering variance at the cost of capping max-rolls"
   special_attack:
     name: Eviscerate
+    description: "Consumes 25% special energy, granting a 50% accuracy bonus and allowing the hit to roll the true maximum damage instead of the usual 85% cap"
     energy: 25
-    accuracy_bonus: 50
-    uses_true_max: true
-    damage_increase: 17.65
   drop_table:
     sources:
       - source: Tombs of Amascut
-        source_id: 11751
-        combat_level: 0
         quantity: "1"
-        rarity: Rare
-        drop_rate: 7/24 of unique
-        members_only: true
+        rarity: 7/24 of unique
   related_items:
-    - item_id: 22324
-      item_name: Ghrazi rapier
+    - item_name: Ghrazi rapier
       slug: ghrazi-rapier
       relationship: alternative
-      description: Standard stab
-    - item_id: 23995
-      item_name: Blade of saeldor
+      description: "Standard stab weapon alternative from Theatre of Blood"
+    - item_name: Blade of saeldor
       slug: blade-of-saeldor
       relationship: alternative
-      description: Slash alternative
-    - item_id: 27241
-      item_name: Lightbearer
+      description: "Slash alternative with strong damage output"
+    - item_name: Lightbearer
       slug: lightbearer
       relationship: alternative
-      description: Spec synergy
+      description: "Ring that pairs with Osmumten's fang for special attack spam"
   about: |-
     | Offense | Value |
     |---------|-------|
@@ -88,11 +114,12 @@ osrs:
     Best weapon vs high defence.
   market_strategy:
     notes:
-      - From Tombs of Amascut
-      - Excels vs high-def
-      - Great accuracy mechanics
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "From Tombs of Amascut"
+      - "Excels vs high-def"
+      - "Great accuracy mechanics"
+  history:
+    - date: "2022-08-24"
+      description: "Released as a unique drop from Tombs of Amascut"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

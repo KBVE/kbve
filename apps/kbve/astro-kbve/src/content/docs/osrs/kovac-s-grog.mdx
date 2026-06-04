@@ -1,66 +1,83 @@
 ---
 title: Kovac's grog | OSRS Price Data
-description: "Kovac's grog: Only Kovac knows what's gone into this.. High alch: 3 GP."
+description: "Kovac's grog: Only Kovac knows what's gone into this. High alch: 3 GP."
 osrs:
   id: 27014
   name: Kovac's grog
   slug: kovac-s-grog
-  examine: Only Kovac knows what's gone into this.
+  examine: "Only Kovac knows what's gone into this."
   members: true
   icon: Kovac's grog.png
   value: 5
   lowalch: 2
   highalch: 3
   limit: null
-  item:
-    type: potion
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: ale
+    tier: mid
+  properties:
+    release_date: "2022-06-08"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.55
-  effect:
-    boost:
-      - skill: hitpoints
-        amount: 1
-      - skill: smithing
-        amount: 4
-    debuff:
-      - skill: attack
-        amount: -2
-      - skill: ranged
-        amount: -2
-      - skill: magic
-        amount: -2
-  obtaining:
-    source: Giants' Foundry
-    cost: 300 Foundry Reputation
+    options:
+      - "Drink"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Boosts Smithing by 4 levels"
+        duration: 0
+      - description: "Restores 1 Hitpoint"
+        duration: 0
+      - description: "Drains Attack by 2 levels"
+        duration: 0
+      - description: "Drains Ranged by 2 levels"
+        duration: 0
+      - description: "Drains Magic by 2 levels"
+        duration: 0
+  shops:
+    - shop_name: Giants' Foundry Reward Shop
+      location: Giants' Foundry, Varrock
+      price: 300
+      currency: Foundry reputation
+      stock: 1
   related_items:
-    - item_id: 2323
-      item_name: Dwarven stout
+    - item_name: Dwarven stout
       slug: dwarven-stout
       relationship: alternative
-      description: Alternative Smithing boost (+1)
-    - item_id: 1377
-      item_name: Dragon battleaxe
+      description: "Alternative Smithing boost (+1)"
+    - item_name: Mature dwarven stout
+      slug: mature-dwarven-stout
+      relationship: alternative
+      description: "+2 Smithing boost"
+    - item_name: Dragon battleaxe
       slug: dragon-battleaxe
       relationship: alternative
-      description: Alternative boost method
+      description: "Special attack boosts Smithing among other stats"
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Potion |
-    | Tradeable | Yes |
-    | Weight | 0.55 kg |
+    > _"Only Kovac knows what's gone into this."_
 
-    | Stat | Change |
-    |------|--------|
-    | Hitpoints | +1 |
-    | Smithing | +4 |
-    | Attack | -2 |
-    | Ranged | -2 |
-    | Magic | -2 |
-
-    Second-highest Smithing boost in-game.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Kovac's grog is purchased from the Giants' Foundry Reward Shop for 300 Foundry reputation. Drinking it boosts Smithing by +4 (second-highest Smithing boost in-game) while draining Attack, Ranged, and Magic by 2 each and restoring 1 Hitpoint.
+  market_strategy:
+    notes:
+      - "Supply gated by Giants' Foundry reputation"
+      - "Demand from smithers chasing Smithing milestones"
+      - "Tradeable but margin thin vs reputation grind"
+  trading_tips:
+    - "Buy from GE when below reputation-conversion break-even"
+    - "Stockpile before Smithing rework events"
+  history:
+    - date: "2022-06-08"
+      description: "Released with the Giants' Foundry minigame"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

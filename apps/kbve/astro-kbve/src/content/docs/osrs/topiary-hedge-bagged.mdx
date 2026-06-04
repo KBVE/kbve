@@ -12,9 +12,55 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 10000
-  about: "Topiary hedge (bagged) is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: construction-supply
+    tier: mid-high
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options: ["Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Garden supplier
+      location: Falador
+      price: 20000
+      currency: Coins
+      stock: 5
+    - shop_name: Farming Guild garden supplier
+      location: Farming Guild
+      price: 20000
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Watering can
+      slug: watering-can
+      relationship: component
+      description: "Required tool: filled watering can to plant the hedge"
+  about: |-
+    > *"You can plant this in your garden."*
+
+    Decorative Construction item purchased bagged from Garden suppliers in Falador or the Farming Guild for 20,000 coins. Plant it in a formal garden as a topiary hedge (Construction 68) or in a superior garden as a topiary bush (Construction 65); each placement grants 141 Construction and Farming experience.
+  market_strategy:
+    notes:
+      - "Fixed shop price 20,000 — flip ceiling capped by buy limit"
+      - "Demand driven by POH builders training Construction at higher tiers"
+      - "Bagged plants typically trade near or slightly above shop price on GE"
+  trading_tips:
+    - "Stock check Falador and Farming Guild garden suppliers before buying GE"
+    - "Bulk buy under high alch ceiling for steady POH demand"
+  history:
+    - date: "2006-05-31"
+      description: "Released alongside the Player-owned houses update as a Garden supplier stock item"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

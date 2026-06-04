@@ -12,9 +12,96 @@ osrs:
   lowalch: 21
   highalch: 31
   limit: 11000
-  about: "Emerald bolts is a members-only item in Old School RuneScape. High alchemy value: 31 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: mithril
+    tier: mid
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - "Wield"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammunition
+    weapon_type: bolts
+    attack_speed: null
+    weight: 0
+    requirements:
+      ranged: 36
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 85
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 58
+      xp: 55
+      materials:
+        - item_name: Mithril bolts
+          quantity: 10
+        - item_name: Emerald bolt tips
+          quantity: 10
+      tools: []
+      output_quantity: 10
+  related_items:
+    - item_name: Emerald bolts (e)
+      slug: emerald-bolts-e
+      relationship: upgrade
+      description: "Enchanted version with the Magical Poison special"
+    - item_name: Mithril bolts
+      slug: mithril-bolts
+      relationship: component
+      description: "Bolt shaft used as base"
+    - item_name: Emerald bolt tips
+      slug: emerald-bolt-tips
+      relationship: component
+      description: "Gem tips attached via Fletching"
+    - item_name: Ruby bolts
+      slug: ruby-bolts
+      relationship: upgrade
+      description: "Next gem-tip tier with stronger enchant"
+  about: |-
+    Emerald bolts are mithril crossbow bolts with emerald tips, fletched at 58 Fletching for 5.5 XP each. They require 36 Ranged to wield and provide +85 Ranged strength.
+
+    Their main use is the enchanted form: Magic level 27 with the Enchant Crossbow Bolt (Emerald) spell turns them into emerald bolts (e), which proc Magical Poison (a damage-over-time effect ignoring poison immunity).
+  market_strategy:
+    notes:
+      - "Profit equation: 10 mithril bolts + 10 emerald bolt tips vs 10 emerald bolts"
+      - "Enchant margin is the big value driver, not the raw bolt"
+      - "Steady supply from fletching trainers"
+      - "Demand tracks Slayer / niche PvM use of the (e) version"
+  trading_tips:
+    - "Watch nature rune cost: it sets the alch margin floor"
+    - "Buy raw bolts when enchanted form drops below break-even"
+    - "Bulk flips work given 11,000 buy limit"
+  history:
+    - date: "2006-07-31"
+      description: "Released alongside the Enchant Crossbow Bolt spells"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

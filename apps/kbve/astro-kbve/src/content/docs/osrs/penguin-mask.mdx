@@ -12,9 +12,76 @@ osrs:
   lowalch: 480
   highalch: 720
   limit: 4
-  about: "Penguin mask is a members-only item in Old School RuneScape. High alchemy value: 720 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: mid-high
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 1.814
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - item_name: Casket (medium)
+      slug: casket-medium
+      relationship: component
+      description: "Reward casket that can drop the mask"
+    - item_name: Beret
+      slug: beret
+      relationship: alternative
+      description: "Other clue trail cosmetic head item"
+  about: "Penguin mask is a medium clue scroll reward referencing the Penguin Hide and Seek minigame. Cosmetic head slot item with no combat bonuses; storable in the costume room treasure chest."
+  market_strategy:
+    notes:
+      - "Tight GE buy limit (4) keeps supply thin"
+      - "Cosmetic clue reward sustains collector demand"
+      - "Costume room storage reduces circulating supply over time"
+  trading_tips:
+    - "Snipe undercuts during clue events when more masks enter the market"
+    - "Long hold: cosmetic clue rewards trend upward as the game ages"
+  history:
+    - date: "2014-06-12"
+      description: "Added as a reward from medium clue scrolls"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

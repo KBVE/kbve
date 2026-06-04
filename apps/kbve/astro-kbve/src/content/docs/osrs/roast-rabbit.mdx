@@ -12,9 +12,67 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 6000
-  about: "Roast rabbit is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "20 February 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 16
+      xp: 72.5
+      materials:
+        - item_name: Skewered rabbit
+          quantity: 1
+      tools:
+        - Iron spit
+      output_quantity: 1
+  related_items:
+    - item_name: Skewered rabbit
+      slug: skewered-rabbit
+      relationship: component
+      description: "Raw input cooked on a fire to produce roast rabbit"
+    - item_name: Raw rabbit
+      slug: raw-rabbit
+      relationship: component
+      description: "Uncooked rabbit meat used to skewer"
+    - item_name: Burnt rabbit
+      slug: burnt-rabbit
+      relationship: alternative
+      description: "Failure result when cooking under level"
+    - item_name: Cooked rabbit
+      slug: cooked-rabbit
+      relationship: alternative
+      description: "Alternative cooked rabbit prepared on a regular fire"
+  about: |-
+    > *"A delicious looking piece of roast rabbit."*
+
+    Roast rabbit is cooked from a skewered rabbit on a fire. The cook needs Cooking 16 and yields 72.5 XP per success. Eating heals 7 hitpoints. Burning can occur at lower levels and stops entirely at Cooking 99. The dish also appears as a Regicide quest item.
+  market_strategy:
+    notes:
+      - "Niche low-level food: profit is driven by skewered rabbit feedstock"
+      - "Cheap heal alternative for budget skillers"
+  trading_tips:
+    - "Watch skewered rabbit + iron spit costs: roast rabbit only flips when raw inputs are cheap"
+    - "Diary cook spots cut burn losses: scale supply on Catherby/Hosidius spawn windows"
+  history:
+    - date: "20 February 2006"
+      description: "Released as part of the Eagles' Peak / Hunter content era cooking lineup"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,53 +12,105 @@ osrs:
   lowalch: 80800
   highalch: 121200
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: zenyte
+    tier: high
+  properties:
+    release_date: "2016-05-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
+    weapon_type: null
+    attack_speed: null
+    weight: 0.01
     requirements:
       crafting: 92
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 92
       xp: 165
-      inputs:
+      materials:
         - item_name: Zenyte
           quantity: 1
         - item_name: Gold bar
           quantity: 1
+        - item_name: Necklace mould
+          quantity: 1
+      tools:
+        - Furnace
       output_quantity: 1
   related_items:
-    - item_id: 6577
-      item_name: Onyx necklace
+    - item_name: Necklace of anguish
+      slug: necklace-of-anguish
+      relationship: upgrade
+      description: "Enchanted form, BiS ranged neck slot"
+    - item_name: Zenyte
+      slug: zenyte
+      relationship: component
+      description: "Primary gem used in crafting"
+    - item_name: Onyx necklace
       slug: onyx-necklace
       relationship: downgrade
-      description: Previous tier necklace
+      description: "Previous tier necklace before zenyte"
+    - item_name: Gold bar
+      slug: gold-bar
+      relationship: component
+      description: "Metal base for the necklace mould"
   about: |-
-    Crafting (Level 92): Zenyte + Gold bar at a furnace with necklace mould (165 XP)
+    The zenyte necklace is the unenchanted base for the necklace of anguish, OSRS's best-in-slot ranged neck. Crafted at a furnace with 92 Crafting using a zenyte gem, gold bar, and necklace mould for 165 XP per cast.
 
-    > *"A zenyte necklace."*
+    Once enchanted via Lvl-7 Enchant (93 Magic, 1 cosmic + 20 blood + 20 soul runes for 110 XP) it becomes a permanent BiS item with +15 Ranged attack, +5 Ranged strength, and +2 Prayer.
 
-    Lvl-7 Enchant (93 Magic): 1 cosmic rune + 20 blood runes + 20 soul runes (110 XP)
-
-    The Necklace of anguish is the best-in-slot ranged necklace:
-    - +15 Ranged attack
-    - +5 Ranged Strength
-    - +2 Prayer
-    - Highest ranged accuracy and damage of any neck slot
-
-    | Amulet | Ranged Atk | Ranged Str | Prayer |
-    |--------|-----------|------------|--------|
-    | Necklace of anguish | +15 | +5 | +2 |
-    | Amulet of fury | +10 | +0 | +5 |
-    | Amulet of glory | +10 | +0 | +3 |
-
-    The +5 ranged strength is a significant DPS increase over fury/glory.
+    The +5 ranged strength delivers a major DPS jump over Amulet of fury (+10 atk, +5 prayer) and Amulet of glory (+10 atk, +3 prayer) at endgame ranged content.
   market_strategy:
     notes:
-      - Zenyte shard from Demonic gorillas (1/300) + onyx = zenyte
-      - BiS ranged neck — permanent demand
-      - High-value enchant
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Zenyte shard drops from Demonic gorillas at 1/300, gating supply"
+      - "BiS ranged neck = permanent demand"
+      - "Enchant margin: zenyte necklace cost vs anguish price"
+      - "Buy limit reduced from 70 to 8 in 2020, tightening flips"
+  trading_tips:
+    - "Watch demonic gorilla droprate updates and resource changes"
+    - "Best margins come from crafting your own gems then enchanting"
+    - "Stock up ahead of leagues / DMM resets where anguish demand spikes"
+  history:
+    - date: "2016-05-06"
+      description: "Released with the Monkey Madness II update"
+    - date: "2018-02-22"
+      description: "Inventory sprite rotated to distinguish from enchanted jewelry"
+    - date: "2020-09-10"
+      description: "Grand Exchange buy limit reduced from 70 to 8"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,59 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 11000
-  about: "Red bead is a free-to-play item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: gem
+    tier: low
+  properties:
+    release_date: "2001-02-16"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: true
+    weight: 0.003
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Imp
+        quantity: "1"
+        rarity: "5/128"
+  related_items:
+    - item_name: Black bead
+      slug: black-bead
+      relationship: variant
+      description: "Black coloured bead drop from imps"
+    - item_name: White bead
+      slug: white-bead
+      relationship: variant
+      description: "White coloured bead drop from imps"
+    - item_name: Yellow bead
+      slug: yellow-bead
+      relationship: variant
+      description: "Yellow coloured bead drop from imps"
+    - item_name: Amulet of accuracy
+      slug: amulet-of-accuracy
+      relationship: product
+      description: "Crafted using all four coloured beads during Imp Catcher"
+  about: "Red bead is a free-to-play quest item used in Imp Catcher to create the amulet of accuracy. It can also bait traps when hunting imps and is dropped commonly by imps across multiple regions."
+  market_strategy:
+    notes:
+      - "Imp Catcher quest demand keeps a steady floor of buyers."
+      - "Drop rate of 5/128 from imps ensures supply is plentiful."
+      - "Leagues hunter content periodically increases farm rates and supply."
+  trading_tips:
+    - "Bulk buy near alch value to satisfy Imp Catcher questers"
+    - "Pair listings with other coloured beads for set arbitrage"
+  history:
+    - date: "2001-02-16"
+      description: "Added to the game with Imp Catcher quest content"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

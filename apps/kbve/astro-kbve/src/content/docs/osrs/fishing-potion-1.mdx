@@ -12,23 +12,56 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Temporarily boosts Fishing by +3 levels"
+        duration: 360
   related_items:
-    - item_id: 151
-      item_name: Fishing potion(3)
+    - item_name: Fishing potion(3)
       slug: fishing-potion-3
       relationship: variant
-      description: 3-dose version
-    - item_id: 153
-      item_name: Fishing potion(2)
+      description: "3-dose version of the same potion"
+    - item_name: Fishing potion(2)
       slug: fishing-potion-2
       relationship: variant
-      description: 2-dose version
+      description: "2-dose version of the same potion"
+    - item_name: Fishing potion(4)
+      slug: fishing-potion-4
+      relationship: variant
+      description: "4-dose version of the same potion"
   about: |-
-    > _"1 dose of Fishing potion."_
+    A 1-dose Fishing potion that provides a temporary +3 boost to the Fishing skill. The boost is useful for catching fish slightly above your current level, such as reaching threshold tiers for monkfish, sharks, or anglerfish.
 
-    A 1-dose fishing potion. Provides a temporary +3 Fishing boost.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Single-dose potions are typically the cheapest per-dose option on the Grand Exchange, but they take up more inventory slots than higher-dose variants.
+  market_strategy:
+    notes:
+      - "Single-dose potions are usually the cheapest per dose on the Grand Exchange"
+      - "Higher dose variants are more inventory-efficient"
+      - "Demand is steady from skillers chasing milestone Fishing levels"
+  history:
+    - date: "2002-02-27"
+      description: "Released with the original potion system"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

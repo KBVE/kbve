@@ -1,6 +1,6 @@
 ---
 title: White bead | OSRS Price Data
-description: "White bead: A small round white bead.. High alch: 2 GP, GE limit: 11,000."
+description: "White bead: A small round white bead. High alch: 2 GP, GE limit: 11,000."
 osrs:
   id: 1476
   name: White bead
@@ -12,9 +12,62 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 11000
-  about: "White bead is a free-to-play item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: bead
+    tier: low
+  properties:
+    release_date: "2001-02-16"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: true
+    weight: 0.003
+    options:
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Imp
+        quantity: "1"
+        rarity: "5/128"
+  related_items:
+    - item_name: Black bead
+      slug: black-bead
+      relationship: set-piece
+      description: "Imp Catcher bead set"
+    - item_name: Red bead
+      slug: red-bead
+      relationship: set-piece
+      description: "Imp Catcher bead set"
+    - item_name: Yellow bead
+      slug: yellow-bead
+      relationship: set-piece
+      description: "Imp Catcher bead set"
+    - item_name: Amulet of accuracy
+      slug: amulet-of-accuracy
+      relationship: product
+      description: "Reward from Imp Catcher quest"
+  about: |-
+    > _"A small round white bead."_
+
+    The white bead is required for the Imp Catcher quest — collect black, red, white and yellow beads and return them to Wizard Mizgog for an Amulet of accuracy. Imps drop the bead at roughly 5/128 rarity. The beads are also used as optional bait when box-trapping imps in Hunter.
+  market_strategy:
+    notes:
+      - "Sticky F2P quest item — buffered demand"
+      - "Imp drop supply consistent"
+      - "Volume low; price hugs GE midline"
+  trading_tips:
+    - "Buy for Imp Catcher questers"
+    - "Bead sets often listed together"
+  history:
+    - date: "2001-02-16"
+      description: "Released with Imp Catcher quest"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

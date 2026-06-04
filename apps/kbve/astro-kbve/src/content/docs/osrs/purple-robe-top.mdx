@@ -12,9 +12,87 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Purple robe top is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-06-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Barker's Haberdashery"
+      location: "Canifis"
+      price: 650
+      currency: "Coins"
+      stock: 5
+  related_items:
+    - item_name: Purple robe bottoms
+      slug: purple-robe-bottoms
+      relationship: set-piece
+      description: "Matching legs from Barker's Haberdashery"
+    - item_name: Red robe top
+      slug: red-robe-top
+      relationship: alternative
+      description: "Same shop, different colour"
+    - item_name: Yellow robe top
+      slug: yellow-robe-top
+      relationship: alternative
+      description: "Same shop, different colour"
+  about: |-
+    > *"Some fine werewolf clothing."*
+
+    The purple robe top is one of the colour variants sold by Barker at Barker's Haberdashery in Canifis, unlocked after starting Priest in Peril. It is purely cosmetic werewolf fashion with negligible defensive bonuses, mostly bought for fashionscape and clue scroll emote requirements.
+
+    Buy limit is 150 per 4 hours and shop stock restocks every minute.
+  market_strategy:
+    notes:
+      - "Low daily volume — moves on fashionscape demand"
+      - "Shop arbitrage from Canifis caps profitable margin"
+  trading_tips:
+    - "Restock farm from Barker for guaranteed flip margin"
+    - "Buy in bulk before fashionscape competition events"
+  history:
+    - date: "2004-06-29"
+      description: "Released with Priest in Peril and Morytania"
+    - date: "2014-12-10"
+      description: "Renamed from Robe top to Purple robe top during the Trading Post update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

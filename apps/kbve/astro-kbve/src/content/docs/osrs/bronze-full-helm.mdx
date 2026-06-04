@@ -12,24 +12,98 @@ osrs:
   lowalch: 17
   highalch: 26
   limit: 125
-  item_id: 1155
-  item_type: armor
-  slot: head
-  type: full_helm
-  tradeable: true
-  weight: 2.721
-  requirements:
-    defence: 0
-  stats:
-    stab_defence: 4
-    slash_defence: 5
-    crush_defence: 3
-    ranged_defence: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 2.721
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -3
+    defence_bonus:
+      stab: 4
+      slash: 5
+      crush: 3
+      magic: -1
+      ranged: 4
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 7
+      xp: 25
+      materials:
+        - item_name: Bronze bar
+          quantity: 2
+      tools:
+        - Hammer
+      output_quantity: 1
+  shops:
+    - shop_name: Peksa's Helmet Shop
+      location: Barbarian Village
+      price: 44
+      currency: Coins
+      stock: 10
+    - shop_name: Thurid's Brain Buckets
+      location: Sunset Coast
+      price: 57
+      currency: Coins
+      stock: 5
   related_items:
-    - slug: iron-full-helm
-    - slug: bronze-platebody
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Iron full helm
+      slug: iron-full-helm
+      relationship: upgrade
+      description: "Next metal tier in the full helm chain"
+    - item_name: Bronze platebody
+      slug: bronze-platebody
+      relationship: set-piece
+      description: "Matches the bronze armour set"
+    - item_name: Bronze med helm
+      slug: bronze-med-helm
+      relationship: downgrade
+      description: "Lighter helm at the same metal tier"
+  about: "Bronze full helm is the entry-level full helm, requiring just 1 Defence to wear and 7 Smithing to forge from 2 bronze bars. It is the cheapest full face helm in the game and the starting point of the metal armour progression."
+  market_strategy:
+    notes:
+      - "Smithers undercut Peksa's shop, keeping the GE price near alch value."
+      - "Demand is mostly low-level training accounts and ironmen sourcing armour pieces."
+  trading_tips:
+    - "Buy from Peksa's shop for resale on the GE if bar prices spike."
+    - "High alch margins are razor thin; treat as flip stock, not alch stock."
+  history:
+    - date: "2001-01-04"
+      description: "Released with the original Smithing skill at RuneScape Classic launch."
+    - date: "2021-04-21"
+      description: "Ranged attack penalty adjusted from -2 to -3."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

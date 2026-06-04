@@ -12,9 +12,91 @@ osrs:
   lowalch: 176
   highalch: 264
   limit: 11000
-  about: "Dragon bolts (p++) is a members-only item in Old School RuneScape. High alchemy value: 264 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "2018-01-04"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammo
+    weapon_type: null
+    attack_speed: null
+    weight: 0
+    requirements:
+      ranged: 64
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 122
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Dragon bolts
+          quantity: 5
+        - item_name: Weapon poison(++)
+          quantity: 1
+      tools: []
+      output_quantity: 5
+  related_items:
+    - item_name: Dragon bolts
+      slug: dragon-bolts
+      relationship: component
+      description: "Unpoisoned base bolt used to craft this variant"
+    - item_name: Dragon bolts (p)
+      slug: dragon-bolts-p
+      relationship: variant
+      description: "Standard weapon poison variant"
+    - item_name: Dragon bolts (p+)
+      slug: dragon-bolts-p-plus
+      relationship: variant
+      description: "Weapon poison(+) variant with stronger poison damage"
+    - item_name: Weapon poison(++)
+      slug: weapon-poison-plus-plus
+      relationship: component
+      description: "Poison applied to dragon bolts to create the (p++) variant"
+  about: |-
+    Dragon bolts (p++) are the strongest poisoned variant of dragon bolts in OSRS, produced by applying Weapon poison(++) to five regular dragon bolts. They require 64 Ranged to fire and provide a +122 ranged strength bonus, identical to unpoisoned dragon bolts.
+
+    The poison effect can deal up to 6 damage per tick on a successful poison roll, making (p++) bolts attractive for sustained ranged combat where the extra damage matters. They cannot be enchanted with the Magic spellbook tipping spells.
+  market_strategy:
+    notes:
+      - "Per-bolt cost is mostly driven by Weapon poison(++) supply"
+      - "Demand is steady from players running ranged content where poison ticks add up"
+      - "Stack size of 11,000 makes them well suited for bulk flips"
+  history:
+    - date: "2018-01-04"
+      description: "Released as part of the Dragon Slayer II update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,64 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Raw sunlight antelope is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: meat
+    tier: mid
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 68
+      xp: 175
+      materials:
+        - item_name: Raw sunlight antelope
+          quantity: 1
+      tools:
+        - Range
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Sunlight antelope (Hunter 72)
+        quantity: "1"
+        rarity: always
+  related_items:
+    - item_name: Sunlight antelope
+      slug: sunlight-antelope
+      relationship: product
+      description: Cooked form healing more than the raw drop
+    - item_name: Raw moonlight antelope
+      slug: raw-moonlight-antelope
+      relationship: alternative
+      description: Higher-tier nightfall counterpart from Varlamore Hunter
+    - item_name: Burnt antelope
+      slug: burnt-antelope
+      relationship: alternative
+      description: Failure state when cooking below the burn threshold
+  about: "Raw sunlight antelope is the Varlamore Hunter drop turned into a cookable steak at 68 Cooking; alternatively, Soar Leader Pitri swaps each carcass for three quetzal whistle charges."
+  market_strategy:
+    notes:
+      - "Daily volume tracks Varlamore Hunter activity — relog spikes drag GE prices down."
+      - "Cooking flips depend on cooked-antelope GE delta minus burn risk."
+  trading_tips:
+    - "Stockpile around double Cooking weekends when chefs raid the GE."
+    - "Quetzal whistle owners burn through these even when GE price tanks."
+  history:
+    - date: "2024-03-20"
+      description: Added with the Varlamore expansion launch.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

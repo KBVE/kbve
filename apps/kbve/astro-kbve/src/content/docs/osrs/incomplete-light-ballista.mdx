@@ -12,9 +12,73 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 8
-  about: "Incomplete light ballista is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: ballista-part
+    tier: high
+  properties:
+    release_date: "2016-05-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.5
+    options:
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 47
+      xp: 15
+      materials:
+        - item_name: Light frame
+          quantity: 1
+        - item_name: Ballista limbs
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Light frame
+      slug: light-frame
+      relationship: component
+      description: "Wooden frame component"
+    - item_name: Ballista limbs
+      slug: ballista-limbs
+      relationship: component
+      description: "Limb component fletched onto the frame"
+    - item_name: Ballista spring
+      slug: ballista-spring
+      relationship: component
+      description: "Added next to produce the unstrung light ballista"
+    - item_name: Unstrung light ballista
+      slug: unstrung-light-ballista
+      relationship: product
+      description: "Next assembly step toward the finished ballista"
+    - item_name: Light ballista
+      slug: light-ballista
+      relationship: product
+      description: "Final two-handed ranged weapon"
+  about: |-
+    Incomplete light ballista is the first assembly stage of the light ballista, made at 47 Fletching by attaching ballista limbs to a light frame for 15 XP.
+
+    Next step: add a ballista spring (also 47 Fletching, 15 XP) to produce the unstrung light ballista, then string it to finish the weapon. Monkey Madness II is required to use the recipe chain.
+  market_strategy:
+    notes:
+      - "Intermediate craft, mostly Fletching ironman territory"
+      - "Profit equation: component cost vs unstrung light ballista price"
+      - "Supply tracks active ballista crafters"
+      - "GE limit of 8 keeps spreads wide"
+  trading_tips:
+    - "Buy when limb / frame prices drop, hold for ballista assembly cycles"
+    - "Margins improve when finished light ballista demand spikes from PvP events"
+  history:
+    - date: "2016-05-06"
+      description: "Released with the Monkey Madness II update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

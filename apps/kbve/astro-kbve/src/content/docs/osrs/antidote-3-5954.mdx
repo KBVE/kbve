@@ -12,9 +12,87 @@ osrs:
   lowalch: 115
   highalch: 172
   limit: 4000
-  about: "Antidote++(3) is a members-only item in Old School RuneScape. High alchemy value: 172 coins. Grand Exchange buy limit: 4,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "11 July 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - "Drink"
+      - "Empty"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Cures poison and grants immunity to poison for 12 minutes."
+        duration: 720
+      - description: "Reduces venom to poison; second dose cures venom entirely with short venom immunity."
+        duration: 27
+  recipes:
+    - skill: herblore
+      level: 79
+      xp: 177.5
+      materials:
+        - item_name: Coconut milk
+          quantity: 1
+        - item_name: Irit leaf
+          quantity: 1
+        - item_name: Magic root
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Zulrah
+        quantity: "10 (noted)"
+        rarity: "2 x 9/249"
+      - source: Corporeal Beast
+        quantity: "40 (noted)"
+        rarity: "10/512"
+      - source: Venenatis
+        quantity: "20 (noted)"
+        rarity: "3/126"
+  related_items:
+    - item_name: Antidote++(1)
+      slug: antidote-1-5958
+      relationship: variant
+      description: "1-dose variant"
+    - item_name: Antidote++(2)
+      slug: antidote-2-5956
+      relationship: variant
+      description: "2-dose variant"
+    - item_name: Antidote++(4)
+      slug: antidote-4-5952
+      relationship: variant
+      description: "4-dose variant"
+    - item_name: Anti-venom(3)
+      slug: anti-venom-3
+      relationship: upgrade
+      description: "Upgraded venom-curing potion (87 Herblore + Zulrah scales)"
+  about: "Antidote++(3) is a members-only Herblore potion offering the longest poison immunity duration of any standard antipoison potion, making it the go-to choice for venomous boss fights and PvM trips."
+  market_strategy:
+    notes:
+      - "Volume is modest vs (4) dose; spread is wider but flips clear fast."
+      - "Demand surges around Zulrah, Venenatis, and Vorkath rushes."
+      - "Decant arbitrage between (3) and (4) is the most reliable angle."
+  trading_tips:
+    - "Track magic root supply: it dominates antidote++ cost basis."
+    - "Buy ahead of league or DMM venom-heavy meta announcements."
+    - "Watch Anti-venom margins, sometimes cheaper to drink antidote++ instead."
+  history:
+    - date: "11 July 2005"
+      description: "Released with the Farming skill update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,33 +12,70 @@ osrs:
   lowalch: 200004
   highalch: 300006
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: elder
+    tier: high
+  properties:
+    release_date: "2017-01-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: 2h
-    type: maul
-    attack_style: crush
+    weapon_type: bludgeon
     attack_speed: 6
+    weight: 5.443
     requirements:
       attack: 75
       strength: 75
-    stats:
-      attack_crush: 135
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 135
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
       strength: 147
-  drop_sources:
-    - name: Chambers of Xeric
-      combat_level: 0
-      drop_rate: rare
-      members_only: true
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_attack:
+    name: Pulverise
+    description: "Increases accuracy by 25% and reduces the target's current Defence level by 35% on a successful hit"
+    energy: 50
+  drop_table:
+    sources:
+      - source: Chambers of Xeric
+        quantity: "1"
+        rarity: 2/69 of unique
   related_items:
-    - item_id: 13576
-      item_name: Dragon warhammer
+    - item_name: Dragon warhammer
       slug: dragon-warhammer
       relationship: alternative
-      description: Spec weapon alternative
-    - item_id: 11804
-      item_name: Bandos godsword
+      description: "Defence-draining spec weapon alternative"
+    - item_name: Bandos godsword
       slug: bandos-godsword
       relationship: alternative
-      description: Defence drain spec
+      description: "Higher-damage Defence drain spec alternative"
   about: |-
     | Stat | Value |
     |------|-------|
@@ -57,13 +94,16 @@ osrs:
     - Devastating KO potential
     - Slow attack speed is predictable
     - Often used for combos
+
+    The Elder maul's Pulverise special attack costs 50% energy and is regarded as a superior version of the Dragon warhammer's spec, applying both a 25% accuracy boost and a 35% current Defence reduction on a successful hit.
   market_strategy:
     notes:
-      - Raid reward drives supply
-      - Crush meta affects demand
-      - Popular for PKing
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Raid reward drives supply"
+      - "Crush meta affects demand"
+      - "Popular for PKing"
+  history:
+    - date: "2017-01-05"
+      description: "Released as a unique drop from Chambers of Xeric"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

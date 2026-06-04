@@ -12,9 +12,70 @@ osrs:
   lowalch: 176
   highalch: 264
   limit: null
-  about: "Camphor pyre logs is a members-only item in Old School RuneScape. High alchemy value: 264 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: wood
+    tier: mid-high
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Light
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: firemaking
+      level: 1
+      xp: 20
+      materials:
+        - item_name: Camphor logs
+          quantity: 1
+        - item_name: Sacred oil(4)
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Camphor logs
+      slug: camphor-logs
+      relationship: component
+      description: "Base log soaked in sacred oil to produce pyre logs"
+    - item_name: Sacred oil(4)
+      slug: sacred-oil-4
+      relationship: component
+      description: "Four doses of sacred oil saturate one set of camphor logs"
+    - item_name: Magic pyre logs
+      slug: magic-pyre-logs
+      relationship: alternative
+      description: "Higher tier pyre logs from magic logs"
+    - item_name: Redwood pyre logs
+      slug: redwood-pyre-logs
+      relationship: alternative
+      description: "Top tier pyre log for Shades of Mort'ton"
+  about: |-
+    > *"Camphor logs prepared with sacred oil for a funeral pyre."*
+
+    Camphor pyre logs slot between magic and redwood tiers in the Shades of Mort'ton cremation flow. Light them with a tinderbox alongside shade remains for a flat 320 Firemaking XP per cremation (480 with the Morytania Elite Diary), and Prayer XP scales with the remains burned: Loar 34.5, Phrin 47.5, Riyl 62, Asyn 79.5.
+
+    Net cost per log is currently around 1.6k, so they only make sense when chasing fast Prayer XP rather than profit.
+  market_strategy:
+    notes:
+      - "Sacred oil supply caps daily craft volume"
+      - "Prayer XP/hour drives most demand, not Firemaking XP"
+  trading_tips:
+    - "Sacred oil(4) is the bottleneck — buy in bulk before runs"
+    - "Stock during shade events; demand spikes for Prayer training"
+  history:
+    - date: "2025-11-19"
+      description: "Released with the camphor logs Firemaking expansion"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
