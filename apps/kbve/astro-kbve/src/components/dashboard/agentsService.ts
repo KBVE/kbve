@@ -39,15 +39,74 @@ export interface AgentTokenRow {
 
 const DISCORD_API_BASE = 'https://discord.com/api/v10';
 const GUILD_VAULT_URL = `${SUPABASE_URL}/functions/v1/guild-vault`;
+const DISCORD_BOOTSTRAP_URL = `${SUPABASE_URL}/functions/v1/discord-bootstrap`;
+const GUILDS_CACHE_KEY = 'kbve:agents:owned_guilds_cache:v1';
+const GUILDS_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+interface CachedGuildsBlob {
+	user_id: string;
+	guilds: DiscordGuild[];
+	cached_at: number;
+}
+
+function parseJwtPayload(jwt: string): Record<string, unknown> | null {
+	try {
+		const parts = jwt.split('.');
+		if (parts.length < 2) return null;
+		const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+		const padded = b64 + '==='.slice((b64.length + 3) % 4);
+		const json = atob(padded);
+		return JSON.parse(json) as Record<string, unknown>;
+	} catch {
+		return null;
+	}
+}
+
+function extractJwtOwnedGuildIds(jwt: string): string[] {
+	const payload = parseJwtPayload(jwt);
+	if (!payload || !Array.isArray(payload.owned_guilds)) return [];
+	return payload.owned_guilds.filter(
+		(g): g is string => typeof g === 'string' && /^[0-9]{17,20}$/.test(g),
+	);
+}
+
+function loadCachedGuilds(userId: string): DiscordGuild[] | null {
+	try {
+		const raw = localStorage.getItem(GUILDS_CACHE_KEY);
+		if (!raw) return null;
+		const blob = JSON.parse(raw) as CachedGuildsBlob;
+		if (blob.user_id !== userId) return null;
+		if (Date.now() - blob.cached_at > GUILDS_CACHE_TTL_MS) return null;
+		if (!Array.isArray(blob.guilds)) return null;
+		return blob.guilds;
+	} catch {
+		return null;
+	}
+}
+
+function saveCachedGuilds(userId: string, guilds: DiscordGuild[]): void {
+	try {
+		const blob: CachedGuildsBlob = {
+			user_id: userId,
+			guilds,
+			cached_at: Date.now(),
+		};
+		localStorage.setItem(GUILDS_CACHE_KEY, JSON.stringify(blob));
+	} catch {
+		// non-fatal
+	}
+}
 
 class AgentsService {
 	public readonly $authState = atom<AuthState>('loading');
 	public readonly $accessToken = atom<string | null>(null);
 	public readonly $providerToken = atom<string | null>(null);
+	public readonly $userId = atom<string | null>(null);
 
 	public readonly $guilds = atom<DiscordGuild[]>([]);
 	public readonly $guildsLoading = atom<boolean>(false);
 	public readonly $guildsError = atom<string | null>(null);
+	public readonly $guildsStale = atom<boolean>(false);
 
 	public readonly $selectedGuildId = atom<string | null>(null);
 
@@ -69,6 +128,10 @@ class AgentsService {
 
 			this.$accessToken.set(session.access_token as string);
 
+			const jwtPayload = parseJwtPayload(session.access_token as string);
+			const userId = (jwtPayload?.sub as string | undefined) ?? null;
+			if (userId) this.$userId.set(userId);
+
 			const sessionProviderToken =
 				(session as { provider_token?: string | null } | null)
 					?.provider_token ?? null;
@@ -80,17 +143,94 @@ class AgentsService {
 				providerToken = authBridge.getDiscordProviderToken();
 			}
 
-			if (!providerToken) {
-				this.$authState.set('discord_reauth_required');
+			if (providerToken) {
+				this.$providerToken.set(providerToken);
+				this.$authState.set('authenticated');
+
+				// Fire the bootstrap edge fn so the JWT hook picks up
+				// fresh owned_guilds on the next mint. Best-effort; a
+				// failure here doesn't block the page.
+				void this.bootstrapDiscord(providerToken);
+				await this.loadOwnedGuilds();
 				return;
 			}
 
-			this.$providerToken.set(providerToken);
-			this.$authState.set('authenticated');
+			// No provider_token. Fall back to JWT claim IDs + cached
+			// guild metadata; mark guild list stale so the UI can show
+			// a banner. Mutations remain disabled until the user
+			// re-OAuths (the mutation paths already gate on
+			// $providerToken being set).
+			const cached = userId ? loadCachedGuilds(userId) : null;
+			const jwtIds = extractJwtOwnedGuildIds(
+				session.access_token as string,
+			);
+			const jwtSet = new Set(jwtIds);
 
-			await this.loadOwnedGuilds();
+			if (cached && cached.length > 0) {
+				const filtered =
+					jwtIds.length > 0
+						? cached.filter((g) => jwtSet.has(g.id))
+						: cached;
+				this.$guilds.set(filtered);
+				this.$guildsStale.set(true);
+				this.$authState.set('authenticated');
+				if (filtered.length === 1) {
+					this.selectGuild(filtered[0].id);
+				}
+				return;
+			}
+
+			if (jwtIds.length > 0) {
+				// JWT claim present but no cached names — render as
+				// ID-only placeholders. UI can prompt re-sign-in to
+				// hydrate names from Discord.
+				this.$guilds.set(
+					jwtIds.map((id) => ({
+						id,
+						name: `Guild #${id.slice(-6)}`,
+						icon: null,
+						owner: true,
+						permissions: '0',
+					})),
+				);
+				this.$guildsStale.set(true);
+				this.$authState.set('authenticated');
+				if (jwtIds.length === 1) this.selectGuild(jwtIds[0]);
+				return;
+			}
+
+			// No provider_token, no JWT claim, no cache — truly need
+			// Discord re-auth to make progress.
+			this.$authState.set('discord_reauth_required');
 		} catch {
 			this.$authState.set('unauthenticated');
+		}
+	}
+
+	private async bootstrapDiscord(providerToken: string): Promise<void> {
+		const accessToken = this.$accessToken.get();
+		if (!accessToken) return;
+		try {
+			const resp = await fetch(DISCORD_BOOTSTRAP_URL, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${accessToken}`,
+				},
+				body: JSON.stringify({ provider_token: providerToken }),
+			});
+			if (!resp.ok) {
+				// Non-fatal: the JWT claim path + Discord-live path
+				// both still work. Just log so dev tools shows it.
+				const text = await resp.text();
+				console.warn(
+					'[agentsService] discord-bootstrap returned',
+					resp.status,
+					text.slice(0, 200),
+				);
+			}
+		} catch (e) {
+			console.warn('[agentsService] discord-bootstrap threw:', e);
 		}
 	}
 
@@ -107,8 +247,14 @@ class AgentsService {
 			});
 
 			if (resp.status === 401) {
-				this.$authState.set('discord_reauth_required');
+				// provider_token expired/invalid. Don't blank the page —
+				// flip $providerToken null + mark stale; UI keeps the
+				// JWT-claim / cached guild list and mutation buttons
+				// disable themselves via their existing
+				// !providerToken guards. User re-OAuth refreshes
+				// names + re-enables mutations.
 				this.$providerToken.set(null);
+				this.$guildsStale.set(true);
 				try {
 					const { authBridge } =
 						await import('@/components/auth/AuthBridge');
@@ -117,7 +263,7 @@ class AgentsService {
 					// non-fatal
 				}
 				this.$guildsError.set(
-					'Discord session expired. Re-sign-in required.',
+					'Discord session expired — guild list may be stale. Sign in with Discord to refresh.',
 				);
 				return;
 			}
@@ -127,12 +273,17 @@ class AgentsService {
 				this.$guildsError.set(
 					`Discord API ${resp.status}: ${body.slice(0, 200)}`,
 				);
+				this.$guildsStale.set(true);
 				return;
 			}
 
 			const allGuilds = (await resp.json()) as DiscordGuild[];
 			const owned = allGuilds.filter((g) => g.owner === true);
 			this.$guilds.set(owned);
+			this.$guildsStale.set(false);
+
+			const userId = this.$userId.get();
+			if (userId) saveCachedGuilds(userId, owned);
 
 			if (owned.length === 1) {
 				this.selectGuild(owned[0].id);
@@ -143,6 +294,7 @@ class AgentsService {
 					? e.message
 					: 'Failed to load Discord guilds',
 			);
+			this.$guildsStale.set(true);
 		} finally {
 			this.$guildsLoading.set(false);
 		}
