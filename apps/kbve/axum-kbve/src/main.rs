@@ -120,6 +120,14 @@ async fn main() -> anyhow::Result<()> {
         warn!("Referral client not configured - /api/v1/referral/* routes will 503");
     }
 
+    // Lot client also rides the wallet pool (purchases settle through
+    // wallet.service_debit). Run after the wallet client so it can share.
+    if db::init_lot_client().await {
+        info!("Lot client initialized - /api/v1/mc/lots/* routes enabled");
+    } else {
+        warn!("Lot client not configured - /api/v1/mc/lots/* routes will 503");
+    }
+
     let _osrs_cache = db::init_osrs_cache().await;
     info!("OSRS cache actor started");
 

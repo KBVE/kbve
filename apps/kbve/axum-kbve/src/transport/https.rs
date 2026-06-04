@@ -297,6 +297,71 @@ fn router(state: AppState) -> Router {
         )
         .route("/api/v1/mc/textures/{hash}", get(mc_texture_handler))
         .route(
+            "/api/v1/mc/lots/schematics",
+            get(super::mc_lot::list_schematics),
+        )
+        .route("/api/v1/mc/lots/vacant", get(super::mc_lot::list_vacant))
+        .route(
+            "/api/v1/mc/lots/viewport",
+            get(super::mc_lot::list_viewport),
+        )
+        .route(
+            "/api/v1/mc/lots/me/active",
+            get(super::mc_lot::list_my_active),
+        )
+        .route(
+            "/api/v1/mc/lots/me/transitional",
+            get(super::mc_lot::list_my_transitional),
+        )
+        .route(
+            "/api/v1/mc/lots/me/purchase",
+            post(super::mc_lot::me_purchase),
+        )
+        .route(
+            "/api/v1/mc/lots/me/queue-build",
+            post(super::mc_lot::me_queue_build),
+        )
+        .route(
+            "/api/v1/mc/lots/me/queue-demolish",
+            post(super::mc_lot::me_queue_demolish),
+        )
+        .route(
+            "/api/v1/mc/lots/staff/failed",
+            get(super::mc_lot::staff_list_failed),
+        )
+        .route(
+            "/api/v1/mc/lots/staff/retry",
+            post(super::mc_lot::staff_retry),
+        )
+        .route(
+            "/api/v1/mc/lots/staff/release-user",
+            post(super::mc_lot::staff_release_user),
+        )
+        .route(
+            "/api/v1/mc/lots/staff/repair-orphan",
+            post(super::mc_lot::staff_repair_orphan),
+        )
+        .route(
+            "/api/v1/mc/lots/staff/{lot_id}",
+            get(super::mc_lot::staff_get_lot),
+        )
+        .route(
+            "/api/v1/mc/lots/service/claim",
+            post(super::mc_lot::service_claim),
+        )
+        .route(
+            "/api/v1/mc/lots/service/mark-applied",
+            post(super::mc_lot::service_mark_applied),
+        )
+        .route(
+            "/api/v1/mc/lots/service/mark-failed",
+            post(super::mc_lot::service_mark_failed),
+        )
+        .route(
+            "/api/v1/mc/lots/service/requeue-stale",
+            post(super::mc_lot::service_requeue_stale),
+        )
+        .route(
             "/api/v1/rcon/{game}/{server}/exec",
             post(crate::rcon::exec_handler),
         )
