@@ -15,11 +15,13 @@
 --                         wallet ledger references; one-purchase-per-lot
 --                         unique index)
 --   mc.lot_build_log    — append-only build/demolish audit + concurrent
---                         work queue (apply_state 0/1/2/3 + claimed_at/by)
+--                         work queue (apply_state 0/1/2/3/4 + claimed_at/by)
 --
 -- Concurrency:
---   - mc.service_claim_pending_builds uses FOR UPDATE SKIP LOCKED so
---     multiple MC workers can poll without taking the same job.
+--   - mc.service_claim_pending_builds uses FOR NO KEY UPDATE SKIP LOCKED
+--     so multiple MC workers can poll without taking the same job and
+--     concurrent FK-readers on mc.lot don't block on the queue row's
+--     key tuple lock.
 --   - uq_mc_lot_build_log_one_active_per_lot WHERE apply_state IN (0,3)
 --     enforces "at most one outstanding job per lot" at the DB level.
 --
@@ -378,9 +380,18 @@ CREATE STATISTICS IF NOT EXISTS st_mc_build_log_state_attempt
     FROM mc.lot_build_log;
 
 
+COMMENT ON TABLE mc.schematic IS
+    'Build catalog. RPC-only — RLS forced with no policies; all access via SECURITY DEFINER RPCs.';
+COMMENT ON TABLE mc.lot IS
+    'Parcel registry. Chunk-aligned regions; GIST EXCLUDE forbids overlap. RPC-only — RLS forced with no policies.';
+COMMENT ON COLUMN mc.lot.state IS '0=vacant, 1=owned, 2=built, 3=under_build, 4=demolishing';
+COMMENT ON TABLE mc.lot_purchase IS
+    'Append-only ownership ledger. Per-currency back-refs to wallet.ledger. RPC-only — RLS forced with no policies.';
+COMMENT ON TABLE mc.lot_build_log IS
+    'Audit + work queue. action_kind: 0=build, 1=demolish. apply_state: 0=queued, 1=applied, 2=failed, 3=claimed, 4=cancelled. RPC-only — RLS forced.';
 COMMENT ON COLUMN mc.lot_build_log.action_kind IS '0=build, 1=demolish';
 COMMENT ON COLUMN mc.lot_build_log.apply_state IS
-    '0=queued, 1=applied, 2=failed, 3=claimed (worker holding the row)';
+    '0=queued, 1=applied, 2=failed, 3=claimed (worker holding the row), 4=cancelled (forced user-lot release)';
 
 
 -- RPC bodies live in the migration file (20260526223407_mc_lot_system.sql).
