@@ -124,13 +124,13 @@ REVOKE ALL ON TABLE profile.discord_bootstrap_cache
 
 GRANT USAGE  ON SCHEMA profile                         TO supabase_auth_admin;
 GRANT SELECT ON TABLE  profile.discord_bootstrap_cache TO supabase_auth_admin;
--- Round 9 #2: explicit schema USAGE for service_role. Function
--- + table privileges alone aren't enough — without USAGE on the
--- containing schema, name resolution of profile.* by service_role
--- (RPC EXECUTE, dashboard SELECT peek) fails with "permission
--- denied for schema profile". Earlier migrations may or may not
--- guarantee this; the grant is idempotent and the assertion below
--- catches future revoke drift.
+-- Round 9 #2 (updated round 11 #2): explicit schema USAGE for
+-- service_role. Function privileges alone are not enough — without
+-- USAGE on the containing schema, service_role cannot resolve
+-- profile.* RPC names and gets "permission denied for schema
+-- profile". Earlier migrations may or may not guarantee this; the
+-- grant is idempotent and the assertion below catches future
+-- revoke drift.
 GRANT USAGE ON SCHEMA profile TO service_role;
 -- Round 10 #1: service_role intentionally has NO direct privilege
 -- on the cache table. Earlier rounds granted SELECT for "dashboard
@@ -150,17 +150,15 @@ GRANT USAGE ON SCHEMA profile TO service_role;
 -- off postgres or if a non-superuser caller gains direct DML.
 ALTER TABLE profile.discord_bootstrap_cache ENABLE ROW LEVEL SECURITY;
 
--- Round 6 #7: policy is SELECT-only (was FOR ALL). Matches actual
--- grants and prevents future privilege drift where someone re-adds
--- UPDATE and a stale FOR ALL policy silently permits it.
+-- Round 11 #1: service_role has NO direct table privileges (the
+-- freshness RPC is the only read path), so no service_role policy
+-- is created. Defensively drop any prior policy name in case a
+-- previous deploy of this migration left one behind. The drift
+-- assertion in the privilege block (round 11 #10) RAISEs if any
+-- service_role policy reappears later — pairs with the no-direct-
+-- table-privilege assertions to lock the privilege model in place.
 DROP POLICY IF EXISTS "service_role_full_access" ON profile.discord_bootstrap_cache;
 DROP POLICY IF EXISTS "service_role_select"      ON profile.discord_bootstrap_cache;
-CREATE POLICY "service_role_select"
-    ON profile.discord_bootstrap_cache
-    AS PERMISSIVE
-    FOR SELECT
-    TO service_role
-    USING (true);
 
 DROP POLICY IF EXISTS "supabase_auth_admin_select" ON profile.discord_bootstrap_cache;
 CREATE POLICY "supabase_auth_admin_select"
@@ -203,6 +201,7 @@ DECLARE
     v_canonical        text[];
     v_now              timestamptz := statement_timestamp();
     v_input_count      integer     := cardinality(COALESCE(p_owned_guilds, ARRAY[]::text[]));
+    v_valid_count      integer;
     v_relinked_user_id uuid;
 BEGIN
     -- Round 7 #7: USING ERRCODE = '22023' (invalid_parameter_value)
@@ -272,27 +271,44 @@ BEGIN
     -- Round 10 #4: silent canonicalisation filter is the chosen
     -- policy — Discord's API isn't fully under our control, so
     -- one bad guild id shouldn't break the whole OAuth refresh.
-    -- But we RAISE LOG when filtering so the drop shows up in
-    -- Postgres logs (log_min_messages=log captures it).
-    IF v_input_count <> cardinality(v_canonical) THEN
-        RAISE LOG 'service_upsert_discord_bootstrap_cache: filtered % of % owned_guilds (NULL/non-snowflake/dup/cap) for user=%',
-            v_input_count - cardinality(v_canonical), v_input_count, p_user_id;
+    -- Round 11 #3 + #4: split the log into two signals so we can
+    -- tell "Discord sent us malformed snowflakes" apart from
+    -- "we deduped or capped duplicates". User-id is omitted from
+    -- these logs since counts alone are the actionable signal
+    -- (avoids spraying user identifiers into pg_log unnecessarily).
+    SELECT count(*)::integer
+      INTO v_valid_count
+      FROM unnest(COALESCE(p_owned_guilds, ARRAY[]::text[])) AS e(g)
+     WHERE g IS NOT NULL
+       AND g ~ '^[0-9]{17,20}$';
+
+    IF v_valid_count <> v_input_count THEN
+        RAISE LOG 'service_upsert_discord_bootstrap_cache: filtered % invalid owned_guild entries (of % input)',
+            v_input_count - v_valid_count, v_input_count;
+    END IF;
+
+    IF v_valid_count <> cardinality(v_canonical) THEN
+        RAISE LOG 'service_upsert_discord_bootstrap_cache: deduped/capped % owned_guild entries (% valid -> % stored)',
+            v_valid_count - cardinality(v_canonical), v_valid_count, cardinality(v_canonical);
     END IF;
 
     -- Account relinking: drop stale row carrying same provider_id
     -- under a different user_id so the upsert below can succeed
     -- against the discord_provider_id UNIQUE constraint without
-    -- raising a raw unique_violation. Round 10 #3: capture the
-    -- displaced user_id into v_relinked_user_id + RAISE LOG so
-    -- relinks are observable in Postgres logs.
+    -- raising a raw unique_violation. Round 10 #3 / 11 #3: capture
+    -- the displaced user_id into v_relinked_user_id + RAISE LOG so
+    -- relinks are observable in Postgres logs. Raw provider_id is
+    -- omitted from the log to avoid leaking it into pg_log; the
+    -- before/after user_ids are kept because that pair is the
+    -- actionable info for incident response.
     DELETE FROM profile.discord_bootstrap_cache
      WHERE discord_provider_id = p_discord_provider_id
        AND user_id <> p_user_id
     RETURNING user_id INTO v_relinked_user_id;
 
     IF v_relinked_user_id IS NOT NULL THEN
-        RAISE LOG 'service_upsert_discord_bootstrap_cache: relinked discord_provider_id=% from user=% to user=%',
-            p_discord_provider_id, v_relinked_user_id, p_user_id;
+        RAISE LOG 'service_upsert_discord_bootstrap_cache: relinked discord provider from user=% to user=%',
+            v_relinked_user_id, p_user_id;
     END IF;
 
     -- Round 10 #5: ON CONFLICT (user_id) DO UPDATE intentionally
@@ -346,15 +362,21 @@ LANGUAGE sql
 STABLE
 SECURITY DEFINER
 SET search_path = ''
+ROWS 1
 AS $$
+    -- Round 11 #5: LEFT JOIN over a single-row input so the caller
+    -- always gets exactly one row back — NULL timestamps + 0
+    -- guild_count when no cache exists. Saves the Axum side an
+    -- explicit empty-result-set branch.
     SELECT
         c.refreshed_at,
         c.updated_at,
         c.created_at,
-        cardinality(c.owned_guilds)::integer AS guild_count
-    FROM profile.discord_bootstrap_cache AS c
-    WHERE p_user_id IS NOT NULL
-      AND c.user_id  = p_user_id;
+        COALESCE(cardinality(c.owned_guilds), 0)::integer AS guild_count
+    FROM (SELECT p_user_id AS user_id) AS input
+    LEFT JOIN profile.discord_bootstrap_cache AS c
+      ON c.user_id = input.user_id
+    WHERE input.user_id IS NOT NULL;
 $$;
 
 ALTER FUNCTION profile.service_get_discord_bootstrap_cache_freshness(uuid)
@@ -528,7 +550,8 @@ BEGIN
     IF NOT has_schema_privilege('supabase_auth_admin', 'profile', 'USAGE') THEN
         RAISE EXCEPTION 'supabase_auth_admin must hold USAGE on schema profile.';
     END IF;
-    -- Round 9 #2: service_role schema USAGE for RPC + dashboard SELECT.
+    -- Round 9 #2 (updated round 11 #2): service_role schema USAGE
+    -- for RPC execution.
     IF NOT has_schema_privilege('service_role', 'profile', 'USAGE') THEN
         RAISE EXCEPTION 'service_role must hold USAGE on schema profile for bootstrap cache RPC access.';
     END IF;
@@ -580,6 +603,19 @@ BEGIN
     END IF;
     IF NOT has_function_privilege('service_role', 'profile.service_get_discord_bootstrap_cache_freshness(uuid)', 'EXECUTE') THEN
         RAISE EXCEPTION 'service_role must hold EXECUTE on profile.service_get_discord_bootstrap_cache_freshness for dashboard freshness peeks.';
+    END IF;
+    -- Round 11 #10: drift guard. Any future PR that re-creates a
+    -- service_role RLS policy on this table will fail the
+    -- migration here, forcing the author to explicitly justify
+    -- giving service_role table-level read access.
+    IF EXISTS (
+        SELECT 1
+          FROM pg_policies
+         WHERE schemaname = 'profile'
+           AND tablename  = 'discord_bootstrap_cache'
+           AND roles @> ARRAY['service_role']::name[]
+    ) THEN
+        RAISE EXCEPTION 'no service_role RLS policy may exist on profile.discord_bootstrap_cache; service_role reads go through the freshness RPC.';
     END IF;
     IF has_table_privilege('service_role', 'profile.discord_bootstrap_cache', 'INSERT') THEN
         RAISE EXCEPTION 'service_role must NOT have direct INSERT on profile.discord_bootstrap_cache; use service_upsert RPC.';
