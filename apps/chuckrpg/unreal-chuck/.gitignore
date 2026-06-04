@@ -30,6 +30,11 @@ Saved/
 # Per-developer content sandbox (UE templates create this for the current user)
 Content/Developers/*
 
+# Repo-root .gitignore has `**/target/` for Rust; on case-insensitive macOS
+# that collides with UE's Content/.../Target/ folders. Re-include them here.
+!Content/**/Target/
+!Content/**/Target/**
+
 # Local user editor config
 *.user
 
