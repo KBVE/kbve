@@ -30,8 +30,8 @@ BEGIN;
 --          + cap 50)
 --        - Future-timestamp rejection >30s
 --        - Account relinking (DELETE old row with same provider_id)
---        - Advisory locking on (user_id, provider_id) to serialise
---          concurrent OAuth refreshes
+--        - Coarse advisory locking on the relink namespace to
+--          serialise concurrent OAuth refreshes + cross-swap races
 --        - updated_at maintenance
 --      Owner pinned to postgres explicitly so SECURITY DEFINER
 --      behaviour is stable across local/CI/prod environments.
@@ -118,6 +118,14 @@ REVOKE ALL ON TABLE profile.discord_bootstrap_cache
 
 GRANT USAGE  ON SCHEMA profile                         TO supabase_auth_admin;
 GRANT SELECT ON TABLE  profile.discord_bootstrap_cache TO supabase_auth_admin;
+-- Round 9 #2: explicit schema USAGE for service_role. Function
+-- + table privileges alone aren't enough — without USAGE on the
+-- containing schema, name resolution of profile.* by service_role
+-- (RPC EXECUTE, dashboard SELECT peek) fails with "permission
+-- denied for schema profile". Earlier migrations may or may not
+-- guarantee this; the grant is idempotent and the assertion below
+-- catches future revoke drift.
+GRANT USAGE ON SCHEMA profile TO service_role;
 -- Round 8 #4: corrected justification. The RPC runs SECURITY
 -- DEFINER as postgres, so ON CONFLICT visibility is satisfied by
 -- the RPC owner's privileges — service_role SELECT is NOT needed
@@ -127,6 +135,13 @@ GRANT SELECT ON TABLE  profile.discord_bootstrap_cache TO supabase_auth_admin;
 -- layer). Writes still flow only through the SECURITY DEFINER RPC.
 GRANT SELECT ON TABLE profile.discord_bootstrap_cache TO service_role;
 
+-- Round 9 #4: RLS is enabled for caller roles. FORCE ROW LEVEL
+-- SECURITY is intentionally NOT used here because the postgres-
+-- owned SECURITY DEFINER RPC is the sanctioned write path; the
+-- RPC's INSERT/UPDATE/DELETE bypasses RLS via the owner anyway
+-- and forcing RLS would only matter for a non-superuser owner
+-- scenario we don't have. Revisit if we ever move the RPC owner
+-- off postgres or if a non-superuser caller gains direct DML.
 ALTER TABLE profile.discord_bootstrap_cache ENABLE ROW LEVEL SECURITY;
 
 -- Round 6 #7: policy is SELECT-only (was FOR ALL). Matches actual
@@ -152,12 +167,11 @@ CREATE POLICY "supabase_auth_admin_select"
 -- ------------------------------------------------------------
 -- Service-role write RPC (the only sanctioned write surface)
 -- ------------------------------------------------------------
--- Round 6 #4 + #5: advisory locks on (user_id, provider_id) in
--- fixed order to serialise concurrent OAuth refreshes for the same
--- account and avoid races between DELETE (relinking) and INSERT
--- (upsert). Lock order is invariant (user_id first, then
--- provider_id) so any caller doing both takes them in the same
--- sequence -> no deadlocks.
+-- Round 7 #4: takes a single coarse advisory lock on the relink
+-- namespace to serialise concurrent OAuth refreshes and close the
+-- cross-swap race (concurrent A→Y / B→X relinks). See the inline
+-- comment on the PERFORM pg_advisory_xact_lock call for the history
+-- and the row-lock alternative for higher-throughput workloads.
 --
 -- Round 6 #9: owner pinned to postgres explicitly so SECURITY
 -- DEFINER behaviour is stable across env/migrating-role variance.
@@ -301,12 +315,17 @@ STABLE
 SET search_path = ''
 COST 20
 AS $$
+    -- Round 9 #6: explicit p_user_id IS NOT NULL guard. Logically
+    -- unnecessary (no row matches NULL user_id), but documents
+    -- intent and protects against planner edge cases on future
+    -- index/partition changes.
     SELECT COALESCE(to_jsonb(array_agg(g ORDER BY ord)), '[]'::jsonb)
       FROM (
           SELECT g, ord
             FROM profile.discord_bootstrap_cache AS c,
                  LATERAL unnest(c.owned_guilds) WITH ORDINALITY AS e(g, ord)
-           WHERE c.user_id      = p_user_id
+           WHERE p_user_id      IS NOT NULL
+             AND c.user_id      = p_user_id
              AND c.refreshed_at <= p_now + interval '30 seconds'
              AND c.refreshed_at >= p_now - interval '7 days'
              AND g IS NOT NULL
@@ -430,6 +449,10 @@ BEGIN
     IF NOT has_schema_privilege('supabase_auth_admin', 'profile', 'USAGE') THEN
         RAISE EXCEPTION 'supabase_auth_admin must hold USAGE on schema profile.';
     END IF;
+    -- Round 9 #2: service_role schema USAGE for RPC + dashboard SELECT.
+    IF NOT has_schema_privilege('service_role', 'profile', 'USAGE') THEN
+        RAISE EXCEPTION 'service_role must hold USAGE on schema profile for bootstrap cache RPC access.';
+    END IF;
     IF NOT has_function_privilege('supabase_auth_admin', 'public.custom_access_token_hook(jsonb)', 'EXECUTE') THEN
         RAISE EXCEPTION 'supabase_auth_admin must hold EXECUTE on public.custom_access_token_hook(jsonb).';
     END IF;
@@ -481,6 +504,17 @@ BEGIN
     IF has_table_privilege('anon', 'profile.discord_bootstrap_cache', 'SELECT')
        OR has_table_privilege('authenticated', 'profile.discord_bootstrap_cache', 'SELECT') THEN
         RAISE EXCEPTION 'anon/authenticated must NOT have SELECT on profile.discord_bootstrap_cache.';
+    END IF;
+    -- Round 9 #3: defense-in-depth — also assert no direct DML by
+    -- anon or authenticated. REVOKE ALL on the table covers this;
+    -- the assertion catches future privilege drift.
+    IF has_table_privilege('anon',          'profile.discord_bootstrap_cache', 'INSERT')
+       OR has_table_privilege('anon',          'profile.discord_bootstrap_cache', 'UPDATE')
+       OR has_table_privilege('anon',          'profile.discord_bootstrap_cache', 'DELETE')
+       OR has_table_privilege('authenticated', 'profile.discord_bootstrap_cache', 'INSERT')
+       OR has_table_privilege('authenticated', 'profile.discord_bootstrap_cache', 'UPDATE')
+       OR has_table_privilege('authenticated', 'profile.discord_bootstrap_cache', 'DELETE') THEN
+        RAISE EXCEPTION 'anon/authenticated must NOT have direct DML on profile.discord_bootstrap_cache.';
     END IF;
     -- Round 6 #9: RPC owner must be postgres for stable
     -- SECURITY DEFINER behaviour.
@@ -584,6 +618,11 @@ BEGIN
     v_out := public.custom_access_token_hook(NULL);
     IF jsonb_typeof(v_out) <> 'object' THEN
         RAISE EXCEPTION 'smoke 6: NULL event must coerce to object, got %', v_out;
+    END IF;
+    -- Round 9 #5: also assert claims shape on NULL event for
+    -- symmetry with the scalar-event check above.
+    IF jsonb_typeof(v_out->'claims') <> 'object' THEN
+        RAISE EXCEPTION 'smoke 6: claims must be object after NULL coerce, got %', v_out;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
