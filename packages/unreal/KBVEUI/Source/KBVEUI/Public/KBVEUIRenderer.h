@@ -3,9 +3,9 @@
 #include "CoreMinimal.h"
 #include "Rendering/DrawElements.h"
 
-namespace chuckHUDRenderer
+namespace KBVEUI
 {
-	void DrawBar(
+	KBVEUI_API void DrawBar(
 		FSlateWindowElementList& Out,
 		const FGeometry& Geometry,
 		int32 LayerId,
@@ -15,7 +15,7 @@ namespace chuckHUDRenderer
 		const FLinearColor& FillColor,
 		const FLinearColor& BackgroundColor);
 
-	void DrawSlantedBar(
+	KBVEUI_API void DrawSlantedBar(
 		FSlateWindowElementList& Out,
 		const FGeometry& Geometry,
 		int32 LayerId,
@@ -26,7 +26,7 @@ namespace chuckHUDRenderer
 		const FLinearColor& FillColor,
 		const FLinearColor& BackgroundColor);
 
-	void DrawText(
+	KBVEUI_API void DrawText(
 		FSlateWindowElementList& Out,
 		const FGeometry& Geometry,
 		int32 LayerId,

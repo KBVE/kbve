@@ -1,129 +1,120 @@
 #include "SchuckInventorySlot.h"
 
-#include "ChuckUIStyle.h"
 #include "chuckCoreCharacter.h"
-#include "chuckHUDRenderer.h"
 #include "chuckInventory.h"
 #include "chuckItemDB.h"
 #include "chuckItemTypes.h"
 #include "Engine/GameInstance.h"
-#include "Engine/World.h"
-#include "Styling/CoreStyle.h"
+#include "Rendering/DrawElements.h"
+#include "SKBVESlotWidget.h"
 
 void SchuckInventorySlot::Construct(const FArguments& InArgs)
 {
-	Character  = InArgs._OwningCharacter;
-	SlotIndex  = InArgs._SlotIndex;
-	SlotSize   = InArgs._SlotSize;
-	bIsHotbar  = InArgs._bIsHotbar;
+	Character    = InArgs._OwningCharacter;
+	SlotIndex    = InArgs._SlotIndex;
+	SlotSize     = InArgs._SlotSize;
+	bIsHotbar    = InArgs._bIsHotbar;
+	SelectedKey  = InArgs._SelectedKey;
 
-	SetCanTick(false);
+	ChildSlot
+	[
+		SNew(SKBVESlotWidget)
+		.SlotSize(SlotSize)
+		.OnIsFilled(FOnKBVESlotIsFilled::CreateSP(this, &SchuckInventorySlot::OnIsFilled))
+		.OnGetBorderColor(FOnKBVESlotBorderColor::CreateSP(this, &SchuckInventorySlot::OnGetBorderColor))
+		.OnGetCount(FOnKBVESlotCount::CreateSP(this, &SchuckInventorySlot::OnGetCount))
+		.OnPaintIcon(FOnKBVESlotPaintIcon::CreateSP(this, &SchuckInventorySlot::OnPaintIcon))
+		.OnClicked(FOnKBVESlotClicked::CreateSP(this, &SchuckInventorySlot::OnClicked))
+	];
 }
 
-FVector2D SchuckInventorySlot::ComputeDesiredSize(float) const
+const FchuckInventoryStack* SchuckInventorySlot::GetStack() const
 {
-	return FVector2D(SlotSize, SlotSize);
-}
-
-int32 SchuckInventorySlot::OnPaint(
-	const FPaintArgs& Args,
-	const FGeometry& AllottedGeometry,
-	const FSlateRect& MyCullingRect,
-	FSlateWindowElementList& OutDrawElements,
-	int32 LayerId,
-	const FWidgetStyle& InWidgetStyle,
-	bool bParentEnabled) const
-{
-	const FVector2D Size = AllottedGeometry.GetLocalSize();
-
-	const FLinearColor BgEmpty (0.08f, 0.10f, 0.13f, 0.18f);
-	const FLinearColor BgFilled(0.10f, 0.10f, 0.12f, 0.92f);
-	const FLinearColor BorderEmpty(0.85f, 0.90f, 1.00f, 0.22f);
-	const FLinearColor HighlightEmpty(1.00f, 1.00f, 1.00f, 0.06f);
-
-	const FchuckInventoryStack* Stack = nullptr;
-	const FchuckItemDef* Def = nullptr;
-
 	AchuckCoreCharacter* C = Character.Get();
-	if (C)
+	if (!C) return nullptr;
+	const FchuckInventory& Inv = C->GetInventory();
+	const TArray<FchuckInventoryStack>& Slots = bIsHotbar ? Inv.Hotbar.Slots : Inv.DefaultBag.Slots;
+	return Slots.IsValidIndex(SlotIndex) ? &Slots[SlotIndex] : nullptr;
+}
+
+UchuckItemDB* SchuckInventorySlot::GetDB() const
+{
+	AchuckCoreCharacter* C = Character.Get();
+	if (!C) return nullptr;
+	UGameInstance* GI = C->GetGameInstance();
+	return GI ? GI->GetSubsystem<UchuckItemDB>() : nullptr;
+}
+
+const FchuckItemDef* SchuckInventorySlot::GetDef() const
+{
+	const FchuckInventoryStack* S = GetStack();
+	if (!S || S->IsEmpty()) return nullptr;
+	UchuckItemDB* DB = GetDB();
+	return DB ? DB->LookupByKey(S->ItemKey) : nullptr;
+}
+
+bool SchuckInventorySlot::OnIsFilled() const
+{
+	const FchuckInventoryStack* S = GetStack();
+	return S && !S->IsEmpty();
+}
+
+FLinearColor SchuckInventorySlot::OnGetBorderColor() const
+{
+	const FchuckItemDef* Def = GetDef();
+	return Def ? chuckItem::RarityColor(Def->Rarity) : FLinearColor::White;
+}
+
+int32 SchuckInventorySlot::OnGetCount() const
+{
+	const FchuckInventoryStack* S = GetStack();
+	return S ? S->Count : 0;
+}
+
+void SchuckInventorySlot::OnClicked()
+{
+	if (!SelectedKey.IsValid()) return;
+	const FchuckInventoryStack* S = GetStack();
+	*SelectedKey = (S && !S->IsEmpty()) ? S->ItemKey : 0;
+}
+
+void SchuckInventorySlot::OnPaintIcon(const FGeometry& Geom, FSlateWindowElementList& Out, int32 Layer, const FVector2D& InSlotSize)
+{
+	const FchuckItemDef* Def = GetDef();
+	UchuckItemDB* DB = GetDB();
+	if (!Def) return;
+
+	const bool bHasImage  = !Def->Img.IsEmpty();
+	const bool bDrawAtlas = bHasImage && DB && DB->HasAtlas() && DB->GetAtlasHandle().IsValid();
+	if (bDrawAtlas)
 	{
-		const FchuckInventory& Inv = C->GetInventory();
-		const TArray<FchuckInventoryStack>& Slots = bIsHotbar ? Inv.Hotbar.Slots : Inv.DefaultBag.Slots;
-		if (Slots.IsValidIndex(SlotIndex))
+		FVector2D UVTL, UVBR;
+		DB->GetIconUV(Def->Key, UVTL, UVBR);
+
+		const float Pad = 6.f;
+		const FVector2D P0(Pad,                Pad);
+		const FVector2D P1(InSlotSize.X - Pad, Pad);
+		const FVector2D P2(InSlotSize.X - Pad, InSlotSize.Y - Pad);
+		const FVector2D P3(Pad,                InSlotSize.Y - Pad);
+
+		auto AddV = [&](TArray<FSlateVertex>& V, const FVector2D& Local, const FVector2D& UV)
 		{
-			Stack = &Slots[SlotIndex];
-			if (!Stack->IsEmpty())
-			{
-				if (UGameInstance* GI = C->GetGameInstance())
-				{
-					if (UchuckItemDB* DB = GI->GetSubsystem<UchuckItemDB>())
-					{
-						Def = DB->LookupByKey(Stack->ItemKey);
-					}
-				}
-			}
-		}
+			FSlateVertex Vx;
+			Vx.Position = FVector2f(Geom.LocalToAbsolute(Local));
+			Vx.Color = FColor::White;
+			Vx.TexCoords[0] = UV.X; Vx.TexCoords[1] = UV.Y;
+			Vx.TexCoords[2] = 1.f;  Vx.TexCoords[3] = 1.f;
+			Vx.MaterialTexCoords = FVector2f::ZeroVector;
+			V.Add(Vx);
+		};
+
+		TArray<FSlateVertex> Verts; Verts.Reserve(4);
+		AddV(Verts, P0, UVTL);
+		AddV(Verts, P1, FVector2D(UVBR.X, UVTL.Y));
+		AddV(Verts, P2, UVBR);
+		AddV(Verts, P3, FVector2D(UVTL.X, UVBR.Y));
+		TArray<SlateIndex> Idx = { 0, 1, 2, 0, 2, 3 };
+
+		FSlateDrawElement::MakeCustomVerts(Out, Layer, DB->GetAtlasHandle(), Verts, Idx, nullptr, 0, 0);
 	}
-
-	const bool bFilled = Stack && !Stack->IsEmpty() && Def;
-	const FLinearColor Border = bFilled
-		? chuckItem::RarityColor(Def->Rarity)
-		: BorderEmpty;
-
-	const FSlateBrush* WhiteBrush = FCoreStyle::Get().GetBrush("WhiteBrush");
-
-	FSlateDrawElement::MakeBox(
-		OutDrawElements, LayerId,
-		AllottedGeometry.ToPaintGeometry(),
-		WhiteBrush, ESlateDrawEffect::None, Border);
-
-	const FVector2D Inset(2.f, 2.f);
-	FSlateDrawElement::MakeBox(
-		OutDrawElements, LayerId + 1,
-		AllottedGeometry.ToPaintGeometry(Size - Inset * 2.f, FSlateLayoutTransform(Inset)),
-		WhiteBrush, ESlateDrawEffect::None,
-		bFilled ? BgFilled : BgEmpty);
-
-	if (!bFilled)
-	{
-		const FVector2D HighlightSize(Size.X - Inset.X * 2.f, (Size.Y - Inset.Y * 2.f) * 0.45f);
-		FSlateDrawElement::MakeBox(
-			OutDrawElements, LayerId + 2,
-			AllottedGeometry.ToPaintGeometry(HighlightSize, FSlateLayoutTransform(Inset)),
-			WhiteBrush, ESlateDrawEffect::None, HighlightEmpty);
-	}
-
-	if (bFilled)
-	{
-		const FSlateFontInfo IconFont = FCoreStyle::GetDefaultFontStyle("Bold", 22);
-		const FSlateFontInfo CountFont = FCoreStyle::GetDefaultFontStyle("Bold", 12);
-
-		if (!Def->Emoji.IsEmpty())
-		{
-			chuckHUDRenderer::DrawText(
-				OutDrawElements, AllottedGeometry, LayerId + 2,
-				FVector2D(Size.X * 0.5f - 12.f, Size.Y * 0.5f - 16.f),
-				Def->Emoji, IconFont, FLinearColor::White);
-		}
-		else
-		{
-			const FSlateFontInfo RefFont = FCoreStyle::GetDefaultFontStyle("Regular", 9);
-			chuckHUDRenderer::DrawText(
-				OutDrawElements, AllottedGeometry, LayerId + 2,
-				FVector2D(4.f, Size.Y * 0.5f - 6.f),
-				Def->Ref.ToString().Left(8),
-				RefFont, FLinearColor(0.9f, 0.9f, 0.9f, 1.f));
-		}
-
-		if (Stack->Count > 1)
-		{
-			const FString CountText = FString::Printf(TEXT("%d"), Stack->Count);
-			chuckHUDRenderer::DrawText(
-				OutDrawElements, AllottedGeometry, LayerId + 3,
-				FVector2D(Size.X - 18.f, Size.Y - 14.f),
-				CountText, CountFont, FLinearColor::White);
-		}
-	}
-
-	return LayerId + 4;
 }

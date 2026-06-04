@@ -283,7 +283,9 @@ void AchuckCorePlayerController::OpenInventory()
 	UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
 	if (!Viewport) return;
 
-	InventoryWidget = SNew(SchuckInventoryWindow).OwningCharacter(Char);
+	InventoryWidget = SNew(SchuckInventoryWindow)
+		.OwningCharacter(Char)
+		.OnCloseClicked(FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::CloseInventory));
 	Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), InventoryWidget.ToSharedRef(), 12);
 
 	FInputModeGameAndUI Mode;

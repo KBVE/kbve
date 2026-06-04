@@ -29,9 +29,11 @@ public class chuck : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"Json",
 			"JsonUtilities",
+			"ImageWrapper",
 			"KBVEYYJson",
 			"KBVEXXHash",
-			"KBVEULID"
+			"KBVEULID",
+			"KBVEUI"
 		});
 
 		PublicIncludePaths.AddRange(new string[] {

@@ -23,6 +23,10 @@ FILES=(
 	"questdb-data.json"
 )
 
+# Atlas PNG lives next to the unity output (same codegen, different consumer).
+ATLAS_SRC="apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb-atlas.png"
+ATLAS_DST="$DST_DIR/itemdb-atlas.png"
+
 if [ ! -d "$SRC_DIR" ]; then
 	echo "error: $SRC_DIR not found. run from monorepo root." >&2
 	exit 1
@@ -49,6 +53,20 @@ for FILE in "${FILES[@]}"; do
 	echo "synced:  $FILE ($SIZE bytes)"
 	COPIED=$((COPIED + 1))
 done
+
+if [ -f "$ATLAS_SRC" ]; then
+	if [ -f "$ATLAS_DST" ] && cmp -s "$ATLAS_SRC" "$ATLAS_DST"; then
+		echo "unchanged: itemdb-atlas.png"
+	else
+		cp "$ATLAS_SRC" "$ATLAS_DST"
+		SIZE=$(wc -c <"$ATLAS_DST" | tr -d ' ')
+		echo "synced:  itemdb-atlas.png ($SIZE bytes)"
+		COPIED=$((COPIED + 1))
+	fi
+else
+	echo "skip:    itemdb-atlas.png (not present at $ATLAS_SRC)"
+	MISSING=$((MISSING + 1))
+fi
 
 echo ""
 echo "$COPIED file(s) updated, $MISSING missing in source"

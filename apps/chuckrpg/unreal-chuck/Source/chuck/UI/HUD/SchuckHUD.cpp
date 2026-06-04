@@ -1,7 +1,7 @@
 #include "SchuckHUD.h"
 
 #include "ChuckUIStyle.h"
-#include "chuckHUDRenderer.h"
+#include "KBVEUIRenderer.h"
 #include "Styling/CoreStyle.h"
 
 void SchuckHUD::Construct(const FArguments& InArgs)
@@ -128,13 +128,13 @@ int32 SchuckHUD::OnPaint(
 		FLinearColor RowFill = R.FillColor; RowFill.A *= R.RowAlpha;
 		FLinearColor RowBg   = R.BgColor;   RowBg.A   *= R.RowAlpha;
 
-		chuckHUDRenderer::DrawSlantedBar(
+		KBVEUI::DrawSlantedBar(
 			OutDrawElements, AllottedGeometry, LayerId + R.LayerStride,
 			BarPos, BarSize, Slant, R.Percent, RowFill, RowBg);
 
 		FLinearColor RowText = TextColor; RowText.A *= R.RowAlpha;
 		const FString Text = FString::Printf(TEXT("%s  %.0f/%.0f"), R.Label, R.Current, R.Max);
-		chuckHUDRenderer::DrawText(
+		KBVEUI::DrawText(
 			OutDrawElements, AllottedGeometry, LayerId + R.LayerStride + 2,
 			TextPos, Text, LabelFont, RowText);
 	}

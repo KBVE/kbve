@@ -70,6 +70,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "KBVEUI",
+			"Enabled": true
+		},
+		{
 			"Name": "KBVEROWS",
 			"Enabled": false
 		}

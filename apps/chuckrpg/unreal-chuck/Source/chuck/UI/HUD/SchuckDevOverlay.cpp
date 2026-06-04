@@ -1,7 +1,7 @@
 #include "SchuckDevOverlay.h"
 
 #include "ChuckUIStyle.h"
-#include "chuckHUDRenderer.h"
+#include "KBVEUIRenderer.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/PlayerState.h"
@@ -77,22 +77,22 @@ int32 SchuckDevOverlay::OnPaint(
 	const float LineH = Font.Size + 4.f;
 	const FVector2D TextOrigin = PanelPos + FVector2D(10.f, 6.f);
 
-	chuckHUDRenderer::DrawText(OutDrawElements, AllottedGeometry, LayerId + 1,
+	KBVEUI::DrawText(OutDrawElements, AllottedGeometry, LayerId + 1,
 		TextOrigin + FVector2D(0.f, LineH * 0.f),
 		FString::Printf(TEXT("FPS    %.1f"), SmoothedFPS),
 		Font, TextColor);
 
-	chuckHUDRenderer::DrawText(OutDrawElements, AllottedGeometry, LayerId + 1,
+	KBVEUI::DrawText(OutDrawElements, AllottedGeometry, LayerId + 1,
 		TextOrigin + FVector2D(0.f, LineH * 1.f),
 		FString::Printf(TEXT("ms     %.2f"), SmoothedMS),
 		Font, TextColor);
 
-	chuckHUDRenderer::DrawText(OutDrawElements, AllottedGeometry, LayerId + 1,
+	KBVEUI::DrawText(OutDrawElements, AllottedGeometry, LayerId + 1,
 		TextOrigin + FVector2D(0.f, LineH * 2.f),
 		FString::Printf(TEXT("entities  %d"), EntityCount),
 		Font, TextColor);
 
-	chuckHUDRenderer::DrawText(OutDrawElements, AllottedGeometry, LayerId + 1,
+	KBVEUI::DrawText(OutDrawElements, AllottedGeometry, LayerId + 1,
 		TextOrigin + FVector2D(0.f, LineH * 3.f),
 		FString::Printf(TEXT("ping   %d ms"), PingMs),
 		Font, TextColor);

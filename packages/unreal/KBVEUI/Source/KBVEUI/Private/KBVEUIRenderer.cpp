@@ -1,10 +1,10 @@
-#include "chuckHUDRenderer.h"
+#include "KBVEUIRenderer.h"
 
 #include "Framework/Application/SlateApplication.h"
 #include "Rendering/SlateRenderer.h"
 #include "Styling/CoreStyle.h"
 
-namespace chuckHUDRenderer
+namespace KBVEUI
 {
 	static void DrawSolidQuad(
 		FSlateWindowElementList& Out,
@@ -34,7 +34,6 @@ namespace chuckHUDRenderer
 		const FLinearColor& BackgroundColor)
 	{
 		const float Clamped = FMath::Clamp(Percent, 0.f, 1.f);
-
 		DrawSolidQuad(Out, Geometry, LayerId,     Pos, Size, BackgroundColor);
 		DrawSolidQuad(Out, Geometry, LayerId + 1, Pos, FVector2D(Size.X * Clamped, Size.Y), FillColor);
 	}
@@ -98,7 +97,7 @@ namespace chuckHUDRenderer
 				0);
 		};
 
-		MakeQuad(0.f, Size.X,    Slant,                                    LayerId,     BackgroundColor);
+		MakeQuad(0.f, Size.X, Slant, LayerId, BackgroundColor);
 		if (FillWidth > 0.5f)
 		{
 			const float FillSlant = FMath::Min(Slant, FillWidth * 0.5f);

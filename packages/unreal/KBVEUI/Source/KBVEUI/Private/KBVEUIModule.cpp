@@ -1,0 +1,3 @@
+#include "KBVEUI.h"
+
+IMPLEMENT_MODULE(FKBVEUIModule, KBVEUI)

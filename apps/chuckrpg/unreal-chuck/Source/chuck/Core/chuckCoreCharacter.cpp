@@ -450,13 +450,32 @@ void AchuckCoreCharacter::SeedStarterItems()
 	{
 		return;
 	}
+
+	auto AddItem = [this](const FchuckItemDef& Def)
+	{
+		const int32 Want = Def.bStackable ? FMath::Min(Def.MaxStack > 1 ? Def.MaxStack : 5, 8) : 1;
+		ServerAddItemByKey(Def.Key, Want);
+	};
+
 	int32 SlotsLeft = Inventory.DefaultBag.Capacity;
+	TSet<int32> Seeded;
+
 	for (const FchuckItemDef& Def : DB->GetAll())
 	{
 		if (SlotsLeft <= 0) break;
 		if (!Def.IsValid()) continue;
-		const int32 Want = Def.bStackable ? FMath::Min(Def.MaxStack > 1 ? Def.MaxStack : 5, 8) : 1;
-		ServerAddItemByKey(Def.Key, Want);
+		if (Def.Img.IsEmpty()) continue;
+		AddItem(Def);
+		Seeded.Add(Def.Key);
+		--SlotsLeft;
+	}
+
+	for (const FchuckItemDef& Def : DB->GetAll())
+	{
+		if (SlotsLeft <= 0) break;
+		if (!Def.IsValid()) continue;
+		if (Seeded.Contains(Def.Key)) continue;
+		AddItem(Def);
 		--SlotsLeft;
 	}
 }

@@ -24,6 +24,7 @@ struct FchuckItemDef
 	UPROPERTY() FString Name;
 	UPROPERTY() FString Description;
 	UPROPERTY() FString Emoji;
+	UPROPERTY() FString Img;
 	UPROPERTY() int32  TypeFlags = 0;
 	UPROPERTY() EchuckItemRarity Rarity = EchuckItemRarity::Common;
 	UPROPERTY() int32  MaxStack = 1;
@@ -31,7 +32,6 @@ struct FchuckItemDef
 	UPROPERTY() int32  BuyPrice = 0;
 	UPROPERTY() int32  SellPrice = 0;
 	UPROPERTY() bool   bConsumable = false;
-	UPROPERTY() FString ULID;
 
 	bool IsValid() const { return Key > 0 && !Ref.IsNone(); }
 };
