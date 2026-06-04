@@ -36,8 +36,10 @@ int32 SchuckInventorySlot::OnPaint(
 {
 	const FVector2D Size = AllottedGeometry.GetLocalSize();
 
-	const FLinearColor BgEmpty(0.05f, 0.05f, 0.06f, 0.78f);
+	const FLinearColor BgEmpty (0.08f, 0.10f, 0.13f, 0.18f);
 	const FLinearColor BgFilled(0.10f, 0.10f, 0.12f, 0.92f);
+	const FLinearColor BorderEmpty(0.85f, 0.90f, 1.00f, 0.22f);
+	const FLinearColor HighlightEmpty(1.00f, 1.00f, 1.00f, 0.06f);
 
 	const FchuckInventoryStack* Stack = nullptr;
 	const FchuckItemDef* Def = nullptr;
@@ -66,7 +68,7 @@ int32 SchuckInventorySlot::OnPaint(
 	const bool bFilled = Stack && !Stack->IsEmpty() && Def;
 	const FLinearColor Border = bFilled
 		? chuckItem::RarityColor(Def->Rarity)
-		: FLinearColor(0.25f, 0.25f, 0.28f, 1.f);
+		: BorderEmpty;
 
 	const FSlateBrush* WhiteBrush = FCoreStyle::Get().GetBrush("WhiteBrush");
 
@@ -81,6 +83,15 @@ int32 SchuckInventorySlot::OnPaint(
 		AllottedGeometry.ToPaintGeometry(Size - Inset * 2.f, FSlateLayoutTransform(Inset)),
 		WhiteBrush, ESlateDrawEffect::None,
 		bFilled ? BgFilled : BgEmpty);
+
+	if (!bFilled)
+	{
+		const FVector2D HighlightSize(Size.X - Inset.X * 2.f, (Size.Y - Inset.Y * 2.f) * 0.45f);
+		FSlateDrawElement::MakeBox(
+			OutDrawElements, LayerId + 2,
+			AllottedGeometry.ToPaintGeometry(HighlightSize, FSlateLayoutTransform(Inset)),
+			WhiteBrush, ESlateDrawEffect::None, HighlightEmpty);
+	}
 
 	if (bFilled)
 	{

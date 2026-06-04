@@ -1,7 +1,9 @@
-#include "chuckULID.h"
+#include "KBVEULID.h"
 
 #include "Misc/DateTime.h"
 #include "Misc/Guid.h"
+
+IMPLEMENT_MODULE(FKBVEULIDModule, KBVEULID)
 
 namespace
 {
@@ -25,14 +27,14 @@ namespace
 	}
 }
 
-FchuckULID::FchuckULID()
+FKBVEUlid::FKBVEUlid()
 {
 	FMemory::Memzero(Bytes, sizeof(Bytes));
 }
 
-FchuckULID FchuckULID::New()
+FKBVEUlid FKBVEUlid::New()
 {
-	FchuckULID Id;
+	FKBVEUlid Id;
 	const uint64 Ms = UnixMillisecondsNow();
 
 	Id.Bytes[0] = (uint8)((Ms >> 40) & 0xFF);
@@ -46,7 +48,7 @@ FchuckULID FchuckULID::New()
 	return Id;
 }
 
-FString FchuckULID::ToString() const
+FString FKBVEUlid::ToString() const
 {
 	const uint8* D = Bytes;
 	TCHAR Buf[27];
@@ -84,10 +86,10 @@ FString FchuckULID::ToString() const
 	return FString(Buf);
 }
 
-namespace chuckULID
+namespace KBVEULID
 {
 	FString Generate()
 	{
-		return FchuckULID::New().ToString();
+		return FKBVEUlid::New().ToString();
 	}
 }

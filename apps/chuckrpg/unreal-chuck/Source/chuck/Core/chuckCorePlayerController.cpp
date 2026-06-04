@@ -268,6 +268,8 @@ void AchuckCorePlayerController::Tick(float DeltaSeconds)
 
 void AchuckCorePlayerController::OnInventoryPressed(const FInputActionValue& Value)
 {
+	UE_LOG(LogTemp, Display, TEXT("[chuck] Inventory key pressed (currently %s)"),
+		bInventoryOpen ? TEXT("open") : TEXT("closed"));
 	if (bInventoryOpen) CloseInventory();
 	else                OpenInventory();
 }

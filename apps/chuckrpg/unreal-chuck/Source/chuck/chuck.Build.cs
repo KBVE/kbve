@@ -30,7 +30,8 @@ public class chuck : ModuleRules
 			"Json",
 			"JsonUtilities",
 			"KBVEYYJson",
-			"KBVEXXHash"
+			"KBVEXXHash",
+			"KBVEULID"
 		});
 
 		PublicIncludePaths.AddRange(new string[] {

@@ -66,6 +66,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "KBVEULID",
+			"Enabled": true
+		},
+		{
 			"Name": "KBVEROWS",
 			"Enabled": false
 		}
