@@ -47,6 +47,7 @@ void UchuckInputs::Build()
 	DefaultIMC->MapKey(ToggleCamera,     EKeys::V);
 	DefaultIMC->MapKey(Pause,            EKeys::Escape);
 	DefaultIMC->MapKey(ToggleDevOverlay, EKeys::Tilde);
+	DefaultIMC->MapKey(Inventory,        EKeys::I);
 
 	{
 		FEnhancedActionKeyMapping& LookMap = DefaultIMC->MapKey(Look, EKeys::Mouse2D);
