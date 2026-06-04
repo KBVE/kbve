@@ -1,7 +1,8 @@
 ---
 title: Nmap
 description: |
-    Nmap is a network utility that performs as a scanner, mapper and discovery.
+    Nmap is a network scanner, port mapper, service fingerprinter and
+    NSE-driven security probe. Full cheatsheet with practical recipes.
 sidebar:
     label: Nmap
     order: 2000
@@ -12,37 +13,372 @@ tags:
     - security
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Aside, Steps, Card, CardGrid, Code, Tabs, TabItem } from '@astrojs/starlight/components';
 
 import { Giscus, Adsense } from '@/components/astropad';
 
 ## Information
 
--   Nmap / "Network Mapper" is an open source utility for scanning and analyzing networks within the environment; the application's primary function is for security probing and audits.
+Nmap ("Network Mapper") is an open-source utility for host discovery, port
+scanning, service detection, OS fingerprinting and scriptable probes via the
+Nmap Scripting Engine (NSE). It's the default tool in every pentest playbook
+and the first thing oncall reaches for when "is the firewall actually doing
+what we think."
+
+<Aside type="caution" title="Authorization first">
+	Scanning networks you don't own or have written permission to scan is
+	illegal in most jurisdictions. Stick to your own infrastructure, CTF
+	ranges (HackTheBox / TryHackMe), `scanme.nmap.org` (provided by the
+	Nmap project for testing), and engagements with a signed scope.
+</Aside>
 
 <Adsense />
 
-## Cheatsheet
+## Install
 
--   You can replace all instances of `{$ip_address}` or `127.0.0.1` with the IP address that you want to scan.
--   The total ports that will be scanned are from the range of `0` to `65535`.
--   Port `0` is not a specific binding port but rather a wild card port that tells the unix system to find and allocate the next available port.
+<Tabs>
+	<TabItem label="Debian / Ubuntu">
+		```shell
+		sudo apt update && sudo apt install -y nmap
+		```
+	</TabItem>
+	<TabItem label="Fedora / RHEL">
+		```shell
+		sudo dnf install -y nmap
+		```
+	</TabItem>
+	<TabItem label="Arch">
+		```shell
+		sudo pacman -S nmap
+		```
+	</TabItem>
+	<TabItem label="macOS">
+		```shell
+		brew install nmap
+		```
+	</TabItem>
+	<TabItem label="Windows">
+		```shell
+		# Official installer ships Nmap + Zenmap GUI + Ncat + Nping
+		winget install -e --id Insecure.Nmap
+		```
+	</TabItem>
+</Tabs>
 
--   Scan UDP / TCP and all ports.
+Confirm the version + NSE script database location:
 
-    -   ```shell
-        sudo nmap -sU -sT -p0-65535 {$ip_address}
-        ```
+```shell
+nmap --version
+nmap --script-help all | head
+```
 
--   Nmap Help
+## Target Specification
 
-    -   ```shell
-        sudo nmap -h
-        ```
+Across every command below, replace `TARGET` with one or more of:
+
+- A single host: `10.0.0.5` or `scanme.nmap.org`
+- A CIDR block: `10.0.0.0/24`
+- A range: `10.0.0.1-50` or `10.0.0,1,2.1-10`
+- A file of targets: `-iL targets.txt`
+- Exclusions: `--exclude 10.0.0.1` or `--excludefile skip.txt`
+
+```shell
+# Random 100 hosts on the public internet (research only).
+sudo nmap -sn -iR 100
+```
+
+## Host Discovery
+
+Find live hosts without doing a port scan first.
+
+| Flag | What it does |
+|------|--------------|
+| `-sn` | "ping scan" — host discovery, skip port scan |
+| `-Pn` | skip discovery, treat every host as up |
+| `-PE` | ICMP echo (requires root) |
+| `-PS22,80,443` | TCP SYN ping on listed ports |
+| `-PA22,80,443` | TCP ACK ping |
+| `-PU53,161` | UDP ping on listed ports |
+| `-PR` | ARP ping (LAN-only, fastest + most reliable on the local subnet) |
+| `-n` | skip reverse-DNS for every hit (a lot faster on /16+) |
+
+```shell
+# Ping sweep of a /24, no port scan, no DNS.
+sudo nmap -sn -n 10.0.0.0/24
+
+# ARP sweep on a local subnet — bypasses host firewall ICMP filters.
+sudo nmap -PR -sn 192.168.1.0/24
+
+# Assume the host is up (some hosts block all ICMP / TCP probes).
+sudo nmap -Pn TARGET
+```
+
+## Port Scanning
+
+The shape of the scan is what makes Nmap fast or slow.
+
+| Flag | Scan type | When to use |
+|------|-----------|-------------|
+| `-sS` | TCP SYN (half-open) | default, fast, root only |
+| `-sT` | TCP connect() | unprivileged or when SYN drops are noisy |
+| `-sU` | UDP | DNS / SNMP / NTP / VoIP gear |
+| `-sA` | TCP ACK | map firewall rule sets (stateful vs stateless) |
+| `-sN` `-sF` `-sX` | TCP Null / FIN / Xmas | bypass naïve stateless firewalls |
+| `-sY` | SCTP INIT | telecom / SS7 gear |
+
+Port specifications:
+
+```shell
+# Top 1000 TCP ports (default).
+sudo nmap TARGET
+
+# Top 100 — fastest useful pass.
+sudo nmap --top-ports 100 TARGET
+
+# Every TCP port.
+sudo nmap -p- TARGET
+
+# Specific ports / ranges / names.
+sudo nmap -p 22,80,443,1000-2000,http* TARGET
+
+# Both TCP and UDP, every port.
+sudo nmap -sU -sS -p0-65535 TARGET
+
+# Only show open ports in the output (great for diff'ing scans).
+sudo nmap --open TARGET
+```
+
+## Service & Version Detection
+
+```shell
+# -sV probes open ports and labels them with banner + version.
+sudo nmap -sV TARGET
+
+# Stack version detection with default NSE scripts and OS guess.
+sudo nmap -A TARGET            # = -sV -sC -O --traceroute
+
+# Tighter probe (faster, less accurate) vs aggressive (slower, more accurate).
+sudo nmap -sV --version-intensity 0 TARGET   # light banner only
+sudo nmap -sV --version-intensity 9 TARGET   # every probe
+sudo nmap -sV --version-all TARGET           # same as intensity 9
+```
+
+## OS Detection
+
+```shell
+# Active OS fingerprint (root only, needs at least one open + one closed port).
+sudo nmap -O TARGET
+
+# Be conservative — only print a guess when confidence is high.
+sudo nmap -O --osscan-limit TARGET
+
+# Guess aggressively (useful for filtered hosts).
+sudo nmap -O --osscan-guess TARGET
+```
+
+## NSE — Nmap Scripting Engine
+
+NSE scripts live in `/usr/share/nmap/scripts/` (Linux) or
+`/opt/homebrew/share/nmap/scripts/` (macOS, Apple Silicon). Categories:
+`auth`, `broadcast`, `brute`, `default`, `discovery`, `dos`, `exploit`,
+`external`, `fuzzer`, `intrusive`, `malware`, `safe`, `version`, `vuln`.
+
+```shell
+# Run all "default" scripts — same as the -sC in -A.
+sudo nmap -sC TARGET
+
+# Run every "safe" script.
+sudo nmap --script "safe" TARGET
+
+# All vuln-detection scripts.
+sudo nmap --script "vuln" TARGET
+
+# A specific script with arguments.
+sudo nmap --script http-title --script-args http.useragent="kbve-scanner" TARGET
+
+# Glob multiple categories, exclude one.
+sudo nmap --script "default,vuln and not intrusive" TARGET
+
+# Update the local script database (after every nmap upgrade).
+sudo nmap --script-updatedb
+
+# Show what a script does before running it.
+nmap --script-help http-shellshock
+```
+
+High-value recipes:
+
+```shell
+# SSL/TLS posture: cipher list, cert expiry, known weak suites.
+sudo nmap -sV --script ssl-enum-ciphers,ssl-cert,sslv2,ssl-poodle -p 443 TARGET
+
+# SMB share enumeration on a Windows host / file server.
+sudo nmap -p 139,445 --script "smb-enum-shares,smb-os-discovery,smb-vuln-*" TARGET
+
+# HTTP fingerprint pack — title, headers, common dirs, robots, CSP.
+sudo nmap -sV --script "http-title,http-headers,http-enum,http-robots.txt,http-security-headers" -p 80,443,8080,8443 TARGET
+
+# DNS recon — zone transfer, NSEC walk, brute subdomains.
+sudo nmap -sn --script "dns-zone-transfer,dns-nsec-enum,dns-brute" --script-args dns-brute.domain=example.com TARGET
+
+# Vulnerability sweep (noisy, run only on owned systems).
+sudo nmap -sV --script "vuln" TARGET
+```
+
+## Output & Reporting
+
+```shell
+# Normal stdout + grepable + XML in one go.
+sudo nmap -oA scan-baseline TARGET
+# produces scan-baseline.nmap, scan-baseline.gnmap, scan-baseline.xml
+
+# Save XML for ndiff or downstream tooling.
+sudo nmap -oX scan.xml TARGET
+
+# Live progress on a long scan.
+sudo nmap -v --stats-every 30s TARGET
+
+# Diff two scans (great for "what changed since last week").
+ndiff scan-baseline.xml scan-new.xml
+```
+
+Convert the XML to HTML for sharing:
+
+```shell
+xsltproc scan.xml -o scan.html
+```
+
+## Timing & Performance
+
+`-T0` (paranoid) through `-T5` (insane). Default is `-T3`.
+
+| Profile | Use |
+|---------|-----|
+| `-T0` | IDS evasion, hours-per-port |
+| `-T1` | sneaky, IDS evasion |
+| `-T2` | polite, low bandwidth |
+| `-T3` | normal (default) |
+| `-T4` | aggressive — assume a fast, reliable network |
+| `-T5` | insane — local LAN or willing-to-lose-accuracy |
+
+Tunables when `-T*` isn't precise enough:
+
+```shell
+sudo nmap \
+  --min-rate 1000 --max-rate 5000 \
+  --min-parallelism 64 --max-parallelism 256 \
+  --max-retries 2 \
+  --host-timeout 30m \
+  --max-rtt-timeout 200ms \
+  -T4 TARGET
+```
+
+## Firewall & IDS Evasion
+
+<Aside type="caution">
+	These flags exist because IDS engines like Snort / Suricata watch for
+	exactly this signature. Don't use them outside a sanctioned engagement.
+</Aside>
+
+```shell
+# Source-port spoof — many firewalls trust 53 / 80 / 443 outbound.
+sudo nmap --source-port 53 TARGET
+sudo nmap -g 53 TARGET
+
+# Fragmented packets — split TCP header across multiple IP fragments.
+sudo nmap -f TARGET
+sudo nmap --mtu 16 TARGET
+
+# Decoys — N decoy IPs appear to scan alongside your real one.
+sudo nmap -D 10.0.0.1,10.0.0.2,ME,10.0.0.4 TARGET
+
+# Proxy chain (limited support — works for TCP connect scans).
+sudo nmap --proxies socks4://127.0.0.1:9050 -sT TARGET
+
+# Randomize host order + spoof MAC vendor on the LAN.
+sudo nmap --randomize-hosts --spoof-mac Apple TARGET
+
+# Slow IDS-evasion scan (be patient).
+sudo nmap -T1 -sS -f --data-length 24 TARGET
+```
+
+## Common Recipes
+
+### Internal subnet inventory
+
+```shell
+# 1. Find live hosts.
+sudo nmap -sn -PR -oA inv-live 10.0.0.0/24
+
+# 2. Fast TCP top-1000 against live hosts only.
+grep "Status: Up" inv-live.gnmap | awk '{print $2}' > live-hosts.txt
+sudo nmap -sS --top-ports 1000 -iL live-hosts.txt -oA inv-tcp
+
+# 3. UDP focus on the usual suspects.
+sudo nmap -sU -p 53,67,68,69,123,137,138,161,162,500,514,520,1900,5353 -iL live-hosts.txt -oA inv-udp
+```
+
+### Web-server triage
+
+```shell
+sudo nmap -p 80,443,8080,8443,8000,8888,3000,5000,9000 \
+  -sV -sC \
+  --script "http-title,http-headers,http-methods,http-enum,http-security-headers,ssl-cert,ssl-enum-ciphers" \
+  -oA web-triage TARGET
+```
+
+### CTF / HackTheBox first contact
+
+```shell
+# Stage 1: every TCP port, fast, just to see what's open.
+sudo nmap -p- --min-rate 5000 -T4 -oN stage1.txt TARGET
+
+# Stage 2: focus on the open ports from stage 1.
+PORTS=$(grep ^[0-9] stage1.txt | cut -d/ -f1 | paste -sd,)
+sudo nmap -p "$PORTS" -sC -sV -O -oA stage2 TARGET
+```
+
+### Egress-firewall test from inside the network
+
+```shell
+# Which outbound ports actually reach the internet from this host?
+sudo nmap -Pn -sS -p- --min-rate 1000 scanme.nmap.org
+```
+
+### Continuous monitoring (cron + ndiff)
+
+```shell
+# Save a daily baseline, alert on drift.
+sudo nmap -sS --top-ports 1000 -oX /var/log/nmap/$(date +%F).xml 10.0.0.0/24
+ndiff /var/log/nmap/yesterday.xml /var/log/nmap/$(date +%F).xml | tee /var/log/nmap/diff-$(date +%F).txt
+```
+
+## Quick Reference
+
+```shell
+nmap -h                              # built-in help
+sudo nmap -sn 10.0.0.0/24            # who's up
+sudo nmap -p- TARGET                 # every TCP port
+sudo nmap -sU TARGET                 # UDP
+sudo nmap -sV -sC -O TARGET          # service + default NSE + OS
+sudo nmap -A TARGET                  # aggressive (= -sV -sC -O --traceroute)
+sudo nmap --script vuln TARGET       # known-CVE checks
+sudo nmap -oA scan TARGET            # save all formats
+sudo nmap -T4 --min-rate 1000 TARGET # fast pass
+```
+
+## Related Companions
+
+- **Ncat** ships with Nmap — TCP/UDP swiss army knife, replaces `nc`.
+  ```shell
+  ncat -lvnp 4444                  # listen on TCP/4444
+  ncat --ssl example.com 443       # TLS client
+  ```
+- **Nping** — packet crafter, for ad-hoc ICMP/TCP/UDP/ARP probes.
+  ```shell
+  sudo nping --tcp -p 443 --flags syn -c 5 TARGET
+  ```
+- **Ndiff** — compare two XML scans (already shown under Output).
+- **Zenmap** — official GUI; useful for first-time users + saved scan profiles.
+
+<Giscus />
