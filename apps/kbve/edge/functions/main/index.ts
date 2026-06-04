@@ -160,6 +160,7 @@ serve(async (req: Request) => {
   const FUNCTION_ENV: Record<string, string[]> = {
     discordsh: ["HCAPTCHA_SECRET"],
     argo: ["ARGOCD_UPSTREAM_URL", "ARGOCD_AUTH_TOKEN"],
+    "discord-bootstrap": [],
     "guild-vault": [],
     "user-vault": [],
     "vault-reader": [],
