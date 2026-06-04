@@ -1,6 +1,6 @@
 ---
 title: Raging echoes rug | OSRS Price Data
-description: "Raging echoes rug: An opulent rug dyed with the colours of the Raging Echoes league.. High alch: 300 GP."
+description: "Raging echoes rug is a members construction material from Leagues V. High alch: 300 GP."
 osrs:
   id: 30554
   name: Raging echoes rug
@@ -12,9 +12,90 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: null
-  about: "Raging echoes rug is a members-only item in Old School RuneScape. High alchemy value: 300 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: construction
+    tier: mid
+  equipment:
+    slot: null
+    weight: null
+    attack_speed: null
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: construction
+      level: 73
+      xp: 0
+      materials:
+        - item_name: Raging echoes rug
+          quantity: 1
+        - item_name: Bolt of cloth
+          quantity: 4
+      output_quantity: 1
+      notes: "Build a Raging echoes rug furniture in the player-owned house dining room."
+  related_items:
+    - item_name: Raging echoes curtains
+      slug: raging-echoes-curtains
+      relationship: set-piece
+      description: Matching Leagues V house decoration.
+    - item_name: Raging echoes portal frame
+      slug: raging-echoes-portal-frame
+      relationship: set-piece
+      description: Matching Leagues V portal decoration.
+    - item_name: Trailblazer reloaded rug
+      slug: trailblazer-reloaded-rug
+      relationship: alternative
+      description: Equivalent rug from a prior League.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Supply tied to one-off Leagues V reward shop cashouts."
+      - "Prestige construction cosmetic with niche collector demand."
+      - "Price floor near base value of 500 GP after rename."
+  trading_tips:
+    - Watch league anniversary spikes when collectors restock houses.
+    - "Cosmetic-only item: factor zero gameplay utility into resale."
+    - Keep one for personal POH before flipping the rest.
+  about: Raging echoes rug is a members-only cosmetic construction material from Leagues V, used to decorate a player-owned house with the Raging Echoes league colours.
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  properties:
+    release_date: "2024-11-27"
+    update: "Leagues V: Raging Echoes"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: Drop
+  history:
+    - date: "2024-11-27"
+      update: "Leagues V: Raging Echoes"
+      description: Raging echoes rug released with the Leagues V update.
+    - date: "2025-01-15"
+      update: Game Update
+      description: "Item became obtainable, renamed from nexus rug, and value decreased from 25,000 to 500 coins."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

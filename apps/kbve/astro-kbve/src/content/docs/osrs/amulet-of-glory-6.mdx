@@ -12,94 +12,111 @@ osrs:
   lowalch: 7050
   highalch: 10575
   limit: 10000
-  equipment:
-    slot: neck
-    type: teleport amulet
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: dragonstone
+    tier: high
+  properties:
+    release_date: "2002-02-27"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
     weight: 0.01
-    requirements:
-      magic: 68
-    stats:
-      attack_stab: 10
-      attack_slash: 10
-      attack_crush: 10
-      attack_magic: 10
-      attack_ranged: 10
-      defence_stab: 3
-      defence_slash: 3
-      defence_crush: 3
-      defence_magic: 3
-      defence_ranged: 3
-      strength: 6
-      prayer: 3
-  teleport:
-    charges: 4
-    recharge_locations:
-      - name: Heroes' Guild
-        charges: 4
-      - name: Fountain of Rune
-        charges: 6
-    destinations:
+    options:
+      - Rub
+      - Wear
+      - Drop
+    worn_options:
+      - Rub
       - Edgeville
       - Karamja
       - Draynor Village
       - Al Kharid
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: neck
+    weapon_type: null
+    attack_speed: null
+    weight: 0.01
+    requirements:
+      magic: 68
+    attack_bonus:
+      stab: 10
+      slash: 10
+      crush: 10
+      magic: 10
+      ranged: 10
+    defence_bonus:
+      stab: 3
+      slash: 3
+      crush: 3
+      magic: 3
+      ranged: 3
+    other_bonus:
+      strength: 6
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 3
+  recipes:
+    - skill: magic
+      level: 68
+      xp: 78
+      materials:
+        - item_name: Dragonstone amulet
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Water rune
+          quantity: 15
+        - item_name: Earth rune
+          quantity: 15
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Gem drop boost
+      description: "While charged, increases gem table odds from 1/256 to 1/86 when mining"
+    - name: Teleport charges
+      description: "Holds 4 charges (6 from Fountain of Rune) to Edgeville, Karamja, Draynor Village, or Al Kharid"
   related_items:
-    - item_id: 19707
-      item_name: Amulet of eternal glory
+    - item_name: Amulet of eternal glory
       slug: amulet-of-eternal-glory
       relationship: upgrade
-      description: Unlimited charges version
-    - item_id: 6585
-      item_name: Amulet of fury
+      description: "Unlimited charges version of the glory"
+    - item_name: Amulet of fury
       slug: amulet-of-fury
       relationship: upgrade
-      description: Higher stats upgrade
-    - item_id: 10362
-      item_name: Glory (t)
-      slug: glory-t
-      relationship: alternative
-      description: Trimmed cosmetic variant
+      description: "Higher combat stat amulet upgrade"
+    - item_name: Amulet of glory (t)
+      slug: amulet-of-glory-t
+      relationship: variant
+      description: "Trimmed cosmetic clue reward variant"
+    - item_name: Dragonstone amulet
+      slug: dragonstone-amulet
+      relationship: component
+      description: "Base amulet enchanted to create the glory"
   about: |-
-    Lvl-5 Enchant on Dragonstone amulet.
-
-    | Runes Required |
-    |----------------|
-    | 1 Cosmic |
-    | 15 Water |
-    | 15 Earth |
-
-    | Offence | Bonus |
-    |---------|-------|
-    | Stab | +10 |
-    | Slash | +10 |
-    | Crush | +10 |
-    | Magic | +10 |
-    | Ranged | +10 |
-    | Strength | +6 |
-    | Prayer | +3 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Stab | +3 |
-    | Slash | +3 |
-    | Crush | +3 |
-    | Magic | +3 |
-    | Ranged | +3 |
-
-    | Destination |
-    |-------------|
-    | Edgeville |
-    | Karamja |
-    | Draynor Village |
-    | Al Kharid |
-
-    | Method | Charges |
-    |--------|---------|
-    | Heroes' Guild | 4 |
-    | Fountain of Rune | 6 |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Amulet of glory(6) is a fully charged dragonstone amulet enchanted via Level-5 Enchant at 68 Magic. It offers strong all-round combat bonuses, four daily teleport destinations, and a passive gem drop rate boost while mining. Tradeable only at 0, 4, or 6 charges.
+  market_strategy:
+    notes:
+      - "Top-tier all-round neck amulet for mid-level PvM"
+      - "Six charges from Fountain of Rune in Wilderness for extra value"
+      - "Gem drop boost while charged is huge for slayer"
+      - "Tradeable at 0, 4, or 6 charges only"
+  trading_tips:
+    - "Arbitrage between (0), (4), and (6) charge versions"
+    - "Recharge at Fountain of Rune for free 2 extra charges"
+    - "Buy uncharged dragonstone amulets, enchant, and resell"
+  history:
+    - date: "2002-02-27"
+      description: "Amulet of glory added with the dragonstone update"
+    - date: "2007-12-04"
+      description: "Fountain of Rune added providing 6-charge recharges"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

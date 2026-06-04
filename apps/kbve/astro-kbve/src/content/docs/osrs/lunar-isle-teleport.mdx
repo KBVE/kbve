@@ -12,9 +12,70 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 10000
-  about: "Lunar isle teleport is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: tablet
+    tier: low
+  teleport:
+    destination: Lunar Isle (outside the Astral Altar)
+    type: tablet
+    quest_requirement: Lunar Diplomacy (to use destination)
+  recipes:
+    - skill: magic
+      level: 69
+      xp: 70
+      facility: Lectern
+      spellbook: Lunar
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Astral rune
+          quantity: 2
+        - item_name: Earth rune
+          quantity: 2
+        - item_name: Law rune
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Astral rune
+      slug: astral-rune
+      relationship: component
+      description: Lunar spellbook rune used in tablet creation
+    - item_name: Moonclan teleport
+      slug: moonclan-teleport
+      relationship: alternative
+      description: Alternative Lunar tablet that lands inside the Moonclan settlement
+  about: "Lunar isle teleport is a Lunar spellbook tablet that teleports the user to Lunar Isle outside the Astral Altar. Creation requires 69 Magic on a House lectern and completion of the Lunar Diplomacy quest to use the destination."
+  market_strategy:
+    notes:
+      - "Steady demand from Astral runecrafters"
+      - "Soft clay supply caps daily tablet production"
+      - "Lower alch value means flipping margin is thin"
+  trading_tips:
+    - "Volume tracks the Lunar Diplomacy completion rate and Astral RC popularity"
+    - "Stock when soft clay prices dip to capture margin"
+  history:
+    - date: "2006-07-05"
+      description: "Lunar isle teleport tablet introduced alongside the Lunar spellbook expansion."
+  properties:
+    release_date: "2006-07-05"
+    update: Lunar Diplomacy
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    quest: Lunar Diplomacy
+    weight: 0
+    options:
+      - Break
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

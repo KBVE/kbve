@@ -12,9 +12,75 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Jug is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: pottery
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 1
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 7
+      xp: 25
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+      tools:
+        - Potter's wheel
+        - Pottery oven
+      output_quantity: 1
+  shops:
+    - shop_name: Ardougne general store
+      location: East Ardougne
+      price: 1
+      stock: 5
+    - shop_name: Lumbridge general store
+      location: Lumbridge
+      price: 1
+      stock: 2
+  related_items:
+    - item_name: Jug of water
+      slug: jug-of-water
+      relationship: product
+      description: Filled at a water source for cooking and Herblore.
+    - item_name: Jug of wine
+      slug: jug-of-wine
+      relationship: product
+      description: Made by adding grapes to a jug of water.
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Crafted on the potter's wheel into an unfired jug.
+    - item_name: Bowl
+      slug: bowl
+      relationship: alternative
+      description: Similar low-level pottery item used in Cooking.
+  about: "The jug is a free-to-play pottery container crafted at 7 Crafting from soft clay using a potter's wheel and pottery oven. It can be filled at any water source to create a jug of water, then combined with grapes for jug of wine, making it a staple supply item for Cooking, Herblore, and quest recipes."
+  market_strategy:
+    notes:
+      - "Sits at alch floor of 1 gp; profitability is marginal even in bulk"
+      - "Demand driven by Cooking and Herblore training restock cycles"
+      - "Crafting and shop runs flood supply at predictable cadence"
+  trading_tips:
+    - "Bulk buy from general stores beats GE flip for ironman supply runs"
+    - "Watch low-level Crafting events for short demand spikes"
+  history:
+    - date: "2001-01-04"
+      description: "Released with the initial RuneScape Cooking and Crafting systems."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

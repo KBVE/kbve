@@ -12,9 +12,67 @@ osrs:
   lowalch: 320000
   highalch: 480000
   limit: 8
-  about: "Voidwaker hilt is a members-only item in Old School RuneScape. High alchemy value: 480,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: component
+    tier: high
+  properties:
+    release_date: "2023-01-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    weight: 0.514
+    quest_item: false
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  drop_table:
+    sources:
+      - source: Callisto
+        combat_level: 470
+        quantity: "1"
+        rarity: 1/360
+        members: true
+      - source: Artio
+        combat_level: 320
+        quantity: "1"
+        rarity: 1/912
+        members: true
+  related_items:
+    - item_id: 27683
+      item_name: Voidwaker blade
+      slug: voidwaker-blade
+      relationship: set-piece
+      description: Blade component combined with hilt and gem
+    - item_id: 27685
+      item_name: Voidwaker gem
+      slug: voidwaker-gem
+      relationship: set-piece
+      description: Gem component combined with hilt and blade
+    - item_id: 27690
+      item_name: Voidwaker
+      slug: voidwaker
+      relationship: upgrade
+      description: Completed weapon assembled by Madam Sikaro for 500,000 coins
+  market_strategy:
+    notes:
+      - "Wilderness boss drop affects supply"
+      - "One of three Voidwaker components in high demand"
+      - "Completed Voidwaker drives consistent component demand"
+      - "GE limit of 8 makes large flips slow"
+  trading_tips:
+    - "Buy strategy: track Callisto and Artio activity for supply swings"
+    - "Pricing: hilt typically tracks blade and gem prices closely"
+    - "Risk: Wilderness PvP updates can shift supply rapidly"
+  history:
+    - date: "2023-01-25"
+      description: "Release: introduced as a drop from Callisto and Artio in the Wilderness Boss Rework"
+    - date: "2023-02-02"
+      description: "Update: changed so the hilt no longer converts to coins upon death in the Wilderness"
+  about: "Voidwaker hilt is a members-only Wilderness boss drop in Old School RuneScape. Combined with the Voidwaker blade and Voidwaker gem at Madam Sikaro in Ferox Enclave Dungeon for 500,000 coins to assemble the completed Voidwaker. High alchemy value: 480,000 coins. Grand Exchange buy limit: 8 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

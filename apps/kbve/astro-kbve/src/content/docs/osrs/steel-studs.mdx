@@ -12,9 +12,66 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 13000
-  about: "Steel studs is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: steel
+    tier: low
+  properties:
+    release_date: "2002-09-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 36
+      xp: 37.5
+      materials:
+        - item_name: Steel bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  related_items:
+    - item_name: Studded body
+      slug: studded-body
+      relationship: product
+      description: Created by adding steel studs to a leather body.
+    - item_name: Studded chaps
+      slug: studded-chaps
+      relationship: product
+      description: Created by adding steel studs to leather chaps.
+    - item_name: Steel bar
+      slug: steel-bar
+      relationship: component
+      description: Smithed at level 36 Smithing to produce steel studs.
+    - item_name: Leather body
+      slug: leather-body
+      relationship: alternative
+      description: Base leather body upgraded with steel studs.
+  about: "Steel studs are a Crafting material smithed from a steel bar at 36 Smithing, used at 41 Crafting to upgrade leather body and leather chaps into studded variants. The combine grants 40 Crafting XP and is a common low-level Crafting training method for members."
+  market_strategy:
+    notes:
+      - "Demand driven by low-level Crafting trainers and ironmen alt restocking"
+      - "Steel bar price floor sets the effective cost of studs"
+      - "Buy limit of 13,000 supports large smith-and-flip runs"
+  trading_tips:
+    - "Margin tracks steel bar price; flip when bars dip"
+    - "Stockpile when Crafting events boost low-level training demand"
+  history:
+    - date: "2002-09-04"
+      description: "Released alongside studded leather equipment."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -26,35 +26,27 @@ import AstroWebmasterTool from '@/components/webmaster/AstroWebmasterTool.astro'
 
 <Aside>
 
-This webmaster tool streamlines critical operations to optimize your website’s performance and search engine visibility.
-With features like running PageSpeed tests, checking Google, Bing, and Yahoo search indexes, and assessing backlinks through Ahrefs, it ensures comprehensive oversight and enhancement of your site’s digital footprint.
-
-Utilize this tool to keep your website finely tuned and ahead in the competitive online landscape.
+Drop a domain in the box and one-click into Google Search Console, Bing Webmaster, PageSpeed, SSL Labs, Wayback, and a few dozen other audits.
+Recent domains are remembered locally — no account, no tracking, no server round-trip.
 
 </Aside>
 
 ## Webmaster
 
-A webmaster, often seen as the architect of online success, plays a pivotal role in navigating the complex web of digital landscapes.
-In today's digital era, where the online presence of a business can make or break its success, a skilled webmaster becomes indispensable.
-Their expertise spans from the meticulous art of SEO to the dynamic strategies of digital marketing, ensuring that a website not only reaches its target audience but also captivates them.
-By optimizing site architecture, enhancing user experience, and deploying cutting-edge marketing tactics, a webmaster crafts an online space that is both visible and effective, making them a crucial asset in any digital arsenal.
+"Webmaster" is the catch-all for whoever keeps a site online, fast, and discoverable.
+On a small team that's one person juggling DNS, deploys, SEO, and the inevitable 2 AM incident.
+On a larger team it splits across SRE, marketing, and platform engineering — but the checklist below is what someone has to own end-to-end.
 
 ## Website Management
 
-Website management is the comprehensive process of maintaining and updating a website to ensure it remains relevant, functional, and secure.
-This involves a broad spectrum of activities, from updating content and ensuring that all links and functionalities work correctly to monitoring server performance and implementing security protocols to safeguard against potential threats.
-Effective website management also includes regular backups to prevent data loss, optimization for speed and efficiency, and the adaptation of the site to meet evolving SEO standards and user expectations.
-By meticulously overseeing these elements, webmasters can enhance user experience, increase site reliability, and maintain a professional and engaging online presence.
+Site management is the boring-but-load-bearing work: deploys don't break, links don't 404, certs don't expire, backups actually restore, and someone notices when traffic drops.
+The tools below are the ones we keep coming back to — most are free, all are linkable straight from the box above.
 
 ### Page Speed
 
-Page speed is a critical factor in both user experience and search engine optimization (SEO).
-It refers to the time it takes for a webpage to load and become fully interactive for a user.
-Faster pages lead to higher engagement, retention, and conversions, as visitors are less likely to abandon a site that loads quickly.
-Moreover, search engines like Google consider page speed as a ranking factor, meaning faster sites are more likely to appear higher in search results.
-To optimize page speed, webmasters employ various strategies such as minimizing HTTP requests, optimizing file sizes, utilizing content delivery networks (CDNs), and leveraging browser caching.
-Improving page speed not only enhances user satisfaction but also supports a site’s SEO efforts, making it a vital aspect of website management.
+Time-to-interactive is the metric Google cares about and the one users feel.
+Aim for **LCP under 2.5 s**, **CLS under 0.1**, and **INP under 200 ms** on a mid-tier Android over 4G — that's the Core Web Vitals "good" threshold, and the only one Search Console grades you on.
+Most slow pages are slow for one of three reasons: too much JavaScript, unoptimized images, or render-blocking third-party scripts (ads, analytics, A/B testing). Fix those first; the rest is rounding.
 
 #### PageSpeed CheckList
 
@@ -129,17 +121,15 @@ Additionally, experiment with the network "throttling" feature to simulate how y
 
 ## SEO
 
-Search Engine Optimization (SEO) is a fundamental aspect of web management that enhances a website's visibility and ranking on search engines like Google, Bing, and Yahoo.
-By employing strategic keyword research, optimizing website content, and building quality backlinks, SEO helps ensure that a site appears more prominently in search engine results pages (SERPs).
-This process involves both on-page techniques, such as content creation and meta-tag optimization, and off-page methods like link building and social media engagement. Effective SEO not only drives more organic traffic to a website but also improves user engagement and conversion rates, making it a critical component of any digital marketing strategy.
+Two-thirds of SEO is "don't shoot yourself in the foot": correct canonicals, no accidental `noindex`, fast pages, real content, and internal links that actually go somewhere.
+The other third is the work — keyword research, building backlinks worth having, and producing pages a human would actually want to read.
+Skip the spammy tricks; Google's spam team has gotten very good at finding them and the penalties are slow to lift.
 
 ### HTML Elements
 
-Important HTML elements play a crucial role in optimizing a website for search engines, directly impacting how effectively a site shows up in search results.
-Elements such as title tags, meta descriptions, and header tags (H1, H2, etc.) are essential for SEO because they communicate to search engines the content and relevance of a webpage.
-Proper use of these tags helps improve visibility and click-through rates from search engine result pages (SERPs).
-Additionally, implementing structured data using schema markup enhances the way search engines understand and display the content of your site, potentially leading to rich snippets that stand out in search results.
-Ensuring these HTML elements are well-optimized is fundamental for any effective SEO strategy, as they help define the site's content hierarchy and relevance to specific search queries.
+Title, meta description, H1, alt text, canonical, and structured data — these six things cover most of the on-page SEO that matters.
+Get them right per page and the search engines have everything they need to rank you fairly.
+Below are the patterns we ship in production.
 
 #### Title Tag
 
@@ -429,13 +419,9 @@ Important considerations include color scheme, font choice, and element placemen
 
 ## Marketing
 
-In today’s digital landscape, effective marketing proves essential for generating traffic, engaging with users, and enhancing conversion rates.
-Webmasters at KBVE should prioritize the integration of comprehensive marketing strategies that resonate with the overarching business goals while expanding the website's digital presence.
-Implementing a diverse array of tactics, including search engine optimization (SEO), content marketing, active social media engagement, targeted email campaigns, and strategic paid advertising, forms a holistic approach.
-This approach aims to captivate the appropriate audience precisely when they are most receptive.
-Webmasters need to meticulously measure and fine-tune each marketing tactic using insights derived from data analytics.
-Crafting engaging content, harnessing the power of analytics, and keeping abreast of the latest digital marketing trends empowers webmasters to enhance the website's visibility.
-Such efforts cultivate a robust connection with the audience, propelling the website's success in highly competitive digital arenas.
+The honest version: organic search is slow but compounds, paid search converts the people already looking for you, content marketing pays back over months not days, and social mostly drives brand recall, not clicks.
+Pick two channels, measure them properly (UTM tags + a single analytics tool, not five), and iterate.
+Most "growth hacks" are either dead, banned, or never worked at scale — focus on a useful product and predictable distribution.
 
 ---
 
@@ -781,7 +767,19 @@ The structure of a Sitemap Index file includes a root tag `<sitemapindex>` and i
 
 ## Mobile
 
--   TODO
+Over half of traffic on most sites is mobile and Google indexes mobile-first — meaning your phone render is the canonical version, not the desktop one.
+Three things matter more than the rest:
+
+-   **Viewport meta tag.** `<meta name="viewport" content="width=device-width, initial-scale=1">` — without it iOS Safari renders at 980 px and shrinks. Single biggest mobile mistake.
+-   **Tap targets ≥ 44 × 44 px.** Lighthouse will warn if buttons are too small or too close together. Real fingers aren't pixel-precise.
+-   **Avoid 100vh.** iOS Safari counts 100vh including the URL bar, then the bar collapses and your layout jumps. Use `100dvh` (dynamic viewport) or `100svh` (small) — supported in all modern mobile browsers since 2022.
+
+Other gotchas worth knowing:
+
+-   `position: sticky` works on mobile but `backdrop-filter` needs `-webkit-backdrop-filter` for Safari ≤ 17.
+-   Regex lookbehind `(?<!…)` throws a SyntaxError on iOS Safari < 16.4 — if your JS bundle uses it, the whole module fails silently on older devices.
+-   `@media (hover: none)` is the right gate for hover effects; otherwise tapping leaves stuck `:hover` state.
+-   Test with real devices, not just dev-tools throttle. The latency model in Chrome's mobile emulation is generous.
 
 ---
 
@@ -823,34 +821,67 @@ Table representing the different types of structured data:
 
 ### Rich Snippets
 
--   TODO
+Rich snippets are the result of structured data done right: star ratings on product pages, recipe times in the SERP, FAQ accordions under your link, breadcrumbs replacing the URL.
+They lift CTR a few percentage points for free if the page genuinely has the underlying data.
+
+Practical rules:
+
+-   **JSON-LD is the only format Google fully supports.** Drop it in a `<script type="application/ld+json">` block in `<head>`. Don't mix it with microdata on the same property.
+-   **Mark up what the user sees.** Hidden schema describing content that isn't on the page is a manual-action risk.
+-   **Validate every page type once.** [validator.schema.org](https://validator.schema.org) catches mistakes the Search Console rich-results report won't show until the page is indexed.
+-   **Eligibility ≠ display.** Google decides per query whether to show the snippet. Don't chase visibility you can't control.
+
+The schema types worth implementing first: `Article` for posts, `Product` + `Offer` + `AggregateRating` for shop pages, `FAQPage` for support docs, `BreadcrumbList` everywhere, `Organization` + `WebSite` site-wide.
 
 ---
 
 ## Languages
 
--   TODO
+Most sites serve one audience well rather than ten audiences poorly.
+Don't translate unless you can keep translations fresh, hire native reviewers, and accept the operational cost (search consoles per language, hreflang upkeep, ToS in each jurisdiction).
+When you do translate: separate URL per language (`/en/`, `/es/`), `<html lang="...">` set per page, and `hreflang` tags in `<head>` so search engines pair them.
 
 ### Langcodes
 
-<Aside title="Note: Popular Langage Codes">
-	* en - English * es - Spanish * zh - Chinese * hi - Hindi * ja - Japanese
+Use BCP 47. Two-letter codes are usually enough; add region when it matters (`en-US` vs `en-GB`, `pt-BR` vs `pt-PT`).
+
+<Aside title="Common codes">
+- `en` — English
+- `es` — Spanish (use `es-MX` / `es-ES` if regional)
+- `zh-Hans` / `zh-Hant` — Simplified / Traditional Chinese
+- `hi` — Hindi
+- `ja` — Japanese
+- `de` — German
+- `fr` — French
+- `pt-BR` — Brazilian Portuguese
+- `ar` — Arabic (also flip `dir="rtl"`)
 </Aside>
 
 ### i18n
 
--   TODO
+The boring parts are usually what break in production:
+
+-   **String extraction.** Move every visible string into a `messages/<locale>.json` (or `.po`, `.ftl`) file. Never concatenate strings — different languages put the verb in different places.
+-   **Pluralization.** English has 2 plural forms; Russian and Arabic have 5+. Use CLDR plural rules via `Intl.PluralRules` or your i18n library.
+-   **Dates and numbers.** `Intl.DateTimeFormat` and `Intl.NumberFormat` are built into every modern browser; use them instead of moment.js variants.
+-   **RTL.** Flip layout direction in CSS with logical properties (`margin-inline-start` instead of `margin-left`) so a single stylesheet handles both LTR and RTL.
+-   **Don't auto-redirect by IP.** Honor `Accept-Language` on first visit; let the user pick after that and remember the choice. IP geolocation is a UX disaster for VPN users and travelers.
+
+```html
+<!-- hreflang example: each variant points at every other -->
+<link rel="alternate" hreflang="en" href="https://kbve.com/" />
+<link rel="alternate" hreflang="es" href="https://kbve.com/es/" />
+<link rel="alternate" hreflang="x-default" href="https://kbve.com/" />
+```
 
 ---
 
 ## Hosting
 
-Hosting represents a core component of web management, entailing the storage of a website’s data on a server to facilitate access via the Internet.
-The choice of hosting environment significantly affects the website's performance, security, and reliability.
-Among the options are shared hosting, dedicated hosting, and cloud hosting solutions such as Amazon Web Services (AWS) or Microsoft Azure.
-Each hosting type presents unique advantages and challenges; for example, cloud hosting typically provides enhanced scalability and reliability but may demand more sophisticated technical oversight.
-Webmasters must evaluate the specific requirements of their website, including anticipated traffic volumes, necessary storage capacity, and security needs, to select the most suitable hosting arrangement.
-Furthermore, the geographical location of servers plays a role in determining load times and adhering to data sovereignty laws, both of which are essential for maintaining compliance and optimizing website performance.
+For a brochure site: Cloudflare Pages, Netlify, or Vercel will be free or near-free and faster than anything you'd self-host.
+For an app with a real backend: a small VPS (Hetzner, DigitalOcean, Linode) at $5–20/mo handles more traffic than people assume, and gives you root.
+For anything serious: Kubernetes on cloud, Talos on bare metal, or a hybrid — accept the operational tax in exchange for sane multi-service deploys.
+Pick by where the bottleneck is (people-time, money, or compliance), not by what sounds impressive on a resume.
 
 <Aside type='tip' title="Best Practices for Website Hosting">
 
@@ -878,12 +909,10 @@ These tips will help ensure that your hosting setup optimizes your website’s p
 
 ## Recovery
 
-Recovery focuses on devising and executing strategies to reinstate a website following data loss, cyber attacks, or hardware failures.
-Establishing a routine for regular backups forms the foundation of an effective recovery plan.
-Webmasters should schedule these backups to occur at consistent intervals, storing them across multiple, secure locations.
-The frequency and scope of backups—whether daily, weekly, or monthly—depend on the website's complexity and the critical nature of the data, encompassing all vital files and databases.
-Developing a comprehensive disaster recovery plan is also essential; this plan details the steps required to restore data and services promptly, aiming to minimize downtime.
-Conducting regular tests of the disaster recovery plan verifies its readiness to handle various scenarios effectively. For webmasters, employing these diligent recovery strategies is critical for mitigating data loss risks and ensuring rapid service restoration, which helps maintain user trust and continuity.
+A backup you've never restored is not a backup.
+Schedule restore drills at least quarterly — pull last night's snapshot into a scratch environment, run the smoke tests, time how long it takes.
+The number you write down (RTO, recovery-time-objective) is the only number that matters when things actually break.
+3-2-1 still works: three copies, two media, one offsite. For databases, point-in-time recovery beats snapshots if your provider supports it.
 
 <Aside type='danger' title="Common Risks in Website Recovery">
 

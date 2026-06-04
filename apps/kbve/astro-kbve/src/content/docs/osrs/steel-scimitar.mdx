@@ -12,24 +12,100 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 125
-  item_id: 1325
-  item_type: equipment
-  slot: weapon
-  type: scimitar
-  attack_style: slash
-  attack_speed: 4
-  tradeable: true
-  weight: 1.814
-  requirements:
-    attack: 5
-  stats:
-    slash_attack: 15
-    strength: 14
+  material:
+    type: weapon
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    weight: 1.814
+    quest_item: false
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  equipment:
+    slot: weapon
+    attack_speed: 4
+    requirements:
+      attack: 5
+    attack_bonus:
+      stab: 4
+      slash: 15
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 14
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 35
+      xp: 75
+      materials:
+        - item_name: Steel bar
+          item_id: 2353
+          quantity: 2
+      product: Steel scimitar
+      product_id: 1325
+      output_quantity: 1
+      facility: Anvil
+      members_only: false
+  shops:
+    - shop_name: Daga's Scimitar Smithy
+      location: Ape Atoll
+      price: 400
+      stock: 5
+      members: true
+    - shop_name: Zeke's Superior Scimitars
+      location: Al Kharid
+      price: 400
+      stock: 3
+      members: false
   related_items:
-    - slug: black-scimitar
-    - slug: steel-bar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1323
+      item_name: Iron scimitar
+      slug: iron-scimitar
+      relationship: alternative
+      description: Lower tier scimitar
+    - item_id: 1327
+      item_name: Black scimitar
+      slug: black-scimitar
+      relationship: upgrade
+      description: Higher tier scimitar
+    - item_id: 2353
+      item_name: Steel bar
+      slug: steel-bar
+      relationship: component
+      description: Smithing material
+  market_strategy:
+    notes:
+      - "Common low-tier smithing product"
+      - "Cheap to flip but low margins"
+      - "Supply driven by smithing trainers and bot output"
+      - "Mid-tier F2P combat option for level 5+ Attack"
+  trading_tips:
+    - "Buy strategy: stack during smithing training windows"
+    - "Risk: net smithing loss limits supply from human crafters"
+    - "Use case: F2P stepping stone before mithril scimitar"
+  history:
+    - date: "2001-01-04"
+      description: "Release: launched with the original RuneScape Classic scimitar lineup"
+  about: "Steel scimitar is a free-to-play slash weapon in Old School RuneScape requiring 5 Attack to wield. Smithed from 2 steel bars at 35 Smithing for 75 XP. High alchemy value: 240 coins. Grand Exchange buy limit: 125 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Amethyst javelin(p+) | OSRS Price Data
-description: "Amethyst javelin(p+): An amethyst tipped javelin.. High alch: 252 GP, GE limit: 7,000."
+description: "Amethyst javelin(p+) is a poison-plus tipped ballista ammunition giving +135 ranged strength and an enhanced poison proc. High alch: 252 GP, GE limit: 7,000."
 osrs:
   id: 21322
   name: Amethyst javelin(p+)
@@ -12,9 +12,104 @@ osrs:
   lowalch: 168
   highalch: 252
   limit: 7000
-  about: "Amethyst javelin(p+) is a members-only item in Old School RuneScape. High alchemy value: 252 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: javelin
+    tier: high
+  equipment:
+    slot: ammo
+    weapon_type: javelin
+    weight: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 135
+      magic_damage: 0
+      prayer: 0
+  ammunition:
+    type: javelin
+    tier: amethyst
+    ranged_strength: 135
+    enchanted: false
+    compatible_weapons:
+      - Light ballista
+      - Heavy ballista
+  passive_effects:
+    - name: Enhanced poison
+      description: Has a chance to inflict the enhanced poison plus damage-over-time effect on hit.
+      trigger: on_hit
+  recipes:
+    - skill: herblore
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Amethyst javelin
+          quantity: 5
+        - item_name: Weapon poison(+)
+          quantity: 1
+      tools: []
+      output_quantity: 5
+  related_items:
+    - item_name: Amethyst javelin
+      slug: amethyst-javelin
+      relationship: variant
+      description: Unpoisoned amethyst javelin
+    - item_name: Amethyst javelin(p)
+      slug: amethyst-javelin-p
+      relationship: variant
+      description: Standard poisoned amethyst javelin
+    - item_name: Amethyst javelin(p++)
+      slug: amethyst-javelin-pp
+      relationship: variant
+      description: Top-tier poison++ amethyst javelin
+    - item_name: Heavy ballista
+      slug: heavy-ballista
+      relationship: component
+      description: Primary launcher used with amethyst javelins
+    - item_name: Weapon poison(+)
+      slug: weapon-poison-plus
+      relationship: component
+      description: Herblore poison applied to amethyst javelins
+  about: Amethyst javelin(p+) is the poison-plus version of the amethyst javelin made by applying weapon poison(+) to five amethyst javelins. It keeps the +135 ranged strength of the base ammo and adds an enhanced poison proc on hit when fired from a light or heavy ballista.
+  market_strategy:
+    notes:
+      - "Demand spikes during PvP scenes and ballista-heavy slayer rotations"
+      - "Poison tier choice is a margin lever — compare (p) vs (p+) vs (p++) cost per javelin"
+      - "Supply is gated by amethyst javelin supply and weapon poison(+) herblore throughput"
+  trading_tips:
+    - Track amethyst javelin and weapon poison(+) prices — combined cost sets the floor
+    - GE buy limit of 7,000 leaves room for ballista-stack flipping
+  history:
+    - date: "2017-06-22"
+      description: Released as part of the amethyst ranged ammunition family.
+  properties:
+    release_date: "2017-06-22"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

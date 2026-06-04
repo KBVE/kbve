@@ -12,79 +12,85 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
   material:
     type: monster_drop
-    tier: low
+    tier: mid
+  properties:
+    release_date: "2007-03-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   drop_table:
-    primary_source: Nail beast
     sources:
-      - source: Nail beast
-        source_id: 1552
-        quantity: 2-3
-        rarity: always
-        members_only: true
-        location: Temple Trekking
+      - source: Nail beast (level 69)
+        quantity: "1"
+        rarity: Always (2-3)
+      - source: Nail beast (level 98)
+        quantity: "1"
+        rarity: Always (2-3)
+      - source: Nail beast (level 141)
+        quantity: "1"
+        rarity: Always (2-3)
   recipes:
     - skill: herblore
       level: 65
       xp: 192
       materials:
         - item_name: Super restore(4)
-          item_id: 3024
           quantity: 1
         - item_name: Unicorn horn dust
-          item_id: 235
           quantity: 1
         - item_name: Snake weed
-          item_id: 1526
           quantity: 1
         - item_name: Nail beast nails
-          item_id: 10937
           quantity: 1
-      product: Sanfew serum(4)
-      product_id: 10925
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 10925
-      item_name: Sanfew serum(4)
+    - item_name: Sanfew serum(4)
       slug: sanfew-serum-4
       relationship: product
-      description: Used in creation
-    - item_id: 235
-      item_name: Unicorn horn dust
-      slug: unicorn-horn-dust
-      relationship: component
-      description: Also needed for Sanfew
-    - item_id: 1526
-      item_name: Snake weed
-      slug: snake-weed
-      relationship: component
-      description: Also needed for Sanfew
-    - item_id: 3024
-      item_name: Super restore(4)
+      description: "Crafted at 65 Herblore using nail beast nails"
+    - item_name: Super restore(4)
       slug: super-restore-4
       relationship: component
-      description: Base for Sanfew
+      description: "Base potion combined with nails for Sanfew serum"
+    - item_name: Unicorn horn dust
+      slug: unicorn-horn-dust
+      relationship: component
+      description: "Secondary ingredient in Sanfew serum"
+    - item_name: Snake weed
+      slug: snake-weed
+      relationship: component
+      description: "Secondary ingredient in Sanfew serum"
   about: |-
-    Sole purpose is creating Sanfew serum:
-
-    | Potion | Ingredients | Level |
-    |--------|-------------|-------|
-    | Sanfew serum(4) | Super restore + Unicorn horn dust + Snake weed + Nail beast nails | 65 |
+    The claws of a nail beast, dropped 2-3 at a time from every nail beast encountered during Temple Trekking. Sole purpose is the Sanfew serum recipe at 65 Herblore - combine with a super restore(4), unicorn horn dust, and snake weed for 192 xp.
   market_strategy:
     notes:
-      - Only source of nail beast nails
-      - Infrequent random event
-      - Plan trips when farming nails
-      - Often the bottleneck ingredient for Sanfew
-      - Price fluctuates based on supply
-      - Check relative prices of all 4 ingredients
-      - Must do Temple Trekking
-      - Stock up when encounters happen
-      - Sanfew serum essential for CoX
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Only obtainable through Temple Trekking - supply gated by activity engagement"
+      - "Demand tied to Sanfew serum, a core CoX supply"
+      - "Bottleneck ingredient since the other Sanfew secondaries are farmable"
+      - "Drop quantity increased to 2-3 in the 2024-08-07 update"
+  trading_tips:
+    - "Compare all four Sanfew ingredient prices before flipping any single one"
+    - "Buy when Temple Trekking is meta-quiet, sell into CoX patch spikes"
+    - "GE limit 11,000 supports decent flips for serious flippers"
+  history:
+    - date: "2007-03-13"
+      description: "Released with the Temple Trekking minigame"
+    - date: "2024-08-07"
+      description: "Drop quantity standardised to 2-3 per kill across all nail beast variants"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

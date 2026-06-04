@@ -12,9 +12,92 @@ osrs:
   lowalch: 400000
   highalch: 600000
   limit: 250
-  about: "Ancient totem is a members-only item in Old School RuneScape. High alchemy value: 600,000 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: artifact
+    tier: high
+  properties:
+    release_date: "2017-08-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Trade
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Revenant imp
+        quantity: "1"
+        rarity: "1/1,664"
+      - source: Revenant goblin
+        quantity: "1"
+        rarity: "1/1,508"
+      - source: Revenant pyrefiend
+        quantity: "1"
+        rarity: "1/1,118"
+      - source: Revenant hobgoblin
+        quantity: "1"
+        rarity: "1/1,014"
+      - source: Revenant cyclops
+        quantity: "1"
+        rarity: "1/870"
+      - source: Revenant hellhound
+        quantity: "1"
+        rarity: "1/736"
+      - source: Revenant demon
+        quantity: "1"
+        rarity: "1/645"
+      - source: Revenant ork
+        quantity: "1"
+        rarity: "1/586"
+      - source: Revenant dark beast
+        quantity: "1"
+        rarity: "1/512"
+      - source: Revenant knight
+        quantity: "1"
+        rarity: "1/472"
+      - source: Revenant dragon
+        quantity: "1"
+        rarity: "1/438"
+  related_items:
+    - item_name: Ancient emblem
+      slug: ancient-emblem
+      relationship: variant
+      description: Lower-tier revenant artefact traded with the Emblem Trader.
+    - item_name: Ancient medallion
+      slug: ancient-medallion
+      relationship: variant
+      description: Mid-tier revenant artefact in the same drop pool.
+    - item_name: Ancient statuette
+      slug: ancient-statuette
+      relationship: variant
+      description: Top-tier revenant artefact rewarded by the Emblem Trader.
+    - item_name: Bracelet of ethereum
+      slug: bracelet-of-ethereum
+      relationship: alternative
+      description: Wilderness utility item from Revenant Caves runs.
+  about: "The ancient totem is a high-tier artefact dropped by all revenants in the Wilderness Revenant Caves. Players sell it to the Emblem Trader at Edgeville for a fixed coin payout (around 350k after the 2019 rebalance) and bonus Slayer XP if killed on task, keeping it a steady revenant-loot pillar alongside emblems, medallions, and statuettes."
+  market_strategy:
+    notes:
+      - "Steady supply from revenant farming; price floored by Emblem Trader payout"
+      - "Acts as one of the headline revenant loot drops alongside emblems"
+      - "Demand stays high from PKers and PvMers selling on the GE for convenience"
+  trading_tips:
+    - "Compare GE offers against the Emblem Trader payout to choose the better exit"
+    - "Stockpile during Wilderness rework discussions; payouts can shift with updates"
+  history:
+    - date: "2017-08-10"
+      description: "Released with the Revenant Caves update inside the Wilderness."
+    - date: "2019-04-25"
+      description: "Emblem Trader payout adjusted as part of the revenant loot rebalance."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

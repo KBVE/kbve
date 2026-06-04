@@ -1,6 +1,6 @@
 ---
 title: Premade sgg | OSRS Price Data
-description: "Premade sgg: A premade Short Green Guy.. High alch: 18 GP, GE limit: 2,000."
+description: "Premade sgg is a members pre-made Short Green Guy cocktail with a temporary strength boost. High alch: 18 GP, GE limit: 2,000."
 osrs:
   id: 2038
   name: Premade sgg
@@ -12,9 +12,93 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 2000
-  about: "Premade sgg is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: drink
+    tier: mid
+  equipment:
+    slot: null
+    weight: null
+    attack_speed: null
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Blurberry Bar
+      price: 30
+      stock: 2
+  potion:
+    doses: 1
+    effects:
+      - stat: hitpoints
+        boost: 5
+        duration: 0
+      - stat: strength
+        boost: 1
+        duration: 0
+      - stat: attack
+        boost: -2
+        duration: 0
+  related_items:
+    - item_name: Short green guy
+      slug: short-green-guy
+      relationship: variant
+      description: Player-made version usable in Gnome Restaurant.
+    - item_name: Premade choc saturday
+      slug: premade-choc-saturday
+      relationship: alternative
+      description: Another premade Blurberry Bar cocktail.
+    - item_name: Premade fr&apos;n&apos;h
+      slug: premade-frn-h
+      relationship: alternative
+      description: Premade Fruit Blast variant.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Sold by Blurberry Bar at 30 GP for shop runs."
+      - "Cocktail buff has niche PvM and stat-juggling use."
+      - "Buy limit of 2,000 per 4 hours supports moderate flipping."
+  trading_tips:
+    - "Margin opportunity: 30 GP shop price vs Grand Exchange spread."
+    - Cannot be used in Gnome Restaurant minigame so demand is limited.
+    - Watch boost demand for niche strength micro-buffs.
+  about: Premade sgg is a members-only pre-made Short Green Guy cocktail sold at the Blurberry Bar, restoring hitpoints and boosting strength while reducing attack.
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  properties:
+    release_date: "2002-12-12"
+    update: "Agility skill"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.45
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2002-12-12"
+      update: "Agility skill"
+      description: Premade Blurberry Bar cocktails introduced with the Agility skill update.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

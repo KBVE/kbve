@@ -12,31 +12,33 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 5
-  item:
-    type: god_page
+  material:
+    type: paper
+    tier: god_page
+  properties:
     god: Armadyl
     page_number: 4
     tradeable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard/Elite
-        drop_rate: Varies by tier
+  drop_table:
+    sources:
+      - source: Treasure Trails (Hard/Elite)
+        quantity: "1"
+        rarity: Varies by tier
   related_items:
     - item_id: 12617
       item_name: Armadyl page 1
       slug: armadyl-page-1
-      relationship: set-piece
+      relationship: variant
       description: Page 1 of 4
     - item_id: 12618
       item_name: Armadyl page 2
       slug: armadyl-page-2
-      relationship: set-piece
+      relationship: variant
       description: Page 2 of 4
     - item_id: 12619
       item_name: Armadyl page 3
       slug: armadyl-page-3
-      relationship: set-piece
+      relationship: variant
       description: Page 3 of 4
   about: |-
     | Property | Value |
@@ -47,8 +49,8 @@ osrs:
     | Tradeable | Yes |
 
     Add to incomplete Book of law (Armadyl god book) to complete it.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

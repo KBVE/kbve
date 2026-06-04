@@ -1,6 +1,6 @@
 ---
 title: Mithril bolts (p) | OSRS Price Data
-description: "Mithril bolts (p): Some poisoned mithril bolts.. High alch: 12 GP, GE limit: 11,000."
+description: "Mithril bolts (p): Some poisoned mithril bolts. High alch: 12 GP, GE limit: 11,000."
 osrs:
   id: 9289
   name: Mithril bolts (p)
@@ -12,9 +12,91 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 11000
-  about: "Mithril bolts (p) is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Mithril bolts (p) are poisoned mithril crossbow bolts requiring 25 Ranged to wield. Made by applying weapon poison to standard mithril bolts."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: metal
+    tier: mithril
+  properties:
+    release_date: "2006-07-31"
+    weight: 0
+    tradeable: true
+    stackable: true
+    noteable: true
+    equipable: true
+    options:
+      - Wield
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  equipment:
+    slot: ammo
+    attack_speed: null
+    requirements:
+      ranged: 25
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 46
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Mithril bolts
+          quantity: 1
+        - item_name: Weapon poison
+          quantity: 1
+      output_quantity: 1
+      notes: "Apply weapon poison to mithril bolts to create the (p) variant"
+  passive_effects:
+    - name: Poison
+      description: "Inflicts standard weapon poison on hit; cannot be combined with gem tips"
+  related_items:
+    - item_id: 9142
+      item_name: Mithril bolts
+      slug: mithril-bolts
+      relationship: variant
+      description: Unpoisoned base bolt
+    - item_id: 9290
+      item_name: Mithril bolts (p+)
+      slug: mithril-bolts-p-plus
+      relationship: upgrade
+      description: Extra strong poison variant
+    - item_id: 9291
+      item_name: Mithril bolts (p++)
+      slug: mithril-bolts-p-plus-plus
+      relationship: upgrade
+      description: Super strong poison variant
+  market_strategy:
+    notes:
+      - "Mid-tier ranged ammo with light poison utility"
+      - "Cannot be tipped with gems once poisoned"
+      - "Supply scales with weapon poison + bolt fletching"
+  trading_tips:
+    - "Created via: weapon poison + mithril bolts"
+    - "Useful for low-level PvP / poison-immune slayer skipping"
+    - "GE limit: 11,000 per 4 hours"
+  history:
+    - date: "2006-07-31"
+      description: "Released alongside the crossbows skill update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

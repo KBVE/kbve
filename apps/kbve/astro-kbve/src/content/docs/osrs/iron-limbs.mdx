@@ -12,9 +12,50 @@ osrs:
   lowalch: 28
   highalch: 42
   limit: 10000
-  about: "Iron limbs is a members-only item in Old School RuneScape. High alchemy value: 42 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: metal
+    tier: iron
+  properties:
+    release_date: "2007-08-28"
+    update: "Crossbows"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    options:
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  recipes:
+    - skill: smithing
+      level: 36
+      xp: 25
+      materials:
+        - item_name: Iron bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  about: "Iron limbs are crossbow limbs smithed from iron bars at level 36 Smithing. Combined with a wooden stock to make an iron crossbow."
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "High GE limit of 10,000 supports bulk flipping."
+      - "Supply driven by Smithing training and crossbow demand."
+      - "High alch 42 gp — alching is unprofitable."
+  trading_tips:
+    - "Margins tied to iron bar spot price."
+    - "Cheap intermediate for early-tier crossbow crafters."
+  history:
+    - date: "2007-08-28"
+      update: "Crossbows"
+      description: "Iron limbs released as part of the metal crossbow expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

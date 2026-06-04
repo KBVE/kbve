@@ -12,9 +12,28 @@ osrs:
   lowalch: 5
   highalch: 7
   limit: 2000
-  about: "Serum 207 (2) is a members-only item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: basic
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    options:
+      - drink
+      - drop
+  potion:
+    doses: 2
+    effects:
+      - item_name: Cure Mort'ton plague
+        duration: 0
+        description: "Used to cure plagued villagers in Mort'ton during the Shades of Mort'ton minigame."
+  about: |-
+    Serum 207 (2) is a 2-dose potion used in the Shades of Mort'ton minigame to cure plagued villagers. Created from tarromin and ashes of the dead.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

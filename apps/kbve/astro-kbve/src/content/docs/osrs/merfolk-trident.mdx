@@ -12,69 +12,96 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: weapon
+    tier: mid
+  properties:
+    release_date: "2017-09-07"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Check
+      - Channel
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: 2h
-    type: spear
-    tradeable: true
+    weapon_type: spear
+    attack_speed: 5
     weight: 0.907
-    stats:
-      attack_stab: 8
-      attack_slash: 8
-      attack_crush: 8
+    requirements: {}
+    attack_bonus:
+      stab: 8
+      slash: 8
+      crush: 8
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
       strength: 4
-      stab_def: 1
-      slash_def: 1
-  special_effects:
-    - name: Drift Net Fishing
-      description: Increases chance to scare fish into nets
-    - name: Underwater Breathing
-      description: Charge with up to 10 pufferfish to regain breath
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Mairin's Market
+      location: Underwater Fossil Island
+      price: 400
+      currency: Mermaid's tears
+      stock: 10
+  passive_effects:
+    - name: Drift net fishing aid
+      description: "Increases chance to scare shoals into nets during drift net fishing"
+    - name: Underwater breathing
+      description: "Can be charged with up to 10 pufferfish to refill the player's air"
     - name: Swimming
-      description: One of few weapons allowing swimming while wielding
-  shop:
-    npc: Mairin's Market
-    location: Underwater Fossil Island
-    price: 400
-    currency: Mermaid tears
-  market:
-    buy_limit: 8
-    price_estimate: 2050000
+      description: "One of the few weapons that allows swimming while wielded"
   related_items:
-    - item_id: 21516
-      item_name: Fossil Island
-      slug: fossil-island
-      relationship: alternative
-      description: Location
-    - item_id: 21656
-      item_name: Mermaid tear
-      slug: mermaid-tear
+    - item_name: Mermaid's tear
+      slug: mermaids-tear
       relationship: component
-      description: Currency
-    - item_id: 22016
-      item_name: Drift net
+      description: "Currency used to purchase the trident at Mairin's Market"
+    - item_name: Drift net
       slug: drift-net
       relationship: alternative
-      description: Use with
+      description: "Net used together with the trident for shoal fishing"
+    - item_name: Pufferfish
+      slug: pufferfish
+      relationship: component
+      description: "Charge fuel for underwater breathing"
+    - item_name: Tackle box
+      slug: tackle-box
+      relationship: alternative
+      description: "Storage container for the trident"
   about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Stab | +8 |
-    | Slash | +8 |
-    | Crush | +8 |
-    | Strength | +4 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Stab | +1 |
-    | Slash | +1 |
-
-    Drift Net Fishing: Increases chance to scare fish into nets.
-
-    Underwater Breathing: Charge with up to 10 pufferfish to regain breath.
-
-    Swimming: One of few weapons allowing swimming while wielding.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Two-handed underwater spear bought from Mairin's Market on Fossil Island for 400 mermaid's tears. Aids drift net fishing, can be charged with pufferfish for underwater breathing, and is one of the only weapons that allows swimming while wielded.
+  market_strategy:
+    notes:
+      - "Effective only underwater - niche but mandatory for drift net fishing"
+      - "GE limit 125 supports flips during Fossil Island content spikes"
+      - "Tied directly to mermaid's tear farming cycle"
+  trading_tips:
+    - "Buy direct from Mairin's Market if you have mermaid's tears to save GP"
+    - "Check pufferfish prices - charges drive ongoing cost"
+    - "Demand correlates with drift net fishing meta updates"
+  history:
+    - date: "2017-09-07"
+      description: "Released with the Fossil Island update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

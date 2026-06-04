@@ -12,9 +12,66 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 2000
-  about: "Forgotten brew(4) is a members-only item in Old School RuneScape. High alchemy value: 120 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: mid
+  potion:
+    effects:
+      - description: "Boosts Magic level by 3 + 8% of base Magic level."
+        duration: 60
+      - description: "Restores 10% of base Magic level prayer points on consumption."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 91
+      xp: 175
+      materials:
+        - item_name: Ancient essence
+          quantity: 25
+        - item_name: Magic potion(4)
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_name: Forgotten brew(1)
+      relationship: variant
+    - item_name: Forgotten brew(2)
+      relationship: variant
+    - item_name: Forgotten brew(3)
+      relationship: variant
+    - item_name: Magic potion(4)
+      relationship: component
+    - item_name: Ancient essence
+      relationship: component
+  market_strategy:
+    notes:
+      - "High-tier magic boost used by PvMers; demand correlates with magic-heavy boss releases."
+      - "Made from Magic potion(4) + 25 ancient essence at 91 Herblore."
+  trading_tips:
+    - "Stock 4-dose for highest GE turnover."
+    - "Decant arbitrage with (3) and (2) doses when prices diverge."
+  history:
+    - date: "2022-10-12"
+      description: "Forgotten brew introduced with Tombs of Amascut Herblore content."
+  properties:
+    release_date: "2022-10-12"
+    update: Tombs of Amascut
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: "Forgotten brew(4) is a members-only Herblore potion boosting Magic and restoring prayer. High alchemy value: 120 coins. Grand Exchange buy limit: 2,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

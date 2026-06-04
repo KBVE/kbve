@@ -12,35 +12,42 @@ osrs:
   lowalch: 41200
   highalch: 61800
   limit: 15
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: barrows
+    tier: mid
+  properties:
+    weight: 2.7
+    tradeable: true
+    degradeable: true
   equipment:
     slot: head
     type: barrows
+    attack_speed: null
     set: Dharok
-    tradeable: true
-    degradeable: true
-    weight: 2.7
     requirements:
       defence: 70
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -3
-      attack_ranged: 0
-      defence_stab: 45
-      defence_slash: 48
-      defence_crush: 44
-      defence_magic: -1
-      defence_ranged: 51
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: 0
+    defence_bonus:
+      stab: 45
+      slash: 48
+      crush: 44
+      magic: -1
+      ranged: 51
+    other_bonus:
       strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  set_effect:
-    name: Wretched Strength
-    pieces_required: 4
-    description: Damage increases as HP decreases. Up to +98.9% damage at 1 HP with 99 max HP
-    formula: Extra damage = (Max HP - Current HP) * Max HP / 100
+  passive_effects:
+    - name: Wretched Strength
+      description: "Set effect (4 pieces): Damage increases as HP decreases. Up to +98.9% damage at 1 HP with 99 max HP. Formula: Extra damage = (Max HP - Current HP) * Max HP / 100"
   related_items:
     - item_id: 4720
       item_name: Dharok's platebody
@@ -86,11 +93,9 @@ osrs:
     - Repair cost: ~100k for full set at Bob
   market_strategy:
     notes:
-      - Popular for NMZ training
-      - Full set required for effect
-      - Often used with Absorption potions
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Popular for NMZ training"
+      - "Full set required for effect"
+      - "Often used with Absorption potions"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

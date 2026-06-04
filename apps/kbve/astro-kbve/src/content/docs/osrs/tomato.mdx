@@ -12,63 +12,80 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 13000
-  produce:
-    type: allotment
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: produce
     tier: low
-  farming:
-    seed_id: 5322
-    seed_name: Tomato seed
-    level: 12
-    xp_plant: 12.5
-    xp_harvest: 14
-    growth_time: 40
-    patches: 8
+  properties:
+    release_date: "2001-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.08
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: farming
+      level: 12
+      xp: 14
+      materials:
+        - item_name: Tomato seed
+          quantity: 1
+      tools:
+        - Seed dibber
+        - Rake
+      output_quantity: 1
+  shops:
+    - shop_name: Culinaromancer's Chest
+      location: Lumbridge Castle Cellar
+      price: 4
+      currency: coins
+      stock: 50
+    - shop_name: Vanessa's Farming Shop
+      location: Catherby
+      price: 4
+      currency: coins
+      stock: 5
   related_items:
-    - item_id: 5322
-      item_name: Tomato seed
+    - item_name: Tomato seed
       slug: tomato-seed
       relationship: component
-      description: Planted to grow tomatoes
-    - item_id: 6016
-      item_name: Basket of tomatoes
+      description: "Planted to grow tomatoes via Farming"
+    - item_name: Basket of tomatoes
       slug: basket-of-tomatoes
       relationship: product
-      description: 5 tomatoes in a basket
-    - item_id: 1965
-      item_name: Cabbage
+      description: "Five tomatoes combined into a basket for protection payments"
+    - item_name: Cabbage
       slug: cabbage
       relationship: alternative
-      description: Alternative allotment produce
-    - item_id: 5986
-      item_name: Sweetcorn
+      description: "Alternative allotment crop"
+    - item_name: Sweetcorn
       slug: sweetcorn
       relationship: upgrade
-      description: Higher tier allotment crop
+      description: "Higher tier allotment crop"
   about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Farming Level | 12 |
-    | Growth time | 40 minutes |
-    | XP (plant) | 12.5 |
-    | XP (harvest) | 14 per tomato |
-
-    - Basket of tomatoes used for oak tree protection
-    - Ingredient in cooking recipes
-    - Can be thrown at players in pillory (cosmetic)
+    Tomato is a low-tier allotment crop available to free players, grown at Farming 12 from a tomato seed. Five tomatoes combine into a basket, which is used as a Farming protection payment for oak trees. Eating one restores 2 hitpoints.
   market_strategy:
-    title: Ironman Notes
     notes:
-      - Low-tier crop
-      - Moderate value due to protection payment use
-      - Good for early-mid farming training
-      - 5 tomatoes make a basket
-      - Baskets used for tree protection payments
-      - Good passive income from farming
-      - Important for oak tree protection
-      - Stock up for tree runs
-      - Easy to farm in large quantities
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Low-tier crop, moderate value for tree protection payments"
+      - "Good early to mid Farming training"
+      - "Five tomatoes per basket for oak tree protection"
+      - "Easy passive income from allotment cycles"
+  trading_tips:
+    - "Stockpile baskets before tree run cycles"
+    - "Buy at GE in bulk when grain market dips"
+    - "Watch basket-of-tomatoes margins, often beat raw tomato sales"
+  history:
+    - date: "2001-06-11"
+      description: "Tomato added to the game"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
