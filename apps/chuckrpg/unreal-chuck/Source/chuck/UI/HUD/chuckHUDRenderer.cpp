@@ -101,4 +101,23 @@ namespace chuckHUDRenderer
 		MakeQuad(0.f,        Size.X,    LayerId,     BackgroundColor);
 		MakeQuad(0.f,        FillWidth, LayerId + 1, FillColor);
 	}
+
+	void DrawText(
+		FSlateWindowElementList& Out,
+		const FGeometry& Geometry,
+		int32 LayerId,
+		const FVector2D& Pos,
+		const FString& Text,
+		const FSlateFontInfo& Font,
+		const FLinearColor& Color)
+	{
+		FSlateDrawElement::MakeText(
+			Out,
+			LayerId,
+			Geometry.ToPaintGeometry(FVector2D(512.f, Font.Size + 4.f), FSlateLayoutTransform(Pos)),
+			Text,
+			Font,
+			ESlateDrawEffect::None,
+			Color);
+	}
 }

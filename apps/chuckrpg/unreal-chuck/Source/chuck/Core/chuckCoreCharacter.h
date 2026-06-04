@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MassEntityHandle.h"
 #include "chuckCharacter.h"
 #include "chuckStats.h"
 #include "chuckCoreCharacter.generated.h"
@@ -17,6 +18,8 @@ public:
 	AchuckCoreCharacter();
 
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	const FchuckStatBlock& GetStats() const { return Stats; }
@@ -28,7 +31,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Chuck|Stats")
 	FchuckStatBlock Stats;
 
-	void TickRegen(float DeltaSeconds);
+	FMassEntityHandle StatEntity;
+
+	void CreateStatEntity();
+	void DestroyStatEntity();
+	void SyncStatsFragment(float DeltaSeconds);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Movement")
 	float WalkSpeed = 600.f;

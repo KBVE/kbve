@@ -1,16 +1,22 @@
 #include "chuckCoreCharacter.h"
 
-#include "chuckInputs.h"
 #include "Animation/AnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "EnhancedInputComponent.h"
 #include "Engine/SkeletalMesh.h"
+#include "Engine/World.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "InputAction.h"
+#include "MassCommonTypes.h"
+#include "MassEntityManager.h"
+#include "MassEntitySubsystem.h"
 #include "Net/UnrealNetwork.h"
 #include "UObject/ConstructorHelpers.h"
+
+#include "chuckInputs.h"
+#include "chuckStatsFragment.h"
 
 AchuckCoreCharacter::AchuckCoreCharacter()
 {
@@ -97,27 +103,116 @@ void AchuckCoreCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	if (HasAuthority())
 	{
-		TickRegen(DeltaSeconds);
+		SyncStatsFragment(DeltaSeconds);
 	}
 }
 
-void AchuckCoreCharacter::TickRegen(float DeltaSeconds)
+void AchuckCoreCharacter::BeginPlay()
 {
-	Stats.Health  = FMath::Min(Stats.Health  + Stats.HealthRegenPerSec  * DeltaSeconds, Stats.MaxHealth);
-	Stats.Mana    = FMath::Min(Stats.Mana    + Stats.ManaRegenPerSec    * DeltaSeconds, Stats.MaxMana);
-
-	if (bIsSprinting && GetCharacterMovement() && GetCharacterMovement()->Velocity.SizeSquared2D() > 1.f)
+	Super::BeginPlay();
+	if (HasAuthority())
 	{
-		Stats.Stamina = FMath::Max(Stats.Stamina - Stats.StaminaSprintDrainPerSec * DeltaSeconds, 0.f);
-		if (Stats.Stamina <= 0.f)
+		CreateStatEntity();
+	}
+}
+
+void AchuckCoreCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (HasAuthority())
+	{
+		DestroyStatEntity();
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
+void AchuckCoreCharacter::CreateStatEntity()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	UMassEntitySubsystem* Mass = World->GetSubsystem<UMassEntitySubsystem>();
+	if (!Mass)
+	{
+		return;
+	}
+
+	FMassEntityManager& EntityManager = Mass->GetMutableEntityManager();
+
+	TArray<const UScriptStruct*> FragmentTypes;
+	FragmentTypes.Add(FchuckStatsFragment::StaticStruct());
+
+	FMassArchetypeHandle Archetype = EntityManager.CreateArchetype(FragmentTypes);
+	StatEntity = EntityManager.CreateEntity(Archetype);
+
+	if (FchuckStatsFragment* Frag = EntityManager.GetFragmentDataPtr<FchuckStatsFragment>(StatEntity))
+	{
+		Frag->Health                  = Stats.Health;
+		Frag->MaxHealth               = Stats.MaxHealth;
+		Frag->HealthRegenPerSec       = Stats.HealthRegenPerSec;
+		Frag->Mana                    = Stats.Mana;
+		Frag->MaxMana                 = Stats.MaxMana;
+		Frag->ManaRegenPerSec         = Stats.ManaRegenPerSec;
+		Frag->Stamina                 = Stats.Stamina;
+		Frag->MaxStamina              = Stats.MaxStamina;
+		Frag->StaminaRegenPerSec      = Stats.StaminaRegenPerSec;
+		Frag->StaminaSprintDrainPerSec = Stats.StaminaSprintDrainPerSec;
+	}
+}
+
+void AchuckCoreCharacter::DestroyStatEntity()
+{
+	if (!StatEntity.IsValid())
+	{
+		return;
+	}
+	if (UWorld* World = GetWorld())
+	{
+		if (UMassEntitySubsystem* Mass = World->GetSubsystem<UMassEntitySubsystem>())
 		{
-			bIsSprinting = false;
-			ApplySprintSpeed();
+			Mass->GetMutableEntityManager().DestroyEntity(StatEntity);
 		}
 	}
-	else
+	StatEntity = FMassEntityHandle();
+}
+
+void AchuckCoreCharacter::SyncStatsFragment(float DeltaSeconds)
+{
+	if (!StatEntity.IsValid())
 	{
-		Stats.Stamina = FMath::Min(Stats.Stamina + Stats.StaminaRegenPerSec * DeltaSeconds, Stats.MaxStamina);
+		return;
+	}
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	UMassEntitySubsystem* Mass = World->GetSubsystem<UMassEntitySubsystem>();
+	if (!Mass)
+	{
+		return;
+	}
+
+	FMassEntityManager& EM = Mass->GetMutableEntityManager();
+	FchuckStatsFragment* Frag = EM.GetFragmentDataPtr<FchuckStatsFragment>(StatEntity);
+	if (!Frag)
+	{
+		return;
+	}
+
+	const bool bMoving = GetCharacterMovement() && GetCharacterMovement()->Velocity.SizeSquared2D() > 1.f;
+	Frag->bIsSprinting = bIsSprinting;
+	Frag->bIsMoving    = bMoving;
+
+	Stats.Health  = Frag->Health;
+	Stats.Mana    = Frag->Mana;
+	Stats.Stamina = Frag->Stamina;
+
+	if (bIsSprinting && Stats.Stamina <= 0.f)
+	{
+		bIsSprinting = false;
+		ApplySprintSpeed();
 	}
 }
 

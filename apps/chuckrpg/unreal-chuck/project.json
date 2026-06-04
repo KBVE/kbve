@@ -93,17 +93,18 @@
 		"launch-editor": {
 			"executor": "nx:run-commands",
 			"options": {
-				"cwd": "apps/chuckrpg/unreal-chuck",
-				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor\" \"$PWD/chuck.uproject\""
-			}
+				"cwd": "{workspaceRoot}",
+				"command": "./apps/chuckrpg/unreal-chuck/scripts/launch-editor.sh"
+			},
+			"forwardAllArgs": true
 		},
 		"dev": {
 			"executor": "nx:run-commands",
 			"options": {
-				"cwd": "apps/chuckrpg/unreal-chuck",
+				"cwd": "{workspaceRoot}",
 				"commands": [
-					"\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/chuck.uproject\"",
-					"\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor\" \"$PWD/chuck.uproject\""
+					"\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/apps/chuckrpg/unreal-chuck/chuck.uproject\"",
+					"./apps/chuckrpg/unreal-chuck/scripts/launch-editor.sh"
 				],
 				"parallel": false
 			}

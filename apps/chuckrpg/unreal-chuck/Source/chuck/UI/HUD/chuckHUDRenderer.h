@@ -25,4 +25,13 @@ namespace chuckHUDRenderer
 		float Percent,
 		const FLinearColor& FillColor,
 		const FLinearColor& BackgroundColor);
+
+	void DrawText(
+		FSlateWindowElementList& Out,
+		const FGeometry& Geometry,
+		int32 LayerId,
+		const FVector2D& Pos,
+		const FString& Text,
+		const FSlateFontInfo& Font,
+		const FLinearColor& Color);
 }

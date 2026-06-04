@@ -33,7 +33,10 @@ protected:
 private:
 	FchuckHUDState Target;
 
-	float DisplayHealth  = 1.f;
-	float DisplayMana    = 1.f;
-	float DisplayStamina = 1.f;
+	float DisplayHealth         = 1.f;
+	float DisplayMana           = 1.f;
+	float DisplayStamina        = 1.f;
+	float DisplayHealthCurrent  = 100.f;
+	float DisplayManaCurrent    = 100.f;
+	float DisplayStaminaCurrent = 100.f;
 };

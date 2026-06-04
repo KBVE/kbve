@@ -85,10 +85,15 @@ void AchuckCorePlayerController::Tick(float DeltaSeconds)
 		return;
 	}
 
+	const FchuckStatBlock& S = Char->GetStats();
+
 	FchuckHUDState State;
-	State.HealthPercent  = Char->GetStats().HealthFraction();
-	State.ManaPercent    = Char->GetStats().ManaFraction();
-	State.StaminaPercent = Char->GetStats().StaminaFraction();
+	State.HealthCurrent  = S.Health;
+	State.HealthMax      = S.MaxHealth;
+	State.ManaCurrent    = S.Mana;
+	State.ManaMax        = S.MaxMana;
+	State.StaminaCurrent = S.Stamina;
+	State.StaminaMax     = S.MaxStamina;
 	State.TimeSeconds    = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
 
 	HUDWidget->SetState(State);

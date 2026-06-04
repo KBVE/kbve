@@ -74,10 +74,15 @@ TSharedRef<FSlateStyleSet> FChuckUIStyle::Create()
 	Style->Set(FKeys::Button_ContentPadding,  FMargin(32.f, 14.f));
 
 	Style->Set(FKeys::HUD_Padding,            FMargin(32.f, 32.f, 32.f, 32.f));
-	Style->Set(FKeys::HUD_Bar_Width,          280.f);
-	Style->Set(FKeys::HUD_Bar_Height,         18.f);
-	Style->Set(FKeys::HUD_Bar_Spacing,        6.f);
-	Style->Set(FKeys::HUD_Label_Font,         FCoreStyle::GetDefaultFontStyle("Regular", 14));
+	Style->Set(FKeys::HUD_Bar_Width,          300.f);
+	Style->Set(FKeys::HUD_Bar_Height,         24.f);
+	Style->Set(FKeys::HUD_Bar_Spacing,        8.f);
+	{
+		FSlateFontInfo HudFont = FCoreStyle::GetDefaultFontStyle("Bold", 14);
+		HudFont.OutlineSettings.OutlineSize = 1;
+		HudFont.OutlineSettings.OutlineColor = FLinearColor(0.f, 0.f, 0.f, 1.f);
+		Style->Set(FKeys::HUD_Label_Font, HudFont);
+	}
 	Style->Set(FKeys::HUD_Health_Color,       FLinearColor(0.85f, 0.18f, 0.20f, 1.f));
 	Style->Set(FKeys::HUD_Mana_Color,         FLinearColor(0.20f, 0.40f, 0.95f, 1.f));
 	Style->Set(FKeys::HUD_Stamina_Color,      FLinearColor(0.90f, 0.78f, 0.18f, 1.f));

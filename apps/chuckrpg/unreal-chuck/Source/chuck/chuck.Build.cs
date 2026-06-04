@@ -19,7 +19,10 @@ public class chuck : ModuleRules
 			"GameplayStateTreeModule",
 			"UMG",
 			"Slate",
-			"SlateCore"
+			"SlateCore",
+			"MassEntity",
+			"MassCommon",
+			"StructUtils"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
@@ -27,6 +30,7 @@ public class chuck : ModuleRules
 		PublicIncludePaths.AddRange(new string[] {
 			"chuck",
 			"chuck/Core",
+			"chuck/Mass",
 			"chuck/UI",
 			"chuck/UI/HUD",
 			"chuck/Variant_Platforming",

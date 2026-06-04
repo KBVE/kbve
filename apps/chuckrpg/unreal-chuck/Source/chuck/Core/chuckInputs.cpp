@@ -41,7 +41,14 @@ void UchuckInputs::Build()
 	DefaultIMC->MapKey(Crouch,       EKeys::LeftControl);
 	DefaultIMC->MapKey(ToggleCamera, EKeys::V);
 
-	DefaultIMC->MapKey(Look, EKeys::Mouse2D);
+	{
+		FEnhancedActionKeyMapping& LookMap = DefaultIMC->MapKey(Look, EKeys::Mouse2D);
+		UInputModifierNegate* NegY = NewObject<UInputModifierNegate>(this);
+		NegY->bX = false;
+		NegY->bY = true;
+		NegY->bZ = false;
+		LookMap.Modifiers.Add(NegY);
+	}
 
 	auto AddMoveBinding = [this](FKey Key, bool bSwizzleXY, bool bNegateX, bool bNegateY)
 	{
