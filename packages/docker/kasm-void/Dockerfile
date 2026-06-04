@@ -61,6 +61,27 @@ RUN set -eux; \
       mv /dockerstartup/custom_startup.sh /dockerstartup/discord_startup.sh; \
     fi
 
+RUN set -eux; \
+    if [ ! -x /usr/share/discord/Discord ]; then \
+      if [ ! -x /usr/share/discord/updater_bootstrap ]; then \
+        echo "no Discord binary and no updater_bootstrap — upstream base layout unexpected" >&2; \
+        ls -la /usr/share/discord/ >&2; \
+        exit 1; \
+      fi; \
+      DISCORD_APP_HOME=/usr/share/discord/app; \
+      mkdir -p "$DISCORD_APP_HOME"; \
+      /usr/share/discord/updater_bootstrap "$DISCORD_APP_HOME" stable --no-zenity || true; \
+      DISCORD_BIN="$(find "$DISCORD_APP_HOME" -maxdepth 4 -name Discord -type f -perm -u+x 2>/dev/null | sort -V | tail -1)"; \
+      if [ -z "$DISCORD_BIN" ]; then \
+        echo "updater_bootstrap finished but Discord binary not found under $DISCORD_APP_HOME" >&2; \
+        find "$DISCORD_APP_HOME" -maxdepth 4 -ls >&2 || true; \
+        exit 1; \
+      fi; \
+      ln -sf "$DISCORD_BIN" /usr/share/discord/Discord; \
+      chmod -R a+rX /usr/share/discord; \
+    fi; \
+    [ -x /usr/share/discord/Discord ]
+
 COPY custom_startup.sh /dockerstartup/custom_startup.sh
 COPY nav_shim.py /dockerstartup/nav_shim.py
 COPY cloakbrowser.desktop /home/kasm-user/Desktop/cloakbrowser.desktop
