@@ -26,6 +26,7 @@ public class chuck : ModuleRules
 
 		PublicIncludePaths.AddRange(new string[] {
 			"chuck",
+			"chuck/Core",
 			"chuck/UI",
 			"chuck/Variant_Platforming",
 			"chuck/Variant_Platforming/Animation",

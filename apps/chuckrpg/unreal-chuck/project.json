@@ -89,6 +89,24 @@
 				"cwd": "apps/chuckrpg/unreal-chuck",
 				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh\" -project=\"$PWD/chuck.uproject\" -game -engine"
 			}
+		},
+		"launch-editor": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/unreal-chuck",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor\" \"$PWD/chuck.uproject\""
+			}
+		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/unreal-chuck",
+				"commands": [
+					"\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/chuck.uproject\"",
+					"\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor\" \"$PWD/chuck.uproject\""
+				],
+				"parallel": false
+			}
 		}
 	}
 }

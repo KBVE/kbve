@@ -52,6 +52,10 @@ void AchuckMenuPlayerController::HandlePlay()
 	{
 		return;
 	}
+
+	bShowMouseCursor = false;
+	SetInputMode(FInputModeGameOnly());
+
 	UGameplayStatics::OpenLevel(this, PlayLevelName);
 }
 
