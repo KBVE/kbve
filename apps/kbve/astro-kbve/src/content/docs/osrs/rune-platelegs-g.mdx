@@ -12,61 +12,69 @@ osrs:
   lowalch: 25600
   highalch: 38400
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune
+    tier: mid
+  properties:
+    release_date: "2004-05-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.071
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
-    type: melee_armour
-    tradeable: true
-    weight: 9
+    weapon_type: null
+    attack_speed: null
+    weight: 9.071
     requirements:
       defence: 40
-    stats:
-      defence_stab: 51
-      defence_slash: 49
-      defence_crush: 47
-      defence_magic: -4
-      defence_ranged: 49
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard
-        drop_rate: Rare from reward casket
+    attack_bonus: {}
+    defence_bonus:
+      stab: 51
+      slash: 49
+      crush: 47
+      magic: -4
+      ranged: 49
+    other_bonus: {}
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
-    - item_id: 2615
-      item_name: Rune platebody (g)
+    - item_name: Rune platebody (g)
       slug: rune-platebody-g
       relationship: set-piece
-      description: Matching body
-    - item_id: 1079
-      item_name: Rune platelegs
+      description: Matching gold-trimmed body
+    - item_name: Rune platelegs
       slug: rune-platelegs
       relationship: downgrade
-      description: Non-gilded version
-  about: |-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +51 |
-    | Slash | +49 |
-    | Crush | +47 |
-    | Magic | -4 |
-    | Ranged | +49 |
-
-    Requirements: 40 Defence
-
-    Same stats as regular rune platelegs with gold trim cosmetic.
-
-    | Property | Rune platelegs | Rune platelegs (g) |
-    |----------|----------------|-------------------|
-    | Stats | Same | Same |
-    | Appearance | Normal | Gold trimmed |
-    | Source | Smithing/Shop | Hard clue |
+      description: Untrimmed version with identical stats
+    - item_name: Rune platelegs (t)
+      slug: rune-platelegs-t
+      relationship: alternative
+      description: Trimmed cosmetic variant
+  about: "Rune platelegs (g) are the gold-trimmed cosmetic version of standard rune platelegs, exclusive to hard Treasure Trails reward caskets at a 1/1,625 drop rate. Stats are identical to regular rune platelegs (40 Defence to equip); the trim is purely cosmetic. Tradeable on the Grand Exchange and popular as F2P fashionscape."
   market_strategy:
     notes:
-      - Hard clue exclusive
-      - Purely cosmetic upgrade
-      - Popular F2P fashionscape
-      - Collection log item
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Hard clue exclusive"
+      - "Purely cosmetic upgrade"
+      - "Popular F2P fashionscape"
+      - "Collection log item"
+  history:
+    - date: "2004-05-05"
+      description: "Added to the game with the Treasure Trails reward table expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

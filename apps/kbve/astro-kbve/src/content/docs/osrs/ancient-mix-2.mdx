@@ -1,6 +1,6 @@
 ---
 title: Ancient mix(2) | OSRS Price Data
-description: "Ancient mix(2): Two doses of fishy ancient brew.. High alch: 90 GP."
+description: "Ancient mix(2): Two doses of fishy ancient brew. High alch: 90 GP."
 osrs:
   id: 26350
   name: Ancient mix(2)
@@ -12,9 +12,75 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: null
-  about: "Ancient mix(2) is a members-only item in Old School RuneScape. High alchemy value: 90 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "2022-01-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.075
+    options:
+      - "Drink"
+      - "Empty"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 92
+      xp: 63
+      materials:
+        - item_name: Ancient brew(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Boosts Magic by 2 + 6% of base Magic level"
+        duration: 0
+      - description: "Restores Prayer by 2 + 11% of base Prayer level"
+        duration: 0
+      - description: "Heals 6 Hitpoints per dose"
+        duration: 0
+      - description: "Drains Attack, Strength, and Defence by 2 + 10% of base level"
+        duration: 0
+  related_items:
+    - item_name: Ancient mix(1)
+      slug: ancient-mix-1
+      relationship: variant
+      description: One-dose variant of the ancient mix
+    - item_name: Ancient brew(2)
+      slug: ancient-brew-2
+      relationship: component
+      description: Base potion mixed with caviar to make ancient mix(2)
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: Barbarian Herblore ingredient added to the brew
+  about: |-
+    > *"Two doses of fishy ancient brew."*
+
+    Ancient mix(2) is the Barbarian Herblore upgrade of ancient brew(2), trading two doses' worth of stats for an extra 6 HP healed per dose. It is most valuable for PvM hybrids who want sustain alongside the Magic, Prayer, and combat-skill swing of the base brew.
+  market_strategy:
+    notes:
+      - "Demand spikes around Nex and other God Wars Dungeon trips"
+      - "Margins are thin once GE tax and caviar cost are accounted for"
+  trading_tips:
+    - "Track caviar supply: Barbarian Fishing dips raise mix prices"
+    - "Compare cost vs ancient brew(2) before buying in bulk"
+  history:
+    - date: "2022-01-05"
+      description: "Released with the Nex: The Fifth General update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

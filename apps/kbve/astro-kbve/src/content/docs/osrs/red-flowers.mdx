@@ -1,6 +1,6 @@
 ---
 title: Red flowers | OSRS Price Data
-description: "Red flowers: A posy of flowers.. High alch: 60 GP, GE limit: 150."
+description: "Red flowers: A posy of flowers. High alch: 60 GP, GE limit: 150."
 osrs:
   id: 2462
   name: Red flowers
@@ -12,12 +12,96 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "Red flowers is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: fun_weapon
+    attack_speed: 4
+    weight: 0.028
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Mithril seed
+        quantity: "1"
+        rarity: 1/150.1
+      - source: Adamant seed
+        quantity: "1"
+        rarity: 1/150.1
+  recipes:
+    - skill: herblore
+      level: 3
+      xp: 0
+      materials:
+        - item_name: Red flowers
+          quantity: 1
+        - item_name: Anchovy oil
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Mithril seed
+      slug: mithril-seed
+      relationship: component
+      description: Source seed for harvesting red flowers
+    - item_name: Imp repellent
+      slug: imp-repellent
+      relationship: product
+      description: Created using red flowers and anchovy oil
+  about: |-
+    > *"A posy of flowers."*
+
+    Red flowers are a fun weapon harvested from mithril and adamant seeds. They serve as an ingredient in imp repellent and are part of the classic flower-picking gimmick from random events.
+  market_strategy:
+    notes:
+      - "Low-volume novelty item"
+      - "Mithril seed yields offer steady supply"
+      - "Demand tied to imp repellent crafting"
+  trading_tips:
+    - "Buy in bulk when seed prices dip"
+    - "Imp repellent demand sets the floor"
+  history:
+    - date: "2004-03-29"
+      description: "Added to the game with the original flower-picking random event"
+    - date: "2024-04-10"
+      description: "Adamant seeds added as a second source of red flowers"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

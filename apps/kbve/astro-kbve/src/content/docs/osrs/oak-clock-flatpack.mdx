@@ -12,12 +12,65 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Oak clock (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: flatpack
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Build
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 25
+      xp: 142
+      materials:
+        - item_name: Oak plank
+          quantity: 2
+        - item_name: Clockwork
+          quantity: 1
+      tools:
+        - Hammer
+        - Saw
+        - Oak workbench
+      output_quantity: 1
+  related_items:
+    - item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: Primary build material
+    - item_name: Clockwork
+      slug: clockwork
+      relationship: component
+      description: Required mechanism for clock flatpacks
+  about: "The Oak clock (flatpack) is built at an oak workbench inside a player-owned house workshop, costing 2 oak planks and 1 clockwork for 142 Construction XP at level 25. Flatpacks let players bring Construction items to houses they cannot otherwise furnish, or resell them through the Grand Exchange."
+  market_strategy:
+    notes:
+      - "Niche supply driven by Construction XP-cost optimization"
+      - "Trades at a steep loss vs. material cost in most market conditions"
+      - "GE volume tends to be near zero outside special offers"
+  trading_tips:
+    - "Track clockwork prices; they dominate per-unit cost"
+    - "Build-only Ironmen ignore the GE entirely for this item"
+  history:
+    - date: "2006-05-31"
+      description: "Added to the game alongside the Construction skill."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

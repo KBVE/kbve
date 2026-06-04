@@ -12,51 +12,104 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 7000
-  item_id: 9142
-  type: ammunition
-  tradeable: true
-  weight: 0
-  buy_limit: 7000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: mid
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - "Wield"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ammo
-    type: bolts
+    weapon_type: bolts
+    attack_speed: null
+    weight: 0
     requirements:
       ranged: 36
-  fletching:
-    level: 54
-    materials:
-      - item: Mithril bolts (unf)
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 82
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Bronze dragon
         quantity: "1"
-      - item: Feathers
+        rarity: common
+      - source: Elder Chaos druid
         quantity: "1"
-  obtaining:
-    fletching: Attach feathers to mithril bolts (unf) at 54 Fletching
-    drops:
-      - Bronze dragons
-      - Chaos druids
-      - Sarachnis
-    thieving: Crossbow stalls (49 Thieving)
+        rarity: common
+      - source: Sarachnis
+        quantity: "1"
+        rarity: uncommon
+  recipes:
+    - skill: fletching
+      level: 54
+      xp: 50
+      materials:
+        - item_name: Mithril bolts (unf)
+          quantity: 10
+        - item_name: Feather
+          quantity: 10
+      tools: []
+      output_quantity: 10
   related_items:
-    - slug: mithril-crossbow
-      name: Mithril crossbow
-      relation: minimum_weapon
-    - slug: adamant-bolts
-      name: Adamant bolts
-      relation: upgrade
+    - item_name: Mithril bolts (unf)
+      slug: mithril-bolts-unf
+      relationship: component
+      description: Unfinished bolts attached to feathers to make mithril bolts
+    - item_name: Mithril crossbow
+      slug: mithril-crossbow
+      relationship: component
+      description: Minimum crossbow that fires mithril bolts
+    - item_name: Adamant bolts
+      slug: adamant-bolts
+      relationship: upgrade
+      description: Stronger crossbow ammunition tier
+    - item_name: Mithril bolts (p)
+      slug: mithril-bolts-p
+      relationship: variant
+      description: Poisoned version of the same bolt
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Ammo |
-    | Type | Crossbow Bolts |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 36 Ranged |
+    > *"Mithril crossbow bolts."*
 
-    Used with mithril crossbow or higher.
-
-    Can be tipped with gems and enchanted.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Mithril bolts are mid-tier crossbow ammunition with +82 Ranged Strength, requiring 36 Ranged to wield. They are commonly fletched from mithril bolts (unf) with feathers at level 54 Fletching and serve as a base for tipped or poisoned variants.
+  market_strategy:
+    notes:
+      - "Strong steady demand from Slayer and mid-game PvM"
+      - "Price ties closely to mithril bar and feather supply"
+  trading_tips:
+    - "Fletching profit hinges on feather and unf bolt spreads"
+    - "Watch poisoned variants: tipping demand can shift the floor"
+  history:
+    - date: "2006-07-31"
+      description: "Released with the original crossbow rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

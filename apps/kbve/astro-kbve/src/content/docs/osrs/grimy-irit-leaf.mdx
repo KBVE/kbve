@@ -12,68 +12,78 @@ osrs:
   lowalch: 6
   highalch: 10
   limit: 13000
-  herb:
-    type: grimy
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: grimy herb
     tier: mid
-  herblore:
-    cleaning_level: 40
-    cleaning_xp: 8.8
-    clean_id: 259
-    clean_name: Irit leaf
-  farming:
-    level: 44
-    seed_id: 5297
-    seed_name: Irit seed
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - "Clean"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 40
+      xp: 8.8
+      materials:
+        - item_name: Grimy irit leaf
+          quantity: 1
+      tools: []
+      output_quantity: 1
   drop_table:
     sources:
       - source: Aberrant spectre
-        source_id: 2927
-        combat_level: 96
         quantity: "1"
         rarity: common
-        members_only: true
       - source: Master Farmer
-        source_id: 5730
         quantity: "1"
         rarity: rare
-        members_only: true
+      - source: Chaos druid
+        quantity: "1"
+        rarity: uncommon
   related_items:
-    - item_id: 259
-      item_name: Irit leaf
+    - item_name: Irit leaf
       slug: irit-leaf
       relationship: product
-      description: Cleaned version
-    - item_id: 101
-      item_name: Irit potion (unf)
+      description: Cleaned version (Herblore 40)
+    - item_name: Irit potion (unf)
       slug: irit-potion-unf
       relationship: product
-      description: Unfinished potion
-    - item_id: 2436
-      item_name: Super attack(4)
+      description: Unfinished potion base
+    - item_name: Super attack(4)
       slug: super-attack-4
       relationship: product
       description: Primary end product
-    - item_id: 5297
-      item_name: Irit seed
+    - item_name: Irit seed
       slug: irit-seed
       relationship: component
-      description: Farming seed
+      description: Farming seed (Farming 44)
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Grimy Herb |
-    | Tradeable | Yes |
-    | Weight | 0.007 kg |
-    | Herblore Level | 40 (to clean) |
-
-    Clean to produce irit leaf for Herblore.
-
-    Irit leaf used for:
-    - Super attack
-    - Antidote+
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Grimy irit leaf is the uncleaned form of the irit leaf herb. Cleaning requires 40 Herblore for 8.8 XP. Used to make super attack potions, super antipoison, irit tar, and antidote++. Farmable from irit seeds at 44 Farming and dropped by Aberrant spectres and Master Farmers.
+  market_strategy:
+    notes:
+      - "Slayer demand from Aberrant spectre tasks drives drop supply"
+      - "Cleaning step adds Herblore-XP buyer demand"
+      - "Antidote++ supply is the main end-product price driver"
+  trading_tips:
+    - "Buy grimy and clean for Herblore XP margins"
+    - "Stock during Slayer block-list meta shifts (Aberrant spectres in/out)"
+  history:
+    - date: "2002-02-27"
+      description: "Released alongside the Herblore skill."
+    - date: "2015-02-05"
+      description: "Renamed from generic 'Herb' back to Grimy irit leaf and became GE-tradeable."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

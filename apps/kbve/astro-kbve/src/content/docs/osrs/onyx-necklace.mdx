@@ -12,54 +12,94 @@ osrs:
   lowalch: 80400
   highalch: 120600
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: gold
+    tier: high
+  properties:
+    release_date: "2005-10-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
+    weapon_type: null
+    attack_speed: null
+    weight: 0.01
     requirements:
       crafting: 82
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 82
       xp: 120
-      inputs:
+      materials:
         - item_name: Onyx
           quantity: 1
         - item_name: Gold bar
           quantity: 1
+      tools:
+        - Necklace mould
       output_quantity: 1
   related_items:
-    - item_id: 1664
-      item_name: Dragon necklace
+    - item_name: Dragon necklace
       slug: dragon-necklace
       relationship: downgrade
       description: Previous tier necklace
-    - item_id: 19535
-      item_name: Zenyte necklace
+    - item_name: Zenyte necklace
       slug: zenyte-necklace
       relationship: upgrade
       description: Next tier necklace
+    - item_name: Berserker necklace
+      slug: berserker-necklace
+      relationship: product
+      description: Enchanted form of onyx necklace
   about: |-
-    Crafting (Level 82): Onyx + Gold bar at a furnace with necklace mould (120 XP)
+    The onyx necklace is crafted at a furnace by combining an onyx gem and a gold bar with a necklace mould (level 82 Crafting, 120 XP). The gold bar takes on the dark onyx hue when smelted.
 
-    > *"An onyx necklace."*
-
-    Lvl-6 Enchant (87 Magic): 1 cosmic rune + 20 fire runes + 20 earth runes (97 XP)
-
-    The Berserker necklace provides a unique 20% damage boost when wielding an obsidian melee weapon (Toktz-xil-ak, Tzhaar-ket-om, Toktz-xil-ek). This stacks with the obsidian armour set bonus for up to 30% total damage increase.
-
-    | Bonus | Source | Damage Boost |
-    |-------|--------|-------------|
-    | Berserker necklace | Neck slot | +20% |
-    | Obsidian armour set | Body+legs+helm | +10% |
-    | Combined | | +30% |
-
-    This setup is popular for NMZ training and low-level Slayer.
+    Enchanting via Lvl-6 Enchant (87 Magic, 1 cosmic + 20 fire + 20 earth runes) transforms the necklace into a Berserker necklace, which grants a unique 20 percent damage boost when wielding obsidian melee weapons (Toktz-xil-ak, Tzhaar-ket-om, Toktz-xil-ek). This stacks with the obsidian armour set bonus for up to 30 percent total damage increase, popular for NMZ training and low-level Slayer.
   market_strategy:
     notes:
-      - Onyx is the main cost
-      - Berserker necklace popular for NMZ/obsidian training
-      - High-value enchant
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Onyx gem is the main cost driver"
+      - "Berserker necklace conversion popular for NMZ and obsidian training setups"
+      - "High-value enchant transaction"
+  trading_tips:
+    - "Onyx supply tracks TzHaar fight cave and Soul Wars rewards"
+    - "Crafting profit is negative; flips key vs enchanted Berserker price"
+  history:
+    - date: "2005-10-04"
+      description: "Released in the original gem update"
+    - date: "2005-10-17"
+      description: "Item value raised from 1 to 201,000 coins"
+    - date: "2018-02-22"
+      description: "Inventory sprite rotated"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Oyster pearls | OSRS Price Data
-description: "Oyster pearls: I could work wonders with a chisel on these pearls.. High alch: 840 GP, GE limit: 11,000."
+description: "Oyster pearls is a members crafting material used to fletch pearl bolt tips. High alch: 840 GP, GE limit: 11,000."
 osrs:
   id: 413
   name: Oyster pearls
@@ -12,18 +12,83 @@ osrs:
   lowalch: 560
   highalch: 840
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: pearl
+    tier: low
+  properties:
+    release_date: "2002-09-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.004
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Opening an Oyster
+        quantity: "1"
+        rarity: Uncommon
+      - source: Giant Mole
+        quantity: "1"
+        rarity: 1/131
+      - source: Dagannoth (various)
+        quantity: "1"
+        rarity: 1/128 to 6/128
+      - source: Lobstrosity
+        quantity: "1"
+        rarity: 4/118
+      - source: Veiled Kraken
+        quantity: "1"
+        rarity: Common
+      - source: Shipwreck salvage
+        quantity: "1"
+        rarity: Uncommon
+  recipes:
+    - skill: fletching
+      level: 41
+      xp: 3.2
+      materials:
+        - item_name: Oyster pearls
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 24
   related_items:
-    - item_id: 407
-      item_name: Oyster
+    - item_name: Oyster
       slug: oyster
       relationship: component
-      description: Source item
+      description: Source item that yields the pearls
+    - item_name: Oyster pearl
+      slug: oyster-pearl
+      relationship: variant
+      description: Single pearl variant
+    - item_name: Pearl bolt tips
+      slug: pearl-bolt-tips
+      relationship: product
+      description: Crafted from oyster pearls with a chisel
   about: |-
-    > _"Some little pearls."_
+    Oyster pearls are a members crafting material harvested from oysters and various sea creatures. With a chisel they fletch into 24 pearl bolt tips per pearl bunch at level 41 Fletching, granting 3.2 experience.
 
-    Oyster pearls can be used with a chisel to craft pearl bolt tips (41 Crafting). The rarer drop from oysters compared to a single oyster pearl.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The pearl bolt tips attach to iron or dragon bolts to create pearl bolt variants, popular as a mid-game ranged ammunition with the Sea Curse bolt enchant for water-elemental damage.
+  market_strategy:
+    notes:
+      - "Demand tied to pearl bolt fletching activity"
+      - "Supply driven by Oyster opening and aquatic monster drops"
+      - "Low margin item with steady volume"
+  trading_tips:
+    - "Watch volume swings during Slayer task spikes for dagannoth"
+    - "Compare per-tip cost against direct pearl bolt prices"
+  history:
+    - date: "2002-09-09"
+      description: "Released with the Sea Slug quest update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

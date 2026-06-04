@@ -12,83 +12,92 @@ osrs:
   lowalch: 21600
   highalch: 32400
   limit: 70
-  equipment:
-    slot: 2h
-    type: crossbow
-    attack_style: ranged
-    attack_speed: 5
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragon
+    tier: mid-high
+  properties:
+    release_date: "2018-01-04"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 6
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: "2h"
+    weapon_type: crossbow
+    attack_speed: 5
     weight: 6
     requirements:
       ranged: 64
-    stats:
-      ranged_attack: 94
-  special_attack:
-    name: Annihilate
-    energy: 60
-    effect: Hits up to 9 enemies in 3x3 area
-    primary_bonus: +20% damage
-    secondary_penalty: -20% damage
-  creation:
-    method: Fletching
-    requirements:
-      fletching: 78
-    materials:
-      - item_id: 21918
-        item_name: Dragon limbs
-        quantity: "1"
-      - item_id: 21894
-        item_name: Magic stock
-        quantity: "1"
-    xp: 135
-  market:
-    buy_limit: 70
-    price_estimate: 800000
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 94
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 78
+      xp: 135
+      materials:
+        - item_name: Dragon crossbow (u)
+          quantity: 1
+        - item_name: Crossbow string
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 9185
-      item_name: Rune crossbow
+    - item_name: Rune crossbow
       slug: rune-crossbow
       relationship: downgrade
-      description: Budget option
-    - item_id: 11785
-      item_name: Armadyl crossbow
+      description: Budget crossbow option
+    - item_name: Armadyl crossbow
       slug: armadyl-crossbow
       relationship: upgrade
-      description: Major upgrade
-    - item_id: 21945
-      item_name: Dragon bolts (e)
+      description: Major upgrade for high-end ranging
+    - item_name: Dragon bolts (e)
       slug: dragon-bolts-e
       relationship: component
-      description: Best ammo
+      description: Best ammo for the dragon crossbow
   about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Ranged attack | +94 |
+    Dragon crossbow is a one-handed crossbow released with Dragon Slayer II. Requires 64 Ranged and provides +94 Ranged attack. Fires up to dragon-tier bolts.
 
-    | Defence | Value |
-    |---------|-------|
-    | All | +0 |
+    The Annihilate special attack costs 60 percent special energy and hits up to nine enemies in a 3x3 area, dealing +20 percent damage to the primary target and -20 percent damage to others.
 
-    Requirements: 64 Ranged
-
-    Annihilate (60% energy):
-    - Hits up to 9 enemies in 3x3 area
-    - Primary target: +20% damage
-    - Others: -20% damage
-
-    Mid-game crossbow for:
-    - Slayer
-    - Early bossing
-    - Multi-target situations
-
-    Slight upgrade over rune crossbow.
+    Useful for Slayer, early bossing, and multi-target situations. A slight upgrade over the rune crossbow.
   market_strategy:
     notes:
-      - Dragon limbs from dragons
-      - Craftable alternative
-      - Upgrade to ACB/ZCB
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Dragon limbs sourced from dragons"
+      - "Fletchable from limbs and magic stock"
+      - "Considered a stepping stone toward ACB or ZCB"
+  trading_tips:
+    - "Buy when fletching profits dip below 10k per piece"
+    - "Stock during DMM seasons when demand spikes"
+  history:
+    - date: "2018-01-04"
+      description: "Added to the game with Dragon Slayer II."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

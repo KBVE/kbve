@@ -1,6 +1,6 @@
 ---
 title: Uncut red topaz | OSRS Price Data
-description: "Uncut red topaz: This would be worth more cut.. High alch: 24 GP, GE limit: 10,000."
+description: "Uncut red topaz: This would be worth more cut. High alch: 24 GP, GE limit: 10,000."
 osrs:
   id: 1629
   name: Uncut red topaz
@@ -12,9 +12,77 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 10000
-  about: "Uncut red topaz is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: gem
+    tier: mid
+  properties:
+    release_date: "2003-01-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.003
+    options:
+      - Use
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 16
+      xp: 25
+      materials:
+        - item_name: Uncut red topaz
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Gem rock (mining)
+        quantity: "1"
+        rarity: Common
+      - source: Wise Old Man (random task)
+        quantity: "1"
+        rarity: Uncommon
+      - source: Dorgesh-Kaan rich chest
+        quantity: "1"
+        rarity: Uncommon
+  related_items:
+    - item_name: Red topaz
+      slug: red-topaz
+      relationship: product
+      description: Cut version made with a chisel at 16 Crafting
+    - item_name: Uncut sapphire
+      slug: uncut-sapphire
+      relationship: alternative
+      description: Lower tier uncut gem
+    - item_name: Uncut emerald
+      slug: uncut-emerald
+      relationship: alternative
+      description: Mid-tier uncut gem
+    - item_name: Uncut ruby
+      slug: uncut-ruby
+      relationship: alternative
+      description: Higher-tier uncut gem
+  about: |-
+    > _"This would be worth more cut."_
+
+    Mid-tier semi-precious gem mined from gem rocks (Shilo Village, Lunar Isle, Trahaearn district). Cutting with a chisel at 16 Crafting yields a red topaz and 25 XP, or a crushed gem and 6.3 XP on failure.
+  market_strategy:
+    notes:
+      - "Cut-vs-uncut spread is the main profit lever — track both prices."
+      - "Failure rate falls off after level 25 Crafting, improving margins for mid-level cutters."
+  trading_tips:
+    - "Buy uncut in bulk during mining update spikes; cut and re-list for the spread."
+    - "Pair with chisel buys on F2P alt accounts for fast turnover."
+  history:
+    - date: "2003-01-27"
+      description: "Gem added with the gem rock mining update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Teak toy box (flatpack) | OSRS Price Data
-description: "Teak toy box (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Teak toy box (flatpack): How does it all fit in there? High alch: 6 GP, GE limit: 500."
 osrs:
   id: 9850
   name: Teak toy box (flatpack)
@@ -12,9 +12,67 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Teak toy box (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: mid
+  properties:
+    release_date: "2006-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Use
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 68
+      xp: 180
+      materials:
+        - item_name: Teak plank
+          quantity: 2
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Teak plank
+      slug: teak-plank
+      relationship: component
+      description: Two planks required per flatpack
+    - item_name: Teak toy box
+      slug: teak-toy-box
+      relationship: product
+      description: Final assembled furniture in the costume room
+    - item_name: Oak toy box (flatpack)
+      slug: oak-toy-box-flatpack
+      relationship: downgrade
+      description: Lower-tier toy box flatpack
+    - item_name: Mahogany toy box (flatpack)
+      slug: mahogany-toy-box-flatpack
+      relationship: upgrade
+      description: Higher-tier toy box flatpack
+  about: |-
+    > _"How does it all fit in there?"_
+
+    Construction flatpack built at a workbench inside a Player-Owned House workshop. Requires 68 Construction, two teak planks, hammer and saw for 180 XP. Used on the toy box space in the costume room.
+  market_strategy:
+    notes:
+      - "Demand follows Mahogany Homes / construction training spikes."
+      - "Plank cost is the floor — flatpack price tracks teak plank price plus a labour premium."
+  trading_tips:
+    - "Flip during double XP weekends when costume room training surges."
+    - "Buy near plank-cost floor; sell into training events."
+  history:
+    - date: "2006-10-18"
+      description: "Released with the Construction flatpack update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

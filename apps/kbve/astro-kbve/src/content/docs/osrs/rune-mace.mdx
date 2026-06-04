@@ -12,9 +12,31 @@ osrs:
   lowalch: 5760
   highalch: 8640
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune
+    tier: mid
+  properties:
+    release_date: "2001-07-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options: ["Wield"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
+    weapon_type: mace
     attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 40
     attack_bonus:
       stab: 20
       slash: -2
@@ -32,53 +54,55 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 4
-    requirements:
-      attack: 40
-    weight: 1.814
+  recipes:
+    - skill: smithing
+      level: 87
+      xp: 75
+      materials:
+        - item_name: Runite bar
+          quantity: 1
+      tools: ["Hammer", "Anvil"]
+      output_quantity: 1
+  shops:
+    - shop_name: Scavvo's Rune Store
+      location: Champions' Guild
+      price: 14400
+      currency: Coins
+      stock: 1
   related_items:
-    - item_id: 1333
-      item_name: Rune scimitar
+    - item_name: Rune scimitar
       slug: rune-scimitar
       relationship: alternative
-      description: Higher DPS for training
-    - item_id: 1347
-      item_name: Rune warhammer
+      description: Higher DPS mid-tier weapon for general training
+    - item_name: Rune warhammer
       slug: rune-warhammer
       relationship: alternative
-      description: Higher crush bonus
+      description: Slower but harder-hitting crush option
+    - item_name: Bone mace
+      slug: bone-mace
+      relationship: upgrade
+      description: Combined with Scurrius' spine to upgrade into the Bone mace
+    - item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: Smelted into the mace at 87 Smithing
   about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Stab | +20 |
-    | Crush | +39 |
+    Rune mace is a crush-focused melee weapon requiring 40 Attack and 32 quest points to buy from Scavvo's Rune Store. Smithing one mace costs 1 runite bar at 87 Smithing for 75 xp. Stats are crush-leaning with a +4 prayer bonus, making it niche for prayer-dependent F2P setups and the budget option for crushing Scurrius.
 
-    | Other | Value |
-    |-------|-------|
-    | Strength | +36 |
-    | Prayer | +4 |
-
-    Requirements: 40 Attack | Speed: 4 tick (2.4s)
-
-    Combine with Scurrius' spine (from the Scurrius boss) to create a Bone mace — a direct upgrade with higher stats and retained prayer bonus. Scurrius is located beneath Varrock in the Scurrius' Lair.
-
-    | Stat | Rune Mace | Rune Scimitar | Bone Mace |
-    |------|-----------|---------------|-----------|
-    | Slash | -2 | +45 | — |
-    | Crush | +39 | -2 | +52 |
-    | Strength | +36 | +44 | +46 |
-    | Prayer | +4 | 0 | +4 |
-    | Speed | 4 tick | 4 tick | 4 tick |
-
-    Lower DPS than rune scimitar, but the prayer bonus and crush style offer niche advantages — especially against Scurrius (weak to crush) and in prayer-dependent F2P scenarios.
-
-    April 2021: Attack speed buffed from 5-tick (3.0s) to 4-tick (2.4s), matching the rune scimitar's speed. This significantly improved its viability.
+    Most relevant today as the upgrade base for the Bone mace — combined with Scurrius' spine to produce a stronger crush weapon that retains the prayer bonus.
   market_strategy:
     notes:
-      - Low-value smithing product (1 runite bar)
-      - Demand driven by bone mace upgrade path
-      - F2P prayer weapon niche
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand driven by the Bone mace upgrade path and F2P prayer niches"
+      - "Low-volume Smithing product; runite bar floor caps the downside"
+      - "4-tick rework (2021) keeps it competitive vs. rune scimitar in crush scenarios"
+  trading_tips:
+    - "Buy from Scavvo's at high alch break-even to cap downside risk"
+    - "Stack ahead of Scurrius content drops when Bone mace demand spikes"
+  history:
+    - date: "2001-07-26"
+      description: "Released as part of the original rune weapon tier"
+    - date: "2021-04"
+      description: "Attack speed buffed from 5 ticks to 4 ticks, matching the rune scimitar's tempo"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

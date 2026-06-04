@@ -1,6 +1,6 @@
 ---
 title: Mixed hide legs | OSRS Price Data
-description: "Mixed hide legs: Made from the hide of a few different creatures.. High alch: 2,400 GP, GE limit: 100."
+description: "Mixed hide legs is a Varlamore Ranged legs slot armour requiring 60 Ranged. High alch: 2,400 GP, GE limit: 100."
 osrs:
   id: 29283
   name: Mixed hide legs
@@ -12,9 +12,108 @@ osrs:
   lowalch: 1600
   highalch: 2400
   limit: 100
-  about: "Mixed hide legs is a members-only item in Old School RuneScape. High alchemy value: 2,400 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: mixed-hide
+    tier: mid
+  properties:
+    release_date: "20 March 2024"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 2
+    requirements:
+      ranged: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 20
+      slash: 23
+      crush: 22
+      magic: 16
+      ranged: 20
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 71
+      xp: 210
+      materials:
+        - item_name: Mixed hide base
+          quantity: 1
+        - item_name: Fox fur
+          quantity: 3
+        - item_name: Needle
+          quantity: 1
+        - item_name: Thread
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  shops:
+    - shop_name: Pellem
+      location: Hunter Guild
+      price: 20000
+      currency: coins
+      stock: 1
+  related_items:
+    - item_name: Mixed hide base
+      slug: mixed-hide-base
+      relationship: component
+      description: Crafting base for the legs
+    - item_name: Fox fur
+      slug: fox-fur
+      relationship: component
+      description: Secondary hides for the legs
+    - item_name: Mixed hide top
+      slug: mixed-hide-top
+      relationship: set-piece
+      description: Matching body slot piece
+    - item_name: Mixed hide boots
+      slug: mixed-hide-boots
+      relationship: set-piece
+      description: Matching boots slot piece
+    - item_name: Mixed hide cape
+      slug: mixed-hide-cape
+      relationship: set-piece
+      description: Matching cape slot piece
+  about: |-
+    > _"Made from the hide of a few different creatures."_
+
+    Mixed hide legs is a mid-tier Ranged armour added with Varlamore. Crafted at level 71 Crafting from a mixed hide base, 3 fox furs and needle/thread for 210 XP. Alternatively purchased from Pellem at the Hunter Guild for 20,000 coins (requires 46 Hunter and Children of the Sun completion).
+  market_strategy:
+    notes:
+      - "Price tied to mixed hide base supply from Hunter Guild creature hunts."
+      - "Volume sits around 1.5k/day; thin spread but stable."
+  trading_tips:
+    - "Sell during ironman skilling guide spikes; hunter completion targets buy the full set."
+  history:
+    - date: "20 March 2024"
+      description: "Released as part of the Varlamore: The Final Dawn update."
+    - date: "3 April 2024"
+      description: "Added to armour case storage in costume rooms."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

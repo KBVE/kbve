@@ -12,31 +12,96 @@ osrs:
   lowalch: 340
   highalch: 510
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: studded_leather
+    tier: low
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 5.443
     requirements:
       ranged: 20
       defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -4
+      ranged: 8
+    defence_bonus:
+      stab: 18
+      slash: 25
+      crush: 22
+      magic: 8
+      ranged: 25
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 7368
-      item_name: Studded chaps (t)
-      slug: studded-chaps-t
-      relationship: set-piece
-      description: Matching trimmed chaps
-    - item_id: 7362
-      item_name: Studded body (g)
+    - item_name: Studded body
+      slug: studded-body
+      relationship: variant
+      description: Untrimmed base version with identical stats
+    - item_name: Studded body (g)
       slug: studded-body-g
       relationship: variant
-      description: Gold-trimmed variant
+      description: Gold-trimmed cosmetic variant
+    - item_name: Studded chaps (t)
+      slug: studded-chaps-t
+      relationship: set-piece
+      description: Matching trimmed legs
   about: |-
     > *"Those studs should provide a bit more protection. Nice trim too!"*
 
-    The studded body (t) is a trimmed cosmetic variant of the studded body. Identical stats, requiring 20 Ranged and 20 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The studded body (t) is a trimmed cosmetic variant of the studded body rewarded from easy clue scrolls. Stats are identical to the base item, requiring 20 Ranged and 20 Defence to wear.
+  market_strategy:
+    notes:
+      - "Supply driven entirely by easy clue completions"
+      - "Low buy limit limits flip volume"
+      - "F2P friendly cosmetic for early Ranged builds"
+  trading_tips:
+    - "Pair pricing with studded chaps (t) for set demand"
+    - "Watch easy clue drop-rate buffs in patch notes"
+  history:
+    - date: "2006-02-20"
+      description: "Released as part of the treasure trail clue expansion"
+    - date: "2006-03-15"
+      description: "Made available to free-to-play players"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

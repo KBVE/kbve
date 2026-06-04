@@ -12,9 +12,73 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Annakarl teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: tablet
+    tier: low
+  properties:
+    release_date: "18 September 2014"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Configure
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: magic
+      level: 90
+      xp: 100
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Law rune
+          quantity: 2
+        - item_name: Blood rune
+          quantity: 2
+      tools:
+        - Lectern (Ancient)
+      output_quantity: 1
+  related_items:
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Primary tablet substrate used in lectern enchanting.
+    - item_name: Law rune
+      slug: law-rune
+      relationship: component
+      description: Teleport rune burned into the tablet.
+    - item_name: Blood rune
+      slug: blood-rune
+      relationship: component
+      description: Ancient Magicks rune required by the Annakarl spell.
+    - item_name: Ghorrock teleport (tablet)
+      slug: ghorrock-teleport-tablet
+      relationship: alternative
+      description: Other Ancient Magicks tablet teleport made the same way.
+    - item_name: Carrallangar teleport (tablet)
+      slug: carrallangar-teleport-tablet
+      relationship: alternative
+      description: Lower-level Ancient teleport tablet to the Graveyard of Shadows.
+  about: "Annakarl teleport (tablet) is an Ancient Magicks tablet created at the Ancient Pyramid lectern, requiring Magic 90 and Desert Treasure I. Using it lands the player in level 46 Wilderness."
+  market_strategy:
+    notes:
+      - "Profit per cast is small but volume sustains it; players chain craft for steady Magic XP at 100 XP per tablet."
+      - "Wilderness PvP cycles spike demand when teleport-to-target loadouts trend."
+  trading_tips:
+    - "Stockpile soft clay during Construction events when prices dip."
+    - "Compare Blood and Law rune floors; the tablet's margin lives in those two inputs."
+  history:
+    - date: "18 September 2014"
+      description: "Introduced alongside expanded Ancient Magicks lectern crafting at the Ancient Pyramid."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
