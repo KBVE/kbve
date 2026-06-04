@@ -168,6 +168,9 @@ function stripAstroFields(raw) {
 		if (ASTRO_ONLY.has(k)) continue;
 		game[k] = v;
 	}
+	if (typeof raw.img === 'string' && raw.img.trim().length > 0) {
+		game.hasImg = true;
+	}
 	return game;
 }
 

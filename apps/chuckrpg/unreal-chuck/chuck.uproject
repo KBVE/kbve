@@ -1,0 +1,89 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.7",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "chuck",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine",
+				"AIModule",
+				"UMG",
+				"MassEntity",
+				"MassCommon",
+				"StructUtils"
+			]
+		}
+	],
+	"AdditionalPluginDirectories": [
+		"../../../packages/unreal"
+	],
+	"Plugins": [
+		{
+			"Name": "ModelingToolsEditorMode",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		},
+		{
+			"Name": "StateTree",
+			"Enabled": true
+		},
+		{
+			"Name": "GameplayStateTree",
+			"Enabled": true
+		},
+		{
+			"Name": "MassGameplay",
+			"Enabled": true
+		},
+		{
+			"Name": "MassCrowd",
+			"Enabled": true
+		},
+		{
+			"Name": "MassAI",
+			"Enabled": true
+		},
+		{
+			"Name": "AnimationBudgetAllocator",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEYYJson",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEXXHash",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVESQLite",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEULID",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEUI",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEEvents",
+			"Enabled": true
+		},
+		{
+			"Name": "AsyncMessageSystem",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEROWS",
+			"Enabled": false
+		}
+	]
+}

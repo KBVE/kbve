@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "KBVE UI",
+	"Description": "Shared Slate UI component library for KBVE Unreal games — movable frames, drag handles, custom draw helpers (bars, slanted quads, text). Game-agnostic visual primitives that depend only on Core + Slate.",
+	"Category": "KBVE",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"DocsURL": "https://kbve.com",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EnabledByDefault": false,
+	"Modules": [
+		{
+			"Name": "KBVEUI",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}

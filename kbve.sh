@@ -818,6 +818,98 @@ build_pnpm_nx() {
     pnpm nx build "$argument"
 }
 
+# Git LFS endpoint router.
+#
+# Stock git-lfs only honors `lfs.url` from the repository-root .lfsconfig.
+# Per-tree routing isn't supported, so this wrapper injects the correct
+# Forgejo endpoint per-game via `git -c lfs.url=…` and then forwards the
+# remaining args straight to `git lfs`.
+#
+# Usage:
+#   ./kbve.sh -lfs <game> <lfs-subcommand> [args...]
+#
+# Games:
+#   chuck      → KBVE/chuck     (apps/chuckrpg/unreal-chuck/**)
+#   rareicon   → KBVE/rareicon  (apps/rareicon/**) — matches root .lfsconfig
+#
+# Examples:
+#   ./kbve.sh -lfs chuck push origin dev
+#   ./kbve.sh -lfs chuck pull
+#   ./kbve.sh -lfs chuck ls-files
+kbve_lfs() {
+    local game="$1"
+    shift 2>/dev/null || true
+    if [ -z "$game" ] || [ "$game" = "-h" ] || [ "$game" = "--help" ]; then
+        cat <<'EOF'
+Usage: ./kbve.sh -lfs <game> <lfs-subcommand> [args...]
+
+Games:
+  chuck      → https://git.kbve.com/KBVE/chuck.git/info/lfs
+  rareicon   → https://git.kbve.com/KBVE/rareicon.git/info/lfs
+
+Standard subcommands forwarded to `git lfs`:
+  push|pull|fetch|ls-files|env|...
+
+Custom subcommands:
+  register      Register every LFS OID under the game's path prefix with the
+                game's Forgejo repo. No bytes are uploaded if the blob already
+                lives in the shared content-addressed storage (Forgejo dedups
+                across the KBVE org), so this is the cheap way to claim
+                ownership for pointers whose blobs were pushed via the root
+                .lfsconfig endpoint (e.g. by the husky pre-push hook).
+
+Examples:
+  ./kbve.sh -lfs chuck push origin dev
+  ./kbve.sh -lfs chuck pull
+  ./kbve.sh -lfs chuck fetch --all
+  ./kbve.sh -lfs chuck ls-files
+  ./kbve.sh -lfs chuck register
+EOF
+        return 1
+    fi
+
+    local url path_prefix
+    case "$game" in
+        chuck)
+            url="https://git.kbve.com/KBVE/chuck.git/info/lfs"
+            path_prefix="apps/chuckrpg/unreal-chuck"
+            ;;
+        rareicon)
+            url="https://git.kbve.com/KBVE/rareicon.git/info/lfs"
+            path_prefix="apps/rareicon"
+            ;;
+        *)
+            echo "Unknown game '$game'. Known: chuck, rareicon" >&2
+            return 1
+            ;;
+    esac
+
+    if [ $# -eq 0 ]; then
+        echo "Missing lfs subcommand (e.g. push, pull, fetch, ls-files, register)." >&2
+        return 1
+    fi
+
+    if [ "$1" = "register" ]; then
+        shift
+        local remote="${1:-origin}"
+        echo "→ scanning local LFS pointers under $path_prefix/"
+        local oids
+        oids=$(git lfs ls-files --long | awk -v prefix="$path_prefix/" '$0 ~ prefix {print $1}')
+        if [ -z "$oids" ]; then
+            echo "No LFS pointers found under $path_prefix/. Nothing to register."
+            return 0
+        fi
+        local count
+        count=$(printf '%s\n' "$oids" | wc -l | tr -d ' ')
+        echo "→ registering $count OIDs with $url via --object-id (bytes deduped server-side)"
+        printf '%s\n' "$oids" | xargs git -c "lfs.url=$url" lfs push --object-id "$remote"
+        return $?
+    fi
+
+    echo "→ git -c lfs.url=$url lfs $*"
+    git -c "lfs.url=$url" lfs "$@"
+}
+
 # Main execution
 case "$1" in
     -check)
@@ -940,6 +1032,10 @@ case "$1" in
         PROJECT="${1:-chuck}"
         shift 2>/dev/null || true
         bash "$(git rev-parse --show-toplevel)/apps/rows/scripts/deploy-server.sh" "$@" "--project=${PROJECT}"
+        ;;
+    -lfs)
+        shift
+        kbve_lfs "$@"
         ;;
     -worktree)
         shift
@@ -1076,6 +1172,12 @@ case "$1" in
         echo "  -ue <project> [ver] Build + deploy UE5 dedicated server"
         echo "                      Projects: chuck (default), hubworld"
         echo "                      Flags: --shipping, --skip-build, --skip-deploy"
+        echo ""
+        echo "Git LFS:"
+        echo "  -lfs <game> <cmd>  Route git-lfs to per-game Forgejo endpoint"
+        echo "                     Games: chuck, rareicon"
+        echo "                     Examples: -lfs chuck push origin dev"
+        echo "                               -lfs chuck pull"
         echo ""
         echo "Utilities:"
         echo "  -check [cmds...]   Check if commands are installed"

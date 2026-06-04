@@ -296,7 +296,7 @@ pub(crate) fn service_unavailable() -> Response {
 /// Gate service routes: requires a Supabase JWT whose `role` claim is
 /// `service_role`. Used by backend callers (MC mod, cron jobs, internal
 /// scripts). Anon/authenticated JWTs are rejected.
-async fn require_service_role(headers: &HeaderMap) -> Result<(), Response> {
+pub(crate) async fn require_service_role(headers: &HeaderMap) -> Result<(), Response> {
     let auth_header = headers
         .get(header::AUTHORIZATION)
         .and_then(|h| h.to_str().ok())

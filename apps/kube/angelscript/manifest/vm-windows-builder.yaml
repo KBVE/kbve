@@ -7,7 +7,7 @@
 #   2. Upload Windows ISO via virtctl DataVolume:
 #        virtctl image-upload dv windows-server-builder-iso \
 #          --size=8Gi \
-#          --image-path=/Users/alappatel/Downloads/win_server.iso \
+#          --image-path=/Users/~/Downloads/win_server.iso \
 #          --storage-class=longhorn \
 #          --namespace=angelscript \
 #          --uploadproxy-url=https://localhost:8443 \

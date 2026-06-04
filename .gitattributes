@@ -26,3 +26,34 @@ apps/godot/**/addons/**/bin/**/*.dylib filter=lfs diff=lfs merge=lfs -text
 apps/godot/**/addons/**/bin/**/*.dll   filter=lfs diff=lfs merge=lfs -text
 apps/godot/**/addons/**/bin/**/*.so    filter=lfs diff=lfs merge=lfs -text
 apps/godot/**/addons/**/bin/**/*.wasm  filter=lfs diff=lfs merge=lfs -text
+
+# Unreal Engine — apps/chuckrpg/unreal-chuck binary assets
+# Pointer files live in this repo; blobs live on git.kbve.com/KBVE/chuck.git
+# (see apps/chuckrpg/unreal-chuck/.lfsconfig). Covers UE cooked asset blobs,
+# raw DCC source art, audio, and packaged plugin/binary outputs.
+# UE cooked / serialized assets
+apps/chuckrpg/unreal-chuck/**/*.uasset filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/*.umap   filter=lfs diff=lfs merge=lfs -text
+# Raw 3D / DCC source art
+apps/chuckrpg/unreal-chuck/**/*.fbx    filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/*.obj    filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/*.blend  filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/*.psd    filter=lfs diff=lfs merge=lfs -text
+# Textures (raster + HDR)
+apps/chuckrpg/unreal-chuck/**/*.png    filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/*.jpg    filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/*.jpeg   filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/*.tga    filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/*.exr    filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/*.hdr    filter=lfs diff=lfs merge=lfs -text
+# Audio
+apps/chuckrpg/unreal-chuck/**/*.wav    filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/*.mp3    filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/*.ogg    filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/*.flac   filter=lfs diff=lfs merge=lfs -text
+# Plugin / native binaries (same pattern as rareicon)
+apps/chuckrpg/unreal-chuck/**/Plugins/**/*.dylib filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/Plugins/**/*.dll   filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/Plugins/**/*.so    filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/Plugins/**/*.a     filter=lfs diff=lfs merge=lfs -text
+apps/chuckrpg/unreal-chuck/**/Plugins/**/*.bundle filter=lfs diff=lfs merge=lfs -text

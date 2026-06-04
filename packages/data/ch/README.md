@@ -83,7 +83,7 @@ For Logflare-managed sources the same shape applies, but Logflare provisions one
 
 ## Future work
 
-OpenTelemetry trace ingestion (Vector 0.54 experimental) is queued behind the log pipeline stabilisation — see [`project_otel_tracing.md`](../../../../.claude/projects/-Users-alappatel-Documents-GitHub-kbve/memory/project_otel_tracing.md) in the auto-memory.
+OpenTelemetry trace ingestion (Vector 0.54 experimental) is queued behind the log pipeline stabilisation — see [`project_otel_tracing.md`](../../../../.claude/projects/-Users--Documents-GitHub-kbve/memory/project_otel_tracing.md) in the auto-memory.
 
 ## Related
 

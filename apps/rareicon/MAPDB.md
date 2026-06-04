@@ -273,7 +273,7 @@ Phases 1 and 2 are mutually decoupled — can run in parallel or either order. P
 
 ## 9. Execution plan
 
-Tracked in `/Users/alappatel/.claude/plans/identify-any-main-thread-mighty-elephant.md`. Phases are separate commits / PRs; don't ship them as a single monolith.
+Tracked in `/Users/.claude/plans/identify-any-main-thread-mighty-elephant.md`. Phases are separate commits / PRs; don't ship them as a single monolith.
 
 ---
 

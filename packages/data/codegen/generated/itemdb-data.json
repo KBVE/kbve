@@ -32,7 +32,8 @@
             "dimensionalEnergy": "5D"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "A stout purple bloom the size of a fist, carried on a hollow stalk that squeaks when bent. The scent is faintly oniony, pleasant at distance and less so up close.\n",
@@ -92,7 +93,8 @@
             "dreamFlag": "anime"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "A cloudy tonic in a brown glass vial, stoppered with a cork that has absorbed its color over time. It tastes strongly of pine, iron, and the faint chalk aftertaste of a decent apology.\n",
@@ -249,7 +251,8 @@
             "traits": "cooker"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "A canvas shoulder bag with leather straps softened by long use and an interior liner stitched back in by an unidentified repair. Big enough for a full day of foraging without leaning you sideways on the return walk.\n",
@@ -345,7 +348,8 @@
             "traits": "buzzed"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "A cluster of pale blue bells nodding on a single thin stem, the petals so light that the shape is mostly suggestion. Found in shaded groves where the moss has been left alone.\n",
@@ -465,7 +469,8 @@
         "perishable": true,
         "shelfLifeSeconds": 86400,
         "spoilsIntoRef": "rotten-meat"
-      }
+      },
+      "hasImg": true
     },
     {
       "description": "A palm-sized cast-iron sphere with a short oiled fuse and a seam of poured lead running around its middle. Heavy enough to remind you what it is every time you shift your belt.\n",
@@ -544,7 +549,8 @@
       ],
       "stacking": {
         "packMax": 30
-      }
+      },
+      "hasImg": true
     },
     {
       "description": "Heavy brass key the length of two fingers, ward cut in a pattern unlike any in the locksmith's standard book, bow stamped with a pictogram that reads the same from either side. Warm to the touch in a way that has stopped surprising its current bearer.\n",
@@ -590,7 +596,8 @@
             "runtime": "300"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "A loose bundle of wrist-thick branches, still flexible enough at the tips to bow under their own weight, snapped off cleanly at the base. Bark is green-grey, catching the light where the breaks are fresh.\n",
@@ -638,7 +645,8 @@
             "buffDuration": "120"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Small round wood-and-leather hand shield, gripped centrally rather than strapped. Light enough that a militia goblin can swing it on a club arm without slowing the swing. Stops a glancing arrow; nothing more ambitious.\n",
@@ -688,7 +696,8 @@
         "perishable": true,
         "shelfLifeSeconds": 1209600,
         "spoilsIntoRef": "rotten-food"
-      }
+      },
+      "hasImg": true
     },
     {
       "description": "A single glossy black needle, finger-length and stiff, tapering from a pale base to a point that catches light from surprising angles. Sharper dry than wet, and unforgiving of careless pockets.\n",
@@ -913,7 +922,8 @@
             "duration": "120"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "A modest wedge of cheese wrapped in a square of waxed linen, pale cream at the center and smudged with cellar dust along the rind. Tastes of milk first, grass second, and a distant memory of the barn it came from.\n",
@@ -1260,7 +1270,8 @@
             "emotionalLeakChance": "0.1"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Overlapping plates the size of a child's hand, each one ridged along its spine and scored at the leading edge by whatever the dragon last disagreed with. Heavier than the leather they are sewn to, cool against the skin even in direct sun.\n",
@@ -1347,7 +1358,8 @@
             "tickRate": "5"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Thick purple preserves shake loose from the jar with an audible thunk, carrying the sugary weight of a recipe nobody has bothered to standardize. Smells like the inside of a grape arbor in late heat, with a faint undercurrent that might be pepper.\n",
@@ -1381,7 +1393,8 @@
             "duration": "90"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Warm to the touch, a little speckled at one end, weight of it settling into the palm the way a stone never quite does. The shell takes a pencil-tap to crack cleanly, anything heavier and you lose the yolk.\n",
@@ -1643,7 +1656,8 @@
       },
       "stacking": {
         "packMax": 50
-      }
+      },
+      "hasImg": true
     },
     {
       "description": "Folded in a warm flour tortilla, fried whitefish showing through pale stripes of slaw and a line of pink sauce the cook refused to name. The oil has soaked halfway up the wrap by the time you get it to a table, which is how you know it was made for walking.\n",
@@ -1699,7 +1713,8 @@
         "perishable": true,
         "shelfLifeSeconds": 43200,
         "spoilsIntoRef": "rotten-food"
-      }
+      },
+      "hasImg": true
     },
     {
       "description": "Paper bag still wearing frost around the seam, rattling faintly with a pound or so of bite-sized pastry pockets stuffed with marinara, processed cheese, and pepperoni that knows what it is. Heated correctly they arrive molten; heated incorrectly they arrive punitively molten.\n",
@@ -1733,7 +1748,8 @@
             "cookable": "true"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Split loaf pulled from under the broiler, butter still pooling along the cut, garlic browned to just shy of bitter at the crust. Steam comes up the moment you lift a piece, and the first bite is warmer on the way down than any stew will be all evening.\n",
@@ -1783,7 +1799,8 @@
             }
           ]
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Held against a window the spirit reads clear as rainwater, and the only clue to what it actually is comes up from the rim of the glass as juniper, lemon peel, and something slightly medicinal. Drinks cold, bites warm, finishes on a note that the distiller refuses to commit to in writing.\n",
@@ -1815,7 +1832,8 @@
             "effectRisk": "hallucination"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Ten inches of smoked glass drawn to a needle at the point, set into a hilt of black-oiled wood without a guard to speak of. Sounds softly of sand when carried against cloth, and the edge will score steel if pressed slowly enough.\n",
@@ -1901,7 +1919,8 @@
             "zeroGControl": "true"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Emerald-green, glossy enough to catch the overhead light, loosened with oil and studded with almond fragments that settle to the bottom of the jar while you are not looking. Smells sharply of basil and a second herb the supplier will not disclose.\n",
@@ -1933,7 +1952,8 @@
             "traits": "photosynthetic-resonance"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Foil-wrapped cylinder the weight of a small brick, unwrapped to reveal a tortilla packed with grilled whitefish, yellow rice, black beans, and a line of salsa that runs the full length of the roll. First bite is warm and second is warmer, because the heat is coming from the center on a delay.\n",
@@ -1972,7 +1992,8 @@
         "perishable": true,
         "shelfLifeSeconds": 43200,
         "spoilsIntoRef": "rotten-food"
-      }
+      },
+      "hasImg": true
     },
     {
       "description": "Tied with brown twine, the bundle hangs upside down from a rafter long enough to dry without shedding color, each stem a different grey-green tone of the same family. The scent clings to hands for the rest of the afternoon.\n",
@@ -2029,7 +2050,8 @@
             "cooldown": "60"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Translucent polymer, coin-sized, shot through with a refracting layer that cycles from magenta to cyan depending on the angle of the light. The edge reads HF-21 in raised script on one side and nothing at all on the other.\n",
@@ -2060,7 +2082,8 @@
             "scoreMultiplier": "1.05"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Plain wool hood in a weather-darkened grey, cut long enough at the shoulders to pass for a scarf in poor light. The inside lining has been re-stitched at the crown at least once, by someone who cared more about function than craft.\n",
@@ -2105,7 +2128,8 @@
             "traits": "dark-vision'"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Full plate of overlapping iron lames held together by leather straps and a modest quantity of honest faith, the surface buffed to a dull sheen that refuses to catch daylight. Moves with the wearer once the straps have been fitted by somebody who has done it before.\n",
@@ -2294,7 +2318,8 @@
             "alchemyBase": "true"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "A ziplock bag packed tight with yellowed newspaper and closed with two layers of tape. A smiling face is drawn on the outside in permanent marker, slightly off-center. It crinkles in a way that feels like it is answering you.\n",
@@ -2327,7 +2352,8 @@
             "soundEffect": "crinkle"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Tall teardrop-shaped iron-faced shield strapped along the forearm and shoulder, covering the body from chin to knee when the bearer crouches. Heavy; favoured by armoured cavalry and front-line spearmen who can afford to plant rather than skirmish.\n",
@@ -2373,7 +2399,8 @@
             "curseChance": "0.3"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "A steel countertop appliance with a cracked digital readout that only displays the word NEARLY. The interior smells like every meal it has ever cooked, layered in the order they were served, with the unmistakable top note of something no one asked for.\n",
@@ -2407,7 +2434,8 @@
             "usableTags": "cooking"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Leather-bound, cover worn black at the corners, the spine stamped with a title that has been partly scraped off by a previous reader. Inside, the printed text alternates between what reads as scripture and what reads as tactical debriefing, with margin notes in at least four different hands.\n",
@@ -2440,7 +2468,8 @@
             "contentRating": "unstable"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Narrow grey-green leaves carry a spike of tight purple florets that release their scent at the faintest touch. One stem is enough to scent a small room for a day.\n",
@@ -2598,7 +2627,8 @@
         "perishable": true,
         "shelfLifeSeconds": 86400,
         "spoilsIntoRef": "rotten-food"
-      }
+      },
+      "hasImg": true
     },
     {
       "description": "Deep-blue shell shades to bronze where the joints catch the light, claws banded closed with twine the fisherman will ask for back. Still wet from the pot, still holding an opinion about the matter.\n",
@@ -2634,7 +2664,8 @@
         "perishable": true,
         "shelfLifeSeconds": 43200,
         "spoilsIntoRef": "rotten-meat"
-      }
+      },
+      "hasImg": true
     },
     {
       "description": "Freshly-split length of oak, sapwood pale and heartwood dark, the cut faces still bleeding a little sap where the axe landed. Heavy enough that you think twice about carrying a second.\n",
@@ -2702,7 +2733,8 @@
             "cooldown": "30"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Orange-and-white striped fish suspended in a small glass sphere of seawater that never warms to the room around it. It regards observers with an entirely unchildlike composure, and it blinks exactly once per minute.\n",
@@ -2734,7 +2766,8 @@
             "duration": "120"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Cobalt-blue liquid in a narrow hexagonal vial, stoppered with a sliver of tin wrapped in waxed silk. Cold to the touch even when left in the sun, and the surface ripples when a spell is cast within arm's reach.\n",
@@ -2852,7 +2885,8 @@
             "overheatRisk": "0.2"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Palm-sized stone wearing a thick cap of emerald moss, damp to the touch at the underside and cool long after it has been brought indoors. Smells of forest floor and the kind of quiet a rainstorm leaves behind.\n",
@@ -2940,7 +2974,8 @@
             "aromaValue": "0.3"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Pale silica grains so fine they run between fingers like slow water, leaving a thin residue on the skin and a thinner one on the air. Collected in heavy cloth sacks that sweat dry around the seams.\n",
@@ -3004,7 +3039,8 @@
             "tickRate": "3"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Stoppered clay flask, the surface darkened at the neck from decades of pouring, contents clear gold against a candle and black against a cloth. Smells heavy enough to remind you why the flask is sealed.\n",
@@ -3068,7 +3104,8 @@
             "tickRate": "6"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Long feather running from cold bronze at the tip to a living ember red at the quill, warm enough to hold comfortably and bright enough to read by. Leaves a thin pale afterglow in the air for a breath after it is set down.\n",
@@ -3127,7 +3164,8 @@
             "cooldown": "90"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "A palm-sized idol carved from black-market bullion and whatever material was binding the vault walls in the subprime years. It is warmer than it should be, and the eye sockets track the nearest screen whenever a number turns red.\n",
@@ -3163,7 +3201,8 @@
             "tickRate": "12"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Heavy brown cap set over a bulbous cream-colored stalk, the flesh firm under a careful thumb and smelling faintly of walnuts before you have even cut into it. Dried, the scent deepens into something closer to old wood and warm butter.\n",
@@ -3231,7 +3270,8 @@
             "maxConnections": "2"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Red liquid in a stubby glass vial, stoppered with a cork half the size of a thumb, a single label-ring tied on with waxed thread. Warm going down, followed by a tingle at the edges of recent injuries.\n",
@@ -3353,7 +3393,8 @@
             "tickRate": "15"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Hardwood deck repaired with duct tape along both rails, trucks loosened past the point most shops will certify, wheels painted over three times in colors that did not belong to the original owner. Rattles on gravel, sings on smooth pavement, refuses to roll the direction you bought it pointing.\n",
@@ -3386,7 +3427,8 @@
             "traits": "grind-ready"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Paper cup with a corrugated sleeve, lid pressed on too hard, the coffee inside at a temperature the barista has declined to guarantee to within a second or two. The surface ripples in a way that does not quite match the motion of the cup.\n",
@@ -3418,7 +3460,8 @@
             "slowChance": "0.1"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Slender aluminum can in an ugly neon gradient that looks printed on two passes through the same machine, tab seated flush, liquid inside fizzing with a sound a half-second ahead of the shake. First sip is grapefruit and solder, second is apology.\n",
@@ -3450,7 +3493,8 @@
             "duration": "45"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Rolled parchment held by a blue cord and a disc of wax stamped with the guild-house seal, the edges of the paper yellowed by however many hands it has passed through. Opens with a small resistance, as if it has decided who should be reading it today.\n",
@@ -3498,7 +3542,8 @@
             "cooldown": "15"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Leather tube the length of a forearm, stitched along one seam and capped at the base with a hardwood plug, thirty arrow-ends showing in neat rings at the mouth. Rides over the shoulder on a strap that has been adjusted by every owner in its history.\n",
@@ -3735,7 +3780,8 @@
             "cooldownSeconds": "180"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Beige plastic shell around a curved glass tube the size of a small kitchen sink, warming-up with a soft electrical smell and a faint coil-whine that settles into a comfortable pitch within a minute. The image comes up in four passes, and the geometry never quite aligns until the second or third minute.\n",
@@ -3768,7 +3814,8 @@
             "resolution": "320x240"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Single deep-red bloom on a long thorned stem, petals tight at the center and loosening outward, the scent rising softest on the second breath. Draws blood from a careless hand inside the first minute.\n",
@@ -3903,7 +3950,8 @@
             "bouncePhysics": "0.2"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Full plate in tarnished steel, every surface carrying the shallow tracery of a rune-pattern that reads the same whether you face it or view it reflected. Cool against the inside of the padding, and slightly cooler against the outside of an incoming blade.\n",
@@ -4008,7 +4056,8 @@
         "perishable": true,
         "shelfLifeSeconds": 86400,
         "spoilsIntoRef": "rotten-meat"
-      }
+      },
+      "hasImg": true
     },
     {
       "description": "Long cloak in a black so deep it seems to absorb light, the weave refusing to show a clear pattern under any angle. Hems and lining run cool even on a warm evening, and the cloak does not rustle when it should.\n",
@@ -4135,7 +4184,8 @@
             "duration": "120"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Deep black bowl full of curly noodles in a broth so dark the underside of the soup-spoon comes up stained red. Chili oil collects at the surface in an inner ring, pickled bamboo leans against one wall, and the soft-boiled egg waits under a slice of pork that the cook cut thicker than usual tonight.\n",
@@ -4187,7 +4237,8 @@
             }
           ]
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Heavy plate worn over padded gambeson, the outer face studded with iron spikes set a hand apart in a grid that refuses to soften for the wearer's silhouette. Moving the arms shifts the spikes in a way nobody nearby is allowed to forget.\n",
@@ -4247,7 +4298,8 @@
             "cooldown": "30"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Stacked steel-plate hive body on a galvanized base, each super finished in matte enamel and numbered along the back plate. Buzzes softly at a pitch no carpenter would accept in a wooden hive, which the beekeepers find reassuring.\n",
@@ -4281,7 +4333,8 @@
             "tag": "harvestable"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Rectangular block of dressed limestone, all six faces squared with a chisel and dusted pale from the finishing pass, corners sharp enough to mark a pencil drawn across them. Heavy in a way that forearms learn before they argue about it.\n",
@@ -4402,7 +4455,8 @@
             "traits": "tidal-grace"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Pale cream wedge cut from a wheel large enough to have its own address, shot through with round eyes from pinhole-small to knuckle-wide. Smells mild on the draw, stays on the palate longer than any of the sharper cheeses on the same board.\n",
@@ -4436,7 +4490,8 @@
             "duration": "120"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Paper bag printed with a gridded sunset and a chrome logo that faded the moment the bag left the fryer, contents still warm and faintly oil-spotted at the corners. The flavor profile is butter, then salt, then something the packager calls proprietary citrus finish.\n",
@@ -4468,7 +4523,8 @@
             "duration": "60"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Palm-sized disc of dark schist inscribed with a single concentric pattern that reads the same rotated any quarter-turn, faintly warm at the center and cold along the edge. Breaking the disc sends the holder and everything in contact home by the shortest path the magic can justify.\n",
@@ -4524,7 +4580,8 @@
             "duration": "150"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Pink-smoke ring deep as a finger around the outside of the cut, bark the color of old leather, fat rendered clear enough to pool along one edge of the slicing-board. Pulls apart under a fork without needing a knife to ask twice.\n",
@@ -4563,7 +4620,8 @@
         "perishable": true,
         "shelfLifeSeconds": 172800,
         "spoilsIntoRef": "rotten-food"
-      }
+      },
+      "hasImg": true
     },
     {
       "description": "Bundle of planed boards the length of an oar, banded in two places with iron strapping, end-grain stamped with the mill's mark in red ink that has half-faded under the rain. Smells of resin and the saw-shed it left.\n",
@@ -4608,7 +4666,8 @@
             "warmthBoost": "1"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Flat wooden case the size of a small book, interior fitted out with a single serrated jaw, a spring under enough tension that the case warns the user with a small paper label. Opens only with a specific pin that comes attached to the outside of the case by a short cord.\n",
@@ -4714,7 +4773,8 @@
             "necroTrigger": "true"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Small brass key with an unfamiliar ward cut at the tip, bow engraved with a glyph that matches no registry in the locksmith's current book. Warm to the fingertip, a little heavier than the brass should allow.\n",
@@ -4788,7 +4848,8 @@
             "traits": "blood-euphoric'"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Deep red gelato scooped into a small black cup, topped with a single candied berry that the shop positions at the exact center every time, spoon resting at an angle the shop-owner prefers. Stays colder in the hand than the glass can justify.\n",
@@ -4820,7 +4881,8 @@
             "traits": "blood-infused"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Slim longsword the color of cold iron, blade scored with a hairline groove that runs the whole length of the edge and carries a thin, dark residue no solvent has yet dried off. Grip wrapped in silk that has darkened along one side from something more than sweat.\n",
@@ -4879,7 +4941,8 @@
             "playbackTriggers": "signal"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Deeper red than the basic potion and thicker on the pour, the vial sealed with wax and pressed with a small fleur that marks the apothecary who bottled it. Takes longer to go down and longer to work, and the work is noticeably more honest.\n",
@@ -4956,7 +5019,8 @@
             "duration": "150"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Clear as window glass in a squat bottle with a waxed paper label, the seal intact, the cap threaded tight enough that it breaks the pour on the first half-turn. Colder in the hand than the room it was brought in from, which the bar regulars take as confirmation of the distiller's claim.\n",
@@ -4988,7 +5052,8 @@
             "buffDuration": "120"
           }
         }
-      ]
+      ],
+      "hasImg": true
     },
     {
       "description": "Long curved blade set on a shaft of iron-bound black wood, the metal of the head drinking light at any angle you care to hold it and refusing to shine. Rests across the shoulder with a weight distribution that never quite settles into a comfortable carry.\n",
@@ -5220,7 +5285,8 @@
             "duration": "45"
           }
         }
-      ]
+      ],
+      "hasImg": true
     }
   ]
 }

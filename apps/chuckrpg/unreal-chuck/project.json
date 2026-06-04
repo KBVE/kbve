@@ -1,0 +1,121 @@
+{
+	"name": "unreal-chuck",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/chuckrpg/unreal-chuck/Source",
+	"tags": ["scope:chuckrpg", "type:unreal-app"],
+	"targets": {
+		"lfs-push": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs chuck push"
+			},
+			"forwardAllArgs": true
+		},
+		"lfs-pull": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs chuck pull"
+			},
+			"forwardAllArgs": true
+		},
+		"lfs-fetch": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs chuck fetch --all"
+			},
+			"forwardAllArgs": true
+		},
+		"lfs-ls": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs chuck ls-files"
+			}
+		},
+		"lfs-register": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs chuck register"
+			}
+		},
+		"sync-data": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./apps/chuckrpg/unreal-chuck/scripts/sync-data.sh"
+			}
+		},
+		"sync": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"commands": [
+					"./kbve.sh -lfs chuck fetch --all",
+					"./kbve.sh -lfs chuck pull",
+					"./kbve.sh -lfs chuck register",
+					"./apps/chuckrpg/unreal-chuck/scripts/sync-data.sh"
+				],
+				"parallel": false
+			}
+		},
+		"build-editor": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/unreal-chuck",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/chuck.uproject\""
+			}
+		},
+		"build-game": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/unreal-chuck",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuck Mac Development \"$PWD/chuck.uproject\""
+			}
+		},
+		"build-server": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/unreal-chuck",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckServer Mac Development \"$PWD/chuck.uproject\""
+			}
+		},
+		"compile": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/unreal-chuck",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/chuck.uproject\""
+			}
+		},
+		"regen-project-files": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/unreal-chuck",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh\" -project=\"$PWD/chuck.uproject\" -game -engine"
+			}
+		},
+		"launch-editor": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./apps/chuckrpg/unreal-chuck/scripts/launch-editor.sh"
+			},
+			"forwardAllArgs": true
+		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"commands": [
+					"\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/apps/chuckrpg/unreal-chuck/chuck.uproject\"",
+					"./apps/chuckrpg/unreal-chuck/scripts/launch-editor.sh"
+				],
+				"parallel": false
+			}
+		}
+	}
+}
