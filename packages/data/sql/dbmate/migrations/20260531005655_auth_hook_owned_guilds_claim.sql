@@ -364,10 +364,12 @@ SECURITY DEFINER
 SET search_path = ''
 ROWS 1
 AS $$
-    -- Round 11 #5: LEFT JOIN over a single-row input so the caller
-    -- always gets exactly one row back — NULL timestamps + 0
-    -- guild_count when no cache exists. Saves the Axum side an
-    -- explicit empty-result-set branch.
+    -- Round 11 #5 (clarified round 12 #5): LEFT JOIN over a
+    -- single-row input so a non-NULL p_user_id always yields
+    -- exactly one row — NULL timestamps + 0 guild_count when no
+    -- cache row exists. A NULL p_user_id returns zero rows
+    -- (no input row passes the WHERE), which is the intentional
+    -- "garbage in, nothing out" semantics for the auth boundary.
     SELECT
         c.refreshed_at,
         c.updated_at,
@@ -604,18 +606,36 @@ BEGIN
     IF NOT has_function_privilege('service_role', 'profile.service_get_discord_bootstrap_cache_freshness(uuid)', 'EXECUTE') THEN
         RAISE EXCEPTION 'service_role must hold EXECUTE on profile.service_get_discord_bootstrap_cache_freshness for dashboard freshness peeks.';
     END IF;
-    -- Round 11 #10: drift guard. Any future PR that re-creates a
-    -- service_role RLS policy on this table will fail the
-    -- migration here, forcing the author to explicitly justify
-    -- giving service_role table-level read access.
+    -- Round 11 #10 (updated round 12 #1): drift guard. Any future
+    -- PR that re-creates a service_role RLS policy on this table
+    -- will fail the migration here, forcing the author to
+    -- explicitly justify giving service_role table-level read
+    -- access. ANY(roles) is more idiomatic than @> ARRAY[...]
+    -- when probing pg_policies.roles (which is name[]).
     IF EXISTS (
         SELECT 1
           FROM pg_policies
          WHERE schemaname = 'profile'
            AND tablename  = 'discord_bootstrap_cache'
-           AND roles @> ARRAY['service_role']::name[]
+           AND 'service_role' = ANY (roles)
     ) THEN
         RAISE EXCEPTION 'no service_role RLS policy may exist on profile.discord_bootstrap_cache; service_role reads go through the freshness RPC.';
+    END IF;
+
+    -- Round 12 #2: positive assertion — the supabase_auth_admin
+    -- SELECT policy must exist for the hook's JWT-mint reads to
+    -- pass RLS. Catches accidental policy drops or edits in
+    -- future migrations.
+    IF NOT EXISTS (
+        SELECT 1
+          FROM pg_policies
+         WHERE schemaname = 'profile'
+           AND tablename  = 'discord_bootstrap_cache'
+           AND policyname = 'supabase_auth_admin_select'
+           AND cmd        = 'SELECT'
+           AND 'supabase_auth_admin' = ANY (roles)
+    ) THEN
+        RAISE EXCEPTION 'supabase_auth_admin_select policy must exist on profile.discord_bootstrap_cache for JWT mint reads.';
     END IF;
     IF has_table_privilege('service_role', 'profile.discord_bootstrap_cache', 'INSERT') THEN
         RAISE EXCEPTION 'service_role must NOT have direct INSERT on profile.discord_bootstrap_cache; use service_upsert RPC.';
