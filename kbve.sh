@@ -847,22 +847,36 @@ Games:
   chuck      → https://git.kbve.com/KBVE/chuck.git/info/lfs
   rareicon   → https://git.kbve.com/KBVE/rareicon.git/info/lfs
 
+Standard subcommands forwarded to `git lfs`:
+  push|pull|fetch|ls-files|env|...
+
+Custom subcommands:
+  register      Register every LFS OID under the game's path prefix with the
+                game's Forgejo repo. No bytes are uploaded if the blob already
+                lives in the shared content-addressed storage (Forgejo dedups
+                across the KBVE org), so this is the cheap way to claim
+                ownership for pointers whose blobs were pushed via the root
+                .lfsconfig endpoint (e.g. by the husky pre-push hook).
+
 Examples:
   ./kbve.sh -lfs chuck push origin dev
   ./kbve.sh -lfs chuck pull
   ./kbve.sh -lfs chuck fetch --all
   ./kbve.sh -lfs chuck ls-files
+  ./kbve.sh -lfs chuck register
 EOF
         return 1
     fi
 
-    local url
+    local url path_prefix
     case "$game" in
         chuck)
             url="https://git.kbve.com/KBVE/chuck.git/info/lfs"
+            path_prefix="apps/chuckrpg/unreal-chuck"
             ;;
         rareicon)
             url="https://git.kbve.com/KBVE/rareicon.git/info/lfs"
+            path_prefix="apps/rareicon"
             ;;
         *)
             echo "Unknown game '$game'. Known: chuck, rareicon" >&2
@@ -871,8 +885,25 @@ EOF
     esac
 
     if [ $# -eq 0 ]; then
-        echo "Missing lfs subcommand (e.g. push, pull, fetch, ls-files)." >&2
+        echo "Missing lfs subcommand (e.g. push, pull, fetch, ls-files, register)." >&2
         return 1
+    fi
+
+    if [ "$1" = "register" ]; then
+        shift
+        local remote="${1:-origin}"
+        echo "→ scanning local LFS pointers under $path_prefix/"
+        local oids
+        oids=$(git lfs ls-files --long | awk -v prefix="$path_prefix/" '$0 ~ prefix {print $1}')
+        if [ -z "$oids" ]; then
+            echo "No LFS pointers found under $path_prefix/. Nothing to register."
+            return 0
+        fi
+        local count
+        count=$(printf '%s\n' "$oids" | wc -l | tr -d ' ')
+        echo "→ registering $count OIDs with $url via --object-id (bytes deduped server-side)"
+        printf '%s\n' "$oids" | xargs git -c "lfs.url=$url" lfs push --object-id "$remote"
+        return $?
     fi
 
     echo "→ git -c lfs.url=$url lfs $*"

@@ -36,13 +36,21 @@
 				"command": "./kbve.sh -lfs chuck ls-files"
 			}
 		},
+		"lfs-register": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs chuck register"
+			}
+		},
 		"sync": {
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "{workspaceRoot}",
 				"commands": [
 					"./kbve.sh -lfs chuck fetch --all",
-					"./kbve.sh -lfs chuck pull"
+					"./kbve.sh -lfs chuck pull",
+					"./kbve.sh -lfs chuck register"
 				],
 				"parallel": false
 			}
