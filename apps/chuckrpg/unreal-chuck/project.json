@@ -43,6 +43,13 @@
 				"command": "./kbve.sh -lfs chuck register"
 			}
 		},
+		"sync-data": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./apps/chuckrpg/unreal-chuck/scripts/sync-data.sh"
+			}
+		},
 		"sync": {
 			"executor": "nx:run-commands",
 			"options": {
@@ -50,7 +57,8 @@
 				"commands": [
 					"./kbve.sh -lfs chuck fetch --all",
 					"./kbve.sh -lfs chuck pull",
-					"./kbve.sh -lfs chuck register"
+					"./kbve.sh -lfs chuck register",
+					"./apps/chuckrpg/unreal-chuck/scripts/sync-data.sh"
 				],
 				"parallel": false
 			}
