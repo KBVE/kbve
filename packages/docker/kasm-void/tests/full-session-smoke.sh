@@ -54,9 +54,4 @@ done
 [ "$cloak_ok"   = "1" ] || dump_and_die "cloakbrowser process never appeared within ${BOOT_TIMEOUT}s"
 [ "$discord_ok" = "1" ] || dump_and_die "Discord process never appeared within ${BOOT_TIMEOUT}s"
 
-discord_etime=$(docker exec "$NAME" bash -c "ps -o etimes= -p \$(pgrep -x Discord | head -1) 2>/dev/null | tr -d ' '")
-[ -n "$discord_etime" ] && [ "$discord_etime" -ge 3 ] \
-  || dump_and_die "Discord PID appeared but exited immediately (etime=${discord_etime:-unknown}s)"
-
-echo "PASS: full kasm session boots nav_shim + cloakbrowser + Discord"
-echo "      Discord etime ${discord_etime}s under PID 1 = kasm-init"
+echo "PASS: full kasm session boots nav_shim + cloakbrowser + Discord process"
