@@ -7,18 +7,51 @@ using Unity.Transforms;
 
 namespace RareIcon
 {
+    /// <summary>Per-unit goal selection — relief targets (eat/sleep/heal), guard hunt, harvest pursuit, wildlife hunt, forage wandering. Five prep scans (food / sleep / wildlife / emitters / forage hexes) feed the per-unit UnitBehaviorJob; all five now run as parallel [BurstCompile] IJobEntity passes writing into persistent NativeLists via ParallelWriter, instead of main-thread foreach loops. UnitBehaviorJob still does the actual per-unit goal write — this PR just gets the prep stage off the main thread the same way #11719/#11723/#11728 did for ProfessionDispatchSystem.</summary>
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(ProfessionDispatchSystem))]
     [UpdateAfter(typeof(TaskInvalidationSystem))]
     [UpdateAfter(typeof(BuilderJobSystem))]
     public partial struct UnitBehaviorSystem : ISystem
     {
+        NativeList<int2>             _foodHexes;
+        NativeList<int2>             _sleepHexes;
+        NativeList<int2>             _wildlifeHexes;
+        NativeList<int2>             _forageHexes;
+        NativeList<TerritoryEmitter> _emitters;
+
+        EntityQuery _foodQuery;
+        EntityQuery _sleepQuery;
+        EntityQuery _wildlifeQuery;
+        EntityQuery _emitterQuery;
+        EntityQuery _forageQuery;
+
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<MovementGoal>();
+
+            _foodHexes     = new NativeList<int2>(64, Allocator.Persistent);
+            _sleepHexes    = new NativeList<int2>(64, Allocator.Persistent);
+            _wildlifeHexes = new NativeList<int2>(256, Allocator.Persistent);
+            _forageHexes   = new NativeList<int2>(1024, Allocator.Persistent);
+            _emitters      = new NativeList<TerritoryEmitter>(16, Allocator.Persistent);
+
+            _foodQuery     = SystemAPI.QueryBuilder().WithAll<Building, ProvidesFood>().Build();
+            _sleepQuery    = SystemAPI.QueryBuilder().WithAll<Building, ProvidesSleep>().Build();
+            _wildlifeQuery = SystemAPI.QueryBuilder().WithAll<UnitMovement, PassiveAnimalTag>().WithNone<TamedTag>().Build();
+            _emitterQuery  = SystemAPI.QueryBuilder().WithAll<TerritoryEmitter>().Build();
+            _forageQuery   = SystemAPI.QueryBuilder().WithAll<HexResources, HexCoord>().Build();
         }
 
-        public void OnDestroy(ref SystemState state) { }
+        public void OnDestroy(ref SystemState state)
+        {
+            state.CompleteDependency();
+            if (_foodHexes.IsCreated)     _foodHexes.Dispose();
+            if (_sleepHexes.IsCreated)    _sleepHexes.Dispose();
+            if (_wildlifeHexes.IsCreated) _wildlifeHexes.Dispose();
+            if (_forageHexes.IsCreated)   _forageHexes.Dispose();
+            if (_emitters.IsCreated)      _emitters.Dispose();
+        }
 
         public void OnUpdate(ref SystemState state)
         {
@@ -38,14 +71,8 @@ namespace RareIcon
                 capitalFootprint[6] = capitalHex + new int2( 0,  1);
             }
 
-            var foodHexes = new NativeList<int2>(16, Allocator.TempJob);
-            foreach (var building in SystemAPI.Query<RefRO<Building>>().WithAll<ProvidesFood>())
-                AppendFootprint(foodHexes, building.ValueRO.RootHex, building.ValueRO.Type);
-
-            var sleepHexes = new NativeList<int2>(16, Allocator.TempJob);
-            foreach (var building in SystemAPI.Query<RefRO<Building>>().WithAll<ProvidesSleep>())
-                AppendFootprint(sleepHexes, building.ValueRO.RootHex, building.ValueRO.Type);
-
+            // HealFlowField is a singleton with a small dynamic buffer that
+            // gets snapshotted into a TempJob array. Cheap, stays main-thread.
             int healCount = 0;
             DynamicBuffer<HealerHexElement> healSrc = default;
             if (SystemAPI.TryGetSingletonEntity<HealFlowFieldSingleton>(out var healSingleton))
@@ -58,66 +85,166 @@ namespace RareIcon
 
             SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial);
 
-            var wildlife = new NativeList<int2>(64, Allocator.TempJob);
-            foreach (var movement in
-                     SystemAPI.Query<RefRO<UnitMovement>>()
-                              .WithAll<PassiveAnimalTag>()
-                              .WithNone<TamedTag>())
-            {
-                wildlife.Add(movement.ValueRO.CurrentHex);
-            }
+            // Capacity grow each frame to the query upper bound. ParallelWriter
+            // needs the headroom before scheduling so AddNoResize is safe
+            // across worker threads. Capital footprints contribute 7 hexes
+            // each in food / sleep — size for the worst case.
+            int foodCount     = _foodQuery.CalculateEntityCount();
+            int sleepCount    = _sleepQuery.CalculateEntityCount();
+            int wildlifeCount = _wildlifeQuery.CalculateEntityCount();
+            int emitterCount  = _emitterQuery.CalculateEntityCount();
+            int forageCount   = _forageQuery.CalculateEntityCount();
 
-            var emitters = new NativeList<TerritoryEmitter>(4, Allocator.TempJob);
-            foreach (var e in SystemAPI.Query<RefRO<TerritoryEmitter>>())
-            {
-                if (e.ValueRO.Radius == 0) continue;
-                if (e.ValueRO.OwnerFaction != FactionType.Player) continue;
-                emitters.Add(e.ValueRO);
-            }
+            EnsureCapacity(ref _foodHexes,     foodCount * 7);
+            EnsureCapacity(ref _sleepHexes,    sleepCount * 7);
+            EnsureCapacity(ref _wildlifeHexes, wildlifeCount);
+            EnsureCapacity(ref _emitters,      emitterCount);
+            EnsureCapacity(ref _forageHexes,   forageCount);
 
-            var forageHexes = new NativeList<int2>(128, Allocator.TempJob);
-            foreach (var (res, coord) in
-                     SystemAPI.Query<RefRO<HexResources>, RefRO<HexCoord>>())
+            var clearJob = new ClearListsJob
             {
-                var r = res.ValueRO;
-                if ((r.Berries | r.Mushrooms | r.Herbs | r.Cactus
-                    | r.Wood | r.Leaves | r.Branches) == 0) continue;
-                forageHexes.Add(new int2(coord.ValueRO.Q, coord.ValueRO.R));
-            }
+                Food     = _foodHexes,
+                Sleep    = _sleepHexes,
+                Wildlife = _wildlifeHexes,
+                Forage   = _forageHexes,
+                Emitters = _emitters,
+            };
+            state.Dependency = clearJob.Schedule(state.Dependency);
 
-            var jobHandle = new UnitBehaviorJob
+            var foodHandle     = new BuildFoodHexesJob     { Writer = _foodHexes.AsParallelWriter() }.ScheduleParallel(state.Dependency);
+            var sleepHandle    = new BuildSleepHexesJob    { Writer = _sleepHexes.AsParallelWriter() }.ScheduleParallel(state.Dependency);
+            var wildlifeHandle = new BuildWildlifeHexesJob { Writer = _wildlifeHexes.AsParallelWriter() }.ScheduleParallel(state.Dependency);
+            var emittersHandle = new BuildEmittersJob      { Writer = _emitters.AsParallelWriter() }.ScheduleParallel(state.Dependency);
+            var forageHandle   = new BuildForageHexesJob   { Writer = _forageHexes.AsParallelWriter() }.ScheduleParallel(state.Dependency);
+
+            var prepHandle = JobHandle.CombineDependencies(
+                JobHandle.CombineDependencies(foodHandle, sleepHandle, wildlifeHandle),
+                JobHandle.CombineDependencies(emittersHandle, forageHandle));
+
+            state.Dependency = new UnitBehaviorJob
             {
-                HasCapital        = hasCapital,
-                CapitalFootprint  = capitalFootprint,
-                FoodProviderHexes = foodHexes.AsArray(),
-                SleepProviderHexes= sleepHexes.AsArray(),
-                HealProviderHexes = healHexes,
-                Wildlife          = wildlife.AsArray(),
-                FriendlyEmitters  = emitters.AsArray(),
-                ForageHexes       = forageHexes.AsArray(),
-                SpatialHash       = spatial.Hash,
-            }.ScheduleParallel(state.Dependency);
+                HasCapital         = hasCapital,
+                CapitalFootprint   = capitalFootprint,
+                FoodProviderHexes  = _foodHexes.AsDeferredJobArray(),
+                SleepProviderHexes = _sleepHexes.AsDeferredJobArray(),
+                HealProviderHexes  = healHexes,
+                Wildlife           = _wildlifeHexes.AsDeferredJobArray(),
+                FriendlyEmitters   = _emitters.AsDeferredJobArray(),
+                ForageHexes        = _forageHexes.AsDeferredJobArray(),
+                SpatialHash        = spatial.Hash,
+            }.ScheduleParallel(prepHandle);
 
-            state.Dependency = JobHandle.CombineDependencies(
-                JobHandle.CombineDependencies(
-                    JobHandle.CombineDependencies(wildlife.Dispose(jobHandle), emitters.Dispose(jobHandle)),
-                    JobHandle.CombineDependencies(forageHexes.Dispose(jobHandle), capitalFootprint.Dispose(jobHandle))),
-                JobHandle.CombineDependencies(
-                    JobHandle.CombineDependencies(foodHexes.Dispose(jobHandle), sleepHexes.Dispose(jobHandle)),
-                    healHexes.Dispose(jobHandle)));
+            capitalFootprint.Dispose(state.Dependency);
+            healHexes.Dispose(state.Dependency);
         }
 
-        static void AppendFootprint(NativeList<int2> list, int2 root, byte buildingType)
+        static void EnsureCapacity(ref NativeList<int2> list, int needed)
         {
-            list.Add(root);
-            if (buildingType == BuildingType.Capital)
+            if (list.Capacity < needed) list.Capacity = math.max(needed, list.Capacity * 2);
+        }
+
+        static void EnsureCapacity(ref NativeList<TerritoryEmitter> list, int needed)
+        {
+            if (list.Capacity < needed) list.Capacity = math.max(needed, list.Capacity * 2);
+        }
+
+        [BurstCompile]
+        struct ClearListsJob : IJob
+        {
+            public NativeList<int2>             Food;
+            public NativeList<int2>             Sleep;
+            public NativeList<int2>             Wildlife;
+            public NativeList<int2>             Forage;
+            public NativeList<TerritoryEmitter> Emitters;
+
+            public void Execute()
             {
-                list.Add(root + new int2( 1,  0));
-                list.Add(root + new int2( 1, -1));
-                list.Add(root + new int2( 0, -1));
-                list.Add(root + new int2(-1,  0));
-                list.Add(root + new int2(-1,  1));
-                list.Add(root + new int2( 0,  1));
+                Food.Clear();
+                Sleep.Clear();
+                Wildlife.Clear();
+                Forage.Clear();
+                Emitters.Clear();
+            }
+        }
+
+        [BurstCompile]
+        [WithAll(typeof(ProvidesFood))]
+        partial struct BuildFoodHexesJob : IJobEntity
+        {
+            public NativeList<int2>.ParallelWriter Writer;
+
+            void Execute(in Building b)
+            {
+                Writer.AddNoResize(b.RootHex);
+                if (b.Type == BuildingType.Capital)
+                {
+                    Writer.AddNoResize(b.RootHex + new int2( 1,  0));
+                    Writer.AddNoResize(b.RootHex + new int2( 1, -1));
+                    Writer.AddNoResize(b.RootHex + new int2( 0, -1));
+                    Writer.AddNoResize(b.RootHex + new int2(-1,  0));
+                    Writer.AddNoResize(b.RootHex + new int2(-1,  1));
+                    Writer.AddNoResize(b.RootHex + new int2( 0,  1));
+                }
+            }
+        }
+
+        [BurstCompile]
+        [WithAll(typeof(ProvidesSleep))]
+        partial struct BuildSleepHexesJob : IJobEntity
+        {
+            public NativeList<int2>.ParallelWriter Writer;
+
+            void Execute(in Building b)
+            {
+                Writer.AddNoResize(b.RootHex);
+                if (b.Type == BuildingType.Capital)
+                {
+                    Writer.AddNoResize(b.RootHex + new int2( 1,  0));
+                    Writer.AddNoResize(b.RootHex + new int2( 1, -1));
+                    Writer.AddNoResize(b.RootHex + new int2( 0, -1));
+                    Writer.AddNoResize(b.RootHex + new int2(-1,  0));
+                    Writer.AddNoResize(b.RootHex + new int2(-1,  1));
+                    Writer.AddNoResize(b.RootHex + new int2( 0,  1));
+                }
+            }
+        }
+
+        [BurstCompile]
+        [WithAll(typeof(PassiveAnimalTag))]
+        [WithNone(typeof(TamedTag))]
+        partial struct BuildWildlifeHexesJob : IJobEntity
+        {
+            public NativeList<int2>.ParallelWriter Writer;
+
+            void Execute(in UnitMovement m)
+            {
+                Writer.AddNoResize(m.CurrentHex);
+            }
+        }
+
+        [BurstCompile]
+        partial struct BuildEmittersJob : IJobEntity
+        {
+            public NativeList<TerritoryEmitter>.ParallelWriter Writer;
+
+            void Execute(in TerritoryEmitter e)
+            {
+                if (e.Radius == 0) return;
+                if (e.OwnerFaction != FactionType.Player) return;
+                Writer.AddNoResize(e);
+            }
+        }
+
+        [BurstCompile]
+        partial struct BuildForageHexesJob : IJobEntity
+        {
+            public NativeList<int2>.ParallelWriter Writer;
+
+            void Execute(in HexResources r, in HexCoord c)
+            {
+                if ((r.Berries | r.Mushrooms | r.Herbs | r.Cactus
+                    | r.Wood | r.Leaves | r.Branches) == 0) return;
+                Writer.AddNoResize(new int2(c.Q, c.R));
             }
         }
     }
