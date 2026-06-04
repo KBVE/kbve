@@ -24,10 +24,6 @@ use super::https::auth_user_id;
 use super::wallet::{require_service_role, resolve_user};
 use crate::db::{get_forum_service, get_lot_client};
 
-// ===========================================================================
-// DTOs
-// ===========================================================================
-
 #[derive(Serialize, ToSchema)]
 pub(crate) struct SchematicDto {
     pub schematic_id: String,
@@ -192,10 +188,6 @@ pub(crate) struct OkDto {
     pub ok: bool,
 }
 
-// ===========================================================================
-// Query parameters / request bodies
-// ===========================================================================
-
 fn default_world() -> String {
     "minecraft:overworld".to_string()
 }
@@ -341,10 +333,6 @@ fn default_failed_limit() -> i32 {
     100
 }
 
-// ===========================================================================
-// Shared helpers
-// ===========================================================================
-
 fn lot_service_unavailable() -> Response {
     (
         StatusCode::SERVICE_UNAVAILABLE,
@@ -406,10 +394,6 @@ async fn require_staff(headers: &HeaderMap) -> Result<String, Response> {
         }
     }
 }
-
-// ===========================================================================
-// User endpoints — /api/v1/mc/lots/*
-// ===========================================================================
 
 /// `GET /api/v1/mc/lots/schematics` — public catalog.
 #[utoipa::path(
@@ -710,10 +694,6 @@ pub(crate) async fn me_queue_demolish(
     }
 }
 
-// ===========================================================================
-// Staff endpoints — /api/v1/mc/lots/staff/*
-// ===========================================================================
-
 /// `GET /api/v1/mc/lots/staff/{lot_id}` — raw admin view (owner UUID + timestamps).
 #[utoipa::path(
     get,
@@ -894,10 +874,6 @@ pub(crate) async fn staff_repair_orphan(
     }
 }
 
-// ===========================================================================
-// Service / worker endpoints — /api/v1/mc/lots/service/*
-// ===========================================================================
-
 /// `POST /api/v1/mc/lots/service/claim` — worker claim batch.
 #[utoipa::path(
     post,
@@ -1037,10 +1013,6 @@ pub(crate) async fn service_requeue_stale(
         Err(e) => lot_error_response(e),
     }
 }
-
-// ===========================================================================
-// Mappers
-// ===========================================================================
 
 fn vacant_to_dto(r: kbve::lot::VacantLotRow) -> VacantLotDto {
     VacantLotDto {
