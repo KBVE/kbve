@@ -1,6 +1,6 @@
 ---
 title: Broodoo shield (poison) | OSRS Price Data
-description: "Broodoo shield (poison): A scary broodoo shield.. High alch: 1,800 GP, GE limit: 125."
+description: "Broodoo shield (poison): A scary broodoo shield. High alch: 1,800 GP, GE limit: 125."
 osrs:
   id: 6235
   name: Broodoo shield (poison)
@@ -12,9 +12,73 @@ osrs:
   lowalch: 1200
   highalch: 1800
   limit: 125
-  about: "Broodoo shield (poison) is a members-only item in Old School RuneScape. High alchemy value: 1,800 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: mid
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 5.443
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 5.443
+    requirements:
+      defence: 25
+      magic: 25
+    attack_bonus:
+      magic: 3
+    defence_bonus:
+      stab: 10
+      slash: 10
+      crush: 15
+      magic: 5
+    other_bonus:
+      prayer: 5
+  passive_effects:
+    - name: Defence Drain
+      description: "When attacked from an adjacent square, has a 10% chance to drain the opponent's Defence stat by 1 and an additional 5% of their remaining Defence level. Consumes a charge per trigger; starts with 10 charges."
+  drop_table:
+    sources:
+      - source: Tai Bwo Wannai Cleanup (Mahogany machete reward)
+        quantity: "1"
+        rarity: uncommon
+  related_items:
+    - item_name: Broodoo shield (green)
+      slug: broodoo-shield-green
+      relationship: alternative
+      description: Combat-draining variant
+    - item_name: Broodoo shield (orange)
+      slug: broodoo-shield-orange
+      relationship: alternative
+      description: Disease-draining variant
+    - item_name: Broodoo shield
+      slug: broodoo-shield
+      relationship: downgrade
+      description: Depleted version without charges
+  about: "Broodoo shield (poison) is the poison-themed broodoo shield variant from Tai Bwo Wannai Cleanup. Requires 25 Defence and 25 Magic to equip, starts with 10 charges that trigger a defence-draining passive when attacked adjacently. Provides modest melee and magic defence plus a +5 Prayer bonus."
+  market_strategy:
+    notes:
+      - "Niche Tai Bwo Wannai reward"
+      - "Limited charges discourage long-term use"
+      - "Collection log demand from completionists"
+  history:
+    - date: "2005-08-09"
+      description: "Released with the Tai Bwo Wannai Cleanup activity."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

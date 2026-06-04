@@ -12,9 +12,87 @@ osrs:
   lowalch: 26000
   highalch: 39000
   limit: null
-  about: "Dragonstone platebody is a free-to-play item in Old School RuneScape. High alchemy value: 39,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune
+    tier: mid-high
+  properties:
+    release_date: "2019-07-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 9.979
+    options: ["Wear"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 9.979
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -25
+    defence_bonus:
+      stab: 82
+      slash: 80
+      crush: 72
+      magic: -6
+      ranged: -15
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Elven Crystal Chest
+        quantity: "1"
+        rarity: Rare
+  related_items:
+    - item_name: Dragonstone full helm
+      slug: dragonstone-full-helm
+      relationship: set-piece
+      description: Matching head slot piece
+    - item_name: Dragonstone platelegs
+      slug: dragonstone-platelegs
+      relationship: set-piece
+      description: Matching legs slot piece
+    - item_name: Dragonstone armour set
+      slug: dragonstone-armour-set
+      relationship: product
+      description: Bundled set of all dragonstone armour pieces
+    - item_name: Rune platebody
+      slug: rune-platebody
+      relationship: alternative
+      description: Same stats without the dragonstone trim
+  about: |-
+    Dragonstone platebody is a cosmetic recolour of the rune platebody, awarded rarely from the Elven Crystal Chest in Prifddinas after Song of the Elves. Requires 40 Defence and Dragon Slayer I to equip and shares its melee defence stats with the rune platebody.
+
+    No combat advantage over the standard rune platebody — purely a flex piece for players grinding the crystal chest.
+  market_strategy:
+    notes:
+      - "Supply driven entirely by Elven Crystal Chest keys cracked"
+      - "Cosmetic demand; price walks with prestige interest, not combat meta"
+      - "Negative magic and ranged attack bonuses match other rune platebodies"
+  trading_tips:
+    - "Watch Song of the Elves content patches; new chest reward shifts tank the floor"
+    - "Hold during cosmetic hype windows like league reveals"
+  history:
+    - date: "2019-07-24"
+      description: "Released as part of the Song of the Elves update and Elven Crystal Chest reward pool"
+    - date: "2021-04-21"
+      description: "Ranged attack bonus reduced from -10 to -15 alongside the wider rune armour rebalance"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

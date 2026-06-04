@@ -12,16 +12,93 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 7000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: steel
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: true
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options: ["Wield"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ammo
-    ranged_strength: 16
-  related_items: []
+    weapon_type: arrow
+    attack_speed: null
+    weight: 0
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 16
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Steel arrow
+          quantity: 5
+        - item_name: Weapon poison
+          quantity: 1
+      tools: []
+      output_quantity: 5
+  passive_effects:
+    - name: Weapon poison
+      description: Inflicts a standard weapon poison effect on hit, dealing periodic 2-4 damage hits until the poison wears off.
+  related_items:
+    - item_name: Steel arrow
+      slug: steel-arrow
+      relationship: component
+      description: Base unpoisoned ammunition combined with weapon poison
+    - item_name: Weapon poison
+      slug: weapon-poison
+      relationship: component
+      description: Applied to arrows to produce the (p) variant
+    - item_name: Steel arrow(p+)
+      slug: steel-arrow-p-plus
+      relationship: upgrade
+      description: Stronger super weapon poison variant
+    - item_name: Mithril arrow(p)
+      slug: mithril-arrow-p
+      relationship: alternative
+      description: Higher-tier poisoned arrow for ranged training
   about: |-
-    > _"Steel arrows with a poisoned tip."_
+    Steel arrow(p) is a members-only ammo slot item created by combining 5 Steel arrows with a vial of weapon poison via Fletching. The arrows carry standard weapon poison, periodically dealing 2-4 damage until the effect wears off.
 
-    Steel arrows tipped with basic weapon poison. Poison deals 2-4 damage over time.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Although the ranged strength matches an unpoisoned steel arrow, the poison adds incidental damage during long fights and chip damage in PvP — niche but not meta at higher levels.
+  market_strategy:
+    notes:
+      - "Demand tied to weapon poison supply, not arrow supply"
+      - "Low-volume flip vs. plain steel arrows"
+      - "Often a stepping stone for ironmen training poison Fletching xp"
+  trading_tips:
+    - "Buy steel arrows + weapon poison separately when the (p) margin is thin"
+    - "Flip in bulk only when the GE limit is fresh, since margins are small per arrow"
+  history:
+    - date: "2005-07-11"
+      description: "Released alongside the Farming skill update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

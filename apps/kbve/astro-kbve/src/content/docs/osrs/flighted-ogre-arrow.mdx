@@ -1,6 +1,6 @@
 ---
 title: Flighted ogre arrow | OSRS Price Data
-description: "Flighted ogre arrow: A wooden arrow shaft with four flights attached.. High alch: 1 GP, GE limit: 7,000."
+description: "Flighted ogre arrow is a members fletching intermediate for ogre arrows. High alch: 1 GP, GE limit: 7,000."
 osrs:
   id: 2865
   name: Flighted ogre arrow
@@ -12,9 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
-  about: "Flighted ogre arrow is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2004-05-18"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 5
+      xp: 0.9
+      materials:
+        - item_name: Ogre arrow shaft
+          quantity: 1
+        - item_name: Feather
+          quantity: 4
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Ogre arrow shaft
+      slug: ogre-arrow-shaft
+      relationship: component
+      description: Wooden shaft used to fletch the arrow
+    - item_name: Ogre arrow
+      slug: ogre-arrow
+      relationship: product
+      description: Final tipped ogre arrow
+    - item_name: Brutal arrow
+      slug: brutal-arrow
+      relationship: product
+      description: Alternative tipping with nails for brutal variants
+  about: |-
+    The flighted ogre arrow is a members fletching intermediate created by attaching four feathers to an ogre arrow shaft (level 5 Fletching, 0.9 experience per arrow). It is required to complete Big Chompy Bird Hunting and is the precursor to both ogre arrows and brutal arrows.
+
+    Modern ogre arrow production uses ogre arrow shafts plus feathers per arrow, with the appearance of a stack varying based on quantity held since the May 2007 update. Brutal arrows originally required nails on flighted ogre arrows, but later updates allowed nails to be applied directly to shafts.
+  market_strategy:
+    notes:
+      - "Bulk fletching for Big Chompy Bird Hunting prep"
+      - "Low GE margin, mostly self-supplied during quest"
+      - "Demand tied to ogre arrow tipping volume"
+  trading_tips:
+    - "Buy feathers in bulk to cut per-arrow cost"
+    - "Check ogre arrow shaft spreads before sourcing"
+  history:
+    - date: "2004-05-18"
+      description: "Released with the Big Chompy Bird Hunting update"
+    - date: "2007-05-22"
+      description: "Inventory appearance updated to vary by quantity held"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

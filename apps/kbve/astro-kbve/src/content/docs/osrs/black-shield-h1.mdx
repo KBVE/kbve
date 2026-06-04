@@ -12,9 +12,94 @@ osrs:
   lowalch: 652
   highalch: 979
   limit: 70
-  about: "Black shield (h1) is a free-to-play item in Old School RuneScape. High alchemy value: 979 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: black
+    tier: low
+  properties:
+    release_date: "20 February 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weight: 5.443
+    requirements:
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -8
+      ranged: -3
+    defence_bonus:
+      stab: 17
+      slash: 19
+      crush: 18
+      magic: -1
+      ranged: 18
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_name: Black kiteshield
+      slug: black-kiteshield
+      relationship: variant
+      description: Standard non-heraldic version
+    - item_name: Black shield (h2)
+      slug: black-shield-h2
+      relationship: variant
+      description: Alternate heraldic design
+    - item_name: Black shield (h3)
+      slug: black-shield-h3
+      relationship: variant
+      description: Alternate heraldic design
+    - item_name: Black shield (h4)
+      slug: black-shield-h4
+      relationship: variant
+      description: Alternate heraldic design
+    - item_name: Black shield (h5)
+      slug: black-shield-h5
+      relationship: variant
+      description: Alternate heraldic design
+  about: |-
+    > _"A shield with a heraldic design"_
+
+    The Black shield (h1) is a heraldic Black kiteshield obtained as a reward from easy Treasure Trails. Stats match a regular Black kiteshield; the heraldic gold-bar design is its only differentiator and is fashionscape demand drives its premium.
+  market_strategy:
+    notes:
+      - "Supply faucet is easy clue caskets at 1/1,404; daily volume rarely exceeds a couple dozen."
+      - "Demand is cosmetic; price tracks fashionscape interest more than combat utility."
+  trading_tips:
+    - "Bid into the GE during clue scroll droughts when caskets are not being opened en masse."
+    - "Sell during F2P-friendly events that pull free players into fashionscape collecting."
+  history:
+    - date: "20 February 2006"
+      description: "Released with the Treasure Trails heraldic shield set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

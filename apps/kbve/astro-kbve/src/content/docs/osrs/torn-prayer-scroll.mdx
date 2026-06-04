@@ -1,6 +1,6 @@
 ---
 title: Torn prayer scroll | OSRS Price Data
-description: "Torn prayer scroll: Scrawled words that can invoke the power of the gods.. High alch: 48,000 GP, GE limit: 5."
+description: "Torn prayer scroll: Scrawled words that can invoke the power of the gods. High alch: 48,000 GP, GE limit: 5."
 osrs:
   id: 21047
   name: Torn prayer scroll
@@ -12,68 +12,68 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 5
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
     type: prayer_scroll
+    tier: high
+  properties:
+    release_date: "2017-01-12"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.015
-  unlocks:
-    prayer_name: Preserve
-    prayer_level: 55
-    effect: Extends stat boosts by 50%
-    description: Boosts last 50% longer before decaying
+    options:
+      - Read
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
-      - source: Chambers of Xeric
-        rate: ~1/16.5
-        notes: From ancient chest
-  truemarket:
-    buy_limit: 5
-    price_estimate: 47000
+      - source: Chambers of Xeric (Ancient chest)
+        quantity: "1"
+        rarity: 2/33
+  passive_effects:
+    - name: Unlock Preserve
+      description: "Reading the scroll unlocks the Preserve prayer (requires 55 Prayer to activate); Preserve extends stat boosts by 50% before they decay."
   related_items:
-    - item_id: 21034
-      item_name: Dexterous prayer scroll
+    - item_name: Dexterous prayer scroll
       slug: dexterous-prayer-scroll
       relationship: alternative
-      description: Rigour unlock
-    - item_id: 21079
-      item_name: Arcane prayer scroll
+      description: Unlocks the Rigour prayer
+    - item_name: Arcane prayer scroll
       slug: arcane-prayer-scroll
       relationship: alternative
-      description: Augury unlock
-    - item_id: 20724
-      item_name: Imbued heart
+      description: Unlocks the Augury prayer
+    - item_name: Imbued heart
       slug: imbued-heart
       relationship: alternative
-      description: Benefits from Preserve
+      description: Benefits from Preserve via extended Magic boost
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Prayer Scroll |
-    | Tradeable | Yes |
-    | Weight | 0.015 kg |
+    > *"Scrawled words that can invoke the power of the gods."*
 
-    Preserve Prayer:
-    - Extends stat boosts by 50%
-    - Boosts last 50% longer before decaying
-
-    Requirements: 55 Prayer
-
-    Useful for:
-    - Long boss fights
-    - Slayer tasks
-    - Any boosted content
-
-    Extends divine potions, imbued heart, etc.
+    The torn prayer scroll unlocks the Preserve prayer, extending stat boosts by 50% before they decay. Activating the prayer requires 55 Prayer but no requirement is needed to read the scroll itself. It is dropped from the ancient chest in Chambers of Xeric.
   market_strategy:
     notes:
-      - Very cheap unlock
-      - Low drain rate
-      - Pairs with stat boosts
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Cheapest of the three Xeric prayer scrolls"
+      - "Low drain rate makes Preserve a staple at bossing"
+      - "Demand stable; supply tied to CoX completions"
+  trading_tips:
+    - "Buy during raid-meta lulls when supply outruns demand"
+    - "Watch patch notes for Preserve interactions with new boosts"
+  history:
+    - date: "2017-01-12"
+      description: "Split out from the rarer prayer scrolls in the Raids Improvements update"
+    - date: "2025-05-29"
+      description: "Removed from the Grand Exchange item sink list"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

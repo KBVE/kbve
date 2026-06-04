@@ -1,20 +1,92 @@
 ---
 title: Lovakengj hood | OSRS Price Data
-description: "Lovakengj hood: A rare hood from Lovakengj .. High alch: 1 GP, GE limit: 4."
+description: "Lovakengj hood: A rare hood from Lovakengj. High alch: 1 GP, GE limit: 4."
 osrs:
   id: 20119
   name: Lovakengj hood
   slug: lovakengj-hood
-  examine: A rare hood from Lovakengj .
+  examine: A rare hood from Lovakengj.
   members: true
   icon: Lovakengj hood.png
   value: 1
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Lovakengj hood is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/851
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_name: Reward casket (master)
+      slug: reward-casket-master
+      relationship: component
+      description: Master clue casket that drops this hood
+  about: |-
+    > *"A rare hood from Lovakengj."*
+
+    Lovakengj hood is a purely cosmetic master Treasure Trail reward styled after the trimmed Smithing cape. It provides no combat bonuses and is primarily a collector's display piece, storable in the costume room.
+  market_strategy:
+    notes:
+      - "Demand tracks master clue completion rates"
+      - "Thin liquidity with 4-per-4-hour buy limit"
+  trading_tips:
+    - "Buy when master clue supply spikes after PvM events"
+    - "List sales near Grand Exchange median to avoid stagnation"
+  history:
+    - date: "2016-07-06"
+      description: "Released as a master Treasure Trail reward."
+    - date: "2019-01-14"
+      description: "Renamed from Lovakengj house hood and examine text updated."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,59 @@ osrs:
   lowalch: 3698
   highalch: 5547
   limit: null
-  about: "Greenman statue is a members-only item in Old School RuneScape. High alchemy value: 5,547 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: decoration
+    tier: mid-high
+  properties:
+    release_date: "23 July 2025"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 5
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 53
+      xp: 0
+      materials:
+        - item_name: Greenman mask
+          quantity: 1
+        - item_name: Ent branch
+          quantity: 5
+        - item_name: Maple logs
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Greenman mask
+      slug: greenman-mask
+      relationship: component
+      description: Forestry mask used to craft the statue
+    - item_name: Ent branch
+      slug: ent-branch
+      relationship: component
+      description: Five required per statue
+  about: "Greenman statue is a Forestry-themed garden decoration crafted by combining a greenman mask with five ent branches and a maple log at level 53 Fletching. Functions as a house construction decoration as part of the Varlamore: The Final Dawn update."
+  market_strategy:
+    notes:
+      - "Forestry decoration demand"
+      - "Requires greenman mask supply"
+      - "No GE buy limit listed"
+  trading_tips:
+    - Greenman mask is the bottleneck — track its supply
+    - Ent branch and maple log floors set theoretical minimum cost
+  history:
+    - date: "23 July 2025"
+      description: "Released as part of the Varlamore: The Final Dawn update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

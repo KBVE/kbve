@@ -12,9 +12,35 @@ osrs:
   lowalch: 41200
   highalch: 61800
   limit: 15
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: eclipse-moon
+    tier: high
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
-    weight: 1
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements:
+      ranged: 75
+      defence: 50
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,62 +58,43 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      ranged: 75
-      defence: 50
-    degradable: true
-    charges: 3000
   drop_table:
-    primary_source: Lunar Chest (Neypotzli)
-    best_drop_rate: 1/224
     sources:
-      - source: Lunar Chest
+      - source: Lunar Chest (Neypotzli)
         quantity: "1"
-        rarity: rare
-        drop_rate: 1/224
-        members_only: true
+        rarity: 1/224
+  passive_effects:
+    - name: Eclipse burn
+      description: "When wearing the full Eclipse moon armour set with the Eclipse atlatl, successful attacks have a 20% chance to inflict burn damage on non-immune targets."
   related_items:
-    - item_id: 29000
-      item_name: Eclipse atlatl
+    - item_name: Eclipse atlatl
       slug: eclipse-atlatl
       relationship: set-piece
-      description: Weapon for Eclipse set effect
-    - item_id: 29004
-      item_name: Eclipse moon chestplate
+      description: Weapon that activates the Eclipse set burn effect
+    - item_name: Eclipse moon chestplate
       slug: eclipse-moon-chestplate
       relationship: set-piece
-      description: Body armour in set
-    - item_id: 29007
-      item_name: Eclipse moon tassets
+      description: Body armour in the Eclipse moon set
+    - item_name: Eclipse moon tassets
       slug: eclipse-moon-tassets
       relationship: set-piece
-      description: Leg armour in set
-  about: |-
-    When wearing the full Eclipse moon armour set with the Eclipse atlatl:
-    - Successful attacks have a 20% chance to inflict burn damage on non-immune targets
-
-    | Property | Value |
-    |----------|-------|
-    | Total charges | 3,000 |
-    | Charge rate | 1 per 54 seconds |
-    | Combat duration | ~45 hours |
-    | NPC repair cost | 1,500,000 coins |
-    | Repair at 99 Smithing | 757,500 coins |
-
-    Best-in-slot ranged helm for Eclipse atlatl builds:
-    - Neypotzli content
-    - Hybrid melee-ranged setups
-    - Burn damage synergy
+      description: Leg armour in the Eclipse moon set
+  about: "Eclipse moon helm is a hybrid melee-ranged helm from the Varlamore Lunar Chest at Neypotzli, dropping at roughly 1/224. It starts with 3,000 charges, depleting 1 every 54 seconds of combat for around 45 hours of uptime. Repairs cost 1.5M coins via NPC or 757.5k coins self-serviced at 99 Smithing. Worn alongside the rest of the Eclipse moon set and Eclipse atlatl, attacks gain a 20% chance to apply burn damage."
   market_strategy:
     notes:
-      - Value dependent on full set demand
-      - Factor in repair costs for long-term use
-      - Part of Varlamore content release
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Value tracks Eclipse set demand and Neypotzli drop saturation"
+      - "Factor in long-term repair costs when pricing for resale"
+      - "Part of the Varlamore content release in March 2024"
+  trading_tips:
+    - "Check charge state; uncharged listings trade at a discount"
+    - "Move helm prices with chestplate/tassets to spot mispriced legs"
+  history:
+    - date: "2024-03-20"
+      description: "Released with Varlamore: Part One and the Lunar Chest loot table."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

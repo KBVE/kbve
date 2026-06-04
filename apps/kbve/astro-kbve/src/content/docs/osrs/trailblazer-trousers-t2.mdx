@@ -12,12 +12,87 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: 5
-  about: "Trailblazer trousers (t2) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2021-01-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Trailblazer hood (t2)
+      slug: trailblazer-hood-t2
+      relationship: set-piece
+      description: Tier 2 Trailblazer hood
+    - item_name: Trailblazer top (t2)
+      slug: trailblazer-top-t2
+      relationship: set-piece
+      description: Tier 2 Trailblazer top
+    - item_name: Trailblazer boots (t2)
+      slug: trailblazer-boots-t2
+      relationship: set-piece
+      description: Tier 2 Trailblazer boots
+    - item_name: Trailblazer trousers (t1)
+      slug: trailblazer-trousers-t1
+      relationship: downgrade
+      description: Tier 1 variant
+    - item_name: Trailblazer trousers (t3)
+      slug: trailblazer-trousers-t3
+      relationship: upgrade
+      description: Tier 3 variant
+  about: "Trailblazer trousers (t2) are part of the tier 2 Trailblazer Relic Hunter outfit purchased for 3,000 League points from the Leagues Reward Shop. The set was added alongside the 20th Anniversary Event."
+  market_strategy:
+    notes:
+      - "Trailblazer League cosmetic reward"
+      - "Bundled with the t2 hood, top, and boots"
+      - "Supply locked to historical league participants"
+  trading_tips:
+    - "Buy limit of 5 caps daily volume"
+    - "Demand spikes when collectors complete the trailblazer set"
+  history:
+    - date: "2021-01-06"
+      description: "Added with the Soul Wars and 20th Anniversary Event update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

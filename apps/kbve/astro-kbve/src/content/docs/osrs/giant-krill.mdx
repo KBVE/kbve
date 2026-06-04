@@ -1,6 +1,6 @@
 ---
 title: Giant krill | OSRS Price Data
-description: "Giant krill: Some nicely cooked krill.. High alch: 102 GP."
+description: "Giant krill: Some nicely cooked krill. High alch: 102 GP."
 osrs:
   id: 32312
   name: Giant krill
@@ -12,9 +12,64 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: null
-  about: "Giant krill is a members-only item in Old School RuneScape. High alchemy value: 102 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.65
+    options:
+      - "Eat"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 69
+      xp: 177.5
+      materials:
+        - item_name: Raw giant krill
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Raw giant krill
+      slug: raw-giant-krill
+      relationship: component
+      description: "Raw ingredient cooked on a fire or range."
+    - item_name: Burnt giant krill
+      slug: burnt-giant-krill
+      relationship: alternative
+      description: "Failure result from cooking raw giant krill."
+  about: |-
+    > _"Some nicely cooked krill."_
+
+    Giant krill is a Sailing-era food that heals 17 Hitpoints when eaten. Cook raw giant krill at 69 Cooking for 177.5 experience per attempt; failures produce burnt giant krill instead.
+  market_strategy:
+    notes:
+      - "Pairs well with Tempoross and other Sailing PvM as a 17 HP heal."
+      - "Supply tracks raw giant krill drop rates from Deep Sea Trawling."
+  trading_tips:
+    - "Buy raws and cook in bulk when the cooked spread covers cooking XP cost."
+    - "Track new Sailing content drops; food prices crash after event releases."
+  history:
+    - date: "2025-06-26"
+      description: "Added during the Sailing Beta with an early appearance."
+    - date: "2025-07-03"
+      description: "Removed from the beta cache after Sailing Beta ended."
+    - date: "2025-11-19"
+      description: "Released live with the Sailing skill launch."
+    - date: "2026-05-13"
+      description: "Graphical update increased the sprite vibrancy."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

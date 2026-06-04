@@ -12,80 +12,75 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2004-09-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   potion:
-    doses: 3
-    type: restoration
-    effect: run_energy
-    restore_percent: 20
-  herblore:
-    level: 52
-    xp: 117.5
+    effects:
+      - description: "Restores 20% run energy per dose"
+        duration: 0
   recipes:
     - skill: herblore
       level: 52
       xp: 117.5
       materials:
         - item_name: Avantoe potion (unf)
-          item_id: 99
           quantity: 1
         - item_name: Mort myre fungus
-          item_id: 2970
           quantity: 1
-      product: Super energy(3)
-      product_id: 3022
-      product_quantity: 1
-      facility: None
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 261
-      item_name: Avantoe
+    - item_name: Avantoe
       slug: avantoe
       relationship: component
-      description: Primary herb
-    - item_id: 2970
-      item_name: Mort myre fungus
+      description: Primary herb used in the unfinished potion
+    - item_name: Mort myre fungus
       slug: mort-myre-fungus
       relationship: component
-      description: Secondary
-    - item_id: 12625
-      item_name: Stamina potion(4)
+      description: Secondary ingredient unique to super energy
+    - item_name: Stamina potion(4)
       slug: stamina-potion-4
       relationship: product
-      description: Upgraded version
-    - item_id: 3010
-      item_name: Energy potion(3)
+      description: Upgraded run-energy product crafted with super energy
+    - item_name: Energy potion(3)
       slug: energy-potion-3
       relationship: alternative
-      description: Lower tier
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 52 |
-    | XP | 117.5 |
-    | Ingredients | Avantoe + Mort myre fungus |
-
-    | Effect | Value |
-    |--------|-------|
-    | Run energy restore | 20% per dose |
-    | Total restore | 80% (4-dose) |
+      description: Lower-tier run energy restore potion
+  about: "Super energy(1) is the 1-dose form of the super energy potion, made at 52 Herblore for 117.5 XP by combining an avantoe potion (unf) with mort myre fungus. Each dose restores 20% run energy. The potion is also a key ingredient in stamina potion production, sitting between the basic energy potion and the high-end stamina line."
   market_strategy:
     notes:
-      - Essential for stamina potion production
-      - Standalone energy restoration
-      - Moderate demand
-      - Stamina potion production
-      - Budget energy restoration
-      - Ironman accounts
-      - Early-game PvM
-      - Low buy limit (2,000)
-      - Avantoe herb base
-      - Mort myre fungus secondary
-      - Upgrade to stamina potion
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Essential feedstock for stamina potion production"
+      - "Lower-dose vials trend cheaper per dose than 4-dose at low volume"
+      - "2,000 buy limit favors moderate-volume traders"
+  trading_tips:
+    - "Watch the avantoe and mort myre fungus markets for cost shifts"
+    - "Stamina potion demand drives super energy pricing"
+  history:
+    - date: "2004-09-01"
+      description: "Added to the game as part of the original Herblore expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

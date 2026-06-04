@@ -12,25 +12,89 @@ osrs:
   lowalch: 21760
   highalch: 32640
   limit: 70
-  item_id: 1201
-  item_type: armor
-  slot: shield
-  type: kiteshield
-  tradeable: true
-  weight: 5.443
-  requirements:
-    defence: 40
-  stats:
-    stab_defence: 44
-    slash_defence: 48
-    crush_defence: 46
-    ranged_defence: 46
-    magic: -8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune
+    tier: mid-high
+  properties:
+    release_date: "2001-08-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 5.443
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -8
+      ranged: -3
+    defence_bonus:
+      stab: 44
+      slash: 48
+      crush: 46
+      magic: -1
+      ranged: 46
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 97
+      xp: 225
+      materials:
+        - item_name: Runite bar
+          quantity: 3
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
   related_items:
-    - slug: dragon-kiteshield
-    - slug: runite-bar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Dragon kiteshield
+      slug: dragon-kiteshield
+      relationship: upgrade
+      description: Higher tier kiteshield
+    - item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: Smithing material
+    - item_name: Rune sq shield
+      slug: rune-sq-shield
+      relationship: downgrade
+      description: Smaller rune shield with weaker defence bonuses
+  about: |-
+    The rune kiteshield is the strongest free-to-play kiteshield, offering top-tier melee defence at 40 Defence. Smithable at 97 Smithing from 3 runite bars. Frequently used as a tank shield by low-risk PvPers and void rangers despite its ranged and magic penalties.
+  market_strategy:
+    notes:
+      - "Stable F2P demand from new accounts hitting 40 Defence"
+      - "Smithing 97 supply makes this margin-friendly at scale"
+      - "Tank-shield use keeps PvP demand sticky"
+  trading_tips:
+    - "Track runite bar price - 3 bars sets the floor"
+    - "Stock during F2P bond events when new accounts spike"
+  history:
+    - date: "2001-08-13"
+      description: "Released alongside rune body armour."
+    - date: "2015-07-09"
+      description: "Smithing animation and stats unaffected, but 40 Defence requirement clarified in the wiki."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Shoulder parrot | OSRS Price Data
-description: "Shoulder parrot: Polly want a cracker?. High alch: 600 GP, GE limit: 4."
+description: "Shoulder parrot is a free-to-play cosmetic cape from beginner Treasure Trails. High alch: 600 GP, GE limit: 4."
 osrs:
   id: 23300
   name: Shoulder parrot
@@ -12,9 +12,77 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 4
-  about: "Shoulder parrot is a free-to-play item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "11 April 2019"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: beginner
+    is_reward: true
+    reward_tiers:
+      - beginner
+  drop_table:
+    sources:
+      - source: Reward casket (beginner)
+        quantity: "1"
+        rarity: 1/360
+  related_items:
+    - item_name: Reward casket (beginner)
+      slug: reward-casket-beginner
+      relationship: component
+      description: Drops the parrot from beginner clue rewards
+  about: |-
+    > _"Polly want a cracker?"_
+
+    Shoulder parrot is a free-to-play cosmetic cape unlocked from beginner Treasure Trails. Worn in the cape slot with no combat bonuses. Can be stored in the costume room treasure chest.
+  market_strategy:
+    notes:
+      - "Low GE buy limit (4) and beginner clue rarity sustain the high price tag."
+      - "Demand is cosmetic; price drifts with clue popularity events."
+  trading_tips:
+    - "Flip on weekends when beginner clue completion spikes."
+  history:
+    - date: "11 April 2019"
+      description: "Released as part of the Treasure Trails Expansion."
+    - date: "Later patch"
+      description: "Head-turning animation removed due to visual bugs with Godswords."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

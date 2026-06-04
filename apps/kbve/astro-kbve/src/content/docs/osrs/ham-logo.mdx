@@ -1,6 +1,6 @@
 ---
 title: Ham logo | OSRS Price Data
-description: "Ham logo: A badge for the HAM cult.. High alch: 45 GP, GE limit: 15."
+description: "Ham logo is a members badge dropped by H.A.M. cultists. High alch: 45 GP, GE limit: 15."
 osrs:
   id: 4306
   name: Ham logo
@@ -12,9 +12,74 @@ osrs:
   lowalch: 30
   highalch: 45
   limit: 15
-  about: "Ham logo is a members-only item in Old School RuneScape. High alchemy value: 45 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2005-02-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: H.A.M. Member (pickpocket)
+        quantity: "1"
+        rarity: 1/102
+      - source: H.A.M. Guard
+        quantity: "1"
+        rarity: 1/83
+      - source: Chest in Zanik's house
+        quantity: "1"
+        rarity: 1/23
+      - source: H.A.M. Storerooms guard (pickpocket)
+        quantity: "1"
+        rarity: 3/500
+  related_items:
+    - item_name: Ham shirt
+      slug: ham-shirt
+      relationship: set-piece
+      description: Part of the H.A.M. robes outfit
+    - item_name: Ham robe
+      slug: ham-robe
+      relationship: set-piece
+      description: Part of the H.A.M. robes outfit
+    - item_name: Ham hood
+      slug: ham-hood
+      relationship: set-piece
+      description: Part of the H.A.M. robes outfit
+  passive_effects:
+    - name: H.A.M. disguise
+      description: Worn as part of the H.A.M. robes set, reduces the chance of being ejected from the H.A.M. Hideout while pickpocketing.
+  about: |-
+    The Ham logo is a small cult badge worn as part of the H.A.M. robes outfit. While it does not provide any combat stats, wearing the full set of H.A.M. clothing reduces the chance of being ejected from the H.A.M. Hideout when pickpocketing or thieving from the storerooms.
+
+    It is dropped by H.A.M. cultists and guards across the hideout south of Lumbridge, and is also a possible reward from the chest in Zanik's house after Death to the Dorgeshuun.
+  market_strategy:
+    notes:
+      - "Light demand from ironmen building H.A.M. outfits"
+      - "Almost exclusively traded for completionist/cosmetic reasons"
+      - "Low buy limit keeps spreads wide"
+  trading_tips:
+    - Cheaper to pickpocket H.A.M. members directly than to buy
+    - Useful for the Lumbridge & Draynor Diary tasks involving H.A.M. robes
+  history:
+    - date: "2014-12-10"
+      description: "Item renamed from H.a.m logo to Ham logo."
+    - date: "2005-02-22"
+      description: "Added to the game with the introduction of the H.A.M. cult."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

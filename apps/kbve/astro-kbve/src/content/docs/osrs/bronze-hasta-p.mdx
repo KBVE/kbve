@@ -1,6 +1,6 @@
 ---
 title: Bronze hasta(p) | OSRS Price Data
-description: "Bronze hasta(p): A poison tipped, one-handed bronze hasta.. High alch: 15 GP, GE limit: 125."
+description: "Bronze hasta(p): A poison tipped, one-handed bronze hasta. High alch: 15 GP, GE limit: 125."
 osrs:
   id: 11379
   name: Bronze hasta(p)
@@ -12,12 +12,92 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 125
-  about: "Bronze hasta(p) is a members-only item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    weight: 2.267
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 5
+      slash: 5
+      crush: 5
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: -1
+      slash: -1
+      crush: -1
+      magic: 0
+      ranged: -1
+    other_bonus:
+      strength: 6
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Weapon Poison
+      description: Inflicts standard weapon poison on successful hits.
+  related_items:
+    - item_name: Bronze hasta
+      slug: bronze-hasta
+      relationship: variant
+      description: Unpoisoned base hasta
+    - item_name: Bronze hasta(p+)
+      slug: bronze-hasta-p-plus
+      relationship: upgrade
+      description: Stronger weapon poison+ variant
+    - item_name: Bronze hasta(p++)
+      slug: bronze-hasta-p-plus-plus
+      relationship: upgrade
+      description: Strongest weapon poison++ variant
+    - item_name: Bronze hasta(kp)
+      slug: bronze-hasta-kp
+      relationship: variant
+      description: Karambwan paste poison variant
+  about: |-
+    > *"A poison tipped, one-handed bronze hasta."*
+
+    The bronze hasta(p) is the poisoned form of the bronze hasta, produced by applying weapon poison. It is the entry-level hasta requiring completion of the Barbarian Training miniquest to wield and shares the standard bronze stat block.
+  market_strategy:
+    notes:
+      - "Demand minimal outside Barbarian training novelty"
+      - "Bulk poisoning batches drive supply spikes"
+      - "Margins thin because alch value is low"
+  trading_tips:
+    - "Look for weapon poison price dips before bulk listing"
+    - "Track Barbarian training streamer interest for short pumps"
+  history:
+    - date: "2007-07-03"
+      description: "Released with the Barbarian Training expansion"
+    - date: "2021-04-21"
+      description: "Attack speed improved from 5 ticks to 4 ticks in the Equipment Rebalance update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

@@ -1,6 +1,6 @@
 ---
 title: Granite body | OSRS Price Data
-description: "Granite body is a members body slot item requiring 50 Defence. High alch: 48,000 GP, GE limit: 70."
+description: "Granite body is a members body slot armour requiring 50 Defence and 50 Strength. High alch: 48,000 GP, GE limit: 70."
 osrs:
   id: 10564
   name: Granite body
@@ -12,9 +12,35 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: granite
+    tier: mid-high
+  properties:
+    release_date: "2007-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 22.679
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
     weight: 22.679
+    requirements:
+      defence: 50
+      strength: 50
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,39 +58,44 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 50
-      strength: 50
-  minigame:
-    name: Barbarian Assault
-    location: Barbarian Outpost
-    currency: Coins
-    cost: 95,000 coins
-    npc: Commander Connad
-    requirement: Penance Queen kill
+  shops:
+    - shop_name: Commander Connad's Reward Shop
+      location: Barbarian Outpost
+      price: 95000
+      currency: Coins
+      stock: 1
   related_items:
-    - item_id: 10551
-      item_name: Fighter torso
+    - item_name: Fighter torso
       slug: fighter-torso
       relationship: alternative
-      description: Lighter alternative with strength bonus
-    - item_id: 1127
-      item_name: Rune platebody
+      description: Lighter Barbarian Assault reward with a strength bonus
+    - item_name: Rune platebody
       slug: rune-platebody
       relationship: downgrade
-      description: Cheaper alternative
+      description: Cheaper rune-tier body armour with lower defence
+    - item_name: Granite legs
+      slug: granite-legs
+      relationship: set-piece
+      description: Matching granite leg armour
+  passive_effects:
+    - name: Heaviest body in the game
+      description: At 22.679 kg, the granite body is the heaviest body armour in OSRS and significantly increases run energy drain.
   about: |-
-    - Heaviest body armour in the game (22.679 kg)
-    - High ranged defence (+97)
-    - Required for Hard Kandarin Diary
+    The granite body is a high-defence body slot armour purchased from Commander Connad at the Barbarian Outpost for 95,000 coins after defeating the Penance Queen in Barbarian Assault at least once. It boasts the highest stab, slash, crush and ranged defence of any non-degradable body armour available at 50 Defence.
 
-    Diary Task: Wear granite body in the Barbarian Outpost agility area.
+    Despite its strong defensive numbers, it has no offensive bonuses, hefty magic penalties, and is the heaviest body armour in the game at over 22 kg. It is most commonly bought to complete a Hard Kandarin Diary task that requires wearing it inside the Barbarian Outpost agility arena.
+  market_strategy:
+    notes:
+      - "Demand is almost entirely diary-driven, in spikes"
+      - "Price tracks Barbarian Assault popularity loosely"
+      - "GE supply is thin — limit of 70 per 4 hours is rarely hit"
   trading_tips:
-    - Buy from GE if you only need for diary
-    - Not commonly used due to extreme weight
-    - No strength bonus unlike Fighter torso
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - Buy on GE if you only need it for the Hard Kandarin Diary
+    - Fighter torso usually beats it for any combat use
+    - Avoid pairing with magic — magic attack penalty is severe
+  history:
+    - date: "2007-01-04"
+      description: "Added to the game with the Barbarian Assault minigame update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,53 +12,74 @@ osrs:
   lowalch: 144
   highalch: 216
   limit: 2000
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
     type: potion
+    tier: mid-high
+  properties:
+    release_date: "2018-06-07"
     tradeable: true
-    doses: 4
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.135
-    requirements:
-      herblore: 80
-  effect:
-    boost:
-      - skill: ranged
-        amount: 4 + 10% of level
-      - skill: defence
-        amount: 5 + 15% of level
-    duration: 60
-    preserve_duration: 90
+    options:
+      - "Drink"
+      - "Empty"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 80
+      xp: 155
+      materials:
+        - item_name: Cadantine blood potion (unf)
+          quantity: 1
+        - item_name: Wine of Zamorak
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Boosts Ranged by 4 + 10% of the player's Ranged level (rounded down)."
+        duration: 60
+      - description: "Boosts Defence by 5 + 15% of the player's Defence level."
+        duration: 60
+      - description: "Boost decay 1 point per minute (extended to 90 seconds with the Preserve prayer)."
+        duration: 90
   related_items:
-    - item_id: 2444
-      item_name: Ranging potion
-      slug: ranging-potion
+    - item_name: Ranging potion(4)
+      slug: ranging-potion-4
       relationship: component
-      description: Ingredient for bastion potion
-    - item_id: 2440
-      item_name: Super defence
-      slug: super-defence
+      description: Provides the Ranged boost ingredient effect
+    - item_name: Super defence(4)
+      slug: super-defence-4
       relationship: component
-      description: Ingredient for bastion potion
-    - item_id: 23579
-      item_name: Divine bastion potion
-      slug: divine-bastion-potion
+      description: Provides the Defence boost ingredient effect
+    - item_name: Divine bastion potion(4)
+      slug: divine-bastion-potion-4
       relationship: upgrade
       description: Enhanced version with maintained boost
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Combat Potion |
-    | Tradeable | Yes |
-    | Weight | 0.135 kg |
-    | Requirements | 80 Herblore |
-
-    Boosts Ranged by 4 + 10% of level.
-
-    Boosts Defence by 5 + 15% of level.
-
-    Decays 1 point/minute (90 seconds with Preserve).
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Bastion potion is a Ranged + Defence combination potion released with Theatre of Blood content. It is made at 80 Herblore by combining a cadantine blood potion (unf) with wine of Zamorak for 155 XP. Decays 1 point per minute, or 90 seconds with the Preserve prayer.
+  market_strategy:
+    notes:
+      - "Demand follows Theatre of Blood activity"
+      - "Cadantine blood potion supply is the main margin driver"
+      - "Convert into Divine bastion at 86 Herblore for sustained-boost markets"
+  trading_tips:
+    - "Track Wine of Zamorak supply - GWD altar runs gate price"
+    - "Bundle with sharks or anglerfish for raid prep listings"
+  history:
+    - date: "2018-06-07"
+      description: "Released alongside the Theatre of Blood update."
+    - date: "2018-08-30"
+      description: "Divine bastion variant introduced at 86 Herblore."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

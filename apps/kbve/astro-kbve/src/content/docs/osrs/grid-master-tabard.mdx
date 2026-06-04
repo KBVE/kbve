@@ -12,12 +12,93 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: Grid master tabard is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: mid-high
+  properties:
+    release_date: "2025-10-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.3
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Events reward shop
+      location: Varrock Square
+      price: 750
+      currency: Event points
+      stock: 100
+  related_items:
+    - item_name: Grid master sword
+      slug: grid-master-sword
+      relationship: set-piece
+      description: Matching Grid Master cosmetic weapon
+    - item_name: Grid master emblem
+      slug: grid-master-emblem
+      relationship: set-piece
+      description: Matching Grid Master emblem
+    - item_name: Grid master tabard (blue)
+      slug: grid-master-tabard-blue
+      relationship: variant
+      description: Blue colour variant
+    - item_name: Grid master tabard (green)
+      slug: grid-master-tabard-green
+      relationship: variant
+      description: Green colour variant
+    - item_name: Grid master tabard (purple)
+      slug: grid-master-tabard-purple
+      relationship: variant
+      description: Purple colour variant
+  about: "Grid master tabard is a cosmetic body slot item purchased for 750 event points at the Events reward shop in Varrock Square. It is part of the Grid Master cosmetic set released for the community event."
+  market_strategy:
+    notes:
+      - "Event reward shop cosmetic"
+      - "Not alchemisable, value reflects vanity demand"
+      - "Worn with matching sword and emblem"
+  trading_tips:
+    - "Supply is gated by Grid Master event participation"
+    - "Resale price drifts with cosmetic collector interest"
+  history:
+    - date: "2025-10-15"
+      description: "Added with the Grid Master community event reward shop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

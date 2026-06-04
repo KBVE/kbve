@@ -12,77 +12,94 @@ osrs:
   lowalch: 110000
   highalch: 165000
   limit: 15
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: barrows
+    tier: high
+  properties:
+    release_date: "2005-05-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 9.071
+    options: ["Wear"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
-    type: barrows
-    set: Torag
-    tradeable: true
-    degradeable: true
-    weight: 9
+    weapon_type: null
+    attack_speed: null
+    weight: 9.071
     requirements:
       defence: 70
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -21
-      attack_ranged: 0
-      defence_stab: 85
-      defence_slash: 82
-      defence_crush: 83
-      defence_magic: -4
-      defence_ranged: 92
-      strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: 0
+    defence_bonus:
+      stab: 85
+      slash: 82
+      crush: 83
+      magic: -4
+      ranged: 92
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  set_effect:
-    name: Corruption
-    pieces_required: 4
-    description: 25% chance to lower opponent's run energy by 20%
-    amulet_of_damned: Defence is increased by 1% for every 1 HP missing
+  drop_table:
+    sources:
+      - source: Barrows chest (Torag's mound)
+        quantity: "1"
+        rarity: 1/2448
+  passive_effects:
+    - name: Corruption set effect
+      description: When the full Torag's set (helm, platebody, platelegs, hammers) is worn, damaging melee attacks have a 25% chance to drain the target's run energy by 20%.
+    - name: Amulet of the damned synergy
+      description: With the Amulet of the damned equipped alongside the full set, melee defence is increased by 1% for every 1 HP the wearer is missing, scaling tankiness as health drops.
+    - name: Degradation
+      description: Lasts 15 hours of combat before becoming broken. Repair at an armour stand in a POH (cheapest at 99 Smithing, around 40,400 gp full) or at Bob in Lumbridge for the standard NPC rate.
   related_items:
-    - item_id: 4745
-      item_name: Torag's helm
+    - item_name: Torag's helm
       slug: torags-helm
       relationship: set-piece
-      description: Head slot set piece
-    - item_id: 4749
-      item_name: Torag's platebody
+      description: Head slot piece of the Torag's barrows set
+    - item_name: Torag's platebody
       slug: torags-platebody
       relationship: set-piece
-      description: Body slot set piece
-    - item_id: 4747
-      item_name: Torag's hammers
+      description: Body slot piece of the Torag's barrows set
+    - item_name: Torag's hammers
       slug: torags-hammers
       relationship: set-piece
-      description: Weapon set piece
+      description: Weapon slot piece of the Torag's barrows set
+    - item_name: Dharok's platelegs
+      slug: dharoks-platelegs
+      relationship: alternative
+      description: Statistically identical Dharok's legs alternative
   about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Stab defence | +85 |
-    | Slash defence | +82 |
-    | Crush defence | +83 |
-    | Magic defence | -4 |
-    | Ranged defence | +92 |
-    | Magic attack | -21 |
+    Torag's platelegs is the legs slot piece of Torag's barrows set, requiring 70 Defence to equip. Stats are identical to Dharok's platelegs, providing some of the strongest pure melee defence available outside Bandos and torva tier.
 
-    Corruption:
-    When wearing full Torag's (helm, platebody, platelegs, hammers):
-    - 25% chance to lower opponent's run energy by 20%
-
-    With Amulet of the Damned:
-    - Defence is increased by 1% for every 1 HP missing
-
-    Best For:
-    - Budget tank legs
-    - Identical stats to Dharok's platelegs
-    - Cheaper alternative for defence
-
-    - 15 hours of combat use
-    - Repair at Bob in Lumbridge or POH armor stand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The Corruption set effect (25% chance to drain 20% run energy on hit) plus the Amulet of the damned scaling defence as HP drops make the full Torag's set a viable budget tank kit, especially in PvP where run drain compounds.
+  market_strategy:
+    notes:
+      - "Supply tied to Barrows farming traffic; spikes on collection log promos"
+      - "Cheaper than Dharok's despite identical defensive stats — pure tank value"
+      - "Repair costs absorb most of the rental income if used heavily"
+  trading_tips:
+    - "Buy after Barrows xp events when supply floods the GE"
+    - "Sell into Wilderness key events when tank kits surge in demand"
+  history:
+    - date: "2005-05-09"
+      description: "Released with the Barrows minigame and the original six brothers' equipment"
+    - date: "2015-02-05"
+      description: "Amulet of the damned synergy added, granting the missing-HP defence scaling"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
