@@ -1,5 +1,32 @@
 #include "chuckInventory.h"
 
+#include "KBVEULID.h"
+
+void FchuckInventoryStack::GenerateUlid()
+{
+	const FKBVEUlid Id = FKBVEUlid::New();
+	int64 H = 0;
+	int64 L = 0;
+	FMemory::Memcpy(&H, Id.Bytes + 0, 8);
+	FMemory::Memcpy(&L, Id.Bytes + 8, 8);
+	UlidHigh = H;
+	UlidLow  = L;
+}
+
+void FchuckInventoryStack::ClearUlid()
+{
+	UlidHigh = 0;
+	UlidLow  = 0;
+}
+
+FString FchuckInventoryStack::UlidToString() const
+{
+	FKBVEUlid Id;
+	FMemory::Memcpy(Id.Bytes + 0, &UlidHigh, 8);
+	FMemory::Memcpy(Id.Bytes + 8, &UlidLow,  8);
+	return Id.ToString();
+}
+
 namespace chuckInventory
 {
 	int32 TryAdd(FchuckInventoryBag& Bag, int32 ItemKey, int32 Count, int32 MaxStack, bool bStackable)
@@ -41,6 +68,7 @@ namespace chuckInventory
 				S.Durability = 0;
 				S.Flags = 0;
 				S.InstanceIdx = -1;
+				S.GenerateUlid();
 				Remaining -= Take;
 				Bag.MarkItemDirty(S);
 			}

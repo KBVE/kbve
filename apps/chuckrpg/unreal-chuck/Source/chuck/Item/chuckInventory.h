@@ -24,8 +24,15 @@ struct FchuckInventoryStack : public FFastArraySerializerItem
 	UPROPERTY() int32 Durability = 0;
 	UPROPERTY() uint8 Flags = 0;
 	UPROPERTY() int32 InstanceIdx = -1;
+	UPROPERTY() int64 UlidHigh = 0;
+	UPROPERTY() int64 UlidLow  = 0;
 
 	FORCEINLINE bool IsEmpty() const { return ItemKey <= 0 || Count <= 0; }
+	FORCEINLINE bool HasUlid() const { return UlidHigh != 0 || UlidLow != 0; }
+
+	void GenerateUlid();
+	void ClearUlid();
+	FString UlidToString() const;
 };
 
 USTRUCT(BlueprintType)

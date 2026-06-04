@@ -24,7 +24,7 @@ struct FchuckItemDef
 	UPROPERTY() FString Name;
 	UPROPERTY() FString Description;
 	UPROPERTY() FString Emoji;
-	UPROPERTY() FString Img;
+	UPROPERTY() bool    bHasImg = false;
 	UPROPERTY() int32  TypeFlags = 0;
 	UPROPERTY() EchuckItemRarity Rarity = EchuckItemRarity::Common;
 	UPROPERTY() int32  MaxStack = 1;

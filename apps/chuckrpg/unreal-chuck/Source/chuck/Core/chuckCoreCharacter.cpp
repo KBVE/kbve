@@ -464,7 +464,7 @@ void AchuckCoreCharacter::SeedStarterItems()
 	{
 		if (SlotsLeft <= 0) break;
 		if (!Def.IsValid()) continue;
-		if (Def.Img.IsEmpty()) continue;
+		if (!Def.bHasImg) continue;
 		AddItem(Def);
 		Seeded.Add(Def.Key);
 		--SlotsLeft;

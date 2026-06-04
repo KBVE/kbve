@@ -1,12 +1,104 @@
 #include "SchuckHUD.h"
 
 #include "ChuckUIStyle.h"
-#include "KBVEUIRenderer.h"
+#include "Rendering/DrawElements.h"
+#include "SKBVEStatBarStack.h"
 #include "Styling/CoreStyle.h"
 
 void SchuckHUD::Construct(const FArguments& InArgs)
 {
 	SetCanTick(true);
+
+	const ISlateStyle& Style = FChuckUIStyle::Get();
+
+	auto HealthPct  = [this]() { return Target.HealthMax  > 0.f ? FMath::Clamp(DisplayHealthCurrent  / Target.HealthMax,  0.f, 1.f) : 0.f; };
+	auto ManaPct    = [this]() { return Target.ManaMax    > 0.f ? FMath::Clamp(DisplayManaCurrent    / Target.ManaMax,    0.f, 1.f) : 0.f; };
+	auto StaminaPct = [this]() { return Target.StaminaMax > 0.f ? FMath::Clamp(DisplayStaminaCurrent / Target.StaminaMax, 0.f, 1.f) : 0.f; };
+
+	auto MaxHealth  = [this]() { return Target.HealthMax;  };
+	auto MaxMana    = [this]() { return Target.ManaMax;    };
+	auto MaxStamina = [this]() { return Target.StaminaMax; };
+
+	auto CurHealth  = [this]() { return DisplayHealthCurrent;  };
+	auto CurMana    = [this]() { return DisplayManaCurrent;    };
+	auto CurStamina = [this]() { return DisplayStaminaCurrent; };
+
+	const FLinearColor BG = Style.GetColor(FChuckUIStyle::FKeys::HUD_Bar_Background_Color);
+	const FLinearColor CH = Style.GetColor(FChuckUIStyle::FKeys::HUD_Health_Color);
+	const FLinearColor CM = Style.GetColor(FChuckUIStyle::FKeys::HUD_Mana_Color);
+	const FLinearColor CS = Style.GetColor(FChuckUIStyle::FKeys::HUD_Stamina_Color);
+
+	auto EPFillColor = [this, CS]() -> FLinearColor
+	{
+		const bool bExhausted = Target.StaminaRegenDelay > 0.f;
+		const bool bWarn      = !bExhausted && Target.StaminaCurrent < Target.StaminaWarnThreshold;
+		if (!bWarn) return CS;
+		const float Pulse = 0.5f + 0.5f * FMath::Sin(Target.TimeSeconds * 9.f);
+		return FLinearColor(
+			CS.R * (0.8f + 0.2f * Pulse),
+			CS.G * (0.8f + 0.2f * Pulse),
+			CS.B + (1.f - CS.B) * 0.3f * Pulse,
+			CS.A);
+	};
+	auto EPBgColor = [this, BG]() -> FLinearColor
+	{
+		const bool bExhausted = Target.StaminaRegenDelay > 0.f;
+		const bool bWarn      = !bExhausted && Target.StaminaCurrent < Target.StaminaWarnThreshold;
+		if (bExhausted)
+		{
+			const float Flash = 0.5f + 0.5f * FMath::Sin(Target.TimeSeconds * 18.f);
+			return FLinearColor(0.55f + 0.25f * Flash, 0.05f, 0.05f, 0.85f);
+		}
+		if (bWarn)
+		{
+			const float Pulse = 0.5f + 0.5f * FMath::Sin(Target.TimeSeconds * 9.f);
+			return FLinearColor(BG.R + 0.20f * Pulse, BG.G, BG.B, BG.A);
+		}
+		return BG;
+	};
+	auto EPRowAlpha = [this]() -> float
+	{
+		if (Target.StaminaRegenDelay <= 0.f) return 1.f;
+		return 0.35f + 0.45f * FMath::Sin(Target.TimeSeconds * 5.f);
+	};
+
+	TArray<FKBVEStatBarSpec> Specs;
+	Specs.SetNum(3);
+
+	Specs[0].Label = TEXT("HP");
+	Specs[0].Percent         = TAttribute<float>::CreateLambda(HealthPct);
+	Specs[0].Current         = TAttribute<float>::CreateLambda(CurHealth);
+	Specs[0].Max             = TAttribute<float>::CreateLambda(MaxHealth);
+	Specs[0].FillColor       = CH;
+	Specs[0].BackgroundColor = BG;
+	Specs[0].RowAlpha        = 1.f;
+
+	Specs[1].Label = TEXT("MP");
+	Specs[1].Percent         = TAttribute<float>::CreateLambda(ManaPct);
+	Specs[1].Current         = TAttribute<float>::CreateLambda(CurMana);
+	Specs[1].Max             = TAttribute<float>::CreateLambda(MaxMana);
+	Specs[1].FillColor       = CM;
+	Specs[1].BackgroundColor = BG;
+	Specs[1].RowAlpha        = 1.f;
+
+	Specs[2].Label = TEXT("EP");
+	Specs[2].Percent         = TAttribute<float>::CreateLambda(StaminaPct);
+	Specs[2].Current         = TAttribute<float>::CreateLambda(CurStamina);
+	Specs[2].Max             = TAttribute<float>::CreateLambda(MaxStamina);
+	Specs[2].FillColor       = TAttribute<FLinearColor>::CreateLambda(EPFillColor);
+	Specs[2].BackgroundColor = TAttribute<FLinearColor>::CreateLambda(EPBgColor);
+	Specs[2].RowAlpha        = TAttribute<float>::CreateLambda(EPRowAlpha);
+
+	ChildSlot
+	[
+		SNew(SKBVEStatBarStack)
+		.BarWidth(Style.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Width))
+		.BarHeight(Style.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Height))
+		.Spacing(Style.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Spacing))
+		.Padding(Style.GetMargin(FChuckUIStyle::FKeys::HUD_Padding))
+		.LabelFont(Style.GetFontStyle(FChuckUIStyle::FKeys::HUD_Label_Font))
+		.Bars(Specs)
+	];
 }
 
 void SchuckHUD::SetState(const FchuckHUDState& InState)
@@ -39,9 +131,6 @@ int32 SchuckHUD::OnPaint(
 	const FWidgetStyle& InWidgetStyle,
 	bool bParentEnabled) const
 {
-	const ISlateStyle& Style = FChuckUIStyle::Get();
-	const FVector2D Size = AllottedGeometry.GetLocalSize();
-
 	const float Overlay = FMath::Clamp(Target.DamageFlash * 0.45f + Target.LowHealthPulse * 0.30f, 0.f, 0.65f);
 	if (Overlay > 0.001f)
 	{
@@ -54,90 +143,5 @@ int32 SchuckHUD::OnPaint(
 			FLinearColor(0.85f, 0.05f, 0.05f, Overlay));
 	}
 
-	const FMargin Pad      = Style.GetMargin(FChuckUIStyle::FKeys::HUD_Padding);
-	const float BarW       = Style.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Width);
-	const float BarH       = Style.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Height);
-	const float Spacing    = Style.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Spacing);
-	const FLinearColor BG  = Style.GetColor(FChuckUIStyle::FKeys::HUD_Bar_Background_Color);
-	const FLinearColor CH  = Style.GetColor(FChuckUIStyle::FKeys::HUD_Health_Color);
-	const FLinearColor CM  = Style.GetColor(FChuckUIStyle::FKeys::HUD_Mana_Color);
-	const FLinearColor CS  = Style.GetColor(FChuckUIStyle::FKeys::HUD_Stamina_Color);
-	const FSlateFontInfo LabelFont = Style.GetFontStyle(FChuckUIStyle::FKeys::HUD_Label_Font);
-
-	const FVector2D BarSize(BarW, BarH);
-	const float Slant = BarH * 0.5f;
-
-	const float StackHeight = BarH * 3.f + Spacing * 2.f;
-	const float X = Pad.Left;
-	const float YBase = Size.Y - Pad.Bottom - StackHeight;
-
-	const float TextY = (BarH - LabelFont.Size) * 0.5f - 3.f;
-	const float TextX = Slant + 8.f;
-
-	const FLinearColor TextColor(1.f, 1.f, 1.f, 0.95f);
-
-	struct FRow
-	{
-		const TCHAR* Label;
-		float YOffset;
-		float Percent;
-		float Current;
-		float Max;
-		FLinearColor FillColor;
-		FLinearColor BgColor;
-		float RowAlpha;
-		int32 LayerStride;
-	};
-
-	FLinearColor EPFill = CS;
-	FLinearColor EPBg   = BG;
-	float        EPRowAlpha = 1.f;
-
-	const bool bExhausted = Target.StaminaRegenDelay > 0.f;
-	const bool bWarn      = !bExhausted && Target.StaminaCurrent < Target.StaminaWarnThreshold;
-
-	if (bExhausted)
-	{
-		const float Flash = 0.5f + 0.5f * FMath::Sin(Target.TimeSeconds * 18.f);
-		const float Fade  = 0.35f + 0.45f * FMath::Sin(Target.TimeSeconds * 5.f);
-		EPBg = FLinearColor(0.55f + 0.25f * Flash, 0.05f, 0.05f, 0.85f);
-		EPRowAlpha = Fade;
-	}
-	else if (bWarn)
-	{
-		const float Pulse = 0.5f + 0.5f * FMath::Sin(Target.TimeSeconds * 9.f);
-		EPFill = FLinearColor(
-			CS.R * (0.8f + 0.2f * Pulse),
-			CS.G * (0.8f + 0.2f * Pulse),
-			CS.B + (1.f - CS.B) * 0.3f * Pulse,
-			CS.A);
-		EPBg = FLinearColor(BG.R + 0.20f * Pulse, BG.G, BG.B, BG.A);
-	}
-
-	const FRow Rows[] = {
-		{ TEXT("HP"), 0.f,                    DisplayHealth,  DisplayHealthCurrent,  Target.HealthMax,  CH,     BG,   1.f,         0 },
-		{ TEXT("MP"), (BarH + Spacing) * 1.f, DisplayMana,    DisplayManaCurrent,    Target.ManaMax,    CM,     BG,   1.f,         4 },
-		{ TEXT("EP"), (BarH + Spacing) * 2.f, DisplayStamina, DisplayStaminaCurrent, Target.StaminaMax, EPFill, EPBg, EPRowAlpha,  8 },
-	};
-
-	for (const FRow& R : Rows)
-	{
-		const FVector2D BarPos (X,                  YBase + R.YOffset);
-		const FVector2D TextPos(BarPos.X + TextX,   BarPos.Y + TextY);
-
-		FLinearColor RowFill = R.FillColor; RowFill.A *= R.RowAlpha;
-		FLinearColor RowBg   = R.BgColor;   RowBg.A   *= R.RowAlpha;
-
-		KBVEUI::DrawSlantedBar(
-			OutDrawElements, AllottedGeometry, LayerId + R.LayerStride,
-			BarPos, BarSize, Slant, R.Percent, RowFill, RowBg);
-
-		FLinearColor RowText = TextColor; RowText.A *= R.RowAlpha;
-		const FString Text = FString::Printf(TEXT("%s  %.0f/%.0f"), R.Label, R.Current, R.Max);
-		KBVEUI::DrawText(
-			OutDrawElements, AllottedGeometry, LayerId + R.LayerStride + 2,
-			TextPos, Text, LabelFont, RowText);
-	}
-
-	return LayerId + 12;
+	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId + 1, InWidgetStyle, bParentEnabled);
 }

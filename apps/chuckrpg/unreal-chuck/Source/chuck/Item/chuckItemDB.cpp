@@ -12,82 +12,6 @@
 
 namespace
 {
-	// MDX-sourced atlas-bearing refs. Codegen drops `img` from the JSON
-	// (ASTRO_ONLY in gen-itemdb-data.mjs) so chuck can't infer atlas
-	// coverage from the data file directly. Hardcoded mirror of the
-	// refs whose MDX defines an `img:` frontmatter — keep in sync with
-	// `grep -l '^img:' apps/kbve/astro-kbve/src/content/docs/itemdb/`.
-	// Replace once codegen emits a `hasImg` boolean.
-	static const TArray<FName> ImgRefs = {
-		FName("alchemist-stardust"),
-		FName("anime-body-pillow"),
-		FName("auto-cooker-9000"),
-		FName("beer"),
-		FName("blue-shark"),
-		FName("bone"),
-		FName("brainrot-laptop"),
-		FName("brown-curry-sauce"),
-		FName("butter"),
-		FName("cheddar-cheese"),
-		FName("data-cd"),
-		FName("ecto-cooler-drank-type-95"),
-		FName("eds-jelly-jam"),
-		FName("fresh-milk"),
-		FName("fried-fish-taco"),
-		FName("frozen-pizza-rolls"),
-		FName("garlic-bread"),
-		FName("gin"),
-		FName("gravity-boots"),
-		FName("green-pasta-sauce"),
-		FName("grilled-fish-burrito"),
-		FName("herbal-medi-wrap"),
-		FName("holographic-arcade-token"),
-		FName("index"),
-		FName("ink-pasta-sauce"),
-		FName("jar-of-honey"),
-		FName("jareds-teddy-bear"),
-		FName("kiwi-jigsaw"),
-		FName("krispee-air-fryer"),
-		FName("kryptonite-book"),
-		FName("lobster"),
-		FName("lobster-soup"),
-		FName("lunar-lantern"),
-		FName("magic-nemo"),
-		FName("microchip-motherboard"),
-		FName("natural-beeswax"),
-		FName("noodles-girthy-pharma-potion"),
-		FName("paradox-sack-of-potatoes"),
-		FName("pied-piper-jacket"),
-		FName("pocket-prophet-of-profit"),
-		FName("portable-powerbank"),
-		FName("propagandist-laptop"),
-		FName("punk-skateboard"),
-		FName("quantum-coffee"),
-		FName("quantum-energy-drink"),
-		FName("quick-toolbelt"),
-		FName("rebel-radio"),
-		FName("retro-crt-monitor"),
-		FName("rubber-tire"),
-		FName("salmon"),
-		FName("spicy-nacho-supreme"),
-		FName("spicy-ramen"),
-		FName("spooky-skull-candle"),
-		FName("steel-beehive"),
-		FName("surfer-longboard"),
-		FName("swiss-cheese"),
-		FName("synthwave-popcorn"),
-		FName("tex-mex-pizza"),
-		FName("texas-bbq-brisket"),
-		FName("tomato-pasta-sauce"),
-		FName("undead-humanoid-skull"),
-		FName("vampire-blood-champagne"),
-		FName("vampire-blood-gelato"),
-		FName("vhs-tape"),
-		FName("vodka"),
-		FName("vodka-sauce"),
-		FName("z90-murderbot")
-	};
-
 	static EchuckItemRarity ParseRarity(const char* Str)
 	{
 		if (!Str) return EchuckItemRarity::Common;
@@ -229,7 +153,7 @@ void UchuckItemDB::LoadFromJson(const FString& JsonText)
 		Def.Name          = StrFieldUtf8(ItemVal, "name");
 		Def.Description   = StrFieldUtf8(ItemVal, "description");
 		Def.Emoji         = StrFieldUtf8(ItemVal, "emoji");
-		Def.Img           = StrFieldUtf8(ItemVal, "img");
+		Def.bHasImg       = BoolFieldUtf8(ItemVal, "hasImg", false);
 		Def.TypeFlags     = IntFieldUtf8(ItemVal, "typeFlags", 0);
 		Def.MaxStack      = IntFieldUtf8(ItemVal, "maxStack", 1);
 		Def.bStackable    = BoolFieldUtf8(ItemVal, "stackable", false);
@@ -256,19 +180,6 @@ void UchuckItemDB::LoadFromJson(const FString& JsonText)
 	{
 		ByKey[Def.Key] = Def;
 		RefToKey.Add(Def.Ref, Def.Key);
-	}
-
-	const TSet<FName> ImgSet(ImgRefs);
-	for (FchuckItemDef& Def : Items)
-	{
-		if (ImgSet.Contains(Def.Ref))
-		{
-			Def.Img = TEXT("atlas");
-			if (ByKey.IsValidIndex(Def.Key))
-			{
-				ByKey[Def.Key].Img = TEXT("atlas");
-			}
-		}
 	}
 
 	yyjson_doc_free(Doc);
