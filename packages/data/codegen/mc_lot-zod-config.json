@@ -1,0 +1,63 @@
+{
+	"enums": {
+		"kbve.mc.MCLotState": {
+			"mode": "const_array",
+			"stripPrefix": "MC_LOT_STATE_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.mc.MCBuildApplyState": {
+			"mode": "const_array",
+			"stripPrefix": "MC_BUILD_APPLY_STATE_",
+			"caseTransform": "lowercase"
+		},
+		"kbve.mc.MCBuildActionKind": {
+			"mode": "const_array",
+			"stripPrefix": "MC_BUILD_ACTION_KIND_",
+			"caseTransform": "lowercase"
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "MCLotStates",
+			"sourceEnum": "kbve.mc.MCLotState",
+			"typeName": "MCLotStateValue"
+		},
+		{
+			"name": "MCBuildApplyStates",
+			"sourceEnum": "kbve.mc.MCBuildApplyState",
+			"typeName": "MCBuildApplyStateValue"
+		},
+		{
+			"name": "MCBuildActionKinds",
+			"sourceEnum": "kbve.mc.MCBuildActionKind",
+			"typeName": "MCBuildActionKindValue"
+		}
+	],
+
+	"fieldOverrides": {
+		"kbve.mc.MCOwnedLot.state": "z.number().int().min(0).max(4)",
+		"kbve.mc.MCOwnedLot.current_schematic_id": "z.string().nullable().optional()",
+		"kbve.mc.MCViewportLot.state": "z.number().int().min(0).max(4)",
+		"kbve.mc.MCViewportLot.current_schematic_id": "z.string().nullable().optional()",
+		"kbve.mc.MCServiceLot.state": "z.number().int().min(0).max(4)",
+		"kbve.mc.MCServiceLot.owner_user_id": "z.string().nullable().optional()",
+		"kbve.mc.MCServiceLot.current_schematic_id": "z.string().nullable().optional()",
+		"kbve.mc.MCReleasedLot.prior_state": "z.number().int().min(0).max(4)",
+		"kbve.mc.MCRepairedLot.prior_state": "z.number().int().min(0).max(4)",
+		"kbve.mc.MCRepairedLot.new_state": "z.number().int().min(0).max(4)",
+		"kbve.mc.MCRepairedLot.latest_build_id": "z.string().nullable().optional()",
+		"kbve.mc.MCRepairedLot.latest_apply_state": "z.number().int().min(0).max(4).nullable().optional()",
+		"kbve.mc.MCRepairedLot.latest_failed_at": "z.string().nullable().optional()",
+		"kbve.mc.MCRepairedLot.latest_apply_error": "z.string().nullable().optional()",
+		"kbve.mc.MCClaimedBuild.action_kind": "z.number().int().min(0).max(1)",
+		"kbve.mc.MCClaimedBuild.schematic_id": "z.string().nullable().optional()",
+		"kbve.mc.MCClaimedBuild.resource_path": "z.string().nullable().optional()",
+		"kbve.mc.MCClaimedBuild.dims_x": "z.number().nullable().optional()",
+		"kbve.mc.MCClaimedBuild.dims_y": "z.number().nullable().optional()",
+		"kbve.mc.MCClaimedBuild.dims_z": "z.number().nullable().optional()",
+		"kbve.mc.MCFailedBuild.action_kind": "z.number().int().min(0).max(1)",
+		"kbve.mc.MCFailedBuild.schematic_id": "z.string().nullable().optional()",
+		"kbve.mc.MCFailedBuild.apply_error": "z.string().nullable().optional()"
+	}
+}

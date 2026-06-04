@@ -1,0 +1,278 @@
+syntax = "proto3";
+
+package kbve.mc;
+
+// =============================================================================
+// Minecraft lot / schematic system — wire types for the digital real-estate
+// surface backed by the `mc` Postgres schema (packages/data/sql/schema/mc/
+// mc_lot.sql) and the axum `/api/v1/mc/lots/*` transport.
+//
+// Three groups:
+//   1. Catalog        — schematic registry rows.
+//   2. Lot views      — vacant / owned / viewport / staff-raw row shapes.
+//   3. Build queue    — claim payloads, failure log rows, idempotent
+//                       requests for purchase / queue-build / queue-demolish.
+// =============================================================================
+
+
+// -----------------------------------------------------------------------------
+// Enums (mirror SQL domains)
+// -----------------------------------------------------------------------------
+
+// MCLotState mirrors `mc.lot_state` SMALLINT domain (0..4). Proto3 reserves
+// the zero value as the wire-default sentinel; the SQL/wire value is one
+// less than the enum number so the const_array Zod literals come through in
+// SQL-order: MCLotStates[sqlValue] === proto label.
+enum MCLotState {
+  MC_LOT_STATE_UNSPECIFIED  = 0;
+  MC_LOT_STATE_VACANT       = 1;  // SQL 0
+  MC_LOT_STATE_OWNED        = 2;  // SQL 1
+  MC_LOT_STATE_BUILT        = 3;  // SQL 2
+  MC_LOT_STATE_UNDER_BUILD  = 4;  // SQL 3
+  MC_LOT_STATE_DEMOLISHING  = 5;  // SQL 4
+}
+
+// MCBuildApplyState mirrors `mc.build_apply_state` SMALLINT domain (0..4).
+enum MCBuildApplyState {
+  MC_BUILD_APPLY_STATE_UNSPECIFIED = 0;
+  MC_BUILD_APPLY_STATE_QUEUED      = 1;  // SQL 0
+  MC_BUILD_APPLY_STATE_APPLIED     = 2;  // SQL 1
+  MC_BUILD_APPLY_STATE_FAILED      = 3;  // SQL 2
+  MC_BUILD_APPLY_STATE_CLAIMED     = 4;  // SQL 3
+  MC_BUILD_APPLY_STATE_CANCELLED   = 5;  // SQL 4
+}
+
+// MCBuildActionKind mirrors `mc.build_action_kind` SMALLINT domain (0,1).
+enum MCBuildActionKind {
+  MC_BUILD_ACTION_KIND_UNSPECIFIED = 0;
+  MC_BUILD_ACTION_KIND_BUILD       = 1;  // SQL 0
+  MC_BUILD_ACTION_KIND_DEMOLISH    = 2;  // SQL 1
+}
+
+
+// -----------------------------------------------------------------------------
+// Catalog
+// -----------------------------------------------------------------------------
+
+// MCSchematic mirrors `public.proxy_list_schematics` rows.
+message MCSchematic {
+  string schematic_id  = 1;
+  string name          = 2;
+  string category      = 3;
+  int32  tier          = 4;
+  int32  dims_x        = 5;
+  int32  dims_y        = 6;
+  int32  dims_z        = 7;
+  int64  price_credits = 8;
+  int64  price_khash   = 9;
+}
+
+
+// -----------------------------------------------------------------------------
+// Lot views
+// -----------------------------------------------------------------------------
+
+// MCVacantLot mirrors `public.proxy_list_vacant_lots` rows.
+message MCVacantLot {
+  string lot_id        = 1;
+  int32  chunk_x_min   = 2;
+  int32  chunk_x_max   = 3;
+  int32  chunk_z_min   = 4;
+  int32  chunk_z_max   = 5;
+  int32  block_x_min   = 6;
+  int32  block_x_max   = 7;
+  int32  block_z_min   = 8;
+  int32  block_z_max   = 9;
+  int32  chunk_area    = 10;
+  int32  anchor_y      = 11;
+  int64  price_credits = 12;
+  int64  price_khash   = 13;
+}
+
+// MCOwnedLot mirrors `public.proxy_list_my_active_lots` and
+// `public.proxy_list_my_transitional_lots` rows.
+message MCOwnedLot {
+  string lot_id              = 1;
+  int32  chunk_x_min         = 2;
+  int32  chunk_x_max         = 3;
+  int32  chunk_z_min         = 4;
+  int32  chunk_z_max         = 5;
+  int32  block_x_min         = 6;
+  int32  block_x_max         = 7;
+  int32  block_z_min         = 8;
+  int32  block_z_max         = 9;
+  int32  chunk_area          = 10;
+  int32  anchor_y            = 11;
+  MCLotState state           = 12;
+  string current_schematic_id = 13;
+  int64  price_credits       = 14;
+  int64  price_khash         = 15;
+}
+
+// MCViewportLot mirrors `public.proxy_list_lots_in_viewport` rows. Owner
+// identity is reduced to a boolean to avoid leaking other users' UUIDs.
+message MCViewportLot {
+  string lot_id              = 1;
+  int32  chunk_x_min         = 2;
+  int32  chunk_x_max         = 3;
+  int32  chunk_z_min         = 4;
+  int32  chunk_z_max         = 5;
+  int32  block_x_min         = 6;
+  int32  block_x_max         = 7;
+  int32  block_z_min         = 8;
+  int32  block_z_max         = 9;
+  int32  anchor_y            = 10;
+  bool   is_owned            = 11;
+  bool   is_owned_by_me      = 12;
+  MCLotState state           = 13;
+  string current_schematic_id = 14;
+}
+
+// MCServiceLot mirrors `public.proxy_service_get_lot` rows (staff/admin).
+message MCServiceLot {
+  string lot_id              = 1;
+  string world               = 2;
+  int32  chunk_x_min         = 3;
+  int32  chunk_x_max         = 4;
+  int32  chunk_z_min         = 5;
+  int32  chunk_z_max         = 6;
+  int32  block_x_min         = 7;
+  int32  block_x_max         = 8;
+  int32  block_z_min         = 9;
+  int32  block_z_max         = 10;
+  int32  chunk_area          = 11;
+  int32  anchor_y            = 12;
+  string owner_user_id       = 13;
+  string current_schematic_id = 14;
+  MCLotState state           = 15;
+  int64  price_credits       = 16;
+  int64  price_khash         = 17;
+  string created_at          = 18;
+  string updated_at          = 19;
+}
+
+
+// -----------------------------------------------------------------------------
+// Build queue
+// -----------------------------------------------------------------------------
+
+// MCClaimedBuild mirrors `public.proxy_service_claim_pending_builds` rows.
+message MCClaimedBuild {
+  string build_id      = 1;
+  string lot_id        = 2;
+  string actor_user_id = 3;
+  MCBuildActionKind action_kind = 4;
+  string schematic_id  = 5;
+  string queued_at     = 6;
+  string world         = 7;
+  int32  chunk_x_min   = 8;
+  int32  chunk_x_max   = 9;
+  int32  chunk_z_min   = 10;
+  int32  chunk_z_max   = 11;
+  int32  block_x_min   = 12;
+  int32  block_x_max   = 13;
+  int32  block_z_min   = 14;
+  int32  block_z_max   = 15;
+  int32  anchor_y      = 16;
+  string resource_path = 17;
+  int32  dims_x        = 18;
+  int32  dims_y        = 19;
+  int32  dims_z        = 20;
+}
+
+// MCFailedBuild mirrors `public.proxy_service_list_failed_builds` rows.
+message MCFailedBuild {
+  string build_id      = 1;
+  string lot_id        = 2;
+  string actor_user_id = 3;
+  MCBuildActionKind action_kind = 4;
+  string schematic_id  = 5;
+  string apply_error   = 6;
+  string failed_at     = 7;
+  int32  attempt_count = 8;
+}
+
+// MCReleasedLot mirrors `public.proxy_service_release_user_lots` rows.
+message MCReleasedLot {
+  string lot_id      = 1;
+  MCLotState prior_state = 2;
+}
+
+// MCRepairedLot mirrors `public.proxy_service_repair_orphan_transitional`
+// rows. `latest_*` columns describe the most-recent build_log row for the
+// lot if any (for ops triage).
+message MCRepairedLot {
+  string lot_id              = 1;
+  MCLotState prior_state     = 2;
+  MCLotState new_state       = 3;
+  string latest_build_id     = 4;
+  MCBuildApplyState latest_apply_state = 5;
+  string latest_failed_at    = 6;
+  string latest_apply_error  = 7;
+}
+
+message MCRequeueStaleSummary {
+  int32 requeued_count  = 1;
+  int32 exhausted_count = 2;
+}
+
+
+// -----------------------------------------------------------------------------
+// Request bodies
+// -----------------------------------------------------------------------------
+
+message MCPurchaseLotRequest {
+  string lot_id          = 1;
+  string idempotency_key = 2;
+}
+
+message MCQueueBuildRequest {
+  string lot_id          = 1;
+  string schematic_id    = 2;
+  string idempotency_key = 3;
+}
+
+message MCQueueDemolishRequest {
+  string lot_id          = 1;
+  string idempotency_key = 2;
+}
+
+message MCServiceClaimRequest {
+  string worker_id = 1;
+  int32  limit     = 2;
+}
+
+message MCServiceMarkAppliedRequest {
+  string build_id  = 1;
+  string worker_id = 2;
+}
+
+message MCServiceMarkFailedRequest {
+  string build_id  = 1;
+  string worker_id = 2;
+  string error     = 3;
+}
+
+message MCStaffRetryRequest {
+  string build_id      = 1;
+  bool   reset_attempts = 2;
+}
+
+message MCStaffReleaseUserRequest {
+  string user_id = 1;
+  bool   force   = 2;
+}
+
+// MCPurchaseLotResponse + MCBuildIdResponse mirror the single-column return
+// of the matching axum DTOs.
+message MCPurchaseLotResponse {
+  string purchase_id = 1;
+}
+
+message MCBuildIdResponse {
+  string build_id = 1;
+}
+
+message MCOkResponse {
+  bool ok = 1;
+}

@@ -163,6 +163,11 @@ const protos = [
 		protoFile: 'icon/icons.proto',
 		package: 'icon',
 	},
+	{
+		name: 'mc_lot',
+		protoFile: 'kbve/mc/mc_lot.proto',
+		package: 'kbve.mc',
+	},
 ];
 
 // Optional filter: pass a proto name as CLI arg to regenerate only that one
