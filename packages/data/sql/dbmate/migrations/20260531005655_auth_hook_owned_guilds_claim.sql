@@ -85,7 +85,7 @@ REVOKE EXECUTE ON FUNCTION profile.discord_owned_guilds_are_valid(text[])
 CREATE TABLE profile.discord_bootstrap_cache (
     user_id              uuid PRIMARY KEY,
     discord_provider_id  text NOT NULL
-                              CHECK (discord_provider_id ~ '^[0-9]{15,25}$'),
+                              CHECK (discord_provider_id ~ '^[0-9]{17,20}$'),
     owned_guilds         text[] NOT NULL DEFAULT ARRAY[]::text[],
     refreshed_at         timestamptz NOT NULL DEFAULT NOW(),
     created_at           timestamptz NOT NULL DEFAULT NOW(),
@@ -111,7 +111,7 @@ CREATE TABLE profile.discord_bootstrap_cache (
 );
 
 COMMENT ON TABLE profile.discord_bootstrap_cache IS
-    'Per-user Discord bootstrap cache. Populated exclusively via profile.service_upsert_discord_bootstrap_cache RPC. Read by custom_access_token_hook at JWT mint to embed owned_guilds claim. service_role has SELECT only; INSERT/UPDATE/DELETE flow through the RPC for centralised validation + canonicalisation. supabase_auth_admin has SELECT for the hook.';
+    'Per-user Discord bootstrap cache. Populated exclusively via profile.service_upsert_discord_bootstrap_cache RPC; service_role has SELECT only (no direct INSERT/UPDATE/DELETE) so all writes are funnelled through the RPC for centralised validation, canonicalisation, advisory-lock serialisation, and account-relink handling. SELECT is granted to service_role specifically so dashboard freshness peeks and the RPC''s ON CONFLICT visibility work without going through another RPC layer. supabase_auth_admin has SELECT for custom_access_token_hook at JWT mint.';
 
 REVOKE ALL ON TABLE profile.discord_bootstrap_cache
     FROM PUBLIC, anon, authenticated;
@@ -179,11 +179,14 @@ DECLARE
     v_canonical text[];
     v_now       timestamptz := statement_timestamp();
 BEGIN
+    -- Round 7 #7: USING ERRCODE = '22023' (invalid_parameter_value)
+    -- on all validation failures so service callers (axum-kbve etc.)
+    -- can match on a stable SQLSTATE instead of message text.
     IF p_user_id IS NULL THEN
-        RAISE EXCEPTION 'user_id required';
+        RAISE EXCEPTION 'user_id required' USING ERRCODE = '22023';
     END IF;
-    IF p_discord_provider_id IS NULL OR p_discord_provider_id !~ '^[0-9]{15,25}$' THEN
-        RAISE EXCEPTION 'invalid discord_provider_id';
+    IF p_discord_provider_id IS NULL OR p_discord_provider_id !~ '^[0-9]{17,20}$' THEN
+        RAISE EXCEPTION 'invalid discord_provider_id' USING ERRCODE = '22023';
     END IF;
 
     IF p_refreshed_at IS NULL THEN
@@ -191,17 +194,27 @@ BEGIN
     END IF;
     IF p_refreshed_at > v_now + interval '30 seconds' THEN
         RAISE EXCEPTION 'refreshed_at too far in future (got %, max %)',
-            p_refreshed_at, v_now + interval '30 seconds';
+            p_refreshed_at, v_now + interval '30 seconds'
+            USING ERRCODE = '22023';
     END IF;
     IF p_refreshed_at < '2025-01-01'::timestamptz THEN
         RAISE EXCEPTION 'refreshed_at below floor (got %, min 2025-01-01)',
-            p_refreshed_at;
+            p_refreshed_at
+            USING ERRCODE = '22023';
     END IF;
 
-    -- Round 6 #4 + #5: serialise concurrent writes for this account.
-    -- Always lock user first, then provider, for consistent ordering.
-    PERFORM pg_advisory_xact_lock(hashtextextended(p_user_id::text, 1));
-    PERFORM pg_advisory_xact_lock(hashtextextended(p_discord_provider_id, 2));
+    -- Round 7 #4: single coarse advisory lock for the entire relink
+    -- namespace. The previous per-key locks on (user_id, provider_id)
+    -- closed the same-account race but left a rare cross-swap race
+    -- open: concurrent calls A→Y / B→X each locked their own keys
+    -- but neither held the other side's lock before DELETE'ing the
+    -- target provider row. A single namespace lock serialises ALL
+    -- relinks. The cost is one global serialisation point at human-
+    -- OAuth call rates (≤ hundreds/sec at peak), which is well
+    -- within Postgres advisory-lock contention budgets.
+    PERFORM pg_advisory_xact_lock(
+        hashtextextended('profile.discord_bootstrap_cache.relink', 0)
+    );
 
     -- Canonicalise: NULL + non-snowflake elements filtered; duplicates
     -- collapsed by first-seen order; capped at 50 (matches table CHECK
@@ -243,7 +256,7 @@ ALTER FUNCTION profile.service_upsert_discord_bootstrap_cache(uuid, text, text[]
     OWNER TO postgres;
 
 COMMENT ON FUNCTION profile.service_upsert_discord_bootstrap_cache(uuid, text, text[], timestamptz) IS
-    'Service-role upsert for profile.discord_bootstrap_cache. Validates inputs, canonicalises owned_guilds (dedup + first-seen + cap 50), enforces future-timestamp guard + 2025 floor, handles account relinking, advisory-locks on (user_id, provider_id) in fixed order, maintains updated_at. Owner pinned to postgres for stable SECURITY DEFINER behaviour. Only sanctioned write path — service_role has no direct INSERT/UPDATE/DELETE on the cache.';
+    'Service-role upsert for profile.discord_bootstrap_cache. Validates inputs (raises SQLSTATE 22023 on invalid params), canonicalises owned_guilds (dedup + first-seen + cap 50), enforces future-timestamp guard + 2025 floor, handles account relinking, takes a single coarse advisory lock on the relink namespace to serialise concurrent writes (closes cross-swap race), maintains updated_at. Owner pinned to postgres for stable SECURITY DEFINER behaviour. Only sanctioned write path — service_role has no direct INSERT/UPDATE/DELETE on the cache.';
 
 REVOKE EXECUTE ON FUNCTION profile.service_upsert_discord_bootstrap_cache(uuid, text, text[], timestamptz)
     FROM PUBLIC, anon, authenticated;
@@ -315,6 +328,14 @@ DECLARE
     v_claims       jsonb;
     v_now          timestamptz := statement_timestamp();
 BEGIN
+    -- Round 7 #3: defensive top-level guard. GoTrue always passes an
+    -- object, but jsonb_set on NULL / scalar input misbehaves, so
+    -- coerce malformed payloads to {} before any work. Catches
+    -- manual-invocation footguns + future GoTrue-payload changes.
+    IF event IS NULL OR jsonb_typeof(event) <> 'object' THEN
+        event := '{}'::jsonb;
+    END IF;
+
     v_claims :=
         CASE
             WHEN jsonb_typeof(event->'claims') = 'object'
@@ -354,6 +375,12 @@ BEGIN
         v_claims := v_claims - 'kbve_username';
     END IF;
 
+    -- Round 7 #2: explicit strip before set, matching the invalid-
+    -- user branches above. Visually documents that any inbound
+    -- caller-supplied owned_guilds claim is never trusted —
+    -- jsonb_set would overwrite anyway, but the explicit strip
+    -- makes the security boundary obvious.
+    v_claims := v_claims - 'owned_guilds';
     v_owned_guilds := profile.get_discord_owned_guilds_claim(v_user_id, v_now);
     v_claims := jsonb_set(v_claims, '{owned_guilds}', v_owned_guilds, true);
 
@@ -416,6 +443,13 @@ BEGIN
     END IF;
     IF NOT has_table_privilege('supabase_auth_admin', 'profile.discord_bootstrap_cache', 'SELECT') THEN
         RAISE EXCEPTION 'supabase_auth_admin must hold SELECT on profile.discord_bootstrap_cache.';
+    END IF;
+    -- Round 7 #1: assert the v1 grant survives. profile.username
+    -- SELECT was granted by 20260510210000; this assertion catches
+    -- future privilege drift that would silently break the
+    -- kbve_username arm of the hook.
+    IF NOT has_table_privilege('supabase_auth_admin', 'profile.username', 'SELECT') THEN
+        RAISE EXCEPTION 'supabase_auth_admin must hold SELECT on profile.username for custom_access_token_hook.';
     END IF;
     IF NOT has_table_privilege('service_role', 'profile.discord_bootstrap_cache', 'SELECT') THEN
         RAISE EXCEPTION 'service_role must hold SELECT on profile.discord_bootstrap_cache (dashboard peek + ON CONFLICT visibility).';
@@ -621,5 +655,12 @@ DROP FUNCTION  IF EXISTS profile.get_discord_owned_guilds_claim(uuid, timestampt
 DROP FUNCTION  IF EXISTS profile.service_upsert_discord_bootstrap_cache(uuid, text, text[], timestamptz);
 DROP TABLE     IF EXISTS profile.discord_bootstrap_cache;
 DROP FUNCTION  IF EXISTS profile.discord_owned_guilds_are_valid(text[]);
+
+-- Round 7 #6: intentionally do NOT revoke USAGE on schema profile
+-- from supabase_auth_admin here. That grant was first established by
+-- 20260510210000 (v1 hook reads profile.username) and is required
+-- for the restored v1 hook to keep functioning after rollback.
+-- Revoking would break sign-in on every account that has a
+-- profile.username row.
 
 COMMIT;
