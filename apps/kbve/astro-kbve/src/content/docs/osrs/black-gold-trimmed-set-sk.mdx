@@ -1,6 +1,6 @@
 ---
 title: Black gold-trimmed set (sk) | OSRS Price Data
-description: "Black gold-trimmed set (sk): A set containing a full helm, platebody, skirt and kiteshield.. High alch: 2,700 GP, GE limit: 8."
+description: "Black gold-trimmed set (sk): A set containing a full helm, platebody, skirt and kiteshield. High alch: 2,700 GP, GE limit: 8."
 osrs:
   id: 12998
   name: Black gold-trimmed set (sk)
@@ -12,9 +12,66 @@ osrs:
   lowalch: 1800
   highalch: 2700
   limit: 8
-  about: "Black gold-trimmed set (sk) is a free-to-play item in Old School RuneScape. High alchemy value: 2,700 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: armour_set
+    tier: low
+  properties:
+    release_date: "2015-02-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Grand Exchange (Sets)
+      location: Varrock
+      price: 4500
+      currency: Coins
+      stock: 0
+  related_items:
+    - item_name: Black full helm (g)
+      slug: black-full-helm-g
+      relationship: set-piece
+      description: Helm component of the set
+    - item_name: Black platebody (g)
+      slug: black-platebody-g
+      relationship: set-piece
+      description: Body component of the set
+    - item_name: Black plateskirt (g)
+      slug: black-plateskirt-g
+      relationship: set-piece
+      description: Skirt component of the set
+    - item_name: Black kiteshield (g)
+      slug: black-kiteshield-g
+      relationship: set-piece
+      description: Shield component of the set
+    - item_name: Black gold-trimmed set (lg)
+      slug: black-gold-trimmed-set-lg
+      relationship: alternative
+      description: Legs variant of the same trim
+  about: "Black gold-trimmed set (sk) bundles a Black full helm (g), platebody (g), plateskirt (g) and kiteshield (g) into a single inventory item via the Grand Exchange Sets interface. Designed to save bank space, particularly for free-to-play accounts. Tradeable F2P cosmetic; non-equipable bundle - must be exchanged for components before wear."
+  market_strategy:
+    notes:
+      - "Exchange for components to wear"
+      - "Saves bank space"
+      - "F2P fashionscape bundle"
+      - "GE Sets clerk interface only"
+  trading_tips:
+    - "Compare bundle price vs sum of components for arb opportunity"
+    - "Set Sets-tab price slightly above component sum to flip"
+  history:
+    - date: "2015-02-26"
+      description: "Added to the Grand Exchange Sets interface with other armour bundles."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

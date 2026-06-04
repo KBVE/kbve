@@ -12,29 +12,98 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 125
-  item_id: 1205
-  item_type: equipment
-  slot: weapon
-  type: dagger
-  attack_style: stab
-  attack_speed: 4
-  tradeable: true
-  weight: 0.453
-  requirements:
-    attack: 1
-  stats:
-    stab_attack: 4
-    slash_attack: 2
-    crush_attack: -4
-    strength: 3
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: dagger
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 4
+      slash: 2
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
+      melee_strength: 3
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 1
+      xp: 12.5
+      materials:
+        - item_name: Bronze bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: Varrock Swordshop
+      location: Varrock
+      price: 10
+      currency: Coins
+      stock: 10
+    - shop_name: Warriors' Guild Armoury
+      location: Burthorpe
+      price: 10
+      currency: Coins
+      stock: 10
   related_items:
-    - slug: iron-dagger
-    - slug: bronze-sword
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Iron dagger
+      slug: iron-dagger
+      relationship: upgrade
+      description: Next metal tier in the dagger progression
+    - item_name: Bronze sword
+      slug: bronze-sword
+      relationship: alternative
+      description: Slash-focused starter weapon at the same tier
+  about: "The Bronze dagger is the entry-level stab weapon, smithable from a single bronze bar at level 1 Smithing for 12.5 XP. It opens the dagger progression and is broadly stocked at low-level weapon shops including the Varrock Swordshop and the Warriors' Guild Armoury."
+  market_strategy:
+    notes:
+      - "Floor-priced starter weapon; mostly moved by smithing alts"
+      - "125 buy limit caps any meaningful margin play"
+      - "Demand comes from new accounts and quest helpers"
+  trading_tips:
+    - "Shops cap the upside; flips rarely beat the GE tax"
+    - "Watch for spikes around new player promos"
+  history:
+    - date: "2001-01-04"
+      description: "Added to the game."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

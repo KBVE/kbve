@@ -1,6 +1,6 @@
 ---
 title: Thammaron's sceptre (u) | OSRS Price Data
-description: "Thammaron's sceptre (u): A mighty sceptre used in long forgotten battles.. High alch: 72,000 GP, GE limit: 8."
+description: "Thammaron's sceptre (u): A mighty sceptre used in long forgotten battles. High alch: 72,000 GP, GE limit: 8."
 osrs:
   id: 22552
   name: Thammaron's sceptre (u)
@@ -12,9 +12,94 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 8
-  about: "Thammaron's sceptre (u) is a members-only item in Old School RuneScape. High alchemy value: 72,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: magic
+    tier: high
+  properties:
+    release_date: "2018-07-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.198
+    options:
+      - "Wield"
+      - "Dismantle"
+      - "Swap"
+      - "Drop"
+    worn_options:
+      - "Check"
+      - "Swap"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: sceptre
+    attack_speed: 4
+    weight: 0.198
+    requirements:
+      magic: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 15
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 20
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Revenant dragon
+        quantity: "1"
+        rarity: 1/5000
+      - source: Revenant knight
+        quantity: "1"
+        rarity: 1/8000
+      - source: Revenant hellhound
+        quantity: "1"
+        rarity: 1/12000
+  related_items:
+    - item_name: Thammaron's sceptre
+      slug: thammaron-s-sceptre
+      relationship: variant
+      description: Charged combat-ready version of the sceptre
+    - item_name: Accursed sceptre (u)
+      slug: accursed-sceptre-u
+      relationship: upgrade
+      description: Upgraded sceptre crafted from Thammaron's sceptre (u)
+    - item_name: Revenant ether
+      slug: revenant-ether
+      relationship: component
+      description: Charges the sceptre and yields 7,500 on dismantle
+  about: |-
+    > *"A mighty sceptre used in long forgotten battles."*
+
+    Thammaron's sceptre (u) is the uncharged variant dropped by revenants in the Forinthry Dungeon. Once fed revenant ether, it becomes a potent Wilderness magic weapon granting bonus accuracy and damage against NPCs, or can be combined with an accursed sceptre (u) into the upgraded accursed sceptre.
+  market_strategy:
+    notes:
+      - "Supply scales with revenant farming popularity in PvP-heavy weeks"
+      - "Upgrade demand into accursed sceptre props up the floor price"
+  trading_tips:
+    - "Watch Wilderness boss meta shifts: accursed sceptre buffs push this item up"
+    - "Lower bids during BH world resets when farmers flood the GE"
+  history:
+    - date: "2018-07-26"
+      description: "Released alongside the revenant rework in the Forinthry Dungeon update."
+    - date: "2022-09-14"
+      description: "Made part of the accursed sceptre upgrade path."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Earth impling jar | OSRS Price Data
-description: "Earth impling jar: Earth impling in a jar.. High alch: 30 GP, GE limit: 18,000."
+description: "Earth impling jar is a caught Hunter impling holding earth-themed loot. High alch: 30 GP, GE limit: 18,000."
 osrs:
   id: 11244
   name: Earth impling jar
@@ -12,9 +12,70 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 18000
-  about: "Earth impling jar is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: glass
+    tier: low
+  properties:
+    release_date: "2007-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Loot
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "If you drop this it will disappear. Are you sure you want to do this?"
+  drop_table:
+    sources:
+      - source: Earth impling
+        quantity: "1"
+        rarity: Always (on catch)
+      - source: Puro-Puro Earth impling
+        quantity: "1"
+        rarity: Always (on catch)
+  related_items:
+    - item_name: Empty impling jar
+      slug: empty-impling-jar
+      relationship: component
+      description: Empty jar used to catch the impling
+    - item_name: Gourmet impling jar
+      slug: gourmet-impling-jar
+      relationship: alternative
+      description: Lower-tier impling type
+    - item_name: Nature impling jar
+      slug: nature-impling-jar
+      relationship: alternative
+      description: Higher-tier impling that drops nature talismans
+  passive_effects:
+    - name: Loot on open
+      description: Opening the jar yields one item from the earth impling loot table; 90% chance to keep the empty jar, 10% chance for it to break.
+  about: |-
+    Earth impling jars are obtained by catching earth implings (level 36 Hunter) either across Gielinor or inside Puro-Puro. Opening the jar yields one item from the earth-themed loot table, which includes earth runes, earth talismans, mithril ore, gold ore, unicorn horns, and rarer drops such as a medium clue scroll, supercompost, mithril pickaxe, and various seeds.
+
+    The jar can be broken open with a 10% chance per loot, otherwise it is returned to the player to be reused or traded.
+  market_strategy:
+    notes:
+      - "Average loot value sets the floor — when contents spike, jar price follows"
+      - "Wide GE buy limit of 18,000 supports bulk flips"
+      - "Medium clue scroll roll adds variance to opened value"
+  trading_tips:
+    - Compare jar price to expected loot value before buying to open
+    - Sell unopened in bulk for steady margin during peak impling supply
+    - Watch for spikes in earth talisman or mithril ore demand
+  history:
+    - date: "2016-04-21"
+      description: "Medium clue scrolls added to the impling loot tables."
+    - date: "2015-03-05"
+      description: "Made tradeable on the Grand Exchange."
+    - date: "2007-06-11"
+      description: "Released with the Impetuous Impulses minigame."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

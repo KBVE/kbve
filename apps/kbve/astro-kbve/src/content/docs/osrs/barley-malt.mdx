@@ -12,9 +12,65 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 11000
-  about: "Barley malt is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Barley
+          quantity: 1
+      tools:
+        - Range
+      output_quantity: 1
+  related_items:
+    - item_name: Barley
+      slug: barley
+      relationship: component
+      description: Cooked on a range to produce malt
+    - item_name: Asgarnian ale
+      slug: asgarnian-ale
+      relationship: product
+      description: Brewed using barley malt
+    - item_name: Dwarven stout
+      slug: dwarven-stout
+      relationship: product
+      description: Brewed using barley malt
+    - item_name: Kelda stout
+      slug: kelda-stout
+      relationship: product
+      description: Forgettable Tale quest brew
+  about: "Barley malt is produced by cooking barley on a range at Cooking level 1 with no XP. Required for brewing all ales in fermenting vats, paying farmer protection for jute seed patches, and for the Forgettable Tale of a Drunken Dwarf quest."
+  market_strategy:
+    notes:
+      - "Base ingredient for all ales"
+      - "Used for jute seed protection (6 per patch)"
+      - "Required in Forgettable Tale quest"
+      - "Cheap cooking conversion from barley"
+  trading_tips:
+    - "Mass-cook barley into malt for steady supply of ale ingredient"
+    - "Limit of 11,000 supports bulk farm-protection runs"
+  history:
+    - date: "2005-07-11"
+      description: "Added with Forgettable Tale of a Drunken Dwarf and the Brewing system."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

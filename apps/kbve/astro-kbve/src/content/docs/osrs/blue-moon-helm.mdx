@@ -12,9 +12,33 @@ osrs:
   lowalch: 41200
   highalch: 61800
   limit: 15
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: blue-moon
+    tier: high
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
     weight: 0.453
+    requirements:
+      magic: 75
+      defence: 50
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,59 +56,41 @@ osrs:
       ranged_strength: 0
       magic_damage: 1
       prayer: 0
-    requirements:
-      magic: 75
-      defence: 50
-    degradable: true
-    charges: 3000
   drop_table:
-    primary_source: Lunar Chest (Neypotzli)
-    best_drop_rate: 1/224
     sources:
-      - source: Lunar Chest
+      - source: Lunar Chest (Neypotzli)
         quantity: "1"
         rarity: rare
-        drop_rate: 1/224
-        members_only: true
+  passive_effects:
+    - name: Frostweaver (set effect)
+      description: "When worn with the full Blue moon set and Blue moon spear, casting a bind spell grants a 20 percent chance that the spear's next melee attack ignores action delays."
   related_items:
-    - item_id: 28988
-      item_name: Blue moon spear
+    - item_name: Blue moon spear
       slug: blue-moon-spear
       relationship: set-piece
-      description: Weapon for Frostweaver set effect
-    - item_id: 29013
-      item_name: Blue moon chestplate
+      description: Weapon piece of the Blue moon set
+    - item_name: Blue moon chestplate
       slug: blue-moon-chestplate
       relationship: set-piece
-      description: Body armour in set
-    - item_id: 29016
-      item_name: Blue moon tassets
+      description: Body armour piece of the Blue moon set
+    - item_name: Blue moon tassets
       slug: blue-moon-tassets
       relationship: set-piece
-      description: Leg armour in set
+      description: Leg armour piece of the Blue moon set
   about: |-
-    When wearing the full Blue moon armour set with the Blue moon spear:
-    - Frostweaver: After casting a bind spell, 20% chance for next melee attack to be unaffected by action delays
+    Blue moon helm is the head slot piece of the Blue moon armour set. Requires 75 Magic and 50 Defence to wear. Provides +6 magic attack, +3 strength, and +1 percent magic damage, plus crush and magic defence.
 
-    | Property | Value |
-    |----------|-------|
-    | Total charges | 3,000 |
-    | Charge rate | 1 per 54 seconds |
-    | Combat duration | ~45 hours |
-    | NPC repair cost | 1,500,000 coins |
-    | Repair at 99 Smithing | 757,500 coins |
+    The helm is a degradable item with 3,000 charges, draining one per 54 seconds of combat for roughly 45 hours of use. NPC repair costs 1,500,000 coins; armour stand repair at 99 Smithing is 757,500 coins.
 
-    Magic-melee hybrid helm for Blue moon builds:
-    - +6 magic attack
-    - +3 strength bonus
-    - +1% magic damage
+    Obtained from the Lunar Chest in Neypotzli (1/224).
   market_strategy:
     notes:
-      - Value tied to full set synergy
-      - Unique hybrid bonuses
-      - Part of Varlamore content
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Price tracks the full Blue moon set demand"
+      - "Unique hybrid magic-melee profile"
+      - "Part of Varlamore Part One content"
+  history:
+    - date: "2024-03-20"
+      description: "Added to the game with Varlamore Part One."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Zombie helmet | OSRS Price Data
-description: "Zombie helmet: A rusty yet tough helmet.. High alch: 96,000 GP, GE limit: 50."
+description: "Zombie helmet is a members head slot item requiring 50 Strength and Defence. High alch: 96,000 GP, GE limit: 50."
 osrs:
   id: 30321
   name: Zombie helmet
@@ -12,9 +12,91 @@ osrs:
   lowalch: 64000
   highalch: 96000
   limit: 50
-  about: "Zombie helmet is a members-only item in Old School RuneScape. High alchemy value: 96,000 coins. Grand Exchange buy limit: 50 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: mid-high
+  properties:
+    release_date: "2024-11-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 2.721
+    requirements:
+      strength: 50
+      defence: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 8
+      magic: -4
+      ranged: -2
+    defence_bonus:
+      stab: 30
+      slash: 32
+      crush: 38
+      magic: 0
+      ranged: 30
+    other_bonus:
+      strength: 2
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Armoured zombie (broken variant)
+        quantity: "1"
+        rarity: Rare
+  recipes:
+    - skill: smithing
+      level: 70
+      xp: 0
+      materials:
+        - item_name: Broken zombie helmet
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  related_items:
+    - item_name: Broken zombie helmet
+      slug: broken-zombie-helmet
+      relationship: component
+      description: Repaired into the zombie helmet at an anvil
+    - item_name: Zombie axe
+      slug: zombie-axe
+      relationship: set-piece
+      description: Companion weapon from Zemouregal's Fort drops
+  about: |-
+    The zombie helmet is a head slot item released with the Zemouregal's Fort update on 6 November 2024. It requires 50 Strength and 50 Defence to equip, plus 70 Smithing to repair the broken variant dropped by armoured zombies into the worn version.
+
+    With a strong +8 crush attack bonus, +2 strength bonus, and defensive stats roughly comparable to neitiznot helm, the zombie helmet fills a niche slot for crush-leaning crush-weapon strength training and entry-level PvM. Repair takes 8 game ticks at an anvil with a hammer.
+  market_strategy:
+    notes:
+      - "Supply driven by Zemouregal's Fort armoured zombie kills"
+      - "50 buy limit makes flipping difficult"
+      - "Demand from mid-level strength trainers and PvMers"
+  trading_tips:
+    - "Watch for content reset announcements that spike supply"
+    - "Compare repair cost vs intact GE price"
+  history:
+    - date: "2024-11-06"
+      description: "Released with the Zemouregal's Fort content update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

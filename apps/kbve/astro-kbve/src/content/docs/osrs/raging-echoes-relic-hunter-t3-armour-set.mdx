@@ -12,9 +12,56 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: null
-  about: "Raging echoes relic hunter (t3) armour set is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "27 November 2024"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - item_name: Raging echoes hood (t3)
+      slug: raging-echoes-hood-t3
+      relationship: component
+      description: Set head piece
+    - item_name: Raging echoes top (t3)
+      slug: raging-echoes-top-t3
+      relationship: component
+      description: Set body piece
+    - item_name: Raging echoes robeskirt (t3)
+      slug: raging-echoes-robeskirt-t3
+      relationship: component
+      description: Set legs piece
+    - item_name: Raging echoes boots (t3)
+      slug: raging-echoes-boots-t3
+      relationship: component
+      description: Set boots piece
+  about: |-
+    > _"A set containing Raging Echoes boots (t3), Raging Echoes trousers (t3), Raging Echoes top (t3) and Raging Echoes hood (t3)."_
+
+    The Raging echoes relic hunter (t3) armour set is the third-tier cosmetic set from Leagues V: Raging Echoes. It is created by exchanging the four individual pieces with the Grand Exchange clerk via the Sets option, used to ship the components in a single GE listing.
+  market_strategy:
+    notes:
+      - "Pure flip vehicle: profit margin equals set price minus combined component price."
+      - "Volume spikes whenever component prices diverge enough to create arbitrage."
+  trading_tips:
+    - "Watch the four component listings; break the set when the components clear at higher combined value."
+    - "Combine into the set only when buyers want a single low-friction listing."
+  history:
+    - date: "27 November 2024"
+      description: "Added to the game alongside Leagues V: Raging Echoes set bundles."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

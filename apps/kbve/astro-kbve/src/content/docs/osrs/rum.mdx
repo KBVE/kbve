@@ -12,9 +12,67 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: null
-  about: "Rum is a members-only item in Old School RuneScape. High alchemy value: 3 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: drink
+    tier: low
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - "Drink"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: "Atlazora's Rest"
+      location: Civitas illa Fortis
+      price: 5
+      currency: Coins
+      stock: 10
+    - shop_name: "The Flaming Arrow"
+      location: Civitas illa Fortis
+      price: 5
+      currency: Coins
+      stock: 10
+  potion:
+    effects:
+      - description: "Boosts Strength by 1 + 5% of the player's base Strength level."
+        duration: 60
+      - description: "Restores 5 Hitpoints on consumption."
+        duration: 1
+      - description: "Drains Attack by 3 + 2% of current Attack level."
+        duration: 60
+  related_items:
+    - item_name: Beer
+      slug: beer
+      relationship: alternative
+      description: F2P Strength-boost drink with similar Attack drain
+    - item_name: Asgarnian ale
+      slug: asgarnian-ale
+      relationship: alternative
+      description: Members ale with Strength boost
+  about: |-
+    Rum is a Varlamore drink released with the Civitas illa Fortis expansion. Sold by pubs across the city for 5 coins and obtainable from shipwreck salvage. Boosts Strength but drains Attack, making it a budget option for pure-strength training setups.
+  market_strategy:
+    notes:
+      - "Shop floor at 5 coins keeps margins thin"
+      - "Demand follows Varlamore content cycles and shipwreck activity"
+      - "No GE buy limit makes bulk runs viable"
+  trading_tips:
+    - "Buy from Varlamore pubs in bulk and flip on the GE"
+    - "Track Strength-pure training guides for spike windows"
+  history:
+    - date: "2024-03-20"
+      description: "Released with the Varlamore - The Sunken Cathedral / Civitas illa Fortis content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

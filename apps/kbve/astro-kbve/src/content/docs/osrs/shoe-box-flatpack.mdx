@@ -12,9 +12,60 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Shoe box (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 20
+      xp: 58
+      materials:
+        - item_name: Plank
+          quantity: 2
+        - item_name: Steel nails
+          quantity: 2
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Plank
+      slug: plank
+      relationship: component
+      description: Construction material
+    - item_name: Steel nails
+      slug: steel-nails
+      relationship: component
+      description: Used to assemble the flatpack
+  about: "Shoe box (flatpack) is a Construction flatpack made at a wooden workbench in a player-owned house. Requires level 20 Construction and grants 58 XP per pack. Used as wardrobe storage in the bedroom."
+  market_strategy:
+    notes:
+      - "Low-level Construction training"
+      - "Wooden workbench flatpack"
+      - "Bedroom wardrobe assembly"
+      - "Net loss ~343 gp per craft at GE prices"
+  trading_tips:
+    - "GE price typically below craft cost: buy rather than craft for profit"
+    - "Stack up before remote POH refurnishing"
+  history:
+    - date: "2006-05-31"
+      description: "Added with the flatpack furniture expansion to Construction."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

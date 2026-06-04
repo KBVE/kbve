@@ -12,92 +12,109 @@ osrs:
   lowalch: 1728
   highalch: 2592
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dragonhide
+    tier: mid-high
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.283
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: hands
-    type: ranged_armour
-    ranged_requirement: 70
-    defence_requirement: 40
-  attack_bonuses:
-    ranged: 11
-  defence_bonuses:
-    ranged: 10
-    magic: 7
-  crafting:
-    level: 79
-    xp: 86
+    weapon_type: null
+    attack_speed: null
+    weight: 0.283
+    requirements:
+      ranged: 70
+    attack_bonus:
+      ranged: 11
+    defence_bonus:
+      stab: 4
+      slash: 5
+      crush: 5
+      magic: 8
+    other_bonus: {}
   recipes:
     - skill: crafting
       level: 79
       xp: 86
       materials:
         - item_name: Black dragon leather
-          item_id: 2509
           quantity: 1
         - item_name: Thread
-          item_id: 1734
           quantity: 1
-      product: Black d'hide vambraces
-      product_id: 2491
-      product_quantity: 1
-      facility: Needle and thread
-      members_only: true
+      tools:
+        - Needle
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Dust devil
+        quantity: "1"
+        rarity: 1/512
+      - source: Smoke devil
+        quantity: "1"
+        rarity: 1/512
+      - source: Brutal black dragon
+        quantity: "1"
+        rarity: 1/512
   related_items:
-    - item_id: 1747
-      item_name: Black dragonhide
+    - item_name: Black dragonhide
       slug: black-dragonhide
       relationship: component
-      description: Raw material
-    - item_id: 2509
-      item_name: Black dragon leather
+      description: Raw hide before tanning
+    - item_name: Black dragon leather
       slug: black-dragon-leather
       relationship: component
-      description: Tanned hide
-    - item_id: 2503
-      item_name: Black d'hide body
-      slug: black-dhide-body
-      relationship: alternative
-      description: Matching body
-    - item_id: 2497
-      item_name: Black d'hide chaps
-      slug: black-dhide-chaps
-      relationship: alternative
-      description: Matching legs
-    - item_id: 2489
-      item_name: Red d'hide vambraces
-      slug: red-dhide-vambraces
-      relationship: alternative
+      description: Tanned material used in crafting
+    - item_name: Black d'hide body
+      slug: black-d-hide-body
+      relationship: set-piece
+      description: Matching body armour
+    - item_name: Black d'hide chaps
+      slug: black-d-hide-chaps
+      relationship: set-piece
+      description: Matching legs armour
+    - item_name: Red d'hide vambraces
+      slug: red-d-hide-vambraces
+      relationship: downgrade
       description: Lower tier vambraces
+    - item_name: Black spiky vambraces
+      slug: black-spiky-vambraces
+      relationship: upgrade
+      description: Combined with kebbit claws
   about: |-
-    | Method | Level | Materials |
-    |--------|-------|-----------|
-    | Crafting | 79 | 1 Black dragon leather |
-    | XP | 86 | - |
-
-    | Stat | Value |
-    |------|-------|
-    | Ranged requirement | 70 |
-    | Defence requirement | 40 |
-    | Ranged attack | +11 |
-    | Ranged defence | +10 |
-    | Magic defence | +7 |
+    Black d'hide vambraces are the highest tier of standard dragonhide vambraces and require 70 Ranged to equip. They are popular for Ranged training and as wilderness risk gear thanks to their cheap replacement cost and strong ranged attack bonus.
   market_strategy:
     notes:
-      - Highest tier standard d'hide gloves
-      - Popular for Ranged training
-      - Wilderness risk gear
-      - Ranged training
-      - Wilderness activities
-      - Budget Ranged gear
-      - PvP risk gear
-      - 1 leather per vambraces
-      - Fast crafting method
-      - Lowest level in black set
-      - Best non-degradable ranged gloves
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Highest tier standard d'hide gloves"
+      - "Popular for Ranged training"
+      - "Cheap PvP risk gear"
+      - "Crafted from 1 black dragon leather + thread at 79 Crafting"
+      - "Lowest level slot in the black d'hide set"
+  trading_tips:
+    - "Margins are tight: track leather cost vs assembled price for crafting flips"
+    - "Combine with kebbit claws to upgrade into black spiky vambraces"
+  history:
+    - date: "2004-03-29"
+      description: "Released with the Crafting expansion"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

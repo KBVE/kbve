@@ -12,27 +12,76 @@ osrs:
   lowalch: 2800
   highalch: 4200
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.005
     requirements:
       prayer: 20
+    attack_bonus:
+      magic: 4
+    defence_bonus:
+      magic: 4
     other_bonus:
       prayer: 5
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/1404
   related_items:
-    - item_id: 12193
-      item_name: Ancient robe top
+    - item_name: Ancient robe top
       slug: ancient-robe-top
       relationship: set-piece
-      description: Ancient vestment body
+      description: Matching vestment top
+    - item_name: Ancient stole
+      slug: ancient-stole
+      relationship: set-piece
+      description: Matching vestment stole
+    - item_name: Ancient mitre
+      slug: ancient-mitre
+      relationship: set-piece
+      description: Matching vestment mitre
   about: |-
     > *"Leggings from the Ancient Vestments."*
 
     The Ancient robe legs are the legs piece of the Ancient vestment set. They provide a +5 Prayer bonus and require 20 Prayer to equip. Counts as a Zarosian item in the God Wars Dungeon.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - "Easy clue casket drop at 1/1404 rarity"
+      - "Demand driven by Zarosian transmog collectors"
+      - "Lighter than other vestment legs at 0.005 kg"
+  trading_tips:
+    - "Cheaper than higher tier prayer legs but locked behind clue grind"
+    - "Pair with the rest of the Ancient vestments for Zarosian aligned cosmetic set"
+  history:
+    - date: "2014-06-12"
+      description: "Added to the game with the Treasure Trails expansion"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

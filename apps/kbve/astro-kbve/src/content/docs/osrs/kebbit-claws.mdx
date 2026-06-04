@@ -12,9 +12,62 @@ osrs:
   lowalch: 17
   highalch: 25
   limit: 10000
-  about: "Kebbit claws is a members-only item in Old School RuneScape. High alchemy value: 25 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bone
+    tier: low
+  properties:
+    release_date: "21 November 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Wild kebbit
+        quantity: "1"
+        rarity: Always
+  related_items:
+    - item_name: Spiky vambraces
+      slug: spiky-vambraces
+      relationship: product
+      description: Created by attaching kebbit claws to leather vambraces.
+    - item_name: Black spiky vambraces
+      slug: black-spiky-vambraces
+      relationship: product
+      description: Spiked upgrade of black dragonhide vambraces.
+    - item_name: Blue spiky vambraces
+      slug: blue-spiky-vambraces
+      relationship: product
+      description: Spiked upgrade of blue dragonhide vambraces.
+    - item_name: Green spiky vambraces
+      slug: green-spiky-vambraces
+      relationship: product
+      description: Spiked upgrade of green dragonhide vambraces.
+    - item_name: Red spiky vambraces
+      slug: red-spiky-vambraces
+      relationship: product
+      description: Spiked upgrade of red dragonhide vambraces.
+  about: "Kebbit claws drop from Wild kebbits trapped via deadfall in the Piscatoris Falconry area at level 23 Hunter. They are attached to vambraces for a +2 strength bonus upgrade."
+  market_strategy:
+    notes:
+      - "Supply is bottlenecked by Hunter players actively training deadfall traps; price spikes during DMM and league seasons."
+      - "High GE limit (10,000) makes them a low-friction filler item for Crafting alts."
+  trading_tips:
+    - "Buy claws when bond prices fall; they pair well with cheap dragonhide vambraces for upgrade arbitrage."
+    - "Sell finished spiky vambraces rather than raw claws if you want a better margin per unit."
+  history:
+    - date: "21 November 2006"
+      description: "Added with Hunter skill release and Piscatoris Falconry content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

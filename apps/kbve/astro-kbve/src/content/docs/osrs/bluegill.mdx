@@ -1,6 +1,6 @@
 ---
 title: Bluegill | OSRS Price Data
-description: "Bluegill: A large Bluegill.. High alch: 1 GP, GE limit: 13,000."
+description: "Bluegill: A large Bluegill. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 22826
   name: Bluegill
@@ -12,12 +12,67 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Bluegill is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: raw_fish
+    tier: low
+  properties:
+    release_date: "2019-01-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 3.5
+      materials:
+        - item_name: Bluegill
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+  related_items:
+    - item_name: Common tench
+      slug: common-tench
+      relationship: alternative
+      description: Lower-tier aerial fishing catch from Lake Molch
+    - item_name: Mottled eel
+      slug: mottled-eel
+      relationship: alternative
+      description: Higher-tier aerial fishing catch from Lake Molch
+    - item_name: Fish offcuts
+      slug: fish-offcuts
+      relationship: product
+      description: Stackable bait produced by cutting bluegill with a knife
+  about: |-
+    > *"A large Bluegill."*
+
+    Bluegill is one of the aerial fishing catches from Lake Molch, requiring 43 Fishing and 35 Hunter. Cutting it with a knife yields fish offcuts used as bait. It is also a requirement for the medium Kourend & Kebos Diary.
+  market_strategy:
+    notes:
+      - "Steady offcut demand keeps a price floor"
+      - "Slow-moving food relative to sharks"
+      - "Kebos Diary requirement nudges low-level traffic"
+  trading_tips:
+    - "Stockpile when aerial fishing trends pop"
+    - "Offcut demand is the real driver"
+  history:
+    - date: "2019-01-10"
+      description: "Released as part of The Kebos Lowlands update and aerial fishing activity"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

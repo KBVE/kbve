@@ -1,6 +1,6 @@
 ---
 title: Verac's helm 0 | OSRS Price Data
-description: "Verac's helm 0: Verac the Defiled's helm.. High alch: 61,800 GP, GE limit: 15."
+description: "Verac's helm 0: Verac the Defiled's helm. High alch: 61,800 GP, GE limit: 15."
 osrs:
   id: 4980
   name: Verac's helm 0
@@ -12,9 +12,98 @@ osrs:
   lowalch: 41200
   highalch: 61800
   limit: 15
-  about: "Verac's helm 0 is a members-only item in Old School RuneScape. High alchemy value: 61,800 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: barrows
+    tier: high
+  properties:
+    release_date: "2005-05-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 1.36
+    requirements:
+      defence: 70
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 55
+      slash: 58
+      crush: 54
+      magic: 0
+      ranged: 56
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 3
+  drop_table:
+    sources:
+      - source: Barrows reward chest
+        quantity: "1"
+        rarity: "1/2448"
+  related_items:
+    - item_name: Verac's helm 25
+      slug: verac-s-helm-25
+      relationship: variant
+      description: 25% charged variant
+    - item_name: Verac's helm 50
+      slug: verac-s-helm-50
+      relationship: variant
+      description: 50% charged variant
+    - item_name: Verac's helm 75
+      slug: verac-s-helm-75
+      relationship: variant
+      description: 75% charged variant
+    - item_name: Verac's helm 100
+      slug: verac-s-helm-100
+      relationship: variant
+      description: 100% charged variant
+    - item_name: Verac's brassard
+      slug: verac-s-brassard
+      relationship: set-piece
+      description: Body armour of the set
+    - item_name: Verac's plateskirt
+      slug: verac-s-plateskirt
+      relationship: set-piece
+      description: Leg armour of the set
+    - item_name: Verac's flail
+      slug: verac-s-flail
+      relationship: set-piece
+      description: Weapon of the set
+  about: |-
+    > _"Verac the Defiled's helm."_
+
+    Fully degraded Verac's helm obtained from the Barrows reward chest. Requires 70 Defence to wear. Part of Verac's armour set; wearing all pieces grants a chance to hit through prayer and defence. Repair via NPC for 60,000 coins or POH armour stand for less.
+  market_strategy:
+    notes:
+      - "Degraded variant — must be repaired before use."
+      - "Repair cost 60,000 coins at NPC or reduced via POH armour stand."
+  trading_tips:
+    - "Compare repair cost vs price gap between charged variants for the cheapest entry to Verac's set."
+    - "Limit 15 per 4 hours — slow to flip in bulk."
+  history:
+    - date: "2005-05-09"
+      description: "Released as part of the Barrows minigame update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

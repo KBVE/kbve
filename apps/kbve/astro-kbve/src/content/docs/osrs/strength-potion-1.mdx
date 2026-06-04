@@ -1,6 +1,6 @@
 ---
 title: Strength potion(1) | OSRS Price Data
-description: "Strength potion(1): 1 dose of Strength potion.. High alch: 6 GP, GE limit: 2,000."
+description: "Strength potion(1): 1 dose of Strength potion. High alch: 6 GP, GE limit: 2,000."
 osrs:
   id: 119
   name: Strength potion(1)
@@ -12,23 +12,60 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2001-02-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Boosts Strength by 3 + 10% of current Strength level (rounded down)."
+        duration: 60
   related_items:
-    - item_id: 115
-      item_name: Strength potion(3)
-      slug: strength-potion-3
-      relationship: variant
-      description: 3-dose version
-    - item_id: 117
-      item_name: Strength potion(2)
+    - item_name: Strength potion(2)
       slug: strength-potion-2
       relationship: variant
       description: 2-dose version
+    - item_name: Strength potion(3)
+      slug: strength-potion-3
+      relationship: variant
+      description: 3-dose version
+    - item_name: Strength potion(4)
+      slug: strength-potion-4
+      relationship: variant
+      description: 4-dose version
+    - item_name: Strength mix(2)
+      slug: strength-mix-2
+      relationship: upgrade
+      description: Barbarian Herblore mix variant restoring 3 Hitpoints per dose
   about: |-
     > _"1 dose of Strength potion."_
 
-    A 1-dose strength potion. Boosts Strength by 3 + 10% of current level. Available to F2P and members.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Single dose strength potion available to both F2P and members. Boosts Strength by 3 + 10% of current Strength level (rounded down). Made from limpwurt root and tarromin potion (unf) at 12 Herblore, or purchased from the Apothecary in Varrock.
+  market_strategy:
+    notes:
+      - "One-dose potions are usually decanted up — sell to decanters or stop pricing at the (4) value divided by 4."
+      - "Useful for low-level F2P bossing where prayer/super sets are out of reach."
+  trading_tips:
+    - "Decant up before flipping — (1) is rarely the most liquid dose."
+    - "Watch for combat training events that drain Strength potion supply."
+  history:
+    - date: "2001-02-05"
+      description: "Strength potion variants added with early Herblore content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

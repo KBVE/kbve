@@ -1,6 +1,6 @@
 ---
 title: Gilded axe | OSRS Price Data
-description: "Gilded axe: A powerful axe.. High alch: 21,000 GP, GE limit: 4."
+description: "Gilded axe is a free-to-play cosmetic rune axe from elite and master Treasure Trails. High alch: 21,000 GP, GE limit: 4."
 osrs:
   id: 23279
   name: Gilded axe
@@ -12,9 +12,88 @@ osrs:
   lowalch: 14000
   highalch: 21000
   limit: 4
-  about: "Gilded axe is a free-to-play item in Old School RuneScape. High alchemy value: 21,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: gilded
+    tier: high
+  properties:
+    release_date: "11 April 2019"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.36
+    options:
+      - "Wield"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: axe
+    attack_speed: 5
+    weight: 1.36
+    requirements:
+      attack: 40
+      woodcutting: 41
+    attack_bonus:
+      stab: 0
+      slash: 26
+      crush: 24
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 29
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+      - master
+  drop_table:
+    sources:
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/14662.5
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/13616
+  related_items:
+    - item_name: Rune axe
+      slug: rune-axe
+      relationship: alternative
+      description: Mechanically identical base axe
+    - item_name: Gilded pickaxe
+      slug: gilded-pickaxe
+      relationship: alternative
+      description: Companion gilded tool from clues
+  about: |-
+    > _"A powerful axe."_
+
+    Gilded axe is a cosmetic rune axe variant from elite and master clue rewards. Functions identically to a rune axe for combat and woodcutting. Cannot be converted into a felling axe variant.
+  market_strategy:
+    notes:
+      - "Master-tier rarity and tiny GE buy limit keep prices in the multi-million range."
+      - "Price spikes during clue scroll league events."
+  trading_tips:
+    - "Long-term hold: cosmetic gilded gear tends to appreciate over time."
+  history:
+    - date: "11 April 2019"
+      description: "Released as part of the Treasure Trails Expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

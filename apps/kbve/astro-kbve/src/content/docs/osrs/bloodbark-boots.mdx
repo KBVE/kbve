@@ -12,9 +12,102 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: null
-  about: "Bloodbark boots is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bloodbark
+    tier: mid-high
+  properties:
+    release_date: "2021-01-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements:
+      magic: 60
+      defence: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 5
+      slash: 4
+      crush: 6
+      magic: 5
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: runecraft
+      level: 77
+      xp: 5
+      materials:
+        - item_name: Splitbark boots
+          quantity: 1
+        - item_name: Blood rune
+          quantity: 100
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Blood spell healing bonus
+      description: "Each bloodbark piece equipped boosts blood spell healing by 2 percent."
+    - name: Full bloodbark set bonus
+      description: "Wearing the full bloodbark set grants 35 percent of damage dealt healed back to the caster's hitpoints when casting blood spells."
+  related_items:
+    - item_name: Splitbark boots
+      slug: splitbark-boots
+      relationship: component
+      description: Base item required for runecrafting bloodbark boots
+    - item_name: Bloodbark helm
+      slug: bloodbark-helm
+      relationship: set-piece
+      description: Head slot of the bloodbark magic armour set
+    - item_name: Bloodbark body
+      slug: bloodbark-body
+      relationship: set-piece
+      description: Body slot of the bloodbark magic armour set
+    - item_name: Bloodbark legs
+      slug: bloodbark-legs
+      relationship: set-piece
+      description: Legs slot of the bloodbark magic armour set
+    - item_name: Bloodbark gauntlets
+      slug: bloodbark-gauntlets
+      relationship: set-piece
+      description: Hands slot of the bloodbark magic armour set
+  about: "Bloodbark boots are members-only magic armour crafted at the Blood Altar from splitbark boots and 100 blood runes after reading the runescroll of bloodbark. Each bloodbark piece boosts blood spell healing, and the full set heals 35 percent of damage dealt."
+  market_strategy:
+    notes:
+      - "Niche armour tied to blood spell healing utility"
+      - "Demand driven by mages farming or training with blood spells"
+      - "Materials cost can exceed Grand Exchange price during downturns"
+      - "Splitbark boots and blood rune supply directly shift the floor price"
+  trading_tips:
+    - "Compare splitbark boots plus 100 blood runes against the bloodbark boots price before crafting"
+    - "Stockpile during blood altar buffs or runescape events"
+  history:
+    - date: "2021-01-27"
+      description: "Bloodbark boots released as part of the bloodbark armour set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

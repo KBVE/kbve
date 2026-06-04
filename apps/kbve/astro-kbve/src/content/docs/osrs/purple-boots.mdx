@@ -12,9 +12,96 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Purple boots is a free-to-play item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic-footwear
+    tier: low
+  properties:
+    release_date: "29 June 2004"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.34
+    options: ["Wear", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weapon_type: null
+    attack_speed: null
+    weight: 0.34
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Barkers' Haberdashery
+      location: Canifis
+      price: 650
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Blue boots
+      slug: blue-boots
+      relationship: variant
+      description: Blue colour variant with identical stats.
+    - item_name: Red boots
+      slug: red-boots
+      relationship: variant
+      description: Red colour variant with identical stats.
+    - item_name: Green boots
+      slug: green-boots
+      relationship: variant
+      description: Green colour variant with identical stats.
+    - item_name: Yellow boots
+      slug: yellow-boots
+      relationship: variant
+      description: Yellow colour variant with identical stats.
+    - item_name: Turquoise boots
+      slug: turquoise-boots
+      relationship: variant
+      description: Teal colour variant with identical stats.
+    - item_name: Pink boots
+      slug: pink-boots
+      relationship: variant
+      description: Pink colour variant with identical stats.
+  about: |-
+    Purple boots are one of several coloured cosmetic boots originally introduced in 2004 with the Priest in Peril quest update. They share leather boot stats and serve purely as fashionscape footwear. Stocked at Barkers' Haberdashery in Canifis for 650 coins; the shop restocks every minute.
+  market_strategy:
+    notes:
+      - "Shop-supplied at 650 gp — flip ceiling depends on fashionscape hype."
+      - "Made free-to-play in 2023, broadening the buyer pool."
+      - "Buy limit of 150 supports decent flipping cadence."
+  trading_tips:
+    - "Restock at Barkers' Haberdashery and resell on the GE for steady margin."
+    - "List across colour variants — buyers often hunt complete sets."
+    - "Cross-watch with Thessalia's outfit shop trends in Varrock."
+  history:
+    - date: "29 June 2004"
+      description: "Released alongside Priest in Peril and Canifis tailor shops."
+    - date: "1 December 2014"
+      description: "Renamed from generic 'Boots' to 'Purple boots' for clarity."
+    - date: "22 March 2023"
+      description: "Made available to free-to-play players."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

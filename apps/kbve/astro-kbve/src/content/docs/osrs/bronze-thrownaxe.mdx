@@ -12,24 +12,71 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
+    weapon_type: thrown
     attack_speed: 5
+    weight: 0
+    requirements: {}
     attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
       ranged: 4
-    ranged_strength: 5
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 5
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Zombie (Tarn's Lair, medium-level)
+        quantity: "1"
+        rarity: uncommon
+  shops:
+    - shop_name: Authentic Throwing Weapons
+      location: Ranging Guild
+      price: 3
+      currency: coins
+      stock: 900
   related_items:
-    - item_id: 801
-      item_name: Iron thrownaxe
+    - item_name: Iron thrownaxe
       slug: iron-thrownaxe
-      relationship: variant
+      relationship: upgrade
       description: Higher tier thrownaxe
   about: |-
-    > _"A finely balanced throwing axe."_
-
-    The bronze thrownaxe is the lowest-tier thrownaxe. No Ranged requirement to wield. Thrownaxes have a special attack that bounces between targets. Rarely used due to low stats.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The bronze thrownaxe is the lowest-tier thrownaxe. It has no Ranged requirement to wield. Thrownaxes feature a special attack that bounces between targets. Rarely used due to low stats.
+  history:
+    - date: "2004-03-29"
+      description: "Added to the game with the launch of RuneScape 2."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

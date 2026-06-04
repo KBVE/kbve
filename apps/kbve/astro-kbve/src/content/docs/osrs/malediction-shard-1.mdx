@@ -1,6 +1,6 @@
 ---
 title: Malediction shard 1 | OSRS Price Data
-description: "Malediction shard 1: A broken shield piece.. High alch: 18,600 GP, GE limit: 10,000."
+description: "Malediction shard 1: A broken shield piece. High alch: 18,600 GP, GE limit: 10,000."
 osrs:
   id: 11931
   name: Malediction shard 1
@@ -12,9 +12,61 @@ osrs:
   lowalch: 12400
   highalch: 18600
   limit: 10000
-  about: "Malediction shard 1 is a members-only item in Old School RuneScape. High alchemy value: 18,600 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: shard
+    tier: high
+  properties:
+    release_date: "2014-03-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Use
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Chaos Fanatic
+        quantity: "1"
+        rarity: "1/256"
+  related_items:
+    - item_name: Malediction shard 2
+      slug: malediction-shard-2
+      relationship: component
+      description: Second shard needed for the ward
+    - item_name: Malediction shard 3
+      slug: malediction-shard-3
+      relationship: component
+      description: Third shard needed for the ward
+    - item_name: Malediction ward
+      slug: malediction-ward
+      relationship: product
+      description: Combined ward built at the Blighted Volcano
+    - item_name: Odium shard 1
+      slug: odium-shard-1
+      relationship: alternative
+      description: Ranged ward shard counterpart
+  about: |-
+    > _"A broken shield piece."_
+
+    Rare drop from the Chaos Fanatic in the Wilderness at 1/256. Combine with malediction shards 2 and 3 at the Blighted Volcano to forge the malediction ward, the best-in-slot magic shield outside Tombs of Amascut.
+  market_strategy:
+    notes:
+      - "Price tracks Chaos Fanatic kill volume and PKer activity in singles wildy."
+      - "All three shards trade in step — arb opportunities when one lags the others."
+  trading_tips:
+    - "Watch ward price vs sum of all three shards — flip the cheaper side."
+    - "Spike on PvP/wildy update news — buy ahead of attention waves."
+  history:
+    - date: "2014-03-13"
+      description: "Added with the Wilderness boss update introducing Chaos Fanatic drops."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

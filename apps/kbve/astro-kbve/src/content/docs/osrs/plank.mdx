@@ -1,6 +1,6 @@
 ---
 title: Plank | OSRS Price Data
-description: "Plank: A plank of wood!. High alch: 1 GP, GE limit: 13,000."
+description: "Plank: A plank of wood! High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 960
   name: Plank
@@ -12,109 +12,85 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
     type: plank
-    tier: basic
-  construction:
-    xp_per_plank: 29
-    min_level: 1
-    sawmill_cost: 100
-    common_builds:
-      - name: Crude wooden chair
-        planks: 2
-        xp: 58
-      - name: Wooden bookcase
-        planks: 4
-        xp: 115
+    tier: low
+  properties:
+    release_date: "2001-08-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.8
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
   recipes:
-    - skill: construction
-      materials:
-        - item_name: Logs
-          item_id: 1511
-          quantity: 1
-      product: Plank
-      product_id: 960
-      product_quantity: 1
-      facility: Sawmill
-      cost: 100
-      members_only: true
     - skill: magic
       level: 86
       xp: 90
       materials:
         - item_name: Logs
-          item_id: 1511
           quantity: 1
         - item_name: Astral rune
-          item_id: 9075
           quantity: 2
         - item_name: Nature rune
-          item_id: 561
           quantity: 1
         - item_name: Earth rune
-          item_id: 557
           quantity: 15
-      product: Plank
-      product_id: 960
-      product_quantity: 1
-      cost: 70
-      members_only: true
-      spell: Plank Make
+      tools: []
+      output_quantity: 1
+  shops:
+    - shop_name: Razmire Builders Merchants
+      location: Mort'ton
+      price: 1
+      currency: coins
+      stock: 10
   related_items:
-    - item_id: 1511
-      item_name: Logs
+    - item_name: Logs
       slug: logs
       relationship: component
-      description: Raw material
-    - item_id: 8778
-      item_name: Oak plank
+      description: Raw material converted at sawmill
+    - item_name: Oak plank
       slug: oak-plank
       relationship: upgrade
       description: Better XP per plank
-    - item_id: 8780
-      item_name: Teak plank
+    - item_name: Teak plank
       slug: teak-plank
       relationship: upgrade
-      description: Mid tier plank
-    - item_id: 8782
-      item_name: Mahogany plank
+      description: Mid tier construction plank
+    - item_name: Mahogany plank
       slug: mahogany-plank
       relationship: upgrade
-      description: Highest tier plank
-    - item_id: 1539
-      item_name: Steel nails
+      description: Highest tier construction plank
+    - item_name: Steel nails
       slug: steel-nails
       relationship: component
-      description: Required for some builds
+      description: Required for some Construction builds
   about: |-
-    | XP per plank | 29 |
-    |--------------|-----|
-    | Buy limit | 13,000 per 4 hours |
-    | Min Construction level | 1 |
+    Planks are the base Construction material, giving 29 XP each. Convert logs into planks at the Sawmill in Varrock for 100 coins per plank or cast Plank Make at 86 Magic for 70 coins plus runes.
 
-    Early Training (levels 1-33):
-    - Crude wooden chairs (2 planks, 58 XP)
-    - Wooden bookcases (4 planks, 115 XP)
-    - Exit room to reset furniture
+    Common early-training builds include crude wooden chairs (2 planks, 58 XP) and wooden bookcases (4 planks, 115 XP). Exit the room to reset furniture and reuse the planks.
 
-    Note: Requires nails for some furniture - bring extras as they can bend.
+    Note: nails are required for some furniture and can bend. Bring extras.
   market_strategy:
-    steps:
-      - order: 1
-        action: Regular planks (29 XP) - levels 1-33
-      - order: 2
-        action: Oak planks (60 XP) - levels 33-52
-      - order: 3
-        action: Teak planks (90 XP) - levels 52-99
-      - order: 4
-        action: Mahogany planks (140 XP) - fastest 99
     notes:
-      - Cheapest plank option
-      - Required for early Construction training
-      - Used in some Mahogany Homes contracts
-      - Required for Dragon Slayer I and other quests
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Cheapest plank tier in the game"
+      - "Required for early Construction training"
+      - "Used in some Mahogany Homes contracts"
+      - "Required for Dragon Slayer I and other quests"
+  trading_tips:
+    - "Mid-game training path: regular planks 1-33, oak 33-52, teak 52-99 or mahogany for fastest 99"
+    - "Stock up during sawmill runs to avoid Mort'ton restock waits"
+  history:
+    - date: "2001-08-13"
+      description: "Added to the game."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

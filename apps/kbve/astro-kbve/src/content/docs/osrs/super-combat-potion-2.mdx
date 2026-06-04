@@ -12,9 +12,77 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 2000
-  about: "Super combat potion(2) is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "14 August 2014"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Boosts Attack, Strength, and Defence by ⌊level × 15/100⌋ + 5"
+        duration: 300
+  recipes:
+    - skill: herblore
+      level: 90
+      xp: 150
+      materials:
+        - item_name: Super attack(4)
+          quantity: 1
+        - item_name: Super strength(4)
+          quantity: 1
+        - item_name: Super defence(4)
+          quantity: 1
+        - item_name: Torstol
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Super combat potion(1)
+      slug: super-combat-potion-1
+      relationship: variant
+      description: 1-dose variant
+    - item_name: Super combat potion(3)
+      slug: super-combat-potion-3
+      relationship: variant
+      description: 3-dose variant
+    - item_name: Super combat potion(4)
+      slug: super-combat-potion-4
+      relationship: variant
+      description: 4-dose variant
+    - item_name: Divine super combat potion(4)
+      slug: divine-super-combat-potion-4
+      relationship: upgrade
+      description: Divine variant with no decay (requires Herblore 97)
+  about: "Super combat potion(2) is a 2-dose version of the super combat potion, granting boosts to Attack, Strength, and Defence simultaneously. Requires 90 Herblore to brew from a torstol and 4-dose super attack, strength, and defence potions."
+  market_strategy:
+    notes:
+      - "Common boss/raid supply"
+      - "Decant 4s into 2s for some bosses"
+      - "Torstol price drives base cost"
+  trading_tips:
+    - "Decant chains: 2s often command premium vs 4s for tick-efficient drinks"
+    - Watch torstol and super-defence prices for arbitrage
+  history:
+    - date: "14 August 2014"
+      description: "Released as part of the Herblore expansion."
+    - date: "February 2019"
+      description: "Unfinished torstol potions became acceptable substitutes for clean torstol in the recipe."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

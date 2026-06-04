@@ -12,9 +12,89 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 4
-  about: "Lovakengj scarf is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: neck
+    weapon_type: null
+    attack_speed: null
+    weight: 0.5
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Elite Treasure Trail reward casket
+        quantity: "1"
+        rarity: "1/1,275"
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+  related_items:
+    - item_name: Hosidius scarf
+      slug: hosidius-scarf
+      relationship: alternative
+      description: Hosidius house variant
+    - item_name: Arceuus scarf
+      slug: arceuus-scarf
+      relationship: alternative
+      description: Arceuus house variant
+    - item_name: Piscarilius scarf
+      slug: piscarilius-scarf
+      relationship: alternative
+      description: Piscarilius house variant
+    - item_name: Shayzien scarf
+      slug: shayzien-scarf
+      relationship: alternative
+      description: Shayzien house variant
+  about: |-
+    The Lovakengj scarf is a Kourend house cosmetic awarded as an elite Treasure Trails reward. No combat bonuses; storable in a costume room treasure chest. Drop rate from elite reward caskets is 1/1,275.
+  market_strategy:
+    notes:
+      - "GE buy limit of 4 keeps liquidity thin"
+      - "Cosmetic house variants trade in collector bundles"
+      - "Elite clue supply governs floor pricing"
+  trading_tips:
+    - "Track elite clue completion rate posts on subreddits"
+    - "Bundle with other Kourend house scarves for full-set buyers"
+  history:
+    - date: "2016-07-06"
+      description: "Added as an elite Treasure Trails reward in the Kingdom of Kourend update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
