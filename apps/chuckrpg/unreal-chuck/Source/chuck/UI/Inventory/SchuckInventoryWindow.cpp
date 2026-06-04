@@ -1,6 +1,9 @@
 #include "SchuckInventoryWindow.h"
 
 #include "ChuckUIStyle.h"
+#include "chuckCoreCharacter.h"
+#include "chuckSettings.h"
+#include "SchuckEquipmentPanel.h"
 #include "SchuckInventorySlot.h"
 #include "SchuckItemInfo.h"
 #include "SKBVEMovableFrame.h"
@@ -47,21 +50,64 @@ void SchuckInventoryWindow::Construct(const FArguments& InArgs)
 
 	const float BagWidth  = Cols * (SlotSize + SlotPad * 2.f) + 24.f;
 	const float InfoWidth = 360.f;
+	const float EquipWidth = 280.f;
 	const float ContentHeight = Rows * (SlotSize + SlotPad * 2.f) + 16.f;
 
-	const float FrameW = BagWidth + InfoWidth + 24.f;
+	const float FrameW = EquipWidth + BagWidth + InfoWidth + 32.f;
 	const float FrameH = ContentHeight + 64.f;
+
+	FVector2D StartPos(160.f, 140.f);
+	FVector2D StartSize(FrameW, FrameH);
+	const FName WindowKey = FName(TEXT("chuck.inventory"));
+	if (AchuckCoreCharacter* C = Character.Get())
+	{
+		if (UchuckSettings* S = UchuckSettings::Get(C))
+		{
+			FchuckWindowGeometry G;
+			if (S->GetWindowGeometry(WindowKey, G))
+			{
+				StartPos  = G.Position;
+				StartSize = G.Size;
+			}
+		}
+	}
 
 	ChildSlot
 	[
-		SNew(SKBVEMovableFrame)
+		SAssignNew(MovableFrame, SKBVEMovableFrame)
 		.Title(LOCTEXT("Title", "Inventory"))
-		.InitialPosition(FVector2D(160.f, 140.f))
-		.FrameSize(FVector2D(FrameW, FrameH))
+		.InitialPosition(StartPos)
+		.FrameSize(StartSize)
+		.MinFrameSize(FVector2D(640.f, 420.f))
 		.OnCloseClicked(OnClose)
+		.OnGeometryChanged_Lambda([this, WindowKey]()
+		{
+			if (!MovableFrame.IsValid()) return;
+			AchuckCoreCharacter* C = Character.Get();
+			UchuckSettings* S = C ? UchuckSettings::Get(C) : nullptr;
+			if (!S) return;
+			FchuckWindowGeometry G;
+			G.WindowKey = WindowKey;
+			G.Position  = MovableFrame->GetCurrentPosition();
+			G.Size      = MovableFrame->GetCurrentSize();
+			S->SetWindowGeometry(G);
+		})
 		.Body()
 		[
 			SNew(SHorizontalBox)
+
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(FMargin(0.f, 0.f, 12.f, 0.f))
+			[
+				SNew(SBox)
+				.WidthOverride(EquipWidth)
+				[
+					SNew(SchuckEquipmentPanel)
+					.OwningCharacter(Character)
+					.SelectedKey(SelectedKey)
+				]
+			]
 
 			+ SHorizontalBox::Slot()
 			.AutoWidth()

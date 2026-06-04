@@ -73,10 +73,13 @@ namespace
 
 void SKBVEMovableFrame::Construct(const FArguments& InArgs)
 {
-	Position         = InArgs._InitialPosition;
-	FrameSize        = InArgs._FrameSize;
-	Title            = InArgs._Title;
-	OnCloseDelegate  = InArgs._OnCloseClicked;
+	Position                   = InArgs._InitialPosition;
+	FrameSize                  = InArgs._FrameSize;
+	MinFrameSize               = InArgs._MinFrameSize;
+	Title                      = InArgs._Title;
+	OnCloseDelegate            = InArgs._OnCloseClicked;
+	OnGeometryChangedDelegate  = InArgs._OnGeometryChanged;
+	const bool bResizable      = InArgs._bResizable;
 
 	const FSlateFontInfo TitleFont = FCoreStyle::GetDefaultFontStyle("Bold", 18);
 	const FLinearColor TitleBarColor(0.10f, 0.10f, 0.13f, 0.95f);
@@ -101,6 +104,32 @@ void SKBVEMovableFrame::Construct(const FArguments& InArgs)
 			]
 
 			+ SOverlay::Slot()
+			.HAlign(HAlign_Right)
+			.VAlign(VAlign_Bottom)
+			[
+				bResizable
+					? StaticCastSharedRef<SWidget>(
+						SNew(SKBVEDragHandle)
+						.OnDragMoved_Lambda([this](const FVector2D& Delta)
+						{
+							FrameSize.X = FMath::Max(MinFrameSize.X, FrameSize.X + Delta.X);
+							FrameSize.Y = FMath::Max(MinFrameSize.Y, FrameSize.Y + Delta.Y);
+							OnGeometryChangedDelegate.ExecuteIfBound();
+						})
+						[
+							SNew(SBox)
+							.WidthOverride(14.f)
+							.HeightOverride(14.f)
+							[
+								SNew(SImage)
+								.Image(FCoreStyle::Get().GetBrush("WhiteBrush"))
+								.ColorAndOpacity(FLinearColor(0.55f, 0.60f, 0.70f, 0.85f))
+							]
+						])
+					: StaticCastSharedRef<SWidget>(SNullWidget::NullWidget)
+			]
+
+			+ SOverlay::Slot()
 			.Padding(2.f)
 			[
 				SNew(SVerticalBox)
@@ -109,7 +138,11 @@ void SKBVEMovableFrame::Construct(const FArguments& InArgs)
 				.AutoHeight()
 				[
 					SNew(SKBVEDragHandle)
-					.OnDragMoved_Lambda([this](const FVector2D& Delta) { Position += Delta; })
+					.OnDragMoved_Lambda([this](const FVector2D& Delta)
+					{
+						Position += Delta;
+						OnGeometryChangedDelegate.ExecuteIfBound();
+					})
 					[
 						SNew(SOverlay)
 
@@ -181,4 +214,12 @@ FReply SKBVEMovableFrame::HandleCloseClicked()
 {
 	OnCloseDelegate.ExecuteIfBound();
 	return FReply::Handled();
+}
+
+void SKBVEMovableFrame::SetGeometry(const FVector2D& NewPos, const FVector2D& NewSize)
+{
+	Position  = NewPos;
+	FrameSize = FVector2D(
+		FMath::Max(MinFrameSize.X, NewSize.X),
+		FMath::Max(MinFrameSize.Y, NewSize.Y));
 }

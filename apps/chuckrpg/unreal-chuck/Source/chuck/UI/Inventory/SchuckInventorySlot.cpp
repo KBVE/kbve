@@ -28,6 +28,20 @@ void SchuckInventorySlot::Construct(const FArguments& InArgs)
 		.OnPaintIcon(FOnKBVESlotPaintIcon::CreateSP(this, &SchuckInventorySlot::OnPaintIcon))
 		.OnClicked(FOnKBVESlotClicked::CreateSP(this, &SchuckInventorySlot::OnClicked))
 		.OnHover(FOnKBVESlotHover::CreateSP(this, &SchuckInventorySlot::OnHover))
+		.DragDomain(bIsHotbar ? FName(TEXT("chuck.hotbar")) : FName(TEXT("chuck.bag")))
+		.SlotIndex(SlotIndex)
+		.OnGetPayloadKey(FOnKBVESlotPayloadKey::CreateLambda([this]() -> int32
+		{
+			const FchuckInventoryStack* S = GetStack();
+			return S ? S->ItemKey : 0;
+		}))
+		.OnDropped(FOnKBVESlotDropped::CreateLambda([this](int32 SourceIndex)
+		{
+			if (AchuckCoreCharacter* C = Character.Get())
+			{
+				C->SwapBagSlots(SourceIndex, SlotIndex, bIsHotbar);
+			}
+		}))
 	];
 }
 

@@ -466,6 +466,20 @@ void AchuckCoreCharacter::SeedStarterItems()
 	}
 }
 
+void AchuckCoreCharacter::SwapBagSlots(int32 IndexA, int32 IndexB, bool bHotbar)
+{
+	FchuckInventoryBag& Bag = bHotbar ? Inventory.Hotbar : Inventory.DefaultBag;
+	if (!Bag.Slots.IsValidIndex(IndexA) || !Bag.Slots.IsValidIndex(IndexB))
+	{
+		return;
+	}
+	FchuckInventoryStack Tmp = Bag.Slots[IndexA];
+	Bag.Slots[IndexA] = Bag.Slots[IndexB];
+	Bag.Slots[IndexB] = Tmp;
+	Bag.MarkItemDirty(Bag.Slots[IndexA]);
+	Bag.MarkItemDirty(Bag.Slots[IndexB]);
+}
+
 void AchuckCoreCharacter::OnRep_Stats()
 {
 	PublishStatChanges();

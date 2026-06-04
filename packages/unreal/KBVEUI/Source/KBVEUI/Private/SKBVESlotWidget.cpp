@@ -1,5 +1,6 @@
 #include "SKBVESlotWidget.h"
 
+#include "FKBVEDragOp.h"
 #include "KBVEUIRenderer.h"
 #include "Rendering/DrawElements.h"
 #include "Styling/CoreStyle.h"
@@ -13,6 +14,10 @@ void SKBVESlotWidget::Construct(const FArguments& InArgs)
 	OnPaintIcon      = InArgs._OnPaintIcon;
 	OnClicked        = InArgs._OnClicked;
 	OnHover          = InArgs._OnHover;
+	OnGetPayloadKey  = InArgs._OnGetPayloadKey;
+	OnDropped        = InArgs._OnDropped;
+	DragDomain       = InArgs._DragDomain;
+	SlotIndex        = InArgs._SlotIndex;
 
 	SetCanTick(false);
 }
@@ -40,7 +45,45 @@ FReply SKBVESlotWidget::OnMouseButtonDown(const FGeometry& Geometry, const FPoin
 	{
 		return FReply::Unhandled();
 	}
-	OnClicked.ExecuteIfBound();
+	const bool bFilled = OnIsFilled.IsBound() ? OnIsFilled.Execute() : false;
+	if (bFilled && !DragDomain.IsNone())
+	{
+		return FReply::Handled().DetectDrag(SharedThis(this), EKeys::LeftMouseButton);
+	}
+	return FReply::Handled();
+}
+
+FReply SKBVESlotWidget::OnMouseButtonUp(const FGeometry& Geometry, const FPointerEvent& Mouse)
+{
+	if (Mouse.GetEffectingButton() == EKeys::LeftMouseButton)
+	{
+		OnClicked.ExecuteIfBound();
+	}
+	return FReply::Handled();
+}
+
+FReply SKBVESlotWidget::OnDragDetected(const FGeometry& Geometry, const FPointerEvent& Mouse)
+{
+	if (DragDomain.IsNone() || SlotIndex == INDEX_NONE)
+	{
+		return FReply::Unhandled();
+	}
+	const int32 Payload = OnGetPayloadKey.IsBound() ? OnGetPayloadKey.Execute() : 0;
+	if (Payload <= 0)
+	{
+		return FReply::Unhandled();
+	}
+	return FReply::Handled().BeginDragDrop(FKBVEDragOp::New(DragDomain, SlotIndex, Payload));
+}
+
+FReply SKBVESlotWidget::OnDrop(const FGeometry& Geometry, const FDragDropEvent& Event)
+{
+	TSharedPtr<FKBVEDragOp> Op = Event.GetOperationAs<FKBVEDragOp>();
+	if (!Op.IsValid() || Op->Domain != DragDomain || Op->SourceIndex == SlotIndex)
+	{
+		return FReply::Unhandled();
+	}
+	OnDropped.ExecuteIfBound(Op->SourceIndex);
 	return FReply::Handled();
 }
 

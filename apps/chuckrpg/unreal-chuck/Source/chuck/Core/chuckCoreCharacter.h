@@ -31,6 +31,8 @@ public:
 	int32 ServerAddItemByKey(int32 ItemKey, int32 Count);
 	int32 ServerAddItemByRef(FName Ref, int32 Count);
 
+	void SwapBagSlots(int32 IndexA, int32 IndexB, bool bHotbar);
+
 protected:
 	virtual void PostInitializeComponents() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
