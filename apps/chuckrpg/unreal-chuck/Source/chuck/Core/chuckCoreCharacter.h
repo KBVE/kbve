@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "chuckCharacter.h"
+#include "chuckStats.h"
 #include "chuckCoreCharacter.generated.h"
 
 class UInputAction;
@@ -15,11 +16,19 @@ class AchuckCoreCharacter : public AchuckCharacter
 public:
 	AchuckCoreCharacter();
 
+	virtual void Tick(float DeltaSeconds) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	const FchuckStatBlock& GetStats() const { return Stats; }
 
 protected:
 	virtual void PostInitializeComponents() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+
+	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Chuck|Stats")
+	FchuckStatBlock Stats;
+
+	void TickRegen(float DeltaSeconds);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Movement")
 	float WalkSpeed = 600.f;

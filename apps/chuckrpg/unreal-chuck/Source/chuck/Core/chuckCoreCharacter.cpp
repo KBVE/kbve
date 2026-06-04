@@ -16,6 +16,8 @@ AchuckCoreCharacter::AchuckCoreCharacter()
 {
 	bReplicates = true;
 	SetReplicateMovement(true);
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SKM(
 		TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
@@ -87,6 +89,36 @@ void AchuckCoreCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AchuckCoreCharacter, bIsSprinting);
+	DOREPLIFETIME(AchuckCoreCharacter, Stats);
+}
+
+void AchuckCoreCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	if (HasAuthority())
+	{
+		TickRegen(DeltaSeconds);
+	}
+}
+
+void AchuckCoreCharacter::TickRegen(float DeltaSeconds)
+{
+	Stats.Health  = FMath::Min(Stats.Health  + Stats.HealthRegenPerSec  * DeltaSeconds, Stats.MaxHealth);
+	Stats.Mana    = FMath::Min(Stats.Mana    + Stats.ManaRegenPerSec    * DeltaSeconds, Stats.MaxMana);
+
+	if (bIsSprinting && GetCharacterMovement() && GetCharacterMovement()->Velocity.SizeSquared2D() > 1.f)
+	{
+		Stats.Stamina = FMath::Max(Stats.Stamina - Stats.StaminaSprintDrainPerSec * DeltaSeconds, 0.f);
+		if (Stats.Stamina <= 0.f)
+		{
+			bIsSprinting = false;
+			ApplySprintSpeed();
+		}
+	}
+	else
+	{
+		Stats.Stamina = FMath::Min(Stats.Stamina + Stats.StaminaRegenPerSec * DeltaSeconds, Stats.MaxStamina);
+	}
 }
 
 void AchuckCoreCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

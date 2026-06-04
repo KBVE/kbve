@@ -23,6 +23,16 @@ public:
 		static const FName Button_Font;
 		static const FName Button_SlotPadding;
 		static const FName Button_ContentPadding;
+
+		static const FName HUD_Padding;
+		static const FName HUD_Bar_Width;
+		static const FName HUD_Bar_Height;
+		static const FName HUD_Bar_Spacing;
+		static const FName HUD_Label_Font;
+		static const FName HUD_Health_Color;
+		static const FName HUD_Mana_Color;
+		static const FName HUD_Stamina_Color;
+		static const FName HUD_Bar_Background_Color;
 	};
 
 private:

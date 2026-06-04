@@ -28,6 +28,7 @@ public class chuck : ModuleRules
 			"chuck",
 			"chuck/Core",
 			"chuck/UI",
+			"chuck/UI/HUD",
 			"chuck/Variant_Platforming",
 			"chuck/Variant_Platforming/Animation",
 			"chuck/Variant_Combat",
