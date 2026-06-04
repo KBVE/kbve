@@ -83,14 +83,41 @@ int32 SchuckHUD::OnPaint(
 		float Percent;
 		float Current;
 		float Max;
-		FLinearColor Color;
+		FLinearColor FillColor;
+		FLinearColor BgColor;
+		float RowAlpha;
 		int32 LayerStride;
 	};
 
+	FLinearColor EPFill = CS;
+	FLinearColor EPBg   = BG;
+	float        EPRowAlpha = 1.f;
+
+	const bool bExhausted = Target.StaminaRegenDelay > 0.f;
+	const bool bWarn      = !bExhausted && Target.StaminaCurrent < Target.StaminaWarnThreshold;
+
+	if (bExhausted)
+	{
+		const float Flash = 0.5f + 0.5f * FMath::Sin(Target.TimeSeconds * 18.f);
+		const float Fade  = 0.35f + 0.45f * FMath::Sin(Target.TimeSeconds * 5.f);
+		EPBg = FLinearColor(0.55f + 0.25f * Flash, 0.05f, 0.05f, 0.85f);
+		EPRowAlpha = Fade;
+	}
+	else if (bWarn)
+	{
+		const float Pulse = 0.5f + 0.5f * FMath::Sin(Target.TimeSeconds * 9.f);
+		EPFill = FLinearColor(
+			CS.R * (0.8f + 0.2f * Pulse),
+			CS.G * (0.8f + 0.2f * Pulse),
+			CS.B + (1.f - CS.B) * 0.3f * Pulse,
+			CS.A);
+		EPBg = FLinearColor(BG.R + 0.20f * Pulse, BG.G, BG.B, BG.A);
+	}
+
 	const FRow Rows[] = {
-		{ TEXT("HP"), 0.f,                    DisplayHealth,  DisplayHealthCurrent,  Target.HealthMax,  CH, 0 },
-		{ TEXT("MP"), (BarH + Spacing) * 1.f, DisplayMana,    DisplayManaCurrent,    Target.ManaMax,    CM, 4 },
-		{ TEXT("EP"), (BarH + Spacing) * 2.f, DisplayStamina, DisplayStaminaCurrent, Target.StaminaMax, CS, 8 },
+		{ TEXT("HP"), 0.f,                    DisplayHealth,  DisplayHealthCurrent,  Target.HealthMax,  CH,     BG,   1.f,         0 },
+		{ TEXT("MP"), (BarH + Spacing) * 1.f, DisplayMana,    DisplayManaCurrent,    Target.ManaMax,    CM,     BG,   1.f,         4 },
+		{ TEXT("EP"), (BarH + Spacing) * 2.f, DisplayStamina, DisplayStaminaCurrent, Target.StaminaMax, EPFill, EPBg, EPRowAlpha,  8 },
 	};
 
 	for (const FRow& R : Rows)
@@ -98,14 +125,18 @@ int32 SchuckHUD::OnPaint(
 		const FVector2D BarPos (X,                  YBase + R.YOffset);
 		const FVector2D TextPos(BarPos.X + TextX,   BarPos.Y + TextY);
 
+		FLinearColor RowFill = R.FillColor; RowFill.A *= R.RowAlpha;
+		FLinearColor RowBg   = R.BgColor;   RowBg.A   *= R.RowAlpha;
+
 		chuckHUDRenderer::DrawSlantedBar(
 			OutDrawElements, AllottedGeometry, LayerId + R.LayerStride,
-			BarPos, BarSize, Slant, R.Percent, R.Color, BG);
+			BarPos, BarSize, Slant, R.Percent, RowFill, RowBg);
 
+		FLinearColor RowText = TextColor; RowText.A *= R.RowAlpha;
 		const FString Text = FString::Printf(TEXT("%s  %.0f/%.0f"), R.Label, R.Current, R.Max);
 		chuckHUDRenderer::DrawText(
 			OutDrawElements, AllottedGeometry, LayerId + R.LayerStride + 2,
-			TextPos, Text, LabelFont, TextColor);
+			TextPos, Text, LabelFont, RowText);
 	}
 
 	return LayerId + 12;

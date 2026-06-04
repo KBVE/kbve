@@ -31,13 +31,31 @@ void UchuckStatRegenProcessor::Execute(FMassEntityManager& EntityManager, FMassE
 				S.Health = FMath::Min(S.Health + S.HealthRegenPerSec * DeltaSeconds, S.MaxHealth);
 				S.Mana   = FMath::Min(S.Mana   + S.ManaRegenPerSec   * DeltaSeconds, S.MaxMana);
 
-				if (S.bIsSprinting && S.bIsMoving)
+				const bool bDraining =
+					chuckMove::Has(S.MoveState, EchuckMoveState::Sprinting) &&
+					chuckMove::Has(S.MoveState, EchuckMoveState::Moving)    &&
+					chuckMove::Has(S.MoveState, EchuckMoveState::OnGround)  &&
+					!chuckMove::HasAny(S.MoveState, EchuckMoveState::Crouching);
+
+				if (S.StaminaRegenDelay > 0.f)
 				{
-					S.Stamina = FMath::Max(S.Stamina - S.StaminaSprintDrainPerSec * DeltaSeconds, 0.f);
+					S.StaminaRegenDelay = FMath::Max(0.f, S.StaminaRegenDelay - DeltaSeconds);
+				}
+				else if (bDraining)
+				{
+					S.Stamina = FMath::Max(0.f, S.Stamina - S.StaminaSprintDrainPerSec * DeltaSeconds);
+					if (S.Stamina <= 0.f)
+					{
+						S.StaminaRegenDelay = S.StaminaEmptyPenaltySec;
+					}
 				}
 				else
 				{
-					S.Stamina = FMath::Min(S.Stamina + S.StaminaRegenPerSec * DeltaSeconds, S.MaxStamina);
+					const float Rate =
+						(S.Stamina <= S.StaminaLowThreshold)
+							? S.StaminaRegenPerSec * S.StaminaLowRegenMultiplier
+							: S.StaminaRegenPerSec;
+					S.Stamina = FMath::Min(S.Stamina + Rate * DeltaSeconds, S.MaxStamina);
 				}
 			}
 		});

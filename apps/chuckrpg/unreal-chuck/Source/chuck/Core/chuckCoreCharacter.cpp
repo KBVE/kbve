@@ -17,6 +17,7 @@
 
 #include "chuckCharacterMovementComponent.h"
 #include "chuckInputs.h"
+#include "chuckMoveState.h"
 #include "chuckStatsFragment.h"
 
 AchuckCoreCharacter::AchuckCoreCharacter(const FObjectInitializer& ObjectInitializer)
@@ -162,16 +163,20 @@ void AchuckCoreCharacter::CreateStatEntity()
 
 	if (FchuckStatsFragment* Frag = EntityManager.GetFragmentDataPtr<FchuckStatsFragment>(StatEntity))
 	{
-		Frag->Health                  = Stats.Health;
-		Frag->MaxHealth               = Stats.MaxHealth;
-		Frag->HealthRegenPerSec       = Stats.HealthRegenPerSec;
-		Frag->Mana                    = Stats.Mana;
-		Frag->MaxMana                 = Stats.MaxMana;
-		Frag->ManaRegenPerSec         = Stats.ManaRegenPerSec;
-		Frag->Stamina                 = Stats.Stamina;
-		Frag->MaxStamina              = Stats.MaxStamina;
-		Frag->StaminaRegenPerSec      = Stats.StaminaRegenPerSec;
-		Frag->StaminaSprintDrainPerSec = Stats.StaminaSprintDrainPerSec;
+		Frag->Health                    = Stats.Health;
+		Frag->MaxHealth                 = Stats.MaxHealth;
+		Frag->HealthRegenPerSec         = Stats.HealthRegenPerSec;
+		Frag->Mana                      = Stats.Mana;
+		Frag->MaxMana                   = Stats.MaxMana;
+		Frag->ManaRegenPerSec           = Stats.ManaRegenPerSec;
+		Frag->Stamina                   = Stats.Stamina;
+		Frag->MaxStamina                = Stats.MaxStamina;
+		Frag->StaminaRegenPerSec        = Stats.StaminaRegenPerSec;
+		Frag->StaminaSprintDrainPerSec  = Stats.StaminaSprintDrainPerSec;
+		Frag->StaminaLowThreshold       = Stats.StaminaLowThreshold;
+		Frag->StaminaLowRegenMultiplier = Stats.StaminaLowRegenMultiplier;
+		Frag->StaminaEmptyPenaltySec    = Stats.StaminaEmptyPenaltySec;
+		Frag->StaminaRegenDelay         = Stats.StaminaRegenDelay;
 	}
 }
 
@@ -217,15 +222,26 @@ void AchuckCoreCharacter::SyncStatsFragment(float DeltaSeconds)
 		return;
 	}
 
-	const bool bMoving = GetCharacterMovement() && GetCharacterMovement()->Velocity.SizeSquared2D() > 1.f;
-	Frag->bIsSprinting = IsSprinting();
-	Frag->bIsMoving    = bMoving;
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	const bool bOnGround = Move && Move->IsMovingOnGround();
+	const bool bFalling  = Move && Move->IsFalling();
+	const bool bMoving   = bOnGround && Move->Velocity.SizeSquared2D() > 1.f;
 
-	Stats.Health  = Frag->Health;
-	Stats.Mana    = Frag->Mana;
-	Stats.Stamina = Frag->Stamina;
+	EchuckMoveState State = EchuckMoveState::None;
+	chuckMove::Assign(State, EchuckMoveState::OnGround,  bOnGround);
+	chuckMove::Assign(State, EchuckMoveState::InAir,     !bOnGround);
+	chuckMove::Assign(State, EchuckMoveState::Falling,   bFalling);
+	chuckMove::Assign(State, EchuckMoveState::Moving,    bMoving);
+	chuckMove::Assign(State, EchuckMoveState::Sprinting, IsSprinting());
+	chuckMove::Assign(State, EchuckMoveState::Crouching, bIsCrouched);
+	Frag->MoveState = State;
 
-	if (IsSprinting() && Stats.Stamina <= 0.f)
+	Stats.Health           = Frag->Health;
+	Stats.Mana             = Frag->Mana;
+	Stats.Stamina          = Frag->Stamina;
+	Stats.StaminaRegenDelay = Frag->StaminaRegenDelay;
+
+	if (IsSprinting() && Stats.StaminaRegenDelay > 0.f)
 	{
 		if (UchuckCharacterMovementComponent* CMC = GetChuckMovement())
 		{
@@ -258,6 +274,14 @@ void AchuckCoreCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 void AchuckCoreCharacter::OnSprintPressed(const FInputActionValue& Value)
 {
+	if (bIsCrouched)
+	{
+		return;
+	}
+	if (Stats.StaminaRegenDelay > 0.f)
+	{
+		return;
+	}
 	if (UchuckCharacterMovementComponent* CMC = GetChuckMovement())
 	{
 		CMC->bWantsToSprint = true;
@@ -281,6 +305,10 @@ void AchuckCoreCharacter::OnCrouchPressed(const FInputActionValue& Value)
 	else
 	{
 		Crouch();
+		if (UchuckCharacterMovementComponent* CMC = GetChuckMovement())
+		{
+			CMC->bWantsToSprint = false;
+		}
 	}
 }
 

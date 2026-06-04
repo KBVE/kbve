@@ -53,15 +53,15 @@ namespace chuckHUDRenderer
 		const float Clamped = FMath::Clamp(Percent, 0.f, 1.f);
 		const float FillWidth = Size.X * Clamped;
 
-		auto MakeQuad = [&](float Left, float Right, int32 Layer, const FLinearColor& Color)
+		auto MakeQuad = [&](float Left, float Right, float QuadSlant, int32 Layer, const FLinearColor& Color)
 		{
 			TArray<FSlateVertex> Vertices;
 			Vertices.Reserve(4);
 
-			const FVector2D P0 = Pos + FVector2D(Left  + Slant, 0.f);
-			const FVector2D P1 = Pos + FVector2D(Right,          0.f);
-			const FVector2D P2 = Pos + FVector2D(Right - Slant, Size.Y);
-			const FVector2D P3 = Pos + FVector2D(Left,           Size.Y);
+			const FVector2D P0 = Pos + FVector2D(Left  + QuadSlant, 0.f);
+			const FVector2D P1 = Pos + FVector2D(Right,             0.f);
+			const FVector2D P2 = Pos + FVector2D(Right - QuadSlant, Size.Y);
+			const FVector2D P3 = Pos + FVector2D(Left,              Size.Y);
 
 			const FColor Packed = Color.ToFColor(true);
 
@@ -98,8 +98,12 @@ namespace chuckHUDRenderer
 				0);
 		};
 
-		MakeQuad(0.f,        Size.X,    LayerId,     BackgroundColor);
-		MakeQuad(0.f,        FillWidth, LayerId + 1, FillColor);
+		MakeQuad(0.f, Size.X,    Slant,                                    LayerId,     BackgroundColor);
+		if (FillWidth > 0.5f)
+		{
+			const float FillSlant = FMath::Min(Slant, FillWidth * 0.5f);
+			MakeQuad(0.f, FillWidth, FillSlant, LayerId + 1, FillColor);
+		}
 	}
 
 	void DrawText(

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "MassEntityTypes.h"
+#include "chuckMoveState.h"
 #include "chuckStatsFragment.generated.h"
 
 USTRUCT()
@@ -21,7 +22,10 @@ struct FchuckStatsFragment : public FMassFragment
 	float MaxStamina = 100.f;
 	float StaminaRegenPerSec = 10.f;
 	float StaminaSprintDrainPerSec = 20.f;
+	float StaminaLowThreshold = 10.f;
+	float StaminaLowRegenMultiplier = 0.5f;
+	float StaminaEmptyPenaltySec = 2.5f;
+	float StaminaRegenDelay = 0.f;
 
-	bool bIsSprinting = false;
-	bool bIsMoving = false;
+	EchuckMoveState MoveState = EchuckMoveState::None;
 };

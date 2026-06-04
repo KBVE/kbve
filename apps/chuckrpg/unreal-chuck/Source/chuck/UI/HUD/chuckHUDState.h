@@ -10,8 +10,10 @@ struct FchuckHUDState
 	float ManaCurrent    = 100.f;
 	float ManaMax        = 100.f;
 
-	float StaminaCurrent = 100.f;
-	float StaminaMax     = 100.f;
+	float StaminaCurrent     = 100.f;
+	float StaminaMax         = 100.f;
+	float StaminaRegenDelay  = 0.f;
+	float StaminaWarnThreshold = 20.f;
 
 	float DamageFlash    = 0.f;
 	float LowHealthPulse = 0.f;

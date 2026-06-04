@@ -233,15 +233,17 @@ void AchuckCorePlayerController::Tick(float DeltaSeconds)
 			: 0.f;
 
 	FchuckHUDState State;
-	State.HealthCurrent  = S.Health;
-	State.HealthMax      = S.MaxHealth;
-	State.ManaCurrent    = S.Mana;
-	State.ManaMax        = S.MaxMana;
-	State.StaminaCurrent = S.Stamina;
-	State.StaminaMax     = S.MaxStamina;
-	State.DamageFlash    = Flash;
-	State.LowHealthPulse = LowPulse;
-	State.TimeSeconds    = Now;
+	State.HealthCurrent       = S.Health;
+	State.HealthMax           = S.MaxHealth;
+	State.ManaCurrent         = S.Mana;
+	State.ManaMax             = S.MaxMana;
+	State.StaminaCurrent      = S.Stamina;
+	State.StaminaMax          = S.MaxStamina;
+	State.StaminaRegenDelay   = S.StaminaRegenDelay;
+	State.StaminaWarnThreshold = S.StaminaWarnThreshold;
+	State.DamageFlash         = Flash;
+	State.LowHealthPulse      = LowPulse;
+	State.TimeSeconds         = Now;
 
 	HUDWidget->SetState(State);
 }
