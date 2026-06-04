@@ -12,9 +12,65 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 8
-  about: "Unstrung light ballista is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: wood
+    tier: mid-high
+  properties:
+    release_date: "2016-05-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.75
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 47
+      xp: 15
+      materials:
+        - item_name: Incomplete light ballista
+          quantity: 1
+        - item_name: Ballista spring
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Light ballista
+      slug: light-ballista
+      relationship: product
+      description: "Final two-handed ballista produced after attaching a monkey tail"
+    - item_name: Ballista spring
+      slug: ballista-spring
+      relationship: component
+      description: "Spring required to assemble this intermediate part"
+    - item_name: Incomplete light ballista
+      slug: incomplete-light-ballista
+      relationship: component
+      description: "Wooden frame combined with the spring to make this item"
+    - item_name: Monkey tail
+      slug: monkey-tail
+      relationship: component
+      description: "Attached to this item to finish the Light ballista"
+  about: "Unstrung light ballista is a Monkey Madness II Fletching intermediate. Combine an incomplete light ballista with a ballista spring at 47 Fletching for 15 XP, then attach a monkey tail to finish the Light ballista (300 XP)."
+  market_strategy:
+    notes:
+      - "Niche Monkey Madness II Fletching intermediate with thin daily volume"
+      - "Crafting from parts often costs more than the strung GE price"
+      - "Spikes around Fletching XP method discussions"
+  trading_tips:
+    - "Compare the parts cost versus the finished Light ballista to avoid net losses"
+    - "Buy limit of 8 keeps positions small"
+  history:
+    - date: "2016-05-06"
+      description: "Released with the Monkey Madness II quest"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

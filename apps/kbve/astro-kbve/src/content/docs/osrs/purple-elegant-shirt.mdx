@@ -12,21 +12,89 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "5 December 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 1
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: "8/18,128"
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
-    - item_id: 10418
-      item_name: Purple elegant legs
+    - item_name: Purple elegant legs
       slug: purple-elegant-legs
       relationship: set-piece
-      description: Matching elegant legs
-  about: |-
-    > *"A well made elegant men's purple shirt."*
-
-    Purely cosmetic treasure trail reward with no combat stats. Part of the purple elegant clothing set.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Matching elegant legs"
+    - item_name: Black elegant shirt
+      slug: black-elegant-shirt
+      relationship: alternative
+      description: "Black colour variant"
+    - item_name: White elegant blouse
+      slug: white-elegant-blouse
+      relationship: alternative
+      description: "Female counterpart in white"
+    - item_name: Gold elegant shirt
+      slug: gold-elegant-shirt
+      relationship: alternative
+      description: "Gold colour variant"
+  about: "The purple elegant shirt is a cosmetic medium clue scroll reward; purely fashionscape with no combat stats, worn alongside purple elegant legs for the matching outfit."
+  market_strategy:
+    notes:
+      - "Buy limit of 4 makes restocking the GE the choke point."
+      - "Demand is fashionscape-driven; spikes on cosmetic content updates."
+      - "Cross-listed with purple elegant legs in matched-set bids."
+  trading_tips:
+    - "Watch medium clue droprates and Master clue news for movement."
+    - "Patient flips on small stacks beat trying to corner the supply."
+    - "Costume-room storage means long-term holders rarely sell back."
+  history:
+    - date: "5 December 2006"
+      description: "Added as part of the elegant clothing Treasure Trails reward set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

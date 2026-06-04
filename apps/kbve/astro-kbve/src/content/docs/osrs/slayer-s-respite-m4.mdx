@@ -12,9 +12,80 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Slayer's respite(m4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: beverage
+    tier: mid
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 59
+      xp: 215
+      materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Wildblood hops
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Calquat keg
+          quantity: 2
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Slayer's respite(m3)
+      slug: slayer-s-respite-m3
+      relationship: variant
+      description: "Same keg with one pint already drunk"
+    - item_name: Slayer's respite(m2)
+      slug: slayer-s-respite-m2
+      relationship: variant
+      description: "Same keg with two pints already drunk"
+    - item_name: Slayer's respite(m1)
+      slug: slayer-s-respite-m1
+      relationship: variant
+      description: "Same keg with three pints already drunk"
+    - item_name: Slayer's respite (keg)
+      slug: slayer-s-respite-keg
+      relationship: alternative
+      description: "Non-matured 4-pint keg variant"
+    - item_name: Slayer's respite
+      slug: slayer-s-respite
+      relationship: variant
+      description: "Single pint of the standard ale"
+  about: |-
+    > *"This keg contains 4 pints of mature Slayer's Respite."*
+
+    Slayer's respite(m4) is the freshly brewed mature variant of the Slayer's respite keg, brewed in a brewery at 59 Cooking using two buckets of water, two barley malt, four wildblood hops, one ale yeast, and two calquat kegs for 215 Cooking XP per batch. Maturation occurs over time at the brewery.
+
+    Each pint mirrors the mature single Slayer's respite, granting temporary Slayer XP boosts. Once partially drunk the keg becomes untradeable — only the sealed (m4) variant moves through the Grand Exchange.
+  market_strategy:
+    notes:
+      - "Daily volume tied to slayer training streamers and ironmen brewing parties"
+      - "Mature variants command a premium over fresh kegs"
+  trading_tips:
+    - "Stock during brewery downtime — supply lags after maintenance"
+    - "Listing as (m4) only; lower pint counts are not tradeable"
+  history:
+    - date: "2005-07-11"
+      description: "Released alongside the Brewery and Farming update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

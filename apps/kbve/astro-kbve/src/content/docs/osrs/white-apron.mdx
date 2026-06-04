@@ -12,9 +12,77 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 150
-  about: "White apron is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "4 January 2001"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Thessalia's Fine Clothes
+      location: Varrock
+      price: 2
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Pirate's Treasure
+      slug: pirates-treasure
+      relationship: alternative
+      description: "Quest requiring this item"
+    - item_name: Mourning's End Part II
+      slug: mournings-end-part-ii
+      relationship: alternative
+      description: "Quest requiring this item"
+  about: "White apron is a F2P body slot cosmetic with zero combat stats, spawning around Port Sarim and sold at Thessalia's, used in several quests."
+  market_strategy:
+    notes:
+      - "Free spawns at Gerrant's and Wydin's stores in Port Sarim"
+      - "Thessalia's Fine Clothes sells at 2 coins"
+      - "Demand driven by quest requirements rather than combat"
+  trading_tips:
+    - "Grab spawns in Port Sarim before paying GE price"
+    - "Cannot telegrab the Gerrant's shop apron: it stays on the hook"
+  history:
+    - date: "4 January 2001"
+      description: "Released with the early F2P inventory."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

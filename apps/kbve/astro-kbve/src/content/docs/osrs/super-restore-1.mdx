@@ -12,84 +12,91 @@ osrs:
   lowalch: 48
   highalch: 72
   limit: 2000
-  potion:
-    doses: 1
-    type: restore
-    effect: Restores all stats (except Hitpoints) and Prayer
-    effects:
-      - stat: All stats
-        boost_formula: 8 + floor(level / 4)
-      - stat: Prayer
-        boost_formula: 8 + floor(level / 4)
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: mid-high
   properties:
+    release_date: "2004-07-27"
     tradeable: true
-    tradeable_ge: true
-    weight: 0.035
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores all stats except Hitpoints by floor(level / 4) + 8 points"
+        duration: 0
+      - description: "Restores Prayer by floor(level / 4) + 8 points (floor(level * 0.27) + 8 with holy wrench)"
+        duration: 0
   recipes:
     - skill: herblore
       level: 63
       xp: 142.5
       materials:
         - item_name: Snapdragon potion (unf)
-          item_id: 3004
           quantity: 1
         - item_name: Red spiders' eggs
-          item_id: 223
           quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 3024
-      item_name: Super restore(4)
+    - item_name: Super restore(4)
       slug: super-restore-4
       relationship: variant
-      description: Full dose variant
-    - item_id: 3000
-      item_name: Snapdragon
-      slug: snapdragon
+      description: "Full 4-dose variant"
+    - item_name: Super restore(2)
+      slug: super-restore-2
+      relationship: variant
+      description: "2-dose variant"
+    - item_name: Super restore(3)
+      slug: super-restore-3
+      relationship: variant
+      description: "3-dose variant"
+    - item_name: Snapdragon potion (unf)
+      slug: snapdragon-potion-unf
       relationship: component
-      description: Primary herb
-    - item_id: 223
-      item_name: Red spiders' eggs
+      description: "Unfinished potion base"
+    - item_name: Red spiders' eggs
       slug: red-spiders-eggs
       relationship: component
-      description: Secondary ingredient
-    - item_id: 6685
-      item_name: Saradomin brew(4)
-      slug: saradomin-brew-4
+      description: "Secondary herblore ingredient"
+    - item_name: Prayer potion(1)
+      slug: prayer-potion-1
       relationship: alternative
-      description: Paired consumable
+      description: "Cheaper prayer-only restore"
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Potion |
-    | Tradeable | Yes |
-    | Weight | 0.035 kg |
+    Super restore(1) is a single dose of the super restore potion. It restores all drained stats (except Hitpoints) and Prayer points using the formula floor(level / 4) + 8. With a holy wrench, ring of the gods (i), or Prayer cape equipped, Prayer restoration uses floor(level * 0.27) + 8 instead.
 
-    Combine Snapdragon potion (unf) + Red spiders' eggs.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore | 63 |
-    | XP | 142.5 |
-
-    Stat + Prayer Restoration:
-    - All stats: floor(Level x 0.25) + 8
-    - Prayer with Holy wrench: floor(Level x 0.27) + 8
-    - Does NOT restore Hitpoints
-
-    Essential for:
-    - Raids
-    - Bossing
-    - Any stat-draining content
-
-    Better than prayer potion for most content.
+    The potion is a staple for raids, bossing, and any stat-draining content, and is the primary partner to Saradomin brews since brews lower combat stats that super restore promptly tops back up.
   market_strategy:
     notes:
-      - Restores all drained stats
-      - Essential for Sara brews
-      - Core raid consumable
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Restores all drained combat and non-combat stats"
+      - "Essential pair for Saradomin brews in PvM"
+      - "Core consumable across Chambers of Xeric, Theatre of Blood, and Tombs of Amascut"
+      - "Decanting from larger doses can be cheaper per dose"
+  trading_tips:
+    - "Compare per-dose pricing across the (1)(2)(3)(4) variants before buying"
+    - "Bulk decanting can flip larger doses into single doses for profit"
+  history:
+    - date: "2004-07-27"
+      description: "Super restore potions released."
+    - date: "2004-09-01"
+      description: "Now restores non-combat skills in addition to combat stats."
+    - date: "2004-10-26"
+      description: "Added an Empty option to the potion."
+    - date: "2016-04-15"
+      description: "Half-full potions made convertible to bank placeholders."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

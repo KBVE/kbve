@@ -12,9 +12,77 @@ osrs:
   lowalch: 66
   highalch: 99
   limit: 10000
-  about: "Mithril javelin tips is a members-only item in Old School RuneScape. High alchemy value: 99 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: smithing-product
+    tier: mid
+  properties:
+    release_date: "2016-05-06"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 56
+      xp: 50
+      materials:
+        - item_name: Mithril bar
+          quantity: 1
+        - item_name: Hammer
+          quantity: 1
+      tools: []
+      output_quantity: 5
+    - skill: fletching
+      level: 47
+      xp: 8
+      materials:
+        - item_name: Mithril javelin tips
+          quantity: 15
+        - item_name: Javelin shaft
+          quantity: 15
+      tools: []
+      output_quantity: 15
+  related_items:
+    - item_name: Mithril bar
+      slug: mithril-bar
+      relationship: component
+      description: "Smithed at an anvil into five javelin tips"
+    - item_name: Javelin shaft
+      slug: javelin-shaft
+      relationship: component
+      description: "Fletched onto the tips to make mithril javelins"
+    - item_name: Mithril javelin
+      slug: mithril-javelin
+      relationship: product
+      description: "Final javelin produced by combining tips with shafts"
+    - item_name: Adamant javelin tips
+      slug: adamant-javelin-tips
+      relationship: alternative
+      description: "Next-tier javelin tip"
+  about: "Mithril javelin tips are smithed five at a time from a mithril bar at 56 Smithing and combined with javelin shafts at 47 Fletching to produce mithril javelins. Stackable in the inventory; weightless."
+  market_strategy:
+    notes:
+      - "Stack-stable supply from Monkey Madness II content path"
+      - "Demand tied to ranged training with javelins"
+      - "Margin chained between bars, tips, and finished javelins"
+  trading_tips:
+    - "Track the bar to tip to javelin chain for the best leg in the spread"
+    - "Bulk fletch with shafts when tips dip below javelin sale price"
+  history:
+    - date: "2016-05-06"
+      description: "Released as part of the Monkey Madness II expansion"
+    - date: "2025-11-05"
+      description: "Renamed from 'Mithril javelin heads' to 'Mithril javelin tips'"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

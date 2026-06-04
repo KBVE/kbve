@@ -12,119 +12,125 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
   material:
     type: gem
     tier: low
-  crafting:
-    level: 20
-    xp: 50
+  properties:
+    release_date: "2001-05-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.002
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: crafting
       level: 20
       xp: 40
       materials:
         - item_name: Sapphire
-          item_id: 1607
           quantity: 1
         - item_name: Gold bar
-          item_id: 2357
           quantity: 1
-      product: Sapphire ring
-      product_id: 1637
-      product_quantity: 1
-      facility: Furnace
+        - item_name: Ring mould
+          quantity: 1
+      tools: []
+      output_quantity: 1
     - skill: crafting
       level: 22
       xp: 55
       materials:
         - item_name: Sapphire
-          item_id: 1607
           quantity: 1
         - item_name: Gold bar
-          item_id: 2357
           quantity: 1
-      product: Sapphire necklace
-      product_id: 1656
-      product_quantity: 1
-      facility: Furnace
-    - skill: crafting
-      level: 24
-      xp: 65
-      materials:
-        - item_name: Sapphire
-          item_id: 1607
+        - item_name: Necklace mould
           quantity: 1
-        - item_name: Gold bar
-          item_id: 2357
-          quantity: 1
-      product: Sapphire amulet (u)
-      product_id: 1675
-      product_quantity: 1
-      facility: Furnace
+      tools: []
+      output_quantity: 1
     - skill: crafting
       level: 23
       xp: 60
       materials:
         - item_name: Sapphire
-          item_id: 1607
           quantity: 1
         - item_name: Gold bar
-          item_id: 2357
           quantity: 1
-      product: Sapphire bracelet
-      product_id: 11072
-      product_quantity: 1
-      facility: Furnace
-      members_only: true
+        - item_name: Bracelet mould
+          quantity: 1
+      tools: []
+      output_quantity: 1
+    - skill: crafting
+      level: 24
+      xp: 65
+      materials:
+        - item_name: Sapphire
+          quantity: 1
+        - item_name: Gold bar
+          quantity: 1
+        - item_name: Amulet mould
+          quantity: 1
+      tools: []
+      output_quantity: 1
     - skill: fletching
       level: 56
       xp: 4
       materials:
         - item_name: Sapphire
-          item_id: 1607
           quantity: 1
-      product: Sapphire bolt tips
-      product_id: 9189
-      product_quantity: 12
-      members_only: true
+        - item_name: Chisel
+          quantity: 1
+      tools: []
+      output_quantity: 12
   related_items:
-    - item_id: 1623
-      item_name: Uncut sapphire
+    - item_name: Uncut sapphire
       slug: uncut-sapphire
       relationship: component
-      description: Raw gem
-    - item_id: 2550
-      item_name: Ring of recoil
-      slug: ring-of-recoil
+      description: "Raw gem cut with a chisel to produce the sapphire"
+    - item_name: Sapphire ring
+      slug: sapphire-ring
       relationship: product
-      description: Enchanted ring
-    - item_id: 3853
-      item_name: Games necklace
-      slug: games-necklace
+      description: "Crafted with a gold bar at 20 Crafting"
+    - item_name: Sapphire necklace
+      slug: sapphire-necklace
       relationship: product
-      description: Enchanted necklace
-    - item_id: 1605
-      item_name: Emerald
+      description: "Crafted with a gold bar at 22 Crafting"
+    - item_name: Sapphire bracelet
+      slug: sapphire-bracelet
+      relationship: product
+      description: "Members bracelet crafted at 23 Crafting"
+    - item_name: Sapphire amulet (u)
+      slug: sapphire-amulet-u
+      relationship: product
+      description: "Unstrung amulet crafted at 24 Crafting"
+    - item_name: Sapphire bolt tips
+      slug: sapphire-bolt-tips
+      relationship: product
+      description: "Twelve bolt tips fletched per gem at 56 Fletching"
+    - item_name: Emerald
       slug: emerald
       relationship: alternative
-      description: Higher tier gem
-  about: |-
-    | Item | Effect |
-    |------|--------|
-    | Ring of recoil | Reflects 10% damage |
-    | Games necklace | Minigame teleports |
-    | Bracelet of clay | Soft clay mining |
-    | Amulet of magic | +10 Magic attack |
+      description: "Next-tier cut gem above sapphire"
+  about: "Sapphire is the lowest tier cut gem, used to craft sapphire jewellery (ring, necklace, bracelet, amulet) and to fletch sapphire bolt tips. Foundational gem for early Crafting training and ring of recoil production."
   market_strategy:
     notes:
-      - Ring of recoil production
-      - Games necklace production
-      - Crafting training
-      - Lowest tier cut gem
-      - High volume trading
-      - Ring of recoil always needed
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "High-volume free-to-play gem market"
+      - "Ring of recoil demand provides stable floor"
+      - "Tight margin vs uncut sapphire; cut for XP, not flips"
+  trading_tips:
+    - "Watch the cut vs uncut spread to time your processing"
+    - "Bulk craft sapphire rings for ring of recoil enchanting flips"
+  history:
+    - date: "2001-05-08"
+      description: "Released as part of the original Crafting skill content"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

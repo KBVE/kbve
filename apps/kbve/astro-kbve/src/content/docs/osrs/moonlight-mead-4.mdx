@@ -12,9 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Moonlight mead(4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: beverage
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Drinking a pint heals 1 hitpoint and acts as a brewed beverage with minor effects"
+        duration: 0
+  related_items:
+    - item_name: Moonlight mead(3)
+      slug: moonlight-mead-3
+      relationship: variant
+      description: "Three-pint keg variant"
+    - item_name: Moonlight mead(2)
+      slug: moonlight-mead-2
+      relationship: variant
+      description: "Two-pint keg variant"
+    - item_name: Moonlight mead(1)
+      slug: moonlight-mead-1
+      relationship: variant
+      description: "One-pint keg variant"
+    - item_name: Beer glass
+      slug: beer-glass
+      relationship: component
+      description: "Used on the keg to extract a single pint"
+  about: "Moonlight mead(4) is a full keg containing four pints of moonlight mead. Drink directly for the full effect or use a beer glass to draw individual pints; once poured, a pint cannot be returned to the keg."
+  market_strategy:
+    notes:
+      - "Low alch floor; price tracks demand from costume room collectors"
+      - "Partially drunk versions are untradeable post-2015"
+      - "Stable bulk supply from brewing"
+  trading_tips:
+    - "Hold full (4) kegs for the costume room ale rack and Brewing diaries"
+    - "Sell into spikes around new costume room or Karamja diary content"
+  history:
+    - date: "2005-07-11"
+      description: "Released with the Brewing update introducing keg storage"
+    - date: "2015-02-26"
+      description: "Partially drunk kegs became untradeable on the Grand Exchange"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

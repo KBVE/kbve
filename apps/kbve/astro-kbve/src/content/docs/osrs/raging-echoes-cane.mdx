@@ -12,9 +12,73 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: null
-  about: "Raging echoes cane is a members-only item in Old School RuneScape. High alchemy value: 600 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2025-01-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: blunt
+    attack_speed: 5
+    weight: 1.814
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Raging echoes top (t3)
+      slug: raging-echoes-top-t3
+      relationship: set-piece
+      description: "Tier 3 Leagues outfit body bundled with the cane purchase"
+    - item_name: Trailblazer reloaded cane
+      slug: trailblazer-reloaded-cane
+      relationship: alternative
+      description: "Equivalent cosmetic cane from the prior Leagues reward shop"
+  about: Raging echoes cane is a cosmetic one-handed weapon bundled with the tier 3 Raging Echoes Relic Hunter outfit, purchased for 20,000 league points. All combat stats are zero; combat styles only adjust accuracy and strength stances.
+  market_strategy:
+    notes:
+      - "Cosmetic-only cane, no combat bonuses"
+      - "Supply gated by Leagues V (Raging Echoes) points"
+      - "Pairs with the tier 3 Raging Echoes outfit"
+  trading_tips:
+    - "Track Leagues V nostalgia cycles for predictable demand swings"
+    - "Compare against the Trailblazer reloaded cane for relative cosmetic pricing"
+  history:
+    - date: "2024-11-27"
+      description: "Added to the game ahead of Leagues V launch"
+    - date: "2025-01-15"
+      description: "Made obtainable via the Raging Echoes Leagues Reward Shop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

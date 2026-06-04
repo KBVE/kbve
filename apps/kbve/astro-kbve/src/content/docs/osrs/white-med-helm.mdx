@@ -12,9 +12,82 @@ osrs:
   lowalch: 230
   highalch: 345
   limit: 125
-  about: "White med helm is a members-only item in Old School RuneScape. High alchemy value: 345 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: white_armour
+    tier: low
+  properties:
+    release_date: "17 October 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Drop
+    worn_options:
+      - Wear
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weight: 1.814
+    requirements:
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: 0
+    defence_bonus:
+      stab: 9
+      slash: 10
+      crush: 8
+      magic: -1
+      ranged: 9
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  shops:
+    - shop_name: "White Knight Armoury"
+      location: "Falador"
+      price: 576
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Black med helm
+      slug: black-med-helm
+      relationship: alternative
+      description: "Black variant with same stats minus prayer bonus"
+    - item_name: White full helm
+      slug: white-full-helm
+      relationship: upgrade
+      description: "Full helm variant with greater coverage"
+  about: |-
+    > *"A medium sized helmet."*
+
+    The white med helm is sold by Sir Vyvin at the White Knight Armoury in Falador to players who have reached Page rank within the White Knights. It offers identical stats to a black med helm with an added +1 prayer bonus.
+  market_strategy:
+    notes:
+      - "Available from Sir Vyvin after reaching Page rank"
+      - "Shop supply limits liquidity outside the GE"
+      - "Niche demand from prayer-focused budget setups"
+  trading_tips:
+    - "Buy from Sir Vyvin and resell on GE for margin"
+    - "Watch demand from low-level prayer training accounts"
+  history:
+    - date: "17 October 2005"
+      description: "Released as part of the Wanted! quest update."
+    - date: "17 July 2007"
+      description: "Received a graphical update."
+    - date: "21 April 2021"
+      description: "Ranged attack bonus adjusted from -1 to 0."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

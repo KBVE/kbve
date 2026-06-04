@@ -12,9 +12,62 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 6000
-  about: "Banana stew is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2004-12-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - "Eat"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: "Solihib's Food Stall"
+      location: Ape Atoll
+      price: 300
+      currency: coins
+      stock: 10
+  related_items:
+    - item_name: Banana
+      slug: banana
+      relationship: component
+      description: "Mashed into the stew"
+    - item_name: Stew
+      slug: stew
+      relationship: alternative
+      description: "Standard cooked stew variant"
+    - item_name: M'speak amulet
+      slug: mspeak-amulet
+      relationship: component
+      description: "Required to talk to monkeys and access Solihib's stall"
+  about: |-
+    Banana stew is a members-only food that heals 11 hitpoints per dose. Unlike most stews, it cannot be cooked, only purchased from Solihib's Food Stall on Ape Atoll once Monkey Madness is started.
+
+    Mostly used as a novelty or thematic food item rather than serious PvM healing.
+  market_strategy:
+    notes:
+      - "Limited to one shop, supply tied to player buyout pace"
+      - "11 HP heal is weak compared to swordfish/sharks at similar price points"
+      - "Niche cosmetic/RP food demand"
+  trading_tips:
+    - "Buy out the stall during quiet hours then flip on GE for margin"
+    - "Demand spikes during Ape Atoll-themed events"
+  history:
+    - date: "2004-12-06"
+      description: "Released with the Monkey Madness quest update"
+    - date: "2006-01-30"
+      description: "Inventory sprite graphically updated"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Defence mix(1) | OSRS Price Data
-description: "Defence mix(1): One dose of fishy Defence potion.. High alch: 36 GP, GE limit: 2,000."
+description: "Defence mix(1) is a 1-dose barbarian defence potion that also restores hitpoints. High alch: 36 GP, GE limit: 2,000."
 osrs:
   id: 11459
   name: Defence mix(1)
@@ -12,9 +12,78 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 2000
-  about: "Defence mix(1) is a members-only item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.045
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Boosts Defence by floor(level / 10) + 3"
+        duration: 0
+      - description: "Restores 6 Hitpoints per dose"
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 33
+      xp: 25
+      materials:
+        - item_name: Defence potion(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Defence mix(2)
+      slug: defence-mix-2
+      relationship: variant
+      description: "Two-dose version of the mix"
+    - item_name: Defence potion(2)
+      slug: defence-potion-2
+      relationship: component
+      description: "Base potion mixed with caviar to create defence mix"
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: "Barbarian herblore mixing ingredient"
+    - item_name: Defence potion(1)
+      slug: defence-potion-1
+      relationship: alternative
+      description: "Standard 1-dose defence potion without HP restore"
+  about: |-
+    Defence mix(1) is the single-dose form of the barbarian herblore Defence mix, a hybrid potion that pairs a defence boost of floor(level / 10) + 3 with 6 Hitpoints restored per dose. It is made by combining a Defence potion(2) with caviar at level 33 Herblore for 25 XP.
+
+    Like all barbarian mixes, the potion requires the Barbarian Training subquest sections to be available, and the dual-effect makes it convenient for low-tier slayer or combat tasks where free healing is welcome.
+  market_strategy:
+    notes:
+      - "Low-volume barbarian mix — small flips only"
+      - "Per-dose value usually trails the (2) form's per-dose cost"
+      - "Caviar supply spikes can compress margins"
+  trading_tips:
+    - "Compare defence mix(1) and (2) prices per dose before listing"
+    - "Stockpile caviar during Barbarian Fishing surges to lock in cheaper potions"
+  history:
+    - date: "2007-07-03"
+      description: "Released as part of the Barbarian Training herblore mixes."
+    - date: "2016-04-15"
+      description: "Half-full potions made convertible to bank placeholders."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

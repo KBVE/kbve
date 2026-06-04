@@ -1,6 +1,6 @@
 ---
 title: Ancient medallion | OSRS Price Data
-description: "Ancient medallion: A mysterious artifact of ancient times, precious to emblem traders.. High alch: 2,400,000 GP, GE limit: 250."
+description: "Ancient medallion: A mysterious artifact of ancient times, precious to emblem traders. High alch: 2,400,000 GP, GE limit: 250."
 osrs:
   id: 22299
   name: Ancient medallion
@@ -12,9 +12,81 @@ osrs:
   lowalch: 1600000
   highalch: 2400000
   limit: 250
-  about: "Ancient medallion is a members-only item in Old School RuneScape. High alchemy value: 2,400,000 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: artifact
+    tier: high
+  properties:
+    release_date: "2018-02-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Revenant imp
+        quantity: "1"
+        rarity: "1/44000"
+      - source: Revenant goblin
+        quantity: "1"
+        rarity: "1/40000"
+      - source: Revenant dragon
+        quantity: "1"
+        rarity: "1/8000"
+      - source: Bounty crate (tier 1-9)
+        quantity: "1"
+        rarity: "9/1000"
+  related_items:
+    - item_name: Ancient emblem
+      slug: ancient-emblem
+      relationship: alternative
+      description: "Lower tier Revenant Caves artifact"
+    - item_name: Ancient totem
+      slug: ancient-totem
+      relationship: alternative
+      description: "Mid tier Revenant Caves artifact"
+    - item_name: Ancient statuette
+      slug: ancient-statuette
+      relationship: alternative
+      description: "Higher tier Revenant Caves artifact"
+    - item_name: Ancient effigy
+      slug: ancient-effigy
+      relationship: alternative
+      description: "Top tier Revenant Caves artifact"
+    - item_name: Ancient relic
+      slug: ancient-relic
+      relationship: alternative
+      description: "Rarest Revenant Caves artifact"
+    - item_name: Revenant ether
+      slug: revenant-ether
+      relationship: product
+      description: "Chisel the medallion to break it into 8,000 ether"
+  about: |-
+    > _"A mysterious artifact of ancient times, precious to emblem traders."_
+
+    The ancient medallion is a Revenant Caves artifact dropped by all revenants and from bounty crates. Since the 9 July 2025 update, using a chisel on the medallion breaks it down into 8,000 revenant ether, giving high-volume PKers a non-GE liquidity path. Buy limit 250 per 4 hours.
+  market_strategy:
+    notes:
+      - "Chisel-to-ether floor sets a hard arbitrage line vs ether price"
+      - "Supply tracks Revenant Caves PvP activity"
+      - "Bounty crate drop rate (9/1000) supplements organic supply"
+  trading_tips:
+    - "Compare GE price against 8,000 ether market value"
+    - "Watch Wilderness updates for revenant supply shocks"
+  history:
+    - date: "2018-02-08"
+      description: "Released alongside the Revenant Caves Wilderness update"
+    - date: "2025-07-09"
+      description: "Added chisel interaction breaking the medallion into 8,000 revenant ether"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

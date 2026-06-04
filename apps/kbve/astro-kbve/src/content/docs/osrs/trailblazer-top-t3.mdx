@@ -12,9 +12,78 @@ osrs:
   lowalch: 60000
   highalch: 90000
   limit: 5
-  about: "Trailblazer top (t3) is a members-only item in Old School RuneScape. High alchemy value: 90,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2021-01-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Trailblazer hood (t3)
+      slug: trailblazer-hood-t3
+      relationship: set-piece
+      description: "Matching head slot piece of the Trailblazer Relic Hunter (t3) outfit"
+    - item_name: Trailblazer trousers (t3)
+      slug: trailblazer-trousers-t3
+      relationship: set-piece
+      description: "Matching legs slot piece of the Trailblazer Relic Hunter (t3) outfit"
+    - item_name: Trailblazer boots (t3)
+      slug: trailblazer-boots-t3
+      relationship: set-piece
+      description: "Matching feet slot piece of the Trailblazer Relic Hunter (t3) outfit"
+  about: "Trailblazer top (t3) is the body piece of the tier 3 Trailblazer Relic Hunter cosmetic outfit, awarded from the Trailblazer Reloaded League. It carries no combat bonuses and is purely cosmetic, but the full t3 set is a long-term trophy for League veterans."
+  market_strategy:
+    notes:
+      - "Originates from Leagues Reward Shop (15,000 League points); supply is fixed by past League participation"
+      - "Value: 150,000 base gives 90,000 high alch but the GE price reflects collectible demand far above alch"
+      - "GE limit of 5 per 4 hours makes large flips slow; thin liquidity means wide bid/ask spreads"
+  trading_tips:
+    - "Track the full t3 set price (hood + top + trousers + boots) — pieces tend to move together when a Leagues season is announced"
+    - "Avoid buying during Leagues hype peaks; cosmetic Leagues rewards typically retrace once new cosmetics are announced"
+    - "Members-only and tradeable: ironmen cannot use the GE for these, so demand comes from main accounts only"
+  history:
+    - date: "2020-10-28"
+      description: "Added to the game as 'Trailblazer coat (t3)' during the Trailblazer League preparation update"
+    - date: "2021-01-06"
+      description: "Renamed to 'Trailblazer top (t3)' and made obtainable from the Leagues Reward Shop; base value increased from 100,000 to 150,000 coins"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

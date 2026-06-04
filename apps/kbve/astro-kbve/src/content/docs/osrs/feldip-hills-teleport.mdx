@@ -1,6 +1,6 @@
 ---
 title: Feldip hills teleport | OSRS Price Data
-description: "Feldip hills teleport: Teleports you to Feldip hills.. High alch: 6 GP, GE limit: 10,000."
+description: "Feldip hills teleport: Teleports you to Feldip hills. High alch: 6 GP, GE limit: 10,000."
 osrs:
   id: 12404
   name: Feldip hills teleport
@@ -12,9 +12,67 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 10000
-  about: "Feldip hills teleport is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: teleport scroll
+    tier: low
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.0
+    options: ["Teleport", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers: ["easy", "medium", "hard", "elite", "master"]
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: Uncommon
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: Uncommon
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: "1/340"
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: Uncommon
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: Uncommon
+  related_items:
+    - item_name: Mounted xerician
+      slug: mounted-xerician
+      relationship: alternative
+      description: "Permanent house teleport alternative for similar regions"
+    - item_name: Feldip hills tablet
+      slug: feldip-hills-tablet
+      relationship: alternative
+      description: "Construction-made tablet teleporting to the same destination"
+  about: "The Feldip hills teleport is a one-use scroll obtained from Treasure Trail reward caskets across multiple difficulty tiers. Reading it instantly teleports the player to Feldip Hills near the Hunting Expert with no skill requirements."
+  market_strategy:
+    notes:
+      - "Stackable consumable rewarded from Treasure Trail caskets"
+      - "Convenient teleport for Hunter trips and southern Kandarin travel"
+      - "High GE buy limit makes bulk supply easy for daily users"
+  trading_tips:
+    - "Stack in bulk when prices drop after clue-flood patches"
+    - "Cheap alternative to Construction tablets for occasional Hunter trips"
+    - "Volume is high so spreads are tight, ideal for steady flipping"
+  history:
+    - date: "2014-06-12"
+      description: "Feldip hills teleport added with the Treasure Trail Expansion update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

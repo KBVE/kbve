@@ -12,30 +12,85 @@ osrs:
   lowalch: 460
   highalch: 690
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: sapphire
+    tier: mid
+  properties:
+    release_date: "2007-04-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: hands
+    weapon_type: null
+    attack_speed: null
+    weight: 0.25
     requirements:
       crafting: 23
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 23
       xp: 60
-      inputs:
+      materials:
         - item_name: Sapphire
           quantity: 1
         - item_name: Gold bar
           quantity: 1
+      tools:
+        - Furnace
+        - Bracelet mould
       output_quantity: 1
   related_items:
-    - item_id: 11076
-      item_name: Emerald bracelet
+    - item_name: Bracelet of clay
+      slug: bracelet-of-clay
+      relationship: upgrade
+      description: "Enchanted form via Lvl-1 Enchant for soft clay without water"
+    - item_name: Emerald bracelet
       slug: emerald-bracelet
       relationship: upgrade
-      description: Next tier bracelet
+      description: "Next tier bracelet enchanted into Castle wars bracelet"
+    - item_name: Sapphire
+      slug: sapphire
+      relationship: component
+      description: "Cut sapphire required for the bracelet recipe"
+    - item_name: Gold bar
+      slug: gold-bar
+      relationship: component
+      description: "Gold bar smelted into the bracelet base"
   about: |-
     Crafting (Level 23): Sapphire + Gold bar at a furnace with bracelet mould (60 XP)
 
-    > *"A sapphire bracelet."*
+    > *"I wonder if this is valuable."*
 
     Lvl-1 Enchant (7 Magic): 1 cosmic rune + 1 water rune (17.5 XP)
 
@@ -54,11 +109,15 @@ osrs:
     | Onyx | 84 | Lvl-6 (87) | Regen bracelet | 2x HP regen |
   market_strategy:
     notes:
-      - Bracelet of clay in high demand for Construction
-      - Consumed after 28 uses — recurring demand
-      - Cheap to enchant
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Bracelet of clay in high demand for Construction"
+      - "Consumed after 28 uses — recurring demand"
+      - "Cheap to enchant"
+  trading_tips:
+    - "Buy unenchanted, enchant, flip as Bracelet of clay for margin"
+    - "Track Sapphire and Gold bar spreads — craft is profit-positive"
+  history:
+    - date: "2007-04-30"
+      description: "Released with the OSRS jewellery rework"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
