@@ -12,9 +12,59 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: 100
-  about: "Bronze keel parts is a members-only item in Old School RuneScape. High alchemy value: 21 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "19 November 2025"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 10
+      xp: 62.5
+      materials:
+        - item_name: Bronze bar
+          quantity: 5
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  related_items:
+    - item_name: Bronze bar
+      slug: bronze-bar
+      relationship: component
+      description: "Smelted feedstock used to forge keel parts"
+    - item_name: Large bronze keel parts
+      slug: large-bronze-keel-parts
+      relationship: product
+      description: "Higher tier sailing component made from 5 bronze keel parts"
+  about: |-
+    > *"Parts for creating a bronze keel for a boat."*
+
+    Bronze keel parts are the entry-level shipbuilding component introduced with the Sailing skill release. Each part is smithed from 5 bronze bars at an anvil, requiring Smithing 10 and granting 62.5 XP. They feed directly into bronze keels for skiffs and stack 5-per-large-part when forging large bronze keels.
+  market_strategy:
+    notes:
+      - "Supply is gated by bronze bar feedstock and the 100/day buy limit"
+      - "Demand follows new Sailing release content and shipbuilding tasks"
+  trading_tips:
+    - "Track bronze bar prices: keel parts are a thin wrapper on bar cost"
+    - "Spread buy orders over multiple accounts to bypass the 100 limit when stockpiling"
+  history:
+    - date: "19 November 2025"
+      description: "Released alongside the Sailing skill"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

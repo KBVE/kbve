@@ -12,21 +12,87 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2006-12-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 1
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: "Easy clue scroll reward casket"
+        quantity: "1"
+        rarity: "1/2808"
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 10406
-      item_name: Red elegant legs
+    - item_name: Red elegant legs
       slug: red-elegant-legs
       relationship: set-piece
-      description: Matching elegant legs
+      description: "Matching elegant trousers from easy clues"
+    - item_name: Green elegant shirt
+      slug: green-elegant-shirt
+      relationship: alternative
+      description: "Green colour variant from easy clues"
+    - item_name: Blue elegant shirt
+      slug: blue-elegant-shirt
+      relationship: alternative
+      description: "Blue colour variant from easy clues"
   about: |-
     > *"A well made elegant men's red shirt."*
 
-    Purely cosmetic treasure trail reward with no combat stats. Part of the red elegant clothing set used for fashionscape and emote clue requirements.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Purely cosmetic easy clue scroll reward with no combat stats. Pairs with red elegant legs for the full men's red elegant set and is often used for fashionscape and emote clue requirements. Storable in the costume room treasure chest.
+  market_strategy:
+    notes:
+      - "Tight buy limit of 4 caps short-term flip volume"
+      - "Long-term demand tied to easy clue grinders dumping caskets"
+  trading_tips:
+    - "Stack offers across multiple worlds for fashionscape rolls"
+    - "Watch for buy-limit-reset windows for bulk acquisition"
+  history:
+    - date: "2006-12-05"
+      description: "Released as part of the elegant clothing easy clue reward set"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

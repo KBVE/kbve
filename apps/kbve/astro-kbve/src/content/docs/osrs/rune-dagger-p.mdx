@@ -1,6 +1,6 @@
 ---
 title: Rune dagger(p) | OSRS Price Data
-description: "Rune dagger(p): The blade is covered with a nasty poison.. High alch: 4,800 GP, GE limit: 70."
+description: "Rune dagger(p) is a poisoned rune dagger requiring 40 Attack. High alch: 4,800 GP, GE limit: 70."
 osrs:
   id: 1229
   name: Rune dagger(p)
@@ -12,9 +12,101 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: 70
-  about: "Rune dagger(p) is a members-only item in Old School RuneScape. High alchemy value: 4,800 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: rune
+    tier: mid
+  properties:
+    release_date: "2001-08-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: stab_sword
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      attack: 40
+    attack_bonus:
+      stab: 25
+      slash: 12
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
+      strength: 24
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Poison
+      description: "Has a chance to poison opponents on hit, applying gradual damage over time"
+  recipes:
+    - skill: herblore
+      level: 5
+      xp: 0
+      materials:
+        - item_name: Rune dagger
+          quantity: 1
+        - item_name: Weapon poison
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Rune dagger
+      slug: rune-dagger
+      relationship: downgrade
+      description: "Unpoisoned base dagger"
+    - item_name: Rune dagger(p+)
+      slug: rune-dagger-p-plus
+      relationship: upgrade
+      description: "Upgraded with weapon poison+"
+    - item_name: Rune dagger(p++)
+      slug: rune-dagger-p-plus-plus
+      relationship: upgrade
+      description: "Upgraded with weapon poison++"
+    - item_name: Dragon dagger(p)
+      slug: dragon-dagger-p
+      relationship: upgrade
+      description: "Stronger poisoned stab special dagger"
+    - item_name: Weapon poison
+      slug: weapon-poison
+      relationship: component
+      description: "Used to poison the rune dagger"
+  about: |-
+    Rune dagger(p) is the poisoned form of the rune dagger, created by applying weapon poison to a regular rune dagger. It uses the stab combat style and has the fastest attack speed tier among one-handed melee weapons.
+
+    At 40 Attack required, it is a popular budget poisoned stab weapon for low-level PvP, Slayer trash, and pures who cannot equip a dragon dagger yet.
+  market_strategy:
+    notes:
+      - "Mid-tier poisoned stab weapon — low buy limit caps daily flips"
+      - "GE price tracks base rune dagger + weapon poison cost"
+      - "Higher poison tiers (p+, p++) command stronger premiums"
+  trading_tips:
+    - "Buy rune dagger + weapon poison separately when the poisoned variant is overpriced"
+    - "Watch poison ingredient updates — they ripple through this market"
+  history:
+    - date: "2001-08-13"
+      description: "Released alongside the rune dagger."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

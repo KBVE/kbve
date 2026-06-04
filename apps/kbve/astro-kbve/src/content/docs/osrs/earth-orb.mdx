@@ -1,6 +1,6 @@
 ---
 title: Earth orb | OSRS Price Data
-description: "Earth orb: A magic glowing orb.. High alch: 180 GP, GE limit: 11,000."
+description: "Earth orb: A magic glowing orb. High alch: 180 GP, GE limit: 11,000."
 osrs:
   id: 575
   name: Earth orb
@@ -12,64 +12,90 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 11000
-  item:
-    type: material
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: elemental orb
+    tier: mid
+  properties:
+    release_date: "2002-03-18"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options: ["Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: magic
       level: 60
       xp: 70
       materials:
-        - item_id: 567
-          item_name: Unpowered orb
+        - item_name: Unpowered orb
           quantity: 1
-        - item_id: 557
-          item_name: Earth rune
+        - item_name: Earth rune
           quantity: 30
-        - item_id: 564
-          item_name: Cosmic rune
+        - item_name: Cosmic rune
           quantity: 3
-      product: Earth orb
-      product_id: 575
+      tools: []
+      output_quantity: 1
     - skill: crafting
-      level: 63
-      xp: 100
+      level: 58
+      xp: 112.5
       materials:
-        - item_id: 575
-          item_name: Earth orb
+        - item_name: Earth orb
           quantity: 1
-        - item_id: 1391
-          item_name: Battlestaff
+        - item_name: Battlestaff
           quantity: 1
-      product: Earth battlestaff
-      product_id: 1399
+      tools: []
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Abyssal Sire
+        quantity: "1"
+        rarity: Common
+      - source: Araxxor
+        quantity: "1"
+        rarity: Uncommon
+      - source: Earthen Nagua
+        quantity: "1"
+        rarity: Uncommon
   related_items:
-    - item_id: 567
-      item_name: Unpowered orb
+    - item_name: Unpowered orb
       slug: unpowered-orb
       relationship: component
-      description: Base material for charging
-    - item_id: 1399
-      item_name: Earth battlestaff
+      description: "Base material charged at the Obelisk of Earth"
+    - item_name: Earth battlestaff
       slug: earth-battlestaff
       relationship: product
-      description: Crafted product
-    - item_id: 564
-      item_name: Cosmic rune
+      description: "Crafted by attaching an earth orb to a battlestaff at level 58 Crafting"
+    - item_name: Cosmic rune
       slug: cosmic-rune
       relationship: component
-      description: Required rune for charging
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Weight | 0.453 kg |
-
-    Combine with battlestaff (63 Crafting) to create earth battlestaff.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Required rune for charging unpowered orbs at the Obelisk of Earth"
+    - item_name: Earth rune
+      slug: earth-rune
+      relationship: component
+      description: "30 required to charge each unpowered orb at the Obelisk of Earth"
+  about: "Earth orbs are created by casting Charge Earth Orb at the Obelisk of Earth in the Edgeville Dungeon, requiring 60 Magic. They are most commonly used to craft earth battlestaves with a battlestaff at 58 Crafting, granting 112.5 XP per staff."
+  market_strategy:
+    notes:
+      - "Crafted from unpowered orbs at the Obelisk of Earth (60 Magic)"
+      - "Primary demand comes from earth battlestaff crafting at 58 Crafting"
+      - "Mid-tier elemental orb with steady demand from battlestaff crafters"
+  trading_tips:
+    - "Buy in bulk when prices dip and craft into earth battlestaves for Crafting XP plus profit"
+    - "Watch unpowered orb prices to gauge production cost"
+    - "Battlestaff and cosmic rune prices set the crafting margin"
+  history:
+    - date: "2002-03-18"
+      description: "Earth orb added to the game alongside other elemental orbs."
+    - date: "2020-09-10"
+      description: "Grand Exchange buy limit increased from 10,000 to 11,000."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

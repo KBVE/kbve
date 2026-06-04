@@ -12,18 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: metal
+    tier: low
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options: ["Drop"]
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 4
+      xp: 12.5
+      materials:
+        - item_name: Bronze bar
+          quantity: 1
+      tools: ["Hammer", "Anvil"]
+      output_quantity: 10
   related_items:
-    - item_id: 820
-      item_name: Iron dart tip
+    - item_name: Bronze bar
+      slug: bronze-bar
+      relationship: component
+      description: "Smithed input — one bar yields 10 dart tips"
+    - item_name: Bronze dart
+      slug: bronze-dart
+      relationship: product
+      description: "Fletched at 10 Fletching using feathers"
+    - item_name: Iron dart tip
       slug: iron-dart-tip
       relationship: variant
-      description: Higher tier dart tip
+      description: "Higher tier dart tip"
   about: |-
-    > _"Can be used to make bronze darts."_
+    > *"A deadly looking dart tip made of bronze - needs feathers for flight."*
 
-    Bronze dart tips are used with feathers at 1 Fletching to create bronze darts (1.8 XP each). One bar makes 10 tips.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Entry-tier dart tip smithed at 4 Smithing after completing The Tourist Trap; one bronze bar produces 10 tips for 12.5 Smithing XP. Combined with feathers at 10 Fletching, the tips become bronze darts at 1.8 Fletching XP each — staple early-game throwing weapon for low-level Slayer and Fletching training.
+  market_strategy:
+    notes:
+      - "Non-alchable — pure crafting throughput item"
+      - "Buy limit 13,000 supports bulk Fletching XP flips"
+      - "Margin tracks bronze bar and feather spread closely"
+  trading_tips:
+    - "Compare bar cost × 10 versus tip GE price for smith-flip viability"
+    - "Stack with feathers to convert into bronze darts for Fletching XP gains"
+  history:
+    - date: "2003-04-14"
+      description: "Introduced during the New Throwing Weapons update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

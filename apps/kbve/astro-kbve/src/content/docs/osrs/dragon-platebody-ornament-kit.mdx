@@ -12,60 +12,61 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
     type: ornament_kit
+    tier: high
+  properties:
+    release_date: "25 January 2018"
     tradeable: true
-    target_item: Dragon platebody
-    target_id: 21892
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Master
-        drop_rate: Rare from reward casket
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: "Reward casket (master)"
+        quantity: "1"
+        rarity: "1/12,765"
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
   related_items:
-    - item_id: 21892
-      item_name: Dragon platebody
+    - item_name: Dragon platebody
       slug: dragon-platebody
-      relationship: product
-      description: Base item to upgrade
-    - item_id: 22242
-      item_name: Dragon platebody (or)
+      relationship: component
+      description: "Base item the kit attaches to"
+    - item_name: Dragon platebody (or)
       slug: dragon-platebody-or
       relationship: product
-      description: Ornamented version
+      description: "Ornamented cosmetic variant"
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Ornament Kit |
-    | Target | Dragon platebody |
-    | Tradeable | Yes |
+    > *"Use on a dragon platebody to make it look fancier!"*
 
-    Use on a Dragon platebody to create a Dragon platebody (or).
-
-    The ornament kit:
-    - Adds gold trim to the platebody
-    - Purely cosmetic change
-    - Does not affect stats
-    - Can be reverted
-
-    Materials:
-    - Dragon platebody
-    - Dragon platebody ornament kit
-
-    Result:
-    - Dragon platebody (or) - gold trimmed version
-
-    The ornamented platebody can be reverted to return:
-    - Dragon platebody
-    - Dragon platebody ornament kit
+    The Dragon platebody ornament kit is a Master clue reward used on a Dragon platebody to create the cosmetic Dragon platebody (or). The ornamented platebody becomes untradeable but can be dismantled to recover both the platebody and the kit.
   market_strategy:
     notes:
-      - Master clue exclusive
-      - Cosmetic upgrade only
-      - Prestigious fashionscape item
-      - Collection log item
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Master clue exclusive"
+      - "Cosmetic upgrade only"
+      - "Prestigious fashionscape item"
+      - "Collection log item"
+  trading_tips:
+    - "Supply tied to Master clue completion rates"
+    - "Low GE limit (4) means thin daily liquidity"
+    - "Hold during fashionscape hype windows for premium"
+  history:
+    - date: "25 January 2018"
+      description: "Released as part of the Master Clue Scrolls update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

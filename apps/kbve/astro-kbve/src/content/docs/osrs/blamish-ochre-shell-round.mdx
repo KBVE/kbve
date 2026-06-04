@@ -12,9 +12,67 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 13000
-  about: "Blamish ochre shell (round) is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: shell
+    tier: low
+  properties:
+    release_date: "2004-10-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: "Ochre Blamish Snail (Round)"
+        quantity: "1"
+        rarity: Always
+  recipes:
+    - skill: crafting
+      level: 15
+      xp: 32.5
+      materials:
+        - item_name: Blamish ochre shell (round)
+          quantity: 1
+        - item_name: Chisel
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+  related_items:
+    - item_name: Ochre snelm (round)
+      slug: ochre-snelm-round
+      relationship: product
+      description: "Helmet crafted from this shell at 15 Crafting"
+    - item_name: Blamish myre shell (round)
+      slug: blamish-myre-shell-round
+      relationship: variant
+      description: "Myre coloured round shell variant"
+    - item_name: Blamish ochre shell (pointed)
+      slug: blamish-ochre-shell-pointed
+      relationship: variant
+      description: "Pointed ochre shell variant"
+  about: "Blamish ochre shell (round) is a members-only Crafting material dropped 100% by Ochre Blamish Snails in Mort Myre Swamp. With 15 Crafting it can be chiselled into an ochre snelm (round) for 32.5 Crafting XP."
+  market_strategy:
+    notes:
+      - "Low-volume niche Crafting material with thin daily trade"
+      - "Drop rate of 100% keeps supply elastic if demand spikes"
+      - "Best used by mid-level crafters, not flippers"
+  trading_tips:
+    - "Farm directly from Mort Myre Snails for guaranteed supply"
+    - "Convert to ochre snelm (round) only if Crafting XP justifies the GE delta"
+  history:
+    - date: "2004-10-14"
+      description: "Released with the Morytania expansion"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

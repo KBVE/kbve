@@ -12,9 +12,65 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 11000
-  about: "Nihil dust is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: secondary
+    tier: high
+  properties:
+    release_date: "2022-01-05"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Nihil shard
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+  related_items:
+    - item_name: Nihil shard
+      slug: nihil-shard
+      relationship: component
+      description: "Crushed in a pestle and mortar to produce nihil dust"
+    - item_name: Ancient brew(3)
+      slug: ancient-brew-3
+      relationship: product
+      description: "Made by adding nihil dust to a dwarf weed potion (unf)"
+    - item_name: Dwarf weed potion (unf)
+      slug: dwarf-weed-potion-unf
+      relationship: component
+      description: "Unfinished base for the ancient brew recipe"
+  about: |-
+    > *"Dust from a crushed magical shard."*
+
+    Nihil dust is the Herblore secondary unlocked from the Nex: The Fifth General update. Players crush a nihil shard with a pestle and mortar to produce one dust, then add it to a dwarf weed potion (unf) at Herblore 85 for 190 XP and an ancient brew(3).
+
+    The brew chain is one of the most efficient sources of secondary-gated Herblore XP for mid-to-late game accounts farming Nex.
+  market_strategy:
+    notes:
+      - "Tied directly to Nex loot pool and ancient brew demand"
+      - "Nihil shard supply spikes after Nex group nights drive dust prices down"
+  trading_tips:
+    - "Buy dust at peak Nex hours, flip after weekly maintenance"
+    - "Wesley in Nardah crushes herblore secondaries for 50 gp each"
+  history:
+    - date: "2022-01-05"
+      description: "Released with the Nex: The Fifth General update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Raw mackerel | OSRS Price Data
-description: "Raw mackerel: I should try cooking this.. High alch: 9 GP, GE limit: 15,000."
+description: "Raw mackerel: I should try cooking this. High alch: 9 GP, GE limit: 15,000."
 osrs:
   id: 353
   name: Raw mackerel
@@ -12,18 +12,80 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 15000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: raw_fish
+    tier: low
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.35
+    options:
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 10
+      xp: 60
+      materials:
+        - item_name: Raw mackerel
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Mountain troll
+        quantity: "1"
+        rarity: Common
+      - source: Ice troll
+        quantity: "1"
+        rarity: Common
+      - source: Wallasalki
+        quantity: "1"
+        rarity: Uncommon
+  shops:
+    - shop_name: Gerrant's Fishy Business
+      location: Port Sarim
+      price: 19
+      currency: Coins
+      stock: 5
+    - shop_name: Fishing Shop
+      location: Catherby
+      price: 19
+      currency: Coins
+      stock: 5
   related_items:
-    - item_id: 355
-      item_name: Mackerel
+    - item_name: Mackerel
       slug: mackerel
       relationship: product
-      description: Cooked version
+      description: "Cooked version at 10 Cooking"
+    - item_name: Raw cod
+      slug: raw-cod
+      relationship: alternative
+      description: "Similar big-net catch"
   about: |-
     > _"I should try cooking this."_
 
-    Raw mackerel can be cooked at 10 Cooking. One of the first fish caught with a big fishing net at sea fishing spots.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Raw mackerel is caught with a big fishing net at sea fishing spots such as Catherby and Rellekka. Cook at level 10 Cooking for 60 XP to produce mackerel.
+  market_strategy:
+    notes:
+      - "Steady supply from net fishers"
+      - "Mostly bought for cooking XP"
+      - "Drops by trolls add minor supply"
+  trading_tips:
+    - "Buy in bulk near GE mid-price"
+    - "Flip after cooking-XP demand spikes"
+  history:
+    - date: "2002-02-27"
+      description: "Released with Big Net fishing"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

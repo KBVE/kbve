@@ -12,9 +12,73 @@ osrs:
   lowalch: 44
   highalch: 66
   limit: 2000
-  about: "Extended antifire(1) is a members-only item in Old School RuneScape. High alchemy value: 66 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: mid-high
+  properties:
+    release_date: "27 March 2014"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 84
+      xp: 27.5
+      materials:
+        - item_name: Antifire potion (1)
+          quantity: 1
+        - item_name: Lava scale shard
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Extended antifire(4)
+      slug: extended-antifire-4
+      relationship: variant
+      description: "4-dose version"
+    - item_name: Extended antifire(3)
+      slug: extended-antifire-3
+      relationship: variant
+      description: "3-dose version"
+    - item_name: Extended antifire(2)
+      slug: extended-antifire-2
+      relationship: variant
+      description: "2-dose version"
+    - item_name: Extended super antifire(1)
+      slug: extended-super-antifire-1
+      relationship: upgrade
+      description: "Stronger antifire that fully blocks dragonfire without a shield"
+  about: |-
+    > *"1 dose of extended anti-firebreath potion."*
+
+    Extended antifire(1) is a single-dose variant of the extended antifire potion. Each dose grants 12 minutes (1,200 game ticks) of dragonfire protection when paired with an anti-dragon or dragonfire shield. The single-dose flask is the smallest portion and is mainly produced as a stepping-stone when decanting or sipping the last dose of a larger flask.
+
+    Brewing requires Herblore 84: combine an antifire potion with one lava scale shard at 27.5 XP per shard.
+  market_strategy:
+    notes:
+      - "Demand follows dragon-PvM and Vorkath rotations"
+      - "Single doses often arbitrage against higher doses via decanting NPCs"
+  trading_tips:
+    - "Watch lava scale shard price: feedstock cost dominates margin"
+    - "Decanting flips between (1) and (4) can lock in small per-dose spreads"
+  history:
+    - date: "27 March 2014"
+      description: "Released alongside extended antifire mechanic"
+    - date: "25 February 2016"
+      description: "Bank placeholder support added"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

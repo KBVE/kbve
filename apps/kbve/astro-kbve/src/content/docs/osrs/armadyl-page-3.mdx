@@ -12,43 +12,89 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 5
-  item:
-    type: god_page
-    god: Armadyl
-    page_number: 3
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: god-page
+    tier: mid
+  properties:
+    release_date: "2014-07-03"
     tradeable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard/Elite
-        drop_rate: Varies by tier
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+      - master
+  drop_table:
+    sources:
+      - source: Easy clue scroll (standard)
+        quantity: "1"
+        rarity: 11/9,504
+      - source: Easy clue scroll (Entrana)
+        quantity: "1"
+        rarity: 1/408
+      - source: Medium clue scroll (standard)
+        quantity: "1"
+        rarity: 10/8,184
+      - source: Medium clue scroll (Entrana)
+        quantity: "1"
+        rarity: 1/408
+      - source: Hard clue scroll
+        quantity: "1"
+        rarity: 1/650
+      - source: Elite clue scroll
+        quantity: "1"
+        rarity: 1/775
+      - source: Master clue scroll
+        quantity: "1"
+        rarity: 1/702.6
   related_items:
-    - item_id: 12617
-      item_name: Armadyl page 1
+    - item_name: Armadyl page 1
       slug: armadyl-page-1
       relationship: set-piece
-      description: Page 1 of 4
-    - item_id: 12618
-      item_name: Armadyl page 2
+      description: "Page 1 of 4"
+    - item_name: Armadyl page 2
       slug: armadyl-page-2
       relationship: set-piece
-      description: Page 2 of 4
-    - item_id: 12620
-      item_name: Armadyl page 4
+      description: "Page 2 of 4"
+    - item_name: Armadyl page 4
       slug: armadyl-page-4
       relationship: set-piece
-      description: Page 4 of 4
+      description: "Page 4 of 4"
+    - item_name: Book of law
+      slug: book-of-law
+      relationship: product
+      description: "Completed god book once all four pages are added"
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | God Page |
-    | God | Armadyl |
-    | Page | 3 of 4 |
-    | Tradeable | Yes |
+    Armadyl page 3 is one of four pages used to complete the Book of law (Armadyl god book). All four pages plus the unblessed book combine into the completed god book, which can then be wielded.
 
-    Add to incomplete Book of law (Armadyl god book) to complete it.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Pages drop across all clue scroll difficulties from easy through master, with hard and elite tiers offering the best rates per scroll.
+  market_strategy:
+    notes:
+      - "Demand from players assembling Book of law"
+      - "Drop rates cap supply: clue scrolls only"
+      - "GE limit of 5 keeps spreads volatile"
+  trading_tips:
+    - "Watch all four page prices: hoarding one page only helps if it lags behind the others"
+    - "Best margins land right after clue-scroll demand spikes from streamer attention"
+  history:
+    - date: "2014-07-03"
+      description: "Released alongside the introduction of god books to Old School"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

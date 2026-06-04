@@ -12,9 +12,62 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Lemon chunks is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: food-ingredient
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.08
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Lemon
+          quantity: 1
+        - item_name: Knife
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Lemon
+      slug: lemon
+      relationship: component
+      description: "Source fruit: diced with a knife to produce chunks"
+    - item_name: Orange chunks
+      slug: orange-chunks
+      relationship: alternative
+      description: "Alternative citrus chunks used in gnome cocktails"
+    - item_name: Sliced lime
+      slug: sliced-lime
+      relationship: component
+      description: "Co-ingredient in Blurberry special cocktail"
+  about: "Lemon chunks are a members-only gnome cooking ingredient produced by using a knife on a lemon. Primarily used in the Blurberry special cocktail (Cooking 37) alongside orange chunks, equa leaves, sliced lime, and mixed special base."
+  market_strategy:
+    notes:
+      - "Small margin from dicing lemons into chunks"
+      - "Demand tied to gnome cocktail training"
+      - "Stable low-volume ingredient market"
+  trading_tips:
+    - "Buy lemons and dice them: the chunks resell higher than the raw fruit"
+    - "Stock for Gnome Restaurant minigame and Blurberry special demand"
+  history:
+    - date: "2002-12-12"
+      description: "Released with the Gnome Stronghold cooking content"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

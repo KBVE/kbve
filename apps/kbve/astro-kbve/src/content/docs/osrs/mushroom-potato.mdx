@@ -1,6 +1,6 @@
 ---
 title: Mushroom potato | OSRS Price Data
-description: "Mushroom potato: A baked potato with mushroom and onions.. High alch: 27 GP, GE limit: 13,000."
+description: "Mushroom potato: A baked potato with mushroom and onions. High alch: 27 GP, GE limit: 13,000."
 osrs:
   id: 7058
   name: Mushroom potato
@@ -12,9 +12,68 @@ osrs:
   lowalch: 18
   highalch: 27
   limit: 13000
-  about: "Mushroom potato is a members-only item in Old School RuneScape. High alchemy value: 27 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: food
+    tier: mid
+  properties:
+    release_date: "2006-01-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 64
+      xp: 55
+      materials:
+        - item_name: Potato with butter
+          quantity: 1
+        - item_name: Mushroom & onion
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Healing
+      description: "Restores 20 Hitpoints when eaten"
+  related_items:
+    - item_name: Potato with butter
+      slug: potato-with-butter
+      relationship: component
+      description: "Base ingredient for the topped potato"
+    - item_name: "Mushroom & onion"
+      slug: mushroom-and-onion
+      relationship: component
+      description: "Topping mix combined with the buttered potato"
+    - item_name: Tuna potato
+      slug: tuna-potato
+      relationship: alternative
+      description: "Higher-tier topped potato that heals 22 HP"
+  about: |-
+    > _"A baked potato with mushroom and onions."_
+
+    The mushroom potato is a members cooked food that heals 20 Hitpoints. Made by combining a potato with butter and a mushroom & onion mix at 64 Cooking for 55 XP. Eating the ingredients separately actually heals more total HP, so the mushroom potato is mostly used as a compact mid-tier food for slayer trips.
+  market_strategy:
+    notes:
+      - "Profit comes from cooking topped potatoes for high cooking XP/hr"
+      - "Topping cost: mushroom & onion plus potato with butter"
+      - "Single-tick to cook on bonfire makes XP/hr competitive"
+  trading_tips:
+    - "Watch margin between ingredient totals and finished potato"
+    - "Buy limit 13,000 per 4 hours"
+  history:
+    - date: "2006-01-30"
+      description: "Released as part of the Gnome Cooking expansion"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,73 @@ osrs:
   lowalch: 6466
   highalch: 9700
   limit: 10000
-  about: "Runite crossbow (u) is a members-only item in Old School RuneScape. High alchemy value: 9,700 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: unstrung-weapon
+    tier: high
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 8
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 69
+      xp: 100
+      materials:
+        - item_name: Yew stock
+          quantity: 1
+        - item_name: Runite limbs
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+  related_items:
+    - item_name: Yew stock
+      slug: yew-stock
+      relationship: component
+      description: "Wood stock combined with runite limbs to fletch the unstrung crossbow"
+    - item_name: Runite limbs
+      slug: runite-limbs
+      relationship: component
+      description: "Smithed limbs combined with a yew stock to fletch the unstrung crossbow"
+    - item_name: Rune crossbow
+      slug: rune-crossbow
+      relationship: product
+      description: "Strung result — attach a crossbow string for 50 Fletching xp at level 69"
+    - item_name: Adamant crossbow (u)
+      slug: adamant-crossbow-u
+      relationship: downgrade
+      description: "Lower-tier unstrung crossbow at 61 Fletching"
+  about: "Runite crossbow (u) is the unstrung form of the rune crossbow, fletched from one yew stock and one runite limbs at 69 Fletching for 100 xp. Adding a crossbow string completes it into a Rune crossbow (50 xp), the best mainstream pre-dragon-crossbow ranged weapon for ironmen and budget setups."
+  market_strategy:
+    notes:
+      - "Demand is driven by Fletching trainers passing through 69 to higher levels and by ironmen building rune crossbows"
+      - "Supply is gated by runite limbs (Smithing) and yew stocks (Fletching); both intermediates have steady availability"
+      - "Buy limit of 10,000 per 4 hours supports bulk Fletching grinds without GE friction"
+  trading_tips:
+    - "Compare GE price vs (yew stock + runite limbs): a positive spread means fletchers profit by selling unstrung"
+    - "Strung Rune crossbow demand is steady; the unstrung form generally trades close to material cost"
+    - "Watch DXP weekends — Fletching xp events lift unstrung crossbow supply as bulk grinders dump output"
+  history:
+    - date: "2006-07-31"
+      description: "Released alongside crossbow content as part of the Fletching expansion to support metal crossbows"
+    - date: "2014-12-10"
+      description: "Renamed from 'Runite c'bow (u)' to 'Runite crossbow (u)' for consistency"
+    - date: "2015-09-24"
+      description: "Allowed creation while boosted into the Fletching level requirement"
+    - date: "2021-07-07"
+      description: "Adjusted female player animation so the crossbow is held correctly"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

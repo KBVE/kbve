@@ -12,9 +12,59 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15
-  about: "Kharidian headpiece is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2005-04-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.07
+    options: ["Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Ali Morrisane
+      location: Al Kharid
+      price: 1
+      currency: Coins
+      stock: 12
+    - shop_name: Pollnivneach general store
+      location: Pollnivneach
+      price: 1
+      currency: Coins
+      stock: 12
+  related_items:
+    - item_name: Karidian disguise
+      slug: karidian-disguise
+      relationship: alternative
+      description: "Costume used during The Feud quest sequence"
+  about: |-
+    > *"Wear it on your head."*
+
+    Cheap shop-sold desert headpiece tied to The Feud quest props. Despite the examine, it has no wear option; the item provides 12 seconds of desert heat protection when held. Shops in Al Kharid and Pollnivneach stock 12 at 1 coin each with a 6-second restock, so the GE price largely reflects collector convenience rather than supply scarcity.
+  market_strategy:
+    notes:
+      - "Buy limit 15 sharply caps flips"
+      - "Restock-from-shop floor keeps the GE price ceiling thin"
+      - "Demand driven by quest helpers and collection log filling"
+  trading_tips:
+    - "Restock from Ali Morrisane or Pollnivneach when GE outpaces shop price"
+    - "Niche item — list low quantities to clear faster"
+  history:
+    - date: "2005-04-04"
+      description: "Released alongside The Feud quest"
+    - date: "2015-02"
+      description: "Renamed from Karidian headpiece to Kharidian headpiece"
+    - date: "2023-03"
+      description: "Desert heat protection added (12 seconds)"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,51 @@ osrs:
   lowalch: 40000
   highalch: 60000
   limit: 5
-  about: "Twisted horns is a members-only item in Old School RuneScape. High alchemy value: 60,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: bone
+    tier: high
+  properties:
+    release_date: "2020-01-16"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Inspect
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Twisted slayer helmet
+      slug: twisted-slayer-helmet
+      relationship: product
+      description: "Cosmetic helmet created by combining these horns with a slayer helmet"
+    - item_name: "Twisted slayer helmet (i)"
+      slug: twisted-slayer-helmet-i
+      relationship: product
+      description: "Imbued cosmetic variant for combining with an imbued slayer helmet"
+    - item_name: Slayer helmet
+      slug: slayer-helmet
+      relationship: component
+      description: "Base helmet attached to the horns"
+  about: "Twisted horns are a members-only cosmetic Slayer reward originally sold in the Trailblazer Leagues Reward Shop for 6,000 league points. They unlock the Twisted slayer helmet cosmetic after purchasing the Twisted Vision unlock for 1,000 slayer reward points."
+  market_strategy:
+    notes:
+      - "Cosmetic-only demand from Slayer fashionscape enthusiasts"
+      - "Hard supply cap from Leagues makes this a premium collectible"
+      - "Buy limit of 5 per 4 hours keeps positions small"
+  trading_tips:
+    - "Track Slayer/Leagues update news for demand catalysts"
+    - "Do not alch — 60,000 gp high alch value is far below market price"
+  history:
+    - date: "2020-01-16"
+      description: "Released via the Trailblazer League Reward Shop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

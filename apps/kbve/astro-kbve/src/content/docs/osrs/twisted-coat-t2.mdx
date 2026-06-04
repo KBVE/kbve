@@ -1,6 +1,6 @@
 ---
 title: Twisted coat (t2) | OSRS Price Data
-description: "Twisted coat (t2): The coat of a twisted relic hunter.. High alch: 6,000 GP, GE limit: 5."
+description: "Twisted coat (t2): The coat of a twisted relic hunter. High alch: 6,000 GP, GE limit: 5."
 osrs:
   id: 24399
   name: Twisted coat (t2)
@@ -12,9 +12,94 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 5
-  about: "Twisted coat (t2) is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: mid-high
+  properties:
+    release_date: "2019-11-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Leagues Reward Shop
+      location: Trailblazer League
+      price: 2500
+      currency: League Points
+      stock: 1
+  related_items:
+    - item_name: Twisted hood (t2)
+      slug: twisted-hood-t2
+      relationship: set-piece
+      description: "Head slot of the Tier 2 twisted relic hunter outfit"
+    - item_name: Twisted trousers (t2)
+      slug: twisted-trousers-t2
+      relationship: set-piece
+      description: "Legs slot of the Tier 2 twisted relic hunter outfit"
+    - item_name: Twisted boots (t2)
+      slug: twisted-boots-t2
+      relationship: set-piece
+      description: "Feet slot of the Tier 2 twisted relic hunter outfit"
+    - item_name: Twisted coat (t1)
+      slug: twisted-coat-t1
+      relationship: downgrade
+      description: "Tier 1 version of the coat"
+    - item_name: Twisted coat (t3)
+      slug: twisted-coat-t3
+      relationship: upgrade
+      description: "Tier 3 version of the coat"
+  about: |-
+    Twisted coat (t2) is the body slot piece of the Tier 2 twisted relic hunter outfit, originally distributed through the Trailblazer League reward shop. It is purely cosmetic and grants no combat bonuses.
+
+    The coat was untradeable when first added with the Twisted League event, but the 16 January 2020 update made the surplus Trailblazer rewards tradeable and noteable, opening the GE market for collectors.
+  market_strategy:
+    notes:
+      - "Pure cosmetic — value driven by collector demand"
+      - "Buy limit of 5 keeps daily flips small"
+      - "Set value tends to track the four matching pieces together"
+  trading_tips:
+    - "Watch event re-runs and leagues anniversaries — fresh supply tanks price"
+    - "Compare to t1 and t3 coats before listing"
+  history:
+    - date: "2019-11-14"
+      description: "Added to the game alongside the Twisted League rewards."
+    - date: "2020-01-16"
+      description: "Made obtainable from the Leagues Reward Shop, tradeable, and noteable; value increased from 500 to 10,000 coins."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
