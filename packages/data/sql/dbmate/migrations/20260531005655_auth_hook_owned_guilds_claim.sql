@@ -35,11 +35,17 @@ BEGIN;
 --        - updated_at maintenance
 --      Owner pinned to postgres explicitly so SECURITY DEFINER
 --      behaviour is stable across local/CI/prod environments.
---   4. profile.get_discord_owned_guilds_claim(uuid, timestamptz) —
+--   4. profile.service_get_discord_bootstrap_cache_freshness(uuid)
+--      — narrow read RPC for dashboard freshness peeks. Returns
+--      refreshed_at/updated_at/created_at/guild_count for a single
+--      user_id; never exposes discord_provider_id or the
+--      owned_guilds list. service_role has EXECUTE only — no
+--      direct table SELECT.
+--   5. profile.get_discord_owned_guilds_claim(uuid, timestamptz) —
 --      SQL helper that fetches the claim. STABLE + COST 20 so the
 --      planner can inline + cost-estimate around the call. Hook
 --      delegates here instead of carrying a CTE.
---   5. public.custom_access_token_hook(jsonb) — slim PL/pgSQL hook,
+--   6. public.custom_access_token_hook(jsonb) — slim PL/pgSQL hook,
 --      defers guild lookup to the helper, applies the JWT claim.
 --
 -- The hook does NO external calls and never blocks. The helper does
@@ -111,7 +117,7 @@ CREATE TABLE profile.discord_bootstrap_cache (
 );
 
 COMMENT ON TABLE profile.discord_bootstrap_cache IS
-    'Per-user Discord bootstrap cache. Populated exclusively via profile.service_upsert_discord_bootstrap_cache RPC; service_role has SELECT only (no direct INSERT/UPDATE/DELETE) so all writes are funnelled through the RPC for centralised validation, canonicalisation, advisory-lock serialisation, and account-relink handling. SELECT is granted to service_role specifically for dashboard freshness peeks; the RPC''s ON CONFLICT path is satisfied by the SECURITY DEFINER owner (postgres) and does not require caller SELECT. supabase_auth_admin has SELECT for custom_access_token_hook at JWT mint.';
+    'Per-user Discord bootstrap cache. All access flows through SECURITY DEFINER RPCs (postgres-owned) — service_role has NO direct table privileges. Writes go through profile.service_upsert_discord_bootstrap_cache (centralised validation + canonicalisation + advisory-lock serialisation + relink handling). Dashboard freshness reads go through profile.service_get_discord_bootstrap_cache_freshness (returns only refreshed_at/updated_at/guild_count for a specific user_id; never exposes the full provider_id + owned_guilds list to broad service-role reads). supabase_auth_admin has SELECT for custom_access_token_hook at JWT mint.';
 
 REVOKE ALL ON TABLE profile.discord_bootstrap_cache
     FROM PUBLIC, anon, authenticated;
@@ -126,14 +132,14 @@ GRANT SELECT ON TABLE  profile.discord_bootstrap_cache TO supabase_auth_admin;
 -- guarantee this; the grant is idempotent and the assertion below
 -- catches future revoke drift.
 GRANT USAGE ON SCHEMA profile TO service_role;
--- Round 8 #4: corrected justification. The RPC runs SECURITY
--- DEFINER as postgres, so ON CONFLICT visibility is satisfied by
--- the RPC owner's privileges — service_role SELECT is NOT needed
--- for the upsert path. The real reason service_role keeps SELECT
--- is dashboard freshness peeks (e.g. P5.8c surfacing "last
--- refreshed N minutes ago" without going through another RPC
--- layer). Writes still flow only through the SECURITY DEFINER RPC.
-GRANT SELECT ON TABLE profile.discord_bootstrap_cache TO service_role;
+-- Round 10 #1: service_role intentionally has NO direct privilege
+-- on the cache table. Earlier rounds granted SELECT for "dashboard
+-- freshness peeks" but that exposed every cached row's
+-- discord_provider_id + owned_guilds list to broad service-role
+-- read access. Replaced with a narrow SECURITY DEFINER RPC
+-- (profile.service_get_discord_bootstrap_cache_freshness below)
+-- that returns only refreshed_at / updated_at / guild_count for
+-- a specific user_id. Dashboard (P5.8c) reads through the RPC.
 
 -- Round 9 #4: RLS is enabled for caller roles. FORCE ROW LEVEL
 -- SECURITY is intentionally NOT used here because the postgres-
@@ -194,8 +200,10 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
-    v_canonical text[];
-    v_now       timestamptz := statement_timestamp();
+    v_canonical        text[];
+    v_now              timestamptz := statement_timestamp();
+    v_input_count      integer     := cardinality(COALESCE(p_owned_guilds, ARRAY[]::text[]));
+    v_relinked_user_id uuid;
 BEGIN
     -- Round 7 #7: USING ERRCODE = '22023' (invalid_parameter_value)
     -- on all validation failures so service callers (axum-kbve etc.)
@@ -261,14 +269,39 @@ BEGIN
            LIMIT 50
       ) AS s;
 
+    -- Round 10 #4: silent canonicalisation filter is the chosen
+    -- policy — Discord's API isn't fully under our control, so
+    -- one bad guild id shouldn't break the whole OAuth refresh.
+    -- But we RAISE LOG when filtering so the drop shows up in
+    -- Postgres logs (log_min_messages=log captures it).
+    IF v_input_count <> cardinality(v_canonical) THEN
+        RAISE LOG 'service_upsert_discord_bootstrap_cache: filtered % of % owned_guilds (NULL/non-snowflake/dup/cap) for user=%',
+            v_input_count - cardinality(v_canonical), v_input_count, p_user_id;
+    END IF;
+
     -- Account relinking: drop stale row carrying same provider_id
     -- under a different user_id so the upsert below can succeed
     -- against the discord_provider_id UNIQUE constraint without
-    -- raising a raw unique_violation.
+    -- raising a raw unique_violation. Round 10 #3: capture the
+    -- displaced user_id into v_relinked_user_id + RAISE LOG so
+    -- relinks are observable in Postgres logs.
     DELETE FROM profile.discord_bootstrap_cache
      WHERE discord_provider_id = p_discord_provider_id
-       AND user_id <> p_user_id;
+       AND user_id <> p_user_id
+    RETURNING user_id INTO v_relinked_user_id;
 
+    IF v_relinked_user_id IS NOT NULL THEN
+        RAISE LOG 'service_upsert_discord_bootstrap_cache: relinked discord_provider_id=% from user=% to user=%',
+            p_discord_provider_id, v_relinked_user_id, p_user_id;
+    END IF;
+
+    -- Round 10 #5: ON CONFLICT (user_id) DO UPDATE intentionally
+    -- allows the SAME user to swap their discord_provider_id
+    -- (e.g. user re-OAuths under a different Discord account but
+    -- the same Supabase identity). This is symmetric with the
+    -- account-relink case handled above (different user_ids
+    -- pointing at the same provider_id). Both flows are normal
+    -- OAuth lifecycle events.
     INSERT INTO profile.discord_bootstrap_cache AS c
         (user_id, discord_provider_id, owned_guilds, refreshed_at, created_at, updated_at)
     VALUES
@@ -290,6 +323,49 @@ COMMENT ON FUNCTION profile.service_upsert_discord_bootstrap_cache(uuid, text, t
 REVOKE EXECUTE ON FUNCTION profile.service_upsert_discord_bootstrap_cache(uuid, text, text[], timestamptz)
     FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION profile.service_upsert_discord_bootstrap_cache(uuid, text, text[], timestamptz)
+    TO service_role;
+
+-- ------------------------------------------------------------
+-- Narrow read RPC for dashboard freshness peeks (round 10 #1)
+-- ------------------------------------------------------------
+-- Returns only the row metadata the dashboard needs to render
+-- "last refreshed N minutes ago" — never exposes
+-- discord_provider_id or the owned_guilds list. SECURITY DEFINER +
+-- owned by postgres so service_role doesn't need direct SELECT on
+-- the table.
+CREATE OR REPLACE FUNCTION profile.service_get_discord_bootstrap_cache_freshness(
+    p_user_id uuid
+)
+RETURNS TABLE (
+    refreshed_at timestamptz,
+    updated_at   timestamptz,
+    created_at   timestamptz,
+    guild_count  integer
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+    SELECT
+        c.refreshed_at,
+        c.updated_at,
+        c.created_at,
+        cardinality(c.owned_guilds)::integer AS guild_count
+    FROM profile.discord_bootstrap_cache AS c
+    WHERE p_user_id IS NOT NULL
+      AND c.user_id  = p_user_id;
+$$;
+
+ALTER FUNCTION profile.service_get_discord_bootstrap_cache_freshness(uuid)
+    OWNER TO postgres;
+
+COMMENT ON FUNCTION profile.service_get_discord_bootstrap_cache_freshness(uuid) IS
+    'Narrow read RPC for dashboard freshness rendering. Returns refreshed_at + updated_at + created_at + guild_count for a single user_id; never exposes discord_provider_id or the owned_guilds list. SECURITY DEFINER + owned by postgres; service_role has EXECUTE only.';
+
+REVOKE EXECUTE ON FUNCTION profile.service_get_discord_bootstrap_cache_freshness(uuid)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION profile.service_get_discord_bootstrap_cache_freshness(uuid)
     TO service_role;
 
 -- ------------------------------------------------------------
@@ -319,7 +395,9 @@ AS $$
     -- unnecessary (no row matches NULL user_id), but documents
     -- intent and protects against planner edge cases on future
     -- index/partition changes.
-    SELECT COALESCE(to_jsonb(array_agg(g ORDER BY ord)), '[]'::jsonb)
+    -- Round 10 #6: jsonb_agg over to_jsonb(array_agg(...)) — one
+    -- pass instead of two (array build then jsonb cast).
+    SELECT COALESCE(jsonb_agg(g ORDER BY ord), '[]'::jsonb)
       FROM (
           SELECT g, ord
             FROM profile.discord_bootstrap_cache AS c,
@@ -441,6 +519,7 @@ BEGIN
     PERFORM 'public.custom_access_token_hook(jsonb)'::regprocedure;
     PERFORM 'profile.discord_owned_guilds_are_valid(text[])'::regprocedure;
     PERFORM 'profile.service_upsert_discord_bootstrap_cache(uuid,text,text[],timestamptz)'::regprocedure;
+    PERFORM 'profile.service_get_discord_bootstrap_cache_freshness(uuid)'::regprocedure;
     PERFORM 'profile.get_discord_owned_guilds_claim(uuid,timestamptz)'::regprocedure;
 
     IF NOT has_schema_privilege('supabase_auth_admin', 'public', 'USAGE') THEN
@@ -466,6 +545,10 @@ BEGIN
        OR has_function_privilege('authenticated', 'profile.service_upsert_discord_bootstrap_cache(uuid,text,text[],timestamptz)', 'EXECUTE') THEN
         RAISE EXCEPTION 'service_upsert RPC must not be executable by anon/authenticated.';
     END IF;
+    IF has_function_privilege('anon', 'profile.service_get_discord_bootstrap_cache_freshness(uuid)', 'EXECUTE')
+       OR has_function_privilege('authenticated', 'profile.service_get_discord_bootstrap_cache_freshness(uuid)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'service_get_..._freshness RPC must not be executable by anon/authenticated.';
+    END IF;
     IF has_function_privilege('anon',          'public.custom_access_token_hook(jsonb)', 'EXECUTE')
        OR has_function_privilege('authenticated','public.custom_access_token_hook(jsonb)', 'EXECUTE')
        OR has_function_privilege('public',     'public.custom_access_token_hook(jsonb)', 'EXECUTE') THEN
@@ -489,8 +572,14 @@ BEGIN
     IF NOT has_table_privilege('supabase_auth_admin', 'profile.username', 'SELECT') THEN
         RAISE EXCEPTION 'supabase_auth_admin must hold SELECT on profile.username for custom_access_token_hook.';
     END IF;
-    IF NOT has_table_privilege('service_role', 'profile.discord_bootstrap_cache', 'SELECT') THEN
-        RAISE EXCEPTION 'service_role must hold SELECT on profile.discord_bootstrap_cache for dashboard freshness peeks.';
+    -- Round 10 #1: service_role intentionally has NO direct table
+    -- privileges. Dashboard freshness goes through the narrow
+    -- service_get_discord_bootstrap_cache_freshness RPC instead.
+    IF has_table_privilege('service_role', 'profile.discord_bootstrap_cache', 'SELECT') THEN
+        RAISE EXCEPTION 'service_role must NOT have direct SELECT on profile.discord_bootstrap_cache; use service_get_..._freshness RPC.';
+    END IF;
+    IF NOT has_function_privilege('service_role', 'profile.service_get_discord_bootstrap_cache_freshness(uuid)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'service_role must hold EXECUTE on profile.service_get_discord_bootstrap_cache_freshness for dashboard freshness peeks.';
     END IF;
     IF has_table_privilege('service_role', 'profile.discord_bootstrap_cache', 'INSERT') THEN
         RAISE EXCEPTION 'service_role must NOT have direct INSERT on profile.discord_bootstrap_cache; use service_upsert RPC.';
@@ -624,6 +713,25 @@ BEGIN
     IF jsonb_typeof(v_out->'claims') <> 'object' THEN
         RAISE EXCEPTION 'smoke 6: claims must be object after NULL coerce, got %', v_out;
     END IF;
+
+    -- Round 10 #7: valid UUID with no cache row but an attacker-
+    -- supplied owned_guilds claim → must be stripped + replaced
+    -- with the canonical empty cache result. Covers the security
+    -- boundary on the valid-but-empty path (smoke 2 covers the
+    -- malformed-user_id path).
+    v_out := public.custom_access_token_hook(
+        jsonb_build_object(
+            'user_id', '00000000-0000-0000-0000-000000000000',
+            'claims', jsonb_build_object(
+                'role', 'authenticated',
+                'owned_guilds', jsonb_build_array('999999999999999999')
+            )
+        )
+    );
+    IF v_out->'claims'->'owned_guilds' <> '[]'::jsonb THEN
+        RAISE EXCEPTION 'smoke 7: valid-no-cache attacker owned_guilds must be overwritten with empty claim, got %',
+            v_out->'claims'->'owned_guilds';
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -740,9 +848,11 @@ REVOKE EXECUTE ON FUNCTION public.custom_access_token_hook(jsonb)
 GRANT EXECUTE ON FUNCTION public.custom_access_token_hook(jsonb)
     TO supabase_auth_admin;
 
--- Drop in dependency order: helper (called by nothing in down), RPC
--- (writes to table), table (cascades policies), validator.
+-- Drop in dependency order: helper + freshness RPC (called by
+-- nothing in down), upsert RPC (writes to table), table (cascades
+-- policies), validator.
 DROP FUNCTION  IF EXISTS profile.get_discord_owned_guilds_claim(uuid, timestamptz);
+DROP FUNCTION  IF EXISTS profile.service_get_discord_bootstrap_cache_freshness(uuid);
 DROP FUNCTION  IF EXISTS profile.service_upsert_discord_bootstrap_cache(uuid, text, text[], timestamptz);
 DROP TABLE     IF EXISTS profile.discord_bootstrap_cache;
 DROP FUNCTION  IF EXISTS profile.discord_owned_guilds_are_valid(text[]);
