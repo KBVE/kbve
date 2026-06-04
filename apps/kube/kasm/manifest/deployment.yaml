@@ -158,7 +158,7 @@ spec:
                           cpu: '500m'
 
                 - name: workspace
-                  image: ghcr.io/kbve/kasm-void:0.0.3
+                  image: ghcr.io/kbve/kasm-void:0.0.4
                   imagePullPolicy: IfNotPresent
                   securityContext:
                       runAsNonRoot: true
