@@ -84,8 +84,7 @@ void SchuckInventorySlot::OnPaintIcon(const FGeometry& Geom, FSlateWindowElement
 	UchuckItemDB* DB = GetDB();
 	if (!Def) return;
 
-	const bool bHasImage  = Def->bHasImg;
-	const bool bDrawAtlas = bHasImage && DB && DB->HasAtlas() && DB->GetAtlasHandle().IsValid();
+	const bool bDrawAtlas = DB && DB->HasAtlas() && DB->GetAtlasHandle().IsValid();
 	if (bDrawAtlas)
 	{
 		FVector2D UVTL, UVBR;

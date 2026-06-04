@@ -74,6 +74,14 @@
 			"Enabled": true
 		},
 		{
+			"Name": "KBVEEvents",
+			"Enabled": true
+		},
+		{
+			"Name": "AsyncMessageSystem",
+			"Enabled": true
+		},
+		{
 			"Name": "KBVEROWS",
 			"Enabled": false
 		}

@@ -30,15 +30,18 @@ public class chuck : ModuleRules
 			"Json",
 			"JsonUtilities",
 			"ImageWrapper",
+			"AsyncMessageSystem",
 			"KBVEYYJson",
 			"KBVEXXHash",
 			"KBVEULID",
-			"KBVEUI"
+			"KBVEUI",
+			"KBVEEvents"
 		});
 
 		PublicIncludePaths.AddRange(new string[] {
 			"chuck",
 			"chuck/Core",
+			"chuck/Events",
 			"chuck/Item",
 			"chuck/Mass",
 			"chuck/UI",

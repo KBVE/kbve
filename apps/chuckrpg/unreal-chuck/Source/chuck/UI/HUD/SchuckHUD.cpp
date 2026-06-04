@@ -7,13 +7,11 @@
 
 void SchuckHUD::Construct(const FArguments& InArgs)
 {
-	SetCanTick(true);
-
 	const ISlateStyle& Style = FChuckUIStyle::Get();
 
-	auto HealthPct  = [this]() { return Target.HealthMax  > 0.f ? FMath::Clamp(DisplayHealthCurrent  / Target.HealthMax,  0.f, 1.f) : 0.f; };
-	auto ManaPct    = [this]() { return Target.ManaMax    > 0.f ? FMath::Clamp(DisplayManaCurrent    / Target.ManaMax,    0.f, 1.f) : 0.f; };
-	auto StaminaPct = [this]() { return Target.StaminaMax > 0.f ? FMath::Clamp(DisplayStaminaCurrent / Target.StaminaMax, 0.f, 1.f) : 0.f; };
+	auto HealthPct  = [this]() { return DisplayHealth;  };
+	auto ManaPct    = [this]() { return DisplayMana;    };
+	auto StaminaPct = [this]() { return DisplayStamina; };
 
 	auto MaxHealth  = [this]() { return Target.HealthMax;  };
 	auto MaxMana    = [this]() { return Target.ManaMax;    };
@@ -33,7 +31,7 @@ void SchuckHUD::Construct(const FArguments& InArgs)
 		const bool bExhausted = Target.StaminaRegenDelay > 0.f;
 		const bool bWarn      = !bExhausted && Target.StaminaCurrent < Target.StaminaWarnThreshold;
 		if (!bWarn) return CS;
-		const float Pulse = 0.5f + 0.5f * FMath::Sin(Target.TimeSeconds * 9.f);
+		const float Pulse = 0.5f + 0.5f * FMath::Sin(HUDTimeSeconds * 9.f);
 		return FLinearColor(
 			CS.R * (0.8f + 0.2f * Pulse),
 			CS.G * (0.8f + 0.2f * Pulse),
@@ -46,12 +44,12 @@ void SchuckHUD::Construct(const FArguments& InArgs)
 		const bool bWarn      = !bExhausted && Target.StaminaCurrent < Target.StaminaWarnThreshold;
 		if (bExhausted)
 		{
-			const float Flash = 0.5f + 0.5f * FMath::Sin(Target.TimeSeconds * 18.f);
+			const float Flash = 0.5f + 0.5f * FMath::Sin(HUDTimeSeconds * 18.f);
 			return FLinearColor(0.55f + 0.25f * Flash, 0.05f, 0.05f, 0.85f);
 		}
 		if (bWarn)
 		{
-			const float Pulse = 0.5f + 0.5f * FMath::Sin(Target.TimeSeconds * 9.f);
+			const float Pulse = 0.5f + 0.5f * FMath::Sin(HUDTimeSeconds * 9.f);
 			return FLinearColor(BG.R + 0.20f * Pulse, BG.G, BG.B, BG.A);
 		}
 		return BG;
@@ -59,7 +57,7 @@ void SchuckHUD::Construct(const FArguments& InArgs)
 	auto EPRowAlpha = [this]() -> float
 	{
 		if (Target.StaminaRegenDelay <= 0.f) return 1.f;
-		return 0.35f + 0.45f * FMath::Sin(Target.TimeSeconds * 5.f);
+		return 0.35f + 0.45f * FMath::Sin(HUDTimeSeconds * 5.f);
 	};
 
 	TArray<FKBVEStatBarSpec> Specs;
@@ -99,16 +97,49 @@ void SchuckHUD::Construct(const FArguments& InArgs)
 		.LabelFont(Style.GetFontStyle(FChuckUIStyle::FKeys::HUD_Label_Font))
 		.Bars(Specs)
 	];
+
+	SetCanTick(false);
 }
 
 void SchuckHUD::SetState(const FchuckHUDState& InState)
 {
+	const bool bChanged =
+		!FMath::IsNearlyEqual(Target.HealthCurrent,     InState.HealthCurrent)     ||
+		!FMath::IsNearlyEqual(Target.ManaCurrent,       InState.ManaCurrent)       ||
+		!FMath::IsNearlyEqual(Target.StaminaCurrent,    InState.StaminaCurrent)    ||
+		!FMath::IsNearlyEqual(Target.HealthMax,         InState.HealthMax)         ||
+		!FMath::IsNearlyEqual(Target.ManaMax,           InState.ManaMax)           ||
+		!FMath::IsNearlyEqual(Target.StaminaMax,        InState.StaminaMax)        ||
+		!FMath::IsNearlyEqual(Target.DamageFlash,       InState.DamageFlash)       ||
+		!FMath::IsNearlyEqual(Target.LowHealthPulse,    InState.LowHealthPulse)    ||
+		!FMath::IsNearlyEqual(Target.StaminaRegenDelay, InState.StaminaRegenDelay);
+
+	const bool bFirstState = !bHasReceivedState;
 	Target = InState;
+
+	if (bFirstState)
+	{
+		DisplayHealth         = Target.HealthFraction();
+		DisplayMana           = Target.ManaFraction();
+		DisplayStamina        = Target.StaminaFraction();
+		DisplayHealthCurrent  = Target.HealthCurrent;
+		DisplayManaCurrent    = Target.ManaCurrent;
+		DisplayStaminaCurrent = Target.StaminaCurrent;
+		bHasReceivedState = true;
+	}
+
+	if (bChanged || bFirstState)
+	{
+		SetCanTick(true);
+		Invalidate(EInvalidateWidgetReason::Paint);
+	}
 }
 
 void SchuckHUD::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
 	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+
+	HUDTimeSeconds = static_cast<float>(InCurrentTime);
 
 	const float InterpSpeed        = 10.f;
 	const float NumericInterpSpeed = 12.f;
@@ -120,6 +151,29 @@ void SchuckHUD::Tick(const FGeometry& AllottedGeometry, const double InCurrentTi
 	DisplayHealthCurrent  = FMath::FInterpTo(DisplayHealthCurrent,  Target.HealthCurrent,  InDeltaTime, NumericInterpSpeed);
 	DisplayManaCurrent    = FMath::FInterpTo(DisplayManaCurrent,    Target.ManaCurrent,    InDeltaTime, NumericInterpSpeed);
 	DisplayStaminaCurrent = FMath::FInterpTo(DisplayStaminaCurrent, Target.StaminaCurrent, InDeltaTime, NumericInterpSpeed);
+
+	const bool bBarsSettled =
+		FMath::IsNearlyEqual(DisplayHealth,         Target.HealthFraction(),  0.001f) &&
+		FMath::IsNearlyEqual(DisplayMana,           Target.ManaFraction(),    0.001f) &&
+		FMath::IsNearlyEqual(DisplayStamina,        Target.StaminaFraction(), 0.001f) &&
+		FMath::IsNearlyEqual(DisplayHealthCurrent,  Target.HealthCurrent,     0.05f)  &&
+		FMath::IsNearlyEqual(DisplayManaCurrent,    Target.ManaCurrent,       0.05f)  &&
+		FMath::IsNearlyEqual(DisplayStaminaCurrent, Target.StaminaCurrent,    0.05f);
+
+	const bool bHasPulse =
+		Target.DamageFlash       > 0.001f ||
+		Target.LowHealthPulse    > 0.001f ||
+		Target.StaminaRegenDelay > 0.f    ||
+		Target.StaminaCurrent    < Target.StaminaWarnThreshold;
+
+	if (bBarsSettled && !bHasPulse)
+	{
+		SetCanTick(false);
+	}
+	else
+	{
+		Invalidate(EInvalidateWidgetReason::Paint);
+	}
 }
 
 int32 SchuckHUD::OnPaint(
@@ -131,17 +185,21 @@ int32 SchuckHUD::OnPaint(
 	const FWidgetStyle& InWidgetStyle,
 	bool bParentEnabled) const
 {
+	const int32 MaxChildLayer = SCompoundWidget::OnPaint(
+		Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
+
 	const float Overlay = FMath::Clamp(Target.DamageFlash * 0.45f + Target.LowHealthPulse * 0.30f, 0.f, 0.65f);
 	if (Overlay > 0.001f)
 	{
 		FSlateDrawElement::MakeBox(
 			OutDrawElements,
-			LayerId,
+			MaxChildLayer + 1,
 			AllottedGeometry.ToPaintGeometry(),
 			FCoreStyle::Get().GetBrush("WhiteBrush"),
 			ESlateDrawEffect::None,
 			FLinearColor(0.85f, 0.05f, 0.05f, Overlay));
+		return MaxChildLayer + 1;
 	}
 
-	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId + 1, InWidgetStyle, bParentEnabled);
+	return MaxChildLayer;
 }

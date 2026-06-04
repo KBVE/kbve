@@ -29,7 +29,7 @@ public:
 	const FSlateResourceHandle& GetAtlasHandle() const { return AtlasResourceHandle; }
 	void GetIconUV(int32 ItemKey, FVector2D& OutUVTopLeft, FVector2D& OutUVBottomRight) const;
 
-	static constexpr int32 AtlasGridSize = 16;
+	static constexpr int32 AtlasGridSize = 32;
 	static constexpr int32 AtlasTilePixels = 64;
 
 private:

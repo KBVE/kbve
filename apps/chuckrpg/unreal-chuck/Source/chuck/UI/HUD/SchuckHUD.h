@@ -39,4 +39,7 @@ private:
 	float DisplayHealthCurrent  = 100.f;
 	float DisplayManaCurrent    = 100.f;
 	float DisplayStaminaCurrent = 100.f;
+
+	float HUDTimeSeconds        = 0.f;
+	bool  bHasReceivedState     = false;
 };

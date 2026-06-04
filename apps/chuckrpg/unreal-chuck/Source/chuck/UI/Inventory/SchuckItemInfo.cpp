@@ -100,7 +100,7 @@ void SchuckItemInfo::PaintIcon(const FGeometry& Geom, FSlateWindowElementList& O
 {
 	const FchuckItemDef* Def = GetDef();
 	UchuckItemDB* DB = GetDB();
-	if (!Def || !DB || !DB->HasAtlas() || !DB->GetAtlasHandle().IsValid() || !Def->bHasImg)
+	if (!Def || !DB || !DB->HasAtlas() || !DB->GetAtlasHandle().IsValid())
 	{
 		return;
 	}

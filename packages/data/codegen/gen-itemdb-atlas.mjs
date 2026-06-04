@@ -11,9 +11,11 @@
  *   apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs
  *
  * Layout:
- *   1024 x 1024 atlas, 16 x 16 grid, 64 x 64 per tile.
- *   Slot 0 is reserved for the procedural fallback tile. Items with a
- *   missing or broken `img:` reference resolve to slot 0 in the UV map.
+ *   2048 x 2048 atlas, 32 x 32 grid, 64 x 64 per tile. Max 1024 slots.
+ *   Atlas slot index == item key. Items without (or with broken) `img:`
+ *   render a placeholder "?" tile at their own key slot so the
+ *   key->UV mapping is identity for every consumer. Drop in real art
+ *   later by adding `img:` to the MDX -- slot position is stable.
  *
  * Determinism:
  *   Pure JS pngjs encode (no native libvips / sharp). Same byte output
@@ -47,12 +49,14 @@ const ATLAS_OUT   = resolve(repoRoot, 'apps/rareicon/unity-rareicon/Assets/Strea
 const SOURCE_OUT  = resolve(repoRoot, 'apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs');
 
 const TILE_SIZE     = 64;
-const TILES_PER_ROW = 16;
+const TILES_PER_ROW = 32;
 const ATLAS_SIZE    = TILE_SIZE * TILES_PER_ROW;
 const MAX_SLOTS     = TILES_PER_ROW * TILES_PER_ROW;
 
 const FALLBACK_BG    = [0x3a, 0x3a, 0x3a, 0xff];
 const FALLBACK_MARK  = [0xff, 0x66, 0xaa, 0xff];
+const PLACEHOLDER_BG = [0x22, 0x24, 0x2a, 0xff];
+const PLACEHOLDER_FG = [0xc8, 0xcc, 0xd6, 0xff];
 
 function ensureDir(p) { if (!existsSync(p)) mkdirSync(p, { recursive: true }); }
 
@@ -85,6 +89,74 @@ function buildFallbackTile() {
 			out[i + 3] = px[3];
 		}
 	}
+	return out;
+}
+
+// "?" glyph rasterized procedurally over a dark background.
+// 64x64 grid; bitmap is a hand-drawn 5x7-ish glyph upscaled by 8x with
+// border so the placeholder reads at full inventory-slot zoom.
+function buildPlaceholderTile() {
+	const out = Buffer.alloc(TILE_SIZE * TILE_SIZE * 4);
+	for (let i = 0; i < TILE_SIZE * TILE_SIZE; i++) {
+		const o = i * 4;
+		out[o]     = PLACEHOLDER_BG[0];
+		out[o + 1] = PLACEHOLDER_BG[1];
+		out[o + 2] = PLACEHOLDER_BG[2];
+		out[o + 3] = PLACEHOLDER_BG[3];
+	}
+
+	const setPx = (x, y) => {
+		if (x < 0 || y < 0 || x >= TILE_SIZE || y >= TILE_SIZE) return;
+		const o = (y * TILE_SIZE + x) * 4;
+		out[o]     = PLACEHOLDER_FG[0];
+		out[o + 1] = PLACEHOLDER_FG[1];
+		out[o + 2] = PLACEHOLDER_FG[2];
+		out[o + 3] = PLACEHOLDER_FG[3];
+	};
+
+	// Border 1px
+	for (let i = 0; i < TILE_SIZE; i++) {
+		setPx(i, 0);
+		setPx(i, TILE_SIZE - 1);
+		setPx(0, i);
+		setPx(TILE_SIZE - 1, i);
+	}
+
+	// "?" glyph at 5x7 cells, each cell 6x6 pixels, centered.
+	// Row layout (1=fg, 0=bg):
+	//   .###.
+	//   #...#
+	//   ....#
+	//   ..##.
+	//   ..#..
+	//   .....
+	//   ..#..
+	const Glyph = [
+		[0, 1, 1, 1, 0],
+		[1, 0, 0, 0, 1],
+		[0, 0, 0, 0, 1],
+		[0, 0, 1, 1, 0],
+		[0, 0, 1, 0, 0],
+		[0, 0, 0, 0, 0],
+		[0, 0, 1, 0, 0],
+	];
+
+	const cell = 7;
+	const glyphW = 5 * cell;
+	const glyphH = 7 * cell;
+	const offX = Math.floor((TILE_SIZE - glyphW) / 2);
+	const offY = Math.floor((TILE_SIZE - glyphH) / 2);
+	for (let row = 0; row < 7; row++) {
+		for (let col = 0; col < 5; col++) {
+			if (!Glyph[row][col]) continue;
+			for (let yy = 0; yy < cell; yy++) {
+				for (let xx = 0; xx < cell; xx++) {
+					setPx(offX + col * cell + xx, offY + row * cell + yy);
+				}
+			}
+		}
+	}
+
 	return out;
 }
 
@@ -138,29 +210,31 @@ function main() {
 	const records = loadAllMdx();
 	console.log(`Loaded ${records.length} items from MDX`);
 
-	const atlas      = Buffer.alloc(ATLAS_SIZE * ATLAS_SIZE * 4);
-	const slotById   = new Map();
-	const missingRefs = [];
+	const atlas        = Buffer.alloc(ATLAS_SIZE * ATLAS_SIZE * 4);
+	const placeholder  = buildPlaceholderTile();
+	const placeholders = [];
+	const oversized    = [];
+	let maxKey         = 0;
+	let realCount      = 0;
+
+	for (const r of records) {
+		if (r.key === 0) continue;
+		if (r.key >= MAX_SLOTS) {
+			oversized.push(r.ref);
+			continue;
+		}
+		if (r.key > maxKey) maxKey = r.key;
+		const tile = loadItemTile(r.img);
+		if (tile) {
+			placeTile(atlas, tile, r.key);
+			realCount++;
+		} else {
+			placeTile(atlas, placeholder, r.key);
+			placeholders.push(r.ref);
+		}
+	}
 
 	placeTile(atlas, buildFallbackTile(), 0);
-
-	let nextSlot = 1;
-	for (const r of records) {
-		const tile = loadItemTile(r.img);
-		if (!tile) {
-			slotById.set(r.key, 0);
-			missingRefs.push(r.ref);
-			continue;
-		}
-		if (nextSlot >= MAX_SLOTS) {
-			console.warn(`[atlas] grid full at slot ${nextSlot}; '${r.ref}' falls back`);
-			slotById.set(r.key, 0);
-			continue;
-		}
-		const slot = nextSlot++;
-		placeTile(atlas, tile, slot);
-		slotById.set(r.key, slot);
-	}
 
 	const png = new PNG({ width: ATLAS_SIZE, height: ATLAS_SIZE });
 	atlas.copy(png.data);
@@ -168,9 +242,6 @@ function main() {
 	ensureDir(dirname(ATLAS_OUT));
 	writeFileSync(ATLAS_OUT, encoded);
 	console.log(`Wrote ${ATLAS_OUT}`);
-
-	let maxId = 0;
-	for (const id of slotById.keys()) if (id > maxId) maxId = id;
 
 	const norm  = 1.0 / TILES_PER_ROW;
 	const tileN = norm.toFixed(8);
@@ -192,40 +263,30 @@ function main() {
 		'',
 		`        public static readonly float4 FallbackUV = new float4(0f, 0f, ${tileN}f, ${tileN}f);`,
 		'',
-		'        static readonly float4[] _table = BuildTable();',
-		'',
-		'        public static float4 GetUV(ushort itemId) => itemId < _table.Length ? _table[itemId] : FallbackUV;',
-		'',
-		'        static float4[] BuildTable()',
+		`        // Identity mapping: slot index == item key. UV(key) = (key%${TILES_PER_ROW}, key/${TILES_PER_ROW}) * TileNormSize.`,
+		'        public static float4 GetUV(ushort itemId)',
 		'        {',
-		`            var t = new float4[${maxId + 1}];`,
-		'            for (int i = 0; i < t.Length; i++) t[i] = FallbackUV;',
+		`            if (itemId == 0 || itemId >= ${MAX_SLOTS}) return FallbackUV;`,
+		`            int col = itemId % ${TILES_PER_ROW};`,
+		`            int row = itemId / ${TILES_PER_ROW};`,
+		`            return new float4(col * TileNormSize, row * TileNormSize, TileNormSize, TileNormSize);`,
+		'        }',
+		'    }',
+		'}',
 	];
-
-	const entries = [...slotById.entries()].sort((a, b) => a[0] - b[0]);
-	for (const [id, slot] of entries) {
-		if (slot === 0) continue;
-		const u = ((slot % TILES_PER_ROW) * norm).toFixed(8);
-		const v = (Math.floor(slot / TILES_PER_ROW) * norm).toFixed(8);
-		lines.push(`            t[${id}] = new float4(${u}f, ${v}f, ${tileN}f, ${tileN}f);`);
-	}
-
-	lines.push('            return t;');
-	lines.push('        }');
-	lines.push('    }');
-	lines.push('}');
 
 	ensureDir(dirname(SOURCE_OUT));
 	writeFileSync(SOURCE_OUT, lines.join('\n') + '\n');
 	console.log(`Wrote ${SOURCE_OUT}`);
 
-	const validCount = entries.filter(([, slot]) => slot !== 0).length;
-	const fallbackCount = entries.length - validCount;
-	console.log(`Built atlas: ${validCount} mapped, ${fallbackCount} fallback`);
-	if (missingRefs.length > 0 && missingRefs.length <= 20) {
-		console.log(`Fallback refs: ${missingRefs.join(', ')}`);
-	} else if (missingRefs.length > 20) {
-		console.log(`Fallback refs (first 20): ${missingRefs.slice(0, 20).join(', ')} ...`);
+	console.log(`Built atlas: ${realCount} real tiles, ${placeholders.length} placeholders, max key ${maxKey}`);
+	if (placeholders.length > 0 && placeholders.length <= 20) {
+		console.log(`Placeholder refs: ${placeholders.join(', ')}`);
+	} else if (placeholders.length > 20) {
+		console.log(`Placeholder refs (first 20): ${placeholders.slice(0, 20).join(', ')} ... (+${placeholders.length - 20} more)`);
+	}
+	if (oversized.length > 0) {
+		console.warn(`[atlas] ${oversized.length} item(s) skipped -- key >= ${MAX_SLOTS}: ${oversized.join(', ')}`);
 	}
 }
 
