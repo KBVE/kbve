@@ -54,6 +54,41 @@
 				],
 				"parallel": false
 			}
+		},
+		"build-editor": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/unreal-chuck",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/chuck.uproject\""
+			}
+		},
+		"build-game": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/unreal-chuck",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuck Mac Development \"$PWD/chuck.uproject\""
+			}
+		},
+		"build-server": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/unreal-chuck",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckServer Mac Development \"$PWD/chuck.uproject\""
+			}
+		},
+		"compile": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/unreal-chuck",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/chuck.uproject\""
+			}
+		},
+		"regen-project-files": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/chuckrpg/unreal-chuck",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh\" -project=\"$PWD/chuck.uproject\" -game -engine"
+			}
 		}
 	}
 }
