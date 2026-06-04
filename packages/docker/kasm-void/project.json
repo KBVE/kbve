@@ -84,7 +84,12 @@
 					"docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'touch /tmp/probe && rm /tmp/probe' && echo 'PASS: /tmp writable by uid 1000'",
 					"docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'command -v python3 && command -v pip3' >/dev/null && echo 'PASS: python3 + pip3 on PATH'",
 					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /dockerstartup/maximize_window.sh && echo 'PASS: upstream maximize_window.sh preserved'",
-					"bash packages/docker/kasm-void/tests/nav-shim-smoke.sh"
+					"docker run --rm --entrypoint test ghcr.io/kbve/kasm-void:dev -x /usr/share/discord/Discord && echo 'PASS: Discord binary executable'",
+					"docker run --rm --entrypoint readlink ghcr.io/kbve/kasm-void:dev -e /usr/share/discord/Discord | grep -q . && echo 'PASS: Discord symlink resolves to a real file'",
+					"docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'real=$(readlink -e /usr/share/discord/Discord); size=$(stat -c %s \"$real\"); [ \"$size\" -gt 1048576 ] || { echo \"Discord binary suspiciously small: $size bytes ($real)\" >&2; exit 1; }' && echo 'PASS: Discord binary larger than 1 MiB (not a stub)'",
+					"docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'real=$(readlink -e /usr/share/discord/Discord); missing=$(ldd \"$real\" 2>/dev/null | grep \"not found\" || true); [ -z \"$missing\" ] || { echo \"missing libs: $missing\" >&2; exit 1; }' && echo 'PASS: Discord shared lib deps resolve'",
+					"bash packages/docker/kasm-void/tests/nav-shim-smoke.sh",
+					"bash packages/docker/kasm-void/tests/full-session-smoke.sh"
 				],
 				"parallel": false
 			}
