@@ -10,7 +10,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "SchuckDevOverlay.h"
+#include "SchuckHotbar.h"
 #include "SchuckHUD.h"
+#include "SchuckInventoryWindow.h"
 #include "SchuckPauseMenu.h"
 
 AchuckCorePlayerController::AchuckCorePlayerController()
@@ -50,6 +52,10 @@ void AchuckCorePlayerController::SetupInputComponent()
 			{
 				EIC->BindAction(Inputs->ToggleDevOverlay, ETriggerEvent::Started, this, &AchuckCorePlayerController::OnToggleDevOverlayPressed);
 			}
+			if (Inputs->Inventory)
+			{
+				EIC->BindAction(Inputs->Inventory, ETriggerEvent::Started, this, &AchuckCorePlayerController::OnInventoryPressed);
+			}
 		}
 	}
 }
@@ -74,22 +80,34 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 		return;
 	}
 
-	HUDWidget = SNew(SchuckHUD);
+	HUDWidget    = SNew(SchuckHUD);
+	HotbarWidget = SNew(SchuckHotbar).OwningCharacter(Char);
 
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 	{
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef(), 5);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef(),    5);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HotbarWidget.ToSharedRef(), 6);
 	}
 }
 
 void AchuckCorePlayerController::OnUnPossess()
 {
+	UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
+
+	if (InventoryWidget.IsValid())
+	{
+		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), InventoryWidget.ToSharedRef());
+		InventoryWidget.Reset();
+		bInventoryOpen = false;
+	}
+	if (HotbarWidget.IsValid())
+	{
+		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), HotbarWidget.ToSharedRef());
+		HotbarWidget.Reset();
+	}
 	if (HUDWidget.IsValid())
 	{
-		if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
-		{
-			Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef());
-		}
+		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef());
 		HUDWidget.Reset();
 	}
 	Super::OnUnPossess();
@@ -246,4 +264,48 @@ void AchuckCorePlayerController::Tick(float DeltaSeconds)
 	State.TimeSeconds         = Now;
 
 	HUDWidget->SetState(State);
+}
+
+void AchuckCorePlayerController::OnInventoryPressed(const FInputActionValue& Value)
+{
+	if (bInventoryOpen) CloseInventory();
+	else                OpenInventory();
+}
+
+void AchuckCorePlayerController::OpenInventory()
+{
+	if (bInventoryOpen) return;
+	AchuckCoreCharacter* Char = Cast<AchuckCoreCharacter>(GetPawn());
+	if (!Char) return;
+
+	UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
+	if (!Viewport) return;
+
+	InventoryWidget = SNew(SchuckInventoryWindow).OwningCharacter(Char);
+	Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), InventoryWidget.ToSharedRef(), 12);
+
+	FInputModeGameAndUI Mode;
+	Mode.SetWidgetToFocus(InventoryWidget);
+	Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	SetInputMode(Mode);
+	bShowMouseCursor = true;
+	bInventoryOpen   = true;
+}
+
+void AchuckCorePlayerController::CloseInventory()
+{
+	if (!bInventoryOpen) return;
+
+	if (InventoryWidget.IsValid())
+	{
+		if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
+		{
+			Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), InventoryWidget.ToSharedRef());
+		}
+		InventoryWidget.Reset();
+	}
+
+	SetInputMode(FInputModeGameOnly());
+	bShowMouseCursor = false;
+	bInventoryOpen   = false;
 }

@@ -23,6 +23,7 @@ public:
 	UPROPERTY() TObjectPtr<UInputAction>          ToggleCamera;
 	UPROPERTY() TObjectPtr<UInputAction>          Pause;
 	UPROPERTY() TObjectPtr<UInputAction>          ToggleDevOverlay;
+	UPROPERTY() TObjectPtr<UInputAction>          Inventory;
 	UPROPERTY() TObjectPtr<UInputMappingContext>  DefaultIMC;
 
 protected:

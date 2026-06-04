@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "MassEntityHandle.h"
 #include "chuckCharacter.h"
+#include "chuckInventory.h"
 #include "chuckStats.h"
 #include "chuckCoreCharacter.generated.h"
 
@@ -24,7 +25,11 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	const FchuckStatBlock& GetStats() const { return Stats; }
+	const FchuckInventory& GetInventory() const { return Inventory; }
 	bool IsSprinting() const;
+
+	int32 ServerAddItemByKey(int32 ItemKey, int32 Count);
+	int32 ServerAddItemByRef(FName Ref, int32 Count);
 
 protected:
 	virtual void PostInitializeComponents() override;
@@ -33,7 +38,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Chuck|Stats")
 	FchuckStatBlock Stats;
 
+	UPROPERTY(Replicated)
+	FchuckInventory Inventory;
+
 	FMassEntityHandle StatEntity;
+	FMassEntityHandle InventoryEntity;
+
+	void CreateInventoryEntity();
+	void DestroyInventoryEntity();
+	void SeedStarterItems();
 
 	void CreateStatEntity();
 	void DestroyStatEntity();
@@ -50,6 +63,9 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UInputAction> ToggleCameraAction;
+
+	UPROPERTY()
+	TObjectPtr<UInputAction> InventoryAction;
 
 	void OnSprintPressed(const FInputActionValue& Value);
 	void OnSprintReleased(const FInputActionValue& Value);

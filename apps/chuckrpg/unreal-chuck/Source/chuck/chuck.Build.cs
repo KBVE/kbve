@@ -22,17 +22,25 @@ public class chuck : ModuleRules
 			"SlateCore",
 			"MassEntity",
 			"MassCommon",
-			"StructUtils"
+			"StructUtils",
+			"NetCore"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { });
+		PrivateDependencyModuleNames.AddRange(new string[] {
+			"Json",
+			"JsonUtilities",
+			"KBVEYYJson",
+			"KBVEXXHash"
+		});
 
 		PublicIncludePaths.AddRange(new string[] {
 			"chuck",
 			"chuck/Core",
+			"chuck/Item",
 			"chuck/Mass",
 			"chuck/UI",
 			"chuck/UI/HUD",
+			"chuck/UI/Inventory",
 			"chuck/Variant_Platforming",
 			"chuck/Variant_Platforming/Animation",
 			"chuck/Variant_Combat",

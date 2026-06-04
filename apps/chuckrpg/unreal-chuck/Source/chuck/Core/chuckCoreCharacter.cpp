@@ -17,8 +17,11 @@
 
 #include "chuckCharacterMovementComponent.h"
 #include "chuckInputs.h"
+#include "chuckInventoryFragment.h"
+#include "chuckItemDB.h"
 #include "chuckMoveState.h"
 #include "chuckStatsFragment.h"
+#include "Engine/GameInstance.h"
 
 AchuckCoreCharacter::AchuckCoreCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UchuckCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -104,13 +107,17 @@ void AchuckCoreCharacter::PostInitializeComponents()
 		SprintAction        = Inputs->Sprint;
 		CrouchAction        = Inputs->Crouch;
 		ToggleCameraAction  = Inputs->ToggleCamera;
+		InventoryAction     = Inputs->Inventory;
 	}
+
+	Inventory.InitDefaults();
 }
 
 void AchuckCoreCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AchuckCoreCharacter, Stats);
+	DOREPLIFETIME(AchuckCoreCharacter, Inventory);
 }
 
 void AchuckCoreCharacter::Tick(float DeltaSeconds)
@@ -128,6 +135,8 @@ void AchuckCoreCharacter::BeginPlay()
 	if (HasAuthority())
 	{
 		CreateStatEntity();
+		CreateInventoryEntity();
+		SeedStarterItems();
 	}
 }
 
@@ -136,6 +145,7 @@ void AchuckCoreCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (HasAuthority())
 	{
 		DestroyStatEntity();
+		DestroyInventoryEntity();
 	}
 	Super::EndPlay(EndPlayReason);
 }
@@ -323,5 +333,130 @@ void AchuckCoreCharacter::OnToggleCameraPressed(const FInputActionValue& Value)
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
 		MeshComp->SetOwnerNoSee(bFirstPersonCamera);
+	}
+}
+
+void AchuckCoreCharacter::CreateInventoryEntity()
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	UMassEntitySubsystem* Mass = World->GetSubsystem<UMassEntitySubsystem>();
+	if (!Mass)
+	{
+		return;
+	}
+
+	FMassEntityManager& EM = Mass->GetMutableEntityManager();
+
+	TArray<const UScriptStruct*> FragmentTypes;
+	FragmentTypes.Add(FchuckInventoryFragment::StaticStruct());
+
+	FMassArchetypeHandle Archetype = EM.CreateArchetype(FragmentTypes);
+	InventoryEntity = EM.CreateEntity(Archetype);
+
+	if (FchuckInventoryFragment* Frag = EM.GetFragmentDataPtr<FchuckInventoryFragment>(InventoryEntity))
+	{
+		FMemory::Memzero(Frag->Bag,    sizeof(Frag->Bag));
+		FMemory::Memzero(Frag->Hotbar, sizeof(Frag->Hotbar));
+		Frag->BagDirtyMask    = 0;
+		Frag->HotbarDirtyMask = 0;
+	}
+}
+
+void AchuckCoreCharacter::DestroyInventoryEntity()
+{
+	if (!InventoryEntity.IsValid())
+	{
+		return;
+	}
+	if (UWorld* World = GetWorld())
+	{
+		if (UMassEntitySubsystem* Mass = World->GetSubsystem<UMassEntitySubsystem>())
+		{
+			Mass->GetMutableEntityManager().DestroyEntity(InventoryEntity);
+		}
+	}
+	InventoryEntity = FMassEntityHandle();
+}
+
+int32 AchuckCoreCharacter::ServerAddItemByKey(int32 ItemKey, int32 Count)
+{
+	if (!HasAuthority() || ItemKey <= 0 || Count <= 0)
+	{
+		return Count;
+	}
+
+	UGameInstance* GI = GetGameInstance();
+	UchuckItemDB* DB = GI ? GI->GetSubsystem<UchuckItemDB>() : nullptr;
+	if (!DB)
+	{
+		return Count;
+	}
+	const FchuckItemDef* Def = DB->LookupByKey(ItemKey);
+	if (!Def)
+	{
+		return Count;
+	}
+
+	const int32 MaxStack = Def->bStackable ? FMath::Max(Def->MaxStack, 1) : 1;
+	int32 Leftover = chuckInventory::TryAdd(Inventory.DefaultBag, ItemKey, Count, MaxStack, Def->bStackable);
+
+	UWorld* World = GetWorld();
+	UMassEntitySubsystem* Mass = World ? World->GetSubsystem<UMassEntitySubsystem>() : nullptr;
+	if (Mass && InventoryEntity.IsValid())
+	{
+		if (FchuckInventoryFragment* Frag = Mass->GetMutableEntityManager().GetFragmentDataPtr<FchuckInventoryFragment>(InventoryEntity))
+		{
+			const int32 BagN = FMath::Min(Inventory.DefaultBag.Slots.Num(), FchuckInventoryFragment::BagCapacity);
+			for (int32 i = 0; i < BagN; ++i)
+			{
+				const FchuckInventoryStack& Src = Inventory.DefaultBag.Slots[i];
+				FchuckInventorySlotPOD& Dst = Frag->Bag[i];
+				Dst.ItemKey     = Src.ItemKey;
+				Dst.Count       = Src.Count;
+				Dst.Durability  = Src.Durability;
+				Dst.Flags       = Src.Flags;
+				Dst.InstanceIdx = Src.InstanceIdx;
+			}
+			Frag->BagDirtyMask = (BagN < 32) ? ((1u << BagN) - 1u) : ~0u;
+		}
+	}
+	return Leftover;
+}
+
+int32 AchuckCoreCharacter::ServerAddItemByRef(FName Ref, int32 Count)
+{
+	UGameInstance* GI = GetGameInstance();
+	UchuckItemDB* DB = GI ? GI->GetSubsystem<UchuckItemDB>() : nullptr;
+	if (!DB)
+	{
+		return Count;
+	}
+	if (const FchuckItemDef* Def = DB->LookupByRef(Ref))
+	{
+		return ServerAddItemByKey(Def->Key, Count);
+	}
+	return Count;
+}
+
+void AchuckCoreCharacter::SeedStarterItems()
+{
+	UGameInstance* GI = GetGameInstance();
+	UchuckItemDB* DB = GI ? GI->GetSubsystem<UchuckItemDB>() : nullptr;
+	if (!DB)
+	{
+		return;
+	}
+	int32 SlotsLeft = Inventory.DefaultBag.Capacity;
+	for (const FchuckItemDef& Def : DB->GetAll())
+	{
+		if (SlotsLeft <= 0) break;
+		if (!Def.IsValid()) continue;
+		const int32 Want = Def.bStackable ? FMath::Min(Def.MaxStack > 1 ? Def.MaxStack : 5, 8) : 1;
+		ServerAddItemByKey(Def.Key, Want);
+		--SlotsLeft;
 	}
 }

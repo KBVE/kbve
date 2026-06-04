@@ -28,6 +28,7 @@ void UchuckInputs::Build()
 	ToggleCamera     = NewObject<UInputAction>(this, TEXT("IA_ToggleCamera"));
 	Pause            = NewObject<UInputAction>(this, TEXT("IA_Pause"));
 	ToggleDevOverlay = NewObject<UInputAction>(this, TEXT("IA_ToggleDevOverlay"));
+	Inventory        = NewObject<UInputAction>(this, TEXT("IA_Inventory"));
 
 	Move->ValueType             = EInputActionValueType::Axis2D;
 	Look->ValueType             = EInputActionValueType::Axis2D;
