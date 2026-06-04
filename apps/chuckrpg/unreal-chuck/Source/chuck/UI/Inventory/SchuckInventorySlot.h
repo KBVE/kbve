@@ -32,6 +32,7 @@ private:
 	FLinearColor OnGetBorderColor() const;
 	int32        OnGetCount() const;
 	void         OnClicked();
+	void         OnHover(bool bEntered, const FVector2D& ScreenPos);
 	void         OnPaintIcon(const FGeometry& Geom, FSlateWindowElementList& Out, int32 Layer, const FVector2D& SlotSize);
 
 	TWeakObjectPtr<AchuckCoreCharacter> Character;

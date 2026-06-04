@@ -35,8 +35,15 @@ protected:
 	virtual void PostInitializeComponents() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 
-	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Chuck|Stats")
+	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_Stats, Category = "Chuck|Stats")
 	FchuckStatBlock Stats;
+
+	FchuckStatBlock LastPublishedStats;
+
+	UFUNCTION()
+	void OnRep_Stats();
+
+	void PublishStatChanges();
 
 	UPROPERTY(Replicated)
 	FchuckInventory Inventory;

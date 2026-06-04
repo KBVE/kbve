@@ -16,11 +16,13 @@
 #include "UObject/ConstructorHelpers.h"
 
 #include "chuckCharacterMovementComponent.h"
+#include "chuckEventPayloads.h"
 #include "chuckInputs.h"
 #include "chuckInventoryFragment.h"
 #include "chuckItemDB.h"
 #include "chuckMoveState.h"
 #include "chuckStatsFragment.h"
+#include "chuckUIEvents.h"
 #include "Engine/GameInstance.h"
 
 AchuckCoreCharacter::AchuckCoreCharacter(const FObjectInitializer& ObjectInitializer)
@@ -251,6 +253,8 @@ void AchuckCoreCharacter::SyncStatsFragment(float DeltaSeconds)
 	Stats.Stamina          = Frag->Stamina;
 	Stats.StaminaRegenDelay = Frag->StaminaRegenDelay;
 
+	PublishStatChanges();
+
 	if (IsSprinting() && Stats.StaminaRegenDelay > 0.f)
 	{
 		if (UchuckCharacterMovementComponent* CMC = GetChuckMovement())
@@ -460,4 +464,37 @@ void AchuckCoreCharacter::SeedStarterItems()
 		ServerAddItemByKey(Def.Key, Want);
 		--SlotsLeft;
 	}
+}
+
+void AchuckCoreCharacter::OnRep_Stats()
+{
+	PublishStatChanges();
+}
+
+void AchuckCoreCharacter::PublishStatChanges()
+{
+	UchuckUIEvents* Bus = UchuckUIEvents::Get(this);
+	if (!Bus) return;
+
+	if (!FMath::IsNearlyEqual(Stats.Health, LastPublishedStats.Health) ||
+		!FMath::IsNearlyEqual(Stats.MaxHealth, LastPublishedStats.MaxHealth))
+	{
+		Bus->Health.Publish({ Stats.Health, Stats.MaxHealth });
+	}
+	if (!FMath::IsNearlyEqual(Stats.Mana, LastPublishedStats.Mana) ||
+		!FMath::IsNearlyEqual(Stats.MaxMana, LastPublishedStats.MaxMana))
+	{
+		Bus->Mana.Publish({ Stats.Mana, Stats.MaxMana });
+	}
+	if (!FMath::IsNearlyEqual(Stats.Stamina, LastPublishedStats.Stamina) ||
+		!FMath::IsNearlyEqual(Stats.MaxStamina, LastPublishedStats.MaxStamina) ||
+		!FMath::IsNearlyEqual(Stats.StaminaRegenDelay, LastPublishedStats.StaminaRegenDelay))
+	{
+		Bus->Stamina.Publish({ Stats.Stamina, Stats.MaxStamina, Stats.StaminaRegenDelay });
+	}
+	if (Stats.Health < LastPublishedStats.Health - 0.5f)
+	{
+		Bus->DamageReceived.Publish({ LastPublishedStats.Health - Stats.Health, 0 });
+	}
+	LastPublishedStats = Stats;
 }

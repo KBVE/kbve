@@ -1,9 +1,11 @@
 #include "SchuckInventorySlot.h"
 
 #include "chuckCoreCharacter.h"
+#include "chuckEventPayloads.h"
 #include "chuckInventory.h"
 #include "chuckItemDB.h"
 #include "chuckItemTypes.h"
+#include "chuckUIEvents.h"
 #include "Engine/GameInstance.h"
 #include "Rendering/DrawElements.h"
 #include "SKBVESlotWidget.h"
@@ -25,7 +27,34 @@ void SchuckInventorySlot::Construct(const FArguments& InArgs)
 		.OnGetCount(FOnKBVESlotCount::CreateSP(this, &SchuckInventorySlot::OnGetCount))
 		.OnPaintIcon(FOnKBVESlotPaintIcon::CreateSP(this, &SchuckInventorySlot::OnPaintIcon))
 		.OnClicked(FOnKBVESlotClicked::CreateSP(this, &SchuckInventorySlot::OnClicked))
+		.OnHover(FOnKBVESlotHover::CreateSP(this, &SchuckInventorySlot::OnHover))
 	];
+}
+
+void SchuckInventorySlot::OnHover(bool bEntered, const FVector2D& ScreenPos)
+{
+	AchuckCoreCharacter* C = Character.Get();
+	if (!C) return;
+	UchuckUIEvents* Bus = UchuckUIEvents::Get(C);
+	if (!Bus) return;
+
+	FchuckTooltipPayload P;
+	P.bShow = bEntered;
+	P.ScreenPos = ScreenPos;
+
+	if (bEntered)
+	{
+		const FchuckItemDef* Def = GetDef();
+		if (Def)
+		{
+			P.Text = FText::FromString(Def->Name);
+		}
+		else
+		{
+			P.bShow = false;
+		}
+	}
+	Bus->Tooltip.Publish(P);
 }
 
 const FchuckInventoryStack* SchuckInventorySlot::GetStack() const

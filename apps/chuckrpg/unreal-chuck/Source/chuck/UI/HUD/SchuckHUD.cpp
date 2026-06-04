@@ -1,12 +1,18 @@
 #include "SchuckHUD.h"
 
 #include "ChuckUIStyle.h"
+#include "chuckCoreCharacter.h"
+#include "chuckEventPayloads.h"
+#include "chuckUIEvents.h"
+#include "Engine/GameInstance.h"
+#include "Engine/World.h"
 #include "Rendering/DrawElements.h"
 #include "SKBVEStatBarStack.h"
 #include "Styling/CoreStyle.h"
 
 void SchuckHUD::Construct(const FArguments& InArgs)
 {
+	Character = InArgs._OwningCharacter;
 	const ISlateStyle& Style = FChuckUIStyle::Get();
 
 	auto HealthPct  = [this]() { return DisplayHealth;  };
@@ -99,6 +105,57 @@ void SchuckHUD::Construct(const FArguments& InArgs)
 	];
 
 	SetCanTick(false);
+
+	BindToEventBus();
+}
+
+SchuckHUD::~SchuckHUD()
+{
+	AchuckCoreCharacter* C = Character.Get();
+	if (UchuckUIEvents* Bus = C ? UchuckUIEvents::Get(C) : nullptr)
+	{
+		Bus->Health.Unsubscribe(HealthHandle);
+		Bus->Mana.Unsubscribe(ManaHandle);
+		Bus->Stamina.Unsubscribe(StaminaHandle);
+		Bus->DamageReceived.Unsubscribe(DamageHandle);
+	}
+}
+
+void SchuckHUD::BindToEventBus()
+{
+	AchuckCoreCharacter* C = Character.Get();
+	UchuckUIEvents* Bus = C ? UchuckUIEvents::Get(C) : nullptr;
+	if (!Bus) return;
+
+	HealthHandle = Bus->Health.Subscribe(C, [this](const FchuckHealthChangedPayload& P)
+	{
+		FchuckHUDState S = Target;
+		S.HealthCurrent = P.Current;
+		S.HealthMax     = P.Max;
+		SetState(S);
+	});
+	ManaHandle = Bus->Mana.Subscribe(C, [this](const FchuckManaChangedPayload& P)
+	{
+		FchuckHUDState S = Target;
+		S.ManaCurrent = P.Current;
+		S.ManaMax     = P.Max;
+		SetState(S);
+	});
+	StaminaHandle = Bus->Stamina.Subscribe(C, [this](const FchuckStaminaChangedPayload& P)
+	{
+		FchuckHUDState S = Target;
+		S.StaminaCurrent    = P.Current;
+		S.StaminaMax        = P.Max;
+		S.StaminaRegenDelay = P.RegenDelay;
+		SetState(S);
+	});
+	DamageHandle = Bus->DamageReceived.Subscribe(C, [this](const FchuckDamageReceivedPayload& P)
+	{
+		DamageFlashUntil = HUDTimeSeconds + 0.6f;
+		FchuckHUDState S = Target;
+		S.DamageFlash = 1.f;
+		SetState(S);
+	});
 }
 
 void SchuckHUD::SetState(const FchuckHUDState& InState)

@@ -9,11 +9,14 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "chuckEventPayloads.h"
+#include "chuckUIEvents.h"
 #include "SchuckDevOverlay.h"
 #include "SchuckHotbar.h"
 #include "SchuckHUD.h"
 #include "SchuckInventoryWindow.h"
 #include "SchuckPauseMenu.h"
+#include "SKBVETooltip.h"
 
 AchuckCorePlayerController::AchuckCorePlayerController()
 {
@@ -80,13 +83,26 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 		return;
 	}
 
-	HUDWidget    = SNew(SchuckHUD);
+	HUDWidget    = SNew(SchuckHUD).OwningCharacter(Char);
 	HotbarWidget = SNew(SchuckHotbar).OwningCharacter(Char);
+	TooltipWidget = SNew(SKBVETooltip);
 
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 	{
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef(),    5);
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HotbarWidget.ToSharedRef(), 6);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef(),     5);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HotbarWidget.ToSharedRef(),  6);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), TooltipWidget.ToSharedRef(), 30);
+	}
+
+	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
+	{
+		FKBVEEventHandle H = Bus->Tooltip.Subscribe(this, [this](const FchuckTooltipPayload& P)
+		{
+			if (!TooltipWidget.IsValid()) return;
+			if (P.bShow) TooltipWidget->Show(P.Text, P.ScreenPos);
+			else         TooltipWidget->Hide();
+		});
+		TooltipHandleId = H.Id;
 	}
 }
 
@@ -94,6 +110,19 @@ void AchuckCorePlayerController::OnUnPossess()
 {
 	UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
 
+	if (TooltipHandleId != 0)
+	{
+		if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
+		{
+			Bus->Tooltip.Unsubscribe({ TooltipHandleId });
+		}
+		TooltipHandleId = 0;
+	}
+	if (TooltipWidget.IsValid())
+	{
+		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), TooltipWidget.ToSharedRef());
+		TooltipWidget.Reset();
+	}
 	if (InventoryWidget.IsValid())
 	{
 		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), InventoryWidget.ToSharedRef());
@@ -213,57 +242,6 @@ void AchuckCorePlayerController::OnToggleDevOverlayPressed(const FInputActionVal
 void AchuckCorePlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-
-	if (!HUDWidget.IsValid())
-	{
-		return;
-	}
-
-	AchuckCoreCharacter* Char = Cast<AchuckCoreCharacter>(GetPawn());
-	if (!Char)
-	{
-		return;
-	}
-
-	const FchuckStatBlock& S = Char->GetStats();
-	UWorld* World = GetWorld();
-	const float Now = World ? World->GetTimeSeconds() : 0.f;
-
-	if (LastHealthForFlash < 0.f)
-	{
-		LastHealthForFlash = S.Health;
-	}
-	if (S.Health < LastHealthForFlash - 0.5f)
-	{
-		LastDamageTime = Now;
-	}
-	LastHealthForFlash = S.Health;
-
-	const float FlashDuration = 0.6f;
-	const float SinceHit = Now - LastDamageTime;
-	const float Flash = FMath::Max(0.f, 1.f - SinceHit / FlashDuration);
-
-	const float HPRatio = S.MaxHealth > 0.f ? (S.Health / S.MaxHealth) : 0.f;
-	const float LowHPThreshold = 0.3f;
-	const float LowPulse =
-		HPRatio < LowHPThreshold
-			? (FMath::Sin(Now * 6.f) * 0.5f + 0.5f) * (1.f - HPRatio / LowHPThreshold)
-			: 0.f;
-
-	FchuckHUDState State;
-	State.HealthCurrent       = S.Health;
-	State.HealthMax           = S.MaxHealth;
-	State.ManaCurrent         = S.Mana;
-	State.ManaMax             = S.MaxMana;
-	State.StaminaCurrent      = S.Stamina;
-	State.StaminaMax          = S.MaxStamina;
-	State.StaminaRegenDelay   = S.StaminaRegenDelay;
-	State.StaminaWarnThreshold = S.StaminaWarnThreshold;
-	State.DamageFlash         = Flash;
-	State.LowHealthPulse      = LowPulse;
-	State.TimeSeconds         = Now;
-
-	HUDWidget->SetState(State);
 }
 
 void AchuckCorePlayerController::OnInventoryPressed(const FInputActionValue& Value)

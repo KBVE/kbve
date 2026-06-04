@@ -12,8 +12,21 @@ void SKBVESlotWidget::Construct(const FArguments& InArgs)
 	OnGetCount       = InArgs._OnGetCount;
 	OnPaintIcon      = InArgs._OnPaintIcon;
 	OnClicked        = InArgs._OnClicked;
+	OnHover          = InArgs._OnHover;
 
 	SetCanTick(false);
+}
+
+void SKBVESlotWidget::OnMouseEnter(const FGeometry& Geometry, const FPointerEvent& Mouse)
+{
+	SCompoundWidget::OnMouseEnter(Geometry, Mouse);
+	OnHover.ExecuteIfBound(true, Mouse.GetScreenSpacePosition());
+}
+
+void SKBVESlotWidget::OnMouseLeave(const FPointerEvent& Mouse)
+{
+	SCompoundWidget::OnMouseLeave(Mouse);
+	OnHover.ExecuteIfBound(false, Mouse.GetScreenSpacePosition());
 }
 
 FVector2D SKBVESlotWidget::ComputeDesiredSize(float) const

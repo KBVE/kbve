@@ -9,6 +9,7 @@ class SchuckPauseMenu;
 class SchuckDevOverlay;
 class SchuckHotbar;
 class SchuckInventoryWindow;
+class SKBVETooltip;
 struct FInputActionValue;
 
 UCLASS()
@@ -48,6 +49,8 @@ private:
 	TSharedPtr<SchuckDevOverlay>      DevOverlayWidget;
 	TSharedPtr<SchuckHotbar>          HotbarWidget;
 	TSharedPtr<SchuckInventoryWindow> InventoryWidget;
+	TSharedPtr<SKBVETooltip>          TooltipWidget;
+	uint64 TooltipHandleId = 0;
 
 	bool bGamePaused      = false;
 	bool bDevOverlayShown = false;

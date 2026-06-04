@@ -8,6 +8,7 @@
 DECLARE_DELEGATE_RetVal(bool, FOnKBVESlotIsFilled);
 DECLARE_DELEGATE_RetVal(FLinearColor, FOnKBVESlotBorderColor);
 DECLARE_DELEGATE_RetVal(int32, FOnKBVESlotCount);
+DECLARE_DELEGATE_RetVal(FText, FOnKBVESlotTooltip);
 DECLARE_DELEGATE_FourParams(
 	FOnKBVESlotPaintIcon,
 	const FGeometry& /*Geometry*/,
@@ -15,6 +16,7 @@ DECLARE_DELEGATE_FourParams(
 	int32 /*Layer*/,
 	const FVector2D& /*SlotSize*/);
 DECLARE_DELEGATE(FOnKBVESlotClicked);
+DECLARE_DELEGATE_TwoParams(FOnKBVESlotHover, bool /*bEntered*/, const FVector2D& /*ScreenPos*/);
 
 class KBVEUI_API SKBVESlotWidget : public SCompoundWidget
 {
@@ -28,6 +30,7 @@ public:
 		SLATE_EVENT(FOnKBVESlotCount, OnGetCount)
 		SLATE_EVENT(FOnKBVESlotPaintIcon, OnPaintIcon)
 		SLATE_EVENT(FOnKBVESlotClicked, OnClicked)
+		SLATE_EVENT(FOnKBVESlotHover, OnHover)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -44,6 +47,8 @@ protected:
 
 	virtual FVector2D ComputeDesiredSize(float) const override;
 	virtual FReply OnMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& Mouse) override;
+	virtual void OnMouseEnter(const FGeometry& Geometry, const FPointerEvent& Mouse) override;
+	virtual void OnMouseLeave(const FPointerEvent& Mouse) override;
 
 private:
 	float SlotSize = 64.f;
@@ -52,4 +57,5 @@ private:
 	FOnKBVESlotCount       OnGetCount;
 	FOnKBVESlotPaintIcon   OnPaintIcon;
 	FOnKBVESlotClicked     OnClicked;
+	FOnKBVESlotHover       OnHover;
 };

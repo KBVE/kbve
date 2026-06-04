@@ -34,6 +34,13 @@ struct FchuckDamageReceivedPayload
 	uint8 DamageBit = 0;
 };
 
+struct FchuckTooltipPayload
+{
+	bool      bShow = false;
+	FText     Text;
+	FVector2D ScreenPos = FVector2D::ZeroVector;
+};
+
 // Sim-domain payloads: enqueued from Mass workers, drained on the game thread.
 struct FchuckCombatHitPayload
 {
