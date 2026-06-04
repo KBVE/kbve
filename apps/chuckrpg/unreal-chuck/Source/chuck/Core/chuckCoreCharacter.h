@@ -7,6 +7,7 @@
 #include "chuckCoreCharacter.generated.h"
 
 class UInputAction;
+class UchuckCharacterMovementComponent;
 struct FInputActionValue;
 
 UCLASS()
@@ -15,7 +16,7 @@ class AchuckCoreCharacter : public AchuckCharacter
 	GENERATED_BODY()
 
 public:
-	AchuckCoreCharacter();
+	AchuckCoreCharacter(const FObjectInitializer& ObjectInitializer);
 
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -23,6 +24,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	const FchuckStatBlock& GetStats() const { return Stats; }
+	bool IsSprinting() const;
 
 protected:
 	virtual void PostInitializeComponents() override;
@@ -37,17 +39,8 @@ protected:
 	void DestroyStatEntity();
 	void SyncStatsFragment(float DeltaSeconds);
 
-	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Movement")
-	float WalkSpeed = 600.f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Movement")
-	float SprintSpeed = 1000.f;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Camera")
 	float ThirdPersonArmLength = 300.f;
-
-	UPROPERTY(ReplicatedUsing = OnRep_IsSprinting)
-	bool bIsSprinting = false;
 
 	UPROPERTY()
 	TObjectPtr<UInputAction> SprintAction;
@@ -63,13 +56,7 @@ protected:
 	void OnCrouchPressed(const FInputActionValue& Value);
 	void OnToggleCameraPressed(const FInputActionValue& Value);
 
-	UFUNCTION(Server, Reliable)
-	void ServerSetSprinting(bool bNewSprinting);
-
-	UFUNCTION()
-	void OnRep_IsSprinting();
-
-	void ApplySprintSpeed();
+	UchuckCharacterMovementComponent* GetChuckMovement() const;
 
 private:
 	bool bFirstPersonCamera = false;

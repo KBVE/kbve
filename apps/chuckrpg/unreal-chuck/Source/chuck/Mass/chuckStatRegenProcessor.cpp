@@ -18,6 +18,8 @@ void UchuckStatRegenProcessor::ConfigureQueries(const TSharedRef<FMassEntityMana
 
 void UchuckStatRegenProcessor::Execute(FMassEntityManager& EntityManager, FMassExecutionContext& Context)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(chuck_StatRegen_Execute);
+
 	const float DeltaSeconds = Context.GetDeltaTimeSeconds();
 
 	EntityQuery.ParallelForEachEntityChunk(EntityManager, Context,

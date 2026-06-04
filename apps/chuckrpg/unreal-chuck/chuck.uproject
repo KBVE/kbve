@@ -11,7 +11,10 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"AIModule",
-				"UMG"
+				"UMG",
+				"MassEntity",
+				"MassCommon",
+				"StructUtils"
 			]
 		}
 	],
@@ -41,6 +44,10 @@
 		},
 		{
 			"Name": "MassAI",
+			"Enabled": true
+		},
+		{
+			"Name": "AnimationBudgetAllocator",
 			"Enabled": true
 		}
 	]

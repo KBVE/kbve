@@ -20,26 +20,32 @@ UchuckInputs* UchuckInputs::Get()
 
 void UchuckInputs::Build()
 {
-	Move         = NewObject<UInputAction>(this, TEXT("IA_Move"));
-	Look         = NewObject<UInputAction>(this, TEXT("IA_Look"));
-	Jump         = NewObject<UInputAction>(this, TEXT("IA_Jump"));
-	Sprint       = NewObject<UInputAction>(this, TEXT("IA_Sprint"));
-	Crouch       = NewObject<UInputAction>(this, TEXT("IA_Crouch"));
-	ToggleCamera = NewObject<UInputAction>(this, TEXT("IA_ToggleCamera"));
+	Move             = NewObject<UInputAction>(this, TEXT("IA_Move"));
+	Look             = NewObject<UInputAction>(this, TEXT("IA_Look"));
+	Jump             = NewObject<UInputAction>(this, TEXT("IA_Jump"));
+	Sprint           = NewObject<UInputAction>(this, TEXT("IA_Sprint"));
+	Crouch           = NewObject<UInputAction>(this, TEXT("IA_Crouch"));
+	ToggleCamera     = NewObject<UInputAction>(this, TEXT("IA_ToggleCamera"));
+	Pause            = NewObject<UInputAction>(this, TEXT("IA_Pause"));
+	ToggleDevOverlay = NewObject<UInputAction>(this, TEXT("IA_ToggleDevOverlay"));
 
-	Move->ValueType         = EInputActionValueType::Axis2D;
-	Look->ValueType         = EInputActionValueType::Axis2D;
-	Jump->ValueType         = EInputActionValueType::Boolean;
-	Sprint->ValueType       = EInputActionValueType::Boolean;
-	Crouch->ValueType       = EInputActionValueType::Boolean;
-	ToggleCamera->ValueType = EInputActionValueType::Boolean;
+	Move->ValueType             = EInputActionValueType::Axis2D;
+	Look->ValueType             = EInputActionValueType::Axis2D;
+	Jump->ValueType             = EInputActionValueType::Boolean;
+	Sprint->ValueType           = EInputActionValueType::Boolean;
+	Crouch->ValueType           = EInputActionValueType::Boolean;
+	ToggleCamera->ValueType     = EInputActionValueType::Boolean;
+	Pause->ValueType            = EInputActionValueType::Boolean;
+	ToggleDevOverlay->ValueType = EInputActionValueType::Boolean;
 
 	DefaultIMC = NewObject<UInputMappingContext>(this, TEXT("IMC_Default"));
 
-	DefaultIMC->MapKey(Jump,         EKeys::SpaceBar);
-	DefaultIMC->MapKey(Sprint,       EKeys::LeftShift);
-	DefaultIMC->MapKey(Crouch,       EKeys::LeftControl);
-	DefaultIMC->MapKey(ToggleCamera, EKeys::V);
+	DefaultIMC->MapKey(Jump,             EKeys::SpaceBar);
+	DefaultIMC->MapKey(Sprint,           EKeys::LeftShift);
+	DefaultIMC->MapKey(Crouch,           EKeys::LeftControl);
+	DefaultIMC->MapKey(ToggleCamera,     EKeys::V);
+	DefaultIMC->MapKey(Pause,            EKeys::Escape);
+	DefaultIMC->MapKey(ToggleDevOverlay, EKeys::Tilde);
 
 	{
 		FEnhancedActionKeyMapping& LookMap = DefaultIMC->MapKey(Look, EKeys::Mouse2D);

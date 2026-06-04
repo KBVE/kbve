@@ -99,6 +99,45 @@ Server build workflow lives in `.github/workflows/ci-ue5-rows.yml` and
 - `version.toml` is CI/CD-managed (see the `feedback_no_manual_version`
   memory); do not hand-bump it.
 
+## Threading + Mass conventions
+
+Stat regen and any future per-entity simulation runs on Mass workers via
+`UMassProcessor` subclasses under `Source/chuck/Mass/`. The runtime rule
+that protects this from race-condition pain:
+
+- **UObject access stays out of the worker.** Processor bodies operate
+  on POD fragments (USTRUCT inheriting `FMassFragment`). No
+  `GetWorld()`, no `UPROPERTY` dereferences, no `UE_LOG` of FStrings
+  on the workers. Pure math + fragment reads/writes only.
+- **Game thread owns marshalling.** An `AchuckCoreCharacter` (server,
+  authority only) creates its Mass entity in `BeginPlay` and destroys
+  it in `EndPlay`. Each Tick, it pushes input flags (sprint, moving,
+  combat state, …) into the fragment and pulls computed values back
+  into its replicated UPROPERTY so UE's replication graph stays the
+  source of truth for clients.
+- **One frame of lag is acceptable.** The processor runs at
+  PrePhysics; the actor's next Tick reads the freshly-computed
+  fragment. Imperceptible vs. network jitter, and it keeps the
+  game-thread cost flat regardless of entity count.
+- **One archetype per behavior class.** Stats currently live in
+  `FchuckStatsFragment` only. As features land (combat, AI,
+  inventory), each gets its own fragment + processor, with characters
+  carrying additional fragments by extending the archetype tuple at
+  creation. Don't smush unrelated data into the same fragment.
+- **EntityQuery wiring (UE 5.7):** initialize via the processor
+  constructor's member-init list (`EntityQuery(*this)`) — the
+  `bInitialized` flag must be set before `AddRequirement` is called,
+  or you'll get the line-214 assert in `MassRequirements.h`.
+- **Tracing markers everywhere:** wrap any non-trivial worker scope
+  in `TRACE_CPUPROFILER_EVENT_SCOPE(chuck_<Name>)` so UE Insights
+  recordings give per-system cycle counts. Pattern is in
+  `chuckStatRegenProcessor::Execute` and
+  `AchuckCoreCharacter::SyncStatsFragment`.
+
+For raw worker tasks (one-shot async work that isn't entity-shaped),
+use `UE::Tasks::Launch` with `Then()` continuation back to the game
+thread — never `AsyncTask<TStatId, FNonAbandonableTask>` legacy APIs.
+
 ## Quick start for agents
 
 1. Confirm git-lfs is installed (`git lfs version`); run `git lfs install`

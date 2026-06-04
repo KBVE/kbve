@@ -21,6 +21,8 @@ public:
 	UPROPERTY() TObjectPtr<UInputAction>          Sprint;
 	UPROPERTY() TObjectPtr<UInputAction>          Crouch;
 	UPROPERTY() TObjectPtr<UInputAction>          ToggleCamera;
+	UPROPERTY() TObjectPtr<UInputAction>          Pause;
+	UPROPERTY() TObjectPtr<UInputAction>          ToggleDevOverlay;
 	UPROPERTY() TObjectPtr<UInputMappingContext>  DefaultIMC;
 
 protected:

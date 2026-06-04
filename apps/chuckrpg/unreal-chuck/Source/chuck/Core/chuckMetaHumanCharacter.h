@@ -10,5 +10,5 @@ class AchuckMetaHumanCharacter : public AchuckCoreCharacter
 	GENERATED_BODY()
 
 public:
-	AchuckMetaHumanCharacter();
+	AchuckMetaHumanCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 };

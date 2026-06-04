@@ -1,5 +1,6 @@
 #include "chuckMetaHumanCharacter.h"
 
-AchuckMetaHumanCharacter::AchuckMetaHumanCharacter()
+AchuckMetaHumanCharacter::AchuckMetaHumanCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 }

@@ -52,7 +52,7 @@ protected:
 public:
 
 	/** Constructor */
-	AchuckCharacter();	
+	AchuckCharacter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 protected:
 

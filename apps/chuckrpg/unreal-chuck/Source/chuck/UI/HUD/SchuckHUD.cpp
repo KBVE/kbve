@@ -2,6 +2,7 @@
 
 #include "ChuckUIStyle.h"
 #include "chuckHUDRenderer.h"
+#include "Styling/CoreStyle.h"
 
 void SchuckHUD::Construct(const FArguments& InArgs)
 {
@@ -40,6 +41,18 @@ int32 SchuckHUD::OnPaint(
 {
 	const ISlateStyle& Style = FChuckUIStyle::Get();
 	const FVector2D Size = AllottedGeometry.GetLocalSize();
+
+	const float Overlay = FMath::Clamp(Target.DamageFlash * 0.45f + Target.LowHealthPulse * 0.30f, 0.f, 0.65f);
+	if (Overlay > 0.001f)
+	{
+		FSlateDrawElement::MakeBox(
+			OutDrawElements,
+			LayerId,
+			AllottedGeometry.ToPaintGeometry(),
+			FCoreStyle::Get().GetBrush("WhiteBrush"),
+			ESlateDrawEffect::None,
+			FLinearColor(0.85f, 0.05f, 0.05f, Overlay));
+	}
 
 	const FMargin Pad      = Style.GetMargin(FChuckUIStyle::FKeys::HUD_Padding);
 	const float BarW       = Style.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Width);

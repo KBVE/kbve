@@ -15,10 +15,12 @@
 #include "Net/UnrealNetwork.h"
 #include "UObject/ConstructorHelpers.h"
 
+#include "chuckCharacterMovementComponent.h"
 #include "chuckInputs.h"
 #include "chuckStatsFragment.h"
 
-AchuckCoreCharacter::AchuckCoreCharacter()
+AchuckCoreCharacter::AchuckCoreCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UchuckCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	bReplicates = true;
 	SetReplicateMovement(true);
@@ -46,7 +48,6 @@ AchuckCoreCharacter::AchuckCoreCharacter()
 
 	if (UCharacterMovementComponent* Move = GetCharacterMovement())
 	{
-		Move->MaxWalkSpeed                  = WalkSpeed;
 		Move->MaxAcceleration               = 2048.f;
 		Move->BrakingDecelerationWalking    = 1500.f;
 		Move->GroundFriction                = 8.f;
@@ -75,6 +76,20 @@ AchuckCoreCharacter::AchuckCoreCharacter()
 	}
 }
 
+UchuckCharacterMovementComponent* AchuckCoreCharacter::GetChuckMovement() const
+{
+	return Cast<UchuckCharacterMovementComponent>(GetCharacterMovement());
+}
+
+bool AchuckCoreCharacter::IsSprinting() const
+{
+	if (UchuckCharacterMovementComponent* CMC = GetChuckMovement())
+	{
+		return CMC->bWantsToSprint;
+	}
+	return false;
+}
+
 void AchuckCoreCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -94,7 +109,6 @@ void AchuckCoreCharacter::PostInitializeComponents()
 void AchuckCoreCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AchuckCoreCharacter, bIsSprinting);
 	DOREPLIFETIME(AchuckCoreCharacter, Stats);
 }
 
@@ -179,6 +193,8 @@ void AchuckCoreCharacter::DestroyStatEntity()
 
 void AchuckCoreCharacter::SyncStatsFragment(float DeltaSeconds)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(chuck_SyncStatsFragment);
+
 	if (!StatEntity.IsValid())
 	{
 		return;
@@ -202,17 +218,19 @@ void AchuckCoreCharacter::SyncStatsFragment(float DeltaSeconds)
 	}
 
 	const bool bMoving = GetCharacterMovement() && GetCharacterMovement()->Velocity.SizeSquared2D() > 1.f;
-	Frag->bIsSprinting = bIsSprinting;
+	Frag->bIsSprinting = IsSprinting();
 	Frag->bIsMoving    = bMoving;
 
 	Stats.Health  = Frag->Health;
 	Stats.Mana    = Frag->Mana;
 	Stats.Stamina = Frag->Stamina;
 
-	if (bIsSprinting && Stats.Stamina <= 0.f)
+	if (IsSprinting() && Stats.Stamina <= 0.f)
 	{
-		bIsSprinting = false;
-		ApplySprintSpeed();
+		if (UchuckCharacterMovementComponent* CMC = GetChuckMovement())
+		{
+			CMC->bWantsToSprint = false;
+		}
 	}
 }
 
@@ -240,40 +258,17 @@ void AchuckCoreCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 void AchuckCoreCharacter::OnSprintPressed(const FInputActionValue& Value)
 {
-	bIsSprinting = true;
-	ApplySprintSpeed();
-	if (!HasAuthority())
+	if (UchuckCharacterMovementComponent* CMC = GetChuckMovement())
 	{
-		ServerSetSprinting(true);
+		CMC->bWantsToSprint = true;
 	}
 }
 
 void AchuckCoreCharacter::OnSprintReleased(const FInputActionValue& Value)
 {
-	bIsSprinting = false;
-	ApplySprintSpeed();
-	if (!HasAuthority())
+	if (UchuckCharacterMovementComponent* CMC = GetChuckMovement())
 	{
-		ServerSetSprinting(false);
-	}
-}
-
-void AchuckCoreCharacter::ServerSetSprinting_Implementation(bool bNewSprinting)
-{
-	bIsSprinting = bNewSprinting;
-	ApplySprintSpeed();
-}
-
-void AchuckCoreCharacter::OnRep_IsSprinting()
-{
-	ApplySprintSpeed();
-}
-
-void AchuckCoreCharacter::ApplySprintSpeed()
-{
-	if (UCharacterMovementComponent* Move = GetCharacterMovement())
-	{
-		Move->MaxWalkSpeed = bIsSprinting ? SprintSpeed : WalkSpeed;
+		CMC->bWantsToSprint = false;
 	}
 }
 
