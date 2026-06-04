@@ -12,57 +12,65 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 7500
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
   material:
     type: bone
     tier: high
-  prayer:
-    xp_bury: 85
-    xp_gilded_altar: 297.5
-    xp_chaos_altar: 297.5
-    xp_ectofuntus: 340
-    xp_sinister_offering: 255
+  properties:
+    release_date: "13 March 2014"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.6
+    options:
+      - Bury
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  passive_effects:
+    - name: Prayer XP on Bury
+      description: "Bury 85 XP; Gilded altar (2 burners) 297.5 XP; Chaos altar averages 595 XP with 50% no-consume; Ectofuntus 340 XP; Sinister Offering 255 XP."
   drop_table:
     sources:
       - source: Lava dragon
-        source_id: 6593
-        combat_level: 252
         quantity: "1"
-        rarity: always
-        members_only: true
+        rarity: "Always"
   related_items:
-    - item_id: 536
-      item_name: Dragon bones
+    - item_name: Dragon bones
       slug: dragon-bones
       relationship: downgrade
-      description: Lower XP (72 base)
-    - item_id: 6729
-      item_name: Dagannoth bones
+      description: "Lower base 72 Prayer XP"
+    - item_name: Dagannoth bones
       slug: dagannoth-bones
       relationship: upgrade
-      description: Higher XP (125 base)
-    - item_id: 22786
-      item_name: Hydra bones
+      description: "Higher base 125 Prayer XP"
+    - item_name: Hydra bones
       slug: hydra-bones
       relationship: alternative
-      description: Higher XP (110 base)
-    - item_id: 11992
-      item_name: Lava scale
+      description: "Slayer-locked 110 base Prayer XP"
+    - item_name: Lava scale
       slug: lava-scale
       relationship: alternative
-      description: Used for extended antifires
+      description: "Used for extended antifires"
+  about: "Lava dragon bones are a Wilderness-only prayer training option dropped exclusively by lava dragons on Lava Dragon Isle, often cheapest per XP at the Chaos altar."
   market_strategy:
     notes:
-      - Supply limited by PKer risk
-      - Slightly better than dragon bones
-      - Price includes risk premium
-      - Wilderness activity
-      - PKer presence
-      - Anti-PK meta changes
-      - Often cheaper per XP than dragon bones
-      - Risk factor limits supply
-      - Good for Ironmen near Chaos altar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply throttled by PKer risk in Wilderness"
+      - "Often cheaper per XP than dragon bones at the Chaos altar"
+      - "Elite Wilderness Diary unlocks noted bone drops, easing supply"
+  trading_tips:
+    - "Stockpile during PK meta lulls for cheaper buys"
+    - "Pair with Chaos altar 50% no-consume mechanic for best XP-per-coin"
+  history:
+    - date: "13 March 2014"
+      description: "Released with the lava dragon NPC."
+    - date: "5 March 2015"
+      description: "Elite Wilderness Diary allows lava dragons to drop noted bones."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

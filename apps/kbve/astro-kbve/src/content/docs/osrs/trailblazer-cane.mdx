@@ -12,9 +12,70 @@ osrs:
   lowalch: 60000
   highalch: 90000
   limit: 5
-  about: "Trailblazer cane is a members-only item in Old School RuneScape. High alchemy value: 90,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: mid-high
+  properties:
+    release_date: "2021-01-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Trailblazer Relic Emote
+      - Trailblazer Area Emote
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: spiked
+    attack_speed: 4
+    weight: 1.814
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Trailblazer relic hunter (t3) outfit
+      slug: trailblazer-relic-hunter-t3-outfit
+      relationship: set-piece
+      description: Outfit awarded alongside the cane
+  about: "Trailblazer cane is a cosmetic one-handed crush weapon awarded with the tier 3 Trailblazer Relic Hunter outfit from the Leagues Reward Shop (15,000 League points). Provides no combat bonuses; its real value is two equipped emotes: Trailblazer Relic Emote and Trailblazer Area Emote."
+  market_strategy:
+    notes:
+      - "Supply gated by League points, not gameplay loops"
+      - "Demand driven by collectors and emote unlocks"
+  passive_effects:
+    - name: Trailblazer Relic Emote
+      description: "Equipped emote unlocked while the cane is wielded."
+    - name: Trailblazer Area Emote
+      description: "Second equipped emote added in the 2021 graphical update."
+  history:
+    - date: "2021-01-06"
+      description: "Received a graphical update; value raised from 1,000 to 150,000 coins and the Trailblazer Area Emote option was added."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

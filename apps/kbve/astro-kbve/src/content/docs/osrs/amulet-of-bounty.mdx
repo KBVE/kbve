@@ -12,9 +12,93 @@ osrs:
   lowalch: 360
   highalch: 540
   limit: 10000
-  about: "Amulet of bounty is a members-only item in Old School RuneScape. High alchemy value: 540 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: jewellery
+    tier: mid
+  properties:
+    release_date: "2017-02-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Wear
+      - Break
+      - Drop
+    worn_options:
+      - Remove
+      - Break
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: neck
+    weapon_type: null
+    attack_speed: null
+    weight: 0.007
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: magic
+      level: 7
+      xp: 17
+      materials:
+        - item_name: Opal amulet
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Water rune
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Bounty allotment save
+      description: 25% chance to consume only 1 seed instead of 3 when planting in an allotment patch, using 1 of 10 charges per activation
+  related_items:
+    - item_name: Opal amulet
+      slug: opal-amulet
+      relationship: component
+      description: Base amulet that is enchanted with Lvl-1 Enchant
+    - item_name: Amulet of farming
+      slug: amulet-of-farming
+      relationship: alternative
+      description: Different farming-utility amulet (members)
+    - item_name: Cosmic rune
+      slug: cosmic-rune
+      relationship: component
+      description: Cosmic rune for Lvl-1 Enchant
+  about: "Amulet of bounty is an enchanted opal amulet that grants a 25% chance to consume only one allotment seed instead of three per plant, burning one of its ten charges per save. Charges persist across amulets (selling does not reset them), and right-clicking 'Break' destroys the current amulet so the next one resets to full charges."
+  market_strategy:
+    notes:
+      - "Most valuable to high-tier seed farmers (watermelon, snape grass)"
+      - "Cheap to craft if you have Magic 7 and a steady opal supply"
+      - "10 charges per amulet caps how aggressive single-amulet flips can be"
+  trading_tips:
+    - Buy opal amulets and enchant in bulk for margin
+    - Sell to farmers around Hespori or Farming Guild bandwagons
+  history:
+    - date: "2017-02-02"
+      description: "Released as part of the Farming amulet additions to enchanted opal jewellery."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

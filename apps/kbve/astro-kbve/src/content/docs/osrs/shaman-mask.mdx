@@ -1,6 +1,6 @@
 ---
 title: Shaman mask | OSRS Price Data
-description: "Shaman mask: The mask worn by ogre shamans.. High alch: 4,800 GP, GE limit: 125."
+description: "Shaman mask: The mask worn by ogre shamans. High alch: 4,800 GP, GE limit: 125."
 osrs:
   id: 21838
   name: Shaman mask
@@ -12,9 +12,81 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: 125
-  about: "Shaman mask is a free-to-play item in Old School RuneScape. High alchemy value: 4,800 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: leather
+    tier: mid
+  properties:
+    release_date: "2017-12-07"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 2.721
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 6
+      slash: 7
+      crush: 5
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Ogress Shaman
+        quantity: "1"
+        rarity: 1/1200
+      - source: Ogress Warrior
+        quantity: "1"
+        rarity: 1/1200
+  related_items:
+    - item_name: Iron full helm
+      slug: iron-full-helm
+      relationship: alternative
+      description: Comparable defensive head slot in F2P
+    - item_name: Cavalier
+      slug: cavalier
+      relationship: alternative
+      description: Cosmetic head slot of similar tier
+  about: |-
+    > *"The mask worn by ogre shamans."*
+
+    Shaman mask is a free-to-play head slot drop from Ogress Shamans and Warriors in the Corsair Cove Dungeon. It mirrors iron full helm defences while adding a small ranged attack bonus and is one of the few unique F2P cosmetic helms with combat stats.
+  market_strategy:
+    notes:
+      - "F2P Ironmen and skillers chase it for the unique look"
+      - "1/1,200 drop rate keeps long-term supply lean"
+  trading_tips:
+    - "Buy during Corsair Cove farming spikes when supply jumps"
+    - "Resell to F2P collectors when listings dry up"
+  history:
+    - date: "2017-12-07"
+      description: "Released alongside The Corsair Curse and the Wilderness Chaos Altar update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

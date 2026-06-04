@@ -12,80 +12,84 @@ osrs:
   lowalch: 300000
   highalch: 450000
   limit: null
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bow
+    tier: high
+  properties:
+    release_date: "2023-01-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.5
+    options:
+      - Wield
+      - Charge
+      - Drop
+    worn_options:
+      - Remove
+      - Uncharge
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: bow
-    tradeable: true
+    weapon_type: bow
+    attack_speed: 5
     weight: 4.5
     requirements:
       ranged: 80
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 0
-      attack_ranged: 90
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 0
+    attack_bonus:
+      ranged: 90
+    defence_bonus: {}
+    other_bonus:
       ranged_strength: 25
-      magic_damage: 0
-      prayer: 0
-  passive_effect:
-    name: Multi-Bounce
-    description: In multicombat, arrows bounce to nearby targets (up to 2 additional hits at 66% damage)
-    requires_charges: true
-  charging:
-    resource: Ancient essence
-    max_charges: 50000
-    cost_per_attack: ~18 gp
+  passive_effects:
+    - name: Multi-Bounce
+      description: "In multicombat areas, charged arrows ricochet to nearby targets for up to 2 additional hits at 66% of original damage. Requires ancient essence charges (16 gp/attack, up to 50,000 charges)."
   drop_table:
     sources:
-      - source: Leviathan
-        rate: Via Venator shards
+      - source: The Leviathan
+        quantity: "1"
+        rarity: "1/96 (5 Venator shards required to craft)"
   recipes:
     - skill: crafting
+      level: 1
+      xp: 0
       materials:
-        - item_id: 27614
-          item_name: Venator shard
+        - item_name: Venator shard
           quantity: 5
-      product: Venator bow
-      product_id: 27612
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 27614
-      item_name: Venator shard
+    - item_name: Venator shard
       slug: venator-shard
       relationship: component
-      description: Required for creation
-    - item_id: 27616
-      item_name: Ancient essence
+      description: 5 shards combine to create the Venator bow
+    - item_name: Venator bow
+      slug: venator-bow
+      relationship: upgrade
+      description: Charged form of this bow
+    - item_name: Ancient essence
       slug: ancient-essence
       relationship: alternative
-      description: Charge material
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Ranged | +90 |
-    | Ranged strength | +25 |
-
-    Attack Speed: 5-tick (3.0s) standard, 4-tick (2.4s) rapid
-
-    Range: 6 tiles (8 with Longrange)
-
-    Multi-Bounce: In multicombat, arrows bounce to nearby targets (up to 2 additional hits). Secondary hits deal 66% damage.
-
-    Requires ancient essence charges.
-
-    | Property | Value |
-    |----------|-------|
-    | Max charges | 50,000 |
-    | Charge source | Ancient essence |
-    | Cost per attack | ~18 gp |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Charge material consumed per attack
+  about: "Venator bow (uncharged) is a two-handed bow crafted from 5 Venator shards dropped by The Leviathan. Requires 80 Ranged and charges of ancient essence to fire. In multicombat areas, arrows bounce to nearby targets for up to 2 additional hits at 66% damage. Range 6 tiles (8 with Longrange); attack speed 5 ticks accurate/longrange, 4 ticks rapid. Excels at grouped enemies like abyssal demons and mutated bloodvelds."
+  market_strategy:
+    notes:
+      - "Multicombat-only effective"
+      - "Ancient essence sink ties cost to alt-account farming"
+      - "Demand from PvM slayer task efficiency"
+      - "Poor single-target uplift, niche weapon"
+  trading_tips:
+    - "Charged version trades separately at a premium"
+    - "Watch Leviathan drop rate update news for supply shocks"
+  history:
+    - date: "2023-01-11"
+      description: "Released with the Desert Treasure II - The Fallen Empire expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

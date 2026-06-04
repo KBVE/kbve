@@ -1,6 +1,6 @@
 ---
 title: Black knife(p++) | OSRS Price Data
-description: "Black knife(p++): A finely balanced throwing knife.. High alch: 10 GP, GE limit: 7,000."
+description: "Black knife(p++): A finely balanced throwing knife. High alch: 10 GP, GE limit: 7,000."
 osrs:
   id: 5665
   name: Black knife(p++)
@@ -12,9 +12,83 @@ osrs:
   lowalch: 7
   highalch: 10
   limit: 7000
-  about: "Black knife(p++) is a members-only item in Old School RuneScape. High alchemy value: 10 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: black_metal
+    tier: low
+  properties:
+    release_date: "2003-03-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - "Wield"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0.4
+    requirements:
+      ranged: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 4
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 6
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Black knife
+      slug: black-knife
+      relationship: variant
+      description: "Unpoisoned base version"
+    - item_name: Black knife(p)
+      slug: black-knife-p
+      relationship: variant
+      description: "Standard poison variant"
+    - item_name: Black knife(p+)
+      slug: black-knife-p-plus
+      relationship: variant
+      description: "Stronger poison variant"
+    - item_name: Mithril knife(p++)
+      slug: mithril-knife-p-plus-plus
+      relationship: upgrade
+      description: "Higher-tier extra-strength poison throwing knife"
+  about: |-
+    > _"A finely balanced throwing knife."_
+
+    The Black knife(p++) is a thrown weapon coated with extra-strength weapon poison. It deals slightly more damage than the base black knife when poison procs, and is used by mid-level rangers who prefer thrown weapons.
+  market_strategy:
+    notes:
+      - "Niche thrown weapon — thin supply"
+      - "Mostly purchased by ironmen for poison procs"
+      - "Demand spikes during DMM/PvP events"
+  trading_tips:
+    - "Watch stack listings — sellers often dump in bulk"
+    - "GE price hugs high-alch floor"
+  history:
+    - date: "2003-03-31"
+      description: "Added with extra-strength weapon poison expansion"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

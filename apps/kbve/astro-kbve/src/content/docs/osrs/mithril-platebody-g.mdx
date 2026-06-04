@@ -12,9 +12,88 @@ osrs:
   lowalch: 2080
   highalch: 3120
   limit: 8
-  about: "Mithril platebody (g) is a free-to-play item in Old School RuneScape. High alchemy value: 3,120 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: mithril
+    tier: mid
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.979
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 9.979
+    requirements:
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -15
+    defence_bonus:
+      stab: 46
+      slash: 44
+      crush: 38
+      magic: -6
+      ranged: 44
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - item_name: Mithril platebody
+      slug: mithril-platebody
+      relationship: variant
+      description: "Standard untrimmed mithril platebody with identical combat stats."
+    - item_name: Mithril platebody (t)
+      slug: mithril-platebody-t
+      relationship: variant
+      description: "Silver-trimmed cosmetic variant from medium clue rewards."
+    - item_name: Mithril platelegs (g)
+      slug: mithril-platelegs-g
+      relationship: set-piece
+      description: "Matching gold-trimmed legs for the set."
+    - item_name: Mithril full helm (g)
+      slug: mithril-full-helm-g
+      relationship: set-piece
+      description: "Matching gold-trimmed helm for the set."
+    - item_name: Mithril kiteshield (g)
+      slug: mithril-kiteshield-g
+      relationship: set-piece
+      description: "Matching gold-trimmed kiteshield for the set."
+  about: "Mithril platebody (g) is a cosmetic gold-trimmed variant of the standard mithril platebody obtained from medium clue scroll caskets at a rarity of 1/1,133. It shares identical defensive stats with the standard mithril platebody and requires level 20 Defence to equip."
+  market_strategy:
+    notes:
+      - "Cosmetic-only premium over standard mithril platebody; collector-driven price."
+      - "Free-to-play tradeable, broadening the buyer pool."
+  trading_tips:
+    - "Hold over time as clue supply is steady but demand from set-collectors trickles in."
+    - "Complete the full gold trim set for resale at a premium versus piecemeal selling."
+  history:
+    - date: "2014-06-12"
+      description: "Released as part of the Treasure Trail Expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

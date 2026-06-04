@@ -12,8 +12,34 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 200
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: leather
+    tier: low
+  properties:
+    release_date: "9 August 2004"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.34
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: feet
+    weapon_type: null
+    attack_speed: null
+    weight: 0.34
+    requirements:
+      quest: "Death Plateau"
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,58 +57,33 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements: {}
-    weight: 0.34
+  shops:
+    - shop_name: Tenzing's House
+      location: Death Plateau
+      price: 12
+      currency: coins
+      stock: 5
   related_items:
-    - item_id: 4131
-      item_name: Rune boots
+    - item_name: Rune boots
       slug: rune-boots
       relationship: alternative
-      description: Same strength bonus, higher defence
-    - item_id: 11840
-      item_name: Dragon boots
+      description: "Same strength bonus, higher defence with 40 Defence requirement"
+    - item_name: Dragon boots
       slug: dragon-boots
       relationship: upgrade
-      description: +4 Strength boots
-  about: |-
-    | Defence | Value |
-    |---------|-------|
-    | Slash | +2 |
-    | Crush | +2 |
-
-    | Other | Value |
-    |-------|-------|
-    | Strength | +2 |
-
-    Requirements: Death Plateau quest | Weight: 0.34 kg
-
-    The +2 Strength bonus with zero combat requirements makes climbing boots one of the most efficient items in the game:
-    - Available immediately after Death Plateau (no combat stats needed)
-    - Same Strength bonus as rune boots (which require 40 Defence)
-    - Only 12 coins from the shop
-    - No negative bonuses of any kind
-
-    | Boots | Str Bonus | Def Req | Approx Cost |
-    |-------|-----------|---------|-------------|
-    | Climbing boots | +2 | None | 12 GP |
-    | Rune boots | +2 | 40 Def | ~7K GP |
-    | Dragon boots | +4 | 60 Def | ~200K GP |
-    | Primordial boots | +5 | 75 Def | ~25M GP |
-
-    Climbing boots match rune boots for Strength — making them best-in-slot for any account without 60 Defence.
-
-    Essential for 1 Defence pures and low-Defence builds:
-    - +2 Strength with no Defence requirement
-    - Negligible cost (12 coins)
-    - Lightweight (0.34 kg)
-    - No quest combat requirements to complete Death Plateau
+      description: "+4 strength boots requiring 60 Defence"
+  about: "Climbing boots provide +2 strength with no combat requirement, making them best-in-slot for pures and a near-free upgrade from Tenzing after Death Plateau."
   market_strategy:
     notes:
-      - Buy from Tenzing for 12 coins (functionally free)
-      - GE price inflated above shop price
-      - Essential pure/zerker item
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Buy from Tenzing at 12 coins for effectively free supply"
+      - "Grand Exchange price inflated above shop price by quest barrier"
+      - "Essential pure/zerker staple keeps demand steady"
+  trading_tips:
+    - "Stock from Tenzing during Death Plateau completion for instant resale"
+    - "Match rune boots for strength without a 40 Defence requirement"
+  history:
+    - date: "9 August 2004"
+      description: "Released with the Death Plateau quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

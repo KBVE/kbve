@@ -12,12 +12,103 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: null
-  about: "Swampbark helm is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bark
+    tier: mid-high
+  properties:
+    release_date: "27 January 2021"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements:
+      magic: 50
+      defence: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 13
+      slash: 11
+      crush: 14
+      magic: 5
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: runecraft
+      level: 46
+      xp: 12.5
+      materials:
+        - item_name: Splitbark helm
+          quantity: 1
+        - item_name: Nature rune
+          quantity: 250
+      tools:
+        - Nature altar
+        - Runescroll of swampbark
+      output_quantity: 1
+  passive_effects:
+    - name: Bind extension
+      description: "Worn alongside swampbark body and legs, increases bind, snare, and entangle durations by a combined 6 ticks."
+  related_items:
+    - item_name: Splitbark helm
+      slug: splitbark-helm
+      relationship: downgrade
+      description: Base helm consumed to craft the swampbark variant
+    - item_name: Swampbark body
+      slug: swampbark-body
+      relationship: set-piece
+      description: Matching swampbark body
+    - item_name: Swampbark legs
+      slug: swampbark-legs
+      relationship: set-piece
+      description: Matching swampbark legs
+    - item_name: Runescroll of swampbark
+      slug: runescroll-of-swampbark
+      relationship: component
+      description: Unlocks the swampbark crafting recipe
+  about: "The swampbark helm is an upgraded magic helmet crafted from a splitbark helm and 250 nature runes at the Nature Altar, requiring 46 Runecraft. It requires 50 Magic and 50 Defence to wear. When worn with the matching body and legs, the set extends bind, snare, and entangle spell durations by 6 ticks total, giving Bind 14 ticks, Snare 22 ticks, and Entangle 30 ticks. Useful for PvP setups that rely on freezes."
+  market_strategy:
+    notes:
+      - "Skilling-gated supply through Runecraft + Nature Altar"
+      - "Niche PvP and PvM utility (freeze extension)"
+      - "No GE buy limit cap published"
+      - "Demand spikes during PvP-focused content updates"
+  trading_tips:
+    - Track splitbark helm prices for crafting margin
+    - Buy during quieter content lulls
+    - Sell during Wilderness or LMS events
+  history:
+    - date: "27 January 2021"
+      description: "Item was added to the game alongside the Mage Arena 2 rework and Runescroll of swampbark unlock."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

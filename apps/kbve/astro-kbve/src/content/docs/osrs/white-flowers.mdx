@@ -12,9 +12,67 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 150
-  about: "White flowers is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: misc
+    tier: low
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Hold
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Mithril seed (harvest)
+        quantity: "1"
+        rarity: 1/1,001
+      - source: Adamant seed (harvest)
+        quantity: "1"
+        rarity: 1/1,001
+  related_items:
+    - item_name: Mithril seed
+      slug: mithril-seed
+      relationship: component
+      description: Source seed for harvesting white flowers
+    - item_name: Adamant seed
+      slug: adamant-seed
+      relationship: component
+      description: Alternative source seed for harvesting
+    - item_name: Red flowers
+      slug: red-flowers
+      relationship: variant
+      description: Differently colored flower variant
+    - item_name: Yellow flowers
+      slug: yellow-flowers
+      relationship: variant
+      description: Differently colored flower variant
+  about: "White flowers are a rare 1/1,001 harvest from mithril or adamant seeds planted via Farming. Part of the broader flower family with multiple color variants."
+  market_strategy:
+    notes:
+      - "150 buy limit suppresses bulk flipping"
+      - "Niche cosmetic and quest demand"
+      - "Supply depends on mithril/adamant seed usage"
+  trading_tips:
+    - List near high alch value for slow sells
+    - Useful for outfit collectors and cosmetic flips
+  history:
+    - date: "2004-03-29"
+      description: "Item released with the RS2 launch."
+    - date: "2014-12-10"
+      description: "Item renamed from \"Flowers\" to \"White flowers\"."
+    - date: "2024-04-10"
+      description: "Adamant seeds gained ability to drop white flowers when harvested."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

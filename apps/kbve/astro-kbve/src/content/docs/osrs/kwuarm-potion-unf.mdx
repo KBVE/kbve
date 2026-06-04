@@ -1,6 +1,6 @@
 ---
 title: Kwuarm potion (unf) | OSRS Price Data
-description: "Kwuarm potion (unf) is a 4-dose members potion. High alch: 32 GP, GE limit: 10,000."
+description: "Kwuarm potion (unf) is a 4-dose unfinished potion used for Super strength and Weapon poison. High alch: 32 GP, GE limit: 10,000."
 osrs:
   id: 105
   name: Kwuarm potion (unf)
@@ -12,63 +12,71 @@ osrs:
   lowalch: 21
   highalch: 32
   limit: 10000
-  potion:
-    type: unfinished
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: unfinished-potion
     tier: mid-high
-  herblore:
-    level: 55
-    xp: 0
-    method: Add kwuarm to vial of water
+  properties:
+    release_date: "27 February 2002"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - "Empty"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: herblore
       level: 55
       xp: 0
       materials:
         - item_name: Vial of water
-          item_id: 227
           quantity: 1
         - item_name: Kwuarm
-          item_id: 263
           quantity: 1
-      product: Kwuarm potion (unf)
-      product_id: 105
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 263
-      item_name: Kwuarm
+    - item_name: Kwuarm
       slug: kwuarm
       relationship: component
-      description: Herb ingredient
-    - item_id: 227
-      item_name: Vial of water
+      description: Herb ingredient added to vial of water
+    - item_name: Vial of water
       slug: vial-of-water
       relationship: component
-      description: Base liquid
-    - item_id: 225
-      item_name: Limpwurt root
+      description: Base liquid for the unfinished potion
+    - item_name: Limpwurt root
       slug: limpwurt-root
       relationship: component
-      description: Secondary for super strength
-    - item_id: 2440
-      item_name: Super strength(4)
-      slug: super-strength-4
+      description: Secondary for Super strength
+    - item_name: Super strength(3)
+      slug: super-strength-3
       relationship: product
-      description: Final product
+      description: Combat potion product
+    - item_name: Weapon poison
+      slug: weapon-poison
+      relationship: product
+      description: Created with dragon scale dust
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Unfinished Potion |
-    | Tradeable | Yes |
-    | Weight | 0.056 kg |
-    | Requirements | 55 Herblore |
+    > _"I need another ingredient to finish this Kwuarm potion."_
 
-    Add secondary ingredient to create:
-    - Super strength (+ limpwurt root)
-    - Weapon poison (+ dragon scale dust)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Kwuarm potion (unf) is an unfinished herblore potion made by adding a kwuarm to a vial of water at 55 Herblore. Used as the base for Super strength (with limpwurt root, 125 XP) or Weapon poison (with dragon scale dust, 60 Herblore, 137.5 XP).
+  market_strategy:
+    notes:
+      - "Tracks the kwuarm herb price; bulk processors drive most volume."
+      - "Margins improve when herb supply outpaces super strength demand."
+  trading_tips:
+    - "Process kwuarm + vial when limpwurt root prices fall to widen the spread."
+  history:
+    - date: "27 February 2002"
+      description: "Released as part of the original Herblore expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

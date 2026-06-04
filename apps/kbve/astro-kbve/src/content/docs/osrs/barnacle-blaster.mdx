@@ -1,6 +1,6 @@
 ---
 title: Barnacle blaster | OSRS Price Data
-description: "Barnacle blaster: Rum, lemon and... crushed barnacles?. High alch: 12 GP."
+description: "Barnacle blaster is a Sailing-era cocktail that boosts Fishing while draining Sailing, Attack, Strength, and Defence. High alch: 12 GP."
 osrs:
   id: 31255
   name: Barnacle blaster
@@ -12,9 +12,64 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: null
-  about: "Barnacle blaster is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: consumable
+    tier: low
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: The Pandemonium pub
+      location: Pandemonium
+      price: 20
+      currency: coins
+      stock: 10
+  potion:
+    effects:
+      - description: Boosts Fishing by 1
+        duration: 0
+      - description: "Drains Sailing, Attack, Strength, and Defence by 2% plus 2"
+        duration: 0
+  related_items:
+    - item_name: Tuna potato
+      slug: tuna-potato
+      relationship: alternative
+      description: Common Fishing boost food alternative
+    - item_name: Admiral pie
+      slug: admiral-pie
+      relationship: alternative
+      description: Pie that boosts Fishing
+  about: |-
+    The barnacle blaster is a cocktail introduced with the Sailing expansion, sold by Squawking Steve Beanie at The Pandemonium pub for 20 coins. Drinking it boosts Fishing by 1 while penalising Sailing, Attack, Strength, and Defence by 2 percent plus 2.
+
+    It mostly fills a flavour niche for the Sailing rollout and offers a cheap Fishing boost when running cocktails between other content. The drain on Sailing and combat stats limits its usefulness outside fishing trips.
+  market_strategy:
+    notes:
+      - "Shop-bought, so GE price is anchored by shop cost"
+      - "Demand is light, mostly novelty and milestone hunters"
+      - "No buy limit makes it easy to volume flip on small margins"
+      - "Watch for Sailing diary or achievement updates that drive demand"
+  trading_tips:
+    - Buy from the shop and resell to the GE when prices float
+    - Avoid hoarding; demand is narrow
+    - Flip alongside Sailing release hype windows
+  history:
+    - date: "2025-11-19"
+      description: "Released as part of the Sailing skill launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,79 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
-  about: "Bronze knife(p++) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 4
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 3
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Bronze knife
+      slug: bronze-knife
+      relationship: variant
+      description: "Unpoisoned base variant."
+    - item_name: Bronze knife(p)
+      slug: bronze-knife-p
+      relationship: variant
+      description: "Standard poison applied via weapon poison."
+    - item_name: Bronze knife(p+)
+      slug: bronze-knife-p-5654
+      relationship: variant
+      description: "Stronger poison applied via weapon poison(+)."
+  about: |-
+    > _"A finely balanced throwing knife."_
+
+    Bronze knife(p++) is the most heavily poisoned tier of the bronze throwing knife. It delivers identical combat stats to the unpoisoned version while inflicting +6 damage poison hits, but the bronze body keeps damage output low compared to higher-metal knives.
+  market_strategy:
+    notes:
+      - "Niche demand: most rangers skip straight to iron/steel knives, so volume is thin."
+      - "Buy limit of 7,000 lets PvP pranksters stack large piles quickly when listings show up."
+  trading_tips:
+    - "Watch for accidental decant-style listings — poisoned and unpoisoned variants are often confused."
+    - "Cross-check the (p) and (p+) tiers for arbitrage; weapon poison(++) input cost sets the price floor."
+  history:
+    - date: "2005-07-11"
+      description: "Released as part of the Farming update."
+    - date: "2006-01-01"
+      description: 'Renamed from "Bronze knife(s)" to "Bronze knife(p++)" to align with the new poison-tier suffix system.'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,38 +12,68 @@ osrs:
   lowalch: 25
   highalch: 38
   limit: 11000
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
     type: food
-    subtype: fruit
+    tier: low
+  properties:
+    release_date: "2005-07-11"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.028
-  farming:
-    level: 57
-    patch_type: fruit_tree
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Kurask
+        quantity: "1"
+        rarity: "1/64"
+      - source: Fruit stall (Thieving)
+        quantity: "1"
+        rarity: "common"
+  shops:
+    - shop_name: Heckel Funch's Grocery Store
+      location: Tree Gnome Stronghold
+      price: 86
+      currency: coins
+      stock: 0
   related_items:
-    - item_id: 5288
-      item_name: Palm tree seed
+    - item_name: Papaya tree seed
+      slug: papaya-tree-seed
+      relationship: component
+      description: "Farming source for papaya fruits"
+    - item_name: Palm tree seed
       slug: palm-tree-seed
       relationship: alternative
-      description: Protection payment target
-    - item_id: 5289
-      item_name: Papaya tree seed
-      slug: papaya-tree-seed
-      relationship: alternative
-      description: Farming source
+      description: "Papayas are used as protection payment for palm tree patches"
+    - item_name: Supercompost
+      slug: supercompost
+      relationship: product
+      description: "Can be used to create supercompost"
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Farming Product / Food |
-    | Tradeable | Yes |
-    | Weight | 0.028 kg |
+    Papaya fruit is a tropical food item obtained by farming papaya trees with level 57 Farming. It restores 8 Hitpoints and 5 percent run energy when eaten.
 
-    Farming: Palm tree protection payment (15 papaya fruits)
-
-    Summoning (RS3-era references): Fruit bat familiar
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Beyond consumption, papaya fruits serve as protection payment for palm tree patches (15 fruits per gardener) and can be added to a compost bin to create supercompost. Additional sources include thieving fruit stalls, killing Kurasks, and Varlamore region shops.
+  market_strategy:
+    notes:
+      - "Steady demand from palm tree farmers paying gardener protection"
+      - "High GE limit (11,000) supports volume flipping"
+      - "Supercompost production absorbs surplus supply"
+  trading_tips:
+    - Stockpile during farming runs to sell in bulk
+    - Palm tree farmers buy in batches of 15 - target that quantity
+  history:
+    - date: "2005-07-11"
+      description: "Item added to the game with the Farming skill release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

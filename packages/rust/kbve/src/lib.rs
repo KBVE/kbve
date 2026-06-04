@@ -33,6 +33,11 @@ pub mod wallet;
 #[cfg(feature = "wallet")]
 pub mod referral;
 
+// MC lot/schematic system. Shares the wallet connection pool because lot
+// purchases settle through wallet.service_debit.
+#[cfg(feature = "wallet")]
+pub mod lot;
+
 pub use holy;
 
 #[cfg(feature = "legacy-sync-db")]

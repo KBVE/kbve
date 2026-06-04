@@ -12,9 +12,53 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 5
-  about: "Gout tuber is a members-only item in Old School RuneScape. High alchemy value: 120 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: farming seed
+    tier: mid
+  properties:
+    release_date: "2005-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.2
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Jungle hacking (Tai Bwo Wannai Cleanup)
+        quantity: "1"
+        rarity: 1/100 to 1/33 (scales with Woodcutting level)
+  related_items:
+    - item_name: Goutweed
+      slug: goutweed
+      relationship: product
+      description: Harvested crop used in Eadgar's Ruse and Troll-related cooking.
+  about: |-
+    Gout tuber is the seed used to grow Goutweed in a herb patch from level 29 Farming, available after partial completion of Eadgar's Ruse. The crop takes roughly 80 minutes to mature.
+
+    The only renewable source is Tai Bwo Wannai Cleanup jungle hacking. The drop rate scales with Woodcutting level, ranging from 1/100 at level 10 up to 1/33 at level 99, making higher Woodcutting much more efficient for tuber farming.
+  market_strategy:
+    notes:
+      - "Tiny 5 buy limit per 4 hours — illiquid, prone to price swings"
+      - "Supply tied directly to Tai Bwo Wannai Cleanup popularity"
+      - "Demand from Farming trainers and troll-region food crafters"
+      - "High-level Woodcutting players have a much better drop rate; consider farming yourself for profit"
+  history:
+    - date: "2005-08-09"
+      description: "Added to the game with the Tai Bwo Wannai Cleanup minigame."
+    - date: "2020-01-09"
+      description: "Planting XP is now granted at harvest time alongside harvesting XP, instead of on planting."
+    - date: "2025-06-04"
+      description: "Drop rate from jungle hacking now scales with Woodcutting level."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

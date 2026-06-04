@@ -1,6 +1,6 @@
 ---
 title: Fremennik red cloak | OSRS Price Data
-description: "Fremennik red cloak: The latest fashion in Rellekka.. High alch: 150 GP, GE limit: 150."
+description: "Fremennik red cloak: The latest fashion in Rellekka. High alch: 150 GP, GE limit: 150."
 osrs:
   id: 3777
   name: Fremennik red cloak
@@ -12,9 +12,90 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 150
-  about: "Fremennik red cloak is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-11-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Skulgrimen's Battle Gear
+      location: Rellekka
+      price: 325
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Fremennik blue cloak
+      slug: fremennik-blue-cloak
+      relationship: variant
+      description: Blue colour variant with identical stats
+    - item_name: Fremennik yellow cloak
+      slug: fremennik-yellow-cloak
+      relationship: variant
+      description: Yellow colour variant with identical stats
+    - item_name: Fremennik green cloak
+      slug: fremennik-green-cloak
+      relationship: variant
+      description: Green colour variant with identical stats
+    - item_name: Fremennik black cloak
+      slug: fremennik-black-cloak
+      relationship: variant
+      description: Black colour variant with identical stats
+  about: |-
+    > _"The latest fashion in Rellekka."_
+
+    Members cape unlocked after The Fremennik Trials quest. Purchased from a Rellekka shop for 325 coins. Cosmetic cape with minor defence bonuses (+1 slash, +1 crush, +2 ranged defence).
+
+    Renamed from "Fremennik cloak" to "Fremennik red cloak" on 10 December 2014 to disambiguate the colour variants.
+  market_strategy:
+    notes:
+      - "GE limit of 150 caps flip volume — mostly a fashionscape niche."
+      - "Shop restock at 325 sets a soft price floor."
+  trading_tips:
+    - "Stock during Hallowe'en / holiday events — colour cloaks are common fashionscape buys."
+    - "Watch for clue scroll requirement updates that drive cape demand."
+  history:
+    - date: "2004-11-02"
+      description: "Released alongside the Fremennik Province expansion."
+    - date: "2014-12-10"
+      description: "Renamed from Fremennik cloak to Fremennik red cloak."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

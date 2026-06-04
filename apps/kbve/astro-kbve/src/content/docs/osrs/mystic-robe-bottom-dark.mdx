@@ -12,9 +12,96 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 70
-  about: "Mystic robe bottom (dark) is a members-only item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: mystic
+    tier: mid-high
+  properties:
+    release_date: "26 January 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 1.814
+    requirements:
+      magic: 40
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 15
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 15
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Aberrant spectre
+        quantity: "1"
+        rarity: 1/512
+      - source: Deviant spectre
+        quantity: "1"
+        rarity: 1/512
+      - source: Repugnant spectre
+        quantity: "1"
+        rarity: 3/512
+  related_items:
+    - item_name: Mystic robe top (dark)
+      slug: mystic-robe-top-dark
+      relationship: set-piece
+      description: "Matching body piece of the dark mystic robe set"
+    - item_name: Mystic hat (dark)
+      slug: mystic-hat-dark
+      relationship: set-piece
+      description: "Matching head piece of the dark mystic robe set"
+    - item_name: Mystic robe bottom
+      slug: mystic-robe-bottom
+      relationship: variant
+      description: "Standard (blue) variant of the mystic robe bottom"
+    - item_name: Mystic robe bottom (light)
+      slug: mystic-robe-bottom-light
+      relationship: variant
+      description: "Light-coloured cosmetic variant"
+  about: |-
+    Mystic robe bottom (dark) is the leg piece of the dark mystic robe set, providing 40 Magic and 20 Defence-locked magic attack and defence bonuses. It is dropped by the spectre family of slayer monsters.
+
+    Mechanically identical to other mystic robe bottom colour variants, distinguished only by its dark appearance.
+  market_strategy:
+    notes:
+      - "Cosmetic re-skin of standard mystic robe bottom"
+      - "Supply tied to spectre slayer task popularity"
+  trading_tips:
+    - Pair with matching dark hat and top for set premium
+    - Cheaper than dark trim variant but more expensive than blue base
+  history:
+    - date: "26 January 2005"
+      description: "Released with the Slayer skill."
+    - date: "30 October 2014"
+      description: "Renamed from 'Dark mystic robe bottom' to disambiguate the colour set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

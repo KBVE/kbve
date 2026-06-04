@@ -12,9 +12,100 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 11000
-  about: "Amethyst dart(p+) is a members-only item in Old School RuneScape. High alchemy value: 240 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: amethyst
+    tier: mid-high
+  properties:
+    release_date: "2021-06-30"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 50
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 28
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 90
+      xp: 21
+      materials:
+        - item_name: Amethyst dart tip
+          quantity: 1
+        - item_name: Feather
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Poison+
+      description: Inflicts the upgraded poison effect on hit, dealing more damage than standard poison.
+  related_items:
+    - item_name: Amethyst dart
+      slug: amethyst-dart
+      relationship: variant
+      description: Unpoisoned version of the dart
+    - item_name: Amethyst dart(p)
+      slug: amethyst-dart-p
+      relationship: downgrade
+      description: Standard poisoned variant (lower poison tier)
+    - item_name: Amethyst dart tip
+      slug: amethyst-dart-tip
+      relationship: component
+      description: Crafted from amethyst, used to fletch the dart
+    - item_name: Dragon dart(p+)
+      slug: dragon-dart-p
+      relationship: upgrade
+      description: Higher-tier thrown weapon variant
+  about: |-
+    Amethyst dart(p+) is the upgraded poisoned variant of the amethyst dart, sitting between rune and dragon darts in the throwing weapon hierarchy. Requires 50 Ranged to wield and provides +28 Ranged Strength - 2 higher than rune darts.
+
+    Standard attack speed of 3 ticks (1.8s), or 2 ticks with the Rapid attack style. Range of 3 tiles (5 with Longrange).
+
+    Created at 90 Fletching by combining an amethyst dart tip with a feather, granting 21 XP per dart.
+  market_strategy:
+    notes:
+      - "Mid-tier thrown weapon, niche between rune and dragon darts"
+      - "Margins tracking amethyst mining output"
+      - "Poison+ premium over regular and (p) variants"
+  trading_tips:
+    - Watch amethyst dart tip price as primary input cost
+    - High volume from blowpipe alternates and pures
+    - Use Fletching margin vs amethyst price as proxy
+  history:
+    - date: "2021-06-30"
+      description: "Item released with the amethyst mining and fletching update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

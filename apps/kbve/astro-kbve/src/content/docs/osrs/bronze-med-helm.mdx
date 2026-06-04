@@ -12,25 +12,111 @@ osrs:
   lowalch: 9
   highalch: 14
   limit: 125
-  item_id: 1139
-  item_type: armor
-  slot: head
-  type: med_helm
-  tradeable: true
-  weight: 1.814
-  requirements:
-    defence: 0
-  stats:
-    stab_defence: 3
-    slash_defence: 4
-    crush_defence: 2
-    magic_defence: -1
-    ranged_defence: 3
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "4 January 2001"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 1.814
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: 0
+    defence_bonus:
+      stab: 3
+      slash: 4
+      crush: 2
+      magic: -1
+      ranged: 3
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 3
+      xp: 12.5
+      materials:
+        - item_name: Bronze bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: Peksa's Helmet Shop
+      location: Barbarian Village
+      price: 24
+      currency: coins
+      stock: 3
+    - shop_name: Warriors' Guild Armoury
+      location: Burthorpe
+      price: 24
+      currency: coins
+      stock: 5
+    - shop_name: Blair's Armour
+      location: Shayzien
+      price: 24
+      currency: coins
+      stock: 5
+    - shop_name: Thurid's Brain Buckets
+      location: Sunset Coast
+      price: 24
+      currency: coins
+      stock: 5
   related_items:
-    - slug: iron-med-helm
-    - slug: bronze-full-helm
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Iron med helm
+      slug: iron-med-helm
+      relationship: upgrade
+      description: "Next tier in the med helm progression"
+    - item_name: Steel med helm
+      slug: steel-med-helm
+      relationship: upgrade
+      description: "Higher-tier med helm"
+    - item_name: Bronze full helm
+      slug: bronze-full-helm
+      relationship: alternative
+      description: "Full helm variant with better coverage"
+  about: "The Bronze med helm is the entry-level head slot armour in OSRS, smithable at Smithing 3 from one bronze bar and worn by F2P starters working toward iron and steel gear."
+  market_strategy:
+    notes:
+      - "Tiny daily volume; trade on shop arbitrage rather than GE flips."
+      - "Smithing alch is unprofitable; value lives in skill XP."
+      - "Bronze bar parity sets the floor; rarely diverges."
+  trading_tips:
+    - "Bulk-buy from Peksa for 24 gp and high-alch only if nature runes are cheap."
+    - "Useful as a low-cost ironman head slot before steel/black."
+  history:
+    - date: "4 January 2001"
+      description: "Added to RuneScape Classic alongside the rest of the bronze armour set."
+    - date: "17 July 2007"
+      description: "Graphically updated to its modern appearance."
+    - date: "21 April 2021"
+      description: "Ranged attack bonus changed from -1 to 0 across the med helm line."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

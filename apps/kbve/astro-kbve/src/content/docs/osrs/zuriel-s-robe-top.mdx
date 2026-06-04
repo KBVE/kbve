@@ -12,12 +12,83 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: 10
-  about: "Zuriel's robe top is a members-only item in Old School RuneScape. High alchemy value: 300,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ancient-magicks
+    tier: high
+  properties:
+    release_date: "8 February 2017"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.535
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 4.535
+    requirements:
+      magic: 78
+      defence: 70
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 28
+      ranged: -10
+    defence_bonus:
+      stab: 63
+      slash: 45
+      crush: 74
+      magic: 35
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 3
+      prayer: 0
+  related_items:
+    - item_name: Zuriel's hood
+      slug: zuriel-s-hood
+      relationship: set-piece
+      description: Matching ancient magicks hood
+    - item_name: Zuriel's robe bottom
+      slug: zuriel-s-robe-bottom
+      relationship: set-piece
+      description: Matching ancient magicks legs
+    - item_name: Zuriel's staff
+      slug: zuriel-s-staff
+      relationship: set-piece
+      description: Matching ancient magicks staff
+  about: "Zuriel's robe top is the body piece of the Zuriel's set, dropped by revenants in the Revenant Caves and Wilderness. It requires 78 Magic and 70 Defence to wear, providing strong magic attack bonuses alongside solid melee defence. When worn with the full set, it grants a 25% damage boost to magic spell special attacks. Highly sought after by PvP and Wilderness players."
+  market_strategy:
+    notes:
+      - "Wilderness revenant drop, scarce in supply"
+      - "Demand driven by Wilderness PvP and bossing"
+      - "Price volatile with PK meta shifts"
+      - "Low GE buy limit of 10 per 4 hours"
+  trading_tips:
+    - Monitor revenant population events and Wilderness updates
+    - Buy during off-meta lulls for resale during PK trends
+    - Pair with hood and bottom for full-set arbitrage
+  history:
+    - date: "8 February 2017"
+      description: "Item was added to the game as a revenant drop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

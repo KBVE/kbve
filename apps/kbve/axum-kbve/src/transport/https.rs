@@ -57,6 +57,10 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/api/v1/me/staff/", "/api/v1/me/staff"),
     ("/dogevideo", "/crypto/"),
     ("/dogevideo/", "/crypto/"),
+    ("/donation", "/donate/"),
+    ("/donation/", "/donate/"),
+    ("/donations", "/donate/"),
+    ("/donations/", "/donate/"),
     ("/tta", "/project/"),
     ("/tta/", "/project/"),
     (

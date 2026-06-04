@@ -1,6 +1,6 @@
 ---
 title: Malediction shard 2 | OSRS Price Data
-description: "Malediction shard 2: A broken shield piece.. High alch: 18,600 GP, GE limit: 10,000."
+description: "Malediction shard 2: A broken shield piece. High alch: 18,600 GP, GE limit: 10,000."
 osrs:
   id: 11932
   name: Malediction shard 2
@@ -12,12 +12,60 @@ osrs:
   lowalch: 12400
   highalch: 18600
   limit: 10000
-  about: "Malediction shard 2 is a members-only item in Old School RuneScape. High alchemy value: 18,600 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: shield-component
+    tier: high
+  properties:
+    release_date: "2014-03-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Crazy archaeologist
+        quantity: "1"
+        rarity: 1/256
+  related_items:
+    - item_name: Malediction shard 1
+      slug: malediction-shard-1
+      relationship: component
+      description: First shield shard
+    - item_name: Malediction shard 3
+      slug: malediction-shard-3
+      relationship: component
+      description: Third shield shard
+    - item_name: Malediction ward
+      slug: malediction-ward
+      relationship: upgrade
+      description: Assembled shield from all three shards
+  about: |-
+    Malediction shard 2 is one of three shards dropped by the Crazy archaeologist in the southern Wilderness. Combining all three at the volcano in the deep Wilderness produces the Malediction ward, a top-tier magic defence shield.
+  market_strategy:
+    notes:
+      - "Wilderness boss drop at 1/256 from Crazy archaeologist"
+      - "Locked supply because PvPers contest the boss spawn"
+      - "Long-term price tracks Malediction ward demand"
+  trading_tips:
+    - "Compare against shards 1 and 3 - cheapest shard is the squeeze point"
+    - "Holding three shards is riskier than holding an assembled ward"
+  history:
+    - date: "2014-03-13"
+      description: "Added with the Wilderness boss release"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

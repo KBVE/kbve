@@ -12,77 +12,95 @@ osrs:
   lowalch: 96
   highalch: 144
   limit: 11000
-  ammunition:
-    type: bolt
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ammunition
+    tier: mid-high
+  properties:
+    release_date: "2017-06-22"
     tradeable: true
     stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammunition
+    weapon_type: crossbow
+    attack_speed: null
     weight: 0
     requirements:
-      slayer_unlock: Broader fletching (300 points)
-    stats:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
       ranged_strength: 115
-  creation:
-    method: Fletching
-    requirements:
-      fletching: 76
-      unlock: Broader fletching
-    materials:
-      - item_id: 21318
-        item_name: Broad bolts
-        quantity: "10"
-      - item_id: 21338
-        item_name: Amethyst bolt tips
-        quantity: "10"
-    xp: 106
-  special_effect:
-    name: Slayer Requirement
-    description: Required for killing Turoth and Kurask with ranged
-  market:
-    buy_limit: 11000
-    price_estimate: 280
-    daily_volume: 460000
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 76
+      xp: 106
+      materials:
+        - item_name: Broad bolts
+          quantity: 10
+        - item_name: Amethyst bolt tips
+          quantity: 10
+      tools: []
+      output_quantity: 10
   related_items:
-    - item_id: 21318
-      item_name: Broad bolts
+    - item_name: Broad bolts
       slug: broad-bolts
       relationship: component
-      description: Base item
-    - item_id: 21338
-      item_name: Amethyst bolt tips
+      description: Base bolt before tipping
+    - item_name: Amethyst bolt tips
       slug: amethyst-bolt-tips
       relationship: component
-      description: Component
-    - item_id: 2150
-      item_name: Turoth
-      slug: turoth
-      relationship: product
-      description: Use target
-    - item_id: 410
-      item_name: Kurask
-      slug: kurask
-      relationship: product
-      description: Use target
+      description: Tipping material
+    - item_name: Runite bolts
+      slug: runite-bolts
+      relationship: alternative
+      description: Equivalent damage tier
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Ammunition |
-    | Tradeable | Yes |
-    | Stackable | Yes |
-    | Weight | 0 kg |
-    | Requirements | Slayer unlock |
+    Amethyst broad bolts are crossbow ammunition tipped with amethyst, equivalent to runite bolts in damage. They are required for ranging Turoth and Kurask on Slayer assignments.
 
-    | Stat | Bonus |
-    |------|-------|
-    | Ranged strength | +115 |
-
-    Equivalent to runite bolts.
-
-    Slayer: Required for killing Turoth and Kurask with ranged.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Fletching them requires 76 Fletching and the Broader fletching unlock from the Slayer rewards interface (300 Slayer reward points).
+  market_strategy:
+    notes:
+      - "High daily volume from Slayer ranged setups"
+      - "Margins are thin; flip in bulk"
+      - "Demand spikes during Slayer competition weekends"
+  trading_tips:
+    - Buy broad bolts and amethyst tips separately when cheaper than the finished bolt
+    - Combine and resell during Slayer task surges for steady profit
+    - Stock up when amethyst mining output is high and tip prices dip
+  history:
+    - date: "2017-06-22"
+      description: "Released alongside the Mining Guild expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

@@ -12,80 +12,77 @@ osrs:
   lowalch: 56
   highalch: 84
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
     type: hide
     tier: mid
-  tanning:
-    cost: 20
-    product_id: 2505
-    product_name: Blue dragon leather
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
       - source: Blue dragon
-        source_id: 265
-        combat_level: 111
         quantity: "1"
         rarity: always
-        members_only: true
       - source: Brutal blue dragon
-        source_id: 7274
-        combat_level: 271
-        quantity: "2"
+        quantity: "1"
         rarity: always
-        members_only: true
       - source: Vorkath
-        source_id: 8061
-        combat_level: 732
-        quantity: 25 (noted)
+        quantity: "1"
         rarity: common
-        members_only: true
   related_items:
-    - item_id: 2505
-      item_name: Blue dragon leather
+    - item_name: Blue dragon leather
       slug: blue-dragon-leather
       relationship: product
-      description: Tanned version
-    - item_id: 2499
-      item_name: Blue d'hide body
+      description: Tanned version, 20 gp at standard tanner
+    - item_name: Blue d'hide body
       slug: blue-dhide-body
       relationship: product
-      description: Main product
-    - item_id: 1749
-      item_name: Red dragonhide
+      description: End-tier crafted ranged body
+    - item_name: Red dragonhide
       slug: red-dragonhide
-      relationship: alternative
-      description: Higher tier
-    - item_id: 1753
-      item_name: Green dragonhide
+      relationship: upgrade
+      description: Next dragonhide tier above blue
+    - item_name: Green dragonhide
       slug: green-dragonhide
-      relationship: alternative
-      description: Lower tier
-  about: |-
-    Take to any tanner to convert to Blue dragon leather.
-
-    | Tanner | Cost |
-    |--------|------|
-    | Regular | 20 GP |
-    | Canifis | 45 GP |
+      relationship: downgrade
+      description: Lower dragonhide tier below blue
+  about: "Blue dragonhide is the mid-tier dragonhide, harvested from blue dragons in Taverley Dungeon and the Heroes' Guild as well as from brutal blue dragons and Vorkath. Tan to blue dragon leather (20 coins regular, 45 coins Sbott in Canifis) or via the Tan Leather lunar spell. Used to craft the blue d'hide body — the highest-defence ranged body for low-Crafting routes."
   market_strategy:
-    profit_formulas:
-      - Blue dragon leather - Blue dragonhide - 20 = Profit
-      - Body price - (Leather × 3) = Profit
     notes:
-      - Buy hides → Tan → Sell leather
-      - "Calculate:"
-      - High volume F2P equivalent
-      - Blue d'hide body most common
-      - "Check:"
-      - Popular mid-level training
-      - Blue dragons (Taverley Dungeon, Heroes' Guild)
-      - Brutal blue dragons
-      - Vorkath (noted drops)
-      - Mid-tier dragonhide
-      - Highest F2P ranged body
-      - Good crafting XP/GP
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Buy hides, tan, craft, then sell finished armour"
+      - "Blue d'hide body anchors most demand"
+      - "Vorkath noted drops keep supply steady"
+      - "Brutal blue dragons spike supply during slayer tasks"
+      - "Mid-tier dragonhide — accessible Crafting XP/GP"
+      - "High GE buy limit makes bulk flips practical"
+  trading_tips:
+    - Crunch blue dragon leather and body margins together
+    - Track Vorkath kill counts on community trackers
+    - Pair with eye of newts for crafting trips
+  history:
+    - date: "2003-12-01"
+      description: "Item added to the RS2 Beta."
+    - date: "2004-03-29"
+      description: "Released to the live game with the RS2 launch."
+    - date: "2004-09-01"
+      description: "Value adjusted from 0 to 40 coins."
+    - date: "2005-11-01"
+      description: "Renamed to Blue dragonhide with an updated examine."
+    - date: "2018-09-01"
+      description: "Value increased from 40 to 140 coins for ground visibility."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

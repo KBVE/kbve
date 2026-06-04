@@ -1,6 +1,6 @@
 ---
 title: Dharok's platebody 0 | OSRS Price Data
-description: "Dharok's platebody 0: Dharok the Wretched's platebody armour.. High alch: 168,000 GP, GE limit: 15."
+description: "Dharok's platebody 0 is a members fully degraded Barrows body requiring 70 Defence. High alch: 168,000 GP, GE limit: 15."
 osrs:
   id: 4896
   name: Dharok's platebody 0
@@ -12,9 +12,96 @@ osrs:
   lowalch: 112000
   highalch: 168000
   limit: 15
-  about: "Dharok's platebody 0 is a members-only item in Old School RuneScape. High alchemy value: 168,000 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: barrows-armour
+    tier: high
+  properties:
+    release_date: "2005-05-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 9.979
+    options:
+      - Wear
+      - Check
+      - Drop
+    worn_options:
+      - Check
+    alchable: true
+    destroy: "If you drop this item it will break. Are you sure you want to drop it?"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 9.979
+    requirements:
+      defence: 70
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -10
+    defence_bonus:
+      stab: 122
+      slash: 120
+      crush: 107
+      magic: -6
+      ranged: 132
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Dharok's platebody
+      slug: dharok-s-platebody
+      relationship: variant
+      description: Fully charged version with 100 combat hours of durability
+    - item_name: Dharok's platebody 25
+      slug: dharok-s-platebody-25
+      relationship: variant
+      description: Partially degraded charge state
+    - item_name: Dharok's platebody 50
+      slug: dharok-s-platebody-50
+      relationship: variant
+      description: Half-degraded charge state
+    - item_name: Dharok's platebody 75
+      slug: dharok-s-platebody-75
+      relationship: variant
+      description: Lightly used charge state
+    - item_name: Dharok's helm 0
+      slug: dharok-s-helm-0
+      relationship: set-piece
+      description: Matching head slot armour in degraded state
+    - item_name: Dharok's greataxe 0
+      slug: dharok-s-greataxe-0
+      relationship: set-piece
+      description: Matching two-handed weapon in degraded state
+    - item_name: Dharok's platelegs 0
+      slug: dharok-s-platelegs-0
+      relationship: set-piece
+      description: Matching legs slot armour in degraded state
+  about: |-
+    Dharok's platebody 0 is the fully degraded form of the Barrows brother Dharok the Wretched's chest piece. It cannot be worn in this state and must be repaired before equipping. Released 9 May 2005 with the Barrows minigame, the armour requires 70 Defence to wield once restored.
+
+    Repairs cost up to 90,000 GP at an NPC, dropping as low as 45,450 GP at a player-owned house armour stand with 99 Smithing. The fully degraded form is the cheapest way to acquire the platebody on the Grand Exchange before repairing it for use.
+  market_strategy:
+    notes:
+      - "Degraded 0 charge price floors the platebody market"
+      - "Repair to 100 charges captures the premium price spread"
+      - "Buy limit of 15 keeps short-term flips niche"
+  trading_tips:
+    - Maintain a POH armour stand at high Smithing to maximise repair savings
+    - Compare repaired listings vs degraded plus repair cost before flipping
+  history:
+    - date: "2005-05-09"
+      description: "Released with the Barrows minigame"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,51 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 18000
-  about: "Gourmet impling jar is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: container
+    tier: low
+  properties:
+    release_date: "2007-06-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Loot
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "If you drop this it will disappear. Are you sure you want to do this?"
+  related_items:
+    - item_name: Empty impling jar
+      slug: empty-impling-jar
+      relationship: component
+      description: "Empty jar returned after looting (90% success rate)"
+    - item_name: Young impling jar
+      slug: young-impling-jar
+      relationship: downgrade
+      description: "Lower-tier impling caught at Hunter 22"
+    - item_name: Earth impling jar
+      slug: earth-impling-jar
+      relationship: upgrade
+      description: "Next-tier impling caught at Hunter 36"
+  about: "Gourmet impling jar contains a Gourmet impling caught at level 28 Hunter. Loot it for food rewards such as tuna, bass, lobster, shark, easy clue scrolls (1/25), and grubby keys (1/500). Three jars can be traded to Elnock Inquisitor for empty impling jars."
+  market_strategy:
+    notes:
+      - "Loot is dominated by easy clue scrolls and food, driving most demand"
+      - "Buy limit of 18,000 supports bulk flips and clue stockpiles"
+      - "Demand spikes during Treasure Trails or impling hype events"
+  trading_tips:
+    - "Compare GE price to expected loot value to decide between looting and reselling"
+    - "Track easy clue scroll prices to anticipate gourmet jar demand"
+  history:
+    - date: "2007-06-11"
+      description: "Released with the Impetuous Impulses minigame"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

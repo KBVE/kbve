@@ -1,6 +1,6 @@
 ---
 title: Gin | OSRS Price Data
-description: "Gin: A strong spirit that tastes of Juniper.. High alch: 3 GP, GE limit: 13,000."
+description: "Gin: A strong spirit that tastes of Juniper. High alch: 3 GP, GE limit: 13,000."
 osrs:
   id: 2019
   name: Gin
@@ -12,9 +12,86 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 13000
-  about: "Gin is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: beverage
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Funch's Fine Groceries
+      location: Grand Tree
+      price: 5
+      currency: Coins
+      stock: 10
+    - shop_name: The Lighthouse Store
+      location: Lighthouse
+      price: 5
+      currency: Coins
+      stock: 5
+    - shop_name: Atlazora's Rest
+      location: Outer Fortis
+      price: 5
+      currency: Coins
+      stock: 0
+    - shop_name: The Flaming Arrow
+      location: Civitas illa Fortis
+      price: 5
+      currency: Coins
+      stock: 0
+    - shop_name: Sunlight's Sanctum
+      location: Aldarin
+      price: 5
+      currency: Coins
+      stock: 0
+    - shop_name: The Windbreaker
+      location: Quetzacalli Gorge
+      price: 5
+      currency: Coins
+      stock: 0
+    - shop_name: Auburn Pub
+      location: Auburnvale
+      price: 5
+      currency: Coins
+      stock: 0
+  related_items:
+    - item_name: Beer
+      slug: beer
+      relationship: alternative
+      description: Cheaper alcoholic drink with similar stat-boost mechanics.
+    - item_name: Asgarnian ale
+      slug: asgarnian-ale
+      relationship: alternative
+      description: Members-only ale used for boosts and Construction flatpacks.
+  about: |-
+    Gin is a members-only alcoholic beverage sold by general traders across Gielinor. Drinking it provides a small Attack boost at the cost of Defence, mirroring the standard ale stat swap.
+
+    Most players treat gin as flavour content rather than a meta drink, but it has a niche role in low-level skilling and as a flatpack ingredient in some publican-themed POH builds.
+  market_strategy:
+    notes:
+      - "Multi-shop supply keeps GE price near the shop floor"
+      - "Massive buy limit caps merch potential"
+      - "Niche stat boost limits meta demand"
+  trading_tips:
+    - Restock at unlimited Fortis-region shops if GE spikes
+    - Use as cheap filler for stat-boost-based skilling tasks
+  history:
+    - date: "2002-12-12"
+      description: "Released as part of the early bar and pub content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

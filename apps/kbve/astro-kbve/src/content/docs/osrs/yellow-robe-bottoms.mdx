@@ -12,12 +12,86 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Yellow robe bottoms is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-06-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Barkers' Haberdashery
+      location: Canifis
+      price: 650
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Yellow robe top
+      slug: yellow-robe-top
+      relationship: set-piece
+      description: Matching upper robe from Barkers' Haberdashery
+    - item_name: Blue robe bottoms
+      slug: blue-robe-bottoms
+      relationship: variant
+      description: Blue-colored variant of the Canifis robes
+    - item_name: Green robe bottoms
+      slug: green-robe-bottoms
+      relationship: variant
+      description: Green-colored variant of the Canifis robes
+  about: |-
+    Yellow robe bottoms are a cosmetic leg slot item sold by Barker at Barkers' Haberdashery in Canifis. They were introduced alongside the Priest in Peril quest in 2004 and provide no combat bonuses.
+
+    They were renamed from "Robe bottoms" to "Yellow robe bottoms" in December 2014 to distinguish them from other coloured variants in the Canifis robes collection.
+  market_strategy:
+    notes:
+      - "Pure cosmetic, often used for fashionscape outfits"
+      - "Cheap to alch or restock from Canifis when needed"
+      - "Low daily volume but stable price"
+  history:
+    - date: "2004-06-29"
+      description: "Yellow robe bottoms (then called \"Robe bottoms\") released with the Priest in Peril quest update."
+    - date: "2014-12-10"
+      description: "Renamed from \"Robe bottoms\" to \"Yellow robe bottoms\" to disambiguate the Canifis colour variants."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

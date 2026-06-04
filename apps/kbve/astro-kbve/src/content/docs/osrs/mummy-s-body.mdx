@@ -12,9 +12,88 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Mummy's body is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.5
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/12,765
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_name: Mummy's head
+      slug: mummy-s-head
+      relationship: set-piece
+      description: Head piece of the mummy outfit
+    - item_name: Mummy's legs
+      slug: mummy-s-legs
+      relationship: set-piece
+      description: Legs piece of the mummy outfit
+    - item_name: Mummy's hands
+      slug: mummy-s-hands
+      relationship: set-piece
+      description: Hands piece of the mummy outfit
+    - item_name: Mummy's feet
+      slug: mummy-s-feet
+      relationship: set-piece
+      description: Feet piece of the mummy outfit
+  about: "Mummy's body is a cosmetic body slot item that is part of the mummy outfit, obtained as a rare reward from master clue caskets at a 1/12,765 chance."
+  market_strategy:
+    notes:
+      - "Extremely rare master clue reward"
+      - "Fashionscape demand drives high price"
+      - "Buy limit of 4 keeps liquidity thin"
+  trading_tips:
+    - Watch master clue completion trends to time buys
+    - Sell into hype windows for cosmetic outfits
+  history:
+    - date: "2016-07-06"
+      description: "Item released with master clue scrolls."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

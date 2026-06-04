@@ -12,9 +12,55 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: null
-  about: "Grimy huasca is a members-only item in Old School RuneScape. High alchemy value: 15 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: herb
+    tier: low
+  properties:
+    release_date: "2024-09-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Clean
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 58
+      xp: 11.8
+      materials:
+        - item_name: Grimy huasca
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Huasca
+      slug: huasca
+      relationship: product
+      description: "Clean herb produced by cleaning grimy huasca."
+    - item_name: Huasca seed
+      slug: huasca-seed
+      relationship: component
+      description: "Seed used to grow huasca herbs via Farming."
+  about: "Grimy huasca is a members-only herb introduced with the Varlamore update. Players clean it at Herblore level 58 for 11.8 experience, or use the Degrime spell (Magic 70, Herblore 58) for 83 Magic and 5.9 Herblore XP. Grown from huasca seeds at Farming 65."
+  market_strategy:
+    notes:
+      - "High trading volume averaging ~23k units daily makes flipping viable."
+      - "Cleaning yields lower XP than higher-tier herbs but offers a cheap entry point for Herblore training."
+  trading_tips:
+    - "Buy in bulk during peak hours when supply spikes from farm runs."
+    - "Clean grimy huasca into huasca herb if margin between grimy and clean is positive."
+  history:
+    - date: "2024-09-25"
+      description: "Added to the game with the Varlamore expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

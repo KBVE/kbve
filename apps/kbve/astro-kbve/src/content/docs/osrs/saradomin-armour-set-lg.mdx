@@ -12,9 +12,59 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 8
-  about: "Saradomin armour set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: armour-set
+    tier: mid
+  properties:
+    release_date: "2015-02-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Saradomin full helm
+      slug: saradomin-full-helm
+      relationship: set-piece
+      description: Head piece included in set
+    - item_name: Saradomin platebody
+      slug: saradomin-platebody
+      relationship: set-piece
+      description: Body piece included in set
+    - item_name: Saradomin platelegs
+      slug: saradomin-platelegs
+      relationship: set-piece
+      description: Legs piece included in set
+    - item_name: Saradomin kiteshield
+      slug: saradomin-kiteshield
+      relationship: set-piece
+      description: Shield piece included in set
+    - item_name: Saradomin armour set (sk)
+      slug: saradomin-armour-set-sk
+      relationship: variant
+      description: Plateskirt variant of the same set
+  about: |-
+    The Saradomin armour set (lg) is a Grand Exchange convenience bundle containing a Saradomin full helm, platebody, platelegs, and kiteshield. Players use the set primarily as a cheap way to purchase or sell all four pieces at once via the GE Sets tab.
+  market_strategy:
+    notes:
+      - "Price commonly trades at a premium over individual pieces"
+      - "Compare set price to sum of components before flipping"
+      - "Buy limit of 8 lets bulk flippers compound margins"
+  trading_tips:
+    - Buy components and combine when premium exceeds spread
+    - Sell intact to F2P fashion buyers
+  history:
+    - date: "2015-02-26"
+      description: "Added to the Grand Exchange armour sets."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

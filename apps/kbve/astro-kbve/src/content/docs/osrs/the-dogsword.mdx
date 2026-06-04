@@ -12,9 +12,92 @@ osrs:
   lowalch: null
   highalch: null
   limit: null
-  about: The dogsword is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: high
+  properties:
+    release_date: "2024-11-27"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
+  equipment:
+    slot: two-handed
+    weapon_type: godsword
+    attack_speed: 6
+    weight: 10
+    requirements:
+      attack: 75
+    attack_bonus:
+      stab: 0
+      slash: 132
+      crush: 80
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 132
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 8
+  drop_table:
+    sources:
+      - source: Echo Cerberus
+        quantity: "1"
+        rarity: 1/25
+  related_items:
+    - item_name: Armadyl godsword
+      slug: armadyl-godsword
+      relationship: alternative
+      description: One of the five canonical godswords whose special attack effect is mirrored by the dogsword's Echo slash.
+    - item_name: Bandos godsword
+      slug: bandos-godsword
+      relationship: alternative
+      description: Bandos special is part of the combined effect on the dogsword Echo slash.
+    - item_name: Saradomin godsword
+      slug: saradomin-godsword
+      relationship: alternative
+      description: Saradomin restore portion of the dogsword's special attack.
+    - item_name: Zamorak godsword
+      slug: zamorak-godsword
+      relationship: alternative
+      description: Zamorak freeze effect bundled into the dogsword's Echo slash.
+    - item_name: Ancient godsword
+      slug: ancient-godsword
+      relationship: alternative
+      description: Ancient blood-staining effect combined into the dogsword special.
+  about: "The dogsword is a two-handed godsword variant from Raging Echoes League and the Grid Master event, requiring 75 Attack to wield. Its Echo slash special attack costs 50% energy and bundles every standard godsword effect into a single swing."
+  market_strategy:
+    notes:
+      - "Untradeable cosmetic-grade godsword - cannot be flipped on the Grand Exchange."
+      - "Only obtainable through league and event windows, so account access is gated behind completed unlocks."
+      - "As a discontinued item it will not return through normal gameplay outside future commemorative events."
+  trading_tips:
+    - Plan league grinds around Echo Cerberus access to secure the drop before the league ends.
+    - Complete Grid Master column 1 tasks during event windows to lock in the reward.
+    - Treat the dogsword as a trophy rather than a flip target; supply is fixed.
+  history:
+    - date: "2024-11-27"
+      description: "Released as a Raging Echoes League reward and Grid Master event unlock."
+    - date: "2025-11-12"
+      description: "Item discontinued after the closing event window."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

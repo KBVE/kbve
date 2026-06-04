@@ -12,23 +12,62 @@ osrs:
   lowalch: 86
   highalch: 129
   limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "27 February 2002"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.04
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Cures poison and grants 90 seconds of poison immunity per dose"
+        duration: 90
   related_items:
-    - item_id: 175
-      item_name: Antipoison(3)
+    - item_name: Antipoison(3)
       slug: antipoison-3
       relationship: variant
-      description: 3-dose version
-    - item_id: 179
-      item_name: Antipoison(1)
+      description: "3-dose version"
+    - item_name: Antipoison(1)
       slug: antipoison-1
       relationship: variant
-      description: 1-dose version
+      description: "1-dose version"
+    - item_name: Antipoison(4)
+      slug: antipoison-4
+      relationship: variant
+      description: "4-dose version"
   about: |-
     > _"2 doses of antipoison potion."_
 
-    A 2-dose antipoison. Cures poison and grants 90 seconds immunity per dose.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    A 2-dose antipoison. Each dose cures poison and grants 90 seconds of poison immunity. Two doses can also clear venom by stepping it down to standard poison and then removing it.
+  market_strategy:
+    notes:
+      - "F2P-tradeable and routinely produced by Herblorists"
+      - "Demand floor comes from low-level questers and slayer staples"
+  trading_tips:
+    - "Decant flips between (1), (2), (3) and (4) can lock in per-dose spreads"
+    - "Watch unicorn horn / marrentill potion prices: feedstock drives margin"
+  history:
+    - date: "27 February 2002"
+      description: "Released with the Herblore skill"
+    - date: "7 April 2016"
+      description: "Drinking antipoison no longer reduces existing poison immunity"
+    - date: "3 May 2018"
+      description: "Made available to free-to-play players"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

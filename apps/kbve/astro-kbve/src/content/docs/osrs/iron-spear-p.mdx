@@ -1,6 +1,6 @@
 ---
 title: Iron spear(p) | OSRS Price Data
-description: "Iron spear(p): A poisoned iron tipped spear.. High alch: 54 GP, GE limit: 125."
+description: "Iron spear(p) is a poisoned two-handed iron spear with stab/slash/crush bonuses. High alch: 54 GP, GE limit: 125."
 osrs:
   id: 1253
   name: Iron spear(p)
@@ -12,9 +12,124 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 125
-  about: "Iron spear(p) is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "14 April 2003"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - "Wield"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: 2h
+    weapon_type: spear
+    attack_speed: 4
+    weight: 2.267
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 8
+      slash: 8
+      crush: 8
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 10
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 20
+      xp: 50
+      materials:
+        - item_name: Iron bar
+          quantity: 1
+        - item_name: Oak logs
+          quantity: 1
+      tools: []
+      output_quantity: 1
+    - skill: smithing
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Iron spear
+          quantity: 1
+        - item_name: Weapon poison
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  shops:
+    - shop_name: Fortis Blacksmith
+      location: Fortis
+      price: 91
+      currency: coins
+      stock: 1
+    - shop_name: Elder Blunn's Spear and Shield Stall
+      location: Camdozaal
+      price: 91
+      currency: coins
+      stock: 1
+  drop_table:
+    sources:
+      - source: Hobgoblin
+        quantity: "1"
+        rarity: 1/128
+      - source: Dagannoth
+        quantity: "1"
+        rarity: 1/128
+      - source: Tribesman
+        quantity: "1"
+        rarity: 1/128
+  related_items:
+    - item_name: Iron spear
+      slug: iron-spear
+      relationship: variant
+      description: Unpoisoned base spear
+    - item_name: Iron spear(p+)
+      slug: iron-spear-p-plus
+      relationship: upgrade
+      description: Stronger weapon poison+ variant
+    - item_name: Iron spear(kp)
+      slug: iron-spear-kp
+      relationship: variant
+      description: Karambwan poison variant
+    - item_name: Weapon poison
+      slug: weapon-poison
+      relationship: component
+      description: Used to poison the spear
+  about: |-
+    > _"A poisoned iron tipped spear."_
+
+    Iron spear(p) is a two-handed iron spear coated in weapon poison. Stab, slash and crush attack bonuses of +8 with a +10 strength bonus. Crafted at 20 Smithing from 1 iron bar and 1 oak log (requires Barbarian Training after Tai Bwo Wannai Trio).
+  market_strategy:
+    notes:
+      - "Low GE limit (125) keeps margins tight; mostly cleared by ironmen poisoning their own spears."
+      - "Demand follows controlled-style spear training for slayer tasks."
+  trading_tips:
+    - "Stock unpoisoned spears and weapon poison vials separately when the spread on (p) widens."
+  history:
+    - date: "14 April 2003"
+      description: "Released alongside spears as part of the Hunting update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

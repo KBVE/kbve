@@ -1,16 +1,18 @@
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using Unity.Jobs;
+using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
 using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Picks the highest-priority profession with nearby work for each Player unit; writes ProfessionIntent. If no scored offer wins, assigns ProfessionKind.Default and rolls a Wander MovementGoal so units never sit idle. Reads the dispatch context + TaskOffer pool from ProfessionOffersSingleton (rebuilt on cadence by ProfessionOfferBuildSystem). Emits ProfessionChangedMessage via ProfessionEventSink on any kind/target change — coalesced + published by ProfessionMessagePipeBridgeSystem. ISystem + [BurstCompile] — every managed dependency routes through ComponentLookup / BufferLookup / Burst-safe singletons.</summary>
+    /// <summary>Third phase of the split dispatcher pipeline (#11 from #11716) — runs after ProfessionTaskReconcileSystem and ProfessionPreemptSystem. Only acts on units left with an empty task queue, no controlled-unit override, and a doFullDispatch tick: scores TaskOffers against per-unit priorities, picks a best, writes ProfessionIntent + task head, and emits Assigned / Retargeted / Fallback events. Units that Reconcile committed (Active head) or Preempt re-targeted are skipped via the tasks.Length check — no chunk-level filtering needed. Pre-pass jobs (Clear / BuildActive / BuildReserved / Reduce) populate the singleton accumulators on worker threads before the scoring job starts.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
-    [UpdateAfter(typeof(ReliefSystem))]
-    [UpdateAfter(typeof(ProfessionsDomainSystem))]
+    [UpdateAfter(typeof(ProfessionPreemptSystem))]
     [UpdateAfter(typeof(ProfessionOfferBuildSystem))]
     [UpdateAfter(typeof(CombatThreatScanSystem))]
     public partial struct ProfessionDispatchSystem : ISystem
@@ -27,15 +29,48 @@ namespace RareIcon
 
         uint _lastSeenBuildVersion;
 
-        NativeHashMap<int2, int> _hexOccupancy;
+        NativeHashMap<int2, int>                    _hexOccupancy;
+        NativeParallelMultiHashMap<int2, byte>      _occupancyMulti;
+        NativeArray<int>                            _perThreadActive;
+        NativeArray<int>                            _perThreadReserved;
+        NativeArray<int>                            _activePerKind;
+        NativeArray<int>                            _reservedPerKind;
+        int                                         _threadSlotCount;
 
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<ProfessionOffersSingleton>();
             state.RequireForUpdate<CombatDBSingleton>();
             state.RequireForUpdate<ItemDBSingleton>();
+            state.RequireForUpdate<ProfessionsDBSingleton>();
 
             _hexOccupancy = new NativeHashMap<int2, int>(4096, Allocator.Persistent);
+
+            // Per-thread accumulators sized to the worker pool. Indexed via
+            // [NativeSetThreadIndex] so each chunk writes into its own slot
+            // without atomics. Reduce job folds across slots after the
+            // parallel build completes.
+            _threadSlotCount   = JobsUtility.MaxJobThreadCount;
+            _perThreadActive   = new NativeArray<int>(_threadSlotCount * ProfessionKind.Count, Allocator.Persistent);
+            _perThreadReserved = new NativeArray<int>(_threadSlotCount * ProfessionKind.Count, Allocator.Persistent);
+            _activePerKind     = new NativeArray<int>(ProfessionKind.Count, Allocator.Persistent);
+            _reservedPerKind   = new NativeArray<int>(ProfessionKind.Count, Allocator.Persistent);
+
+            // Occupancy contributions land in a parallel multi-map so the
+            // BuildActiveAndOccupancyJob can append without locking. Reduce
+            // job folds entries into _hexOccupancy = count-per-hex.
+            _occupancyMulti = new NativeParallelMultiHashMap<int2, byte>(8192, Allocator.Persistent);
+        }
+
+        public void OnDestroy(ref SystemState state)
+        {
+            state.CompleteDependency();
+            if (_hexOccupancy.IsCreated)      _hexOccupancy.Dispose();
+            if (_occupancyMulti.IsCreated)    _occupancyMulti.Dispose();
+            if (_perThreadActive.IsCreated)   _perThreadActive.Dispose();
+            if (_perThreadReserved.IsCreated) _perThreadReserved.Dispose();
+            if (_activePerKind.IsCreated)     _activePerKind.Dispose();
+            if (_reservedPerKind.IsCreated)   _reservedPerKind.Dispose();
         }
 
         static bool CountsTowardHexOccupancy(byte kind)
@@ -45,256 +80,293 @@ namespace RareIcon
                 || kind == ProfessionKind.Looter;
         }
 
-        public void OnDestroy(ref SystemState state)
-        {
-            if (_hexOccupancy.IsCreated) _hexOccupancy.Dispose();
-        }
-
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
-        {
-            RunDispatch(ref state);
-        }
-
-        [BurstCompile]
-        void RunDispatch(ref SystemState state)
         {
             var offersDB = SystemAPI.GetSingleton<ProfessionOffersSingleton>();
             var combatDB = SystemAPI.GetSingleton<CombatDBSingleton>();
             var itemDB   = SystemAPI.GetSingleton<ItemDBSingleton>();
 
-            // CombatThreatScanSystem now schedules a parallel job that
-            // populates combatDB.Threats + FriendlyEmitters — the reads
-            // below are on the main thread, so we sync the pipeline here.
-            combatDB.PipelineHandle.Complete();
+            // CombatThreatScanSystem fills threats / friendlyEmitters via a
+            // parallel job; chain on its handle so the dispatch job sees a
+            // consistent snapshot without a main-thread sync.
+            state.Dependency = JobHandle.CombineDependencies(state.Dependency, combatDB.PipelineHandle);
 
             bool doFullDispatch = offersDB.BuildVersion != _lastSeenBuildVersion;
             if (doFullDispatch)
-            {
                 _lastSeenBuildVersion = offersDB.BuildVersion;
-                state.CompleteDependency();
-            }
 
-            bool hasCapital     = offersDB.HasCapital;
-            bool capitalHasFood = offersDB.CapitalHasFood;
+            ref var dbRef = ref SystemAPI.GetSingletonRW<ProfessionsDBSingleton>().ValueRW;
+            var writeBuffer = dbRef.WriteBuffer;
 
-            var offersPerKind      = offersDB.OffersPerKind;
-            var offersSortedByKind = offersDB.OffersSortedByKind;
-            var offerKindStart     = offersDB.OfferKindStart;
-            var offerKindCount     = offersDB.OfferKindCount;
-            var needyCaves         = offersDB.NeedyCaves;
-
-            var threats          = combatDB.Threats;
-            var friendlyEmitters = combatDB.FriendlyEmitters;
-            bool anyHostile      = threats.Length > 0;
-
-            var controlledLookup = SystemAPI.GetComponentLookup<ControlledUnitTag>(true);
-
-            var justAssignedPerKind = new NativeArray<int>(ProfessionKind.Count, Allocator.Temp);
-
-            BufferLookup<PackSlot> unitPackLookup = default;
-            NativeArray<int> activePerKind   = default;
-            NativeArray<int> reservedPerKind = default;
-
+            // Full-dispatch pre-pass — moved off the main thread. A clear
+            // job resets the persistent accumulators on a worker, two
+            // parallel build jobs scan units + reserved roles concurrently,
+            // and a Burst reduce folds the per-thread shards into the
+            // shapes the dispatch job consumes (activePerKind /
+            // reservedPerKind / _hexOccupancy). Main thread only chains
+            // handles; the 100k-unit foreach is gone from its budget.
             if (doFullDispatch)
             {
-                unitPackLookup = SystemAPI.GetBufferLookup<PackSlot>(true);
-
-                _hexOccupancy.Clear();
-
-                activePerKind   = new NativeArray<int>(ProfessionKind.Count, Allocator.Temp);
-                reservedPerKind = new NativeArray<int>(ProfessionKind.Count, Allocator.Temp);
-
-                foreach (var jobRO in
-                         SystemAPI.Query<RefRO<ProfessionIntent>>().WithAll<ProfessionPriorities>())
+                var clearJob = new ClearPrePassJob
                 {
-                    byte ak = jobRO.ValueRO.Kind;
-                    if (CountsTowardHexOccupancy(ak))
-                    {
-                        var hex = jobRO.ValueRO.TargetHex;
-                        _hexOccupancy[hex] = _hexOccupancy.TryGetValue(hex, out var c0) ? c0 + 1 : 1;
-                    }
-                    if (ak < activePerKind.Length) activePerKind[ak]++;
-                }
+                    PerThreadActive   = _perThreadActive,
+                    PerThreadReserved = _perThreadReserved,
+                    Occupancy         = _hexOccupancy,
+                    OccupancyMulti    = _occupancyMulti,
+                };
+                state.Dependency = clearJob.Schedule(state.Dependency);
 
-                foreach (var reservedRO in SystemAPI.Query<RefRO<ReservedRoles>>())
+                var buildActiveJob = new BuildActiveAndOccupancyJob
                 {
-                    var r = reservedRO.ValueRO;
-                    reservedPerKind[ProfessionKind.Lumberjack] += r.Lumberjack;
-                    reservedPerKind[ProfessionKind.Miner]      += r.Miner;
-                    reservedPerKind[ProfessionKind.Guard]      += r.Guard;
-                    reservedPerKind[ProfessionKind.Looter]     += r.Looter;
-                    reservedPerKind[ProfessionKind.Farmer]     += r.Farmer;
-                    reservedPerKind[ProfessionKind.Builder]    += r.Builder;
-                    reservedPerKind[ProfessionKind.Chef]       += r.Chef;
-                    reservedPerKind[ProfessionKind.Hunter]     += r.Hunter;
-                    reservedPerKind[ProfessionKind.Blacksmith] += r.Blacksmith;
-                    reservedPerKind[ProfessionKind.Craftsman]  += r.Craftsman;
-                    reservedPerKind[ProfessionKind.Medic]      += r.Medic;
-                }
+                    PerThreadActive = _perThreadActive,
+                    OccupancyWriter = _occupancyMulti.AsParallelWriter(),
+                };
+                var activeHandle = buildActiveJob.ScheduleParallel(state.Dependency);
+
+                var buildReservedJob = new BuildReservedJob
+                {
+                    PerThreadReserved = _perThreadReserved,
+                };
+                var reservedHandle = buildReservedJob.ScheduleParallel(state.Dependency);
+
+                var reduceJob = new ReducePrePassJob
+                {
+                    PerThreadActive   = _perThreadActive,
+                    PerThreadReserved = _perThreadReserved,
+                    ActivePerKind     = _activePerKind,
+                    ReservedPerKind   = _reservedPerKind,
+                    OccupancyMulti    = _occupancyMulti,
+                    Occupancy         = _hexOccupancy,
+                    ThreadSlotCount   = _threadSlotCount,
+                };
+                state.Dependency = reduceJob.Schedule(
+                    JobHandle.CombineDependencies(activeHandle, reservedHandle));
             }
 
-            uint nowTick = (uint)SystemAPI.Time.ElapsedTime;
+            // ProfessionTaskReconcileSystem pre-grows WriteBuffer for the
+            // whole pipeline this tick, so no capacity grow needed here.
 
-            var events = default(NativeList<ProfessionChangedMessage>);
-            if (SystemAPI.HasSingleton<ProfessionsDBSingleton>())
-                events = SystemAPI.GetSingletonRW<ProfessionsDBSingleton>().ValueRW.WriteBuffer;
-
-            foreach (var (priorities, reliefIntent, jobIntentRef, movement, transform, goalRef, tasksRef, entity) in
-                     SystemAPI.Query<
-                         RefRO<ProfessionPriorities>,
-                         RefRO<ReliefIntent>,
-                         RefRW<ProfessionIntent>,
-                         RefRO<UnitMovement>,
-                         RefRO<LocalTransform>,
-                         RefRW<MovementGoal>,
-                         DynamicBuffer<TaskMemory>>().WithEntityAccess())
+            var job = new DispatchJob
             {
-                var tasks = tasksRef;
+                OffersPerKind      = offersDB.OffersPerKind,
+                OffersSortedByKind = offersDB.OffersSortedByKind.AsArray(),
+                OfferKindStart     = offersDB.OfferKindStart,
+                OfferKindCount     = offersDB.OfferKindCount,
+                NeedyCaves         = offersDB.NeedyCaves.AsArray(),
 
-                if (reliefIntent.ValueRO.Kind != ReliefKind.None)
+                Threats          = combatDB.Threats.AsArray(),
+                FriendlyEmitters = combatDB.FriendlyEmitters.AsArray(),
+
+                HexOccupancy     = _hexOccupancy,
+                ActivePerKind    = _activePerKind,
+                ReservedPerKind  = _reservedPerKind,
+
+                ItemDefs         = itemDB.Defs,
+                ItemValidBits    = itemDB.ValidBits,
+                ItemMaxId        = itemDB.MaxItemId,
+
+                ControlledLookup = SystemAPI.GetComponentLookup<ControlledUnitTag>(true),
+                UnitPackLookup   = SystemAPI.GetBufferLookup<PackSlot>(true),
+
+                Events           = writeBuffer.AsParallelWriter(),
+
+                HasCapital       = offersDB.HasCapital,
+                CapitalHasFood   = offersDB.CapitalHasFood,
+                AnyHostile       = combatDB.Threats.Length > 0,
+                DoFullDispatch   = doFullDispatch,
+                NowTick          = (uint)(SystemAPI.Time.ElapsedTime * 1000d),
+            };
+
+            state.Dependency = job.ScheduleParallel(state.Dependency);
+
+            // Publish the dispatch handle so the bridge system + any other
+            // ProfessionIntent reader can chain on it without forcing the
+            // main thread to sync here.
+            dbRef.PipelineHandle = state.Dependency;
+        }
+
+        [BurstCompile]
+        struct ClearPrePassJob : IJob
+        {
+            public NativeArray<int>                       PerThreadActive;
+            public NativeArray<int>                       PerThreadReserved;
+            public NativeHashMap<int2, int>               Occupancy;
+            public NativeParallelMultiHashMap<int2, byte> OccupancyMulti;
+
+            public void Execute()
+            {
+                for (int i = 0; i < PerThreadActive.Length; i++)   PerThreadActive[i] = 0;
+                for (int i = 0; i < PerThreadReserved.Length; i++) PerThreadReserved[i] = 0;
+                Occupancy.Clear();
+                OccupancyMulti.Clear();
+            }
+        }
+
+        [BurstCompile]
+        [WithAll(typeof(ProfessionPriorities))]
+        partial struct BuildActiveAndOccupancyJob : IJobEntity
+        {
+            [NativeDisableParallelForRestriction] public NativeArray<int> PerThreadActive;
+            public NativeParallelMultiHashMap<int2, byte>.ParallelWriter OccupancyWriter;
+            [NativeSetThreadIndex] internal int ThreadIndex;
+
+            public void Execute(in ProfessionIntent intent)
+            {
+                byte k = intent.Kind;
+                if (k < ProfessionKind.Count)
                 {
-                    if (tasks.Length > 0)
+                    int slot = ThreadIndex * ProfessionKind.Count + k;
+                    PerThreadActive[slot] = PerThreadActive[slot] + 1;
+                }
+                if (k == ProfessionKind.Lumberjack
+                 || k == ProfessionKind.Miner
+                 || k == ProfessionKind.Looter)
+                {
+                    OccupancyWriter.Add(intent.TargetHex, 1);
+                }
+            }
+        }
+
+        [BurstCompile]
+        partial struct BuildReservedJob : IJobEntity
+        {
+            [NativeDisableParallelForRestriction] public NativeArray<int> PerThreadReserved;
+            [NativeSetThreadIndex] internal int ThreadIndex;
+
+            public void Execute(in ReservedRoles r)
+            {
+                int b = ThreadIndex * ProfessionKind.Count;
+                PerThreadReserved[b + ProfessionKind.Lumberjack] = PerThreadReserved[b + ProfessionKind.Lumberjack] + r.Lumberjack;
+                PerThreadReserved[b + ProfessionKind.Miner]      = PerThreadReserved[b + ProfessionKind.Miner]      + r.Miner;
+                PerThreadReserved[b + ProfessionKind.Guard]      = PerThreadReserved[b + ProfessionKind.Guard]      + r.Guard;
+                PerThreadReserved[b + ProfessionKind.Looter]     = PerThreadReserved[b + ProfessionKind.Looter]     + r.Looter;
+                PerThreadReserved[b + ProfessionKind.Farmer]     = PerThreadReserved[b + ProfessionKind.Farmer]     + r.Farmer;
+                PerThreadReserved[b + ProfessionKind.Builder]    = PerThreadReserved[b + ProfessionKind.Builder]    + r.Builder;
+                PerThreadReserved[b + ProfessionKind.Chef]       = PerThreadReserved[b + ProfessionKind.Chef]       + r.Chef;
+                PerThreadReserved[b + ProfessionKind.Hunter]     = PerThreadReserved[b + ProfessionKind.Hunter]     + r.Hunter;
+                PerThreadReserved[b + ProfessionKind.Blacksmith] = PerThreadReserved[b + ProfessionKind.Blacksmith] + r.Blacksmith;
+                PerThreadReserved[b + ProfessionKind.Craftsman]  = PerThreadReserved[b + ProfessionKind.Craftsman]  + r.Craftsman;
+                PerThreadReserved[b + ProfessionKind.Medic]      = PerThreadReserved[b + ProfessionKind.Medic]      + r.Medic;
+            }
+        }
+
+        [BurstCompile]
+        struct ReducePrePassJob : IJob
+        {
+            [ReadOnly] public NativeArray<int>                       PerThreadActive;
+            [ReadOnly] public NativeArray<int>                       PerThreadReserved;
+            public NativeArray<int>                                  ActivePerKind;
+            public NativeArray<int>                                  ReservedPerKind;
+            [ReadOnly] public NativeParallelMultiHashMap<int2, byte> OccupancyMulti;
+            public NativeHashMap<int2, int>                          Occupancy;
+            public int                                               ThreadSlotCount;
+
+            public void Execute()
+            {
+                for (int k = 0; k < ProfessionKind.Count; k++)
+                {
+                    int sumActive = 0;
+                    int sumReserved = 0;
+                    for (int t = 0; t < ThreadSlotCount; t++)
                     {
-                        var head = tasks[0];
-                        if (head.State == TaskState.Active)
-                        {
-                            head.State = TaskState.Pending;
-                            tasks[0]   = head;
-                        }
+                        int idx = t * ProfessionKind.Count + k;
+                        sumActive   += PerThreadActive[idx];
+                        sumReserved += PerThreadReserved[idx];
                     }
-                    var prev = jobIntentRef.ValueRO;
-                    if (prev.Kind != ProfessionKind.None)
-                    {
-                        jobIntentRef.ValueRW = default;
-                        if (events.IsCreated)
-                            ProfessionEventSink.Add(ref events, entity, prev.Kind, ProfessionKind.None, default, Entity.Null, nowTick, ProfessionChangeReason.ReliefOverride);
-                    }
-                    continue;
+                    ActivePerKind[k]   = sumActive;
+                    ReservedPerKind[k] = sumReserved;
                 }
 
-                // Manually-driven units (King by default, or any
-                // possessed goblin) skip job assignment — the player is
-                // steering them, the AI shouldn't assign work in
-                // parallel. Releasing control returns the unit to the
-                // dispatcher next tick.
-                if (controlledLookup.HasComponent(entity))
+                var enumer = OccupancyMulti.GetEnumerator();
+                while (enumer.MoveNext())
                 {
-                    if (tasks.Length > 0) tasks.Clear();
-                    var prev = jobIntentRef.ValueRO;
-                    if (prev.Kind != ProfessionKind.None)
-                    {
-                        jobIntentRef.ValueRW = default;
-                        if (events.IsCreated)
-                            ProfessionEventSink.Add(ref events, entity, prev.Kind, ProfessionKind.None, default, Entity.Null, nowTick, ProfessionChangeReason.ManualOverride);
-                    }
-                    continue;
+                    var kvp = enumer.Current;
+                    Occupancy[kvp.Key] = Occupancy.TryGetValue(kvp.Key, out var c) ? c + 1 : 1;
                 }
+            }
+        }
 
-                // Queue reconciliation — pop drained/invalid heads, promote
-                // Pending → Active, skip re-scoring when the Active head is
-                // still valid (TaskInvalidationSystem is authoritative on
-                // validity — we only react to state here).
-                while (tasks.Length > 0 &&
-                       (tasks[0].State == TaskState.Invalidated ||
-                        tasks[0].State == TaskState.Completed))
-                {
-                    tasks.RemoveAt(0);
-                }
+        [BurstCompile]
+        partial struct DispatchJob : IJobEntity
+        {
+            [ReadOnly] public NativeArray<int>       OffersPerKind;
+            [ReadOnly] public NativeArray<TaskOffer> OffersSortedByKind;
+            [ReadOnly] public NativeArray<int>       OfferKindStart;
+            [ReadOnly] public NativeArray<int>       OfferKindCount;
+            [ReadOnly] public NativeArray<NeedyCave> NeedyCaves;
 
-                if (tasks.Length > 0)
-                {
-                    var head = tasks[0];
-                    if (head.State == TaskState.Pending)
-                    {
-                        head.State = TaskState.Active;
-                        tasks[0]   = head;
-                        jobIntentRef.ValueRW = new ProfessionIntent
-                        {
-                            Kind         = head.Kind,
-                            TargetHex    = head.TargetHex,
-                            TargetEntity = head.TargetEntity,
-                        };
-                        continue;
-                    }
-                    if (anyHostile
-                        && head.State == TaskState.Active
-                        && head.Kind != ProfessionKind.Guard
-                        && priorities.ValueRO.Guard >= GuardPreemptThreshold
-                        && TryFindClosestThreat(threats, transform.ValueRO.Position,
-                                                out var preemptHex, out var preemptHostile, out _))
-                    {
-                        tasks.Clear();
-                        var preemptedIntent = jobIntentRef.ValueRO;
-                        jobIntentRef.ValueRW = new ProfessionIntent
-                        {
-                            Kind         = ProfessionKind.Guard,
-                            TargetHex    = preemptHex,
-                            TargetEntity = preemptHostile,
-                        };
-                        tasks.Add(new TaskMemory
-                        {
-                            Kind         = ProfessionKind.Guard,
-                            TargetHex    = preemptHex,
-                            TargetEntity = preemptHostile,
-                            State        = TaskState.Active,
-                            IssuedTick   = nowTick,
-                        });
-                        if (events.IsCreated && preemptedIntent.Kind != ProfessionKind.Guard)
-                            ProfessionEventSink.Add(ref events, entity, preemptedIntent.Kind, ProfessionKind.Guard, preemptHex, preemptHostile, nowTick, ProfessionChangeReason.Preempted);
-                        if (ProfessionKind.Guard < justAssignedPerKind.Length) justAssignedPerKind[ProfessionKind.Guard]++;
-                        continue;
-                    }
-                    if (head.State == TaskState.Active)
-                    {
-                        // Unit is committed — don't re-score. ProfessionIntent is
-                        // already in sync (BuilderJobSystem may refine
-                        // TargetHex between dispatcher runs, which is fine).
-                        continue;
-                    }
-                }
+            [ReadOnly] public NativeArray<ThreatRecord>    Threats;
+            [ReadOnly] public NativeArray<TerritoryEmitter> FriendlyEmitters;
 
-                // Queue is empty / drained. Only re-score on dispatch
-                // ticks; on idle ticks the unit simply waits.
-                if (!doFullDispatch) continue;
+            [ReadOnly] public NativeHashMap<int2, int> HexOccupancy;
+            [ReadOnly] public NativeArray<int>         ActivePerKind;
+            [ReadOnly] public NativeArray<int>         ReservedPerKind;
 
-                var p = priorities.ValueRO;
-                var currentHex = movement.ValueRO.CurrentHex;
-                var currentTarget = jobIntentRef.ValueRO.TargetEntity;
+            [ReadOnly] public NativeArray<ItemDefRuntime> ItemDefs;
+            [ReadOnly] public NativeArray<ulong>          ItemValidBits;
+            public ushort ItemMaxId;
+
+            [ReadOnly] public ComponentLookup<ControlledUnitTag> ControlledLookup;
+            [ReadOnly] public BufferLookup<PackSlot>             UnitPackLookup;
+
+            public NativeList<ProfessionChangedMessage>.ParallelWriter Events;
+
+            public bool HasCapital;
+            public bool CapitalHasFood;
+            public bool AnyHostile;
+            public bool DoFullDispatch;
+            public uint NowTick;
+
+            public void Execute(
+                Entity entity,
+                in ProfessionPriorities priorities,
+                in ReliefIntent reliefIntent,
+                ref ProfessionIntent intent,
+                in UnitMovement movement,
+                in LocalTransform transform,
+                ref MovementGoal goal,
+                DynamicBuffer<TaskMemory> tasks)
+            {
+                // Reconcile + Preempt ran first this tick. If they left
+                // anything on the queue (Pending under relief, Active
+                // committed, or Guard from preempt), or if the unit is
+                // under relief / manual control, skip — only a healthy
+                // empty queue means this unit needs fresh scoring.
+                if (reliefIntent.Kind != ReliefKind.None)   return;
+                if (tasks.Length > 0)                       return;
+                if (ControlledLookup.HasComponent(entity))  return;
+                if (!DoFullDispatch)                        return;
+
+                var p = priorities;
+                var currentHex = movement.CurrentHex;
+                var currentTarget = intent.TargetEntity;
 
                 byte  bestKind   = ProfessionKind.None;
                 int2  bestHex    = currentHex;
                 Entity bestEntity = Entity.Null;
                 long  bestScore  = long.MinValue;
 
-                // Per-unit Looter mode derives from inventory + global
-                // state. Precomputed so the offer loop does a single
-                // variant-bit test per Looter candidate instead of
-                // re-checking inventory each time.
-                bool carryingFood = unitPackLookup.HasBuffer(entity)
-                                    && PackHasFood(itemDB, unitPackLookup[entity]);
+                bool carryingFood = UnitPackLookup.HasBuffer(entity)
+                                    && PackHasFood(ItemDefs, ItemValidBits, ItemMaxId, UnitPackLookup[entity]);
                 byte looterMode;
-                if (carryingFood && needyCaves.Length > 0)
+                if (carryingFood && NeedyCaves.Length > 0)
                     looterMode = OfferVariant.LooterDeliver;
-                else if (!carryingFood && needyCaves.Length > 0 && capitalHasFood && hasCapital)
+                else if (!carryingFood && NeedyCaves.Length > 0 && CapitalHasFood && HasCapital)
                     looterMode = OfferVariant.LooterFetch;
                 else
-                    looterMode = 0xFF;  // forage fallback
+                    looterMode = 0xFF;
 
-                // Walk only the per-kind slices this unit has priority for.
-                // At 100k units this turns the inner work from O(all_offers)
-                // into O(sum(offers_per_active_kind)) — units with sparse
-                // JobPriorities skip most of the pool entirely.
                 for (byte kind = ProfessionKind.Default; kind < ProfessionKind.Count; kind++)
                 {
                     byte prio = p.Get(kind);
                     if (prio == 0) continue;
 
-                    int kindStart = offerKindStart[kind];
-                    int kindCount = offerKindCount[kind];
-                    int oNk = offersPerKind[kind];
-                    int aNk = activePerKind[kind] + justAssignedPerKind[kind];
-                    int rNk = reservedPerKind[kind];
+                    int kindStart = OfferKindStart[kind];
+                    int kindCount = OfferKindCount[kind];
+                    int oNk = OffersPerKind[kind];
+                    int aNk = ActivePerKind[kind];
+                    int rNk = ReservedPerKind[kind];
                     int deficit = oNk - aNk;
                     int reservationShortfall = rNk - aNk;
                     long deficitBonus = deficit > 0
@@ -309,7 +381,7 @@ namespace RareIcon
 
                     for (int si = 0; si < kindCount; si++)
                     {
-                        var offer = offersSortedByKind[kindStart + si];
+                        var offer = OffersSortedByKind[kindStart + si];
 
                         if (kind == ProfessionKind.Looter)
                         {
@@ -333,7 +405,7 @@ namespace RareIcon
 
                         int crowdOcc = 0;
                         if (IsHarvestVariant(kind, offer.Variant)
-                            && _hexOccupancy.TryGetValue(offer.Hex, out var occ))
+                            && HexOccupancy.TryGetValue(offer.Hex, out var occ))
                         {
                             if (occ >= HexClusterCap) continue;
                             crowdOcc = occ;
@@ -359,20 +431,20 @@ namespace RareIcon
                 {
                     int2   hostileHex    = default;
                     Entity hostileEntity = Entity.Null;
-                    int    hostileDist   = int.MaxValue;
                     bool   foundHostile  = false;
-                    if (anyHostile && p.Guard >= GuardPreemptThreshold)
+                    if (AnyHostile && p.Guard >= GuardPreemptThreshold)
                     {
                         foundHostile = TryFindClosestThreat(
-                            threats, transform.ValueRO.Position,
-                            out hostileHex, out hostileEntity, out hostileDist);
+                            Threats, transform.Position,
+                            out hostileHex, out hostileEntity);
                     }
 
-                    int guardReservationShortfall = math.max(0, reservedPerKind[ProfessionKind.Guard] - (activePerKind[ProfessionKind.Guard] + justAssignedPerKind[ProfessionKind.Guard]));
+                    int guardReservationShortfall = math.max(0, ReservedPerKind[ProfessionKind.Guard] - ActivePerKind[ProfessionKind.Guard]);
 
                     if (foundHostile)
                     {
-                        long gScore = (long)p.Guard * PriorityWeight - (long)hostileDist;
+                        int hostileHexDist = HexDistance(currentHex, hostileHex);
+                        long gScore = (long)p.Guard * PriorityWeight - (long)hostileHexDist;
                         if (hostileEntity != Entity.Null && hostileEntity == currentTarget)
                             gScore += HysteresisBonus;
                         if (guardReservationShortfall > 0)
@@ -385,19 +457,26 @@ namespace RareIcon
                             bestEntity = hostileEntity;
                         }
                     }
-                    else if (friendlyEmitters.Length > 0 && p.Guard >= GuardPatrolThreshold)
+                    else if (FriendlyEmitters.Length > 0 && p.Guard >= GuardPatrolThreshold)
                     {
-                        // Patrol fallback — pick a random hex inside the
-                        // Capital's territory disc. Seed mixes entity index
-                        // + WanderStep so each unit picks a different target
-                        // AND re-rolls on each arrival (WanderStep advances
-                        // when UnitMovementSystem snaps to the new hex).
-                        var e = friendlyEmitters[0];
-                        uint rng = UnitHashOps.Spread(in entity) ^ (movement.ValueRO.WanderStep * 0x85EBCA77u);
+                        var e = FriendlyEmitters[0];
+                        uint rng = UnitHashOps.Spread(in entity) ^ (movement.WanderStep * 0x85EBCA77u);
                         int span = e.Radius * 2 + 1;
                         int dq = (int)(rng % (uint)span) - e.Radius;
                         rng ^= rng >> 7; rng *= 0x27D4EB2Fu;
                         int dr = (int)(rng % (uint)span) - e.Radius;
+
+                        // Axial dq/dr in a square overshoots the hex disc at
+                        // the corners. Walk back toward origin one step at a
+                        // time until the point is inside e.Radius — preserves
+                        // the rng-seeded direction while keeping patrol within
+                        // the emitter's actual territory.
+                        while (AxialDistance(dq, dr) > e.Radius)
+                        {
+                            if (math.abs(dq) > math.abs(dr)) dq -= (int)math.sign(dq);
+                            else                             dr -= (int)math.sign(dr);
+                        }
+
                         int2 patrolHex = new int2(e.Center.x + dq, e.Center.y + dr);
                         int patrolDist = HexDistance(currentHex, patrolHex);
 
@@ -414,29 +493,21 @@ namespace RareIcon
                     }
                 }
 
-                var prevIntent = jobIntentRef.ValueRO;
-                var oldTarget  = prevIntent.TargetHex;
-                if (CountsTowardHexOccupancy(prevIntent.Kind)
-                    && _hexOccupancy.TryGetValue(oldTarget, out var oldCount)
-                    && oldCount > 0)
-                {
-                    if (oldCount == 1) _hexOccupancy.Remove(oldTarget);
-                    else               _hexOccupancy[oldTarget] = oldCount - 1;
-                }
+                var prevIntent = intent;
 
                 if (bestKind == ProfessionKind.None)
                 {
-                    uint rng = UnitHashOps.Spread(in entity) ^ (nowTick * 0x85EBCA77u);
+                    uint rng = UnitHashOps.Spread(in entity) ^ (NowTick * 0x85EBCA77u);
                     int dir = (int)(rng % 6u);
                     rng ^= rng >> 7; rng *= 0x27D4EB2Fu;
                     int dist = (int)(3u + (rng % 3u));
-                    bestHex    = movement.ValueRO.CurrentHex + HexMeshUtil.HexNeighbor(dir) * dist;
+                    bestHex    = movement.CurrentHex + HexMeshUtil.HexNeighbor(dir) * dist;
                     bestEntity = Entity.Null;
                     bestKind   = ProfessionKind.Default;
 
-                    if (goalRef.ValueRO.Priority <= GoalPriority.Wander)
+                    if (goal.Priority <= GoalPriority.Wander)
                     {
-                        goalRef.ValueRW = new MovementGoal
+                        goal = new MovementGoal
                         {
                             Kind      = GoalKind.Wander,
                             Priority  = GoalPriority.Wander,
@@ -445,27 +516,22 @@ namespace RareIcon
                     }
                 }
 
-                _hexOccupancy[bestHex] = _hexOccupancy.TryGetValue(bestHex, out var newCount) ? newCount + 1 : 1;
-
-                jobIntentRef.ValueRW = new ProfessionIntent
+                intent = new ProfessionIntent
                 {
                     Kind         = bestKind,
                     TargetHex    = bestHex,
                     TargetEntity = bestEntity,
                 };
 
-                if (bestKind < justAssignedPerKind.Length) justAssignedPerKind[bestKind]++;
-
-                if (events.IsCreated
-                    && (prevIntent.Kind != bestKind
-                        || !prevIntent.TargetHex.Equals(bestHex)
-                        || prevIntent.TargetEntity != bestEntity))
+                if (prevIntent.Kind != bestKind
+                    || !prevIntent.TargetHex.Equals(bestHex)
+                    || prevIntent.TargetEntity != bestEntity)
                 {
                     ProfessionChangeReason reason;
                     if (bestKind == ProfessionKind.Default)       reason = ProfessionChangeReason.Fallback;
                     else if (prevIntent.Kind == bestKind)         reason = ProfessionChangeReason.Retargeted;
                     else                                          reason = ProfessionChangeReason.Assigned;
-                    ProfessionEventSink.Add(ref events, entity, prevIntent.Kind, bestKind, bestHex, bestEntity, nowTick, reason);
+                    ProfessionEventSink.Add(ref Events, entity, prevIntent.Kind, bestKind, bestHex, bestEntity, NowTick, reason);
                 }
 
                 if (bestKind == ProfessionKind.None || bestKind == ProfessionKind.Default)
@@ -482,7 +548,7 @@ namespace RareIcon
                             TargetHex    = bestHex,
                             TargetEntity = bestEntity,
                             State        = TaskState.Active,
-                            IssuedTick   = nowTick,
+                            IssuedTick   = NowTick,
                         });
                     }
                     else
@@ -493,23 +559,26 @@ namespace RareIcon
                             TargetHex    = bestHex,
                             TargetEntity = bestEntity,
                             State        = TaskState.Active,
-                            IssuedTick   = nowTick,
+                            IssuedTick   = NowTick,
                         };
                     }
                 }
             }
-
-            if (activePerKind.IsCreated)   activePerKind.Dispose();
-            if (reservedPerKind.IsCreated) reservedPerKind.Dispose();
-            justAssignedPerKind.Dispose();
         }
 
-        static bool PackHasFood(in ItemDBSingleton itemDB, DynamicBuffer<PackSlot> buf)
+        static bool PackHasFood(
+            NativeArray<ItemDefRuntime> defs,
+            NativeArray<ulong>          validBits,
+            ushort                      maxId,
+            DynamicBuffer<PackSlot>     buf)
         {
             for (int i = 0; i < buf.Length; i++)
             {
                 if (buf[i].Count == 0) continue;
-                if (itemDB.EnergyValue(buf[i].ItemId) > 0f) return true;
+                ushort id = buf[i].ItemId;
+                if (id >= maxId) continue;
+                if ((validBits[id >> 6] & (1ul << (id & 63))) == 0) continue;
+                if (defs[id].RestoreEnergy > 0f) return true;
             }
             return false;
         }
@@ -547,10 +616,15 @@ namespace RareIcon
                      || variant == OfferVariant.LooterDropPickup));
         }
 
+        // Picks the nearest threat by world distance for in-territory
+        // selection (Euclidean is the correct shape for the scan radius
+        // gate), but emits only hex + entity — callers convert to
+        // HexDistance for scoring so guard scoring scales the same way
+        // as the rest of the dispatcher.
         static bool TryFindClosestThreat(
-            NativeList<ThreatRecord> threats,
+            NativeArray<ThreatRecord> threats,
             float3 originWorld,
-            out int2 outHex, out Entity outEntity, out int outDist)
+            out int2 outHex, out Entity outEntity)
         {
             const float ScanRadiusSq = 6f * 6f;
 
@@ -580,19 +654,17 @@ namespace RareIcon
             {
                 outHex    = inBestHex;
                 outEntity = inBestEntity;
-                outDist   = (int)math.round(math.sqrt(inBestSq));
                 return true;
             }
 
             if (bestEntity == Entity.Null)
             {
-                outHex = default; outEntity = Entity.Null; outDist = int.MaxValue;
+                outHex = default; outEntity = Entity.Null;
                 return false;
             }
 
             outHex    = bestHex;
             outEntity = bestEntity;
-            outDist   = (int)math.round(math.sqrt(bestSq));
             return true;
         }
 

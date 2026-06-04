@@ -12,9 +12,64 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 100
-  about: "Sandstone (5kg) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: stone
+    tier: low
+  properties:
+    release_date: "23 January 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 5
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Sandstone rocks - Bandit Camp Quarry
+        quantity: "1"
+        rarity: Mining 35
+      - source: Sandstone rocks - Necropolis mine
+        quantity: "1"
+        rarity: Mining 35
+      - source: Sandstone rocks - Cape Conch mine
+        quantity: "1"
+        rarity: Mining 35
+  related_items:
+    - item_name: Sandstone (1kg)
+      slug: sandstone-1kg
+      relationship: variant
+      description: Smallest sandstone chunk yielding 1 bucket of sand.
+    - item_name: Sandstone (2kg)
+      slug: sandstone-2kg
+      relationship: variant
+      description: Mid-size sandstone chunk yielding 2 buckets of sand.
+    - item_name: Sandstone (10kg)
+      slug: sandstone-10kg
+      relationship: variant
+      description: Heaviest tradeable sandstone yielding 8 buckets of sand.
+    - item_name: Bucket of sand
+      slug: bucket-of-sand
+      relationship: product
+      description: Ground sandstone output used in Crafting glass.
+  about: "Sandstone (5kg) is a Mining drop at level 35 from sandstone rocks around the Kharidian Desert. Grinding it at the Sandstorm grinder west of the Quarry produces buckets of sand for Crafting."
+  market_strategy:
+    notes:
+      - "Pure value lives in the bucket of sand pipeline; raw sandstone barely moves on the Grand Exchange."
+      - "The 100/4h limit keeps any arbitrage small; main use is self-supplying glassmaking alts."
+  trading_tips:
+    - "If you need bulk sand, buy this size for the best sand-per-inventory-slot ratio outside Mining yourself."
+    - "Carry buckets when grinding; the Sandstorm grinder requires you to supply them at 50 coins each."
+  history:
+    - date: "23 January 2006"
+      description: "Released as part of the Mining sandstone update around the Enakhra's Lament quest preparation."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

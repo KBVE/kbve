@@ -12,9 +12,67 @@ osrs:
   lowalch: 34
   highalch: 51
   limit: 6000
-  about: "Premade s'y crunch is a members-only item in Old School RuneScape. High alchemy value: 51 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "12 December 2002"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Gianne's Restaurant
+      location: Grand Tree, Tree Gnome Stronghold
+      price: 85
+      currency: Coins
+      stock: 3
+  related_items:
+    - item_name: Spicy crunchies
+      slug: spicy-crunchies
+      relationship: alternative
+      description: "Player-made gnome cooking version with identical effect"
+    - item_name: Premade ch'y crunch
+      slug: premade-chy-crunch
+      relationship: variant
+      description: "Chocolate chip crunchies variant"
+    - item_name: Premade w'm crunch
+      slug: premade-wm-crunch
+      relationship: variant
+      description: "Worm crunchies variant"
+    - item_name: Premade t'd crunch
+      slug: premade-td-crunch
+      relationship: variant
+      description: "Toad crunchies variant"
+  about: |-
+    > *"Some premade Spicy Crunchies."*
+
+    Premade s'y crunch is a pre-cooked spicy crunchies snack sold by the Gnome Waiter inside the Grand Tree and at Gianne's Restaurant. It heals 7 hitpoints, matching the player-made spicy crunchies. The shop restocks one every minute up to a base stock of 3.
+
+    The shorthand name is a relic of the early gnome cooking shop UI: the item was renamed from "Spicy crunchies" in 2006 to fit the inventory width.
+  market_strategy:
+    notes:
+      - "Cheap, low-volume staple for low-level food flips"
+      - "Restock cycle at Gianne's anchors the price floor"
+  trading_tips:
+    - "Bulk premade gnome food sells fast during low-level event bonuses"
+    - "Margin is thin: factor GE tax before committing to large flips"
+  history:
+    - date: "12 December 2002"
+      description: "Released with the Gnome Cooking update"
+    - date: "7 August 2006"
+      description: "Renamed from 'Spicy crunchies' to 'Premade s'y crunch'"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

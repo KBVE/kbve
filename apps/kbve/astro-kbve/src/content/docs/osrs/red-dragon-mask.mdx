@@ -12,9 +12,86 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 4
-  about: "Red dragon mask is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2014-06-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 2.267
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/1625
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  related_items:
+    - item_name: Green dragon mask
+      slug: green-dragon-mask
+      relationship: variant
+      description: Green-coloured dragon mask variant
+    - item_name: Blue dragon mask
+      slug: blue-dragon-mask
+      relationship: variant
+      description: Blue-coloured dragon mask variant
+    - item_name: Black dragon mask
+      slug: black-dragon-mask
+      relationship: variant
+      description: Black-coloured dragon mask variant
+  about: |-
+    The red dragon mask is a cosmetic head slot item obtained as a rare reward from hard Treasure Trail caskets. It provides no combat bonuses and is purely worn for fashion. The mask resembles the head of a red dragon and can be stored in a costume room treasure chest.
+  market_strategy:
+    notes:
+      - "Hard clue rare; supply tied to clue completion rates"
+      - "Pure cosmetic, demand swings with fashion meta"
+      - "Compare against other dragon mask colours for relative pricing"
+  trading_tips:
+    - Stockpile during clue scroll droughts when supply thins
+    - Flip on holiday/event price spikes
+  history:
+    - date: "2014-06-12"
+      description: "Added to the hard Treasure Trails reward table."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

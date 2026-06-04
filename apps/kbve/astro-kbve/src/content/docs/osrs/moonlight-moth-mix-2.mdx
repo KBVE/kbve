@@ -12,9 +12,71 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 125
-  about: "Moonlight moth mix (2) is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Moonlight moth (jar)
+          quantity: 1
+        - item_name: Raw barb-tailed kebbit
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Restores 22 Prayer points per dose."
+        duration: 0
+      - description: "In multicombat areas the dose also restores up to three nearby players with Accept Aid enabled."
+        duration: 0
+  related_items:
+    - item_name: Moonlight moth mix (1)
+      slug: moonlight-moth-mix-1
+      relationship: variant
+      description: Lower-dose version of the same Prayer mix.
+    - item_name: Moonlight moth
+      slug: moonlight-moth
+      relationship: component
+      description: Jarred moth used as the base ingredient before adding hunter meat.
+    - item_name: Moonlight potion
+      slug: moonlight-potion
+      relationship: alternative
+      description: Non-mix Prayer potion variant that cannot be shared with allies.
+  about: "Moonlight moth mix (2) is a two-dose Prayer restore introduced with Varlamore Part One, made by combining a jarred moonlight moth with hunter meat. Each dose restores 22 Prayer and shares with up to three nearby Accept Aid players, making it the go-to group ironman Prayer mix."
+  market_strategy:
+    notes:
+      - "Demand follows group ironman PvM trips that rely on shared Prayer doses."
+      - "Raw barb-tailed kebbit is the most profitable hunter meat input - track its GE price."
+      - "Mixes do not benefit from the holy wrench bonus, so solo PvMers prefer regular potions."
+  trading_tips:
+    - Make in bulk during Varlamore event weekends when GIM activity spikes.
+    - Avoid flipping during competitive league reset windows when supply floods the market.
+    - Pair with Prayer potion margins to decide which to craft each evening.
+  history:
+    - date: "2024-03-20"
+      description: "Added with the Varlamore: The Final Dawn (Part One) update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

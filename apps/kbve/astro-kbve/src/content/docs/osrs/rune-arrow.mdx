@@ -12,13 +12,34 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 11000
-  ammunition:
-    type: arrow
-    ranged_strength: 49
-    slot: ammo
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune
+    tier: mid-high
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ammo
+    weapon_type: arrow
+    attack_speed: null
     weight: 0
+    requirements:
+      ranged: 40
     attack_bonus:
       stab: 0
       slash: 0
@@ -36,75 +57,107 @@ osrs:
       ranged_strength: 49
       magic_damage: 0
       prayer: 0
-    requirements:
-      ranged: 40
-  fletching:
-    level: 75
-    xp: 12.5
-    product: Rune arrow
-    product_id: 892
-    quantity_per_action: 15
+  drop_table:
+    sources:
+      - source: Mithril dragon
+        quantity: "1"
+        rarity: 3/128
+      - source: Fire giant
+        quantity: "1"
+        rarity: 5/128
+      - source: Kalphite Queen
+        quantity: "1"
+        rarity: 3/126
+      - source: Chaos Elemental
+        quantity: "1"
+        rarity: 5/128
+      - source: Ankou (Wilderness Slayer Cave)
+        quantity: "1"
+        rarity: 4/92
+  shops:
+    - shop_name: Hickton's Archery Emporium
+      location: Catherby
+      price: 400
+      currency: Coins
+      stock: 1000
+    - shop_name: Lletya Archery Shop
+      location: Lletya
+      price: 520
+      currency: Coins
+      stock: 1000
+    - shop_name: Dargaud's Bow and Arrows
+      location: Ranging Guild
+      price: 400
+      currency: Coins
+      stock: 1000
+    - shop_name: Sian's Ranged Weaponry
+      location: Prifddinas
+      price: 400
+      currency: Coins
+      stock: 1000
+    - shop_name: Daryl's Ranging Surplus
+      location: Shayzien
+      price: 400
+      currency: Coins
+      stock: 1000
   recipes:
     - skill: fletching
       level: 75
       xp: 187.5
       materials:
         - item_name: Headless arrow
-          item_id: 53
           quantity: 15
         - item_name: Rune arrowtips
-          item_id: 44
           quantity: 15
-      product: Rune arrow
-      product_id: 892
-      product_quantity: 15
-      members_only: true
+      tools: []
+      output_quantity: 15
   related_items:
-    - item_id: 53
-      item_name: Headless arrow
+    - item_name: Headless arrow
       slug: headless-arrow
       relationship: component
       description: Arrow shaft component
-    - item_id: 44
-      item_name: Rune arrowtips
+    - item_name: Rune arrowtips
       slug: rune-arrowtips
       relationship: component
       description: Rune tip component
-    - item_id: 890
-      item_name: Adamant arrow
+    - item_name: Adamant arrow
       slug: adamant-arrow
       relationship: downgrade
       description: Lower tier arrow
-    - item_id: 11212
-      item_name: Dragon arrow
+    - item_name: Dragon arrow
       slug: dragon-arrow
       relationship: upgrade
       description: Higher tier arrow
-    - item_id: 21326
-      item_name: Amethyst arrow
+    - item_name: Amethyst arrow
       slug: amethyst-arrow
       relationship: alternative
       description: Alternative high-tier arrow
+  about: |
+    Rune arrows are the second-best non-special arrow in OSRS, providing +49 ranged strength and requiring 40 Ranged to wield. They're widely used for PKing, general PvM, and crystal bow setups. With 75 Fletching, you can craft them in batches of 15 from headless arrows and rune arrowtips.
   market_strategy:
-    title: Component Chain
-    profit_formulas:
-      - (Rune arrow × 15) - (Headless arrow × 15) - (Rune arrowtips × 15) = Profit
     notes:
-      - "Calculate:"
-      - 75 Fletching required
-      - Check arrowtip vs arrow margins
-      - Arrow shaft + Feather = Headless arrow
-      - Runite bar → Rune arrowtips
-      - High-level ranged training
-      - Crystal bow alternative ammo
-      - PKing (cheaper than dragon)
-      - General PvM
-      - Dragon arrows are often cheaper
-      - Popular for ironmen
-      - Check dragon arrow prices first
-      - Used in ballista
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Calculate: (Rune arrow x 15) - (Headless arrow x 15) - (Rune arrowtips x 15) = Profit"
+      - "75 Fletching required for crafting"
+      - "Check arrowtip vs arrow margins"
+      - "Arrow shaft + Feather = Headless arrow"
+      - "Runite bar yields Rune arrowtips"
+      - "High-level Ranged training staple"
+      - "Crystal bow alternative ammo"
+      - "Cheaper than dragon arrows for PKing"
+      - "General PvM workhorse"
+      - "Dragon arrows occasionally undercut rune"
+      - "Popular for ironmen via Fletching"
+      - "Compare dragon arrow prices before bulk buy"
+      - "Used with Heavy ballista as well"
+  trading_tips:
+    - Catherby/Ranging Guild shops sell at 400 gp each
+    - Lletya stock is overpriced at 520 gp
+    - Fletch in batches of 15 for tick efficiency
+  history:
+    - date: "2002-03-25"
+      description: "Rune arrows added to the game."
+    - date: "2006-08-22"
+      description: "The extra strong poisoned variant was renamed from 'Rune arrow(+)' to 'Rune arrow(p+)'."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

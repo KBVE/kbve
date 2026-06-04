@@ -12,51 +12,69 @@ osrs:
   lowalch: 30000
   highalch: 45000
   limit: 10000
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
     type: gem
+    tier: high
+  properties:
+    release_date: "2016-05-06"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.003
-  obtaining:
-    methods:
-      - source: Ape Atoll flame
-        method: Combine onyx with zenyte shard
-        requirements:
-          quest: Monkey Madness II
-          item: zombie monkey greegree
-  creation:
-    crafting_level: 70
-    cutting:
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
       level: 89
       xp: 200
-      result: Zenyte
-  usage:
-    description: Used for best-in-slot jewelry
-    note: Highest tier gem
+      materials:
+        - item_name: Uncut zenyte
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
   related_items:
-    - item_id: 19529
-      item_name: Zenyte shard
-      slug: zenyte-shard
-      relationship: component
-      description: Component
-    - item_id: 19493
-      item_name: Zenyte
+    - item_name: Zenyte
       slug: zenyte
       relationship: product
-      description: Cut form
+      description: Cut zenyte gem
+    - item_name: Zenyte shard
+      slug: zenyte-shard
+      relationship: component
+      description: Shard combined with an onyx to form the uncut gem
+    - item_name: Onyx
+      slug: onyx
+      relationship: component
+      description: Cut onyx required to fuse with the zenyte shard
+    - item_name: Amulet of torture
+      slug: amulet-of-torture
+      relationship: product
+      description: End-game zenyte enchanted jewellery
+    - item_name: Necklace of anguish
+      slug: necklace-of-anguish
+      relationship: product
+      description: End-game zenyte ranged amulet equivalent
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Gem |
-    | Tradeable | Yes |
-    | Weight | 0.003 kg |
-    | Requirements | 70 Crafting (to create), 89 (to cut) |
-
-    Cut into zenyte (89 Crafting, 200 XP).
-
-    Used for best-in-slot jewelry.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Uncut zenyte is the rarest gem in Old School RuneScape, created by combining a cut onyx with a zenyte shard at the wall of flame beneath the Temple of Marimbo on Ape Atoll while wearing a zombie monkey greegree. The process requires Monkey Madness II completion and 70 Crafting (15 XP). Cutting the gem at 89 Crafting yields a zenyte and 200 XP, which is used to craft the most powerful jewellery in the game.
+  market_strategy:
+    notes:
+      - "End-game jewellery component with consistent demand"
+      - "Expensive single-item flip but high margins"
+      - "Supply is gated by zenyte shard drop rates"
+  trading_tips:
+    - Buy uncut when shard prices fall and cut for Crafting XP plus margin
+    - Watch GE limit since 10k limit allows aggressive accumulation
+  history:
+    - date: "2016-05-06"
+      description: "Item added to the game with Monkey Madness II."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

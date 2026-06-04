@@ -1,6 +1,6 @@
 ---
 title: Iron claws | OSRS Price Data
-description: "Iron claws: A set of fighting claws.. High alch: 30 GP, GE limit: 125."
+description: "Iron claws: A set of fighting claws. Two-handed iron melee weapon usable from level 1 Attack. High alch: 30 GP, GE limit: 125."
 osrs:
   id: 3096
   name: Iron claws
@@ -12,9 +12,97 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 125
-  about: "Iron claws is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2004-08-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: claws
+    attack_speed: 4
+    weight: 0.907
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 4
+      slash: 6
+      crush: -4
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 7
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 28
+      xp: 50
+      materials:
+        - item_name: Iron bar
+          quantity: 2
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: Martin Thwait's Lost and Found
+      location: Rogues' Den
+      price: 50
+      currency: Coins
+      stock: 5
+  drop_table:
+    sources:
+      - source: Hermit crab
+        quantity: "1"
+        rarity: Rare
+  related_items:
+    - item_name: Bronze claws
+      slug: bronze-claws
+      relationship: downgrade
+      description: Lowest-tier claw weapon.
+    - item_name: Steel claws
+      slug: steel-claws
+      relationship: upgrade
+      description: Next tier up of claws.
+    - item_name: Mithril claws
+      slug: mithril-claws
+      relationship: upgrade
+      description: Mid-tier claws progression.
+  about: "Iron claws are a two-handed melee weapon unlocked after completing the Death Plateau quest. They require 28 Smithing to craft from two iron bars and grant 50 Smithing XP. They sit one tier above bronze and one below steel in the claw progression."
+  market_strategy:
+    notes:
+      - "Niche demand from Smithing levellers and claw collectors; 125 buy limit caps flips."
+      - "Rogues' Den shop stock provides a price floor near base value."
+  trading_tips:
+    - Snipe under 50 gp using Martin Thwait's shop as a hedge.
+    - Smithing crafters use them to push past low Smithing levels.
+  history:
+    - date: "2004-08-09"
+      description: "Iron claws released alongside other claw variants when Death Plateau launched."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,115 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 125
-  about: "Bronze spear is a members-only item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    weight: 2.267
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 5
+      slash: 5
+      crush: 5
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 6
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Goblin
+        quantity: "1"
+        rarity: 3/128
+      - source: Hobgoblin
+        quantity: "1"
+        rarity: 3/128
+      - source: Minotaur
+        quantity: "1"
+        rarity: 3/128
+      - source: Dagannoth
+        quantity: "1"
+        rarity: Uncommon
+      - source: Jogre
+        quantity: "1"
+        rarity: Uncommon
+  shops:
+    - shop_name: Fortis Blacksmith
+      location: Fortis
+      price: 26
+      currency: Coins
+      stock: 5
+    - shop_name: Elder Blunn's Spear and Shield Stall
+      location: Land's End
+      price: 26
+      currency: Coins
+      stock: 5
+  recipes:
+    - skill: smithing
+      level: 5
+      xp: 25
+      materials:
+        - item_name: Bronze bar
+          quantity: 1
+        - item_name: Logs
+          quantity: 1
+      tools:
+        - Barbarian Smithing
+      output_quantity: 1
+  related_items:
+    - item_name: Iron spear
+      slug: iron-spear
+      relationship: upgrade
+      description: Next tier in the metallic spear chain.
+    - item_name: Bronze hasta
+      slug: bronze-hasta
+      relationship: variant
+      description: One-handed Fremennik counterpart.
+  about: |-
+    The bronze spear is the entry-tier metallic spear, made via Barbarian Smithing at level 5 from a bronze bar and a log. It is the weakest spear in the game but provides the spear weapon class's all-style attack from level 1.
+
+    Players generally pick it up as a Smithing training output or pull it from low-tier goblin drop tables rather than buying it directly.
+  market_strategy:
+    notes:
+      - "Buy limit and alch margin are tight; volume comes from Smithing training spillover."
+      - "Demand is mostly from scarecrow crafting (Farming) and ironmen filling spear slots."
+      - "Price hugs the Grand Exchange floor with minimal flip headroom."
+  trading_tips:
+    - Source from Barbarian Smithing producers rather than GE for bulk.
+    - Compare alch margin against nature rune cost before mass alching.
+  history:
+    - date: "2003-04-14"
+      description: "Released with the New Throwing Weapons update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

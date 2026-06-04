@@ -1,6 +1,6 @@
 ---
 title: Steel hasta(p++) | OSRS Price Data
-description: "Steel hasta(p++): A poison-tipped, one-handed steel hasta.. High alch: 195 GP, GE limit: 125."
+description: "Steel hasta(p++): A poison-tipped, one-handed steel hasta. High alch: 195 GP, GE limit: 125."
 osrs:
   id: 11398
   name: Steel hasta(p++)
@@ -12,9 +12,101 @@ osrs:
   lowalch: 130
   highalch: 195
   limit: 125
-  about: "Steel hasta(p++) is a members-only item in Old School RuneScape. High alchemy value: 195 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: steel
+    tier: low
+  properties:
+    release_date: "3 July 2007"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    weight: 2.267
+    requirements:
+      attack: 5
+    attack_bonus:
+      stab: 12
+      slash: 12
+      crush: 12
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: -3
+      slash: -3
+      crush: -3
+      magic: 0
+      ranged: -3
+    other_bonus:
+      strength: 12
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Skeleton brute
+        quantity: "1"
+        rarity: 5/128
+      - source: Skeleton heavy
+        quantity: "1"
+        rarity: 5/128
+      - source: Skeleton thug
+        quantity: "1"
+        rarity: 5/128
+      - source: Skeleton warlord
+        quantity: "1"
+        rarity: 5/128
+      - source: Skeleton hero
+        quantity: "1"
+        rarity: 5/128
+  related_items:
+    - item_name: Steel hasta
+      slug: steel-hasta
+      relationship: variant
+      description: Unpoisoned base version
+    - item_name: Steel hasta(p)
+      slug: steel-hasta-p
+      relationship: downgrade
+      description: Standard poison tier
+    - item_name: Steel hasta(p+)
+      slug: steel-hasta-p-plus
+      relationship: downgrade
+      description: Stronger poison tier
+    - item_name: Weapon poison++
+      slug: weapon-poison-pp
+      relationship: component
+      description: Applied to upgrade poison tier
+  about: |-
+    > _"A poison-tipped, one-handed steel hasta."_
+
+    The Steel hasta(p++) is a steel hasta tipped with Weapon poison++, unlocked through the Smithing portion of the Barbarian Training miniquest. The hasta hits all three melee styles and can be used while wielding a shield, making it a niche budget option for poison-required content.
+  market_strategy:
+    notes:
+      - "Supply depends entirely on players applying Weapon poison++; price floors at hasta + poison cost."
+      - "Demand is thin since most polearm builders skip steel for adamant or rune hastas."
+  trading_tips:
+    - "Margin: Track the cost of Steel hasta + Weapon poison++ vs GE mid-price before flipping."
+    - "Use undercutting only when daily volume clears; otherwise list at the long-term moving average."
+  history:
+    - date: "3 July 2007"
+      description: "Released with the Barbarian Smithing miniquest expansion."
+    - date: "April 2021"
+      description: "Attack speed improved from 5 ticks to 4 ticks alongside other spear-class weapons."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

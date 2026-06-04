@@ -1,6 +1,6 @@
 ---
 title: Apple mush | OSRS Price Data
-description: "Apple mush: A bucket of apple mush.. High alch: 7 GP, GE limit: 11,000."
+description: "Apple mush: A bucket of apple mush. High alch: 7 GP, GE limit: 11,000."
 osrs:
   id: 5992
   name: Apple mush
@@ -12,12 +12,72 @@ osrs:
   lowalch: 5
   highalch: 7
   limit: 11000
-  about: "Apple mush is a members-only item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ingredient
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.1
+    options:
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 14
+      xp: 0
+      materials:
+        - item_name: Cooking apple
+          quantity: 4
+        - item_name: Bucket
+          quantity: 1
+      tools:
+        - Apple barrel
+      output_quantity: 1
+  related_items:
+    - item_name: Cooking apple
+      slug: cooking-apple
+      relationship: component
+      description: Crushed into the bucket
+    - item_name: Bucket
+      slug: bucket
+      relationship: component
+      description: Container used for the mush
+    - item_name: Ale yeast
+      slug: ale-yeast
+      relationship: component
+      description: Brewing partner ingredient
+    - item_name: Cider
+      slug: cider
+      relationship: product
+      description: Brewed using apple mush
+  about: |-
+    Apple mush is a brewing ingredient produced by crushing four cooking apples in an apple barrel and collecting the result with a bucket. Each fermenting vat of cider requires four apple mush, so brewers and farmers move them in bulk.
+  market_strategy:
+    notes:
+      - "Buy-limit-bound ingredient driven by brewing demand"
+      - "Profit hinges on cooking apple supply rather than mush itself"
+      - "Stable GE flips when cider beer-pumping events spike demand"
+  trading_tips:
+    - "Track cooking apple cost: cider profit collapses when apples spike"
+    - "Stock in bank notes - apple mush is heavy at 1.1 kg per piece"
+  history:
+    - date: "2005-07-11"
+      description: "Added with the Farming skill release"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

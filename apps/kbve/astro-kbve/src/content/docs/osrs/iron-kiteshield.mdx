@@ -1,6 +1,6 @@
 ---
 title: Iron kiteshield | OSRS Price Data
-description: "Iron kiteshield: A large metal shield.. High alch: 142 GP, GE limit: 125."
+description: "Iron kiteshield: A large metal shield. High alch: 142 GP, GE limit: 125."
 osrs:
   id: 1191
   name: Iron kiteshield
@@ -12,27 +12,105 @@ osrs:
   lowalch: 95
   highalch: 142
   limit: 125
-  item_id: 1191
-  item_type: armor
-  slot: shield
-  type: kiteshield
-  tradeable: true
-  weight: 5.443
-  requirements:
-    defence: 0
-  stats:
-    stab_defence: 8
-    slash_defence: 10
-    crush_defence: 9
-    ranged_defence: 9
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: null
+    attack_speed: null
+    weight: 5.443
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -8
+      ranged: -3
+    defence_bonus:
+      stab: 8
+      slash: 10
+      crush: 9
+      magic: -1
+      ranged: 9
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Hill Giant
+        quantity: "1"
+        rarity: 3/128
+  shops:
+    - shop_name: Cassie's Shield Shop
+      location: Falador
+      price: 238
+      currency: coins
+      stock: 10
+    - shop_name: Shields of Mistrock
+      location: Mistrock
+      price: 238
+      currency: coins
+      stock: 10
+    - shop_name: Elder Blunn's Spear and Shield Stall
+      location: Varlamore
+      price: 238
+      currency: coins
+      stock: 10
+  recipes:
+    - skill: smithing
+      level: 27
+      xp: 75
+      materials:
+        - item_name: Iron bar
+          quantity: 3
+      tools:
+        - Hammer
+      output_quantity: 1
   related_items:
-    - slug: steel-kiteshield
-    - slug: iron-platebody
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Steel kiteshield
+      slug: steel-kiteshield
+      relationship: upgrade
+      description: Stronger steel-tier kiteshield
+    - item_name: Iron platebody
+      slug: iron-platebody
+      relationship: set-piece
+      description: Matching iron armour piece
+  about: "Iron kiteshield is an F2P kiteshield smithed from 3 iron bars at 27 Smithing for 75 xp. Provides modest defensive bonuses and is a step up from the bronze kiteshield."
+  market_strategy:
+    notes:
+      - "Cheap and abundant from F2P smiths"
+      - "High alch barely above value, not profitable to alch"
+  trading_tips:
+    - Stock readily available from Cassie's Shield Shop in Falador
+  history:
+    - date: "2001-01-04"
+      description: "Iron kiteshield released with the launch of RuneScape."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

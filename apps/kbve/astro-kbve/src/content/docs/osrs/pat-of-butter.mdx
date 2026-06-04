@@ -1,6 +1,6 @@
 ---
 title: Pat of butter | OSRS Price Data
-description: "Pat of butter: A pat of freshly churned butter.. High alch: 2 GP, GE limit: 11,000."
+description: "Pat of butter: A pat of freshly churned butter. High alch: 2 GP, GE limit: 11,000."
 osrs:
   id: 6697
   name: Pat of butter
@@ -12,9 +12,68 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 11000
-  about: "Pat of butter is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dairy
+    tier: low
+  properties:
+    release_date: "2005-10-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.2
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 38
+      xp: 40
+      materials:
+        - item_name: Bucket of milk
+          quantity: 1
+      tools:
+        - Dairy churn
+      output_quantity: 1
+    - skill: cooking
+      level: 38
+      xp: 22
+      materials:
+        - item_name: Pot of cream
+          quantity: 1
+      tools:
+        - Dairy churn
+      output_quantity: 1
+  related_items:
+    - item_name: Bucket of milk
+      slug: bucket-of-milk
+      relationship: component
+      description: Primary input churned into a pat of butter.
+    - item_name: Pot of cream
+      slug: pot-of-cream
+      relationship: component
+      description: Faster but less XP-efficient alternative input for the dairy churn.
+  about: |-
+    Pat of butter is a Cooking ingredient produced at a dairy churn from a bucket of milk or pot of cream at level 38 Cooking. It is the topping for baked potatoes and the base for several gnome cuisine recipes.
+
+    Both ironmen and casual cooks rely on butter, but its low GE price keeps it niche on the merch side — most demand comes from players cooking baked-potato food for Slayer trips.
+  market_strategy:
+    notes:
+      - "Low margin, high buy limit"
+      - "Tied to baked potato and gnome cooking demand"
+      - "Steady ironman consumption keeps floor stable"
+  trading_tips:
+    - Buy in bulk for baked potato preparation
+    - Watch for Cooking XP events that briefly spike demand
+  history:
+    - date: "2005-10-24"
+      description: "Added with the Mogres, Lizards, Pet Fish, Potions and Potatoes update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

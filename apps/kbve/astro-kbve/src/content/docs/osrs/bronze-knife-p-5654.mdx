@@ -1,6 +1,6 @@
 ---
 title: Bronze knife(p+) | OSRS Price Data
-description: "Bronze knife(p+): A finely balanced throwing knife.. High alch: 1 GP, GE limit: 7,000."
+description: "Bronze knife(p+): A finely balanced throwing knife. High alch: 1 GP, GE limit: 7,000."
 osrs:
   id: 5654
   name: Bronze knife(p+)
@@ -12,9 +12,81 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
-  about: "Bronze knife(p+) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 4
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 3
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Bronze knife
+      slug: bronze-knife
+      relationship: variant
+      description: Unpoisoned base variant.
+    - item_name: Bronze knife(p)
+      slug: bronze-knife-p
+      relationship: variant
+      description: Standard poisoned variant.
+    - item_name: Bronze knife(p++)
+      slug: bronze-knife-p-plus-plus
+      relationship: variant
+      description: Strongest poison variant.
+  about: |-
+    Bronze knife(p+) is the strong-poison version of the entry-level thrown weapon. With no requirements to wield, it's mostly used for early ranged training or as a novelty stack to test mechanics.
+
+    The (p+) suffix applies weapon poison+, which has a short-lived effect at low levels but is rarely worth the cost vs an unpoisoned knife.
+
+    Requirements: None | Slot: Weapon | Attack speed: 2 ticks (rapid)
+  market_strategy:
+    notes:
+      - "Low alch value caps the floor; tiny margin movement."
+      - "Almost no demand beyond low-level training or set collectors."
+      - "Stack size makes bulk flipping high-effort, low-reward."
+  trading_tips:
+    - Skip unless you are a near-instant flipper on tiny margins.
+  history:
+    - date: "2006-09"
+      description: "Naming convention updated from \"Bronze knife(+)\" to \"Bronze knife(p+)\"."
+    - date: "2005-07-11"
+      description: "Released with the Farming skill update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

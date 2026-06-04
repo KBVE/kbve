@@ -1,6 +1,6 @@
 ---
 title: Amulet of eternal glory | OSRS Price Data
-description: "Amulet of eternal glory is a members neck slot item. High alch: 10,575 GP, GE limit: 5."
+description: "Amulet of eternal glory is a members neck slot item with unlimited glory teleports. High alch: 10,575 GP, GE limit: 5."
 osrs:
   id: 19707
   name: Amulet of eternal glory
@@ -12,80 +12,81 @@ osrs:
   lowalch: 7050
   highalch: 10575
   limit: 5
+  material:
+    type: dragonstone
+    tier: high
+  properties:
+    release_date: "2016-06-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Rub
+      - Drop
+    worn_options:
+      - Edgeville
+      - Karamja
+      - Draynor Village
+      - Al Kharid
+    alchable: true
   equipment:
     slot: neck
-    type: amulet
-    stats:
-      attack_stab: 10
-      attack_slash: 10
-      attack_crush: 10
-      attack_magic: 10
-      attack_ranged: 10
+    weapon_type: null
+    attack_speed: null
+    weight: 0.01
+    requirements: {}
+    attack_bonus:
+      stab: 10
+      slash: 10
+      crush: 10
+      magic: 10
+      ranged: 10
+    defence_bonus:
+      stab: 3
+      slash: 3
+      crush: 3
+      magic: 3
+      ranged: 3
+    other_bonus:
       strength: 6
-      defence_all: 3
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 3
+  charges:
+    type: unlimited
+    description: "Holds an unlimited supply of glory teleport charges - never depletes."
   passive_effects:
     - name: Unlimited Teleports
-      description: Edgeville, Karamja, Draynor Village, Al Kharid
+      description: "Right-click teleport to Edgeville, Karamja, Draynor Village, or Al Kharid with no charge cost."
     - name: Gem Mining Boost
-      description: Same as regular glory
-  obtaining:
-    methods:
-      - source: Fountain of Rune
-        method: Charge amulet of glory
-        chance: 1/25,000
-        requirements:
-          quest: Heroes' Quest
+      description: "Increases the chance of finding gems while mining gem rocks, identical to a charged amulet of glory."
   related_items:
-    - item_id: 1712
-      item_name: Amulet of glory
+    - item_name: Amulet of glory
       slug: amulet-of-glory
       relationship: downgrade
-      description: Regular version
-    - item_id: 0
-      item_name: Fountain of Rune
-      slug: fountain-of-rune
-      relationship: component
-      description: Creation location
-    - item_id: 6585
-      item_name: Amulet of fury
+      description: Standard glory amulet with limited charges; required for the Fountain of Rune conversion.
+    - item_name: Amulet of fury
       slug: amulet-of-fury
       relationship: upgrade
-      description: Better stats
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | +10 |
-    | Slash | +10 |
-    | Crush | +10 |
-    | Magic | +10 |
-    | Ranged | +10 |
-    | Strength | +6 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | +3 |
-
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +3 |
-
-    Unlimited Teleports:
-    - Edgeville
-    - Karamja
-    - Draynor Village
-    - Al Kharid
-
-    Gem Mining Boost: Same as regular glory
-
-    BiS for:
-    - Infinite Edgeville teleports
-    - Abyss runecrafting
-    - Flex item
-
-    Unlimited teleport glory.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Stronger combat amulet without teleport utility.
+  about: "The amulet of eternal glory is a rare upgrade obtained by charging amulets of glory at the Fountain of Rune in the Wilderness, with a 1-in-25,000 conversion chance per charge. It carries identical combat stats to a regular glory amulet but provides unlimited teleports and a permanent gem-mining boost, making it the de facto BiS teleport amulet for any account doing Wilderness, runecrafting, or general overworld content."
+  market_strategy:
+    notes:
+      - "Supply is extremely thin - 1/25,000 from a single high-attention activity (Fountain of Rune charging)."
+      - "Price floor anchored by infinite teleport convenience for ironman-adjacent and main accounts alike."
+      - "GE limit of 5 keeps large flips slow and signals a long-term hold rather than churn item."
+  trading_tips:
+    - Buy on weekday lulls; price tends to spike around Wilderness PvP weekends.
+    - Treat as a long-term hold; spreads tend to widen rather than tighten.
+  history:
+    - date: "2016-06-30"
+      description: "Released as a rare conversion outcome at the Fountain of Rune."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

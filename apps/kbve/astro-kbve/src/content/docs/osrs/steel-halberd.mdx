@@ -12,9 +12,90 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 125
-  about: "Steel halberd is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: steel
+    tier: low
+  properties:
+    release_date: "2004-09-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Are you sure you want to drop this?"
+  equipment:
+    slot: weapon
+    weapon_type: halberd
+    attack_speed: 7
+    weight: 3.175
+    requirements:
+      attack: 5
+    attack_bonus:
+      stab: 14
+      slash: 19
+      crush: 0
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: -1
+      slash: 1
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 20
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Quartermaster's halberd store
+      location: Tyras Camp
+      price: 1300
+      currency: Coins
+      stock: 5
+    - shop_name: Fortis Blacksmith
+      location: Civitas illa Fortis
+      price: 1000
+      currency: Coins
+      stock: 0
+  related_items:
+    - item_name: Mithril halberd
+      slug: mithril-halberd
+      relationship: upgrade
+      description: Higher tier halberd
+    - item_name: Iron halberd
+      slug: iron-halberd
+      relationship: downgrade
+      description: Lower tier halberd
+    - item_name: Adamant halberd
+      slug: adamant-halberd
+      relationship: upgrade
+      description: Stronger adamant tier
+  passive_effects:
+    - name: Two-tile reach
+      description: All halberds have a two-square attack range, allowing safespotting on melee monsters.
+  about: "Steel halberd is the steel-tier halberd available from Tyras Camp and Civitas illa Fortis. Like other halberds it strikes from two tiles away, enabling safe melee training and PvM."
+  market_strategy:
+    notes:
+      - "Available cheap from shop NPCs"
+      - "Niche use for safespot melee setups"
+      - "Buy limit 125 per 4 hours"
+  trading_tips:
+    - Shop floor at Tyras and Fortis sets the upper bound
+    - Demand spikes during quests featuring slayer-style bosses
+  history:
+    - date: "2004-09-20"
+      description: "Released alongside the halberd category in Regicide."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

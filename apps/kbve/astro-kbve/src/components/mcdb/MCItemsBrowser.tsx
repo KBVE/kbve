@@ -27,7 +27,9 @@ function ItemCard({ item }: { item: ItemEntry }) {
 			href={`/mc/items/${item.slug}/`}
 			className="mcdb-browse__card"
 			data-mc-tooltip
-			data-mc-ref={item.ref}>
+			data-mc-ref={item.ref}
+			data-mc-card="item"
+			data-mc-slug={item.slug}>
 			<div className="mcdb-browse__watch">
 				<WatchToggle kind="mc_item" ref={item.ref} size="sm" />
 			</div>

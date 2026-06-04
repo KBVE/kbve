@@ -9,12 +9,74 @@ osrs:
   members: true
   icon: Swords and emblem (p).png
   value: 100000
-  lowalch: null
-  highalch: null
+  lowalch: 40000
+  highalch: 60000
   limit: null
-  about: Swords and emblem (p) is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: mid-high
+  properties:
+    release_date: "2025-10-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weapon_type: null
+    attack_speed: null
+    weight: 0.3
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Grid master tabard (p)
+      slug: grid-master-tabard-p
+      relationship: set-piece
+      description: "Pairs with the swords and emblem (p) as part of the Grid Master cosmetic outfit"
+    - item_name: Swords and emblem
+      slug: swords-and-emblem
+      relationship: variant
+      description: "Standard recolour variant of the same Grid Master cape"
+  about: Swords and emblem (p) is a cosmetic cape obtained from the Events Reward Shop for 1,100 event points during the Grid Master community event. The blades are decorative only and the cape provides no combat bonuses.
+  market_strategy:
+    notes:
+      - "Cosmetic-only cape with zero combat stats"
+      - "Supply is gated by Grid Master event participation"
+      - "Pairs with the Grid master tabard (p) for the matching set"
+  trading_tips:
+    - "Treat as a collector cosmetic: value tracks event nostalgia, not gameplay"
+    - "Cross-shop with the standard Swords and emblem to spot mispriced variants"
+  history:
+    - date: "2025-10-15"
+      description: "Released alongside the Grid Master community event reward shop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

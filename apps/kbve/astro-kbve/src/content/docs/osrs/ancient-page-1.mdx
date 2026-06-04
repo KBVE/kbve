@@ -12,62 +12,86 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 5
-  item:
-    type: god_page
-    god: Ancient
-    page_number: 1
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: god-page
+    tier: mid
+  properties:
+    release_date: "2014-07-03"
     tradeable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard/Elite
-        drop_rate: Varies by tier
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: 1/775
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 1/600
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/500
+      - source: Reward casket (elite)
+        quantity: "1"
+        rarity: 1/450
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/408
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - easy
+      - medium
+      - hard
+      - elite
+      - master
   related_items:
-    - item_id: 12622
-      item_name: Ancient page 2
+    - item_name: Ancient page 2
       slug: ancient-page-2
       relationship: set-piece
-      description: Page 2 of 4
-    - item_id: 12623
-      item_name: Ancient page 3
+      description: Page 2 of 4 for the Book of darkness
+    - item_name: Ancient page 3
       slug: ancient-page-3
       relationship: set-piece
-      description: Page 3 of 4
-    - item_id: 12624
-      item_name: Ancient page 4
+      description: Page 3 of 4 for the Book of darkness
+    - item_name: Ancient page 4
       slug: ancient-page-4
       relationship: set-piece
-      description: Page 4 of 4
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | God Page |
-    | God | Ancient (Zaros) |
-    | Page | 1 of 4 |
-    | Tradeable | Yes |
-
-    Add to incomplete Book of darkness (Ancient god book) to complete it.
-
-    Requires all 4 pages:
-    - Ancient page 1
-    - Ancient page 2
-    - Ancient page 3
-    - Ancient page 4
-
-    When complete, the Book of darkness provides:
-    - +10 magic attack bonus
-    - Counts as Zarosian item in GWD
-    - Can be illuminated after Horror from the Deep
+      description: Page 4 of 4 for the Book of darkness
+    - item_name: Book of darkness
+      slug: book-of-darkness
+      relationship: product
+      description: Completed Ancient god book assembled from all four pages
+  about: "Ancient page 1 is a Treasure Trail reward used to fill an incomplete Book of darkness. All four Ancient pages combine to complete the Zarosian Ancient god book, which offers +10 magic attack when wielded as a shield-slot book and counts as a Zarosian item inside the God Wars Dungeon. Pages drop from easy, medium, hard, elite, and master caskets."
   market_strategy:
     notes:
-      - Collect all 4 pages
-      - Best magic attack god book
-      - GWD Ancient/Zaros protection
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand spikes around god book completion runs"
+      - "5-per-4h buy limit keeps daily flips small"
+      - "Tradable individually, so collectors often fill missing pages on GE"
+  trading_tips:
+    - "Watch full-page-set listings for premium pricing"
+    - "Casket droprate variance keeps supply uneven"
+  history:
+    - date: "2014-07-03"
+      description: "Added to the game with the Ancient god book content."
+    - date: "2019-01-24"
+      description: "Received a graphical update to match the book of darkness colour scheme."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

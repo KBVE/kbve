@@ -12,9 +12,86 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Asgarnian ale is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: beer
+    tier: low
+  properties:
+    release_date: "2001-04-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 24
+      xp: 248
+      materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Asgarnian hops
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Beer glass
+          quantity: 8
+      tools: []
+      output_quantity: 8
+  shops:
+    - shop_name: Rising Sun Inn
+      location: Falador
+      price: 2
+      currency: coins
+      stock: 2
+    - shop_name: Blue Moon Inn
+      location: Varrock
+      price: 2
+      currency: coins
+      stock: 2
+  potion:
+    effects:
+      - "description": "Boosts Strength by 2"
+        duration: null
+      - "description": "Drains Attack by 2 to 6 depending on level"
+        duration: null
+      - description: Heals 1 Hitpoint
+        duration: null
+  related_items:
+    - item_name: Asgarnian ale(m)
+      slug: asgarnian-ale-m
+      relationship: variant
+      description: Mature variant brewed by leaving the keg to age
+    - item_name: Asgoldian ale
+      slug: asgoldian-ale
+      relationship: variant
+      description: Quest-exclusive variant from a Recipe for Disaster step
+  about: "Asgarnian ale is a free-to-play brewed beverage that grants a small Strength boost in exchange for a temporary Attack drain. Players can buy it from inns across Falador and Varrock, or brew it themselves at 24 Cooking for 248 experience using the brewing equipment at the Keldagrim or Port Phasmatys breweries. It is also a required input for the Dwarven subquest in Recipe for Disaster and for the Death Plateau quest."
+  market_strategy:
+    notes:
+      - "Quest demand from Recipe for Disaster keeps a steady floor on the price"
+      - "Shop spawns keep ceiling tight; flips usually rely on bulk pickup"
+      - "Mature variant (m) holds more long-term margin than the standard pint"
+  trading_tips:
+    - Bank-stand outside inns to collect free shop spawns for resale
+    - Stockpile during brewery training spikes to flip into Recipe for Disaster waves
+  history:
+    - date: "2001-04-06"
+      description: "Released alongside the original Falador inn during the early days of RuneScape."
+    - date: "2005-01-04"
+      description: "Brewing introduced via the Forgettable Tale of a Drunken Dwarf quest, enabling the mature variant."
+
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

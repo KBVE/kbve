@@ -12,9 +12,74 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: null
-  about: "Forgotten brew(3) is a members-only item in Old School RuneScape. High alchemy value: 90 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid-high
+  properties:
+    release_date: "2023-01-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 91
+      xp: 108
+      materials:
+        - item_name: Ancient brew(3)
+          quantity: 1
+        - item_name: Ancient essence
+          quantity: 60
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Magic boost: +3 + 8% of base Magic level."
+        duration: 0
+      - description: "Prayer restore: +2 + 10% of base Prayer level."
+        duration: 0
+      - description: "Drains Attack, Strength, and Defence by 2 + 10% of current level each."
+        duration: 0
+  related_items:
+    - item_name: Ancient brew(3)
+      slug: ancient-brew-3
+      relationship: component
+      description: "Base potion upgraded with ancient essence"
+    - item_name: Ancient essence
+      slug: ancient-essence
+      relationship: component
+      description: "20 essence per dose required for upgrade"
+    - item_name: Forgotten brew(4)
+      slug: forgotten-brew-4
+      relationship: variant
+      description: "Full 4-dose vial"
+    - item_name: Forgotten brew(2)
+      slug: forgotten-brew-2
+      relationship: variant
+      description: "2-dose vial"
+  about: "Forgotten brew(3) is the upgraded version of ancient brew, providing a stronger Magic boost than its base. It is the go-to magic accuracy potion for content that bans non-magic stat boosts."
+  market_strategy:
+    notes:
+      - "Upgrade from ancient brew at 91 Herblore with ancient essence"
+      - "Best magic-only boosting potion for Nex and ToB mage rooms"
+      - "Ancient essence supply comes from Phantom Muspah and Leviathan"
+  history:
+    - date: "2023-01-11"
+      description: "Released with the Secrets of the North quest update."
+    - date: "2022-11-19"
+      description: "Originally polled as Magister's brew before the quest name was finalised."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

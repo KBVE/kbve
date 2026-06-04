@@ -1,6 +1,6 @@
 ---
 title: Teleport anchoring scroll | OSRS Price Data
-description: "Teleport anchoring scroll: A formidable magic spell which prevents unwanted teleportation.. High alch: 30,000 GP, GE limit: 5."
+description: "Teleport anchoring scroll: A formidable magic spell which prevents unwanted teleportation. High alch: 30,000 GP, GE limit: 5."
 osrs:
   id: 29455
   name: Teleport anchoring scroll
@@ -12,12 +12,60 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 5
-  about: "Teleport anchoring scroll is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  properties:
+    release_date: "2024-04-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.015
+    options:
+      - Read
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Zombie Pirate's Locker
+        quantity: "1"
+        rarity: 1/275
+      - source: Zombie pirate (rare)
+        quantity: "1"
+        rarity: 3/200000
+      - source: Zombie pirate diary
+        quantity: "1"
+        rarity: 1/20000
+  passive_effects:
+    - name: Teleport anchoring
+      description: Reading the scroll permanently grants the player immunity to teleportation attacks from abyssal demons and elder chaos druids.
+  related_items:
+    - item_name: Royal seed pod
+      slug: royal-seed-pod
+      relationship: alternative
+      description: Traveller's reward used for fast teleports
+    - item_name: Zombie pirate key
+      slug: zombie-pirate-key
+      relationship: alternative
+      description: Opens zombie pirate's locker drop source
+  about: "Teleport anchoring scroll is a consumable read-once unlock from zombie pirate content. After reading, the player can never again be teleported by abyssal demons or elder chaos druids. The effect does not protect against Abyssal Sire, Chaos Elemental Confusion, or Tele Block."
+  market_strategy:
+    notes:
+      - "Demand limited to players farming abyssal demons or elder chaos druids"
+      - "1/275 locker rarity caps supply"
+  trading_tips:
+    - Buy limit of 5 makes bulk flipping slow
+  history:
+    - date: "2024-04-10"
+      description: "Released with the Forestry Update Part 2 and Zombie Pirate content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

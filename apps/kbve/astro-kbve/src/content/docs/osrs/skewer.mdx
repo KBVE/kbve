@@ -12,9 +12,83 @@ osrs:
   lowalch: 1280
   highalch: 1920
   limit: 50
-  about: "Skewer is a members-only item in Old School RuneScape. High alchemy value: 1,920 coins. Grand Exchange buy limit: 50 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: adamant
+    tier: mid
+  properties:
+    release_date: "2006-03-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.041
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: longsword
+    attack_speed: 5
+    weight: 2.041
+    requirements:
+      attack: 30
+    attack_bonus:
+      stab: 20
+      slash: 29
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 31
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Culinaromancer's Chest
+      location: Lumbridge Castle basement
+      price: 4160
+      currency: coins
+      stock: 1
+  related_items:
+    - item_name: Adamant longsword
+      slug: adamant-longsword
+      relationship: alternative
+      description: Standard longsword with identical combat stats
+    - item_name: Skewered chicken
+      slug: skewered-chicken
+      relationship: product
+      description: Cooking product made by skewering a raw chicken
+    - item_name: Skewered kebbit
+      slug: skewered-kebbit
+      relationship: product
+      description: Cooking product made by skewering a raw kebbit meat
+  about: "Skewer is a members-only longsword used to impale fresh meat for cooking. It shares stats with the adamant longsword, requires 30 Attack, and is sold by the Culinaromancer's Chest after completing five Recipe for Disaster subquests."
+  market_strategy:
+    notes:
+      - "Niche utility weapon tied to cooking skewered meats"
+      - "Shop supply at the Culinaromancer's Chest caps maximum upside"
+      - "Demand driven by Cooking training methods using skewered foods"
+      - "Lumbridge Achievement Diary discount lowers the effective floor"
+  trading_tips:
+    - "Stock from the Culinaromancer's Chest if Grand Exchange price exceeds the shop price"
+    - "Use the Lumbridge diary discount to lower restock cost"
+  history:
+    - date: "2006-03-15"
+      description: "Skewer released as part of Recipe for Disaster, the 100th quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

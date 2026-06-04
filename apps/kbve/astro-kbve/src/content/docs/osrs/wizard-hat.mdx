@@ -12,9 +12,84 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 125
-  about: "Wizard hat is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 2
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Betty's Magic Emporium
+      location: Port Sarim
+      price: 2
+      currency: Coins
+      stock: 5
+    - shop_name: Regath's Wares
+      location: Arceuus
+      price: 2
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Wizard robe
+      slug: wizard-robe
+      relationship: set-piece
+      description: Matching wizard robe top
+    - item_name: Wizard hat (g)
+      slug: wizard-hat-g
+      relationship: variant
+      description: Gold trimmed variant
+  about: "Wizard hat is a free-to-play head-slot item that grants a small +2 Magic defence bonus and acts as a cosmetic starter for new mages. Sold cheaply at Betty's Magic Emporium and Regath's Wares. High alchemy value: 1 coin. Grand Exchange buy limit: 125 per 4 hours."
+  market_strategy:
+    notes:
+      - "Shops provide a price floor that keeps GE prices low"
+      - "Demand driven by cosmetic and ironman early-game mage gear"
+      - "High alch value of 1 coin means it is not worth alching"
+  trading_tips:
+    - Buy at shops in bulk if GE price spikes above 2 coins
+    - Pair with Wizard robe and Blue skirt for the classic mage look
+  history:
+    - date: "2001-01-04"
+      description: "Released as part of RuneScape's original launch content."
+    - date: "2005-06-22"
+      description: "Renamed from 'Wizard's hat' to its current 'Wizard hat'."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

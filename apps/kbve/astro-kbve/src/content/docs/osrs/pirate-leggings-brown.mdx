@@ -12,12 +12,95 @@ osrs:
   lowalch: 140
   highalch: 210
   limit: 150
-  about: "Pirate leggings (brown) is a members-only item in Old School RuneScape. High alchemy value: 210 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "31 March 2004"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Dodgy Mike's Second-hand Clothing
+      location: Mos Le'Harmless
+      price: 200
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Pirate leggings (blue)
+      slug: pirate-leggings-blue
+      relationship: variant
+      description: Blue colour variant
+    - item_name: Pirate leggings (beige)
+      slug: pirate-leggings-beige
+      relationship: variant
+      description: Beige colour variant
+    - item_name: Pirate leggings (red)
+      slug: pirate-leggings-red
+      relationship: variant
+      description: Red colour variant
+    - item_name: Pirate bandana (brown)
+      slug: pirate-bandana-brown
+      relationship: set-piece
+      description: Matching brown pirate bandana
+    - item_name: Pirate shirt (brown)
+      slug: pirate-shirt-brown
+      relationship: set-piece
+      description: Matching brown pirate shirt
+  about: "Pirate leggings (brown) are a fashionscape legs slot item sold by Dodgy Mike's Second-hand Clothing on Mos Le'Harmless. They have no combat stats and are worn purely for cosmetic appeal, completing the brown pirate outfit alongside the matching bandana and shirt. One of four colour variants of the pirate leggings."
+  market_strategy:
+    notes:
+      - "Cheap shop-bought fashionscape gear"
+      - "Mos Le'Harmless requires Cabin Fever quest access"
+      - "Limited daily trade volume"
+      - "Demand tied to outfit collectors"
+  trading_tips:
+    - Bulk-purchase from Dodgy Mike for quick GE resale
+    - Track colour variant price gaps
+    - Outfit completion drives bursty demand
+  history:
+    - date: "31 March 2004"
+      description: "Item was added to the game with the Cabin Fever release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

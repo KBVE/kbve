@@ -1,6 +1,6 @@
 ---
 title: Raw chompy | OSRS Price Data
-description: "Raw chompy: I need to cook this first.. High alch: 51 GP, GE limit: 13,000."
+description: "Raw chompy hunted with ogre bows; cook at 30 Cooking for chompy bird hat progress. High alch: 51 GP, GE limit: 13,000."
 osrs:
   id: 2876
   name: Raw chompy
@@ -12,9 +12,68 @@ osrs:
   lowalch: 34
   highalch: 51
   limit: 13000
-  about: "Raw chompy is a members-only item in Old School RuneScape. High alchemy value: 51 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: mid
+  properties:
+    release_date: "2004-05-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 30
+      xp: 140
+      materials:
+        - item_name: Raw chompy
+          quantity: 1
+      tools:
+        - Iron spit
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Chompy bird
+        quantity: "1"
+        rarity: Always
+  related_items:
+    - item_name: Cooked chompy
+      slug: cooked-chompy
+      relationship: product
+      description: Cooked version after iron/ogre spit-roast
+    - item_name: Chompy bird hat
+      slug: chompy-bird-hat
+      relationship: product
+      description: Reward for hunting chompy kill milestones
+    - item_name: Comp ogre bow
+      slug: comp-ogre-bow
+      relationship: alternative
+      description: Bow used to down chompy birds
+  about: |-
+    > _"I need to cook this first."_
+
+    Raw chompy drops from chompy birds (combat level 6) in the Feldip Hills. Hunting them requires completion of Big Chompy Bird Hunting and an ogre/comp ogre bow with brutal arrows. Cook at 30 Cooking on an iron spit for 140 XP.
+  market_strategy:
+    notes:
+      - "Sales are thin — most raw chompies are cooked privately for kill credit."
+      - "Watch GE limits when reselling kill-hunt inventories."
+  trading_tips:
+    - List in stacks of 100+ around weekend hunt clans.
+    - Cook before reselling for the larger cooked chompy spread.
+  history:
+    - date: "2004-05-18"
+      description: "Released with the Big Chompy Bird Hunting quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

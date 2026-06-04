@@ -1,6 +1,6 @@
 ---
 title: Onion & tomato | OSRS Price Data
-description: "Onion & tomato: A mixture of chopped onions and tomatoes in a bowl.. High alch: 3 GP, GE limit: 11,000."
+description: "Onion & tomato: A mixture of chopped onions and tomatoes in a bowl. High alch: 3 GP, GE limit: 11,000."
 osrs:
   id: 1875
   name: Onion & tomato
@@ -12,9 +12,82 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 11000
-  about: "Onion & tomato is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Chopped onion
+          quantity: 1
+        - item_name: Tomato
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Chopped tomato
+          quantity: 1
+        - item_name: Onion
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+  related_items:
+    - item_name: Onion
+      slug: onion
+      relationship: component
+      description: Whole onion ingredient
+    - item_name: Tomato
+      slug: tomato
+      relationship: component
+      description: Whole tomato ingredient
+    - item_name: Kebab mix
+      slug: kebab-mix
+      relationship: product
+      description: Combine with ugthanki meat for kebab mix
+    - item_name: Ugthanki kebab
+      slug: ugthanki-kebab
+      relationship: product
+      description: Final ugthanki kebab recipe at 58 Cooking
+  about: |
+    Onion & tomato is an intermediate Cooking ingredient on the path to an ugthanki kebab. Combining a chopped onion with a tomato (or vice versa) using a knife produces the mix instantly with no Cooking level required. Eating it heals 3 Hitpoints, but its real role is in the kebab production chain.
+  market_strategy:
+    notes:
+      - "Margin is tight - both recipes typically loss-make"
+      - "GE flipping benefits from kebab task demand spikes"
+      - "Bulk buys peak around Gnome Restaurant rotations"
+  trading_tips:
+    - Intermediate for Ugthanki kebab at 58 Cooking
+    - Quick 2-tick prep, knife required
+    - Heals 3 HP - poor combat food
+  history:
+    - date: "2003-04-14"
+      description: "Onion & tomato added with the Shilo Village update."
+    - date: "2006-01-30"
+      description: "Graphical update added the Eat option."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

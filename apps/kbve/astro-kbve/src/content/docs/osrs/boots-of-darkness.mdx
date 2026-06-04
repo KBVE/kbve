@@ -1,6 +1,6 @@
 ---
 title: Boots of darkness | OSRS Price Data
-description: "Boots of darkness: A dark power is woven into these boots.. High alch: 6,000 GP, GE limit: 70."
+description: "Boots of darkness are master clue feet armour with mystic-equivalent stats. High alch: 6,000 GP, GE limit: 70."
 osrs:
   id: 20140
   name: Boots of darkness
@@ -12,9 +12,100 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 70
-  about: "Boots of darkness is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: mid-high
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements:
+      magic: 40
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (master)
+        quantity: "1"
+        rarity: 1/851
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_name: Mystic boots
+      slug: mystic-boots
+      relationship: alternative
+      description: Stat-identical magic boots from Shantay Pass
+    - item_name: Robe of darkness
+      slug: robe-of-darkness
+      relationship: set-piece
+      description: Matching robe top from the master clue reward table
+    - item_name: Skirt of darkness
+      slug: skirt-of-darkness
+      relationship: set-piece
+      description: Matching robe bottom from the master clue reward table
+    - item_name: Hood of darkness
+      slug: hood-of-darkness
+      relationship: set-piece
+      description: Matching hood from the master clue reward table
+  passive_effects:
+    - name: Zaros alignment
+      description: Counts as a Zaros item in the Ancient Prison section of the God Wars Dungeon, preventing Zarosian followers from being aggressive.
+    - name: Costume storage
+      description: Can be stored in the costume room treasure chest of a player-owned house.
+  about: |-
+    The boots of darkness are a master Treasure Trails reward sharing the exact same magic attack and defence bonuses as mystic boots. Their main appeal is cosmetic — they finish the dark robes set — and as a Zaros-aligned protection piece inside the Ancient Prison of the God Wars Dungeon.
+
+    They roll at 1/851 from a master reward casket, making them one of the more common master clue cosmetic drops.
+  market_strategy:
+    notes:
+      - "Supply purely from master clue scrolls"
+      - "Demand from collection log and full dark robes outfit completion"
+      - "Buy limit of 70 means thin liquidity around tax updates"
+  trading_tips:
+    - Mystic boots offer identical stats at a fraction of the price for combat
+    - Bundle with hood, robe and skirt of darkness for the full set
+    - Useful for Ancient Prison trips when bringing magic gear
+  history:
+    - date: "2016-07-06"
+      description: "Released as part of the master clue scroll reward table expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

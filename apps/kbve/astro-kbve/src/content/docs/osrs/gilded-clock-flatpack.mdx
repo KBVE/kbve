@@ -12,9 +12,70 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Gilded clock (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: flatpack
+    tier: mid
+  properties:
+    release_date: "31 May 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options: ["Build", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 85
+      xp: 602
+      materials:
+        - item_name: Mahogany plank
+          quantity: 2
+        - item_name: Clockwork
+          quantity: 1
+        - item_name: Gold leaf
+          quantity: 1
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: Primary building material used to create the flatpack.
+    - item_name: Gold leaf
+      slug: gold-leaf
+      relationship: component
+      description: Decorative material that gives the clock its gilded finish.
+    - item_name: Clockwork
+      slug: clockwork
+      relationship: component
+      description: Inner clockmaking mechanism required to assemble the timepiece.
+    - item_name: Long bone
+      slug: long-bone
+      relationship: alternative
+      description: Alternative high-level Construction XP source from the Barbarian Assault foreman.
+  about: |-
+    The Gilded clock flatpack is built at a workbench in the Workshop of a player-owned house using 2 mahogany planks, 1 clockwork, and 1 gold leaf at level 85 Construction for 602 experience. The flatpack can then be unpacked in the Bedroom of any POH to install a finished Gilded clock. Most flatpacks sell at a deep loss against material cost — they exist to let high-Construction players generate flippable inventory for other players' POH decorating.
+  market_strategy:
+    notes:
+      - "Material cost massively exceeds GE value; never build for profit."
+      - "Steady demand from completionists building max-tier bedrooms."
+      - "Buy limit of 500 supports modest flipping volume per cycle."
+  trading_tips:
+    - "Buy cheap when builders dump batches at end of Construction XP sessions."
+    - "List against decoration meta updates — POH content drives spikes."
+    - "Check Mahogany plank and Gold leaf prices before underwriting any buy offer."
+  history:
+    - date: "31 May 2006"
+      description: "Released with the Construction skill expansion that added flatpacks."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

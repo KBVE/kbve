@@ -12,60 +12,95 @@ osrs:
   lowalch: 36000
   highalch: 54000
   limit: 125
-  item_id: 6924
-  type: equipment
-  tradeable: true
-  weight: 0.907
-  buy_limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: magic_robe
+    tier: high
+  properties:
+    release_date: "2006-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
-    type: magic_legs
+    weapon_type: null
+    attack_speed: null
+    weight: 1.814
     requirements:
-      skills:
-        - skill: magic
-          level: 50
-        - skill: defence
-          level: 25
-    stats:
-      attack_magic: 17
-      defence_magic: 12
-      defence_ranged: -7
-  obtaining:
-    minigame:
-      name: Mage Training Arena
-      points_required:
-        telekinetic: 450
-        alchemist: 500
-        enchantment: 5000
-        graveyard: 450
+      magic: 50
+      defence: 25
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 17
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 17
+      ranged: -7
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 1
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Mage Training Arena (Pizazz exchange)
+        quantity: "1"
+        rarity: always
   related_items:
-    - slug: infinity-hat
-      name: Infinity hat
-      relation: set_piece
-    - slug: infinity-top
-      name: Infinity top
-      relation: set_piece
-    - slug: infinity-boots
-      name: Infinity boots
-      relation: set_piece
-    - slug: infinity-gloves
-      name: Infinity gloves
-      relation: set_piece
-    - slug: ancestral-robe-bottom
-      name: Ancestral robe bottom
-      relation: best_upgrade
+    - item_name: Infinity hat
+      slug: infinity-hat
+      relationship: set-piece
+      description: Head slot of the Infinity robes set
+    - item_name: Infinity top
+      slug: infinity-top
+      relationship: set-piece
+      description: Torso slot of the Infinity robes set
+    - item_name: Infinity boots
+      slug: infinity-boots
+      relationship: set-piece
+      description: Boots slot of the Infinity robes set
+    - item_name: Infinity gloves
+      slug: infinity-gloves
+      relationship: set-piece
+      description: Hands slot of the Infinity robes set
+    - item_name: Ancestral robe bottom
+      slug: ancestral-robe-bottom
+      relationship: upgrade
+      description: Best-in-slot magic legs upgrade
   about: |-
-    The full Infinity set includes:
-    - Infinity hat
-    - Infinity top
-    - Infinity bottoms
-    - Infinity boots
-    - Infinity gloves
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Infinity bottoms are the leg slot piece of the Infinity robes set, awarded for participating in the Mage Training Arena minigame. They require 50 Magic and 25 Defence to equip and provide strong magic offensive and defensive bonuses with +1% magic damage.
+
+    To obtain, a player must accumulate the required pizazz points across all four MTA rooms (450 Telekinetic, 500 Alchemist, 5,000 Enchantment, 450 Graveyard).
+  market_strategy:
+    notes:
+      - "Mid-game magic leg slot used before Ancestral"
+      - "Set demand can spike when Mage Arena tasks rotate"
+      - "Magic damage bonus makes them BiS-style for budget mages"
+  trading_tips:
+    - Compare set price vs. individual pieces to spot arbitrage
+  history:
+    - date: "2006-01-04"
+      description: "Infinity bottoms released with the Mage Training Arena minigame."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

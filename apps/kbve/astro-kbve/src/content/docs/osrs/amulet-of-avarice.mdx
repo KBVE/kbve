@@ -12,105 +12,103 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: amulet
+    tier: high
+  properties:
+    release_date: "2018-07-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Check
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
-    type: amulet
-    stats:
-      attack_stab: 10
-      attack_slash: 10
-      attack_crush: 10
-      attack_magic: 10
-      attack_ranged: 10
-      defence_stab: 3
-      defence_slash: 3
-      defence_crush: 3
-      defence_magic: 3
-      defence_ranged: 3
+    weapon_type: null
+    attack_speed: null
+    weight: 0.01
+    requirements: {}
+    attack_bonus:
+      stab: 10
+      slash: 10
+      crush: 10
+      magic: 10
+      ranged: 10
+    defence_bonus:
+      stab: 3
+      slash: 3
+      crush: 3
+      magic: 3
+      ranged: 3
+    other_bonus:
       melee_strength: 6
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 3
   passive_effects:
     - name: Revenant Boost
-      description: 20% accuracy and damage increase when fighting revenants
+      description: 20% accuracy and damage increase when fighting revenants in the Revenant Caves.
     - name: Skull Effect
-      description: Causes the wearer to become skulled
+      description: Wearing the amulet skulls the player, risking all items on death.
     - name: Noted Drops
-      description: Drops from NPCs in Revenant Caves, Wilderness Slayer Cave, and Chaos Temple are noted
-  obtaining:
-    methods:
-      - source: Revenants
-        location: Revenant Caves
-        drop_rate: Rare
+      description: "Drops from NPCs in Revenant Caves, Wilderness Slayer Cave, and Chaos Temple are converted to notes (excluding secondaries and unique drops)."
+  drop_table:
+    sources:
+      - source: Revenant (high-level, on-task)
+        quantity: "1"
+        rarity: 1/2666
+      - source: Revenant (low-level, off-task)
+        quantity: "1"
+        rarity: 1/73334
   related_items:
-    - item_id: 22550
-      item_name: Craw's bow
+    - item_name: Craw's bow
       slug: craws-bow
       relationship: alternative
-      description: Wilderness bow
-    - item_id: 22545
-      item_name: Viggora's chainmace
+      description: Wilderness ranged weapon from the Revenant Caves reward pool.
+    - item_name: Viggora's chainmace
       slug: viggoras-chainmace
       relationship: alternative
-      description: Wilderness mace
-    - item_id: 22555
-      item_name: Thammaron's sceptre
+      description: Wilderness melee weapon from the Revenant Caves reward pool.
+    - item_name: Thammaron's sceptre
       slug: thammarons-sceptre
       relationship: alternative
-      description: Wilderness staff
-    - item_id: 21816
-      item_name: Bracelet of ethereum
+      description: Wilderness magic weapon from the Revenant Caves reward pool.
+    - item_name: Bracelet of ethereum
       slug: bracelet-of-ethereum
-      relationship: alternative
-      description: Revenant protection
-    - item_id: 21820
-      item_name: Revenant ether
+      relationship: component
+      description: Bracelet that absorbs revenant attacks when charged with ether.
+    - item_name: Revenant ether
       slug: revenant-ether
-      relationship: alternative
-      description: Revenant currency
+      relationship: component
+      description: Currency dropped by revenants that powers Wilderness uniques.
   about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | +10 |
-    | Slash | +10 |
-    | Crush | +10 |
-    | Magic | +10 |
-    | Ranged | +10 |
-    | Melee Strength | +6 |
-    | Prayer | +3 |
+    Amulet of avarice is a high-tier neck slot reward from the Revenant Caves, providing the strongest universal attack bonuses of any amulet at +10 across every style.
 
-    | Defense | Value |
-    |---------|-------|
-    | Stab | +3 |
-    | Slash | +3 |
-    | Crush | +3 |
-    | Magic | +3 |
-    | Ranged | +3 |
+    Equipping the amulet automatically skulls the wearer, meaning all items are dropped on death. In return, drops from revenants and Wilderness Slayer enemies are converted to bank notes, dramatically extending trip length for Wilderness PvMers.
 
-    Revenant Boost:
-    - 20% accuracy increase vs revenants
-    - 20% damage increase vs revenants
-
-    Skull Effect:
-    - Wearing this amulet skulls you
-    - Risk all items on death
-
-    Noted Drops:
-    - Drops from Revenant Caves are noted
-    - Drops from Wilderness Slayer Cave are noted
-    - Drops from Chaos Temple are noted
-
-    Best for:
-    - Revenant hunting
-    - Wilderness money-making
-    - Extended trips with noted drops
-
-    Warning: Skulls the wearer.
+    The 20% accuracy and damage bonus against revenants makes it best-in-slot for the Revenant Caves task itself, outperforming amulet of fury or amulet of torture for that specific content.
   market_strategy:
     notes:
-      - Useful for rev hunting
-      - Be aware of skull risk
-      - Noted drops save inventory
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand spikes when revenant ether prices rise"
+      - "Steady consumption from new Wilderness PvMers each week"
+      - "Skull risk keeps casual demand limited"
+  trading_tips:
+    - Watch for dips when bond prices drop and fewer players risk in the Wilderness
+    - Stock during PvM tournaments and Deadman events when revenants are hotspots
+  history:
+    - date: "2018-07-26"
+      description: "Released alongside the Revenant Cave Rewards update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

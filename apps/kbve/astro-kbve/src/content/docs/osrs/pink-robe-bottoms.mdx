@@ -1,6 +1,6 @@
 ---
 title: Pink robe bottoms | OSRS Price Data
-description: "Pink robe bottoms is a members legs slot item. High alch: 108 GP, GE limit: 150."
+description: "Pink robe bottoms: Made by Tree Gnomes with a thing for pink. High alch: 108 GP, GE limit: 150."
 osrs:
   id: 646
   name: Pink robe bottoms
@@ -12,25 +12,84 @@ osrs:
   lowalch: 72
   highalch: 108
   limit: 150
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Fine Fashions
+      location: Tree Gnome Stronghold (Grand Tree)
+      price: 180
+      currency: Coins
+      stock: 5
   related_items:
-    - item_id: 636
-      item_name: Pink robe top
+    - item_name: Pink robe top
       slug: pink-robe-top
       relationship: set-piece
       description: Matching top
-    - item_id: 656
-      item_name: Pink hat
+    - item_name: Pink hat
       slug: pink-hat
       relationship: set-piece
       description: Matching hat
+    - item_name: Pink boots
+      slug: pink-boots
+      relationship: set-piece
+      description: Matching boots
   about: |-
-    > _"A\"nice\" pair of pink robe bottoms."_
+    > _"Made by Tree Gnomes with a thing for pink."_
 
-    Pink robe bottoms are part of the gnome clothing set. Purely cosmetic with no stat bonuses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Cosmetic gnome robe bottoms from Fine Fashions at the Grand Tree for 180 coins. Renamed from "Robe bottoms" to "Pink robe bottoms" in December 2014 for clarity with the other colour variants. Part of the matching pink gnome clothing set.
+  market_strategy:
+    notes:
+      - "Shop restock at 180 sets the price floor — rarely worth flipping above shop cost."
+      - "GE limit of 150 keeps bulk trading low."
+  trading_tips:
+    - "Buy direct from Fine Fashions when stocking the full pink set."
+    - "Demand spikes during fashionscape events and gnome-themed holiday content."
+  history:
+    - date: "2002-12-12"
+      description: "Released with the Tree Gnome Stronghold area."
+    - date: "2014-12-10"
+      description: "Renamed from Robe bottoms to Pink robe bottoms."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

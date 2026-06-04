@@ -12,9 +12,63 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Marble magic wardrobe (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: flatpack
+    tier: high
+  properties:
+    release_date: "2006-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 96
+      xp: 500
+      materials:
+        - item_name: Marble block
+          quantity: 1
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Marble block
+      slug: marble-block
+      relationship: component
+      description: Sole material required to flatpack
+    - item_name: Mahogany magic wardrobe (flatpack)
+      slug: mahogany-magic-wardrobe-flatpack
+      relationship: downgrade
+      description: Lower-tier magic wardrobe flatpack
+  about: |-
+    The marble magic wardrobe flatpack is a high-end Construction training method introduced in 2006 with the flatpack update. Made from a single marble block at level 96 Construction, it grants 500 XP per craft on a 5-tick cycle. The flatpack is widely used by mass-trained construction players because it offers exceptional XP per click compared to direct house builds.
+  market_strategy:
+    notes:
+      - "Niche flatpack with sharp price ties to marble block cost"
+      - "Demand driven by Construction trainers chasing 99"
+      - "Buy limit of 500 caps bulk strategies"
+      - "Profit per item is volatile with marble block supply"
+      - "Often used as a XP-per-GP arbitrage signal"
+  trading_tips:
+    - Track marble block price as the leading indicator
+    - Flip into Construction XP event windows for spikes
+    - Bulk hold during marble block scarcity periods
+  history:
+    - date: "2006-10-18"
+      description: "Added with the Construction flatpack update."
+    - date: "2015-02-26"
+      description: "Renamed from 'Marble mw' to 'Marble magic wardrobe'."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

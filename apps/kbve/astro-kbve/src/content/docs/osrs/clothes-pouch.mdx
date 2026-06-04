@@ -12,9 +12,65 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Clothes pouch is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: leather
+    tier: mid
+  properties:
+    release_date: "2023-06-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options: ["Open", "Drop"]
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 50
+      xp: 0
+      materials:
+        - item_name: Clothes pouch blueprint
+          quantity: 1
+        - item_name: Leather
+          quantity: 1
+        - item_name: Thread
+          quantity: 1
+      tools: ["Needle"]
+      output_quantity: 1
+  related_items:
+    - item_name: Clothes pouch blueprint
+      slug: clothes-pouch-blueprint
+      relationship: component
+      description: "Blueprint required to craft the pouch"
+    - item_name: Lumberjack outfit
+      slug: lumberjack-outfit
+      relationship: alternative
+      description: "Outfit pieces the pouch can store for woodcutting XP bonus"
+    - item_name: Forestry kit
+      slug: forestry-kit
+      relationship: upgrade
+      description: "Pouch attaches to the kit for unified storage"
+  about: |-
+    > *"A pouch for your dirty work clothes!"*
+
+    Forestry storage pouch unlocked during the Forestry update. Crafted with a clothes pouch blueprint, leather, thread and a needle at 50 Crafting. Attaches to a Forestry kit or basket, storing Lumberjack or Forestry outfit pieces so the wearer still receives the woodcutting XP bonus without occupying gear slots. Players with 99 Woodcutting can additionally store cape pouches.
+  market_strategy:
+    notes:
+      - "No GE buy limit — pouch is craft-on-demand"
+      - "Demand spikes alongside Forestry events and Woodcutting training pushes"
+      - "Blueprint and leather costs determine the price floor"
+  trading_tips:
+    - "Cross-check blueprint price before flipping — blueprint is the bottleneck input"
+    - "Watch Wintertodt and Forestry event cycles for demand spikes"
+  history:
+    - date: "2023-06-28"
+      description: "Released with Forestry: The Way of the Forester - Part One"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

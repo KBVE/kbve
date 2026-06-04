@@ -1,6 +1,6 @@
 ---
 title: Garlic powder | OSRS Price Data
-description: "Garlic powder: Finely ground garlic powder.. High alch: 6 GP, GE limit: 15."
+description: "Garlic powder: Finely ground garlic powder. Quest ingredient for Desert Treasure. High alch: 6 GP, GE limit: 15."
 osrs:
   id: 4668
   name: Garlic powder
@@ -12,9 +12,55 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 15
-  about: "Garlic powder is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: quest-ingredient
+    tier: low
+  properties:
+    release_date: "2005-04-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0.007
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Garlic
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+  related_items:
+    - item_name: Garlic
+      slug: garlic
+      relationship: component
+      description: Ground in a pestle and mortar to produce the powder.
+    - item_name: Blessed pot
+      slug: blessed-pot
+      relationship: product
+      description: Garlic powder is combined into a blessed pot during Desert Treasure I.
+  about: "Garlic powder is a Desert Treasure I quest ingredient made by grinding a garlic with a pestle and mortar. It is poured into a blessed pot to weaken the vampyre Dessous during the quest. The item can be created at any time, regardless of quest progress, and is freely tradeable on the Grand Exchange."
+  market_strategy:
+    notes:
+      - "Tiny 15-per-4h buy limit caps flipping volume - this is a margin play not a quantity play."
+      - "GE price routinely outpaces the cost of raw garlic, leaving room for steady per-unit profit."
+      - "Demand spikes during Desert Treasure I quest helper events."
+  trading_tips:
+    - Buy raw garlic, grind, and list at GE max to capture the spread.
+    - Inventory churn matters more than per-flip profit due to the tiny limit.
+  history:
+    - date: "2005-04-18"
+      description: "Released with the Desert Treasure quest."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,79 @@ osrs:
   lowalch: 288
   highalch: 432
   limit: 2000
-  about: "Super antifire potion(2) is a members-only item in Old School RuneScape. High alchemy value: 432 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "2018-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - "Drink"
+      - "Empty"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Grants complete immunity to regular dragonfire"
+        duration: 180
+      - description: "Partially blocks stronger dragonfire from King Black Dragon, Galvek, and Vorkath"
+        duration: 180
+  recipes:
+    - skill: herblore
+      level: 92
+      xp: 130
+      materials:
+        - item_name: Antifire potion(4)
+          quantity: 1
+        - item_name: Crushed superior dragon bones
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Super antifire potion(4)
+      slug: super-antifire-potion-4
+      relationship: variant
+      description: "Full 4-dose version"
+    - item_name: Antifire potion(4)
+      slug: antifire-potion-4
+      relationship: component
+      description: "Base potion used in the recipe"
+    - item_name: Crushed superior dragon bones
+      slug: crushed-superior-dragon-bones
+      relationship: component
+      description: "Secondary ingredient from superior dragons"
+    - item_name: Extended super antifire(4)
+      slug: extended-super-antifire-4
+      relationship: upgrade
+      description: "Longer-duration variant requiring 98 Herblore and lava scale shards"
+  about: |-
+    Super antifire is the strongest dragonfire defense available, granting total immunity to regular dragonfire and partial protection against the boosted dragonfire of KBD, Galvek, and Vorkath.
+
+    Two doses last three minutes total: one minute per dose. Pair with an antifire shield or dragonfire ward for full protection at endgame dragon bosses.
+  market_strategy:
+    notes:
+      - "Required staple at Vorkath, supply is steady"
+      - "Crushed superior dragon bones cost dominates the recipe"
+      - "Profit margins thinnest right after Vorkath nerfs or buffs"
+      - "92 Herblore gates supply"
+  trading_tips:
+    - "Decant 4-dose potions to 2-dose when 4s trade above 2x the 2-dose price"
+    - "Watch crushed superior dragon bones GE swings: ingredient cost drives potion cost"
+  history:
+    - date: "2018-01-04"
+      description: "Released with the Dragon Slayer II update"
+    - date: "2018-01-25"
+      description: "Effect duration extended from two to three minutes"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

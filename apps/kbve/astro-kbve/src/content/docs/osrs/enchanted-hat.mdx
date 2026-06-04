@@ -12,8 +12,30 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: 8
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options: ["Wear", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements:
+      magic: 40
+      defence: 20
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,60 +53,43 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      magic: 40
-      defence: 20
-  related_items:
-    - item_id: 7399
-      item_name: Enchanted top
-      slug: enchanted-top
-      relationship: set-piece
-      description: Enchanted set body
-    - item_id: 7398
-      item_name: Enchanted robe
-      slug: enchanted-robe
-      relationship: set-piece
-      description: Enchanted set legs
-    - item_id: 4089
-      item_name: Mystic hat
-      slug: mystic-hat
-      relationship: alternative
-      description: Same stats, easier to obtain
-  about: |-
-    > *"A three pointed hat of magic."*
-
-    | Attack | Value |
-    |--------|-------|
-    | Magic | +4 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Magic | +4 |
-
-    Requirements: 40 Magic, 20 Defence
-
-    Weight: 0.453 kg
-
-    | Stat | Enchanted Hat | Mystic Hat | Farseer Helm |
-    |------|--------------|-----------|--------------|
-    | Magic Atk | +4 | +4 | +6 |
-    | Magic Def | +4 | +4 | +8 |
-    | Req | 40 Mage/20 Def | 40 Mage/20 Def | 45 Mage/45 Def |
-
-    The enchanted hat is statistically identical to the mystic hat. The only difference is the visual appearance and source. It is valued primarily as a fashionscape item from Treasure Trails.
-
-    - Cosmetic alternative to the mystic hat
-    - Treasure Trails fashionscape outfit
-    - Can be stored in POH costume room
-    - Same combat utility as mystic hat in every scenario
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/1625
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers: ["hard"]
+  about: "Enchanted hat is a hard Treasure Trails reward statistically identical to the mystic hat (+4 magic attack, +4 magic defence) but distinguished by its three-pointed wizard hat aesthetic. Requires 40 Magic and 20 Defence to wear. Part of the enchanted robes set (hat, top, robe) and storable in a POH costume room. High alchemy value: 9,000 coins. Grand Exchange buy limit: 8 per 4 hours."
   market_strategy:
     notes:
-      - Rarity from hard clues gives it some collector value
-      - Price may fluctuate above mystic hat due to cosmetic demand
-      - Storable in costume room for outfit collectors
-      - Part of the complete enchanted robes set
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Rarity from hard clues gives it some collector value above mystic hat"
+      - "Price may fluctuate above mystic hat due to cosmetic demand"
+      - "Storable in costume room for outfit collectors"
+      - "Part of the complete enchanted robes set"
+  trading_tips:
+    - Demand spikes when clue-scroll content drops; trickle in supply makes the 8-unit limit easy to fill
+    - Pair with enchanted top and enchanted robe when reselling set collectors
+  related_items:
+    - item_name: Enchanted top
+      slug: enchanted-top
+      relationship: set-piece
+      description: Body piece of the enchanted robes set
+    - item_name: Enchanted robe
+      slug: enchanted-robe
+      relationship: set-piece
+      description: Legs piece of the enchanted robes set
+    - item_name: Mystic hat
+      slug: mystic-hat
+      relationship: alternative
+      description: Same combat stats, easier to obtain
+  history:
+    - date: "2006-02-20"
+      description: "Added to the game as a hard Treasure Trails reward."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Mithril javelin(p++) | OSRS Price Data
-description: "Mithril javelin(p++): A mithril tipped javelin.. High alch: 38 GP, GE limit: 7,000."
+description: "Mithril javelin(p++): A mithril tipped javelin. High alch: 38 GP, GE limit: 7,000."
 osrs:
   id: 5651
   name: Mithril javelin(p++)
@@ -12,9 +12,69 @@ osrs:
   lowalch: 25
   highalch: 38
   limit: 7000
-  about: "Mithril javelin(p++) is a members-only item in Old School RuneScape. High alchemy value: 38 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: mithril
+    tier: mid
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammo
+    weapon_type: thrown
+    attack_speed: 6
+    weight: 0
+    requirements:
+      ranged: 20
+    attack_bonus:
+      ranged: 0
+    defence_bonus: {}
+    other_bonus:
+      ranged_strength: 85
+  related_items:
+    - item_name: Mithril javelin
+      slug: mithril-javelin
+      relationship: variant
+      description: Unpoisoned variant
+    - item_name: Mithril javelin(p)
+      slug: mithril-javelin-p-5637
+      relationship: variant
+      description: Weak poison variant
+    - item_name: Mithril javelin(p+)
+      slug: mithril-javelin-p-5644
+      relationship: variant
+      description: Stronger poison variant
+    - item_name: Adamant javelin(p++)
+      slug: adamant-javelin-p
+      relationship: upgrade
+      description: Higher tier poisoned javelin
+  about: "Mithril javelin(p++) is the extra-strength poisoned mithril javelin used as Heavy ballista ammunition. At +85 ranged strength with the strongest weapon poison, it's a budget option for ballista users who want consistent poison procs without committing to adamant or rune ammo."
+  market_strategy:
+    notes:
+      - "Cheap entry-point ballista ammo for low ranged accounts"
+      - "Poison variant typically only modestly more expensive than base"
+  trading_tips:
+    - Bulk stock during quiet markets for resale into slayer metas
+  history:
+    - date: "2005-07-11"
+      description: "Poisoned javelin variants added to the game."
+    - date: "2016-05-06"
+      description: "Moved to ammunition slot only; ranged strength increased significantly."
+    - date: "2016-10-31"
+      description: "Ranged strength adjusted to +85."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,104 @@ osrs:
   lowalch: 18800
   highalch: 28200
   limit: 15
-  about: "Ahrim's robeskirt 0 is a members-only item in Old School RuneScape. High alchemy value: 28,200 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: magic-armour
+    tier: high
+  properties:
+    release_date: "2005-05-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 11.339
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 11.339
+    requirements:
+      magic: 70
+      defence: 70
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 22
+      ranged: 0
+    defence_bonus:
+      stab: 33
+      slash: 30
+      crush: 36
+      magic: 22
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 1
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Barrows chest (Ahrim the Blighted)
+        quantity: "1"
+        rarity: "1/2530"
+  passive_effects:
+    - name: Ahrim's set effect
+      description: "Successful magic hits with the full set equipped have a chance to lower the target's Strength."
+    - name: Amulet of the Damned synergy
+      description: "Paired with Amulet of the Damned, autocast Ancient Magicks gains a 25% chance of dealing 30% extra damage."
+    - name: Degradation timer
+      description: "Fully charged on chest withdrawal: 15 hours of combat before fully degraded; repairs at Bob the Axe Dealer or a player-owned house armour stand."
+  related_items:
+    - item_name: Ahrim's robeskirt 25
+      slug: ahrim-s-robeskirt-25
+      relationship: variant
+      description: "Same skirt at 25% charge: degrades from the 0 state during combat"
+    - item_name: Ahrim's robeskirt 50
+      slug: ahrim-s-robeskirt-50
+      relationship: variant
+      description: 50% charge condition stage
+    - item_name: Ahrim's robeskirt 75
+      slug: ahrim-s-robeskirt-75
+      relationship: variant
+      description: 75% charge condition stage
+    - item_name: Ahrim's robeskirt 100
+      slug: ahrim-s-robeskirt-100
+      relationship: variant
+      description: Fully charged stage straight from the Barrows chest
+    - item_name: Ahrim's robetop 0
+      slug: ahrim-s-robetop-0
+      relationship: set-piece
+      description: Matching top from the Barrows set
+    - item_name: Ahrim's hood 0
+      slug: ahrim-s-hood-0
+      relationship: set-piece
+      description: Matching hood from the Barrows set
+    - item_name: Ahrim's staff 0
+      slug: ahrim-s-staff-0
+      relationship: set-piece
+      description: Matching staff from the Barrows set
+  about: "Ahrim's robeskirt 0 is the empty-charge state of the Barrows magic armour leg slot; even fully drained it keeps the Magic attack and Magic damage bonuses, but the full-set Strength-drain proc and degradation tick require recharging via the standard repair routes."
+  market_strategy:
+    notes:
+      - "Price tracks Barrows demand cycles and BiS magic-leg substitutes (e.g. virtus)."
+      - "Repairs are flat cost; the 0-charge variant trades at a fixed discount under repair price."
+  trading_tips:
+    - "Buy 0-charge stock when repair cost + GE 0-price beats fresh chest pulls."
+    - "Watch league launches: magic-leg demand spikes from low-defence pures."
+  history:
+    - date: "2005-05-09"
+      description: Released with the Barrows minigame launch.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,46 +12,98 @@ osrs:
   lowalch: 610
   highalch: 915
   limit: 10000
+  material:
+    type: emerald
+    tier: mid
+  properties:
+    release_date: "2007-04-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: hands
+    weapon_type: null
+    attack_speed: null
+    weight: 0.25
     requirements:
       crafting: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 30
       xp: 65
-      inputs:
-        - item_name: Emerald
-          quantity: 1
+      materials:
         - item_name: Gold bar
           quantity: 1
+        - item_name: Emerald
+          quantity: 1
+        - item_name: Bracelet mould
+          quantity: 1
+      tools:
+        - Furnace
       output_quantity: 1
   related_items:
-    - item_id: 11072
-      item_name: Sapphire bracelet
+    - item_name: Castle wars bracelet
+      slug: castle-wars-bracelet
+      relationship: product
+      description: Enchanted form via Lvl-2 Enchant
+    - item_name: Sapphire bracelet
       slug: sapphire-bracelet
       relationship: downgrade
       description: Previous tier bracelet
-    - item_id: 11085
-      item_name: Ruby bracelet
+    - item_name: Ruby bracelet
       slug: ruby-bracelet
       relationship: upgrade
       description: Next tier bracelet
-  about: |-
-    Crafting (Level 30): Emerald + Gold bar at a furnace with bracelet mould (65 XP)
-
-    > *"An emerald bracelet."*
-
-    Lvl-2 Enchant (27 Magic): 1 cosmic rune + 3 air runes (37 XP)
-
-    The Castle Wars bracelet provides +3 damage to the opposing team's flag bearer in Castle Wars. Very niche — only useful within the Castle Wars minigame (3 charges).
+    - item_name: Emerald
+      slug: emerald
+      relationship: component
+      description: Cut gem input
+    - item_name: Gold bar
+      slug: gold-bar
+      relationship: component
+      description: Metal input for the bracelet
+  about: "Emerald bracelet is crafted at a furnace from a gold bar plus emerald using a bracelet mould at 30 Crafting (65 XP). It can be enchanted into a Castle wars bracelet using Lvl-2 Enchant at 27 Magic (37 XP, 1 cosmic + 3 air runes), which grants +3 damage against the opposing team's flag bearer in Castle Wars (3 charges)."
   market_strategy:
     notes:
-      - Very niche demand — Castle Wars only
-      - Most value as crafting training material
-      - Low enchant demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Very niche demand — Castle Wars only"
+      - "Most value as crafting training material"
+      - "Low enchant demand"
+  trading_tips:
+    - Spread vs Castle wars bracelet drives enchant flips
+    - Track emerald and gold bar inputs for crafting floor
+  history:
+    - date: "2007-04-30"
+      description: "Released as part of the Crafting bracelet line."
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

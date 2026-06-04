@@ -12,61 +12,90 @@ osrs:
   lowalch: 28000
   highalch: 42000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: spirit_shield
+    tier: high
+  properties:
+    release_date: "16 October 2014"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: shield
-    type: spirit_shield
-    tradeable: true
     weight: 2
     requirements:
       defence: 45
       prayer: 55
-    stats:
-      defence_stab: 39
-      defence_slash: 41
-      defence_crush: 50
-      defence_magic: 1
-      defence_ranged: 45
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 39
+      slash: 41
+      crush: 50
+      magic: 1
+      ranged: 45
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 1
-  obtaining:
-    methods:
+  drop_table:
+    sources:
       - source: Corporeal Beast
-        drop_rate: 8/512 (1/64)
-  upgrades:
-    - item_name: Blessed spirit shield
-      materials: Spirit shield + Holy elixir
-      requirements:
-        prayer: 85
+        quantity: "1"
+        rarity: 8/512
   related_items:
-    - item_id: 0
-      item_name: Corporeal Beast
-      slug: corporeal-beast
-      relationship: component
-      description: Source
-    - item_id: 12833
-      item_name: Holy elixir
+    - item_name: Holy elixir
       slug: holy-elixir
       relationship: component
-      description: Upgrade material
-    - item_id: 12831
-      item_name: Blessed spirit shield
+      description: Required to bless the shield
+    - item_name: Blessed spirit shield
       slug: blessed-spirit-shield
       relationship: upgrade
-      description: Upgraded version
+      description: Direct upgrade path requiring 85 Prayer
+    - item_name: Spectral spirit shield
+      slug: spectral-spirit-shield
+      relationship: upgrade
+      description: Magic defence sigil upgrade
+    - item_name: Arcane spirit shield
+      slug: arcane-spirit-shield
+      relationship: upgrade
+      description: Magic offence sigil upgrade
+    - item_name: Elysian spirit shield
+      slug: elysian-spirit-shield
+      relationship: upgrade
+      description: Damage reduction sigil upgrade
   about: |-
-    | Defence | Bonus |
-    |---------|-------|
-    | Stab | +39 |
-    | Slash | +41 |
-    | Crush | +50 |
-    | Magic | +1 |
-    | Ranged | +45 |
-    | Prayer | +1 |
+    > _"An ethereal shield."_
 
-    | Item | Materials | Requirements |
-    |------|-----------|--------------|
-    | Blessed spirit shield | Spirit shield + Holy elixir | 85 Prayer |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The Spirit shield is the base shield obtained from the Corporeal Beast and serves as the foundation for the Blessed, Spectral, Arcane, and Elysian spirit shields. It already provides strong all-around defence at 45 Defence with 55 Prayer, but its real value is as the gateway to the sigil-tier shields.
+  market_strategy:
+    notes:
+      - "Supply is tied directly to Corporeal Beast clears; drop spikes follow group PvM events."
+      - "Base price floors near the cost of an Holy elixir + 85 Prayer attempt: traders bid up the base when blessed price rises."
+  trading_tips:
+    - "Flip alongside Holy elixir: when the bless combo profits, both prices rally."
+    - "Hold during Corp drought announcements; sell into clue/PvM hype peaks."
+  history:
+    - date: "16 October 2014"
+      description: "Released with the Corporeal Beast and the spirit shield upgrade tree."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

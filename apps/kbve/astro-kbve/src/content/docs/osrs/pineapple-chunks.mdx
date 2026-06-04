@@ -1,6 +1,6 @@
 ---
 title: Pineapple chunks | OSRS Price Data
-description: "Pineapple chunks: Fresh chunks of pineapple.. High alch: 1 GP, GE limit: 13,000."
+description: "Pineapple chunks: Fresh chunks of pineapple. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 2116
   name: Pineapple chunks
@@ -12,9 +12,63 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Pineapple chunks is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.12
+    options:
+      - Eat
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 25
+      xp: 70
+      materials:
+        - item_name: Cooking apple
+          quantity: 1
+        - item_name: Orange
+          quantity: 1
+        - item_name: Pineapple chunks
+          quantity: 1
+        - item_name: Batta tin
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Pineapple
+      slug: pineapple
+      relationship: component
+      description: Diced with a knife to produce chunks
+    - item_name: Pineapple ring
+      slug: pineapple-ring
+      relationship: alternative
+      description: Alternative slicing output from the same fruit
+    - item_name: Pineapple pizza
+      slug: pineapple-pizza
+      relationship: product
+      description: Both chunks and rings can top pizzas
+  about: "Pineapple chunks are produced by using a knife on a pineapple or tenti pineapple with the dice option. They're used in pineapple pizza, fruit batta at 25 Cooking, and several gnome cocktails (pineapple punch, wizard blizzard, drunk dragon). Eating restores 2 HP."
+  market_strategy:
+    notes:
+      - "Demand tied to gnome cooking trainers and pizza makers"
+      - "Slicing from raw pineapples can profit when chunk price is high"
+  trading_tips:
+    - Track gnome cooking guide cycles for spikes
+  history:
+    - date: "2002-12-12"
+      description: "Added to OSRS as part of the gnome cooking and pizza updates."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

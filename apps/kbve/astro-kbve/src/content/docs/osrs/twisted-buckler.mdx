@@ -1,6 +1,6 @@
 ---
 title: Twisted buckler | OSRS Price Data
-description: "Twisted buckler is a members shield slot item requiring 75 Defence. High alch: 54,000 GP, GE limit: 8."
+description: "Twisted buckler is a members shield slot item requiring 75 Ranged and 75 Defence. High alch: 54,000 GP, GE limit: 8."
 osrs:
   id: 21000
   name: Twisted buckler
@@ -12,73 +12,86 @@ osrs:
   lowalch: 36000
   highalch: 54000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: olm-bone
+    tier: high
+  properties:
+    release_date: "2017-01-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: shield
-    type: ranged_shield
-    tradeable: true
+    weapon_type: null
+    attack_speed: null
     weight: 5.443
     requirements:
       ranged: 75
       defence: 75
-    stats:
-      ranged_attack: 18
-      stab_def: 22
-      slash_def: 24
-      crush_def: 22
-      magic_def: 26
-      ranged_def: 58
+    attack_bonus:
+      stab: -8
+      slash: -10
+      crush: -7
+      magic: -8
+      ranged: 18
+    defence_bonus:
+      stab: 22
+      slash: 24
+      crush: 22
+      magic: 26
+      ranged: 58
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 10
+      magic_damage: 0
+      prayer: 0
   drop_table:
     sources:
-      - source: Chambers of Xeric
-        rate: Rare
-  truemarket:
-    buy_limit: 8
-    price_estimate: 4500000
+      - source: Chambers of Xeric (rare unique)
+        quantity: "1"
+        rarity: rare
   related_items:
-    - item_id: 22002
-      item_name: Dragonfire ward
+    - item_name: Dragonfire ward
       slug: dragonfire-ward
       relationship: alternative
-      description: Dragon content
-    - item_id: 11926
-      item_name: Odium ward
+      description: Specialised dragon-content shield
+    - item_name: Odium ward
       slug: odium-ward
       relationship: downgrade
-      description: Budget option
-    - item_id: 11785
-      item_name: Armadyl crossbow
+      description: Budget ranged shield alternative
+    - item_name: Armadyl crossbow
       slug: armadyl-crossbow
       relationship: alternative
-      description: Pairs well
+      description: Common ranged weapon pairing
   about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Ranged attack | +18 |
+    The twisted buckler is the best-in-slot ranged shield for general ranged combat, awarded as a rare unique from Chambers of Xeric. It offers the highest ranged attack and ranged strength bonus available in the shield slot, plus strong magic defence.
 
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +22 |
-    | Slash | +24 |
-    | Crush | +22 |
-    | Magic | +26 |
-    | Ranged | +58 |
-
-    Requirements: 75 Ranged, 75 Defence
-
-    BiS ranged shield for:
-    - All ranged combat (non-dragon)
-    - Raids
-    - Bossing
-    - Slayer
-
-    Best ranged attack bonus from shield slot.
+    Requires 75 Ranged and 75 Defence to wield. It is favoured for raids, slayer, and bossing whenever a dragonfire ward is not strictly required.
   market_strategy:
     notes:
-      - CoX is only source
-      - Best offensive ranged shield
-      - Use DFW for dragons
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Chambers of Xeric is the only source"
+      - "Best offensive ranged shield in the game"
+      - "Use Dragonfire ward over Twisted buckler against dragonfire content"
+      - "Price strongly tracks raid popularity and team meta"
+  trading_tips:
+    - Buy after CoX participation spikes (drop-table dilution)
+    - Hold through PvM updates that buff ranged content
+  history:
+    - date: "2017-01-05"
+      description: "Released alongside Chambers of Xeric."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Armadyl chainskirt | OSRS Price Data
-description: "Armadyl chainskirt is a members legs slot item requiring 70 Defence. High alch: 173,940 GP, GE limit: 8."
+description: "Armadyl chainskirt is a members legs slot item requiring 70 Defence and 70 Ranged. High alch: 173,940 GP, GE limit: 8."
 osrs:
   id: 11830
   name: Armadyl chainskirt
@@ -12,76 +12,98 @@ osrs:
   lowalch: 115960
   highalch: 173940
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: armadylean
+    tier: high
+  properties:
+    release_date: "2013-10-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.0
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
-    type: ranged_armour
+    weapon_type: null
+    attack_speed: null
+    weight: 1.0
     requirements:
       ranged: 70
       defence: 70
-    stats:
-      defence_stab: 32
-      defence_slash: 26
-      defence_crush: 34
-      defence_magic: 40
-      defence_ranged: 33
-      attack_stab: -6
-      attack_slash: -6
-      attack_crush: -6
-      attack_ranged: 20
+    attack_bonus:
+      stab: -6
+      slash: -6
+      crush: -6
+      magic: 0
+      ranged: 20
+    defence_bonus:
+      stab: 32
+      slash: 26
+      crush: 34
+      magic: 40
+      ranged: 33
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 1
-  drop_sources:
-    - name: Kree'arra
-      combat_level: 580
-      drop_rate: 1/384
-      members_only: true
-    - name: Flight Kilisa
-      combat_level: 159
-      drop_rate: 1/16,000
-      members_only: true
+  drop_table:
+    sources:
+      - source: "Kree'arra"
+        quantity: "1"
+        rarity: "1/381"
+      - source: Flight Kilisa
+        quantity: "1"
+        rarity: "1/16129"
+      - source: Wingman Skree
+        quantity: "1"
+        rarity: "1/16129"
+      - source: Flockleader Geerin
+        quantity: "1"
+        rarity: "1/16129"
   related_items:
-    - item_id: 11826
-      item_name: Armadyl helmet
+    - item_name: Armadyl helmet
       slug: armadyl-helmet
       relationship: set-piece
-      description: Head slot
-    - item_id: 11828
-      item_name: Armadyl chestplate
+      description: "Head slot of the Armadyl armour set"
+    - item_name: Armadyl chestplate
       slug: armadyl-chestplate
       relationship: set-piece
-      description: Body slot
-    - item_id: 27241
-      item_name: Masori chaps (f)
+      description: "Body slot of the Armadyl armour set"
+    - item_name: Masori chaps (f)
       slug: masori-chaps-f
       relationship: upgrade
-      description: BiS upgrade
+      description: "BiS ranged legs upgrade"
+    - item_name: Karil's leathertop
+      slug: karils-leathertop
+      relationship: alternative
+      description: "Budget alternative ranged legs slot"
   about: |-
-    | Stat | Value |
-    |------|-------|
-    | Ranged attack | +20 |
-    | Stab defence | +32 |
-    | Slash defence | +26 |
-    | Crush defence | +34 |
-    | Magic defence | +40 |
-    | Ranged defence | +33 |
-    | Prayer bonus | +1 |
-    | Requirements | 70 Ranged, 70 Defence |
+    > _"A chainskirt of great craftsmanship."_
 
-    Part of the Armadyl armour set:
-    - Armadyl helmet (head)
-    - Armadyl chestplate (body)
-    - Armadyl chainskirt (legs)
-
-    PvM:
-    - Mid-tier ranged legs
-    - Budget option before Masori
-    - God Wars Dungeon protection
+    Armadyl chainskirt is the legs slot piece of the Armadyl armour set, the standard mid-to-high tier ranged armour dropped by Kree'arra in the God Wars Dungeon. Provides +20 ranged attack, strong magic and ranged defences, and +1 prayer bonus. Requires 70 Ranged and 70 Defence to wear.
   market_strategy:
     notes:
-      - Kree'arra kills affect supply
-      - Budget BiS before Masori
-      - Armadylean plate source
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply driven by Kree'arra kill efficiency"
+      - "Price tracks Armadyl set demand"
+      - "Budget BiS legs before Masori"
+  trading_tips:
+    - "Buy on dips when supply spikes from boss-rate weeks"
+    - "Pair flips with helmet/chest for set markup"
+  history:
+    - date: "2013-10-17"
+      description: "Released with the God Wars Dungeon"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

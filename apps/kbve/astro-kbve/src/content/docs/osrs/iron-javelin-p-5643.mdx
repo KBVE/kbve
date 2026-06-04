@@ -12,9 +12,100 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 7000
-  about: "Iron javelin(p+) is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: low
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammo
+    weapon_type: javelin
+    attack_speed: null
+    weight: 0
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 42
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Strong weapon poison
+      description: Has a chance to inflict poison on the target dealing higher initial damage than basic weapon poison.
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Iron javelin
+          quantity: 5
+        - item_name: Weapon poison(+)
+          quantity: 1
+      tools: []
+      output_quantity: 5
+  related_items:
+    - item_name: Iron javelin
+      slug: iron-javelin
+      relationship: downgrade
+      description: Unpoisoned base javelin
+    - item_name: Iron javelin(p)
+      slug: iron-javelin-p-825
+      relationship: variant
+      description: Basic weapon poison variant
+    - item_name: Iron javelin(p++)
+      slug: iron-javelin-p-5644
+      relationship: upgrade
+      description: Stronger weapon poison(++) variant
+    - item_name: Weapon poison(+)
+      slug: weapon-poison-plus
+      relationship: component
+      description: Applied to poison the javelin
+  about: |-
+    Iron javelin(p+) is the weapon poison(+) variant of the iron javelin, used as ammunition for light and heavy ballistae. Applying weapon poison(+) to 5 iron javelins yields 5 poisoned javelins with a stronger initial poison damage tier than basic weapon poison. It functions as ammo rather than a wielded weapon, providing +42 ranged strength.
+  market_strategy:
+    notes:
+      - "Stackable ammo with stable mid-level demand"
+      - "Buy limit of 7000 supports bulk flips"
+      - "Poison crafting margin tracks weapon poison(+) supply"
+      - "PvP demand spikes during BH and DMM seasons"
+      - "Usually trades above alch but below crafting cost"
+  trading_tips:
+    - Track weapon poison(+) market for crafting arbitrage
+    - Stage offers in 1000 unit lots for clean fills
+    - Hold during ballista meta shifts for upside
+  history:
+    - date: "2004-03-29"
+      description: "Released with RuneScape 2 as ballista ammunition variant."
+    - date: "2016-10-06"
+      description: "Ranged strength bonus reduced from +50 to +42 and repositioned as ammunition slot."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

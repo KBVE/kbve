@@ -1,6 +1,6 @@
 ---
 title: Ogre arrow | OSRS Price Data
-description: "Ogre arrow: A large ogre arrow with a bone tip.. High alch: 15 GP, GE limit: 7,000."
+description: "Ogre arrow: A large ogre arrow with a bone tip. High alch: 15 GP, GE limit: 7,000."
 osrs:
   id: 2866
   name: Ogre arrow
@@ -12,9 +12,93 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 7000
-  about: "Ogre arrow is a members-only item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ammunition
+    tier: low
+  properties:
+    release_date: "2004-05-18"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options: ["Wield", "Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: ammo
+    weapon_type: arrow
+    attack_speed: null
+    weight: 0
+    requirements:
+      ranged: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 22
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 5
+      xp: 6
+      materials:
+        - item_name: Flighted ogre arrow
+          quantity: 6
+        - item_name: Wolfbone arrowtips
+          quantity: 6
+      tools: []
+      output_quantity: 6
+  related_items:
+    - item_name: Flighted ogre arrow
+      slug: flighted-ogre-arrow
+      relationship: component
+      description: Pre-tipped arrow shaft
+    - item_name: Wolfbone arrowtips
+      slug: wolfbone-arrowtips
+      relationship: component
+      description: Arrow tip used to finish ogre arrows
+    - item_name: Ogre bow
+      slug: ogre-bow
+      relationship: alternative
+      description: Bow used to fire these arrows
+    - item_name: Ogre composite bow
+      slug: ogre-composite-bow
+      relationship: alternative
+      description: Stronger composite bow firing ogre arrows
+  about: |-
+    | Bonus | Value |
+    |-------|-------|
+    | Ranged strength | +22 |
+
+    Bone-tipped ogre arrows used with the ogre bow and ogre composite bow — required ammunition for hunting Chompy birds during and after Big Chompy Bird Hunting. Made at Fletching 5 by tipping flighted ogre arrows with wolfbone arrowtips.
+  market_strategy:
+    notes:
+      - "Required for Chompy bird hunting"
+      - "High GE limit for bulk Chompy farmers"
+      - "Cheap Fletching XP route at low levels"
+  trading_tips:
+    - Stock surges during Chompy-related diary tasks
+    - Cross-list with wolfbone arrowtips to capture full chain
+  history:
+    - date: "2004-05-18"
+      description: "Released with Big Chompy Bird Hunting as ammunition for ogre bows."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

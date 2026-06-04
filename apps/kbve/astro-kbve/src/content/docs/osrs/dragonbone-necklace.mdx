@@ -12,83 +12,80 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: bone
+    tier: high
+  properties:
+    release_date: "4 January 2018"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
-    type: necklace
-    tradeable: true
+    weapon_type: null
+    attack_speed: null
     weight: 0.005
     requirements:
       prayer: 70
-    stats:
-      attack_stab: 10
-      attack_slash: 10
-      attack_crush: 10
-      attack_magic: 10
-      attack_ranged: 10
-      strength: 2
-      defence_all: 2
+    attack_bonus:
+      stab: 10
+      slash: 10
+      crush: 10
+      magic: 10
+      ranged: 10
+    defence_bonus:
+      stab: 2
+      slash: 2
+      crush: 2
+      magic: 2
+      ranged: 2
+    other_bonus:
+      melee_strength: 2
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 12
-  special_effect:
-    name: Prayer Restoration
-    trigger: Burying bones
-    works_with_bonecrusher: true
-    points_per_bone: 1-5 based on type
+  passive_effects:
+    - name: Prayer Restoration on Bury
+      description: "Restores 1-5 Prayer points when bones are buried; stacks with bonecrusher but not with Catacombs of Kourend or demonic ash scattering."
   drop_table:
     sources:
       - source: Vorkath
-        rate: 1/1,000
-  market:
-    buy_limit: 8
-    price_estimate: 101000
+        quantity: "1"
+        rarity: "1/1,000"
   related_items:
-    - item_id: 22115
-      item_name: Bonecrusher necklace
+    - item_name: Bonecrusher necklace
       slug: bonecrusher-necklace
       relationship: upgrade
-      description: Upgrade
-    - item_id: 13116
-      item_name: Bonecrusher
+      description: "Combined with bonecrusher and hydra tail"
+    - item_name: Bonecrusher
       slug: bonecrusher
       relationship: alternative
-      description: Auto-crush bones
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | +10 |
-    | Slash | +10 |
-    | Crush | +10 |
-    | Magic | +10 |
-    | Ranged | +10 |
-    | Strength | +2 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | +2 |
-
-    | Other | Value |
-    |-------|-------|
-    | Prayer | +12 |
-
-    Requirements: 70 Prayer
-
-    Prayer Restoration:
-    - Restores prayer when burying bones
-    - Works with bonecrusher
-    - 1-5 points per bone based on type
-
-    Great for:
-    - Slayer with bonecrusher
-    - Catacombs of Kourend
-    - Any bone-drop content
-
-    Best prayer necklace for slayer.
+      description: "Auto-crush bones component"
+  about: "Dragonbone necklace is a 70 Prayer neck slot drop from Vorkath that restores prayer on bone bury and offers the highest prayer bonus available."
   market_strategy:
     notes:
-      - From Vorkath
-      - Combine into bonecrusher necklace
-      - DS2 required for Vorkath
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply gated by Vorkath kill rate at 1/1,000"
+      - "Combine path into bonecrusher necklace drains GE float quickly"
+      - "Dragon Slayer II is a hard requirement for the only source"
+  trading_tips:
+    - "Use with bonecrusher on bone-heavy Slayer tasks for full prayer recovery"
+    - "Buy limit of 8 makes stocking for combining a multi-cycle play"
+  history:
+    - date: "4 January 2018"
+      description: "Released with the Dragon Slayer II quest update as a Vorkath drop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

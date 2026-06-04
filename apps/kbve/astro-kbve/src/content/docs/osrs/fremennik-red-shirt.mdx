@@ -1,6 +1,6 @@
 ---
 title: Fremennik red shirt | OSRS Price Data
-description: "Fremennik red shirt: The latest in Fremennik fashion.. High alch: 150 GP, GE limit: 150."
+description: "Fremennik red shirt: The latest in Fremennik fashion. High alch: 150 GP, GE limit: 150."
 osrs:
   id: 3773
   name: Fremennik red shirt
@@ -12,9 +12,94 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 150
-  about: "Fremennik red shirt is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-11-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 2
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Yrsa's Accoutrements
+      location: Rellekka
+      price: 325
+      currency: Coins
+      stock: 5
+    - shop_name: Miscellanian Clothes Shop
+      location: Miscellania
+      price: 250
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Fremennik blue shirt
+      slug: fremennik-blue-shirt
+      relationship: variant
+      description: Blue color variant
+    - item_name: Fremennik brown shirt
+      slug: fremennik-brown-shirt
+      relationship: variant
+      description: Brown color variant
+    - item_name: Fremennik beige shirt
+      slug: fremennik-beige-shirt
+      relationship: variant
+      description: Beige color variant
+    - item_name: Fremennik grey shirt
+      slug: fremennik-grey-shirt
+      relationship: variant
+      description: Grey color variant
+  about: "Fremennik red shirt is a cosmetic body slot item sold at Fremennik clothing shops. Available in five colors and frequently used in fashionscape sets."
+  market_strategy:
+    notes:
+      - "Shop price in Miscellania is lower than the GE for resellers"
+      - "Low GE volume keeps daily flips limited"
+      - "Fashionscape and clue-themed outfits drive demand"
+  trading_tips:
+    - Buy from Miscellanian Clothes Shop at 250 gp for the best entry
+    - Resell on GE when fashion threads pump the price
+  history:
+    - date: "2004-11-02"
+      description: "Released as part of The Fremennik Trials update."
+    - date: "2005-01-17"
+      description: "Graphically updated."
+    - date: "2014-12-10"
+      description: "Renamed from \"Fremennik shirt\" to \"Fremennik red shirt\"."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

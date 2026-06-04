@@ -12,9 +12,80 @@ osrs:
   lowalch: 1400
   highalch: 2100
   limit: 13000
-  about: "Camphor repair kit is a members-only item in Old School RuneScape. High alchemy value: 2,100 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Apply
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Orca
+        quantity: "1"
+        rarity: uncommon
+      - source: Armoured kraken
+        quantity: "1"
+        rarity: uncommon
+  recipes:
+    - skill: construction
+      level: 66
+      xp: 0
+      materials:
+        - item_name: Camphor plank
+          quantity: 2
+        - item_name: Adamantite nails
+          quantity: 10
+        - item_name: Swamp paste
+          quantity: 5
+      tools:
+        - Hammer
+      output_quantity: 1
+  related_items:
+    - item_name: Mahogany repair kit
+      slug: mahogany-repair-kit
+      relationship: alternative
+      description: Alternative repair kit tier
+    - item_name: Camphor plank
+      slug: camphor-plank
+      relationship: component
+      description: Material used to craft the kit
+    - item_name: Adamantite nails
+      slug: adamantite-nails
+      relationship: component
+      description: Material used to craft the kit
+    - item_name: Swamp paste
+      slug: swamp-paste
+      relationship: component
+      description: Material used to craft the kit
+  passive_effects:
+    - name: Boat repair
+      description: Heals 40 health to a boat during ship combat; higher Deckhandiness on crewmates can restore additional health per kit.
+  about: |-
+    Camphor repair kit is a sailing-tier consumable used during ship combat to restore 40 health to a boat. Players craft it at a shipwrights' workbench with 66 Construction from camphor planks, adamantite nails, and swamp paste, and the kit also drops from orcas and armoured krakens.
+  market_strategy:
+    notes:
+      - "Consumable with steady ship-combat demand"
+      - "Buy limit 13,000 makes scale flipping viable"
+      - "Supply driven by Construction crafters and PvM drops"
+  trading_tips:
+    - Watch shipwright update cadence for price spikes
+  history:
+    - date: "2025-11-19"
+      description: "Item added to the game with the Sailing expansion repair kit tier."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Charcoal | OSRS Price Data
-description: "Charcoal: A lump of charcoal.. High alch: 27 GP, GE limit: 13,000."
+description: "Charcoal: A lump of charcoal. High alch: 27 GP, GE limit: 13,000."
 osrs:
   id: 973
   name: Charcoal
@@ -12,18 +12,59 @@ osrs:
   lowalch: 18
   highalch: 27
   limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: resource
+    tier: low
+  properties:
+    release_date: "2003-01-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.005
+    options:
+      - Use
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Hajedy's Cart Service
+      location: Brimhaven
+      price: 67
+      currency: Coins
+      stock: 50
+    - shop_name: Shilo Village General Store
+      location: Shilo Village
+      price: 58
+      currency: Coins
+      stock: 0
   related_items:
-    - item_id: 970
-      item_name: Papyrus
+    - item_name: Papyrus
       slug: papyrus
       relationship: component
-      description: Used together for notes
-  about: |-
-    > _"A\"piece\" of charcoal."_
-
-    Charcoal is used with papyrus to write notes and maps. Required in several quests. Also used in some Crafting recipes.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Used together to write notes and sketches
+    - item_name: Ground charcoal
+      slug: ground-charcoal
+      relationship: product
+      description: Charcoal ground in a pestle and mortar
+    - item_name: Logs
+      slug: logs
+      relationship: component
+      description: Some quests produce charcoal from burnt trees
+  about: "Charcoal is a free-to-play resource used primarily as a quest item across nine quests including Desert Treasure I, Legends' Quest, and While Guthix Sleeps. It pairs with papyrus to write notes and is required to ground in a pestle and mortar for several niche recipes. Buy from Hajedy in Brimhaven or Shilo Village shops, or obtain from quest rewards."
+  market_strategy:
+    notes:
+      - "Quest demand creates steady but limited price floor"
+      - "Shop restock arbitrage from Brimhaven/Shilo to GE"
+  trading_tips:
+    - Bulk-buy from charcoal shops when GE price spikes during quest streamer cycles
+  history:
+    - date: "2003-01-27"
+      description: "Released as part of early F2P quest content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

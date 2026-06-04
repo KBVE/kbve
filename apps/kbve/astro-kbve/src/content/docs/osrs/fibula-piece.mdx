@@ -12,9 +12,51 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 11000
-  about: "Fibula piece is a members-only item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: bone
+    tier: mid
+  properties:
+    release_date: "2005-08-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Wallasalki
+        quantity: "1"
+        rarity: "2/128"
+  related_items:
+    - item_name: Dagannoth hide
+      slug: dagannoth-hide
+      relationship: component
+      description: "Combined with fibula piece to craft skeletal armour"
+    - item_name: Skeletal bottoms
+      slug: skeletal-bottoms
+      relationship: product
+      description: "Crafted from fibula piece via Peer the Seer"
+  about: "Fibula piece is a members-only bone shard dropped by Wallasalki on Waterbirth Island. It is one of three skeletal pieces used by Peer the Seer to craft skeletal armour for combat against the Dagannoth Kings."
+  market_strategy:
+    notes:
+      - "Wallasalki drop rate is 2/128 so supply is supply-constrained at low daily volume."
+      - "Demand spikes when groups gear for Dagannoth Kings runs."
+      - "Buy limit of 11,000 is generous so accumulation is easy when sellers post stock."
+  trading_tips:
+    - "Watch for ironman PK clearances which often dump skeletal pieces"
+    - "Pair fibula piece flips with circumferential pieces for skeletal set arbitrage"
+  history:
+    - date: "2005-08-01"
+      description: "Released with the Waterbirth Island update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

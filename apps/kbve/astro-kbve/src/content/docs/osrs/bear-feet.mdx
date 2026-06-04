@@ -12,9 +12,80 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 4
-  about: "Bear feet is a free-to-play item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2019-04-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.2
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weapon_type: null
+    attack_speed: null
+    weight: 0.2
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (beginner)
+        quantity: "1"
+        rarity: 1/360
+  treasure_trail:
+    tier: beginner
+    is_reward: true
+    reward_tiers:
+      - beginner
+  passive_effects:
+    - name: Warm clothing
+      description: "Counts as warm clothing, providing damage reduction during the Wintertodt fight."
+  related_items:
+    - item_name: Reward casket (beginner)
+      slug: reward-casket-beginner
+      relationship: product
+      description: "Beginner clue casket that drops bear feet"
+  about: "Bear feet are a cosmetic feet-slot item rewarded from beginner Treasure Trail caskets at 1/360. The name is a play on 'bare feet,' and the slippers function as warm clothing during the Wintertodt encounter despite having no combat stats."
+  market_strategy:
+    notes:
+      - "Supply is gated by beginner clue completion, with daily inflow limited"
+      - "Demand pairs with Wintertodt warm-clothing setups and fashionscape collectors"
+      - "Buy limit of 4 forces patience on bulk acquisition"
+  trading_tips:
+    - "Spikes during Wintertodt rate updates - prep inventory before patch days"
+    - "Crosslist with other warm clothing cosmetics to catch the same buyer pool"
+  history:
+    - date: "2019-04-11"
+      description: "Added as a beginner Treasure Trails reward"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

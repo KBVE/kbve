@@ -1,6 +1,6 @@
 ---
 title: Nature offerings | OSRS Price Data
-description: "Nature offerings: A sacrifice to nature in the hope of an increase of yield in logs.. High alch: 12 GP."
+description: "Nature offerings: A sacrifice to nature in the hope of an increase of yield in logs. Forestry consumable. High alch: 12 GP."
 osrs:
   id: 28152
   name: Nature offerings
@@ -12,9 +12,66 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: null
-  about: "Nature offerings is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: consumable
+    tier: mid
+  properties:
+    release_date: "2023-06-28"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  passive_effects:
+    - name: Bonus log chance
+      description: "While carried (or stored in a forestry kit) during Woodcutting, grants a 60% chance per log to receive an additional log. The bonus scales with nearby players up to 80% (cap reached at 10+ players). Offerings are consumed regardless of whether a bonus log is awarded; bonus logs grant no extra Woodcutting XP."
+  recipes:
+    - skill: woodcutting
+      level: 68
+      xp: 0
+      materials:
+        - item_name: Ritual mulch
+          quantity: 1
+        - item_name: Avantoe
+          quantity: 1
+      tools: []
+      output_quantity: 40
+  related_items:
+    - item_name: Ritual mulch
+      slug: ritual-mulch
+      relationship: component
+      description: Base ingredient combined with herbs to produce offerings
+    - item_name: Forestry kit
+      slug: forestry-kit
+      relationship: alternative
+      description: Storage that holds offerings during Woodcutting sessions
+  about: |-
+    > *"A sacrifice to nature in the hope of an increase of yield in logs."*
+
+    Nature offerings are a stackable Forestry consumable introduced in June 2023. Carrying them (or storing them in a Forestry kit) while chopping trees gives a 60-80% chance for a bonus log per chop, with the chance scaling up based on the number of nearby Woodcutting players.
+
+    Crafted by combining ritual mulch with a herb (avantoe, kwuarm, snapdragon, cadantine, lantadyme, dwarf weed, or torstol). Each combination requires 68 Woodcutting and 50 Farming, producing 40 offerings.
+  market_strategy:
+    notes:
+      - "Strong demand from XP-focused Forestry players"
+      - "Price tied to which herb is currently cheapest as input"
+      - "No GE buy limit listed — bulk trading is possible"
+      - "Bonus logs themselves create downstream supply for fletching and firemaking markets"
+  trading_tips:
+    - Watch herb prices weekly — input swaps can shift margins
+    - Stock up during Forestry events when demand spikes
+  history:
+    - date: "2023-06-28"
+      description: "Added with the Forestry update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

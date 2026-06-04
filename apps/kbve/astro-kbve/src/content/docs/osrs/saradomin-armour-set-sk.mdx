@@ -12,9 +12,59 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 8
-  about: "Saradomin armour set (sk) is a free-to-play item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: metal
+    tier: mid-high
+  properties:
+    release_date: "2015-02-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Saradomin full helm
+      slug: saradomin-full-helm
+      relationship: set-piece
+      description: Helm component of the set
+    - item_name: Saradomin platebody
+      slug: saradomin-platebody
+      relationship: set-piece
+      description: Body component of the set
+    - item_name: Saradomin plateskirt
+      slug: saradomin-plateskirt
+      relationship: set-piece
+      description: Legs component of the set
+    - item_name: Saradomin kiteshield
+      slug: saradomin-kiteshield
+      relationship: set-piece
+      description: Shield component of the set
+    - item_name: Saradomin armour set (lg)
+      slug: saradomin-armour-set-lg
+      relationship: variant
+      description: Legs variant using platelegs instead of plateskirt
+  about: "Saradomin armour set (sk) is a free-to-play Grand Exchange set that bundles the Saradomin full helm, platebody, plateskirt and kiteshield into a single tradeable item to save bank space. Players exchange it back into the four individual pieces via any Grand Exchange clerk. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
+  market_strategy:
+    notes:
+      - "Set commonly trades at a small discount versus combined piece prices"
+      - "F2P availability widens the buyer pool versus members-only sets"
+      - "Buy limit of 8 caps single-flip volume but pieces themselves are unlimited"
+  trading_tips:
+    - Compare set price vs combined helm+platebody+plateskirt+kiteshield for arbitrage
+    - Use the set for compact bank storage when banking complete kit
+  history:
+    - date: "2015-02-26"
+      description: "Released as a Grand Exchange convenience set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

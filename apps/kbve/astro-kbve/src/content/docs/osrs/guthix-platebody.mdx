@@ -1,6 +1,6 @@
 ---
 title: Guthix platebody | OSRS Price Data
-description: "Guthix platebody: Rune platebody in the colours of Guthix.. High alch: 39,000 GP, GE limit: 8."
+description: "Guthix platebody: Rune platebody in the colours of Guthix. High alch: 39,000 GP, GE limit: 8."
 osrs:
   id: 2669
   name: Guthix platebody
@@ -12,9 +12,93 @@ osrs:
   lowalch: 26000
   highalch: 39000
   limit: 8
-  about: "Guthix platebody is a free-to-play item in Old School RuneScape. High alchemy value: 39,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: rune-armour
+    tier: high
+  properties:
+    release_date: "2004-05-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.979
+    options: ["Drop"]
+    worn_options: ["Remove"]
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 9.979
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 82
+      slash: 80
+      crush: 72
+      magic: -6
+      ranged: 80
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: 1/1625
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers: ["hard"]
+  related_items:
+    - item_name: Rune platebody
+      slug: rune-platebody
+      relationship: variant
+      description: Base rune platebody
+    - item_name: Guthix platelegs
+      slug: guthix-platelegs
+      relationship: set-piece
+      description: Matching platelegs
+    - item_name: Guthix full helm
+      slug: guthix-full-helm
+      relationship: set-piece
+      description: Matching helm
+    - item_name: Guthix kiteshield
+      slug: guthix-kiteshield
+      relationship: set-piece
+      description: Matching kiteshield
+  about: |-
+    | Bonus | Value |
+    |-------|-------|
+    | Stab defence | +82 |
+    | Slash defence | +80 |
+    | Prayer | +1 |
+
+    Hard clue cosmetic recolour of the rune platebody with identical defensive stats plus the iconic +1 prayer bonus from the god-aligned set. Requires 40 Defence and Dragon Slayer I to equip.
+  market_strategy:
+    notes:
+      - "Hard clue exclusive god-aligned recolour"
+      - "+1 prayer bonus when paired with full set"
+      - "F2P-equippable cosmetic upgrade"
+  trading_tips:
+    - Demand scales with Hard clue popularity events
+    - Sell as a set with other Guthix pieces for fashionscape premium
+  history:
+    - date: "2004-05-05"
+      description: "Released as a Treasure Trails reward alongside other god-aligned rune armour."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

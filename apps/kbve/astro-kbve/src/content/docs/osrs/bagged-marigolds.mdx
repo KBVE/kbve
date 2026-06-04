@@ -12,9 +12,57 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10000
-  about: "Bagged marigolds is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: plant
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: "Garden Centre"
+      location: Falador Park
+      price: 10000
+      currency: coins
+      stock: 20
+    - shop_name: "Garden Centre"
+      location: Farming Guild
+      price: 10000
+      currency: coins
+      stock: 20
+  related_items:
+    - item_name: Marigold seed
+      slug: marigold-seed
+      relationship: alternative
+      description: "Farming seed grown into marigolds in a flower patch"
+    - item_name: Marigolds
+      slug: marigolds
+      relationship: product
+      description: "Result of planting bagged marigolds in a formal garden"
+  about: "Bagged marigolds are a members-only Construction item planted in formal gardens of player-owned houses. Planting requires 71 Construction and grants 100 XP each to Construction and Farming."
+  market_strategy:
+    notes:
+      - "Construction-only demand keeps trading volume thin"
+      - "Shop price of 10,000 gp creates a ceiling for GE pricing"
+      - "Spikes around POH formal-garden hype or training methods"
+  trading_tips:
+    - "Buy directly from Falador Park or Farming Guild Garden Centres to undercut GE prices"
+    - "High alch of 6,000 gp is below the shop price, so do not alch"
+  history:
+    - date: "2006-05-31"
+      description: "Released with the Construction skill update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

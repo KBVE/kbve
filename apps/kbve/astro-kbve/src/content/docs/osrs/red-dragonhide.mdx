@@ -12,77 +12,76 @@ osrs:
   lowalch: 58
   highalch: 87
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
   material:
     type: hide
     tier: mid-high
-  tanning:
-    cost: 20
-    product_id: 2507
-    product_name: Red dragon leather
+  properties:
+    release_date: "2004-03-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
       - source: Red dragon
-        source_id: 247
-        combat_level: 152
         quantity: "1"
-        rarity: always
-        members_only: true
+        rarity: Always
       - source: Brutal red dragon
-        source_id: 7275
-        combat_level: 289
         quantity: "2"
-        rarity: always
-        members_only: true
+        rarity: Always
+      - source: Vorkath
+        quantity: "1"
+        rarity: Common
+      - source: Sarachnis
+        quantity: "1"
+        rarity: Uncommon
   related_items:
-    - item_id: 2507
-      item_name: Red dragon leather
+    - item_name: Red dragon leather
       slug: red-dragon-leather
       relationship: product
-      description: Tanned version
-    - item_id: 2501
-      item_name: Red d'hide body
+      description: Tanned form used in Crafting
+    - item_name: Red d'hide body
       slug: red-dhide-body
       relationship: product
-      description: Main product
-    - item_id: 1747
-      item_name: Black dragonhide
+      description: Common crafted output
+    - item_name: Black dragonhide
       slug: black-dragonhide
-      relationship: alternative
-      description: Higher tier
-    - item_id: 1751
-      item_name: Blue dragonhide
+      relationship: upgrade
+      description: Next-tier dragonhide
+    - item_name: Blue dragonhide
       slug: blue-dragonhide
-      relationship: alternative
-      description: Lower tier
+      relationship: downgrade
+      description: Lower-tier dragonhide
   about: |-
-    Take to any tanner to convert to Red dragon leather.
+    Red dragonhide is the second-highest dragonhide tier and a staple Crafting training material. Take it to any tanner (20 GP standard, 45 GP at Canifis) to convert it into red dragon leather for crafting red dragonhide armour.
 
-    | Tanner | Cost |
-    |--------|------|
-    | Regular | 20 GP |
-    | Canifis | 45 GP |
+    Dropped reliably by red dragons (Brimhaven Dungeon, Forthos Dungeon) and brutal red dragons, plus various high-level bosses including Vorkath and Sarachnis.
   market_strategy:
-    profit_formulas:
-      - Red dragon leather - Red dragonhide - 20 = Profit
-      - Body price - (Leather × 3) = Profit
     notes:
-      - Buy hides → Tan → Sell leather
-      - "Calculate:"
-      - Crafting Guild tanner (bank nearby)
-      - Red d'hide body is most common
-      - "Check:"
-      - Popular crafting training
-      - Red dragons (Brimhaven Dungeon, Forthos)
-      - Brutal red dragons
-      - Red dragon bots common
-      - Second-highest dragonhide tier
-      - Higher volume than black
-      - Good crafting XP/GP balance
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Stable demand from Crafting trainers"
+      - "Tan margin vs leather is a reliable arbitrage when tanner cost is low"
+      - "Bot-suppressed supply at Brimhaven keeps hide price soft"
+  trading_tips:
+    - Buy hides → tan → sell leather for steady profit when leather margin > 20 GP
+    - Check Red d'hide body price vs leather × 3 for a second arbitrage leg
+    - Crafting Guild tanner has a bank nearby for fast cycles
+  history:
+    - date: "2004-03-29"
+      description: "Released with the RuneScape 2 (RS2) launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

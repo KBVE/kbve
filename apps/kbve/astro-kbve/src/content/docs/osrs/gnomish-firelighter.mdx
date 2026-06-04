@@ -12,9 +12,66 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 40
-  about: "Gnomish firelighter is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Check
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Medium Treasure Trail reward casket
+        quantity: "1"
+        rarity: 10/3410
+      - source: Reward casket (Entrana variant)
+        quantity: "1"
+        rarity: 1/170
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  passive_effects:
+    - name: Charged firelighter
+      description: "Holds up to 1,000 charges of a chosen colour; consumes one charge per log lit to produce a coloured fire similar to a tinderbox."
+  related_items:
+    - item_name: Red firelighter
+      slug: red-firelighter
+      relationship: component
+      description: One of the coloured firelighters that can be loaded into the device.
+    - item_name: Reward casket (medium)
+      slug: reward-casket-medium
+      relationship: alternative
+      description: Source casket that drops the gnomish firelighter.
+  about: |-
+    The gnomish firelighter is a medium-clue cosmetic from the 2016 Treasure Trail Expansion. Charge it with up to 1,000 coloured firelighters of a single colour and it functions as a reusable tinderbox that produces matching coloured fires.
+
+    The casket drop rate from medium clues is around 10 in 3,410, with the Entrana variant raising it to roughly 1 in 170.
+  market_strategy:
+    notes:
+      - "Cosmetic; demand driven by medium clue popularity and colour-themed events."
+      - "Buy limit of 40 keeps unit liquidity low - thin order book."
+      - "Spikes during treasure trail content updates and rare-cosmetic videos."
+  trading_tips:
+    - Stockpile during clue droughts; release into clue meta updates.
+    - Watch known charge-loss bug status; an official fix could shift demand.
+  history:
+    - date: "2016-07-06"
+      description: "Released with the Treasure Trail Expansion update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

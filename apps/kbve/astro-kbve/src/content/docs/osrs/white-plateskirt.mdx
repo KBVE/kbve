@@ -12,9 +12,83 @@ osrs:
   lowalch: 768
   highalch: 1152
   limit: 125
-  about: "White plateskirt is a members-only item in Old School RuneScape. High alchemy value: 1,152 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: white
+    tier: low
+  properties:
+    release_date: "2005-10-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 8.164
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: null
+    attack_speed: null
+    weight: 8.164
+    requirements:
+      defence: 10
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 21
+      slash: 20
+      crush: 19
+      magic: -4
+      ranged: 20
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  shops:
+    - shop_name: Sir Vyvin's Armour Shop
+      location: Falador Castle
+      price: 1920
+      currency: coins
+      stock: 0
+  related_items:
+    - item_name: White platelegs
+      slug: white-platelegs
+      relationship: variant
+      description: Trouser variant with identical stats
+    - item_name: White full helm
+      slug: white-full-helm
+      relationship: set-piece
+      description: Matching head piece
+    - item_name: White platebody
+      slug: white-platebody
+      relationship: set-piece
+      description: Matching body piece
+  about: |-
+    The white plateskirt is a members-only leg piece purchased from Sir Vyvin in Falador after reaching Page rank with the White Knights (300 black knight kills) and completing the Wanted! quest. It offers a small prayer bonus and solid melee defence, making it a niche prayer-tank option for low-level players.
+  market_strategy:
+    notes:
+      - "Prayer bonus is the main draw over standard plateskirts"
+      - "Supply hinges on White Knight rank grinders"
+      - "Wanted! quest gate keeps the buyer pool narrow"
+  trading_tips:
+    - Buy when fashionscape collectors are quiet
+    - Sell to ironmen unlocks via shop arbitrage when allowed
+  history:
+    - date: "2005-10-17"
+      description: "Released with the Wanted! quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

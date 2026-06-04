@@ -12,9 +12,73 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: null
-  about: "Haemostatic dressing (2) is a members-only item in Old School RuneScape. High alchemy value: 150 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: consumable
+    tier: low
+  properties:
+    release_date: "19 November 2025"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Apply
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Cures the bleed status effect and heals 5 Hitpoints per dose; can be used even when not actively bleeding."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 56
+      xp: 100
+      materials:
+        - item_name: Haemostatic poultice
+          quantity: 1
+        - item_name: Cotton yarn
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Haemostatic dressing (1)
+      slug: haemostatic-dressing-1
+      relationship: variant
+      description: Single-dose variant of the haemostatic dressing.
+    - item_name: Haemostatic dressing (3)
+      slug: haemostatic-dressing-3
+      relationship: variant
+      description: Three-dose variant of the haemostatic dressing.
+    - item_name: Haemostatic dressing (4)
+      slug: haemostatic-dressing-4
+      relationship: variant
+      description: Full four-dose variant of the haemostatic dressing.
+    - item_name: Haemostatic poultice
+      slug: haemostatic-poultice
+      relationship: component
+      description: Unfinished base used to craft haemostatic dressings.
+    - item_name: Cotton yarn
+      slug: cotton-yarn
+      relationship: component
+      description: Secondary required to bind the dressing.
+  about: "Haemostatic dressing (2) is a Sailing-era Herblore consumable that cures bleed and restores 5 HP per dose. It carries two of four total applications and is members-only."
+  market_strategy:
+    notes:
+      - "Crafting cost typically exceeds the Grand Exchange resale on partial doses; flip full (4) doses for cleaner margins."
+      - "Demand spikes around PvP and high-tier bossing where bleed effects are common."
+  trading_tips:
+    - "Compare per-dose pricing across (1) through (4) variants before crafting or buying out."
+    - "Stockpile haemostatic poultice when Cotton yarn dips to maximize Herblore XP-to-cost ratio."
+  history:
+    - date: "19 November 2025"
+      description: "Added to the game alongside the Sailing skill content drop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Willow branch | OSRS Price Data
-description: "Willow branch: A branch from a willow tree.. High alch: 1 GP, GE limit: 11,000."
+description: "Willow branch is a farming/crafting material harvested from grown willow trees, used for baskets and Enlightened Journey. GE limit: 11,000."
 osrs:
   id: 5933
   name: Willow branch
@@ -9,12 +9,77 @@ osrs:
   members: true
   icon: Willow branch.png
   value: 2
-  lowalch: 1
+  lowalch: null
   highalch: 1
   limit: 11000
-  about: "Willow branch is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: crafting-material
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Willow tree (secateurs harvest)
+        quantity: "1"
+        rarity: always
+  recipes:
+    - skill: crafting
+      level: 36
+      xp: 56
+      materials:
+        - item_name: Willow branch
+          quantity: 6
+      tools:
+        - Loom
+      output_quantity: 1
+  related_items:
+    - item_name: Basket
+      slug: basket
+      relationship: product
+      description: Crafted from willow branches on a loom
+    - item_name: Secateurs
+      slug: secateurs
+      relationship: component
+      description: Harvest tool required to obtain branches
+    - item_name: Willow seed
+      slug: willow-seed
+      relationship: component
+      description: Plants the willow tree the branches come from
+    - item_name: Willow roots
+      slug: willow-roots
+      relationship: alternative
+      description: Other harvest product of fully grown willow trees
+  about: |-
+    Willow branches are obtained by using secateurs on a fully grown willow tree, which requires 30 Farming. A willow tree produces one branch every five minutes up to a stockpile of six, so disciplined trips through trained farming patches generate steady supply.
+
+    The primary sink is baskets, which require six branches per loom craft at 36 Crafting. Branches are also consumed during Enlightened Journey, where twelve are required, and are part of the medium Falador Diary.
+  market_strategy:
+    notes:
+      - "Supply hinges on dedicated farming runs"
+      - "Demand is consistent from basket crafters"
+      - "Diary and quest tasks set a price floor"
+      - "Watch for any new construction or balloon-related sinks"
+  trading_tips:
+    - Stack into the buy limit for steady margin flips
+    - Sell into basket-driven crafting events
+    - Hold when farming patches see seed price spikes
+  history:
+    - date: "2005-07-11"
+      description: "Released alongside the willow tree farming patch update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,29 +12,56 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ornament_kit
+    tier: mid-high
+  properties:
+    release_date: "25 January 2018"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
       - source: Reward casket (hard)
         quantity: "1"
-        rarity: rare
-        members_only: true
+        rarity: "1/1625"
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
-    - item_id: 11840
-      item_name: Dragon boots
+    - item_name: Dragon boots
       slug: dragon-boots
       relationship: component
-      description: Base item for the ornament kit
-  about: |-
-    Apply to Dragon boots to create Dragon boots (g) — a cosmetic gold-trimmed variant with identical stats. The ornament kit is purely cosmetic.
-
-    The kit can be removed at any time to recover both the base boots and the kit.
+      description: Base item the kit is applied to
+    - item_name: Dragon boots (g)
+      slug: dragon-boots-g
+      relationship: product
+      description: Result of applying the kit
+  about: "Dragon boots ornament kit is a hard clue scroll reward used to transform dragon boots into the cosmetic gold-trimmed Dragon boots (g). Stats are identical to the base item — the kit is purely fashionscape. The kit can be removed at any time, recovering both the base boots and the kit."
   market_strategy:
     notes:
-      - Fashionscape item — price driven by cosmetic demand
-      - Hard clue exclusive
-      - Can be applied/removed freely
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Fashionscape demand drives price"
+      - "Hard clue exclusive"
+      - "Detachable, no value lost on dismantle"
+  trading_tips:
+    - Track hard clue completion rate trends for supply shifts
+    - Low GE limit (4) makes flipping slow but margins decent
+  history:
+    - date: "25 January 2018"
+      description: "Added to the hard clue scroll reward pool."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

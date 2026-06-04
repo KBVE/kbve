@@ -12,9 +12,66 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 10000
-  about: "Unstrung comp bow is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: wood
+    tier: mid
+  properties:
+    release_date: "2005-05-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 5
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 30
+      xp: 45
+      materials:
+        - item_name: Achey tree logs
+          quantity: 1
+        - item_name: Wolf bones
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+  related_items:
+    - item_name: Comp ogre bow
+      slug: comp-ogre-bow
+      relationship: product
+      description: String this with a bowstring for 45 Fletching XP
+    - item_name: Achey tree logs
+      slug: achey-tree-logs
+      relationship: component
+      description: Primary log used to carve the comp bow
+    - item_name: Wolf bones
+      slug: wolf-bones
+      relationship: component
+      description: Required reinforcement for the composite shaft
+    - item_name: Bow string
+      slug: bow-string
+      relationship: component
+      description: Stringing material to finish the bow
+  about: "The unstrung comp bow is the Fletching intermediate for the composite ogre bow, gated behind Zogre Flesh Eaters. Players with 30 Fletching combine Achey tree logs with wolf bones using a knife to produce it, then string it with a bowstring for another 45 XP and a final Comp ogre bow."
+  market_strategy:
+    notes:
+      - "Profit margin depends on the Achey log + wolf bones supply chain"
+      - "Limited audience (only Fletchers post-quest) keeps volume thin"
+      - "Stringing flip via bowstring can outpace raw unstrung sales"
+  trading_tips:
+    - Watch wolf-bone supply spikes from White Wolf Mountain farmers
+    - Compare unstrung vs strung margin before listing
+  history:
+    - date: "2005-05-17"
+      description: "Released alongside the Zogre Flesh Eaters quest as part of the composite ogre bow line."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

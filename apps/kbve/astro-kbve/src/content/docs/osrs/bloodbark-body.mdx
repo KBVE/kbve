@@ -12,9 +12,92 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 70
-  about: "Bloodbark body is a members-only item in Old School RuneScape. High alchemy value: 72,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: magic-armour
+    tier: mid-high
+  properties:
+    release_date: "2021-01-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.535
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 4.535
+    requirements:
+      magic: 60
+      defence: 60
+    attack_bonus:
+      magic: 21
+    defence_bonus:
+      stab: 53
+      slash: 39
+      crush: 64
+      magic: 24
+    other_bonus:
+      magic_damage: 1
+  recipes:
+    - skill: runecraft
+      level: 81
+      xp: 0
+      materials:
+        - item_name: Splitbark body
+          quantity: 1
+        - item_name: Blood rune
+          quantity: 500
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Bloodbark helm
+      slug: bloodbark-helm
+      relationship: set-piece
+      description: "Head slot of Bloodbark set"
+    - item_name: Bloodbark legs
+      slug: bloodbark-legs
+      relationship: set-piece
+      description: "Legs slot of Bloodbark set"
+    - item_name: Bloodbark boots
+      slug: bloodbark-boots
+      relationship: set-piece
+      description: "Feet slot of Bloodbark set"
+    - item_name: Bloodbark gauntlets
+      slug: bloodbark-gauntlets
+      relationship: set-piece
+      description: "Hands slot of Bloodbark set"
+    - item_name: Splitbark body
+      slug: splitbark-body
+      relationship: component
+      description: "Base item required for the recipe"
+  passive_effects:
+    - name: Blood spell healing
+      description: "Each Bloodbark piece increases blood spell self-healing by 2%, totalling 10% across the full set"
+  about: "Bloodbark body is a magic armour torso created at the Blood Altar by combining a splitbark body with 500 blood runes. Requires 60 Magic and 60 Defence to wear, and the runecrafting recipe needs 81 Runecraft after reading the runescroll of bloodbark."
+  market_strategy:
+    notes:
+      - "Crafted from splitbark body plus 500 blood runes"
+      - "Demand follows blood spell PvM setups"
+      - "Magic damage bonus keeps mid-game pricing steady"
+  trading_tips:
+    - "Cost basis tracks splitbark body and blood rune supply"
+    - "Set buyers may pay over single-piece sum"
+    - "Check Blood Altar throughput when runes spike"
+  history:
+    - date: "2021-01-27"
+      description: "Released alongside the Bloodbark armour set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

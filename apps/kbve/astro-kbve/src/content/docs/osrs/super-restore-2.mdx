@@ -12,70 +12,84 @@ osrs:
   lowalch: 72
   highalch: 108
   limit: 2000
-  potion:
-    doses: 2
-    type: restore
-    effect: Restores all stats (except Hitpoints) and Prayer
-    effects:
-      - stat: All stats
-        boost_formula: 8 + floor(level / 4)
-      - stat: Prayer
-        boost_formula: 8 + floor(level / 4)
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid-high
   properties:
+    release_date: "2004-07-27"
     tradeable: true
-    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores all stats except Hitpoints by 8 + 25% of base level per dose."
+        duration: 0
+      - description: "Restores Prayer points by 8 + 25% of Prayer level per dose."
+        duration: 0
   recipes:
     - skill: herblore
       level: 63
       xp: 142.5
       materials:
         - item_name: Snapdragon potion (unf)
-          item_id: 3004
           quantity: 1
         - item_name: Red spiders' eggs
-          item_id: 223
           quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 3024
-      item_name: Super restore(4)
+    - item_name: Super restore(4)
       slug: super-restore-4
       relationship: variant
-      description: Full dose variant
-    - item_id: 3026
-      item_name: Super restore(3)
+      description: Full 4-dose variant of the same potion.
+    - item_name: Super restore(3)
       slug: super-restore-3
       relationship: variant
-      description: 3-dose variant
-    - item_id: 6685
-      item_name: Saradomin brew(4)
+      description: 3-dose variant.
+    - item_name: Super restore(1)
+      slug: super-restore-1
+      relationship: variant
+      description: 1-dose variant.
+    - item_name: Sanfew serum(4)
+      slug: sanfew-serum-4
+      relationship: upgrade
+      description: Upgraded potion with poison and disease cure.
+    - item_name: Saradomin brew(4)
       slug: saradomin-brew-4
       relationship: alternative
-      description: Paired consumable (3:1 ratio)
-  about: |-
-    2-dose variant of Super restore(4).
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 63 |
-    | XP gained | 142.5 (when making 3-dose) |
-
-    Per dose restores:
-    - All stats except Hitpoints
-    - Prayer points: 8 + 25% of level
-    - Other stats: 8 + 25% of level
-
-    At 99 Prayer: Restores 32 prayer points per dose.
-
-    Used with Saradomin brew at 3:1 brew-to-restore ratio.
-
-    Note: Decants to/from 4-dose version at Bob Barter (GE).
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Paired consumable used at a 3:1 brew-to-restore ratio.
+  about: "Super restore(2) is the 2-dose form of the super restore potion. Each dose restores all stats except Hitpoints and refills Prayer points, making it the standard staple at bossing and PvM."
+  market_strategy:
+    notes:
+      - "Decants directly to and from 4-dose at Bob Barter at the Grand Exchange."
+      - "Demand tied to PvM and Prayer-heavy content."
+  trading_tips:
+    - Convert 2-dose into 4-dose via decanting for better stack efficiency.
+    - Buy during off-peak hours for cheaper bulk supply.
+  history:
+    - date: "2004-07-27"
+      description: "Super restore potions added to the game."
+    - date: "2004-09-01"
+      description: "Update note: \"Super restore potions will now restore non-combat skills.\""
+    - date: "2004-10-26"
+      description: "\"Empty\" option added to the potion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

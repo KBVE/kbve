@@ -12,9 +12,75 @@ osrs:
   lowalch: 40000
   highalch: 60000
   limit: 5
-  about: "Twisted coat (t3) is a members-only item in Old School RuneScape. High alchemy value: 60,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2020-01-16"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Twisted hood (t3)
+      slug: twisted-hood-t3
+      relationship: set-piece
+      description: "Matching tier 3 hood from the Twisted Relic Hunter outfit"
+    - item_name: Twisted trousers (t3)
+      slug: twisted-trousers-t3
+      relationship: set-piece
+      description: "Matching tier 3 trousers from the Twisted Relic Hunter outfit"
+    - item_name: Twisted boots (t3)
+      slug: twisted-boots-t3
+      relationship: set-piece
+      description: "Matching tier 3 boots from the Twisted Relic Hunter outfit"
+  about: |-
+    The Twisted coat (t3) is the body piece of the tier 3 Twisted Relic Hunter outfit, awarded for participation in the Twisted League. It is purely cosmetic and provides no combat bonuses.
+
+    The coat can be purchased for 10,000 League points from the Leagues Reward Shop and stored in the costume room or displayed on a League hall outfit stand with matching pieces.
+  market_strategy:
+    notes:
+      - "Cosmetic item with collector demand driven by Leagues nostalgia"
+      - "Low buy limit (5) amplifies price swings around Leagues anniversaries"
+      - "Set pieces often trade in lockstep with the matching hood, trousers, and boots"
+  history:
+    - date: "2020-01-16"
+      description: "Released as a Twisted League reward shop cosmetic"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

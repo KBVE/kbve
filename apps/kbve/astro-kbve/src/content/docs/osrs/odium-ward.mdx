@@ -12,90 +12,102 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: ranged-shield
+    tier: high
+  properties:
+    release_date: "2014-03-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: shield
-    type: ranged_shield
+    weapon_type: shield
+    attack_speed: null
+    weight: 3.628
     requirements:
       defence: 60
-    stats:
-      attack_ranged: 12
-      defence_magic: 24
-      defence_ranged: 52
-  drop_table:
-    sources:
-      - source: Volcanic Forge
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
-        rarity: N/A
-        members_only: true
+    attack_bonus:
+      stab: -12
+      slash: -12
+      crush: -12
+      magic: -8
+      ranged: 12
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 24
+      ranged: 52
+    other_bonus:
+      strength: 0
+      ranged_strength: 4
+      magic_damage: 0
+      prayer: 0
   recipes:
-    - skill: N/A
+    - skill: none
       level: 0
       xp: 0
       materials:
-        - item_id: 11928
-          item_name: Odium shard 1
+        - item_name: Odium shard 1
           quantity: 1
-        - item_id: 11929
-          item_name: Odium shard 2
+        - item_name: Odium shard 2
           quantity: 1
-        - item_id: 11930
-          item_name: Odium shard 3
+        - item_name: Odium shard 3
           quantity: 1
-      product: Odium ward
-      product_id: 11926
-      facility: Volcanic Forge
-      members_only: true
+      tools:
+        - Volcanic Forge
+      output_quantity: 1
   related_items:
-    - item_id: 11924
-      item_name: Malediction ward
+    - item_name: Odium shard 1
+      slug: odium-shard-1
+      relationship: component
+      description: "Dropped by Chaos Fanatic in the Wilderness; one of three shards needed."
+    - item_name: Odium shard 2
+      slug: odium-shard-2
+      relationship: component
+      description: "Dropped by Crazy Archaeologist in the Wilderness; one of three shards needed."
+    - item_name: Odium shard 3
+      slug: odium-shard-3
+      relationship: component
+      description: "Dropped by Scorpia in the Wilderness; one of three shards needed."
+    - item_name: Malediction ward
       slug: malediction-ward
       relationship: alternative
-      description: Magic version
-    - item_id: 22002
-      item_name: Dragonfire ward
+      description: Magic-focused counterpart shield assembled at the same Volcanic Forge.
+    - item_name: Dragonfire ward
       slug: dragonfire-ward
       relationship: upgrade
-      description: BiS ranged shield
-    - item_id: 21000
-      item_name: Twisted buckler
+      description: Best-in-slot ranged shield, upgraded from Odium ward with a Skeletal visage.
+    - item_name: Twisted buckler
       slug: twisted-buckler
       relationship: alternative
-      description: Alternative
-  about: |-
-    Combine 3 shards at Volcanic Forge (NE Wilderness):
-
-    | Shard | Source | Price |
-    |-------|--------|-------|
-    | Odium shard 1 | Chaos Fanatic | ~1.4M |
-    | Odium shard 2 | Crazy Archaeologist | ~1.9M |
-    | Odium shard 3 | Scorpia | ~131K |
-
-    | Offense | Value |
-    |---------|-------|
-    | Ranged attack | +12 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Magic | +24 |
-    | Ranged | +52 |
-
-    Requirements: 60 Defence
-
-    Budget ranged shield for:
-    - Ranged training
-    - Slayer tasks
-    - Mid-game bossing
-
-    Good magic defence for ranged setups.
+      description: Chambers of Xeric ranged shield with stronger ranged bonuses.
+  about: "Odium ward is a ranged-focused shield assembled at the Volcanic Forge in the northeastern Wilderness by combining three Odium shards. It ranks among the top ranged shields, behind only the Dragonfire ward and Twisted buckler, and is commonly used as a mid-game ranged shield and stepping stone to the Dragonfire ward upgrade."
   market_strategy:
     notes:
-      - Wilderness bosses for shards
-      - Cheaper to buy complete
-      - Upgrade to dragonfire ward
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Floor supported by shard cost from three Wilderness demi-bosses"
+      - "Build cost vs assembled price often shows small flipping margin"
+      - "Demand softens as players upgrade to Dragonfire ward or Twisted buckler"
+  trading_tips:
+    - Compare GE price of the assembled ward against the sum of the three shards plus tax
+    - Buy completed wards during off-peak hours; resell during PvM/Slayer surges
+  history:
+    - date: "2014-03-13"
+      description: "Released alongside the Wilderness demi-bosses Chaos Fanatic, Crazy Archaeologist, and Scorpia."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

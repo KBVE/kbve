@@ -1,6 +1,6 @@
 ---
 title: Antidote++(1) | OSRS Price Data
-description: "Antidote++(1): 1 dose of super strong antipoison potion.. High alch: 86 GP, GE limit: 4,000."
+description: "Antidote++(1): 1 dose of super strong antipoison potion. High alch: 86 GP, GE limit: 4,000."
 osrs:
   id: 5958
   name: Antidote++(1)
@@ -12,9 +12,81 @@ osrs:
   lowalch: 57
   highalch: 86
   limit: 4000
-  about: "Antidote++(1) is a members-only item in Old School RuneScape. High alchemy value: 86 coins. Grand Exchange buy limit: 4,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: potion
+    tier: mid-high
+  properties:
+    release_date: "2005-07-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Cures poison and grants immunity to poison for 12 minutes."
+        duration: 720
+      - description: "Grants immunity to venom for 18-36 seconds (one dose reduces venom to poison; second dose cures venom)."
+        duration: 36
+  drop_table:
+    sources:
+      - source: Cave kraken
+        quantity: "1"
+        rarity: Uncommon
+      - source: Kraken
+        quantity: "2"
+        rarity: Uncommon
+      - source: Zulrah
+        quantity: "10"
+        rarity: Common
+  related_items:
+    - item_name: Antidote++(2)
+      slug: antidote-2
+      relationship: variant
+      description: 2-dose version
+    - item_name: Antidote++(3)
+      slug: antidote-3
+      relationship: variant
+      description: 3-dose version
+    - item_name: Antidote++(4)
+      slug: antidote-4
+      relationship: variant
+      description: 4-dose version
+    - item_name: Antidote+(4)
+      slug: antidote-plus-4
+      relationship: downgrade
+      description: Weaker antipoison made with yew roots
+  about: |-
+    > *"1 dose of super strong antipoison potion."*
+
+    Antidote++(1) is the single-dose version of the strongest antipoison potion in OSRS. Drinking it cures poison and grants 12 minutes of poison immunity, plus partial venom protection.
+
+    The full 4-dose recipe requires 79 Herblore, combining coconut milk, irit leaf, and magic root for 177.5 XP.
+
+    Commonly used at high-tier PvM encounters (Zulrah, Vorkath, Corporeal Beast) where venom or poison damage can quickly stack up.
+  market_strategy:
+    notes:
+      - "Demand driven by venomous PvM bosses (Zulrah, Vorkath)"
+      - "1-dose variants typically trade at a discount vs combined doses"
+      - "Decanters can convert smaller doses into 4-dose for slightly higher value"
+      - "Steady supply from boss drops and Herblore training"
+  trading_tips:
+    - Buy 1-dose, decant to 4-dose for margin
+    - Watch for spikes during venomous boss task weeks
+  history:
+    - date: "2005-07-11"
+      description: "Added with the Farming and Herblore update introducing higher-tier antipoisons."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

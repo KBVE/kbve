@@ -12,9 +12,64 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 13000
-  about: "Bread dough is a free-to-play item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-03"
+  material:
+    type: dough
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.6
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Pot of flour
+          quantity: 1
+        - item_name: Jug of water
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Pot of flour
+      slug: pot-of-flour
+      relationship: component
+      description: Combined with water to form dough
+    - item_name: Jug of water
+      slug: jug-of-water
+      relationship: component
+      description: Water source for dough
+    - item_name: Bread
+      slug: bread
+      relationship: product
+      description: Cooked product, heals 5 HP
+    - item_name: Burnt bread
+      slug: burnt-bread
+      relationship: alternative
+      description: Failed cooking attempt
+  about: |-
+    Bread dough is an uncooked dough made by using a jug of water on a pot of flour. Cook on a range or fire at level 1 Cooking for 40 XP to produce bread, which heals 5 hitpoints. Featured in Tutorial Island as a basic cooking introduction.
+  market_strategy:
+    notes:
+      - "Used for low-level Cooking training"
+      - "High buy limit of 13,000 per 4 hours"
+      - "Margins driven by flour/water input costs"
+  history:
+    - date: "2001-01-04"
+      description: "Released with the original RuneScape Cooking skill."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
