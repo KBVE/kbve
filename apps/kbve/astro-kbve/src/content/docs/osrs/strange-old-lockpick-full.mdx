@@ -12,32 +12,43 @@ osrs:
   lowalch: 12800
   highalch: 19200
   limit: 50
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
     type: tool
+    tier: unique
+  properties:
+    release_date: "2020-09-30"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
     weight: 0.002
-  obtaining:
-    - source: Hallowed Sepulchre coffins
-      rates:
-        - floor: 1
-          drop_rate: 1/200
-        - floor: 2
-          drop_rate: 1/120
-        - floor: 3
-          drop_rate: 1/90
-        - floor: 4
-          drop_rate: 1/60
-        - floor: 5
-          drop_rate: 1/40
-  effect:
-    barrows: Opens any door set (consumes charges)
-    sepulchre:
-      - Improves coffin success rate
-      - Speeds up coffin looting
-      - No charges consumed
-  charging:
-    starting_charges: 50
-    notes: Disappears when depleted
+    options:
+      - use
+      - drop
+  drop_table:
+    sources:
+      - source: Hallowed Sepulchre Floor 1 coffin
+        quantity: "1"
+        rarity: "1/200"
+      - source: Hallowed Sepulchre Floor 2 coffin
+        quantity: "1"
+        rarity: "1/120"
+      - source: Hallowed Sepulchre Floor 3 coffin
+        quantity: "1"
+        rarity: "1/90"
+      - source: Hallowed Sepulchre Floor 4 coffin
+        quantity: "1"
+        rarity: "1/60"
+      - source: Hallowed Sepulchre Floor 5 coffin
+        quantity: "1"
+        rarity: "1/40"
+  passive_effects:
+    - name: Barrows door unlock
+      description: "Opens any door set inside Barrows, consuming a charge per use."
+    - name: Sepulchre coffin assist
+      description: "Improves coffin success rate and looting speed inside Hallowed Sepulchre with no charge consumption."
   related_items:
     - item_id: 1523
       item_name: Lockpick
@@ -45,22 +56,7 @@ osrs:
       relationship: alternative
       description: Standard version
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Tool |
-    | Tradeable | Yes (full only) |
-    | Weight | 0.002 kg |
-
-    Barrows: Opens any door set (consumes charges).
-
-    Hallowed Sepulchre:
-    - Improves coffin success rate
-    - Speeds up coffin looting
-    - No charges consumed
-
-    Comes with 50 charges. Disappears when depleted.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Comes with 50 charges. Disappears when depleted. Found exclusively in Hallowed Sepulchre coffins as a rare reward.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

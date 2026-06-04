@@ -1,6 +1,6 @@
 ---
 title: Team-12 cape | OSRS Price Data
-description: "Team-12 cape: Ooohhh look at the pretty colours.... High alch: 30 GP, GE limit: 150."
+description: "Team-12 cape is a free-to-play team cape worn for PvP coordination. High alch: 30 GP, GE limit: 150."
 osrs:
   id: 4337
   name: Team-12 cape
@@ -12,9 +12,83 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-12 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cape
+    tier: team
+  equipment:
+    slot: cape
+    weight: 0.453
+    attack_speed: null
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Ian's Wilderness Cape Shop
+      price: 50
+      stock: 10
+  related_items:
+    - item_id: 4405
+      item_name: Team-46 cape
+      slug: team-46-cape
+      relationship: variant
+      description: Different team identifier cape.
+    - item_name: Team-1 cape
+      slug: team-1-cape
+      relationship: variant
+      description: First team cape variant.
+    - item_name: Team-50 cape
+      slug: team-50-cape
+      relationship: variant
+      description: Highest-numbered team cape variant.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Shop-bought at 50 GP from Ian's Wilderness Cape Shop."
+      - "Niche demand for clan PvP coordination wear."
+      - "Buy limit of 150 per 4 hours caps speculative purchases."
+  trading_tips:
+    - "Cheap shop alternative: 50 GP shop vs GE markup."
+    - Team capes mostly hold value as cosmetic clan identifiers.
+    - "Free-to-play accessible: useful for F2P PvP clans."
+  about: Team-12 cape is a free-to-play wilderness cape worn for PvP team identification, granting matching wearers blue-dot minimap visibility and modified attack options.
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  properties:
+    release_date: "2005-02-22"
+    update: "Wilderness Capes, and Changes"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2005-02-22"
+      update: "Wilderness Capes, and Changes"
+      description: Team-12 cape released as part of the wilderness team capes lineup.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

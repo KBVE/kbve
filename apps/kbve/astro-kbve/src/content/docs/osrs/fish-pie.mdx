@@ -13,8 +13,72 @@ osrs:
   highalch: 60
   limit: 10000
   about: "Fish pie is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: consumable
+  properties:
+    release_date: "2006-11-21"
+    quest_item: false
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    destroy_action: drop
+    options:
+      - eat
+      - drop
+  consumable:
+    heals: 8
+    boosts:
+      - skill: fishing
+        amount: 3
+    bites: 2
+  recipes:
+    - skill: cooking
+      level: 47
+      xp: 164
+      materials:
+        - item_name: Pie shell
+          item_id: 2315
+          quantity: 1
+        - item_name: Raw trout
+          item_id: 343
+          quantity: 1
+        - item_name: Raw cod
+          item_id: 341
+          quantity: 1
+        - item_name: Potato
+          item_id: 1942
+          quantity: 1
+      output_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 2315
+      item_name: Pie shell
+      slug: pie-shell
+      relationship: component
+      description: Base ingredient for any pie
+    - item_id: 7190
+      item_name: Half a fish pie
+      slug: half-a-fish-pie
+      relationship: variant
+      description: Leftover after one bite
+    - item_id: 7218
+      item_name: Admiral pie
+      slug: admiral-pie
+      relationship: alternative
+      description: Higher tier fish-based pie
+  market_strategy:
+    notes:
+      - "Provides a temporary +3 Fishing boost"
+      - "Useful for low-level Fishing milestones"
+      - "Steady demand from Cooking trainers"
+      - "Cheap raw ingredients keep margins thin"
+  trading_tips:
+    - "Buying tip: bulk for Fishing level-up boosts"
+    - "Selling tip: list during Cooking events for higher turnover"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

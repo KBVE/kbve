@@ -12,9 +12,56 @@ osrs:
   lowalch: 110000
   highalch: 165000
   limit: 15
-  about: "Dharok's platelegs 0 is a members-only item in Old School RuneScape. High alchemy value: 165,000 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: barrows
+    tier: dharok
+  properties:
+    release_date: "2005-05-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    options:
+      - wear
+      - drop
+    worn_options:
+      - remove
+  equipment:
+    slot: legs
+    attack_speed: 4
+    requirements:
+      defence: 70
+    defence_bonus:
+      stab: 110
+      slash: 105
+      crush: 117
+      magic: -7
+      ranged: 124
+      melee_strength: 4
+  drop_table:
+    sources:
+      - source: Barrows chest (Dharok the Wretched)
+        quantity: "1"
+        rarity: "1/2500"
+        notes: "Degraded variant with 0 charges remaining"
+  passive_effects:
+    - name: Dharok's set effect
+      description: "When wearing the full Dharok's set, damage scales upward as Hitpoints drop, peaking at 1 HP for massive max hits."
+  related_items:
+    - item_id: 4722
+      item_name: Dharok's platelegs
+      slug: dharok-s-platelegs
+      relationship: variant
+      description: Fully charged version
+    - item_id: 4900
+      item_name: Dharok's platelegs 25
+      slug: dharok-s-platelegs-25
+      relationship: variant
+      description: 25-charge degraded version
+  about: |-
+    Dharok's platelegs 0 is the fully degraded variant of Dharok's platelegs with no charges remaining. Must be repaired at an armour stand or by Bob in Lumbridge before it can be used in combat.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

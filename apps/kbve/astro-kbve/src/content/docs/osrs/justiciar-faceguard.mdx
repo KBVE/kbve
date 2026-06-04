@@ -12,9 +12,22 @@ osrs:
   lowalch: 800000
   highalch: 1200000
   limit: 8
+  material:
+    type: armor
+    tier: high
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
   equipment:
     slot: head
     type: tank
+    attack_speed: 1
     requirements:
       defence: 75
     stats:
@@ -30,6 +43,9 @@ osrs:
     formula: Defence bonus / 3000
     minimum_reduction: 1
     stacks_with: Elysian spirit shield
+  passive_effects:
+    - name: Justiciar Damage Reduction
+      description: "Full set damage reduction: Defence bonus / 3000, minimum 1. Stacks with Elysian spirit shield."
   drop_table:
     sources:
       - source: Theatre of Blood
@@ -82,14 +98,19 @@ osrs:
     Best tank armour in the game.
   market_strategy:
     notes:
-      - Full set required for bonus
-      - From Theatre of Blood
-      - Massive defensive stats
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Full set required for bonus"
+      - "From Theatre of Blood"
+      - "Massive defensive stats"
+  trading_tips:
+    - "BiS tank head slot in OSRS"
+    - "Source: Theatre of Blood rare drop"
+    - "Full set required for damage reduction bonus"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

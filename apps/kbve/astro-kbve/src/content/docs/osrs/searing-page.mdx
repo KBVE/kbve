@@ -12,12 +12,24 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: null
+  material:
+    type: quest_item
+    tier: mid
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: false
+    options:
+      - Read
+      - Drop
+    worn_options: []
   about: "Searing page is a members-only item in Old School RuneScape. High alchemy value: 120 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

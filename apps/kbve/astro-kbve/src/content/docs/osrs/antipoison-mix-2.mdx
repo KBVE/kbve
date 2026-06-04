@@ -12,9 +12,69 @@ osrs:
   lowalch: 86
   highalch: 129
   limit: 2000
-  about: "Antipoison mix(2) is a members-only item in Old School RuneScape. High alchemy value: 129 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2004-08-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.075
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Cures poison and grants poison immunity."
+        duration: 90
+      - description: "Heals 3 Hitpoints on consumption."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 50
+      xp: 30
+      materials:
+        - item_name: Antipoison(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Antipoison(2)
+      slug: antipoison-2
+      relationship: component
+      description: Base two-dose antipoison mixed with caviar to produce the fishy variant.
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: Barbarian Herblore secondary used to brew the mix.
+    - item_name: Antipoison mix(1)
+      slug: antipoison-mix-1
+      relationship: variant
+      description: One-dose version of the same Barbarian potion.
+  about: "Antipoison mix(2) is the two-dose Barbarian Herblore variant of the antipoison potion, adding a 3 HP heal on each drink while preserving 90 seconds of poison immunity. Brewed at 50 Herblore with an antipoison(2) and caviar after completing the Fishing chapter of Barbarian Training."
+  market_strategy:
+    notes:
+      - "Profit follows caviar price; tracks Barbarian secondary inversely"
+      - "Niche demand from PvM/slayer accounts wanting extra HP per inventory slot"
+      - "Buy limit of 2,000 supports steady Herblore-XP flips"
+  trading_tips:
+    - "Buy caviar during weekday lulls and mix when GE volume thins"
+    - "Sell ahead of poison-heavy slayer task spikes"
+  history:
+    - date: "2004-08-31"
+      description: "Released with Barbarian Training Herblore mixes."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

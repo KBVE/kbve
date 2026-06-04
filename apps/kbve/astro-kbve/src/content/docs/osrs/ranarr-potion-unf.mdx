@@ -12,13 +12,20 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2002-12-23"
+    tradeable: true
+    stackable: false
+    noteable: true
+    quest_item: false
   potion:
     type: unfinished
     tier: mid
-  herblore:
-    level: 30
-    xp: 0
-    method: Add ranarr weed to vial of water
   recipes:
     - skill: herblore
       level: 30
@@ -32,7 +39,7 @@ osrs:
           quantity: 1
       product: Ranarr potion (unf)
       product_id: 99
-      product_quantity: 1
+      output_quantity: 1
       members_only: true
   related_items:
     - item_id: 257
@@ -66,8 +73,6 @@ osrs:
 
     Add secondary ingredient to create:
     - Prayer potion (+ snape grass)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

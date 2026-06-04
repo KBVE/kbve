@@ -13,8 +13,60 @@ osrs:
   highalch: 144
   limit: 125
   about: "White dagger is a members-only item in Old School RuneScape. High alchemy value: 144 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: white_metal
+    tier: white
+  properties:
+    release_date: "2004-12-13"
+    quest_item: false
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    destroy_action: drop
+    options:
+      - wield
+      - drop
+    worn_options:
+      - remove
+  equipment:
+    slot: weapon
+    attack_speed: 4
+    weapon_type: dagger
+    attack_styles:
+      - stab
+      - lunge
+      - slash
+      - block
+    requirements:
+      attack: 10
+  related_items:
+    - item_id: 6589
+      item_name: White sword
+      slug: white-sword
+      relationship: alternative
+      description: White metal one-handed sword
+    - item_id: 6585
+      item_name: White scimitar
+      slug: white-scimitar
+      relationship: alternative
+      description: White metal scimitar
+    - item_id: 1215
+      item_name: Dragon dagger
+      slug: dragon-dagger
+      relationship: alternative
+      description: Higher tier dagger
+  market_strategy:
+    notes:
+      - "White Knight themed dagger"
+      - "Locked behind Wanted! quest"
+      - "Niche cosmetic interest"
+      - "Low turnover"
+  trading_tips:
+    - "Buying tip: stock when White Knight outfits trend"
+    - "Selling tip: target completionists chasing white set"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

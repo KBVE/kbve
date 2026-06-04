@@ -12,9 +12,66 @@ osrs:
   lowalch: 5
   highalch: 7
   limit: 2000
-  about: "Serum 207 (3) is a members-only item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: mid
+  potion:
+    effects:
+      - description: "Used on shades during the Shades of Mort'ton minigame to weaken them."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 15
+      xp: 50
+      materials:
+        - item_name: Tarromin potion (unf)
+          quantity: 1
+        - item_name: Ashes
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_name: Serum 207 (1)
+      relationship: variant
+    - item_name: Serum 207 (2)
+      relationship: variant
+    - item_name: Serum 207 (4)
+      relationship: variant
+    - item_name: Tarromin potion (unf)
+      relationship: component
+    - item_name: Ashes
+      relationship: component
+    - item_name: Olive oil
+      relationship: alternative
+  market_strategy:
+    notes:
+      - "Niche use in Shades of Mort'ton; demand is event-driven."
+      - "Cheap to craft from tarromin unf + ashes."
+  trading_tips:
+    - "Volume only matters during Shades XP events."
+    - "Decant 4-dose stock when prices on (3) move above (4) cost."
+  history:
+    - date: "2003-05-27"
+      description: "Serum 207 introduced with Shades of Mort'ton."
+  properties:
+    release_date: "2003-05-27"
+    update: "Shades of Mort'ton"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.025
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: "Serum 207 (3) is a members-only Herblore potion used in Shades of Mort'ton. High alchemy value: 7 coins. Grand Exchange buy limit: 2,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

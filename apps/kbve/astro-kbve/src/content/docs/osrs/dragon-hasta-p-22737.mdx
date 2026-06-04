@@ -5,16 +5,98 @@ osrs:
   id: 22737
   name: Dragon hasta(p+)
   slug: dragon-hasta-p
-  examine: A poison-tipped, one-handed dragon hasta
+  examine: A poison-tipped, one-handed dragon hasta.
   members: true
   icon: Dragon hasta(p+).png
   value: 62400
   lowalch: 24960
   highalch: 37440
   limit: 70
-  about: "Dragon hasta(p+) is a members-only item in Old School RuneScape. High alchemy value: 37,440 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: weapon
+    tier: high
+  properties:
+    release_date: "2019-01-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    weight: 2.267
+    quest_item: false
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  equipment:
+    slot: weapon
+    attack_speed: 4
+    requirements:
+      attack: 60
+    attack_bonus:
+      stab: 55
+      slash: 55
+      crush: 55
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: -15
+      slash: -15
+      crush: -12
+      magic: 0
+      ranged: -15
+    other_bonus:
+      strength: 60
+      prayer: 0
+  recipes:
+    - skill: herblore
+      level: 73
+      xp: 0
+      materials:
+        - item_name: Dragon hasta
+          item_id: 11407
+          quantity: 1
+        - item_name: Weapon poison(+)
+          item_id: 5937
+          quantity: 1
+      product: Dragon hasta(p+)
+      product_id: 22737
+      output_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 11407
+      item_name: Dragon hasta
+      slug: dragon-hasta
+      relationship: component
+      description: Base unpoisoned dragon hasta
+    - item_id: 5937
+      item_name: Weapon poison(+)
+      slug: weapon-poison-plus
+      relationship: component
+      description: Applied to base hasta to make the (p+) variant
+    - item_id: 22738
+      item_name: Dragon hasta(p++)
+      slug: dragon-hasta-pp
+      relationship: upgrade
+      description: Higher-grade poisoned variant using Weapon poison(++)
+  market_strategy:
+    notes:
+      - "Niche poisoned variant of the dragon hasta"
+      - "Requires Barbarian Training Smithing for the base hasta"
+      - "Limited demand from PvP and Slayer setups"
+      - "Supply hinges on Weapon poison(+) availability"
+  trading_tips:
+    - "Buy strategy: watch base dragon hasta + Weapon poison(+) prices for arbitrage"
+    - "Demand: PvM use is light; price tracks the unpoisoned hasta closely"
+    - "Risk: poison utility is low against most current PvM targets"
+  history:
+    - date: "2019-01-10"
+      description: "Release: added as a poison variant alongside the dragon hasta system rework"
+  about: "Dragon hasta(p+) is a poison-tipped one-handed dragon hasta requiring 60 Attack to wield. Created by applying Weapon poison(+) to a dragon hasta. High alchemy value: 37,440 coins. Grand Exchange buy limit: 70 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

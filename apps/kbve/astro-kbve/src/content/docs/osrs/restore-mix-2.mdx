@@ -1,6 +1,6 @@
 ---
 title: Restore mix(2) | OSRS Price Data
-description: "Restore mix(2): Two doses of fishy restore potion.. High alch: 39 GP, GE limit: 2,000."
+description: "Restore mix(2) is a 2-dose Barbarian Herblore upgrade of restore potion(2) that also heals 6 Hitpoints. High alch: 39 GP, GE limit: 2,000."
 osrs:
   id: 11449
   name: Restore mix(2)
@@ -12,9 +12,75 @@ osrs:
   lowalch: 26
   highalch: 39
   limit: 2000
-  about: "Restore mix(2) is a members-only item in Old School RuneScape. High alchemy value: 39 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.075
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  recipes:
+    - skill: herblore
+      level: 24
+      xp: 21
+      materials:
+        - item_name: Restore potion(2)
+          quantity: 1
+        - item_name: Roe
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Restores Attack, Strength, Defence, Ranged and Magic by 10 + 30% of base level"
+        duration: 0
+      - description: "Heals 3 Hitpoints per dose"
+        duration: 0
+  related_items:
+    - item_name: Restore mix(1)
+      slug: restore-mix-1
+      relationship: variant
+      description: One-dose variant of the restore mix
+    - item_name: Restore potion(2)
+      slug: restore-potion-2
+      relationship: component
+      description: Base potion mixed with roe to make the Barbarian variant
+    - item_name: Roe
+      slug: roe
+      relationship: component
+      description: Barbarian Herblore ingredient added to the potion
+    - item_name: Super restore mix(2)
+      slug: super-restore-mix-2
+      relationship: upgrade
+      description: Higher-tier mix that also restores Prayer
+  about: |-
+    > *"Two doses of fishy restore potion."*
+
+    Restore mix(2) is the Barbarian Herblore upgrade of restore potion(2), keeping the stat-restore effect while also healing 3 Hitpoints per dose. It is useful for hybrid PvM and clue-step kits where small Hitpoints top-ups matter alongside skill restoration.
+  market_strategy:
+    notes:
+      - "Margins are tight once GE tax and roe cost are accounted for"
+      - "Demand follows mid-level slayer and clue-step popularity"
+  trading_tips:
+    - Watch roe supply from Barbarian Fishing trips for upstream price shifts
+    - Compare cost vs. restore potion(2) before buying in bulk
+  history:
+    - date: "2007-07-03"
+      description: Released with the Barbarian Training Herblore expansion.
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

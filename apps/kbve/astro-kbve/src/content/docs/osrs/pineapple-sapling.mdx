@@ -12,9 +12,55 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 200
-  about: "Pineapple sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: farming
+    tier: mid
+  recipes:
+    - skill: farming
+      level: 51
+      xp: 81.5
+      materials:
+        - item_name: Pineapple seed
+          quantity: 1
+        - item_name: Plant pot (filled)
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_name: Pineapple seed
+      relationship: component
+    - item_name: Pineapple
+      relationship: product
+    - item_name: Plant pot
+      relationship: component
+  market_strategy:
+    notes:
+      - "Crafted from pineapple seeds with 51 Farming; demand tracks fruit tree training."
+      - "Used in the Bone Voyage and Tai Bwo Wannai Trio quest interactions for some players."
+  trading_tips:
+    - "Buy seeds in bulk and craft saplings when seed supply is cheap."
+    - "Watch for spikes during Farming bonus weekends."
+  history:
+    - date: "2005-07-12"
+      description: "Pineapple sapling added with the fruit tree expansion of Farming."
+  properties:
+    release_date: "2005-07-12"
+    update: Farming Update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Check-health
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: "Pineapple sapling is a members-only Farming sapling for fruit tree patches. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

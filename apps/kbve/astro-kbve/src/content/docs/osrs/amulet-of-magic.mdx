@@ -12,26 +12,63 @@ osrs:
   lowalch: 360
   highalch: 540
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: amulet
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
   equipment:
     slot: neck
-    type: amulet
-    tradeable: true
     weight: 0.01
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 10
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 10
-      defence_ranged: 0
-      strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 10
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 10
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  recipes:
+    - skill: magic
+      level: 7
+      xp: 17.5
+      materials:
+        - item_name: Sapphire amulet
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Water rune
+          quantity: 1
+        - item_name: Mind rune
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
     - item_id: 1694
       item_name: Sapphire amulet
@@ -43,8 +80,19 @@ osrs:
       slug: amulet-of-power
       relationship: alternative
       description: Balanced alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Amulet of magic is a sapphire amulet enchanted with Lvl-1 Enchant, granting +10 magic attack and defence. Common training amulet for low-level mages and F2P PKers."
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Enchanting sapphire amulets yields Magic XP — supply driven by mid-Magic training."
+      - "High alch 540 gp limits profit margins on flips."
+      - "Steady demand from F2P magic accounts."
+  trading_tips:
+    - "Watch sapphire amulet spreads when enchanting for profit."
+    - "GE limit 125 per 4 hours keeps flips small."
+  history:
+    - date: "2001-01-04"
+      description: "Released into the game alongside enchanted gem amulets."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

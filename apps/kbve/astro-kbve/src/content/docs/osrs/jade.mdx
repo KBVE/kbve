@@ -12,9 +12,68 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 13000
-  about: "Jade is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: gem
+    tier: low
+  recipes:
+    - skill: crafting
+      level: 13
+      xp: 20
+      materials:
+        - item_name: Uncut jade
+          quantity: 1
+        - item_name: Chisel
+          quantity: 1
+      output_quantity: 1
+    - skill: fletching
+      level: 26
+      xp: 2.4
+      materials:
+        - item_name: Jade
+          quantity: 1
+        - item_name: Chisel
+          quantity: 1
+      output_quantity: 12
+  related_items:
+    - item_name: Uncut jade
+      relationship: component
+    - item_name: Jade bolt tips
+      relationship: product
+    - item_name: Jade amulet (u)
+      relationship: product
+    - item_name: Opal
+      relationship: downgrade
+    - item_name: Topaz
+      relationship: upgrade
+  market_strategy:
+    notes:
+      - "Cut from uncut jade at 13 Crafting; used in fletching jade bolt tips."
+      - "Demand from mid-level Crafting and ranged ammunition players."
+  trading_tips:
+    - "Track uncut jade pricing for craft margin."
+    - "Bolt tip demand spikes during ranged training pushes."
+  history:
+    - date: "2002-09-26"
+      description: "Jade introduced with the original Crafting skill release."
+  properties:
+    release_date: "2002-09-26"
+    update: Crafting
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: "Jade is a members-only semi precious gem used in Crafting and Fletching. High alchemy value: 90 coins. Grand Exchange buy limit: 13,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

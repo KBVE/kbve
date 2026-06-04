@@ -12,9 +12,83 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 4
-  about: "White unicorn mask is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2016-07-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: 1/2266
+  related_items:
+    - item_name: Black unicorn mask
+      slug: black-unicorn-mask
+      relationship: variant
+      description: "Black colour variant from medium clue rewards"
+    - item_name: Reward casket (medium)
+      slug: reward-casket-medium
+      relationship: component
+      description: "Source casket from medium Treasure Trails"
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  about: |-
+    The white unicorn mask is a cosmetic head slot reward from medium Treasure Trails. It offers no combat bonuses and is purely a vanity piece, storable in a costume room treasure chest.
+  market_strategy:
+    notes:
+      - "Cosmetic clue reward, demand driven by fashionscape"
+      - "Buy limit of 4 caps short-term flips"
+      - "Stable long-term value as a clue reward"
+  trading_tips:
+    - "Flip during clue scroll events for spike profits"
+    - "Watch reward casket (medium) volume for supply signals"
+    - "Low daily volume, set patient buy orders"
+  history:
+    - date: "2016-07-06"
+      description: "Added with the Treasure Trail Expansion update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,59 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: 2000
-  about: "Armadyl brew(3) is a members-only item in Old School RuneScape. High alchemy value: 102 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "2024-08-21"
+    update: "Varlamore: The Final Dawn"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  potion:
+    effects:
+      - description: "Restores Prayer points equal to 10 + 25% of current Prayer level."
+        duration: 0
+      - description: "Boosts Magic level by 4 and Defence by 2."
+        duration: 60
+      - description: "Drains Attack, Strength, and Ranged by 2."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 88
+      xp: 180
+      materials:
+        - item_name: Armadyl brew (4)
+          quantity: 1
+      tools:
+        - Vial
+      output_quantity: 1
+  about: "Armadyl brew(3) is a 3-dose Armadyl brew, a high-level Herblore potion that restores Prayer and boosts Magic and Defence at the cost of Attack, Strength, and Ranged."
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "High alch 102 gp vs typical 3-dose GE price — alching is usually unprofitable."
+      - "Decant 4-dose into 3/2/1 doses for finer market arbitrage."
+      - "Heavily consumed at Vorkath, Tombs of Amascut, and inferno prep."
+  trading_tips:
+    - "Demand spikes around new Magic-heavy PvM content."
+    - "GE buy limit 2,000 per 4 hours."
+  history:
+    - date: "2024-08-21"
+      update: "Varlamore: The Final Dawn"
+      description: "Armadyl brew released with the final Varlamore update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

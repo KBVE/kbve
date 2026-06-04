@@ -1,6 +1,6 @@
 ---
 title: Mithril spear(p) | OSRS Price Data
-description: "Mithril spear(p): A poisoned mithril tipped spear.. High alch: 507 GP, GE limit: 125."
+description: "Mithril spear(p) is a members poisoned two-handed melee spear requiring 20 Attack. High alch: 507 GP, GE limit: 125."
 osrs:
   id: 1257
   name: Mithril spear(p)
@@ -12,9 +12,94 @@ osrs:
   lowalch: 338
   highalch: 507
   limit: 125
-  about: "Mithril spear(p) is a members-only item in Old School RuneScape. High alchemy value: 507 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: spear
+    tier: mithril
+  equipment:
+    slot: two-handed
+    weight: 1.814
+    attack_speed: 4
+    requirements:
+      attack: 20
+    attack_bonus:
+      stab: 17
+      slash: 17
+      crush: 17
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 18
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Mithril spear
+          quantity: 1
+        - item_name: Weapon poison
+          quantity: 1
+      output_quantity: 1
+      notes: "Apply weapon poison to a regular mithril spear."
+  related_items:
+    - item_id: 1243
+      item_name: Mithril spear
+      slug: mithril-spear
+      relationship: variant
+      description: Unpoisoned base version.
+    - item_name: Mithril spear(p+)
+      slug: mithril-spear-p-plus
+      relationship: variant
+      description: Poison+ upgrade variant.
+    - item_name: Mithril spear(p++)
+      slug: mithril-spear-p-plus-plus
+      relationship: variant
+      description: Poison++ upgrade variant.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Poisoned variant retains base alch value with weapon-poison cost added."
+      - "Demand tied to PvM and low-level PvP poison usage."
+      - "GE limit of 125 caps speculative purchases."
+  trading_tips:
+    - "Margin check vs alch: 507 GP high alch sets the floor."
+    - Cheaper to poison your own mithril spear than buy poisoned variant.
+    - Track weapon poison prices when arbitraging variants.
+  about: Mithril spear(p) is the standard poisoned variant of the mithril spear, dealing poison damage on hit while retaining the base weapon's stats.
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  properties:
+    release_date: "2003-04-14"
+    update: "New Throwing Weapons!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2003-04-14"
+      update: "New Throwing Weapons!"
+      description: Mithril spear and poisoned variants released.
+    - date: "2021-03-25"
+      update: Game Update
+      description: "Attack speed improved from 5 ticks to 4 ticks."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

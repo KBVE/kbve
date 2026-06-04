@@ -1,6 +1,6 @@
 ---
 title: Mithril spear | OSRS Price Data
-description: "Mithril spear: A mithril tipped spear.. High alch: 507 GP, GE limit: 125."
+description: "Mithril spear is a members two-handed melee spear requiring 20 Attack to wield. High alch: 507 GP, GE limit: 125."
 osrs:
   id: 1243
   name: Mithril spear
@@ -12,9 +12,101 @@ osrs:
   lowalch: 338
   highalch: 507
   limit: 125
-  about: "Mithril spear is a members-only item in Old School RuneScape. High alchemy value: 507 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: spear
+    tier: mithril
+  equipment:
+    slot: two-handed
+    weight: 1.814
+    attack_speed: 4
+    requirements:
+      attack: 20
+    attack_bonus:
+      stab: 17
+      slash: 17
+      crush: 17
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 1
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 18
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Mount Karuulm Weapon Shop
+      price: 845
+      stock: 5
+    - shop_name: Fortis Blacksmith
+      price: 845
+      stock: 3
+  recipes:
+    - skill: smithing
+      level: 55
+      xp: 50
+      materials:
+        - item_name: Mithril bar
+          quantity: 1
+        - item_name: Maple logs
+          quantity: 1
+      output_quantity: 1
+      notes: "Requires Barbarian Smithing training; crafted at a barbarian anvil."
+  related_items:
+    - item_id: 1257
+      item_name: Mithril spear(p)
+      slug: mithril-spear-p
+      relationship: variant
+      description: Poisoned version of the mithril spear.
+    - item_name: Adamant spear
+      slug: adamant-spear
+      relationship: upgrade
+      description: Higher-tier metal spear.
+    - item_name: Steel spear
+      slug: steel-spear
+      relationship: alternative
+      description: Lower-tier metal spear.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Cheap mid-tier melee spear with steady demand for alching."
+      - "Supply driven by smithing alts and monster drops."
+      - "Buy limit of 125 per 4 hours restricts large-scale flipping."
+  trading_tips:
+    - "Compare GE price vs high alch: 507 GP for break-even checks."
+    - Stock up from shops at base 845 GP for resell margins.
+    - Watch barbarian smithing patches that shift supply.
+  about: Mithril spear is a members-only two-handed melee weapon requiring 20 Attack to wield, valued for steady stab/slash/crush bonuses at a low tier.
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  properties:
+    release_date: "2003-04-14"
+    update: "New Throwing Weapons!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2003-04-14"
+      update: "New Throwing Weapons!"
+      description: Mithril spear released alongside other thrown and spear weapons.
+    - date: "2021-03-25"
+      update: Game Update
+      description: "Attack speed improved from 5 ticks to 4 ticks."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

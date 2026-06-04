@@ -12,17 +12,24 @@ osrs:
   lowalch: 80000
   highalch: 120000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: metal
+    tier: mid
   equipment:
     slot: head
     type: melee_armour
+    attack_speed: null
     requirements:
       defence: 80
-    stats:
-      defence_stab: 59
-      defence_slash: 60
-      defence_crush: 62
-      defence_magic: -2
-      defence_ranged: 57
+    defence_bonus:
+      stab: 59
+      slash: 60
+      crush: 62
+      magic: -2
+      ranged: 57
+    other_bonus:
       strength: 8
       prayer: 1
   recipes:
@@ -38,7 +45,7 @@ osrs:
           quantity: 1
       product: Torva full helm
       product_id: 26382
-      product_quantity: 1
+      output_quantity: 1
       facility: Anvil
       members_only: true
   related_items:
@@ -87,11 +94,9 @@ osrs:
     - Slayer
   market_strategy:
     notes:
-      - Nex kills affect supply
-      - BiS melee helm
-      - Expensive upgrade
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Nex kills affect supply"
+      - "BiS melee helm"
+      - "Expensive upgrade"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,34 +12,6 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 70
-  equipment:
-    slot: legs
-    attack_bonus:
-      stab: 0
-      slash: 0
-      crush: 0
-      magic: -10
-      ranged: -5
-    defence_bonus:
-      stab: 20
-      slash: 25
-      crush: 22
-      magic: -3
-      ranged: 20
-    other_bonus:
-      melee_strength: 0
-      ranged_strength: 0
-      magic_damage: 0
-      prayer: 0
-    requirements:
-      defence: 20
-    weight: 5
-  related_items:
-    - item_id: 10822
-      item_name: Yak-hide armour
-      slug: yak-hide-armour
-      relationship: set-piece
-      description: Matching body armour
   about: |-
     | Defence | Value |
     |---------|-------|
@@ -51,13 +23,50 @@ osrs:
     Requirements: 20 Defence | Weight: 5.0 kg
 
     At only 20 Defence, yak-hide legs provide solid melee defence comparable to mithril platelegs. Useful for low-level accounts and during The Fremennik Isles quest itself.
+  material:
+    type: leather
+    tier: mid
+  properties:
+    release_date: "2005-12-06"
+    options:
+      - Wear
+      - Examine
+    worn_options:
+      - Remove
+  equipment:
+    slot: legs
+    tradeable: true
+    weight: 5
+    requirements:
+      defence: 20
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: -10
+      attack_ranged: -5
+      defence_stab: 20
+      defence_slash: 25
+      defence_crush: 22
+      defence_magic: -3
+      defence_ranged: 20
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 10822
+      item_name: Yak-hide armour
+      slug: yak-hide-armour
+      relationship: set-piece
+      description: Matching body armour
   market_strategy:
     notes:
-      - Niche Fremennik quest item
-      - 20 Defence requirement makes it accessible for pures
-      - Most players upgrade quickly past this tier
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Niche Fremennik quest item"
+      - "20 Defence requirement makes it accessible for pures"
+      - "Most players upgrade quickly past this tier"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

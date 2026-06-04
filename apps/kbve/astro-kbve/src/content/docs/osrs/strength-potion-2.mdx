@@ -12,23 +12,70 @@ osrs:
   lowalch: 5
   highalch: 7
   limit: 2000
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2002-09-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Temporarily raises the Strength level by 3 + 10% of the player's current Strength level until the boost decays."
+        duration: 60
+  recipes:
+    - skill: herblore
+      level: 12
+      xp: 50
+      materials:
+        - item_name: Limpwurt potion (unf)
+          quantity: 1
+        - item_name: Limpwurt root
+          quantity: 1
+      tools: []
+      output_quantity: 2
   related_items:
-    - item_id: 115
-      item_name: Strength potion(3)
-      slug: strength-potion-3
-      relationship: variant
-      description: 3-dose version
-    - item_id: 119
-      item_name: Strength potion(1)
+    - item_name: Strength potion(1)
       slug: strength-potion-1
       relationship: variant
-      description: 1-dose version
+      description: "1-dose variant of the same Strength potion."
+    - item_name: Strength potion(3)
+      slug: strength-potion-3
+      relationship: variant
+      description: "3-dose variant brewed directly via Herblore."
+    - item_name: Strength potion(4)
+      slug: strength-potion-4
+      relationship: variant
+      description: "4-dose variant produced from a full Herblore flask."
   about: |-
     > _"2 doses of Strength potion."_
 
-    A 2-dose strength potion. Boosts Strength by 3 + 10% of current level. Available to F2P and members.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The 2-dose Strength potion is the middle-decant tier of the tarromin-and-limpwurt brew. Each sip raises Strength by 3 + 10% of the player's current Strength level. Available to both F2P and members, it serves as an entry-level combat boost before super strength potions are unlocked.
+  market_strategy:
+    notes:
+      - "F2P availability keeps demand thin against the (4) dose variant"
+      - "Decanter arbitrage between (1)/(2)/(3)/(4) drives most volume"
+      - "Limpwurt root supply caps production"
+  trading_tips:
+    - "Use the per-dose spread between (1)/(2)/(3)/(4) to spot decanter flips"
+    - "Demand is steady from low-level F2P combat training"
+  history:
+    - date: "2002-09-26"
+      description: "Released as part of the Herblore skill launch."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

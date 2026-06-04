@@ -12,9 +12,66 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 13000
-  about: "Bolt of canvas is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: crafting_material
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    weight: 1
+    quest_item: false
+    options:
+      - Drop
+    alchable: true
+    destroy: Drop
+  recipes:
+    - skill: crafting
+      level: 39
+      xp: 75
+      materials:
+        - item_name: Hemp yarn
+          item_id: 31470
+          quantity: 2
+      product: Bolt of canvas
+      product_id: 31475
+      output_quantity: 1
+      facility: Loom
+      members_only: true
+  related_items:
+    - item_id: 31470
+      item_name: Hemp yarn
+      slug: hemp-yarn
+      relationship: component
+      description: Loom input for the canvas bolt
+    - item_id: 31480
+      item_name: Sails
+      slug: sails
+      relationship: product
+      description: Used to construct boat sails (Raft, Skiff, Sloop)
+    - item_id: 31490
+      item_name: Gem satchel
+      slug: gem-satchel
+      relationship: product
+      description: Crafted from canvas for gem storage
+  market_strategy:
+    notes:
+      - "Sailing skill input drives core demand"
+      - "Supply hinges on hemp yarn farming"
+      - "Boat-sail crafting consumes large bulk volume"
+      - "New skill content creates fluctuating early-cycle prices"
+  trading_tips:
+    - "Buy strategy: scale into bolts during hemp yarn price dips"
+    - "Demand: sails for Raft/Skiff/Sloop set a recurring floor"
+    - "Risk: Sailing update tuning can shift recipe requirements mid-cycle"
+  history:
+    - date: "2025-11-19"
+      description: "Release: added with the Sailing skill launch as a crafted loom product"
+  about: "Bolt of canvas is a Sailing-era Crafting product woven on a loom from 2 hemp yarn at 39 Crafting for 75 XP. Used to construct boat sails for Rafts, Skiffs, and Sloops, plus the gem satchel. High alchemy value: 60 coins. Grand Exchange buy limit: 13,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

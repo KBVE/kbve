@@ -12,9 +12,91 @@ osrs:
   lowalch: 1920
   highalch: 2880
   limit: 8
-  about: "Rosewood blowpipe (empty) is a members-only item in Old School RuneScape. High alchemy value: 2,880 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: ranged_weapon
+    tier: mid
+  properties:
+    release_date: "19 November 2025"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Fill
+      - Drop
+    worn_options:
+      - Wield
+      - Check
+      - Unload
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0.3
+    requirements:
+      ranged: 65
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 22
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 6
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: fletching
+      level: 84
+      xp: 200
+      action: Fletch with a knife
+      materials:
+        - item_name: Rosewood logs
+          quantity: 2
+        - item_name: Squid beak
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+  related_items:
+    - item_name: Rosewood logs
+      slug: rosewood-logs
+      relationship: component
+      description: "Two rosewood logs consumed per blowpipe craft"
+    - item_name: Squid beak
+      slug: squid-beak
+      relationship: component
+      description: "Sailing-sourced component required to finish the blowpipe"
+    - item_name: Toxic blowpipe
+      slug: toxic-blowpipe
+      relationship: upgrade
+      description: "Higher-tier blowpipe with poison stack and overhead spec"
+  about: "Rosewood blowpipe (empty) is a two-handed Ranged weapon introduced with the Sailing skill update, requiring 65 Ranged to wield. Fletched at 84 Fletching from two rosewood logs and a squid beak, it attacks every 3 ticks in PvM and 4 ticks in PvP, fires darts loaded from the inventory, and unloads via the Unload right-click option. It sits as a mid-tier non-poisoned alternative to the toxic blowpipe."
+  market_strategy:
+    notes:
+      - "Limited GE buy limit of 8 keeps liquidity thin and price spreads wide"
+      - "Demand swings with PvM bossing meta and dart consumption rates"
+      - "Sailing rework patches can shift squid beak supply and pinch margins"
+  trading_tips:
+    - "Compare empty blowpipe price to fletching inputs (2 rosewood logs + squid beak) for craft margin"
+    - "Watch toxic blowpipe price as the upgrade ceiling caps adoption"
+  history:
+    - date: "19 November 2025"
+      description: "Released with the Sailing skill rollout"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
