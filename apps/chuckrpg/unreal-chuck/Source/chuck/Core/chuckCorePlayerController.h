@@ -11,4 +11,7 @@ class AchuckCorePlayerController : public AchuckPlayerController
 
 public:
 	AchuckCorePlayerController();
+
+protected:
+	virtual void PostInitializeComponents() override;
 };
