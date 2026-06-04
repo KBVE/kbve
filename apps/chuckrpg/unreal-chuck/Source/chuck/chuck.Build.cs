@@ -18,13 +18,15 @@ public class chuck : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
-			"Slate"
+			"Slate",
+			"SlateCore"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
 
 		PublicIncludePaths.AddRange(new string[] {
 			"chuck",
+			"chuck/UI",
 			"chuck/Variant_Platforming",
 			"chuck/Variant_Platforming/Animation",
 			"chuck/Variant_Combat",
