@@ -5862,13 +5862,15 @@
                   ]
                 },
                 "production": {
-                  "tags": [
-                    "ghcr.io/kbve/kasm-void:latest"
-                  ],
-                  "push": true,
+                  "load": true,
+                  "push": false,
                   "metadata": {
                     "images": [
-                      "ghcr.io/kbve/kasm-void"
+                      "ghcr.io/kbve/kasm-void",
+                      "kbve/kasm-void"
+                    ],
+                    "tags": [
+                      "latest"
                     ]
                   },
                   "cache-from": [
@@ -12408,6 +12410,33 @@
               "configurations": {},
               "parallelism": true
             },
+            "kilobase-up": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "docker compose -f kilobase-docker-compose.yml up -d",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "kilobase-down": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "docker compose -f kilobase-docker-compose.yml down",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "kilobase-reset": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "docker compose -f kilobase-docker-compose.yml down -v && docker compose -f kilobase-docker-compose.yml up -d",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "migrate-up": {
               "executor": "nx:run-commands",
               "options": {
@@ -12430,6 +12459,55 @@
               "executor": "nx:run-commands",
               "options": {
                 "command": "./test-migration.sh",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "smoke-vanilla": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "./smoke.sh vanilla",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "smoke-kilobase": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "./smoke.sh kilobase",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "smoke-vanilla-keep": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "./smoke.sh vanilla --keep",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "smoke-kilobase-keep": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "./smoke.sh kilobase --keep",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "smoke": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "./smoke.sh vanilla",
+                  "./smoke.sh kilobase"
+                ],
+                "parallel": false,
                 "cwd": "packages/data/sql/dbmate"
               },
               "configurations": {},
