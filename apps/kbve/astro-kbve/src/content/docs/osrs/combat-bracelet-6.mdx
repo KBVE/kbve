@@ -12,9 +12,35 @@ osrs:
   lowalch: 8416
   highalch: 12624
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: jewellery
+    tier: mid
+  properties:
+    release_date: "30 April 2007"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Wear
+      - Rub
+      - Drop
+    worn_options:
+      - Rub
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: hands
+    weapon_type: null
+    attack_speed: null
     weight: 0.007
+    requirements: {}
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,56 +58,38 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  charges:
-    current: 6
-    max: 6
-    recharge: Fountain of Rune
-  special_effect:
-    name: Combat Bracelet Teleport
-    description: Teleports to Warriors' Guild, Champions' Guild, Monastery, Ranging Guild
-    triggers: on_use
+  passive_effects:
+    - name: Combat Bracelet Teleport
+      description: "Teleports the wearer to Warriors' Guild, Champions' Guild, Edgeville Monastery, or Ranging Guild; this variant carries six charges obtained exclusively from the Fountain of Rune after Legends' Quest."
   related_items:
-    - item_id: 11126
-      item_name: Combat bracelet (uncharged)
+    - item_name: Combat bracelet (uncharged)
       slug: combat-bracelet
       relationship: variant
-      description: Uncharged version
-    - item_id: 11118
-      item_name: Combat bracelet(4)
+      description: "Uncharged version with no teleport charges"
+    - item_name: Combat bracelet(4)
       slug: combat-bracelet-4
       relationship: variant
-      description: 4 charge version
-    - item_id: 7462
-      item_name: Barrows gloves
+      description: "Four-charge version recharged at Legends'/Myths' Guild"
+    - item_name: Barrows gloves
       slug: barrows-gloves
       relationship: upgrade
-      description: Best-in-slot gloves
-  about: |-
-    No combat bonuses - utility item for teleportation.
-
-    - Warriors' Guild
-    - Champions' Guild
-    - Monastery (Edgeville)
-    - Ranging Guild
-
-    | State | Charges |
-    |-------|---------|
-    | Current | 6 |
-    | Maximum | 6 |
+      description: "Best-in-slot melee gloves"
+  about: "Combat bracelet(6) is the maximum-charge variant of the combat bracelet, granting six teleports to Warriors' Guild, Champions' Guild, Edgeville Monastery, or Ranging Guild. Charges are restored to six only at the Fountain of Rune (requires Legends' Quest); the standard Legends'/Myths' Guild recharge tops out at four. Slayer task progress is displayed when charged."
   market_strategy:
     notes:
-      - Maximum charges from Fountain of Rune
-      - More efficient than 4-charge version
-      - Popular for efficiency
-      - Warriors' Guild farming
-      - Combat training efficiency
-      - Ranging Guild access
-      - Maximum charge seekers
-      - Recharged at Fountain of Rune only for 6 charges
-      - More value per teleport than combat bracelet(4)
-      - Useful for defender farming runs
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Premium over the (4) variant tracks Fountain of Rune accessibility for endgame players"
+      - "Defender farmers prefer (6) for fewer recharge trips"
+      - "Partial charges are GE-locked since 2015, capping supply"
+  trading_tips:
+    - "Compare the (6) vs (4) spread against the Fountain of Rune trip time"
+    - "Watch dragonstone bracelet plus Lvl-5 Enchant cost as the long-term floor"
+  history:
+    - date: "30 April 2007"
+      description: "Released with the Fremennik Isles update"
+    - date: "11 March 2014"
+      description: "Fountain of Rune began recharging dragonstone jewellery to maximum charges"
+    - date: "2015"
+      description: "Partially charged dragonstone bracelets became untradeable on the Grand Exchange"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

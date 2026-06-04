@@ -1,6 +1,6 @@
 ---
 title: Dust battlestaff | OSRS Price Data
-description: "Dust battlestaff is a members weapon slot item requiring 30 Attack. High alch: 9,300 GP, GE limit: 8."
+description: "Dust battlestaff is a members two-handed staff that provides unlimited air and earth runes when wielded. High alch: 9,300 GP, GE limit: 8."
 osrs:
   id: 20736
   name: Dust battlestaff
@@ -12,70 +12,89 @@ osrs:
   lowalch: 6200
   highalch: 9300
   limit: 8
+  material:
+    type: battlestaff
+    tier: mid
   equipment:
     slot: weapon
-    type: staff
-    attack_style: magic
-    tradeable: true
+    weapon_type: bladed_staff
+    attack_speed: 5
     weight: 2.267
     requirements:
       attack: 30
       magic: 30
-    stats:
-      magic_attack: 12
-      attack_crush: 28
-      strength: 35
-      magic_def: 12
-  special_effect:
-    name: Unlimited Runes
-    description: Provides infinite air and earth runes
-    autocast: true
-  upgrade:
-    npc: Thormac
-    cost: 20K-40K gp
-    result_id: 20739
-    result_name: Mystic dust staff
+    attack_bonus:
+      stab: 7
+      slash: -1
+      crush: 28
+      magic: 12
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 12
+      ranged: 0
+    other_bonus:
+      melee_strength: 35
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Unlimited air and earth runes
+      description: Provides unlimited air and earth runes when wielded, enabling combo spells from the Standard spellbook without consuming either rune.
+      trigger: while_worn
   drop_table:
     sources:
       - source: Dust devil
-        rate: 1/4,000
+        rate: Varies
       - source: Superior slayer monsters
         rate: Varies
-  market:
-    buy_limit: 8
-    price_estimate: 10400
   related_items:
     - item_id: 20739
       item_name: Mystic dust staff
       slug: mystic-dust-staff
       relationship: upgrade
-      description: Upgraded version
+      description: Thormac upgrade of the dust battlestaff
     - item_id: 20730
       item_name: Mist battlestaff
       slug: mist-battlestaff
       relationship: variant
-      description: Water variant
-    - item_id: 2404
-      item_name: Dust devil
-      slug: dust-devil
+      description: Air + water combo battlestaff variant
+    - item_name: Battlestaff
+      slug: battlestaff
       relationship: component
-      description: Drop source
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Magic | +12 |
-    | Crush | +28 |
-    | Strength | +35 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Magic | +12 |
-
-    Unlimited Runes: Provides infinite air and earth runes.
-
-    Can upgrade to Mystic dust staff at Thormac (20K-40K gp).
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Base staff used across all elemental battlestaves
+  about: Dust battlestaff is a two-handed combination battlestaff dropped by dust devils and superior slayer monsters. It supplies unlimited air and earth runes while wielded, supports Standard spellbook autocast, and upgrades into the Mystic dust staff via Thormac for 20,000-40,000 coins.
+  market_strategy:
+    notes:
+      - "Supply is gated by dust devil slayer assignments, so price tracks slayer popularity"
+      - "Provides ongoing rune savings for mid-level mages running Earth/Air combo spells"
+      - "Upgrade path through Thormac keeps high-end demand sticky"
+  trading_tips:
+    - Compare to mist and smoke battlestaves before committing — task pressure drives all three
+    - Factor Thormac upgrade cost when valuing against Mystic dust staff
+  history:
+    - date: "2016-09-15"
+      description: Released alongside the other combination battlestaves as a dust devil drop.
+  properties:
+    release_date: "2016-09-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

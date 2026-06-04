@@ -12,9 +12,64 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Wooden bench (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: flatpack
+    tier: low
+  properties:
+    release_date: "31 May 2006"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 10
+      xp: 115
+      action: Make Wooden bench at a workbench
+      materials:
+        - item_name: Plank
+          quantity: 4
+        - item_name: Steel nails
+          quantity: 4
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Plank
+      slug: plank
+      relationship: component
+      description: "Four regular planks consumed per flatpack"
+    - item_name: Steel nails
+      slug: steel-nails
+      relationship: component
+      description: "Four steel nails consumed per flatpack"
+    - item_name: Oak kitchen table (flatpack)
+      slug: oak-kitchen-table-flatpack
+      relationship: alternative
+      description: "Another low-level Construction flatpack option"
+  about: "Wooden bench (flatpack) is a low-level Construction flatpack made at a workbench inside a player-owned house, requiring level 10 Construction for 115 XP. It produces a dining-room bench that can be assembled without further tools, popular for moneymaking via Mahogany Homes tea-stops and starter PoH furniture."
+  market_strategy:
+    notes:
+      - "Volume is thin; flatpack flips depend on Mahogany Homes contract demand"
+      - "Buy limit 500 per 4 hours keeps speculation in check"
+      - "Margins live in plank-and-nail cost relative to GE price"
+  trading_tips:
+    - "Track regular plank price floor and avoid producing when planks spike"
+    - "Stockpile during Construction events for resale spikes"
+  history:
+    - date: "31 May 2006"
+      description: "Released alongside the Construction skill and player-owned houses"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

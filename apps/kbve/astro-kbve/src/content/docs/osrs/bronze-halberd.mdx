@@ -12,9 +12,74 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 125
-  about: "Bronze halberd is a members-only item in Old School RuneScape. High alchemy value: 48 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: bronze
+    tier: low
+  equipment:
+    slot: 2h
+    weapon_type: polearm
+    attack_speed: 7
+    weight: 3.175
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 4
+      slash: 7
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: -1
+      slash: 2
+      crush: 3
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 5
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Quartermaster's Stores
+      location: Tyras Camp
+      price: 104
+      currency: coins
+      members_only: true
+  related_items:
+    - item_id: 3192
+      item_name: Iron halberd
+      slug: iron-halberd
+      relationship: upgrade
+      description: Stronger iron-tier halberd
+  about: "Bronze halberd is a members two-handed polearm with a 2 tile reach and 7-tick attack speed, sold by the Quartermaster's Stores in Tyras Camp. The lowest tier of the halberd family, it requires no levels to wield."
+  market_strategy:
+    notes:
+      - "Shop price tracks the Grand Exchange listing closely"
+      - "Niche demand from collectors and very-low-level pures"
+      - "Limited daily volume due to low buy limit"
+  history:
+    - date: "2004-09-20"
+      update: Halberd Update
+      description: "Bronze halberd released alongside other tier halberds."
+  properties:
+    release_date: "2004-09-20"
+    update: Halberd Update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    weight: 3.175
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

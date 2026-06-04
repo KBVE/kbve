@@ -12,34 +12,83 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  item:
-    type: material
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: secondary
+    tier: low
+  properties:
+    release_date: "2002-08-27"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.15
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Chocolate bar
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Chocolate bar
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+  shops:
+    - shop_name: Funch's Fine Groceries
+      location: Grand Tree
+      price: 2
+      currency: coins
+      stock: 10
+    - shop_name: Grand Tree Groceries
+      location: Grand Tree
+      price: 2
+      currency: coins
+      stock: 10
   related_items:
-    - item_id: 1973
-      item_name: Chocolate bar
+    - item_name: Chocolate bar
       slug: chocolate-bar
       relationship: component
-      description: Source material
-    - item_id: 3010
-      item_name: Energy potion
+      description: "Source bar crushed into dust"
+    - item_name: Energy potion
       slug: energy-potion
-      relationship: alternative
-      description: Primary use
+      relationship: product
+      description: "Primary Herblore use as a secondary"
+    - item_name: Chocolate cake
+      slug: chocolate-cake
+      relationship: product
+      description: "Used as Cooking ingredient"
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Herblore Secondary |
-    | Tradeable | Yes |
-    | Weight | 0.15 kg |
-    | Requirements | None |
-
-    Secondary ingredient for energy potions.
-
-    Also used in various food recipes.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Chocolate dust is a Herblore secondary ingredient made by using a knife or pestle and mortar on a chocolate bar. It is the main secondary for energy potions and is also used in chocolate cake and chef's delight Cooking recipes.
+  market_strategy:
+    notes:
+      - "Herblore secondary for energy potions at 26 Herblore"
+      - "Profitable to buy bars at GE and crush for resale"
+      - "Wesley in Nardah crushes noted bars for 50 gp each"
+      - "Free-to-play accessible, stable demand"
+  trading_tips:
+    - "Track chocolate bar vs dust margin daily"
+    - "Use Wesley for bulk noted bar processing"
+    - "Sell during energy potion price spikes"
+  history:
+    - date: "2002-08-27"
+      description: "Chocolate dust added with the Herblore expansion"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

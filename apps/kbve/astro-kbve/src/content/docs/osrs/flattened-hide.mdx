@@ -12,9 +12,62 @@ osrs:
   lowalch: 24
   highalch: 36
   limit: 11000
-  about: "Flattened hide is a members-only item in Old School RuneScape. High alchemy value: 36 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: monster_drop
+    tier: mid
+  properties:
+    release_date: "2005-08-01"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.175
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Dagannoth (level 88, ranged, Waterbirth Island Dungeon)
+        quantity: "1"
+        rarity: 2/128
+  related_items:
+    - item_name: Dagannoth hide
+      slug: dagannoth-hide
+      relationship: component
+      description: "Standard dagannoth hide combined with flattened/stretched hides for spined body"
+    - item_name: Stretched hide
+      slug: stretched-hide
+      relationship: alternative
+      description: "Companion hide in the spined armour exchange"
+    - item_name: Circular hide
+      slug: circular-hide
+      relationship: alternative
+      description: "Companion hide in the spined armour exchange"
+    - item_name: Spined body
+      slug: spined-body
+      relationship: product
+      description: "Crafted via Sigli the Huntsman trade-in"
+  about: |-
+    Tattered chunk of dagannoth hide dropped by level 88 ranged Dagannoths in the Waterbirth Island Dungeon at 2/128. Exchanged with Sigli the Huntsman (post-Fremennik Trials) alongside three dagannoth hides and 10,000 coins for a spined body, or traded to Askeladden for cooked tuna (pre-quest) or cooked lobster (post-quest).
+  market_strategy:
+    notes:
+      - "Locked behind The Fremennik Trials for spined body crafting"
+      - "Drop rate 2/128 is modest - supply tied to AFK Dagannoth grind"
+      - "Spined armour demand drives floor price"
+      - "Askeladden lobster trade is a stable sink for unwanted hides"
+  trading_tips:
+    - "Compare flattened + stretched + circular hide prices together - they craft the full spined set"
+    - "Buy in bulk only if Fremennik diary requirement is met"
+    - "Limit of 11,000 gives plenty of room for flips"
+  history:
+    - date: "2005-08-01"
+      description: "Released with the Waterbirth Island update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

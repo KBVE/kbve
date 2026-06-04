@@ -12,23 +12,80 @@ osrs:
   lowalch: 88
   highalch: 132
   limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: mid-high
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: herblore
+      level: 55
+      xp: 125
+      materials:
+        - item_name: Kwuarm potion (unf)
+          quantity: 1
+        - item_name: Limpwurt root
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  potion:
+    effects:
+      - description: "Boosts Strength by 5 + 15% of current Strength level (rounded down)"
+        duration: 300
+      - description: "Boost decays by approximately 1 level per minute without Preserve prayer"
+        duration: 300
   related_items:
-    - item_id: 159
-      item_name: Super strength(2)
+    - item_name: Super strength(4)
+      slug: super-strength-4
+      relationship: variant
+      description: "Four-dose version of the potion"
+    - item_name: Super strength(2)
       slug: super-strength-2
       relationship: variant
-      description: 2-dose version
-    - item_id: 161
-      item_name: Super strength(1)
+      description: "Two-dose version of the potion"
+    - item_name: Super strength(1)
       slug: super-strength-1
       relationship: variant
-      description: 1-dose version
+      description: "Single-dose version of the potion"
+    - item_name: Super attack(3)
+      slug: super-attack-3
+      relationship: component
+      description: "Paired with super strength for super combat potion"
+    - item_name: Super combat potion(4)
+      slug: super-combat-potion-4
+      relationship: upgrade
+      description: "Combined super potion replacing individual stat boosts"
   about: |-
-    > _"3 doses of super Strength potion."_
-
-    The super strength potion boosts Strength by 5 + 15% of current level (rounded down). A key combat potion, commonly paired with super attack for PvM.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Super strength is the key Strength-boosting potion, granting +5 plus 15% of the current Strength level for roughly five minutes. Brewed at 55 Herblore by combining a limpwurt root with a kwuarm potion (unf) for 125 XP. Commonly paired with super attack for combat training or combined into a super combat potion.
+  market_strategy:
+    notes:
+      - "Core Strength boost potion for combat training and PvM"
+      - "Used as component for super combat potions"
+      - "Three-dose version is a flip target due to decanter spread"
+      - "Limpwurt root supply gates Herblore brewing margin"
+  trading_tips:
+    - "Decant (3) into (4) doses for profit margin"
+    - "Watch kwuarm and limpwurt root prices for brew cost shifts"
+    - "Spike demand around bossing events and DMM"
+  history:
+    - date: "2002-02-27"
+      description: "Super strength potion added with the Herblore release"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

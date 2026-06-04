@@ -1,6 +1,6 @@
 ---
 title: Oil lantern frame | OSRS Price Data
-description: "Oil lantern frame: Add the glass to complete.. High alch: 54 GP, GE limit: 10,000."
+description: "Oil lantern frame is a Smithing intermediate forged from an iron bar that becomes an oil lantern once glass is fitted. High alch: 54 GP, GE limit: 10,000."
 osrs:
   id: 4540
   name: Oil lantern frame
@@ -12,9 +12,59 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 10000
-  about: "Oil lantern frame is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: smithed-component
+    tier: low
+  properties:
+    release_date: "2005-03-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  recipes:
+    - skill: smithing
+      level: 26
+      xp: 25
+      materials:
+        - item_name: Iron bar
+          quantity: 1
+      tools:
+        - Hammer
+      output_quantity: 1
+  related_items:
+    - item_name: Iron bar
+      slug: iron-bar
+      relationship: component
+      description: Smelted bar smithed into the frame at an anvil
+    - item_name: Lantern lens
+      slug: lantern-lens
+      relationship: component
+      description: Glass component fitted to complete the oil lantern
+    - item_name: Oil lantern
+      slug: oil-lantern
+      relationship: product
+      description: Finished lantern once the frame and lens are combined
+  about: Oil lantern frame is the Smithing intermediate for the oil lantern, forged from one iron bar on an anvil with a hammer at 26 Smithing for 25 XP. Players then attach a lantern lens at 26 Crafting to produce an empty oil lantern.
+  market_strategy:
+    notes:
+      - "Demand is driven by low-level Crafting and Firemaking training, so volume is steady but thin"
+      - "Iron bar price floor sets the input cost — undercut at GE rarely pays off"
+  trading_tips:
+    - Compare GE price vs. smelting and smithing an iron bar yourself before buying in bulk
+    - Pair purchases with lantern lens so you can finish lanterns in one bank trip
+  history:
+    - date: "2005-03-14"
+      description: Added to Smithing tables for the empty oil lantern recipe chain.
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

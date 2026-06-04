@@ -12,6 +12,28 @@ osrs:
   lowalch: 2000000
   highalch: 3000000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: rapier
+    tier: master
+  properties:
+    release_date: "2018-01-04"
+    update: "Theatre of Blood"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    options:
+      - Wield
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
   equipment:
     slot: weapon
     type: rapier
@@ -19,15 +41,30 @@ osrs:
     attack_speed: 4
     requirements:
       attack: 80
-    stats:
-      attack_stab: 94
-      attack_slash: 55
-      strength: 89
-  drop_sources:
-    - name: Theatre of Blood
-      combat_level: 0
-      drop_rate: rare
-      members_only: true
+    attack_bonus:
+      stab: 94
+      slash: 55
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 89
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    primary_source: Theatre of Blood
+    sources:
+      - source: Theatre of Blood
+        quantity: "1"
+        rarity: rare
+        members_only: true
   related_items:
     - item_id: 12006
       item_name: Abyssal tentacle
@@ -71,11 +108,18 @@ osrs:
     - Pairs well with dragon defender
   market_strategy:
     notes:
-      - ToB completions affect supply
-      - Meta weapon for high-level PvM
-      - Always in demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Investment Notes"
+      - "ToB completions affect supply"
+      - "Meta weapon for high-level PvM"
+      - "Always in demand"
+  trading_tips:
+    - "Verify ToB drop rate trends before flipping"
+    - "Best-in-slot stab demand keeps price stable"
+    - "Use Grand Exchange for secure trades"
+  history:
+    - date: "2018-01-04"
+      update: "Theatre of Blood"
+      description: "Ghrazi rapier released as a rare drop from the Theatre of Blood raid."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

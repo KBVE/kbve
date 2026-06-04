@@ -12,89 +12,102 @@ osrs:
   lowalch: 30
   highalch: 45
   limit: 11000
-  herb:
-    type: clean
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: herb
     tier: highest
+  properties:
+    release_date: "12 December 2002"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   farming:
     level: 85
-    xp: 199.5
+    plant_xp: 199.5
+    harvest_xp: 224.5
+    patch_type: herb
     growth_time: 80
     seed_id: 5304
     seed_name: Torstol seed
-  herblore:
-    cleaning_level: 75
-    cleaning_xp: 15
-    grimy_id: 219
-    grimy_name: Grimy torstol
   recipes:
+    - skill: herblore
+      level: 75
+      xp: 15
+      action: Clean grimy torstol
+      materials:
+        - item_name: Grimy torstol
+          quantity: 1
+      tools: []
+      output_quantity: 1
     - skill: herblore
       level: 90
       xp: 150
+      action: Make Super combat potion(4)
       materials:
         - item_name: Torstol
-          item_id: 269
           quantity: 1
         - item_name: Super attack(4)
-          item_id: 2436
           quantity: 1
         - item_name: Super strength(4)
-          item_id: 2440
           quantity: 1
         - item_name: Super defence(4)
-          item_id: 2442
           quantity: 1
-      product: Super combat potion(4)
-      product_id: 12695
-      members_only: true
+      tools: []
+      output_quantity: 1
     - skill: herblore
       level: 94
       xp: 125
+      action: Make Anti-venom+(4)
       materials:
         - item_name: Torstol
-          item_id: 269
           quantity: 1
         - item_name: Anti-venom(4)
-          item_id: 12905
           quantity: 1
-      product: Anti-venom+(4)
-      product_id: 12913
-      members_only: true
+      tools: []
+      output_quantity: 1
   related_items:
-    - item_id: 12695
-      item_name: Super combat potion(4)
+    - item_name: Grimy torstol
+      slug: grimy-torstol
+      relationship: variant
+      description: "Unclean form cleaned at 75 Herblore for 15 XP"
+    - item_name: Torstol seed
+      slug: torstol-seed
+      relationship: component
+      description: "Farming seed planted at 85 Farming in a herb patch"
+    - item_name: Super combat potion(4)
       slug: super-combat-potion-4
       relationship: product
-      description: Main product
-    - item_id: 12913
-      item_name: Anti-venom+(4)
+      description: "Primary high-tier melee potion using torstol as secondary"
+    - item_name: "Anti-venom+(4)"
       slug: anti-venom-plus-4
       relationship: product
-      description: Raid essential
-    - item_id: 3000
-      item_name: Snapdragon
+      description: "Raid-essential anti-venom upgrade requiring torstol"
+    - item_name: Snapdragon
       slug: snapdragon
       relationship: downgrade
-      description: Lower tier herb
-    - item_id: 12934
-      item_name: Zulrah's scales
-      slug: zulrahs-scales
-      relationship: component
-      description: Anti-venom secondary
+      description: "Lower-tier herb used in Super restore production"
+  about: "Torstol is the highest-tier standard herb in Old School RuneScape, cleaned at level 75 Herblore for 15 XP and grown at level 85 Farming. It is a core ingredient in Super combat potions, Anti-venom+, Zamorak brews, and Surge potions, making it a consistently high-value herb tied to endgame PvM consumable demand."
   market_strategy:
     notes:
-      - Super combat potion demand
-      - Anti-venom+ for raids
-      - Very high value herb
-      - Super combat potions
-      - Anti-venom+ production
-      - Zamorak brews
-      - High-level PvM
-      - Most expensive standard herb
-      - Super combat always in demand
-      - Anti-venom+ for CoX/ToB
-      - Farm runs profitable
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Super combat potion demand drives the floor; CoX and ToB anti-venom+ consumption stacks on top"
+      - "Most expensive standard herb in the game; farm runs are reliably profitable"
+      - "Demand spikes when high-level PvM content rotates back into popularity"
+  trading_tips:
+    - "Compare clean torstol price to grimy plus cleaning XP value when sourcing"
+    - "Watch super combat ingredient deltas before committing to long-term holds"
+  history:
+    - date: "12 December 2002"
+      description: "Released in RuneScape Classic and carried into Old School RuneScape"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

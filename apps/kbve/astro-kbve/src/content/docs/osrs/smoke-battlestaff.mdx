@@ -12,69 +12,94 @@ osrs:
   lowalch: 6200
   highalch: 9300
   limit: 8
-  equipment:
-    slot: weapon
-    type: staff
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: weapon
+    tier: high
+  properties:
+    release_date: "2014-04-10"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: 2h
+    weapon_type: staff
+    attack_speed: 5
     weight: 2.267
     requirements:
       attack: 30
       magic: 30
-    stats:
-      attack_magic: 12
-      attack_crush: 28
+    attack_bonus:
+      stab: 7
+      slash: -1
+      crush: 28
+      magic: 12
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 12
+      ranged: 0
+    other_bonus:
       strength: 35
-      defence_magic: 12
-  passive_effects:
-    - name: Unlimited Runes
-      description: Provides infinite air and fire runes
-    - name: Damage Boost
-      description: +10% Magic accuracy and damage for standard spellbook (includes curses)
-  obtaining:
-    methods:
+      ranged_strength: 0
+      magic_damage: 10
+      prayer: 0
+  drop_table:
+    sources:
       - source: Thermonuclear smoke devil
-        drop_rate: 1/512
-        requirements:
-          slayer: 93
-  upgrade:
-    to_item_id: 12000
-    to_item_name: Mystic smoke staff
-    vendor: Thormac
-    cost: 20K-40K gp
+        quantity: "1"
+        rarity: 1/512
+  passive_effects:
+    - name: Unlimited runes
+      description: "Provides unlimited air and fire runes when wielded"
+    - name: Standard spellbook bonus
+      description: "+10% magic accuracy and damage when casting spells from the standard spellbook (curses included)"
   related_items:
-    - item_id: 0
-      item_name: Thermonuclear smoke devil
-      slug: thermonuclear-smoke-devil
-      relationship: component
-      description: Only source
-    - item_id: 12000
-      item_name: Mystic smoke staff
+    - item_name: Mystic smoke staff
       slug: mystic-smoke-staff
       relationship: upgrade
-      description: Upgrade
-    - item_id: 11787
-      item_name: Steam battlestaff
+      description: "Upgraded variant crafted by Thormac for 20,000-40,000 coins"
+    - item_name: Steam battlestaff
       slug: steam-battlestaff
       relationship: alternative
-      description: Water+fire variant
+      description: "Water and fire elemental sibling battlestaff"
+    - item_name: Thermonuclear smoke devil
+      slug: thermonuclear-smoke-devil
+      relationship: component
+      description: "Sole drop source at 1/512"
+    - item_name: Lava battlestaff
+      slug: lava-battlestaff
+      relationship: alternative
+      description: "Earth and fire elemental sibling battlestaff"
   about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Magic | +12 |
-    | Crush | +28 |
-    | Strength | +35 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Magic | +12 |
-
-    Unlimited Runes: Provides infinite air and fire runes.
-
-    Damage Boost: +10% Magic accuracy and damage for standard spellbook (includes curses).
-
-    Can upgrade to Mystic smoke staff at Thormac (20K-40K gp).
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Magic-focused battlestaff providing unlimited air and fire runes plus a +10% accuracy and damage bonus when casting standard spellbook spells (curses included). Dropped 1/512 by Thermonuclear smoke devil at 93 Slayer. Upgradable to the Mystic smoke staff via Thormac for 20,000-40,000 coins depending on diary completion.
+  market_strategy:
+    notes:
+      - "Drop-only sourcing keeps supply tight - Thermo devils are 93 Slayer-locked"
+      - "Upgrade path to Mystic smoke staff lifts long-term demand"
+      - "GE limit 8 throttles flipping - retail flippers struggle here"
+      - "Standard spellbook DPS staple, especially for Pyromancer setups"
+  trading_tips:
+    - "Compare against Mystic smoke staff price minus Thormac fee to identify upgrade arbitrage"
+    - "Smoke devil boss spikes often deflate price short-term"
+    - "Watch for spellbook meta changes - DPS calcs move price quickly"
+  history:
+    - date: "2014-04-10"
+      description: "Released as part of the Smoke Devil Slayer monster update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

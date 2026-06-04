@@ -1,6 +1,6 @@
 ---
 title: Iron arrow(p+) | OSRS Price Data
-description: "Iron arrow(p+): Venomous-looking arrows.. High alch: 1 GP, GE limit: 7,000."
+description: "Iron arrow(p+): Venomous-looking arrows. High alch: 1 GP, GE limit: 7,000."
 osrs:
   id: 5617
   name: Iron arrow(p+)
@@ -12,9 +12,95 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
-  about: "Iron arrow(p+) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Iron arrow(p+) is an iron arrow coated in extra strong weapon poison. Used with shortbows and longbows for ranged combat with stronger poison damage than the standard (p) variant."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: metal
+    tier: iron
+  properties:
+    release_date: "2005-12-12"
+    weight: 0
+    tradeable: true
+    stackable: true
+    noteable: true
+    equipable: true
+    options:
+      - Wield
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  equipment:
+    slot: ammo
+    attack_speed: null
+    requirements:
+      ranged: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 10
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: herblore
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Iron arrow
+          quantity: 1
+        - item_name: Weapon poison(+)
+          quantity: 1
+      output_quantity: 1
+      notes: "Apply weapon poison(+) to iron arrows for the p+ variant"
+  passive_effects:
+    - name: Extra Strong Poison
+      description: "Inflicts extra strong weapon poison damage on hit; stronger than standard (p)"
+  related_items:
+    - item_id: 884
+      item_name: Iron arrow
+      slug: iron-arrow
+      relationship: variant
+      description: Unpoisoned base arrow
+    - item_id: 885
+      item_name: Iron arrow(p)
+      slug: iron-arrow-p-885
+      relationship: downgrade
+      description: Standard poison variant
+    - item_id: 5618
+      item_name: Iron arrow(p++)
+      slug: iron-arrow-p-plus-plus
+      relationship: upgrade
+      description: Super strong poison variant
+  market_strategy:
+    notes:
+      - "Niche poison ammo for low-level training and PvP"
+      - "Cheap supply once iron arrows + weapon poison(+) are common"
+      - "GE limit 7,000 per 4 hours"
+  trading_tips:
+    - "Combine: iron arrows + weapon poison(+)"
+    - "Renamed from Iron arrow(+) to Iron arrow(p+) in 2006"
+    - "Iron arrows exempt from GE convenience fee since May 2025"
+  history:
+    - date: "2002-03-25"
+      description: "Base iron arrow released"
+    - date: "2005-12-12"
+      description: "Poison variants added to the game"
+    - date: "2006-01-09"
+      description: "Renamed from Iron arrow(+) to Iron arrow(p+)"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

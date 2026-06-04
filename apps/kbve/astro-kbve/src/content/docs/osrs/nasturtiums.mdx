@@ -12,9 +12,74 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 600
-  about: "Nasturtiums is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 600 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: flower
+    tier: low
+  properties:
+    release_date: "11 July 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  farming:
+    level: 24
+    plant_xp: 19.5
+    harvest_xp: 19.5
+    patch_type: flower
+    growth_time: 20
+    seed_id: 5098
+    seed_name: Nasturtium seed
+  recipes:
+    - skill: herblore
+      level: 3
+      xp: 1
+      action: Make Imp repellent
+      materials:
+        - item_name: Nasturtiums
+          quantity: 1
+        - item_name: Anchovy oil
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Nasturtium seed
+      slug: nasturtium-seed
+      relationship: component
+      description: "Farming seed planted at 24 Farming in a flower patch"
+    - item_name: Anchovy oil
+      slug: anchovy-oil
+      relationship: component
+      description: "Combined with nasturtiums to brew imp repellent"
+    - item_name: Watermelon seed
+      slug: watermelon-seed
+      relationship: alternative
+      description: "Allotment crop protected by adjacent nasturtium patches"
+    - item_name: Marigolds
+      slug: marigolds
+      relationship: alternative
+      description: "Another flower used as crop protection payment"
+  about: "Nasturtiums are a flower harvested from a flower patch at level 24 Farming after planting nasturtium seeds. They protect adjacent watermelon allotments from disease when fully grown, serve as protection payment for wildblood hops, and brew imp repellent at low Herblore. Excess can be composted in compost bins."
+  market_strategy:
+    notes:
+      - "Demand floor set by watermelon farmers planting protection flowers"
+      - "Imp repellent recipe consumes one per craft, adding minor steady draw"
+      - "Buy limit 600 per 4 hours; thin volume keeps margins narrow"
+  trading_tips:
+    - "Track nasturtium seed price; produce-to-sell only profitable when seeds are cheap"
+    - "Watch watermelon farming run profitability for short-term price ticks"
+  history:
+    - date: "11 July 2005"
+      description: "Released with the Farming skill"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,80 @@ osrs:
   lowalch: 5120
   highalch: 7680
   limit: null
-  about: "Rune felling axe is a members-only item in Old School RuneScape. High alchemy value: 7,680 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: metal
+    tier: rune
+  properties:
+    release_date: "2023-02-15"
+    update: "Forestry"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    options:
+      - Wield
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  equipment:
+    slot: weapon
+    type: felling-axe
+    attack_style: slash
+    attack_speed: 5
+    requirements:
+      attack: 40
+      woodcutting: 41
+    attack_bonus:
+      stab: 0
+      slash: 30
+      crush: 22
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 33
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 86
+      xp: 75
+      materials:
+        - item_name: Rune axe
+          quantity: 1
+        - item_name: Rune axe head
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  about: "Rune felling axe is an untradeable Forestry woodcutting axe that supports the felling group event mechanics. Wieldable as a slash weapon at 40 Attack."
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Untradeable on the Grand Exchange — value derived from alch and Forestry utility."
+      - "High alch 7,680 gp if alching unwanted copies."
+      - "Crafted via Smithing from a regular rune axe."
+  trading_tips:
+    - "Not flippable — produced for personal Woodcutting use."
+    - "Demand tied to Forestry group event participation."
+  history:
+    - date: "2023-02-15"
+      update: "Forestry"
+      description: "Rune felling axe released with the Forestry skill expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

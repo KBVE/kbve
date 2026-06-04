@@ -12,9 +12,68 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: 13000
-  about: "Snake hide is a members-only item in Old School RuneScape. High alchemy value: 21 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: hide
+    tier: low
+  properties:
+    release_date: "9 August 2005"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Bush snake
+        quantity: "1"
+        rarity: Always
+      - source: Hoop snake
+        quantity: "1"
+        rarity: Always
+      - source: Snake (Mos Le'Harmless)
+        quantity: "1"
+        rarity: Always
+      - source: Temple Trekking event
+        quantity: "1"
+        rarity: Common
+  related_items:
+    - item_name: Snakeskin
+      slug: snakeskin
+      relationship: product
+      description: "Tanned form used in 45 Crafting snakeskin armour"
+    - item_name: Snakeskin body
+      slug: snakeskin-body
+      relationship: product
+      description: "Crafted from tanned snakeskin at 53 Crafting"
+    - item_name: Snakeskin boots
+      slug: snakeskin-boots
+      relationship: product
+      description: "Crafted from tanned snakeskin at 45 Crafting"
+    - item_name: Green dragonhide
+      slug: green-dragonhide
+      relationship: alternative
+      description: "Higher-tier hide for ranged armour crafting"
+  about: "Snake hide is a members crafting material dropped by bush snakes, hoop snakes, and Mos Le'Harmless snakes, as well as obtained from Temple Trekking. Tanned for 15 coins (25 in Canifis) into snakeskin, the resulting material crafts snakeskin armour at 45+ Crafting. A 78 Magic spell can mass-tan up to five hides per cast."
+  market_strategy:
+    notes:
+      - "Steady supply from Temple Trekking and slayer side drops keeps prices low"
+      - "Demand driven by Crafting trainers seeking cheap leather-tier XP"
+      - "Buy limit 13,000 per 4 hours allows bulk Crafting buyouts"
+  trading_tips:
+    - "Tan-to-armour profit live when snakeskin armour outpaces hide+tan cost"
+    - "Mass-tan via spell scales the margin when raw hides dip below the tanned floor"
+  history:
+    - date: "9 August 2005"
+      description: "Released with the Cabin Fever quest and Mos Le'Harmless content"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

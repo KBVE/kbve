@@ -1,6 +1,6 @@
 ---
 title: Olive oil(2) | OSRS Price Data
-description: "Olive oil(2): 2 doses of olive oil.. High alch: 10 GP, GE limit: 10,000."
+description: "Olive oil(2) is a 2-dose Shades of Mort'ton consumable used to make sacred oil. High alch: 10 GP, GE limit: 10,000."
 osrs:
   id: 3426
   name: Olive oil(2)
@@ -12,9 +12,92 @@ osrs:
   lowalch: 6
   highalch: 10
   limit: 10000
-  about: "Olive oil(2) is a members-only item in Old School RuneScape. High alchemy value: 10 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: consumable
+    tier: mid
+  equipment:
+    slot: null
+    weight: null
+    attack_speed: null
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Razmire General Store
+      price: 28
+      stock: 5
+    - shop_name: Rasolo the Wandering Merchant
+      price: 40
+      stock: 1
+  related_items:
+    - item_name: Olive oil(1)
+      slug: olive-oil-1
+      relationship: variant
+      description: Single-dose variant.
+    - item_name: Olive oil(3)
+      slug: olive-oil-3
+      relationship: variant
+      description: Three-dose variant.
+    - item_name: Olive oil(4)
+      slug: olive-oil-4
+      relationship: variant
+      description: Four-dose variant.
+    - item_name: Sacred oil(2)
+      slug: sacred-oil-2
+      relationship: upgrade
+      description: Result of using olive oil on the Temple of Mort'ton altar.
+    - item_name: Pyre logs
+      slug: pyre-logs
+      relationship: alternative
+      description: Created from sacred oil and logs for the Shades minigame.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Mid-dose variant used in Shades of Mort'ton supply chains."
+      - "Demand correlates with shade burning events."
+      - "Buy limit of 10,000 per 4 hours supports steady flipping."
+  trading_tips:
+    - "Compare per-dose price: 2-dose vs 4-dose for inventory efficiency."
+    - Stockpile when Shades of Mort'ton is in spotlight bonus.
+    - Cheap Razmire shop alts can sustainably resupply.
+  about: Olive oil(2) is a members-only 2-dose container of olive oil used in the Shades of Mort'ton minigame to create sacred oil at the temple altar.
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  properties:
+    release_date: "2004-10-18"
+    update: "Mortton Shades and Mage Armour"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.025
+    options:
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2004-10-18"
+      update: "Mortton Shades and Mage Armour"
+      description: Olive oil and the Shades of Mort'ton minigame introduced.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

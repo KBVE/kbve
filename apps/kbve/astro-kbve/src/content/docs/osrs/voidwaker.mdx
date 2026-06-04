@@ -12,38 +12,50 @@ osrs:
   lowalch: 800000
   highalch: 1200000
   limit: 70
+  material:
+    type: wilderness
+    tier: high
   equipment:
     slot: weapon
-    type: sword
-    attack_style: melee
+    weapon_type: sword
     attack_speed: 4
     attack_range: 1
+    weight: 1.814
     requirements:
       attack: 75
-    stats:
-      attack_stab: 70
-      attack_slash: 80
-      attack_crush: -2
-      attack_magic: 5
-      defence_slash: 1
-      defence_magic: 2
+    attack_bonus:
+      stab: 70
+      slash: 80
+      crush: -2
+      magic: 5
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 2
+      ranged: 0
+    other_bonus:
       melee_strength: 80
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   special_attack:
     name: Disrupt
     cost: 50
-    description: Deals guaranteed magic damage between 50-150% of maximum melee hit, grants 2 Magic XP per damage dealt
-  obtaining:
-    methods:
-      - source: Assembly
-        npc: Madam Sikaro
-        cost: 500,000 coins
-        materials:
-          - item_name: Voidwaker blade
-            item_id: 27681
-          - item_name: Voidwaker hilt
-            item_id: 27684
-          - item_name: Voidwaker gem
-            item_id: 27687
+    description: Deals guaranteed magic damage between 50-150% of maximum melee hit; grants 2 Magic XP per damage dealt and cannot be blocked or reduced.
+  recipes:
+    - skill: smithing
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Voidwaker blade
+          quantity: 1
+        - item_name: Voidwaker hilt
+          quantity: 1
+        - item_name: Voidwaker gem
+          quantity: 1
+      output_quantity: 1
   related_items:
     - item_id: 27681
       item_name: Voidwaker blade
@@ -100,11 +112,35 @@ osrs:
     Top-tier special attack weapon.
   market_strategy:
     notes:
-      - Guaranteed damage makes it reliable
-      - Popular PvP spec weapon
-      - Components from Wilderness bosses
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Investment Notes"
+      - "Guaranteed damage makes it reliable for KO setups."
+      - "Popular PvP spec weapon; tracks Wilderness boss supply."
+      - "Components from Wilderness bosses gate raw supply."
+  trading_tips:
+    - "Compare component sum vs. assembled price for craft arbitrage."
+    - "Demand spikes during PvP events and BH leagues."
+  history:
+    - date: "2023-09-13"
+      description: "Voidwaker introduced via Wilderness bosses rework."
+  properties:
+    release_date: "2023-09-13"
+    update: Wilderness Bosses Rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

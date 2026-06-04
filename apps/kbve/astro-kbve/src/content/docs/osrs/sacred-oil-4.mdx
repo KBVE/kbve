@@ -1,6 +1,6 @@
 ---
 title: Sacred oil(4) | OSRS Price Data
-description: "Sacred oil(4): 4 doses of sacred Oil.. High alch: 60 GP, GE limit: 2,000."
+description: "Sacred oil(4): 4 doses of sacred Oil. High alch: 60 GP, GE limit: 2,000."
 osrs:
   id: 3430
   name: Sacred oil(4)
@@ -12,9 +12,75 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 2000
-  about: "Sacred oil(4) is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Sacred oil(4) is a four-dose oil made by blessing olive oil at the Flamtaer altar in Mort'ton. Used to create pyre logs for Firemaking and Prayer training via the Shades of Mort'ton minigame."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2004-10-18"
+    weight: 0.035
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    options:
+      - Empty
+      - Drop
+      - Examine
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  recipes:
+    - skill: prayer
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Olive oil(4)
+          quantity: 1
+      output_quantity: 1
+      notes: "Use 4-dose olive oil on the Flamtaer altar in Mort'ton with at least 10% sanctity; requires Shades of Mort'ton completion"
+  related_items:
+    - item_id: 3424
+      item_name: Sacred oil(1)
+      slug: sacred-oil-1
+      relationship: variant
+      description: 1-dose version
+    - item_id: 3426
+      item_name: Sacred oil(2)
+      slug: sacred-oil-2
+      relationship: variant
+      description: 2-dose version
+    - item_id: 3428
+      item_name: Sacred oil(3)
+      slug: sacred-oil-3
+      relationship: variant
+      description: 3-dose version
+    - item_id: 3438
+      item_name: Pyre logs
+      slug: pyre-logs
+      relationship: product
+      description: Created with regular logs and sacred oil
+    - item_id: 3434
+      item_name: Olive oil(4)
+      slug: olive-oil-4
+      relationship: component
+      description: Pre-blessing input olive oil
+  market_strategy:
+    notes:
+      - "Used to make pyre logs for Shades of Mort'ton Prayer XP"
+      - "Doses align with tiered logs (regular 2, oak 3, willow/teak 4, etc.)"
+      - "Supply driven by olive oil collection + altar trips"
+  trading_tips:
+    - "Firemaking XP: 5 XP per dose used on a log (post-July 2024 standardisation)"
+    - "Requires Shades of Mort'ton completion to use for pyre logs"
+    - "Bless olive oil at the Flamtaer altar with at least 10% sanctity"
+  history:
+    - date: "2004-10-18"
+      description: "Released with the Shades of Mort'ton members minigame"
+    - date: "2024-07-17"
+      description: "Pyre log Firemaking XP standardised to 5 XP per dose of oil"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

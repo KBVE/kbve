@@ -13,8 +13,51 @@ osrs:
   highalch: 6
   limit: 500
   about: "Marble cape rack (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: flatpack
+    tier: marble
+  properties:
+    release_date: "2006-05-31"
+    quest_item: false
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    destroy_action: drop
+    options:
+      - drop
+  recipes:
+    - skill: construction
+      level: 84
+      xp: 500
+      materials:
+        - item_name: Marble block
+          item_id: 8788
+          quantity: 1
+      output_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 8788
+      item_name: Marble block
+      slug: marble-block
+      relationship: component
+      description: Construction material
+    - item_id: 9846
+      item_name: Gilded cape rack (flatpack)
+      slug: gilded-cape-rack-flatpack
+      relationship: alternative
+      description: Higher tier cape rack flatpack
+  market_strategy:
+    notes:
+      - "Top tier cape rack for Costume Room"
+      - "Used by Construction trainers"
+      - "Bought by max-house decorators"
+      - "Demand spikes with Construction events"
+  trading_tips:
+    - "Buying tip: stock up before Construction DXP weekends"
+    - "Selling tip: list during Construction-focused leagues"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

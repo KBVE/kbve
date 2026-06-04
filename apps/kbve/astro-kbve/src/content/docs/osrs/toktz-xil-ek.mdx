@@ -12,9 +12,96 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: 70
-  about: "Toktz-xil-ek is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: obsidian
+    tier: mid
+  properties:
+    release_date: "2005-09-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: stab sword
+    attack_speed: 4
+    weight: 1.814
+    requirements:
+      attack: 60
+    attack_bonus:
+      stab: 42
+      slash: 16
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 38
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Obsidian armour synergy
+      description: "Receives +10% melee damage and accuracy when worn with a full obsidian armour set (helmet, platebody, platelegs) alongside the Berserker necklace."
+  drop_table:
+    sources:
+      - source: TzHaar-Ket
+        quantity: "1"
+        rarity: "1/256"
+      - source: TzHaar-Xil
+        quantity: "1"
+        rarity: "1/512"
+  shops:
+    - shop_name: TzHaar-Hur-Tel's Equipment Store
+      location: Mor Ul Rek
+      price: 37500
+      stock: 5
+  related_items:
+    - item_name: Toktz-xil-ak
+      slug: toktz-xil-ak
+      relationship: alternative
+      description: Obsidian sword counterpart with stronger slash bias.
+    - item_name: Toktz-xil-ul
+      slug: toktz-xil-ul
+      relationship: variant
+      description: Obsidian rings used as ranged ammo from the same toktz family.
+    - item_name: Berserker necklace
+      slug: berserker-necklace
+      relationship: component
+      description: Required to unlock the obsidian damage bonus.
+    - item_name: Obsidian helmet
+      slug: obsidian-helmet
+      relationship: component
+      description: Part of the obsidian armour set that activates the +10% bonus.
+  about: "Toktz-xil-ek is a stab obsidian dagger requiring 60 Attack, dropped by TzHaar warriors or bought from TzHaar-Hur-Tel for 37,500 Tokkul. With +42 stab, +38 strength, and a 4-tick speed, it shines as part of the obsidian armour synergy that grants +10% melee damage and accuracy when paired with the Berserker necklace and full obsidian set."
+  market_strategy:
+    notes:
+      - "Demand driven by obsidian set training builds and Fight Cave preparation"
+      - "Tokkul shop price floors the GE rate"
+      - "Low buy limit (70) constrains flip volume"
+  trading_tips:
+    - "Compare against Tokkul-grinding payoff before buying from the GE"
+    - "Watch obsidian armour content updates for sudden demand bumps"
+  history:
+    - date: "2005-09-20"
+      description: "Released with the TzHaar city Mor Ul Rek."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,66 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 11000
-  about: "Amethyst dart tip is a members-only item in Old School RuneScape. High alchemy value: 120 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: amethyst
+    tier: high
+  recipes:
+    - skill: crafting
+      level: 89
+      xp: 14
+      materials:
+        - item_name: Amethyst
+          quantity: 1
+        - item_name: Chisel
+          quantity: 1
+      output_quantity: 15
+    - skill: fletching
+      level: 90
+      xp: 10
+      materials:
+        - item_name: Amethyst dart tip
+          quantity: 1
+        - item_name: Feather
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_name: Amethyst
+      slug: amethyst
+      relationship: component
+    - item_name: Amethyst dart
+      relationship: product
+    - item_name: Dragon dart tip
+      relationship: alternative
+    - item_name: Feather
+      relationship: component
+  market_strategy:
+    notes:
+      - "Chiselled from amethyst at 89 Crafting; supply is gated on Mining/Crafting throughput."
+      - "Demand from fletchers producing amethyst darts for ranged training."
+  trading_tips:
+    - "Track amethyst raw price to spot arbitrage windows."
+    - "Bulk margins are thin; volume matters more than spread."
+  history:
+    - date: "2020-08-26"
+      description: "Amethyst dart tip released alongside the rest of the amethyst ammunition line."
+  properties:
+    release_date: "2020-08-26"
+    update: Amethyst Ammunition
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: "Amethyst dart tip is a members-only Crafting product used to fletch amethyst darts. High alchemy value: 120 coins. Grand Exchange buy limit: 11,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Obsidian armour set | OSRS Price Data
-description: "Obsidian armour set: A set containing an Obsidian helmet, platebody and platelegs.. High alch: 75,600 GP, GE limit: 5."
+description: "Obsidian armour set is a members Grand Exchange bundle of obsidian helmet, platebody, and platelegs. High alch: 75,600 GP, GE limit: 5."
 osrs:
   id: 21279
   name: Obsidian armour set
@@ -12,9 +12,81 @@ osrs:
   lowalch: 50400
   highalch: 75600
   limit: 5
-  about: "Obsidian armour set is a members-only item in Old School RuneScape. High alchemy value: 75,600 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: armour-set
+    tier: obsidian
+  equipment:
+    slot: null
+    weight: null
+    attack_speed: null
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Obsidian helmet
+      slug: obsidian-helmet
+      relationship: set-piece
+      description: Head slot piece of the obsidian set.
+    - item_name: Obsidian platebody
+      slug: obsidian-platebody
+      relationship: set-piece
+      description: Body slot piece of the obsidian set.
+    - item_name: Obsidian platelegs
+      slug: obsidian-platelegs
+      relationship: set-piece
+      description: Leg slot piece of the obsidian set.
+    - item_name: Berserker necklace
+      slug: berserker-necklace
+      relationship: alternative
+      description: Activates the obsidian armour damage bonus with obsidian melee weapons.
+  market_strategy:
+    notes:
+      - "Investment Notes"
+      - "Use Grand Exchange Sets interface to bundle three pieces for resale."
+      - "Daily volume around 188 trades supports moderate liquidity."
+      - "Buy limit of 5 sets per 4 hours restricts bulk flipping."
+      - "Margin tracks the underlying obsidian piece prices."
+  trading_tips:
+    - "Track individual piece prices: arbitrage set vs unbundled inventory."
+    - Useful for selling full sets after TzHaar grinds with one transaction.
+    - Always exchange via GE clerk Sets interface for free bundling.
+  about: Obsidian armour set is a Grand Exchange convenience bundle that packages an obsidian helmet, platebody, and platelegs for single-transaction trading.
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  properties:
+    release_date: "2017-06-01"
+    update: "The Inferno"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2017-06-01"
+      update: "The Inferno"
+      description: Obsidian armour set released as a Grand Exchange bundle alongside The Inferno launch.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

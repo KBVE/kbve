@@ -12,9 +12,51 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 10000
-  about: "Bottle of wine is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: drink
+    tier: low
+  properties:
+    release_date: "2006-04-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Wine Shop
+      location: Draynor Village
+      price: 500
+      currency: Coins
+      stock: 2
+  drop_table:
+    sources:
+      - source: Wine stall (Thieving level 22)
+        quantity: "1"
+        rarity: 11/100
+  passive_effects:
+    - name: Drink
+      description: "Restores 14 Hitpoints but temporarily lowers Attack by 3; produces an empty wine bottle when drunk."
+  about: "Bottle of wine is a members drink sold at Fortunato's Wine Shop in Draynor Village. Used for thieving training and minor self-healing."
+  market_strategy:
+    notes:
+      - "Restocks every 15 minutes at the Draynor wine shop"
+      - "Useful for Thieving training via the wine stall"
+  trading_tips:
+    - "Buy limit: 10,000 per 4 hours"
+    - Shop price often undercuts the Grand Exchange when stock is available
+  history:
+    - date: "2006-04-10"
+      description: Item released
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

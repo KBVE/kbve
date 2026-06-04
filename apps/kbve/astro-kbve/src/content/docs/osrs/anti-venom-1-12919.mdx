@@ -12,9 +12,55 @@ osrs:
   lowalch: 44
   highalch: 66
   limit: 2000
-  about: "Anti-venom+(1) is a members-only item in Old School RuneScape. High alchemy value: 66 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2015-07-09"
+    update: "Hunter and Other Improvements"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: Drop
+  potion:
+    effects:
+      - description: "Cures venom and grants venom immunity for 3 minutes."
+        duration: 180
+  recipes:
+    - skill: herblore
+      level: 94
+      xp: 30
+      materials:
+        - item_name: Anti-venom+ (4)
+          quantity: 1
+      tools:
+        - Vial
+      output_quantity: 1
+  about: "Anti-venom+(1) is a 1-dose super antivenom potion that cures venom and grants 3 minutes of venom immunity. Used widely at venomous bosses like Zulrah and Vorkath."
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "High alch 66 gp vs typical GE price — alching is unprofitable."
+      - "Decant 4-dose into smaller doses for tighter spreads."
+      - "Demand spikes with Zulrah and Vorkath kill counts."
+  trading_tips:
+    - "Bulk consumed by venom-immune PvM grinds."
+    - "GE buy limit 2,000 per 4 hours."
+  history:
+    - date: "2015-07-09"
+      update: "Hunter and Other Improvements"
+      description: "Anti-venom+ released alongside the Anti-venom potion rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

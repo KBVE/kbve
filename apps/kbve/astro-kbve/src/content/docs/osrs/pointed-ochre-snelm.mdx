@@ -13,8 +13,64 @@ osrs:
   highalch: 180
   limit: 150
   about: "Pointed ochre snelm is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: shell
+    tier: low
+  properties:
+    release_date: "2003-09-15"
+    quest_item: false
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    destroy_action: drop
+    options:
+      - wear
+      - drop
+    worn_options:
+      - remove
+  equipment:
+    slot: head
+    attack_speed: 4
+    requirements:
+      defence: 1
+  recipes:
+    - skill: crafting
+      level: 15
+      xp: 32
+      materials:
+        - item_name: Ochre shell
+          item_id: 3325
+          quantity: 1
+      output_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 3325
+      item_name: Ochre shell
+      slug: ochre-shell
+      relationship: component
+      description: Required raw shell
+    - item_id: 3337
+      item_name: Pointed red snelm
+      slug: pointed-red-snelm
+      relationship: alternative
+      description: Red coloured variant
+    - item_id: 3339
+      item_name: Pointed blue snelm
+      slug: pointed-blue-snelm
+      relationship: alternative
+      description: Blue coloured variant
+  market_strategy:
+    notes:
+      - "Niche helmet from snail shells"
+      - "Used by low-level Crafting trainers"
+      - "Cosmetic appeal for nostalgia outfits"
+      - "Thin steady volume"
+  trading_tips:
+    - "Buying tip: cheap to source from low-level players"
+    - "Selling tip: pair with full snelm sets for collectors"
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

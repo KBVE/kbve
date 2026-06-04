@@ -12,13 +12,89 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  related_items: []
+  mdx_version: 3
+  mdx_updated: "2026-06-04"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2003-07-28"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Rock crab
+        quantity: "1"
+        rarity: Common
+      - source: Sand crab
+        quantity: "1"
+        rarity: Common
+      - source: Ammonite crab
+        quantity: "1"
+        rarity: Common
+      - source: Swamp crab
+        quantity: "1"
+        rarity: Common
+      - source: Giant sea snake
+        quantity: "1"
+        rarity: Common
+      - source: Dagannoth
+        quantity: "1"
+        rarity: Uncommon
+      - source: Kraken
+        quantity: "1"
+        rarity: Uncommon
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Edible seaweed
+          quantity: 1
+      tools:
+        - Fire or Range
+      output_quantity: 1
+  related_items:
+    - item_name: Soda ash
+      slug: soda-ash
+      relationship: product
+      description: "Created by cooking edible seaweed on a fire or range"
+    - item_name: Seaweed
+      slug: seaweed
+      relationship: alternative
+      description: "Standard seaweed variant used in glass-making"
+    - item_name: Molten glass
+      slug: molten-glass
+      relationship: product
+      description: "Crafting product downstream from soda ash"
   about: |-
-    > _"Slightly damp seaweed."_
-
-    Edible seaweed heals 4 Hitpoints when eaten. Can also be cooked on a fire or range to produce soda ash, used in making molten glass for Crafting.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Slightly damp seaweed that heals 4 Hitpoints when eaten. Cooks into soda ash on a fire or range (no Cooking xp), feeding the molten glass pipeline. Drops from many sea-themed monsters and spawns on Fossil Island and Mos Le'Harmless beaches.
+  market_strategy:
+    notes:
+      - "Soda ash demand from Crafting (molten glass) underpins long-term value"
+      - "Multiple drop sources keep supply elastic"
+      - "Cheap stack-up food for low-tier ironman content"
+      - "Fossil Island spawns make ironman gathering trivial"
+  trading_tips:
+    - "Compare against regular seaweed - edible variant has the cooking quirk"
+    - "Watch Crafting xp meta updates that spike glass demand"
+    - "Random event Fairytale I - Growing Pains can demand one as a quest item"
+  history:
+    - date: "2003-07-28"
+      description: "Released alongside expanded Cooking and Crafting content"
+    - date: "2017-09-07"
+      description: "Added to Fossil Island ground spawn pools"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
