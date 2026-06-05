@@ -36,7 +36,7 @@ const handlers: Record<string, Handler> = {
     if (cursorErr) return cursorErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_fetch_comments", {
+    const { data, error } = await supabase.schema("meme").rpc("service_fetch_comments", {
       p_meme_id: meme_id as string,
       p_limit: safeLimit,
       p_cursor: (cursor as string) ?? null,
@@ -68,7 +68,7 @@ const handlers: Record<string, Handler> = {
     if (cursorErr) return cursorErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_fetch_replies", {
+    const { data, error } = await supabase.schema("meme").rpc("service_fetch_replies", {
       p_parent_id: parent_id as string,
       p_limit: safeLimit,
       p_cursor: (cursor as string) ?? null,
@@ -104,7 +104,7 @@ const handlers: Record<string, Handler> = {
     }
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_create_comment", {
+    const { data, error } = await supabase.schema("meme").rpc("service_create_comment", {
       p_user_id: userId,
       p_meme_id: meme_id as string,
       p_body: (commentBody as string).trim(),
@@ -127,7 +127,7 @@ const handlers: Record<string, Handler> = {
     if (idErr) return idErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_delete_comment", {
+    const { data, error } = await supabase.schema("meme").rpc("service_delete_comment", {
       p_user_id: userId,
       p_comment_id: comment_id as string,
     });

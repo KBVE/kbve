@@ -39,7 +39,7 @@ const handlers: Record<string, Handler> = {
     }
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_record_transfers", {
+    const { data, error } = await supabase.schema("mc").rpc("service_record_transfers", {
       p_batch: batch,
     });
 
@@ -66,7 +66,7 @@ const handlers: Record<string, Handler> = {
     const offset = Math.max(rawOffset, 0);
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await supabase.schema("mc").rpc(
       "service_get_transfer_history",
       {
         p_player_uuid: player_uuid as string,

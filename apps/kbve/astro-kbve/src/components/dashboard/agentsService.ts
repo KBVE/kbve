@@ -40,6 +40,25 @@ export interface AgentTokenRow {
 const DISCORD_API_BASE = 'https://discord.com/api/v10';
 const GUILD_VAULT_URL = `${SUPABASE_URL}/functions/v1/guild-vault`;
 const DISCORD_BOOTSTRAP_URL = `${SUPABASE_URL}/functions/v1/discord-bootstrap`;
+const DISCORD_BOT_URL = `${SUPABASE_URL}/functions/v1/discord-bot`;
+const GH_ADMIN_URL = `${SUPABASE_URL}/functions/v1/gh-admin`;
+
+export interface DiscordForumChannel {
+	id: string;
+	name: string;
+	parent_id: string | null;
+	position: number;
+}
+
+export interface GithubRepoHook {
+	id: number;
+	name: string;
+	active: boolean;
+	events: string[];
+	url: string | null;
+	is_kbve: boolean;
+	updated_at: string;
+}
 const GUILDS_CACHE_KEY = 'kbve:agents:owned_guilds_cache:v1';
 const TOKENS_CACHE_KEY = 'kbve:agents:tokens_cache:v1';
 // localStorage cache: offline fallback when Discord can't be reached.
@@ -674,18 +693,10 @@ class AgentsService {
 	public async setRepoAllowlist(
 		repos: string[],
 	): Promise<{ ok: true } | { ok: false; error: string }> {
-		const tokens = this.$tokens.get();
-		const existing = tokens.find((t) => t.service === 'github_repos');
-		const value = JSON.stringify({ repos });
-
-		if (existing) {
-			const r = await this.deleteToken(existing.token_id);
-			if (!r.ok) return { ok: false, error: r.error };
-		}
 		const r = await this.addToken({
 			tokenName: 'github-repos',
 			service: 'github_repos',
-			tokenValue: value,
+			tokenValue: JSON.stringify({ repos }),
 			description:
 				'Per-guild repo allowlist consumed by gh-webhook and gh-backfill',
 		});
@@ -714,18 +725,10 @@ class AgentsService {
 	public async setBotConfig(
 		config: DiscordshConfig,
 	): Promise<{ ok: true } | { ok: false; error: string }> {
-		const tokens = this.$tokens.get();
-		const existing = tokens.find((t) => t.service === 'discordsh_config');
-		const value = JSON.stringify(config);
-
-		if (existing) {
-			const r = await this.deleteToken(existing.token_id);
-			if (!r.ok) return { ok: false, error: r.error };
-		}
 		const r = await this.addToken({
 			tokenName: 'discordsh-config',
 			service: 'discordsh_config',
-			tokenValue: value,
+			tokenValue: JSON.stringify(config),
 			description:
 				'Per-guild DiscordSH bot config (channels, defaults, toggles)',
 		});
@@ -785,10 +788,18 @@ class AgentsService {
 				};
 			}
 			if (!resp.ok) {
-				const errMsg =
-					(body as { error?: string } | null)?.error ??
-					`HTTP ${resp.status}`;
-				return { ok: false, error: errMsg };
+				const b = body as {
+					error?: string;
+					sqlstate?: string | null;
+					hint?: string | null;
+					context?: string | null;
+				} | null;
+				const parts: string[] = [];
+				parts.push(b?.error ?? `HTTP ${resp.status}`);
+				if (b?.sqlstate) parts.push(`sqlstate=${b.sqlstate}`);
+				if (b?.hint) parts.push(`hint=${b.hint}`);
+				if (b?.context) parts.push(`context=${b.context}`);
+				return { ok: false, error: parts.join(' · ') };
 			}
 			return { ok: true, body };
 		} catch (e) {
@@ -810,6 +821,167 @@ class AgentsService {
 
 	public webhookUrlFor(guildId: string): string {
 		return `${SUPABASE_URL}/functions/v1/gh-webhook/${guildId}`;
+	}
+
+	private async callJson<T>(
+		url: string,
+		body: Record<string, unknown>,
+	): Promise<{ ok: true; data: T } | { ok: false; error: string }> {
+		const accessToken = this.$accessToken.get();
+		if (!accessToken) return { ok: false, error: 'Not authenticated' };
+		try {
+			const resp = await fetch(url, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${accessToken}`,
+				},
+				body: JSON.stringify(body),
+			});
+			const text = await resp.text();
+			let parsed: unknown;
+			try {
+				parsed = text.length > 0 ? JSON.parse(text) : {};
+			} catch {
+				return {
+					ok: false,
+					error: `HTTP ${resp.status}: ${text.slice(0, 200)}`,
+				};
+			}
+			if (!resp.ok) {
+				const b = parsed as {
+					error?: string;
+					sqlstate?: string | null;
+					hint?: string | null;
+					context?: string | null;
+				} | null;
+				const parts: string[] = [b?.error ?? `HTTP ${resp.status}`];
+				if (b?.sqlstate) parts.push(`sqlstate=${b.sqlstate}`);
+				if (b?.hint) parts.push(`hint=${b.hint}`);
+				if (b?.context) parts.push(`context=${b.context}`);
+				return { ok: false, error: parts.join(' · ') };
+			}
+			return { ok: true, data: parsed as T };
+		} catch (e) {
+			return {
+				ok: false,
+				error: e instanceof Error ? e.message : 'Network error',
+			};
+		}
+	}
+
+	public async isBotMember(
+		guildId: string,
+	): Promise<
+		| { ok: true; isMember: boolean; joinedAt: string | null }
+		| { ok: false; error: string }
+	> {
+		const r = await this.callJson<{
+			is_member: boolean;
+			joined_at: string | null;
+		}>(DISCORD_BOT_URL, {
+			command: 'bot.is_member',
+			server_id: guildId,
+		});
+		if (!r.ok) return r;
+		return {
+			ok: true,
+			isMember: !!r.data.is_member,
+			joinedAt: r.data.joined_at ?? null,
+		};
+	}
+
+	public async listForumChannels(
+		guildId: string,
+	): Promise<
+		| { ok: true; channels: DiscordForumChannel[] }
+		| { ok: false; error: string }
+	> {
+		const r = await this.callJson<{ channels: DiscordForumChannel[] }>(
+			DISCORD_BOT_URL,
+			{
+				command: 'bot.list_forum_channels',
+				server_id: guildId,
+			},
+		);
+		if (!r.ok) return r;
+		return { ok: true, channels: r.data.channels ?? [] };
+	}
+
+	public async installRepoWebhook(
+		guildId: string,
+		owner: string,
+		repo: string,
+	): Promise<
+		| {
+				ok: true;
+				installed: boolean;
+				alreadyPresent: boolean;
+				hookId: number | null;
+		  }
+		| { ok: false; error: string }
+	> {
+		const r = await this.callJson<{
+			installed: boolean;
+			already_present: boolean;
+			hook_id: number | null;
+		}>(GH_ADMIN_URL, {
+			command: 'webhooks.install',
+			server_id: guildId,
+			owner,
+			repo,
+		});
+		if (!r.ok) return r;
+		return {
+			ok: true,
+			installed: !!r.data.installed,
+			alreadyPresent: !!r.data.already_present,
+			hookId: r.data.hook_id ?? null,
+		};
+	}
+
+	public async listRepoWebhooks(
+		guildId: string,
+		owner: string,
+		repo: string,
+	): Promise<
+		| {
+				ok: true;
+				expectedUrl: string;
+				hooks: GithubRepoHook[];
+		  }
+		| { ok: false; error: string }
+	> {
+		const r = await this.callJson<{
+			expected_url: string;
+			hooks: GithubRepoHook[];
+		}>(GH_ADMIN_URL, {
+			command: 'webhooks.list',
+			server_id: guildId,
+			owner,
+			repo,
+		});
+		if (!r.ok) return r;
+		return {
+			ok: true,
+			expectedUrl: r.data.expected_url,
+			hooks: r.data.hooks ?? [],
+		};
+	}
+
+	public botInstallUrl(guildId?: string): string | null {
+		const clientId =
+			(import.meta.env.PUBLIC_DISCORD_BOT_CLIENT_ID as
+				| string
+				| undefined) ??
+			(import.meta.env.PUBLIC_DISCORD_CLIENT_ID as string | undefined);
+		if (!clientId || !/^[0-9]{17,20}$/.test(clientId)) return null;
+		const perms = '326417847872';
+		const scope = 'bot applications.commands';
+		const guildParam = guildId
+			? `&guild_id=${guildId}&disable_guild_select=true`
+			: '';
+		return `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${perms}&scope=${encodeURIComponent(scope)}${guildParam}`;
 	}
 
 	public async validateGithubPat(

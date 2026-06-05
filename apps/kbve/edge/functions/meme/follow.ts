@@ -35,7 +35,7 @@ const handlers: Record<string, Handler> = {
     }
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_follow", {
+    const { data, error } = await supabase.schema("meme").rpc("service_follow", {
       p_follower_id: userId,
       p_following_id: following_id as string,
     });
@@ -56,7 +56,7 @@ const handlers: Record<string, Handler> = {
     if (idErr) return idErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_unfollow", {
+    const { data, error } = await supabase.schema("meme").rpc("service_unfollow", {
       p_follower_id: userId,
       p_following_id: following_id as string,
     });
