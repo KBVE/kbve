@@ -4,9 +4,17 @@
 #include "Framework/Application/SlateApplication.h"
 #include "HAL/PlatformFileManager.h"
 #include "ImageUtils.h"
+#include "Materials/Material.h"
+#include "Materials/MaterialInterface.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "Rendering/SlateRenderer.h"
+#include "UObject/ConstructorHelpers.h"
+#if WITH_EDITORONLY_DATA
+#include "Materials/MaterialExpressionMultiply.h"
+#include "Materials/MaterialExpressionTextureSampleParameter2D.h"
+#include "Materials/MaterialExpressionVectorParameter.h"
+#endif
 
 #include "KBVEYYJson.h"
 
@@ -87,6 +95,22 @@ void UchuckItemDB::LoadAtlas()
 	AtlasTexture->SRGB = true;
 	AtlasTexture->UpdateResource();
 
+	if (FTexturePlatformData* PD = AtlasTexture->GetPlatformData())
+	{
+		if (PD->Mips.Num() > 0)
+		{
+			FTexture2DMipMap& Mip = PD->Mips[0];
+			AtlasW = Mip.SizeX;
+			AtlasH = Mip.SizeY;
+			if (const FColor* Src = (const FColor*)Mip.BulkData.LockReadOnly())
+			{
+				AtlasPixels.SetNumUninitialized(AtlasW * AtlasH);
+				FMemory::Memcpy(AtlasPixels.GetData(), Src, AtlasPixels.Num() * sizeof(FColor));
+				Mip.BulkData.Unlock();
+			}
+		}
+	}
+
 	AtlasBrush.SetResourceObject(AtlasTexture);
 	AtlasBrush.ImageSize = FVector2D(AtlasTexture->GetSizeX(), AtlasTexture->GetSizeY());
 	AtlasBrush.DrawAs = ESlateBrushDrawType::Image;
@@ -160,6 +184,16 @@ void UchuckItemDB::LoadFromJson(const FString& JsonText)
 		Def.BuyPrice      = IntFieldUtf8(ItemVal, "buyPrice", 0);
 		Def.SellPrice     = IntFieldUtf8(ItemVal, "sellPrice", 0);
 		Def.bConsumable   = BoolFieldUtf8(ItemVal, "consumable", false);
+		Def.HealHP        = static_cast<float>(IntFieldUtf8(ItemVal, "healHP",    0));
+		Def.RestoreMP     = static_cast<float>(IntFieldUtf8(ItemVal, "restoreMP", 0));
+		Def.RestoreEP     = static_cast<float>(IntFieldUtf8(ItemVal, "restoreEP", 0));
+		if (Def.bConsumable && Def.HealHP == 0.f && Def.RestoreMP == 0.f && Def.RestoreEP == 0.f)
+		{
+			const FString R = Def.Ref.ToString().ToLower();
+			if      (R.Contains(TEXT("mana")))   Def.RestoreMP = 25.f;
+			else if (R.Contains(TEXT("stam")) || R.Contains(TEXT("energy"))) Def.RestoreEP = 30.f;
+			else                                  Def.HealHP    = 20.f;
+		}
 
 		if (yyjson_val* RV = yyjson_obj_get(ItemVal, "rarity"))
 		{
@@ -202,4 +236,142 @@ const FchuckItemDef* UchuckItemDB::LookupByRef(FName Ref) const
 		return LookupByKey(*KeyPtr);
 	}
 	return nullptr;
+}
+
+UTexture2D* UchuckItemDB::GetRadialDiscTexture()
+{
+	if (RadialDiscTex) return RadialDiscTex;
+
+	constexpr int32 Size = 128;
+	UTexture2D* T = UTexture2D::CreateTransient(Size, Size, PF_B8G8R8A8);
+	if (!T) return nullptr;
+	T->SRGB = false;
+	T->Filter = TF_Bilinear;
+	T->AddressX = TA_Clamp;
+	T->AddressY = TA_Clamp;
+	T->NeverStream = true;
+	T->CompressionSettings = TC_VectorDisplacementmap;
+
+	FTexture2DMipMap& Mip = T->GetPlatformData()->Mips[0];
+	if (FColor* Pixels = (FColor*)Mip.BulkData.Lock(LOCK_READ_WRITE))
+	{
+		const float Center = Size * 0.5f;
+		for (int32 Y = 0; Y < Size; ++Y)
+		{
+			for (int32 X = 0; X < Size; ++X)
+			{
+				const float dx = (X + 0.5f - Center) / Center;
+				const float dy = (Y + 0.5f - Center) / Center;
+				const float r2 = dx * dx + dy * dy;
+				float a = 0.f;
+				if (r2 < 1.f)
+				{
+					const float r = FMath::Sqrt(r2);
+					const float Inner  = FMath::Clamp(1.f - r / 0.85f, 0.f, 1.f) * 0.18f;
+					const float Rim    = FMath::Clamp((r - 0.78f) / 0.18f, 0.f, 1.f) *
+					                     FMath::Clamp((0.97f - r) / 0.19f, 0.f, 1.f) * 1.1f;
+					a = FMath::Min(1.f, Inner + Rim);
+				}
+				FColor& C = Pixels[Y * Size + X];
+				C.B = 255; C.G = 255; C.R = 255;
+				C.A = (uint8)FMath::Clamp(a * 255.f, 0.f, 255.f);
+			}
+		}
+		Mip.BulkData.Unlock();
+	}
+	T->UpdateResource();
+	RadialDiscTex = T;
+	return T;
+}
+
+UMaterialInterface* UchuckItemDB::GetTranslucentBillboardMaterial()
+{
+	if (TranslucentBillboardMat) return TranslucentBillboardMat;
+
+#if WITH_EDITORONLY_DATA
+	UMaterial* Mat = NewObject<UMaterial>(GetTransientPackage(), NAME_None, RF_Transient);
+	if (!Mat) return nullptr;
+	Mat->BlendMode = BLEND_Translucent;
+	Mat->SetShadingModel(MSM_Unlit);
+	Mat->TwoSided = true;
+
+	UMaterialEditorOnlyData* ED = Mat->GetEditorOnlyData();
+	if (!ED) { TranslucentBillboardMat = Mat; return Mat; }
+
+	UMaterialExpressionTextureSampleParameter2D* TexSample = NewObject<UMaterialExpressionTextureSampleParameter2D>(Mat);
+	TexSample->ParameterName = TEXT("Texture");
+	TexSample->SamplerType   = SAMPLERTYPE_Color;
+	ED->ExpressionCollection.Expressions.Add(TexSample);
+
+	UMaterialExpressionVectorParameter* TintParam = NewObject<UMaterialExpressionVectorParameter>(Mat);
+	TintParam->ParameterName = TEXT("Tint");
+	TintParam->DefaultValue  = FLinearColor(1.f, 1.f, 1.f, 1.f);
+	ED->ExpressionCollection.Expressions.Add(TintParam);
+
+	UMaterialExpressionMultiply* MulRgb = NewObject<UMaterialExpressionMultiply>(Mat);
+	MulRgb->A.Expression  = TexSample; MulRgb->A.OutputIndex = 0;
+	MulRgb->B.Expression  = TintParam; MulRgb->B.OutputIndex = 0;
+	ED->ExpressionCollection.Expressions.Add(MulRgb);
+
+	UMaterialExpressionMultiply* MulAlpha = NewObject<UMaterialExpressionMultiply>(Mat);
+	MulAlpha->A.Expression  = TexSample; MulAlpha->A.OutputIndex = 4;
+	MulAlpha->B.Expression  = TintParam; MulAlpha->B.OutputIndex = 4;
+	ED->ExpressionCollection.Expressions.Add(MulAlpha);
+
+	ED->EmissiveColor.Expression  = MulRgb;
+	ED->Opacity.Expression        = MulAlpha;
+
+	Mat->PreEditChange(nullptr);
+	Mat->PostEditChange();
+	Mat->ForceRecompileForRendering();
+
+	TranslucentBillboardMat = Mat;
+	return Mat;
+#else
+	TranslucentBillboardMat = LoadObject<UMaterialInterface>(
+		nullptr, TEXT("/Engine/EngineMaterials/EmissiveTexturedMaterial.EmissiveTexturedMaterial"));
+	return TranslucentBillboardMat;
+#endif
+}
+
+UTexture2D* UchuckItemDB::GetIconTexture(int32 ItemKey)
+{
+	if (TObjectPtr<UTexture2D>* Cached = IconTextureCache.Find(ItemKey))
+	{
+		return Cached->Get();
+	}
+	if (AtlasPixels.Num() == 0 || AtlasW == 0 || AtlasH == 0) return nullptr;
+
+	FVector2D UVTL, UVBR;
+	GetIconUV(ItemKey, UVTL, UVBR);
+	const int32 X0 = FMath::Clamp(FMath::FloorToInt(UVTL.X * AtlasW), 0, AtlasW - 1);
+	const int32 Y0 = FMath::Clamp(FMath::FloorToInt(UVTL.Y * AtlasH), 0, AtlasH - 1);
+	const int32 X1 = FMath::Clamp(FMath::CeilToInt (UVBR.X * AtlasW), X0 + 1, AtlasW);
+	const int32 Y1 = FMath::Clamp(FMath::CeilToInt (UVBR.Y * AtlasH), Y0 + 1, AtlasH);
+	const int32 W  = X1 - X0;
+	const int32 H  = Y1 - Y0;
+	if (W <= 0 || H <= 0) return nullptr;
+
+	UTexture2D* T = UTexture2D::CreateTransient(W, H, PF_B8G8R8A8);
+	if (!T) return nullptr;
+	T->SRGB     = true;
+	T->Filter   = TF_Bilinear;
+	T->AddressX = TA_Clamp;
+	T->AddressY = TA_Clamp;
+	T->NeverStream = true;
+	T->CompressionSettings = TC_VectorDisplacementmap;
+
+	FTexture2DMipMap& Mip = T->GetPlatformData()->Mips[0];
+	if (FColor* Dst = (FColor*)Mip.BulkData.Lock(LOCK_READ_WRITE))
+	{
+		for (int32 Y = 0; Y < H; ++Y)
+		{
+			const FColor* SrcRow = AtlasPixels.GetData() + (Y0 + Y) * AtlasW + X0;
+			FMemory::Memcpy(Dst + Y * W, SrcRow, W * sizeof(FColor));
+		}
+		Mip.BulkData.Unlock();
+	}
+	T->UpdateResource();
+	IconTextureCache.Add(ItemKey, T);
+	return T;
 }

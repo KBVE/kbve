@@ -29,4 +29,5 @@ public:
 	TKBVEChannel<FchuckInventoryDirtyPayload>  InventoryDirty;
 	TKBVEChannel<FchuckDamageReceivedPayload>  DamageReceived;
 	TKBVEChannel<FchuckTooltipPayload>         Tooltip;
+	TKBVEChannel<FchuckItemConsumedPayload>    ItemConsumed;
 };

@@ -30,8 +30,11 @@ public:
 
 	int32 ServerAddItemByKey(int32 ItemKey, int32 Count);
 	int32 ServerAddItemByRef(FName Ref, int32 Count);
+	bool  ServerConsumeSlot(int32 SlotIndex, bool bHotbar);
+	bool  ServerDropSlot(int32 SlotIndex, bool bHotbar, int32 Count = 1);
 
 	void SwapBagSlots(int32 IndexA, int32 IndexB, bool bHotbar);
+	void SwapAcrossContainers(int32 BagIndex, int32 HotbarIndex);
 
 protected:
 	virtual void PostInitializeComponents() override;

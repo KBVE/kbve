@@ -28,6 +28,56 @@ fi
 
 ABS_UPROJECT="$(cd "$(dirname "$UPROJECT")" && pwd)/$(basename "$UPROJECT")"
 
+EXISTING_PIDS=$(pgrep -f "UnrealEditor.*chuck.uproject" || true)
+if [ -n "$EXISTING_PIDS" ]; then
+	echo "==> graceful AppleScript quit: UnrealEditor(chuck) pids=$EXISTING_PIDS"
+	osascript -e 'tell application "UnrealEditor" to quit' 2>/dev/null || true
+
+	WAIT=0
+	while [ "$WAIT" -lt 30 ] && pgrep -f "UnrealEditor.*chuck.uproject" >/dev/null 2>&1; do
+		sleep 1
+		WAIT=$((WAIT + 1))
+	done
+
+	REMAINING=$(pgrep -f "UnrealEditor.*chuck.uproject" || true)
+	if [ -n "$REMAINING" ]; then
+		echo "==> SIGINT escalation: $REMAINING"
+		for PID in $REMAINING; do
+			kill -INT "$PID" 2>/dev/null || true
+		done
+		WAIT=0
+		while [ "$WAIT" -lt 15 ] && pgrep -f "UnrealEditor.*chuck.uproject" >/dev/null 2>&1; do
+			sleep 1
+			WAIT=$((WAIT + 1))
+		done
+	fi
+
+	REMAINING=$(pgrep -f "UnrealEditor.*chuck.uproject" || true)
+	if [ -n "$REMAINING" ]; then
+		echo "==> SIGTERM escalation: $REMAINING"
+		for PID in $REMAINING; do
+			kill -TERM "$PID" 2>/dev/null || true
+		done
+		WAIT=0
+		while [ "$WAIT" -lt 10 ] && pgrep -f "UnrealEditor.*chuck.uproject" >/dev/null 2>&1; do
+			sleep 1
+			WAIT=$((WAIT + 1))
+		done
+	fi
+
+	REMAINING=$(pgrep -f "UnrealEditor.*chuck.uproject" || true)
+	if [ -n "$REMAINING" ]; then
+		echo "==> SIGKILL last resort: $REMAINING"
+		for PID in $REMAINING; do
+			kill -KILL "$PID" 2>/dev/null || true
+		done
+		sleep 1
+	fi
+
+	pkill -f "CrashReportClient" 2>/dev/null || true
+	pkill -f "EpicWebHelper" 2>/dev/null || true
+fi
+
 echo "==> launching UnrealEditor (uproject=$UPROJECT)"
 echo "==> log stream:"
 

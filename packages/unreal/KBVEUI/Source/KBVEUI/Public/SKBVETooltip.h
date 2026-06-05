@@ -4,9 +4,15 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 
-// Lightweight floating tooltip widget. Caller mounts it once at the
-// viewport top layer; SetTip(text, screenPos) shows it; Hide() collapses.
-// Designed to be cached + reused -- one tooltip widget per player viewport.
+struct FKBVETooltipContent
+{
+	FText        Title;
+	FText        Subtitle;
+	FText        Body;
+	FLinearColor TitleColor  = FLinearColor::White;
+	FLinearColor BorderColor = FLinearColor(0.55f, 0.62f, 0.78f, 0.85f);
+};
+
 class KBVEUI_API SKBVETooltip : public SCompoundWidget
 {
 public:
@@ -17,15 +23,25 @@ public:
 	void Construct(const FArguments& InArgs);
 
 	void Show(const FText& InText, const FVector2D& ScreenPos);
+	void ShowRich(const FKBVETooltipContent& Content, const FVector2D& ScreenPos);
 	void Hide();
 	bool IsVisible() const { return bShown; }
 
 private:
-	EVisibility GetVisibility() const;
-	FVector2D   GetRenderTransform() const;
-	FText       GetText() const;
+	EVisibility GetRootVisibility() const;
+	FSlateColor GetBorderColor() const;
 
-	FText   CurrentText;
-	FVector2D CurrentPos = FVector2D::ZeroVector;
-	bool    bShown = false;
+	void RebuildLayout(const FKBVETooltipContent& Content, const FVector2D& ScreenPos);
+
+	FVector2D    AnchorPos = FVector2D::ZeroVector;
+	FVector2D    ContentSize = FVector2D(180.f, 28.f);
+	bool         bShown = false;
+	FLinearColor BorderColor = FLinearColor(0.55f, 0.62f, 0.78f, 0.85f);
+
+	TSharedPtr<class SCanvas>     Canvas;
+	TSharedPtr<class SBox>        ContentBox;
+	TSharedPtr<class STextBlock>  TitleWidget;
+	TSharedPtr<class STextBlock>  SubtitleWidget;
+	TSharedPtr<class STextBlock>  BodyWidget;
+	TSharedPtr<class SImage>      SeparatorImage;
 };

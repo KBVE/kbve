@@ -10,6 +10,7 @@ class SchuckDevOverlay;
 class SchuckHotbar;
 class SchuckInventoryWindow;
 class SKBVETooltip;
+class SKBVEDragArrowLayer;
 struct FInputActionValue;
 
 UCLASS()
@@ -50,7 +51,17 @@ private:
 	TSharedPtr<SchuckHotbar>          HotbarWidget;
 	TSharedPtr<SchuckInventoryWindow> InventoryWidget;
 	TSharedPtr<SKBVETooltip>          TooltipWidget;
+	TSharedPtr<SKBVEDragArrowLayer>   DragArrowLayer;
 	uint64 TooltipHandleId = 0;
+
+	bool        bPendingTooltipShow    = false;
+	bool        bPendingTooltipDirty   = false;
+	FText       PendingTooltipTitle;
+	FText       PendingTooltipSubtitle;
+	FText       PendingTooltipBody;
+	FLinearColor PendingTooltipTitleColor  = FLinearColor::White;
+	FLinearColor PendingTooltipBorderColor = FLinearColor::White;
+	FVector2D    PendingTooltipPos = FVector2D::ZeroVector;
 
 	bool bGamePaused      = false;
 	bool bDevOverlayShown = false;

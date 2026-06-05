@@ -32,8 +32,13 @@ struct FchuckItemDef
 	UPROPERTY() int32  BuyPrice = 0;
 	UPROPERTY() int32  SellPrice = 0;
 	UPROPERTY() bool   bConsumable = false;
+	UPROPERTY() float  HealHP     = 0.f;
+	UPROPERTY() float  RestoreMP  = 0.f;
+	UPROPERTY() float  RestoreEP  = 0.f;
+	UPROPERTY() float  ConsumeCooldownSec = 0.f;
 
 	bool IsValid() const { return Key > 0 && !Ref.IsNone(); }
+	bool HasConsumeEffect() const { return bConsumable && (HealHP > 0.f || RestoreMP > 0.f || RestoreEP > 0.f); }
 };
 
 namespace chuckItem
