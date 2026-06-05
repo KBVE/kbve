@@ -9,9 +9,16 @@ class SchuckPauseMenu;
 class SchuckDevOverlay;
 class SchuckHotbar;
 class SchuckInventoryWindow;
+class SchuckLoginWidget;
+class SchuckAccountPanel;
+class SchuckChatPanel;
 class SKBVETooltip;
 class SKBVEDragArrowLayer;
+class UKBVESupabaseSubsystem;
 struct FInputActionValue;
+struct FKBVESupabaseSession;
+struct FKBVESupabaseError;
+struct FKBVEChatMessage;
 
 UCLASS()
 class AchuckCorePlayerController : public AchuckPlayerController
@@ -44,14 +51,38 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Menu")
 	FName MainMenuLevelName = TEXT("L_MainMenu");
 
+	UFUNCTION()
+	void HandleSupabaseSignedIn(const FKBVESupabaseSession& Session);
+	UFUNCTION()
+	void HandleSupabaseSignedOut();
+	UFUNCTION()
+	void HandleSupabaseAuthError(const FKBVESupabaseError& Error);
+	UFUNCTION()
+	void HandleChatConnected();
+	UFUNCTION()
+	void HandleChatDisconnected(int32 StatusCode, const FString& Reason);
+	UFUNCTION()
+	void HandleChatMessage(const FKBVEChatMessage& Message);
+
+	void InitSupabaseBridge();
+	void TearDownSupabaseBridge();
+	void RefreshAuthOverlayVisibility(bool bSignedIn);
+
 private:
 	TSharedPtr<SchuckHUD>             HUDWidget;
 	TSharedPtr<SchuckPauseMenu>       PauseWidget;
 	TSharedPtr<SchuckDevOverlay>      DevOverlayWidget;
 	TSharedPtr<SchuckHotbar>          HotbarWidget;
 	TSharedPtr<SchuckInventoryWindow> InventoryWidget;
+	TSharedPtr<SchuckLoginWidget>     LoginWidget;
+	TSharedPtr<SchuckAccountPanel>    AccountWidget;
+	TSharedPtr<SchuckChatPanel>       ChatWidget;
 	TSharedPtr<SKBVETooltip>          TooltipWidget;
 	TSharedPtr<SKBVEDragArrowLayer>   DragArrowLayer;
+
+	UPROPERTY(Transient)
+	TWeakObjectPtr<UKBVESupabaseSubsystem> SupabaseSubsystem;
+
 	uint64 TooltipHandleId = 0;
 
 	bool        bPendingTooltipShow    = false;
