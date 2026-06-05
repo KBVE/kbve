@@ -213,23 +213,30 @@ void UKBVESupabaseStorage::DownloadToFile(
 	const FString& LocalFilePath,
 	const FKBVESupabaseSimpleCallback& OnComplete)
 {
+	if (!Parent.IsValid())
+	{
+		OnComplete.ExecuteIfBound(false);
+		return;
+	}
+
 	const FString TargetPath = LocalFilePath;
 	FKBVESupabaseSimpleCallback Cb = OnComplete;
+	const FString URL = GetObjectURL(Bucket, ObjectPath);
+	const TArray<uint8> EmptyBody;
+	const TMap<FString, FString> NoHeaders;
 
-	FKBVESupabaseBytesCallback Inner;
-	Inner.BindLambda([TargetPath, Cb](bool bSuccess, const TArray<uint8>& Bytes)
-	{
-		if (!bSuccess)
+	Parent->DispatchAuthedRequest(TEXT("GET"), URL, EmptyBody, FString(), NoHeaders,
+		[TargetPath, Cb](bool bSuccess, int32 /*Status*/, const TArray<uint8>& RespBytes, FHttpResponsePtr)
 		{
-			Cb.ExecuteIfBound(false);
-			return;
-		}
-		IFileManager::Get().MakeDirectory(*FPaths::GetPath(TargetPath), true);
-		const bool bWritten = FFileHelper::SaveArrayToFile(Bytes, *TargetPath);
-		Cb.ExecuteIfBound(bWritten);
-	});
-
-	Download(Bucket, ObjectPath, Inner);
+			if (!bSuccess)
+			{
+				Cb.ExecuteIfBound(false);
+				return;
+			}
+			IFileManager::Get().MakeDirectory(*FPaths::GetPath(TargetPath), true);
+			const bool bWritten = FFileHelper::SaveArrayToFile(RespBytes, *TargetPath);
+			Cb.ExecuteIfBound(bWritten);
+		});
 }
 
 void UKBVESupabaseStorage::RemoveObjects(

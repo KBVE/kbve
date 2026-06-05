@@ -2,8 +2,14 @@
 
 #include "KBVESupabaseSubsystem.h"
 
+#include "Engine/Texture2D.h"
+#include "HttpModule.h"
+#include "ImageUtils.h"
+#include "Interfaces/IHttpRequest.h"
+#include "Interfaces/IHttpResponse.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SOverlay.h"
+#include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Input/SButton.h"
@@ -16,11 +22,22 @@ void SchuckAccountPanel::Construct(const FArguments& InArgs)
 {
 	Subsystem = InArgs._Subsystem;
 
-	const FSlateFontInfo NickFont = FCoreStyle::GetDefaultFontStyle("Bold", 13);
-	const FSlateFontInfo EmailFont = FCoreStyle::GetDefaultFontStyle("Regular", 9);
+	const FSlateFontInfo NickFont   = FCoreStyle::GetDefaultFontStyle("Bold", 13);
 	const FSlateFontInfo ButtonFont = FCoreStyle::GetDefaultFontStyle("Regular", 10);
 
+	AvatarBrush.DrawAs = ESlateBrushDrawType::Image;
+	AvatarBrush.ImageSize = FVector2D(36.f, 36.f);
+	AvatarBrush.TintColor = FSlateColor(FLinearColor(0.15f, 0.18f, 0.24f, 1.f));
+
+	// Self hit-test invisible: only the inner tile (border + button) claim
+	// the cursor. Empty viewport area passes through to widgets below
+	// (main menu, gameplay HUD).
+	SetVisibility(EVisibility::SelfHitTestInvisible);
+
 	ChildSlot
+	.HAlign(HAlign_Right)
+	.VAlign(VAlign_Top)
+	.Padding(FMargin(16.f, 16.f, 16.f, 0.f))
 	[
 		SNew(SBorder)
 		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
@@ -30,18 +47,14 @@ void SchuckAccountPanel::Construct(const FArguments& InArgs)
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)
 			[
-				SNew(SVerticalBox)
-				+ SVerticalBox::Slot().AutoHeight()
+				SNew(SBox).WidthOverride(36.f).HeightOverride(36.f)
 				[
-					SAssignNew(UsernameText, STextBlock).Text(LOCTEXT("Unknown", "—")).Font(NickFont)
+					SAssignNew(AvatarImage, SImage).Image(&AvatarBrush)
 				]
-				+ SVerticalBox::Slot().AutoHeight()
-				[
-					SAssignNew(EmailText, STextBlock)
-					.Text(FText::GetEmpty())
-					.Font(EmailFont)
-					.ColorAndOpacity(FSlateColor(FLinearColor(0.7f, 0.74f, 0.82f)))
-				]
+			]
+			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)
+			[
+				SAssignNew(UsernameText, STextBlock).Text(LOCTEXT("Unknown", "—")).Font(NickFont)
 			]
 			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
 			[
@@ -64,11 +77,43 @@ void SchuckAccountPanel::SetUsername(const FString& InUsername)
 	}
 }
 
-void SchuckAccountPanel::SetEmail(const FString& InEmail)
+void SchuckAccountPanel::SetEmail(const FString& /*InEmail*/)
 {
-	if (EmailText.IsValid())
+	// Email no longer rendered; kept for ABI compatibility with callers.
+}
+
+void SchuckAccountPanel::SetAvatarURL(const FString& InURL)
+{
+	if (InURL.IsEmpty() || InURL == LastAvatarURL) return;
+	LastAvatarURL = InURL;
+
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Req = FHttpModule::Get().CreateRequest();
+	Req->SetURL(InURL);
+	Req->SetVerb(TEXT("GET"));
+	TWeakPtr<SchuckAccountPanel> WeakSelf = SharedThis(this);
+	Req->OnProcessRequestComplete().BindLambda(
+		[WeakSelf](FHttpRequestPtr, FHttpResponsePtr Resp, bool bOk)
+		{
+			TSharedPtr<SchuckAccountPanel> Self = WeakSelf.Pin();
+			if (!Self.IsValid() || !bOk || !Resp.IsValid() || Resp->GetResponseCode() < 200 || Resp->GetResponseCode() >= 300) return;
+			Self->HandleAvatarBytes(Resp->GetContent());
+		});
+	Req->ProcessRequest();
+}
+
+void SchuckAccountPanel::HandleAvatarBytes(const TArray<uint8>& Bytes)
+{
+	if (Bytes.Num() == 0) return;
+	UTexture2D* NewTex = FImageUtils::ImportBufferAsTexture2D(Bytes);
+	if (!NewTex) return;
+	NewTex->AddToRoot();
+	AvatarTexture = NewTex;
+	AvatarBrush.SetResourceObject(NewTex);
+	AvatarBrush.ImageSize = FVector2D(NewTex->GetSizeX(), NewTex->GetSizeY());
+	AvatarBrush.TintColor = FSlateColor(FLinearColor::White);
+	if (AvatarImage.IsValid())
 	{
-		EmailText->SetText(FText::FromString(InEmail));
+		AvatarImage->Invalidate(EInvalidateWidgetReason::Paint | EInvalidateWidgetReason::Layout);
 	}
 }
 

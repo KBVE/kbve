@@ -1,0 +1,67 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+    name: vm-autologon-windows-on-boot
+    namespace: angelscript
+    labels:
+        app: angelscript
+        component: vm-autologon
+spec:
+    pollingInterval: 30
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 2
+    maxReplicaCount: 1
+    triggers:
+        - type: kubernetes-workload
+          metadata:
+              podSelector: 'vm.kubevirt.io/name=windows-builder'
+              value: '1'
+    jobTargetRef:
+        parallelism: 1
+        completions: 1
+        backoffLimit: 3
+        ttlSecondsAfterFinished: 600
+        template:
+            metadata:
+                labels:
+                    component: vm-autologon
+            spec:
+                serviceAccountName: vm-scaler
+                restartPolicy: OnFailure
+                securityContext:
+                    runAsNonRoot: true
+                    runAsUser: 10001
+                    runAsGroup: 10001
+                    seccompProfile:
+                        type: RuntimeDefault
+                containers:
+                    - name: autologon
+                      image: ghcr.io/kbve/kubectl:0.1.3
+                      command: ['/bin/sh', '/scripts/autologon.sh']
+                      securityContext:
+                          allowPrivilegeEscalation: false
+                          readOnlyRootFilesystem: true
+                          capabilities:
+                              drop: ['ALL']
+                      env:
+                          - name: VM_NAME
+                            value: windows-builder
+                          - name: NAMESPACE
+                            value: angelscript
+                          - name: ADMIN_PASSWORD
+                            valueFrom:
+                                secretKeyRef:
+                                    name: windows-builder-admin
+                                    key: password
+                      volumeMounts:
+                          - name: script
+                            mountPath: /scripts
+                          - name: tmp
+                            mountPath: /tmp
+                volumes:
+                    - name: script
+                      configMap:
+                          name: vm-autologon-script
+                          defaultMode: 0755
+                    - name: tmp
+                      emptyDir: {}

@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-06-04T09:27:22.081Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-06-05T09:17:15.194Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **1** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **133** items
+    **131** items
   </Card>
 </CardGrid>
 
@@ -62,7 +62,7 @@ pie showData
     "Error" : 9
     "Staging" : 3
     "Review" : 1
-    "Done" : 133
+    "Done" : 131
 ```
 
 ```mermaid
@@ -70,7 +70,7 @@ pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 14
     "Blocked (Error+Support)" : 9
-    "Done" : 133
+    "Done" : 131
     "Planning (Theory+AI+Backlog)" : 41
 ```
 
@@ -99,7 +99,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>1</strong>"]
     Review --> Done
-    Done["Done<br/><strong>133</strong>"]
+    Done["Done<br/><strong>131</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,18 +116,18 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 128
-    "Issue" : 69
+    "Pull Request" : 127
+    "Issue" : 68
 ```
 
 #### Top Labels
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 128 |
-| dev→main | 54 |
+| auto-pr | 127 |
+| dev→main | 55 |
 | atomic | 51 |
-| enhancement | 42 |
+| enhancement | 41 |
 | 0 | 19 |
 | 1 | 13 |
 | bug | 11 |
@@ -235,26 +235,16 @@ pie showData
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
-| [#11759](https://github.com/KBVE/kbve/pull/11759) | Release: 1 perf → Main | — | — | auto-pr, dev→main |
+| [#11788](https://github.com/KBVE/kbve/pull/11788) | Release: 3 fixes → Main | — | — | auto-pr, dev→main |
 
-### Done (133)
+### Done (131)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#8190](https://github.com/KBVE/kbve/issues/8190) | [BEVY] bevy_cam performance audit — 8 findings | — | h0lybyte | 1, rust |
-| [#11225](https://github.com/KBVE/kbve/pull/11225) | Release: 21 features, 9 fixes, 4 chores → Main | — | — | auto-pr, dev→main |
 | [#11233](https://github.com/KBVE/kbve/issues/11233) | [MC] OPAC tryToClaim reflective sweep only persists one chunk row (~26 of 676) | — | — | bug |
-| [#11237](https://github.com/KBVE/kbve/pull/11237) | Atomic: rows v0.1.24 post-publish sync | — | — | auto-pr, atomic |
-| [#11238](https://github.com/KBVE/kbve/pull/11238) | Release: 1 feature, 1 fix, 2 docs, 8 refactors, 7 chores → Main | — | — | auto-pr, dev→main |
-| [#11239](https://github.com/KBVE/kbve/pull/11239) | deploy(isometric): update WASM build | — | — | auto-pr |
-| [#11240](https://github.com/KBVE/kbve/pull/11240) | Atomic: irc-gateway v0.1.18 post-publish sync | — | — | auto-pr, atomic |
-| [#11241](https://github.com/KBVE/kbve/pull/11241) | chore(dashboard): daily sync — 2026-05-21 | — | — | auto-pr |
-| [#11245](https://github.com/KBVE/kbve/issues/11245) | [BEVY][ISOMETRIC] Title screen Settings panel (audio, render, transport override | — | — | enhancement |
 | [#11248](https://github.com/KBVE/kbve/issues/11248) | [BEVY][ISOMETRIC] Minimap overlay (player + nearby creatures + tile dots) | — | — | enhancement |
 | [#11249](https://github.com/KBVE/kbve/issues/11249) | [BEVY][ISOMETRIC] Inventory slot click → use / equip / drop flow | — | — | enhancement |
-| [#11255](https://github.com/KBVE/kbve/pull/11255) | deploy(isometric): update WASM build | — | — | auto-pr |
-| [#11256](https://github.com/KBVE/kbve/pull/11256) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#11258](https://github.com/KBVE/kbve/pull/11258) | Atomic: axum-kbve v1.0.167 post-publish sync | — | — | auto-pr, atomic |
 | [#11259](https://github.com/KBVE/kbve/pull/11259) | Release: 9 features, 2 fixes, 1 refactor, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#11266](https://github.com/KBVE/kbve/pull/11266) | Release: 2 features, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#11267](https://github.com/KBVE/kbve/pull/11267) | Atomic: mc v1.0.57 post-publish sync | — | — | auto-pr, atomic |
@@ -374,6 +364,14 @@ pie showData
 | [#11726](https://github.com/KBVE/kbve/pull/11726) | Release: 3 features, 4 fixes, 1 doc, 5 perfs, 1 refactor, 3 chores → Main | — | — | auto-pr, dev→main |
 | [#11756](https://github.com/KBVE/kbve/pull/11756) | Atomic: kasm-void v0.0.3 post-publish sync | — | — | auto-pr, atomic |
 | [#11757](https://github.com/KBVE/kbve/pull/11757) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#11759](https://github.com/KBVE/kbve/pull/11759) | Release: 21 features, 4 fixes, 1 perf, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#11760](https://github.com/KBVE/kbve/pull/11760) | chore(dashboard): daily sync — 2026-06-04 | — | — | auto-pr |
+| [#11763](https://github.com/KBVE/kbve/pull/11763) | Atomic: edge v0.1.35 post-publish sync | — | — | auto-pr, atomic |
+| [#11770](https://github.com/KBVE/kbve/pull/11770) | Atomic: kasm-void v0.0.4 post-publish sync | — | — | auto-pr, atomic |
+| [#11771](https://github.com/KBVE/kbve/pull/11771) | Release: 3 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#11777](https://github.com/KBVE/kbve/pull/11777) | Release: 2 features, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#11778](https://github.com/KBVE/kbve/pull/11778) | Atomic: axum-kbve v1.0.182 post-publish sync | — | — | auto-pr, atomic |
+| [#11782](https://github.com/KBVE/kbve/pull/11782) | Release: 7 features, 1 fix, 1 perf, 1 chore → Main | — | — | auto-pr, dev→main |
 
 ---
 

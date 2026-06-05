@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-06-04T09:27:54.500Z",
+  "generated_at": "2026-06-05T09:17:54.704Z",
   "summary": {
-    "total_protos": 36,
-    "registered": 27,
+    "total_protos": 37,
+    "registered": 28,
     "orphaned": 8,
     "utility_only": 1,
-    "total_messages": 668,
-    "total_enums": 137
+    "total_messages": 689,
+    "total_enums": 140
   },
   "protos": [
     {
@@ -654,6 +654,47 @@
         "zod_config": null,
         "zod_output": null,
         "binpb": null
+      }
+    },
+    {
+      "proto": "packages/data/proto/kbve/mc/mc_lot.proto",
+      "package": "kbve.mc",
+      "messages": [
+        "MCSchematic",
+        "MCVacantLot",
+        "MCOwnedLot",
+        "MCViewportLot",
+        "MCServiceLot",
+        "MCClaimedBuild",
+        "MCFailedBuild",
+        "MCReleasedLot",
+        "MCRepairedLot",
+        "MCRequeueStaleSummary",
+        "MCPurchaseLotRequest",
+        "MCQueueBuildRequest",
+        "MCQueueDemolishRequest",
+        "MCServiceClaimRequest",
+        "MCServiceMarkAppliedRequest",
+        "MCServiceMarkFailedRequest",
+        "MCStaffRetryRequest",
+        "MCStaffReleaseUserRequest",
+        "MCPurchaseLotResponse",
+        "MCBuildIdResponse",
+        "MCOkResponse"
+      ],
+      "enums": [
+        "MCLotState",
+        "MCBuildApplyState",
+        "MCBuildActionKind"
+      ],
+      "message_count": 21,
+      "enum_count": 3,
+      "codegen": {
+        "registered": true,
+        "name": "mc_lot",
+        "zod_config": "packages/data/codegen/mc_lot-zod-config.json",
+        "zod_output": "packages/data/codegen/generated/mc_lot-schema.ts",
+        "binpb": "packages/data/codegen/descriptors/mc_lot.binpb"
       }
     },
     {
@@ -1424,7 +1465,7 @@
     "packages/data/proto/referral/referral.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-06-04T09:27:54Z",
+  "checked_at": "2026-06-05T09:17:54Z",
   "drift_detected": false,
   "drift_files": []
 }

@@ -32,6 +32,7 @@ public class chuck : ModuleRules
 			"Json",
 			"JsonUtilities",
 			"ImageWrapper",
+			"HTTP",
 			"AsyncMessageSystem",
 			"KBVEYYJson",
 			"KBVEXXHash",

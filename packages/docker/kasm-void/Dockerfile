@@ -19,6 +19,7 @@ RUN set -eux; \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         ca-certificates curl tar xz-utils procps \
         python3 python3-pip \
+        xfce4-terminal xdg-utils zenity \
         libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libxkbcommon0 \
         libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libgtk-3-0 \
         libasound2 libpango-1.0-0 libcairo2 libcups2 libdbus-1-3 fonts-liberation; \
@@ -80,16 +81,22 @@ RUN set -eux; \
       ln -sf "$DISCORD_BIN" /usr/share/discord/Discord; \
       chmod -R a+rX /usr/share/discord; \
     fi; \
-    [ -x /usr/share/discord/Discord ]
+    [ -x /usr/share/discord/Discord ]; \
+    chown -R 1000:1000 /usr/share/discord; \
+    find /usr/share/discord -type d -exec chmod u+w {} +
 
 COPY custom_startup.sh /dockerstartup/custom_startup.sh
 COPY nav_shim.py /dockerstartup/nav_shim.py
-COPY cloakbrowser.desktop /home/kasm-user/Desktop/cloakbrowser.desktop
+COPY scripts/ /opt/kasm-void/scripts/
+COPY desktop/ /opt/kasm-void/Desktop/
+COPY cloakbrowser.desktop /opt/kasm-void/Desktop/CloakBrowser.desktop
 
 RUN set -eux; \
     chmod +x /dockerstartup/custom_startup.sh /dockerstartup/nav_shim.py; \
+    chmod +x /opt/kasm-void/scripts/*.sh; \
+    chmod +x /opt/kasm-void/Desktop/*.desktop; \
     [ -f /dockerstartup/discord_startup.sh ] && chmod +x /dockerstartup/discord_startup.sh || true; \
-    chown -R 1000:1000 /home/kasm-user /dockerstartup/custom_startup.sh /dockerstartup/nav_shim.py /dockerstartup/discord_startup.sh 2>/dev/null || true
+    chown -R 1000:1000 /opt/kasm-void /dockerstartup/custom_startup.sh /dockerstartup/nav_shim.py /dockerstartup/discord_startup.sh 2>/dev/null || true
 
 USER 1000
 ENV HOME=/home/kasm-user \

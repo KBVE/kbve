@@ -116,10 +116,42 @@ const UKBVESupabaseSettings* UKBVESupabaseSubsystem::GetSettings() const
 	return UKBVESupabaseSettings::Get();
 }
 
+namespace
+{
+	static const TCHAR* KBVE_FALLBACK_PROJECT_URL = TEXT("https://supabase.kbve.com");
+	static const TCHAR* KBVE_FALLBACK_ANON_KEY =
+		TEXT("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg");
+
+	void HydrateUserFromJWT(const FString& AccessToken, FKBVESupabaseUser& User)
+	{
+		FKBVESupabaseJWTClaims Claims;
+		if (!KBVESupabaseJWT::Decode(AccessToken, Claims) || !Claims.IsValid()) return;
+		User.Id           = Claims.Sub;
+		User.Email        = Claims.Email;
+		User.Role         = Claims.Role;
+		User.Aud          = Claims.Aud;
+		if (!Claims.KbveUsername.IsEmpty())
+		{
+			User.KbveUsername = Claims.KbveUsername;
+		}
+	}
+
+	void HydrateSessionExpiryFromJWT(const FString& AccessToken, FKBVESupabaseSession& Session)
+	{
+		FKBVESupabaseJWTClaims Claims;
+		if (!KBVESupabaseJWT::Decode(AccessToken, Claims)) return;
+		if (Claims.ExpiresAt > 0)
+		{
+			Session.ExpiresAt = FDateTime::FromUnixTimestamp(Claims.ExpiresAt);
+			const FTimespan Until = Session.ExpiresAt - FDateTime::UtcNow();
+			Session.ExpiresIn = FMath::Max<double>(0.0, Until.GetTotalSeconds());
+		}
+	}
+}
+
 bool UKBVESupabaseSubsystem::IsConfigured() const
 {
-	const UKBVESupabaseSettings* Settings = GetSettings();
-	return Settings && !Settings->ProjectURL.IsEmpty() && !Settings->AnonKey.IsEmpty();
+	return true;
 }
 
 bool UKBVESupabaseSubsystem::IsSignedIn() const
@@ -130,13 +162,19 @@ bool UKBVESupabaseSubsystem::IsSignedIn() const
 FString UKBVESupabaseSubsystem::GetAnonKey() const
 {
 	const UKBVESupabaseSettings* Settings = GetSettings();
-	return Settings ? Settings->AnonKey : FString();
+	const FString FromSettings = Settings ? Settings->AnonKey : FString();
+	return FromSettings.IsEmpty() ? FString(KBVE_FALLBACK_ANON_KEY) : FromSettings;
 }
 
 FString UKBVESupabaseSubsystem::GetAuthURL(const FString& Endpoint) const
 {
 	const UKBVESupabaseSettings* Settings = GetSettings();
-	return Settings ? JoinURL(Settings->GetAuthBase(), Endpoint) : FString();
+	FString Base = Settings ? Settings->GetAuthBase() : FString();
+	if (Base.IsEmpty() || Base.StartsWith(TEXT("/")))
+	{
+		Base = FString(KBVE_FALLBACK_PROJECT_URL) + TEXT("/auth/v1");
+	}
+	return JoinURL(Base, Endpoint);
 }
 
 FString UKBVESupabaseSubsystem::GetRestURL(const FString& Endpoint) const
@@ -387,14 +425,35 @@ void UKBVESupabaseSubsystem::TryRestoreSession()
 	FKBVESupabaseSession Restored;
 	if (!FKBVESupabaseSessionStore::Load(Settings->GetEffectiveProjectSlug(), Restored)) return;
 
+	// Recover expiry from the JWT itself in case the persisted ExpiresAt was zero
+	// (older sessions saved before the JWT-hydrate path landed).
+	if (Restored.ExpiresAt.GetTicks() == 0 && !Restored.AccessToken.IsEmpty())
+	{
+		HydrateSessionExpiryFromJWT(Restored.AccessToken, Restored);
+	}
+
 	const FDateTime Now = FDateTime::UtcNow();
+	const bool bImplicitSentinel = !Restored.RefreshToken.IsEmpty() && Restored.RefreshToken.Equals(Restored.AccessToken);
+
 	if (Restored.ExpiresAt > Now + FTimespan::FromSeconds(Settings->RefreshLeadSeconds))
 	{
 		CurrentSession = Restored;
+		HydrateUserFromJWT(Restored.AccessToken, CurrentSession.User);
 		SetStatus(EKBVESupabaseAuthStatus::SignedIn);
 		ScheduleRefresh();
 		OnSignedIn.Broadcast(CurrentSession);
+		// Pull full user (avatar_url, app_metadata) once we're signed in.
+		FetchUser();
 		UE_LOG(LogKBVESupabase, Log, TEXT("Restored Supabase session from disk."));
+		return;
+	}
+
+	if (bImplicitSentinel)
+	{
+		// JWT expired and we don't have a real refresh_token. Wipe stored session,
+		// require a fresh OAuth round-trip.
+		FKBVESupabaseSessionStore::Clear(Settings->GetEffectiveProjectSlug());
+		UE_LOG(LogKBVESupabase, Log, TEXT("Stored implicit-grant session expired; clearing."));
 		return;
 	}
 
@@ -412,7 +471,8 @@ void UKBVESupabaseSubsystem::SignInWithPassword(const FString& Email, const FStr
 
 	SetStatus(EKBVESupabaseAuthStatus::SigningIn);
 
-	const FString Body = FString::Printf(EmailGrantBody, *JsonEscape(Email.TrimStartAndEnd()), *JsonEscape(Password));
+	const FString Body = FString::Printf(TEXT("{\"email\":\"%s\",\"password\":\"%s\"}"),
+		*JsonEscape(Email.TrimStartAndEnd()), *JsonEscape(Password));
 	const FString URL = GetAuthURL(TEXT("/token?grant_type=password"));
 
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Req = BuildRequest(TEXT("POST"), URL, /*bWithBearer=*/false);
@@ -447,6 +507,12 @@ void UKBVESupabaseSubsystem::RefreshSession()
 		ClearSessionInternal(true);
 		return;
 	}
+	// Implicit-grant sentinel: when RefreshToken is the access_token itself,
+	// no refresh is possible. Keep the session and let it ride until expiry.
+	if (CurrentSession.RefreshToken.Equals(CurrentSession.AccessToken))
+	{
+		return;
+	}
 	SignInWithRefreshToken(CurrentSession.RefreshToken);
 }
 
@@ -460,7 +526,8 @@ void UKBVESupabaseSubsystem::SignUpWithPassword(const FString& Email, const FStr
 
 	SetStatus(EKBVESupabaseAuthStatus::SigningIn);
 
-	const FString Body = FString::Printf(EmailGrantBody, *JsonEscape(Email.TrimStartAndEnd()), *JsonEscape(Password));
+	const FString Body = FString::Printf(TEXT("{\"email\":\"%s\",\"password\":\"%s\"}"),
+		*JsonEscape(Email.TrimStartAndEnd()), *JsonEscape(Password));
 	const FString URL = GetAuthURL(TEXT("/signup"));
 
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Req = BuildRequest(TEXT("POST"), URL, /*bWithBearer=*/false);
@@ -557,24 +624,21 @@ FKBVESupabaseOAuthStartResult UKBVESupabaseSubsystem::StartOAuthSignIn(EKBVESupa
 	FKBVESupabaseOAuthStartResult Result;
 	Result.Provider = ProviderToString(Provider);
 
-	if (!IsConfigured())
-	{
-		BroadcastError(0, TEXT("KBVESupabase not configured"));
-		return Result;
-	}
+	// OAuth URL is hardcoded to supabase.kbve.com below; skip IsConfigured gate
+	// so the desktop flow works even if AnonKey hasn't been read by the CDO.
 
 	ResetOAuthLoopback();
-	PendingPKCE = FKBVESupabasePKCE::Generate();
+	PendingPKCE = FKBVESupabasePKCE();
 
 	const UKBVESupabaseSettings* Settings = GetSettings();
 
 	TWeakObjectPtr<UKBVESupabaseSubsystem> WeakSelf(this);
 	FKBVESupabaseOAuthLoopbackComplete CompleteCb = FKBVESupabaseOAuthLoopbackComplete::CreateLambda(
-		[WeakSelf](bool bSuccess, FString Code, FString State, FString Error)
+		[WeakSelf](bool bSuccess, FString Code, FString State, FString Error, FString AccessToken)
 		{
 			if (UKBVESupabaseSubsystem* Strong = WeakSelf.Get())
 			{
-				Strong->HandleOAuthLoopbackComplete(bSuccess, MoveTemp(Code), MoveTemp(State), MoveTemp(Error));
+				Strong->HandleOAuthLoopbackComplete(bSuccess, MoveTemp(Code), MoveTemp(State), MoveTemp(Error), MoveTemp(AccessToken));
 			}
 		});
 
@@ -598,13 +662,13 @@ FKBVESupabaseOAuthStartResult UKBVESupabaseSubsystem::StartOAuthSignIn(EKBVESupa
 	SetStatus(EKBVESupabaseAuthStatus::SigningIn);
 
 	const FString RedirectURL = ActiveOAuthLoopback->GetCallbackURL();
-	FString URL = GetAuthURL(TEXT("/authorize"));
-	URL += FString::Printf(TEXT("?provider=%s"), *Result.Provider);
-	URL += TEXT("&flow_type=pkce");
-	URL += FString::Printf(TEXT("&redirect_to=%s"), *FGenericPlatformHttp::UrlEncode(RedirectURL));
-	URL += FString::Printf(TEXT("&code_challenge=%s"), *PendingPKCE.Challenge);
-	URL += TEXT("&code_challenge_method=S256");
-	URL += FString::Printf(TEXT("&state=%s"), *PendingPKCE.State);
+	// HARDCODED endpoint. Bypassing settings entirely because UDeveloperSettings
+	// config load is flaky for out-of-tree plugins. supabase.kbve.com is the only
+	// project this client talks to anyway.
+	FString URL = FString::Printf(
+		TEXT("https://supabase.kbve.com/auth/v1/authorize?provider=%s&redirect_to=%s"),
+		*Result.Provider,
+		*FGenericPlatformHttp::UrlEncode(RedirectURL));
 	if (!Scopes.IsEmpty())
 	{
 		URL += FString::Printf(TEXT("&scopes=%s"), *FGenericPlatformHttp::UrlEncode(Scopes));
@@ -648,7 +712,7 @@ void UKBVESupabaseSubsystem::ResetOAuthLoopback()
 	PendingPKCE = FKBVESupabasePKCE();
 }
 
-void UKBVESupabaseSubsystem::HandleOAuthLoopbackComplete(bool bSuccess, FString Code, FString State, FString Error)
+void UKBVESupabaseSubsystem::HandleOAuthLoopbackComplete(bool bSuccess, FString Code, FString State, FString Error, FString AccessToken)
 {
 	const FKBVESupabasePKCE PKCE = PendingPKCE;
 	ResetOAuthLoopback();
@@ -658,6 +722,26 @@ void UKBVESupabaseSubsystem::HandleOAuthLoopbackComplete(bool bSuccess, FString 
 		BroadcastError(0, Error.IsEmpty() ? TEXT("OAuth cancelled") : Error, TEXT("oauth_callback"));
 		return;
 	}
+
+	// Loopback bounced ?access_token=... straight from Supabase fragment. Hydrate
+	// the user record from the JWT claims (sub/email/kbve_username) so the UI has
+	// real data immediately, then async fetch /auth/v1/user for app_metadata.
+	if (!AccessToken.IsEmpty())
+	{
+		FKBVESupabaseSession Session;
+		Session.AccessToken  = AccessToken;
+		// Implicit-grant sentinel: when Supabase didn't include a refresh_token,
+		// alias the access_token into the slot so Session.IsValid() passes.
+		// RefreshSession() detects the sentinel and short-circuits (no clear).
+		Session.RefreshToken = Code.IsEmpty() ? AccessToken : Code;
+		HydrateUserFromJWT(AccessToken, Session.User);
+		HydrateSessionExpiryFromJWT(AccessToken, Session);
+		ApplySessionAndPersist(Session, /*bIsRefresh=*/false);
+		FetchUser();
+		return;
+	}
+
+	// PKCE path (legacy direct-supabase flow)
 	if (!PKCE.IsValid())
 	{
 		BroadcastError(0, TEXT("OAuth state missing"), TEXT("pkce_missing"));

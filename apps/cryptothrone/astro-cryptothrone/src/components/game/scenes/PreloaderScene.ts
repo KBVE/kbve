@@ -36,11 +36,10 @@ export class PreloaderScene extends Scene {
 			'/assets/map/cloud_city_large.json',
 		);
 
-		this.load.spritesheet(
-			'player',
-			'https://kbve.com/assets/img/fishchip/chip_charactersheet_warmer.png',
-			{ frameWidth: 52, frameHeight: 72 },
-		);
+		this.load.spritesheet('player', '/assets/entity/charactersheet.png', {
+			frameWidth: 52,
+			frameHeight: 72,
+		});
 
 		this.load.spritesheet('monks', '/assets/entity/monks.png', {
 			frameWidth: 52,
@@ -50,6 +49,12 @@ export class PreloaderScene extends Scene {
 		this.load.spritesheet(
 			'monster_bird',
 			'/assets/monster/bird_original.png',
+			{ frameWidth: 61, frameHeight: 57 },
+		);
+
+		this.load.spritesheet(
+			'monster_bird_grey',
+			'/assets/monster/bird_grey.png',
 			{ frameWidth: 61, frameHeight: 57 },
 		);
 	}

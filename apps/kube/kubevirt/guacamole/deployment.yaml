@@ -1,28 +1,3 @@
-# Apache Guacamole — browser-based RDP gateway for KubeVirt Windows VMs.
-#
-# Architecture:
-#   Browser → Ingress (TLS) → guacamole (web) → guacd (proxy) → ClusterIP → VM RDP (3389)
-#
-# RDP is NEVER exposed publicly. Guacamole is the single audited entry point.
-# KEDA manages replicas: 0 when idle, 1 when VM is running.
-#
-# Components:
-#   - guacd: protocol proxy daemon (translates web → RDP/VNC/SSH)
-#   - guacamole: web frontend (Tomcat + auth + connection management)
-#   - PostgreSQL: stores connections, users, history (uses existing Supabase cluster)
-#
-# Setup (one-time after deploy):
-#   1. Access Guacamole at https://guac.kbve.com/guacamole/
-#   2. Default login: guacadmin / guacadmin (CHANGE IMMEDIATELY)
-#   3. Add RDP connection:
-#      - Protocol: RDP
-#      - Hostname: windows-builder-rdp.angelscript.svc.cluster.local
-#      - Port: 3389
-#      - Username: <Windows admin user>
-#      - Password: <from sealed secret>
-#   4. Test connection from browser
----
-# guacd — protocol proxy daemon
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -74,7 +49,6 @@ spec:
           name: guacd
           protocol: TCP
 ---
-# guacamole — web frontend
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -84,10 +58,6 @@ metadata:
         app: guacamole
         component: guacamole
     annotations:
-        # Pod runs an init container that renders user-mapping.xml from
-        # this ConfigMap + the admin Secret. Neither edit triggers a
-        # rollout on its own — Reloader rotates the pod whenever either
-        # changes, so RDP param tweaks land without manual rollout.
         configmap.reloader.stakater.com/reload: 'guacamole-user-mapping'
         secret.reloader.stakater.com/reload: 'windows-builder-admin'
 spec:
@@ -101,8 +71,6 @@ spec:
                 app: guacamole
                 component: guacamole
         spec:
-            # Init container injects the RDP password from Secret into
-            # user-mapping.xml at runtime — password never stored in ConfigMap.
             initContainers:
                 - name: inject-rdp-password
                   image: busybox:1.37
@@ -129,8 +97,6 @@ spec:
                         value: guacd.angelscript.svc.cluster.local
                       - name: GUACD_PORT
                         value: '4822'
-                      # GUACAMOLE_HOME tells Guacamole where to find
-                      # user-mapping.xml and other config files.
                       - name: GUACAMOLE_HOME
                         value: /etc/guacamole
                   ports:
@@ -176,7 +142,6 @@ spec:
           name: http
           protocol: TCP
 ---
-# RDP Service — targets the Windows VM's virt-launcher pod
 apiVersion: v1
 kind: Service
 metadata:

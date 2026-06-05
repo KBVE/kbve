@@ -1,8 +1,10 @@
 #include "chuckTerrainStreamer.h"
 
+#include "chuckSky.h"
 #include "chuckTerrainChunk.h"
 #include "chuckZoneRegistry.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
@@ -39,6 +41,27 @@ void UchuckTerrainStreamer::OnWorldBeginPlay(UWorld& InWorld)
 		ChunkPool.Add(C);
 		FreeChunks.Add(C);
 	}
+
+	// Spawn sky/atmosphere if level doesn't have one.
+	bool bSkyPresent = false;
+	for (TActorIterator<AchuckSky> It(&InWorld); It; ++It) { bSkyPresent = true; break; }
+	if (!bSkyPresent)
+	{
+		FActorSpawnParameters SkyParams;
+		SkyParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SkyParams.ObjectFlags |= RF_Transient;
+		InWorld.SpawnActor<AchuckSky>(AchuckSky::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SkyParams);
+	}
+
+	// Pre-warm chunks around origin so player spawn has ground immediately.
+	for (int32 Dy = -ChunkRadius; Dy <= ChunkRadius; ++Dy)
+	{
+		for (int32 Dx = -ChunkRadius; Dx <= ChunkRadius; ++Dx)
+		{
+			EnsureChunk(FIntPoint(Dx, Dy));
+		}
+	}
+	TimeSinceStream = StreamInterval;
 }
 
 void UchuckTerrainStreamer::Deinitialize()

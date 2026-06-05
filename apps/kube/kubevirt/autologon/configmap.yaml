@@ -1,30 +1,3 @@
-# ConfigMap with the Windows bootstrap configuration script.
-#
-# Uses the QEMU Guest Agent (via virsh in the virt-launcher pod) to keep
-# the builder VM in a sane operating state on every CronJob tick:
-#
-#   Autologon / VNC-ready (steps 1–7)
-#     1. AutoAdminLogon + DefaultUserName + DefaultPassword
-#     2. Disable Ctrl+Alt+Del requirement
-#     3. Disable lock screen, screensaver, idle timeout
-#     4. Disable Server Manager auto-start
-#     5. Disable inactivity-lock group policy
-#
-#   Build-time bootstrap (steps 8–11c)
-#     8.   NTP — pin pool.ntp.org + force resync so TLS chains validate
-#     9.   Machine HTTP_PROXY / HTTPS_PROXY / NO_PROXY env vars routed
-#          through gluetun-builder-egress for long-lived downloads
-#    10.   WinHTTP proxy + bypass list (winget / VS Installer / .NET)
-#    11a.  .NET strong-crypto + SystemDefaultTlsVersions so .NET 4.x
-#          (choco.exe et al) negotiates TLS 1.2/1.3 instead of TLS 1.0
-#    11b.  SCHANNEL TLS 1.2 client enabled OS-wide
-#    11c.  Chocolatey proxy (if choco is installed)
-#
-# The admin password is injected as ADMIN_PASSWORD env var from a Secret —
-# it never appears in this ConfigMap or anywhere in the repo.
-#
-# Idempotent: safe to run on every CronJob tick (overwrites same registry
-# keys / proxy config / re-issues w32tm resync).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -43,9 +16,6 @@ data:
 
         echo "=== Configuring Windows autologon + VNC-ready: ${VM_NAME} ==="
 
-        # ── Skip cleanly if the VMI is absent at sync time ──
-        # CronJob runs every 5 minutes. If the VM is Stopped (no VMI object)
-        # exit 0 and let the next tick try again once the VM is up.
         INITIAL_PHASE=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" \
             -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
         if [ -z "${INITIAL_PHASE}" ] || \
@@ -56,7 +26,6 @@ data:
             exit 0
         fi
 
-        # ── Wait for VMI to reach Running phase ──
         echo "Waiting for VM to be running..."
         for i in $(seq 1 60); do
             PHASE=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" \
@@ -73,7 +42,6 @@ data:
             sleep 10
         done
 
-        # ── Wait for QEMU Guest Agent ──
         echo "Waiting for guest agent..."
         for i in $(seq 1 30); do
             AGENT=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" \
@@ -85,15 +53,12 @@ data:
             fi
             if [ "$i" -eq 30 ]; then
                 echo "Guest agent not connected after 5 minutes; skipping."
-                echo "Ensure QEMU Guest Agent is installed as a Windows service"
-                echo "(from virtio-win ISO: guest-agent/qemu-ga-x86_64.msi)."
                 exit 0
             fi
             echo "  Agent: ${AGENT:-not connected} (${i}/30)"
             sleep 10
         done
 
-        # ── Find the virt-launcher pod ──
         POD=$(kubectl get pods -n "${NAMESPACE}" \
             -l "vm.kubevirt.io/name=${VM_NAME}" \
             -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
@@ -103,7 +68,6 @@ data:
         fi
         echo "Virt-launcher pod: ${POD}"
 
-        # ── Get the libvirt domain name ──
         DOMAIN=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
             sh -c "virsh list --name 2>/dev/null | grep -v '^\s*$' | head -1")
         if [ -z "${DOMAIN}" ]; then
@@ -112,13 +76,6 @@ data:
         fi
         echo "Libvirt domain: ${DOMAIN}"
 
-        # ── Helper: run a PowerShell command via guest agent and verify ──
-        # Builds the qemu-agent JSON payload with jq so backslashes / quotes
-        # / dollar signs in PowerShell scripts (registry paths, passwords)
-        # survive the shell → JSON → libvirt → qemu-ga hops without
-        # corruption. The old hand-rolled JSON silently produced malformed
-        # payloads for any PS containing `\` and qemu-ga rejected them —
-        # the script saw no `pid`, soft-passed, and never wrote the keys.
         run_ps() {
             STEP_NAME="$1"
             PS_SCRIPT="$2"
@@ -147,7 +104,6 @@ data:
             STATUS_PAYLOAD=$(jq -nc --argjson pid "$PID" \
                 '{execute:"guest-exec-status",arguments:{pid:$pid}}')
 
-            # guest-exec is asynchronous; poll for exited=true.
             for s in $(seq 1 10); do
                 sleep 1
                 STATUS_RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
@@ -173,14 +129,7 @@ data:
 
         FAILED=0
 
-        # ── Step 1: Autologon registry keys ──
-        # AutoAdminLogon  = "1"        → enable auto-login
-        # DefaultUserName = "Administrator"
-        # DefaultPassword = <from secret>
         PS_AUTOLOGON='$p = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"; Set-ItemProperty -Path $p -Name AutoAdminLogon -Value "1" -Force; Set-ItemProperty -Path $p -Name DefaultUserName -Value "Administrator" -Force; Set-ItemProperty -Path $p -Name DefaultPassword -Value $env:AUTOLOGON_PWD -Force; Write-Output done'
-        # PowerShell reads the password from its own env var to keep it out
-        # of the command-line that shows up in audit logs / Event Viewer.
-        # The env var is set on the spawned PowerShell via guest-exec env.
         PAYLOAD=$(jq -nc \
             --arg ps "$PS_AUTOLOGON" \
             --arg pwd "$ADMIN_PASSWORD" '{
@@ -221,106 +170,58 @@ data:
             fi
         fi
 
-        # ── Step 2: Disable Ctrl+Alt+Del requirement ──
         run_ps "Disable Ctrl+Alt+Del" \
             '$p = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"; Set-ItemProperty -Path $p -Name DisableCAD -Value 1 -Type DWord -Force; Write-Output done' \
             || FAILED=1
 
-        # ── Step 3: Disable lock screen ──
         run_ps "Disable lock screen" \
             '$p = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization"; if (-not (Test-Path $p)) { New-Item -Path $p -Force | Out-Null }; Set-ItemProperty -Path $p -Name NoLockScreen -Value 1 -Type DWord -Force; Write-Output done' \
             || FAILED=1
 
-        # ── Step 4: Disable screensaver ──
         run_ps "Disable screensaver" \
             'Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaveActive -Value "0" -Force; Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaverIsSecure -Value "0" -Force; Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaveTimeOut -Value "0" -Force; Write-Output done' \
             || FAILED=1
 
-        # ── Step 5: Disable idle lock timeout via power policy ──
         run_ps "Disable power idle timeouts" \
             'powercfg /change standby-timeout-ac 0; powercfg /change monitor-timeout-ac 0; powercfg /x -hibernate-timeout-ac 0; Write-Output done' \
             || FAILED=1
 
-        # ── Step 6: Disable Server Manager auto-start ──
         run_ps "Disable Server Manager auto-start" \
             '$p = "HKLM:\SOFTWARE\Microsoft\ServerManager"; Set-ItemProperty -Path $p -Name DoNotOpenServerManagerAtLogon -Value 1 -Type DWord -Force; Write-Output done' \
             || FAILED=1
 
-        # ── Step 7: Disable machine inactivity limit (Group Policy) ──
         run_ps "Disable inactivity lock" \
             '$p = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"; Set-ItemProperty -Path $p -Name InactivityTimeoutSecs -Value 0 -Type DWord -Force; Write-Output done' \
             || FAILED=1
 
-        # ── Step 8: NTP — pin time source + force resync ──
-        # KubeVirt VMs drift out of sync with real time after long
-        # power-off windows, so when the runner comes up its clock can
-        # be hours or days behind. choco / winget / VS installers
-        # validate TLS chains against system time, so a skewed clock
-        # presents as "SSL connection error" even when the network is
-        # healthy. Pin a stable NTP pool, mark this host as a reliable
-        # source so w32time will trust the answer, and force a resync
-        # every tick. Resync is cheap when the clock is already correct.
         run_ps "Sync system clock (NTP)" \
             'net start w32time | Out-Null; w32tm /config /manualpeerlist:"pool.ntp.org time.windows.com,0x9" /syncfromflags:manual /reliable:yes /update | Out-Null; w32tm /resync /force | Out-Null; Write-Output done' \
             || FAILED=1
 
-        # ── Step 9: System-wide HTTP_PROXY env vars ──
-        # The gluetun-builder-egress pod exposes a CONNECT proxy on
-        # :8888 that terminates a WireGuard tunnel. Pointing the VM's
-        # machine-wide proxy at the cluster-internal svc URL keeps
-        # large downloads (VS bundles, UE installers, choco packages)
-        # alive on the tunnel side instead of dying through the
-        # masquerade NAT idle timeout. NO_PROXY bypasses cluster +
-        # local hosts so guest-agent / file-server still talk direct.
         run_ps "Set machine HTTP_PROXY env" \
             '$proxy = "http://gluetun-builder-egress.angelscript.svc.cluster.local:8888"; $bypass = "*.svc.cluster.local,*.cluster.local,localhost,127.0.0.1,169.254.169.254"; [System.Environment]::SetEnvironmentVariable("HTTP_PROXY", $proxy, "Machine"); [System.Environment]::SetEnvironmentVariable("HTTPS_PROXY", $proxy, "Machine"); [System.Environment]::SetEnvironmentVariable("NO_PROXY", $bypass, "Machine"); Write-Output done' \
             || FAILED=1
 
-        # ── Step 10: WinHTTP proxy (winget / .NET / VS installer) ──
-        # WinHTTP is a separate proxy stack from the machine env var;
-        # winget + the VS Installer + .NET runtimes all read it. Set
-        # the same upstream + bypass list so they take the tunnel too.
         run_ps "Set WinHTTP proxy" \
             'netsh winhttp set proxy proxy-server="gluetun-builder-egress.angelscript.svc.cluster.local:8888" bypass-list="*.svc.cluster.local;*.cluster.local;<local>" | Out-Null; Write-Output done' \
             || FAILED=1
 
-        # ── Step 11a: .NET strong crypto / TLS 1.2 system-wide ──
-        # Windows Server defaults to .NET TLS 1.0/1.1 which Chocolatey
-        # and most modern HTTPS endpoints have dropped. Symptom is
-        # `choco install` failing with "An error occurred while
-        # sending the request" against community.chocolatey.org. The
-        # SchUseStrongCrypto + SystemDefaultTlsVersions registry keys
-        # tell every .NET 4.x app on the box (including choco.exe) to
-        # negotiate TLS 1.2/1.3 via the OS default selector.
         run_ps "Enable .NET strong crypto (TLS 1.2/1.3)" \
             '$paths = @("HKLM:\SOFTWARE\Microsoft\.NETFramework\v4.0.30319", "HKLM:\SOFTWARE\Wow6432Node\Microsoft\.NETFramework\v4.0.30319"); foreach ($p in $paths) { if (-not (Test-Path $p)) { New-Item -Path $p -Force | Out-Null }; Set-ItemProperty -Path $p -Name SchUseStrongCrypto -Value 1 -Type DWord -Force; Set-ItemProperty -Path $p -Name SystemDefaultTlsVersions -Value 1 -Type DWord -Force }; Write-Output done' \
             || FAILED=1
 
-        # ── Step 11b: Enable TLS 1.2 client at SCHANNEL level ──
-        # Belt-and-suspenders for OS-level WinHTTP / SChannel handlers
-        # so the TLS 1.2 ClientHello is allowed even before .NET asks.
         run_ps "Enable TLS 1.2 SCHANNEL client" \
             '$p = "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client"; if (-not (Test-Path $p)) { New-Item -Path $p -Force | Out-Null }; Set-ItemProperty -Path $p -Name Enabled -Value 1 -Type DWord -Force; Set-ItemProperty -Path $p -Name DisabledByDefault -Value 0 -Type DWord -Force; Write-Output done' \
             || FAILED=1
 
-        # ── Step 11c: Chocolatey proxy (if installed) ──
-        # choco has its own config file; pointing it at the same
-        # gluetun proxy makes `choco install` survive >5 minute
-        # downloads. Skip cleanly when choco isn't installed yet
-        # (first boot ordering).
         run_ps "Configure chocolatey proxy" \
             'if (Get-Command choco -ErrorAction SilentlyContinue) { & choco config set proxy "http://gluetun-builder-egress.angelscript.svc.cluster.local:8888" --limit-output | Out-Null; & choco config set proxyBypassList "*.svc.cluster.local,*.cluster.local,localhost,127.0.0.1" --limit-output | Out-Null; Write-Output configured } else { Write-Output "choco not installed, skipping" }' \
             || FAILED=1
 
-        # ── Summary ──
         echo ""
         if [ "${FAILED}" = "0" ]; then
-            echo "=== SUCCESS: All VM bootstrap settings applied to ${VM_NAME} ==="
-            echo "Windows will auto-login, clock is NTP-synced, downloads"
-            echo "routed through gluetun-builder-egress proxy."
-            echo "Some settings (autologon, env vars) take effect on next reboot."
+            echo "=== SUCCESS: bootstrap applied to ${VM_NAME} ==="
         else
-            echo "=== FAILED: Some steps failed for ${VM_NAME} ==="
-            echo "Review the output above. Next CronJob tick will retry."
+            echo "=== FAILED: some steps failed for ${VM_NAME} ==="
             exit 1
         fi
