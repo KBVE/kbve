@@ -161,6 +161,8 @@ serve(async (req: Request) => {
     discordsh: ["HCAPTCHA_SECRET"],
     argo: ["ARGOCD_UPSTREAM_URL", "ARGOCD_AUTH_TOKEN"],
     "discord-bootstrap": [],
+    "discord-bot": ["DISCORD_BOT_CLIENT_ID"],
+    "gh-admin": [],
     "guild-vault": [],
     "user-vault": [],
     "vault-reader": [],
