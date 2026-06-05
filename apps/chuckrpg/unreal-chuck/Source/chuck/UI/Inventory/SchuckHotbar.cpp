@@ -14,14 +14,18 @@ namespace
 		};
 		return (Idx >= 0 && Idx < (int32)UE_ARRAY_COUNT(Labels)) ? Labels[Idx] : TEXT("");
 	}
+
+	constexpr float BaseSlotSize    = 56.f;
+	constexpr float ExpandedScale   = 1.40f;
+	constexpr float CollapsedScale  = 1.0f;
 }
 
 void SchuckHotbar::Construct(const FArguments& InArgs)
 {
 	Character    = InArgs._OwningCharacter;
 	bExpanded    = false;
-	CurrentScale = 1.f;
-	TargetScale  = 1.f;
+	CurrentScale = CollapsedScale;
+	TargetScale  = CollapsedScale;
 
 	SetVisibility(EVisibility::SelfHitTestInvisible);
 	Build();
@@ -31,43 +35,64 @@ void SchuckHotbar::Construct(const FArguments& InArgs)
 void SchuckHotbar::SetExpanded(bool bInExpanded)
 {
 	if (bExpanded == bInExpanded) return;
-	bExpanded = bInExpanded;
-	Build();
+	bExpanded   = bInExpanded;
+	TargetScale = bExpanded ? ExpandedScale : CollapsedScale;
 }
 
 void SchuckHotbar::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
 	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+
+	if (FMath::IsNearlyEqual(CurrentScale, TargetScale, 0.0005f))
+	{
+		CurrentScale = TargetScale;
+		return;
+	}
+	const float Speed = 8.f;
+	const float A     = FMath::Clamp(InDeltaTime * Speed, 0.f, 1.f);
+	const float Smooth = A * A * (3.f - 2.f * A);
+	CurrentScale = FMath::Lerp(CurrentScale, TargetScale, Smooth);
 }
 
 void SchuckHotbar::Build()
 {
-	const float SlotSize  = bExpanded ? 78.f : 56.f;
-	const float SlotGap   = 1.f;
-	const float BottomPad = bExpanded ? 28.f : 20.f;
-	const bool  bShowKeys = bExpanded;
-
 	const FLinearColor BgFilled(0.22f, 0.24f, 0.30f, 0.92f);
 	const FLinearColor BgEmpty (0.18f, 0.21f, 0.27f, 0.55f);
+
+	TWeakPtr<SchuckHotbar> WeakSelf = SharedThis(this);
+	TAttribute<float> SizeAttr = TAttribute<float>::CreateLambda([WeakSelf]()
+	{
+		if (TSharedPtr<SchuckHotbar> Self = WeakSelf.Pin())
+		{
+			return BaseSlotSize * Self->CurrentScale;
+		}
+		return BaseSlotSize;
+	});
 
 	ChildSlot
 	[
 		SNew(SKBVEHotbar)
 		.SlotCount(12)
-		.SlotSize(SlotSize)
-		.SlotGap(SlotGap)
-		.BottomPadding(BottomPad)
-		.OnBuildSlot_Lambda([this, SlotSize, bShowKeys, BgFilled, BgEmpty](int32 Idx) -> TSharedRef<SWidget>
+		.SlotSize(BaseSlotSize * ExpandedScale)
+		.SlotGap(1.f)
+		.BottomPadding(24.f)
+		.OnBuildSlot_Lambda([this, SizeAttr, BgFilled, BgEmpty, WeakSelf](int32 Idx) -> TSharedRef<SWidget>
 		{
+			TAttribute<FString> KeyAttr = TAttribute<FString>::CreateLambda([WeakSelf, Idx]() -> FString
+			{
+				TSharedPtr<SchuckHotbar> Self = WeakSelf.Pin();
+				if (!Self.IsValid() || !Self->bExpanded) return FString();
+				return FString(HotbarKeyLabel(Idx));
+			});
+
 			return SNew(SchuckInventorySlot)
 				.OwningCharacter(Character)
 				.SlotIndex(Idx)
-				.SlotSize(SlotSize)
+				.SlotSize(SizeAttr)
 				.bIsHotbar(true)
-				.KeyLabel(bShowKeys ? FString(HotbarKeyLabel(Idx)) : FString())
+				.KeyLabelAttr(KeyAttr)
 				.BgFilledOverride(BgFilled)
 				.BgEmptyOverride(BgEmpty);
 		})
 	];
-	Invalidate(EInvalidateWidgetReason::Layout);
 }

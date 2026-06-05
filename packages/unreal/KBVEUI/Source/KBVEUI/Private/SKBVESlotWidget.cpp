@@ -38,11 +38,12 @@ void SKBVESlotWidget::Construct(const FArguments& InArgs)
 	// as the slot. Custom OnPaint draws on top of it; SBox itself is empty
 	// + transparent. Without this the widget renders but receives no mouse
 	// enter/leave or drag events.
+	TAttribute<float> SizeAttr = SlotSize;
 	ChildSlot
 	[
 		SNew(SBox)
-		.WidthOverride(SlotSize)
-		.HeightOverride(SlotSize)
+		.WidthOverride(TAttribute<FOptionalSize>::CreateLambda([SizeAttr]() { return FOptionalSize(SizeAttr.Get(64.f)); }))
+		.HeightOverride(TAttribute<FOptionalSize>::CreateLambda([SizeAttr]() { return FOptionalSize(SizeAttr.Get(64.f)); }))
 	];
 
 	SetCanTick(false);
@@ -62,7 +63,8 @@ void SKBVESlotWidget::OnMouseLeave(const FPointerEvent& Mouse)
 
 FVector2D SKBVESlotWidget::ComputeDesiredSize(float) const
 {
-	return FVector2D(SlotSize, SlotSize);
+	const float S = SlotSize.Get(64.f);
+	return FVector2D(S, S);
 }
 
 FReply SKBVESlotWidget::OnMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& Mouse)

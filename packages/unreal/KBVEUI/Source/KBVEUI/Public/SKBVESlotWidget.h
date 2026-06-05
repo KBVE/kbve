@@ -30,7 +30,7 @@ public:
 	SLATE_BEGIN_ARGS(SKBVESlotWidget)
 		: _SlotSize(64.f)
 	{}
-		SLATE_ARGUMENT(float, SlotSize)
+		SLATE_ATTRIBUTE(float, SlotSize)
 		SLATE_EVENT(FOnKBVESlotIsFilled, OnIsFilled)
 		SLATE_EVENT(FOnKBVESlotBorderColor, OnGetBorderColor)
 		SLATE_EVENT(FOnKBVESlotCount, OnGetCount)
@@ -78,7 +78,7 @@ protected:
 	bool IsBeingDragged()       const { return bBeingDragged; }
 
 private:
-	float SlotSize = 64.f;
+	TAttribute<float> SlotSize;
 	int32 SlotIndex = INDEX_NONE;
 	FName DragDomain;
 	TArray<FName> AcceptedDomains;

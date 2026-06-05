@@ -16,10 +16,11 @@ public:
 	{}
 		SLATE_ARGUMENT(TWeakObjectPtr<AchuckCoreCharacter>, OwningCharacter)
 		SLATE_ARGUMENT(int32, SlotIndex)
-		SLATE_ARGUMENT(float, SlotSize)
+		SLATE_ATTRIBUTE(float, SlotSize)
 		SLATE_ARGUMENT(bool, bIsHotbar)
 		SLATE_ARGUMENT(TSharedPtr<int32>, SelectedKey)
 		SLATE_ARGUMENT(FString, KeyLabel)
+		SLATE_ATTRIBUTE(FString, KeyLabelAttr)
 		SLATE_ARGUMENT(FLinearColor, BgFilledOverride)
 		SLATE_ARGUMENT(FLinearColor, BgEmptyOverride)
 	SLATE_END_ARGS()
@@ -41,9 +42,10 @@ private:
 
 	TWeakObjectPtr<AchuckCoreCharacter> Character;
 	int32 SlotIndex = 0;
-	float SlotSize = 64.f;
+	TAttribute<float> SlotSize;
 	bool  bIsHotbar = false;
 	FString KeyLabel;
+	TAttribute<FString> KeyLabelAttr;
 	FLinearColor BgFilledOverride = FLinearColor(0.f, 0.f, 0.f, 0.f);
 	FLinearColor BgEmptyOverride  = FLinearColor(0.f, 0.f, 0.f, 0.f);
 	bool  bHasBgOverride = false;

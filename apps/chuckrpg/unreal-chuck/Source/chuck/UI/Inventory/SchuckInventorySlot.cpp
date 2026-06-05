@@ -90,6 +90,7 @@ void SchuckInventorySlot::Construct(const FArguments& InArgs)
 	bIsHotbar    = InArgs._bIsHotbar;
 	SelectedKey  = InArgs._SelectedKey;
 	KeyLabel     = InArgs._KeyLabel;
+	KeyLabelAttr = InArgs._KeyLabelAttr;
 	BgFilledOverride = InArgs._BgFilledOverride;
 	BgEmptyOverride  = InArgs._BgEmptyOverride;
 	bHasBgOverride   = BgFilledOverride.A > 0.f || BgEmptyOverride.A > 0.f;
@@ -103,7 +104,7 @@ void SchuckInventorySlot::Construct(const FArguments& InArgs)
 	[
 		SNew(SKBVESlotWidget)
 		.SlotSize(SlotSize)
-		.KeyLabel(KeyLabel)
+		.KeyLabel(KeyLabelAttr.IsSet() ? KeyLabelAttr : TAttribute<FString>(KeyLabel))
 		.BgFilledColor(bHasBgOverride ? BgFilledOverride : FLinearColor(0.10f, 0.10f, 0.12f, 0.92f))
 		.BgEmptyColor (bHasBgOverride ? BgEmptyOverride  : FLinearColor(0.08f, 0.10f, 0.13f, 0.18f))
 		.OnIsFilled(FOnKBVESlotIsFilled::CreateSP(this, &SchuckInventorySlot::OnIsFilled))
@@ -174,7 +175,7 @@ TSharedPtr<SWidget> SchuckInventorySlot::BuildDragDecorator()
 
 	return SNew(SchuckDragIcon)
 		.IconTexture(IconTex)
-		.IconSize(SlotSize * 1.15f)
+		.IconSize(SlotSize.Get(64.f) * 1.15f)
 		.Alpha(0.95f);
 }
 
