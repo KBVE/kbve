@@ -15,8 +15,7 @@ resources:
     - kubevirt-rbac.yaml
     - kbve-deployment.yaml
     - kbve-gateway.yaml
-    - kbve-ingress.yaml
-    - kbve-mc-redirect-ingress.yaml
+    - kbve-mc-redirect-httproute.yaml
     - kbve-wt-selfsigned-cronjob.yaml
     - cf-cache-purge-externalsecret.yaml
     - cf-cache-purge-postsync.yaml

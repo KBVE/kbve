@@ -7,4 +7,3 @@ resources:
     - rentearth-externalsecret.yaml
     - rentearth-deployment.yaml
     - httproute.yaml
-    - nginx-ingress.yaml

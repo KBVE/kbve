@@ -13,6 +13,13 @@ spec:
     infrastructure:
         labels:
             node.kbve.com/type: dedicated-server
+        annotations:
+            # Claim both LB IPs for the same gateway so the legacy
+            # talos.kbve.com (.74) CNAME keeps resolving after the
+            # ingress-nginx drop. Envoy listens on both VIPs; no CF
+            # DNS edits required during the cutover. Drop .74 later
+            # once every external CNAME has been audited and moved.
+            io.cilium/lb-ipam-ips: '142.132.206.71,142.132.206.74'
     listeners:
         - name: http
           protocol: HTTP
@@ -122,6 +129,48 @@ spec:
                     group: ''
                     name: cryptothrone-tls
                     namespace: cryptothrone
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-chuckrpg
+          protocol: HTTPS
+          port: 443
+          hostname: chuckrpg.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: chuckrpg-tls
+                    namespace: chuckrpg
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-chuckrpg-api
+          protocol: HTTPS
+          port: 443
+          hostname: api.chuckrpg.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: chuckrpg-api-tls
+                    namespace: rows
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-discordsh
+          protocol: HTTPS
+          port: 443
+          hostname: discord.sh
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: discordsh-tls
+                    namespace: discordsh
           allowedRoutes:
               namespaces:
                   from: All
