@@ -1,0 +1,66 @@
+---
+title: KBVEWebSurface
+description: |
+    Game-agnostic Unreal Engine plugin for rendering interactive web content onto 3D surfaces — billboards, terminals, kiosks, holograms, in-world dashboards.
+sidebar:
+    label: KBVEWebSurface
+    order: 95
+tags:
+    - unreal
+    - web
+    - ui
+key: ue_kbvewebsurface
+pipeline: unreal
+plugin_name: KBVEWebSurface
+plugin_path: packages/unreal/KBVEWebSurface
+version: "0.1.0"
+source_path: packages/unreal/KBVEWebSurface
+version_toml: packages/unreal/KBVEWebSurface/version.toml
+author: h0lybyte
+license: MIT
+status: beta
+min_engine_version: "5.6"
+supported_platforms:
+    - Win64
+    - Linux
+    - Mac
+---
+
+## Overview
+
+`KBVEWebSurface` renders interactive web content onto Unreal world surfaces. The plugin is game-agnostic and targets reuse across `chuckrpg`, future KBVE titles, and external Fab distribution.
+
+### Surface kinds
+
+- **Flat panel** — `UKBVEWebSurfaceComponent` wraps a `UWidgetComponent` with an embedded UMG `WebBrowser`.
+- **Curved / holographic** — `UKBVEWebRenderSurfaceComponent` pipes the browser through a render target onto an arbitrary mesh + material.
+- **Actor** — `AKBVEWebSurfaceActor` ships as a drop-in for terminals and kiosks.
+
+### Input
+
+`UKBVEWebInputRouter` maps player line traces to widget-pixel coordinates. Hit UVs come from `FindCollisionUV`, so `Support UV From Hit Results` must be enabled on the project.
+
+### Bridge
+
+`UKBVEWebBridge` exposes a typed message bus between embedded JS and Blueprint/C++. Pages call `window.kbveBridge.send(channel, payload)`; the bridge re-broadcasts via `OnMessage`.
+
+### Performance
+
+CEF is expensive. The plugin ships a per-surface frame-rate cap, offscreen pause, snapshot fallback at distance, and a `UKBVEWebSurfacePool` LRU cap on concurrent live surfaces.
+
+### Backend
+
+The default backend wraps Unreal's stock `UWebBrowser` (CEF). Alternate backends (Ultralight, WebUI) plug in via `IKBVEWebBackend` and ship as separate plugins.
+
+### Use cases
+
+- Marketplace / auction house
+- Account, guild, social screens
+- Admin and debug terminals
+- Patch notes, news boards
+- In-world interactive billboards and kiosks
+
+### Anti-use cases
+
+- Combat HUD, health bars, minimap — use Slate/UMG.
+- Per-NPC labels, shop signs, hundreds of world objects — too expensive per surface.
