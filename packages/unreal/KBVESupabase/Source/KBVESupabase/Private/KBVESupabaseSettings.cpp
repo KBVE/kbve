@@ -32,10 +32,12 @@ namespace
 }
 
 UKBVESupabaseSettings::UKBVESupabaseSettings()
-	: GoTruePath(TEXT("/auth/v1"))
+	: ProjectURL(TEXT("https://supabase.kbve.com"))
+	, GoTruePath(TEXT("/auth/v1"))
 	, RestPath(TEXT("/rest/v1"))
 	, FunctionsPath(TEXT("/functions/v1"))
 	, StoragePath(TEXT("/storage/v1"))
+	, AuthCallbackBaseURL(TEXT("http://localhost:4321"))
 	, bAutoRefreshOn401(true)
 	, bPersistSession(true)
 	, RefreshLeadSeconds(60)
@@ -67,24 +69,37 @@ UKBVESupabaseSettings::UKBVESupabaseSettings()
 	ChatAutoJoinChannels.Add(TEXT("#global"));
 }
 
+namespace
+{
+	FString ResolveProjectURL(const FString& Configured)
+	{
+		FString URL = TrimTrailingSlash(Configured);
+		if (URL.IsEmpty())
+		{
+			URL = TEXT("https://supabase.kbve.com");
+		}
+		return URL;
+	}
+}
+
 FString UKBVESupabaseSettings::GetAuthBase() const
 {
-	return TrimTrailingSlash(ProjectURL) + NormalizePath(GoTruePath, TEXT("/auth/v1"));
+	return ResolveProjectURL(ProjectURL) + NormalizePath(GoTruePath, TEXT("/auth/v1"));
 }
 
 FString UKBVESupabaseSettings::GetRestBase() const
 {
-	return TrimTrailingSlash(ProjectURL) + NormalizePath(RestPath, TEXT("/rest/v1"));
+	return ResolveProjectURL(ProjectURL) + NormalizePath(RestPath, TEXT("/rest/v1"));
 }
 
 FString UKBVESupabaseSettings::GetFunctionsBase() const
 {
-	return TrimTrailingSlash(ProjectURL) + NormalizePath(FunctionsPath, TEXT("/functions/v1"));
+	return ResolveProjectURL(ProjectURL) + NormalizePath(FunctionsPath, TEXT("/functions/v1"));
 }
 
 FString UKBVESupabaseSettings::GetStorageBase() const
 {
-	return TrimTrailingSlash(ProjectURL) + NormalizePath(StoragePath, TEXT("/storage/v1"));
+	return ResolveProjectURL(ProjectURL) + NormalizePath(StoragePath, TEXT("/storage/v1"));
 }
 
 FString UKBVESupabaseSettings::GetEffectiveProjectSlug() const

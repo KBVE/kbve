@@ -106,16 +106,65 @@ void FKBVESupabaseOAuthLoopback::Stop()
 
 bool FKBVESupabaseOAuthLoopback::HandleCallback(const FHttpServerRequest& Request, const FHttpResultCallback& OnHttpDone)
 {
-	const FString Code = GetQueryParam(Request.QueryParams, TEXT("code"));
-	const FString State = GetQueryParam(Request.QueryParams, TEXT("state"));
-	const FString Error = GetQueryParam(Request.QueryParams, TEXT("error"));
+	FString Code           = GetQueryParam(Request.QueryParams, TEXT("code"));
+	const FString State    = GetQueryParam(Request.QueryParams, TEXT("state"));
+	const FString Error    = GetQueryParam(Request.QueryParams, TEXT("error"));
 	const FString ErrorDesc = GetQueryParam(Request.QueryParams, TEXT("error_description"));
+	const FString AccessToken  = GetQueryParam(Request.QueryParams, TEXT("access_token"));
+	const FString RefreshToken = GetQueryParam(Request.QueryParams, TEXT("refresh_token"));
+	if (!AccessToken.IsEmpty())
+	{
+		// Pack refresh_token into the Code field (overloaded for the implicit-grant path).
+		Code = RefreshToken;
+	}
 
-	const bool bOk = Error.IsEmpty() && !Code.IsEmpty();
-	const FString& Html = bOk ? SuccessHtml : ErrorHtml;
+	// First hit from Supabase: token is in the URL fragment (#access_token=...),
+	// which the HTTP server cannot read. Reply with a tiny JS page that pulls
+	// access_token out of window.location.hash and re-issues the same URL with
+	// ?access_token=... as a query param so this same route picks it up.
+	if (Error.IsEmpty() && Code.IsEmpty() && AccessToken.IsEmpty())
+	{
+		static const TCHAR* FragmentBounceHtml =
+			TEXT("<!doctype html><html><head><meta charset=\"utf-8\">"
+			"<title>Signing in...</title>"
+			"<style>html,body{height:100%;margin:0;font-family:-apple-system,Inter,sans-serif;"
+			"background:#0a0a14;color:#e8eaed;display:flex;align-items:center;justify-content:center}"
+			"div{text-align:center;padding:2rem;max-width:32rem}h1{font-weight:600;margin:0 0 .5rem}"
+			"p{opacity:.7;margin:0}</style></head><body><div><h1>Signing in...</h1>"
+			"<p>One moment, finishing up.</p></div><script>(function(){"
+			"var h=window.location.hash.replace(/^#/,'');"
+			"if(!h){document.querySelector('h1').textContent='Sign in failed';"
+			"document.querySelector('p').textContent='No access token in callback.';return;}"
+			"var p=new URLSearchParams(h);var t=p.get('access_token');"
+			"if(!t){document.querySelector('h1').textContent='Sign in failed';"
+			"document.querySelector('p').textContent='No access_token in fragment.';return;}"
+			"var rt=p.get('refresh_token')||'';var q='?access_token='+encodeURIComponent(t);"
+			"if(rt)q+='&refresh_token='+encodeURIComponent(rt);"
+			"window.location.replace(window.location.pathname+q);})();</script></body></html>");
 
-	TUniquePtr<FHttpServerResponse> Resp = FHttpServerResponse::Create(Html, TEXT("text/html; charset=utf-8"));
-	Resp->Headers.Add(TEXT("Cache-Control"), { TEXT("no-store") });
+		TUniquePtr<FHttpServerResponse> BounceResp = FHttpServerResponse::Create(FString(FragmentBounceHtml), TEXT("text/html; charset=utf-8"));
+		BounceResp->Headers.Add(TEXT("Cache-Control"), { TEXT("no-store") });
+		OnHttpDone(MoveTemp(BounceResp));
+		return true;
+	}
+
+	const bool bOk = Error.IsEmpty() && (!Code.IsEmpty() || !AccessToken.IsEmpty());
+
+	TUniquePtr<FHttpServerResponse> Resp;
+	if (bOk)
+	{
+		// 301 → kbve.com so the browser tab leaves the loopback ASAP. Loopback
+		// then gets torn down by the subsystem once the OnComplete delegate fires.
+		Resp = MakeUnique<FHttpServerResponse>();
+		Resp->Code = EHttpServerResponseCodes::Moved;
+		Resp->Headers.Add(TEXT("Location"),      { TEXT("https://kbve.com/auth/success") });
+		Resp->Headers.Add(TEXT("Cache-Control"), { TEXT("no-store") });
+	}
+	else
+	{
+		Resp = FHttpServerResponse::Create(ErrorHtml, TEXT("text/html; charset=utf-8"));
+		Resp->Headers.Add(TEXT("Cache-Control"), { TEXT("no-store") });
+	}
 	OnHttpDone(MoveTemp(Resp));
 
 	if (bCompleted)
@@ -131,14 +180,14 @@ bool FKBVESupabaseOAuthLoopback::HandleCallback(const FHttpServerRequest& Reques
 	}
 
 	TWeakPtr<FKBVESupabaseOAuthLoopback> Weak = AsWeak();
-	AsyncTask(ENamedThreads::GameThread, [Weak, bOk, Code, State, FullError]()
+	AsyncTask(ENamedThreads::GameThread, [Weak, bOk, Code, State, FullError, AccessToken]()
 	{
 		TSharedPtr<FKBVESupabaseOAuthLoopback> Strong = Weak.Pin();
 		if (!Strong.IsValid())
 		{
 			return;
 		}
-		Strong->OnComplete.ExecuteIfBound(bOk, Code, State, FullError);
+		Strong->OnComplete.ExecuteIfBound(bOk, Code, State, FullError, AccessToken);
 	});
 
 	return true;
