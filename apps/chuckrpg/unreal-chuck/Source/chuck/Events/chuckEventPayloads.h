@@ -36,9 +36,21 @@ struct FchuckDamageReceivedPayload
 
 struct FchuckTooltipPayload
 {
-	bool      bShow = false;
-	FText     Text;
-	FVector2D ScreenPos = FVector2D::ZeroVector;
+	bool         bShow = false;
+	FText        Text;
+	FText        Subtitle;
+	FText        Body;
+	FLinearColor BorderColor = FLinearColor::White;
+	FLinearColor TitleColor  = FLinearColor::White;
+	FVector2D    ScreenPos = FVector2D::ZeroVector;
+};
+
+struct FchuckItemConsumedPayload
+{
+	int32 ItemKey = 0;
+	float HealHP    = 0.f;
+	float RestoreMP = 0.f;
+	float RestoreEP = 0.f;
 };
 
 // Sim-domain payloads: enqueued from Mass workers, drained on the game thread.

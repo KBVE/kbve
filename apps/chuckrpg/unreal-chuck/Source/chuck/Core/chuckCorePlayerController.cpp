@@ -16,6 +16,7 @@
 #include "SchuckHUD.h"
 #include "SchuckInventoryWindow.h"
 #include "SchuckPauseMenu.h"
+#include "SKBVEDragArrowLayer.h"
 #include "SKBVETooltip.h"
 
 AchuckCorePlayerController::AchuckCorePlayerController()
@@ -86,21 +87,31 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 	HUDWidget    = SNew(SchuckHUD).OwningCharacter(Char);
 	HotbarWidget = SNew(SchuckHotbar).OwningCharacter(Char);
 	TooltipWidget = SNew(SKBVETooltip);
+	DragArrowLayer = SNew(SKBVEDragArrowLayer);
 
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 	{
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef(),     5);
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HotbarWidget.ToSharedRef(),  6);
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), TooltipWidget.ToSharedRef(), 30);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef(),       5);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HotbarWidget.ToSharedRef(),    6);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), DragArrowLayer.ToSharedRef(), 29);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), TooltipWidget.ToSharedRef(),  30);
 	}
 
 	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
 	{
 		FKBVEEventHandle H = Bus->Tooltip.Subscribe(this, [this](const FchuckTooltipPayload& P)
 		{
-			if (!TooltipWidget.IsValid()) return;
-			if (P.bShow) TooltipWidget->Show(P.Text, P.ScreenPos);
-			else         TooltipWidget->Hide();
+			bPendingTooltipShow      = P.bShow;
+			bPendingTooltipDirty     = true;
+			if (P.bShow)
+			{
+				PendingTooltipTitle       = P.Text;
+				PendingTooltipSubtitle    = P.Subtitle;
+				PendingTooltipBody        = P.Body;
+				PendingTooltipTitleColor  = P.TitleColor;
+				PendingTooltipBorderColor = P.BorderColor;
+				PendingTooltipPos         = P.ScreenPos;
+			}
 		});
 		TooltipHandleId = H.Id;
 	}
@@ -122,6 +133,11 @@ void AchuckCorePlayerController::OnUnPossess()
 	{
 		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), TooltipWidget.ToSharedRef());
 		TooltipWidget.Reset();
+	}
+	if (DragArrowLayer.IsValid())
+	{
+		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), DragArrowLayer.ToSharedRef());
+		DragArrowLayer.Reset();
 	}
 	if (InventoryWidget.IsValid())
 	{
@@ -242,6 +258,25 @@ void AchuckCorePlayerController::OnToggleDevOverlayPressed(const FInputActionVal
 void AchuckCorePlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	if (bPendingTooltipDirty && TooltipWidget.IsValid())
+	{
+		bPendingTooltipDirty = false;
+		if (bPendingTooltipShow)
+		{
+			FKBVETooltipContent C;
+			C.Title       = PendingTooltipTitle;
+			C.Subtitle    = PendingTooltipSubtitle;
+			C.Body        = PendingTooltipBody;
+			C.TitleColor  = PendingTooltipTitleColor;
+			C.BorderColor = PendingTooltipBorderColor;
+			TooltipWidget->ShowRich(C, PendingTooltipPos);
+		}
+		else
+		{
+			TooltipWidget->Hide();
+		}
+	}
 }
 
 void AchuckCorePlayerController::OnInventoryPressed(const FInputActionValue& Value)

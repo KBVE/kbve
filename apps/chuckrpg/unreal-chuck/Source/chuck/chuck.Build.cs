@@ -38,6 +38,7 @@ public class chuck : ModuleRules
 			"KBVEEvents"
 		});
 
+
 		PublicIncludePaths.AddRange(new string[] {
 			"chuck",
 			"chuck/Core",

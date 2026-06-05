@@ -4,9 +4,6 @@
 #include "Input/DragAndDrop.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 
-// Generic drag-drop payload used by KBVEUI slot widgets. Caller stuffs an
-// opaque int32 source identifier (slot index, hotbar position, etc.) plus
-// a FName domain tag so drop targets can reject cross-domain drops cheaply.
 class KBVEUI_API FKBVEDragOp : public FDragDropOperation
 {
 public:
@@ -15,6 +12,29 @@ public:
 	FName Domain;
 	int32 SourceIndex = INDEX_NONE;
 	int32 SourcePayloadKey = 0;
+	TFunction<void()> OnEnded;
+	TFunction<void(const FVector2D& /*ScreenPos*/)> OnDroppedOutside;
+	TWeakPtr<SWidget> SourceWidget;
+	TWeakPtr<SWidget> HoverWidget;
+	bool  bDropHandled = false;
+	FVector2D LastScreenPos = FVector2D::ZeroVector;
 
-	static TSharedRef<FKBVEDragOp> New(FName InDomain, int32 InSourceIndex, int32 InPayloadKey);
+	virtual ~FKBVEDragOp() override
+	{
+		if (!bDropHandled && OnDroppedOutside) OnDroppedOutside(LastScreenPos);
+		if (OnEnded) OnEnded();
+	}
+
+	virtual void OnDragged(const FDragDropEvent& Event) override
+	{
+		FDragDropOperation::OnDragged(Event);
+		LastScreenPos = Event.GetScreenSpacePosition();
+	}
+
+	static TSharedRef<FKBVEDragOp> New(FName InDomain, int32 InSourceIndex, int32 InPayloadKey, TSharedPtr<SWidget> InDecorator = nullptr, TSharedPtr<SWidget> InSourceWidget = nullptr);
+
+	virtual TSharedPtr<SWidget> GetDefaultDecorator() const override { return DecoratorOverride; }
+
+private:
+	TSharedPtr<SWidget> DecoratorOverride;
 };

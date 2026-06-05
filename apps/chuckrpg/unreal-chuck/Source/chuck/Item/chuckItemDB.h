@@ -28,6 +28,11 @@ public:
 	bool HasAtlas() const { return AtlasTexture != nullptr; }
 	const FSlateResourceHandle& GetAtlasHandle() const { return AtlasResourceHandle; }
 	void GetIconUV(int32 ItemKey, FVector2D& OutUVTopLeft, FVector2D& OutUVBottomRight) const;
+	UTexture2D* GetIconTexture(int32 ItemKey);
+	UTexture2D* GetRadialDiscTexture();
+	class UMaterialInterface* GetTranslucentBillboardMaterial();
+	class UMaterialInstanceDynamic* GetIconMID(int32 ItemKey);
+	class UMaterialInstanceDynamic* GetHaloMID(EchuckItemRarity Rarity, const FLinearColor& RarityColor);
 
 	static constexpr int32 AtlasGridSize = 32;
 	static constexpr int32 AtlasTilePixels = 64;
@@ -40,6 +45,25 @@ private:
 	UPROPERTY() TArray<FchuckItemDef> ByKey;
 
 	UPROPERTY() TObjectPtr<UTexture2D> AtlasTexture = nullptr;
+
+	UPROPERTY()
+	TMap<int32, TObjectPtr<UTexture2D>> IconTextureCache;
+
+	UPROPERTY()
+	TMap<int32, TObjectPtr<class UMaterialInstanceDynamic>> IconMIDCache;
+
+	UPROPERTY()
+	TMap<uint8, TObjectPtr<class UMaterialInstanceDynamic>> HaloMIDByRarity;
+
+	UPROPERTY()
+	TObjectPtr<UTexture2D> RadialDiscTex = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<class UMaterialInterface> TranslucentBillboardMat = nullptr;
+
+	TArray<FColor> AtlasPixels;
+	int32 AtlasW = 0;
+	int32 AtlasH = 0;
 
 	FSlateBrush AtlasBrush;
 	FSlateResourceHandle AtlasResourceHandle;

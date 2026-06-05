@@ -2,6 +2,7 @@
 
 #include "ChuckUIStyle.h"
 #include "chuckCoreCharacter.h"
+#include "chuckInventory.h"
 #include "chuckSettings.h"
 #include "SchuckEquipmentPanel.h"
 #include "SchuckInventorySlot.h"
@@ -129,6 +130,29 @@ void SchuckInventoryWindow::Construct(const FArguments& InArgs)
 			]
 		]
 	];
+}
+
+void SchuckInventoryWindow::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+{
+	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+	if (!SelectedKey.IsValid() || *SelectedKey == 0) return;
+
+	AchuckCoreCharacter* C = Character.Get();
+	if (!C) return;
+	const FchuckInventory& Inv = C->GetInventory();
+	const int32 Want = *SelectedKey;
+	auto HasKey = [&](const TArray<FchuckInventoryStack>& Slots) -> bool
+	{
+		for (const FchuckInventoryStack& S : Slots)
+		{
+			if (!S.IsEmpty() && S.ItemKey == Want) return true;
+		}
+		return false;
+	};
+	if (!HasKey(Inv.DefaultBag.Slots) && !HasKey(Inv.Hotbar.Slots))
+	{
+		*SelectedKey = 0;
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

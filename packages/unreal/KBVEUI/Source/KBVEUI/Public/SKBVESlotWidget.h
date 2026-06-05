@@ -16,9 +16,13 @@ DECLARE_DELEGATE_FourParams(
 	int32 /*Layer*/,
 	const FVector2D& /*SlotSize*/);
 DECLARE_DELEGATE(FOnKBVESlotClicked);
+DECLARE_DELEGATE(FOnKBVESlotRightClicked);
+DECLARE_DELEGATE(FOnKBVESlotShiftRightClicked);
 DECLARE_DELEGATE_TwoParams(FOnKBVESlotHover, bool /*bEntered*/, const FVector2D& /*ScreenPos*/);
 DECLARE_DELEGATE_RetVal(int32, FOnKBVESlotPayloadKey);
-DECLARE_DELEGATE_OneParam(FOnKBVESlotDropped, int32 /*SourceSlotIndex*/);
+DECLARE_DELEGATE_RetVal(TSharedPtr<SWidget>, FOnKBVESlotBuildDecorator);
+DECLARE_DELEGATE_TwoParams(FOnKBVESlotDropped, int32 /*SourceSlotIndex*/, FName /*SourceDomain*/);
+DECLARE_DELEGATE_OneParam(FOnKBVESlotDroppedOutside, const FVector2D& /*ScreenPos*/);
 
 class KBVEUI_API SKBVESlotWidget : public SCompoundWidget
 {
@@ -32,11 +36,16 @@ public:
 		SLATE_EVENT(FOnKBVESlotCount, OnGetCount)
 		SLATE_EVENT(FOnKBVESlotPaintIcon, OnPaintIcon)
 		SLATE_EVENT(FOnKBVESlotClicked, OnClicked)
+		SLATE_EVENT(FOnKBVESlotRightClicked, OnRightClicked)
+		SLATE_EVENT(FOnKBVESlotShiftRightClicked, OnShiftRightClicked)
 		SLATE_EVENT(FOnKBVESlotHover, OnHover)
 		SLATE_EVENT(FOnKBVESlotPayloadKey, OnGetPayloadKey)
+		SLATE_EVENT(FOnKBVESlotBuildDecorator, OnBuildDecorator)
 		SLATE_EVENT(FOnKBVESlotDropped, OnDropped)
+		SLATE_EVENT(FOnKBVESlotDroppedOutside, OnDroppedOutside)
 		SLATE_ARGUMENT(FName, DragDomain)
 		SLATE_ARGUMENT(int32, SlotIndex)
+		SLATE_ARGUMENT(TArray<FName>, AcceptedDomains)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -55,20 +64,33 @@ protected:
 	virtual FReply OnMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& Mouse) override;
 	virtual FReply OnMouseButtonUp(const FGeometry& Geometry, const FPointerEvent& Mouse) override;
 	virtual FReply OnDragDetected(const FGeometry& Geometry, const FPointerEvent& Mouse) override;
+	virtual FReply OnDragOver(const FGeometry& Geometry, const FDragDropEvent& Event) override;
 	virtual FReply OnDrop(const FGeometry& Geometry, const FDragDropEvent& Event) override;
+	virtual void OnDragEnter(const FGeometry& Geometry, const FDragDropEvent& Event) override;
+	virtual void OnDragLeave(const FDragDropEvent& Event) override;
 	virtual void OnMouseEnter(const FGeometry& Geometry, const FPointerEvent& Mouse) override;
 	virtual void OnMouseLeave(const FPointerEvent& Mouse) override;
+
+	bool IsAcceptingDragHover() const { return bDragHovered; }
+	bool IsBeingDragged()       const { return bBeingDragged; }
 
 private:
 	float SlotSize = 64.f;
 	int32 SlotIndex = INDEX_NONE;
 	FName DragDomain;
-	FOnKBVESlotIsFilled    OnIsFilled;
-	FOnKBVESlotBorderColor OnGetBorderColor;
-	FOnKBVESlotCount       OnGetCount;
-	FOnKBVESlotPaintIcon   OnPaintIcon;
-	FOnKBVESlotClicked     OnClicked;
-	FOnKBVESlotHover       OnHover;
-	FOnKBVESlotPayloadKey  OnGetPayloadKey;
-	FOnKBVESlotDropped     OnDropped;
+	TArray<FName> AcceptedDomains;
+	FOnKBVESlotIsFilled       OnIsFilled;
+	FOnKBVESlotBorderColor    OnGetBorderColor;
+	FOnKBVESlotCount          OnGetCount;
+	FOnKBVESlotPaintIcon      OnPaintIcon;
+	FOnKBVESlotClicked        OnClicked;
+	FOnKBVESlotRightClicked       OnRightClicked;
+	FOnKBVESlotShiftRightClicked  OnShiftRightClicked;
+	FOnKBVESlotHover          OnHover;
+	FOnKBVESlotPayloadKey     OnGetPayloadKey;
+	FOnKBVESlotBuildDecorator OnBuildDecorator;
+	FOnKBVESlotDropped        OnDropped;
+	FOnKBVESlotDroppedOutside OnDroppedOutside;
+	mutable bool bDragHovered = false;
+	mutable bool bBeingDragged = false;
 };

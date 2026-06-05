@@ -16,6 +16,8 @@
 #include "UObject/ConstructorHelpers.h"
 
 #include "chuckCharacterMovementComponent.h"
+#include "chuckDroppedItemPool.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "chuckEventPayloads.h"
 #include "chuckInputs.h"
 #include "chuckInventoryFragment.h"
@@ -478,6 +480,112 @@ void AchuckCoreCharacter::SwapBagSlots(int32 IndexA, int32 IndexB, bool bHotbar)
 	Bag.Slots[IndexB] = Tmp;
 	Bag.MarkItemDirty(Bag.Slots[IndexA]);
 	Bag.MarkItemDirty(Bag.Slots[IndexB]);
+}
+
+void AchuckCoreCharacter::SwapAcrossContainers(int32 BagIndex, int32 HotbarIndex)
+{
+	FchuckInventoryBag& BagA = Inventory.DefaultBag;
+	FchuckInventoryBag& BagB = Inventory.Hotbar;
+	if (!BagA.Slots.IsValidIndex(BagIndex) || !BagB.Slots.IsValidIndex(HotbarIndex))
+	{
+		return;
+	}
+	FchuckInventoryStack Tmp = BagA.Slots[BagIndex];
+	BagA.Slots[BagIndex] = BagB.Slots[HotbarIndex];
+	BagB.Slots[HotbarIndex] = Tmp;
+	BagA.MarkItemDirty(BagA.Slots[BagIndex]);
+	BagB.MarkItemDirty(BagB.Slots[HotbarIndex]);
+}
+
+bool AchuckCoreCharacter::ServerDropSlot(int32 SlotIndex, bool bHotbar, int32 DropCount)
+{
+	if (!HasAuthority()) return false;
+	FchuckInventoryBag& Bag = bHotbar ? Inventory.Hotbar : Inventory.DefaultBag;
+	if (!Bag.Slots.IsValidIndex(SlotIndex)) return false;
+	FchuckInventoryStack& Stack = Bag.Slots[SlotIndex];
+	if (Stack.IsEmpty()) return false;
+
+	const int32 N = FMath::Clamp(DropCount, 1, Stack.Count);
+	const int32 ItemKey = Stack.ItemKey;
+
+	UGameInstance* GI = GetGameInstance();
+	UchuckItemDB* DB = GI ? GI->GetSubsystem<UchuckItemDB>() : nullptr;
+	if (!DB) return false;
+	const FchuckItemDef* Def = DB->LookupByKey(ItemKey);
+	if (!Def) return false;
+
+	UWorld* World = GetWorld();
+	UchuckDroppedItemPool* Pool = World ? World->GetSubsystem<UchuckDroppedItemPool>() : nullptr;
+	if (!Pool) return false;
+
+	const FVector Fwd = GetActorForwardVector();
+	const FVector Loc = GetActorLocation() + Fwd * 110.f + FVector(0, 0, -30.f);
+	const FLinearColor RarityColor = chuckItem::RarityColor(Def->Rarity);
+	UMaterialInstanceDynamic* IconMID = DB->GetIconMID(ItemKey);
+	UMaterialInstanceDynamic* HaloMID = DB->GetHaloMID(Def->Rarity, RarityColor);
+	Pool->SpawnDrop(ItemKey, N, Def->Rarity, RarityColor, Loc, IconMID, HaloMID);
+
+	Stack.Count -= N;
+	if (Stack.Count <= 0)
+	{
+		Stack = FchuckInventoryStack();
+	}
+	Bag.MarkItemDirty(Stack);
+	return true;
+}
+
+bool AchuckCoreCharacter::ServerConsumeSlot(int32 SlotIndex, bool bHotbar)
+{
+	if (!HasAuthority()) return false;
+
+	FchuckInventoryBag& Bag = bHotbar ? Inventory.Hotbar : Inventory.DefaultBag;
+	if (!Bag.Slots.IsValidIndex(SlotIndex)) return false;
+	FchuckInventoryStack& Stack = Bag.Slots[SlotIndex];
+	if (Stack.IsEmpty()) return false;
+
+	UGameInstance* GI = GetGameInstance();
+	UchuckItemDB* DB = GI ? GI->GetSubsystem<UchuckItemDB>() : nullptr;
+	if (!DB) return false;
+	const FchuckItemDef* Def = DB->LookupByKey(Stack.ItemKey);
+	if (!Def || !Def->bConsumable) return false;
+
+	const float OldH = Stats.Health, OldM = Stats.Mana, OldE = Stats.Stamina;
+	if (Def->HealHP    > 0.f) Stats.Health  = FMath::Clamp(Stats.Health  + Def->HealHP,    0.f, Stats.MaxHealth);
+	if (Def->RestoreMP > 0.f) Stats.Mana    = FMath::Clamp(Stats.Mana    + Def->RestoreMP, 0.f, Stats.MaxMana);
+	if (Def->RestoreEP > 0.f) Stats.Stamina = FMath::Clamp(Stats.Stamina + Def->RestoreEP, 0.f, Stats.MaxStamina);
+
+	const int32 ConsumedKey = Stack.ItemKey;
+	Stack.Count -= 1;
+	if (Stack.Count <= 0)
+	{
+		Stack = FchuckInventoryStack();
+	}
+	Bag.MarkItemDirty(Stack);
+
+	UWorld* World = GetWorld();
+	UMassEntitySubsystem* Mass = World ? World->GetSubsystem<UMassEntitySubsystem>() : nullptr;
+	if (Mass && StatEntity.IsValid())
+	{
+		if (FchuckStatsFragment* Frag = Mass->GetMutableEntityManager().GetFragmentDataPtr<FchuckStatsFragment>(StatEntity))
+		{
+			Frag->Health  = Stats.Health;
+			Frag->Mana    = Stats.Mana;
+			Frag->Stamina = Stats.Stamina;
+		}
+	}
+
+	PublishStatChanges();
+
+	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
+	{
+		FchuckItemConsumedPayload P;
+		P.ItemKey   = ConsumedKey;
+		P.HealHP    = Stats.Health  - OldH;
+		P.RestoreMP = Stats.Mana    - OldM;
+		P.RestoreEP = Stats.Stamina - OldE;
+		Bus->ItemConsumed.Publish(P);
+	}
+	return true;
 }
 
 void AchuckCoreCharacter::OnRep_Stats()
