@@ -24,6 +24,8 @@ public:
 	UPROPERTY() TObjectPtr<UInputAction>          Pause;
 	UPROPERTY() TObjectPtr<UInputAction>          ToggleDevOverlay;
 	UPROPERTY() TObjectPtr<UInputAction>          Inventory;
+	UPROPERTY() TObjectPtr<UInputAction>          ToggleChat;
+	UPROPERTY() TObjectPtr<UInputAction>          FocusChat;
 	UPROPERTY() TObjectPtr<UInputMappingContext>  DefaultIMC;
 
 protected:
