@@ -156,7 +156,21 @@ spec:
                   - kind: Secret
                     group: ''
                     name: chuckrpg-api-tls
-                    namespace: rows
+                    namespace: chuckrpg
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-cityvote
+          protocol: HTTPS
+          port: 443
+          hostname: cityvote.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: cityvote-tls
+                    namespace: cityvote
           allowedRoutes:
               namespaces:
                   from: All
