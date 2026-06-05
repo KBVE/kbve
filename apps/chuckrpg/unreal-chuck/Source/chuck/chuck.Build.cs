@@ -23,7 +23,9 @@ public class chuck : ModuleRules
 			"MassEntity",
 			"MassCommon",
 			"StructUtils",
-			"NetCore"
+			"NetCore",
+			"ProceduralMeshComponent",
+			"NavigationSystem"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
@@ -45,6 +47,7 @@ public class chuck : ModuleRules
 			"chuck/Events",
 			"chuck/Item",
 			"chuck/Mass",
+			"chuck/World",
 			"chuck/UI",
 			"chuck/UI/HUD",
 			"chuck/UI/Inventory",
