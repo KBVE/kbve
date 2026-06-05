@@ -113,6 +113,9 @@ export default function ReactVMVncViewer() {
 
 		try {
 			const RFBClass = await loadRFB();
+			if (intentionalCloseRef.current || viewerRef.current !== viewerEl) {
+				return;
+			}
 			const rfb = new RFBClass(viewerEl, wsUrl, {
 				wsProtocols: ['binary.k8s.io', 'base64.binary.k8s.io'],
 			});
@@ -196,6 +199,59 @@ export default function ReactVMVncViewer() {
 		};
 	}, [vncTarget, connectVNC, cleanup]);
 
+	useEffect(() => {
+		const teardown = () => {
+			intentionalCloseRef.current = true;
+			cleanup();
+			if (
+				typeof document !== 'undefined' &&
+				document.fullscreenElement === containerRef.current
+			) {
+				document.exitFullscreen().catch(() => undefined);
+			}
+		};
+		document.addEventListener('astro:before-swap', teardown);
+		document.addEventListener('astro:before-preparation', teardown);
+		window.addEventListener('pagehide', teardown);
+		return () => {
+			document.removeEventListener('astro:before-swap', teardown);
+			document.removeEventListener('astro:before-preparation', teardown);
+			window.removeEventListener('pagehide', teardown);
+		};
+	}, [cleanup]);
+
+	useEffect(() => {
+		const onFsChange = () => {
+			const active = document.fullscreenElement === containerRef.current;
+			setFullscreen(active);
+		};
+		document.addEventListener('fullscreenchange', onFsChange);
+		return () =>
+			document.removeEventListener('fullscreenchange', onFsChange);
+	}, []);
+
+	useEffect(() => {
+		if (!rfbRef.current) return;
+		const rafId = requestAnimationFrame(() => {
+			window.dispatchEvent(new Event('resize'));
+		});
+		return () => cancelAnimationFrame(rafId);
+	}, [fullscreen]);
+
+	const toggleFullscreen = useCallback(() => {
+		const el = containerRef.current;
+		if (!el) return;
+		if (document.fullscreenElement === el) {
+			document.exitFullscreen().catch(() => setFullscreen(false));
+			return;
+		}
+		if (typeof el.requestFullscreen === 'function') {
+			el.requestFullscreen().catch(() => setFullscreen((f) => !f));
+		} else {
+			setFullscreen((f) => !f);
+		}
+	}, []);
+
 	// Manual retry handler
 	const handleRetry = useCallback(() => {
 		if (vncTarget && !connected) {
@@ -262,6 +318,9 @@ export default function ReactVMVncViewer() {
 					borderTop: '1px solid var(--sl-color-gray-5, #30363d)',
 					background: 'var(--sl-color-gray-6, #161b22)',
 					flexShrink: 0,
+					pointerEvents: 'auto',
+					position: 'relative',
+					zIndex: 1,
 				}}>
 				<div
 					style={{
@@ -349,7 +408,7 @@ export default function ReactVMVncViewer() {
 							title={
 								fullscreen ? 'Exit fullscreen' : 'Fullscreen'
 							}
-							onClick={() => setFullscreen(!fullscreen)}>
+							onClick={toggleFullscreen}>
 							{fullscreen ? (
 								<Minimize2 size={14} />
 							) : (
