@@ -14,7 +14,7 @@ tags:
 key: kasm_void
 pipeline: docker
 app_name: kasm-void
-version: "0.0.4"
+version: "0.0.5"
 source_path: packages/docker/kasm-void
 version_toml: packages/docker/kasm-void/version.toml
 runner: ubuntu-latest
@@ -77,6 +77,39 @@ maximize logic continue to work unchanged.
 | `URL_LAUNCHER_TOKEN` | (k8s secret)         | Reuses `kasm-vnc-pw` value as bearer token     |
 | `VNC_PW`             | (k8s secret)         | Provided by the kasm `Deployment`              |
 | `APP_ARGS`           | (inherited)          | Discord-side Electron args, consumed upstream  |
+
+## Desktop shortcuts + helper scripts (v0.0.5)
+
+The Desktop ships with launcher icons so the operator does not have to
+remember paths. Each `.desktop` entry is built into the image at
+`/home/kasm-user/Desktop/` and the underlying scripts live in
+`/home/kasm-user/scripts/`.
+
+| Icon | Action |
+|------|--------|
+| Terminal | Opens `xfce4-terminal` (the package is now installed) |
+| Discord | Direct launcher for `/usr/share/discord/Discord` (host-update skipped) |
+| CloakBrowser | Direct launcher for the bundled Chromium fork |
+| Open URL in Browser | `zenity` prompt → posts to the local `nav_shim` (falls back to a fresh `cloakbrowser --new-window` if the shim is down) |
+| Reload CloakBrowser | Kills `cloakbrowser`, clears the `Singleton*` locks; the supervisor respawns it in ~3s |
+| Reset Discord | Stops Discord, clears `Cache/`/`Code Cache/`/`GPUCache/`/`Shared Dictionary/`, re-seeds `SKIP_HOST_UPDATE` |
+
+### Discord host-update gate
+
+`scripts/seed-discord-config.sh` writes `SKIP_HOST_UPDATE: true` to
+`~/.config/discord/settings.json` before every Discord launch. The
+upstream Discord-on-Linux build otherwise attempts a self-update on each
+boot, which fails inside the gluetun-tunneled namespace and leaves the
+desktop without a Discord window.
+
+### CloakBrowser stability
+
+`cloak_loop` now passes
+`--user-data-dir=/home/kasm-user/.config/cloakbrowser
+--disable-software-rasterizer` and clears stale `SingletonLock`/`SingletonSocket`
+files before each respawn. The loop also tracks an exponential backoff
+when the binary exits in under 2 seconds and tails the last few lines of
+`/tmp/cloakbrowser.log` so the failure is visible from `kubectl logs`.
 
 ## URL launcher (`nav_shim`)
 
