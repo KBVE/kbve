@@ -1,7 +1,3 @@
-# Autologon — configures Windows builder VM autologon + VNC-ready
-# registry keys via a PostSync Job that exec's into virt-launcher and
-# drives the QEMU Guest Agent. Idempotent; safe to re-run on each sync.
-# When the VM is stopped the Job exits 0 so the sync stays Healthy.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:

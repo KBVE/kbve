@@ -1,13 +1,3 @@
-# KEDA ScaledObjects for Guacamole stack.
-#
-# Scale follows VM availability rather than a clock. The kubernetes-workload
-# trigger watches for any virt-launcher pod belonging to windows-builder;
-# when one exists (VMI Running) guacd + guacamole scale to 1, otherwise 0.
-# This catches off-hours / weekend use and matches multi-viewer demand to
-# actual VM state instead of a fixed weekday window.
-#
-# Manual override: kubectl scale deploy guacd guacamole -n angelscript --replicas=1
----
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:

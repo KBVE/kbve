@@ -110,6 +110,4 @@ resources:
     - kubevirt/file-server-application.yaml
     # Guacamole — browser-based RDP gateway for Windows VMs
     - kubevirt/guacamole-application.yaml
-    # Autologon — configures Windows VM autologon + VNC-ready registry keys
-    # via a PostSync Job. Idempotent; skips cleanly when the VM is stopped.
     - kubevirt/autologon-application.yaml

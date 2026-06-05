@@ -1,30 +1,3 @@
-# Guacamole user-mapping.xml — initial auth + RDP connection config.
-# Default password: guacadmin (sha256 hash below). CHANGE after first login.
-# For production, migrate to PostgreSQL backend.
-#
-# RDP param choices (Windows Server builder over WAN through Guacamole):
-#   - color-depth 24       — readable text without saturating the link
-#   - resize-method
-#     display-update       — true resolution change in the guest on browser
-#                            resize / fullscreen toggle; needs guest-agent
-#   - disable-wallpaper /
-#     theming / fwd-drag /
-#     desktop-composition /
-#     menu-animations      — strip expensive repaints; massive bandwidth win
-#                            and unblocks fullscreen mode rendering on slow
-#                            links
-#   - enable-font-smoothing — keep ClearType so MSVC / VS panes stay legible
-#   - bitmap / offscreen /
-#     glyph caching ON     — cuts repaint cost during long build log scroll
-#   - disable-audio        — VM has no audio device, avoids RDP channel error
-#   - enable-printing /
-#     enable-drive false   — no host file passthrough until we explicitly
-#                            wire a redirected drive
-#   - server-layout en-us  — fixes wrong characters on AltGr / dead keys
-#   - console false        — connect to interactive session (so autologon
-#                            takes effect); console=true would land on the
-#                            session 0 lock screen and CAD would target it
-#                            instead of the desktop
 apiVersion: v1
 kind: ConfigMap
 metadata:

@@ -1,51 +1,3 @@
-//! Multi-viewer VNC proxy hub.
-//!
-//! KubeVirt only allows a single VNC client per VMI — the second client to
-//! connect evicts the first. This module fans one upstream connection out
-//! to any number of viewers, so multiple staff members can watch the same
-//! console at the same time.
-//!
-//! ## Protocol notes
-//!
-//! RFB is stateful: the server sends ProtocolVersion, a list of security
-//! types, a SecurityResult, and a ServerInit (which carries the framebuffer
-//! dimensions + pixel format). Only after ServerInit can framebuffer
-//! updates flow. A late joiner whose RFB client skips straight to Normal
-//! mode will not understand subsequent bytes — it needs the handshake plus
-//! an initial full framebuffer.
-//!
-//! We don't parse RFB. Instead we keep a bounded cache of every byte the
-//! upstream has sent since session start; since the very first thing any
-//! viewer requests after ServerInit is a full framebuffer update, the
-//! cache naturally contains everything a late joiner needs (up to its
-//! size cap). Late joiners replay the cache, then subscribe to a broadcast
-//! channel of live upstream bytes — their client advances through its RFB
-//! state machine using the replayed bytes exactly as if it were the first
-//! connection.
-//!
-//! ## Input arbitration
-//!
-//! Every viewer's RFB client messages — keystrokes, mouse moves, clipboard
-//! cuts, SetEncodings, FBUR, etc. — are forwarded to the single upstream
-//! connection. The upstream `upstream_sink` mutex serializes concurrent
-//! writes so the RFB framing on the wire stays coherent. From KubeVirt's
-//! point of view there is still one RFB client; from the staff side every
-//! viewer can type and click.
-//!
-//! Concurrent input (two cursors moving at once) lands on the same shared
-//! desktop and will fight on the wire — this is the same model used by
-//! shared screen-control tools and is the intended behaviour for pair
-//! debug. The `primary_id` field is kept as an informational marker of
-//! who joined first (surfaced in the viewer UI) but no longer gates input.
-//!
-//! ## Cache bound + drift
-//!
-//! The cache is capped at 4 MiB. For typical KubeVirt consoles that's
-//! comfortably enough for handshake (< 1 KB) plus the initial full frame
-//! (usually 100-500 KB for 1024x768). If the cap is hit we stop appending
-//! to the cache — new joiners may see a stale framebuffer until the next
-//! full refresh, but no live bytes are dropped.
-
 use axum::body::Bytes;
 use axum::extract::ws::{Message as AxumMsg, WebSocket};
 use dashmap::DashMap;
@@ -65,16 +17,12 @@ type UpstreamWs =
     tokio_tungstenite::WebSocketStream<tokio_tungstenite::MaybeTlsStream<tokio::net::TcpStream>>;
 type UpstreamSink = futures_util::stream::SplitSink<UpstreamWs, TungMsg>;
 
-/// Per-VM shared VNC session. Torn down when the last viewer leaves.
 pub struct VncSession {
     vm_key: String,
-    /// Replay buffer bounded by `MAX_CACHE_BYTES`; new viewers replay this
-    /// before subscribing to the live broadcast.
     cache: Mutex<Vec<u8>>,
     broadcast: broadcast::Sender<Bytes>,
     upstream_sink: Mutex<Option<UpstreamSink>>,
     clients: AtomicUsize,
-    /// `0` = no primary; the next client to send input CASes itself in.
     primary_id: AtomicUsize,
 }
 
@@ -85,7 +33,6 @@ fn sessions() -> &'static DashMap<String, Arc<VncSession>> {
     SESSIONS.get_or_init(DashMap::new)
 }
 
-/// Snapshot of a VNC session's state, returned by the info endpoint.
 #[derive(Serialize)]
 pub struct SessionInfo {
     pub vm_key: String,
@@ -93,8 +40,6 @@ pub struct SessionInfo {
     pub has_primary: bool,
 }
 
-/// Query session info for a specific VM key. Returns `None` if no active
-/// session exists (i.e. no one is currently connected to that VM's VNC).
 pub fn get_session_info(vm_key: &str) -> Option<SessionInfo> {
     let registry = sessions();
     registry.get(vm_key).map(|session| SessionInfo {
@@ -104,7 +49,6 @@ pub fn get_session_info(vm_key: &str) -> Option<SessionInfo> {
     })
 }
 
-/// List all active VNC sessions with their viewer counts.
 pub fn list_sessions() -> Vec<SessionInfo> {
     let registry = sessions();
     registry
@@ -120,7 +64,6 @@ pub fn list_sessions() -> Vec<SessionInfo> {
         .collect()
 }
 
-/// Per-upstream connection knobs supplied by the caller.
 pub struct UpstreamConfig {
     pub auth_header: Option<HeaderValue>,
     pub origin: Option<HeaderValue>,
@@ -129,7 +72,6 @@ pub struct UpstreamConfig {
 }
 
 impl UpstreamConfig {
-    /// KubeVirt VNC subresource defaults.
     pub fn kubevirt(
         bearer_token: Option<String>,
     ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
@@ -146,9 +88,6 @@ impl UpstreamConfig {
     }
 }
 
-/// Entry point used by the HTTP handler. Finds or creates the session for
-/// this VM key, attaches this browser viewer, and runs the full client
-/// lifecycle until the browser disconnects or the session tears down.
 pub async fn join_session(
     vm_key: String,
     upstream_url: String,
@@ -218,8 +157,6 @@ pub async fn join_session_with_config(
     result
 }
 
-/// Open a fresh upstream WebSocket to the configured backend and spawn
-/// the background reader task that feeds the cache + broadcast channel.
 async fn create_session(
     vm_key: String,
     upstream_url: String,
@@ -299,9 +236,6 @@ async fn create_session(
     Ok(session)
 }
 
-/// Drive a single browser viewer: replay the handshake cache, then pump
-/// bytes in both directions (with primary-only input gating) until one
-/// side closes.
 async fn run_client(
     session: Arc<VncSession>,
     client_id: usize,
@@ -309,8 +243,6 @@ async fn run_client(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let (mut browser_tx, mut browser_rx) = browser_ws.split();
 
-    // Atomic snapshot + subscribe: hold the cache lock across both so the
-    // upstream reader cannot interleave a broadcast that we'd miss.
     let (cache_snapshot, mut live_rx) = {
         let cache = session.cache.lock().await;
         let rx = session.broadcast.subscribe();
@@ -318,8 +250,6 @@ async fn run_client(
     };
 
     if !cache_snapshot.is_empty() {
-        // K8s VNC uses the binary.k8s.io subprotocol; one Binary frame is
-        // fine because noVNC re-frames internally on RFB boundaries.
         if browser_tx
             .send(AxumMsg::Binary(Bytes::from(cache_snapshot)))
             .await
@@ -339,9 +269,6 @@ async fn run_client(
                 _ => continue,
             };
 
-            // Multi-master: every viewer's input flows to upstream. The
-            // sink mutex serializes concurrent writes so RFB framing on
-            // the wire stays intact even when two viewers type at once.
             let mut guard = session_input.upstream_sink.lock().await;
             match guard.as_mut() {
                 Some(sink) => {
@@ -362,8 +289,6 @@ async fn run_client(
                         break;
                     }
                 }
-                // Continuing on lag beats killing the viewer; lost bytes
-                // are unrecoverable but the next full refresh resyncs.
                 Err(broadcast::error::RecvError::Lagged(skipped)) => {
                     warn!(
                         "VNC hub: client {} lagged, skipped {} frames",
@@ -389,9 +314,6 @@ async fn run_client(
     Ok(())
 }
 
-/// Build a TLS connector that trusts the in-cluster Kubernetes CA so the
-/// apiserver's self-signed cert for the VNC subresource validates.
-/// Mirrors the setup from the old single-viewer `vnc_bridge`.
 fn build_kubevirt_tls_connector()
 -> Result<tokio_tungstenite::Connector, Box<dyn std::error::Error + Send + Sync>> {
     let mut root_store = rustls::RootCertStore::empty();
@@ -413,7 +335,6 @@ fn build_kubevirt_tls_connector()
     Ok(tokio_tungstenite::Connector::Rustls(Arc::new(config)))
 }
 
-/// TLS connector that accepts any cert. Cluster-internal use only.
 pub fn build_accept_any_tls_connector()
 -> Result<tokio_tungstenite::Connector, Box<dyn std::error::Error + Send + Sync>> {
     use rustls::client::danger::{HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier};
