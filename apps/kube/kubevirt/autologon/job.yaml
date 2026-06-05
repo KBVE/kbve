@@ -46,7 +46,12 @@ metadata:
         app: angelscript
         component: vm-autologon
 spec:
-    schedule: '*/5 * * * *'
+    # Safety-net cadence only. The fast on-boot trigger lives in
+    # scaled-job.yaml (KEDA kubernetes-workload watching for the
+    # virt-launcher pod). The CronJob picks up registry drift (someone
+    # toggling autologon off mid-session, a partial bootstrap run) at a
+    # low cadence so it doesn't spam pods while the VM is up.
+    schedule: '*/30 * * * *'
     timeZone: UTC
     concurrencyPolicy: Forbid
     successfulJobsHistoryLimit: 1
