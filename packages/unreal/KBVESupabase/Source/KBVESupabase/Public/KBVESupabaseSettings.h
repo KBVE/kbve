@@ -98,6 +98,32 @@ public:
 	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "OAuth Loopback", AdvancedDisplay, meta = (MultiLine = true))
 	FString LoopbackErrorHtml;
 
+	/**
+	 * KBVE chat (irc-gateway) WebSocket URL. JWT injected via
+	 * Authorization: Bearer on the upgrade. Leave blank to disable chat.
+	 */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Chat")
+	FString ChatURL;
+
+	/** Channels the client should JOIN immediately after the WS opens. */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Chat")
+	TArray<FString> ChatAutoJoinChannels;
+
+	/** Auto-respond to server PING with PONG. */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Chat", AdvancedDisplay)
+	bool bChatRespondToPing;
+
+	/** Reconnect after the socket drops. */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Chat", AdvancedDisplay)
+	bool bChatAutoReconnect;
+
+	/** Initial reconnect delay; doubles up to ChatReconnectMaxDelaySeconds. */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Chat", AdvancedDisplay, meta = (ClampMin = "1", ClampMax = "60"))
+	int32 ChatReconnectInitialDelaySeconds;
+
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Chat", AdvancedDisplay, meta = (ClampMin = "5", ClampMax = "600"))
+	int32 ChatReconnectMaxDelaySeconds;
+
 	/** Resolved GoTrue base, e.g. https://x.supabase.co/auth/v1 (no trailing slash). */
 	FString GetAuthBase() const;
 

@@ -11,6 +11,7 @@
 
 class UKBVESupabaseSettings;
 class UKBVESupabaseStorage;
+class UKBVESupabaseChat;
 class FKBVESupabaseOAuthLoopback;
 
 /**
@@ -133,6 +134,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "KBVE|Supabase|Storage")
 	UKBVESupabaseStorage* GetStorage() const { return Storage; }
 
+	UFUNCTION(BlueprintPure, Category = "KBVE|Supabase|Chat")
+	UKBVESupabaseChat* GetChat() const { return Chat; }
+
 	UFUNCTION(BlueprintPure, Category = "KBVE|Supabase|JWT")
 	bool DecodeAccessTokenClaims(FKBVESupabaseJWTClaims& OutClaims) const;
 
@@ -181,6 +185,9 @@ protected:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UKBVESupabaseStorage> Storage;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UKBVESupabaseChat> Chat;
 
 	FTimerHandle RefreshTimerHandle;
 

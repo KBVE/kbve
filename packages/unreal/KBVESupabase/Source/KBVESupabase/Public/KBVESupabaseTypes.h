@@ -124,3 +124,57 @@ DECLARE_DYNAMIC_DELEGATE_TwoParams(FKBVESupabaseSessionCallback, bool, bSuccess,
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FKBVESupabaseStringCallback, bool, bSuccess, const FString&, Payload);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FKBVESupabaseBytesCallback, bool, bSuccess, const TArray<uint8>&, Bytes);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FKBVESupabaseSimpleCallback, bool, bSuccess);
+
+UENUM(BlueprintType)
+enum class EKBVEChatStatus : uint8
+{
+	Disconnected		UMETA(DisplayName = "Disconnected"),
+	Connecting			UMETA(DisplayName = "Connecting"),
+	Connected			UMETA(DisplayName = "Connected"),
+	Reconnecting		UMETA(DisplayName = "Reconnecting"),
+	Error				UMETA(DisplayName = "Error")
+};
+
+/** Parsed IRC line as received from the chat gateway. */
+USTRUCT(BlueprintType)
+struct KBVESUPABASE_API FKBVEChatIrcLine
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Chat") FString Raw;
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Chat") FString Prefix;
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Chat") FString Sender;
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Chat") FString Command;
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Chat") TArray<FString> Params;
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Chat") FString Trailing;
+};
+
+/**
+ * Higher-level chat message extracted from a PRIVMSG. Body format
+ * sent by the irc-gateway:
+ *   "[KIND] sender@platform: content"
+ * Kind is e.g. CHAT, EVENT:KILL. Content is the user-visible text.
+ */
+USTRUCT(BlueprintType)
+struct KBVESUPABASE_API FKBVEChatMessage
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Chat") FString Channel;
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Chat") FString Nick;
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Chat") FString Sender;
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Chat") FString Platform;
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Chat") FString Kind;
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Chat") FString Body;
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Chat") FDateTime ReceivedAt;
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Chat") bool bIsEvent = false;
+};
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnKBVEChatConnected);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnKBVEChatDisconnected, int32, StatusCode, const FString&, Reason);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKBVEChatError, const FString&, Error);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKBVEChatMessage, const FKBVEChatMessage&, Message);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKBVEChatRawLine, const FKBVEChatIrcLine&, Line);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKBVEChatChannelJoined, const FString&, Channel);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKBVEChatChannelLeft, const FString&, Channel);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnKBVEChatStatusChanged, EKBVEChatStatus, OldStatus, EKBVEChatStatus, NewStatus);

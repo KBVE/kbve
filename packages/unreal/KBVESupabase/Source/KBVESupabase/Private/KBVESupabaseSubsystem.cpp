@@ -4,6 +4,7 @@
 #include "KBVESupabaseSessionStore.h"
 #include "KBVESupabaseOAuthLoopback.h"
 #include "KBVESupabaseStorage.h"
+#include "KBVESupabaseChat.h"
 #include "KBVESupabaseJWT.h"
 #include "Engine/GameInstance.h"
 #include "TimerManager.h"
@@ -81,6 +82,9 @@ void UKBVESupabaseSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Storage = NewObject<UKBVESupabaseStorage>(this);
 	Storage->Init(this);
 
+	Chat = NewObject<UKBVESupabaseChat>(this);
+	Chat->Init(this);
+
 	if (!IsConfigured())
 	{
 		UE_LOG(LogKBVESupabase, Warning, TEXT("KBVESupabase not configured. Set ProjectURL + AnonKey in Project Settings → Plugins → KBVE Supabase."));
@@ -100,6 +104,10 @@ void UKBVESupabaseSubsystem::Deinitialize()
 		}
 	}
 	ResetOAuthLoopback();
+	if (Chat)
+	{
+		Chat->Disconnect();
+	}
 	Super::Deinitialize();
 }
 
@@ -682,6 +690,10 @@ void UKBVESupabaseSubsystem::HandleOAuthLoopbackComplete(bool bSuccess, FString 
 void UKBVESupabaseSubsystem::SignOut(bool bAlsoRevokeServerSide)
 {
 	ResetOAuthLoopback();
+	if (Chat)
+	{
+		Chat->Disconnect();
+	}
 	const bool bHadSession = CurrentSession.IsValid();
 
 	if (bAlsoRevokeServerSide && bHadSession && IsConfigured())
