@@ -15,7 +15,8 @@ public class KBVESupabase : ModuleRules
 			"HTTPServer",
 			"Json",
 			"JsonUtilities",
-			"DeveloperSettings"
+			"DeveloperSettings",
+			"WebSockets"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

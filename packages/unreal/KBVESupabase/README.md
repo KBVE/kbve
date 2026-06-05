@@ -10,7 +10,8 @@ Supabase integration for Unreal Engine 5. GoTrue auth (email/password, OAuth, ma
 - **Storage** — `UKBVESupabaseStorage` subobject: upload bytes/file, download bytes/file, list, sign URL, remove, move, copy, public URL helper.
 - **Database (PostgREST)** — `DbSelect` / `DbInsert` / `DbUpdate` / `DbDelete` / `DbUpsert` / `DbRpc` helpers; raw `RestRequest` for ad-hoc.
 - **Edge Functions** — `InvokeFunction(name, body)` hits `/functions/v1/<name>` with bearer.
-- **DeveloperSettings** at _Project Settings → Plugins → KBVE Supabase_ — URLs, paths, persistence, refresh lead, timeout, OAuth loopback port range + HTML.
+- **Chat** — `UKBVESupabaseChat` subobject: WebSocket client for the KBVE irc-gateway (`chat.kbve.com/ws`). JWT injected on upgrade, auto-PONG, exponential-backoff reconnect, IRC line parser + PRIVMSG envelope extraction.
+- **DeveloperSettings** at _Project Settings → Plugins → KBVE Supabase_ — URLs, paths, persistence, refresh lead, timeout, OAuth loopback port range + HTML, chat URL + auto-join.
 - **Blueprint-friendly** — every public method `UFUNCTION(BlueprintCallable)`, all delegates `BlueprintAssignable`.
 
 ## Add to a project
@@ -160,6 +161,51 @@ FString PublicURL = S->GetPublicURL(TEXT("public-art"), TEXT("logo.png"));
 
 `RestRequest(verb, endpoint, body, callback)` is raw passthrough — `apikey` + bearer only, no auto-refresh, no retry. Endpoints beginning with `/auth/` go to GoTrue; everything else goes to PostgREST. Use the typed helpers above for managed behavior.
 
+## Chat (irc-gateway WebSocket)
+
+Wraps the KBVE chat gateway at `wss://chat.kbve.com/ws`. The plugin sends the active Supabase access token as `Authorization: Bearer ...` on the WS upgrade; the gateway derives the IRC nick from the JWT (`kbve_username`) and pre-registers the user, so the client only needs to JOIN / PRIVMSG / PART.
+
+```cpp
+UKBVESupabaseChat* Chat = Sb->GetChat();
+
+Chat->OnConnected.AddDynamic(this, &UMyClass::HandleChatConnected);
+Chat->OnMessage.AddDynamic(this, &UMyClass::HandleChatMessage);
+Chat->OnStatusChanged.AddDynamic(this, &UMyClass::HandleChatStatus);
+
+Chat->Connect();                       // uses access_token + Settings.ChatURL
+// after OnConnected fires, auto-join channels from Settings.ChatAutoJoinChannels
+Chat->JoinChannel(TEXT("#world-events"));
+Chat->SendPrivMsg(TEXT("#global"), TEXT("hello from UE"));
+```
+
+### Message envelope
+
+PRIVMSG bodies sent by the gateway follow the form `[KIND] sender@platform: content`. The plugin's `ExtractChatMessage` splits them into `FKBVEChatMessage`:
+
+| Field    | Example                    |
+| -------- | -------------------------- |
+| Channel  | `#global`                  |
+| Nick     | `Player1`                  |
+| Sender   | `Player1`                  |
+| Platform | `discord`                  |
+| Kind     | `CHAT`, `EVENT:KILL`, ...  |
+| Body     | `hello`                    |
+| bIsEvent | `Kind.StartsWith("EVENT")` |
+
+Raw IRC lines are also exposed via `OnRawLine` (`FKBVEChatIrcLine` — Prefix / Sender / Command / Params / Trailing) for clients that want full control.
+
+### Auto-reconnect
+
+`bChatAutoReconnect` is on by default. On close or error, the plugin retries with `ChatReconnectInitialDelaySeconds × 2^attempt` backoff, capped at `ChatReconnectMaxDelaySeconds`. Call `Disconnect()` explicitly to stop reconnecting.
+
+### Token transport
+
+By default the JWT is sent as `Authorization: Bearer <jwt>` on the WS upgrade. If the platform / proxy strips custom headers on Upgrade (some setups do), flip `bChatTokenInQueryParam = true` in Settings — the plugin will append `?token=<jwt>` to the URL instead. Both modes are accepted by the irc-gateway (header wins if both are present). The query-string path can leak the token into proxy / access logs, so prefer the header.
+
+### Sign-out behaviour
+
+`SignOut()` calls `Chat->Disconnect()` so the WS doesn't outlive the session.
+
 ## JWT decode
 
 ```cpp
@@ -181,7 +227,7 @@ FDateTime ExpiresAt = Sb->GetAccessTokenExpiresAt();
 
 ## Dependencies
 
-`Core`, `CoreUObject`, `Engine`, `HTTP`, `HTTPServer`, `Json`, `JsonUtilities`, `DeveloperSettings`; private: `Sockets`, `Networking`. No third-party libs (SHA-256 is a self-contained FIPS 180-4 reference impl in `KBVESupabasePKCE.cpp`).
+`Core`, `CoreUObject`, `Engine`, `HTTP`, `HTTPServer`, `Json`, `JsonUtilities`, `DeveloperSettings`, `WebSockets`; private: `Sockets`, `Networking`. No third-party libs (SHA-256 is a self-contained FIPS 180-4 reference impl in `KBVESupabasePKCE.cpp`).
 
 ## License
 
