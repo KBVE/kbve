@@ -674,18 +674,10 @@ class AgentsService {
 	public async setRepoAllowlist(
 		repos: string[],
 	): Promise<{ ok: true } | { ok: false; error: string }> {
-		const tokens = this.$tokens.get();
-		const existing = tokens.find((t) => t.service === 'github_repos');
-		const value = JSON.stringify({ repos });
-
-		if (existing) {
-			const r = await this.deleteToken(existing.token_id);
-			if (!r.ok) return { ok: false, error: r.error };
-		}
 		const r = await this.addToken({
 			tokenName: 'github-repos',
 			service: 'github_repos',
-			tokenValue: value,
+			tokenValue: JSON.stringify({ repos }),
 			description:
 				'Per-guild repo allowlist consumed by gh-webhook and gh-backfill',
 		});
@@ -714,18 +706,10 @@ class AgentsService {
 	public async setBotConfig(
 		config: DiscordshConfig,
 	): Promise<{ ok: true } | { ok: false; error: string }> {
-		const tokens = this.$tokens.get();
-		const existing = tokens.find((t) => t.service === 'discordsh_config');
-		const value = JSON.stringify(config);
-
-		if (existing) {
-			const r = await this.deleteToken(existing.token_id);
-			if (!r.ok) return { ok: false, error: r.error };
-		}
 		const r = await this.addToken({
 			tokenName: 'discordsh-config',
 			service: 'discordsh_config',
-			tokenValue: value,
+			tokenValue: JSON.stringify(config),
 			description:
 				'Per-guild DiscordSH bot config (channels, defaults, toggles)',
 		});
@@ -785,10 +769,18 @@ class AgentsService {
 				};
 			}
 			if (!resp.ok) {
-				const errMsg =
-					(body as { error?: string } | null)?.error ??
-					`HTTP ${resp.status}`;
-				return { ok: false, error: errMsg };
+				const b = body as {
+					error?: string;
+					sqlstate?: string | null;
+					hint?: string | null;
+					context?: string | null;
+				} | null;
+				const parts: string[] = [];
+				parts.push(b?.error ?? `HTTP ${resp.status}`);
+				if (b?.sqlstate) parts.push(`sqlstate=${b.sqlstate}`);
+				if (b?.hint) parts.push(`hint=${b.hint}`);
+				if (b?.context) parts.push(`context=${b.context}`);
+				return { ok: false, error: parts.join(' · ') };
 			}
 			return { ok: true, body };
 		} catch (e) {
