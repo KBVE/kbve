@@ -1,6 +1,7 @@
 #include "SKBVESlotWidget.h"
 
 #include "FKBVEDragOp.h"
+#include "Framework/Application/SlateApplication.h"
 #include "KBVEUIRenderer.h"
 #include "Rendering/DrawElements.h"
 #include "Styling/AppStyle.h"
@@ -22,6 +23,9 @@ void SKBVESlotWidget::Construct(const FArguments& InArgs)
 	OnBuildDecorator  = InArgs._OnBuildDecorator;
 	OnDropped         = InArgs._OnDropped;
 	OnDroppedOutside  = InArgs._OnDroppedOutside;
+	KeyLabel          = InArgs._KeyLabel;
+	BgFilledColor     = InArgs._BgFilledColor;
+	BgEmptyColor      = InArgs._BgEmptyColor;
 	DragDomain        = InArgs._DragDomain;
 	SlotIndex         = InArgs._SlotIndex;
 	AcceptedDomains   = InArgs._AcceptedDomains;
@@ -136,6 +140,12 @@ FReply SKBVESlotWidget::OnDragDetected(const FGeometry& Geometry, const FPointer
 void SKBVESlotWidget::OnDragEnter(const FGeometry& Geometry, const FDragDropEvent& Event)
 {
 	TSharedPtr<FKBVEDragOp> Op = Event.GetOperationAs<FKBVEDragOp>();
+	if (Op.IsValid())
+	{
+		UE_LOG(LogTemp, Verbose, TEXT("[KBVESlot] DragEnter own=%s/%d src=%s/%d accept=%d"),
+			*DragDomain.ToString(), SlotIndex, *Op->Domain.ToString(), Op->SourceIndex,
+			AcceptedDomains.Contains(Op->Domain) ? 1 : 0);
+	}
 	if (Op.IsValid() && AcceptedDomains.Contains(Op->Domain) && !(Op->Domain == DragDomain && Op->SourceIndex == SlotIndex))
 	{
 		bDragHovered = true;
@@ -173,6 +183,11 @@ FReply SKBVESlotWidget::OnDrop(const FGeometry& Geometry, const FDragDropEvent& 
 {
 	bDragHovered = false;
 	TSharedPtr<FKBVEDragOp> Op = Event.GetOperationAs<FKBVEDragOp>();
+	UE_LOG(LogTemp, Display, TEXT("[KBVESlot] OnDrop own=%s/%d src=%s/%d accept=%d"),
+		*DragDomain.ToString(), SlotIndex,
+		Op.IsValid() ? *Op->Domain.ToString() : TEXT("<null>"),
+		Op.IsValid() ? Op->SourceIndex : -1,
+		(Op.IsValid() && AcceptedDomains.Contains(Op->Domain)) ? 1 : 0);
 	if (!Op.IsValid() || !AcceptedDomains.Contains(Op->Domain))
 	{
 		return FReply::Unhandled();
@@ -199,8 +214,8 @@ int32 SKBVESlotWidget::OnPaint(
 	const FVector2D Size = AllottedGeometry.GetLocalSize();
 	const FSlateBrush* WhiteBrush = FCoreStyle::Get().GetBrush("WhiteBrush");
 
-	const FLinearColor BgEmpty (0.08f, 0.10f, 0.13f, 0.18f);
-	const FLinearColor BgFilled(0.10f, 0.10f, 0.12f, 0.92f);
+	const FLinearColor BgEmpty  = BgEmptyColor.IsSet()  ? BgEmptyColor.Get()  : FLinearColor(0.08f, 0.10f, 0.13f, 0.18f);
+	const FLinearColor BgFilled = BgFilledColor.IsSet() ? BgFilledColor.Get() : FLinearColor(0.10f, 0.10f, 0.12f, 0.92f);
 	const FLinearColor BorderEmpty(0.85f, 0.90f, 1.00f, 0.22f);
 	const FLinearColor HighlightEmpty(1.00f, 1.00f, 1.00f, 0.06f);
 
@@ -219,6 +234,17 @@ int32 SKBVESlotWidget::OnPaint(
 		AllottedGeometry.ToPaintGeometry(),
 		WhiteBrush, ESlateDrawEffect::None, Border);
 
+	if (bDragHovered)
+	{
+		const FVector2D HaloInset(-3.f, -3.f);
+		const FVector2D HaloSize = Size - HaloInset * 2.f;
+		FSlateDrawElement::MakeBox(
+			OutDrawElements, LayerId,
+			AllottedGeometry.ToPaintGeometry(HaloSize, FSlateLayoutTransform(HaloInset)),
+			WhiteBrush, ESlateDrawEffect::None,
+			FLinearColor(1.f, 0.95f, 0.40f, 0.55f));
+	}
+
 	const FVector2D Inset(2.f, 2.f);
 	FSlateDrawElement::MakeBox(
 		OutDrawElements, LayerId + 1,
@@ -233,7 +259,20 @@ int32 SKBVESlotWidget::OnPaint(
 			OutDrawElements, LayerId + 2,
 			AllottedGeometry.ToPaintGeometry(HighlightSize, FSlateLayoutTransform(Inset)),
 			WhiteBrush, ESlateDrawEffect::None, HighlightEmpty);
-		return LayerId + 3;
+
+		const FString EmptyKeyText = KeyLabel.IsSet() ? KeyLabel.Get() : FString();
+		if (!EmptyKeyText.IsEmpty())
+		{
+			FSlateFontInfo KeyFont = FAppStyle::Get().GetFontStyle("NormalText");
+			KeyFont.Size = 9;
+			KeyFont.OutlineSettings.OutlineSize = 1;
+			KeyFont.OutlineSettings.OutlineColor = FLinearColor(0.f, 0.f, 0.f, 1.f);
+			KBVEUI::DrawText(
+				OutDrawElements, AllottedGeometry, LayerId + 3,
+				FVector2D(3.f, 1.f),
+				EmptyKeyText, KeyFont, FLinearColor(0.85f, 0.85f, 0.85f, 0.85f));
+		}
+		return LayerId + 4;
 	}
 
 	if (OnPaintIcon.IsBound() && !bBeingDragged)
@@ -255,5 +294,18 @@ int32 SKBVESlotWidget::OnPaint(
 			CountText, CountFont, FLinearColor::White);
 	}
 
-	return LayerId + 5;
+	const FString KeyText = KeyLabel.IsSet() ? KeyLabel.Get() : FString();
+	if (!KeyText.IsEmpty())
+	{
+		FSlateFontInfo KeyFont = FAppStyle::Get().GetFontStyle("NormalText");
+		KeyFont.Size = 9;
+		KeyFont.OutlineSettings.OutlineSize = 1;
+		KeyFont.OutlineSettings.OutlineColor = FLinearColor(0.f, 0.f, 0.f, 1.f);
+		KBVEUI::DrawText(
+			OutDrawElements, AllottedGeometry, LayerId + 5,
+			FVector2D(3.f, 1.f),
+			KeyText, KeyFont, FLinearColor(0.95f, 0.95f, 0.95f, 0.95f));
+	}
+
+	return LayerId + 6;
 }

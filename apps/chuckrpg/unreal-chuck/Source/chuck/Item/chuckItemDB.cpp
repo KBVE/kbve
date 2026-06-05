@@ -243,7 +243,7 @@ UTexture2D* UchuckItemDB::GetRadialDiscTexture()
 {
 	if (RadialDiscTex) return RadialDiscTex;
 
-	constexpr int32 Size = 256;
+	constexpr int32 Size = 128;
 	UTexture2D* T = UTexture2D::CreateTransient(Size, Size, PF_B8G8R8A8);
 	if (!T) return nullptr;
 	T->SRGB = false;

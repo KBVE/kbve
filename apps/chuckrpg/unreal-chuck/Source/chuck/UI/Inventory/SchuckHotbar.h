@@ -14,7 +14,15 @@ public:
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
+	void SetExpanded(bool bInExpanded);
+
+	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 
 private:
+	void Build();
+
 	TWeakObjectPtr<AchuckCoreCharacter> Character;
+	bool  bExpanded     = false;
+	float CurrentScale  = 1.f;
+	float TargetScale   = 1.f;
 };

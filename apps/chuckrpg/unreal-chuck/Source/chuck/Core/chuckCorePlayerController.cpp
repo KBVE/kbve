@@ -16,6 +16,10 @@
 #include "SchuckHUD.h"
 #include "SchuckInventoryWindow.h"
 #include "SchuckPauseMenu.h"
+#include "chuckInventory.h"
+#include "chuckItemDB.h"
+#include "chuckItemTypes.h"
+#include "Engine/GameInstance.h"
 #include "SKBVEDragArrowLayer.h"
 #include "SKBVETooltip.h"
 
@@ -92,9 +96,32 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 	{
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef(),       5);
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HotbarWidget.ToSharedRef(),    6);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HotbarWidget.ToSharedRef(),    20);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), DragArrowLayer.ToSharedRef(), 29);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), TooltipWidget.ToSharedRef(),  30);
+	}
+
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UchuckItemDB* DB = GI->GetSubsystem<UchuckItemDB>())
+		{
+			DB->GetTranslucentBillboardMaterial();
+			DB->GetRadialDiscTexture();
+			const FchuckInventory& Inv = Char->GetInventory();
+			auto WarmBag = [&](const TArray<FchuckInventoryStack>& Slots)
+			{
+				for (const FchuckInventoryStack& S : Slots)
+				{
+					if (S.IsEmpty()) continue;
+					const FchuckItemDef* Def = DB->LookupByKey(S.ItemKey);
+					if (!Def) continue;
+					DB->GetIconMID(S.ItemKey);
+					DB->GetHaloMID(Def->Rarity, chuckItem::RarityColor(Def->Rarity));
+				}
+			};
+			WarmBag(Inv.DefaultBag.Slots);
+			WarmBag(Inv.Hotbar.Slots);
+		}
 	}
 
 	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
@@ -307,6 +334,11 @@ void AchuckCorePlayerController::OpenInventory()
 	SetInputMode(Mode);
 	bShowMouseCursor = true;
 	bInventoryOpen   = true;
+
+	if (HotbarWidget.IsValid())
+	{
+		HotbarWidget->SetExpanded(true);
+	}
 }
 
 void AchuckCorePlayerController::CloseInventory()
@@ -325,4 +357,9 @@ void AchuckCorePlayerController::CloseInventory()
 	SetInputMode(FInputModeGameOnly());
 	bShowMouseCursor = false;
 	bInventoryOpen   = false;
+
+	if (HotbarWidget.IsValid())
+	{
+		HotbarWidget->SetExpanded(false);
+	}
 }

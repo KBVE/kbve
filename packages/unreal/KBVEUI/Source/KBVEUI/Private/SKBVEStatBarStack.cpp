@@ -44,7 +44,8 @@ int32 SKBVEStatBarStack::OnPaint(
 		: (Size.Y - Padding.Bottom - StackHeight);
 
 	const float TextY = (BarHeight - LabelFont.Size) * 0.5f - 3.f;
-	const float TextX = Slant + 8.f;
+	const float LabelX = Slant + 8.f;
+	const float ValueX = LabelX + 32.f;
 
 	const FLinearColor TextColor(1.f, 1.f, 1.f, 0.95f);
 
@@ -60,19 +61,22 @@ int32 SKBVEStatBarStack::OnPaint(
 		Bg.A   *= Alpha;
 
 		const FVector2D BarPos (X, YBase + i * (BarHeight + Spacing));
-		const FVector2D TextPos(BarPos.X + TextX, BarPos.Y + TextY);
+		const FVector2D LabelPos(BarPos.X + LabelX, BarPos.Y + TextY);
+		const FVector2D ValuePos(BarPos.X + ValueX, BarPos.Y + TextY);
 
 		KBVEUI::DrawSlantedBar(
 			OutDrawElements, AllottedGeometry, Layer,
 			BarPos, BarSize, Slant, B.Percent.Get(0.f), Fill, Bg);
 
 		FLinearColor RowText = TextColor; RowText.A *= Alpha;
-		const FString Text = FString::Printf(
-			TEXT("%s  %.0f/%.0f"),
-			*B.Label, B.Current.Get(0.f), B.Max.Get(0.f));
 		KBVEUI::DrawText(
 			OutDrawElements, AllottedGeometry, Layer + 2,
-			TextPos, Text, LabelFont, RowText);
+			LabelPos, B.Label, LabelFont, RowText);
+		const FString Value = FString::Printf(
+			TEXT("%.0f / %.0f"), B.Current.Get(0.f), B.Max.Get(0.f));
+		KBVEUI::DrawText(
+			OutDrawElements, AllottedGeometry, Layer + 2,
+			ValuePos, Value, LabelFont, RowText);
 
 		Layer += 4;
 	}

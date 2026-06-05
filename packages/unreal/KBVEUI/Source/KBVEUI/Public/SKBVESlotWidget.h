@@ -46,6 +46,9 @@ public:
 		SLATE_ARGUMENT(FName, DragDomain)
 		SLATE_ARGUMENT(int32, SlotIndex)
 		SLATE_ARGUMENT(TArray<FName>, AcceptedDomains)
+		SLATE_ATTRIBUTE(FString, KeyLabel)
+		SLATE_ATTRIBUTE(FLinearColor, BgFilledColor)
+		SLATE_ATTRIBUTE(FLinearColor, BgEmptyColor)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -91,6 +94,9 @@ private:
 	FOnKBVESlotBuildDecorator OnBuildDecorator;
 	FOnKBVESlotDropped        OnDropped;
 	FOnKBVESlotDroppedOutside OnDroppedOutside;
+	TAttribute<FString>       KeyLabel;
+	TAttribute<FLinearColor>  BgFilledColor;
+	TAttribute<FLinearColor>  BgEmptyColor;
 	mutable bool bDragHovered = false;
 	mutable bool bBeingDragged = false;
 };

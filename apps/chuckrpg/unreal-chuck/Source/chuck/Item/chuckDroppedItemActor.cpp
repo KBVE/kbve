@@ -124,6 +124,12 @@ void AchuckDroppedItemActor::Release()
 	SetActorTickInterval(0.05f);
 	if (HaloBillboard) HaloBillboard->Elements.Reset();
 	if (IconBillboard) IconBillboard->Elements.Reset();
+	if (RarityLight)
+	{
+		RarityLight->SetIntensity(0.f);
+		RarityLight->SetLightColor(FLinearColor::White);
+	}
+	if (SphereRoot) SphereRoot->SetGenerateOverlapEvents(false);
 }
 
 void AchuckDroppedItemActor::Tick(float DeltaSeconds)

@@ -9,6 +9,8 @@ void SKBVEHotbar::Construct(const FArguments& InArgs)
 	const float Gap = InArgs._SlotGap;
 	const float Bottom = InArgs._BottomPadding;
 
+	SetVisibility(EVisibility::SelfHitTestInvisible);
+
 	TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox);
 	for (int32 i = 0; i < SlotCount; ++i)
 	{
@@ -27,6 +29,7 @@ void SKBVEHotbar::Construct(const FArguments& InArgs)
 	ChildSlot
 	[
 		SNew(SOverlay)
+		.Visibility(EVisibility::SelfHitTestInvisible)
 		+ SOverlay::Slot()
 		.HAlign(HAlign_Center)
 		.VAlign(VAlign_Bottom)

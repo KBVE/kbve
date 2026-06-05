@@ -81,7 +81,7 @@ struct FchuckInventory
 	void InitDefaults()
 	{
 		DefaultBag.Capacity = 24;
-		Hotbar.Capacity     = 10;
+		Hotbar.Capacity     = 12;
 		DefaultBag.EnsureSize();
 		Hotbar.EnsureSize();
 	}

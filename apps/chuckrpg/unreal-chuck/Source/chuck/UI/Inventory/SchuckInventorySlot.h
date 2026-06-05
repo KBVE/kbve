@@ -19,6 +19,9 @@ public:
 		SLATE_ARGUMENT(float, SlotSize)
 		SLATE_ARGUMENT(bool, bIsHotbar)
 		SLATE_ARGUMENT(TSharedPtr<int32>, SelectedKey)
+		SLATE_ARGUMENT(FString, KeyLabel)
+		SLATE_ARGUMENT(FLinearColor, BgFilledOverride)
+		SLATE_ARGUMENT(FLinearColor, BgEmptyOverride)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -40,5 +43,9 @@ private:
 	int32 SlotIndex = 0;
 	float SlotSize = 64.f;
 	bool  bIsHotbar = false;
+	FString KeyLabel;
+	FLinearColor BgFilledOverride = FLinearColor(0.f, 0.f, 0.f, 0.f);
+	FLinearColor BgEmptyOverride  = FLinearColor(0.f, 0.f, 0.f, 0.f);
+	bool  bHasBgOverride = false;
 	TSharedPtr<int32> SelectedKey;
 };

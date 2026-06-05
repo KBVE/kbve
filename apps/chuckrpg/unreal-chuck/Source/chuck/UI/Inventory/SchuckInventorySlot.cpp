@@ -39,6 +39,7 @@ namespace
 				bHasBrush = true;
 			}
 			SetCanTick(false);
+			SetVisibility(EVisibility::HitTestInvisible);
 		}
 
 		virtual FVector2D ComputeDesiredSize(float) const override
@@ -88,6 +89,10 @@ void SchuckInventorySlot::Construct(const FArguments& InArgs)
 	SlotSize     = InArgs._SlotSize;
 	bIsHotbar    = InArgs._bIsHotbar;
 	SelectedKey  = InArgs._SelectedKey;
+	KeyLabel     = InArgs._KeyLabel;
+	BgFilledOverride = InArgs._BgFilledOverride;
+	BgEmptyOverride  = InArgs._BgEmptyOverride;
+	bHasBgOverride   = BgFilledOverride.A > 0.f || BgEmptyOverride.A > 0.f;
 
 	const FName OwnDomain = bIsHotbar ? FName(TEXT("chuck.hotbar")) : FName(TEXT("chuck.bag"));
 	TArray<FName> Accepted;
@@ -98,6 +103,9 @@ void SchuckInventorySlot::Construct(const FArguments& InArgs)
 	[
 		SNew(SKBVESlotWidget)
 		.SlotSize(SlotSize)
+		.KeyLabel(KeyLabel)
+		.BgFilledColor(bHasBgOverride ? BgFilledOverride : FLinearColor(0.10f, 0.10f, 0.12f, 0.92f))
+		.BgEmptyColor (bHasBgOverride ? BgEmptyOverride  : FLinearColor(0.08f, 0.10f, 0.13f, 0.18f))
 		.OnIsFilled(FOnKBVESlotIsFilled::CreateSP(this, &SchuckInventorySlot::OnIsFilled))
 		.OnGetBorderColor(FOnKBVESlotBorderColor::CreateSP(this, &SchuckInventorySlot::OnGetBorderColor))
 		.OnGetCount(FOnKBVESlotCount::CreateSP(this, &SchuckInventorySlot::OnGetCount))
@@ -139,6 +147,9 @@ void SchuckInventorySlot::Construct(const FArguments& InArgs)
 			if (!C) return;
 
 			const FName OwnD = bIsHotbar ? FName(TEXT("chuck.hotbar")) : FName(TEXT("chuck.bag"));
+			UE_LOG(LogTemp, Display, TEXT("[chuck] drop src=%s/%d -> own=%s/%d"),
+				*SourceDomain.ToString(), SourceIndex, *OwnD.ToString(), SlotIndex);
+
 			if (SourceDomain == OwnD)
 			{
 				C->SwapBagSlots(SourceIndex, SlotIndex, bIsHotbar);
