@@ -25,12 +25,18 @@
 //!
 //! ## Input arbitration
 //!
-//! Only one viewer at a time is allowed to write to upstream (the
-//! "primary"). Observer input is dropped on the floor — their RFB client's
-//! handshake responses go nowhere, which is fine because the upstream is
-//! already past handshake. If the primary disconnects, the next observer
-//! that sends a message opportunistically becomes the new primary via
-//! CAS on the `primary_id` field.
+//! Every viewer's RFB client messages — keystrokes, mouse moves, clipboard
+//! cuts, SetEncodings, FBUR, etc. — are forwarded to the single upstream
+//! connection. The upstream `upstream_sink` mutex serializes concurrent
+//! writes so the RFB framing on the wire stays coherent. From KubeVirt's
+//! point of view there is still one RFB client; from the staff side every
+//! viewer can type and click.
+//!
+//! Concurrent input (two cursors moving at once) lands on the same shared
+//! desktop and will fight on the wire — this is the same model used by
+//! shared screen-control tools and is the intended behaviour for pair
+//! debug. The `primary_id` field is kept as an informational marker of
+//! who joined first (surfaced in the viewer UI) but no longer gates input.
 //!
 //! ## Cache bound + drift
 //!
@@ -333,23 +339,9 @@ async fn run_client(
                 _ => continue,
             };
 
-            // Opportunistic primary CAS — observers fall through to drop.
-            let primary = session_input.primary_id.load(Ordering::Relaxed);
-            let may_write = if primary == client_id {
-                true
-            } else if primary == 0 {
-                session_input
-                    .primary_id
-                    .compare_exchange(0, client_id, Ordering::Relaxed, Ordering::Relaxed)
-                    .is_ok()
-            } else {
-                false
-            };
-
-            if !may_write {
-                continue;
-            }
-
+            // Multi-master: every viewer's input flows to upstream. The
+            // sink mutex serializes concurrent writes so RFB framing on
+            // the wire stays intact even when two viewers type at once.
             let mut guard = session_input.upstream_sink.lock().await;
             match guard.as_mut() {
                 Some(sink) => {
