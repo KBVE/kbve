@@ -28,7 +28,7 @@ const handlers: Record<string, Handler> = {
     if (idErr) return idErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_get_profile", {
+    const { data, error } = await supabase.schema("meme").rpc("service_get_profile", {
       p_user_id: user_id as string,
     });
 
@@ -106,7 +106,7 @@ const handlers: Record<string, Handler> = {
     }
 
     const supabase = createServiceClient();
-    const { error } = await supabase.rpc("service_upsert_profile", {
+    const { error } = await supabase.schema("meme").rpc("service_upsert_profile", {
       p_user_id: userId,
       p_display_name: (display_name as string) ?? null,
       p_avatar_url: (avatar_url as string) ?? null,
@@ -133,7 +133,7 @@ const handlers: Record<string, Handler> = {
     if (cursorErr) return cursorErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_get_user_memes", {
+    const { data, error } = await supabase.schema("meme").rpc("service_get_user_memes", {
       p_user_id: user_id as string,
       p_limit: safeLimit,
       p_cursor: (cursor as string) ?? null,

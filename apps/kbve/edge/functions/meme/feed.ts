@@ -50,7 +50,7 @@ const handlers: Record<string, Handler> = {
     }
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_fetch_feed", {
+    const { data, error } = await supabase.schema("meme").rpc("service_fetch_feed", {
       p_limit: safeLimit,
       p_cursor: (cursor as string) ?? null,
       p_tag: (tag as string) ?? null,
@@ -75,7 +75,7 @@ const handlers: Record<string, Handler> = {
     if (memeErr) return memeErr;
 
     const supabase = createServiceClient();
-    const { error } = await supabase.rpc("service_increment_view", {
+    const { error } = await supabase.schema("meme").rpc("service_increment_view", {
       p_meme_id: meme_id as string,
     });
 
@@ -92,7 +92,7 @@ const handlers: Record<string, Handler> = {
     if (memeErr) return memeErr;
 
     const supabase = createServiceClient();
-    const { error } = await supabase.rpc("service_increment_share", {
+    const { error } = await supabase.schema("meme").rpc("service_increment_share", {
       p_meme_id: meme_id as string,
     });
 

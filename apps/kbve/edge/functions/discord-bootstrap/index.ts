@@ -236,7 +236,7 @@ serve(async (req) => {
   // 4. Upsert via the RPC. The RPC dedups + first-seen-orders + caps
   //    at 50 internally, so we pass the raw owned list. Filtering above
   //    is defensive only.
-  const { error: rpcError } = await supabase.rpc(
+  const { error: rpcError } = await supabase.schema("profile").rpc(
     "service_upsert_discord_bootstrap_cache",
     {
       p_user_id: userId,

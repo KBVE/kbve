@@ -80,7 +80,7 @@ const handlers: Record<string, Handler> = {
     }
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_save_character", {
+    const { data, error } = await supabase.schema("mc").rpc("service_save_character", {
       p_character: character,
     });
 
@@ -103,7 +103,7 @@ const handlers: Record<string, Handler> = {
     if (serverErr) return serverErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_load_character", {
+    const { data, error } = await supabase.schema("mc").rpc("service_load_character", {
       p_player_uuid: player_uuid as string,
       p_server_id: server_id as string,
     });
@@ -141,7 +141,7 @@ const handlers: Record<string, Handler> = {
     }
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_add_experience", {
+    const { data, error } = await supabase.schema("mc").rpc("service_add_experience", {
       p_player_uuid: player_uuid as string,
       p_server_id: server_id as string,
       p_xp_amount: xp,
