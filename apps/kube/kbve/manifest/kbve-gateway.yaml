@@ -146,6 +146,10 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
+        # api.chuckrpg.com is routed by rows/ows-api-routes (HTTPRoute
+        # in rows ns) — ROWS replaces the four legacy C# OWS services
+        # behind a single backend. The cert lives in rows ns alongside
+        # the route so cert-manager + ReferenceGrant stay co-located.
         - name: https-chuckrpg-api
           protocol: HTTPS
           port: 443
@@ -156,7 +160,7 @@ spec:
                   - kind: Secret
                     group: ''
                     name: chuckrpg-api-tls
-                    namespace: chuckrpg
+                    namespace: rows
           allowedRoutes:
               namespaces:
                   from: All
