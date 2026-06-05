@@ -1,29 +1,3 @@
-# Gluetun HTTP proxy for windows-builder (and future VM builders).
-#
-# Pattern adapted from apps/kube/firecracker/manifests/firecracker-net-deployment.yaml
-# and apps/kube/kasm/manifest/deployment.yaml. KubeVirt virt-launcher pods can't
-# share a netns with arbitrary sidecars, so the proxy lives in its own pod and
-# is reached via ClusterIP — the VM points HTTP_PROXY/HTTPS_PROXY at the svc.
-#
-# Why HTTP proxy: Unreal builder needs stable bulk downloads (SDK installers,
-# UE content) over a VPN egress. Cluster pod NAT idle-times out long flows
-# (~2.5min per project_kubevirt_networking memory), so terminating WG inside
-# this pod and exposing CONNECT keeps the long-lived TCP streams alive on
-# Gluetun's tun0 instead of dying through masquerade NAT.
-#
-# Prereqs:
-#   1. The `vpn-wireguard` Secret is materialized in this namespace by ESO,
-#      mirrored from the upstream `kasm/vpn-wireguard` SealedSecret (see
-#      external-secrets.yaml). The sealed source of truth lives in the kasm
-#      namespace; this namespace only ever holds a refreshable copy.
-#   2. NetworkPolicy in this namespace permits TCP 8888 from `app: angelscript`
-#      pods to this deployment (handled in networkpolicy.yaml).
-#
-# Windows-side usage (inside the VM):
-#   netsh winhttp set proxy gluetun-builder-egress.angelscript.svc.cluster.local:8888
-#   setx HTTP_PROXY  "http://gluetun-builder-egress.angelscript.svc.cluster.local:8888" /M
-#   setx HTTPS_PROXY "http://gluetun-builder-egress.angelscript.svc.cluster.local:8888" /M
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -33,7 +7,6 @@ metadata:
         app: gluetun-builder-egress
         component: vm-egress
     annotations:
-        # Reload pod when the WG creds rotate (Stakater Reloader).
         secret.reloader.stakater.com/reload: 'vpn-wireguard'
 spec:
     replicas: 1
@@ -71,19 +44,14 @@ spec:
                         value: 'UTC'
                       - name: UPDATER_PERIOD
                         value: '24h'
-                      # HTTP CONNECT proxy on :8888, reachable from intra-ns pods only.
                       - name: HTTPPROXY
                         value: 'on'
                       - name: HTTPPROXY_LISTENING_ADDRESS
                         value: ':8888'
-                      # Cluster RFC1918 must bypass the tunnel so health probes,
-                      # SealedSecret reload, and svc DNS still resolve.
                       - name: FIREWALL_INPUT_PORTS
                         value: '8888,9999'
                       - name: FIREWALL_OUTBOUND_SUBNETS
                         value: '10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'
-                      # DoH over 443 — matches firecracker-ctl-net after the
-                      # DNS_ADDRESS=0.0.0.0 revert in PR #10996.
                       - name: DOT
                         value: 'off'
                       - name: DNS_ADDRESS
@@ -122,7 +90,6 @@ spec:
                       - name: tun-device
                         mountPath: /dev/net/tun
             volumes:
-                # /dev/net/tun must be passed through for WG to attach (PR #10728).
                 - name: tun-device
                   hostPath:
                       path: /dev/net/tun

@@ -1,25 +1,3 @@
-# KEDA ScaledJob — fast on-boot trigger for the Windows autologon /
-# bootstrap script.
-#
-# Watches for a virt-launcher pod belonging to windows-builder via the
-# kubernetes-workload scaler. When the VM transitions Stopped → Running
-# (i.e. the virt-launcher pod appears) KEDA spawns the bootstrap Job
-# within `pollingInterval` seconds, so autologon registry keys, NTP
-# resync, proxy env, and TLS 1.2 keys are applied within ~30 s of VM
-# boot instead of waiting up to the safety-net CronJob's 30-minute
-# cadence.
-#
-# This Job and the safety-net CronJob in job.yaml share the
-# `vm-autologon-script` ConfigMap and the same RBAC, so both paths
-# execute the same idempotent script. The Job soft-skips with exit 0
-# when the VMI is absent or the guest agent isn't yet connected, so a
-# spurious fire (e.g. KEDA polling during a VM restart) is harmless.
-#
-# Why ScaledJob and not just a tighter CronJob: the CronJob fires on
-# wall-clock regardless of VM state and would either burn pods every
-# minute while idle or be too slow on boot. ScaledJob fires only when
-# the virt-launcher pod actually exists, giving fast boot detection
-# with zero churn while the VM is Stopped.
 apiVersion: keda.sh/v1alpha1
 kind: ScaledJob
 metadata:

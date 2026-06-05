@@ -3,25 +3,18 @@ import { useStore } from '@nanostores/react';
 import { vmService } from './vmService';
 import { X, Maximize2, Minimize2, Keyboard, Users, Crown } from 'lucide-react';
 
-// noVNC RFB client — loaded from vendored ESM in public/vendor/novnc/.
-// The npm package (@novnc/novnc) ships CJS with a top-level await in
-// browser.js that Rollup cannot parse, so it cannot be bundled directly.
-// Vendored ESM (from noVNC GitHub) is the primary path; npm kept as
-// @vite-ignore dev fallback only.
 let RFB: any = null;
 async function loadRFB() {
 	if (!RFB) {
 		try {
-			// Primary: vendored ESM — bypasses Vite module graph via full URL
 			const vendorUrl = `${window.location.origin}/vendor/novnc/core/rfb.js`;
 			const mod = await import(/* @vite-ignore */ vendorUrl);
 			RFB = mod.default ?? mod;
 		} catch (vendorErr) {
 			console.warn('noVNC vendored ESM failed:', vendorErr);
 			try {
-				// Fallback: npm package (dev mode only, not bundleable)
 				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-				// @ts-ignore — @novnc/novnc has no type declarations
+				// @ts-ignore
 				const mod = await import(
 					/* @vite-ignore */ '@novnc/novnc/lib/rfb'
 				);
@@ -58,7 +51,6 @@ export default function ReactVMVncViewer() {
 	);
 	const intentionalCloseRef = useRef(false);
 
-	// Poll viewer count while connected
 	useEffect(() => {
 		if (!vncTarget || !connected) {
 			setViewerCount(0);
@@ -74,7 +66,7 @@ export default function ReactVMVncViewer() {
 					setIsPrimary(info.has_primary);
 				}
 			} catch {
-				// Silently ignore — the connection may have dropped
+				/* ignore */
 			}
 		};
 
@@ -150,7 +142,6 @@ export default function ReactVMVncViewer() {
 						setStatus('Connection lost — attempting reconnect...');
 					}
 
-					// Auto-reconnect on unexpected disconnects
 					if (reconnectAttemptRef.current < MAX_RECONNECT_ATTEMPTS) {
 						reconnectAttemptRef.current += 1;
 						const delay =
@@ -252,7 +243,6 @@ export default function ReactVMVncViewer() {
 		}
 	}, []);
 
-	// Manual retry handler
 	const handleRetry = useCallback(() => {
 		if (vncTarget && !connected) {
 			reconnectAttemptRef.current = 0;
@@ -260,12 +250,10 @@ export default function ReactVMVncViewer() {
 		}
 	}, [vncTarget, connected, connectVNC]);
 
-	// Ctrl+Alt+Del sender
 	const sendCtrlAltDel = useCallback(() => {
 		rfbRef.current?.sendCtrlAltDel();
 	}, []);
 
-	// Toggle virtual keyboard (mobile/tablet)
 	const toggleKeyboard = useCallback(() => {
 		if (rfbRef.current) {
 			rfbRef.current.focusOnClick = !keyboardVisible;
@@ -295,7 +283,6 @@ export default function ReactVMVncViewer() {
 				flexDirection: 'column',
 				height: fullscreen ? '100vh' : undefined,
 			}}>
-			{/* noVNC renders into this container */}
 			<div
 				ref={viewerRef}
 				onClick={!connected ? handleRetry : undefined}
@@ -312,7 +299,6 @@ export default function ReactVMVncViewer() {
 				}}
 			/>
 
-			{/* Bottom toolbar — controls + status */}
 			<div
 				style={{
 					borderTop: '1px solid var(--sl-color-gray-5, #30363d)',
@@ -354,7 +340,6 @@ export default function ReactVMVncViewer() {
 							}}>
 							{status}
 						</span>
-						{/* Viewer count badge */}
 						{connected && viewerCount > 0 && (
 							<span
 								style={{
