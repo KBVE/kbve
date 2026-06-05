@@ -10,6 +10,7 @@
 #include "KBVESupabaseSubsystem.generated.h"
 
 class UKBVESupabaseSettings;
+class UKBVESupabaseStorage;
 class FKBVESupabaseOAuthLoopback;
 
 /**
@@ -54,6 +55,9 @@ public:
 	void SignInWithRefreshToken(const FString& RefreshToken);
 
 	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Auth")
+	void SignInAnonymously();
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Auth")
 	void RequestPasswordRecovery(const FString& Email, const FString& RedirectTo);
 
 	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Auth")
@@ -61,6 +65,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Auth")
 	void VerifyOtp(const FString& Email, const FString& Token, const FString& Type);
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Auth")
+	void SignInWithPhoneOtp(const FString& Phone, bool bShouldCreateUser = true);
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Auth")
+	void VerifyPhoneOtp(const FString& Phone, const FString& Token);
 
 	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Auth")
 	FKBVESupabaseOAuthStartResult BuildOAuthAuthorizeURL(EKBVESupabaseOAuthProvider Provider, const FString& RedirectTo, const FString& Scopes);
@@ -95,9 +105,39 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Account")
 	void UpdateUserMetadata(const TMap<FString, FString>& Metadata);
 
-	/** Generic helper for any GoTrue / PostgREST call. Adds anon key + bearer. */
+	/** Raw passthrough — no auto-refresh, no retries. apikey + bearer headers added. */
 	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|REST")
 	void RestRequest(const FString& Verb, const FString& Endpoint, const FString& Body, const FKBVESupabaseStringCallback& OnComplete);
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Database")
+	void DbSelect(const FString& Table, const FString& QueryString, const FKBVESupabaseStringCallback& OnComplete);
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Database")
+	void DbInsert(const FString& Table, const FString& JsonBody, bool bReturnRepresentation, const FKBVESupabaseStringCallback& OnComplete);
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Database")
+	void DbUpdate(const FString& Table, const FString& QueryString, const FString& JsonBody, bool bReturnRepresentation, const FKBVESupabaseStringCallback& OnComplete);
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Database")
+	void DbDelete(const FString& Table, const FString& QueryString, const FKBVESupabaseStringCallback& OnComplete);
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Database")
+	void DbUpsert(const FString& Table, const FString& JsonBody, const FString& OnConflictColumns, bool bReturnRepresentation, const FKBVESupabaseStringCallback& OnComplete);
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Database")
+	void DbRpc(const FString& FunctionName, const FString& JsonBody, const FKBVESupabaseStringCallback& OnComplete);
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Functions")
+	void InvokeFunction(const FString& Name, const FString& JsonBody, const FKBVESupabaseStringCallback& OnComplete);
+
+	UFUNCTION(BlueprintPure, Category = "KBVE|Supabase|Storage")
+	UKBVESupabaseStorage* GetStorage() const { return Storage; }
+
+	UFUNCTION(BlueprintPure, Category = "KBVE|Supabase|JWT")
+	bool DecodeAccessTokenClaims(FKBVESupabaseJWTClaims& OutClaims) const;
+
+	UFUNCTION(BlueprintPure, Category = "KBVE|Supabase|JWT")
+	FDateTime GetAccessTokenExpiresAt() const;
 
 	UPROPERTY(BlueprintAssignable, Category = "KBVE|Supabase|Events")
 	FOnKBVESupabaseSignIn OnSignedIn;
@@ -117,12 +157,30 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "KBVE|Supabase|Events")
 	FOnKBVESupabaseOAuthStarted OnOAuthStarted;
 
+public:
+	/**
+	 * Internal-but-public helper used by UKBVESupabaseStorage. Builds + dispatches an
+	 * authed request, retries once after refreshing the access_token if the response
+	 * is HTTP 401 and `bAutoRefreshOn401` is enabled. Body bytes are sent as-is;
+	 * pass an empty array for GET / DELETE.
+	 */
+	void DispatchAuthedRequest(
+		const FString& Verb,
+		const FString& URL,
+		const TArray<uint8>& Body,
+		const FString& ContentType,
+		const TMap<FString, FString>& ExtraHeaders,
+		TFunction<void(bool /*bSuccess*/, int32 /*Status*/, const TArray<uint8>& /*Bytes*/, FHttpResponsePtr /*Resp*/)> Completion);
+
 protected:
 	UPROPERTY(Transient)
 	FKBVESupabaseSession CurrentSession;
 
 	UPROPERTY(Transient)
 	EKBVESupabaseAuthStatus Status = EKBVESupabaseAuthStatus::SignedOut;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UKBVESupabaseStorage> Storage;
 
 	FTimerHandle RefreshTimerHandle;
 
@@ -133,8 +191,11 @@ protected:
 	FString GetAnonKey() const;
 	FString GetAuthURL(const FString& Endpoint) const;
 	FString GetRestURL(const FString& Endpoint) const;
+	FString GetFunctionsURL(const FString& Endpoint) const;
 
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> BuildRequest(const FString& Verb, const FString& URL, bool bWithBearer) const;
+
+	void DispatchManagedJson(const FString& Verb, const FString& URL, const FString& Body, const FKBVESupabaseStringCallback& OnComplete);
 
 	void SetStatus(EKBVESupabaseAuthStatus NewStatus);
 	void BroadcastError(int32 HttpStatus, const FString& Message, const FString& Code = TEXT(""));

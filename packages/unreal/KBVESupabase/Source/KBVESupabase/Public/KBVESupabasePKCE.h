@@ -23,6 +23,7 @@ struct KBVESUPABASE_API FKBVESupabasePKCE
 namespace KBVESupabaseCrypto
 {
 	KBVESUPABASE_API FString Base64URLEncode(TArrayView<const uint8> Bytes);
+	KBVESUPABASE_API bool Base64URLDecode(const FString& Encoded, TArray<uint8>& OutBytes);
 	KBVESUPABASE_API void Sha256(TArrayView<const uint8> Bytes, uint8 OutDigest[32]);
 	KBVESUPABASE_API FString Sha256Base64URL(const FString& Input);
 }

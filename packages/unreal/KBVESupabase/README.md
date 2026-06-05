@@ -4,14 +4,14 @@ Supabase integration for Unreal Engine 5. GoTrue auth (email/password, OAuth, ma
 
 ## Features
 
-- **Email + password sign-in / sign-up** via GoTrue `/token?grant_type=password` and `/signup`.
-- **Magic-link OTP** via `/otp` + `/verify`.
-- **OAuth bootstrap URL** for Google / GitHub / Discord / Twitch / Apple / Azure (host browser handles the callback).
-- **Refresh token rotation** with an automatic timer that fires `RefreshLeadSeconds` before expiry.
-- **Per-project session persistence** at `<ProjectSaved>/KBVESupabase/<slug>.session.json`. Survives game restarts.
-- **`kbve_username` claim hoisted** out of `user_metadata` / `app_metadata` for direct access (matches the GoTrue Custom Access Token hook used by `kbve.com`).
-- **Generic `RestRequest`** for PostgREST + Edge Functions — auto-attaches `apikey` and bearer token.
-- **DeveloperSettings page** at _Project Settings → Plugins → KBVE Supabase_.
+- **Auth** — email + password sign-in/sign-up, anonymous sign-in, magic-link OTP (email + SMS phone), password recovery, full OAuth (Google/GitHub/Discord/Twitch/Apple/Azure) via PKCE + RFC 8252 loopback.
+- **Session management** — refresh-token timer (`RefreshLeadSeconds` before expiry), persistent disk session per-project at `<ProjectSaved>/KBVESupabase/<slug>.session.json`, automatic refresh + retry on HTTP 401 for managed calls.
+- **JWT** — client-side claims decode (no signature verification — server-side responsibility); `kbve_username` hoisted out of `user_metadata` / `app_metadata` to match the GoTrue Custom Access Token hook used by `kbve.com`.
+- **Storage** — `UKBVESupabaseStorage` subobject: upload bytes/file, download bytes/file, list, sign URL, remove, move, copy, public URL helper.
+- **Database (PostgREST)** — `DbSelect` / `DbInsert` / `DbUpdate` / `DbDelete` / `DbUpsert` / `DbRpc` helpers; raw `RestRequest` for ad-hoc.
+- **Edge Functions** — `InvokeFunction(name, body)` hits `/functions/v1/<name>` with bearer.
+- **DeveloperSettings** at _Project Settings → Plugins → KBVE Supabase_ — URLs, paths, persistence, refresh lead, timeout, OAuth loopback port range + HTML.
+- **Blueprint-friendly** — every public method `UFUNCTION(BlueprintCallable)`, all delegates `BlueprintAssignable`.
 
 ## Add to a project
 
@@ -88,17 +88,89 @@ OS-assigned (`port 0`) means the redirect URI changes every launch, which forces
 
 `BuildOAuthAuthorizeURL(Provider, RedirectTo, Scopes)` still exists for cases where the redirect target is your own deep link / web callback. The hash-fragment implicit flow (`access_token` in URL fragment) only works in a browser — not from a loopback HTTP listener — so always pass `flow_type=pkce` when targeting the loopback yourself.
 
-## Generic REST helper
+## Database (PostgREST) helpers
 
 ```cpp
-Sb->RestRequest(
-    TEXT("GET"),
-    TEXT("/profiles?select=username,avatar_url&id=eq.") + Sb->GetUser().Id,
-    TEXT(""),
+// SELECT
+Sb->DbSelect(TEXT("profiles"),
+    TEXT("select=username,avatar_url&id=eq.") + Sb->GetUser().Id,
     FKBVESupabaseStringCallback::CreateUObject(this, &UMyClass::OnProfile));
+
+// INSERT (returns inserted row)
+Sb->DbInsert(TEXT("scores"),
+    TEXT("{\"player\":\"...\",\"score\":1234}"),
+    /*bReturnRepresentation=*/true, Cb);
+
+// UPDATE
+Sb->DbUpdate(TEXT("profiles"),
+    TEXT("id=eq.") + Sb->GetUser().Id,
+    TEXT("{\"avatar_url\":\"https://...\"}"),
+    /*bReturnRepresentation=*/false, Cb);
+
+// DELETE
+Sb->DbDelete(TEXT("invites"), TEXT("token=eq.xyz"), Cb);
+
+// UPSERT
+Sb->DbUpsert(TEXT("profiles"), Body, TEXT("id"), /*bReturnRepresentation=*/true, Cb);
+
+// RPC
+Sb->DbRpc(TEXT("get_leaderboard"), TEXT("{\"limit\":10}"), Cb);
 ```
 
-Passes through `apikey` + `Authorization: Bearer <access_token>` headers, hitting `<ProjectURL>/rest/v1/...`. For Edge Functions, point `Endpoint` at the function path; for raw `/auth/v1/*` calls, prefix with `/auth/`.
+All Db helpers route through `DispatchAuthedRequest` — `apikey` + bearer, auto-refresh + retry on 401.
+
+## Edge Functions
+
+```cpp
+Sb->InvokeFunction(TEXT("hello-world"),
+    TEXT("{\"name\":\"chuck\"}"),
+    FKBVESupabaseStringCallback::CreateUObject(this, &UMyClass::OnFnReply));
+```
+
+Hits `<ProjectURL>/functions/v1/hello-world` with bearer + `application/json`.
+
+## Storage
+
+```cpp
+UKBVESupabaseStorage* S = Sb->GetStorage();
+
+// Upload raw bytes
+S->UploadBytes(TEXT("avatars"), TEXT("user.png"), Bytes, TEXT("image/png"), /*bUpsert=*/true, Cb);
+
+// Upload a local file (auto-detects content type by extension)
+S->UploadFile(TEXT("avatars"), TEXT("user.png"), FullDiskPath, FString(), true, Cb);
+
+// Download bytes
+S->Download(TEXT("avatars"), TEXT("user.png"),
+    FKBVESupabaseBytesCallback::CreateUObject(this, &UMyClass::OnBytes));
+
+// Download to disk
+S->DownloadToFile(TEXT("avatars"), TEXT("user.png"), TargetDiskPath, SimpleCb);
+
+// Create a signed URL (valid for 1 hour)
+S->CreateSignedURL(TEXT("avatars"), TEXT("user.png"), 3600, Cb);
+
+// Public bucket URL (no request — built locally)
+FString PublicURL = S->GetPublicURL(TEXT("public-art"), TEXT("logo.png"));
+
+// List, remove, move, copy also available.
+```
+
+## Generic REST helper
+
+`RestRequest(verb, endpoint, body, callback)` is raw passthrough — `apikey` + bearer only, no auto-refresh, no retry. Endpoints beginning with `/auth/` go to GoTrue; everything else goes to PostgREST. Use the typed helpers above for managed behavior.
+
+## JWT decode
+
+```cpp
+FKBVESupabaseJWTClaims Claims;
+if (Sb->DecodeAccessTokenClaims(Claims)) {
+    UE_LOG(LogTemp, Log, TEXT("Signed in as %s (role %s)"), *Claims.Sub, *Claims.Role);
+}
+FDateTime ExpiresAt = Sb->GetAccessTokenExpiresAt();
+```
+
+`Decode` does **not** verify the signature — Supabase enforces signature server-side. Use the claims for UX hints only, never for security gating.
 
 ## Session file
 

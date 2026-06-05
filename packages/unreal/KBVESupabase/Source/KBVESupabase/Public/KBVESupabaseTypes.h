@@ -86,6 +86,32 @@ struct KBVESUPABASE_API FKBVESupabaseOAuthStartResult
 	UPROPERTY(BlueprintReadOnly, Category = "Supabase") FString Provider;
 };
 
+/**
+ * Decoded JWT claims. Signature is NOT verified — Supabase enforces
+ * that server-side. Use these for client-side UX hints only (gating
+ * UI, choosing endpoints, reading kbve_username) — never for security
+ * decisions.
+ */
+USTRUCT(BlueprintType)
+struct KBVESUPABASE_API FKBVESupabaseJWTClaims
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Supabase") FString Sub;
+	UPROPERTY(BlueprintReadOnly, Category = "Supabase") FString Email;
+	UPROPERTY(BlueprintReadOnly, Category = "Supabase") FString Role;
+	UPROPERTY(BlueprintReadOnly, Category = "Supabase") FString Aud;
+	UPROPERTY(BlueprintReadOnly, Category = "Supabase") FString KbveUsername;
+	UPROPERTY(BlueprintReadOnly, Category = "Supabase") FString SessionId;
+
+	/** Unix seconds. 0 if absent. */
+	UPROPERTY(BlueprintReadOnly, Category = "Supabase") int64 IssuedAt = 0;
+	UPROPERTY(BlueprintReadOnly, Category = "Supabase") int64 ExpiresAt = 0;
+
+	bool IsValid() const { return !Sub.IsEmpty(); }
+	bool IsExpired(int64 LeewaySeconds = 0) const;
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKBVESupabaseSignIn, const FKBVESupabaseSession&, Session);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnKBVESupabaseSignOut);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKBVESupabaseSessionRefreshed, const FKBVESupabaseSession&, Session);
@@ -96,4 +122,5 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKBVESupabaseOAuthStarted, const F
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FKBVESupabaseUserCallback, bool, bSuccess, const FKBVESupabaseUser&, User);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FKBVESupabaseSessionCallback, bool, bSuccess, const FKBVESupabaseSession&, Session);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FKBVESupabaseStringCallback, bool, bSuccess, const FString&, Payload);
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FKBVESupabaseBytesCallback, bool, bSuccess, const TArray<uint8>&, Bytes);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FKBVESupabaseSimpleCallback, bool, bSuccess);

@@ -3,6 +3,8 @@
 #include "KBVESupabaseSettings.h"
 #include "KBVESupabaseSessionStore.h"
 #include "KBVESupabaseOAuthLoopback.h"
+#include "KBVESupabaseStorage.h"
+#include "KBVESupabaseJWT.h"
 #include "Engine/GameInstance.h"
 #include "TimerManager.h"
 #include "HttpModule.h"
@@ -76,6 +78,9 @@ void UKBVESupabaseSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
+	Storage = NewObject<UKBVESupabaseStorage>(this);
+	Storage->Init(this);
+
 	if (!IsConfigured())
 	{
 		UE_LOG(LogKBVESupabase, Warning, TEXT("KBVESupabase not configured. Set ProjectURL + AnonKey in Project Settings → Plugins → KBVE Supabase."));
@@ -130,6 +135,12 @@ FString UKBVESupabaseSubsystem::GetRestURL(const FString& Endpoint) const
 {
 	const UKBVESupabaseSettings* Settings = GetSettings();
 	return Settings ? JoinURL(Settings->GetRestBase(), Endpoint) : FString();
+}
+
+FString UKBVESupabaseSubsystem::GetFunctionsURL(const FString& Endpoint) const
+{
+	const UKBVESupabaseSettings* Settings = GetSettings();
+	return Settings ? JoinURL(Settings->GetFunctionsBase(), Endpoint) : FString();
 }
 
 TSharedRef<IHttpRequest, ESPMode::ThreadSafe> UKBVESupabaseSubsystem::BuildRequest(const FString& Verb, const FString& URL, bool bWithBearer) const
@@ -869,4 +880,444 @@ void UKBVESupabaseSubsystem::HandleLogoutResponse(FHttpRequestPtr Request, FHttp
 	{
 		UE_LOG(LogKBVESupabase, Warning, TEXT("Server-side logout failed (local session already cleared)."));
 	}
+}
+
+void UKBVESupabaseSubsystem::SignInAnonymously()
+{
+	if (!IsConfigured())
+	{
+		BroadcastError(0, TEXT("KBVESupabase not configured"));
+		return;
+	}
+
+	SetStatus(EKBVESupabaseAuthStatus::SigningIn);
+
+	const FString URL = GetAuthURL(TEXT("/signup"));
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Req = BuildRequest(TEXT("POST"), URL, /*bWithBearer=*/false);
+	Req->SetContentAsString(TEXT("{\"data\":{}}"));
+	Req->OnProcessRequestComplete().BindUObject(this,
+		&UKBVESupabaseSubsystem::HandleAuthTokenResponse,
+		FString(TEXT("SignInAnonymously")), false);
+	Req->ProcessRequest();
+}
+
+void UKBVESupabaseSubsystem::SignInWithPhoneOtp(const FString& Phone, bool bShouldCreateUser)
+{
+	if (!IsConfigured())
+	{
+		BroadcastError(0, TEXT("KBVESupabase not configured"));
+		return;
+	}
+
+	const FString CreateField = bShouldCreateUser ? TEXT("true") : TEXT("false");
+	const FString Body = FString::Printf(
+		TEXT("{\"phone\":\"%s\",\"create_user\":%s}"),
+		*JsonEscape(Phone.TrimStartAndEnd()), *CreateField);
+
+	const FString URL = GetAuthURL(TEXT("/otp"));
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Req = BuildRequest(TEXT("POST"), URL, /*bWithBearer=*/false);
+	Req->SetContentAsString(Body);
+	Req->OnProcessRequestComplete().BindUObject(this,
+		&UKBVESupabaseSubsystem::HandleSimpleResponse,
+		FString(TEXT("SignInWithPhoneOtp")));
+	Req->ProcessRequest();
+}
+
+void UKBVESupabaseSubsystem::VerifyPhoneOtp(const FString& Phone, const FString& Token)
+{
+	if (!IsConfigured())
+	{
+		BroadcastError(0, TEXT("KBVESupabase not configured"));
+		return;
+	}
+
+	SetStatus(EKBVESupabaseAuthStatus::SigningIn);
+
+	const FString Body = FString::Printf(
+		TEXT("{\"phone\":\"%s\",\"token\":\"%s\",\"type\":\"sms\"}"),
+		*JsonEscape(Phone.TrimStartAndEnd()), *JsonEscape(Token));
+
+	const FString URL = GetAuthURL(TEXT("/verify"));
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Req = BuildRequest(TEXT("POST"), URL, /*bWithBearer=*/false);
+	Req->SetContentAsString(Body);
+	Req->OnProcessRequestComplete().BindUObject(this,
+		&UKBVESupabaseSubsystem::HandleAuthTokenResponse,
+		FString(TEXT("VerifyPhoneOtp")), false);
+	Req->ProcessRequest();
+}
+
+bool UKBVESupabaseSubsystem::DecodeAccessTokenClaims(FKBVESupabaseJWTClaims& OutClaims) const
+{
+	if (CurrentSession.AccessToken.IsEmpty())
+	{
+		OutClaims = FKBVESupabaseJWTClaims();
+		return false;
+	}
+	return KBVESupabaseJWT::Decode(CurrentSession.AccessToken, OutClaims);
+}
+
+FDateTime UKBVESupabaseSubsystem::GetAccessTokenExpiresAt() const
+{
+	FKBVESupabaseJWTClaims Claims;
+	if (DecodeAccessTokenClaims(Claims) && Claims.ExpiresAt > 0)
+	{
+		return FDateTime::FromUnixTimestamp(Claims.ExpiresAt);
+	}
+	return CurrentSession.ExpiresAt;
+}
+
+void UKBVESupabaseSubsystem::DispatchAuthedRequest(
+	const FString& Verb,
+	const FString& URL,
+	const TArray<uint8>& Body,
+	const FString& ContentType,
+	const TMap<FString, FString>& ExtraHeaders,
+	TFunction<void(bool, int32, const TArray<uint8>&, FHttpResponsePtr)> Completion)
+{
+	if (!IsConfigured() || URL.IsEmpty())
+	{
+		Completion(false, 0, TArray<uint8>(), nullptr);
+		return;
+	}
+
+	const UKBVESupabaseSettings* Settings = GetSettings();
+	const bool bAutoRefresh = Settings && Settings->bAutoRefreshOn401 && !CurrentSession.RefreshToken.IsEmpty();
+
+	auto Send = [this, Verb, URL, Body, ContentType, ExtraHeaders](
+		TFunction<void(bool, int32, const TArray<uint8>&, FHttpResponsePtr)> InCompletion)
+	{
+		TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Req = FHttpModule::Get().CreateRequest();
+		Req->SetURL(URL);
+		Req->SetVerb(Verb);
+		Req->SetHeader(TEXT("apikey"), GetAnonKey());
+
+		const FString Bearer = CurrentSession.AccessToken.IsEmpty() ? GetAnonKey() : CurrentSession.AccessToken;
+		Req->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *Bearer));
+
+		if (!ContentType.IsEmpty())
+		{
+			Req->SetHeader(TEXT("Content-Type"), ContentType);
+		}
+		for (const auto& Pair : ExtraHeaders)
+		{
+			Req->SetHeader(Pair.Key, Pair.Value);
+		}
+		if (const UKBVESupabaseSettings* S = GetSettings())
+		{
+			Req->SetTimeout(static_cast<float>(S->RequestTimeoutSeconds));
+		}
+
+		if (Body.Num() > 0)
+		{
+			Req->SetContent(Body);
+		}
+
+		Req->OnProcessRequestComplete().BindLambda(
+			[InCompletion = MoveTemp(InCompletion)](FHttpRequestPtr InReq, FHttpResponsePtr InResp, bool bSuccess)
+			{
+				if (!bSuccess || !InResp.IsValid())
+				{
+					InCompletion(false, 0, TArray<uint8>(), InResp);
+					return;
+				}
+				const int32 Status = InResp->GetResponseCode();
+				const bool bOk = Status >= 200 && Status < 300;
+				InCompletion(bOk, Status, InResp->GetContent(), InResp);
+			});
+		Req->ProcessRequest();
+	};
+
+	if (!bAutoRefresh)
+	{
+		Send(MoveTemp(Completion));
+		return;
+	}
+
+	TWeakObjectPtr<UKBVESupabaseSubsystem> WeakSelf(this);
+	auto FirstCb = [WeakSelf, Verb, URL, Body, ContentType, ExtraHeaders, Completion = MoveTemp(Completion)]
+		(bool bSuccess, int32 Status, const TArray<uint8>& RespBytes, FHttpResponsePtr Resp)
+	{
+		UKBVESupabaseSubsystem* Strong = WeakSelf.Get();
+		if (!Strong)
+		{
+			Completion(bSuccess, Status, RespBytes, Resp);
+			return;
+		}
+		if (Status != 401 || Strong->CurrentSession.RefreshToken.IsEmpty())
+		{
+			Completion(bSuccess, Status, RespBytes, Resp);
+			return;
+		}
+
+		UE_LOG(LogKBVESupabase, Log, TEXT("401 on %s — refreshing access token and retrying once."), *URL);
+
+		const FString RefreshURL = Strong->GetAuthURL(TEXT("/token?grant_type=refresh_token"));
+		const FString RefreshBody = FString::Printf(
+			TEXT("{\"refresh_token\":\"%s\"}"),
+			*JsonEscape(Strong->CurrentSession.RefreshToken));
+
+		TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Refresh = Strong->BuildRequest(TEXT("POST"), RefreshURL, /*bWithBearer=*/false);
+		Refresh->SetContentAsString(RefreshBody);
+
+		Refresh->OnProcessRequestComplete().BindLambda(
+			[WeakSelf, Verb, URL, Body, ContentType, ExtraHeaders, Completion]
+			(FHttpRequestPtr InReq, FHttpResponsePtr InResp, bool bRefreshOk) mutable
+			{
+				UKBVESupabaseSubsystem* Self2 = WeakSelf.Get();
+				if (!Self2)
+				{
+					Completion(false, 0, TArray<uint8>(), InResp);
+					return;
+				}
+				if (!bRefreshOk || !InResp.IsValid() || InResp->GetResponseCode() < 200 || InResp->GetResponseCode() >= 300)
+				{
+					Self2->ClearSessionInternal(true);
+					Completion(false, InResp.IsValid() ? InResp->GetResponseCode() : 401, TArray<uint8>(), InResp);
+					return;
+				}
+
+				TSharedPtr<FJsonObject> Root;
+				const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(InResp->GetContentAsString());
+				FKBVESupabaseSession Session;
+				if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid() || !Self2->ParseSessionObject(Root, Session))
+				{
+					Self2->ClearSessionInternal(true);
+					Completion(false, 0, TArray<uint8>(), InResp);
+					return;
+				}
+
+				Self2->ApplySessionAndPersist(Session, /*bIsRefresh=*/true);
+
+				TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Retry = FHttpModule::Get().CreateRequest();
+				Retry->SetURL(URL);
+				Retry->SetVerb(Verb);
+				Retry->SetHeader(TEXT("apikey"), Self2->GetAnonKey());
+				Retry->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *Self2->CurrentSession.AccessToken));
+				if (!ContentType.IsEmpty())
+				{
+					Retry->SetHeader(TEXT("Content-Type"), ContentType);
+				}
+				for (const auto& Pair : ExtraHeaders)
+				{
+					Retry->SetHeader(Pair.Key, Pair.Value);
+				}
+				if (const UKBVESupabaseSettings* S = Self2->GetSettings())
+				{
+					Retry->SetTimeout(static_cast<float>(S->RequestTimeoutSeconds));
+				}
+				if (Body.Num() > 0)
+				{
+					Retry->SetContent(Body);
+				}
+				Retry->OnProcessRequestComplete().BindLambda(
+					[Completion](FHttpRequestPtr InReq2, FHttpResponsePtr InResp2, bool bSuccess2)
+					{
+						if (!bSuccess2 || !InResp2.IsValid())
+						{
+							Completion(false, 0, TArray<uint8>(), InResp2);
+							return;
+						}
+						const int32 S = InResp2->GetResponseCode();
+						const bool bOk = S >= 200 && S < 300;
+						Completion(bOk, S, InResp2->GetContent(), InResp2);
+					});
+				Retry->ProcessRequest();
+			});
+		Refresh->ProcessRequest();
+	};
+
+	Send(MoveTemp(FirstCb));
+}
+
+void UKBVESupabaseSubsystem::DispatchManagedJson(
+	const FString& Verb, const FString& URL, const FString& Body,
+	const FKBVESupabaseStringCallback& OnComplete)
+{
+	TArray<uint8> Bytes;
+	if (!Body.IsEmpty())
+	{
+		const FTCHARToUTF8 Conv(*Body);
+		Bytes.SetNumUninitialized(Conv.Length());
+		FMemory::Memcpy(Bytes.GetData(), Conv.Get(), Conv.Length());
+	}
+
+	FKBVESupabaseStringCallback Cb = OnComplete;
+	DispatchAuthedRequest(Verb, URL, Bytes, TEXT("application/json"), TMap<FString, FString>(),
+		[Cb](bool bSuccess, int32 Status, const TArray<uint8>& RespBytes, FHttpResponsePtr)
+		{
+			FString Payload;
+			if (RespBytes.Num() > 0)
+			{
+				const FUTF8ToTCHAR Conv2(reinterpret_cast<const ANSICHAR*>(RespBytes.GetData()), RespBytes.Num());
+				Payload = FString(Conv2.Length(), Conv2.Get());
+			}
+			Cb.ExecuteIfBound(bSuccess, Payload);
+		});
+}
+
+void UKBVESupabaseSubsystem::InvokeFunction(const FString& Name, const FString& JsonBody, const FKBVESupabaseStringCallback& OnComplete)
+{
+	if (Name.IsEmpty())
+	{
+		OnComplete.ExecuteIfBound(false, TEXT("Function name required"));
+		return;
+	}
+	const FString URL = GetFunctionsURL(Name);
+	DispatchManagedJson(TEXT("POST"), URL, JsonBody, OnComplete);
+}
+
+void UKBVESupabaseSubsystem::DbSelect(const FString& Table, const FString& QueryString, const FKBVESupabaseStringCallback& OnComplete)
+{
+	if (Table.IsEmpty())
+	{
+		OnComplete.ExecuteIfBound(false, TEXT("Table required"));
+		return;
+	}
+	FString URL = GetRestURL(Table);
+	if (!QueryString.IsEmpty())
+	{
+		URL += QueryString.StartsWith(TEXT("?")) ? QueryString : (TEXT("?") + QueryString);
+	}
+	DispatchManagedJson(TEXT("GET"), URL, FString(), OnComplete);
+}
+
+void UKBVESupabaseSubsystem::DbInsert(const FString& Table, const FString& JsonBody, bool bReturnRepresentation, const FKBVESupabaseStringCallback& OnComplete)
+{
+	if (Table.IsEmpty())
+	{
+		OnComplete.ExecuteIfBound(false, TEXT("Table required"));
+		return;
+	}
+
+	const FString URL = GetRestURL(Table);
+	TArray<uint8> Bytes;
+	if (!JsonBody.IsEmpty())
+	{
+		const FTCHARToUTF8 Conv(*JsonBody);
+		Bytes.SetNumUninitialized(Conv.Length());
+		FMemory::Memcpy(Bytes.GetData(), Conv.Get(), Conv.Length());
+	}
+
+	TMap<FString, FString> Headers;
+	Headers.Add(TEXT("Prefer"), bReturnRepresentation ? TEXT("return=representation") : TEXT("return=minimal"));
+
+	FKBVESupabaseStringCallback Cb = OnComplete;
+	DispatchAuthedRequest(TEXT("POST"), URL, Bytes, TEXT("application/json"), Headers,
+		[Cb](bool bSuccess, int32 Status, const TArray<uint8>& RespBytes, FHttpResponsePtr)
+		{
+			FString Payload;
+			if (RespBytes.Num() > 0)
+			{
+				const FUTF8ToTCHAR Conv2(reinterpret_cast<const ANSICHAR*>(RespBytes.GetData()), RespBytes.Num());
+				Payload = FString(Conv2.Length(), Conv2.Get());
+			}
+			Cb.ExecuteIfBound(bSuccess, Payload);
+		});
+}
+
+void UKBVESupabaseSubsystem::DbUpdate(const FString& Table, const FString& QueryString, const FString& JsonBody, bool bReturnRepresentation, const FKBVESupabaseStringCallback& OnComplete)
+{
+	if (Table.IsEmpty())
+	{
+		OnComplete.ExecuteIfBound(false, TEXT("Table required"));
+		return;
+	}
+
+	FString URL = GetRestURL(Table);
+	if (!QueryString.IsEmpty())
+	{
+		URL += QueryString.StartsWith(TEXT("?")) ? QueryString : (TEXT("?") + QueryString);
+	}
+
+	TArray<uint8> Bytes;
+	if (!JsonBody.IsEmpty())
+	{
+		const FTCHARToUTF8 Conv(*JsonBody);
+		Bytes.SetNumUninitialized(Conv.Length());
+		FMemory::Memcpy(Bytes.GetData(), Conv.Get(), Conv.Length());
+	}
+
+	TMap<FString, FString> Headers;
+	Headers.Add(TEXT("Prefer"), bReturnRepresentation ? TEXT("return=representation") : TEXT("return=minimal"));
+
+	FKBVESupabaseStringCallback Cb = OnComplete;
+	DispatchAuthedRequest(TEXT("PATCH"), URL, Bytes, TEXT("application/json"), Headers,
+		[Cb](bool bSuccess, int32 Status, const TArray<uint8>& RespBytes, FHttpResponsePtr)
+		{
+			FString Payload;
+			if (RespBytes.Num() > 0)
+			{
+				const FUTF8ToTCHAR Conv2(reinterpret_cast<const ANSICHAR*>(RespBytes.GetData()), RespBytes.Num());
+				Payload = FString(Conv2.Length(), Conv2.Get());
+			}
+			Cb.ExecuteIfBound(bSuccess, Payload);
+		});
+}
+
+void UKBVESupabaseSubsystem::DbDelete(const FString& Table, const FString& QueryString, const FKBVESupabaseStringCallback& OnComplete)
+{
+	if (Table.IsEmpty())
+	{
+		OnComplete.ExecuteIfBound(false, TEXT("Table required"));
+		return;
+	}
+
+	FString URL = GetRestURL(Table);
+	if (!QueryString.IsEmpty())
+	{
+		URL += QueryString.StartsWith(TEXT("?")) ? QueryString : (TEXT("?") + QueryString);
+	}
+	DispatchManagedJson(TEXT("DELETE"), URL, FString(), OnComplete);
+}
+
+void UKBVESupabaseSubsystem::DbUpsert(const FString& Table, const FString& JsonBody, const FString& OnConflictColumns, bool bReturnRepresentation, const FKBVESupabaseStringCallback& OnComplete)
+{
+	if (Table.IsEmpty())
+	{
+		OnComplete.ExecuteIfBound(false, TEXT("Table required"));
+		return;
+	}
+
+	FString URL = GetRestURL(Table);
+	if (!OnConflictColumns.IsEmpty())
+	{
+		URL += FString::Printf(TEXT("?on_conflict=%s"), *FGenericPlatformHttp::UrlEncode(OnConflictColumns));
+	}
+
+	TArray<uint8> Bytes;
+	if (!JsonBody.IsEmpty())
+	{
+		const FTCHARToUTF8 Conv(*JsonBody);
+		Bytes.SetNumUninitialized(Conv.Length());
+		FMemory::Memcpy(Bytes.GetData(), Conv.Get(), Conv.Length());
+	}
+
+	TMap<FString, FString> Headers;
+	FString Prefer = TEXT("resolution=merge-duplicates");
+	Prefer += bReturnRepresentation ? TEXT(",return=representation") : TEXT(",return=minimal");
+	Headers.Add(TEXT("Prefer"), Prefer);
+
+	FKBVESupabaseStringCallback Cb = OnComplete;
+	DispatchAuthedRequest(TEXT("POST"), URL, Bytes, TEXT("application/json"), Headers,
+		[Cb](bool bSuccess, int32 Status, const TArray<uint8>& RespBytes, FHttpResponsePtr)
+		{
+			FString Payload;
+			if (RespBytes.Num() > 0)
+			{
+				const FUTF8ToTCHAR Conv2(reinterpret_cast<const ANSICHAR*>(RespBytes.GetData()), RespBytes.Num());
+				Payload = FString(Conv2.Length(), Conv2.Get());
+			}
+			Cb.ExecuteIfBound(bSuccess, Payload);
+		});
+}
+
+void UKBVESupabaseSubsystem::DbRpc(const FString& FunctionName, const FString& JsonBody, const FKBVESupabaseStringCallback& OnComplete)
+{
+	if (FunctionName.IsEmpty())
+	{
+		OnComplete.ExecuteIfBound(false, TEXT("Function name required"));
+		return;
+	}
+	const FString URL = GetRestURL(FString::Printf(TEXT("rpc/%s"), *FunctionName));
+	DispatchManagedJson(TEXT("POST"), URL, JsonBody.IsEmpty() ? TEXT("{}") : JsonBody, OnComplete);
 }

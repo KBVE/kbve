@@ -1,5 +1,6 @@
 #include "KBVESupabasePKCE.h"
 #include "Misc/Guid.h"
+#include "Misc/Base64.h"
 
 namespace
 {
@@ -167,6 +168,22 @@ namespace KBVESupabaseCrypto
 		Out.ReplaceInline(TEXT("/"), TEXT("_"));
 		Out.ReplaceInline(TEXT("="), TEXT(""));
 		return Out;
+	}
+
+	bool Base64URLDecode(const FString& Encoded, TArray<uint8>& OutBytes)
+	{
+		FString Padded = Encoded;
+		Padded.ReplaceInline(TEXT("-"), TEXT("+"));
+		Padded.ReplaceInline(TEXT("_"), TEXT("/"));
+		const int32 Mod = Padded.Len() % 4;
+		if (Mod > 0)
+		{
+			for (int32 i = 0; i < 4 - Mod; ++i)
+			{
+				Padded.AppendChar(TEXT('='));
+			}
+		}
+		return FBase64::Decode(Padded, OutBytes);
 	}
 
 	void Sha256(TArrayView<const uint8> Bytes, uint8 OutDigest[32])

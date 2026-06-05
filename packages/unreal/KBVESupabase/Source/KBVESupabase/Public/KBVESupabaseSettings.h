@@ -35,6 +35,23 @@ public:
 	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Endpoint", AdvancedDisplay)
 	FString RestPath;
 
+	/** Optional Edge Functions path override. Default: /functions/v1 */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Endpoint", AdvancedDisplay)
+	FString FunctionsPath;
+
+	/** Optional Storage path override. Default: /storage/v1 */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Endpoint", AdvancedDisplay)
+	FString StoragePath;
+
+	/**
+	 * Automatically refresh the access_token + retry once when a
+	 * managed request (Storage / Functions / Db helpers) gets HTTP 401.
+	 * Raw RestRequest is always transparent — this flag only affects
+	 * the typed helpers.
+	 */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Session")
+	bool bAutoRefreshOn401;
+
 	/** Persist session JWT to disk so users stay logged in across launches. */
 	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Session")
 	bool bPersistSession;
@@ -86,6 +103,9 @@ public:
 
 	/** Resolved PostgREST base, e.g. https://x.supabase.co/rest/v1 (no trailing slash). */
 	FString GetRestBase() const;
+
+	FString GetFunctionsBase() const;
+	FString GetStorageBase() const;
 
 	/** Effective slug used for the local session filename. */
 	FString GetEffectiveProjectSlug() const;

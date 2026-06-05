@@ -34,6 +34,9 @@ namespace
 UKBVESupabaseSettings::UKBVESupabaseSettings()
 	: GoTruePath(TEXT("/auth/v1"))
 	, RestPath(TEXT("/rest/v1"))
+	, FunctionsPath(TEXT("/functions/v1"))
+	, StoragePath(TEXT("/storage/v1"))
+	, bAutoRefreshOn401(true)
 	, bPersistSession(true)
 	, RefreshLeadSeconds(60)
 	, RequestTimeoutSeconds(20)
@@ -65,6 +68,16 @@ FString UKBVESupabaseSettings::GetAuthBase() const
 FString UKBVESupabaseSettings::GetRestBase() const
 {
 	return TrimTrailingSlash(ProjectURL) + NormalizePath(RestPath, TEXT("/rest/v1"));
+}
+
+FString UKBVESupabaseSettings::GetFunctionsBase() const
+{
+	return TrimTrailingSlash(ProjectURL) + NormalizePath(FunctionsPath, TEXT("/functions/v1"));
+}
+
+FString UKBVESupabaseSettings::GetStorageBase() const
+{
+	return TrimTrailingSlash(ProjectURL) + NormalizePath(StoragePath, TEXT("/storage/v1"));
 }
 
 FString UKBVESupabaseSettings::GetEffectiveProjectSlug() const
