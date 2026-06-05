@@ -675,7 +675,7 @@
 			"key": "ue_kbvewebsurface",
 			"plugin_name": "KBVEWebSurface",
 			"plugin_path": "packages/unreal/KBVEWebSurface",
-			"version": "0.1.0",
+			"version": "0.2.0",
 			"version_toml": "packages/unreal/KBVEWebSurface/version.toml"
 		},
 		{
