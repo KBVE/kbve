@@ -11,7 +11,36 @@ import './mc-lots.css';
 				Marketplace, owned parcels, in-progress builds, and the
 				schematic catalog for the Minecraft survival backend.
 			</p>
+			<ul class="kbve-mclots-section__legend">
+				<li>
+					<strong>Vacant</strong> — buy any open parcel with credits or
+					khash.
+				</li>
+				<li>
+					<strong>My lots</strong> — your owned + built parcels.
+				</li>
+				<li>
+					<strong>In progress</strong> — jobs the survival worker has queued
+					or is applying right now.
+				</li>
+				<li>
+					<strong>Schematics</strong> — public catalog of build templates
+					and their prices.
+				</li>
+			</ul>
 		</div>
 	</header>
+
+	<noscript>
+		<div class="kbve-mclots__status kbve-mclots__status--auth">
+			This page needs JavaScript to fetch live lot data from
+			<code>/api/v1/mc/lots</code>. Enable scripts to continue.
+		</div>
+	</noscript>
+
+	<div class="kbve-mclots__skeleton" data-mclots-skeleton>
+		<div class="kbve-mclots__status">Loading lot dashboard…</div>
+	</div>
+
 	<MCLotsShell client:only="react" />
 </section>

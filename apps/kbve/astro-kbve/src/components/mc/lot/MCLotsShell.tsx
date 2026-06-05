@@ -42,6 +42,7 @@ function fmtPrice(credits: number, khash: number): string {
 export function MCLotsShell() {
 	const { ready, authenticated } = useSession();
 	const [tab, setTab] = useState<Tab>('vacant');
+	const [worldInput, setWorldInput] = useState<string>(DEFAULT_WORLD);
 	const [world, setWorld] = useState<string>(DEFAULT_WORLD);
 	const [vacant, setVacant] = useState<MCVacantLot[] | null>(null);
 	const [myActive, setMyActive] = useState<MCOwnedLot[] | null>(null);
@@ -50,10 +51,13 @@ export function MCLotsShell() {
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 
-	// AbortController owns every in-flight request from this component so
-	// fetches that started right before a ClientRouter swap don't land
-	// after teardown and leak state writes into the next page.
 	const abortRef = useRef<AbortController | null>(null);
+	const worldRef = useRef(world);
+	const mountedRef = useRef(false);
+
+	useEffect(() => {
+		worldRef.current = world;
+	}, [world]);
 
 	const cancelInFlight = useCallback(() => {
 		if (abortRef.current) {
@@ -69,66 +73,88 @@ export function MCLotsShell() {
 			abortRef.current = ctrl;
 			setLoading(true);
 			setError(null);
+			const currentWorld = worldRef.current;
 			try {
 				if (which === 'vacant') {
 					const rows = await listVacant(
-						{ world, limit: 64 },
+						{ world: currentWorld, limit: 64 },
 						{ signal: ctrl.signal },
 					);
-					if (ctrl.signal.aborted) return;
+					if (ctrl.signal.aborted || !mountedRef.current) return;
 					setVacant(rows);
 				} else if (which === 'active') {
 					const rows = await listMyActive(
-						{ world, limit: 64 },
+						{ world: currentWorld, limit: 64 },
 						{ signal: ctrl.signal },
 					);
-					if (ctrl.signal.aborted) return;
+					if (ctrl.signal.aborted || !mountedRef.current) return;
 					setMyActive(rows);
 				} else if (which === 'transitional') {
 					const rows = await listMyTransitional(
-						{ world, limit: 64 },
+						{ world: currentWorld, limit: 64 },
 						{ signal: ctrl.signal },
 					);
-					if (ctrl.signal.aborted) return;
+					if (ctrl.signal.aborted || !mountedRef.current) return;
 					setMyTrans(rows);
 				} else {
 					const rows = await listSchematics(undefined, {
 						signal: ctrl.signal,
 					});
-					if (ctrl.signal.aborted) return;
+					if (ctrl.signal.aborted || !mountedRef.current) return;
 					setSchematics(rows);
 				}
 			} catch (e) {
 				if ((e as Error)?.name === 'AbortError') return;
+				if (!mountedRef.current) return;
 				setError(
 					e instanceof MCLotApiError ? e.message : 'failed to load',
 				);
 			} finally {
-				if (!ctrl.signal.aborted) setLoading(false);
+				if (!ctrl.signal.aborted && mountedRef.current) {
+					setLoading(false);
+				}
 				if (abortRef.current === ctrl) abortRef.current = null;
 			}
 		},
-		[cancelInFlight, world],
+		[cancelInFlight],
 	);
+
+	// Debounce worldInput → world so each keystroke doesn't kick off a fetch.
+	useEffect(() => {
+		if (worldInput === world) return;
+		const t = window.setTimeout(() => setWorld(worldInput), 350);
+		return () => window.clearTimeout(t);
+	}, [worldInput, world]);
 
 	useEffect(() => {
 		if (!ready) return;
 		if (tab !== 'schematics' && !authenticated) return;
 		void refresh(tab);
 		return () => cancelInFlight();
-	}, [ready, authenticated, tab, refresh, cancelInFlight]);
+	}, [ready, authenticated, tab, world, refresh, cancelInFlight]);
 
-	// Astro ClientRouter swaps don't unmount React islands the same way a
-	// hard reload would. Hook the swap lifecycle so in-flight fetches are
-	// cancelled even when React's useEffect cleanup hasn't run yet.
+	// Astro ClientRouter swaps don't always unmount React islands. Hook the
+	// swap + page-lifecycle events so in-flight fetches die even when the
+	// component cleanup hasn't run. mountedRef gates every late setState so
+	// a settle that wins the race after teardown is a no-op.
 	useEffect(() => {
+		mountedRef.current = true;
+		document
+			.querySelectorAll('[data-mclots-skeleton]')
+			.forEach((el) => el.remove());
 		const teardown = () => cancelInFlight();
+		const onHidden = () => {
+			if (document.visibilityState === 'hidden') cancelInFlight();
+		};
 		document.addEventListener('astro:before-swap', teardown);
 		document.addEventListener('astro:before-preparation', teardown);
+		document.addEventListener('visibilitychange', onHidden);
 		window.addEventListener('pagehide', teardown);
 		return () => {
+			mountedRef.current = false;
 			document.removeEventListener('astro:before-swap', teardown);
 			document.removeEventListener('astro:before-preparation', teardown);
+			document.removeEventListener('visibilitychange', onHidden);
 			window.removeEventListener('pagehide', teardown);
 			cancelInFlight();
 		};
@@ -171,8 +197,8 @@ export function MCLotsShell() {
 					<span>World</span>
 					<input
 						type="text"
-						value={world}
-						onChange={(e) => setWorld(e.target.value)}
+						value={worldInput}
+						onChange={(e) => setWorldInput(e.target.value)}
 						spellCheck={false}
 					/>
 				</label>
