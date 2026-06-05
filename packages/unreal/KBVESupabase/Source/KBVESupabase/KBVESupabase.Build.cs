@@ -12,9 +12,16 @@ public class KBVESupabase : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"HTTP",
+			"HTTPServer",
 			"Json",
 			"JsonUtilities",
 			"DeveloperSettings"
+		});
+
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"Sockets",
+			"Networking"
 		});
 	}
 }

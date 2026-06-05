@@ -6,9 +6,11 @@
 #include "Interfaces/IHttpResponse.h"
 #include "Dom/JsonObject.h"
 #include "KBVESupabaseTypes.h"
+#include "KBVESupabasePKCE.h"
 #include "KBVESupabaseSubsystem.generated.h"
 
 class UKBVESupabaseSettings;
+class FKBVESupabaseOAuthLoopback;
 
 /**
  * Game-instance scoped Supabase client. GoTrue (/auth/v1) + optional
@@ -63,6 +65,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Auth")
 	FKBVESupabaseOAuthStartResult BuildOAuthAuthorizeURL(EKBVESupabaseOAuthProvider Provider, const FString& RedirectTo, const FString& Scopes);
 
+	/**
+	 * Full PKCE OAuth flow with a loopback listener (RFC 8252).
+	 * Binds 127.0.0.1:<port> in the configured range, opens the system
+	 * browser pointing at GoTrue /authorize, and on callback exchanges
+	 * the auth code for a session. Fires OnSignedIn or OnAuthError.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Auth")
+	FKBVESupabaseOAuthStartResult StartOAuthSignIn(EKBVESupabaseOAuthProvider Provider, const FString& Scopes);
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Auth")
+	void CancelOAuthSignIn();
+
+	UFUNCTION(BlueprintPure, Category = "KBVE|Supabase|Auth")
+	bool IsOAuthFlowActive() const;
+
 	UFUNCTION(BlueprintCallable, Category = "KBVE|Supabase|Auth")
 	void RefreshSession();
 
@@ -97,6 +114,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "KBVE|Supabase|Events")
 	FOnKBVESupabaseAuthStatusChanged OnAuthStatusChanged;
 
+	UPROPERTY(BlueprintAssignable, Category = "KBVE|Supabase|Events")
+	FOnKBVESupabaseOAuthStarted OnOAuthStarted;
+
 protected:
 	UPROPERTY(Transient)
 	FKBVESupabaseSession CurrentSession;
@@ -105,6 +125,9 @@ protected:
 	EKBVESupabaseAuthStatus Status = EKBVESupabaseAuthStatus::SignedOut;
 
 	FTimerHandle RefreshTimerHandle;
+
+	TSharedPtr<FKBVESupabaseOAuthLoopback> ActiveOAuthLoopback;
+	FKBVESupabasePKCE PendingPKCE;
 
 	const UKBVESupabaseSettings* GetSettings() const;
 	FString GetAnonKey() const;
@@ -130,4 +153,7 @@ protected:
 	void ClearSessionInternal(bool bClearDisk);
 	void ScheduleRefresh();
 	void TryRestoreSession();
+
+	void HandleOAuthLoopbackComplete(bool bSuccess, FString Code, FString State, FString Error);
+	void ResetOAuthLoopback();
 };

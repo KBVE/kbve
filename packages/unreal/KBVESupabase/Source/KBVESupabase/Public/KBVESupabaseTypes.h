@@ -91,6 +91,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnKBVESupabaseSignOut);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKBVESupabaseSessionRefreshed, const FKBVESupabaseSession&, Session);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKBVESupabaseAuthError, const FKBVESupabaseError&, Error);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnKBVESupabaseAuthStatusChanged, EKBVESupabaseAuthStatus, OldStatus, EKBVESupabaseAuthStatus, NewStatus);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKBVESupabaseOAuthStarted, const FKBVESupabaseOAuthStartResult&, StartResult);
 
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FKBVESupabaseUserCallback, bool, bSuccess, const FKBVESupabaseUser&, User);
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FKBVESupabaseSessionCallback, bool, bSuccess, const FKBVESupabaseSession&, Session);

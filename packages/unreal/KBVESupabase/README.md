@@ -48,9 +48,45 @@ const FString Username = S.User.KbveUsername;
 - Call `Sign In With Password`, `Sign Up With Password`, `Sign In With Otp`, `Verify Otp`, `Sign Out`, etc.
 - Bind delegates `On Signed In`, `On Signed Out`, `On Session Refreshed`, `On Auth Error`, `On Auth Status Changed`.
 
-## OAuth flow
+## OAuth flow (loopback + PKCE)
 
-`BuildOAuthAuthorizeURL(Provider, RedirectTo, Scopes)` returns the GoTrue authorize URL. Open it in the host browser (`FPlatformProcess::LaunchURL`) and let GoTrue handle the provider hand-off. After redirect, capture the URL fragment (`access_token` + `refresh_token` + `expires_in`) and call `SignInWithRefreshToken` — or simply let the redirect target be a deep link that the game intercepts.
+`StartOAuthSignIn(Provider, Scopes)` runs the full RFC 8252 native-app flow:
+
+1. Generate a PKCE verifier (32 random bytes, base64url) + challenge (S256) + CSRF `state`.
+2. Bind the first free port in the configured loopback range on `127.0.0.1` via the engine HttpServer; register a single `GET <CallbackPath>` route.
+3. Open the system browser at `<ProjectURL>/auth/v1/authorize?provider=X&flow_type=pkce&redirect_to=http://127.0.0.1:<port><path>&code_challenge=...&state=...`.
+4. User auths with the provider; GoTrue redirects back to the loopback with `?code=...&state=...`.
+5. Plugin validates `state`, then `POST /token?grant_type=pkce` with `{auth_code, code_verifier}`.
+6. On 200, session is applied + persisted + `OnSignedIn` fires.
+
+```cpp
+UKBVESupabaseSubsystem* Sb = GetGameInstance()->GetSubsystem<UKBVESupabaseSubsystem>();
+FKBVESupabaseOAuthStartResult Start = Sb->StartOAuthSignIn(EKBVESupabaseOAuthProvider::Discord, TEXT(""));
+// Start.AuthorizeURL is the URL the browser was launched at — useful to log / display.
+```
+
+`CancelOAuthSignIn()` unbinds the route + drops the PKCE state without firing an error.
+
+### Supabase project setup
+
+Pre-register every loopback URL in the dashboard at _Auth → URL Configuration → Redirect URLs_. The plugin's default range is `3450-3460` so:
+
+```
+http://127.0.0.1:3450/auth/callback
+http://127.0.0.1:3451/auth/callback
+...
+http://127.0.0.1:3460/auth/callback
+```
+
+Per-provider settings (Auth → Providers): enable PKCE flow if your version exposes it as a per-provider toggle.
+
+### Why a fixed range?
+
+OS-assigned (`port 0`) means the redirect URI changes every launch, which forces a wildcard in Supabase (`http://127.0.0.1:*`). Many tenants don't allow wildcards, and macOS pops a firewall prompt on every new port. A small fixed range works once and stays quiet.
+
+### Without loopback
+
+`BuildOAuthAuthorizeURL(Provider, RedirectTo, Scopes)` still exists for cases where the redirect target is your own deep link / web callback. The hash-fragment implicit flow (`access_token` in URL fragment) only works in a browser — not from a loopback HTTP listener — so always pass `flow_type=pkce` when targeting the loopback yourself.
 
 ## Generic REST helper
 
@@ -73,7 +109,7 @@ Passes through `apikey` + `Authorization: Bearer <access_token>` headers, hittin
 
 ## Dependencies
 
-`Core`, `CoreUObject`, `Engine`, `HTTP`, `Json`, `JsonUtilities`, `DeveloperSettings`. No third-party libs.
+`Core`, `CoreUObject`, `Engine`, `HTTP`, `HTTPServer`, `Json`, `JsonUtilities`, `DeveloperSettings`; private: `Sockets`, `Networking`. No third-party libs (SHA-256 is a self-contained FIPS 180-4 reference impl in `KBVESupabasePKCE.cpp`).
 
 ## License
 

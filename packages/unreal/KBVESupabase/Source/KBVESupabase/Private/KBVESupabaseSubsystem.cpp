@@ -2,10 +2,12 @@
 #include "KBVESupabaseModule.h"
 #include "KBVESupabaseSettings.h"
 #include "KBVESupabaseSessionStore.h"
+#include "KBVESupabaseOAuthLoopback.h"
 #include "Engine/GameInstance.h"
 #include "TimerManager.h"
 #include "HttpModule.h"
 #include "GenericPlatform/GenericPlatformHttp.h"
+#include "GenericPlatform/GenericPlatformProcess.h"
 #include "Dom/JsonValue.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -92,6 +94,7 @@ void UKBVESupabaseSubsystem::Deinitialize()
 			World->GetTimerManager().ClearTimer(RefreshTimerHandle);
 		}
 	}
+	ResetOAuthLoopback();
 	Super::Deinitialize();
 }
 
@@ -530,8 +533,144 @@ FKBVESupabaseOAuthStartResult UKBVESupabaseSubsystem::BuildOAuthAuthorizeURL(EKB
 	return Result;
 }
 
+FKBVESupabaseOAuthStartResult UKBVESupabaseSubsystem::StartOAuthSignIn(EKBVESupabaseOAuthProvider Provider, const FString& Scopes)
+{
+	FKBVESupabaseOAuthStartResult Result;
+	Result.Provider = ProviderToString(Provider);
+
+	if (!IsConfigured())
+	{
+		BroadcastError(0, TEXT("KBVESupabase not configured"));
+		return Result;
+	}
+
+	ResetOAuthLoopback();
+	PendingPKCE = FKBVESupabasePKCE::Generate();
+
+	const UKBVESupabaseSettings* Settings = GetSettings();
+
+	TWeakObjectPtr<UKBVESupabaseSubsystem> WeakSelf(this);
+	FKBVESupabaseOAuthLoopbackComplete CompleteCb = FKBVESupabaseOAuthLoopbackComplete::CreateLambda(
+		[WeakSelf](bool bSuccess, FString Code, FString State, FString Error)
+		{
+			if (UKBVESupabaseSubsystem* Strong = WeakSelf.Get())
+			{
+				Strong->HandleOAuthLoopbackComplete(bSuccess, MoveTemp(Code), MoveTemp(State), MoveTemp(Error));
+			}
+		});
+
+	ActiveOAuthLoopback = FKBVESupabaseOAuthLoopback::Start(
+		Settings->LoopbackPortMin,
+		Settings->LoopbackPortMax,
+		Settings->LoopbackCallbackPath,
+		Settings->LoopbackSuccessHtml,
+		Settings->LoopbackErrorHtml,
+		CompleteCb);
+
+	if (!ActiveOAuthLoopback.IsValid())
+	{
+		PendingPKCE = FKBVESupabasePKCE();
+		BroadcastError(0, FString::Printf(
+			TEXT("Failed to bind OAuth loopback in range %d-%d"),
+			Settings->LoopbackPortMin, Settings->LoopbackPortMax));
+		return Result;
+	}
+
+	SetStatus(EKBVESupabaseAuthStatus::SigningIn);
+
+	const FString RedirectURL = ActiveOAuthLoopback->GetCallbackURL();
+	FString URL = GetAuthURL(TEXT("/authorize"));
+	URL += FString::Printf(TEXT("?provider=%s"), *Result.Provider);
+	URL += TEXT("&flow_type=pkce");
+	URL += FString::Printf(TEXT("&redirect_to=%s"), *FGenericPlatformHttp::UrlEncode(RedirectURL));
+	URL += FString::Printf(TEXT("&code_challenge=%s"), *PendingPKCE.Challenge);
+	URL += TEXT("&code_challenge_method=S256");
+	URL += FString::Printf(TEXT("&state=%s"), *PendingPKCE.State);
+	if (!Scopes.IsEmpty())
+	{
+		URL += FString::Printf(TEXT("&scopes=%s"), *FGenericPlatformHttp::UrlEncode(Scopes));
+	}
+
+	Result.AuthorizeURL = URL;
+	OnOAuthStarted.Broadcast(Result);
+
+	UE_LOG(LogKBVESupabase, Log,
+		TEXT("Launching OAuth (%s) via loopback %s"), *Result.Provider, *RedirectURL);
+	FPlatformProcess::LaunchURL(*URL, nullptr, nullptr);
+
+	return Result;
+}
+
+void UKBVESupabaseSubsystem::CancelOAuthSignIn()
+{
+	if (!ActiveOAuthLoopback.IsValid())
+	{
+		return;
+	}
+	ResetOAuthLoopback();
+	if (Status == EKBVESupabaseAuthStatus::SigningIn)
+	{
+		SetStatus(IsSignedIn() ? EKBVESupabaseAuthStatus::SignedIn : EKBVESupabaseAuthStatus::SignedOut);
+	}
+}
+
+bool UKBVESupabaseSubsystem::IsOAuthFlowActive() const
+{
+	return ActiveOAuthLoopback.IsValid();
+}
+
+void UKBVESupabaseSubsystem::ResetOAuthLoopback()
+{
+	if (ActiveOAuthLoopback.IsValid())
+	{
+		ActiveOAuthLoopback->Stop();
+		ActiveOAuthLoopback.Reset();
+	}
+	PendingPKCE = FKBVESupabasePKCE();
+}
+
+void UKBVESupabaseSubsystem::HandleOAuthLoopbackComplete(bool bSuccess, FString Code, FString State, FString Error)
+{
+	const FKBVESupabasePKCE PKCE = PendingPKCE;
+	ResetOAuthLoopback();
+
+	if (!bSuccess)
+	{
+		BroadcastError(0, Error.IsEmpty() ? TEXT("OAuth cancelled") : Error, TEXT("oauth_callback"));
+		return;
+	}
+	if (!PKCE.IsValid())
+	{
+		BroadcastError(0, TEXT("OAuth state missing"), TEXT("pkce_missing"));
+		return;
+	}
+	if (PKCE.State != State)
+	{
+		BroadcastError(0, TEXT("OAuth state mismatch (possible CSRF)"), TEXT("state_mismatch"));
+		return;
+	}
+	if (Code.IsEmpty())
+	{
+		BroadcastError(0, TEXT("OAuth callback missing code"), TEXT("missing_code"));
+		return;
+	}
+
+	const FString Body = FString::Printf(
+		TEXT("{\"auth_code\":\"%s\",\"code_verifier\":\"%s\"}"),
+		*JsonEscape(Code), *JsonEscape(PKCE.Verifier));
+	const FString URL = GetAuthURL(TEXT("/token?grant_type=pkce"));
+
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Req = BuildRequest(TEXT("POST"), URL, /*bWithBearer=*/false);
+	Req->SetContentAsString(Body);
+	Req->OnProcessRequestComplete().BindUObject(this,
+		&UKBVESupabaseSubsystem::HandleAuthTokenResponse,
+		FString(TEXT("OAuthPKCE")), false);
+	Req->ProcessRequest();
+}
+
 void UKBVESupabaseSubsystem::SignOut(bool bAlsoRevokeServerSide)
 {
+	ResetOAuthLoopback();
 	const bool bHadSession = CurrentSession.IsValid();
 
 	if (bAlsoRevokeServerSide && bHadSession && IsConfigured())

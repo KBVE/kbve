@@ -37,6 +37,23 @@ UKBVESupabaseSettings::UKBVESupabaseSettings()
 	, bPersistSession(true)
 	, RefreshLeadSeconds(60)
 	, RequestTimeoutSeconds(20)
+	, LoopbackPortMin(3450)
+	, LoopbackPortMax(3460)
+	, LoopbackCallbackPath(TEXT("/auth/callback"))
+	, LoopbackSuccessHtml(TEXT(
+		"<!doctype html><html><head><meta charset=\"utf-8\"><title>Signed in</title>"
+		"<style>html,body{height:100%;margin:0}body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;"
+		"background:#0b0e14;color:#e6edf3;display:flex;align-items:center;justify-content:center}"
+		"div{text-align:center;padding:2rem;max-width:32rem}h1{font-weight:600;margin:0 0 .5rem}"
+		"p{opacity:.7;margin:0}</style></head><body><div><h1>Sign-in complete</h1>"
+		"<p>You can close this window and return to the game.</p></div></body></html>"))
+	, LoopbackErrorHtml(TEXT(
+		"<!doctype html><html><head><meta charset=\"utf-8\"><title>Sign-in failed</title>"
+		"<style>html,body{height:100%;margin:0}body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;"
+		"background:#1a0c0c;color:#ffd9d6;display:flex;align-items:center;justify-content:center}"
+		"div{text-align:center;padding:2rem;max-width:32rem}h1{font-weight:600;margin:0 0 .5rem;color:#ff6b6b}"
+		"p{opacity:.7;margin:0}</style></head><body><div><h1>Sign-in failed</h1>"
+		"<p>The provider returned an error. You can close this window.</p></div></body></html>"))
 {
 }
 

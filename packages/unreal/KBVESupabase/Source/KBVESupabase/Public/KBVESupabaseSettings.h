@@ -57,6 +57,30 @@ public:
 	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Network", meta = (ClampMin = "1", ClampMax = "120"))
 	int32 RequestTimeoutSeconds;
 
+	/**
+	 * Loopback port range used by the OAuth PKCE flow. The plugin binds
+	 * the first free port in [Min, Max]. Pre-register the full range as
+	 * redirect URIs in your Supabase project (Auth → URL Configuration),
+	 * e.g. http://127.0.0.1:3450/auth/callback ... 3460.
+	 */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "OAuth Loopback", meta = (ClampMin = "1024", ClampMax = "65535"))
+	int32 LoopbackPortMin;
+
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "OAuth Loopback", meta = (ClampMin = "1024", ClampMax = "65535"))
+	int32 LoopbackPortMax;
+
+	/** Path the OAuth provider redirects to. Must match what is registered in Supabase. */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "OAuth Loopback", AdvancedDisplay)
+	FString LoopbackCallbackPath;
+
+	/** HTML shown in the browser after a successful redirect. */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "OAuth Loopback", AdvancedDisplay, meta = (MultiLine = true))
+	FString LoopbackSuccessHtml;
+
+	/** HTML shown when the provider reports an error or no code was returned. */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "OAuth Loopback", AdvancedDisplay, meta = (MultiLine = true))
+	FString LoopbackErrorHtml;
+
 	/** Resolved GoTrue base, e.g. https://x.supabase.co/auth/v1 (no trailing slash). */
 	FString GetAuthBase() const;
 
