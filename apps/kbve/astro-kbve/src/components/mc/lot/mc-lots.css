@@ -1,0 +1,134 @@
+.kbve-mclots {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	width: 100%;
+}
+
+.kbve-mclots__bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.75rem 1rem;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.5rem;
+	background: var(--sl-color-bg-nav);
+}
+
+.kbve-mclots__tabs {
+	display: inline-flex;
+	gap: 0.25rem;
+}
+
+.kbve-mclots__tab {
+	background: transparent;
+	border: 1px solid var(--sl-color-gray-5);
+	color: var(--sl-color-white);
+	border-radius: 0.375rem;
+	padding: 0.4rem 0.75rem;
+	font: inherit;
+	cursor: pointer;
+}
+
+.kbve-mclots__tab--active {
+	background: var(--sl-color-accent);
+	color: var(--sl-color-text-invert);
+	border-color: var(--sl-color-accent);
+}
+
+.kbve-mclots__world {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-left: auto;
+}
+
+.kbve-mclots__world input {
+	background: var(--sl-color-bg);
+	color: var(--sl-color-white);
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.375rem;
+	padding: 0.35rem 0.5rem;
+	font: inherit;
+	min-width: 16rem;
+}
+
+.kbve-mclots__refresh {
+	background: var(--sl-color-bg);
+	color: var(--sl-color-white);
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.375rem;
+	padding: 0.4rem 0.85rem;
+	font: inherit;
+	cursor: pointer;
+}
+
+.kbve-mclots__refresh[disabled] {
+	opacity: 0.5;
+	cursor: progress;
+}
+
+.kbve-mclots__status {
+	padding: 1.25rem;
+	text-align: center;
+	color: var(--sl-color-gray-3);
+	border: 1px dashed var(--sl-color-gray-5);
+	border-radius: 0.5rem;
+}
+
+.kbve-mclots__status--auth {
+	color: var(--sl-color-white);
+}
+
+.kbve-mclots__error {
+	padding: 0.75rem 1rem;
+	border-radius: 0.375rem;
+	background: var(--sl-color-red-low);
+	color: var(--sl-color-red-high);
+	border: 1px solid var(--sl-color-red);
+}
+
+.kbve-mclots__table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.92rem;
+}
+
+.kbve-mclots__table th,
+.kbve-mclots__table td {
+	text-align: left;
+	padding: 0.5rem 0.75rem;
+	border-bottom: 1px solid var(--sl-color-gray-6);
+	vertical-align: top;
+}
+
+.kbve-mclots__table th {
+	background: var(--sl-color-bg-nav);
+	font-weight: 600;
+}
+
+.kbve-mclots__state {
+	display: inline-block;
+	padding: 0.15rem 0.5rem;
+	border-radius: 999px;
+	font-size: 0.8em;
+	background: var(--sl-color-gray-6);
+	color: var(--sl-color-white);
+}
+
+.kbve-mclots__state--vacant {
+	background: var(--sl-color-gray-5);
+}
+
+.kbve-mclots__state--owned,
+.kbve-mclots__state--built {
+	background: var(--sl-color-green-low);
+	color: var(--sl-color-green-high);
+}
+
+.kbve-mclots__state--under_build,
+.kbve-mclots__state--demolishing {
+	background: var(--sl-color-orange-low);
+	color: var(--sl-color-orange-high);
+}

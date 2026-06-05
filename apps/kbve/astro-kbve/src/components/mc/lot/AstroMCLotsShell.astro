@@ -1,0 +1,17 @@
+---
+import MCLotsShell from './MCLotsShell';
+import './mc-lots.css';
+---
+
+<section class="kbve-mclots-section not-content kbve-dashboard-page">
+	<header class="kbve-mclots-section__header">
+		<div>
+			<h1>MC Lots</h1>
+			<p>
+				Marketplace, owned parcels, in-progress builds, and the
+				schematic catalog for the Minecraft survival backend.
+			</p>
+		</div>
+	</header>
+	<MCLotsShell client:only="react" />
+</section>
