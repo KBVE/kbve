@@ -36,6 +36,7 @@ private:
 	FVector2D    AnchorPos = FVector2D::ZeroVector;
 	FVector2D    ContentSize = FVector2D(180.f, 28.f);
 	bool         bShown = false;
+	uint32       CachedContentHash = 0;
 	FLinearColor BorderColor = FLinearColor(0.55f, 0.62f, 0.78f, 0.85f);
 
 	TSharedPtr<class SCanvas>     Canvas;

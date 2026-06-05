@@ -57,6 +57,8 @@ void SchuckInventoryWindow::Construct(const FArguments& InArgs)
 	const float FrameW = EquipWidth + BagWidth + InfoWidth + 32.f;
 	const float FrameH = ContentHeight + 64.f;
 
+	SetVisibility(EVisibility::SelfHitTestInvisible);
+
 	FVector2D StartPos(160.f, 140.f);
 	FVector2D StartSize(FrameW, FrameH);
 	const FName WindowKey = FName(TEXT("chuck.inventory"));

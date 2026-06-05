@@ -15,6 +15,8 @@ void SchuckHUD::Construct(const FArguments& InArgs)
 	Character = InArgs._OwningCharacter;
 	const ISlateStyle& Style = FChuckUIStyle::Get();
 
+	SetVisibility(EVisibility::SelfHitTestInvisible);
+
 	auto HealthPct  = [this]() { return DisplayHealth;  };
 	auto ManaPct    = [this]() { return DisplayMana;    };
 	auto StaminaPct = [this]() { return DisplayStamina; };

@@ -1,0 +1,35 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "KBVE Web Surface",
+	"Description": "Game-agnostic plugin for rendering interactive web content onto 3D surfaces — billboards, terminals, kiosks, holograms, in-world dashboards.",
+	"Category": "Web",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"DocsURL": "https://kbve.com/docs/unreal/web-surface",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EnabledByDefault": false,
+	"Modules": [
+		{
+			"Name": "KBVEWebSurface",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": ["Win64", "Mac", "Linux"]
+		},
+		{
+			"Name": "KBVEWebSurfaceEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": ["Win64", "Mac", "Linux"]
+		}
+	],
+	"Plugins": [
+		{ "Name": "WebBrowserWidget", "Enabled": true },
+		{ "Name": "WebBrowser", "Enabled": true }
+	]
+}

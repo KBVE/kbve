@@ -119,6 +119,17 @@ void SKBVETooltip::Show(const FText& InText, const FVector2D& ScreenPos)
 
 void SKBVETooltip::ShowRich(const FKBVETooltipContent& Content, const FVector2D& ScreenPos)
 {
+	const uint32 H1 = GetTypeHash(Content.Title.ToString());
+	const uint32 H2 = GetTypeHash(Content.Subtitle.ToString());
+	const uint32 H3 = GetTypeHash(Content.Body.ToString());
+	const uint32 NewHash = HashCombine(H1, HashCombine(H2, H3));
+
+	if (bShown && NewHash == CachedContentHash)
+	{
+		return;
+	}
+	CachedContentHash = NewHash;
+
 	RebuildLayout(Content, ScreenPos);
 	bShown = true;
 	Invalidate(EInvalidateWidgetReason::Visibility | EInvalidateWidgetReason::Layout);
@@ -182,6 +193,7 @@ void SKBVETooltip::Hide()
 {
 	if (!bShown) return;
 	bShown = false;
+	CachedContentHash = 0;
 	Invalidate(EInvalidateWidgetReason::Visibility);
 }
 
