@@ -9,45 +9,51 @@ spec:
         privateKeySecretRef:
             name: letsencrypt-http-private-key
         solvers:
+            # All solvers use the Cilium kbve-gateway HTTP listener for
+            # ACME HTTP-01 challenges. ingress-nginx was removed in
+            # PR #11551; the old nginx solver template silently created
+            # Ingress resources that no controller picked up, so every
+            # cert that hit a renewal afterwards landed back on the
+            # placeholder "Kubernetes Ingress Controller Fake Certificate"
+            # — which is what Cloudflare 526 on cryptothrone.com surfaced.
+
             # --- Solver 1: KBVE.COM domains ---
             - selector:
                   dnsZones:
                       - kbve.com
               http01:
-                  ingress:
-                      ingressClassName: nginx
-                      ingressTemplate:
-                          metadata:
-                              annotations:
-                                  cert-manager.io/http01-ingress-path-type: 'Prefix'
+                  gatewayHTTPRoute:
+                      parentRefs:
+                          - name: kbve-gateway
+                            namespace: kbve
+                            kind: Gateway
+                            group: gateway.networking.k8s.io
 
             # --- Solver 2: DISCORD.SH domains ---
             - selector:
                   dnsZones:
                       - discord.sh
               http01:
-                  ingress:
-                      ingressClassName: nginx
-                      ingressTemplate:
-                          metadata:
-                              annotations:
-                                  cert-manager.io/http01-ingress-path-type: 'Prefix'
+                  gatewayHTTPRoute:
+                      parentRefs:
+                          - name: kbve-gateway
+                            namespace: kbve
+                            kind: Gateway
+                            group: gateway.networking.k8s.io
 
             # --- Solver 3: HERBMAIL.COM domains ---
             - selector:
                   dnsZones:
                       - herbmail.com
               http01:
-                  ingress:
-                      ingressClassName: nginx
-                      ingressTemplate:
-                          metadata:
-                              annotations:
-                                  cert-manager.io/http01-ingress-path-type: 'Prefix'
+                  gatewayHTTPRoute:
+                      parentRefs:
+                          - name: kbve-gateway
+                            namespace: kbve
+                            kind: Gateway
+                            group: gateway.networking.k8s.io
 
             # --- Solver 4: MEME.SH domains ---
-            # Migrated to Cilium Gateway HTTPRoute solver post-Phase-2 cutover.
-            # meme.sh CNAME -> gateway.kbve.com (.71); nginx no longer serves it.
             - selector:
                   dnsZones:
                       - meme.sh
@@ -64,42 +70,48 @@ spec:
                   dnsZones:
                       - cryptothrone.com
               http01:
-                  ingress:
-                      ingressClassName: nginx
-                      ingressTemplate:
-                          metadata:
-                              annotations:
-                                  cert-manager.io/http01-ingress-path-type: 'Prefix'
+                  gatewayHTTPRoute:
+                      parentRefs:
+                          - name: kbve-gateway
+                            namespace: kbve
+                            kind: Gateway
+                            group: gateway.networking.k8s.io
 
             # --- Solver 6: CHUCKRPG.COM domains ---
-            # Stays on the nginx solver until the Cilium gateway VIP (.71)
-            # is reachable from Let's Encrypt; until then nginx-on-.74 is
-            # the only path that completes HTTP-01.
             - selector:
                   dnsZones:
                       - chuckrpg.com
               http01:
-                  ingress:
-                      ingressClassName: nginx
-                      ingressTemplate:
-                          metadata:
-                              annotations:
-                                  cert-manager.io/http01-ingress-path-type: 'Prefix'
+                  gatewayHTTPRoute:
+                      parentRefs:
+                          - name: kbve-gateway
+                            namespace: kbve
+                            kind: Gateway
+                            group: gateway.networking.k8s.io
 
             # --- Solver 7: RAREICON.COM domains ---
-            # Stays on the nginx solver until the Cilium gateway VIP (.71)
-            # is reachable from Let's Encrypt; until then nginx-on-.74 is
-            # the only path that completes HTTP-01.
             - selector:
                   dnsZones:
                       - rareicon.com
               http01:
-                  ingress:
-                      ingressClassName: nginx
-                      ingressTemplate:
-                          metadata:
-                              annotations:
-                                  cert-manager.io/http01-ingress-path-type: 'Prefix'
+                  gatewayHTTPRoute:
+                      parentRefs:
+                          - name: kbve-gateway
+                            namespace: kbve
+                            kind: Gateway
+                            group: gateway.networking.k8s.io
+
+            # --- Solver 8: CITYVOTE.COM domains ---
+            - selector:
+                  dnsZones:
+                      - cityvote.com
+              http01:
+                  gatewayHTTPRoute:
+                      parentRefs:
+                          - name: kbve-gateway
+                            namespace: kbve
+                            kind: Gateway
+                            group: gateway.networking.k8s.io
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
