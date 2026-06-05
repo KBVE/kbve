@@ -7,6 +7,7 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "GenericPlatform/GenericPlatformHttp.h"
 
 namespace
 {
@@ -125,12 +126,22 @@ void UKBVESupabaseChat::Connect()
 
 	SetStatus(EKBVEChatStatus::Connecting);
 
+	FString URL = Settings->ChatURL;
 	TMap<FString, FString> Headers;
-	Headers.Add(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *AccessToken));
 
-	const FString Protocol = Settings->ChatURL.StartsWith(TEXT("wss://")) ? TEXT("wss") : TEXT("ws");
+	if (Settings->bChatTokenInQueryParam)
+	{
+		const TCHAR Sep = URL.Contains(TEXT("?")) ? TEXT('&') : TEXT('?');
+		URL += FString::Printf(TEXT("%ctoken=%s"), Sep, *FGenericPlatformHttp::UrlEncode(AccessToken));
+	}
+	else
+	{
+		Headers.Add(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *AccessToken));
+	}
 
-	Socket = FWebSocketsModule::Get().CreateWebSocket(Settings->ChatURL, Protocol, Headers);
+	const FString Protocol = URL.StartsWith(TEXT("wss://")) ? TEXT("wss") : TEXT("ws");
+
+	Socket = FWebSocketsModule::Get().CreateWebSocket(URL, Protocol, Headers);
 	if (!Socket.IsValid())
 	{
 		HandleError(TEXT("Failed to create WebSocket"));

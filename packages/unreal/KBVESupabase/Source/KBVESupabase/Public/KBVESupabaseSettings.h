@@ -113,6 +113,18 @@ public:
 	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Chat", AdvancedDisplay)
 	bool bChatRespondToPing;
 
+	/**
+	 * Carry the JWT in a `?token=<jwt>` query string on the upgrade URL
+	 * instead of an `Authorization: Bearer` header. The irc-gateway
+	 * accepts both, but some platforms / proxies strip custom headers
+	 * on the WS Upgrade — flip this on if the header path fails.
+	 *
+	 * Trade-off: the token may end up in proxy / access logs. Prefer
+	 * the header path when it works.
+	 */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Chat", AdvancedDisplay)
+	bool bChatTokenInQueryParam;
+
 	/** Reconnect after the socket drops. */
 	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Chat", AdvancedDisplay)
 	bool bChatAutoReconnect;

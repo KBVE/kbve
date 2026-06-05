@@ -198,6 +198,10 @@ Raw IRC lines are also exposed via `OnRawLine` (`FKBVEChatIrcLine` — Prefix / 
 
 `bChatAutoReconnect` is on by default. On close or error, the plugin retries with `ChatReconnectInitialDelaySeconds × 2^attempt` backoff, capped at `ChatReconnectMaxDelaySeconds`. Call `Disconnect()` explicitly to stop reconnecting.
 
+### Token transport
+
+By default the JWT is sent as `Authorization: Bearer <jwt>` on the WS upgrade. If the platform / proxy strips custom headers on Upgrade (some setups do), flip `bChatTokenInQueryParam = true` in Settings — the plugin will append `?token=<jwt>` to the URL instead. Both modes are accepted by the irc-gateway (header wins if both are present). The query-string path can leak the token into proxy / access logs, so prefer the header.
+
 ### Sign-out behaviour
 
 `SignOut()` calls `Chat->Disconnect()` so the WS doesn't outlive the session.
