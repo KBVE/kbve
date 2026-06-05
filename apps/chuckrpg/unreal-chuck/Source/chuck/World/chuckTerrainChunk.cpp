@@ -18,7 +18,7 @@ AchuckTerrainChunk::AchuckTerrainChunk()
 	PrimaryActorTick.bCanEverTick = false;
 
 	Mesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Mesh"));
-	Mesh->bUseAsyncCooking = true;
+	Mesh->bUseAsyncCooking = false;
 	Mesh->SetCollisionProfileName(TEXT("BlockAll"));
 	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	Mesh->SetCanEverAffectNavigation(true);
@@ -53,7 +53,6 @@ AchuckTerrainChunk::AchuckTerrainChunk()
 void AchuckTerrainChunk::BeginPlay()
 {
 	Super::BeginPlay();
-	SetActorHiddenInGame(true);
 }
 
 void AchuckTerrainChunk::GenerateMeshData(FchuckChunkMesh& OutMesh) const

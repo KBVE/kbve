@@ -1,6 +1,8 @@
 #include "chuckCorePlayerController.h"
 
 #include "chuckCoreCharacter.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "chuckHUDState.h"
 #include "chuckInputs.h"
 #include "EnhancedInputComponent.h"
@@ -25,6 +27,8 @@
 #include "Engine/GameInstance.h"
 #include "SKBVEDragArrowLayer.h"
 #include "SKBVETooltip.h"
+#include "chuckNoise.h"
+#include "chuckTerrainStreamer.h"
 #include "KBVESupabaseSubsystem.h"
 #include "KBVESupabaseChat.h"
 #include "KBVESupabaseTypes.h"
@@ -94,6 +98,44 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 		return;
 	}
 
+	{
+		const uint32 SpawnSeed   = 0xC1A55E5Au;
+		const FVector AnchorXY   = FVector(0.f, 0.f, 0.f);
+		const float Sampled      = chuckNoise::Heightmap(AnchorXY.X, AnchorXY.Y, SpawnSeed);
+		const float HoverZ       = Sampled + 5000.f;
+		const FVector SpawnTarget(AnchorXY.X, AnchorXY.Y, HoverZ);
+
+		if (UWorld* W = GetWorld())
+		{
+			if (UchuckTerrainStreamer* Streamer = W->GetSubsystem<UchuckTerrainStreamer>())
+			{
+				Streamer->SetSeed(SpawnSeed);
+				Streamer->EnsureBuiltAround(FVector2D(AnchorXY.X, AnchorXY.Y));
+			}
+		}
+
+		const FVector PawnIn = Char->GetActorLocation();
+		const bool bOk = Char->TeleportTo(SpawnTarget, Char->GetActorRotation(), false, true);
+		if (UCharacterMovementComponent* CM = Char->GetCharacterMovement())
+		{
+			CM->StopMovementImmediately();
+			CM->Velocity = FVector::ZeroVector;
+			CM->GravityScale = 0.f;
+		}
+
+		bSpawnSnapPending = true;
+		SpawnSnapElapsed  = 0.f;
+		SpawnSnapSeed     = SpawnSeed;
+		SpawnSnapAnchor   = FVector2D(AnchorXY.X, AnchorXY.Y);
+
+		UE_LOG(LogTemp, Display,
+			TEXT("[chuck] CorePC spawn anchor=(%.0f,%.0f) sampled=%.0f hoverZ=%.0f pawnIn=(%.0f,%.0f,%.0f) teleportOk=%d pawnOut=(%.0f,%.0f,%.0f) snap=armed"),
+			AnchorXY.X, AnchorXY.Y, Sampled, HoverZ,
+			PawnIn.X, PawnIn.Y, PawnIn.Z,
+			bOk ? 1 : 0,
+			Char->GetActorLocation().X, Char->GetActorLocation().Y, Char->GetActorLocation().Z);
+	}
+
 	HUDWidget    = SNew(SchuckHUD).OwningCharacter(Char);
 	HotbarWidget = SNew(SchuckHotbar).OwningCharacter(Char);
 	TooltipWidget = SNew(SKBVETooltip);
@@ -104,9 +146,12 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 		SupabaseSubsystem = GI->GetSubsystem<UKBVESupabaseSubsystem>();
 	}
 
-	LoginWidget   = SNew(SchuckLoginWidget).Subsystem(SupabaseSubsystem);
 	AccountWidget = SNew(SchuckAccountPanel).Subsystem(SupabaseSubsystem);
 	ChatWidget    = SNew(SchuckChatPanel).Subsystem(SupabaseSubsystem);
+
+	// Default to hidden. InitSupabaseBridge below flips them on based on auth state.
+	AccountWidget->SetVisibility(EVisibility::Collapsed);
+	ChatWidget->SetVisibility(EVisibility::Collapsed);
 
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 	{
@@ -116,7 +161,6 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), TooltipWidget.ToSharedRef(),  30);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), ChatWidget.ToSharedRef(),     35);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), AccountWidget.ToSharedRef(),  40);
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), LoginWidget.ToSharedRef(),    45);
 	}
 
 	InitSupabaseBridge();
@@ -170,11 +214,6 @@ void AchuckCorePlayerController::OnUnPossess()
 
 	TearDownSupabaseBridge();
 
-	if (LoginWidget.IsValid())
-	{
-		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), LoginWidget.ToSharedRef());
-		LoginWidget.Reset();
-	}
 	if (AccountWidget.IsValid())
 	{
 		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), AccountWidget.ToSharedRef());
@@ -324,6 +363,11 @@ void AchuckCorePlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
+	if (bSpawnSnapPending)
+	{
+		TickSpawnSnap(DeltaSeconds);
+	}
+
 	if (bPendingTooltipDirty && TooltipWidget.IsValid())
 	{
 		bPendingTooltipDirty = false;
@@ -419,6 +463,10 @@ void AchuckCorePlayerController::InitSupabaseBridge()
 	}
 
 	const bool bSignedIn = Sub->IsSignedIn();
+	UE_LOG(LogTemp, Display, TEXT("[chuck] CorePC InitSupabaseBridge bSignedIn=%d sessionValid=%d status=%d"),
+		bSignedIn ? 1 : 0,
+		Sub->GetSession().IsValid() ? 1 : 0,
+		(int32)Sub->GetStatus());
 	RefreshAuthOverlayVisibility(bSignedIn);
 	if (bSignedIn)
 	{
@@ -454,18 +502,17 @@ void AchuckCorePlayerController::TearDownSupabaseBridge()
 
 void AchuckCorePlayerController::RefreshAuthOverlayVisibility(bool bSignedIn)
 {
-	if (LoginWidget.IsValid())
-	{
-		LoginWidget->SetVisibility(bSignedIn ? EVisibility::Collapsed : EVisibility::Visible);
-	}
 	if (AccountWidget.IsValid())
 	{
-		AccountWidget->SetVisibility(bSignedIn ? EVisibility::Visible : EVisibility::Collapsed);
+		AccountWidget->SetVisibility(bSignedIn ? EVisibility::SelfHitTestInvisible : EVisibility::Collapsed);
 	}
 	if (ChatWidget.IsValid())
 	{
-		ChatWidget->SetVisibility(bSignedIn ? EVisibility::Visible : EVisibility::Collapsed);
+		ChatWidget->SetVisibility(bSignedIn ? EVisibility::SelfHitTestInvisible : EVisibility::Collapsed);
 	}
+	// No auto-kick back to menu. If the subsystem hiccups mid-game (refresh
+	// race, transient 401) we'd otherwise yank the player into a sign-in loop.
+	// Account + chat overlays just hide; the world stays playable.
 }
 
 void AchuckCorePlayerController::HandleSupabaseSignedIn(const FKBVESupabaseSession& Session)
@@ -500,25 +547,18 @@ void AchuckCorePlayerController::HandleSupabaseSignedIn(const FKBVESupabaseSessi
 
 void AchuckCorePlayerController::HandleSupabaseSignedOut()
 {
-	RefreshAuthOverlayVisibility(/*bSignedIn=*/false);
-	if (LoginWidget.IsValid())
-	{
-		LoginWidget->SetStatusText(FText::FromString(TEXT("Signed out.")), FLinearColor(0.85f, 0.85f, 0.85f));
-	}
 	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
 	{
 		FchuckAuthStatusPayload Payload;
 		Payload.bSignedIn = false;
 		Bus->AuthStatus.Publish(Payload);
 	}
+	RefreshAuthOverlayVisibility(/*bSignedIn=*/false);
 }
 
 void AchuckCorePlayerController::HandleSupabaseAuthError(const FKBVESupabaseError& Error)
 {
-	if (LoginWidget.IsValid())
-	{
-		LoginWidget->SetStatusText(FText::FromString(Error.Message), FLinearColor(1.f, 0.4f, 0.3f));
-	}
+	UE_LOG(LogTemp, Warning, TEXT("[chuck] CorePC auth error: %s"), *Error.Message);
 	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
 	{
 		FchuckAuthErrorPayload Payload;
@@ -579,5 +619,71 @@ void AchuckCorePlayerController::HandleChatMessage(const FKBVEChatMessage& Messa
 	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
 	{
 		Bus->ChatLine.Publish(Payload);
+	}
+}
+
+void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
+{
+	SpawnSnapElapsed += DeltaSeconds;
+
+	APawn* Pawn = GetPawn();
+	if (!Pawn) return;
+
+	UWorld* W = GetWorld();
+	if (!W) return;
+
+	const FVector PawnLoc = Pawn->GetActorLocation();
+	const FVector Start(SpawnSnapAnchor.X, SpawnSnapAnchor.Y, PawnLoc.Z + 100.f);
+	const FVector End  (SpawnSnapAnchor.X, SpawnSnapAnchor.Y, -10000.f);
+
+	FHitResult Hit;
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(chuckSpawnSnap), false, Pawn);
+	const bool bHit = W->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic, Params);
+
+	if (bHit && Hit.GetActor() && Hit.GetActor() != Pawn)
+	{
+		float CapsuleHalf = 90.f;
+		if (ACharacter* Char = Cast<ACharacter>(Pawn))
+		{
+			if (UCapsuleComponent* Cap = Char->GetCapsuleComponent())
+			{
+				CapsuleHalf = Cap->GetScaledCapsuleHalfHeight();
+			}
+		}
+
+		const FVector Snap(SpawnSnapAnchor.X, SpawnSnapAnchor.Y, Hit.ImpactPoint.Z + CapsuleHalf + 4.f);
+		Pawn->TeleportTo(Snap, Pawn->GetActorRotation(), false, true);
+
+		if (ACharacter* Char = Cast<ACharacter>(Pawn))
+		{
+			if (UCharacterMovementComponent* CM = Char->GetCharacterMovement())
+			{
+				CM->StopMovementImmediately();
+				CM->Velocity = FVector::ZeroVector;
+				CM->GravityScale = 1.f;
+			}
+		}
+
+		UE_LOG(LogTemp, Display,
+			TEXT("[chuck] CorePC spawn-snap hit z=%.1f actor=%s snapTo=(%.0f,%.0f,%.0f) elapsed=%.2fs"),
+			Hit.ImpactPoint.Z, *Hit.GetActor()->GetName(), Snap.X, Snap.Y, Snap.Z, SpawnSnapElapsed);
+
+		bSpawnSnapPending = false;
+		return;
+	}
+
+	if (SpawnSnapElapsed > 8.f)
+	{
+		if (ACharacter* Char = Cast<ACharacter>(Pawn))
+		{
+			if (UCharacterMovementComponent* CM = Char->GetCharacterMovement())
+			{
+				CM->GravityScale = 1.f;
+			}
+		}
+		UE_LOG(LogTemp, Warning,
+			TEXT("[chuck] CorePC spawn-snap timeout — no collision under anchor (%.0f,%.0f). Releasing gravity."),
+			SpawnSnapAnchor.X, SpawnSnapAnchor.Y);
+		bSpawnSnapPending = false;
 	}
 }

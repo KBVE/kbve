@@ -6,6 +6,7 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerStart.h"
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/Paths.h"
@@ -13,16 +14,30 @@
 bool UchuckTerrainStreamer::ShouldCreateSubsystem(UObject* Outer) const
 {
 	UWorld* W = Cast<UWorld>(Outer);
-	return W && W->IsGameWorld();
+	const bool bGameWorld = W && W->IsGameWorld();
+	UE_LOG(LogTemp, Display,
+		TEXT("[chuck] TerrainStreamer ShouldCreateSubsystem world=%s isGame=%d wt=%d"),
+		W ? *W->GetName() : TEXT("<null>"),
+		bGameWorld ? 1 : 0,
+		W ? (int32)W->WorldType : -1);
+	return bGameWorld;
 }
 
 void UchuckTerrainStreamer::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
 
+	UE_LOG(LogTemp, Display, TEXT("[chuck] TerrainStreamer OnWorldBeginPlay world=%s"), *InWorld.GetName());
+
 	const FString DbPath = FPaths::ProjectSavedDir() / TEXT("ProcWorld/terrain.db");
 	Cache.Open(DbPath);
 
+	if (ChunkPool.Num() > 0)
+	{
+		UE_LOG(LogTemp, Display,
+			TEXT("[chuck] TerrainStreamer pool already primed (size=%d). Skipping spawn."),
+			ChunkPool.Num());
+	}
 	ChunkPool.Reserve(PoolSize);
 	FreeChunks.Reserve(PoolSize);
 
@@ -30,7 +45,7 @@ void UchuckTerrainStreamer::OnWorldBeginPlay(UWorld& InWorld)
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	Params.ObjectFlags |= RF_Transient;
 
-	for (int32 i = 0; i < PoolSize; ++i)
+	for (int32 i = ChunkPool.Num(); i < PoolSize; ++i)
 	{
 		AchuckTerrainChunk* C = InWorld.SpawnActor<AchuckTerrainChunk>(
 			AchuckTerrainChunk::StaticClass(),
@@ -41,6 +56,7 @@ void UchuckTerrainStreamer::OnWorldBeginPlay(UWorld& InWorld)
 		ChunkPool.Add(C);
 		FreeChunks.Add(C);
 	}
+	UE_LOG(LogTemp, Display, TEXT("[chuck] TerrainStreamer pool spawned %d/%d actors"), ChunkPool.Num(), PoolSize);
 
 	// Spawn sky/atmosphere if level doesn't have one.
 	bool bSkyPresent = false;
@@ -53,14 +69,38 @@ void UchuckTerrainStreamer::OnWorldBeginPlay(UWorld& InWorld)
 		InWorld.SpawnActor<AchuckSky>(AchuckSky::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, SkyParams);
 	}
 
-	// Pre-warm chunks around origin so player spawn has ground immediately.
+	// Anchor pre-warm to the player's actual spawn location. For an MMORPG, this
+	// is whatever world coord we drop them at after login (PlayerStart, last
+	// persisted save coord, party leader anchor, etc). Falls back to origin
+	// when no PlayerStart is placed (early empty levels).
+	FVector SpawnLoc = FVector::ZeroVector;
+	bool bHaveAnchor = false;
+	for (TActorIterator<APlayerStart> It(&InWorld); It; ++It)
+	{
+		if (APlayerStart* PS = *It)
+		{
+			SpawnLoc = PS->GetActorLocation();
+			bHaveAnchor = true;
+			break;
+		}
+	}
+
+	const FIntPoint AnchorChunk = WorldToChunk(SpawnLoc);
+	int32 BuiltCount = 0;
 	for (int32 Dy = -ChunkRadius; Dy <= ChunkRadius; ++Dy)
 	{
 		for (int32 Dx = -ChunkRadius; Dx <= ChunkRadius; ++Dx)
 		{
-			EnsureChunk(FIntPoint(Dx, Dy));
+			EnsureChunk(FIntPoint(AnchorChunk.X + Dx, AnchorChunk.Y + Dy));
+			++BuiltCount;
 		}
 	}
+	UE_LOG(LogTemp, Display,
+		TEXT("[chuck] TerrainStreamer pre-warmed %d chunks anchor=(%d,%d) anchorLoc=(%.0f,%.0f,%.0f) hadPlayerStart=%d pool=%d active=%d"),
+		BuiltCount, AnchorChunk.X, AnchorChunk.Y,
+		SpawnLoc.X, SpawnLoc.Y, SpawnLoc.Z,
+		bHaveAnchor ? 1 : 0,
+		ChunkPool.Num(), ActiveChunks.Num());
 	TimeSinceStream = StreamInterval;
 }
 
@@ -134,6 +174,56 @@ FIntPoint UchuckTerrainStreamer::WorldToChunk(const FVector& WorldLoc) const
 		FMath::FloorToInt(WorldLoc.Y / Extent));
 }
 
+void UchuckTerrainStreamer::EnsureBuiltAround(const FVector2D& WorldXY)
+{
+	UWorld* W = GetWorld();
+	if (!W) return;
+
+	if (!Cache.IsOpen())
+	{
+		const FString DbPath = FPaths::ProjectSavedDir() / TEXT("ProcWorld/terrain.db");
+		Cache.Open(DbPath);
+	}
+
+	if (ChunkPool.Num() == 0)
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		Params.ObjectFlags |= RF_Transient;
+		ChunkPool.Reserve(PoolSize);
+		FreeChunks.Reserve(PoolSize);
+		for (int32 i = 0; i < PoolSize; ++i)
+		{
+			AchuckTerrainChunk* C = W->SpawnActor<AchuckTerrainChunk>(
+				AchuckTerrainChunk::StaticClass(),
+				FVector(0.f, 0.f, -200000.f),
+				FRotator::ZeroRotator, Params);
+			if (!C) continue;
+			C->Release();
+			ChunkPool.Add(C);
+			FreeChunks.Add(C);
+		}
+		UE_LOG(LogTemp, Display,
+			TEXT("[chuck] TerrainStreamer eager pool spawned %d/%d (driven by EnsureBuiltAround)"),
+			ChunkPool.Num(), PoolSize);
+	}
+
+	const FVector AnchorWorld(WorldXY.X, WorldXY.Y, 0.f);
+	const FIntPoint AnchorChunk = WorldToChunk(AnchorWorld);
+	int32 Built = 0;
+	for (int32 Dy = -ChunkRadius; Dy <= ChunkRadius; ++Dy)
+	{
+		for (int32 Dx = -ChunkRadius; Dx <= ChunkRadius; ++Dx)
+		{
+			EnsureChunk(FIntPoint(AnchorChunk.X + Dx, AnchorChunk.Y + Dy));
+			++Built;
+		}
+	}
+	UE_LOG(LogTemp, Display,
+		TEXT("[chuck] TerrainStreamer EnsureBuiltAround world=(%.0f,%.0f) chunk=(%d,%d) built=%d active=%d"),
+		WorldXY.X, WorldXY.Y, AnchorChunk.X, AnchorChunk.Y, Built, ActiveChunks.Num());
+}
+
 void UchuckTerrainStreamer::EnsureChunk(const FIntPoint& C)
 {
 	AchuckTerrainChunk* Chunk = nullptr;
@@ -194,12 +284,14 @@ void UchuckTerrainStreamer::EnsureChunk(const FIntPoint& C)
 		}
 	}
 
+	bool bHitDiskCache = false;
 	if (!bUsedExternalBlob && Cache.IsOpen())
 	{
 		TArray<uint8> CachedBlob;
 		if (Cache.Read(Seed, C, CachedBlob))
 		{
 			bUsedExternalBlob = Chunk->BuildFromBlob(C, Seed, CachedBlob, WaterZ);
+			bHitDiskCache = bUsedExternalBlob;
 		}
 	}
 
@@ -216,6 +308,10 @@ void UchuckTerrainStreamer::EnsureChunk(const FIntPoint& C)
 			}
 		}
 	}
+
+	UE_LOG(LogTemp, VeryVerbose,
+		TEXT("[chuck] EnsureChunk coord=(%d,%d) seed=0x%08x diskHit=%d external=%d"),
+		C.X, C.Y, Seed, bHitDiskCache ? 1 : 0, bUsedExternalBlob ? 1 : 0);
 
 	Chunk->MarkUsed(++UseCounter);
 	ActiveChunks.Add(C, Chunk);

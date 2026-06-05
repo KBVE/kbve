@@ -39,6 +39,7 @@ public class chuck : ModuleRules
 			"KBVEULID",
 			"KBVEUI",
 			"KBVEEvents",
+			"KBVESQLite",
 			"KBVESupabase"
 		});
 
