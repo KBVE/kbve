@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-06-04T09:30:36Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-06-05T09:20:30Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**47** critical/high severity findings across the monorepo.
+**51** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,7 +26,7 @@ Last generated: **2026-06-04T09:30:36Z** — updated daily by `ci-dashboard`.
   <Card title="3 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="44 High" icon="error">
+  <Card title="48 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
   <Card title="61 Medium" icon="information">
@@ -41,10 +41,10 @@ Last generated: **2026-06-04T09:30:36Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **61** advisories
+    **65** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
-    **43** advisories
+    **44** advisories
   </Card>
   <Card title="Python" icon="seti:python">
     **0** advisories
@@ -63,7 +63,7 @@ Last generated: **2026-06-04T09:30:36Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 3
-    "High" : 44
+    "High" : 48
     "Medium" : 61
     "Low" : 29
 ```
@@ -73,8 +73,8 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 61
-    "Cargo" : 43
+    "npm" : 65
+    "Cargo" : 44
     "CodeQL" : 61
 ```
 
@@ -83,12 +83,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 26 | 31 | 3 | 61 |
-| **Cargo** | 0 | 0 | 15 | 0 | 43 |
+| **npm** | 1 | 30 | 31 | 3 | 65 |
+| **Cargo** | 0 | 0 | 15 | 0 | 44 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 2 | 18 | 15 | 26 | 61 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 3 | 44 | 61 | 29 | 165 |
+| **Total** | 3 | 48 | 61 | 29 | 170 |
 
   </TabItem>
   <TabItem label="npm">
@@ -122,6 +122,10 @@ pie showData
 | High | `axios` | axios's shouldBypassProxy does not recognize IPv4-mapped ... | [Details](https://github.com/advisories/GHSA-pjwm-pj3p-43mv) |
 | High | `axios` | axios Vulnerable to Credential Theft and Response Hijacki... | [Details](https://github.com/advisories/GHSA-3g43-6gmg-66jw) |
 | High | `axios` | axios Vulnerable to Full Man-in-the-Middle via Prototype ... | [Details](https://github.com/advisories/GHSA-35jp-ww65-95wh) |
+| High | `axios` | Axios: Regular Expression Denial of Service (ReDoS) via C... | [Details](https://github.com/advisories/GHSA-hfxv-24rg-xrqf) |
+| High | `axios` | Allocation of Resources Without Limits or Throttling in A... | [Details](https://github.com/advisories/GHSA-777c-7fjr-54vf) |
+| High | `axios` | Axios: Proxy-Authorization Credential Leak to Origin Serv... | [Details](https://github.com/advisories/GHSA-p92q-9vqr-4j8v) |
+| High | `axios` | Axios: Proxy-Authorization header leaks to redirect targe... | [Details](https://github.com/advisories/GHSA-j5f8-grm9-p9fc) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
@@ -162,8 +166,8 @@ pie showData
 
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
-| Medium | `hickory-proto` | CPU exhaustion during message encoding due to O(n²) name ... | [Details](https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp) |
 | Medium | `hickory-proto` | NSEC3 closest-encloser proof validation enters unbounded ... | [Details](https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465) |
+| Medium | `hickory-proto` | CPU exhaustion during message encoding due to O(n²) name ... | [Details](https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp) |
 | Medium | `rsa` | Marvin Attack: potential key recovery through timing side... | [Details](https://github.com/RustCrypto/RSA/issues/626) |
 | Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
 | Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
@@ -200,6 +204,7 @@ pie showData
 | Info | `unic-common` | `unic-common` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-ucd-ident` | `unic-ucd-ident` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-ucd-version` | `unic-ucd-version` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
+| Info | `diesel` | Possible use after free when deserializing a SQLite datab... | [Details](https://github.com/diesel-rs/diesel/commit/1bc2ea46d9840e8d9af844239d3c84f37fe7d84b) |
 | Info | `glib` | Unsoundness in `Iterator` and `DoubleEndedIterator` impls... | [Details](https://github.com/gtk-rs/gtk-rs-core/pull/1343) |
 | Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
 | Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
