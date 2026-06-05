@@ -160,3 +160,19 @@ mono_crash.*.json
 apps/kbve/astro-kbve/dist/solitaire-standalone/
 apps/kbve/astro-kbve/dist/solitaire-standalone.zip
 apps/agones/factorio/mods-local/dist/
+
+# Unreal Engine plugin + project build artifacts (per-machine, never commit).
+# Covers packages/unreal/<Plugin>/ and apps/**/unreal-*/.
+packages/unreal/*/Binaries/
+packages/unreal/*/Build/
+packages/unreal/*/Intermediate/
+packages/unreal/*/Saved/
+packages/unreal/*/DerivedDataCache/
+apps/**/unreal-*/Binaries/
+apps/**/unreal-*/Build/
+apps/**/unreal-*/Intermediate/
+apps/**/unreal-*/Saved/
+apps/**/unreal-*/DerivedDataCache/
+
+# Per-machine UE plugin settings overrides (gitignored AnonKey, etc).
+apps/**/unreal-*/Config/Local*.ini

@@ -6,11 +6,12 @@
 #include "HttpServerRequest.h"
 #include "HttpServerResponse.h"
 
-DECLARE_DELEGATE_FourParams(FKBVESupabaseOAuthLoopbackComplete,
+DECLARE_DELEGATE_FiveParams(FKBVESupabaseOAuthLoopbackComplete,
 	bool /*bSuccess*/,
 	FString /*Code*/,
 	FString /*State*/,
-	FString /*Error*/);
+	FString /*Error*/,
+	FString /*AccessToken*/);
 
 /**
  * One-shot loopback HTTP listener for the OAuth redirect (RFC 8252).

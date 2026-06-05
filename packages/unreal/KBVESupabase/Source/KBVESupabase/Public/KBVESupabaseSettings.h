@@ -44,6 +44,15 @@ public:
 	FString StoragePath;
 
 	/**
+	 * Base URL of the KBVE web auth callback page. Desktop OAuth flow opens
+	 * <AuthCallbackBaseURL>/auth/callback?provider=X&redirect=<loopback>.
+	 * Default: https://kbve.com. Override to http://localhost:4321 for local
+	 * astro-kbve dev.
+	 */
+	UPROPERTY(config, EditAnywhere, BlueprintReadOnly, Category = "Endpoint")
+	FString AuthCallbackBaseURL;
+
+	/**
 	 * Automatically refresh the access_token + retry once when a
 	 * managed request (Storage / Functions / Db helpers) gets HTTP 401.
 	 * Raw RestRequest is always transparent — this flag only affects

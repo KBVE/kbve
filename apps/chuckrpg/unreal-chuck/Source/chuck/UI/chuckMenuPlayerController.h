@@ -5,6 +5,10 @@
 #include "chuckMenuPlayerController.generated.h"
 
 class SchuckMainMenu;
+class SchuckLoginWidget;
+class SchuckAccountPanel;
+class UKBVESupabaseSubsystem;
+struct FKBVESupabaseSession;
 
 UCLASS()
 class AchuckMenuPlayerController : public APlayerController
@@ -15,7 +19,7 @@ public:
 	AchuckMenuPlayerController();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Menu")
-	FName PlayLevelName = TEXT("Lvl_ThirdPerson");
+	FName PlayLevelName = TEXT("L_ChuckWorld");
 
 protected:
 	virtual void BeginPlay() override;
@@ -25,5 +29,21 @@ private:
 	void HandlePlay();
 	void HandleQuit();
 
-	TSharedPtr<SchuckMainMenu> MenuWidget;
+	void RefreshAuthVisibility(bool bSignedIn);
+
+	UFUNCTION()
+	void HandleSupabaseSignedIn(const FKBVESupabaseSession& Session);
+	UFUNCTION()
+	void HandleSupabaseSignedOut();
+	UFUNCTION()
+	void HandleSupabaseSessionRefreshed(const FKBVESupabaseSession& Session);
+
+	void ApplyAccountFromSession(const FKBVESupabaseSession& Session);
+
+	TSharedPtr<SchuckMainMenu>     MenuWidget;
+	TSharedPtr<SchuckLoginWidget>  LoginWidget;
+	TSharedPtr<SchuckAccountPanel> AccountWidget;
+
+	UPROPERTY(Transient)
+	TWeakObjectPtr<UKBVESupabaseSubsystem> SupabaseSubsystem;
 };

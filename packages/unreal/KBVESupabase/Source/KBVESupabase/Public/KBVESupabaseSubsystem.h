@@ -222,6 +222,6 @@ protected:
 	void ScheduleRefresh();
 	void TryRestoreSession();
 
-	void HandleOAuthLoopbackComplete(bool bSuccess, FString Code, FString State, FString Error);
+	void HandleOAuthLoopbackComplete(bool bSuccess, FString Code, FString State, FString Error, FString AccessToken);
 	void ResetOAuthLoopback();
 };
