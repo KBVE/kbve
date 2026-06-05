@@ -30,4 +30,9 @@ public:
 	TKBVEChannel<FchuckDamageReceivedPayload>  DamageReceived;
 	TKBVEChannel<FchuckTooltipPayload>         Tooltip;
 	TKBVEChannel<FchuckItemConsumedPayload>    ItemConsumed;
+
+	TKBVEChannel<FchuckAuthStatusPayload>      AuthStatus;
+	TKBVEChannel<FchuckAuthErrorPayload>       AuthError;
+	TKBVEChannel<FchuckChatStatePayload>       ChatState;
+	TKBVEChannel<FchuckChatLinePayload>        ChatLine;
 };

@@ -15,6 +15,9 @@
 #include "SchuckHotbar.h"
 #include "SchuckHUD.h"
 #include "SchuckInventoryWindow.h"
+#include "SchuckLoginWidget.h"
+#include "SchuckAccountPanel.h"
+#include "SchuckChatPanel.h"
 #include "SchuckPauseMenu.h"
 #include "chuckInventory.h"
 #include "chuckItemDB.h"
@@ -22,6 +25,9 @@
 #include "Engine/GameInstance.h"
 #include "SKBVEDragArrowLayer.h"
 #include "SKBVETooltip.h"
+#include "KBVESupabaseSubsystem.h"
+#include "KBVESupabaseChat.h"
+#include "KBVESupabaseTypes.h"
 
 AchuckCorePlayerController::AchuckCorePlayerController()
 {
@@ -93,13 +99,27 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 	TooltipWidget = SNew(SKBVETooltip);
 	DragArrowLayer = SNew(SKBVEDragArrowLayer);
 
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		SupabaseSubsystem = GI->GetSubsystem<UKBVESupabaseSubsystem>();
+	}
+
+	LoginWidget   = SNew(SchuckLoginWidget).Subsystem(SupabaseSubsystem);
+	AccountWidget = SNew(SchuckAccountPanel).Subsystem(SupabaseSubsystem);
+	ChatWidget    = SNew(SchuckChatPanel).Subsystem(SupabaseSubsystem);
+
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 	{
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef(),       5);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HotbarWidget.ToSharedRef(),    20);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), DragArrowLayer.ToSharedRef(), 29);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), TooltipWidget.ToSharedRef(),  30);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), ChatWidget.ToSharedRef(),     35);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), AccountWidget.ToSharedRef(),  40);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), LoginWidget.ToSharedRef(),    45);
 	}
+
+	InitSupabaseBridge();
 
 	if (UGameInstance* GI = GetGameInstance())
 	{
@@ -147,6 +167,24 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 void AchuckCorePlayerController::OnUnPossess()
 {
 	UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
+
+	TearDownSupabaseBridge();
+
+	if (LoginWidget.IsValid())
+	{
+		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), LoginWidget.ToSharedRef());
+		LoginWidget.Reset();
+	}
+	if (AccountWidget.IsValid())
+	{
+		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), AccountWidget.ToSharedRef());
+		AccountWidget.Reset();
+	}
+	if (ChatWidget.IsValid())
+	{
+		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), ChatWidget.ToSharedRef());
+		ChatWidget.Reset();
+	}
 
 	if (TooltipHandleId != 0)
 	{
@@ -361,5 +399,185 @@ void AchuckCorePlayerController::CloseInventory()
 	if (HotbarWidget.IsValid())
 	{
 		HotbarWidget->SetExpanded(false);
+	}
+}
+
+void AchuckCorePlayerController::InitSupabaseBridge()
+{
+	UKBVESupabaseSubsystem* Sub = SupabaseSubsystem.Get();
+	if (!Sub) return;
+
+	Sub->OnSignedIn.AddDynamic(this, &AchuckCorePlayerController::HandleSupabaseSignedIn);
+	Sub->OnSignedOut.AddDynamic(this, &AchuckCorePlayerController::HandleSupabaseSignedOut);
+	Sub->OnAuthError.AddDynamic(this, &AchuckCorePlayerController::HandleSupabaseAuthError);
+
+	if (UKBVESupabaseChat* Chat = Sub->GetChat())
+	{
+		Chat->OnConnected.AddDynamic(this, &AchuckCorePlayerController::HandleChatConnected);
+		Chat->OnDisconnected.AddDynamic(this, &AchuckCorePlayerController::HandleChatDisconnected);
+		Chat->OnMessage.AddDynamic(this, &AchuckCorePlayerController::HandleChatMessage);
+	}
+
+	const bool bSignedIn = Sub->IsSignedIn();
+	RefreshAuthOverlayVisibility(bSignedIn);
+	if (bSignedIn)
+	{
+		const FKBVESupabaseUser& U = Sub->GetUser();
+		if (AccountWidget.IsValid())
+		{
+			AccountWidget->SetUsername(U.KbveUsername.IsEmpty() ? U.Id : U.KbveUsername);
+			AccountWidget->SetEmail(U.Email);
+		}
+		if (UKBVESupabaseChat* Chat = Sub->GetChat())
+		{
+			Chat->Connect();
+		}
+	}
+}
+
+void AchuckCorePlayerController::TearDownSupabaseBridge()
+{
+	UKBVESupabaseSubsystem* Sub = SupabaseSubsystem.Get();
+	if (!Sub) return;
+
+	Sub->OnSignedIn.RemoveDynamic(this, &AchuckCorePlayerController::HandleSupabaseSignedIn);
+	Sub->OnSignedOut.RemoveDynamic(this, &AchuckCorePlayerController::HandleSupabaseSignedOut);
+	Sub->OnAuthError.RemoveDynamic(this, &AchuckCorePlayerController::HandleSupabaseAuthError);
+
+	if (UKBVESupabaseChat* Chat = Sub->GetChat())
+	{
+		Chat->OnConnected.RemoveDynamic(this, &AchuckCorePlayerController::HandleChatConnected);
+		Chat->OnDisconnected.RemoveDynamic(this, &AchuckCorePlayerController::HandleChatDisconnected);
+		Chat->OnMessage.RemoveDynamic(this, &AchuckCorePlayerController::HandleChatMessage);
+	}
+}
+
+void AchuckCorePlayerController::RefreshAuthOverlayVisibility(bool bSignedIn)
+{
+	if (LoginWidget.IsValid())
+	{
+		LoginWidget->SetVisibility(bSignedIn ? EVisibility::Collapsed : EVisibility::Visible);
+	}
+	if (AccountWidget.IsValid())
+	{
+		AccountWidget->SetVisibility(bSignedIn ? EVisibility::Visible : EVisibility::Collapsed);
+	}
+	if (ChatWidget.IsValid())
+	{
+		ChatWidget->SetVisibility(bSignedIn ? EVisibility::Visible : EVisibility::Collapsed);
+	}
+}
+
+void AchuckCorePlayerController::HandleSupabaseSignedIn(const FKBVESupabaseSession& Session)
+{
+	const FKBVESupabaseUser& U = Session.User;
+
+	if (AccountWidget.IsValid())
+	{
+		AccountWidget->SetUsername(U.KbveUsername.IsEmpty() ? U.Id : U.KbveUsername);
+		AccountWidget->SetEmail(U.Email);
+	}
+	RefreshAuthOverlayVisibility(/*bSignedIn=*/true);
+
+	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
+	{
+		FchuckAuthStatusPayload Payload;
+		Payload.bSignedIn    = true;
+		Payload.UserId       = U.Id;
+		Payload.Email        = U.Email;
+		Payload.KbveUsername = U.KbveUsername;
+		Bus->AuthStatus.Publish(Payload);
+	}
+
+	if (UKBVESupabaseSubsystem* Sub = SupabaseSubsystem.Get())
+	{
+		if (UKBVESupabaseChat* Chat = Sub->GetChat())
+		{
+			Chat->Connect();
+		}
+	}
+}
+
+void AchuckCorePlayerController::HandleSupabaseSignedOut()
+{
+	RefreshAuthOverlayVisibility(/*bSignedIn=*/false);
+	if (LoginWidget.IsValid())
+	{
+		LoginWidget->SetStatusText(FText::FromString(TEXT("Signed out.")), FLinearColor(0.85f, 0.85f, 0.85f));
+	}
+	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
+	{
+		FchuckAuthStatusPayload Payload;
+		Payload.bSignedIn = false;
+		Bus->AuthStatus.Publish(Payload);
+	}
+}
+
+void AchuckCorePlayerController::HandleSupabaseAuthError(const FKBVESupabaseError& Error)
+{
+	if (LoginWidget.IsValid())
+	{
+		LoginWidget->SetStatusText(FText::FromString(Error.Message), FLinearColor(1.f, 0.4f, 0.3f));
+	}
+	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
+	{
+		FchuckAuthErrorPayload Payload;
+		Payload.HttpStatus = Error.HttpStatus;
+		Payload.Code       = Error.Code;
+		Payload.Message    = Error.Message;
+		Bus->AuthError.Publish(Payload);
+	}
+}
+
+void AchuckCorePlayerController::HandleChatConnected()
+{
+	if (ChatWidget.IsValid())
+	{
+		FchuckChatStatePayload Payload;
+		Payload.bConnected = true;
+		ChatWidget->OnChatStateChanged(Payload);
+	}
+	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
+	{
+		FchuckChatStatePayload Payload;
+		Payload.bConnected = true;
+		Bus->ChatState.Publish(Payload);
+	}
+}
+
+void AchuckCorePlayerController::HandleChatDisconnected(int32 /*StatusCode*/, const FString& /*Reason*/)
+{
+	if (ChatWidget.IsValid())
+	{
+		FchuckChatStatePayload Payload;
+		Payload.bConnected = false;
+		ChatWidget->OnChatStateChanged(Payload);
+	}
+	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
+	{
+		FchuckChatStatePayload Payload;
+		Payload.bConnected = false;
+		Bus->ChatState.Publish(Payload);
+	}
+}
+
+void AchuckCorePlayerController::HandleChatMessage(const FKBVEChatMessage& Message)
+{
+	FchuckChatLinePayload Payload;
+	Payload.Channel  = Message.Channel;
+	Payload.Nick     = Message.Nick;
+	Payload.Sender   = Message.Sender;
+	Payload.Platform = Message.Platform;
+	Payload.Kind     = Message.Kind;
+	Payload.Body     = Message.Body;
+	Payload.bIsEvent = Message.bIsEvent;
+
+	if (ChatWidget.IsValid())
+	{
+		ChatWidget->OnChatLine(Payload);
+	}
+	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
+	{
+		Bus->ChatLine.Publish(Payload);
 	}
 }

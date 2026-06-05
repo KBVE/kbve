@@ -35,7 +35,8 @@ public class chuck : ModuleRules
 			"KBVEXXHash",
 			"KBVEULID",
 			"KBVEUI",
-			"KBVEEvents"
+			"KBVEEvents",
+			"KBVESupabase"
 		});
 
 
@@ -48,6 +49,8 @@ public class chuck : ModuleRules
 			"chuck/UI",
 			"chuck/UI/HUD",
 			"chuck/UI/Inventory",
+			"chuck/UI/Auth",
+			"chuck/UI/Chat",
 			"chuck/Variant_Platforming",
 			"chuck/Variant_Platforming/Animation",
 			"chuck/Variant_Combat",

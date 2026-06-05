@@ -74,3 +74,36 @@ struct FchuckPickupRequestPayload
 	int32             ItemKey = 0;
 	int32             Count   = 1;
 };
+
+// Auth-domain payloads: bridge KBVESupabase delegates onto the chuck event bus
+// so UI widgets do not need a direct reference to the subsystem.
+struct FchuckAuthStatusPayload
+{
+	bool    bSignedIn = false;
+	FString UserId;
+	FString Email;
+	FString KbveUsername;
+};
+
+struct FchuckAuthErrorPayload
+{
+	int32   HttpStatus = 0;
+	FString Code;
+	FString Message;
+};
+
+struct FchuckChatStatePayload
+{
+	bool bConnected = false;
+};
+
+struct FchuckChatLinePayload
+{
+	FString Channel;
+	FString Nick;
+	FString Sender;
+	FString Platform;
+	FString Kind;
+	FString Body;
+	bool    bIsEvent = false;
+};
