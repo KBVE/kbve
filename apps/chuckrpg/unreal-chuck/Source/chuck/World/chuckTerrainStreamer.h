@@ -24,6 +24,10 @@ public:
 	void SetSeed(uint32 InSeed) { Seed = InSeed; }
 	uint32 GetSeed() const { return Seed; }
 
+	void EnsureBuiltAround(const FVector2D& WorldXY);
+
+	bool IsReady() const { return ChunkPool.Num() > 0; }
+
 protected:
 	float ChunkExtent() const { return CellsPerEdge * CellSize; }
 	FIntPoint WorldToChunk(const FVector& WorldLoc) const;

@@ -3,6 +3,7 @@
 #include "SchuckMainMenu.h"
 #include "SchuckLoginWidget.h"
 #include "SchuckAccountPanel.h"
+#include "SchuckLoadingPanel.h"
 #include "Engine/GameInstance.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/LocalPlayer.h"
@@ -12,12 +13,14 @@
 #include "KBVESupabaseTypes.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "chuckTerrainPrewarm.h"
 
 AchuckMenuPlayerController::AchuckMenuPlayerController()
 {
 	bShowMouseCursor = true;
 	bEnableClickEvents = true;
 	bEnableMouseOverEvents = true;
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AchuckMenuPlayerController::BeginPlay()
@@ -35,12 +38,15 @@ void AchuckMenuPlayerController::BeginPlay()
 
 	LoginWidget   = SNew(SchuckLoginWidget).Subsystem(SupabaseSubsystem);
 	AccountWidget = SNew(SchuckAccountPanel).Subsystem(SupabaseSubsystem);
+	LoadingWidget = SNew(SchuckLoadingPanel);
+	LoadingWidget->SetVisibility(EVisibility::Collapsed);
 
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 	{
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), MenuWidget.ToSharedRef(),    10);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), AccountWidget.ToSharedRef(), 40);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), LoginWidget.ToSharedRef(),   45);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), LoadingWidget.ToSharedRef(), 60);
 	}
 
 	if (UKBVESupabaseSubsystem* Sub = SupabaseSubsystem.Get())
@@ -60,6 +66,18 @@ void AchuckMenuPlayerController::BeginPlay()
 	{
 		RefreshAuthVisibility(false);
 	}
+
+	const uint32 SpawnSeed     = 0xC1A55E5Au;
+	const int32 CellsPerEdge   = 32;
+	const float CellSize       = 200.f;
+	const float ChunkExtent    = CellsPerEdge * CellSize;
+	const FIntPoint AnchorChunk(0, 0);
+	const int32 PrewarmRadius  = 6;
+	FchuckTerrainPrewarm::Get().Kick(SpawnSeed, AnchorChunk, PrewarmRadius, CellsPerEdge, CellSize);
+	UE_LOG(LogTemp, Display,
+		TEXT("[chuck] MenuPC kicked prewarm seed=0x%08x anchor=(%d,%d) radius=%d chunkExtent=%.0fu coverage=%.0fu x %.0fu"),
+		SpawnSeed, AnchorChunk.X, AnchorChunk.Y, PrewarmRadius, ChunkExtent,
+		(PrewarmRadius * 2 + 1) * ChunkExtent, (PrewarmRadius * 2 + 1) * ChunkExtent);
 
 	FInputModeUIOnly InputMode;
 	InputMode.SetWidgetToFocus(MenuWidget);
@@ -87,6 +105,11 @@ void AchuckMenuPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReaso
 		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), AccountWidget.ToSharedRef());
 		AccountWidget.Reset();
 	}
+	if (LoadingWidget.IsValid())
+	{
+		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), LoadingWidget.ToSharedRef());
+		LoadingWidget.Reset();
+	}
 	if (MenuWidget.IsValid())
 	{
 		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), MenuWidget.ToSharedRef());
@@ -95,30 +118,83 @@ void AchuckMenuPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReaso
 	Super::EndPlay(EndPlayReason);
 }
 
+void AchuckMenuPlayerController::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	if (bLoadingActive)
+	{
+		TickLoadingTransition(DeltaSeconds);
+	}
+}
+
+void AchuckMenuPlayerController::TickLoadingTransition(float DeltaSeconds)
+{
+	LoadingElapsed += DeltaSeconds;
+
+	FchuckTerrainPrewarm& Pre = FchuckTerrainPrewarm::Get();
+	const int32 Done  = Pre.GetCompletedChunks();
+	const int32 Total = FMath::Max(Pre.GetTotalChunks(), 1);
+	if (LoadingWidget.IsValid())
+	{
+		LoadingWidget->SetProgress(Done, Total);
+	}
+
+	const bool bPrewarmDone   = Pre.GetTotalChunks() > 0 && Done >= Pre.GetTotalChunks();
+	const bool bAnchorOnDisk  = Pre.HasChunk(LoadingSeed, LoadingAnchor);
+	const bool bSoftTimeout   = LoadingElapsed > 10.f;
+
+	if ((bPrewarmDone && bAnchorOnDisk) || bSoftTimeout)
+	{
+		UE_LOG(LogTemp, Display,
+			TEXT("[chuck] MenuPC loading->open level=%s done=%d/%d anchorOnDisk=%d elapsed=%.2fs timeout=%d"),
+			*PlayLevelName.ToString(), Done, Pre.GetTotalChunks(),
+			bAnchorOnDisk ? 1 : 0, LoadingElapsed, bSoftTimeout ? 1 : 0);
+
+		bLoadingActive = false;
+		bShowMouseCursor = false;
+		SetInputMode(FInputModeGameOnly());
+		UGameplayStatics::OpenLevel(this, PlayLevelName);
+	}
+}
+
 void AchuckMenuPlayerController::HandlePlay()
 {
 	UKBVESupabaseSubsystem* Sub = SupabaseSubsystem.Get();
-	if (!Sub || !Sub->IsSignedIn())
-	{
-		RefreshAuthVisibility(false);
-		if (LoginWidget.IsValid())
-		{
-			FInputModeUIOnly Mode;
-			Mode.SetWidgetToFocus(LoginWidget);
-			Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-			SetInputMode(Mode);
-		}
-		return;
-	}
+	const bool bHaveSub      = Sub != nullptr;
+	const bool bSignedIn     = bHaveSub && Sub->IsSignedIn();
+	const bool bSessionValid = bHaveSub && Sub->GetSession().IsValid();
+
+	UE_LOG(LogTemp, Display,
+		TEXT("[chuck] MenuPC HandlePlay sub=%d signedIn=%d sessionValid=%d level=%s"),
+		bHaveSub ? 1 : 0,
+		bSignedIn ? 1 : 0,
+		bSessionValid ? 1 : 0,
+		*PlayLevelName.ToString());
 
 	if (PlayLevelName.IsNone())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("[chuck] MenuPC HandlePlay aborted: PlayLevelName is NONE"));
 		return;
 	}
 
-	bShowMouseCursor = false;
-	SetInputMode(FInputModeGameOnly());
-	UGameplayStatics::OpenLevel(this, PlayLevelName);
+	LoadingSeed   = 0xC1A55E5Au;
+	LoadingAnchor = FIntPoint(0, 0);
+	LoadingElapsed = 0.f;
+	bLoadingActive = true;
+
+	if (MenuWidget.IsValid())    MenuWidget->SetVisibility(EVisibility::Collapsed);
+	if (AccountWidget.IsValid()) AccountWidget->SetVisibility(EVisibility::Collapsed);
+	if (LoginWidget.IsValid())   LoginWidget->SetVisibility(EVisibility::Collapsed);
+	if (LoadingWidget.IsValid())
+	{
+		LoadingWidget->SetVisibility(EVisibility::HitTestInvisible);
+		LoadingWidget->SetMessage(TEXT("Generating world..."));
+		LoadingWidget->SetProgress(
+			FchuckTerrainPrewarm::Get().GetCompletedChunks(),
+			FMath::Max(FchuckTerrainPrewarm::Get().GetTotalChunks(), 1));
+	}
+
+	SetInputMode(FInputModeUIOnly());
 }
 
 void AchuckMenuPlayerController::HandleQuit()
@@ -181,6 +257,6 @@ void AchuckMenuPlayerController::RefreshAuthVisibility(bool bSignedIn)
 	}
 	if (AccountWidget.IsValid())
 	{
-		AccountWidget->SetVisibility(bSignedIn ? EVisibility::Visible : EVisibility::Collapsed);
+		AccountWidget->SetVisibility(bSignedIn ? EVisibility::SelfHitTestInvisible : EVisibility::Collapsed);
 	}
 }
