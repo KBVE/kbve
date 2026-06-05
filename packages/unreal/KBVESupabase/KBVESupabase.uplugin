@@ -1,0 +1,21 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "KBVE Supabase",
+	"Description": "Supabase integration for UE5 — GoTrue auth (email/password, OAuth, OTP), JWT storage with auto-refresh, PostgREST helpers, and account management. Drop-in account layer for KBVE games.",
+	"Category": "KBVE",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"DocsURL": "https://kbve.com/project/kbvesupabase/",
+	"EnabledByDefault": false,
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"Modules": [
+		{
+			"Name": "KBVESupabase",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
