@@ -1,7 +1,11 @@
 # KEDA ScaledObjects for Guacamole stack.
 #
-# Guacamole scales to 1 replica when the Windows VM is likely in use
-# (weekdays 06:00–22:00 UTC) and back to 0 outside that window.
+# Scale follows VM availability rather than a clock. The kubernetes-workload
+# trigger watches for any virt-launcher pod belonging to windows-builder;
+# when one exists (VMI Running) guacd + guacamole scale to 1, otherwise 0.
+# This catches off-hours / weekend use and matches multi-viewer demand to
+# actual VM state instead of a fixed weekday window.
+#
 # Manual override: kubectl scale deploy guacd guacamole -n angelscript --replicas=1
 ---
 apiVersion: keda.sh/v1alpha1
@@ -15,18 +19,16 @@ metadata:
 spec:
     scaleTargetRef:
         name: guacd
-    pollingInterval: 300
+    pollingInterval: 30
     cooldownPeriod: 300
     idleReplicaCount: 0
     minReplicaCount: 0
     maxReplicaCount: 1
     triggers:
-        - type: cron
+        - type: kubernetes-workload
           metadata:
-              timezone: UTC
-              start: 0 6 * * 1-5
-              end: 0 22 * * 1-5
-              desiredReplicas: '1'
+              podSelector: 'vm.kubevirt.io/name=windows-builder'
+              value: '1'
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
@@ -39,15 +41,13 @@ metadata:
 spec:
     scaleTargetRef:
         name: guacamole
-    pollingInterval: 300
+    pollingInterval: 30
     cooldownPeriod: 300
     idleReplicaCount: 0
     minReplicaCount: 0
     maxReplicaCount: 1
     triggers:
-        - type: cron
+        - type: kubernetes-workload
           metadata:
-              timezone: UTC
-              start: 0 6 * * 1-5
-              end: 0 22 * * 1-5
-              desiredReplicas: '1'
+              podSelector: 'vm.kubevirt.io/name=windows-builder'
+              value: '1'
