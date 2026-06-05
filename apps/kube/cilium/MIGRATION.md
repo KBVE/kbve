@@ -1,7 +1,38 @@
 # Cilium Migration Plan
 
 Phased migration from nginx ingress controller + MetalLB to Cilium.
-Cluster: Talos Linux, Kubernetes 1.32.1, single /32 external IP (142.132.206.74), MetalLB L2.
+Cluster: Talos Linux, Kubernetes 1.33.2, dual /32 external IPs
+(142.132.206.74 legacy + 142.132.206.71 Cilium gateway VIP).
+
+## Status (2026-06-05)
+
+| Phase   | Title                                         | State                                                           |
+| ------- | --------------------------------------------- | --------------------------------------------------------------- |
+| Phase 0 | Pre-migration prep                            | DONE                                                            |
+| Phase 1 | Cilium as CNI + WireGuard                     | DONE (2026-03-19)                                               |
+| Phase 2 | Replace ingress-nginx with Cilium Gateway API | DONE in PR #11551; residual cluster cleanup pending — see below |
+| Phase 3 | WebTransport / QUIC validation                | Pending                                                         |
+| Phase 4 | MetalLB replacement                           | N/A — MetalLB never adopted on this cluster after Phase 1       |
+| Phase 5 | Gateway API modernization                     | DONE — all live routes are HTTPRoute via `kbve-gateway`         |
+
+**Residual Phase 2 cleanup (operational, not repo):**
+
+- ingress-nginx Deployment + Service still alive in `ingress-nginx`
+  namespace 65d after the ArgoCD app was removed in PR #11551 (the
+  app deletion did not prune). The Service still holds
+  `142.132.206.74`, blocking the Cilium gateway from claiming both
+  VIPs (LB IPAM reports `IPS AVAILABLE 0` and the gateway Service has
+  `IPAMRequestSatisfied=False, already_allocated` against `.74`).
+- `ingress-nginx-admission` validating webhook still alive.
+- Three stale Ingress objects (`bugwars/bugwars-ingress`,
+  `restream/restreamer`, `staryo/staryo-ingress`) survive only because
+  nginx is still alive. They were never in the repo. Decide before
+  purge: migrate to HTTPRoute or accept the apps going dark.
+- ACME HTTP-01 solvers migrated from nginx → `gatewayHTTPRoute` in
+  PR #11789. Stuck `memes-cert` / `kbve-wt-tls` / `cryptothrone-tls`
+  renewals reconcile automatically once cert-manager re-issues
+  against the Cilium gateway HTTP listener (after dev→main release
+  and ArgoCD sync of the new cluster-issuer).
 
 ---
 
