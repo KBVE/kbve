@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-06-04T09:30:36Z",
+  "generated_at": "2026-06-05T09:20:30Z",
   "summary": {
     "critical": 3,
-    "high": 44,
+    "high": 48,
     "medium": 61,
     "low": 29,
-    "info": 28
+    "info": 29
   },
   "ecosystems": {
     "npm": {
-      "total": 61,
+      "total": 65,
       "severities": {
         "critical": 1,
-        "high": 26,
+        "high": 30,
         "medium": 31,
         "low": 3,
         "info": 0
@@ -444,32 +444,60 @@
           "severity": "critical",
           "package": "vitest",
           "url": "https://github.com/advisories/GHSA-5xrq-8626-4rwp"
+        },
+        {
+          "id": "1120073",
+          "title": "Axios: Regular Expression Denial of Service (ReDoS) via Cookie Name Injection",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-hfxv-24rg-xrqf"
+        },
+        {
+          "id": "1120074",
+          "title": "Allocation of Resources Without Limits or Throttling in Axios",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-777c-7fjr-54vf"
+        },
+        {
+          "id": "1120076",
+          "title": "Axios: Proxy-Authorization Credential Leak to Origin Server Across HTTP-to-HTTPS Redirect in Axios Node.js HTTP Adapter",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-p92q-9vqr-4j8v"
+        },
+        {
+          "id": "1120078",
+          "title": "Axios: Proxy-Authorization header leaks to redirect target when proxy is re-evaluated to direct connection",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-j5f8-grm9-p9fc"
         }
       ]
     },
     "cargo": {
-      "total": 43,
+      "total": 44,
       "severities": {
         "critical": 0,
         "high": 0,
         "medium": 15,
         "low": 0,
-        "info": 28
+        "info": 29
       },
       "advisories": [
-        {
-          "id": "RUSTSEC-2026-0119",
-          "title": "CPU exhaustion during message encoding due to O(n\u00b2) name compression",
-          "severity": "medium",
-          "package": "hickory-proto",
-          "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp"
-        },
         {
           "id": "RUSTSEC-2026-0118",
           "title": "NSEC3 closest-encloser proof validation enters unbounded loop on cross-zone responses",
           "severity": "medium",
           "package": "hickory-proto",
           "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465"
+        },
+        {
+          "id": "RUSTSEC-2026-0119",
+          "title": "CPU exhaustion during message encoding due to O(n\u00b2) name compression",
+          "severity": "medium",
+          "package": "hickory-proto",
+          "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp"
         },
         {
           "id": "RUSTSEC-2023-0071",
@@ -722,6 +750,13 @@
           "severity": "info",
           "package": "unic-ucd-version",
           "url": "https://github.com/rustsec/advisory-db/issues/2414"
+        },
+        {
+          "id": "RUSTSEC-2026-0172",
+          "title": "Possible use after free when deserializing a SQLite database via `SqliteConnection::deserialize_readonly_database`",
+          "severity": "info",
+          "package": "diesel",
+          "url": "https://github.com/diesel-rs/diesel/commit/1bc2ea46d9840e8d9af844239d3c84f37fe7d84b"
         },
         {
           "id": "RUSTSEC-2024-0429",
