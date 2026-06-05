@@ -22,42 +22,68 @@ Regenerate project files. Restart the editor.
 
 Empty allowlist = allow everything (not recommended).
 
-## 3. Place a flat terminal
+## 3. Drop a terminal
 
-Drop `AKBVEWebSurfaceActor` into the world. In the details panel:
+Place `AKBVEWebTerminalActor` in the world. In the details panel:
 
-- Set `Initial URL` (must pass the allowlist).
-- Set `Draw Size` for screen pixel resolution.
+- `Initial URL` — must pass the allowlist.
+- `Auth Token` (optional) — appended as `#kbve_token=<token>` so the page can hydrate without a separate login round-trip.
+- `Surface → Draw Size` — pixel resolution of the surface.
 
-The actor's child `KBVEWebSurfaceComponent` resolves the embedded `UWebBrowser` named `WebBrowser` inside its `Widget Class` (provide a `WBP_DemoBrowser`-style UMG with a `WebBrowser` widget).
+No UMG `.uasset` required. The plugin's `UKBVEWebSurfaceUserWidget` constructs its `UWebBrowser` root programmatically.
 
-## 4. Place a curved screen
+## 4. Player interaction
 
-Use `UKBVEWebRenderSurfaceComponent` on a curved `StaticMesh`. Assign a material that reads a texture parameter named `ScreenTexture` (override `ScreenTextureParam` to rename). The component creates a render target, binds it to a dynamic material instance, and pipes the embedded browser through it.
-
-## 5. Player interaction
+Attach `UKBVEWebInteractionComponent` to the player pawn or controller. Hover, click, and scroll work out of the box for flat surfaces via Unreal's standard `WidgetInteractionComponent` pipeline. Defaults: 1000 unit reach, world trace, `ECC_Visibility`.
 
 ```cpp
-FHitResult Hit;
-if (UKBVEWebInputRouter::TraceForSurface(Player, 500.f, Hit))
-{
-    const FVector2D Pixel = UKBVEWebInputRouter::HitToWidgetCoord(Hit, FIntPoint(1024, 768));
-    // Forward Pixel to the WebBrowser slot input
-}
+Interaction = CreateDefaultSubobject<UKBVEWebInteractionComponent>(TEXT("WebInteraction"));
+Interaction->SetupAttachment(FollowCamera);
 ```
 
-For UV mapping to work on curved meshes, enable `Project Settings → Physics → Support UV From Hit Results`.
+Bind input actions to `PressPointerKey(EKeys::LeftMouseButton)` / `ReleasePointerKey(...)` / `SendKeyChar(...)` per the standard `UWidgetInteractionComponent` API.
+
+## 5. Curved screen
+
+`UKBVEWebRenderSurfaceComponent` on a curved `StaticMesh`. Assign a material that reads a texture parameter named `ScreenTexture` (override `ScreenTextureParam` to rename). The component creates a render target, binds it to a dynamic material instance, and pipes the embedded browser through it.
+
+For curved-mesh trace input enable `Project Settings → Physics → Support UV From Hit Results` and use `UKBVEWebInputRouter::HitToWidgetCoord` (still available, but flagged deprecated for flat surfaces).
 
 ## 6. JS↔UE bridge
 
-From the web page:
+The bridge is auto-attached when `LoadURL` runs. UFUNCTIONs on `UKBVEWebBridge` become callable from JS as `window.<BridgeName>.<func>`.
+
+From a page:
 
 ```js
-window.kbveBridge.send('inventory.use', JSON.stringify({ slot: 3 }));
+window.kbveBridge.Dispatch('inventory.use', JSON.stringify({ slot: 3 }));
 ```
 
 In UE:
 
 ```cpp
-Bridge->OnMessage.AddDynamic(this, &AMyActor::HandleBridge);
+Surface->GetBridge()->OnMessage.AddDynamic(this, &AMyActor::HandleBridge);
+
+void AMyActor::HandleBridge(FName Channel, const FString& Payload)
+{
+	// Channel = "inventory.use", Payload = the JSON string
+}
 ```
+
+Push UE → JS:
+
+```cpp
+Surface->GetBridge()->Push(TEXT("market.update"), TEXT("{\"orders\":3}"));
+```
+
+The web page listens via `window.kbveBridge.onPush = (channel, payload) => { ... }`.
+
+## 7. Performance rails
+
+All wired into the component by default; tune in the details panel:
+
+- `Max Frame Rate` (default 30) — accumulator-driven `RequestRedraw` cadence.
+- `Pause When Offscreen` (default true) — gates redraw on `WasRecentlyRendered`.
+- `Snapshot Distance` (default 0 / off) — past this distance the surface freezes its last rendered frame and stops ticking the browser.
+
+`UKBVEWebLODManager` auto-registers surfaces on `BeginPlay`. `UKBVEWebSurfacePool` caps concurrent live surfaces (default 8).
