@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "chuckTerrainBlob.h"
 #include "chuckTerrainChunk.generated.h"
 
 class UProceduralMeshComponent;
@@ -17,10 +18,16 @@ public:
 	AchuckTerrainChunk();
 
 	void Build(const FIntPoint& InCoord, uint32 InSeed, int32 InCellsPerEdge, float InCellSize, float InWaterZ);
+	bool BuildFromBlob(const FIntPoint& InCoord, uint32 InSeed, const TArray<uint8>& Blob, float InWaterZ);
+	void GenerateMeshData(FchuckChunkMesh& OutMesh) const;
+	void SerializeCurrentMesh(TArray<uint8>& OutBytes) const;
 	void Release();
 
 	const FIntPoint& GetCoord() const { return Coord; }
 	bool  IsActive() const { return bActive; }
+	bool  HasMeshFor(const FIntPoint& InCoord, uint32 InSeed) const { return bMeshBuilt && Coord == InCoord && Seed == InSeed; }
+	uint64 GetLastUsedTick() const { return LastUsedTick; }
+	void   MarkUsed(uint64 TickNow) { LastUsedTick = TickNow; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -43,4 +50,11 @@ protected:
 	float   CellSize     = 200.f;
 	float   WaterZ       = -120.f;
 	bool    bActive      = false;
+	bool    bMeshBuilt   = false;
+	uint64  LastUsedTick = 0;
+
+	FchuckChunkMesh CachedMesh;
+
+	void UploadMesh(const FchuckChunkMesh& MeshData);
+	void PositionWaterAndApplyMaterials(float ChunkSize);
 };

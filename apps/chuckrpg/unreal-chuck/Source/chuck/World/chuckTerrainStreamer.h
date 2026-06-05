@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "Tickable.h"
+#include "chuckTerrainCache.h"
 #include "chuckTerrainStreamer.generated.h"
 
 class AchuckTerrainChunk;
@@ -38,6 +39,8 @@ protected:
 	UPROPERTY()
 	TMap<FIntPoint, TObjectPtr<AchuckTerrainChunk>> ActiveChunks;
 
+	FchuckTerrainCache Cache;
+	uint64 UseCounter   = 0;
 	uint32 Seed         = 0xC1A55E5Au;
 	int32  CellsPerEdge = 32;
 	float  CellSize     = 200.f;

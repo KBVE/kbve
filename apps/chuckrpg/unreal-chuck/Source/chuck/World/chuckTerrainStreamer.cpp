@@ -1,10 +1,12 @@
 #include "chuckTerrainStreamer.h"
 
 #include "chuckTerrainChunk.h"
+#include "chuckZoneRegistry.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
+#include "Misc/Paths.h"
 
 bool UchuckTerrainStreamer::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -15,6 +17,9 @@ bool UchuckTerrainStreamer::ShouldCreateSubsystem(UObject* Outer) const
 void UchuckTerrainStreamer::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
+
+	const FString DbPath = FPaths::ProjectSavedDir() / TEXT("ProcWorld/terrain.db");
+	Cache.Open(DbPath);
 
 	ChunkPool.Reserve(PoolSize);
 	FreeChunks.Reserve(PoolSize);
@@ -45,6 +50,7 @@ void UchuckTerrainStreamer::Deinitialize()
 	ChunkPool.Reset();
 	FreeChunks.Reset();
 	ActiveChunks.Reset();
+	Cache.Close();
 	Super::Deinitialize();
 }
 
@@ -108,11 +114,40 @@ FIntPoint UchuckTerrainStreamer::WorldToChunk(const FVector& WorldLoc) const
 void UchuckTerrainStreamer::EnsureChunk(const FIntPoint& C)
 {
 	AchuckTerrainChunk* Chunk = nullptr;
-	while (FreeChunks.Num() > 0 && !Chunk)
+
+	// Prefer a free chunk that already has the matching mesh cached.
+	for (int32 i = FreeChunks.Num() - 1; i >= 0 && !Chunk; --i)
 	{
-		Chunk = FreeChunks.Pop(EAllowShrinking::No);
-		if (!IsValid(Chunk)) Chunk = nullptr;
+		AchuckTerrainChunk* Candidate = FreeChunks[i];
+		if (IsValid(Candidate) && Candidate->HasMeshFor(C, Seed))
+		{
+			FreeChunks.RemoveAtSwap(i, EAllowShrinking::No);
+			Chunk = Candidate;
+		}
 	}
+
+	// Else evict the LRU (oldest LastUsedTick) free chunk.
+	if (!Chunk)
+	{
+		int32 BestIdx = INDEX_NONE;
+		uint64 BestTick = TNumericLimits<uint64>::Max();
+		for (int32 i = 0; i < FreeChunks.Num(); ++i)
+		{
+			AchuckTerrainChunk* Candidate = FreeChunks[i];
+			if (!IsValid(Candidate)) continue;
+			if (Candidate->GetLastUsedTick() < BestTick)
+			{
+				BestTick = Candidate->GetLastUsedTick();
+				BestIdx  = i;
+			}
+		}
+		if (BestIdx != INDEX_NONE)
+		{
+			Chunk = FreeChunks[BestIdx];
+			FreeChunks.RemoveAtSwap(BestIdx, EAllowShrinking::No);
+		}
+	}
+
 	if (!Chunk)
 	{
 		UWorld* W = GetWorld();
@@ -124,7 +159,42 @@ void UchuckTerrainStreamer::EnsureChunk(const FIntPoint& C)
 		if (!Chunk) return;
 		ChunkPool.Add(Chunk);
 	}
-	Chunk->Build(C, Seed, CellsPerEdge, CellSize, WaterZ);
+
+	bool bUsedExternalBlob = false;
+
+	if (const FchuckStaticZone* Static = chuckZoneRegistry::FindContaining(C))
+	{
+		TArray<uint8> StaticBlob;
+		if (chuckZoneRegistry::TryLoadStaticBlob(*Static, C, StaticBlob))
+		{
+			bUsedExternalBlob = Chunk->BuildFromBlob(C, Seed, StaticBlob, WaterZ);
+		}
+	}
+
+	if (!bUsedExternalBlob && Cache.IsOpen())
+	{
+		TArray<uint8> CachedBlob;
+		if (Cache.Read(Seed, C, CachedBlob))
+		{
+			bUsedExternalBlob = Chunk->BuildFromBlob(C, Seed, CachedBlob, WaterZ);
+		}
+	}
+
+	if (!bUsedExternalBlob)
+	{
+		Chunk->Build(C, Seed, CellsPerEdge, CellSize, WaterZ);
+		if (Cache.IsOpen())
+		{
+			TArray<uint8> Bytes;
+			Chunk->SerializeCurrentMesh(Bytes);
+			if (Bytes.Num() > 0)
+			{
+				Cache.Write(Seed, C, Bytes);
+			}
+		}
+	}
+
+	Chunk->MarkUsed(++UseCounter);
 	ActiveChunks.Add(C, Chunk);
 }
 
