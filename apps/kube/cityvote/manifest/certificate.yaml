@@ -1,12 +1,12 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-    name: chuckrpg-tls
-    namespace: chuckrpg
+    name: cityvote-tls
+    namespace: cityvote
 spec:
-    secretName: chuckrpg-tls
+    secretName: cityvote-tls
     dnsNames:
-        - chuckrpg.com
+        - cityvote.com
     issuerRef:
         name: letsencrypt-http
         kind: ClusterIssuer
