@@ -68,7 +68,7 @@ const handlers: Record<string, Handler> = {
     if (ownerErr) return ownerErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_set_guild_token", {
+    const { data, error } = await supabase.schema("discordsh").rpc("service_set_guild_token", {
       p_owner_id: userId,
       p_server_id: server_id as string,
       p_service: service as string,
@@ -113,7 +113,7 @@ const handlers: Record<string, Handler> = {
     if (ownerErr) return ownerErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_list_guild_tokens", {
+    const { data, error } = await supabase.schema("discordsh").rpc("service_list_guild_tokens", {
       p_owner_id: userId,
       p_server_id: server_id as string,
     });
@@ -147,7 +147,7 @@ const handlers: Record<string, Handler> = {
     if (ownerErr) return ownerErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await supabase.schema("discordsh").rpc(
       "service_delete_guild_token",
       {
         p_owner_id: userId,
@@ -202,7 +202,7 @@ const handlers: Record<string, Handler> = {
     if (ownerErr) return ownerErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await supabase.schema("discordsh").rpc(
       "service_toggle_guild_token_status",
       {
         p_owner_id: userId,
