@@ -1,42 +1,3 @@
-# ArgoCD-managed CronJob to (re)apply Windows autologon + VNC-ready settings
-# on the builder VM.
-#
-# Uses the QEMU Guest Agent to set registry keys inside Windows so the VM
-# auto-logs in as Administrator on every boot — no lock screen, no
-# Ctrl+Alt+Del prompt, no screensaver, no idle lock. Guacamole / VNC users
-# see the desktop immediately without any interaction.
-#
-# What it configures (7 steps):
-#   1. Autologon registry keys (AutoAdminLogon, DefaultUserName, DefaultPassword)
-#   2. Disable Ctrl+Alt+Del requirement (DisableCAD)
-#   3. Disable lock screen (NoLockScreen policy)
-#   4. Disable screensaver (ScreenSaveActive=0)
-#   5. Disable power idle timeouts (standby, monitor, hibernate all to 0)
-#   6. Disable Server Manager auto-start (DoNotOpenServerManagerAtLogon)
-#   7. Disable machine inactivity lock (InactivityTimeoutSecs=0)
-#
-# Lifecycle: previously this was a one-shot Job behind an ArgoCD PostSync
-# hook. The hook only fires when the autologon app itself syncs, so if the
-# VM happened to be Stopped at that moment the script soft-skipped and the
-# registry keys never landed — and there was no automatic re-trigger when
-# the VM later booted. Now it runs as a CronJob every 5 minutes; the
-# idempotent script reapplies the same registry values, no-ops when the
-# VM is Stopped or the QEMU Guest Agent has not yet registered, and
-# catches up the next tick after the VM comes back online.
-#
-# Prerequisites:
-#   1. windows-builder VM with QEMU Guest Agent installed (cold-start once
-#      via virtctl + virtio-win ISO).
-#   2. Secret 'windows-builder-admin' in angelscript namespace with key
-#      'password' containing the Administrator password.
-#   3. vm-scaler RBAC includes pod/exec permissions (deployed via KEDA app).
-#
-# Note: the pod template intentionally does NOT carry `app: angelscript`
-# because the namespace NetworkPolicy (podSelector app=angelscript) only
-# allows egress on ports 53 + 443 for game-server workloads. kube-proxy
-# DNATs kubernetes.default.svc to the real apiserver endpoint on port 6443,
-# which is blocked — so any kubectl from inside a policy-scoped pod times
-# out. Management jobs live outside the game-server network policy.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -46,11 +7,6 @@ metadata:
         app: angelscript
         component: vm-autologon
 spec:
-    # Safety-net cadence only. The fast on-boot trigger lives in
-    # scaled-job.yaml (KEDA kubernetes-workload watching for the
-    # virt-launcher pod). The CronJob picks up registry drift (someone
-    # toggling autologon off mid-session, a partial bootstrap run) at a
-    # low cadence so it doesn't spam pods while the VM is up.
     schedule: '*/30 * * * *'
     timeZone: UTC
     concurrencyPolicy: Forbid

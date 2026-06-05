@@ -13,7 +13,6 @@ spec:
         - Ingress
         - Egress
     ingress:
-        # Allow game traffic
         - ports:
               - port: 7777
                 protocol: UDP
@@ -24,18 +23,14 @@ spec:
               - port: 15000
                 protocol: UDP
     egress:
-        # Allow DNS
         - ports:
               - port: 53
                 protocol: UDP
               - port: 53
                 protocol: TCP
-        # Allow HTTPS (for any API calls / telemetry)
         - ports:
               - port: 443
                 protocol: TCP
-        # Allow VM builders (windows/macos) to reach the Gluetun HTTP proxy
-        # on the in-cluster egress pod for bulk downloads through WireGuard.
         - to:
               - podSelector:
                     matchLabels:
@@ -44,10 +39,6 @@ spec:
               - port: 8888
                 protocol: TCP
 ---
-# Egress pod has its own policy: accept proxy traffic from VM builder pods,
-# allow outbound WireGuard handshake (UDP 51820) and DNS bootstrap. All
-# real traffic exits via the tunnel inside Gluetun's netns, not via k8s
-# egress rules — so we only authorize what k8s sees on the pod interface.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -70,13 +61,10 @@ spec:
           ports:
               - port: 8888
                 protocol: TCP
-        # Kubelet health probes (node IP source — leave open on 9999).
         - ports:
               - port: 9999
                 protocol: TCP
     egress:
-        # WG handshake — endpoint port comes from the sealed secret; allow
-        # the common range plus 51820. Tighten once the provider port is known.
         - ports:
               - port: 51820
                 protocol: UDP
@@ -84,13 +72,11 @@ spec:
                 protocol: UDP
               - port: 1194
                 protocol: UDP
-        # DNS bootstrap (resolving the WG endpoint hostname before tunnel up).
         - ports:
               - port: 53
                 protocol: UDP
               - port: 53
                 protocol: TCP
-        # DoH fallback for upstream resolver before tunnel attaches.
         - ports:
               - port: 443
                 protocol: TCP
