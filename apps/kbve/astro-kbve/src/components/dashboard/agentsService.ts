@@ -41,7 +41,18 @@ const DISCORD_API_BASE = 'https://discord.com/api/v10';
 const GUILD_VAULT_URL = `${SUPABASE_URL}/functions/v1/guild-vault`;
 const DISCORD_BOOTSTRAP_URL = `${SUPABASE_URL}/functions/v1/discord-bootstrap`;
 const GUILDS_CACHE_KEY = 'kbve:agents:owned_guilds_cache:v1';
+const TOKENS_CACHE_KEY = 'kbve:agents:tokens_cache:v1';
+// localStorage cache: offline fallback when Discord can't be reached.
 const GUILDS_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+// Live cache: skip the Discord live call within this window. Tuned to
+// "long enough to dedupe across rapid ClientRouter swaps + island
+// re-mounts; short enough that real changes show up on a refresh".
+const GUILDS_LIVE_TTL_MS = 60 * 1000;
+const TOKENS_CACHE_TTL_MS = 60 * 1000;
+// initAuth dedup: any call within this window of a successful init
+// is a no-op. Prevents the screenshot 429 caused by 5 islands
+// across two agents pages each firing initAuth in useEffect.
+const INIT_DEDUP_MS = 30 * 1000;
 
 interface CachedGuildsBlob {
 	user_id: string;
@@ -97,6 +108,72 @@ function saveCachedGuilds(userId: string, guilds: DiscordGuild[]): void {
 	}
 }
 
+interface CachedTokensBlob {
+	user_id: string;
+	tokens_by_guild: Record<
+		string,
+		{ tokens: AgentTokenRow[]; cached_at: number }
+	>;
+}
+
+function loadCachedTokens(
+	userId: string,
+	guildId: string,
+): AgentTokenRow[] | null {
+	try {
+		const raw = localStorage.getItem(TOKENS_CACHE_KEY);
+		if (!raw) return null;
+		const blob = JSON.parse(raw) as CachedTokensBlob;
+		if (blob.user_id !== userId) return null;
+		const entry = blob.tokens_by_guild?.[guildId];
+		if (!entry) return null;
+		if (Date.now() - entry.cached_at > TOKENS_CACHE_TTL_MS) return null;
+		return entry.tokens;
+	} catch {
+		return null;
+	}
+}
+
+function saveCachedTokens(
+	userId: string,
+	guildId: string,
+	tokens: AgentTokenRow[],
+): void {
+	try {
+		const raw = localStorage.getItem(TOKENS_CACHE_KEY);
+		let blob: CachedTokensBlob;
+		try {
+			blob = raw
+				? (JSON.parse(raw) as CachedTokensBlob)
+				: { user_id: userId, tokens_by_guild: {} };
+		} catch {
+			blob = { user_id: userId, tokens_by_guild: {} };
+		}
+		if (blob.user_id !== userId) {
+			blob = { user_id: userId, tokens_by_guild: {} };
+		}
+		blob.tokens_by_guild[guildId] = { tokens, cached_at: Date.now() };
+		localStorage.setItem(TOKENS_CACHE_KEY, JSON.stringify(blob));
+	} catch {
+		// non-fatal
+	}
+}
+
+function invalidateCachedTokens(userId: string, guildId: string): void {
+	try {
+		const raw = localStorage.getItem(TOKENS_CACHE_KEY);
+		if (!raw) return;
+		const blob = JSON.parse(raw) as CachedTokensBlob;
+		if (blob.user_id !== userId) return;
+		if (blob.tokens_by_guild?.[guildId]) {
+			delete blob.tokens_by_guild[guildId];
+			localStorage.setItem(TOKENS_CACHE_KEY, JSON.stringify(blob));
+		}
+	} catch {
+		// non-fatal
+	}
+}
+
 class AgentsService {
 	public readonly $authState = atom<AuthState>('loading');
 	public readonly $accessToken = atom<string | null>(null);
@@ -114,7 +191,40 @@ class AgentsService {
 	public readonly $tokensLoading = atom<boolean>(false);
 	public readonly $tokensError = atom<string | null>(null);
 
-	public async initAuth(): Promise<void> {
+	// Dedup state — singleton so the cache survives ClientRouter swaps.
+	private initPromise: Promise<void> | null = null;
+	private lastInitAt = 0;
+	private lastGuildFetchAt = 0;
+	private guildsAbort: AbortController | null = null;
+	private tokensInflight: Map<string, Promise<void>> = new Map();
+	private tokensAbort: Map<string, AbortController> = new Map();
+
+	/**
+	 * Idempotent across rapid ClientRouter swaps + island re-mounts.
+	 * Subsequent calls within INIT_DEDUP_MS of a successful init are
+	 * no-ops; concurrent calls share the same in-flight Promise.
+	 * Pass `force=true` after a sign-in/sign-out event to bypass.
+	 */
+	public async initAuth(force = false): Promise<void> {
+		if (!force) {
+			if (this.initPromise) return this.initPromise;
+			if (
+				this.lastInitAt > 0 &&
+				Date.now() - this.lastInitAt < INIT_DEDUP_MS &&
+				this.$authState.get() !== 'loading'
+			) {
+				return;
+			}
+		}
+		this.initPromise = this.runInitAuth();
+		try {
+			await this.initPromise;
+		} finally {
+			this.initPromise = null;
+		}
+	}
+
+	private async runInitAuth(): Promise<void> {
 		try {
 			await initSupa();
 			const supa = getSupa();
@@ -204,6 +314,13 @@ class AgentsService {
 			this.$authState.set('discord_reauth_required');
 		} catch {
 			this.$authState.set('unauthenticated');
+		} finally {
+			// Mark init complete regardless of outcome so the dedup
+			// window kicks in. If init failed entirely the
+			// $authState will be 'unauthenticated' and the next
+			// caller's check ($authState !== 'loading') still passes
+			// → no infinite retry loop.
+			this.lastInitAt = Date.now();
 		}
 	}
 
@@ -234,9 +351,28 @@ class AgentsService {
 		}
 	}
 
-	public async loadOwnedGuilds(): Promise<void> {
+	public async loadOwnedGuilds(force = false): Promise<void> {
 		const providerToken = this.$providerToken.get();
 		if (!providerToken) return;
+
+		// Skip the Discord call if a successful fetch happened recently
+		// AND we already have guilds in state. Critical for surviving
+		// rapid ClientRouter swaps without hitting the Discord 429
+		// shown in the original bug report. Explicit refresh
+		// (force=true) bypasses.
+		if (
+			!force &&
+			this.lastGuildFetchAt > 0 &&
+			Date.now() - this.lastGuildFetchAt < GUILDS_LIVE_TTL_MS &&
+			this.$guilds.get().length > 0
+		) {
+			return;
+		}
+
+		// Cancel any in-flight request from a prior mount.
+		if (this.guildsAbort) this.guildsAbort.abort();
+		const abort = new AbortController();
+		this.guildsAbort = abort;
 
 		this.$guildsLoading.set(true);
 		this.$guildsError.set(null);
@@ -244,6 +380,7 @@ class AgentsService {
 		try {
 			const resp = await fetch(`${DISCORD_API_BASE}/users/@me/guilds`, {
 				headers: { Authorization: `Bearer ${providerToken}` },
+				signal: abort.signal,
 			});
 
 			if (resp.status === 401) {
@@ -281,6 +418,7 @@ class AgentsService {
 			const owned = allGuilds.filter((g) => g.owner === true);
 			this.$guilds.set(owned);
 			this.$guildsStale.set(false);
+			this.lastGuildFetchAt = Date.now();
 
 			const userId = this.$userId.get();
 			if (userId) saveCachedGuilds(userId, owned);
@@ -289,6 +427,11 @@ class AgentsService {
 				this.selectGuild(owned[0].id);
 			}
 		} catch (e) {
+			if (e instanceof DOMException && e.name === 'AbortError') {
+				// Component unmounted (or a newer call superseded this
+				// one). Don't surface as an error.
+				return;
+			}
 			this.$guildsError.set(
 				e instanceof Error
 					? e.message
@@ -297,6 +440,7 @@ class AgentsService {
 			this.$guildsStale.set(true);
 		} finally {
 			this.$guildsLoading.set(false);
+			if (this.guildsAbort === abort) this.guildsAbort = null;
 		}
 	}
 
@@ -307,62 +451,104 @@ class AgentsService {
 		void this.loadTokens(guildId);
 	}
 
-	public async loadTokens(guildId: string): Promise<void> {
+	public async loadTokens(guildId: string, force = false): Promise<void> {
 		const accessToken = this.$accessToken.get();
 		const providerToken = this.$providerToken.get();
 		if (!accessToken || !providerToken) return;
 
+		const userId = this.$userId.get();
+
+		// localStorage cache hit — paint instantly + skip the edge fn
+		// hop. Critical for surviving ClientRouter swaps + multi-
+		// island re-mounts without spamming guild-vault.
+		if (!force && userId) {
+			const cached = loadCachedTokens(userId, guildId);
+			if (cached) {
+				this.$tokens.set(cached);
+				this.$tokensError.set(null);
+				return;
+			}
+		}
+
+		// In-flight dedup — concurrent loadTokens for the same guild
+		// share a single Promise instead of firing N requests.
+		const existing = this.tokensInflight.get(guildId);
+		if (!force && existing) return existing;
+
+		const prevAbort = this.tokensAbort.get(guildId);
+		if (prevAbort) prevAbort.abort();
+		const abort = new AbortController();
+		this.tokensAbort.set(guildId, abort);
+
 		this.$tokensLoading.set(true);
 		this.$tokensError.set(null);
 
-		try {
-			const resp = await fetch(GUILD_VAULT_URL, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${accessToken}`,
-				},
-				body: JSON.stringify({
-					command: 'tokens.list_tokens',
-					server_id: guildId,
-					provider_token: providerToken,
-				}),
-			});
-
-			const text = await resp.text();
-			let body: unknown;
+		const promise = (async () => {
 			try {
-				body = JSON.parse(text);
-			} catch {
+				const resp = await fetch(GUILD_VAULT_URL, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${accessToken}`,
+					},
+					body: JSON.stringify({
+						command: 'tokens.list_tokens',
+						server_id: guildId,
+						provider_token: providerToken,
+					}),
+					signal: abort.signal,
+				});
+
+				const text = await resp.text();
+				let body: unknown;
+				try {
+					body = JSON.parse(text);
+				} catch {
+					this.$tokensError.set(
+						`HTTP ${resp.status}: ${text.slice(0, 200)}`,
+					);
+					return;
+				}
+
+				if (!resp.ok) {
+					const errMsg =
+						(body as { error?: string } | null)?.error ??
+						`HTTP ${resp.status}`;
+					this.$tokensError.set(errMsg);
+					return;
+				}
+
+				const rows =
+					(body as { tokens?: AgentTokenRow[] } | null)?.tokens ?? [];
+				this.$tokens.set(rows);
+				if (userId) saveCachedTokens(userId, guildId, rows);
+			} catch (e) {
+				if (e instanceof DOMException && e.name === 'AbortError') {
+					return;
+				}
 				this.$tokensError.set(
-					`HTTP ${resp.status}: ${text.slice(0, 200)}`,
+					e instanceof Error ? e.message : 'Failed to load tokens',
 				);
-				return;
+			} finally {
+				this.$tokensLoading.set(false);
+				this.tokensInflight.delete(guildId);
+				if (this.tokensAbort.get(guildId) === abort) {
+					this.tokensAbort.delete(guildId);
+				}
 			}
+		})();
 
-			if (!resp.ok) {
-				const errMsg =
-					(body as { error?: string } | null)?.error ??
-					`HTTP ${resp.status}`;
-				this.$tokensError.set(errMsg);
-				return;
-			}
-
-			const rows =
-				(body as { tokens?: AgentTokenRow[] } | null)?.tokens ?? [];
-			this.$tokens.set(rows);
-		} catch (e) {
-			this.$tokensError.set(
-				e instanceof Error ? e.message : 'Failed to load tokens',
-			);
-		} finally {
-			this.$tokensLoading.set(false);
-		}
+		this.tokensInflight.set(guildId, promise);
+		return promise;
 	}
 
 	public async refreshSelectedGuild(): Promise<void> {
 		const guildId = this.$selectedGuildId.get();
-		if (guildId) await this.loadTokens(guildId);
+		if (!guildId) return;
+		// Explicit refresh — bypass cache + dedup window.
+		const userId = this.$userId.get();
+		if (userId) invalidateCachedTokens(userId, guildId);
+		await this.loadTokens(guildId, true);
 	}
 
 	public async addToken(input: {
