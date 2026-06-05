@@ -30,17 +30,15 @@ data:
         echo "=== Configuring Windows autologon + VNC-ready: ${VM_NAME} ==="
 
         # ── Skip cleanly if the VMI is absent at sync time ──
-        # ArgoCD runs this Job on every PostSync. If the VM is stopped
-        # (no VMI object) exit 0 instead of waiting + failing, so the
-        # sync stays Healthy. The next sync after the VM is started will
-        # reapply the settings.
+        # CronJob runs every 5 minutes. If the VM is Stopped (no VMI object)
+        # exit 0 and let the next tick try again once the VM is up.
         INITIAL_PHASE=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" \
             -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
         if [ -z "${INITIAL_PHASE}" ] || \
            [ "${INITIAL_PHASE}" = "Stopped" ] || \
            [ "${INITIAL_PHASE}" = "Succeeded" ] || \
            [ "${INITIAL_PHASE}" = "Failed" ]; then
-            echo "VM not running (phase=${INITIAL_PHASE:-absent}), skipping autologon configuration"
+            echo "VM not running (phase=${INITIAL_PHASE:-absent}), skipping"
             exit 0
         fi
 
@@ -75,7 +73,6 @@ data:
                 echo "Guest agent not connected after 5 minutes; skipping."
                 echo "Ensure QEMU Guest Agent is installed as a Windows service"
                 echo "(from virtio-win ISO: guest-agent/qemu-ga-x86_64.msi)."
-                echo "Next ArgoCD sync after the agent registers will reapply."
                 exit 0
             fi
             echo "  Agent: ${AGENT:-not connected} (${i}/30)"
@@ -101,41 +98,63 @@ data:
         fi
         echo "Libvirt domain: ${DOMAIN}"
 
-        # ── Escape password for JSON ──
-        ESCAPED_PWD=$(printf '%s' "${ADMIN_PASSWORD}" | sed 's/\\/\\\\/g; s/"/\\"/g')
-
         # ── Helper: run a PowerShell command via guest agent and verify ──
+        # Builds the qemu-agent JSON payload with jq so backslashes / quotes
+        # / dollar signs in PowerShell scripts (registry paths, passwords)
+        # survive the shell → JSON → libvirt → qemu-ga hops without
+        # corruption. The old hand-rolled JSON silently produced malformed
+        # payloads for any PS containing `\` and qemu-ga rejected them —
+        # the script saw no `pid`, soft-passed, and never wrote the keys.
         run_ps() {
             STEP_NAME="$1"
             PS_SCRIPT="$2"
             echo ""
             echo "--- ${STEP_NAME} ---"
 
-            RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
-                virsh qemu-agent-command "${DOMAIN}" \
-                "{\"execute\":\"guest-exec\",\"arguments\":{\"path\":\"powershell.exe\",\"arg\":[\"-NoProfile\",\"-Command\",\"${PS_SCRIPT}\"],\"capture-output\":true}}" \
-                2>&1)
+            PAYLOAD=$(jq -nc --arg ps "$PS_SCRIPT" '{
+                execute: "guest-exec",
+                arguments: {
+                    path: "powershell.exe",
+                    arg: ["-NoProfile", "-Command", $ps],
+                    "capture-output": true
+                }
+            }')
 
-            PID=$(echo "${RESULT}" | sed -n 's/.*"pid":\([0-9]*\).*/\1/p')
+            RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
+                virsh qemu-agent-command "${DOMAIN}" "${PAYLOAD}" 2>&1)
+
+            PID=$(printf '%s' "${RESULT}" | jq -r '.return.pid // empty' 2>/dev/null)
             if [ -z "${PID}" ]; then
-                echo "  WARNING: Could not parse PID — command may still have succeeded"
+                echo "  FAILED: could not parse PID from guest-agent response"
+                echo "  Response: ${RESULT}"
+                return 1
+            fi
+
+            STATUS_PAYLOAD=$(jq -nc --argjson pid "$PID" \
+                '{execute:"guest-exec-status",arguments:{pid:$pid}}')
+
+            # guest-exec is asynchronous; poll for exited=true.
+            for s in $(seq 1 10); do
+                sleep 1
+                STATUS_RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
+                    virsh qemu-agent-command "${DOMAIN}" "${STATUS_PAYLOAD}" 2>&1)
+                EXITED=$(printf '%s' "${STATUS_RESULT}" | jq -r '.return.exited // false' 2>/dev/null)
+                [ "${EXITED}" = "true" ] && break
+            done
+
+            EXITCODE=$(printf '%s' "${STATUS_RESULT}" | jq -r '.return.exitcode // empty' 2>/dev/null)
+            if [ "${EXITCODE}" = "0" ]; then
+                echo "  OK: ${STEP_NAME}"
                 return 0
             fi
 
-            sleep 3
-            STATUS_RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
-                virsh qemu-agent-command "${DOMAIN}" \
-                "{\"execute\":\"guest-exec-status\",\"arguments\":{\"pid\":${PID}}}" \
-                2>&1)
-
-            EXITCODE=$(echo "${STATUS_RESULT}" | sed -n 's/.*"exitcode":\([0-9]*\).*/\1/p')
-            if [ "${EXITCODE}" = "0" ]; then
-                echo "  OK: ${STEP_NAME}"
-            else
-                echo "  FAILED (exit ${EXITCODE}): ${STEP_NAME}"
-                echo "  Response: ${STATUS_RESULT}"
-                return 1
-            fi
+            ERRDATA=$(printf '%s' "${STATUS_RESULT}" | jq -r '.return["err-data"] // empty' 2>/dev/null)
+            OUTDATA=$(printf '%s' "${STATUS_RESULT}" | jq -r '.return["out-data"] // empty' 2>/dev/null)
+            echo "  FAILED (exit ${EXITCODE:-unknown}): ${STEP_NAME}"
+            [ -n "${OUTDATA}" ] && echo "  stdout(b64): ${OUTDATA}"
+            [ -n "${ERRDATA}" ] && echo "  stderr(b64): ${ERRDATA}"
+            echo "  Raw: ${STATUS_RESULT}"
+            return 1
         }
 
         FAILED=0
@@ -144,40 +163,79 @@ data:
         # AutoAdminLogon  = "1"        → enable auto-login
         # DefaultUserName = "Administrator"
         # DefaultPassword = <from secret>
-        PS_AUTOLOGON="\$p = 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon'; Set-ItemProperty -Path \$p -Name AutoAdminLogon -Value '1' -Force; Set-ItemProperty -Path \$p -Name DefaultUserName -Value 'Administrator' -Force; Set-ItemProperty -Path \$p -Name DefaultPassword -Value '${ESCAPED_PWD}' -Force; Write-Output 'done'"
-        run_ps "Autologon registry keys" "${PS_AUTOLOGON}" || FAILED=1
+        PS_AUTOLOGON='$p = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"; Set-ItemProperty -Path $p -Name AutoAdminLogon -Value "1" -Force; Set-ItemProperty -Path $p -Name DefaultUserName -Value "Administrator" -Force; Set-ItemProperty -Path $p -Name DefaultPassword -Value $env:AUTOLOGON_PWD -Force; Write-Output done'
+        # PowerShell reads the password from its own env var to keep it out
+        # of the command-line that shows up in audit logs / Event Viewer.
+        # The env var is set on the spawned PowerShell via guest-exec env.
+        PAYLOAD=$(jq -nc \
+            --arg ps "$PS_AUTOLOGON" \
+            --arg pwd "$ADMIN_PASSWORD" '{
+                execute: "guest-exec",
+                arguments: {
+                    path: "powershell.exe",
+                    arg: ["-NoProfile", "-Command", $ps],
+                    env: [("AUTOLOGON_PWD=" + $pwd)],
+                    "capture-output": true
+                }
+            }')
+        echo ""
+        echo "--- Autologon registry keys ---"
+        RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
+            virsh qemu-agent-command "${DOMAIN}" "${PAYLOAD}" 2>&1)
+        AUTOLOGON_PID=$(printf '%s' "${RESULT}" | jq -r '.return.pid // empty' 2>/dev/null)
+        if [ -z "${AUTOLOGON_PID}" ]; then
+            echo "  FAILED: could not parse PID"
+            echo "  Response: ${RESULT}"
+            FAILED=1
+        else
+            STATUS_PAYLOAD=$(jq -nc --argjson pid "$AUTOLOGON_PID" \
+                '{execute:"guest-exec-status",arguments:{pid:$pid}}')
+            for s in $(seq 1 10); do
+                sleep 1
+                STATUS_RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
+                    virsh qemu-agent-command "${DOMAIN}" "${STATUS_PAYLOAD}" 2>&1)
+                EXITED=$(printf '%s' "${STATUS_RESULT}" | jq -r '.return.exited // false' 2>/dev/null)
+                [ "${EXITED}" = "true" ] && break
+            done
+            EXITCODE=$(printf '%s' "${STATUS_RESULT}" | jq -r '.return.exitcode // empty' 2>/dev/null)
+            if [ "${EXITCODE}" = "0" ]; then
+                echo "  OK: Autologon registry keys"
+            else
+                echo "  FAILED (exit ${EXITCODE:-unknown}): Autologon registry keys"
+                echo "  Raw: ${STATUS_RESULT}"
+                FAILED=1
+            fi
+        fi
 
         # ── Step 2: Disable Ctrl+Alt+Del requirement ──
-        # Windows Server requires Ctrl+Alt+Del before login by default.
-        # DisableCAD=1 in Winlogon bypasses this for VNC usability.
-        PS_DISABLE_CAD="\$p = 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon'; Set-ItemProperty -Path \$p -Name DisableCAD -Value 1 -Type DWord -Force; Write-Output 'done'"
-        run_ps "Disable Ctrl+Alt+Del" "${PS_DISABLE_CAD}" || FAILED=1
+        run_ps "Disable Ctrl+Alt+Del" \
+            '$p = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"; Set-ItemProperty -Path $p -Name DisableCAD -Value 1 -Type DWord -Force; Write-Output done' \
+            || FAILED=1
 
         # ── Step 3: Disable lock screen ──
-        # Prevents Windows from showing the lock screen on resume/idle.
-        PS_DISABLE_LOCK="\$p = 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Personalization'; if (-not (Test-Path \$p)) { New-Item -Path \$p -Force | Out-Null }; Set-ItemProperty -Path \$p -Name NoLockScreen -Value 1 -Type DWord -Force; Write-Output 'done'"
-        run_ps "Disable lock screen" "${PS_DISABLE_LOCK}" || FAILED=1
+        run_ps "Disable lock screen" \
+            '$p = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Personalization"; if (-not (Test-Path $p)) { New-Item -Path $p -Force | Out-Null }; Set-ItemProperty -Path $p -Name NoLockScreen -Value 1 -Type DWord -Force; Write-Output done' \
+            || FAILED=1
 
         # ── Step 4: Disable screensaver ──
-        # Prevents screensaver from activating and locking the session.
-        PS_DISABLE_SS="Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name ScreenSaveActive -Value '0' -Force; Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name ScreenSaverIsSecure -Value '0' -Force; Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name ScreenSaveTimeOut -Value '0' -Force; Write-Output 'done'"
-        run_ps "Disable screensaver" "${PS_DISABLE_SS}" || FAILED=1
+        run_ps "Disable screensaver" \
+            'Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaveActive -Value "0" -Force; Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaverIsSecure -Value "0" -Force; Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaveTimeOut -Value "0" -Force; Write-Output done' \
+            || FAILED=1
 
         # ── Step 5: Disable idle lock timeout via power policy ──
-        # Sets console lock display off timeout to 0 (never lock on display off).
-        PS_POWER="powercfg /change standby-timeout-ac 0; powercfg /change monitor-timeout-ac 0; powercfg /x -hibernate-timeout-ac 0; Write-Output 'done'"
-        run_ps "Disable power idle timeouts" "${PS_POWER}" || FAILED=1
+        run_ps "Disable power idle timeouts" \
+            'powercfg /change standby-timeout-ac 0; powercfg /change monitor-timeout-ac 0; powercfg /x -hibernate-timeout-ac 0; Write-Output done' \
+            || FAILED=1
 
         # ── Step 6: Disable Server Manager auto-start ──
-        # Server Manager opens on every login by default and clutters the VNC desktop.
-        PS_SRVMGR="\$p = 'HKLM:\\SOFTWARE\\Microsoft\\ServerManager'; Set-ItemProperty -Path \$p -Name DoNotOpenServerManagerAtLogon -Value 1 -Type DWord -Force; Write-Output 'done'"
-        run_ps "Disable Server Manager auto-start" "${PS_SRVMGR}" || FAILED=1
+        run_ps "Disable Server Manager auto-start" \
+            '$p = "HKLM:\SOFTWARE\Microsoft\ServerManager"; Set-ItemProperty -Path $p -Name DoNotOpenServerManagerAtLogon -Value 1 -Type DWord -Force; Write-Output done' \
+            || FAILED=1
 
         # ── Step 7: Disable machine inactivity limit (Group Policy) ──
-        # Prevents Windows from locking after X seconds of inactivity
-        # via the security policy InactivityTimeoutSecs.
-        PS_INACTIVITY="\$p = 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System'; Set-ItemProperty -Path \$p -Name InactivityTimeoutSecs -Value 0 -Type DWord -Force; Write-Output 'done'"
-        run_ps "Disable inactivity lock" "${PS_INACTIVITY}" || FAILED=1
+        run_ps "Disable inactivity lock" \
+            '$p = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"; Set-ItemProperty -Path $p -Name InactivityTimeoutSecs -Value 0 -Type DWord -Force; Write-Output done' \
+            || FAILED=1
 
         # ── Summary ──
         echo ""
@@ -186,8 +244,7 @@ data:
             echo "Windows will auto-login and never lock the screen."
             echo "Changes take full effect after the next reboot."
         else
-            echo "=== PARTIAL: Some steps failed for ${VM_NAME} ==="
-            echo "Review the output above. Autologon may still work."
-            echo "Re-run after fixing any issues."
+            echo "=== FAILED: Some steps failed for ${VM_NAME} ==="
+            echo "Review the output above. Next CronJob tick will retry."
             exit 1
         fi
