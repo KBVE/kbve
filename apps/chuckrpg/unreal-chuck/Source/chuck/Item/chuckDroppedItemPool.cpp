@@ -49,7 +49,7 @@ void UchuckDroppedItemPool::Deinitialize()
 	Super::Deinitialize();
 }
 
-AchuckDroppedItemActor* UchuckDroppedItemPool::SpawnDrop(int32 ItemKey, int32 Count, EchuckItemRarity Rarity, const FLinearColor& RarityColor, const FVector& Loc, UTexture2D* IconTexture, UTexture2D* HaloTexture, UMaterialInterface* SharedMat)
+AchuckDroppedItemActor* UchuckDroppedItemPool::SpawnDrop(int32 ItemKey, int32 Count, EchuckItemRarity Rarity, const FLinearColor& RarityColor, const FVector& Loc, UMaterialInstanceDynamic* IconMID, UMaterialInstanceDynamic* HaloMID)
 {
 	if (ItemKey <= 0 || Count <= 0) return nullptr;
 
@@ -71,7 +71,7 @@ AchuckDroppedItemActor* UchuckDroppedItemPool::SpawnDrop(int32 ItemKey, int32 Co
 		AllActors.Add(A);
 	}
 
-	A->Acquire(ItemKey, Count, Rarity, RarityColor, Loc, IconTexture, HaloTexture, SharedMat);
+	A->Acquire(ItemKey, Count, Rarity, RarityColor, Loc, IconMID, HaloMID);
 	ActiveDrops.Add(A);
 	return A;
 }

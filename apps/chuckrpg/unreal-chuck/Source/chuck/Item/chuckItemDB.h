@@ -31,6 +31,8 @@ public:
 	UTexture2D* GetIconTexture(int32 ItemKey);
 	UTexture2D* GetRadialDiscTexture();
 	class UMaterialInterface* GetTranslucentBillboardMaterial();
+	class UMaterialInstanceDynamic* GetIconMID(int32 ItemKey);
+	class UMaterialInstanceDynamic* GetHaloMID(EchuckItemRarity Rarity, const FLinearColor& RarityColor);
 
 	static constexpr int32 AtlasGridSize = 32;
 	static constexpr int32 AtlasTilePixels = 64;
@@ -46,6 +48,12 @@ private:
 
 	UPROPERTY()
 	TMap<int32, TObjectPtr<UTexture2D>> IconTextureCache;
+
+	UPROPERTY()
+	TMap<int32, TObjectPtr<class UMaterialInstanceDynamic>> IconMIDCache;
+
+	UPROPERTY()
+	TMap<uint8, TObjectPtr<class UMaterialInstanceDynamic>> HaloMIDByRarity;
 
 	UPROPERTY()
 	TObjectPtr<UTexture2D> RadialDiscTex = nullptr;

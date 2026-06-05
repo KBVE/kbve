@@ -17,7 +17,7 @@ public:
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;
 
-	AchuckDroppedItemActor* SpawnDrop(int32 ItemKey, int32 Count, EchuckItemRarity Rarity, const FLinearColor& RarityColor, const FVector& Loc, class UTexture2D* IconTexture, class UTexture2D* HaloTexture, class UMaterialInterface* SharedMat);
+	AchuckDroppedItemActor* SpawnDrop(int32 ItemKey, int32 Count, EchuckItemRarity Rarity, const FLinearColor& RarityColor, const FVector& Loc, class UMaterialInstanceDynamic* IconMID, class UMaterialInstanceDynamic* HaloMID);
 	void ReleaseDrop(AchuckDroppedItemActor* Actor);
 
 	const TArray<AchuckDroppedItemActor*>& GetActiveDrops() const { return ActiveDrops; }

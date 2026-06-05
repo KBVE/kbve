@@ -17,6 +17,7 @@
 
 #include "chuckCharacterMovementComponent.h"
 #include "chuckDroppedItemPool.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "chuckEventPayloads.h"
 #include "chuckInputs.h"
 #include "chuckInventoryFragment.h"
@@ -520,10 +521,9 @@ bool AchuckCoreCharacter::ServerDropSlot(int32 SlotIndex, bool bHotbar, int32 Dr
 	const FVector Fwd = GetActorForwardVector();
 	const FVector Loc = GetActorLocation() + Fwd * 110.f + FVector(0, 0, -30.f);
 	const FLinearColor RarityColor = chuckItem::RarityColor(Def->Rarity);
-	UTexture2D* IconTex = DB->GetIconTexture(ItemKey);
-	UTexture2D* HaloTex = DB->GetRadialDiscTexture();
-	UMaterialInterface* SharedMat = DB->GetTranslucentBillboardMaterial();
-	Pool->SpawnDrop(ItemKey, N, Def->Rarity, RarityColor, Loc, IconTex, HaloTex, SharedMat);
+	UMaterialInstanceDynamic* IconMID = DB->GetIconMID(ItemKey);
+	UMaterialInstanceDynamic* HaloMID = DB->GetHaloMID(Def->Rarity, RarityColor);
+	Pool->SpawnDrop(ItemKey, N, Def->Rarity, RarityColor, Loc, IconMID, HaloMID);
 
 	Stack.Count -= N;
 	if (Stack.Count <= 0)

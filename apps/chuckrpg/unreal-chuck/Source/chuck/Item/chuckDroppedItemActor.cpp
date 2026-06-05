@@ -1,5 +1,7 @@
 #include "chuckDroppedItemActor.h"
 
+#include "chuckCoreCharacter.h"
+#include "chuckDroppedItemPool.h"
 #include "Components/MaterialBillboardComponent.h"
 #include "Components/PointLightComponent.h"
 #include "Components/SphereComponent.h"
@@ -11,23 +13,27 @@ AchuckDroppedItemActor::AchuckDroppedItemActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickGroup    = TG_PrePhysics;
+	PrimaryActorTick.TickInterval = 0.05f;
 
 	SphereRoot = CreateDefaultSubobject<USphereComponent>(TEXT("SphereRoot"));
-	SphereRoot->InitSphereRadius(45.f);
+	SphereRoot->InitSphereRadius(70.f);
 	SphereRoot->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	SphereRoot->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 	SphereRoot->SetGenerateOverlapEvents(true);
+	SphereRoot->OnComponentBeginOverlap.AddDynamic(this, &AchuckDroppedItemActor::OnSphereBeginOverlap);
 	RootComponent = SphereRoot;
 
 	HaloBillboard = CreateDefaultSubobject<UMaterialBillboardComponent>(TEXT("HaloBillboard"));
 	HaloBillboard->SetupAttachment(RootComponent);
 	HaloBillboard->SetHiddenInGame(false);
 	HaloBillboard->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	HaloBillboard->SetTranslucentSortPriority(0);
 
 	IconBillboard = CreateDefaultSubobject<UMaterialBillboardComponent>(TEXT("IconBillboard"));
 	IconBillboard->SetupAttachment(RootComponent);
 	IconBillboard->SetHiddenInGame(false);
 	IconBillboard->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	IconBillboard->SetTranslucentSortPriority(10);
 
 	RarityLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("RarityLight"));
 	RarityLight->SetupAttachment(RootComponent);
@@ -46,7 +52,7 @@ void AchuckDroppedItemActor::BeginPlay()
 	SetActorTickEnabled(false);
 }
 
-void AchuckDroppedItemActor::Acquire(int32 InItemKey, int32 InCount, EchuckItemRarity InRarity, const FLinearColor& InRarityColor, const FVector& Loc, UTexture2D* IconTexture, UTexture2D* HaloTexture, UMaterialInterface* SharedMat)
+void AchuckDroppedItemActor::Acquire(int32 InItemKey, int32 InCount, EchuckItemRarity InRarity, const FLinearColor& InRarityColor, const FVector& Loc, UMaterialInstanceDynamic* IconMID, UMaterialInstanceDynamic* HaloMID)
 {
 	ItemKey = InItemKey;
 	Count   = InCount;
@@ -54,11 +60,20 @@ void AchuckDroppedItemActor::Acquire(int32 InItemKey, int32 InCount, EchuckItemR
 	RarityColorCache = InRarityColor;
 	BaseLocation = Loc;
 	bActive = true;
+	bHoming = false;
+	HomingTarget = nullptr;
+	HomingTimer = 0.f;
 	BobPhase  = 0.f;
+	GraceTimer = 2.0f;
 
+	SetActorScale3D(FVector::OneVector);
 	SetActorLocation(Loc);
 	SetActorHiddenInGame(false);
 	SetActorTickEnabled(true);
+	if (SphereRoot)
+	{
+		SphereRoot->SetGenerateOverlapEvents(true);
+	}
 
 	if (RarityLight)
 	{
@@ -66,17 +81,11 @@ void AchuckDroppedItemActor::Acquire(int32 InItemKey, int32 InCount, EchuckItemR
 		RarityLight->SetIntensity(2400.f);
 	}
 
-	if (HaloBillboard && SharedMat && HaloTexture)
+	if (HaloBillboard && HaloMID)
 	{
 		HaloBillboard->Elements.Reset();
-		UMaterialInstanceDynamic* HaloMID = UMaterialInstanceDynamic::Create(SharedMat, this);
-		if (HaloMID)
-		{
-			HaloMID->SetTextureParameterValue(TEXT("Texture"), HaloTexture);
-			HaloMID->SetVectorParameterValue (TEXT("Tint"), FLinearColor(InRarityColor.R, InRarityColor.G, InRarityColor.B, 0.85f));
-		}
 		FMaterialSpriteElement Halo;
-		Halo.Material             = HaloMID ? HaloMID : SharedMat;
+		Halo.Material             = HaloMID;
 		Halo.bSizeIsInScreenSpace = false;
 		Halo.BaseSizeX            = 55.f;
 		Halo.BaseSizeY            = 55.f;
@@ -86,17 +95,11 @@ void AchuckDroppedItemActor::Acquire(int32 InItemKey, int32 InCount, EchuckItemR
 		HaloBillboard->UpdateBounds();
 	}
 
-	if (IconBillboard && SharedMat && IconTexture)
+	if (IconBillboard && IconMID)
 	{
 		IconBillboard->Elements.Reset();
-		UMaterialInstanceDynamic* IconMID = UMaterialInstanceDynamic::Create(SharedMat, this);
-		if (IconMID)
-		{
-			IconMID->SetTextureParameterValue(TEXT("Texture"), IconTexture);
-			IconMID->SetVectorParameterValue (TEXT("Tint"), FLinearColor::White);
-		}
 		FMaterialSpriteElement Icon;
-		Icon.Material             = IconMID ? IconMID : SharedMat;
+		Icon.Material             = IconMID;
 		Icon.bSizeIsInScreenSpace = false;
 		Icon.BaseSizeX            = 28.f;
 		Icon.BaseSizeY            = 28.f;
@@ -110,10 +113,15 @@ void AchuckDroppedItemActor::Acquire(int32 InItemKey, int32 InCount, EchuckItemR
 void AchuckDroppedItemActor::Release()
 {
 	bActive = false;
+	bHoming = false;
+	HomingTarget = nullptr;
+	HomingTimer = 0.f;
 	ItemKey = 0;
 	Count   = 0;
+	SetActorScale3D(FVector::OneVector);
 	SetActorHiddenInGame(true);
 	SetActorTickEnabled(false);
+	SetActorTickInterval(0.05f);
 	if (HaloBillboard) HaloBillboard->Elements.Reset();
 	if (IconBillboard) IconBillboard->Elements.Reset();
 }
@@ -122,6 +130,54 @@ void AchuckDroppedItemActor::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	if (!bActive) return;
+
+	if (GraceTimer > 0.f)
+	{
+		GraceTimer -= DeltaSeconds;
+	}
+
+	if (bHoming)
+	{
+		HomingTimer += DeltaSeconds;
+		const float T = FMath::Clamp(HomingTimer / FMath::Max(HomingDuration, KINDA_SMALL_NUMBER), 0.f, 1.f);
+
+		AActor* Target = HomingTarget.Get();
+		FVector AimLoc = BaseLocation;
+		if (Target)
+		{
+			AimLoc = Target->GetActorLocation() + FVector(0.f, 0.f, 60.f);
+		}
+		const float EaseIn = T * T;
+		const FVector NewLoc = FMath::Lerp(BaseLocation, AimLoc, EaseIn);
+		SetActorLocation(NewLoc);
+
+		const float Scale = FMath::Lerp(1.f, 0.05f, EaseIn);
+		SetActorScale3D(FVector(Scale));
+
+		if (RarityLight)
+		{
+			RarityLight->SetIntensity((1.f - T) * 2400.f);
+		}
+
+		if (T >= 1.f)
+		{
+			AchuckCoreCharacter* Char = Cast<AchuckCoreCharacter>(Target);
+			if (Char && Char->HasAuthority() && ItemKey > 0 && Count > 0)
+			{
+				Char->ServerAddItemByKey(ItemKey, Count);
+			}
+			if (UWorld* W = GetWorld())
+			{
+				if (UchuckDroppedItemPool* Pool = W->GetSubsystem<UchuckDroppedItemPool>())
+				{
+					Pool->ReleaseDrop(this);
+					return;
+				}
+			}
+			Release();
+		}
+		return;
+	}
 
 	BobPhase = FMath::Fmod(BobPhase + DeltaSeconds, 1000.f);
 	const float Bob = FMath::Sin(BobPhase * 3.0f) * 6.f;
@@ -133,5 +189,24 @@ void AchuckDroppedItemActor::Tick(float DeltaSeconds)
 	{
 		const float Pulse = 0.5f + 0.5f * FMath::Sin(BobPhase * 4.0f);
 		RarityLight->SetIntensity(1900.f + Pulse * 900.f);
+	}
+}
+
+void AchuckDroppedItemActor::OnSphereBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!bActive || bHoming || GraceTimer > 0.f) return;
+	if (!OtherActor || OtherActor == this) return;
+	AchuckCoreCharacter* Char = Cast<AchuckCoreCharacter>(OtherActor);
+	if (!Char) return;
+	if (!Char->HasAuthority()) return;
+
+	bHoming      = true;
+	HomingTarget = OtherActor;
+	HomingTimer  = 0.f;
+	BaseLocation = GetActorLocation();
+	SetActorTickInterval(0.f);
+	if (SphereRoot)
+	{
+		SphereRoot->SetGenerateOverlapEvents(false);
 	}
 }

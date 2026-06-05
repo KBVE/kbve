@@ -7,8 +7,10 @@
 #include "chuckItemTypes.h"
 #include "chuckUIEvents.h"
 #include "Engine/GameInstance.h"
+#include "Engine/Texture2D.h"
 #include "Rendering/DrawElements.h"
 #include "SKBVESlotWidget.h"
+#include "Styling/SlateBrush.h"
 #include "Widgets/SLeafWidget.h"
 
 namespace
@@ -18,22 +20,24 @@ namespace
 	public:
 		SLATE_BEGIN_ARGS(SchuckDragIcon)
 			: _IconSize(64.f)
-			, _Alpha(0.55f)
+			, _Alpha(0.85f)
 		{}
-			SLATE_ARGUMENT(FSlateResourceHandle, AtlasHandle)
-			SLATE_ARGUMENT(FVector2D, UVTL)
-			SLATE_ARGUMENT(FVector2D, UVBR)
+			SLATE_ARGUMENT(UTexture2D*, IconTexture)
 			SLATE_ARGUMENT(float, IconSize)
 			SLATE_ARGUMENT(float, Alpha)
 		SLATE_END_ARGS()
 
 		void Construct(const FArguments& InArgs)
 		{
-			AtlasHandle = InArgs._AtlasHandle;
-			UVTL        = InArgs._UVTL;
-			UVBR        = InArgs._UVBR;
-			IconSize    = InArgs._IconSize;
-			Alpha       = InArgs._Alpha;
+			IconSize = InArgs._IconSize;
+			Alpha    = InArgs._Alpha;
+			if (InArgs._IconTexture)
+			{
+				IconBrush.SetResourceObject(InArgs._IconTexture);
+				IconBrush.ImageSize = FVector2D(InArgs._IconTexture->GetSizeX(), InArgs._IconTexture->GetSizeY());
+				IconBrush.DrawAs = ESlateBrushDrawType::Image;
+				bHasBrush = true;
+			}
 			SetCanTick(false);
 		}
 
@@ -47,53 +51,33 @@ namespace
 			FSlateWindowElementList& Out, int32 Layer,
 			const FWidgetStyle&, bool) const override
 		{
-			if (!AtlasHandle.IsValid()) return Layer;
-
+			if (!bHasBrush) return Layer;
 			const FVector2D Size = Geom.GetLocalSize();
 
-			auto MakeQuad = [&](const FVector2D& Offset, float ScaleAdj, const FColor& Tint)
-			{
-				const float Pad = -ScaleAdj * 0.5f;
-				const FVector2D P0(Pad,                  Pad);
-				const FVector2D P1(Size.X - Pad,         Pad);
-				const FVector2D P2(Size.X - Pad,         Size.Y - Pad);
-				const FVector2D P3(Pad,                  Size.Y - Pad);
+			// Drop shadow (offset, dark tint, slightly larger)
+			const FVector2D ShadowOffset(3.f, 5.f);
+			const FVector2D ShadowSize = Size + FVector2D(2.f, 2.f);
+			FSlateDrawElement::MakeBox(
+				Out, Layer,
+				Geom.ToPaintGeometry(ShadowSize, FSlateLayoutTransform(ShadowOffset - FVector2D(1.f, 1.f))),
+				&IconBrush, ESlateDrawEffect::None,
+				FLinearColor(0.f, 0.f, 0.f, 0.55f));
 
-				TArray<FSlateVertex> Verts; Verts.Reserve(4);
-				auto AddV = [&](const FVector2D& Local, const FVector2D& UV)
-				{
-					FSlateVertex Vx;
-					Vx.Position = FVector2f(Geom.LocalToAbsolute(Local + Offset));
-					Vx.Color = Tint;
-					Vx.TexCoords[0] = UV.X; Vx.TexCoords[1] = UV.Y;
-					Vx.TexCoords[2] = 1.f;  Vx.TexCoords[3] = 1.f;
-					Vx.MaterialTexCoords = FVector2f::ZeroVector;
-					Verts.Add(Vx);
-				};
-				AddV(P0, UVTL);
-				AddV(P1, FVector2D(UVBR.X, UVTL.Y));
-				AddV(P2, UVBR);
-				AddV(P3, FVector2D(UVTL.X, UVBR.Y));
-				return Verts;
-			};
-			TArray<SlateIndex> Idx = { 0, 1, 2, 0, 2, 3 };
+			// Icon
+			FSlateDrawElement::MakeBox(
+				Out, Layer + 1,
+				Geom.ToPaintGeometry(Size, FSlateLayoutTransform(FVector2D::ZeroVector)),
+				&IconBrush, ESlateDrawEffect::None,
+				FLinearColor(1.f, 1.f, 1.f, Alpha));
 
-			const FColor ShadowTint = FLinearColor(0.f, 0.f, 0.f, 0.40f).ToFColor(true);
-			TArray<FSlateVertex> ShadowVerts = MakeQuad(FVector2D(4.f, 6.f), 6.f, ShadowTint);
-			FSlateDrawElement::MakeCustomVerts(Out, Layer, AtlasHandle, ShadowVerts, Idx, nullptr, 0, 0);
-
-			const FColor IconTint = FLinearColor(1.f, 1.f, 1.f, Alpha).ToFColor(true);
-			TArray<FSlateVertex> IconVerts = MakeQuad(FVector2D::ZeroVector, 8.f, IconTint);
-			FSlateDrawElement::MakeCustomVerts(Out, Layer + 1, AtlasHandle, IconVerts, Idx, nullptr, 0, 0);
 			return Layer + 2;
 		}
 
 	private:
-		FSlateResourceHandle AtlasHandle;
-		FVector2D UVTL = FVector2D::ZeroVector;
-		FVector2D UVBR = FVector2D(1.f, 1.f);
+		FSlateBrush IconBrush;
+		bool  bHasBrush = false;
 		float IconSize = 64.f;
-		float Alpha = 0.55f;
+		float Alpha = 0.85f;
 	};
 }
 
@@ -169,23 +153,18 @@ void SchuckInventorySlot::Construct(const FArguments& InArgs)
 	];
 }
 
-TSharedPtr<SWidget> SchuckInventorySlot::BuildDragDecorator() const
+TSharedPtr<SWidget> SchuckInventorySlot::BuildDragDecorator()
 {
 	const FchuckItemDef* Def = GetDef();
 	UchuckItemDB* DB = GetDB();
-	if (!Def || !DB || !DB->HasAtlas() || !DB->GetAtlasHandle().IsValid())
-	{
-		return nullptr;
-	}
-	FVector2D UVTL, UVBR;
-	DB->GetIconUV(Def->Key, UVTL, UVBR);
+	if (!Def || !DB) return nullptr;
+	UTexture2D* IconTex = DB->GetIconTexture(Def->Key);
+	if (!IconTex) return nullptr;
 
 	return SNew(SchuckDragIcon)
-		.AtlasHandle(DB->GetAtlasHandle())
-		.UVTL(UVTL)
-		.UVBR(UVBR)
+		.IconTexture(IconTex)
 		.IconSize(SlotSize * 1.15f)
-		.Alpha(0.9f);
+		.Alpha(0.95f);
 }
 
 void SchuckInventorySlot::OnHover(bool bEntered, const FVector2D& ScreenPos)

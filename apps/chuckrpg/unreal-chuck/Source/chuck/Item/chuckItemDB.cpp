@@ -5,6 +5,7 @@
 #include "HAL/PlatformFileManager.h"
 #include "ImageUtils.h"
 #include "Materials/Material.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -242,7 +243,7 @@ UTexture2D* UchuckItemDB::GetRadialDiscTexture()
 {
 	if (RadialDiscTex) return RadialDiscTex;
 
-	constexpr int32 Size = 128;
+	constexpr int32 Size = 256;
 	UTexture2D* T = UTexture2D::CreateTransient(Size, Size, PF_B8G8R8A8);
 	if (!T) return nullptr;
 	T->SRGB = false;
@@ -256,6 +257,11 @@ UTexture2D* UchuckItemDB::GetRadialDiscTexture()
 	if (FColor* Pixels = (FColor*)Mip.BulkData.Lock(LOCK_READ_WRITE))
 	{
 		const float Center = Size * 0.5f;
+		// Specular highlight position (upper-left quadrant, "light from top-left")
+		const float HxNorm = -0.38f;
+		const float HyNorm = -0.42f;
+		const float HSigma = 0.18f;
+
 		for (int32 Y = 0; Y < Size; ++Y)
 		{
 			for (int32 X = 0; X < Size; ++X)
@@ -263,18 +269,38 @@ UTexture2D* UchuckItemDB::GetRadialDiscTexture()
 				const float dx = (X + 0.5f - Center) / Center;
 				const float dy = (Y + 0.5f - Center) / Center;
 				const float r2 = dx * dx + dy * dy;
-				float a = 0.f;
+
+				float A = 0.f;
+				float R = 1.f, G = 1.f, B = 1.f;
+
 				if (r2 < 1.f)
 				{
 					const float r = FMath::Sqrt(r2);
-					const float Inner  = FMath::Clamp(1.f - r / 0.85f, 0.f, 1.f) * 0.18f;
-					const float Rim    = FMath::Clamp((r - 0.78f) / 0.18f, 0.f, 1.f) *
-					                     FMath::Clamp((0.97f - r) / 0.19f, 0.f, 1.f) * 1.1f;
-					a = FMath::Min(1.f, Inner + Rim);
+					// Faint inner fill (soft glass interior)
+					const float Inner = FMath::Pow(FMath::Clamp(1.f - r / 0.78f, 0.f, 1.f), 1.6f) * 0.10f;
+					// Smooth bright outer rim (Fresnel-like band)
+					const float Rim   = FMath::Pow(FMath::Clamp((r - 0.72f) / 0.22f, 0.f, 1.f), 1.4f) *
+					                    FMath::Pow(FMath::Clamp((0.99f - r) / 0.27f, 0.f, 1.f), 0.8f) * 0.95f;
+					// Specular highlight bright spot
+					const float Hx = dx - HxNorm;
+					const float Hy = dy - HyNorm;
+					const float Hd2 = Hx * Hx + Hy * Hy;
+					const float Spec = FMath::Exp(-Hd2 / (HSigma * HSigma)) * 0.85f;
+
+					A = FMath::Min(1.f, Inner + Rim + Spec);
+
+					// Slight cool tint on the rim (looks more glass-like)
+					const float RimMix = FMath::Clamp(Rim * 1.5f, 0.f, 1.f);
+					R = FMath::Lerp(1.f, 0.78f, RimMix);
+					G = FMath::Lerp(1.f, 0.92f, RimMix);
+					B = 1.f;
 				}
+
 				FColor& C = Pixels[Y * Size + X];
-				C.B = 255; C.G = 255; C.R = 255;
-				C.A = (uint8)FMath::Clamp(a * 255.f, 0.f, 255.f);
+				C.R = (uint8)FMath::Clamp(R * 255.f, 0.f, 255.f);
+				C.G = (uint8)FMath::Clamp(G * 255.f, 0.f, 255.f);
+				C.B = (uint8)FMath::Clamp(B * 255.f, 0.f, 255.f);
+				C.A = (uint8)FMath::Clamp(A * 255.f, 0.f, 255.f);
 			}
 		}
 		Mip.BulkData.Unlock();
@@ -369,9 +395,89 @@ UTexture2D* UchuckItemDB::GetIconTexture(int32 ItemKey)
 			const FColor* SrcRow = AtlasPixels.GetData() + (Y0 + Y) * AtlasW + X0;
 			FMemory::Memcpy(Dst + Y * W, SrcRow, W * sizeof(FColor));
 		}
+
+		// Alpha-aware RGB bleed: copy nearest opaque RGB into transparent pixels
+		// so bilinear filtering doesn't pull black halo into icon edges.
+		TArray<FColor> Snap;
+		Snap.SetNumUninitialized(W * H);
+		FMemory::Memcpy(Snap.GetData(), Dst, W * H * sizeof(FColor));
+
+		const int32 Radius = 3;
+		for (int32 Y = 0; Y < H; ++Y)
+		{
+			for (int32 X = 0; X < W; ++X)
+			{
+				if (Snap[Y * W + X].A >= 32) continue;
+				int32 BestD2 = INT32_MAX;
+				FColor BestC(0, 0, 0, 0);
+				for (int32 Dy = -Radius; Dy <= Radius; ++Dy)
+				{
+					const int32 Ny = Y + Dy;
+					if (Ny < 0 || Ny >= H) continue;
+					for (int32 Dx = -Radius; Dx <= Radius; ++Dx)
+					{
+						const int32 Nx = X + Dx;
+						if (Nx < 0 || Nx >= W) continue;
+						const FColor& N = Snap[Ny * W + Nx];
+						if (N.A < 128) continue;
+						const int32 D2 = Dx * Dx + Dy * Dy;
+						if (D2 < BestD2)
+						{
+							BestD2 = D2;
+							BestC  = N;
+						}
+					}
+				}
+				if (BestD2 != INT32_MAX)
+				{
+					FColor& Out = Dst[Y * W + X];
+					Out.R = BestC.R;
+					Out.G = BestC.G;
+					Out.B = BestC.B;
+				}
+			}
+		}
+
 		Mip.BulkData.Unlock();
 	}
 	T->UpdateResource();
 	IconTextureCache.Add(ItemKey, T);
 	return T;
+}
+
+UMaterialInstanceDynamic* UchuckItemDB::GetIconMID(int32 ItemKey)
+{
+	if (TObjectPtr<UMaterialInstanceDynamic>* Cached = IconMIDCache.Find(ItemKey))
+	{
+		return Cached->Get();
+	}
+	UMaterialInterface* Base = GetTranslucentBillboardMaterial();
+	if (!Base) return nullptr;
+	UTexture2D* Tex = GetIconTexture(ItemKey);
+	if (!Tex) return nullptr;
+	UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Base, this);
+	if (!MID) return nullptr;
+	MID->SetTextureParameterValue(TEXT("Texture"), Tex);
+	MID->SetVectorParameterValue (TEXT("Tint"),    FLinearColor::White);
+	IconMIDCache.Add(ItemKey, MID);
+	return MID;
+}
+
+UMaterialInstanceDynamic* UchuckItemDB::GetHaloMID(EchuckItemRarity Rarity, const FLinearColor& RarityColor)
+{
+	const uint8 Key = (uint8)Rarity;
+	if (TObjectPtr<UMaterialInstanceDynamic>* Cached = HaloMIDByRarity.Find(Key))
+	{
+		return Cached->Get();
+	}
+	UMaterialInterface* Base = GetTranslucentBillboardMaterial();
+	if (!Base) return nullptr;
+	UTexture2D* Disc = GetRadialDiscTexture();
+	if (!Disc) return nullptr;
+	UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Base, this);
+	if (!MID) return nullptr;
+	MID->SetTextureParameterValue(TEXT("Texture"), Disc);
+	MID->SetVectorParameterValue (TEXT("Tint"), FLinearColor(RarityColor.R, RarityColor.G, RarityColor.B, 0.85f));
+	HaloMIDByRarity.Add(Key, MID);
+	return MID;
 }
