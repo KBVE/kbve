@@ -1,16 +1,27 @@
-# ConfigMap with the Windows autologon + VNC-ready configuration script.
+# ConfigMap with the Windows bootstrap configuration script.
 #
-# Uses the QEMU Guest Agent (via virsh in the virt-launcher pod) to set
-# Windows registry keys for:
-#   1. Automatic Administrator login at boot (no lock screen)
-#   2. Disable Ctrl+Alt+Del requirement (Windows Server default)
-#   3. Disable screen lock, screensaver, and idle timeout
-#   4. Disable Server Manager auto-start (cleans up the VNC desktop)
+# Uses the QEMU Guest Agent (via virsh in the virt-launcher pod) to keep
+# the builder VM in a sane operating state on every CronJob tick:
+#
+#   Autologon / VNC-ready (steps 1–7)
+#     1. AutoAdminLogon + DefaultUserName + DefaultPassword
+#     2. Disable Ctrl+Alt+Del requirement
+#     3. Disable lock screen, screensaver, idle timeout
+#     4. Disable Server Manager auto-start
+#     5. Disable inactivity-lock group policy
+#
+#   Build-time bootstrap (steps 8–11)
+#     8. NTP — pin pool.ntp.org + force resync so TLS chains validate
+#     9. Machine HTTP_PROXY / HTTPS_PROXY / NO_PROXY env vars routed
+#        through gluetun-builder-egress for long-lived downloads
+#    10. WinHTTP proxy + bypass list (winget / VS Installer / .NET)
+#    11. Chocolatey proxy (if choco is installed)
 #
 # The admin password is injected as ADMIN_PASSWORD env var from a Secret —
 # it never appears in this ConfigMap or anywhere in the repo.
 #
-# Idempotent: safe to run multiple times (overwrites same registry keys).
+# Idempotent: safe to run on every CronJob tick (overwrites same registry
+# keys / proxy config / re-issues w32tm resync).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -237,12 +248,55 @@ data:
             '$p = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"; Set-ItemProperty -Path $p -Name InactivityTimeoutSecs -Value 0 -Type DWord -Force; Write-Output done' \
             || FAILED=1
 
+        # ── Step 8: NTP — pin time source + force resync ──
+        # KubeVirt VMs drift out of sync with real time after long
+        # power-off windows, so when the runner comes up its clock can
+        # be hours or days behind. choco / winget / VS installers
+        # validate TLS chains against system time, so a skewed clock
+        # presents as "SSL connection error" even when the network is
+        # healthy. Pin a stable NTP pool, mark this host as a reliable
+        # source so w32time will trust the answer, and force a resync
+        # every tick. Resync is cheap when the clock is already correct.
+        run_ps "Sync system clock (NTP)" \
+            'net start w32time | Out-Null; w32tm /config /manualpeerlist:"pool.ntp.org time.windows.com,0x9" /syncfromflags:manual /reliable:yes /update | Out-Null; w32tm /resync /force | Out-Null; Write-Output done' \
+            || FAILED=1
+
+        # ── Step 9: System-wide HTTP_PROXY env vars ──
+        # The gluetun-builder-egress pod exposes a CONNECT proxy on
+        # :8888 that terminates a WireGuard tunnel. Pointing the VM's
+        # machine-wide proxy at the cluster-internal svc URL keeps
+        # large downloads (VS bundles, UE installers, choco packages)
+        # alive on the tunnel side instead of dying through the
+        # masquerade NAT idle timeout. NO_PROXY bypasses cluster +
+        # local hosts so guest-agent / file-server still talk direct.
+        run_ps "Set machine HTTP_PROXY env" \
+            '$proxy = "http://gluetun-builder-egress.angelscript.svc.cluster.local:8888"; $bypass = "*.svc.cluster.local,*.cluster.local,localhost,127.0.0.1,169.254.169.254"; [System.Environment]::SetEnvironmentVariable("HTTP_PROXY", $proxy, "Machine"); [System.Environment]::SetEnvironmentVariable("HTTPS_PROXY", $proxy, "Machine"); [System.Environment]::SetEnvironmentVariable("NO_PROXY", $bypass, "Machine"); Write-Output done' \
+            || FAILED=1
+
+        # ── Step 10: WinHTTP proxy (winget / .NET / VS installer) ──
+        # WinHTTP is a separate proxy stack from the machine env var;
+        # winget + the VS Installer + .NET runtimes all read it. Set
+        # the same upstream + bypass list so they take the tunnel too.
+        run_ps "Set WinHTTP proxy" \
+            'netsh winhttp set proxy proxy-server="gluetun-builder-egress.angelscript.svc.cluster.local:8888" bypass-list="*.svc.cluster.local;*.cluster.local;<local>" | Out-Null; Write-Output done' \
+            || FAILED=1
+
+        # ── Step 11: Chocolatey proxy (if installed) ──
+        # choco has its own config file; pointing it at the same
+        # gluetun proxy makes `choco install` survive >5 minute
+        # downloads. Skip cleanly when choco isn't installed yet
+        # (first boot ordering).
+        run_ps "Configure chocolatey proxy" \
+            'if (Get-Command choco -ErrorAction SilentlyContinue) { & choco config set proxy "http://gluetun-builder-egress.angelscript.svc.cluster.local:8888" --limit-output | Out-Null; & choco config set proxyBypassList "*.svc.cluster.local,*.cluster.local,localhost,127.0.0.1" --limit-output | Out-Null; Write-Output configured } else { Write-Output "choco not installed, skipping" }' \
+            || FAILED=1
+
         # ── Summary ──
         echo ""
         if [ "${FAILED}" = "0" ]; then
-            echo "=== SUCCESS: All VNC-ready settings applied to ${VM_NAME} ==="
-            echo "Windows will auto-login and never lock the screen."
-            echo "Changes take full effect after the next reboot."
+            echo "=== SUCCESS: All VM bootstrap settings applied to ${VM_NAME} ==="
+            echo "Windows will auto-login, clock is NTP-synced, downloads"
+            echo "routed through gluetun-builder-egress proxy."
+            echo "Some settings (autologon, env vars) take effect on next reboot."
         else
             echo "=== FAILED: Some steps failed for ${VM_NAME} ==="
             echo "Review the output above. Next CronJob tick will retry."
