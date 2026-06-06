@@ -1,0 +1,33 @@
+---
+title: Watch Tower
+description: 5×12×5 wood-and-stone watch tower — Tier 2 perimeter defense.
+sidebar:
+    label: Watch Tower
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-schematic
+mc_schematic:
+    schematic_id: starter:watch_tower
+    display_name: Watch Tower
+    category: tower
+    tier: 2
+    dims_x: 5
+    dims_y: 12
+    dims_z: 5
+    price_credits: 650
+    price_khash: 0
+    resource_path: schematics/starter/watch_tower.nbt
+    enabled: true
+    tags:
+        - starter
+        - defense
+    about:
+        summary: Narrow 5×5 footprint tower with an open battlement up top.
+        lore: Slot it into a corner of a settlement for a lookout that doesn't eat much real estate.
+---
+
+import MCSchematicPanel from '@/components/mcdb/MCSchematicPanel.astro';
+
+<MCSchematicPanel data={frontmatter.mc_schematic} />

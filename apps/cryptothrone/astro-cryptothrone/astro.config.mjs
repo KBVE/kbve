@@ -10,7 +10,12 @@ const coveragePlugins = coverage
 	? [
 			istanbul({
 				include: 'src/**/*.{ts,tsx}',
-				exclude: ['node_modules', '**/*.spec.ts', '**/*.d.ts'],
+				exclude: [
+					'node_modules',
+					'**/*.spec.ts',
+					'**/*.test.ts',
+					'**/*.d.ts',
+				],
 				extension: ['.ts', '.tsx'],
 				forceBuildInstrument: false,
 			}),

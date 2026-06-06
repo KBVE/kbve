@@ -1,0 +1,33 @@
+---
+title: Starter Cottage
+description: 7×6×7 timber cottage — Tier 1 starter house for new arrivals.
+sidebar:
+    label: Starter Cottage
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-schematic
+mc_schematic:
+    schematic_id: starter:cottage
+    display_name: Starter Cottage
+    category: house
+    tier: 1
+    dims_x: 7
+    dims_y: 6
+    dims_z: 7
+    price_credits: 200
+    price_khash: 0
+    resource_path: schematics/starter/cottage.nbt
+    enabled: true
+    tags:
+        - starter
+        - house
+    about:
+        summary: Single-room timber cottage with a stone hearth and a sloped roof.
+        lore: First-home grant. Cheap to build, easy to extend, and forgiving on smaller lots.
+---
+
+import MCSchematicPanel from '@/components/mcdb/MCSchematicPanel.astro';
+
+<MCSchematicPanel data={frontmatter.mc_schematic} />

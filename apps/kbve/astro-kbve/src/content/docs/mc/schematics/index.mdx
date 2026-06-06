@@ -1,0 +1,31 @@
+---
+title: Schematic Catalog
+description: |
+    Build templates that the survival worker can apply to a purchased lot.
+    Source of truth for the lot dashboard schematic picker.
+tableOfContents: false
+graph:
+    visible: false
+sidebar:
+    label: Schematics
+    order: 5
+tags:
+    - minecraft
+    - mc
+    - mc-lot
+---
+
+import MCSchematicCatalog from '@/components/mcdb/MCSchematicCatalog.astro';
+
+The catalog below is the editorial source of truth for every build
+template the worker can apply to a lot. Each entry is a Markdown record
+with the dimensions, price, and resource path that the worker mod reads
+when it picks up a build job.
+
+To add or change a schematic, edit the MDX file under
+`src/content/docs/mc/schematics/`. The dashboard reads the published
+JSON snapshot at build time; the database catalog (`mc.schematic`) is
+loaded from the same snapshot by ops tooling rather than hand-rolled
+SQL.
+
+<MCSchematicCatalog />

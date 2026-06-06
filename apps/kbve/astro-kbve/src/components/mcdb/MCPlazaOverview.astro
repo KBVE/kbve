@@ -1,0 +1,221 @@
+---
+import { getCollection } from 'astro:content';
+import { MCLotFrontmatterSchema } from '@/data/schema';
+
+interface Props {
+	world?: string;
+}
+const world = Astro.props.world ?? 'minecraft:overworld';
+
+const entries = await getCollection('docs', (entry) => {
+	const m = (entry.data as { mc_lot?: unknown }).mc_lot;
+	if (!m) return false;
+	try {
+		const parsed = MCLotFrontmatterSchema.parse(m);
+		return parsed.world === world;
+	} catch {
+		return false;
+	}
+});
+
+type LotRow = ReturnType<typeof MCLotFrontmatterSchema.parse> & {
+	slug: string;
+	title: string;
+};
+
+const lots: LotRow[] = entries.map((e) => {
+	const m = MCLotFrontmatterSchema.parse(
+		(e.data as { mc_lot: unknown }).mc_lot,
+	);
+	return {
+		...m,
+		slug: e.id.replace(/\.mdx?$/, '').replace(/^mc\//, ''),
+		title: (e.data as { title?: string }).title ?? m.lot_id,
+	};
+});
+
+const minX = Math.min(...lots.map((l) => l.chunk_x_min)) - 1;
+const maxX = Math.max(...lots.map((l) => l.chunk_x_max)) + 1;
+const minZ = Math.min(...lots.map((l) => l.chunk_z_min)) - 1;
+const maxZ = Math.max(...lots.map((l) => l.chunk_z_max)) + 1;
+const spanX = maxX - minX + 1;
+const spanZ = maxZ - minZ + 1;
+const SIZE = 520;
+const cell = Math.min(SIZE / spanX, SIZE / spanZ);
+const mapW = spanX * cell;
+const mapD = spanZ * cell;
+
+const stateAccent: Record<string, string> = {
+	vacant: '#86efac',
+	owned: '#7dd3fc',
+	built: '#a5b4fc',
+	under_build: '#fcd34d',
+	demolishing: '#fca5a5',
+};
+---
+
+<section class="mcplaza not-content">
+	<header class="mcplaza__head">
+		<h2>Plaza overview · {world}</h2>
+		<p>
+			Every editorial lot in <code>{world}</code> rendered to scale. Click any
+			cell to open its detail page.
+		</p>
+	</header>
+
+	<div class="mcplaza__legend">
+		{
+			Object.entries(stateAccent).map(([state, color]) => (
+				<span class="mcplaza__legend-pill">
+					<i style={`background:${color}`} />
+					{state}
+				</span>
+			))
+		}
+	</div>
+
+	<svg
+		viewBox={`0 0 ${mapW} ${mapD}`}
+		width={mapW}
+		height={mapD}
+		class="mcplaza__svg"
+		role="img"
+		aria-label={`Plaza overview of ${lots.length} lots in ${world}`}>
+		<rect x={0} y={0} width={mapW} height={mapD} fill="#0c0f14"></rect>
+		{
+			Array.from({ length: spanX + 1 }, (_, i) => i).map((i) => (
+				<line
+					x1={i * cell}
+					y1={0}
+					x2={i * cell}
+					y2={mapD}
+					stroke={i % 4 === 0 ? '#3b4252' : '#1c2230'}
+					stroke-width={i % 4 === 0 ? 1 : 0.4}
+				/>
+			))
+		}
+		{
+			Array.from({ length: spanZ + 1 }, (_, i) => i).map((i) => (
+				<line
+					x1={0}
+					y1={i * cell}
+					x2={mapW}
+					y2={i * cell}
+					stroke={i % 4 === 0 ? '#3b4252' : '#1c2230'}
+					stroke-width={i % 4 === 0 ? 1 : 0.4}
+				/>
+			))
+		}
+		{
+			lots.map((lot) => {
+				const x = (lot.chunk_x_min - minX) * cell;
+				const y = (lot.chunk_z_min - minZ) * cell;
+				const w = (lot.chunk_x_max - lot.chunk_x_min + 1) * cell;
+				const h = (lot.chunk_z_max - lot.chunk_z_min + 1) * cell;
+				const accent = stateAccent[lot.state] ?? '#cbd5e1';
+				return (
+					<a href={`/${lot.slug}/`}>
+						<rect
+							x={x}
+							y={y}
+							width={w}
+							height={h}
+							fill={accent}
+							fill-opacity={0.55}
+							stroke="#101218"
+							stroke-width={1}>
+							<title>
+								{lot.title} · {lot.state} · chunks (
+								{lot.chunk_x_min}, {lot.chunk_z_min})..(
+								{lot.chunk_x_max}, {lot.chunk_z_max})
+							</title>
+						</rect>
+						<text
+							x={x + w / 2}
+							y={y + h / 2 + 4}
+							text-anchor="middle"
+							font-size={Math.min(cell * 0.6, 12)}
+							fill="#0c0f14"
+							font-weight="bold">
+							{lot.lot_id.split(':').pop()}
+						</text>
+					</a>
+				);
+			})
+		}
+	</svg>
+
+	<p class="mcplaza__hint">
+		1 grid cell = 1 chunk = 16×16 blocks. Heavier gridlines mark 4-chunk
+		boundaries.
+	</p>
+</section>
+
+<style>
+	.mcplaza {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+		padding: 1rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.6rem;
+		background: var(--sl-color-bg-nav);
+		align-items: flex-start;
+	}
+
+	.mcplaza__head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+	}
+
+	.mcplaza__head h2 {
+		margin: 0;
+		font-size: 1.15rem;
+	}
+
+	.mcplaza__head p {
+		margin: 0;
+		color: var(--sl-color-gray-3);
+		font-size: 0.9em;
+	}
+
+	.mcplaza__legend {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.mcplaza__legend-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		font-size: 0.82em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.mcplaza__legend-pill i {
+		display: inline-block;
+		width: 0.85rem;
+		height: 0.85rem;
+		border-radius: 0.2rem;
+		opacity: 0.65;
+		border: 1px solid var(--sl-color-gray-6);
+	}
+
+	.mcplaza__svg {
+		max-width: 100%;
+		height: auto;
+		border-radius: 0.4rem;
+	}
+
+	.mcplaza__svg a:hover rect {
+		fill-opacity: 0.9;
+	}
+
+	.mcplaza__hint {
+		margin: 0;
+		font-size: 0.78em;
+		color: var(--sl-color-gray-4);
+	}
+</style>

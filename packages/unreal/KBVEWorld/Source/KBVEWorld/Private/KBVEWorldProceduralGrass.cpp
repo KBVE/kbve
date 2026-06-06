@@ -54,76 +54,65 @@ namespace
 		TVertexInstanceAttributesRef<FVector2f> UVs        = Attr.GetVertexInstanceUVs();
 		TVertexInstanceAttributesRef<FVector4f> Colors     = Attr.GetVertexInstanceColors();
 
-		const float HalfW    = W * 0.40f;
-		const float HalfLow  = W * 0.30f;
-		const float HalfMid  = W * 0.20f;
-		const float HalfHigh = W * 0.10f;
-		const float HalfTip  = W * 0.04f;
-		const float HLow     = H * 0.30f;
-		const float HMid     = H * 0.58f;
-		const float HHigh    = H * 0.82f;
-		const float HTip     = H * 0.98f;
-		const float LowYBow  = Bow * 0.25f;
-		const float MidYBow  = Bow * 0.75f;
-		const float HighYBow = Bow * 1.6f;
-		const float TipYBow  = Bow * 2.6f;
-		const FVector3f Local[10] = {
-			FVector3f(-HalfW,   0.f,      0.f),
-			FVector3f( HalfW,   0.f,      0.f),
-			FVector3f( HalfLow, LowYBow,  HLow),
-			FVector3f(-HalfLow, LowYBow,  HLow),
-			FVector3f( HalfMid, MidYBow,  HMid),
-			FVector3f(-HalfMid, MidYBow,  HMid),
-			FVector3f( HalfHigh,HighYBow, HHigh),
-			FVector3f(-HalfHigh,HighYBow, HHigh),
-			FVector3f( HalfTip, TipYBow,  HTip),
-			FVector3f(-HalfTip, TipYBow,  HTip)
-		};
-		const FVector2f UV[10] = {
-			{0.0f, 1.0f}, {1.0f, 1.0f},
-			{0.9f, 0.72f}, {0.1f, 0.72f},
-			{0.78f,0.46f}, {0.22f,0.46f},
-			{0.65f,0.22f}, {0.35f,0.22f},
-			{0.55f,0.02f}, {0.45f,0.02f}
-		};
+		const float HalfRadii[5] = { W * 0.40f, W * 0.30f, W * 0.20f, W * 0.10f, W * 0.04f };
+		const float Heights[5]   = { 0.f, H * 0.30f, H * 0.58f, H * 0.82f, H * 0.98f };
+		const float BowYAt[5]    = { 0.f, Bow * 0.25f, Bow * 0.75f, Bow * 1.6f, Bow * 2.6f };
+		const float BendByLevel[5] = { 0.f, 0.25f, 0.55f, 0.80f, 1.0f };
 
-		TArray<FVertexID> V; V.Reserve(10);
-		for (int i = 0; i < 10; ++i)
+		FVector3f LocalPos[15];
+		for (int i = 0; i < 5; ++i)
+		{
+			const float BackDepth = HalfRadii[i] * 0.85f;
+			LocalPos[i * 3 + 0] = FVector3f(-HalfRadii[i], BowYAt[i],              Heights[i]);
+			LocalPos[i * 3 + 1] = FVector3f( HalfRadii[i], BowYAt[i],              Heights[i]);
+			LocalPos[i * 3 + 2] = FVector3f( 0.f,          BowYAt[i] - BackDepth,  Heights[i]);
+		}
+		const FVector2f UvAt[5] = { {0.5f, 1.0f}, {0.5f, 0.72f}, {0.5f, 0.46f}, {0.5f, 0.22f}, {0.5f, 0.02f} };
+
+		TArray<FVertexID> V; V.Reserve(15);
+		for (int i = 0; i < 15; ++i)
 		{
 			FVertexID Vid = Desc.CreateVertex();
-			Positions[Vid] = FVector3f(CardXform.TransformPosition(FVector(Local[i])));
+			Positions[Vid] = FVector3f(CardXform.TransformPosition(FVector(LocalPos[i])));
 			V.Add(Vid);
 		}
 
-		const float BendByIdx[10] = { 0.0f, 0.0f, 0.25f, 0.25f, 0.55f, 0.55f, 0.80f, 0.80f, 1.0f, 1.0f };
-
-		auto AddTriangle = [&](int a, int b, int c)
+		auto AddTriangle = [&](int a, int b, int c, const FVector3f& N)
 		{
 			TArray<FVertexInstanceID> Inst;
 			for (int idx : {a, b, c})
 			{
+				const int Level = idx / 3;
 				FVertexInstanceID Vi = Desc.CreateVertexInstance(V[idx]);
-				Normals[Vi]  = FVector3f(0.f, -1.f, 0.f);
+				Normals[Vi]  = N;
 				Tangents[Vi] = FVector3f(1.f,  0.f, 0.f);
-				UVs[Vi]      = UV[idx];
-				const float BendT = BendByIdx[idx];
+				UVs[Vi]      = UvAt[Level];
+				const float BendT       = BendByLevel[Level];
 				const float YellowShift = FMath::Clamp(ColorJitter, -0.15f, 0.15f);
-				const float GreenBase = 0.20f + 0.34f * BendT;
-				const float RedTint   = 0.05f + 0.10f * BendT + YellowShift;
-				const float BlueTint  = 0.02f + 0.05f * BendT - FMath::Max(0.f, YellowShift) * 0.5f;
-				Colors[Vi]   = FVector4f(FMath::Clamp(RedTint, 0.f, 1.f), FMath::Clamp(GreenBase, 0.f, 1.f), FMath::Clamp(BlueTint, 0.f, 1.f), 1.f);
+				const float GreenBase   = 0.20f + 0.34f * BendT;
+				const float RedTint     = 0.05f + 0.10f * BendT + YellowShift;
+				const float BlueTint    = 0.02f + 0.05f * BendT - FMath::Max(0.f, YellowShift) * 0.5f;
+				Colors[Vi] = FVector4f(FMath::Clamp(RedTint, 0.f, 1.f), FMath::Clamp(GreenBase, 0.f, 1.f), FMath::Clamp(BlueTint, 0.f, 1.f), 1.f);
 				Inst.Add(Vi);
 			}
 			Desc.CreatePolygon(Group, Inst);
 		};
-		AddTriangle(0, 1, 2);
-		AddTriangle(0, 2, 3);
-		AddTriangle(3, 2, 4);
-		AddTriangle(3, 4, 5);
-		AddTriangle(5, 4, 6);
-		AddTriangle(5, 6, 7);
-		AddTriangle(7, 6, 8);
-		AddTriangle(7, 8, 9);
+
+		const FVector3f NFront(0.f, -1.f, 0.f);
+		const FVector3f NLeft (-0.866f, 0.5f, 0.f);
+		const FVector3f NRight( 0.866f, 0.5f, 0.f);
+
+		for (int i = 0; i < 4; ++i)
+		{
+			const int BL = i * 3 + 0, BR = i * 3 + 1, BS = i * 3 + 2;
+			const int TL = (i + 1) * 3 + 0, TR = (i + 1) * 3 + 1, TS = (i + 1) * 3 + 2;
+			AddTriangle(BL, BR, TR, NFront);
+			AddTriangle(BL, TR, TL, NFront);
+			AddTriangle(BL, TL, TS, NLeft);
+			AddTriangle(BL, TS, BS, NLeft);
+			AddTriangle(BS, TS, TR, NRight);
+			AddTriangle(BS, TR, BR, NRight);
+		}
 	}
 }
 
@@ -153,7 +142,7 @@ UStaticMesh* FKBVEWorldProceduralGrass::GetOrCreateCardMesh(UObject* Outer, cons
 	FPolygonGroupID Group = Desc.CreatePolygonGroup();
 	Attr.GetPolygonGroupMaterialSlotNames()[Group] = TEXT("Grass");
 
-	const int32 BladesPerClump = FMath::Clamp(Spec.CardCount * 9, 16, 28);
+	const int32 BladesPerClump = FMath::Clamp(Spec.CardCount * 4, 8, 14);
 	const float ClumpRadius    = Spec.Width * 2.0f;
 	FRandomStream ClumpRng(GetTypeHash(Spec.UniqueId));
 	const float YawStep = 360.f / static_cast<float>(BladesPerClump);

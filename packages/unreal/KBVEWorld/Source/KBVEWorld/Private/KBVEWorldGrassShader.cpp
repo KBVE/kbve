@@ -6,10 +6,7 @@
 #include "Materials/MaterialExpressionConstant.h"
 #include "Materials/MaterialExpressionMultiply.h"
 #include "Materials/MaterialExpressionAdd.h"
-#include "Materials/MaterialExpressionTextureCoordinate.h"
 #include "Materials/MaterialExpressionComponentMask.h"
-#include "Materials/MaterialExpressionOneMinus.h"
-#include "Materials/MaterialExpressionClamp.h"
 #include "Materials/MaterialExpressionTime.h"
 #include "Materials/MaterialExpressionSine.h"
 #include "Materials/MaterialExpressionWorldPosition.h"
@@ -42,9 +39,8 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateMasterMaterial(UObject* /*
 
 #if WITH_EDITOR
 	UMaterial* M = NewObject<UMaterial>(Outer, TEXT("M_KBVEWorld_Grass"), RF_Transient);
-	M->BlendMode             = BLEND_Masked;
-	M->TwoSided              = true;
-	M->OpacityMaskClipValue  = 0.33f;
+	M->BlendMode             = BLEND_Opaque;
+	M->TwoSided              = false;
 	M->DitheredLODTransition = true;
 	M->SetShadingModel(MSM_DefaultLit);
 
@@ -55,24 +51,6 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateMasterMaterial(UObject* /*
 	UMaterialExpressionMultiply*          Mul     = MakeExpr<UMaterialExpressionMultiply>(M);
 	Mul->A.Expression = VC;
 	Mul->B.Expression = Tint;
-
-	UMaterialExpressionTextureCoordinate* TC      = MakeExpr<UMaterialExpressionTextureCoordinate>(M);
-	UMaterialExpressionComponentMask*     MaskV   = MakeExpr<UMaterialExpressionComponentMask>(M);
-	MaskV->R = false; MaskV->G = true; MaskV->B = false; MaskV->A = false;
-	MaskV->Input.Expression = TC;
-
-	UMaterialExpressionConstant*          TipFade = MakeExpr<UMaterialExpressionConstant>(M);
-	TipFade->R = 1.4f;
-
-	UMaterialExpressionMultiply*          VTimes  = MakeExpr<UMaterialExpressionMultiply>(M);
-	VTimes->A.Expression = MaskV;
-	VTimes->B.Expression = TipFade;
-
-	UMaterialExpressionOneMinus*          OneMinusV = MakeExpr<UMaterialExpressionOneMinus>(M);
-	OneMinusV->Input.Expression = VTimes;
-
-	UMaterialExpressionClamp*             OpClamp = MakeExpr<UMaterialExpressionClamp>(M);
-	OpClamp->Input.Expression = OneMinusV;
 
 	UMaterialExpressionConstant*          Rough   = MakeExpr<UMaterialExpressionConstant>(M);
 	Rough->R = 0.55f;
@@ -129,7 +107,6 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateMasterMaterial(UObject* /*
 
 	UMaterialEditorOnlyData* ED = M->GetEditorOnlyData();
 	ED->BaseColor.Connect(0, Mul);
-	ED->OpacityMask.Connect(0, OpClamp);
 	ED->Roughness.Connect(0, Rough);
 	ED->WorldPositionOffset.Connect(0, WPOFinal);
 
