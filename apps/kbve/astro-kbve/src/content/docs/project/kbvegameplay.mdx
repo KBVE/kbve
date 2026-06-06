@@ -1,0 +1,42 @@
+---
+title: KBVEGameplay
+description: |
+    Game-agnostic consumable + effect framework for KBVE Unreal games — data-driven effect specs (instant restores, over-time regen/DoT, temporary stat buffs, status conditions) applied via IKBVEStatTarget, with cooldown tracking and an animation hook.
+sidebar:
+    label: KBVEGameplay
+    order: 80
+tags:
+    - unreal
+    - gameplay
+key: ue_kbvegameplay
+pipeline: unreal
+plugin_name: KBVEGameplay
+plugin_path: packages/unreal/KBVEGameplay
+version: "0.1.0"
+source_path: packages/unreal/KBVEGameplay
+version_toml: packages/unreal/KBVEGameplay/version.toml
+author: h0lybyte
+license: KBVE
+status: beta
+min_engine_version: "5.4"
+supported_platforms:
+    - Win64
+    - Linux
+    - Mac
+---
+
+## Overview
+
+Game-agnostic consumable + effect framework. A game implements `IKBVEStatTarget`
+(map its stats to FName ids) and attaches `UKBVEEffectComponent`; the plugin owns
+the effect lifecycle from a data-driven `FKBVEEffectSpec`:
+
+- **Restores** — instant stat deltas (heal HP, restore mana/energy).
+- **Regens** — over-time HoT / DoT (`RatePerSecond` × `Duration`).
+- **Buffs** — temporary additive / multiplicative stat modifiers (auto-removed on expiry).
+- **Statuses** — named condition tags (poison / regen / blessed) with stacks + duration.
+- **Cooldown** — per-`SourceKey` gate (`TryApplyEffect` rejects while hot).
+- **AnimationRef** — carried on the spec for the game to drive a montage.
+
+Tick auto-disables when no effects or cooldowns are active. Effect DATA lives in
+the shared itemdb; the game builds an `FKBVEEffectSpec` from its item definition.

@@ -148,7 +148,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.37",
+			"version": "0.1.38",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -676,6 +676,18 @@
 			"version_toml": "packages/unreal/KBVEEvents/version.toml"
 		},
 		{
+			"key": "ue_kbvegameplay",
+			"plugin_name": "KBVEGameplay",
+			"plugin_path": "packages/unreal/KBVEGameplay",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVEGameplay/version.toml"
+		},
+		{
 			"key": "ue_kbvehexworld",
 			"plugin_name": "KBVEHexWorld",
 			"plugin_path": "packages/unreal/KBVEHexWorld",
@@ -903,7 +915,7 @@
 				"license_method": "personal"
 			},
 			"source_path": "apps/rareicon/unity-rareicon",
-			"version": "0.1.7",
+			"version": "0.1.8",
 			"version_toml": "apps/rareicon/unity-rareicon/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unity-rareicon.mdx",
 			"runner": "ubuntu-latest",
@@ -972,12 +984,12 @@
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
-		"unreal": 17,
+		"unreal": 18,
 		"ue5_server": 2,
 		"unity": 1,
 		"godot": 1,
 		"unreal_game": 1,
 		"bevy_game": 0,
-		"total": 81
+		"total": 82
 	}
 }
