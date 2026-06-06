@@ -9,6 +9,7 @@
 
 void SchuckLoadingPanel::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	SetVisibility(EVisibility::HitTestInvisible);
 
 	ChildSlot

@@ -58,6 +58,7 @@ namespace
 
 void SchuckChatPanel::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	Subsystem = InArgs._Subsystem;
 	OwningCharacter = InArgs._OwningCharacter;
 	ActiveChannel = InArgs._DefaultChannel;

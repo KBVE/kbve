@@ -8,6 +8,7 @@
 
 void SKBVETopBar::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	const FSlateBrush* WhiteBrush = FCoreStyle::Get().GetBrush("WhiteBrush");
 	const FSlateColor BgColor = InArgs._BackgroundColor.Get(FSlateColor(FLinearColor(0.04f, 0.05f, 0.07f, 0.95f)));
 

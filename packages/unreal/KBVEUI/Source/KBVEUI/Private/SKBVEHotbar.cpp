@@ -5,6 +5,7 @@
 
 void SKBVEHotbar::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	const int32 SlotCount = FMath::Max(1, InArgs._SlotCount);
 	const float Gap = InArgs._SlotGap;
 	const float Bottom = InArgs._BottomPadding;
