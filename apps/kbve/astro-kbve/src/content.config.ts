@@ -16,6 +16,8 @@ import {
 	MCItemSchema,
 	McEnchantSchema,
 	McBlockSchema,
+	MCSchematicFrontmatterSchema,
+	MCLotFrontmatterSchema,
 } from '@/data/schema';
 
 const OSRSFrontmatterSchema = OSRSExtendedSchema;
@@ -182,6 +184,8 @@ export const collections = {
 				mc_item: MCItemSchema.optional(),
 				mc_enchant: McEnchantSchema.optional(),
 				mc_block: McBlockSchema.optional(),
+				mc_schematic: MCSchematicFrontmatterSchema.optional(),
+				mc_lot: MCLotFrontmatterSchema.optional(),
 				'yt-tracks': z.array(z.string()).optional(),
 				'yt-sets': z.array(z.string()).optional(),
 				// Per-page social-meta overrides consumed by

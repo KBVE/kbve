@@ -1,0 +1,77 @@
+---
+title: Schematic Catalog
+description: |
+    Build templates that the survival worker can apply to a purchased lot.
+    Source of truth for the lot dashboard schematic picker.
+tableOfContents: false
+sidebar:
+    label: Schematics
+    order: 5
+tags:
+    - minecraft
+    - mc
+    - mc-lot
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+The catalog below is the editorial source of truth for every build
+template the worker can apply to a lot. Each entry is a Markdown record
+with the dimensions, price, and resource path that the worker mod reads
+when it picks up a build job.
+
+To add or change a schematic, edit the MDX file under
+`src/content/docs/mc/schematics/`. The dashboard reads the published
+JSON snapshot at build time; the database catalog (`mc.schematic`) is
+loaded from the same snapshot by ops tooling rather than hand-rolled
+SQL.
+
+## Starter — credit-priced
+
+<CardGrid>
+  <LinkCard
+    title="Starter Cottage"
+    description="7×6×7 timber cottage. Tier 1 — first home for new arrivals."
+    href="/mc/schematics/starter-cottage/"
+  />
+  <LinkCard
+    title="Wooden Cabin"
+    description="9×7×11 mid-size cabin with a loft. Tier 2."
+    href="/mc/schematics/starter-cabin/"
+  />
+  <LinkCard
+    title="Watch Tower"
+    description="5×12×5 wood-and-stone watch tower. Tier 2."
+    href="/mc/schematics/starter-tower-watch/"
+  />
+  <LinkCard
+    title="Wheat Farm"
+    description="11×4×11 enclosed wheat field with a water channel."
+    href="/mc/schematics/starter-farm-wheat/"
+  />
+  <LinkCard
+    title="Corner Shop"
+    description="9×6×9 trading post with stalls. Tier 2."
+    href="/mc/schematics/starter-shop-corner/"
+  />
+  <LinkCard
+    title="Storage Silo"
+    description="7×14×7 vertical storage column. Tier 3."
+    href="/mc/schematics/util-storage-silo/"
+  />
+</CardGrid>
+
+## Mid-tier — khash-priced
+
+<CardGrid>
+  <LinkCard
+    title="Castle Keep"
+    description="25×24×25 stone keep with battlements. Tier 5."
+    href="/mc/schematics/mid-castle-keep/"
+  />
+  <LinkCard
+    title="Obelisk Monument"
+    description="5×16×5 obsidian obelisk. Tier 4 decorative monument."
+    href="/mc/schematics/mid-monument-obelisk/"
+  />
+</CardGrid>

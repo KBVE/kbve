@@ -1,0 +1,73 @@
+---
+title: Sample Lot Grid
+description: |
+    Editorial sample lots demonstrating the chunk-bounded layout used by
+    the lot marketplace. Mirror of the on-disk catalog the survival
+    backend ships with.
+tableOfContents: false
+sidebar:
+    label: Sample Lots
+    order: 6
+tags:
+    - minecraft
+    - mc
+    - mc-lot
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+A 3×3 grid of 2×2-chunk sample lots centered on the spawn area at sea
+level. These exist as MDX records, not as rows in the `mc.lot` table —
+the marketplace dashboard renders them so prospective buyers can see
+the shape of a parcel before any real lots are surveyed.
+
+Real parcels are created by admin tooling against the deployed schema
+once a region is opened for sale.
+
+<CardGrid>
+  <LinkCard
+    title="Lot NW · (-4,-4)"
+    description="Outer ring — credit-priced corner parcel."
+    href="/mc/lots/seed-lot-nw/"
+  />
+  <LinkCard
+    title="Lot N · (-1,-4)"
+    description="Outer ring north edge."
+    href="/mc/lots/seed-lot-n/"
+  />
+  <LinkCard
+    title="Lot NE · (2,-4)"
+    description="Outer ring — credit-priced corner parcel."
+    href="/mc/lots/seed-lot-ne/"
+  />
+  <LinkCard
+    title="Lot W · (-4,-1)"
+    description="Outer ring west edge."
+    href="/mc/lots/seed-lot-w/"
+  />
+  <LinkCard
+    title="Lot C · (-1,-1)"
+    description="Center premium parcel — highest credit price."
+    href="/mc/lots/seed-lot-c/"
+  />
+  <LinkCard
+    title="Lot E · (2,-1)"
+    description="Outer ring east edge."
+    href="/mc/lots/seed-lot-e/"
+  />
+  <LinkCard
+    title="Lot SW · (-4,2)"
+    description="Outer ring — credit-priced corner parcel."
+    href="/mc/lots/seed-lot-sw/"
+  />
+  <LinkCard
+    title="Lot S · (-1,2)"
+    description="Outer ring south edge."
+    href="/mc/lots/seed-lot-s/"
+  />
+  <LinkCard
+    title="Lot SE · (2,2)"
+    description="Outer ring — credit-priced corner parcel."
+    href="/mc/lots/seed-lot-se/"
+  />
+</CardGrid>
