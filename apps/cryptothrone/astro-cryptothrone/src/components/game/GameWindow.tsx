@@ -64,11 +64,14 @@ function GameUI() {
 
 	useEffect(() => {
 		if (import.meta.env.DEV) {
-			(
-				window as Window & { __ctEvents?: typeof laserEvents }
-			).__ctEvents = laserEvents;
+			const w = window as Window & {
+				__ctEvents?: typeof laserEvents;
+				__ctDispatch?: typeof dispatch;
+			};
+			w.__ctEvents = laserEvents;
+			w.__ctDispatch = dispatch;
 		}
-	}, []);
+	}, [dispatch]);
 
 	return (
 		<>

@@ -31,7 +31,7 @@ export default defineConfig({
 						summary?: { lines?: { pct?: number } };
 					}) => {
 						const pct = results?.summary?.lines?.pct ?? 0;
-						const min = Number(process.env['COVERAGE_MIN'] ?? '80');
+						const min = Number(process.env['COVERAGE_MIN'] ?? '85');
 						if (pct < min) {
 							console.error(
 								`\n✘ Line coverage ${pct}% is below the required ${min}% threshold\n`,
