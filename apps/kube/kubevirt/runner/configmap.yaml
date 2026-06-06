@@ -30,6 +30,8 @@ data:
         RUNNER_LABELS="${RUNNER_LABELS:-UE5-Win}"
         RUNNER_VERSION="${RUNNER_VERSION:-2.333.0}"
         RUNNER_INSTALL_DIR="${RUNNER_INSTALL_DIR:-C:\\actions-runner}"
+        RUNNER_LOGON_ACCOUNT="${RUNNER_LOGON_ACCOUNT:-.\\Administrator}"
+        ADMIN_PASSWORD="${ADMIN_PASSWORD:?ADMIN_PASSWORD required to run the runner service elevated}"
         FILE_SERVER_URL="http://file-server.angelscript.svc:8080"
         RUNNER_ZIP="actions-runner-win-x64-${RUNNER_VERSION}.zip"
         RUNNER_DOWNLOAD_URL="https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${RUNNER_ZIP}"
@@ -123,8 +125,10 @@ data:
         echo "--- Phase 5: Install runner ---"
 
         # Build the PowerShell install script
-        # Uses single quotes in PS to avoid escaping issues
-        PS_SCRIPT="\$ErrorActionPreference = 'Stop'; \$installDir = '${RUNNER_INSTALL_DIR}'; \$fsUrl = '${FILE_SERVER_URL}'; \$zip = '${RUNNER_ZIP}'; \$org = '${GITHUB_ORG}'; \$token = '${REG_TOKEN}'; \$name = '${RUNNER_NAME}'; \$labels = '${RUNNER_LABELS}'; Write-Output 'Stopping existing runner service...'; try { Stop-Service actions.runner.* -Force -ErrorAction SilentlyContinue } catch {}; Write-Output 'Downloading runner from file-server...'; New-Item -ItemType Directory -Force -Path \$installDir | Out-Null; \$zipPath = Join-Path \$installDir \$zip; Invoke-WebRequest -Uri \"\$fsUrl/\$zip\" -OutFile \$zipPath -UseBasicParsing; Write-Output 'Extracting...'; Expand-Archive -Path \$zipPath -DestinationPath \$installDir -Force; Remove-Item \$zipPath -Force; Write-Output 'Configuring runner...'; Set-Location \$installDir; & .\\config.cmd --url \"https://github.com/\$org\" --token \$token --name \$name --labels \$labels --runasservice --replace --unattended; Write-Output 'Runner installed and running as service.'"
+        # Uses single quotes in PS to avoid escaping issues.
+        # Escape single quotes in the password for the PS single-quoted literal.
+        ADMIN_PASSWORD_PS=$(printf '%s' "${ADMIN_PASSWORD}" | sed "s/'/''/g")
+        PS_SCRIPT="\$ErrorActionPreference = 'Stop'; \$installDir = '${RUNNER_INSTALL_DIR}'; \$fsUrl = '${FILE_SERVER_URL}'; \$zip = '${RUNNER_ZIP}'; \$org = '${GITHUB_ORG}'; \$token = '${REG_TOKEN}'; \$name = '${RUNNER_NAME}'; \$labels = '${RUNNER_LABELS}'; \$logonAccount = '${RUNNER_LOGON_ACCOUNT}'; \$logonPwd = '${ADMIN_PASSWORD_PS}'; Write-Output 'Stopping existing runner service...'; try { Stop-Service actions.runner.* -Force -ErrorAction SilentlyContinue } catch {}; Write-Output 'Downloading runner from file-server...'; New-Item -ItemType Directory -Force -Path \$installDir | Out-Null; \$zipPath = Join-Path \$installDir \$zip; Invoke-WebRequest -Uri \"\$fsUrl/\$zip\" -OutFile \$zipPath -UseBasicParsing; Write-Output 'Extracting...'; Expand-Archive -Path \$zipPath -DestinationPath \$installDir -Force; Remove-Item \$zipPath -Force; Write-Output 'Configuring runner...'; Set-Location \$installDir; & .\\config.cmd --url \"https://github.com/\$org\" --token \$token --name \$name --labels \$labels --runasservice --windowslogonaccount \$logonAccount --windowslogonpassword \$logonPwd --replace --unattended; Write-Output 'Runner installed as service under' \$logonAccount"
 
         # Escape for JSON
         ESCAPED_PS=$(printf '%s' "${PS_SCRIPT}" | sed 's/\\/\\\\/g; s/"/\\"/g')
