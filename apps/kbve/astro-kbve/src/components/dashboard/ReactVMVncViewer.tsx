@@ -34,6 +34,14 @@ async function loadRFB() {
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_BASE_DELAY_MS = 2000;
 
+const VNC_SURFACE_CSS = `
+.vnc-surface > div {
+	position: absolute !important;
+	inset: 0 !important;
+	width: auto !important;
+	height: auto !important;
+}`;
+
 export default function ReactVMVncViewer() {
 	const vncTarget = useStore(vmService.$vncTarget);
 	const rfbRef = useRef<InstanceType<typeof RFB> | null>(null);
@@ -264,20 +272,6 @@ export default function ReactVMVncViewer() {
 				}
 			}
 			window.dispatchEvent(new Event('resize'));
-			const canvas = viewerEl.querySelector('canvas');
-			if (canvas && canvas.clientHeight === 0) {
-				const wrap = canvas.parentElement;
-				if (wrap) {
-					wrap.style.height = '100%';
-					wrap.style.width = '100%';
-				}
-				canvas.style.height = '100%';
-				canvas.style.width = 'auto';
-				canvas.style.maxWidth = '100%';
-				canvas.style.objectFit = 'contain';
-				canvas.style.display = 'block';
-				canvas.style.margin = 'auto';
-			}
 		};
 		const t0 = requestAnimationFrame(rescale);
 		const t1 = setTimeout(rescale, 150);
@@ -364,10 +358,13 @@ export default function ReactVMVncViewer() {
 				flexDirection: 'column',
 				height: fullscreen ? '100vh' : undefined,
 			}}>
+			<style>{VNC_SURFACE_CSS}</style>
 			<div
 				ref={viewerRef}
+				className="vnc-surface"
 				onClick={!connected ? handleRetry : undefined}
 				style={{
+					position: 'relative',
 					flex: 1,
 					minHeight: fullscreen ? undefined : 480,
 					height: fullscreen ? undefined : 480,
