@@ -1,5 +1,3 @@
-# TriggerAuthentication: Redis password for KEDA scaler
-# Reuses the existing ExternalSecret-managed n8n-redis-secret
 apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
 metadata:
@@ -8,11 +6,9 @@ metadata:
 spec:
     secretTargetRef:
         - parameter: password
-          name: n8n-redis-secret
-          key: QUEUE_BULL_REDIS_PASSWORD
+          name: valkey-auth
+          key: valkey-password
 ---
-# ScaledObject: Scale n8n-worker based on Bull queue depth in Redis
-# Bull key: n8n-bull:jobs:wait (prefix:queueName:state) in Redis DB 2
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
@@ -30,7 +26,7 @@ spec:
     triggers:
         - type: redis
           metadata:
-              address: redis-master.redis.svc.cluster.local:6379
+              address: valkey.valkey.svc.cluster.local:6379
               listName: 'n8n-bull:jobs:wait'
               listLength: '5'
               activationListLength: '1'

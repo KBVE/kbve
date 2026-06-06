@@ -115,14 +115,14 @@ spec:
                           - name: REDIS_PASSWORD
                             valueFrom:
                                 secretKeyRef:
-                                    name: forgejo-redis
-                                    key: password
+                                    name: valkey-auth
+                                    key: valkey-password
                           - name: FORGEJO__CACHE__HOST
-                            value: redis://default:$(REDIS_PASSWORD)@redis-master.redis.svc.cluster.local:6379/0?pool_size=100&idle_timeout=180s
+                            value: redis://default:$(REDIS_PASSWORD)@valkey.valkey.svc.cluster.local:6379/0?pool_size=100&idle_timeout=180s
                           - name: FORGEJO__SESSION__PROVIDER_CONFIG
-                            value: redis://default:$(REDIS_PASSWORD)@redis-master.redis.svc.cluster.local:6379/2?pool_size=100&idle_timeout=180s
+                            value: redis://default:$(REDIS_PASSWORD)@valkey.valkey.svc.cluster.local:6379/2?pool_size=100&idle_timeout=180s
                           - name: FORGEJO__QUEUE__CONN_STR
-                            value: redis://default:$(REDIS_PASSWORD)@redis-master.redis.svc.cluster.local:6379/1
+                            value: redis://default:$(REDIS_PASSWORD)@valkey.valkey.svc.cluster.local:6379/1
 
                   valkey-cluster:
                       enabled: false
