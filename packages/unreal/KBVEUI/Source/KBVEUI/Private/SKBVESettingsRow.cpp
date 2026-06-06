@@ -7,6 +7,7 @@
 
 void SKBVESettingsRow::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	const FSlateFontInfo LabelFont = FCoreStyle::GetDefaultFontStyle("Regular", 12);
 	const FSlateFontInfo HintFont  = FCoreStyle::GetDefaultFontStyle("Italic", 10);
 

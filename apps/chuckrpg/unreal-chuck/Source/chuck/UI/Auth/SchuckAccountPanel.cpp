@@ -20,6 +20,7 @@
 
 void SchuckAccountPanel::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	Subsystem = InArgs._Subsystem;
 
 	const FSlateFontInfo NickFont   = FCoreStyle::GetDefaultFontStyle("Bold", 13);

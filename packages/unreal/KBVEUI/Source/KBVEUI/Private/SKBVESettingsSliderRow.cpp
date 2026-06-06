@@ -9,6 +9,7 @@
 
 void SKBVESettingsSliderRow::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	MinValue       = InArgs._MinValue;
 	MaxValue       = FMath::Max(InArgs._MaxValue, MinValue + KINDA_SMALL_NUMBER);
 	StepSize       = InArgs._StepSize;

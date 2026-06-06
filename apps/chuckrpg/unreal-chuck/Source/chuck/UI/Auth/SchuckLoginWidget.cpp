@@ -41,6 +41,7 @@ namespace
 
 void SchuckLoginWidget::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	Subsystem = InArgs._Subsystem;
 
 	const FSlateFontInfo TitleFont = FCoreStyle::GetDefaultFontStyle("Bold", 22);

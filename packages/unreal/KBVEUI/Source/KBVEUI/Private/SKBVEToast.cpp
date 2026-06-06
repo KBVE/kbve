@@ -21,6 +21,7 @@ FLinearColor SKBVEToast::LevelColor(EKBVEToastLevel Level)
 
 void SKBVEToast::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	OnDismiss = InArgs._OnDismiss;
 
 	const FLinearColor Accent     = LevelColor(InArgs._Level);
