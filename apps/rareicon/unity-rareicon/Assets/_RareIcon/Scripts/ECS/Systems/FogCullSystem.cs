@@ -1,90 +1,82 @@
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Rendering;
 using Unity.Transforms;
 
 namespace RareIcon
 {
-    /// <summary>Hides non-Player units + buildings standing on hex tiles whose <see cref="FogVisibility"/> is unexplored. Player-faction entities always render — losing sight of your own army would be confusing. Cadence-gated to <see cref="ScanIntervalSeconds"/> so we don't pay the per-tick lookup; vision-radius reveals propagate to the next scan within half a second. Toggles <see cref="DisableRendering"/> via ECB so structural changes batch at the end of the frame.</summary>
+    /// <summary>Hides non-Player units + buildings standing on hex tiles whose <see cref="FogVisibility"/> is unexplored. Player-faction entities always render — losing sight of your own army would be confusing. Cadence-gated to <see cref="ScanIntervalSeconds"/> so we don't pay the per-tick lookup; vision-radius reveals propagate to the next scan within half a second. Toggles <see cref="DisableRendering"/> via EndSimulationEntityCommandBuffer ParallelWriter so structural changes batch at the end of the frame. Unit + Building classification scans now run as parallel [BurstCompile] IJobEntity passes — the prior main-thread foreach over Faction × LocalTransform + Building hit ~100k entities every half-second.</summary>
+    [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(FogBakeSystem))]
-    public partial class FogCullSystem : SystemBase
+    public partial struct FogCullSystem : ISystem
     {
         const float ScanIntervalSeconds = 0.5f;
+        const float HexSize             = 0.25f;
 
         float _accum;
 
-        protected override void OnCreate()
+        public void OnCreate(ref SystemState state)
         {
-            RequireForUpdate<HexDBSingleton>();
-            RequireForUpdate<FogVisibility>();
+            state.RequireForUpdate<HexDBSingleton>();
+            state.RequireForUpdate<FogVisibility>();
         }
 
-        protected override void OnUpdate()
+        [BurstCompile] public void OnDestroy(ref SystemState state) { }
+
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             _accum += SystemAPI.Time.DeltaTime;
             if (_accum < ScanIntervalSeconds) return;
             _accum = 0f;
 
-            // Drain HexDB writers + FogBake writers before we read their
-            // containers on the main thread. SystemBase doesn't auto-sync
-            // jobs that target NativeContainers held in singletons or
-            // ComponentLookups outside its query, so the previously
-            // scheduled DrainHexDBJob + FogBakeJob would otherwise race
-            // these reads and Unity throws InvalidOperationException.
             var hexDb = SystemAPI.GetSingleton<HexDBSingleton>();
-            hexDb.DrainHandle.Complete();
-            CompleteDependency();
 
-            var hexLookup = hexDb.Lookup;
-            var fogLookup = SystemAPI.GetComponentLookup<FogVisibility>(true);
+            // Chain on HexDB's drain handle so the classification jobs read
+            // a consistent hex → entity snapshot without forcing a main-
+            // thread sync.
+            state.Dependency = JobHandle.CombineDependencies(state.Dependency, hexDb.DrainHandle);
+
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                               .CreateCommandBuffer(state.WorldUnmanaged);
+            var pw  = ecb.AsParallelWriter();
+
+            var fogLookup      = SystemAPI.GetComponentLookup<FogVisibility>(true);
             var disabledLookup = SystemAPI.GetComponentLookup<DisableRendering>(true);
 
-            const float HexSize = 0.25f;
-
-            var toHide   = new NativeList<Entity>(64, Allocator.Temp);
-            var toReveal = new NativeList<Entity>(64, Allocator.Temp);
-
-            foreach (var (transformRO, factionRO, entity) in
-                     SystemAPI.Query<RefRO<LocalTransform>, RefRO<Faction>>()
-                              .WithAll<Unit>().WithEntityAccess())
+            var unitHandle = new ClassifyFogUnitsJob
             {
-                if (factionRO.ValueRO.Value == FactionType.Player) continue;
-                int2 hex = HexMeshUtil.WorldToHex(
-                    transformRO.ValueRO.Position.x,
-                    transformRO.ValueRO.Position.y,
-                    HexSize);
-                ClassifyEntity(hex, entity, hexLookup, fogLookup, disabledLookup,
-                               toHide, toReveal);
-            }
+                HexLookup      = hexDb.Lookup,
+                FogLookup      = fogLookup,
+                DisabledLookup = disabledLookup,
+                Ecb            = pw,
+            }.ScheduleParallel(state.Dependency);
 
-            foreach (var (buildingRO, entity) in
-                     SystemAPI.Query<RefRO<Building>>().WithEntityAccess())
+            var buildingHandle = new ClassifyFogBuildingsJob
             {
-                if (buildingRO.ValueRO.OwnerFaction == FactionType.Player) continue;
-                ClassifyEntity(buildingRO.ValueRO.RootHex, entity,
-                               hexLookup, fogLookup, disabledLookup,
-                               toHide, toReveal);
-            }
+                HexLookup      = hexDb.Lookup,
+                FogLookup      = fogLookup,
+                DisabledLookup = disabledLookup,
+                Ecb            = pw,
+            }.ScheduleParallel(state.Dependency);
 
-            var em = EntityManager;
-            for (int i = 0; i < toHide.Length; i++)
-                em.AddComponent<DisableRendering>(toHide[i]);
-            for (int i = 0; i < toReveal.Length; i++)
-                em.RemoveComponent<DisableRendering>(toReveal[i]);
-
-            toHide.Dispose();
-            toReveal.Dispose();
+            state.Dependency = JobHandle.CombineDependencies(unitHandle, buildingHandle);
         }
 
-        static void ClassifyEntity(int2 hex, Entity entity,
-                                   NativeHashMap<int2, Entity> hexLookup,
-                                   ComponentLookup<FogVisibility> fogLookup,
-                                   ComponentLookup<DisableRendering> disabledLookup,
-                                   NativeList<Entity> toHide,
-                                   NativeList<Entity> toReveal)
+        [BurstCompile]
+        public static void ClassifyHex(
+            int2 hex,
+            int  sortKey,
+            Entity entity,
+            in NativeHashMap<int2, Entity>      hexLookup,
+            in ComponentLookup<FogVisibility>   fogLookup,
+            in ComponentLookup<DisableRendering> disabledLookup,
+            ref EntityCommandBuffer.ParallelWriter ecb)
         {
             bool fogged = false;
             if (hexLookup.TryGetValue(hex, out var hexEntity)
@@ -94,8 +86,40 @@ namespace RareIcon
             }
 
             bool currentlyDisabled = disabledLookup.HasComponent(entity);
-            if (fogged && !currentlyDisabled) toHide.Add(entity);
-            else if (!fogged && currentlyDisabled) toReveal.Add(entity);
+            if (fogged && !currentlyDisabled)       ecb.AddComponent<DisableRendering>(sortKey, entity);
+            else if (!fogged && currentlyDisabled)  ecb.RemoveComponent<DisableRendering>(sortKey, entity);
+        }
+    }
+
+    [BurstCompile]
+    [WithAll(typeof(Unit))]
+    public partial struct ClassifyFogUnitsJob : IJobEntity
+    {
+        [ReadOnly] public NativeHashMap<int2, Entity>      HexLookup;
+        [ReadOnly] public ComponentLookup<FogVisibility>   FogLookup;
+        [ReadOnly] public ComponentLookup<DisableRendering> DisabledLookup;
+        public EntityCommandBuffer.ParallelWriter           Ecb;
+
+        void Execute([ChunkIndexInQuery] int chunkIndex, Entity entity, in LocalTransform t, in Faction f)
+        {
+            if (f.Value == FactionType.Player) return;
+            int2 hex = HexMeshUtil.WorldToHex(t.Position.x, t.Position.y, 0.25f);
+            FogCullSystem.ClassifyHex(hex, chunkIndex, entity, HexLookup, FogLookup, DisabledLookup, ref Ecb);
+        }
+    }
+
+    [BurstCompile]
+    public partial struct ClassifyFogBuildingsJob : IJobEntity
+    {
+        [ReadOnly] public NativeHashMap<int2, Entity>      HexLookup;
+        [ReadOnly] public ComponentLookup<FogVisibility>   FogLookup;
+        [ReadOnly] public ComponentLookup<DisableRendering> DisabledLookup;
+        public EntityCommandBuffer.ParallelWriter           Ecb;
+
+        void Execute([ChunkIndexInQuery] int chunkIndex, Entity entity, in Building b)
+        {
+            if (b.OwnerFaction == FactionType.Player) return;
+            FogCullSystem.ClassifyHex(b.RootHex, chunkIndex, entity, HexLookup, FogLookup, DisabledLookup, ref Ecb);
         }
     }
 }
