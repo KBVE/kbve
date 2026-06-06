@@ -1,0 +1,54 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+    name: sync-valkey-auth
+spec:
+    rules:
+        - name: clone-valkey-auth-forgejo
+          match:
+              resources:
+                  kinds:
+                      - Namespace
+                  names:
+                      - forgejo
+          generate:
+              apiVersion: v1
+              kind: Secret
+              name: valkey-auth
+              namespace: forgejo
+              synchronize: true
+              clone:
+                  namespace: valkey
+                  name: valkey-auth
+        - name: clone-valkey-auth-n8n
+          match:
+              resources:
+                  kinds:
+                      - Namespace
+                  names:
+                      - n8n
+          generate:
+              apiVersion: v1
+              kind: Secret
+              name: valkey-auth
+              namespace: n8n
+              synchronize: true
+              clone:
+                  namespace: valkey
+                  name: valkey-auth
+        - name: clone-valkey-auth-discordsh
+          match:
+              resources:
+                  kinds:
+                      - Namespace
+                  names:
+                      - discordsh
+          generate:
+              apiVersion: v1
+              kind: Secret
+              name: valkey-auth
+              namespace: discordsh
+              synchronize: true
+              clone:
+                  namespace: valkey
+                  name: valkey-auth
