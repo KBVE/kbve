@@ -1,0 +1,23 @@
+---
+import { dedupeGraph, type SchemaNode } from './schema.js';
+
+interface Props {
+	graph: SchemaNode[];
+	context?: string;
+}
+
+const { graph, context = 'https://schema.org' } = Astro.props;
+
+const nodes = dedupeGraph(graph);
+
+const payload =
+	nodes.length === 1
+		? { '@context': context, ...nodes[0] }
+		: { '@context': context, '@graph': nodes };
+---
+
+<script
+	type="application/ld+json"
+	is:inline
+	set:html={JSON.stringify(payload)}
+/>

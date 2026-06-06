@@ -45,21 +45,34 @@
 
 /* ── Game full-bleed layout ── */
 
-/* Lock body scroll and hide footer when the game overlay is active */
+/* Lock body scroll fully when the game overlay is active */
+html:has(.game-fullscreen),
 body:has(.game-fullscreen) {
 	overflow: hidden;
 }
 
+/* Strip every Starlight chrome element so the overlay is truly full-bleed */
+body:has(.game-fullscreen) header,
+body:has(.game-fullscreen) .ct-header,
+body:has(.game-fullscreen) .sidebar,
+body:has(.game-fullscreen) .right-sidebar,
+body:has(.game-fullscreen) starlight-menu-button,
 body:has(.game-fullscreen) footer,
 body:has(.game-fullscreen) .ct-footer {
 	display: none;
 }
 
-/* Full-viewport game overlay — covers Starlight header/hero */
+/* Drop the reserved nav-height gap once the header is gone */
+body:has(.game-fullscreen) .page,
+body:has(.game-fullscreen) .main-frame {
+	padding-top: 0 !important;
+}
+
+/* Full-viewport game overlay — sits above all Starlight chrome */
 .game-fullscreen {
 	position: fixed;
 	inset: 0;
-	z-index: 50;
+	z-index: 9999;
 	background: var(--ct-bg-deep);
 	display: flex;
 	align-items: center;

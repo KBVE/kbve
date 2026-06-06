@@ -12,6 +12,8 @@
  * Mirrors the rareicon Head override (apps/rareicon/astro-rareicon/...).
  */
 import { ClientRouter } from 'astro:transitions';
+import { seo } from '@/lib/seo';
+import { dedupeGraph } from '@kbve/astro/seo';
 
 const route = Astro.locals.starlightRoute;
 const head = route.head;
@@ -63,6 +65,48 @@ const overrideTags: HeadTag[] = Object.entries(owned).map(([key, content]) => {
 			: { property: key, content: content! },
 	} as HeadTag;
 });
+
+type JsonLdFm = {
+	disable?: boolean;
+	type?: 'WebPage' | 'Article';
+	image?: string;
+	datePublished?: string;
+	dateModified?: string;
+	keywords?: string[];
+	breadcrumb?: { name: string; path: string }[];
+	faq?: { question: string; answer: string }[];
+};
+
+const jl = (data.jsonld ?? {}) as JsonLdFm;
+const pageTitle = typeof data.title === 'string' ? data.title : undefined;
+const pageDescription =
+	typeof data.description === 'string' ? data.description : undefined;
+
+const jsonLdGraph =
+	jl.disable || !pageTitle
+		? null
+		: dedupeGraph(
+				seo.page({
+					pathname: Astro.url.pathname,
+					title: pageTitle,
+					description: pageDescription,
+					type: jl.type,
+					image: jl.image ?? ogImage,
+					datePublished: jl.datePublished,
+					dateModified: jl.dateModified,
+					keywords: jl.keywords,
+					breadcrumb: jl.breadcrumb?.map(
+						(c) => [c.name, c.path] as [string, string],
+					),
+					faq: jl.faq,
+				}),
+			);
+
+const jsonLdPayload = jsonLdGraph
+	? jsonLdGraph.length === 1
+		? { '@context': 'https://schema.org', ...jsonLdGraph[0] }
+		: { '@context': 'https://schema.org', '@graph': jsonLdGraph }
+	: null;
 ---
 
 {
@@ -71,6 +115,16 @@ const overrideTags: HeadTag[] = Object.entries(owned).map(([key, content]) => {
 	))
 }
 {overrideTags.map(({ tag: Tag, attrs }) => <Tag {...attrs} />)}
+
+{
+	jsonLdPayload && (
+		<script
+			type="application/ld+json"
+			is:inline
+			set:html={JSON.stringify(jsonLdPayload)}
+		/>
+	)
+}
 
 <slot />
 

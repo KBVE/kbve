@@ -12,6 +12,8 @@
 			"@kbve/astro/components/*": [
 				"../../../packages/npm/astro/src/components/*"
 			],
+			"@kbve/astro/seo": ["../../../packages/npm/astro/src/seo/index.ts"],
+			"@kbve/astro/seo/*": ["../../../packages/npm/astro/src/seo/*"],
 			"@kbve/astro/utils/*": ["../../../packages/npm/astro/src/utils/*"],
 			"@kbve/devops": ["../../../packages/npm/devops/src/index.ts"],
 			"@kbve/droid": ["../../../packages/npm/droid/src/index.ts"],
