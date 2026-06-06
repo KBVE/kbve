@@ -14,6 +14,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "chuckTerrainPrewarm.h"
+#include "chuckTerrainChunk.h"
+#include "KBVEWorldGrassShader.h"
+#include "KBVEWorldProceduralGrass.h"
 
 AchuckMenuPlayerController::AchuckMenuPlayerController()
 {
@@ -72,8 +75,31 @@ void AchuckMenuPlayerController::BeginPlay()
 	const float CellSize       = 200.f;
 	const float ChunkExtent    = CellsPerEdge * CellSize;
 	const FIntPoint AnchorChunk(0, 0);
-	const int32 PrewarmRadius  = 6;
+	const int32 PrewarmRadius  = 9;
 	FchuckTerrainPrewarm::Get().Kick(SpawnSeed, AnchorChunk, PrewarmRadius, CellsPerEdge, CellSize);
+
+	if (UMaterialInterface* Master = FKBVEWorldGrassShader::GetOrCreateMasterMaterial(this))
+	{
+		TArray<UStaticMesh*> Throwaway;
+		FKBVEWorldProceduralGrass::PopulateProceduralBucket(this, Master, 1, 20.f, 20.f, 50.f, 50.f, Throwaway);
+		UE_LOG(LogTemp, Display, TEXT("[chuck] MenuPC grass master+mesh warmed (%d throwaway)"), Throwaway.Num());
+	}
+
+	if (UWorld* W = GetWorld())
+	{
+		FActorSpawnParameters WarmParams;
+		WarmParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		WarmParams.ObjectFlags |= RF_Transient;
+		if (AchuckTerrainChunk* WarmChunk = W->SpawnActor<AchuckTerrainChunk>(
+			AchuckTerrainChunk::StaticClass(),
+			FVector(0.f, 0.f, -250000.f),
+			FRotator::ZeroRotator, WarmParams))
+		{
+			WarmChunk->SetActorHiddenInGame(true);
+			WarmChunk->Build(FIntPoint(-99999, -99999), SpawnSeed, CellsPerEdge, CellSize, -120.f);
+			UE_LOG(LogTemp, Display, TEXT("[chuck] MenuPC PSO warm chunk spawned at Z=-250000 (hidden)"));
+		}
+	}
 	UE_LOG(LogTemp, Display,
 		TEXT("[chuck] MenuPC kicked prewarm seed=0x%08x anchor=(%d,%d) radius=%d chunkExtent=%.0fu coverage=%.0fu x %.0fu"),
 		SpawnSeed, AnchorChunk.X, AnchorChunk.Y, PrewarmRadius, ChunkExtent,

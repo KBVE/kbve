@@ -3,6 +3,7 @@
 #include "Components/DirectionalLightComponent.h"
 #include "Components/ExponentialHeightFogComponent.h"
 #include "Components/SceneComponent.h"
+#include "Components/PostProcessComponent.h"
 #include "Components/SkyAtmosphereComponent.h"
 #include "Components/SkyLightComponent.h"
 
@@ -16,7 +17,7 @@ AchuckSky::AchuckSky()
 	Sun = CreateDefaultSubobject<UDirectionalLightComponent>(TEXT("Sun"));
 	Sun->SetupAttachment(RootComponent);
 	Sun->Mobility = EComponentMobility::Movable;
-	Sun->Intensity = 7.5f;
+	Sun->Intensity = 12.0f;
 	Sun->LightColor = FColor::White;
 	Sun->bAtmosphereSunLight = true;
 	Sun->ForwardShadingPriority = 1;
@@ -38,13 +39,46 @@ AchuckSky::AchuckSky()
 	SkyLight->Mobility = EComponentMobility::Movable;
 	SkyLight->SourceType = ESkyLightSourceType::SLS_CapturedScene;
 	SkyLight->bRealTimeCapture = true;
-	SkyLight->Intensity = 1.0f;
+	SkyLight->Intensity = 2.5f;
 
 	Fog = CreateDefaultSubobject<UExponentialHeightFogComponent>(TEXT("Fog"));
 	Fog->SetupAttachment(RootComponent);
 	Fog->FogDensity = 0.03f;
 	Fog->FogHeightFalloff = 0.2f;
 	Fog->SetVolumetricFog(true);
+
+	PostProcess = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcess"));
+	PostProcess->SetupAttachment(RootComponent);
+	PostProcess->bUnbound = true;
+	PostProcess->Priority = 1.f;
+
+	FPostProcessSettings& S = PostProcess->Settings;
+	S.bOverride_AutoExposureMethod         = true;  S.AutoExposureMethod = AEM_Histogram;
+	S.bOverride_AutoExposureMinBrightness  = true;  S.AutoExposureMinBrightness = 0.03f;
+	S.bOverride_AutoExposureMaxBrightness  = true;  S.AutoExposureMaxBrightness = 8.0f;
+	S.bOverride_AutoExposureBias           = true;  S.AutoExposureBias = 2.5f;
+	S.bOverride_AutoExposureSpeedUp        = true;  S.AutoExposureSpeedUp = 6.0f;
+	S.bOverride_AutoExposureSpeedDown      = true;  S.AutoExposureSpeedDown = 6.0f;
+
+	S.bOverride_BloomIntensity             = true;  S.BloomIntensity = 0.4f;
+	S.bOverride_BloomThreshold             = true;  S.BloomThreshold = 1.5f;
+
+	S.bOverride_ColorSaturation            = true;  S.ColorSaturation = FVector4(1.08f, 1.08f, 1.08f, 1.f);
+	S.bOverride_ColorContrast              = true;  S.ColorContrast   = FVector4(1.02f, 1.02f, 1.02f, 1.f);
+	S.bOverride_ColorGamma                 = true;  S.ColorGamma      = FVector4(1.0f, 1.0f, 1.0f, 1.f);
+
+	S.bOverride_VignetteIntensity          = true;  S.VignetteIntensity = 0.20f;
+	S.bOverride_FilmGrainIntensity         = true;  S.FilmGrainIntensity = 0.02f;
+
+	S.bOverride_AmbientOcclusionIntensity  = true;  S.AmbientOcclusionIntensity = 0.4f;
+	S.bOverride_AmbientOcclusionRadius     = true;  S.AmbientOcclusionRadius = 80.f;
+
+	S.bOverride_DynamicGlobalIlluminationMethod = true;
+	S.DynamicGlobalIlluminationMethod = EDynamicGlobalIlluminationMethod::Lumen;
+	S.bOverride_ReflectionMethod = true;
+	S.ReflectionMethod = EReflectionMethod::Lumen;
+	S.bOverride_LumenSceneLightingQuality = true; S.LumenSceneLightingQuality = 1.0f;
+	S.bOverride_LumenFinalGatherQuality   = true; S.LumenFinalGatherQuality   = 1.0f;
 }
 
 void AchuckSky::BeginPlay()

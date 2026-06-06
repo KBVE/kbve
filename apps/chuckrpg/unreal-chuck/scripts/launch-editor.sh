@@ -97,7 +97,6 @@ echo ""
 	"$ABS_UPROJECT" \
 	-stdout \
 	-FullStdOutLogOutput \
-	-NoSplash \
 	-AbsLog="$RAW_LOG" \
 	"$@" 2>&1 \
 	| tee "$RAW_LOG" \

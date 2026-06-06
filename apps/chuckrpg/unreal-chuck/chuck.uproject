@@ -88,6 +88,10 @@
 		{
 			"Name": "KBVESupabase",
 			"Enabled": true
+		},
+		{
+			"Name": "KBVEWorld",
+			"Enabled": true
 		}
 	]
 }

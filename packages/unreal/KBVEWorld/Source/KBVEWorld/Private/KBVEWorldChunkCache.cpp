@@ -1,4 +1,4 @@
-#include "chuckTerrainCache.h"
+#include "KBVEWorldChunkCache.h"
 
 #include "HAL/PlatformFileManager.h"
 #include "Misc/Paths.h"
@@ -18,25 +18,19 @@ namespace
 		" PRIMARY KEY (seed, x, y)"
 		") WITHOUT ROWID;";
 
-	static const char* kReadSql =
-		"SELECT data FROM chunks WHERE seed = ?1 AND x = ?2 AND y = ?3;";
+	static const char* kReadSql  = "SELECT data FROM chunks WHERE seed = ?1 AND x = ?2 AND y = ?3;";
+	static const char* kWriteSql = "INSERT INTO chunks(seed, x, y, data) VALUES(?1, ?2, ?3, ?4) ON CONFLICT(seed, x, y) DO UPDATE SET data = excluded.data;";
+	static const char* kHasSql   = "SELECT 1 FROM chunks WHERE seed = ?1 AND x = ?2 AND y = ?3 LIMIT 1;";
 
-	static const char* kWriteSql =
-		"INSERT INTO chunks(seed, x, y, data) VALUES(?1, ?2, ?3, ?4) "
-		"ON CONFLICT(seed, x, y) DO UPDATE SET data = excluded.data;";
-
-	static const char* kHasSql =
-		"SELECT 1 FROM chunks WHERE seed = ?1 AND x = ?2 AND y = ?3 LIMIT 1;";
-
-	sqlite3* gAsHandle(void* P) { return reinterpret_cast<sqlite3*>(P); }
+	sqlite3* AsHandle(void* P) { return reinterpret_cast<sqlite3*>(P); }
 }
 
-FchuckTerrainCache::~FchuckTerrainCache()
+FKBVEWorldChunkCache::~FKBVEWorldChunkCache()
 {
 	Close();
 }
 
-bool FchuckTerrainCache::Open(const FString& DbPath)
+bool FKBVEWorldChunkCache::Open(const FString& DbPath)
 {
 	if (Db) return true;
 
@@ -48,7 +42,7 @@ bool FchuckTerrainCache::Open(const FString& DbPath)
 	sqlite3* Handle = nullptr;
 	if (sqlite3_open_v2(Conv.Get(), &Handle, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr) != SQLITE_OK)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[chuckTerrainCache] open failed: %s"), UTF8_TO_TCHAR(Handle ? sqlite3_errmsg(Handle) : "null"));
+		UE_LOG(LogTemp, Warning, TEXT("[KBVEWorldChunkCache] open failed: %s"), UTF8_TO_TCHAR(Handle ? sqlite3_errmsg(Handle) : "null"));
 		if (Handle) sqlite3_close(Handle);
 		return false;
 	}
@@ -60,31 +54,31 @@ bool FchuckTerrainCache::Open(const FString& DbPath)
 	char* Err = nullptr;
 	if (sqlite3_exec(Handle, kCreateSql, nullptr, nullptr, &Err) != SQLITE_OK)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[chuckTerrainCache] create failed: %s"), UTF8_TO_TCHAR(Err ? Err : ""));
+		UE_LOG(LogTemp, Warning, TEXT("[KBVEWorldChunkCache] create failed: %s"), UTF8_TO_TCHAR(Err ? Err : ""));
 		sqlite3_free(Err);
 		sqlite3_close(Handle);
 		return false;
 	}
 
 	Db = Handle;
-	UE_LOG(LogTemp, Display, TEXT("[chuckTerrainCache] opened %s"), *DbPath);
+	UE_LOG(LogTemp, Display, TEXT("[KBVEWorldChunkCache] opened %s"), *DbPath);
 	return true;
 }
 
-void FchuckTerrainCache::Close()
+void FKBVEWorldChunkCache::Close()
 {
 	if (Db)
 	{
-		sqlite3_close(gAsHandle(Db));
+		sqlite3_close(AsHandle(Db));
 		Db = nullptr;
 	}
 }
 
-bool FchuckTerrainCache::Read(uint32 Seed, const FIntPoint& Coord, TArray<uint8>& OutBlob)
+bool FKBVEWorldChunkCache::Read(uint32 Seed, const FIntPoint& Coord, TArray<uint8>& OutBlob)
 {
 	if (!Db) return false;
 	sqlite3_stmt* Stmt = nullptr;
-	if (sqlite3_prepare_v2(gAsHandle(Db), kReadSql, -1, &Stmt, nullptr) != SQLITE_OK) return false;
+	if (sqlite3_prepare_v2(AsHandle(Db), kReadSql, -1, &Stmt, nullptr) != SQLITE_OK) return false;
 
 	sqlite3_bind_int64(Stmt, 1, static_cast<int64>(Seed));
 	sqlite3_bind_int(Stmt, 2, Coord.X);
@@ -106,11 +100,11 @@ bool FchuckTerrainCache::Read(uint32 Seed, const FIntPoint& Coord, TArray<uint8>
 	return bHit;
 }
 
-bool FchuckTerrainCache::Write(uint32 Seed, const FIntPoint& Coord, const TArray<uint8>& Blob)
+bool FKBVEWorldChunkCache::Write(uint32 Seed, const FIntPoint& Coord, const TArray<uint8>& Blob)
 {
 	if (!Db || Blob.Num() == 0) return false;
 	sqlite3_stmt* Stmt = nullptr;
-	if (sqlite3_prepare_v2(gAsHandle(Db), kWriteSql, -1, &Stmt, nullptr) != SQLITE_OK) return false;
+	if (sqlite3_prepare_v2(AsHandle(Db), kWriteSql, -1, &Stmt, nullptr) != SQLITE_OK) return false;
 
 	sqlite3_bind_int64(Stmt, 1, static_cast<int64>(Seed));
 	sqlite3_bind_int(Stmt, 2, Coord.X);
@@ -122,11 +116,11 @@ bool FchuckTerrainCache::Write(uint32 Seed, const FIntPoint& Coord, const TArray
 	return Rc == SQLITE_DONE;
 }
 
-bool FchuckTerrainCache::HasKey(uint32 Seed, const FIntPoint& Coord)
+bool FKBVEWorldChunkCache::HasKey(uint32 Seed, const FIntPoint& Coord)
 {
 	if (!Db) return false;
 	sqlite3_stmt* Stmt = nullptr;
-	if (sqlite3_prepare_v2(gAsHandle(Db), kHasSql, -1, &Stmt, nullptr) != SQLITE_OK) return false;
+	if (sqlite3_prepare_v2(AsHandle(Db), kHasSql, -1, &Stmt, nullptr) != SQLITE_OK) return false;
 
 	sqlite3_bind_int64(Stmt, 1, static_cast<int64>(Seed));
 	sqlite3_bind_int(Stmt, 2, Coord.X);
