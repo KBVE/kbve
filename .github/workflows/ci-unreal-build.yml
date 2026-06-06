@@ -1517,42 +1517,20 @@ jobs:
                   Write-Host "Disk: $([math]::Round((Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'").FreeSpace / 1GB, 1)) GB free"
                   git --version
 
-            - name: Check file server reachable
+            - name: Check internet egress
               run: |
-                  $fqdn = "http://file-server.angelscript.svc.cluster.local:8080"
-                  $candidates = @($fqdn, $env:FILE_SERVER)
-                  $ok = $false
-                  $url = ""
-                  foreach ($c in $candidates) {
-                      $code = curl.exe -s -o NUL -m 10 -w "%{http_code}" "$c/" 2>$null
-                      Write-Host ("  {0}/ -> HTTP {1}" -f $c, $code)
-                      if ($code -eq "200") { $ok = $true; $url = $c; break }
-                  }
-                  if ($ok) {
-                      Write-Host "File server reachable at $url"
-                      Add-Content -Path $env:GITHUB_ENV -Value "FS_OK=true"
-                      Add-Content -Path $env:GITHUB_ENV -Value "FILE_SERVER=$url"
-                  } else {
-                      Write-Host "::warning::File server unreachable. Network diagnostics follow; install steps skip downloads and rely on pre-installed tools."
-                      Add-Content -Path $env:GITHUB_ENV -Value "FS_OK=false"
-                      Write-Host "--- nslookup FQDN ---"
-                      nslookup file-server.angelscript.svc.cluster.local 2>&1 | Out-Host
-                      Write-Host "--- curl ClusterIP direct ---"
-                      curl.exe -s -o NUL -m 10 -w "  10.101.160.235:8080 -> HTTP %{http_code}`n" "http://10.101.160.235:8080/" 2>$null
-                      Write-Host "--- curl public internet ---"
-                      curl.exe -s -o NUL -m 10 -w "  example.com -> HTTP %{http_code}`n" "http://example.com/" 2>$null
-                      Write-Host "--- DNS servers ---"
-                      Get-DnsClientServerAddress -AddressFamily IPv4 2>&1 | Format-Table -AutoSize | Out-Host
-                  }
+                  $code = curl.exe -s -o NUL -L -m 20 --connect-timeout 30 -w "%{http_code}" "https://aka.ms/vs/17/release/vs_BuildTools.exe" 2>$null
+                  Write-Host "egress probe (aka.ms) -> HTTP $code"
+                  if ($code -eq "000") { Write-Host "::warning::No internet egress detected from the VM; downloads will fail." }
                   exit 0
 
             - name: Install Visual Studio 2022 Build Tools
-              timeout-minutes: 30
+              timeout-minutes: 90
               run: |
-                  if (Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools") { Write-Host "VS Build Tools already installed."; exit 0 }
-                  if ($env:FS_OK -ne "true") { Write-Host "::warning::VS Build Tools absent and file-server unreachable - skipping."; exit 0 }
-                  curl.exe -o C:\vs_buildtools.exe "$env:FILE_SERVER/vs_buildtools.exe"
-                  if (!(Test-Path C:\vs_buildtools.exe)) { Write-Host "::warning::Download failed - stage vs_buildtools.exe."; exit 0 }
+                  if (Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC") { Write-Host "VS Build Tools already installed."; exit 0 }
+                  Write-Host "Downloading VS Build Tools bootstrapper from aka.ms ..."
+                  curl.exe -L -s --retry 5 --retry-connrefused --connect-timeout 30 -o C:\vs_buildtools.exe "https://aka.ms/vs/17/release/vs_BuildTools.exe"
+                  if (!(Test-Path C:\vs_buildtools.exe)) { Write-Host "::warning::VS bootstrapper download failed."; exit 0 }
                   $p = Start-Process C:\vs_buildtools.exe -ArgumentList @(
                       '--add','Microsoft.VisualStudio.Workload.VCTools',
                       '--add','Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
@@ -1561,57 +1539,66 @@ jobs:
                       '--includeRecommended','--quiet','--wait','--norestart'
                   ) -Wait -PassThru
                   Write-Host "VS Build Tools installer exited: $($p.ExitCode)"
+                  exit 0
 
             - name: Install Python 3
               run: |
                   if (Get-Command python -ErrorAction SilentlyContinue) { Write-Host "Python already installed: $(python --version)"; exit 0 }
-                  if ($env:FS_OK -ne "true") { Write-Host "::warning::Python absent and file-server unreachable - skipping."; exit 0 }
-                  curl.exe -o C:\python-install.exe "$env:FILE_SERVER/python-install.exe"
-                  if (!(Test-Path C:\python-install.exe)) { Write-Host "::warning::Download failed - stage python-install.exe."; exit 0 }
+                  curl.exe -L -s --retry 5 --retry-connrefused --connect-timeout 30 -o C:\python-install.exe "https://www.python.org/ftp/python/3.12.7/python-3.12.7-amd64.exe"
+                  if (!(Test-Path C:\python-install.exe)) { Write-Host "::warning::Python download failed."; exit 0 }
                   Start-Process C:\python-install.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1' -Wait
+                  exit 0
 
             - name: Install .NET SDK 8.0
               run: |
                   if (Get-Command dotnet -ErrorAction SilentlyContinue) { Write-Host ".NET already installed: $(dotnet --version)"; exit 0 }
-                  if ($env:FS_OK -ne "true") { Write-Host "::warning::.NET absent and file-server unreachable - skipping."; exit 0 }
-                  curl.exe -o C:\dotnet-install.ps1 "$env:FILE_SERVER/dotnet-install.ps1"
-                  if (!(Test-Path C:\dotnet-install.ps1)) { Write-Host "::warning::Download failed - stage dotnet-install.ps1."; exit 0 }
-                  & C:\dotnet-install.ps1 -Channel 8.0
+                  curl.exe -L -s --retry 5 --retry-connrefused --connect-timeout 30 -o C:\dotnet-install.ps1 "https://dot.net/v1/dotnet-install.ps1"
+                  if (!(Test-Path C:\dotnet-install.ps1)) { Write-Host "::warning::dotnet-install.ps1 download failed."; exit 0 }
+                  & C:\dotnet-install.ps1 -Channel 8.0 -InstallDir "C:\Program Files\dotnet"
+                  if (Test-Path "C:\Program Files\dotnet\dotnet.exe") {
+                      $machinePath = [Environment]::GetEnvironmentVariable("Path","Machine")
+                      if ($machinePath -notlike "*C:\Program Files\dotnet*") {
+                          [Environment]::SetEnvironmentVariable("Path", "$machinePath;C:\Program Files\dotnet", "Machine")
+                      }
+                      Write-Host "dotnet installed: $(& 'C:\Program Files\dotnet\dotnet.exe' --version)"
+                  }
+                  exit 0
 
             - name: Install DirectX Runtime
               run: |
                   if (Test-Path "$env:SystemRoot\System32\d3dx9_43.dll") { Write-Host "DirectX runtime already present."; exit 0 }
-                  if ($env:FS_OK -ne "true") { Write-Host "::warning::DirectX absent and file-server unreachable - skipping."; exit 0 }
-                  curl.exe -o C:\dxsetup.exe "$env:FILE_SERVER/dxsetup.exe"
-                  if (!(Test-Path C:\dxsetup.exe)) { Write-Host "::warning::Download failed - stage dxsetup.exe."; exit 0 }
-                  Start-Process C:\dxsetup.exe -ArgumentList '/Q' -Wait
+                  curl.exe -L -s --retry 5 --retry-connrefused --connect-timeout 30 -o C:\dxredist.exe "https://download.microsoft.com/download/8/4/A/84A35BF1-DAFE-4AE8-82AF-AD2AE20B6B14/directx_Jun2010_redist.exe"
+                  if (!(Test-Path C:\dxredist.exe)) { Write-Host "::warning::DirectX redist download failed."; exit 0 }
+                  Start-Process C:\dxredist.exe -ArgumentList '/Q','/T:C:\dxredist' -Wait
+                  if (Test-Path C:\dxredist\DXSETUP.exe) { Start-Process C:\dxredist\DXSETUP.exe -ArgumentList '/silent' -Wait }
+                  exit 0
 
             - name: Install CMake
               run: |
                   if (Get-Command cmake -ErrorAction SilentlyContinue) { Write-Host "CMake already installed: $(cmake --version | Select-Object -First 1)"; exit 0 }
-                  if ($env:FS_OK -ne "true") { Write-Host "::warning::CMake absent and file-server unreachable - skipping."; exit 0 }
-                  curl.exe -o C:\cmake-install.msi "$env:FILE_SERVER/cmake-install.msi"
-                  if (!(Test-Path C:\cmake-install.msi)) { Write-Host "::warning::Download failed - stage cmake-install.msi."; exit 0 }
-                  Start-Process msiexec.exe -ArgumentList '/i C:\cmake-install.msi /quiet /norestart ADD_CMAKE_TO_PATH=System' -Wait
+                  curl.exe -L -s --retry 5 --retry-connrefused --connect-timeout 30 -o C:\cmake-install.msi "https://github.com/Kitware/CMake/releases/download/v3.30.5/cmake-3.30.5-windows-x86_64.msi"
+                  if (!(Test-Path C:\cmake-install.msi)) { Write-Host "::warning::CMake download failed."; exit 0 }
+                  Start-Process msiexec.exe -ArgumentList '/i','C:\cmake-install.msi','/quiet','/norestart','ADD_CMAKE_TO_PATH=System' -Wait
+                  exit 0
 
             - name: Install Git LFS
               run: |
                   git lfs version 2>$null
                   if ($LASTEXITCODE -eq 0) { git lfs install; Write-Host "Git LFS already installed: $(git lfs version)"; exit 0 }
-                  if ($env:FS_OK -ne "true") { Write-Host "::warning::Git LFS absent and file-server unreachable - skipping."; exit 0 }
-                  curl.exe -o C:\git-lfs-install.exe "$env:FILE_SERVER/git-lfs-install.exe"
-                  if (!(Test-Path C:\git-lfs-install.exe)) { Write-Host "::warning::Download failed - stage git-lfs-install.exe."; exit 0 }
-                  Start-Process C:\git-lfs-install.exe -ArgumentList '/VERYSILENT /NORESTART' -Wait
+                  curl.exe -L -s --retry 5 --retry-connrefused --connect-timeout 30 -o C:\git-lfs.exe "https://github.com/git-lfs/git-lfs/releases/download/v3.7.1/git-lfs-windows-amd64-v3.7.1.exe"
+                  if (!(Test-Path C:\git-lfs.exe)) { Write-Host "::warning::Git LFS download failed."; exit 0 }
+                  Start-Process C:\git-lfs.exe -ArgumentList '/VERYSILENT','/NORESTART' -Wait
                   git lfs install
+                  exit 0
 
             - name: Install PowerShell 7
               run: |
                   if (Get-Command pwsh -ErrorAction SilentlyContinue) { Write-Host "pwsh already installed: $(pwsh --version)"; exit 0 }
-                  if ($env:FS_OK -ne "true") { Write-Host "::warning::pwsh absent and file-server unreachable - skipping. The engine/plugin/game UE5-Win jobs need pwsh."; exit 0 }
-                  curl.exe -o C:\pwsh-install.msi "$env:FILE_SERVER/pwsh-install.msi"
-                  if (!(Test-Path C:\pwsh-install.msi)) { Write-Host "::warning::Download failed - stage pwsh-install.msi."; exit 0 }
-                  Start-Process msiexec.exe -ArgumentList '/i C:\pwsh-install.msi /quiet /norestart ADD_PATH=1' -Wait
+                  curl.exe -L -s --retry 5 --retry-connrefused --connect-timeout 30 -o C:\pwsh.msi "https://github.com/PowerShell/PowerShell/releases/download/v7.4.6/PowerShell-7.4.6-win-x64.msi"
+                  if (!(Test-Path C:\pwsh.msi)) { Write-Host "::warning::pwsh MSI download failed."; exit 0 }
+                  Start-Process msiexec.exe -ArgumentList '/i','C:\pwsh.msi','/quiet','/norestart','ADD_PATH=1' -Wait
                   Write-Host "PowerShell 7 installed."
+                  exit 0
 
             - name: Verify Installation
               run: |
