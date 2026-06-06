@@ -87,3 +87,44 @@ All wired into the component by default; tune in the details panel:
 - `Snapshot Distance` (default 0 / off) — past this distance the surface freezes its last rendered frame and stops ticking the browser.
 
 `UKBVEWebLODManager` auto-registers surfaces on `BeginPlay`. `UKBVEWebSurfacePool` caps concurrent live surfaces (default 8).
+
+## 8. Actor variants
+
+Specialized drop-ins layered on top of `AKBVEWebTerminalActor`:
+
+- `AKBVEWebKioskActor` — info kiosk preset (15 fps, snapshot past 800u, anonymous auth).
+- `AKBVEWebBillboardActor` — outdoor banner with a `Rotation URLs` array and `Rotation Interval Seconds` timer. Snapshot past 500u, 10 fps. No interaction.
+- `AKBVEWebHologramActor` — curved/holo screen on `UKBVEWebRenderSurfaceComponent`. Assign mesh + material with a `ScreenTexture` parameter.
+
+## 9. Auth provider
+
+`AKBVEWebTerminalActor::AuthProvider` accepts any `UObject` implementing `IKBVEWebAuthProvider`. On `BeginPlay` the actor calls `ResolveToken`; the returned token is fragment-appended to the initial URL.
+
+Built-in implementations:
+
+- `UKBVEWebAuthProvider_Anonymous` — always returns empty.
+- `UKBVEWebAuthProvider_Static` — returns its `Token` field. Use for dev/debug rigs.
+
+Game projects supply their own (Supabase, OAuth, etc.) by implementing the interface in C++ or Blueprint.
+
+## 10. Approach prompt + focus
+
+Attach `UKBVEWebTerminalPromptComponent` to a terminal actor. It polls the local player every `Poll Interval Seconds` and broadcasts `OnVisibilityChanged(bVisible)` when the player crosses `Activate Radius`. Bind a UMG widget to that delegate to show / hide a "Press E" prompt.
+
+Attach `UKBVEWebFocusComponent` to the same actor (or to the player). Call `EnterFocus(PC)` when the player interacts; the component flips the controller into `GameAndUI` input mode and shows the mouse cursor. Bind the bridge's `terminal.close` channel to `ExitFocus(PC)` to release.
+
+## 11. Channels
+
+`KBVEWebChannels` exposes canonical FName constants used by the plugin and any embedded web app:
+
+- `terminal.ready`, `terminal.close`, `terminal.title`, `terminal.audio`
+- `auth.refresh`, `auth.token`
+- `inventory.use`, `inventory.equip`
+- `market.purchase`
+- `game.state`
+
+Project-specific channels stay in the consumer; the namespace exists to keep cross-project surfaces interoperable.
+
+## 12. Sample page
+
+`Content/Web/sample-terminal.html` is a self-contained page that exercises the bridge end-to-end. Serve it locally or copy onto the project's web host, point a terminal at it, and verify hover/click + bridge dispatch + fragment-token hydration.

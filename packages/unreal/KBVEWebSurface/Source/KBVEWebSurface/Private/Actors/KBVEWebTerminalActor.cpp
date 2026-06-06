@@ -1,5 +1,6 @@
 #include "Actors/KBVEWebTerminalActor.h"
 
+#include "Auth/KBVEWebAuthProvider.h"
 #include "Components/KBVEWebSurfaceComponent.h"
 #include "Components/StaticMeshComponent.h"
 
@@ -22,15 +23,41 @@ AKBVEWebTerminalActor::AKBVEWebTerminalActor()
 void AKBVEWebTerminalActor::BeginPlay()
 {
 	Super::BeginPlay();
-	if (Surface && !InitialURL.IsEmpty())
+	if (!Surface || InitialURL.IsEmpty())
 	{
-		if (AuthToken.IsEmpty())
-		{
-			Surface->LoadURL(InitialURL);
-		}
-		else
-		{
-			Surface->LoadURLWithFragmentToken(InitialURL, AuthToken);
-		}
+		return;
+	}
+
+	if (AuthProvider && AuthProvider->GetClass()->ImplementsInterface(UKBVEWebAuthProvider::StaticClass()))
+	{
+		FKBVEWebAuthTokenDelegate Cb;
+		Cb.BindDynamic(this, &AKBVEWebTerminalActor::HandleResolvedToken);
+		IKBVEWebAuthProvider::Execute_ResolveToken(AuthProvider, Cb);
+		return;
+	}
+
+	if (AuthToken.IsEmpty())
+	{
+		Surface->LoadURL(InitialURL);
+	}
+	else
+	{
+		Surface->LoadURLWithFragmentToken(InitialURL, AuthToken);
+	}
+}
+
+void AKBVEWebTerminalActor::HandleResolvedToken(const FString& Token)
+{
+	if (!Surface)
+	{
+		return;
+	}
+	if (Token.IsEmpty())
+	{
+		Surface->LoadURL(InitialURL);
+	}
+	else
+	{
+		Surface->LoadURLWithFragmentToken(InitialURL, Token);
 	}
 }

@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.184",
+			"version": "1.0.185",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -804,7 +804,7 @@
 				"Linux",
 				"Mac"
 			],
-			"version": "0.2.0",
+			"version": "0.3.0",
 			"version_toml": "packages/unreal/KBVEWebSurface/version.toml"
 		},
 		{
