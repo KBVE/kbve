@@ -65,27 +65,6 @@ namespace RareIcon
             state.Dependency = JobHandle.CombineDependencies(unitHandle, buildingHandle);
         }
 
-        [BurstCompile]
-        public static void ClassifyHex(
-            int2 hex,
-            int  sortKey,
-            Entity entity,
-            in NativeHashMap<int2, Entity>      hexLookup,
-            in ComponentLookup<FogVisibility>   fogLookup,
-            in ComponentLookup<DisableRendering> disabledLookup,
-            ref EntityCommandBuffer.ParallelWriter ecb)
-        {
-            bool fogged = false;
-            if (hexLookup.TryGetValue(hex, out var hexEntity)
-                && fogLookup.HasComponent(hexEntity))
-            {
-                fogged = fogLookup[hexEntity].Value > 0.5f;
-            }
-
-            bool currentlyDisabled = disabledLookup.HasComponent(entity);
-            if (fogged && !currentlyDisabled)       ecb.AddComponent<DisableRendering>(sortKey, entity);
-            else if (!fogged && currentlyDisabled)  ecb.RemoveComponent<DisableRendering>(sortKey, entity);
-        }
     }
 
     [BurstCompile]
@@ -101,7 +80,17 @@ namespace RareIcon
         {
             if (f.Value == FactionType.Player) return;
             int2 hex = HexMeshUtil.WorldToHex(t.Position.x, t.Position.y, 0.25f);
-            FogCullSystem.ClassifyHex(hex, chunkIndex, entity, HexLookup, FogLookup, DisabledLookup, ref Ecb);
+
+            bool fogged = false;
+            if (HexLookup.TryGetValue(hex, out var hexEntity)
+                && FogLookup.HasComponent(hexEntity))
+            {
+                fogged = FogLookup[hexEntity].Value > 0.5f;
+            }
+
+            bool currentlyDisabled = DisabledLookup.HasComponent(entity);
+            if (fogged && !currentlyDisabled)      Ecb.AddComponent<DisableRendering>(chunkIndex, entity);
+            else if (!fogged && currentlyDisabled) Ecb.RemoveComponent<DisableRendering>(chunkIndex, entity);
         }
     }
 
@@ -116,7 +105,18 @@ namespace RareIcon
         void Execute([ChunkIndexInQuery] int chunkIndex, Entity entity, in Building b)
         {
             if (b.OwnerFaction == FactionType.Player) return;
-            FogCullSystem.ClassifyHex(b.RootHex, chunkIndex, entity, HexLookup, FogLookup, DisabledLookup, ref Ecb);
+            int2 hex = b.RootHex;
+
+            bool fogged = false;
+            if (HexLookup.TryGetValue(hex, out var hexEntity)
+                && FogLookup.HasComponent(hexEntity))
+            {
+                fogged = FogLookup[hexEntity].Value > 0.5f;
+            }
+
+            bool currentlyDisabled = DisabledLookup.HasComponent(entity);
+            if (fogged && !currentlyDisabled)      Ecb.AddComponent<DisableRendering>(chunkIndex, entity);
+            else if (!fogged && currentlyDisabled) Ecb.RemoveComponent<DisableRendering>(chunkIndex, entity);
         }
     }
 }
