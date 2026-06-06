@@ -218,6 +218,10 @@ data:
             'if (Get-Command choco -ErrorAction SilentlyContinue) { & choco config set proxy "http://gluetun-builder-egress.angelscript.svc.cluster.local:8888" --limit-output | Out-Null; & choco config set proxyBypassList "*.svc.cluster.local,*.cluster.local,localhost,127.0.0.1" --limit-output | Out-Null; Write-Output configured } else { Write-Output "choco not installed, skipping" }' \
             || FAILED=1
 
+        run_ps "Allow multiple sessions per user" \
+            '$p = "HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server"; Set-ItemProperty -Path $p -Name fSingleSessionPerUser -Value 0 -Type DWord -Force; Write-Output done' \
+            || FAILED=1
+
         echo ""
         if [ "${FAILED}" = "0" ]; then
             echo "=== SUCCESS: bootstrap applied to ${VM_NAME} ==="
