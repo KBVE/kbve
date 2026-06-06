@@ -195,6 +195,32 @@ export const collections = {
 				twitterTitle: z.string().optional(),
 				twitterDescription: z.string().optional(),
 				twitterImage: z.string().optional(),
+				jsonld: z
+					.object({
+						disable: z.boolean().optional(),
+						type: z.enum(['WebPage', 'Article']).optional(),
+						image: z.string().optional(),
+						datePublished: z.string().optional(),
+						dateModified: z.string().optional(),
+						keywords: z.array(z.string()).optional(),
+						breadcrumb: z
+							.array(
+								z.object({
+									name: z.string(),
+									path: z.string(),
+								}),
+							)
+							.optional(),
+						faq: z
+							.array(
+								z.object({
+									question: z.string(),
+									answer: z.string(),
+								}),
+							)
+							.optional(),
+					})
+					.optional(),
 			}),
 		}),
 	}),
