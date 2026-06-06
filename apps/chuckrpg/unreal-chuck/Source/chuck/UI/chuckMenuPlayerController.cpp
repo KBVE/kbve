@@ -17,6 +17,7 @@
 #include "chuckTerrainChunk.h"
 #include "KBVEWorldGrassShader.h"
 #include "KBVEWorldProceduralGrass.h"
+#include "ROWSAuthSubsystem.h"
 
 AchuckMenuPlayerController::AchuckMenuPlayerController()
 {
@@ -236,6 +237,13 @@ void AchuckMenuPlayerController::HandleSupabaseSignedIn(const FKBVESupabaseSessi
 	{
 		Sub->FetchUser();
 	}
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UROWSAuthSubsystem* Rows = GI->GetSubsystem<UROWSAuthSubsystem>())
+		{
+			Rows->AdoptSupabaseSession(Session.AccessToken, Session.User.Id, Session.User.KbveUsername);
+		}
+	}
 	if (MenuWidget.IsValid())
 	{
 		FInputModeUIOnly Mode;
@@ -249,6 +257,13 @@ void AchuckMenuPlayerController::HandleSupabaseSignedIn(const FKBVESupabaseSessi
 void AchuckMenuPlayerController::HandleSupabaseSessionRefreshed(const FKBVESupabaseSession& Session)
 {
 	ApplyAccountFromSession(Session);
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UROWSAuthSubsystem* Rows = GI->GetSubsystem<UROWSAuthSubsystem>())
+		{
+			Rows->AdoptSupabaseSession(Session.AccessToken, Session.User.Id, Session.User.KbveUsername);
+		}
+	}
 }
 
 void AchuckMenuPlayerController::ApplyAccountFromSession(const FKBVESupabaseSession& Session)
@@ -273,6 +288,13 @@ void AchuckMenuPlayerController::ApplyAccountFromSession(const FKBVESupabaseSess
 void AchuckMenuPlayerController::HandleSupabaseSignedOut()
 {
 	RefreshAuthVisibility(false);
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UROWSAuthSubsystem* Rows = GI->GetSubsystem<UROWSAuthSubsystem>())
+		{
+			Rows->ClearSupabaseSession();
+		}
+	}
 }
 
 void AchuckMenuPlayerController::RefreshAuthVisibility(bool bSignedIn)

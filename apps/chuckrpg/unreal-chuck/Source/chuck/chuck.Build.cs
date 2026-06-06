@@ -42,7 +42,8 @@ public class chuck : ModuleRules
 			"KBVEEvents",
 			"KBVESQLite",
 			"KBVESupabase",
-			"KBVEWorld"
+			"KBVEWorld",
+			"ROWS"
 		});
 
 
