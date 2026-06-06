@@ -195,6 +195,7 @@ export const collections = {
 				twitterTitle: z.string().optional(),
 				twitterDescription: z.string().optional(),
 				twitterImage: z.string().optional(),
+				noindex: z.boolean().optional(),
 				jsonld: z
 					.object({
 						disable: z.boolean().optional(),
@@ -202,6 +203,8 @@ export const collections = {
 						image: z.string().optional(),
 						datePublished: z.string().optional(),
 						dateModified: z.string().optional(),
+						author: z.string().optional(),
+						section: z.string().optional(),
 						keywords: z.array(z.string()).optional(),
 						breadcrumb: z
 							.array(

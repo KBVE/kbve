@@ -14,25 +14,64 @@ export interface OrgInput {
 	url: string;
 	name: string;
 	logo?: string;
+	logoWidth?: number;
+	logoHeight?: number;
 	description?: string;
+	alternateName?: string;
+	foundingDate?: string;
+	email?: string;
+	contactType?: string;
+	brand?: string;
 	sameAs?: string[];
 }
 
-export const org = (i: OrgInput): SchemaNode => ({
-	'@type': 'Organization',
-	'@id': `${trim(i.url)}/#organization`,
-	name: i.name,
-	url: trim(i.url),
-	...(i.logo ? { logo: i.logo } : {}),
-	...(i.description ? { description: i.description } : {}),
-	...(i.sameAs?.length ? { sameAs: i.sameAs } : {}),
-});
+export const org = (i: OrgInput): SchemaNode => {
+	const base = trim(i.url);
+	const logoId = `${base}/#logo`;
+	const logo =
+		i.logo && i.logoWidth && i.logoHeight
+			? {
+					'@type': 'ImageObject',
+					'@id': logoId,
+					url: i.logo,
+					width: i.logoWidth,
+					height: i.logoHeight,
+				}
+			: i.logo;
+	return {
+		'@type': 'Organization',
+		'@id': `${base}/#organization`,
+		name: i.name,
+		url: base,
+		...(i.alternateName ? { alternateName: i.alternateName } : {}),
+		...(logo
+			? {
+					logo,
+					...(typeof logo === 'object' ? { image: ref(logoId) } : {}),
+				}
+			: {}),
+		...(i.description ? { description: i.description } : {}),
+		...(i.foundingDate ? { foundingDate: i.foundingDate } : {}),
+		...(i.email
+			? {
+					contactPoint: {
+						'@type': 'ContactPoint',
+						email: i.email,
+						contactType: i.contactType ?? 'customer support',
+					},
+				}
+			: {}),
+		...(i.brand ? { brand: { '@type': 'Brand', name: i.brand } } : {}),
+		...(i.sameAs?.length ? { sameAs: i.sameAs } : {}),
+	};
+};
 
 export interface WebSiteInput {
 	url: string;
 	name: string;
 	description?: string;
 	publisher?: SchemaNode | string;
+	inLanguage?: string;
 }
 
 export const website = (i: WebSiteInput): SchemaNode => ({
@@ -41,6 +80,7 @@ export const website = (i: WebSiteInput): SchemaNode => ({
 	url: trim(i.url),
 	name: i.name,
 	...(i.description ? { description: i.description } : {}),
+	...(i.inLanguage ? { inLanguage: i.inLanguage } : {}),
 	...(i.publisher ? { publisher: ref(i.publisher) } : {}),
 });
 
@@ -54,6 +94,7 @@ export interface WebPageInput {
 	primaryImageOfPage?: string;
 	dateModified?: string;
 	keywords?: string[];
+	inLanguage?: string;
 }
 
 export const webPage = (i: WebPageInput): SchemaNode => ({
@@ -67,6 +108,7 @@ export const webPage = (i: WebPageInput): SchemaNode => ({
 		? { primaryImageOfPage: i.primaryImageOfPage }
 		: {}),
 	...(i.keywords?.length ? { keywords: i.keywords } : {}),
+	...(i.inLanguage ? { inLanguage: i.inLanguage } : {}),
 	...(i.isPartOf ? { isPartOf: ref(i.isPartOf) } : {}),
 	...(i.breadcrumb ? { breadcrumb: ref(i.breadcrumb) } : {}),
 	...(i.dateModified ? { dateModified: i.dateModified } : {}),
@@ -219,6 +261,7 @@ export interface ArticleInput {
 	publisher?: SchemaNode | string;
 	isPartOf?: SchemaNode | string;
 	breadcrumb?: SchemaNode | string;
+	inLanguage?: string;
 }
 
 export const article = (i: ArticleInput): SchemaNode => ({
@@ -231,6 +274,7 @@ export const article = (i: ArticleInput): SchemaNode => ({
 	...(i.datePublished ? { datePublished: i.datePublished } : {}),
 	...(i.dateModified ? { dateModified: i.dateModified } : {}),
 	...(i.keywords?.length ? { keywords: i.keywords } : {}),
+	...(i.inLanguage ? { inLanguage: i.inLanguage } : {}),
 	...(i.author ? { author: ref(i.author) } : {}),
 	...(i.publisher ? { publisher: ref(i.publisher) } : {}),
 	...(i.isPartOf ? { isPartOf: ref(i.isPartOf) } : {}),
