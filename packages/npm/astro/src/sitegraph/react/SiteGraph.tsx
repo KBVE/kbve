@@ -514,31 +514,79 @@ export function SiteGraph({
 
 		simulationRef.current = simulation;
 
-		simulation.on('tick', () => {
-			const linkEls = svg.querySelectorAll<SVGPathElement>('.sg-link');
-			links.forEach((link, i) => {
-				if (linkEls[i]) {
-					linkEls[i].setAttribute(
-						'd',
-						curvedEdgePath(link.source, link.target),
-					);
-				}
-			});
+		// Cache the element lists once. React rendered the nodes/links before
+		// this effect runs, and the effect re-runs whenever nodes/links change,
+		// so a per-tick querySelectorAll (hundreds of nodes × 60fps on a phone)
+		// is pure waste. Snapshot here, index into it on tick.
+		const linkEls = svg.querySelectorAll<SVGPathElement>('.sg-link');
+		const nodeEls = svg.querySelectorAll<SVGGElement>('.sg-node');
 
-			const nodeEls = svg.querySelectorAll<SVGGElement>('.sg-node');
-			nodes.forEach((node, i) => {
-				if (nodeEls[i]) {
-					nodeEls[i].setAttribute(
-						'transform',
-						`translate(${node.x ?? 0},${node.y ?? 0})`,
+		simulation.on('tick', () => {
+			for (let i = 0; i < links.length; i++) {
+				const el = linkEls[i];
+				if (el) {
+					el.setAttribute(
+						'd',
+						curvedEdgePath(links[i].source, links[i].target),
 					);
 				}
-			});
+			}
+			for (let i = 0; i < nodes.length; i++) {
+				const el = nodeEls[i];
+				if (el) {
+					el.setAttribute(
+						'transform',
+						`translate(${nodes[i].x ?? 0},${nodes[i].y ?? 0})`,
+					);
+				}
+			}
 		});
+
+		// Battery/CPU: only let the layout tick when the tab is visible AND the
+		// graph is actually on screen. The sidebar graph is frequently scrolled
+		// out of view or backgrounded on mobile — no reason to keep simulating.
+		let docVisible =
+			typeof document === 'undefined' ? true : !document.hidden;
+		let inView = true;
+		const applyRunState = () => {
+			if (docVisible && inView) simulation.restart();
+			else simulation.stop();
+		};
+		const onVisibility = () => {
+			docVisible = !document.hidden;
+			applyRunState();
+		};
+		document.addEventListener('visibilitychange', onVisibility);
+
+		let io: IntersectionObserver | null = null;
+		const container = containerRef.current;
+		if (container && typeof IntersectionObserver !== 'undefined') {
+			io = new IntersectionObserver(
+				(entries) => {
+					inView = entries.some((e) => e.isIntersecting);
+					applyRunState();
+				},
+				{ threshold: 0 },
+			);
+			io.observe(container);
+		}
+
+		// Belt-and-suspenders: if a future Astro/React change ever fails to fire
+		// the island's unmount (which runs this cleanup), still halt the
+		// simulation on SPA swap / page hide so a stale rAF loop can't survive.
+		const killOnSwap = () => simulation.stop();
+		document.addEventListener('astro:before-swap', killOnSwap, {
+			once: true,
+		});
+		window.addEventListener('pagehide', killOnSwap, { once: true });
 
 		return () => {
 			simulation.stop();
 			simulationRef.current = null;
+			document.removeEventListener('visibilitychange', onVisibility);
+			document.removeEventListener('astro:before-swap', killOnSwap);
+			window.removeEventListener('pagehide', killOnSwap);
+			io?.disconnect();
 		};
 	}, [graphData, nodes, links, width, height, reducedMotion]);
 
