@@ -5,7 +5,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Writes TenderMultiplier.Value = 1 when any Farmer-intent unit stands on the farm's 7-hex footprint; otherwise 0. ProductionSystem hard-gates new Farm cycles on tender > 0 (no Farmer = no production) and additionally halves the duration when tended, so the worker is required to start a cycle and rewarded for staying through it. Main-thread hex-snapshot + parallel per-farm multiplier writes.</summary>
+    /// <summary>Writes TenderMultiplier.Value = 1 when any Farmer-intent unit stands on the farm's 7-hex footprint; otherwise 0. ProductionSystem hard-gates new Farm cycles on tender > 0 (no Farmer = no production) and additionally halves the duration when tended, so the worker is required to start a cycle and rewarded for staying through it. Prep scan runs as a parallel IJobEntity into NativeParallelHashSet.ParallelWriter, replacing the prior main-thread foreach.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(ProfessionDispatchSystem))]
@@ -17,20 +17,31 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var tendedHexes = new NativeHashSet<int2>(16, Allocator.TempJob);
-            foreach (var (intent, movement) in
-                     SystemAPI.Query<RefRO<ProfessionIntent>, RefRO<UnitMovement>>())
+            var tendedHexes = new NativeParallelHashSet<int2>(256, Allocator.TempJob);
+
+            var prepHandle = new CollectFarmerHexesJob
             {
-                if (intent.ValueRO.Kind != ProfessionKind.Farmer) continue;
-                tendedHexes.Add(movement.ValueRO.CurrentHex);
-            }
+                Writer = tendedHexes.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
 
             state.Dependency = new FarmTenderJob
             {
-                TendedHexes = tendedHexes.AsReadOnly(),
-            }.ScheduleParallel(state.Dependency);
+                TendedHexes = tendedHexes,
+            }.ScheduleParallel(prepHandle);
 
             state.Dependency = tendedHexes.Dispose(state.Dependency);
+        }
+    }
+
+    [BurstCompile]
+    public partial struct CollectFarmerHexesJob : IJobEntity
+    {
+        public NativeParallelHashSet<int2>.ParallelWriter Writer;
+
+        void Execute(in ProfessionIntent intent, in UnitMovement movement)
+        {
+            if (intent.Kind != ProfessionKind.Farmer) return;
+            Writer.Add(movement.CurrentHex);
         }
     }
 
@@ -38,7 +49,7 @@ namespace RareIcon
     [WithAll(typeof(FarmTag))]
     public partial struct FarmTenderJob : IJobEntity
     {
-        [ReadOnly] public NativeHashSet<int2>.ReadOnly TendedHexes;
+        [ReadOnly] public NativeParallelHashSet<int2> TendedHexes;
 
         void Execute(in Building building, ref TenderMultiplier tender)
         {
