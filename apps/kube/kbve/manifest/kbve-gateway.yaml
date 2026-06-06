@@ -1,6 +1,3 @@
-## Shared Cilium Gateway — all namespaces route through this.
-## Cloudflare terminates TLS on the edge. Origin listeners handle
-## both HTTP (80) and HTTPS (443) for Full/Strict SSL modes.
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -14,12 +11,7 @@ spec:
         labels:
             node.kbve.com/type: dedicated-server
         annotations:
-            # Claim both LB IPs for the same gateway so the legacy
-            # talos.kbve.com (.74) CNAME keeps resolving after the
-            # ingress-nginx drop. Envoy listens on both VIPs; no CF
-            # DNS edits required during the cutover. Drop .74 later
-            # once every external CNAME has been audited and moved.
-            io.cilium/lb-ipam-ips: '142.132.206.71,142.132.206.74'
+            io.cilium/lb-ipam-ips: '142.132.206.71'
     listeners:
         - name: http
           protocol: HTTP
@@ -27,13 +19,6 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
-        # HTTPS listeners — one per cert/hostname so Envoy can route TLS
-        # by SNI to the matching certificate. Cilium gateway does NOT
-        # perform SNI-based selection across multiple certificateRefs on
-        # a single listener (it uses only the first ref), so each cert
-        # gets its own listener with an explicit hostname filter.
-        # Cloudflare terminates public TLS at the edge; origin certs must
-        # match the SNI CF sends for Full/Strict SSL modes.
         - name: https-kbve
           protocol: HTTPS
           port: 443
@@ -56,26 +41,6 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
-        # Single listener for both meme.sh (apex) and www.meme.sh.
-        #
-        # `memes-tls` covers both names via SAN, and the Cilium gateway
-        # controller derives the filter chain SNI list from the cert SANs
-        # — not the listener `hostname` field. Splitting this into two
-        # listeners (one per hostname) made Cilium emit two filter chains
-        # with identical SNI=[meme.sh, www.meme.sh], which Envoy rejects
-        # as duplicate filter chain match. The whole memes routing block
-        # then fell through to a default 404 handler — meme.sh returned
-        # nginx-style 404s for 73 days even though the HTTPRoute was
-        # Accepted=True and the memes-service cluster was healthy. The
-        # ACME HTTP-01 challenge routes shared the same listener, so the
-        # cert reissue loop also couldn't complete (Reason=
-        # IncorrectCertificate stuck for 8 days).
-        #
-        # The HTTPRoute `memes/memes-route` has both hostnames in its
-        # spec.hostnames, so the single listener's SAN-driven SNI match
-        # still covers both names. Don't add a second listener here for
-        # any additional cert that already covers multiple SANs — issue
-        # a separate cert per hostname if you need per-host listeners.
         - name: https-memes
           protocol: HTTPS
           port: 443
@@ -146,10 +111,6 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
-        # api.chuckrpg.com is routed by rows/ows-api-routes (HTTPRoute
-        # in rows ns) — ROWS replaces the four legacy C# OWS services
-        # behind a single backend. The cert lives in rows ns alongside
-        # the route so cert-manager + ReferenceGrant stay co-located.
         - name: https-chuckrpg-api
           protocol: HTTPS
           port: 443
@@ -193,7 +154,6 @@ spec:
               namespaces:
                   from: All
 ---
-## kbve.com routes
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -211,16 +171,10 @@ spec:
                     type: PathPrefix
                     value: /ws
           timeouts:
-              # WebSocket connections are long-lived — set a generous
-              # backend timeout so the Cilium proxy doesn't kill them.
-              # Default Cilium/Envoy timeout is ~15s which breaks game sessions.
               backendRequest: 3600s
           backendRefs:
               - name: kbve-service
                 port: 5000
-        # Dashboard WebSocket paths — VNC (noVNC), Guacamole (RDP),
-        # KASM proxy. These are long-lived WebSocket connections that
-        # need the same generous timeout as the game /ws path.
         - matches:
               - path:
                     type: PathPrefix
@@ -233,10 +187,6 @@ spec:
           backendRefs:
               - name: kbve-service
                 port: 4321
-        # Firecracker persistent endpoints — user-deployed HTTP servers
-        # routed by name into the firecracker-ctl-net pod. May stream,
-        # upgrade to WebSocket, or run long-polling handlers, so they
-        # need the same generous timeout as other long-lived routes.
         - matches:
               - path:
                     type: PathPrefix
