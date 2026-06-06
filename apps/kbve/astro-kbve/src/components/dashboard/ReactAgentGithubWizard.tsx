@@ -367,12 +367,33 @@ function Step2WebhookConfig({
 	hasWebhook: boolean;
 }) {
 	const url = agentsService.webhookUrlFor(guild.id);
+	const allowlistMap = useStore(agentsService.$repoAllowlistDrafts);
+	const selectedMap = useStore(agentsService.$webhookInstallSelected);
+	const installBusyMap = useStore(agentsService.$webhookInstallBusyFor);
+	const installResultMap = useStore(agentsService.$webhookInstallResults);
+
+	const repos = allowlistMap[guild.id] ?? [];
+	const selectedRepo = selectedMap[guild.id] ?? repos[0] ?? '';
+	const installing = !!installBusyMap[guild.id];
+	const installResult = installResultMap[guild.id] ?? null;
 	const [copied, setCopied] = useState(false);
+
+	useEffect(() => {
+		if (!selectedMap[guild.id] && repos.length > 0) {
+			agentsService.setWebhookInstallSelected(guild.id, repos[0]);
+		}
+	}, [guild.id, repos, selectedMap]);
 
 	async function copy() {
 		const ok = await copyToClipboard(url);
 		setCopied(ok);
 		if (ok) setTimeout(() => setCopied(false), 2500);
+	}
+
+	async function install() {
+		if (!selectedRepo || installing) return;
+		agentsService.setWebhookInstallSelected(guild.id, selectedRepo);
+		await agentsService.installWebhookForGuild(guild.id);
 	}
 
 	return (
@@ -448,6 +469,124 @@ function Step2WebhookConfig({
 					200 in under a second.
 				</li>
 			</ol>
+
+			<div
+				style={{
+					marginTop: '0.85rem',
+					padding: '0.75rem',
+					border: '1px solid var(--sl-color-gray-5, #2d2f36)',
+					borderRadius: 8,
+					background: 'rgba(88,166,255,0.04)',
+					display: 'flex',
+					flexDirection: 'column',
+					gap: '0.5rem',
+				}}>
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: '0.4rem',
+					}}>
+					<strong style={{ fontSize: '0.85rem' }}>
+						Or auto-install via your PAT
+					</strong>
+				</div>
+				<p style={{ ...mutedText, fontSize: '0.82rem' }}>
+					Uses your stored GitHub PAT (Step 3 must be done first) to
+					POST <code>/repos/&lt;owner&gt;/&lt;repo&gt;/hooks</code>{' '}
+					with the URL and HMAC secret you just stored. Only repos in
+					your allowlist are eligible.
+				</p>
+				{repos.length === 0 ? (
+					<p style={{ ...mutedText, fontStyle: 'italic' }}>
+						Add at least one repo to the allowlist below before
+						auto-installing.
+					</p>
+				) : (
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'stretch',
+							gap: '0.4rem',
+							flexWrap: 'wrap',
+						}}>
+						<select
+							value={selectedRepo}
+							onChange={(e) =>
+								agentsService.setWebhookInstallSelected(
+									guild.id,
+									e.target.value,
+								)
+							}
+							disabled={installing || !hasWebhook}
+							style={{
+								...inputStyle,
+								fontFamily:
+									'var(--sl-font-mono, ui-monospace, monospace)',
+								flex: 1,
+								minWidth: 220,
+								width: 'auto',
+							}}>
+							{repos.map((r) => (
+								<option key={r} value={r}>
+									{r}
+								</option>
+							))}
+						</select>
+						<button
+							type="button"
+							onClick={() => void install()}
+							disabled={
+								installing || !hasWebhook || !selectedRepo
+							}
+							style={primaryBtn}>
+							{installing ? (
+								<Loader2 size={14} style={spinStyle} />
+							) : (
+								<CheckCircle2 size={14} />
+							)}
+							{installing
+								? 'Installing…'
+								: 'Install webhook on repo'}
+						</button>
+					</div>
+				)}
+				{!hasWebhook && repos.length > 0 && (
+					<p style={{ ...mutedText, fontSize: '0.8rem' }}>
+						Finish Step 1 first — the HMAC row must exist in Vault
+						before gh-admin can read it.
+					</p>
+				)}
+				{installResult && !installResult.ok && (
+					<p style={errText}>{installResult.error}</p>
+				)}
+				{installResult && installResult.ok && (
+					<div
+						style={{
+							padding: '0.5rem 0.75rem',
+							borderRadius: 6,
+							background: 'rgba(74,222,128,0.08)',
+							border: '1px solid rgba(74,222,128,0.3)',
+							fontSize: '0.85rem',
+							lineHeight: 1.5,
+						}}>
+						<CheckCircle2
+							size={14}
+							color="#4ade80"
+							style={{ verticalAlign: '-2px', marginRight: 6 }}
+						/>
+						{installResult.alreadyPresent
+							? 'Webhook already present on this repo'
+							: 'Webhook installed'}
+						{installResult.hookId !== null && (
+							<>
+								{' · hook id '}
+								<code>{installResult.hookId}</code>
+							</>
+						)}
+					</div>
+				)}
+			</div>
 		</StepCard>
 	);
 }

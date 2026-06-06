@@ -205,7 +205,16 @@ export default function ReactAgentBotConfig() {
 		);
 		const allErrors = validateAll(draft);
 		setErrors(allErrors);
-		if (Object.keys(allErrors).length > 0) return;
+		const errorKeys = Object.keys(allErrors) as TextFieldKey[];
+		if (errorKeys.length > 0) {
+			const first = errorKeys[0];
+			const el = refs.current[first];
+			if (el) {
+				el.focus();
+				el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			}
+			return;
+		}
 		agentsService.patchBotConfigDraft(guildId, draft);
 		setSuccess(null);
 		const r = await agentsService.saveBotConfigDraft(guildId);
@@ -416,11 +425,16 @@ export default function ReactAgentBotConfig() {
 					{serverError && (
 						<span style={errTextLine}>{serverError}</span>
 					)}
+					{anyError && !saving && (
+						<span style={errTextLine}>
+							Fix field errors before saving.
+						</span>
+					)}
 					<button
 						type="submit"
-						disabled={anyError || saving}
+						disabled={saving}
 						style={{
-							...primaryBtn(!anyError && !saving),
+							...primaryBtn(!saving),
 							marginLeft: 'auto',
 						}}>
 						{saving ? (
