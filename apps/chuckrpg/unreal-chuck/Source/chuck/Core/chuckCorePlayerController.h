@@ -14,6 +14,9 @@ class SchuckAccountPanel;
 class SchuckChatPanel;
 class SKBVETooltip;
 class SKBVEDragArrowLayer;
+class SKBVESettingsFrame;
+class SKBVETopBar;
+class SchuckToastHost;
 class UKBVESupabaseSubsystem;
 struct FInputActionValue;
 struct FKBVESupabaseSession;
@@ -47,6 +50,8 @@ protected:
 
 	void PauseGame();
 	void ResumeGame();
+	void OpenSettings();
+	void CloseSettings();
 	void QuitToMainMenu();
 	void QuitGame();
 
@@ -88,6 +93,12 @@ private:
 	TSharedPtr<SchuckChatPanel>       ChatWidget;
 	TSharedPtr<SKBVETooltip>          TooltipWidget;
 	TSharedPtr<SKBVEDragArrowLayer>   DragArrowLayer;
+	TSharedPtr<SKBVESettingsFrame>    SettingsWidget;
+	TSharedPtr<SKBVETopBar>           TopBarWidget;
+	TSharedPtr<SchuckToastHost>       ToastHostWidget;
+
+	FString BarPlayerName;
+	bool    bBarOnline = false;
 
 	UPROPERTY(Transient)
 	TWeakObjectPtr<UKBVESupabaseSubsystem> SupabaseSubsystem;

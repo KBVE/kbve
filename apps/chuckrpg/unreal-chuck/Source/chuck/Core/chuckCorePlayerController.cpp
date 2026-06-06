@@ -27,6 +27,16 @@
 #include "Engine/GameInstance.h"
 #include "SKBVEDragArrowLayer.h"
 #include "SKBVETooltip.h"
+#include "SKBVESettingsFrame.h"
+#include "SKBVESettingsToggleRow.h"
+#include "SKBVESettingsSliderRow.h"
+#include "SKBVETopBar.h"
+#include "SchuckToastHost.h"
+#include "Engine/Engine.h"
+#include "GameFramework/GameUserSettings.h"
+#include "Styling/CoreStyle.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Text/STextBlock.h"
 #include "chuckNoise.h"
 #include "chuckTerrainStreamer.h"
 #include "KBVESupabaseSubsystem.h"
@@ -148,6 +158,36 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 	HotbarWidget = SNew(SchuckHotbar).OwningCharacter(Char);
 	TooltipWidget = SNew(SKBVETooltip);
 	DragArrowLayer = SNew(SKBVEDragArrowLayer);
+	ToastHostWidget = SNew(SchuckToastHost).OwningCharacter(Char);
+
+	const FSlateFontInfo TopBarFont = FCoreStyle::GetDefaultFontStyle("Bold", 12);
+	TopBarWidget = SNew(SKBVETopBar)
+		.BarHeight(50.f)
+		.Left
+		[
+			SNew(STextBlock)
+			.Font(TopBarFont)
+			.ColorAndOpacity(FLinearColor(0.92f, 0.92f, 0.95f, 1.f))
+			.Text_Lambda([this]()
+			{
+				return FText::FromString(BarPlayerName.IsEmpty() ? TEXT("Guest") : BarPlayerName);
+			})
+		]
+		.Right
+		[
+			SNew(STextBlock)
+			.Font(TopBarFont)
+			.Text_Lambda([this]()
+			{
+				return bBarOnline
+					? NSLOCTEXT("chuck", "BarOnline", "Online")
+					: NSLOCTEXT("chuck", "BarOffline", "Offline");
+			})
+			.ColorAndOpacity_Lambda([this]()
+			{
+				return bBarOnline ? FLinearColor(0.30f, 0.80f, 0.40f, 1.f) : FLinearColor(0.6f, 0.6f, 0.65f, 1.f);
+			})
+		];
 
 	if (UGameInstance* GI = GetGameInstance())
 	{
@@ -170,10 +210,12 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 	{
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), TopBarWidget.ToSharedRef(),     6);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef(),       5);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HotbarWidget.ToSharedRef(),    20);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), DragArrowLayer.ToSharedRef(), 29);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), TooltipWidget.ToSharedRef(),  30);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), ToastHostWidget.ToSharedRef(),32);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), ChatWidget.ToSharedRef(),     35);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), AccountWidget.ToSharedRef(),  40);
 	}
@@ -274,6 +316,22 @@ void AchuckCorePlayerController::OnUnPossess()
 		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef());
 		HUDWidget.Reset();
 	}
+	if (ToastHostWidget.IsValid())
+	{
+		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), ToastHostWidget.ToSharedRef());
+		ToastHostWidget.Reset();
+	}
+	if (TopBarWidget.IsValid())
+	{
+		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), TopBarWidget.ToSharedRef());
+		TopBarWidget.Reset();
+	}
+	if (SettingsWidget.IsValid())
+	{
+		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), SettingsWidget.ToSharedRef());
+		SettingsWidget.Reset();
+		SetUiFlag(EUiFlag::Settings, false);
+	}
 	Super::OnUnPossess();
 }
 
@@ -305,6 +363,7 @@ void AchuckCorePlayerController::PauseGame()
 
 	PauseWidget = SNew(SchuckPauseMenu)
 		.OnResumeClicked    (FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::ResumeGame))
+		.OnSettingsClicked  (FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::OpenSettings))
 		.OnQuitToMenuClicked(FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::QuitToMainMenu))
 		.OnQuitClicked      (FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::QuitGame));
 
@@ -339,6 +398,113 @@ void AchuckCorePlayerController::ResumeGame()
 	SetPause(false);
 	SetInputMode(FInputModeGameOnly());
 	bShowMouseCursor = false;
+}
+
+void AchuckCorePlayerController::OpenSettings()
+{
+	if (SettingsWidget.IsValid())
+	{
+		return;
+	}
+	UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
+	if (!Viewport)
+	{
+		return;
+	}
+
+	UGameUserSettings* GUS = GEngine ? GEngine->GetGameUserSettings() : nullptr;
+	const float ResScale = GUS ? GUS->GetResolutionScaleNormalized() * 100.f : 100.f;
+
+	SettingsWidget = SNew(SKBVESettingsFrame)
+		.Title(NSLOCTEXT("chuck", "SettingsTitle", "Settings"))
+		.bShowReset(false)
+		.OnCloseClicked (FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::CloseSettings))
+		.OnCancelClicked(FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::CloseSettings))
+		.OnApplyClicked (FSimpleDelegate::CreateLambda([]()
+		{
+			if (UGameUserSettings* S = GEngine ? GEngine->GetGameUserSettings() : nullptr)
+			{
+				S->ApplySettings(false);
+				S->SaveSettings();
+			}
+		}))
+		.Rows
+		[
+			SNew(SVerticalBox)
+
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(0.f, 0.f, 0.f, 8.f)
+			[
+				SNew(SKBVESettingsToggleRow)
+				.Label(NSLOCTEXT("chuck", "VSync", "V-Sync"))
+				.IsChecked_Lambda([]()
+				{
+					UGameUserSettings* S = GEngine ? GEngine->GetGameUserSettings() : nullptr;
+					return S && S->IsVSyncEnabled();
+				})
+				.OnToggled_Lambda([](bool bOn)
+				{
+					if (UGameUserSettings* S = GEngine ? GEngine->GetGameUserSettings() : nullptr)
+					{
+						S->SetVSyncEnabled(bOn);
+					}
+				})
+			]
+
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			[
+				SNew(SKBVESettingsSliderRow)
+				.Label(NSLOCTEXT("chuck", "ResScale", "Resolution Scale"))
+				.MinValue(50.f)
+				.MaxValue(100.f)
+				.StepSize(5.f)
+				.Value(ResScale)
+				.OnValueChanged_Lambda([](float Pct)
+				{
+					if (UGameUserSettings* S = GEngine ? GEngine->GetGameUserSettings() : nullptr)
+					{
+						S->SetResolutionScaleNormalized(Pct / 100.f);
+					}
+				})
+			]
+		];
+
+	Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), SettingsWidget.ToSharedRef(), 22);
+	SetUiFlag(EUiFlag::Settings, true);
+
+	FInputModeUIOnly Mode;
+	Mode.SetWidgetToFocus(SettingsWidget);
+	Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	SetInputMode(Mode);
+	bShowMouseCursor = true;
+}
+
+void AchuckCorePlayerController::CloseSettings()
+{
+	if (SettingsWidget.IsValid())
+	{
+		if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
+		{
+			Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), SettingsWidget.ToSharedRef());
+		}
+		SettingsWidget.Reset();
+	}
+	SetUiFlag(EUiFlag::Settings, false);
+
+	if (HasUiFlag(EUiFlag::Pause) && PauseWidget.IsValid())
+	{
+		FInputModeUIOnly Mode;
+		Mode.SetWidgetToFocus(PauseWidget);
+		Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		SetInputMode(Mode);
+		bShowMouseCursor = true;
+	}
+	else
+	{
+		RefreshUiMouseMode();
+	}
 }
 
 void AchuckCorePlayerController::QuitToMainMenu()
@@ -623,6 +789,8 @@ void AchuckCorePlayerController::HandleSupabaseSignedIn(const FKBVESupabaseSessi
 {
 	const FKBVESupabaseUser& U = Session.User;
 
+	BarPlayerName = U.KbveUsername.IsEmpty() ? U.Email : U.KbveUsername;
+
 	if (AccountWidget.IsValid())
 	{
 		AccountWidget->SetUsername(U.KbveUsername.IsEmpty() ? U.Id : U.KbveUsername);
@@ -651,6 +819,9 @@ void AchuckCorePlayerController::HandleSupabaseSignedIn(const FKBVESupabaseSessi
 
 void AchuckCorePlayerController::HandleSupabaseSignedOut()
 {
+	BarPlayerName.Empty();
+	bBarOnline = false;
+
 	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
 	{
 		FchuckAuthStatusPayload Payload;
@@ -683,6 +854,8 @@ void AchuckCorePlayerController::HandleSupabaseAuthError(const FKBVESupabaseErro
 
 void AchuckCorePlayerController::HandleChatConnected()
 {
+	bBarOnline = true;
+
 	if (ChatWidget.IsValid())
 	{
 		FchuckChatStatePayload Payload;
@@ -699,6 +872,8 @@ void AchuckCorePlayerController::HandleChatConnected()
 
 void AchuckCorePlayerController::HandleChatDisconnected(int32 /*StatusCode*/, const FString& /*Reason*/)
 {
+	bBarOnline = false;
+
 	if (ChatWidget.IsValid())
 	{
 		FchuckChatStatePayload Payload;
