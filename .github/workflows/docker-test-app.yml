@@ -155,14 +155,6 @@ jobs:
                     echo "Playwright OFF"
                     exit 0
                   fi
-                  # Auto-detect which browsers the project's playwright.config.ts
-                  # actually drives. The shared workflow used to install
-                  # `chromium webkit` for every e2e, but every config except
-                  # astro-kbve's only uses chromium — irc-gateway in
-                  # particular kept timing out on the 15-min webkit
-                  # download. Scan the configs under source_path; default to
-                  # chromium when nothing matches so a missing config never
-                  # results in an empty browser list to `playwright install`.
                   ROOT="${{ inputs.source_path }}"
                   BROWSERS=""
                   CFGS=$(find "$ROOT" -maxdepth 6 -type f -name "playwright.config.*" -not -path "*/node_modules/*" 2>/dev/null || true)
@@ -191,16 +183,6 @@ jobs:
                   echo "version=${VER}" >> "$GITHUB_OUTPUT"
                   echo "Resolved Playwright version: ${VER}"
 
-            # Detect whether the runner image has already baked the browsers
-            # this project needs at /opt/ms-playwright (arc-runner does — see
-            # packages/docker/arc-runner/Dockerfile). When every requested
-            # browser is present, skip both the workflow cache and the
-            # install step entirely — the install was the failure mode that
-            # broke every e2e (#11849 / #11853): cdn.playwright.dev stalls
-            # turned a 14-minute chromium download into a 15- (then 25-)
-            # minute timeout. Pre-baked = zero network in the critical
-            # path. Falls back to the legacy cache + install dance on a
-            # github-hosted runner where /opt/ms-playwright isn't there.
             - name: Check baked Playwright browsers
               if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' }}
               id: baked-playwright
