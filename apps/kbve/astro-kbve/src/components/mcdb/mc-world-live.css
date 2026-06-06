@@ -1,0 +1,95 @@
+.mcworldlive {
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+	padding: 0.6rem 0.8rem;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.4rem;
+	background: var(--sl-color-bg);
+	max-width: 640px;
+}
+
+.mcworldlive__row {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	font-size: 0.92em;
+}
+
+.mcworldlive__row strong {
+	font-size: 1.1em;
+	color: var(--sl-color-white);
+}
+
+.mcworldlive__refresh {
+	margin-left: auto;
+	background: var(--sl-color-bg-nav);
+	color: var(--sl-color-white);
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.3rem;
+	padding: 0.2rem 0.6rem;
+	font: inherit;
+	font-size: 0.85em;
+	cursor: pointer;
+}
+
+.mcworldlive__dot {
+	display: inline-block;
+	width: 0.6rem;
+	height: 0.6rem;
+	border-radius: 999px;
+	background: var(--sl-color-gray-5);
+}
+
+.mcworldlive__dot--live {
+	background: #4ade80;
+	box-shadow: 0 0 0.4rem rgba(74, 222, 128, 0.6);
+	animation: mcworldlive-pulse 1.6s ease-in-out infinite;
+}
+
+.mcworldlive__dot--ok {
+	background: #4ade80;
+}
+
+.mcworldlive__dot--bad {
+	background: #f87171;
+}
+
+.mcworldlive__servers {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
+	font-size: 0.85em;
+	color: var(--sl-color-gray-3);
+}
+
+.mcworldlive__servers li {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.mcworldlive__hint {
+	margin: 0;
+	font-size: 0.78em;
+	color: var(--sl-color-gray-4);
+}
+
+.mcworldlive__error {
+	margin: 0;
+	font-size: 0.85em;
+	color: var(--sl-color-red);
+}
+
+@keyframes mcworldlive-pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.5;
+	}
+}

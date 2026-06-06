@@ -1,0 +1,28 @@
+---
+title: Spawn
+description: World spawn point — every fresh login lands here.
+sidebar:
+    label: Spawn
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-poi
+mc_poi:
+    poi_id: spawn
+    display_name: Spawn
+    kind: spawn
+    world: minecraft:overworld
+    chunk_x: 0
+    chunk_z: 0
+    radius_chunks: 1
+    anchor_y: 63
+    icon: '★'
+    about:
+        summary: World spawn point. New arrivals land here; bed-less respawns drop them here too.
+        notes: Surrounded by the central plaza lot grid. PvP disabled inside a 16-chunk radius.
+---
+
+import MCPoiPanel from '@/components/mcdb/MCPoiPanel.astro';
+
+<MCPoiPanel data={frontmatter.mc_poi} />
