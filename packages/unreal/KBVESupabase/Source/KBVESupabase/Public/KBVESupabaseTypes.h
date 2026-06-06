@@ -13,6 +13,21 @@ enum class EKBVESupabaseAuthStatus : uint8
 	Error			UMETA(DisplayName = "Error")
 };
 
+UENUM(BlueprintType, meta = (Bitflags, UseEnumValuesAsMaskValuesInEditor = "true"))
+enum class EKBVESupabaseStateFlags : uint8
+{
+	None              = 0       UMETA(Hidden),
+	HasSession        = 1 << 0  UMETA(DisplayName = "Has Session"),
+	HasValidJwt       = 1 << 1  UMETA(DisplayName = "Has Valid JWT"),
+	SignInInflight    = 1 << 2  UMETA(DisplayName = "Sign-In Inflight"),
+	RefreshInflight   = 1 << 3  UMETA(DisplayName = "Refresh Inflight"),
+	FetchUserInflight = 1 << 4  UMETA(DisplayName = "Fetch User Inflight"),
+	NetworkError      = 1 << 5  UMETA(DisplayName = "Network Error"),
+	RowsAdopted       = 1 << 6  UMETA(DisplayName = "ROWS Adopted"),
+	ChatConnected     = 1 << 7  UMETA(DisplayName = "Chat Connected")
+};
+ENUM_CLASS_FLAGS(EKBVESupabaseStateFlags)
+
 UENUM(BlueprintType)
 enum class EKBVESupabaseOAuthProvider : uint8
 {

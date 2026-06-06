@@ -84,10 +84,13 @@ data:
             class: "server-admin"
             whois-line: "is a server administrator"
             password: "$2a$04$LiytCxaY0lI.guDj2pBN4eSRcunHZskZn0t6wF1sJCqzx9HNKbONu"
-          nd-bot:
-            class: "game-relay"
-            whois-line: "is the Nexus Defense match-chat relay"
-            password: "$2a$04$REPLACE_ME_WITH_BCRYPT_HASH"
+          # nd-bot oper disabled — the placeholder bcrypt hash was rejected by
+          # ergo's config validator ("invalid password hash") which killed chat
+          # for everyone. Re-enable when Nexus Defense ships a real hash.
+          # nd-bot:
+          #   class: "game-relay"
+          #   whois-line: "is the Nexus Defense match-chat relay"
+          #   password: "$2a$04$<REAL_BCRYPT_HASH_HERE>"
 
         oper-classes:
           "server-admin":

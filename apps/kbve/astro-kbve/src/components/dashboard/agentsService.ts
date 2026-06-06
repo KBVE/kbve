@@ -322,6 +322,22 @@ class AgentsService {
 		>
 	>({});
 
+	public readonly $webhookInstallSelected = atom<Record<string, string>>({});
+	public readonly $webhookInstallBusyFor = atom<Record<string, boolean>>({});
+	public readonly $webhookInstallResults = atom<
+		Record<
+			string,
+			| {
+					ok: true;
+					installed: boolean;
+					alreadyPresent: boolean;
+					hookId: number | null;
+			  }
+			| { ok: false; error: string }
+			| null
+		>
+	>({});
+
 	// Dedup state — singleton so the cache survives ClientRouter swaps.
 	private initPromise: Promise<void> | null = null;
 	private lastInitAt = 0;
@@ -1176,6 +1192,42 @@ class AgentsService {
 		this.$backfillBusyFor.set(busyDone);
 		const resultsSet = { ...this.$backfillResults.get(), [guildId]: r };
 		this.$backfillResults.set(resultsSet);
+	}
+
+	public setWebhookInstallSelected(guildId: string, repo: string): void {
+		this.$webhookInstallSelected.set({
+			...this.$webhookInstallSelected.get(),
+			[guildId]: repo,
+		});
+	}
+
+	public clearWebhookInstallResult(guildId: string): void {
+		const m = { ...this.$webhookInstallResults.get() };
+		delete m[guildId];
+		this.$webhookInstallResults.set(m);
+	}
+
+	public async installWebhookForGuild(guildId: string): Promise<void> {
+		const repoFull = this.$webhookInstallSelected.get()[guildId] ?? '';
+		const [owner, repo] = repoFull.split('/');
+		if (!owner || !repo) return;
+		const busy = {
+			...this.$webhookInstallBusyFor.get(),
+			[guildId]: true,
+		};
+		this.$webhookInstallBusyFor.set(busy);
+		const resultsClear = { ...this.$webhookInstallResults.get() };
+		delete resultsClear[guildId];
+		this.$webhookInstallResults.set(resultsClear);
+		const r = await this.installRepoWebhook(guildId, owner, repo);
+		const busyDone = { ...this.$webhookInstallBusyFor.get() };
+		delete busyDone[guildId];
+		this.$webhookInstallBusyFor.set(busyDone);
+		const resultsSet = {
+			...this.$webhookInstallResults.get(),
+			[guildId]: r,
+		};
+		this.$webhookInstallResults.set(resultsSet);
 	}
 
 	public async toggleToken(

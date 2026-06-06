@@ -19,7 +19,15 @@ export interface SeoSiteConfig {
 	siteUrl: string;
 	name: string;
 	logo?: string;
+	logoWidth?: number;
+	logoHeight?: number;
 	description?: string;
+	alternateName?: string;
+	foundingDate?: string;
+	email?: string;
+	contactType?: string;
+	brand?: string;
+	inLanguage?: string;
 	sameAs?: string[];
 }
 
@@ -82,13 +90,21 @@ export const createSeo = (config: SeoSiteConfig): Seo => {
 		url: config.siteUrl,
 		name: config.name,
 		logo: config.logo,
+		logoWidth: config.logoWidth,
+		logoHeight: config.logoHeight,
 		description: config.description,
+		alternateName: config.alternateName,
+		foundingDate: config.foundingDate,
+		email: config.email,
+		contactType: config.contactType,
+		brand: config.brand,
 		sameAs: config.sameAs,
 	});
 	const siteNode = website({
 		url: config.siteUrl,
 		name: config.name,
 		description: config.description,
+		inLanguage: config.inLanguage,
 		publisher: orgNode,
 	});
 
@@ -120,6 +136,7 @@ export const createSeo = (config: SeoSiteConfig): Seo => {
 							datePublished: i.datePublished,
 							dateModified: i.dateModified,
 							keywords: i.keywords,
+							inLanguage: config.inLanguage,
 							publisher: orgNode,
 							isPartOf: siteNode,
 							breadcrumb: crumbId,
@@ -131,6 +148,7 @@ export const createSeo = (config: SeoSiteConfig): Seo => {
 							image: i.image,
 							primaryImageOfPage: i.image ?? config.logo,
 							keywords: i.keywords,
+							inLanguage: config.inLanguage,
 							isPartOf: siteNode,
 							breadcrumb: crumbId,
 							dateModified: i.dateModified,

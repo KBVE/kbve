@@ -40,6 +40,23 @@ if (twitterTitle) owned['twitter:title'] = twitterTitle;
 if (twitterDescription) owned['twitter:description'] = twitterDescription;
 if (twitterImage) owned['twitter:image'] = twitterImage;
 
+type JsonLdFm = {
+	disable?: boolean;
+	type?: 'WebPage' | 'Article';
+	image?: string;
+	datePublished?: string;
+	dateModified?: string;
+	author?: string;
+	section?: string;
+	keywords?: string[];
+	breadcrumb?: { name: string; path: string }[];
+	faq?: { question: string; answer: string }[];
+};
+
+const jl = (data.jsonld ?? {}) as JsonLdFm;
+const isArticle = jl.type === 'Article';
+if (isArticle) owned['og:type'] = 'article';
+
 type HeadTag = (typeof head)[number];
 
 function tagKey(t: HeadTag): string | undefined {
@@ -53,7 +70,7 @@ function tagKey(t: HeadTag): string | undefined {
 
 const filteredHead = head.filter((t) => {
 	const key = tagKey(t);
-	return !key || !(key in owned);
+	return !key || (!(key in owned) && key !== 'robots');
 });
 
 const overrideTags: HeadTag[] = Object.entries(owned).map(([key, content]) => {
@@ -66,18 +83,6 @@ const overrideTags: HeadTag[] = Object.entries(owned).map(([key, content]) => {
 	} as HeadTag;
 });
 
-type JsonLdFm = {
-	disable?: boolean;
-	type?: 'WebPage' | 'Article';
-	image?: string;
-	datePublished?: string;
-	dateModified?: string;
-	keywords?: string[];
-	breadcrumb?: { name: string; path: string }[];
-	faq?: { question: string; answer: string }[];
-};
-
-const jl = (data.jsonld ?? {}) as JsonLdFm;
 const pageTitle = typeof data.title === 'string' ? data.title : undefined;
 const pageDescription =
 	typeof data.description === 'string' ? data.description : undefined;
@@ -107,6 +112,31 @@ const jsonLdPayload = jsonLdGraph
 		? { '@context': 'https://schema.org', ...jsonLdGraph[0] }
 		: { '@context': 'https://schema.org', '@graph': jsonLdGraph }
 	: null;
+
+const noindex = data.noindex === true;
+const robotsContent = noindex
+	? 'noindex, nofollow'
+	: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+
+const articleTags: { property: string; content: string }[] = [];
+if (isArticle) {
+	if (jl.datePublished)
+		articleTags.push({
+			property: 'article:published_time',
+			content: jl.datePublished,
+		});
+	if (jl.dateModified)
+		articleTags.push({
+			property: 'article:modified_time',
+			content: jl.dateModified,
+		});
+	if (jl.author)
+		articleTags.push({ property: 'article:author', content: jl.author });
+	if (jl.section)
+		articleTags.push({ property: 'article:section', content: jl.section });
+	for (const tag of jl.keywords ?? [])
+		articleTags.push({ property: 'article:tag', content: tag });
+}
 ---
 
 {
@@ -115,6 +145,9 @@ const jsonLdPayload = jsonLdGraph
 	))
 }
 {overrideTags.map(({ tag: Tag, attrs }) => <Tag {...attrs} />)}
+
+<meta name="robots" content={robotsContent} />
+{articleTags.map((t) => <meta property={t.property} content={t.content} />)}
 
 {
 	jsonLdPayload && (

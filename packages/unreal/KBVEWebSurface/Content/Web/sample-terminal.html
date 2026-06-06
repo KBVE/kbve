@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>KBVE Web Surface — Sample Terminal</title>
+<style>
+	:root { color-scheme: dark; }
+	html, body { margin: 0; padding: 0; height: 100%; background: #0b0e14; color: #d8e0ec; font: 14px/1.4 system-ui, sans-serif; }
+	main { padding: 24px; }
+	h1 { margin: 0 0 8px; font-size: 18px; color: #6cf2c4; }
+	pre { background: #131826; border: 1px solid #1f2638; padding: 12px; overflow: auto; }
+	button { background: #6cf2c4; color: #0b0e14; border: 0; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+	button:hover { filter: brightness(1.1); }
+	.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+	#log { height: 180px; }
+</style>
+</head>
+<body>
+<main>
+	<h1>KBVE Web Surface — Sample</h1>
+	<p>Validates the JS↔UE bridge. The <code>window.kbveBridge</code> UObject is auto-bound by the plugin.</p>
+	<div class="row">
+		<button onclick="emit('terminal.ready', '{}')">Send terminal.ready</button>
+		<button onclick="emit('inventory.use', JSON.stringify({slot: 3}))">Send inventory.use</button>
+		<button onclick="emit('terminal.close', '{}')">Send terminal.close</button>
+	</div>
+	<h1>Log</h1>
+	<pre id="log"></pre>
+</main>
+<script>
+	const log = (s) => {
+		const el = document.getElementById('log');
+		el.textContent += s + '\n';
+		el.scrollTop = el.scrollHeight;
+	};
+
+	function emit(channel, payload) {
+		if (window.kbveBridge && typeof window.kbveBridge.Dispatch === 'function') {
+			window.kbveBridge.Dispatch(channel, payload);
+			log('→ ' + channel + ' ' + payload);
+		} else {
+			log('bridge unavailable — running outside UE');
+		}
+	}
+
+	// UE → JS push: plugin calls window.kbveBridge.onPush(channel, payload).
+	window.kbveBridge = window.kbveBridge || {};
+	window.kbveBridge.onPush = (channel, payload) => {
+		log('← ' + channel + ' ' + payload);
+	};
+
+	// Fragment-token hydration. Plugin appends #kbve_token=<encoded> on load.
+	const hash = new URLSearchParams(window.location.hash.slice(1));
+	const token = hash.get('kbve_token');
+	if (token) {
+		log('hydrated token (' + token.length + ' chars)');
+		history.replaceState(null, '', window.location.pathname + window.location.search);
+	}
+</script>
+</body>
+</html>

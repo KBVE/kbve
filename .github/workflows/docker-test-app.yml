@@ -137,28 +137,51 @@ jobs:
               run: |
                   FORCE="${{ inputs.install_playwright }}"
                   if [ "$FORCE" = "true" ]; then
-                    echo "uses_playwright=true" >> "$GITHUB_OUTPUT"
-                    echo "Playwright forced ON via input"
-                    exit 0
-                  fi
-                  if [ "$FORCE" = "false" ]; then
-                    echo "uses_playwright=false" >> "$GITHUB_OUTPUT"
-                    echo "Playwright forced OFF via input"
-                    exit 0
-                  fi
-                  ROOT="${{ inputs.source_path }}"
-                  if [ -z "$ROOT" ] || [ ! -d "$ROOT" ]; then
-                    echo "uses_playwright=false" >> "$GITHUB_OUTPUT"
-                    echo "No source_path provided — defaulting to no Playwright"
-                    exit 0
-                  fi
-                  if grep -rlq '@nx/playwright:playwright' "$ROOT" 2>/dev/null; then
-                    echo "uses_playwright=true" >> "$GITHUB_OUTPUT"
-                    echo "Detected @nx/playwright:playwright executor under ${ROOT}"
+                    USES=true
+                  elif [ "$FORCE" = "false" ]; then
+                    USES=false
                   else
-                    echo "uses_playwright=false" >> "$GITHUB_OUTPUT"
-                    echo "No Playwright executor under ${ROOT}"
+                    ROOT="${{ inputs.source_path }}"
+                    if [ -z "$ROOT" ] || [ ! -d "$ROOT" ]; then
+                      USES=false
+                    elif grep -rlq '@nx/playwright:playwright' "$ROOT" 2>/dev/null; then
+                      USES=true
+                    else
+                      USES=false
+                    fi
                   fi
+                  echo "uses_playwright=${USES}" >> "$GITHUB_OUTPUT"
+                  if [ "$USES" != "true" ]; then
+                    echo "Playwright OFF"
+                    exit 0
+                  fi
+                  # Auto-detect which browsers the project's playwright.config.ts
+                  # actually drives. The shared workflow used to install
+                  # `chromium webkit` for every e2e, but every config except
+                  # astro-kbve's only uses chromium — irc-gateway in
+                  # particular kept timing out on the 15-min webkit
+                  # download. Scan the configs under source_path; default to
+                  # chromium when nothing matches so a missing config never
+                  # results in an empty browser list to `playwright install`.
+                  ROOT="${{ inputs.source_path }}"
+                  BROWSERS=""
+                  CFGS=$(find "$ROOT" -maxdepth 6 -type f -name "playwright.config.*" -not -path "*/node_modules/*" 2>/dev/null || true)
+                  if [ -n "$CFGS" ]; then
+                    add() {
+                      case " $BROWSERS " in
+                        *" $1 "*) ;;
+                        *) BROWSERS="${BROWSERS:+$BROWSERS }$1" ;;
+                      esac
+                    }
+                    if echo "$CFGS" | xargs grep -lqE "devices\['Desktop Chrome'|name: *'chromium|chromium.*channel|name: *'mobile-chrome" 2>/dev/null; then add chromium; fi
+                    if echo "$CFGS" | xargs grep -lqE "devices\['Desktop Safari|name: *'webkit|name: *'mobile-safari" 2>/dev/null; then add webkit; fi
+                    if echo "$CFGS" | xargs grep -lqE "devices\['Desktop Firefox|name: *'firefox" 2>/dev/null; then add firefox; fi
+                  fi
+                  if [ -z "$BROWSERS" ]; then BROWSERS=chromium; fi
+                  KEY=$(echo "$BROWSERS" | tr ' ' '-')
+                  echo "browsers=${BROWSERS}" >> "$GITHUB_OUTPUT"
+                  echo "browsers_key=${KEY}" >> "$GITHUB_OUTPUT"
+                  echo "Playwright ON — browsers: ${BROWSERS}"
 
             - name: Resolve Playwright version
               if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' }}
@@ -174,22 +197,33 @@ jobs:
               uses: actions/cache@v5
               with:
                   path: ~/.cache/ms-playwright
-                  key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}-chromium-webkit
+                  key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}-${{ steps.detect-playwright.outputs.browsers_key }}
                   restore-keys: |
                       ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}-
                       ${{ runner.os }}-playwright-
 
             - name: Install Playwright Browsers
               if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.playwright-cache.outputs.cache-hit != 'true' }}
-              timeout-minutes: 15
+              timeout-minutes: 40
               env:
                   UV_THREADPOOL_SIZE: '16'
-              run: pnpm exec playwright install --with-deps chromium webkit
+              run: |
+                  set -euo pipefail
+                  for try in 1 2 3; do
+                    if pnpm exec playwright install --with-deps ${{ steps.detect-playwright.outputs.browsers }}; then
+                      echo "playwright install succeeded on attempt ${try}"
+                      exit 0
+                    fi
+                    echo "::warning::playwright install attempt ${try} failed; retrying in 15s"
+                    sleep 15
+                  done
+                  echo "::error::playwright install failed after 3 attempts"
+                  exit 1
 
             - name: Install Playwright OS deps (cache hit)
               if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.playwright-cache.outputs.cache-hit == 'true' }}
               timeout-minutes: 10
-              run: pnpm exec playwright install-deps chromium webkit
+              run: pnpm exec playwright install-deps ${{ steps.detect-playwright.outputs.browsers }}
 
             - name: Nx e2e ${{ inputs.project }}
               env:

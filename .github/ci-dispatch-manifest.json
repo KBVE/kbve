@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.184",
+			"version": "1.0.185",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -106,7 +106,7 @@
 		{
 			"key": "cryptothrone",
 			"app_name": "cryptothrone",
-			"version": "0.1.5",
+			"version": "0.1.6",
 			"version_toml": "apps/cryptothrone/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone.mdx",
 			"version_target": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",
@@ -664,6 +664,54 @@
 	],
 	"unreal": [
 		{
+			"key": "ue_kbveevents",
+			"plugin_name": "KBVEEvents",
+			"plugin_path": "packages/unreal/KBVEEvents",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVEEvents/version.toml"
+		},
+		{
+			"key": "ue_kbvehexworld",
+			"plugin_name": "KBVEHexWorld",
+			"plugin_path": "packages/unreal/KBVEHexWorld",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVEHexWorld/version.toml"
+		},
+		{
+			"key": "ue_kbvelibgit",
+			"plugin_name": "KBVELibGit",
+			"plugin_path": "packages/unreal/KBVELibGit",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVELibGit/version.toml"
+		},
+		{
+			"key": "ue_kbverows",
+			"plugin_name": "KBVEROWS",
+			"plugin_path": "packages/unreal/KBVEROWS",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "1.0.0",
+			"version_toml": "packages/unreal/KBVEROWS/version.toml"
+		},
+		{
 			"key": "ue_kbvesqlite",
 			"plugin_name": "KBVESQLite",
 			"plugin_path": "packages/unreal/KBVESQLite",
@@ -674,6 +722,66 @@
 			],
 			"version": "3.51.3",
 			"version_toml": "packages/unreal/KBVESQLite/version.toml"
+		},
+		{
+			"key": "ue_kbvesupabase",
+			"plugin_name": "KBVESupabase",
+			"plugin_path": "packages/unreal/KBVESupabase",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVESupabase/version.toml"
+		},
+		{
+			"key": "ue_kbvetinybvh",
+			"plugin_name": "KBVETinyBVH",
+			"plugin_path": "packages/unreal/KBVETinyBVH",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "1.6.7",
+			"version_toml": "packages/unreal/KBVETinyBVH/version.toml"
+		},
+		{
+			"key": "ue_kbveui",
+			"plugin_name": "KBVEUI",
+			"plugin_path": "packages/unreal/KBVEUI",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVEUI/version.toml"
+		},
+		{
+			"key": "ue_kbveulid",
+			"plugin_name": "KBVEULID",
+			"plugin_path": "packages/unreal/KBVEULID",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVEULID/version.toml"
+		},
+		{
+			"key": "ue_kbveunrealmcp",
+			"plugin_name": "KBVEUnrealMCP",
+			"plugin_path": "packages/unreal/KBVEUnrealMCP",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVEUnrealMCP/version.toml"
 		},
 		{
 			"key": "ue_kbvewasm",
@@ -696,8 +804,20 @@
 				"Linux",
 				"Mac"
 			],
-			"version": "0.2.0",
+			"version": "0.3.0",
 			"version_toml": "packages/unreal/KBVEWebSurface/version.toml"
+		},
+		{
+			"key": "ue_kbveworld",
+			"plugin_name": "KBVEWorld",
+			"plugin_path": "packages/unreal/KBVEWorld",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVEWorld/version.toml"
 		},
 		{
 			"key": "ue_kbvexxhash",
@@ -852,12 +972,12 @@
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
-		"unreal": 7,
+		"unreal": 17,
 		"ue5_server": 2,
 		"unity": 1,
 		"godot": 1,
 		"unreal_game": 1,
 		"bevy_game": 0,
-		"total": 71
+		"total": 81
 	}
 }

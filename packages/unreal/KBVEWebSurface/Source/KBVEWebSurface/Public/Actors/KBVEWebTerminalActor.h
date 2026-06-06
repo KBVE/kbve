@@ -6,6 +6,7 @@
 
 class UKBVEWebSurfaceComponent;
 class UStaticMeshComponent;
+class UObject;
 
 /**
  * Drop-in interactive terminal. Bundles a backing static mesh frame, a flat
@@ -32,9 +33,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Terminal")
 	FString InitialURL;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Terminal")
+	/** Optional static token. Ignored when AuthProvider is set. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Terminal|Auth")
 	FString AuthToken;
+
+	/**
+	 * UObject implementing IKBVEWebAuthProvider. When set the actor calls
+	 * ResolveToken on BeginPlay and uses the resolved token for the initial load.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Terminal|Auth", meta = (MustImplement = "/Script/KBVEWebSurface.KBVEWebAuthProvider"))
+	TObjectPtr<UObject> AuthProvider;
 
 protected:
 	virtual void BeginPlay() override;
+
+	UFUNCTION()
+	void HandleResolvedToken(const FString& Token);
 };

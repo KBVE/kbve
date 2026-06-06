@@ -5,12 +5,24 @@ import {
   extractToken,
   jsonResponse,
   parseJwt,
-  requireServiceRole,
 } from "../_shared/supabase.ts";
 import {
   enforceBodySizeLimit,
   requireJsonContentType,
 } from "../_shared/validators.ts";
+
+interface JwtClaimsLite {
+  role?: string;
+  owned_guilds?: unknown;
+}
+
+function ownsGuild(claims: JwtClaimsLite, serverId: string): boolean {
+  const og = claims.owned_guilds;
+  if (!Array.isArray(og)) return false;
+  return og.some((g) =>
+    typeof g === "string" && /^[0-9]{17,20}$/.test(g) && g === serverId
+  );
+}
 
 interface BackfillRequest {
   owner: string;
@@ -116,9 +128,21 @@ serve(async (req) => {
   } catch {
     return jsonResponse({ error: "authorization required" }, 401);
   }
-  const claims = await parseJwt(token).catch(() => ({}));
-  const denied = requireServiceRole(claims);
-  if (denied) return denied;
+  const claims = (await parseJwt(token).catch(() => ({}))) as JwtClaimsLite;
+  const isServiceRole = claims.role === "service_role";
+  const isUserToken =
+    typeof claims.role === "string" &&
+    claims.role !== "service_role" &&
+    Array.isArray(claims.owned_guilds);
+  if (!isServiceRole && !isUserToken) {
+    return jsonResponse(
+      {
+        error:
+          "Access denied: requires service_role or an authenticated Discord-linked user token",
+      },
+      403,
+    );
+  }
 
   let body: BackfillRequest;
   try {
@@ -147,6 +171,16 @@ serve(async (req) => {
           "guild_id is required and must be a Discord snowflake (17–20 digits). Pass in body or set GH_BACKFILL_DEFAULT_GUILD_ID on the edge deployment.",
       },
       400,
+    );
+  }
+
+  if (!isServiceRole && !ownsGuild(claims, guildId)) {
+    return jsonResponse(
+      {
+        error:
+          "JWT owned_guilds claim does not include this guild_id. Re-bootstrap or sign in with Discord.",
+      },
+      403,
     );
   }
 
