@@ -106,11 +106,10 @@ def check_sheet(anim: str, layer: str, frame_count: int) -> None:
             img.load()
             mode = img.mode
             size = img.size
+            img_for_alpha = img.convert("RGBA") if layer == "Shadow" else None
     except Exception as e:
         raise TestFail(f"{path.name}: cannot open ({e})")
 
-    # Factorio accepts RGBA, RGB+tRNS, palette+tRNS (P), LA. Reject only modes
-    # the engine can't render (1, F, I).
     if mode not in ("RGBA", "RGB", "LA", "L", "P", "PA"):
         raise TestFail(f"{path.name}: unsupported PNG mode {mode!r}")
 
@@ -120,6 +119,18 @@ def check_sheet(anim: str, layer: str, frame_count: int) -> None:
             f"{path.name}: size {size}, expected {want} "
             f"(={frame_count} frames × {FRAME}, ={DIRECTIONS} dirs × {FRAME})"
         )
+
+    if layer == "Shadow":
+        alpha = img_for_alpha.split()[-1]
+        hist = alpha.histogram()
+        nonzero = [i for i, v in enumerate(hist) if v > 0]
+        if not nonzero or max(nonzero) < 32:
+            raise TestFail(
+                f"{path.name}: shadow alpha channel is empty or near-empty "
+                f"(max alpha bucket = {max(nonzero) if nonzero else 'none'}). "
+                "Factorio's draw_as_shadow reads alpha — a wiped channel "
+                "renders the shadow invisible. Re-bake from Spider256 source."
+            )
 
 
 def check_all_sheets(frames: dict[str, int]) -> None:

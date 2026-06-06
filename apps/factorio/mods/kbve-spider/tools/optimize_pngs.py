@@ -28,6 +28,8 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
+from PIL import Image
+
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_TARGET = ROOT / "graphics"
 ZOPFLIPNG = shutil.which("zopflipng")
@@ -85,16 +87,16 @@ def optimize_one(png: Path, dry_run: bool) -> Result:
     else:
         iterations = 15
 
+    is_shadow = png.name.endswith("_Shadow.png")
+
     try:
-        cmd = [
-            ZOPFLIPNG,
-            "--lossy_transparent",
-            "-y",
-            "--keepchunks=tRNS",
-            f"--iterations={iterations}",
-            str(png),
-            str(tmp_path),
-        ]
+        cmd = [ZOPFLIPNG, "-y", f"--iterations={iterations}"]
+        if is_shadow:
+            cmd.append("--keepcolortype")
+        else:
+            cmd.append("--lossy_transparent")
+            cmd.append("--keepchunks=tRNS")
+        cmd.extend([str(png), str(tmp_path)])
         proc = subprocess.run(cmd, capture_output=True,
                               text=True, timeout=1800)
         if proc.returncode != 0:
@@ -103,9 +105,22 @@ def optimize_one(png: Path, dry_run: bool) -> Result:
             return Result(png, before, before, 0, failed=err)
 
         after = tmp_path.stat().st_size
+
+        if after < 100:
+            tmp_path.unlink(missing_ok=True)
+            return Result(png, before, before, 0,
+                          failed=f"refusing to replace with suspicious {after}B output")
+        try:
+            with Image.open(tmp_path) as probe:
+                probe.verify()
+        except Exception as e:
+            tmp_path.unlink(missing_ok=True)
+            return Result(png, before, before, 0,
+                          failed=f"output failed PIL verify: {e}")
+
         if after >= before:
             tmp_path.unlink(missing_ok=True)
-            write_marker(png)  # mark even if no improvement, so we don't retry
+            write_marker(png)
             return Result(png, before, before, 0)
 
         if dry_run:
