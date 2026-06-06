@@ -77,7 +77,7 @@ The image is pinned in three manifests today, all kept in sync by the `deploymen
 |---|---|---|
 | `apps/kube/kubevirt/autologon/job.yaml` | KubeVirt Windows autologon setup | One-shot Job, kubectl + virtctl |
 | `apps/kube/kubevirt/runner/job.yaml` | KubeVirt runner orchestration | One-shot Job, kubectl + virtctl |
-| `apps/kube/agones/factorio/manifests/rotation-cronjob.yaml` | Factorio GameServer image rotator | CronJob every 5 min, invokes `kbve-kubectl rotate-gameserver` to compare `gs.spec.image` vs `pod.spec.image` and delete the GameServer on drift so ArgoCD selfHeal recreates from the new spec |
+| `apps/kube/agones/factorio/manifests/rotation-cronjob.yaml` | Factorio GameServer rotator + watchdog | CronJob every 2 min, invokes `kbve-kubectl rotate-gameserver` to (a) compare `gs.spec.image` vs `pod.spec.image` and delete the GameServer on drift, and (b) detect `state=Unhealthy` with a missing pod and delete the stuck GameServer so ArgoCD selfHeal recreates from the spec |
 
 When a new behavior needs to land across all rotator and KubeVirt jobs (RCON-aware save-flush probes, Agones SDK Health calls, retry-with-backoff, ConfigMap-driven rotation policy), extend the Rust CLI in `apps/vm/kubectl/src/`, bump `version.toml`, and every manifest above auto-bumps via the post-publish sync.
 
