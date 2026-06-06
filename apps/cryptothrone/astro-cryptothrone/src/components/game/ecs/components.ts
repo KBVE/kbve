@@ -10,6 +10,10 @@ export const Health = {
 	maxHp: new Float32Array(MAX_ENTITIES),
 };
 
+export const Active = {
+	value: new Uint8Array(MAX_ENTITIES),
+};
+
 export const PlayerTag: Record<string, never> = {};
 export const NpcTag: Record<string, never> = {};
 export const MonsterTag: Record<string, never> = {};
