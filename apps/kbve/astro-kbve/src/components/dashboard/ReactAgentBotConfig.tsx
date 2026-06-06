@@ -1,76 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { Loader2, RefreshCw, Save, Settings2 } from 'lucide-react';
-import { agentsService, type DiscordshConfig } from './agentsService';
+import {
+	agentsService,
+	emptyBotConfigFormDraft,
+	type BotConfigFormDraft,
+} from './agentsService';
 import { styles } from './dashboard-ui';
 
 const SNOWFLAKE_RE = /^[0-9]{17,20}$/;
 const REPO_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,38}\/[A-Za-z0-9._-]{1,100}$/;
 
-interface FormState {
-	default_repo: string;
-	claim_channel_id: string;
-	forum_channel_id: string;
-	noticeboard_channel_id: string;
-	taskboard_channel_id: string;
-	max_assignees: string;
-	mirror_pr_events: boolean;
-	active: boolean;
-}
-
-function emptyForm(): FormState {
-	return {
-		default_repo: '',
-		claim_channel_id: '',
-		forum_channel_id: '',
-		noticeboard_channel_id: '',
-		taskboard_channel_id: '',
-		max_assignees: '2',
-		mirror_pr_events: true,
-		active: true,
-	};
-}
-
-function configToForm(c: DiscordshConfig): FormState {
-	const base = emptyForm();
-	return {
-		default_repo: c.default_repo ?? base.default_repo,
-		claim_channel_id: c.claim_channel_id ?? base.claim_channel_id,
-		forum_channel_id: c.forum_channel_id ?? base.forum_channel_id,
-		noticeboard_channel_id:
-			c.noticeboard_channel_id ?? base.noticeboard_channel_id,
-		taskboard_channel_id:
-			c.taskboard_channel_id ?? base.taskboard_channel_id,
-		max_assignees:
-			typeof c.max_assignees === 'number'
-				? String(c.max_assignees)
-				: base.max_assignees,
-		mirror_pr_events:
-			typeof c.mirror_pr_events === 'boolean'
-				? c.mirror_pr_events
-				: base.mirror_pr_events,
-		active: typeof c.active === 'boolean' ? c.active : base.active,
-	};
-}
-
-function formToConfig(f: FormState): DiscordshConfig {
-	const cfg: DiscordshConfig = {
-		mirror_pr_events: f.mirror_pr_events,
-		active: f.active,
-	};
-	if (f.default_repo.trim()) cfg.default_repo = f.default_repo.trim();
-	if (f.claim_channel_id.trim())
-		cfg.claim_channel_id = f.claim_channel_id.trim();
-	if (f.forum_channel_id.trim())
-		cfg.forum_channel_id = f.forum_channel_id.trim();
-	if (f.noticeboard_channel_id.trim())
-		cfg.noticeboard_channel_id = f.noticeboard_channel_id.trim();
-	if (f.taskboard_channel_id.trim())
-		cfg.taskboard_channel_id = f.taskboard_channel_id.trim();
-	const max = parseInt(f.max_assignees, 10);
-	if (!Number.isNaN(max) && max > 0) cfg.max_assignees = max;
-	return cfg;
-}
+type FormState = BotConfigFormDraft;
 
 function fieldError(
 	value: string,
@@ -95,30 +36,43 @@ function fieldError(
 export default function ReactAgentBotConfig() {
 	const guildId = useStore(agentsService.$selectedGuildId);
 	const guilds = useStore(agentsService.$guilds);
+	const drafts = useStore(agentsService.$botConfigDrafts);
+	const savingMap = useStore(agentsService.$botConfigSavingFor);
+	const errorsMap = useStore(agentsService.$botConfigErrors);
+	const loadedMap = useStore(agentsService.$botConfigLoadedFor);
 
-	const [form, setForm] = useState<FormState>(emptyForm);
 	const [loading, setLoading] = useState(false);
-	const [saving, setSaving] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState<string | null>(null);
 
-	const load = useCallback(async () => {
-		if (!guildId) return;
-		setLoading(true);
-		setError(null);
-		setSuccess(null);
-		const r = await agentsService.getBotConfig();
-		setLoading(false);
-		if (!r.ok) {
-			setError(r.error);
-			return;
-		}
-		setForm(configToForm(r.config));
-	}, [guildId]);
+	const form: FormState = guildId
+		? (drafts[guildId] ?? emptyBotConfigFormDraft())
+		: emptyBotConfigFormDraft();
+	const saving = guildId ? !!savingMap[guildId] : false;
+	const error = guildId ? (errorsMap[guildId] ?? null) : null;
+	const loaded = guildId ? !!loadedMap[guildId] : false;
+
+	const load = useCallback(
+		async (force = false) => {
+			if (!guildId) return;
+			setLoading(true);
+			setSuccess(null);
+			await agentsService.ensureBotConfigLoaded(guildId, force);
+			setLoading(false);
+		},
+		[guildId],
+	);
 
 	useEffect(() => {
-		void load();
-	}, [load]);
+		if (guildId && !loaded) {
+			void load();
+		}
+	}, [guildId, loaded, load]);
+
+	useEffect(() => {
+		if (!success) return;
+		const t = setTimeout(() => setSuccess(null), 2500);
+		return () => clearTimeout(t);
+	}, [success]);
 
 	if (!guildId) {
 		return (
@@ -156,23 +110,17 @@ export default function ReactAgentBotConfig() {
 	const anyError = Object.values(errors).some((e) => e !== null);
 
 	async function save() {
-		if (anyError || saving) return;
-		setSaving(true);
-		setError(null);
+		if (!guildId || anyError || saving) return;
 		setSuccess(null);
-		const cfg = formToConfig(form);
-		const r = await agentsService.setBotConfig(cfg);
-		setSaving(false);
-		if (!r.ok) {
-			setError(r.error);
-			return;
-		}
-		setSuccess('Saved.');
-		setTimeout(() => setSuccess(null), 2500);
+		const r = await agentsService.saveBotConfigDraft(guildId);
+		if (r.ok) setSuccess('Saved.');
 	}
 
 	function patch<K extends keyof FormState>(k: K, v: FormState[K]) {
-		setForm((prev) => ({ ...prev, [k]: v }));
+		if (!guildId) return;
+		agentsService.patchBotConfigDraft(guildId, {
+			[k]: v,
+		} as Partial<FormState>);
 	}
 
 	return (
@@ -201,7 +149,7 @@ export default function ReactAgentBotConfig() {
 				)}
 				<button
 					type="button"
-					onClick={() => void load()}
+					onClick={() => void load(true)}
 					disabled={loading || saving}
 					style={refreshBtn(loading || saving)}
 					aria-label="Refresh">

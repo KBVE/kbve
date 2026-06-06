@@ -27,6 +27,71 @@ export interface DiscordshConfig {
 	active?: boolean;
 }
 
+export interface BotConfigFormDraft {
+	default_repo: string;
+	claim_channel_id: string;
+	forum_channel_id: string;
+	noticeboard_channel_id: string;
+	taskboard_channel_id: string;
+	max_assignees: string;
+	mirror_pr_events: boolean;
+	active: boolean;
+}
+
+export function emptyBotConfigFormDraft(): BotConfigFormDraft {
+	return {
+		default_repo: '',
+		claim_channel_id: '',
+		forum_channel_id: '',
+		noticeboard_channel_id: '',
+		taskboard_channel_id: '',
+		max_assignees: '2',
+		mirror_pr_events: true,
+		active: true,
+	};
+}
+
+export function botConfigToFormDraft(c: DiscordshConfig): BotConfigFormDraft {
+	const base = emptyBotConfigFormDraft();
+	return {
+		default_repo: c.default_repo ?? base.default_repo,
+		claim_channel_id: c.claim_channel_id ?? base.claim_channel_id,
+		forum_channel_id: c.forum_channel_id ?? base.forum_channel_id,
+		noticeboard_channel_id:
+			c.noticeboard_channel_id ?? base.noticeboard_channel_id,
+		taskboard_channel_id:
+			c.taskboard_channel_id ?? base.taskboard_channel_id,
+		max_assignees:
+			typeof c.max_assignees === 'number'
+				? String(c.max_assignees)
+				: base.max_assignees,
+		mirror_pr_events:
+			typeof c.mirror_pr_events === 'boolean'
+				? c.mirror_pr_events
+				: base.mirror_pr_events,
+		active: typeof c.active === 'boolean' ? c.active : base.active,
+	};
+}
+
+export function botConfigFromFormDraft(f: BotConfigFormDraft): DiscordshConfig {
+	const cfg: DiscordshConfig = {
+		mirror_pr_events: f.mirror_pr_events,
+		active: f.active,
+	};
+	if (f.default_repo.trim()) cfg.default_repo = f.default_repo.trim();
+	if (f.claim_channel_id.trim())
+		cfg.claim_channel_id = f.claim_channel_id.trim();
+	if (f.forum_channel_id.trim())
+		cfg.forum_channel_id = f.forum_channel_id.trim();
+	if (f.noticeboard_channel_id.trim())
+		cfg.noticeboard_channel_id = f.noticeboard_channel_id.trim();
+	if (f.taskboard_channel_id.trim())
+		cfg.taskboard_channel_id = f.taskboard_channel_id.trim();
+	const max = parseInt(f.max_assignees, 10);
+	if (!Number.isNaN(max) && max > 0) cfg.max_assignees = max;
+	return cfg;
+}
+
 export interface AgentTokenRow {
 	token_id: string;
 	token_name: string;
@@ -209,6 +274,20 @@ class AgentsService {
 	public readonly $tokens = atom<AgentTokenRow[]>([]);
 	public readonly $tokensLoading = atom<boolean>(false);
 	public readonly $tokensError = atom<string | null>(null);
+
+	public readonly $botConfigDrafts = atom<Record<string, BotConfigFormDraft>>(
+		{},
+	);
+	public readonly $botConfigSavingFor = atom<Record<string, boolean>>({});
+	public readonly $botConfigErrors = atom<Record<string, string | null>>({});
+	public readonly $botConfigLoadedFor = atom<Record<string, boolean>>({});
+
+	public readonly $repoAllowlistDrafts = atom<Record<string, string[]>>({});
+	public readonly $repoAllowlistSavingFor = atom<Record<string, boolean>>({});
+	public readonly $repoAllowlistErrors = atom<Record<string, string | null>>(
+		{},
+	);
+	public readonly $repoAllowlistLoadedFor = atom<Record<string, boolean>>({});
 
 	// Dedup state — singleton so the cache survives ClientRouter swaps.
 	private initPromise: Promise<void> | null = null;
@@ -734,6 +813,159 @@ class AgentsService {
 		});
 		if (!r.ok) return { ok: false, error: r.error };
 		return { ok: true };
+	}
+
+	public hydrateBotConfigDraft(guildId: string, cfg: DiscordshConfig): void {
+		const drafts = this.$botConfigDrafts.get();
+		this.$botConfigDrafts.set({
+			...drafts,
+			[guildId]: botConfigToFormDraft(cfg),
+		});
+		const loaded = this.$botConfigLoadedFor.get();
+		this.$botConfigLoadedFor.set({ ...loaded, [guildId]: true });
+	}
+
+	public patchBotConfigDraft(
+		guildId: string,
+		patch: Partial<BotConfigFormDraft>,
+	): void {
+		const drafts = this.$botConfigDrafts.get();
+		const cur = drafts[guildId] ?? emptyBotConfigFormDraft();
+		this.$botConfigDrafts.set({
+			...drafts,
+			[guildId]: { ...cur, ...patch },
+		});
+	}
+
+	public clearBotConfigDraft(guildId: string): void {
+		const drafts = { ...this.$botConfigDrafts.get() };
+		delete drafts[guildId];
+		this.$botConfigDrafts.set(drafts);
+		const loaded = { ...this.$botConfigLoadedFor.get() };
+		delete loaded[guildId];
+		this.$botConfigLoadedFor.set(loaded);
+	}
+
+	public async ensureBotConfigLoaded(
+		guildId: string,
+		force = false,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		if (!force && this.$botConfigLoadedFor.get()[guildId]) {
+			return { ok: true };
+		}
+		const r = await this.getBotConfig();
+		if (!r.ok) {
+			const errs = { ...this.$botConfigErrors.get() };
+			errs[guildId] = r.error;
+			this.$botConfigErrors.set(errs);
+			return r;
+		}
+		this.hydrateBotConfigDraft(guildId, r.config);
+		const errs = { ...this.$botConfigErrors.get() };
+		errs[guildId] = null;
+		this.$botConfigErrors.set(errs);
+		return { ok: true };
+	}
+
+	public async saveBotConfigDraft(
+		guildId: string,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		const drafts = this.$botConfigDrafts.get();
+		const draft = drafts[guildId];
+		if (!draft) {
+			return { ok: false, error: 'No draft loaded yet' };
+		}
+		const saving = { ...this.$botConfigSavingFor.get(), [guildId]: true };
+		this.$botConfigSavingFor.set(saving);
+		const errs = { ...this.$botConfigErrors.get(), [guildId]: null };
+		this.$botConfigErrors.set(errs);
+		const r = await this.setBotConfig(botConfigFromFormDraft(draft));
+		const savingDone = { ...this.$botConfigSavingFor.get() };
+		delete savingDone[guildId];
+		this.$botConfigSavingFor.set(savingDone);
+		if (!r.ok) {
+			const errs2 = {
+				...this.$botConfigErrors.get(),
+				[guildId]: r.error,
+			};
+			this.$botConfigErrors.set(errs2);
+		}
+		return r;
+	}
+
+	public hydrateRepoAllowlistDraft(guildId: string, repos: string[]): void {
+		const drafts = this.$repoAllowlistDrafts.get();
+		this.$repoAllowlistDrafts.set({ ...drafts, [guildId]: repos });
+		const loaded = this.$repoAllowlistLoadedFor.get();
+		this.$repoAllowlistLoadedFor.set({ ...loaded, [guildId]: true });
+	}
+
+	public patchRepoAllowlistDraft(guildId: string, repos: string[]): void {
+		const drafts = this.$repoAllowlistDrafts.get();
+		this.$repoAllowlistDrafts.set({ ...drafts, [guildId]: repos });
+	}
+
+	public clearRepoAllowlistDraft(guildId: string): void {
+		const drafts = { ...this.$repoAllowlistDrafts.get() };
+		delete drafts[guildId];
+		this.$repoAllowlistDrafts.set(drafts);
+		const loaded = { ...this.$repoAllowlistLoadedFor.get() };
+		delete loaded[guildId];
+		this.$repoAllowlistLoadedFor.set(loaded);
+	}
+
+	public async ensureRepoAllowlistLoaded(
+		guildId: string,
+		force = false,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		if (!force && this.$repoAllowlistLoadedFor.get()[guildId]) {
+			return { ok: true };
+		}
+		const r = await this.getRepoAllowlist();
+		if (!r.ok) {
+			const errs = {
+				...this.$repoAllowlistErrors.get(),
+				[guildId]: r.error,
+			};
+			this.$repoAllowlistErrors.set(errs);
+			return r;
+		}
+		this.hydrateRepoAllowlistDraft(guildId, r.repos);
+		const errs = { ...this.$repoAllowlistErrors.get(), [guildId]: null };
+		this.$repoAllowlistErrors.set(errs);
+		return { ok: true };
+	}
+
+	public async saveRepoAllowlistDraft(
+		guildId: string,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		const drafts = this.$repoAllowlistDrafts.get();
+		const repos = drafts[guildId];
+		if (!repos) {
+			return { ok: false, error: 'No draft loaded yet' };
+		}
+		const saving = {
+			...this.$repoAllowlistSavingFor.get(),
+			[guildId]: true,
+		};
+		this.$repoAllowlistSavingFor.set(saving);
+		const errs = {
+			...this.$repoAllowlistErrors.get(),
+			[guildId]: null,
+		};
+		this.$repoAllowlistErrors.set(errs);
+		const r = await this.setRepoAllowlist(repos);
+		const savingDone = { ...this.$repoAllowlistSavingFor.get() };
+		delete savingDone[guildId];
+		this.$repoAllowlistSavingFor.set(savingDone);
+		if (!r.ok) {
+			const errs2 = {
+				...this.$repoAllowlistErrors.get(),
+				[guildId]: r.error,
+			};
+			this.$repoAllowlistErrors.set(errs2);
+		}
+		return r;
 	}
 
 	public async toggleToken(

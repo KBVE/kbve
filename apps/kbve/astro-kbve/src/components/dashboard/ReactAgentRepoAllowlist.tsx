@@ -9,32 +9,38 @@ const REPO_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,38}\/[A-Za-z0-9._-]{1,100}$/;
 export default function ReactAgentRepoAllowlist() {
 	const guildId = useStore(agentsService.$selectedGuildId);
 	const guilds = useStore(agentsService.$guilds);
+	const draftsMap = useStore(agentsService.$repoAllowlistDrafts);
+	const savingMap = useStore(agentsService.$repoAllowlistSavingFor);
+	const errorsMap = useStore(agentsService.$repoAllowlistErrors);
+	const loadedMap = useStore(agentsService.$repoAllowlistLoadedFor);
 
-	const [repos, setRepos] = useState<string[]>([]);
 	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 	const [draft, setDraft] = useState('');
-	const [saving, setSaving] = useState(false);
 
-	const load = useCallback(async () => {
-		if (!guildId) {
-			setRepos([]);
-			return;
-		}
-		setLoading(true);
-		setError(null);
-		const r = await agentsService.getRepoAllowlist();
-		setLoading(false);
-		if (!r.ok) {
-			setError(r.error);
-			return;
-		}
-		setRepos(r.repos);
-	}, [guildId]);
+	const repos = guildId ? (draftsMap[guildId] ?? []) : [];
+	const saving = guildId ? !!savingMap[guildId] : false;
+	const error = guildId ? (errorsMap[guildId] ?? null) : null;
+	const loaded = guildId ? !!loadedMap[guildId] : false;
+
+	const load = useCallback(
+		async (force = false) => {
+			if (!guildId) return;
+			setLoading(true);
+			await agentsService.ensureRepoAllowlistLoaded(guildId, force);
+			setLoading(false);
+		},
+		[guildId],
+	);
 
 	useEffect(() => {
-		void load();
-	}, [load]);
+		if (guildId && !loaded) {
+			void load();
+		}
+	}, [guildId, loaded, load]);
+
+	useEffect(() => {
+		setDraft('');
+	}, [guildId]);
 
 	if (!guildId) {
 		return (
@@ -57,31 +63,25 @@ export default function ReactAgentRepoAllowlist() {
 	const draftOk = REPO_RE.test(draft) && !repos.includes(draft);
 
 	async function add() {
-		if (!draftOk) return;
-		setSaving(true);
-		setError(null);
+		if (!guildId || !draftOk || saving) return;
 		const next = [...repos, draft];
-		const r = await agentsService.setRepoAllowlist(next);
-		setSaving(false);
-		if (!r.ok) {
-			setError(r.error);
-			return;
+		agentsService.patchRepoAllowlistDraft(guildId, next);
+		const r = await agentsService.saveRepoAllowlistDraft(guildId);
+		if (r.ok) {
+			setDraft('');
+		} else {
+			agentsService.patchRepoAllowlistDraft(guildId, repos);
 		}
-		setRepos(next);
-		setDraft('');
 	}
 
 	async function remove(repo: string) {
-		setSaving(true);
-		setError(null);
+		if (!guildId || saving) return;
 		const next = repos.filter((r) => r !== repo);
-		const r = await agentsService.setRepoAllowlist(next);
-		setSaving(false);
+		agentsService.patchRepoAllowlistDraft(guildId, next);
+		const r = await agentsService.saveRepoAllowlistDraft(guildId);
 		if (!r.ok) {
-			setError(r.error);
-			return;
+			agentsService.patchRepoAllowlistDraft(guildId, repos);
 		}
-		setRepos(next);
 	}
 
 	return (
@@ -110,7 +110,7 @@ export default function ReactAgentRepoAllowlist() {
 				)}
 				<button
 					type="button"
-					onClick={() => void load()}
+					onClick={() => void load(true)}
 					disabled={loading || saving}
 					style={refreshBtn(loading || saving)}
 					aria-label="Refresh">
