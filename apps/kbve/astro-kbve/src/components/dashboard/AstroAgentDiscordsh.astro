@@ -35,7 +35,10 @@ import ReactAgentBotInstall from './ReactAgentBotInstall';
 		<div class="agent-stack">
 			<ReactAgentSetupStatus client:only="react" />
 			<ReactAgentBotInstall client:only="react" />
-			<ReactAgentBotConfig client:only="react" />
+			<ReactAgentBotConfig
+				client:only="react"
+				transition:persist="agents-bot-config"
+			/>
 			<ReactAgentDiscordsh client:only="react" />
 		</div>
 	</div>

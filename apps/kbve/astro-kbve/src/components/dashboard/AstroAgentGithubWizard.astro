@@ -39,7 +39,10 @@ import ReactAgentRepoAllowlist from './ReactAgentRepoAllowlist';
 		</header>
 
 		<div class="agent-stack">
-			<ReactAgentRepoAllowlist client:only="react" />
+			<ReactAgentRepoAllowlist
+				client:only="react"
+				transition:persist="agents-repo-allowlist"
+			/>
 			<ReactAgentGithubWizard client:only="react" />
 		</div>
 	</div>

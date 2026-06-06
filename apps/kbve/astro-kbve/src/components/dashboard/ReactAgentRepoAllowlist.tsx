@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import {
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+	type FormEvent,
+} from 'react';
 import { useStore } from '@nanostores/react';
 import { GitBranch, Loader2, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { agentsService } from './agentsService';
@@ -15,7 +21,9 @@ export default function ReactAgentRepoAllowlist() {
 	const loadedMap = useStore(agentsService.$repoAllowlistLoadedFor);
 
 	const [loading, setLoading] = useState(false);
-	const [draft, setDraft] = useState('');
+	const [draftValid, setDraftValid] = useState(false);
+	const [draftRaw, setDraftRaw] = useState('');
+	const draftRef = useRef<HTMLInputElement | null>(null);
 
 	const repos = guildId ? (draftsMap[guildId] ?? []) : [];
 	const saving = guildId ? !!savingMap[guildId] : false;
@@ -39,8 +47,16 @@ export default function ReactAgentRepoAllowlist() {
 	}, [guildId, loaded, load]);
 
 	useEffect(() => {
-		setDraft('');
+		if (draftRef.current) draftRef.current.value = '';
+		setDraftRaw('');
+		setDraftValid(false);
 	}, [guildId]);
+
+	function onDraftInput() {
+		const v = draftRef.current?.value ?? '';
+		setDraftRaw(v);
+		setDraftValid(REPO_RE.test(v) && !repos.includes(v));
+	}
 
 	if (!guildId) {
 		return (
@@ -60,27 +76,34 @@ export default function ReactAgentRepoAllowlist() {
 	}
 
 	const guild = guilds.find((g) => g.id === guildId);
-	const draftOk = REPO_RE.test(draft) && !repos.includes(draft);
+	const draftOk = draftValid && !saving;
 
-	async function add() {
-		if (!guildId || !draftOk || saving) return;
-		const next = [...repos, draft];
+	async function add(e?: FormEvent<HTMLFormElement>) {
+		e?.preventDefault();
+		if (!guildId || saving) return;
+		const v = draftRef.current?.value?.trim() ?? '';
+		if (!REPO_RE.test(v) || repos.includes(v)) return;
+		const prev = repos;
+		const next = [...repos, v];
 		agentsService.patchRepoAllowlistDraft(guildId, next);
 		const r = await agentsService.saveRepoAllowlistDraft(guildId);
 		if (r.ok) {
-			setDraft('');
+			if (draftRef.current) draftRef.current.value = '';
+			setDraftRaw('');
+			setDraftValid(false);
 		} else {
-			agentsService.patchRepoAllowlistDraft(guildId, repos);
+			agentsService.patchRepoAllowlistDraft(guildId, prev);
 		}
 	}
 
 	async function remove(repo: string) {
 		if (!guildId || saving) return;
+		const prev = repos;
 		const next = repos.filter((r) => r !== repo);
 		agentsService.patchRepoAllowlistDraft(guildId, next);
 		const r = await agentsService.saveRepoAllowlistDraft(guildId);
 		if (!r.ok) {
-			agentsService.patchRepoAllowlistDraft(guildId, repos);
+			agentsService.patchRepoAllowlistDraft(guildId, prev);
 		}
 	}
 
@@ -189,17 +212,20 @@ export default function ReactAgentRepoAllowlist() {
 					</ul>
 				)}
 
-				<div
+				<form
+					onSubmit={(e) => void add(e)}
+					autoComplete="off"
 					style={{
 						display: 'flex',
 						gap: '0.4rem',
 						alignItems: 'stretch',
 					}}>
 					<input
+						ref={draftRef}
 						type="text"
-						value={draft}
+						defaultValue=""
 						placeholder="owner/repo (e.g. KBVE/kbve)"
-						onChange={(e) => setDraft(e.target.value)}
+						onInput={onDraftInput}
 						style={{
 							...inputStyle,
 							fontFamily:
@@ -207,12 +233,12 @@ export default function ReactAgentRepoAllowlist() {
 							flex: 1,
 						}}
 						spellCheck={false}
+						autoComplete="off"
 					/>
 					<button
-						type="button"
-						onClick={() => void add()}
-						disabled={!draftOk || saving}
-						style={primaryBtn(draftOk && !saving)}>
+						type="submit"
+						disabled={!draftOk}
+						style={primaryBtn(draftOk)}>
 						{saving ? (
 							<Loader2 size={14} style={spinIcon} />
 						) : (
@@ -220,8 +246,8 @@ export default function ReactAgentRepoAllowlist() {
 						)}
 						{saving ? 'Saving…' : 'Add'}
 					</button>
-				</div>
-				{draft.length > 0 && !REPO_RE.test(draft) && (
+				</form>
+				{draftRaw.length > 0 && !REPO_RE.test(draftRaw) && (
 					<p style={errText}>
 						Expected <code>owner/repo</code> matching GitHub's name
 						rules.
