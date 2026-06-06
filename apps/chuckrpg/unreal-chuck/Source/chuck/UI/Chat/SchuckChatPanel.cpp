@@ -108,13 +108,18 @@ void SchuckChatPanel::Construct(const FArguments& InArgs)
 		.OnGeometryChanged_Lambda([this]() { PersistGeometry(); })
 		.Body()
 		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot().AutoHeight().Padding(2.f, 2.f, 2.f, 4.f)
+			SNew(SBorder)
+			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+			.BorderBackgroundColor(FSlateColor(FLinearColor(0.04f, 0.06f, 0.09f, 0.55f)))
+			.Padding(FMargin(2.f))
 			[
-				SAssignNew(HeaderText, STextBlock)
-				.Text(FText::GetEmpty())
-				.Font(HeaderFont)
-			]
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot().AutoHeight().Padding(2.f, 2.f, 2.f, 4.f)
+				[
+					SAssignNew(HeaderText, STextBlock)
+					.Text(FText::GetEmpty())
+					.Font(HeaderFont)
+				]
 			+ SVerticalBox::Slot().AutoHeight().Padding(2.f, 0.f, 2.f, 4.f)
 			[
 				NewTabRow
@@ -141,6 +146,7 @@ void SchuckChatPanel::Construct(const FArguments& InArgs)
 						SNew(STextBlock).Text(LOCTEXT("Send", "Send")).Font(ButtonFont)
 					]
 				]
+			]
 			]
 		]
 	];

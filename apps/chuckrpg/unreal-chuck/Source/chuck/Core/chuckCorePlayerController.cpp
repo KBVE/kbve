@@ -532,18 +532,32 @@ void AchuckCorePlayerController::HandleChatChannelLeft(const FString& Channel)
 
 void AchuckCorePlayerController::OnToggleChatPressed(const FInputActionValue& /*Value*/)
 {
-	if (ChatWidget.IsValid())
+	if (!ChatWidget.IsValid()) return;
+	const bool bNowShown = ChatWidget->ToggleVisible();
+	bShowMouseCursor = bNowShown;
+	if (bNowShown)
 	{
-		ChatWidget->ToggleVisible();
+		FInputModeGameAndUI Mode;
+		Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		Mode.SetHideCursorDuringCapture(false);
+		SetInputMode(Mode);
+		ChatWidget->ShowAndFocusInput();
+	}
+	else
+	{
+		SetInputMode(FInputModeGameOnly());
 	}
 }
 
 void AchuckCorePlayerController::OnFocusChatPressed(const FInputActionValue& /*Value*/)
 {
-	if (ChatWidget.IsValid())
-	{
-		ChatWidget->ShowAndFocusInput();
-	}
+	if (!ChatWidget.IsValid()) return;
+	bShowMouseCursor = true;
+	FInputModeGameAndUI Mode;
+	Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	Mode.SetHideCursorDuringCapture(false);
+	SetInputMode(Mode);
+	ChatWidget->ShowAndFocusInput();
 }
 
 void AchuckCorePlayerController::RefreshAuthOverlayVisibility(bool bSignedIn)
