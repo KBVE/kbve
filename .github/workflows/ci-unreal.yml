@@ -146,7 +146,11 @@ jobs:
             deploy_to_itch: ${{ inputs.deploy_to_itch }}
             itch_username: ${{ inputs.itch_user }}
             itch_game_id: ${{ inputs.itch_game }}
-        secrets: inherit
+        secrets:
+            UNITY_PAT: ${{ secrets.UNITY_PAT }}
+            butler_api: ${{ secrets.ITCH_API }}
+            FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+            FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
 
     server:
         name: Dedicated Server
@@ -155,7 +159,11 @@ jobs:
         with:
             mode: server
             shell_path: ${{ inputs.shell_path }}
-        secrets: inherit
+        secrets:
+            UNITY_PAT: ${{ secrets.UNITY_PAT }}
+            butler_api: ${{ secrets.ITCH_API }}
+            FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+            FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
 
     engine:
         name: Engine Build
@@ -167,7 +175,11 @@ jobs:
             engine_ref: ${{ inputs.engine_ref }}
             skip_version_gate: ${{ inputs.skip_version_gate }}
             build_dedicated_server: ${{ inputs.build_dedicated_server }}
-        secrets: inherit
+        secrets:
+            UNITY_PAT: ${{ secrets.UNITY_PAT }}
+            butler_api: ${{ secrets.ITCH_API }}
+            FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+            FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
 
     win_setup:
         name: Win VM Setup
@@ -175,7 +187,11 @@ jobs:
         uses: KBVE/kbve/.github/workflows/ci-unreal-build.yml@dev
         with:
             mode: win-setup
-        secrets: inherit
+        secrets:
+            UNITY_PAT: ${{ secrets.UNITY_PAT }}
+            butler_api: ${{ secrets.ITCH_API }}
+            FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+            FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
 
     mac_setup:
         name: Mac VM Setup
@@ -183,4 +199,8 @@ jobs:
         uses: KBVE/kbve/.github/workflows/ci-unreal-build.yml@dev
         with:
             mode: mac-setup
-        secrets: inherit
+        secrets:
+            UNITY_PAT: ${{ secrets.UNITY_PAT }}
+            butler_api: ${{ secrets.ITCH_API }}
+            FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+            FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
