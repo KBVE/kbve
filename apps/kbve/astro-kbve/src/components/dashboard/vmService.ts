@@ -748,14 +748,11 @@ class VMService {
 	}
 
 	public getVNCWebSocketURL(name: string, viewerId?: string): string {
-		// Dedicated VNC WebSocket bridge — axum handles auth + upstream relay.
-		// Browser WebSocket API cannot set custom headers, so pass JWT as
-		// query param. The backend accepts ?access_token= for WS auth.
-		// viewer_id is a stable per-tab id so the control endpoint can target
-		// this specific viewer (take/release control).
 		const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 		const token = this.$accessToken.get() ?? '';
-		const vid = viewerId ? `&viewer_id=${encodeURIComponent(viewerId)}` : '';
+		const vid = viewerId
+			? `&viewer_id=${encodeURIComponent(viewerId)}`
+			: '';
 		return `${proto}//${window.location.host}/dashboard/vm/vnc/${name}?access_token=${token}${vid}`;
 	}
 
@@ -765,7 +762,10 @@ class VMService {
 		has_primary: boolean;
 		controller_viewer_id: string | null;
 		viewers_list: { viewer_id: string; is_controller: boolean }[];
-		pending: { requester_viewer_id: string; seconds_remaining: number } | null;
+		pending: {
+			requester_viewer_id: string;
+			seconds_remaining: number;
+		} | null;
 	} | null> {
 		const token = this.$accessToken.get();
 		if (!token) return null;
@@ -791,10 +791,6 @@ class VMService {
 		}
 	}
 
-	// Take / release / deny control of a shared VNC session. `action`:
-	// 'take' opens a 5s grace request (or grants immediately if uncontrolled),
-	// 'release' drops control to view-only, 'deny' (controller only) cancels a
-	// pending takeover. Returns true if the backend accepted the action.
 	public async vncControl(
 		name: string,
 		action: 'take' | 'release' | 'deny',

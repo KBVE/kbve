@@ -968,14 +968,9 @@ pub async fn kubevirt_vnc_handler(
         kubevirt.upstream, VM_NAMESPACE, vm_name
     );
     let upstream_token = kubevirt.upstream_token.clone();
-    // VM_NAMESPACE is hardcoded to angelscript; parameterise once another
-    // VM namespace lands.
     let vm_key = format!("{VM_NAMESPACE}/{vm_name}");
-    // Browser-supplied stable id used to correlate this viewer with its
-    // control-plane HTTP requests (take/release control).
     let viewer_id = query_param(query.as_deref(), "viewer_id");
 
-    // vnc_hub shares a single upstream connection across every viewer.
     ws.protocols(["binary.k8s.io", "base64.binary.k8s.io"])
         .on_upgrade(move |browser_ws| async move {
             if let Err(e) = super::vnc_hub::join_session(
@@ -992,17 +987,12 @@ pub async fn kubevirt_vnc_handler(
         })
 }
 
-/// Extract a single query-string parameter value (no percent-decoding —
-/// callers use it for opaque ids like a UUID viewer_id).
 fn query_param(query: Option<&str>, key: &str) -> Option<String> {
-    query?.split('&').find_map(|pair| {
-        let (k, v) = pair.split_once('=')?;
-        (k == key).then(|| v.to_string())
-    })
+    url::form_urlencoded::parse(query?.as_bytes())
+        .find(|(k, _)| k == key)
+        .map(|(_, v)| v.into_owned())
 }
 
-/// POST /dashboard/vm/vnc-control/{name} — take / release / deny control of a
-/// shared VNC session. Body: {"action":"take|release|deny","viewer_id":"..."}.
 pub async fn kubevirt_vnc_control_handler(
     Path(vm_name): Path<String>,
     req: Request<Body>,
@@ -1019,22 +1009,34 @@ pub async fn kubevirt_vnc_control_handler(
     let body_bytes = match axum::body::to_bytes(req.into_body(), 4096).await {
         Ok(b) => b,
         Err(_) => {
-            return (StatusCode::BAD_REQUEST, axum::Json(json!({"error": "invalid body"})))
+            return (
+                StatusCode::BAD_REQUEST,
+                axum::Json(json!({"error": "invalid body"})),
+            )
                 .into_response();
         }
     };
     let payload: serde_json::Value = match serde_json::from_slice(&body_bytes) {
         Ok(v) => v,
         Err(_) => {
-            return (StatusCode::BAD_REQUEST, axum::Json(json!({"error": "invalid JSON"})))
+            return (
+                StatusCode::BAD_REQUEST,
+                axum::Json(json!({"error": "invalid JSON"})),
+            )
                 .into_response();
         }
     };
 
     let action = payload.get("action").and_then(|v| v.as_str()).unwrap_or("");
-    let viewer_id = payload.get("viewer_id").and_then(|v| v.as_str()).unwrap_or("");
+    let viewer_id = payload
+        .get("viewer_id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
     if viewer_id.is_empty() {
-        return (StatusCode::BAD_REQUEST, axum::Json(json!({"error": "missing viewer_id"})))
+        return (
+            StatusCode::BAD_REQUEST,
+            axum::Json(json!({"error": "missing viewer_id"})),
+        )
             .into_response();
     }
 
@@ -1044,7 +1046,10 @@ pub async fn kubevirt_vnc_control_handler(
         "release" => super::vnc_hub::release_control(&vm_key, viewer_id),
         "deny" => super::vnc_hub::deny_control(&vm_key, viewer_id),
         _ => {
-            return (StatusCode::BAD_REQUEST, axum::Json(json!({"error": "unknown action"})))
+            return (
+                StatusCode::BAD_REQUEST,
+                axum::Json(json!({"error": "unknown action"})),
+            )
                 .into_response();
         }
     };

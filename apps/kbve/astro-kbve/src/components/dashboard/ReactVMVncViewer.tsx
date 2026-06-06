@@ -45,15 +45,12 @@ export default function ReactVMVncViewer() {
 	const [keyboardVisible, setKeyboardVisible] = useState(false);
 	const [viewerCount, setViewerCount] = useState(0);
 	const [isPrimary, setIsPrimary] = useState(false);
-	// Stable per-tab id so the control endpoint can target this viewer.
 	const [viewerId] = useState(() =>
 		typeof crypto !== 'undefined' && crypto.randomUUID
 			? crypto.randomUUID()
 			: `v-${Math.random().toString(36).slice(2)}`,
 	);
-	// Whether this tab currently holds input control of the shared session.
 	const [isController, setIsController] = useState(false);
-	// A pending "take control" request inside its grace window, if any.
 	const [pending, setPending] = useState<{
 		requester_viewer_id: string;
 		seconds_remaining: number;
@@ -88,13 +85,10 @@ export default function ReactVMVncViewer() {
 			return;
 		}
 		refreshInfo();
-		// Poll often enough that the grace countdown + control changes feel live.
 		const interval = setInterval(refreshInfo, 2000);
 		return () => clearInterval(interval);
 	}, [vncTarget, connected, refreshInfo]);
 
-	// Mirror control state into noVNC: view-only unless we hold control. This
-	// gates user input client-side; the server enforces it authoritatively too.
 	useEffect(() => {
 		if (rfbRef.current) rfbRef.current.viewOnly = !isController;
 	}, [isController, connected]);
@@ -144,8 +138,6 @@ export default function ReactVMVncViewer() {
 			rfb.showDotCursor = true;
 			rfb.qualityLevel = 6;
 			rfb.compressionLevel = 2;
-			// Start view-only; the info poll flips this on once we're confirmed
-			// as the controller (the first viewer is auto-promoted server-side).
 			rfb.viewOnly = true;
 
 			rfb.addEventListener('connect', () => {
@@ -436,7 +428,12 @@ export default function ReactVMVncViewer() {
 							</span>
 						)}
 					</div>
-					<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 4,
+						}}>
 						{connected && (
 							<span
 								style={{
@@ -457,7 +454,9 @@ export default function ReactVMVncViewer() {
 						{connected && !isController && (
 							<button
 								onClick={takeControl}
-								disabled={pending?.requester_viewer_id === viewerId}
+								disabled={
+									pending?.requester_viewer_id === viewerId
+								}
 								title="Request control of this VM"
 								style={controlBtnStyle(false)}>
 								{pending?.requester_viewer_id === viewerId
