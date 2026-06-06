@@ -1527,6 +1527,7 @@ jobs:
                       Write-Host "::warning::File server unreachable (HTTP $response) — VM cannot reach $env:FILE_SERVER. Install steps skip downloads and rely on pre-installed tools; Verify reports the real state."
                       Add-Content -Path $env:GITHUB_ENV -Value "FS_OK=false"
                   }
+                  exit 0
 
             - name: Install Visual Studio 2022 Build Tools
               timeout-minutes: 30
@@ -1613,6 +1614,7 @@ jobs:
                       try { $r = & $check.Cmd 2>&1; Write-Host "  $($check.Name): $r" }
                       catch { Write-Host "  $($check.Name): NOT INSTALLED" }
                   }
+                  exit 0
 
     mac_setup:
         name: Install on UE5-Mac (STUB)
