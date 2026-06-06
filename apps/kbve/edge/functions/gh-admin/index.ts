@@ -189,8 +189,84 @@ async function handleList(
 const PING_COOLDOWN_MS = 30_000;
 const PING_RATE_WINDOW_MS = 60 * 60 * 1000;
 const PING_RATE_MAX = 10;
+const ROTATE_COOLDOWN_MS = 60_000;
+const ROTATE_RATE_WINDOW_MS = 60 * 60 * 1000;
+const ROTATE_RATE_MAX = 5;
 const pingCooldown = new Map<string, number>();
 const pingHistory = new Map<string, number[]>();
+const rotateCooldown = new Map<string, number>();
+const rotateHistory = new Map<string, number[]>();
+
+function checkRotateRateLimit(
+  userSub: string,
+  serverId: string,
+): { ok: true } | { ok: false; retryAfterMs: number; reason: string } {
+  const key = `${userSub}:${serverId}`;
+  const now = Date.now();
+  const last = rotateCooldown.get(key) ?? 0;
+  if (now - last < ROTATE_COOLDOWN_MS) {
+    return {
+      ok: false,
+      retryAfterMs: ROTATE_COOLDOWN_MS - (now - last),
+      reason: "cooldown",
+    };
+  }
+  const hist = (rotateHistory.get(key) ?? []).filter(
+    (t) => now - t < ROTATE_RATE_WINDOW_MS,
+  );
+  if (hist.length >= ROTATE_RATE_MAX) {
+    return {
+      ok: false,
+      retryAfterMs: ROTATE_RATE_WINDOW_MS - (now - hist[0]),
+      reason: "hourly_limit",
+    };
+  }
+  hist.push(now);
+  rotateHistory.set(key, hist);
+  rotateCooldown.set(key, now);
+  return { ok: true };
+}
+
+function genHmacHex(bytes = 32): string {
+  const arr = new Uint8Array(bytes);
+  crypto.getRandomValues(arr);
+  return Array.from(arr)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function upsertGuildSecret(
+  ownerId: string,
+  serverId: string,
+  service: string,
+  tokenName: string,
+  tokenValue: string,
+  description: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const sb = createServiceClient();
+  const { data, error } = await sb.schema("discordsh").rpc(
+    "service_set_guild_token",
+    {
+      p_owner_id: ownerId,
+      p_server_id: serverId,
+      p_service: service,
+      p_token_name: tokenName,
+      p_token_value: tokenValue,
+      p_description: description,
+    },
+  );
+  if (error) {
+    console.error("gh-admin: service_set_guild_token failed", error.message);
+    return { ok: false, error: error.message };
+  }
+  const row = (Array.isArray(data) ? data[0] : data) as
+    | { success?: boolean; message?: string }
+    | null;
+  if (!row || !row.success) {
+    return { ok: false, error: row?.message ?? "service_set_guild_token failed" };
+  }
+  return { ok: true };
+}
 
 function checkPingRateLimit(
   userSub: string,
@@ -418,6 +494,312 @@ async function handleInstall(
   });
 }
 
+interface GithubDelivery {
+  id: number;
+  guid: string;
+  delivered_at: string;
+  redelivery: boolean;
+  duration: number;
+  status: string;
+  status_code: number;
+  event: string;
+  action: string | null;
+}
+
+async function handleDeliveries(
+  serverId: string,
+  owner: string,
+  repo: string,
+  limit: number,
+): Promise<Response> {
+  const pat = await fetchGuildSecret(serverId, "github");
+  if (!pat) {
+    return jsonResponse(
+      { error: "No GitHub PAT stored for this guild" },
+      400,
+    );
+  }
+  const list = await githubCallback(
+    "GET",
+    `/repos/${owner}/${repo}/hooks`,
+    pat,
+  );
+  if (list.status === 401 || list.status === 403) {
+    return jsonResponse(
+      { error: "GitHub PAT unauthorized for this repo" },
+      403,
+    );
+  }
+  if (list.status === 404) {
+    return jsonResponse(
+      { error: "Repo not found or PAT lacks access" },
+      404,
+    );
+  }
+  if (list.status < 200 || list.status >= 300 || !Array.isArray(list.body)) {
+    return jsonResponse(
+      { error: "GitHub API error listing hooks", status: list.status },
+      502,
+    );
+  }
+  const expectedUrl = `${SUPABASE_URL}/functions/v1/gh-webhook/${serverId}`;
+  const kbveHook = (list.body as GithubHook[]).find(
+    (h) => h.config?.url === expectedUrl,
+  );
+  if (!kbveHook) {
+    return jsonResponse(
+      {
+        error:
+          "No kbve webhook found on this repo — run webhooks.install first",
+      },
+      404,
+    );
+  }
+  const capped = Math.min(Math.max(limit, 1), 30);
+  const deliveries = await githubCallback(
+    "GET",
+    `/repos/${owner}/${repo}/hooks/${kbveHook.id}/deliveries?per_page=${capped}`,
+    pat,
+  );
+  if (
+    deliveries.status < 200 || deliveries.status >= 300 ||
+    !Array.isArray(deliveries.body)
+  ) {
+    return jsonResponse(
+      {
+        error: "GitHub API error listing deliveries",
+        status: deliveries.status,
+      },
+      502,
+    );
+  }
+  const rows = (deliveries.body as GithubDelivery[]).map((d) => ({
+    id: d.id,
+    guid: d.guid,
+    delivered_at: d.delivered_at,
+    redelivery: !!d.redelivery,
+    duration: d.duration,
+    status: d.status,
+    status_code: d.status_code,
+    event: d.event,
+    action: d.action ?? null,
+  }));
+  return jsonResponse({ hook_id: kbveHook.id, deliveries: rows });
+}
+
+async function handleDelete(
+  serverId: string,
+  owner: string,
+  repo: string,
+): Promise<Response> {
+  const pat = await fetchGuildSecret(serverId, "github");
+  if (!pat) {
+    return jsonResponse(
+      { error: "No GitHub PAT stored for this guild" },
+      400,
+    );
+  }
+  const list = await githubCallback(
+    "GET",
+    `/repos/${owner}/${repo}/hooks`,
+    pat,
+  );
+  if (list.status === 401 || list.status === 403) {
+    return jsonResponse(
+      { error: "GitHub PAT unauthorized (needs admin:repo_hook scope)" },
+      403,
+    );
+  }
+  if (list.status === 404) {
+    return jsonResponse(
+      { error: "Repo not found or PAT lacks access" },
+      404,
+    );
+  }
+  if (list.status < 200 || list.status >= 300 || !Array.isArray(list.body)) {
+    return jsonResponse(
+      { error: "GitHub API error listing hooks", status: list.status },
+      502,
+    );
+  }
+  const expectedUrl = `${SUPABASE_URL}/functions/v1/gh-webhook/${serverId}`;
+  const kbveHook = (list.body as GithubHook[]).find(
+    (h) => h.config?.url === expectedUrl,
+  );
+  if (!kbveHook) {
+    return jsonResponse({ deleted: false, already_absent: true });
+  }
+  const del = await githubCallback(
+    "DELETE",
+    `/repos/${owner}/${repo}/hooks/${kbveHook.id}`,
+    pat,
+  );
+  if (del.status === 204) {
+    return jsonResponse({ deleted: true, hook_id: kbveHook.id });
+  }
+  return jsonResponse(
+    {
+      error: "GitHub API error deleting hook",
+      status: del.status,
+      detail: del.body,
+    },
+    502,
+  );
+}
+
+async function handleRotate(
+  ownerId: string,
+  serverId: string,
+  owner: string,
+  repo: string,
+): Promise<Response> {
+  const pat = await fetchGuildSecret(serverId, "github");
+  if (!pat) {
+    return jsonResponse(
+      { error: "No GitHub PAT stored for this guild" },
+      400,
+    );
+  }
+  const list = await githubCallback(
+    "GET",
+    `/repos/${owner}/${repo}/hooks`,
+    pat,
+  );
+  if (list.status < 200 || list.status >= 300 || !Array.isArray(list.body)) {
+    return jsonResponse(
+      { error: "GitHub API error listing hooks", status: list.status },
+      502,
+    );
+  }
+  const expectedUrl = `${SUPABASE_URL}/functions/v1/gh-webhook/${serverId}`;
+  const kbveHook = (list.body as GithubHook[]).find(
+    (h) => h.config?.url === expectedUrl,
+  );
+  if (!kbveHook) {
+    return jsonResponse(
+      {
+        error:
+          "No kbve webhook found on this repo — install one before rotating",
+      },
+      404,
+    );
+  }
+  const newHmac = genHmacHex(32);
+  const patch = await githubCallback(
+    "PATCH",
+    `/repos/${owner}/${repo}/hooks/${kbveHook.id}/config`,
+    pat,
+    { secret: newHmac },
+  );
+  if (patch.status < 200 || patch.status >= 300) {
+    return jsonResponse(
+      {
+        error: "GitHub PATCH hook config failed",
+        status: patch.status,
+        detail: patch.body,
+      },
+      502,
+    );
+  }
+  const upsert = await upsertGuildSecret(
+    ownerId,
+    serverId,
+    "github_webhook",
+    "github-webhook-hmac",
+    newHmac,
+    `GitHub webhook HMAC for guild ${serverId} (rotated)`,
+  );
+  if (!upsert.ok) {
+    return jsonResponse(
+      {
+        error:
+          `Webhook secret rotated on GitHub but vault upsert failed: ${upsert.error}`,
+      },
+      500,
+    );
+  }
+  return jsonResponse({ rotated: true, hook_id: kbveHook.id });
+}
+
+async function handleEventStats(serverId: string): Promise<Response> {
+  const repos = await fetchRepoAllowlist(serverId);
+  if (repos.length === 0) {
+    return jsonResponse({
+      last_delivered_at: null,
+      last_recorded_at: null,
+      pending_count: 0,
+      in_flight_count: 0,
+      delivered_count: 0,
+      failed_count: 0,
+      oldest_pending_at: null,
+    });
+  }
+  const sb = createServiceClient();
+  const { data, error } = await sb.schema("gh").rpc(
+    "service_get_guild_event_stats",
+    { p_repos: repos },
+  );
+  if (error) {
+    console.error("gh-admin: service_get_guild_event_stats failed", error.message);
+    return jsonResponse({ error: "stats lookup failed" }, 500);
+  }
+  const row = (Array.isArray(data) ? data[0] : data) ?? {};
+  return jsonResponse(row);
+}
+
+async function handleEventFailed(
+  serverId: string,
+  limit: number,
+): Promise<Response> {
+  const repos = await fetchRepoAllowlist(serverId);
+  if (repos.length === 0) {
+    return jsonResponse({ events: [] });
+  }
+  const capped = Math.min(Math.max(limit, 1), 50);
+  const sb = createServiceClient();
+  const { data, error } = await sb.schema("gh").rpc(
+    "service_get_recent_failed_events",
+    { p_repos: repos, p_limit: capped },
+  );
+  if (error) {
+    console.error("gh-admin: service_get_recent_failed_events failed", error.message);
+    return jsonResponse({ error: "failed-events lookup failed" }, 500);
+  }
+  return jsonResponse({ events: Array.isArray(data) ? data : [] });
+}
+
+async function handleEventRequeue(
+  serverId: string,
+  eventId: number,
+): Promise<Response> {
+  const repos = await fetchRepoAllowlist(serverId);
+  if (repos.length === 0) {
+    return jsonResponse(
+      { error: "Empty allowlist — cannot requeue without repo scope" },
+      400,
+    );
+  }
+  const sb = createServiceClient();
+  const { data, error } = await sb.schema("gh").rpc("service_requeue_event", {
+    p_repos: repos,
+    p_event_id: eventId,
+  });
+  if (error) {
+    console.error("gh-admin: service_requeue_event failed", error.message);
+    return jsonResponse({ error: "requeue failed" }, 500);
+  }
+  const row = (Array.isArray(data) ? data[0] : data) as
+    | { id?: number; delivery_state?: number }
+    | null;
+  if (!row || row.id !== eventId) {
+    return jsonResponse(
+      { error: "event not found in this guild's allowlist" },
+      404,
+    );
+  }
+  return jsonResponse({ requeued: true, event_id: row.id });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -448,6 +830,8 @@ serve(async (req) => {
     server_id?: string;
     owner?: string;
     repo?: string;
+    event_id?: number;
+    limit?: number;
   };
   try {
     body = await req.json();
@@ -457,12 +841,8 @@ serve(async (req) => {
 
   const sidErr = validateSnowflake(body.server_id, "server_id");
   if (sidErr) return sidErr;
-  const orErr = validateOwnerRepo(body.owner, body.repo);
-  if (orErr) return orErr;
 
   const serverId = body.server_id as string;
-  const owner = body.owner as string;
-  const repo = body.repo as string;
 
   if (!ownsGuild(claims, serverId)) {
     return jsonResponse(
@@ -473,6 +853,39 @@ serve(async (req) => {
       403,
     );
   }
+
+  const cmd = body.command ?? "";
+
+  if (cmd.startsWith("events.")) {
+    switch (cmd) {
+      case "events.stats":
+        return await handleEventStats(serverId);
+      case "events.failed": {
+        const limit = typeof body.limit === "number" ? body.limit : 10;
+        return await handleEventFailed(serverId, limit);
+      }
+      case "events.requeue": {
+        if (typeof body.event_id !== "number" || body.event_id <= 0) {
+          return jsonResponse({ error: "event_id must be > 0" }, 400);
+        }
+        return await handleEventRequeue(serverId, body.event_id);
+      }
+      default:
+        return jsonResponse(
+          {
+            error:
+              'events.* command required (one of: "events.stats", "events.failed", "events.requeue")',
+          },
+          400,
+        );
+    }
+  }
+
+  const orErr = validateOwnerRepo(body.owner, body.repo);
+  if (orErr) return orErr;
+
+  const owner = body.owner as string;
+  const repo = body.repo as string;
 
   const allowlist = await fetchGuildSecret(serverId, "github_repos")
     .then(async () => await fetchRepoAllowlist(serverId));
@@ -491,6 +904,34 @@ serve(async (req) => {
       return await handleInstall(serverId, owner, repo);
     case "webhooks.list":
       return await handleList(serverId, owner, repo);
+    case "webhooks.deliveries": {
+      const limit = typeof body.limit === "number" ? body.limit : 10;
+      return await handleDeliveries(serverId, owner, repo, limit);
+    }
+    case "webhooks.delete":
+      return await handleDelete(serverId, owner, repo);
+    case "webhooks.rotate": {
+      const userSub = typeof claims.sub === "string" ? claims.sub : "";
+      if (!userSub) {
+        return jsonResponse(
+          { error: "Authenticated user token missing sub claim" },
+          401,
+        );
+      }
+      const rate = checkRotateRateLimit(userSub, serverId);
+      if (!rate.ok) {
+        return jsonResponse(
+          {
+            error: rate.reason === "cooldown"
+              ? `Wait ${Math.ceil(rate.retryAfterMs / 1000)}s between rotations`
+              : `Hourly rotation limit exceeded — retry in ${Math.ceil(rate.retryAfterMs / 60_000)}m`,
+            retry_after_ms: rate.retryAfterMs,
+          },
+          429,
+        );
+      }
+      return await handleRotate(userSub, serverId, owner, repo);
+    }
     case "webhooks.ping": {
       const userSub = typeof claims.sub === "string" ? claims.sub : "";
       if (!userSub) {
@@ -518,7 +959,7 @@ serve(async (req) => {
       return jsonResponse(
         {
           error:
-            'command required (one of: "webhooks.install", "webhooks.list", "webhooks.ping")',
+            'command required (one of: "webhooks.install", "webhooks.list", "webhooks.ping", "webhooks.deliveries", "webhooks.rotate", "webhooks.delete", "events.stats", "events.failed", "events.requeue")',
         },
         400,
       );
