@@ -1,0 +1,1753 @@
+name: CI - Unreal Build
+
+on:
+    workflow_call:
+        inputs:
+            mode:
+                description: 'server | game | engine | plugin | plugin-win | win-setup | mac-setup'
+                required: true
+                type: string
+
+            shell_path:
+                description: '[server] Monorepo shell project path (e.g. apps/chuckrpg/unreal-chuck)'
+                required: false
+                type: string
+                default: ''
+
+            key:
+                description: '[game] Manifest key'
+                required: false
+                type: string
+                default: ''
+            app_name:
+                description: '[game] UE project / build name'
+                required: false
+                type: string
+                default: ''
+            project_path:
+                description: '[game] Path to dir containing the .uproject file (within the game repo)'
+                required: false
+                type: string
+                default: ''
+            engine_version:
+                description: '[game] UE version pin (e.g. 5.7.4) — docker tag derived as dev-<version>'
+                required: false
+                type: string
+                default: '5.7.4'
+            build_targets:
+                description: '[game] JSON array of UE platform targets (e.g. ["Win64","Linux"])'
+                required: false
+                type: string
+                default: '["Linux"]'
+            external_repo_url:
+                description: '[game] Game repo (owner/name) to clone'
+                required: false
+                type: string
+                default: ''
+            version_source:
+                description: '[game] Path to version source (mdx)'
+                required: false
+                type: string
+                default: ''
+            version_toml:
+                description: '[game] Path to version.toml (published tracker)'
+                required: false
+                type: string
+                default: ''
+            manifest_version:
+                description: '[game] Version from manifest (local)'
+                required: false
+                type: string
+                default: ''
+
+            platforms:
+                description: '[engine] Comma-separated: windows,mac,linux'
+                required: false
+                type: string
+                default: 'linux'
+            engine_ref:
+                description: '[engine] Branch or tag of UnrealEngine-Angelscript'
+                required: false
+                type: string
+                default: 'angelscript-master'
+            skip_version_gate:
+                description: '[engine] Force rebuild'
+                required: false
+                type: boolean
+                default: false
+            build_dedicated_server:
+                description: '[engine] Build + push Linux dedicated-server Docker image'
+                required: false
+                type: boolean
+                default: true
+
+            plugin_path:
+                description: '[plugin] Plugin dir relative to repo root'
+                required: false
+                type: string
+                default: ''
+            plugin_name:
+                description: '[plugin] Plugin name — matches the .uplugin filename'
+                required: false
+                type: string
+                default: ''
+            ue_image_tag:
+                description: '[plugin/game] Epic UE container image tag'
+                required: false
+                type: string
+                default: 'dev-5.7.4'
+            target_platforms:
+                description: '[plugin] BuildPlugin platforms (e.g. Linux, Win64, Linux+Win64)'
+                required: false
+                type: string
+                default: 'Linux'
+            release_tag_prefix:
+                description: '[plugin] GitHub Release tag prefix'
+                required: false
+                type: string
+                default: ''
+            dependency_plugin_paths:
+                description: '[plugin] Space-separated dependency plugin paths'
+                required: false
+                type: string
+                default: ''
+            engine_root:
+                description: '[plugin-win] UE5 engine root on the Windows runner'
+                required: false
+                type: string
+                default: ''
+            build_timeout:
+                description: '[plugin] Build job timeout (minutes)'
+                required: false
+                type: number
+                default: 60
+
+            deploy_to_itch:
+                description: '[game/plugin] Deploy to itch.io after build'
+                required: false
+                type: boolean
+                default: false
+            itch_username:
+                description: '[game/plugin] Itch.io username'
+                required: false
+                type: string
+                default: 'kbve'
+            itch_game_id:
+                description: '[game/plugin] Itch.io game/project ID'
+                required: false
+                type: string
+                default: ''
+            itch_channel:
+                description: '[plugin] Itch.io build channel'
+                required: false
+                type: string
+                default: 'plugin'
+        secrets:
+            epic_pat:
+                description: 'PAT for ghcr.io/epicgames + game repo (falls back to UNITY_PAT)'
+                required: false
+            UNITY_PAT:
+                description: 'Org-level PAT fallback'
+                required: false
+            butler_api:
+                description: 'Itch.io Butler API key'
+                required: false
+        outputs:
+            version:
+                description: 'Resolved version (plugin/engine modes)'
+                value: ${{ jobs.plugin_check.outputs.version }}
+            should_release:
+                description: 'Whether a plugin release was created'
+                value: ${{ jobs.plugin_check.outputs.should_release }}
+
+concurrency:
+    group: ci-unreal-${{ inputs.mode }}-${{ inputs.shell_path }}${{ inputs.app_name }}${{ inputs.plugin_name }}${{ github.ref }}
+    cancel-in-progress: false
+
+permissions: {}
+
+env:
+    ENGINE_REPO: KBVE/UnrealEngine-Angelscript
+    DOCKER_IMAGE: ghcr.io/kbve/angelscript-server
+    ENGINE_CACHE_PATH: /mnt/longhorn/angelscript-engine
+
+jobs:
+    guard:
+        name: Fork Guard
+        runs-on: ubuntu-latest
+        timeout-minutes: 2
+        outputs:
+            allowed: ${{ steps.check.outputs.allowed }}
+        steps:
+            - name: Verify origin and actor
+              id: check
+              uses: actions/github-script@v9
+              with:
+                  script: |
+                      if (context.eventName === 'pull_request' || context.eventName === 'pull_request_target') {
+                        const headRepo = context.payload.pull_request?.head?.repo?.full_name;
+                        const baseRepo = context.payload.repository?.full_name;
+                        if (headRepo && headRepo !== baseRepo) {
+                          core.error(`Blocked: fork PR from ${headRepo}`);
+                          core.setOutput('allowed', 'false');
+                          return;
+                        }
+                      }
+                      try {
+                        const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          username: context.actor,
+                        });
+                        const level = data.permission;
+                        if (level === 'admin' || level === 'write') {
+                          core.setOutput('allowed', 'true');
+                        } else {
+                          core.error(`Actor ${context.actor} has ${level} access — insufficient`);
+                          core.setOutput('allowed', 'false');
+                        }
+                      } catch (err) {
+                        core.error(`Permission check failed: ${err.message}`);
+                        core.setOutput('allowed', 'false');
+                      }
+
+    # ════════════════ SERVER (Linux dedicated server) ════════════════
+    server_config:
+        name: Server Config
+        needs: guard
+        if: inputs.mode == 'server' && needs.guard.outputs.allowed == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            version: ${{ steps.parse.outputs.version }}
+            project_repo: ${{ steps.parse.outputs.project_repo }}
+            project_path: ${{ steps.parse.outputs.project_path }}
+            server_target: ${{ steps.parse.outputs.server_target }}
+            ue_image_tag: ${{ steps.parse.outputs.ue_image_tag }}
+            server_config: ${{ steps.parse.outputs.server_config }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Parse shell project
+              id: parse
+              run: |
+                  SHELL="${{ inputs.shell_path }}"
+
+                  if [ -f "${SHELL}/version.toml" ]; then
+                    VERSION=$(grep -m1 '^version' "${SHELL}/version.toml" | sed 's/version = "\(.*\)"/\1/')
+                  else
+                    VERSION="0.0.1"
+                    echo "::warning::${SHELL}/version.toml not found, using fallback ${VERSION}"
+                  fi
+
+                  BUILD="${SHELL}/build.toml"
+                  if [ ! -f "${BUILD}" ]; then
+                    echo "::error::${BUILD} not found — cannot determine build config"
+                    exit 1
+                  fi
+
+                  get_val() {
+                    grep -m1 "^$1" "${BUILD}" | sed "s/$1 = \"\(.*\)\"/\1/"
+                  }
+
+                  REPO=$(get_val "repo")
+                  PROJECT_PATH=$(get_val "path")
+                  SERVER_TARGET=$(get_val "server_target")
+                  UE_IMAGE_TAG=$(get_val "ue_image_tag")
+                  SERVER_CONFIG=$(get_val "server_config")
+
+                  UE_IMAGE_TAG="${UE_IMAGE_TAG:-dev-5.7.4}"
+                  SERVER_CONFIG="${SERVER_CONFIG:-Development}"
+
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "project_repo=${REPO}" >> "$GITHUB_OUTPUT"
+                  echo "project_path=${PROJECT_PATH}" >> "$GITHUB_OUTPUT"
+                  echo "server_target=${SERVER_TARGET}" >> "$GITHUB_OUTPUT"
+                  echo "ue_image_tag=${UE_IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+                  echo "server_config=${SERVER_CONFIG}" >> "$GITHUB_OUTPUT"
+
+                  echo "::notice::Shell: ${SHELL} | v${VERSION} | ${REPO} | ${SERVER_TARGET} | UE ${UE_IMAGE_TAG} | ${SERVER_CONFIG}"
+
+    server_gate:
+        name: Server Version Gate
+        needs: [guard, server_config]
+        if: inputs.mode == 'server' && needs.guard.outputs.allowed == 'true'
+        runs-on: arc-runner-ue
+        timeout-minutes: 5
+        outputs:
+            should_build: ${{ steps.check.outputs.should_build }}
+        steps:
+            - name: Check if version already deployed
+              id: check
+              run: |
+                  VERSION="${{ needs.server_config.outputs.version }}"
+                  TARGET="${{ needs.server_config.outputs.server_target }}"
+                  DEST="/mnt/longhorn/ows-server/${TARGET}/${VERSION}"
+
+                  if [ -d "${DEST}/LinuxServer" ]; then
+                    FILE_COUNT=$(find "${DEST}/LinuxServer" -type f 2>/dev/null | wc -l)
+                    if [ "${FILE_COUNT}" -gt 0 ]; then
+                      echo "::notice::v${VERSION} already deployed (${FILE_COUNT} files). Skipping build."
+                      echo "should_build=false" >> "$GITHUB_OUTPUT"
+                    else
+                      echo "::notice::v${VERSION} directory exists but is empty. Will rebuild."
+                      echo "should_build=true" >> "$GITHUB_OUTPUT"
+                    fi
+                  else
+                    echo "::notice::v${VERSION} not found on PVC. Will build."
+                    echo "should_build=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+    server_build:
+        name: Build ${{ needs.server_config.outputs.server_target }} (Linux Server)
+        needs: [guard, server_config, server_gate]
+        if: inputs.mode == 'server' && needs.guard.outputs.allowed == 'true' && needs.server_gate.outputs.should_build == 'true'
+        runs-on: arc-runner-ue
+        timeout-minutes: 480
+        permissions:
+            contents: read
+            packages: read
+        env:
+            UE_IMAGE: ghcr.io/epicgames/unreal-engine:${{ needs.server_config.outputs.ue_image_tag }}
+        steps:
+            - name: Resolve PAT (epic_pat → UNITY_PAT fallback)
+              id: pat
+              run: |
+                  TOKEN="${{ secrets.epic_pat }}"
+                  if [ -z "${TOKEN}" ]; then
+                    TOKEN="${{ secrets.UNITY_PAT }}"
+                    echo "::notice::Using UNITY_PAT (epic_pat not provided)"
+                  else
+                    echo "::notice::Using epic_pat"
+                  fi
+                  if [ -z "${TOKEN}" ]; then
+                    echo "::error::No PAT available — set epic_pat or UNITY_PAT"
+                    exit 1
+                  fi
+                  echo "::add-mask::${TOKEN}"
+                  echo "token=${TOKEN}" >> "$GITHUB_OUTPUT"
+
+            - name: Audit log
+              run: |
+                  echo "::notice::UE5 dedicated server build — repo=${{ needs.server_config.outputs.project_repo }}, target=${{ needs.server_config.outputs.server_target }}, image=${{ env.UE_IMAGE }}, version=${{ needs.server_config.outputs.version }}, actor=${{ github.actor }}"
+
+            - name: Login to GitHub Container Registry
+              run: |
+                  echo "${{ steps.pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            - name: Pull UE image (cached on node)
+              run: |
+                  docker pull "${{ env.UE_IMAGE }}"
+
+            - name: Clone game project
+              run: |
+                  rm -rf /tmp/game-project
+                  git clone --depth=1 \
+                    "https://x-access-token:${{ steps.pat.outputs.token }}@github.com/${{ needs.server_config.outputs.project_repo }}.git" \
+                    /tmp/game-project
+
+            - name: Fetch LFS objects
+              run: |
+                  cd /tmp/game-project
+                  git lfs install
+                  git lfs pull
+
+            - name: Build dedicated server
+              env:
+                  PROJECT_PATH: ${{ needs.server_config.outputs.project_path }}
+                  SERVER_TARGET: ${{ needs.server_config.outputs.server_target }}
+                  SERVER_CONFIG: ${{ needs.server_config.outputs.server_config }}
+              run: |
+                  mkdir -p /tmp/ue5-build-output
+
+                  UPROJECT_DIR=$(dirname "${PROJECT_PATH}")
+                  UPROJECT_FILE=$(basename "${PROJECT_PATH}")
+
+                  if [ "${UPROJECT_DIR}" = "." ]; then
+                    PROJECT_MOUNT="/tmp/game-project"
+                  else
+                    PROJECT_MOUNT="/tmp/game-project/${UPROJECT_DIR}"
+                  fi
+
+                  echo "::notice::Mounting ${PROJECT_MOUNT} → /project, building ${UPROJECT_FILE}"
+
+                  docker run --rm \
+                    -v "${PROJECT_MOUNT}:/project" \
+                    -v /tmp/ue5-build-output:/output \
+                    "${{ env.UE_IMAGE }}" \
+                    /bin/bash -c '
+                      set -euo pipefail
+
+                      RUNUAT=""
+                      for candidate in \
+                        /home/ue4/UnrealEngine \
+                        /home/epic/UnrealEngine \
+                        /UnrealEngine; do
+                        if [ -f "$candidate/Engine/Build/BatchFiles/RunUAT.sh" ]; then
+                          RUNUAT="$candidate/Engine/Build/BatchFiles/RunUAT.sh"
+                          echo "::notice::RunUAT located at: $RUNUAT"
+                          break
+                        fi
+                      done
+
+                      if [ -z "$RUNUAT" ]; then
+                        echo "::error::RunUAT.sh not found in container"
+                        find / -name "RunUAT.sh" 2>/dev/null || true
+                        exit 1
+                      fi
+
+                      "$RUNUAT" BuildCookRun \
+                        -project=/project/'"${UPROJECT_FILE}"' \
+                        -targetplatform=Linux \
+                        -target='"${SERVER_TARGET}"' \
+                        -server \
+                        -serverconfig='"${SERVER_CONFIG}"' \
+                        -cook \
+                        -allmaps \
+                        -build \
+                        -stage \
+                        -pak \
+                        -archive \
+                        -archivedirectory=/output \
+                        -unattended \
+                        -utf8output \
+                        -NoP4
+                    '
+
+            - name: Write BUILD_INFO
+              run: |
+                  VERSION="${{ needs.server_config.outputs.version }}"
+                  TARGET="${{ needs.server_config.outputs.server_target }}"
+                  CONFIG="${{ needs.server_config.outputs.server_config }}"
+                  REPO="${{ needs.server_config.outputs.project_repo }}"
+                  UE_TAG="${{ needs.server_config.outputs.ue_image_tag }}"
+
+                  CHUCK_SHA=$(cd /tmp/game-project && git rev-parse HEAD)
+
+                  SERVER_DIR=$(find /tmp/ue5-build-output -name "LinuxServer" -type d | head -1)
+                  if [ -z "${SERVER_DIR}" ]; then
+                    echo "::error::LinuxServer output not found"
+                    find /tmp/ue5-build-output -maxdepth 3 -type d
+                    exit 1
+                  fi
+
+                  cat > "${SERVER_DIR}/BUILD_INFO" <<-BUILDEOF
+                  version=${VERSION}
+                  server_target=${TARGET}
+                  server_config=${CONFIG}
+                  source_repo=${REPO}
+                  source_commit=${CHUCK_SHA}
+                  ue_image=ghcr.io/epicgames/unreal-engine:${UE_TAG}
+                  build_time=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+                  build_run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  actor=${{ github.actor }}
+                  BUILDEOF
+
+                  echo "::notice::BUILD_INFO written — source ${REPO}@${CHUCK_SHA:0:8}, config ${CONFIG}"
+
+            - name: Deploy server to PVC
+              run: |
+                  VERSION="${{ needs.server_config.outputs.version }}"
+                  TARGET="${{ needs.server_config.outputs.server_target }}"
+                  SERVER_DIR=$(find /tmp/ue5-build-output -name "LinuxServer" -type d | head -1)
+
+                  DEST="/mnt/longhorn/ows-server/${TARGET}/${VERSION}"
+
+                  rm -rf "${DEST}" 2>/dev/null || true
+                  mkdir -p "${DEST}"
+                  cp -r "${SERVER_DIR}/." "${DEST}/"
+                  chmod -R 755 "${DEST}"
+
+                  ln -sfn "${VERSION}" "/mnt/longhorn/ows-server/${TARGET}/latest"
+
+                  echo "::notice::${TARGET} v${VERSION} deployed to PVC ($(du -sh ${DEST} | cut -f1))"
+                  ls -la "${DEST}/" | head -10
+                  cat "${DEST}/BUILD_INFO"
+
+            - name: Prune old versions
+              run: |
+                  TARGET="${{ needs.server_config.outputs.server_target }}"
+                  PVC_DIR="/mnt/longhorn/ows-server/${TARGET}"
+                  KEEP=3
+
+                  echo "Pruning old versions in ${PVC_DIR} (keeping latest ${KEEP})..."
+                  cd "${PVC_DIR}"
+                  DIRS=$(ls -dt [0-9]* 2>/dev/null | tail -n +$((KEEP+1)))
+                  if [ -n "${DIRS}" ]; then
+                    for DIR in ${DIRS}; do
+                      if find "${DIR}" -name ".nfs*" -print -quit 2>/dev/null | grep -q .; then
+                        echo "  Skipping ${DIR} (in use by running server)"
+                      else
+                        echo "  Removing ${DIR}"
+                        rm -rf "${DIR}"
+                      fi
+                    done
+                  else
+                    echo "  Nothing to prune."
+                  fi
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  docker logout ghcr.io 2>/dev/null || true
+                  docker system prune -f 2>/dev/null || true
+                  rm -rf /tmp/game-project /tmp/ue5-build-output 2>/dev/null || true
+
+    # ════════════════ GAME (client / standalone) ════════════════
+    game_gate:
+        name: Game Version Gate
+        needs: guard
+        if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            should_build: ${{ steps.compare.outputs.should_build }}
+            version: ${{ steps.compare.outputs.version }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Compare versions
+              id: compare
+              run: |
+                  MANIFEST="${{ inputs.manifest_version }}"
+                  TOML_PATH="${{ inputs.version_toml }}"
+
+                  if [ -n "${MANIFEST}" ]; then
+                    VERSION="${MANIFEST}"
+                  elif [ -n "${TOML_PATH}" ] && [ -f "${TOML_PATH}" ]; then
+                    VERSION=$(grep -m1 '^version' "${TOML_PATH}" | sed 's/version = "\(.*\)"/\1/')
+                  else
+                    VERSION="0.0.1"
+                  fi
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+                  PUBLISHED=""
+                  if [ -n "${TOML_PATH}" ] && [ -f "${TOML_PATH}" ]; then
+                    PUBLISHED=$(grep -m1 '^version' "${TOML_PATH}" | sed 's/version = "\(.*\)"/\1/')
+                  fi
+
+                  if [ -n "${PUBLISHED}" ] && [ "${VERSION}" = "${PUBLISHED}" ]; then
+                    echo "::notice::v${VERSION} already published — skipping build"
+                    echo "should_build=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "::notice::v${VERSION} (published ${PUBLISHED:-none}) — will build"
+                    echo "should_build=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+    game_build_linux:
+        name: Game Build (Linux client)
+        needs: [guard, game_gate]
+        if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Linux')
+        runs-on: arc-runner-ue
+        timeout-minutes: 480
+        permissions:
+            contents: read
+            packages: read
+        env:
+            UE_IMAGE: ghcr.io/epicgames/unreal-engine:dev-${{ inputs.engine_version }}
+        steps:
+            - name: Resolve PAT
+              id: pat
+              run: |
+                  TOKEN="${{ secrets.epic_pat }}"
+                  [ -z "${TOKEN}" ] && TOKEN="${{ secrets.UNITY_PAT }}"
+                  if [ -z "${TOKEN}" ]; then
+                    echo "::error::No PAT available — set epic_pat or UNITY_PAT"
+                    exit 1
+                  fi
+                  echo "::add-mask::${TOKEN}"
+                  echo "token=${TOKEN}" >> "$GITHUB_OUTPUT"
+
+            - name: Login to GHCR
+              run: echo "${{ steps.pat.outputs.token }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            - name: Pull UE image
+              run: docker pull "${{ env.UE_IMAGE }}"
+
+            - name: Clone game repo
+              run: |
+                  rm -rf /tmp/game-project
+                  git clone --depth=1 \
+                    "https://x-access-token:${{ steps.pat.outputs.token }}@github.com/${{ inputs.external_repo_url }}.git" \
+                    /tmp/game-project
+                  cd /tmp/game-project
+                  git lfs install
+                  git lfs pull
+
+            - name: Build Linux client
+              env:
+                  PROJECT_PATH: ${{ inputs.project_path }}
+              run: |
+                  mkdir -p /tmp/ue5-game-output
+                  UPROJECT_FILE=$(find "/tmp/game-project/${PROJECT_PATH}" -maxdepth 1 -name '*.uproject' | head -1)
+                  if [ -z "${UPROJECT_FILE}" ]; then
+                    echo "::error::No .uproject under /tmp/game-project/${PROJECT_PATH}"
+                    exit 1
+                  fi
+                  PROJECT_MOUNT=$(dirname "${UPROJECT_FILE}")
+                  UPROJECT_NAME=$(basename "${UPROJECT_FILE}")
+                  echo "::notice::Mounting ${PROJECT_MOUNT} → /project, building ${UPROJECT_NAME} (Linux client)"
+
+                  docker run --rm \
+                    -v "${PROJECT_MOUNT}:/project" \
+                    -v /tmp/ue5-game-output:/output \
+                    "${{ env.UE_IMAGE }}" \
+                    /bin/bash -c '
+                      set -euo pipefail
+                      RUNUAT=""
+                      for candidate in /home/ue4/UnrealEngine /home/epic/UnrealEngine /UnrealEngine; do
+                        if [ -f "$candidate/Engine/Build/BatchFiles/RunUAT.sh" ]; then
+                          RUNUAT="$candidate/Engine/Build/BatchFiles/RunUAT.sh"; break
+                        fi
+                      done
+                      if [ -z "$RUNUAT" ]; then echo "::error::RunUAT.sh not found"; exit 1; fi
+
+                      "$RUNUAT" BuildCookRun \
+                        -project=/project/'"${UPROJECT_NAME}"' \
+                        -targetplatform=Linux \
+                        -cook -allmaps -build -stage -pak -archive \
+                        -archivedirectory=/output \
+                        -unattended -utf8output -NoP4
+                    '
+
+            - name: Package archive
+              run: |
+                  VERSION="${{ needs.game_gate.outputs.version }}"
+                  cd /tmp/ue5-game-output
+                  zip -r "/tmp/${{ inputs.app_name }}-Linux-v${VERSION}.zip" .
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-Linux-v${{ needs.game_gate.outputs.version }}
+                  path: /tmp/${{ inputs.app_name }}-Linux-v${{ needs.game_gate.outputs.version }}.zip
+                  retention-days: 30
+
+            - name: Deploy to itch.io
+              if: inputs.deploy_to_itch == true && inputs.itch_game_id != ''
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.butler_api }}
+                  gameData: /tmp/ue5-game-output
+                  itchUsername: ${{ inputs.itch_username }}
+                  itchGameId: ${{ inputs.itch_game_id }}
+                  buildChannel: linux-v${{ needs.game_gate.outputs.version }}
+                  buildNumber: ${{ needs.game_gate.outputs.version }}
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  docker logout ghcr.io 2>/dev/null || true
+                  docker system prune -f 2>/dev/null || true
+                  rm -rf /tmp/game-project /tmp/ue5-game-output 2>/dev/null || true
+
+    game_build_windows:
+        name: Game Build (Win64 client)
+        needs: [guard, game_gate]
+        if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Win64')
+        runs-on: UE5-Win
+        timeout-minutes: 480
+        defaults:
+            run:
+                shell: pwsh
+        permissions:
+            contents: read
+        steps:
+            - name: Resolve PAT
+              id: pat
+              run: |
+                  $token = "${{ secrets.epic_pat }}"
+                  if (-not $token) { $token = "${{ secrets.UNITY_PAT }}" }
+                  if (-not $token) { Write-Host "::error::No PAT available"; exit 1 }
+                  Write-Host "::add-mask::$token"
+                  "token=$token" >> $env:GITHUB_OUTPUT
+
+            - name: Locate Unreal Engine
+              id: engine
+              run: |
+                  $candidates = @("C:\UnrealEngine","D:\UnrealEngine","C:\Program Files\Epic Games\UE_5.7","C:\Program Files\Epic Games\UE_5.4")
+                  $engineRoot = $null
+                  foreach ($c in $candidates) {
+                      if (Test-Path (Join-Path $c "Engine\Build\BatchFiles\RunUAT.bat")) { $engineRoot = $c; break }
+                  }
+                  if (-not $engineRoot) { Write-Host "::error::RunUAT.bat not found on runner"; exit 1 }
+                  Write-Host "::notice::Engine at $engineRoot"
+                  "runuat=$(Join-Path $engineRoot 'Engine\Build\BatchFiles\RunUAT.bat')" >> $env:GITHUB_OUTPUT
+
+            - name: Clone game repo
+              run: |
+                  $token = '${{ steps.pat.outputs.token }}'
+                  if (Test-Path C:\game-project) { Remove-Item -Recurse -Force C:\game-project }
+                  git clone --depth=1 "https://x-access-token:$token@github.com/${{ inputs.external_repo_url }}.git" C:\game-project
+                  Push-Location C:\game-project
+                  git lfs install
+                  git lfs pull
+                  Pop-Location
+
+            - name: Build Win64 client
+              run: |
+                  $uproject = Get-ChildItem -Path (Join-Path 'C:\game-project' '${{ inputs.project_path }}') -Filter *.uproject | Select-Object -First 1
+                  if (-not $uproject) { Write-Host "::error::No .uproject found"; exit 1 }
+                  $out = "C:\ue5-game-output"
+                  New-Item -ItemType Directory -Force -Path $out | Out-Null
+                  Write-Host "::notice::Building $($uproject.FullName) (Win64 client)"
+                  & '${{ steps.engine.outputs.runuat }}' BuildCookRun `
+                      -project="$($uproject.FullName)" `
+                      -targetplatform=Win64 `
+                      -cook -allmaps -build -stage -pak -archive `
+                      -archivedirectory="$out" `
+                      -unattended -utf8output -NoP4
+                  if ($LASTEXITCODE -ne 0) { Write-Host "::error::BuildCookRun failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+
+            - name: Package archive
+              run: |
+                  $version = "${{ needs.game_gate.outputs.version }}"
+                  $zip = "C:\${{ inputs.app_name }}-Win64-v$version.zip"
+                  Compress-Archive -Path "C:\ue5-game-output\*" -DestinationPath $zip
+                  Write-Host "::notice::Packaged $zip"
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-Win64-v${{ needs.game_gate.outputs.version }}
+                  path: C:\${{ inputs.app_name }}-Win64-v${{ needs.game_gate.outputs.version }}.zip
+                  retention-days: 30
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  if (Test-Path C:\game-project) { Remove-Item -Recurse -Force C:\game-project -ErrorAction SilentlyContinue }
+                  if (Test-Path C:\ue5-game-output) { Remove-Item -Recurse -Force C:\ue5-game-output -ErrorAction SilentlyContinue }
+
+    game_build_mac:
+        name: Game Build (Mac client)
+        needs: [guard, game_gate]
+        if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Mac')
+        runs-on: UE5-Mac
+        timeout-minutes: 480
+        permissions:
+            contents: read
+        steps:
+            - name: Resolve PAT
+              id: pat
+              run: |
+                  TOKEN="${{ secrets.epic_pat }}"
+                  [ -z "${TOKEN}" ] && TOKEN="${{ secrets.UNITY_PAT }}"
+                  if [ -z "${TOKEN}" ]; then echo "::error::No PAT available"; exit 1; fi
+                  echo "::add-mask::${TOKEN}"
+                  echo "token=${TOKEN}" >> "$GITHUB_OUTPUT"
+
+            - name: Locate Unreal Engine
+              id: engine
+              run: |
+                  for c in "$HOME/UnrealEngine" "/Users/Shared/UnrealEngine" "/Applications/UnrealEngine"; do
+                    if [ -f "$c/Engine/Build/BatchFiles/RunUAT.sh" ]; then echo "runuat=$c/Engine/Build/BatchFiles/RunUAT.sh" >> "$GITHUB_OUTPUT"; FOUND=1; break; fi
+                  done
+                  if [ -z "${FOUND:-}" ]; then echo "::error::RunUAT.sh not found on runner"; exit 1; fi
+
+            - name: Clone game repo
+              run: |
+                  rm -rf ~/game-project
+                  git clone --depth=1 "https://x-access-token:${{ steps.pat.outputs.token }}@github.com/${{ inputs.external_repo_url }}.git" ~/game-project
+                  cd ~/game-project && git lfs install && git lfs pull
+
+            - name: Build Mac client
+              run: |
+                  UPROJECT_FILE=$(find ~/game-project/${{ inputs.project_path }} -maxdepth 1 -name '*.uproject' | head -1)
+                  if [ -z "${UPROJECT_FILE}" ]; then echo "::error::No .uproject found"; exit 1; fi
+                  mkdir -p ~/ue5-game-output
+                  "${{ steps.engine.outputs.runuat }}" BuildCookRun \
+                    -project="${UPROJECT_FILE}" \
+                    -targetplatform=Mac \
+                    -cook -allmaps -build -stage -pak -archive \
+                    -archivedirectory="$HOME/ue5-game-output" \
+                    -unattended -utf8output -NoP4
+
+            - name: Package archive
+              run: |
+                  VERSION="${{ needs.game_gate.outputs.version }}"
+                  cd ~/ue5-game-output && zip -r "$HOME/${{ inputs.app_name }}-Mac-v${VERSION}.zip" .
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-Mac-v${{ needs.game_gate.outputs.version }}
+                  path: ~/${{ inputs.app_name }}-Mac-v${{ needs.game_gate.outputs.version }}.zip
+                  retention-days: 30
+
+            - name: Cleanup
+              if: always()
+              run: rm -rf ~/game-project ~/ue5-game-output 2>/dev/null || true
+
+    # ════════════════ ENGINE (AngelScript UE) ════════════════
+    engine_gate:
+        name: Engine Version Gate
+        needs: guard
+        if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            version: ${{ steps.extract.outputs.version }}
+            should_build: ${{ steps.compare.outputs.should_build }}
+            tag: ${{ steps.compare.outputs.tag }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Extract version
+              id: extract
+              run: |
+                  VERSION_TOML="apps/angelscript/version.toml"
+                  if [ -f "${VERSION_TOML}" ]; then
+                    VERSION=$(grep -m1 '^version' "${VERSION_TOML}" | sed 's/version = "\(.*\)"/\1/')
+                  else
+                    VERSION="0.0.0"
+                  fi
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "::notice::Current version: ${VERSION}"
+
+            - name: Compare versions
+              id: compare
+              env:
+                  GH_TOKEN: ${{ secrets.UNITY_PAT }}
+              run: |
+                  VERSION="${{ steps.extract.outputs.version }}"
+                  TAG="angelscript-v${VERSION}"
+                  echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+                  if [ "${{ inputs.skip_version_gate }}" = "true" ]; then
+                    echo "::notice::Version gate skipped (forced rebuild)"
+                    echo "should_build=true" >> "$GITHUB_OUTPUT"
+                  elif [ "${VERSION}" = "0.0.0" ]; then
+                    echo "::notice::Version is 0.0.0 — initial build"
+                    echo "should_build=true" >> "$GITHUB_OUTPUT"
+                  elif gh release view "${TAG}" --repo "${{ env.ENGINE_REPO }}" --json tagName >/dev/null 2>&1; then
+                    echo "::notice::Release ${TAG} already exists — skipping build"
+                    echo "should_build=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "::notice::No existing release for ${TAG} — will build"
+                    echo "should_build=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+    engine_build_windows:
+        name: Engine Build (Windows client)
+        needs: [guard, engine_gate]
+        if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true' && needs.engine_gate.outputs.should_build == 'true' && contains(inputs.platforms, 'windows')
+        runs-on: windows-latest
+        timeout-minutes: 360
+        permissions:
+            contents: read
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::Windows engine build — ref=${{ inputs.engine_ref }}, version=${{ needs.engine_gate.outputs.version }}"
+
+            - name: Verify build tools
+              shell: pwsh
+              run: |
+                  $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+                  if (Test-Path $vsWhere) {
+                    $vsPath = & $vsWhere -latest -property installationPath
+                    Write-Host "::notice::Visual Studio found at: $vsPath"
+                  } else {
+                    Write-Host "::warning::vswhere not found — MSVC may not be installed"
+                  }
+                  git lfs version
+
+            - name: Clone engine source
+              env:
+                  UNITY_PAT: ${{ secrets.UNITY_PAT }}
+              shell: pwsh
+              run: |
+                  git clone --depth 1 --branch ${{ inputs.engine_ref }} `
+                    "https://x-access-token:${env:UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" `
+                    engine
+
+            - name: Run Setup
+              shell: pwsh
+              run: |
+                  Push-Location engine; .\Setup.bat; Pop-Location
+
+            - name: Generate project files
+              shell: pwsh
+              run: |
+                  Push-Location engine; .\GenerateProjectFiles.bat; Pop-Location
+
+            - name: Build Editor (Win64)
+              shell: pwsh
+              run: |
+                  Push-Location engine
+                  .\Engine\Build\BatchFiles\RunUAT.bat BuildTarget `
+                    -target=UnrealEditor -platform=Win64 -configuration=Development `
+                    -notools -unattended -utf8output
+                  Pop-Location
+
+            - name: Package Windows client
+              shell: pwsh
+              run: |
+                  $Version = "${{ needs.engine_gate.outputs.version }}"
+                  $OutDir = "angelscript-win64-v${Version}"
+                  New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
+                  Copy-Item -Recurse "engine\Engine\Binaries\Win64\*" "$OutDir\"
+                  Compress-Archive -Path $OutDir -DestinationPath "angelscript-win64-v${Version}.zip"
+
+            - name: Upload Windows artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: angelscript-win64-v${{ needs.engine_gate.outputs.version }}
+                  path: angelscript-win64-v${{ needs.engine_gate.outputs.version }}.zip
+                  retention-days: 30
+
+            - name: Cleanup secrets
+              if: always()
+              shell: pwsh
+              run: |
+                  if (Test-Path "engine\.git") {
+                    Push-Location engine
+                    git remote set-url origin "https://github.com/${{ env.ENGINE_REPO }}.git"
+                    Pop-Location
+                  }
+
+    engine_build_mac:
+        name: Engine Build (Mac client)
+        needs: [guard, engine_gate]
+        if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true' && needs.engine_gate.outputs.should_build == 'true' && contains(inputs.platforms, 'mac')
+        runs-on: arc-runner-ue-mac
+        timeout-minutes: 360
+        permissions:
+            contents: read
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::Mac engine build — ref=${{ inputs.engine_ref }}, version=${{ needs.engine_gate.outputs.version }}"
+
+            - name: Install build dependencies
+              run: |
+                  xcode-select -p || xcode-select --install
+                  if command -v brew &>/dev/null; then brew install cmake ninja python3 || true; fi
+
+            - name: Clone or update engine source
+              env:
+                  UNITY_PAT: ${{ secrets.UNITY_PAT }}
+              run: |
+                  CACHE="${{ env.ENGINE_CACHE_PATH }}"
+                  if [ -d "${CACHE}/.git" ]; then
+                    cd "${CACHE}"
+                    git remote set-url origin "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
+                    git fetch origin ${{ inputs.engine_ref }}
+                    git reset --hard FETCH_HEAD
+                  else
+                    if [ -d "${CACHE}" ]; then rm -rf "${CACHE:?}"/*; fi
+                    git clone --depth 1 --branch ${{ inputs.engine_ref }} \
+                      "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" "${CACHE}"
+                  fi
+
+            - name: Run Setup
+              run: cd "${{ env.ENGINE_CACHE_PATH }}" && chmod +x Setup.sh && ./Setup.sh
+
+            - name: Generate project files
+              run: cd "${{ env.ENGINE_CACHE_PATH }}" && chmod +x GenerateProjectFiles.sh && ./GenerateProjectFiles.sh
+
+            - name: Build Editor (Mac)
+              run: |
+                  cd "${{ env.ENGINE_CACHE_PATH }}"
+                  ./Engine/Build/BatchFiles/RunUAT.sh BuildTarget \
+                    -target=UnrealEditor -platform=Mac -configuration=Development \
+                    -notools -unattended -utf8output
+
+            - name: Package Mac client
+              run: |
+                  VERSION="${{ needs.engine_gate.outputs.version }}"
+                  OUT_DIR="angelscript-mac-v${VERSION}"
+                  mkdir -p "${OUT_DIR}"
+                  cp -r "${{ env.ENGINE_CACHE_PATH }}/Engine/Binaries/Mac/"* "${OUT_DIR}/"
+                  zip -r "angelscript-mac-v${VERSION}.zip" "${OUT_DIR}"
+
+            - name: Upload Mac artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: angelscript-mac-v${{ needs.engine_gate.outputs.version }}
+                  path: angelscript-mac-v${{ needs.engine_gate.outputs.version }}.zip
+                  retention-days: 30
+
+            - name: Cleanup secrets
+              if: always()
+              run: |
+                  cd "${{ env.ENGINE_CACHE_PATH }}" && git remote set-url origin "https://github.com/${{ env.ENGINE_REPO }}.git"
+
+    engine_build_linux:
+        name: Engine Build (Linux dedicated server)
+        needs: [guard, engine_gate]
+        if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true' && needs.engine_gate.outputs.should_build == 'true' && contains(inputs.platforms, 'linux')
+        runs-on: arc-runner-ue
+        timeout-minutes: 480
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::Linux engine build — ref=${{ inputs.engine_ref }}, version=${{ needs.engine_gate.outputs.version }}, image=${{ env.DOCKER_IMAGE }}"
+
+            - name: Install build dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y build-essential clang xdg-utils shared-mime-info libssl-dev python3 curl zip
+
+            - name: Checkout monorepo
+              uses: actions/checkout@v6
+
+            - name: Clone or update engine source
+              env:
+                  UNITY_PAT: ${{ secrets.UNITY_PAT }}
+              run: |
+                  CACHE="${{ env.ENGINE_CACHE_PATH }}"
+                  if [ -d "${CACHE}/.git" ]; then
+                    cd "${CACHE}"
+                    git remote set-url origin "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
+                    git fetch origin ${{ inputs.engine_ref }}
+                    git reset --hard FETCH_HEAD
+                  else
+                    if [ -d "${CACHE}" ]; then rm -rf "${CACHE:?}"/*; fi
+                    git clone --depth 1 --branch ${{ inputs.engine_ref }} \
+                      "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" "${CACHE}"
+                  fi
+
+            - name: Run Setup
+              run: cd "${{ env.ENGINE_CACHE_PATH }}" && chmod +x Setup.sh && ./Setup.sh
+
+            - name: Generate project files
+              run: cd "${{ env.ENGINE_CACHE_PATH }}" && chmod +x GenerateProjectFiles.sh && ./GenerateProjectFiles.sh
+
+            - name: Build Linux Dedicated Server
+              run: |
+                  cd "${{ env.ENGINE_CACHE_PATH }}"
+                  ./Engine/Build/BatchFiles/RunUAT.sh BuildTarget \
+                    -target=UnrealServer -platform=Linux -configuration=Development \
+                    -notools -unattended -utf8output
+
+            - name: Package Linux server
+              run: |
+                  VERSION="${{ needs.engine_gate.outputs.version }}"
+                  OUT_DIR="angelscript-linux-server-v${VERSION}"
+                  mkdir -p "${OUT_DIR}"
+                  cp -r "${{ env.ENGINE_CACHE_PATH }}/Engine/Binaries/Linux/"* "${OUT_DIR}/"
+                  zip -r "angelscript-linux-server-v${VERSION}.zip" "${OUT_DIR}"
+
+            - name: Upload Linux artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: angelscript-linux-server-v${{ needs.engine_gate.outputs.version }}
+                  path: angelscript-linux-server-v${{ needs.engine_gate.outputs.version }}.zip
+                  retention-days: 30
+
+            - name: Build and push Docker image
+              if: inputs.build_dedicated_server == true
+              run: |
+                  VERSION="${{ needs.engine_gate.outputs.version }}"
+                  mkdir -p docker-context/server
+                  cp -r "${{ env.ENGINE_CACHE_PATH }}/Engine/Binaries/Linux/"* docker-context/server/
+                  cp apps/angelscript/Dockerfile.dedicated-server docker-context/Dockerfile
+
+                  echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+                  docker buildx create --name vfs-builder --driver docker-container \
+                    --driver-opt "image=moby/buildkit:latest" --use
+
+                  docker buildx build --load \
+                    -t "${{ env.DOCKER_IMAGE }}:${VERSION}" \
+                    -t "${{ env.DOCKER_IMAGE }}:latest" \
+                    -f docker-context/Dockerfile docker-context/
+
+                  docker push "${{ env.DOCKER_IMAGE }}:${VERSION}"
+                  docker push "${{ env.DOCKER_IMAGE }}:latest"
+                  echo "::notice::Pushed ${{ env.DOCKER_IMAGE }}:${VERSION}"
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  cd "${{ env.ENGINE_CACHE_PATH }}" 2>/dev/null && \
+                    git remote set-url origin "https://github.com/${{ env.ENGINE_REPO }}.git" || true
+                  docker logout ghcr.io 2>/dev/null || true
+                  docker system prune -f 2>/dev/null || true
+
+    engine_release:
+        name: Engine GitHub Release
+        needs:
+            [
+                engine_gate,
+                engine_build_windows,
+                engine_build_mac,
+                engine_build_linux,
+            ]
+        if: |
+            inputs.mode == 'engine' &&
+            always() &&
+            needs.engine_gate.outputs.should_build == 'true' &&
+            (needs.engine_build_windows.result == 'success' || needs.engine_build_windows.result == 'skipped') &&
+            (needs.engine_build_mac.result == 'success' || needs.engine_build_mac.result == 'skipped') &&
+            (needs.engine_build_linux.result == 'success' || needs.engine_build_linux.result == 'skipped') &&
+            (needs.engine_build_windows.result == 'success' || needs.engine_build_mac.result == 'success' || needs.engine_build_linux.result == 'success')
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
+        steps:
+            - name: Download all artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  path: ./artifacts
+                  pattern: angelscript-*
+                  merge-multiple: false
+
+            - name: Create release on private repo
+              env:
+                  GH_TOKEN: ${{ secrets.UNITY_PAT }}
+              run: |
+                  VERSION="${{ needs.engine_gate.outputs.version }}"
+                  TAG="${{ needs.engine_gate.outputs.tag }}"
+                  find ./artifacts -name "*.zip" -type f > /tmp/release_files.txt
+                  echo "::notice::Creating release ${TAG} on ${{ env.ENGINE_REPO }}:"
+                  cat /tmp/release_files.txt
+
+                  RELEASE_NOTES="## AngelScript Engine v${VERSION}
+
+                  Built from ref: \`${{ inputs.engine_ref }}\`
+
+                  ### Artifacts
+                  | Platform | Status |
+                  |----------|--------|
+                  | Windows x86 | ${{ needs.engine_build_windows.result }} |
+                  | Mac x86 | ${{ needs.engine_build_mac.result }} |
+                  | Linux Server | ${{ needs.engine_build_linux.result }} |
+
+                  ### Docker
+                  Linux dedicated server image: \`${{ env.DOCKER_IMAGE }}:${VERSION}\`
+                  "
+
+                  UPLOAD_ARGS=""
+                  while IFS= read -r file; do
+                    UPLOAD_ARGS="${UPLOAD_ARGS} \"${file}\""
+                  done < /tmp/release_files.txt
+
+                  eval gh release create "${TAG}" \
+                    --repo "${{ env.ENGINE_REPO }}" \
+                    --title "AngelScript Engine v${VERSION}" \
+                    --notes "'${RELEASE_NOTES}'" \
+                    --prerelease \
+                    ${UPLOAD_ARGS}
+
+    engine_update_version:
+        name: Engine PR version.toml + kube image
+        needs: [engine_gate, engine_release, engine_build_linux]
+        if: |
+            inputs.mode == 'engine' &&
+            always() &&
+            needs.engine_gate.outputs.should_build == 'true' &&
+            needs.engine_release.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+            pull-requests: write
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+
+            - name: Update version.toml
+              run: |
+                  echo 'version = "${{ needs.engine_gate.outputs.version }}"' > apps/angelscript/version.toml
+                  cat apps/angelscript/version.toml
+
+            - name: Update kube deployment image tag
+              if: needs.engine_build_linux.result == 'success'
+              run: |
+                  VERSION="${{ needs.engine_gate.outputs.version }}"
+                  DEPLOY="apps/kube/angelscript/manifest/deployment.yaml"
+                  sed -i "s|image: ghcr.io/kbve/angelscript-server:.*|image: ghcr.io/kbve/angelscript-server:${VERSION}|" "${DEPLOY}"
+                  echo "::notice::Updated deployment image to ghcr.io/kbve/angelscript-server:${VERSION}"
+                  grep "image:" "${DEPLOY}"
+
+            - name: Create PR
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  VERSION="${{ needs.engine_gate.outputs.version }}"
+                  BRANCH="auto/update-angelscript-version-${VERSION}"
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git checkout -b "${BRANCH}"
+                  git add apps/angelscript/version.toml apps/kube/angelscript/manifest/deployment.yaml
+                  git commit -m "chore(angelscript): update version.toml + kube image to ${VERSION} [skip ci]"
+                  git push origin "${BRANCH}"
+                  gh pr create \
+                    --base dev --head "${BRANCH}" \
+                    --title "chore(angelscript): update to v${VERSION}" \
+                    --body "Automated post-build update. AngelScript Engine v${VERSION} released on ${{ env.ENGINE_REPO }}. Docker image: \`${{ env.DOCKER_IMAGE }}:${VERSION}\`"
+
+    # ════════════════ PLUGIN (Linux docker + Win64 native) ════════════════
+    plugin_check:
+        name: Plugin Version Gate
+        needs: guard
+        if: (inputs.mode == 'plugin' || inputs.mode == 'plugin-win') && needs.guard.outputs.allowed == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        outputs:
+            version: ${{ steps.extract.outputs.version }}
+            published_version: ${{ steps.extract.outputs.published_version }}
+            should_release: ${{ steps.compare.outputs.should_release }}
+            tag: ${{ steps.compare.outputs.tag }}
+            zip_name: ${{ steps.extract.outputs.zip_name }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Extract versions
+              id: extract
+              run: |
+                  UPLUGIN="${{ inputs.plugin_path }}/${{ inputs.plugin_name }}.uplugin"
+                  if [ ! -f "${UPLUGIN}" ]; then echo "::error::Plugin file not found: ${UPLUGIN}"; exit 1; fi
+                  VERSION=$(jq -r '.VersionName' "${UPLUGIN}")
+                  if [ -z "${VERSION}" ] || [ "${VERSION}" = "null" ]; then echo "::error::No VersionName in ${UPLUGIN}"; exit 1; fi
+
+                  VERSION_TOML="${{ inputs.plugin_path }}/version.toml"
+                  if [ -f "${VERSION_TOML}" ]; then
+                    PUBLISHED=$(grep -m1 '^version' "${VERSION_TOML}" | sed 's/version = "\(.*\)"/\1/')
+                  else
+                    PUBLISHED="0.0.0"
+                  fi
+
+                  if [ "${{ inputs.mode }}" = "plugin-win" ]; then SUFFIX="-Win64"; else SUFFIX=""; fi
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "published_version=${PUBLISHED}" >> "$GITHUB_OUTPUT"
+                  echo "zip_name=${{ inputs.plugin_name }}${SUFFIX}-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
+                  echo "::notice::Plugin ${{ inputs.plugin_name }} — uplugin: ${VERSION}, published: ${PUBLISHED}"
+
+            - name: Compare versions
+              id: compare
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  VERSION="${{ steps.extract.outputs.version }}"
+                  PUBLISHED="${{ steps.extract.outputs.published_version }}"
+
+                  PREFIX="${{ inputs.release_tag_prefix }}"
+                  if [ -z "${PREFIX}" ]; then
+                    PREFIX=$(echo "${{ inputs.plugin_name }}" | tr '[:upper:]' '[:lower:]')
+                    if [ "${{ inputs.mode }}" = "plugin-win" ]; then PREFIX="${PREFIX}-win64-v"; else PREFIX="${PREFIX}-v"; fi
+                  fi
+                  TAG="${PREFIX}${VERSION}"
+                  echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+                  if [ "${VERSION}" = "${PUBLISHED}" ]; then
+                    echo "::notice::version.toml matches .uplugin (${VERSION}) — skipping publish"
+                    echo "should_release=false" >> "$GITHUB_OUTPUT"
+                  elif gh release view "${TAG}" --json tagName >/dev/null 2>&1; then
+                    echo "::notice::Release ${TAG} already exists — skipping publish"
+                    echo "should_release=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "::notice::New version ${VERSION} (was ${PUBLISHED}) — will publish"
+                    echo "should_release=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+    plugin_build_linux:
+        name: Build Plugin (${{ inputs.plugin_name }})
+        needs: [guard, plugin_check]
+        if: inputs.mode == 'plugin' && needs.guard.outputs.allowed == 'true'
+        runs-on: arc-runner-ue
+        timeout-minutes: ${{ inputs.build_timeout }}
+        permissions:
+            contents: read
+            packages: read
+        steps:
+            - name: Audit log
+              run: |
+                  echo "::notice::Plugin build — plugin=${{ inputs.plugin_name }}, version=${{ needs.plugin_check.outputs.version }}, image=ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}"
+
+            - name: Checkout repository
+              uses: actions/checkout@v6
+
+            - name: Login to GHCR
+              run: echo "${{ secrets.epic_pat }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            - name: Pull Unreal Engine image
+              run: docker pull "ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}"
+
+            - name: Prepare dependency plugins
+              if: inputs.dependency_plugin_paths != ''
+              run: |
+                  mkdir -p "${{ github.workspace }}/_deps"
+                  for dep_path in ${{ inputs.dependency_plugin_paths }}; do
+                    dep_name=$(basename "$dep_path")
+                    cp -r "${{ github.workspace }}/${dep_path}" "${{ github.workspace }}/_deps/${dep_name}"
+                  done
+                  ls -la "${{ github.workspace }}/_deps/"
+
+            - name: Build plugin with RunUAT
+              run: |
+                  mkdir -p "${{ github.workspace }}/output"
+                  DOCKER_VOLS="-v ${{ github.workspace }}/${{ inputs.plugin_path }}:/plugin"
+                  DOCKER_VOLS="${DOCKER_VOLS} -v ${{ github.workspace }}/output:/output"
+                  if [ -d "${{ github.workspace }}/_deps" ] && [ "$(ls -A "${{ github.workspace }}/_deps")" ]; then
+                    DOCKER_VOLS="${DOCKER_VOLS} -v ${{ github.workspace }}/_deps:/deps:ro"
+                  fi
+
+                  docker run --rm ${DOCKER_VOLS} \
+                    "ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}" \
+                    /bin/bash -c '
+                      set -euo pipefail
+                      RUNUAT=""; ENGINE_ROOT=""
+                      for candidate in /home/ue4/UnrealEngine /home/epic/UnrealEngine /UnrealEngine; do
+                        if [ -f "$candidate/Engine/Build/BatchFiles/RunUAT.sh" ]; then
+                          RUNUAT="$candidate/Engine/Build/BatchFiles/RunUAT.sh"; ENGINE_ROOT="$candidate"; break
+                        fi
+                      done
+                      if [ -z "$RUNUAT" ]; then echo "::error::RunUAT.sh not found"; find / -name "RunUAT.sh" 2>/dev/null || true; exit 1; fi
+
+                      if [ -d /deps ]; then
+                        MARKETPLACE_DIR="$ENGINE_ROOT/Engine/Plugins/Marketplace"
+                        mkdir -p "$MARKETPLACE_DIR"
+                        for dep in /deps/*/; do
+                          dep_name=$(basename "$dep")
+                          cp -r "$dep" "$MARKETPLACE_DIR/$dep_name"
+                        done
+                      fi
+
+                      "$RUNUAT" BuildPlugin \
+                        -Plugin=/plugin/${{ inputs.plugin_name }}.uplugin \
+                        -Package=/output/${{ inputs.plugin_name }} \
+                        -TargetPlatforms=${{ inputs.target_platforms }} \
+                        -Rocket -StrictIncludes
+                    '
+
+            - name: Verify build output
+              run: |
+                  if [ ! -f "output/${{ inputs.plugin_name }}/${{ inputs.plugin_name }}.uplugin" ]; then
+                    echo "::error::Build output missing"
+                    ls -laR output/ 2>/dev/null | head -50 || true
+                    exit 1
+                  fi
+                  find "output/${{ inputs.plugin_name }}" -type f | head -30
+
+            - name: Package plugin zip
+              run: |
+                  cd output
+                  zip -r "${{ needs.plugin_check.outputs.zip_name }}" "${{ inputs.plugin_name }}/"
+                  ls -lh "${{ needs.plugin_check.outputs.zip_name }}"
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ needs.plugin_check.outputs.zip_name }}
+                  path: output/${{ needs.plugin_check.outputs.zip_name }}
+                  retention-days: 30
+
+            - name: Cleanup
+              if: always()
+              run: |
+                  docker logout ghcr.io 2>/dev/null || true
+                  docker system prune -f 2>/dev/null || true
+                  rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.[!.]* 2>/dev/null || true
+
+    plugin_build_win:
+        name: Build Plugin Win64 (${{ inputs.plugin_name }})
+        needs: [guard, plugin_check]
+        if: inputs.mode == 'plugin-win' && needs.guard.outputs.allowed == 'true'
+        runs-on: UE5-Win
+        timeout-minutes: ${{ inputs.build_timeout }}
+        defaults:
+            run:
+                shell: pwsh
+        permissions:
+            contents: read
+        steps:
+            - name: Audit log
+              run: |
+                  Write-Host "::notice::Win64 plugin build — plugin=${{ inputs.plugin_name }}, version=${{ needs.plugin_check.outputs.version }}, platforms=${{ inputs.target_platforms }}"
+
+            - name: Checkout repository
+              uses: actions/checkout@v6
+
+            - name: Locate Unreal Engine
+              id: engine
+              run: |
+                  $engineInput = '${{ inputs.engine_root }}'
+                  $candidates = @($engineInput,"C:\UnrealEngine","D:\UnrealEngine","C:\Program Files\Epic Games\UE_5.7","C:\Program Files\Epic Games\UE_5.4","C:\Program Files\Epic Games\UE_5.5") | Where-Object { $_ -ne '' }
+                  $engineRoot = $null
+                  foreach ($candidate in $candidates) {
+                      if (Test-Path (Join-Path $candidate "Engine\Build\BatchFiles\RunUAT.bat")) { $engineRoot = $candidate; Write-Host "::notice::Engine found at: $candidate"; break }
+                  }
+                  if (-not $engineRoot) {
+                      Write-Host "::error::RunUAT.bat not found. Searched:"
+                      foreach ($c in $candidates) { Write-Host "  - $c" }
+                      exit 1
+                  }
+                  echo "engine_root=$engineRoot" >> $env:GITHUB_OUTPUT
+                  echo "runuat=$(Join-Path $engineRoot 'Engine\Build\BatchFiles\RunUAT.bat')" >> $env:GITHUB_OUTPUT
+
+            - name: Install dependency plugins
+              if: inputs.dependency_plugin_paths != ''
+              run: |
+                  $engineRoot = '${{ steps.engine.outputs.engine_root }}'
+                  $marketplaceDir = Join-Path $engineRoot "Engine\Plugins\Marketplace"
+                  New-Item -ItemType Directory -Force -Path $marketplaceDir | Out-Null
+                  $deps = '${{ inputs.dependency_plugin_paths }}' -split '\s+'
+                  foreach ($depPath in $deps) {
+                      if ([string]::IsNullOrWhiteSpace($depPath)) { continue }
+                      $depName = Split-Path $depPath -Leaf
+                      $src = Join-Path $env:GITHUB_WORKSPACE $depPath
+                      $dst = Join-Path $marketplaceDir $depName
+                      Write-Host "::notice::Installing dependency: $depName -> $dst"
+                      Copy-Item -Path $src -Destination $dst -Recurse -Force
+                  }
+
+            - name: Build plugin with RunUAT
+              run: |
+                  $runuat = '${{ steps.engine.outputs.runuat }}'
+                  $pluginPath = Join-Path $env:GITHUB_WORKSPACE '${{ inputs.plugin_path }}' '${{ inputs.plugin_name }}.uplugin'
+                  $outputDir = Join-Path $env:GITHUB_WORKSPACE 'output' '${{ inputs.plugin_name }}'
+                  New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
+                  & $runuat BuildPlugin `
+                      -Plugin="$pluginPath" -Package="$outputDir" `
+                      -TargetPlatforms=${{ inputs.target_platforms }} `
+                      -Rocket -StrictIncludes
+                  if ($LASTEXITCODE -ne 0) { Write-Host "::error::RunUAT BuildPlugin failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
+
+            - name: Verify build output
+              run: |
+                  $uplugin = Join-Path $env:GITHUB_WORKSPACE 'output' '${{ inputs.plugin_name }}' '${{ inputs.plugin_name }}.uplugin'
+                  if (-not (Test-Path $uplugin)) {
+                      Write-Host "::error::Build output missing — .uplugin not found at $uplugin"
+                      Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE 'output') -Recurse | Select-Object -First 30
+                      exit 1
+                  }
+                  Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE 'output' '${{ inputs.plugin_name }}') -Recurse | Select-Object -First 30
+
+            - name: Package plugin zip
+              run: |
+                  $outputDir = Join-Path $env:GITHUB_WORKSPACE 'output'
+                  $zipPath = Join-Path $outputDir '${{ needs.plugin_check.outputs.zip_name }}'
+                  Compress-Archive -Path (Join-Path $outputDir '${{ inputs.plugin_name }}') -DestinationPath $zipPath
+                  Write-Host "::notice::Packaged: $zipPath"
+
+            - name: Upload build artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ needs.plugin_check.outputs.zip_name }}
+                  path: output/${{ needs.plugin_check.outputs.zip_name }}
+                  retention-days: 30
+
+    plugin_release:
+        name: Plugin GitHub Release
+        needs: [plugin_check, plugin_build_linux, plugin_build_win]
+        if: |
+            (inputs.mode == 'plugin' || inputs.mode == 'plugin-win') &&
+            always() &&
+            needs.plugin_check.outputs.should_release == 'true' &&
+            (needs.plugin_build_linux.result == 'success' || needs.plugin_build_win.result == 'success')
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+        steps:
+            - name: Download build artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: ${{ needs.plugin_check.outputs.zip_name }}
+                  path: ./artifact
+
+            - name: Create release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  gh release create "${{ needs.plugin_check.outputs.tag }}" \
+                    --repo "${{ github.repository }}" \
+                    --title "${{ inputs.plugin_name }} v${{ needs.plugin_check.outputs.version }}" \
+                    --notes "${{ inputs.plugin_name }} plugin v${{ needs.plugin_check.outputs.version }} (${{ inputs.target_platforms }})" \
+                    --prerelease \
+                    "./artifact/${{ needs.plugin_check.outputs.zip_name }}"
+
+    plugin_itch:
+        name: Plugin Deploy to itch.io
+        needs:
+            [plugin_check, plugin_build_linux, plugin_build_win, plugin_release]
+        if: |
+            (inputs.mode == 'plugin' || inputs.mode == 'plugin-win') &&
+            always() &&
+            (needs.plugin_build_linux.result == 'success' || needs.plugin_build_win.result == 'success') &&
+            inputs.deploy_to_itch == true &&
+            inputs.itch_game_id != ''
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
+        steps:
+            - name: Download build artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: ${{ needs.plugin_check.outputs.zip_name }}
+                  path: ./artifact
+
+            - name: Extract zip for butler
+              run: |
+                  mkdir -p ./deploy
+                  unzip "./artifact/${{ needs.plugin_check.outputs.zip_name }}" -d ./deploy
+
+            - name: Deploy to itch.io
+              uses: KikimoraGames/itch-publish@v0.0.3
+              with:
+                  butlerApiKey: ${{ secrets.butler_api }}
+                  gameData: ./deploy/${{ inputs.plugin_name }}
+                  itchUsername: ${{ inputs.itch_username }}
+                  itchGameId: ${{ inputs.itch_game_id }}
+                  buildChannel: ${{ inputs.itch_channel }}-v${{ needs.plugin_check.outputs.version }}
+                  buildNumber: ${{ needs.plugin_check.outputs.version }}
+
+    plugin_update_version:
+        name: Plugin PR version.toml
+        needs:
+            [plugin_check, plugin_build_linux, plugin_build_win, plugin_release]
+        if: |
+            (inputs.mode == 'plugin' || inputs.mode == 'plugin-win') &&
+            always() &&
+            needs.plugin_check.outputs.should_release == 'true' &&
+            (needs.plugin_build_linux.result == 'success' || needs.plugin_build_win.result == 'success')
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+            pull-requests: write
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+
+            - name: Update version.toml
+              run: |
+                  VERSION_TOML="${{ inputs.plugin_path }}/version.toml"
+                  echo 'version = "${{ needs.plugin_check.outputs.version }}"' > "${VERSION_TOML}"
+                  cat "${VERSION_TOML}"
+
+            - name: Create PR
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  PLUGIN="${{ inputs.plugin_name }}"
+                  VERSION="${{ needs.plugin_check.outputs.version }}"
+                  if [ "${{ inputs.mode }}" = "plugin-win" ]; then VARIANT="-win64"; else VARIANT=""; fi
+                  BRANCH="auto/update-${PLUGIN,,}${VARIANT}-version-${VERSION}"
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git checkout -b "${BRANCH}"
+                  git add "${{ inputs.plugin_path }}/version.toml"
+                  git commit -m "chore(${PLUGIN}): update version.toml to ${VERSION} [skip ci]"
+                  git push origin "${BRANCH}"
+                  gh pr create \
+                    --base dev --head "${BRANCH}" \
+                    --title "chore(${PLUGIN}): update version.toml to ${VERSION}" \
+                    --body "Automated post-publish update. ${PLUGIN} v${VERSION} released."
+
+    # ════════════════ VM SETUP (Windows / macOS) ════════════════
+    win_setup:
+        name: Install on UE5-Win
+        needs: guard
+        if: inputs.mode == 'win-setup' && needs.guard.outputs.allowed == 'true'
+        runs-on: UE5-Win
+        defaults:
+            run:
+                shell: pwsh
+        env:
+            FILE_SERVER: http://file-server.angelscript.svc:8080
+        steps:
+            - name: System Info
+              run: |
+                  Write-Host "OS: $([System.Environment]::OSVersion)"
+                  Write-Host "CPU: $((Get-CimInstance Win32_Processor).Name)"
+                  Write-Host "RAM: $([math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 1)) GB"
+                  Write-Host "Disk: $([math]::Round((Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'").FreeSpace / 1GB, 1)) GB free"
+                  git --version
+
+            - name: Check file server reachable
+              run: |
+                  $response = curl.exe -s -o NUL -w "%{http_code}" "$env:FILE_SERVER/"
+                  if ($response -ne "200") {
+                      Write-Host "::error::File server not reachable (HTTP $response). Scale up: kubectl scale deploy file-server -n angelscript --replicas=1"
+                      exit 1
+                  }
+                  Write-Host "File server reachable."
+
+            - name: Install Visual Studio 2022 Build Tools
+              timeout-minutes: 30
+              run: |
+                  if (Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools") { Write-Host "VS Build Tools already installed."; exit 0 }
+                  curl.exe -o C:\vs_buildtools.exe "$env:FILE_SERVER/vs_buildtools.exe"
+                  if (!(Test-Path C:\vs_buildtools.exe)) { Write-Host "::error::Download failed. Stage vs_buildtools.exe first."; exit 1 }
+                  $p = Start-Process C:\vs_buildtools.exe -ArgumentList @(
+                      '--add','Microsoft.VisualStudio.Workload.VCTools',
+                      '--add','Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
+                      '--add','Microsoft.VisualStudio.Component.Windows11SDK.26100',
+                      '--add','Microsoft.Component.MSBuild',
+                      '--includeRecommended','--quiet','--wait','--norestart'
+                  ) -Wait -PassThru
+                  Write-Host "VS Build Tools installer exited: $($p.ExitCode)"
+
+            - name: Install Python 3
+              run: |
+                  if (Get-Command python -ErrorAction SilentlyContinue) { Write-Host "Python already installed: $(python --version)"; exit 0 }
+                  curl.exe -o C:\python-install.exe "$env:FILE_SERVER/python-install.exe"
+                  Start-Process C:\python-install.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1' -Wait
+
+            - name: Install .NET SDK 8.0
+              run: |
+                  if (Get-Command dotnet -ErrorAction SilentlyContinue) { Write-Host ".NET already installed: $(dotnet --version)"; exit 0 }
+                  curl.exe -o C:\dotnet-install.ps1 "$env:FILE_SERVER/dotnet-install.ps1"
+                  & C:\dotnet-install.ps1 -Channel 8.0
+
+            - name: Install DirectX Runtime
+              run: |
+                  curl.exe -o C:\dxsetup.exe "$env:FILE_SERVER/dxsetup.exe"
+                  Start-Process C:\dxsetup.exe -ArgumentList '/Q' -Wait
+
+            - name: Install CMake
+              run: |
+                  if (Get-Command cmake -ErrorAction SilentlyContinue) { Write-Host "CMake already installed: $(cmake --version | Select-Object -First 1)"; exit 0 }
+                  curl.exe -o C:\cmake-install.msi "$env:FILE_SERVER/cmake-install.msi"
+                  Start-Process msiexec.exe -ArgumentList '/i C:\cmake-install.msi /quiet /norestart ADD_CMAKE_TO_PATH=System' -Wait
+
+            - name: Verify Installation
+              run: |
+                  $checks = @(
+                      @{ Name='git'; Cmd={ git --version } },
+                      @{ Name='python'; Cmd={ python --version } },
+                      @{ Name='dotnet'; Cmd={ dotnet --version } },
+                      @{ Name='cmake'; Cmd={ cmake --version | Select-Object -First 1 } },
+                      @{ Name='cl.exe'; Cmd={
+                          $cl = Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\*\bin\Hostx64\x64\cl.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+                          if ($cl) { $cl.FullName } else { "NOT FOUND" }
+                      }}
+                  )
+                  foreach ($check in $checks) {
+                      try { $r = & $check.Cmd 2>&1; Write-Host "  $($check.Name): $r" }
+                      catch { Write-Host "  $($check.Name): NOT INSTALLED" }
+                  }
+
+    mac_setup:
+        name: Install on UE5-Mac
+        needs: guard
+        if: inputs.mode == 'mac-setup' && needs.guard.outputs.allowed == 'true'
+        runs-on: UE5-Mac
+        env:
+            FILE_SERVER: http://file-server.angelscript.svc:8080
+        steps:
+            - name: System Info
+              run: |
+                  sw_vers
+                  sysctl -n machdep.cpu.brand_string
+                  echo "RAM: $(( $(sysctl -n hw.memsize) / 1073741824 )) GB"
+                  df -h /
+                  xcode-select -p 2>/dev/null && echo "Xcode CLT: installed" || echo "Xcode CLT: not installed"
+                  git --version
+
+            - name: Check file server reachable
+              run: |
+                  STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$FILE_SERVER/")
+                  if [ "$STATUS" != "200" ]; then echo "::error::File server not reachable (HTTP $STATUS)"; exit 1; fi
+                  echo "File server reachable."
+
+            - name: Install Xcode Command Line Tools
+              timeout-minutes: 15
+              run: |
+                  if xcode-select -p &>/dev/null; then echo "Xcode CLT already installed at $(xcode-select -p)."; exit 0; fi
+                  if curl -sf "$FILE_SERVER/CommandLineTools.pkg" -o /tmp/CLT.pkg; then
+                      sudo installer -pkg /tmp/CLT.pkg -target /
+                      rm -f /tmp/CLT.pkg
+                  else
+                      touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+                      PROD=$(softwareupdate -l 2>&1 | grep -o '.*Command Line Tools.*' | head -1 | sed 's/^[* ]*//')
+                      if [ -n "$PROD" ]; then softwareupdate -i "$PROD" --verbose; else echo "::error::CLT not in softwareupdate catalog"; exit 1; fi
+                      rm -f /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+                  fi
+                  xcode-select -p && echo "CLT installed."
+
+            - name: Install Homebrew
+              timeout-minutes: 10
+              run: |
+                  if command -v brew &>/dev/null; then brew update; exit 0; fi
+                  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                  echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+                  eval "$(/opt/homebrew/bin/brew shellenv)"
+                  brew --version
+
+            - name: Install CMake
+              timeout-minutes: 5
+              run: |
+                  if command -v cmake &>/dev/null; then echo "CMake already installed: $(cmake --version | head -1)"; exit 0; fi
+                  eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || true)"
+                  brew install cmake
+                  cmake --version
+
+            - name: Install Python 3
+              timeout-minutes: 5
+              run: |
+                  if command -v python3 &>/dev/null; then echo "Python already installed: $(python3 --version)"; exit 0; fi
+                  eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || true)"
+                  brew install python@3.12
+                  python3 --version
+
+            - name: Verify installation
+              run: |
+                  echo "CLT: $(xcode-select -p 2>/dev/null || echo 'NOT INSTALLED')"
+                  echo "Git: $(git --version)"
+                  echo "CMake: $(cmake --version 2>/dev/null | head -1 || echo 'NOT INSTALLED')"
+                  echo "Python: $(python3 --version 2>/dev/null || echo 'NOT INSTALLED')"
+                  echo "Brew: $(brew --version 2>/dev/null | head -1 || echo 'NOT INSTALLED')"
+                  df -h /
+
+    track_failure:
+        name: Track Failures
+        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        needs:
+            [
+                guard,
+                server_config,
+                server_gate,
+                server_build,
+                game_gate,
+                game_build_linux,
+                game_build_windows,
+                game_build_mac,
+                engine_gate,
+                engine_build_windows,
+                engine_build_mac,
+                engine_build_linux,
+                engine_release,
+                plugin_check,
+                plugin_build_linux,
+                plugin_build_win,
+                plugin_release,
+                win_setup,
+                mac_setup,
+            ]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Unreal Build (${{ inputs.mode }})'
+            job_name: '${{ inputs.app_name }}${{ inputs.plugin_name }}${{ inputs.shell_path }}${{ inputs.mode }}'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'failure'

@@ -1,0 +1,186 @@
+name: CI - Unreal Engine
+
+run-name: 'CI - Unreal / ${{ inputs.task }} ${{ inputs.app_name }}${{ inputs.shell_path }}'
+
+on:
+    workflow_dispatch:
+        inputs:
+            task:
+                description: 'game | server | engine | win-setup | mac-setup'
+                required: false
+                type: choice
+                default: game
+                options:
+                    - game
+                    - server
+                    - engine
+                    - win-setup
+                    - mac-setup
+
+            key:
+                description: '[game] Manifest key'
+                required: false
+                type: string
+                default: ''
+            app_name:
+                description: '[game] UE project / build name'
+                required: false
+                type: string
+                default: ''
+            project_path:
+                description: '[game] Path to dir containing the .uproject (within game repo)'
+                required: false
+                type: string
+                default: ''
+            engine_version:
+                description: '[game] UE version pin (e.g. 5.7.4)'
+                required: false
+                type: string
+                default: '5.7.4'
+            build_targets:
+                description: '[game] JSON array of platform targets (e.g. ["Win64","Linux"])'
+                required: false
+                type: string
+                default: '["Linux"]'
+            external_repo_url:
+                description: '[game] Game repo (owner/name)'
+                required: false
+                type: string
+                default: ''
+            license_method:
+                description: '[game] License method (manifest passthrough)'
+                required: false
+                type: string
+                default: ''
+            version_source:
+                description: '[game] Path to version source (mdx)'
+                required: false
+                type: string
+                default: ''
+            version_toml:
+                description: '[game] Path to version.toml'
+                required: false
+                type: string
+                default: ''
+            manifest_version:
+                description: '[game] Version from manifest'
+                required: false
+                type: string
+                default: ''
+            deploy_to_itch:
+                description: '[game] Deploy to itch.io after build'
+                required: false
+                type: boolean
+                default: false
+            itch_user:
+                description: '[game] Itch.io publisher user'
+                required: false
+                type: string
+                default: 'kbve'
+            itch_game:
+                description: '[game] Itch.io game slug'
+                required: false
+                type: string
+                default: ''
+            deploy_to_steam:
+                description: '[game] Deploy to Steam (manifest passthrough)'
+                required: false
+                type: boolean
+                default: false
+            steam_apps:
+                description: '[game] JSON array of Steam app configs (manifest passthrough)'
+                required: false
+                type: string
+                default: '[]'
+            dispatched_at:
+                description: 'Unix timestamp when dispatched (queue guard)'
+                required: false
+                type: string
+                default: ''
+
+            shell_path:
+                description: '[server] Shell project path (e.g. apps/chuckrpg/unreal-chuck)'
+                required: false
+                type: string
+                default: 'apps/chuckrpg/unreal-chuck'
+
+            platforms:
+                description: '[engine] Comma-separated: windows,mac,linux'
+                required: false
+                type: string
+                default: 'linux'
+            engine_ref:
+                description: '[engine] Branch/tag of UnrealEngine-Angelscript'
+                required: false
+                type: string
+                default: 'angelscript-master'
+            skip_version_gate:
+                description: '[engine] Force rebuild'
+                required: false
+                type: boolean
+                default: false
+            build_dedicated_server:
+                description: '[engine] Build + push Linux dedicated-server image'
+                required: false
+                type: boolean
+                default: true
+
+permissions: {}
+
+jobs:
+    game:
+        name: Game Build
+        if: inputs.task == 'game'
+        uses: KBVE/kbve/.github/workflows/ci-unreal-build.yml@dev
+        with:
+            mode: game
+            key: ${{ inputs.key }}
+            app_name: ${{ inputs.app_name }}
+            project_path: ${{ inputs.project_path }}
+            engine_version: ${{ inputs.engine_version }}
+            build_targets: ${{ inputs.build_targets }}
+            external_repo_url: ${{ inputs.external_repo_url }}
+            version_source: ${{ inputs.version_source }}
+            version_toml: ${{ inputs.version_toml }}
+            manifest_version: ${{ inputs.manifest_version }}
+            deploy_to_itch: ${{ inputs.deploy_to_itch }}
+            itch_username: ${{ inputs.itch_user }}
+            itch_game_id: ${{ inputs.itch_game }}
+        secrets: inherit
+
+    server:
+        name: Dedicated Server
+        if: inputs.task == 'server'
+        uses: KBVE/kbve/.github/workflows/ci-unreal-build.yml@dev
+        with:
+            mode: server
+            shell_path: ${{ inputs.shell_path }}
+        secrets: inherit
+
+    engine:
+        name: Engine Build
+        if: inputs.task == 'engine'
+        uses: KBVE/kbve/.github/workflows/ci-unreal-build.yml@dev
+        with:
+            mode: engine
+            platforms: ${{ inputs.platforms }}
+            engine_ref: ${{ inputs.engine_ref }}
+            skip_version_gate: ${{ inputs.skip_version_gate }}
+            build_dedicated_server: ${{ inputs.build_dedicated_server }}
+        secrets: inherit
+
+    win_setup:
+        name: Win VM Setup
+        if: inputs.task == 'win-setup'
+        uses: KBVE/kbve/.github/workflows/ci-unreal-build.yml@dev
+        with:
+            mode: win-setup
+        secrets: inherit
+
+    mac_setup:
+        name: Mac VM Setup
+        if: inputs.task == 'mac-setup'
+        uses: KBVE/kbve/.github/workflows/ci-unreal-build.yml@dev
+        with:
+            mode: mac-setup
+        secrets: inherit
