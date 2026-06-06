@@ -61,7 +61,7 @@ void SKBVESettingsFrame::Construct(const FArguments& InArgs)
 		.bResizable(InArgs._bResizable)
 		.Title(InArgs._Title)
 		.OnCloseClicked(InArgs._OnCloseClicked)
-		.Body
+		.Body()
 		[
 			SNew(SOverlay)
 

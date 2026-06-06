@@ -15,7 +15,7 @@ void SKBVESettingsToggleRow::Construct(const FArguments& InArgs)
 		.LabelWidth(InArgs._LabelWidth)
 		.Label(InArgs._Label)
 		.Hint(InArgs._Hint)
-		.Content
+		.Content()
 		[
 			SNew(SCheckBox)
 			.IsChecked_Lambda([IsChecked]()

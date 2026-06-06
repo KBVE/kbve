@@ -31,7 +31,7 @@ void SKBVESettingsComboRow::Construct(const FArguments& InArgs)
 		.LabelWidth(InArgs._LabelWidth)
 		.Label(InArgs._Label)
 		.Hint(InArgs._Hint)
-		.Content
+		.Content()
 		[
 			SNew(SComboBox<TSharedPtr<FString>>)
 			.OptionsSource(&Options)
