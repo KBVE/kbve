@@ -1261,6 +1261,30 @@ class AgentsService {
 		});
 	}
 
+	public async verifyWebhookInstall(
+		guildId: string,
+		repoFull: string,
+	): Promise<void> {
+		const [owner, repo] = repoFull.split('/');
+		if (!owner || !repo) return;
+		const cur = this.$webhookInstallResults.get()[guildId];
+		if (cur && cur.ok && (cur.installed || cur.alreadyPresent)) return;
+		const r = await this.listRepoWebhooks(guildId, owner, repo);
+		if (!r.ok) return;
+		const kbveHook = r.hooks.find((h) => h.is_kbve);
+		if (!kbveHook) return;
+		const resultsSet = {
+			...this.$webhookInstallResults.get(),
+			[guildId]: {
+				ok: true as const,
+				installed: false,
+				alreadyPresent: true,
+				hookId: kbveHook.id,
+			},
+		};
+		this.$webhookInstallResults.set(resultsSet);
+	}
+
 	public async toggleToken(
 		tokenId: string,
 		isActive: boolean,
