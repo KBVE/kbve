@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import {
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+	type FormEvent,
+} from 'react';
 import { useStore } from '@nanostores/react';
 import { GitBranch, Loader2, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { agentsService } from './agentsService';
@@ -9,32 +15,48 @@ const REPO_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,38}\/[A-Za-z0-9._-]{1,100}$/;
 export default function ReactAgentRepoAllowlist() {
 	const guildId = useStore(agentsService.$selectedGuildId);
 	const guilds = useStore(agentsService.$guilds);
+	const draftsMap = useStore(agentsService.$repoAllowlistDrafts);
+	const savingMap = useStore(agentsService.$repoAllowlistSavingFor);
+	const errorsMap = useStore(agentsService.$repoAllowlistErrors);
+	const loadedMap = useStore(agentsService.$repoAllowlistLoadedFor);
 
-	const [repos, setRepos] = useState<string[]>([]);
 	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const [draft, setDraft] = useState('');
-	const [saving, setSaving] = useState(false);
+	const [draftValid, setDraftValid] = useState(false);
+	const [draftRaw, setDraftRaw] = useState('');
+	const draftRef = useRef<HTMLInputElement | null>(null);
 
-	const load = useCallback(async () => {
-		if (!guildId) {
-			setRepos([]);
-			return;
-		}
-		setLoading(true);
-		setError(null);
-		const r = await agentsService.getRepoAllowlist();
-		setLoading(false);
-		if (!r.ok) {
-			setError(r.error);
-			return;
-		}
-		setRepos(r.repos);
-	}, [guildId]);
+	const repos = guildId ? (draftsMap[guildId] ?? []) : [];
+	const saving = guildId ? !!savingMap[guildId] : false;
+	const error = guildId ? (errorsMap[guildId] ?? null) : null;
+	const loaded = guildId ? !!loadedMap[guildId] : false;
+
+	const load = useCallback(
+		async (force = false) => {
+			if (!guildId) return;
+			setLoading(true);
+			await agentsService.ensureRepoAllowlistLoaded(guildId, force);
+			setLoading(false);
+		},
+		[guildId],
+	);
 
 	useEffect(() => {
-		void load();
-	}, [load]);
+		if (guildId && !loaded) {
+			void load();
+		}
+	}, [guildId, loaded, load]);
+
+	useEffect(() => {
+		if (draftRef.current) draftRef.current.value = '';
+		setDraftRaw('');
+		setDraftValid(false);
+	}, [guildId]);
+
+	function onDraftInput() {
+		const v = draftRef.current?.value ?? '';
+		setDraftRaw(v);
+		setDraftValid(REPO_RE.test(v) && !repos.includes(v));
+	}
 
 	if (!guildId) {
 		return (
@@ -54,34 +76,35 @@ export default function ReactAgentRepoAllowlist() {
 	}
 
 	const guild = guilds.find((g) => g.id === guildId);
-	const draftOk = REPO_RE.test(draft) && !repos.includes(draft);
+	const draftOk = draftValid && !saving;
 
-	async function add() {
-		if (!draftOk) return;
-		setSaving(true);
-		setError(null);
-		const next = [...repos, draft];
-		const r = await agentsService.setRepoAllowlist(next);
-		setSaving(false);
-		if (!r.ok) {
-			setError(r.error);
-			return;
+	async function add(e?: FormEvent<HTMLFormElement>) {
+		e?.preventDefault();
+		if (!guildId || saving) return;
+		const v = draftRef.current?.value?.trim() ?? '';
+		if (!REPO_RE.test(v) || repos.includes(v)) return;
+		const prev = repos;
+		const next = [...repos, v];
+		agentsService.patchRepoAllowlistDraft(guildId, next);
+		const r = await agentsService.saveRepoAllowlistDraft(guildId);
+		if (r.ok) {
+			if (draftRef.current) draftRef.current.value = '';
+			setDraftRaw('');
+			setDraftValid(false);
+		} else {
+			agentsService.patchRepoAllowlistDraft(guildId, prev);
 		}
-		setRepos(next);
-		setDraft('');
 	}
 
 	async function remove(repo: string) {
-		setSaving(true);
-		setError(null);
+		if (!guildId || saving) return;
+		const prev = repos;
 		const next = repos.filter((r) => r !== repo);
-		const r = await agentsService.setRepoAllowlist(next);
-		setSaving(false);
+		agentsService.patchRepoAllowlistDraft(guildId, next);
+		const r = await agentsService.saveRepoAllowlistDraft(guildId);
 		if (!r.ok) {
-			setError(r.error);
-			return;
+			agentsService.patchRepoAllowlistDraft(guildId, prev);
 		}
-		setRepos(next);
 	}
 
 	return (
@@ -110,7 +133,7 @@ export default function ReactAgentRepoAllowlist() {
 				)}
 				<button
 					type="button"
-					onClick={() => void load()}
+					onClick={() => void load(true)}
 					disabled={loading || saving}
 					style={refreshBtn(loading || saving)}
 					aria-label="Refresh">
@@ -189,17 +212,20 @@ export default function ReactAgentRepoAllowlist() {
 					</ul>
 				)}
 
-				<div
+				<form
+					onSubmit={(e) => void add(e)}
+					autoComplete="off"
 					style={{
 						display: 'flex',
 						gap: '0.4rem',
 						alignItems: 'stretch',
 					}}>
 					<input
+						ref={draftRef}
 						type="text"
-						value={draft}
+						defaultValue=""
 						placeholder="owner/repo (e.g. KBVE/kbve)"
-						onChange={(e) => setDraft(e.target.value)}
+						onInput={onDraftInput}
 						style={{
 							...inputStyle,
 							fontFamily:
@@ -207,12 +233,12 @@ export default function ReactAgentRepoAllowlist() {
 							flex: 1,
 						}}
 						spellCheck={false}
+						autoComplete="off"
 					/>
 					<button
-						type="button"
-						onClick={() => void add()}
-						disabled={!draftOk || saving}
-						style={primaryBtn(draftOk && !saving)}>
+						type="submit"
+						disabled={!draftOk}
+						style={primaryBtn(draftOk)}>
 						{saving ? (
 							<Loader2 size={14} style={spinIcon} />
 						) : (
@@ -220,8 +246,8 @@ export default function ReactAgentRepoAllowlist() {
 						)}
 						{saving ? 'Saving…' : 'Add'}
 					</button>
-				</div>
-				{draft.length > 0 && !REPO_RE.test(draft) && (
+				</form>
+				{draftRaw.length > 0 && !REPO_RE.test(draftRaw) && (
 					<p style={errText}>
 						Expected <code>owner/repo</code> matching GitHub's name
 						rules.

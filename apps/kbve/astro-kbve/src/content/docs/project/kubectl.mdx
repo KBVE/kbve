@@ -21,8 +21,14 @@ runner: arc-runner-set
 image: kbve/kubectl
 deployment_yamls:
     - apps/kube/kubevirt/autologon/job.yaml
+    - apps/kube/kubevirt/autologon/scaled-job.yaml
     - apps/kube/kubevirt/runner/job.yaml
+    - apps/kube/kubevirt/keda/scaled-jobs.yaml
     - apps/kube/agones/factorio/manifests/rotation-cronjob.yaml
+    - apps/kube/namespace/manifests/pod-gc-cronjob.yaml
+    - apps/kube/crossplane/providers/s3-healthcheck-cronjob.yaml
+    - apps/kube/kilobase/manifests/backup-restore-test.yaml
+    - apps/kube/kilobase/manifests/backup-watchdog.yaml
 has_test: true
 e2e_name: kubectl-e2e
 test_framework: typescript

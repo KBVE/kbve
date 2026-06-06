@@ -148,7 +148,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.35",
+			"version": "0.1.37",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -292,8 +292,14 @@
 			"e2e_name": "kubectl-e2e",
 			"deployment_yamls": [
 				"apps/kube/kubevirt/autologon/job.yaml",
+				"apps/kube/kubevirt/autologon/scaled-job.yaml",
 				"apps/kube/kubevirt/runner/job.yaml",
-				"apps/kube/agones/factorio/manifests/rotation-cronjob.yaml"
+				"apps/kube/kubevirt/keda/scaled-jobs.yaml",
+				"apps/kube/agones/factorio/manifests/rotation-cronjob.yaml",
+				"apps/kube/namespace/manifests/pod-gc-cronjob.yaml",
+				"apps/kube/crossplane/providers/s3-healthcheck-cronjob.yaml",
+				"apps/kube/kilobase/manifests/backup-restore-test.yaml",
+				"apps/kube/kilobase/manifests/backup-watchdog.yaml"
 			],
 			"has_test": true
 		},

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type FocusEvent } from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	AlertTriangle,
@@ -191,8 +191,11 @@ function WizardBody({ guild, tokens }: WizardBodyProps) {
 
 			<Step1Webhook guild={guild} existing={existingWebhook} />
 			<Step2WebhookConfig guild={guild} hasWebhook={!!existingWebhook} />
-			<Step3Pat existing={existingPat} />
-			<Step4SmokeBackfill ready={!!existingWebhook && !!existingPat} />
+			<Step3Pat guildId={guild.id} existing={existingPat} />
+			<Step4SmokeBackfill
+				guildId={guild.id}
+				ready={!!existingWebhook && !!existingPat}
+			/>
 		</div>
 	);
 }
@@ -204,38 +207,39 @@ function Step1Webhook({
 	guild: DiscordGuild;
 	existing: AgentTokenRow | null;
 }) {
-	const [secret, setSecret] = useState<string | null>(null);
+	const draftsMap = useStore(agentsService.$webhookDrafts);
+	const savingMap = useStore(agentsService.$webhookSavingFor);
+	const errorsMap = useStore(agentsService.$webhookErrors);
+
+	const secret = draftsMap[guild.id] ?? null;
+	const busy = !!savingMap[guild.id];
+	const error = errorsMap[guild.id] ?? null;
+
 	const [reveal, setReveal] = useState(false);
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 	const [copied, setCopied] = useState(false);
 
 	const stored = !!existing;
 
+	useEffect(() => {
+		setReveal(false);
+		setCopied(false);
+	}, [guild.id]);
+
 	async function generate() {
-		setSecret(genHex(32));
+		agentsService.setWebhookDraft(guild.id, genHex(32));
 		setReveal(true);
 		setCopied(false);
-		setError(null);
+		agentsService.clearWebhookError(guild.id);
 	}
 
 	async function save() {
 		if (!secret) return;
-		setBusy(true);
-		setError(null);
-		const r = await agentsService.addToken({
-			tokenName: WEBHOOK_TOKEN_NAME,
-			service: WEBHOOK_SERVICE,
-			tokenValue: secret,
-			description: `GitHub webhook HMAC for guild ${guild.id}`,
-		});
-		setBusy(false);
-		if (!r.ok) {
-			setError(r.error);
-			return;
-		}
-		setSecret(null);
-		setReveal(false);
+		const r = await agentsService.saveWebhookDraft(
+			guild.id,
+			WEBHOOK_TOKEN_NAME,
+			`GitHub webhook HMAC for guild ${guild.id}`,
+		);
+		if (r.ok) setReveal(false);
 	}
 
 	async function copy() {
@@ -448,54 +452,59 @@ function Step2WebhookConfig({
 	);
 }
 
-function Step3Pat({ existing }: { existing: AgentTokenRow | null }) {
-	const [pat, setPat] = useState('');
-	const [validating, setValidating] = useState(false);
-	const [storing, setStoring] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const [validated, setValidated] = useState<{
-		login: string;
-		scopes: string[];
-		tokenType: string;
-	} | null>(null);
+function Step3Pat({
+	guildId,
+	existing,
+}: {
+	guildId: string;
+	existing: AgentTokenRow | null;
+}) {
+	const draftsMap = useStore(agentsService.$patDrafts);
+	const validatedMap = useStore(agentsService.$patValidatedFor);
+	const validatingMap = useStore(agentsService.$patValidatingFor);
+	const savingMap = useStore(agentsService.$patSavingFor);
+	const errorsMap = useStore(agentsService.$patErrors);
+
+	const validating = !!validatingMap[guildId];
+	const storing = !!savingMap[guildId];
+	const error = errorsMap[guildId] ?? null;
+	const validated = validatedMap[guildId] ?? null;
+	const draftPat = draftsMap[guildId] ?? '';
+
+	const inputRef = useRef<HTMLInputElement | null>(null);
+	const [hasInput, setHasInput] = useState<boolean>(draftPat.length > 0);
 
 	const stored = !!existing;
 
+	useEffect(() => {
+		if (!inputRef.current) return;
+		const snap = agentsService.$patDrafts.get()[guildId] ?? '';
+		if (inputRef.current.value !== snap) inputRef.current.value = snap;
+		setHasInput(snap.length > 0);
+	}, [guildId]);
+
+	function onPatBlur(_: FocusEvent<HTMLInputElement>) {
+		const v = inputRef.current?.value ?? '';
+		agentsService.setPatDraft(guildId, v);
+	}
+
+	function onPatInput() {
+		const v = inputRef.current?.value ?? '';
+		setHasInput(v.length > 0);
+	}
+
 	async function validate() {
-		setValidating(true);
-		setError(null);
-		setValidated(null);
-		const r = await agentsService.validateGithubPat(pat);
-		setValidating(false);
-		if (!r.ok) {
-			setError(r.error);
-			return;
-		}
-		setValidated({
-			login: r.login,
-			scopes: r.scopes,
-			tokenType: r.tokenType,
-		});
+		const v = inputRef.current?.value ?? '';
+		agentsService.setPatDraft(guildId, v);
+		await agentsService.validatePatForGuild(guildId);
 	}
 
 	async function save() {
-		setStoring(true);
-		setError(null);
-		const r = await agentsService.addToken({
-			tokenName: PAT_TOKEN_NAME,
-			service: PAT_SERVICE,
-			tokenValue: pat,
-			description: validated
-				? `GitHub PAT for ${validated.login}`
-				: 'GitHub PAT',
-		});
-		setStoring(false);
-		if (!r.ok) {
-			setError(r.error);
-			return;
-		}
-		setPat('');
-		setValidated(null);
+		const v = inputRef.current?.value ?? '';
+		agentsService.setPatDraft(guildId, v);
+		const r = await agentsService.savePatForGuild(guildId, PAT_TOKEN_NAME);
+		if (r.ok && inputRef.current) inputRef.current.value = '';
+		if (r.ok) setHasInput(false);
 	}
 
 	return (
@@ -525,9 +534,11 @@ function Step3Pat({ existing }: { existing: AgentTokenRow | null }) {
 						endpoint before storing it.
 					</p>
 					<input
+						ref={inputRef}
 						type="password"
-						value={pat}
-						onChange={(e) => setPat(e.target.value)}
+						defaultValue={draftPat}
+						onBlur={onPatBlur}
+						onInput={onPatInput}
 						placeholder="ghp_… or github_pat_…"
 						style={{
 							...inputStyle,
@@ -546,7 +557,7 @@ function Step3Pat({ existing }: { existing: AgentTokenRow | null }) {
 						<button
 							type="button"
 							onClick={validate}
-							disabled={!pat || validating}
+							disabled={!hasInput || validating}
 							style={secondaryBtn}>
 							{validating ? (
 								<Loader2 size={14} style={spinStyle} />
@@ -620,38 +631,71 @@ function Step3Pat({ existing }: { existing: AgentTokenRow | null }) {
 	);
 }
 
-function Step4SmokeBackfill({ ready }: { ready: boolean }) {
-	const [owner, setOwner] = useState('');
-	const [repo, setRepo] = useState('');
-	const [busy, setBusy] = useState(false);
-	const [result, setResult] = useState<
-		| {
-				ok: true;
-				upserted: number;
-				pages: number;
-				rateLimitRemaining: number | null;
-		  }
-		| { ok: false; error: string }
-		| null
-	>(null);
+function Step4SmokeBackfill({
+	guildId,
+	ready,
+}: {
+	guildId: string;
+	ready: boolean;
+}) {
+	const draftsMap = useStore(agentsService.$backfillDrafts);
+	const busyMap = useStore(agentsService.$backfillBusyFor);
+	const resultsMap = useStore(agentsService.$backfillResults);
 
-	const ownerOk = GITHUB_OWNER_RE.test(owner);
-	const repoOk = GITHUB_REPO_RE.test(repo);
-	const canRun = ready && ownerOk && repoOk && !busy;
+	const draft = draftsMap[guildId] ?? { owner: '', repo: '' };
+	const busy = !!busyMap[guildId];
+	const result = resultsMap[guildId] ?? null;
+
+	const ownerRef = useRef<HTMLInputElement | null>(null);
+	const repoRef = useRef<HTMLInputElement | null>(null);
+	const [draftValid, setDraftValid] = useState<boolean>(
+		GITHUB_OWNER_RE.test(draft.owner) && GITHUB_REPO_RE.test(draft.repo),
+	);
+
+	useEffect(() => {
+		const snap = agentsService.$backfillDrafts.get()[guildId] ?? {
+			owner: '',
+			repo: '',
+		};
+		if (ownerRef.current && ownerRef.current.value !== snap.owner) {
+			ownerRef.current.value = snap.owner;
+		}
+		if (repoRef.current && repoRef.current.value !== snap.repo) {
+			repoRef.current.value = snap.repo;
+		}
+		setDraftValid(
+			GITHUB_OWNER_RE.test(snap.owner) && GITHUB_REPO_RE.test(snap.repo),
+		);
+	}, [guildId]);
+
+	function refreshValid() {
+		const o = ownerRef.current?.value ?? '';
+		const r = repoRef.current?.value ?? '';
+		setDraftValid(GITHUB_OWNER_RE.test(o) && GITHUB_REPO_RE.test(r));
+	}
+
+	function commitOwner() {
+		agentsService.patchBackfillDraft(guildId, {
+			owner: ownerRef.current?.value ?? '',
+		});
+		refreshValid();
+	}
+
+	function commitRepo() {
+		agentsService.patchBackfillDraft(guildId, {
+			repo: repoRef.current?.value ?? '',
+		});
+		refreshValid();
+	}
+
+	const canRun = ready && draftValid && !busy;
 
 	async function run() {
 		if (!canRun) return;
-		setBusy(true);
-		setResult(null);
-		const r = await agentsService.runBackfill({
-			owner,
-			repo,
-			state: 'open',
-			maxPages: 1,
-			perPage: 30,
-		});
-		setBusy(false);
-		setResult(r);
+		const o = ownerRef.current?.value ?? '';
+		const r = repoRef.current?.value ?? '';
+		agentsService.patchBackfillDraft(guildId, { owner: o, repo: r });
+		await agentsService.runBackfillForGuild(guildId);
 	}
 
 	return (
@@ -673,20 +717,26 @@ function Step4SmokeBackfill({ ready }: { ready: boolean }) {
 					gap: '0.4rem',
 				}}>
 				<input
+					ref={ownerRef}
 					placeholder="owner (e.g. KBVE)"
-					value={owner}
-					onChange={(e) => setOwner(e.target.value)}
+					defaultValue={draft.owner}
+					onBlur={commitOwner}
+					onInput={refreshValid}
 					disabled={!ready}
 					style={inputStyle}
 					spellCheck={false}
+					autoComplete="off"
 				/>
 				<input
+					ref={repoRef}
 					placeholder="repo (e.g. kbve)"
-					value={repo}
-					onChange={(e) => setRepo(e.target.value)}
+					defaultValue={draft.repo}
+					onBlur={commitRepo}
+					onInput={refreshValid}
 					disabled={!ready}
 					style={inputStyle}
 					spellCheck={false}
+					autoComplete="off"
 				/>
 			</div>
 			<button
@@ -732,7 +782,7 @@ function Step4SmokeBackfill({ ready }: { ready: boolean }) {
 					)}
 					<div style={{ marginTop: '0.35rem' }}>
 						<a
-							href={`https://github.com/${owner}/${repo}/settings/hooks`}
+							href={`https://github.com/${draft.owner}/${draft.repo}/settings/hooks`}
 							target="_blank"
 							rel="noopener">
 							<ExternalLink

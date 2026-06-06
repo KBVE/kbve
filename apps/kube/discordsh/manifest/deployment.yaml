@@ -62,13 +62,16 @@ spec:
                   envFrom:
                       - configMapRef:
                             name: discordsh-config
-                      - secretRef:
-                            name: discordsh-redis-secret
                   env:
                       - name: REDIS_HOST
-                        value: 'redis-master.redis.svc.cluster.local'
+                        value: 'valkey.valkey.svc.cluster.local'
                       - name: REDIS_PORT
                         value: '6379'
+                      - name: REDIS_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: valkey-auth
+                                key: valkey-password
                       - name: SUPABASE_URL
                         value: 'http://kong.kilobase.svc.cluster.local:8000'
                       - name: SUPABASE_SERVICE_ROLE_KEY

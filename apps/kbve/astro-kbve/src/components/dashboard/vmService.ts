@@ -747,19 +747,25 @@ class VMService {
 		this.$guacTarget.set(null);
 	}
 
-	public getVNCWebSocketURL(name: string): string {
-		// Dedicated VNC WebSocket bridge — axum handles auth + upstream relay.
-		// Browser WebSocket API cannot set custom headers, so pass JWT as
-		// query param. The backend accepts ?access_token= for WS auth.
+	public getVNCWebSocketURL(name: string, viewerId?: string): string {
 		const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 		const token = this.$accessToken.get() ?? '';
-		return `${proto}//${window.location.host}/dashboard/vm/vnc/${name}?access_token=${token}`;
+		const vid = viewerId
+			? `&viewer_id=${encodeURIComponent(viewerId)}`
+			: '';
+		return `${proto}//${window.location.host}/dashboard/vm/vnc/${name}?access_token=${token}${vid}`;
 	}
 
 	public async getVNCSessionInfo(name: string): Promise<{
 		vm_key: string;
 		viewers: number;
 		has_primary: boolean;
+		controller_viewer_id: string | null;
+		viewers_list: { viewer_id: string; is_controller: boolean }[];
+		pending: {
+			requester_viewer_id: string;
+			seconds_remaining: number;
+		} | null;
 	} | null> {
 		const token = this.$accessToken.get();
 		if (!token) return null;
@@ -773,9 +779,40 @@ class VMService {
 				vm_key: string;
 				viewers: number;
 				has_primary: boolean;
+				controller_viewer_id: string | null;
+				viewers_list: { viewer_id: string; is_controller: boolean }[];
+				pending: {
+					requester_viewer_id: string;
+					seconds_remaining: number;
+				} | null;
 			};
 		} catch {
 			return null;
+		}
+	}
+
+	public async vncControl(
+		name: string,
+		action: 'take' | 'release' | 'deny',
+		viewerId: string,
+	): Promise<boolean> {
+		const token = this.$accessToken.get();
+		if (!token) return false;
+		try {
+			const resp = await fetch(
+				`/dashboard/vm/vnc-control/${name}?access_token=${token}`,
+				{
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ action, viewer_id: viewerId }),
+					signal: AbortSignal.timeout(5000),
+				},
+			);
+			if (!resp.ok) return false;
+			const data = (await resp.json()) as { ok?: boolean };
+			return data.ok === true;
+		} catch {
+			return false;
 		}
 	}
 
