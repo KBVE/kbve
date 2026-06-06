@@ -27,6 +27,71 @@ export interface DiscordshConfig {
 	active?: boolean;
 }
 
+export interface BotConfigFormDraft {
+	default_repo: string;
+	claim_channel_id: string;
+	forum_channel_id: string;
+	noticeboard_channel_id: string;
+	taskboard_channel_id: string;
+	max_assignees: string;
+	mirror_pr_events: boolean;
+	active: boolean;
+}
+
+export function emptyBotConfigFormDraft(): BotConfigFormDraft {
+	return {
+		default_repo: '',
+		claim_channel_id: '',
+		forum_channel_id: '',
+		noticeboard_channel_id: '',
+		taskboard_channel_id: '',
+		max_assignees: '2',
+		mirror_pr_events: true,
+		active: true,
+	};
+}
+
+export function botConfigToFormDraft(c: DiscordshConfig): BotConfigFormDraft {
+	const base = emptyBotConfigFormDraft();
+	return {
+		default_repo: c.default_repo ?? base.default_repo,
+		claim_channel_id: c.claim_channel_id ?? base.claim_channel_id,
+		forum_channel_id: c.forum_channel_id ?? base.forum_channel_id,
+		noticeboard_channel_id:
+			c.noticeboard_channel_id ?? base.noticeboard_channel_id,
+		taskboard_channel_id:
+			c.taskboard_channel_id ?? base.taskboard_channel_id,
+		max_assignees:
+			typeof c.max_assignees === 'number'
+				? String(c.max_assignees)
+				: base.max_assignees,
+		mirror_pr_events:
+			typeof c.mirror_pr_events === 'boolean'
+				? c.mirror_pr_events
+				: base.mirror_pr_events,
+		active: typeof c.active === 'boolean' ? c.active : base.active,
+	};
+}
+
+export function botConfigFromFormDraft(f: BotConfigFormDraft): DiscordshConfig {
+	const cfg: DiscordshConfig = {
+		mirror_pr_events: f.mirror_pr_events,
+		active: f.active,
+	};
+	if (f.default_repo.trim()) cfg.default_repo = f.default_repo.trim();
+	if (f.claim_channel_id.trim())
+		cfg.claim_channel_id = f.claim_channel_id.trim();
+	if (f.forum_channel_id.trim())
+		cfg.forum_channel_id = f.forum_channel_id.trim();
+	if (f.noticeboard_channel_id.trim())
+		cfg.noticeboard_channel_id = f.noticeboard_channel_id.trim();
+	if (f.taskboard_channel_id.trim())
+		cfg.taskboard_channel_id = f.taskboard_channel_id.trim();
+	const max = parseInt(f.max_assignees, 10);
+	if (!Number.isNaN(max) && max > 0) cfg.max_assignees = max;
+	return cfg;
+}
+
 export interface AgentTokenRow {
 	token_id: string;
 	token_name: string;
@@ -209,6 +274,53 @@ class AgentsService {
 	public readonly $tokens = atom<AgentTokenRow[]>([]);
 	public readonly $tokensLoading = atom<boolean>(false);
 	public readonly $tokensError = atom<string | null>(null);
+
+	public readonly $botConfigDrafts = atom<Record<string, BotConfigFormDraft>>(
+		{},
+	);
+	public readonly $botConfigSavingFor = atom<Record<string, boolean>>({});
+	public readonly $botConfigErrors = atom<Record<string, string | null>>({});
+	public readonly $botConfigLoadedFor = atom<Record<string, boolean>>({});
+
+	public readonly $repoAllowlistDrafts = atom<Record<string, string[]>>({});
+	public readonly $repoAllowlistSavingFor = atom<Record<string, boolean>>({});
+	public readonly $repoAllowlistErrors = atom<Record<string, string | null>>(
+		{},
+	);
+	public readonly $repoAllowlistLoadedFor = atom<Record<string, boolean>>({});
+
+	public readonly $webhookDrafts = atom<Record<string, string | null>>({});
+	public readonly $webhookSavingFor = atom<Record<string, boolean>>({});
+	public readonly $webhookErrors = atom<Record<string, string | null>>({});
+
+	public readonly $patDrafts = atom<Record<string, string>>({});
+	public readonly $patValidatedFor = atom<
+		Record<
+			string,
+			{ login: string; scopes: string[]; tokenType: string } | null
+		>
+	>({});
+	public readonly $patValidatingFor = atom<Record<string, boolean>>({});
+	public readonly $patSavingFor = atom<Record<string, boolean>>({});
+	public readonly $patErrors = atom<Record<string, string | null>>({});
+
+	public readonly $backfillDrafts = atom<
+		Record<string, { owner: string; repo: string }>
+	>({});
+	public readonly $backfillBusyFor = atom<Record<string, boolean>>({});
+	public readonly $backfillResults = atom<
+		Record<
+			string,
+			| {
+					ok: true;
+					upserted: number;
+					pages: number;
+					rateLimitRemaining: number | null;
+			  }
+			| { ok: false; error: string }
+			| null
+		>
+	>({});
 
 	// Dedup state — singleton so the cache survives ClientRouter swaps.
 	private initPromise: Promise<void> | null = null;
@@ -734,6 +846,336 @@ class AgentsService {
 		});
 		if (!r.ok) return { ok: false, error: r.error };
 		return { ok: true };
+	}
+
+	public hydrateBotConfigDraft(guildId: string, cfg: DiscordshConfig): void {
+		const drafts = this.$botConfigDrafts.get();
+		this.$botConfigDrafts.set({
+			...drafts,
+			[guildId]: botConfigToFormDraft(cfg),
+		});
+		const loaded = this.$botConfigLoadedFor.get();
+		this.$botConfigLoadedFor.set({ ...loaded, [guildId]: true });
+	}
+
+	public patchBotConfigDraft(
+		guildId: string,
+		patch: Partial<BotConfigFormDraft>,
+	): void {
+		const drafts = this.$botConfigDrafts.get();
+		const cur = drafts[guildId] ?? emptyBotConfigFormDraft();
+		this.$botConfigDrafts.set({
+			...drafts,
+			[guildId]: { ...cur, ...patch },
+		});
+	}
+
+	public clearBotConfigDraft(guildId: string): void {
+		const drafts = { ...this.$botConfigDrafts.get() };
+		delete drafts[guildId];
+		this.$botConfigDrafts.set(drafts);
+		const loaded = { ...this.$botConfigLoadedFor.get() };
+		delete loaded[guildId];
+		this.$botConfigLoadedFor.set(loaded);
+	}
+
+	public async ensureBotConfigLoaded(
+		guildId: string,
+		force = false,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		if (!force && this.$botConfigLoadedFor.get()[guildId]) {
+			return { ok: true };
+		}
+		const r = await this.getBotConfig();
+		if (!r.ok) {
+			const errs = { ...this.$botConfigErrors.get() };
+			errs[guildId] = r.error;
+			this.$botConfigErrors.set(errs);
+			return r;
+		}
+		this.hydrateBotConfigDraft(guildId, r.config);
+		const errs = { ...this.$botConfigErrors.get() };
+		errs[guildId] = null;
+		this.$botConfigErrors.set(errs);
+		return { ok: true };
+	}
+
+	public async saveBotConfigDraft(
+		guildId: string,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		const drafts = this.$botConfigDrafts.get();
+		const draft = drafts[guildId];
+		if (!draft) {
+			return { ok: false, error: 'No draft loaded yet' };
+		}
+		const saving = { ...this.$botConfigSavingFor.get(), [guildId]: true };
+		this.$botConfigSavingFor.set(saving);
+		const errs = { ...this.$botConfigErrors.get(), [guildId]: null };
+		this.$botConfigErrors.set(errs);
+		const r = await this.setBotConfig(botConfigFromFormDraft(draft));
+		const savingDone = { ...this.$botConfigSavingFor.get() };
+		delete savingDone[guildId];
+		this.$botConfigSavingFor.set(savingDone);
+		if (!r.ok) {
+			const errs2 = {
+				...this.$botConfigErrors.get(),
+				[guildId]: r.error,
+			};
+			this.$botConfigErrors.set(errs2);
+		}
+		return r;
+	}
+
+	public hydrateRepoAllowlistDraft(guildId: string, repos: string[]): void {
+		const drafts = this.$repoAllowlistDrafts.get();
+		this.$repoAllowlistDrafts.set({ ...drafts, [guildId]: repos });
+		const loaded = this.$repoAllowlistLoadedFor.get();
+		this.$repoAllowlistLoadedFor.set({ ...loaded, [guildId]: true });
+	}
+
+	public patchRepoAllowlistDraft(guildId: string, repos: string[]): void {
+		const drafts = this.$repoAllowlistDrafts.get();
+		this.$repoAllowlistDrafts.set({ ...drafts, [guildId]: repos });
+	}
+
+	public clearRepoAllowlistDraft(guildId: string): void {
+		const drafts = { ...this.$repoAllowlistDrafts.get() };
+		delete drafts[guildId];
+		this.$repoAllowlistDrafts.set(drafts);
+		const loaded = { ...this.$repoAllowlistLoadedFor.get() };
+		delete loaded[guildId];
+		this.$repoAllowlistLoadedFor.set(loaded);
+	}
+
+	public async ensureRepoAllowlistLoaded(
+		guildId: string,
+		force = false,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		if (!force && this.$repoAllowlistLoadedFor.get()[guildId]) {
+			return { ok: true };
+		}
+		const r = await this.getRepoAllowlist();
+		if (!r.ok) {
+			const errs = {
+				...this.$repoAllowlistErrors.get(),
+				[guildId]: r.error,
+			};
+			this.$repoAllowlistErrors.set(errs);
+			return r;
+		}
+		this.hydrateRepoAllowlistDraft(guildId, r.repos);
+		const errs = { ...this.$repoAllowlistErrors.get(), [guildId]: null };
+		this.$repoAllowlistErrors.set(errs);
+		return { ok: true };
+	}
+
+	public async saveRepoAllowlistDraft(
+		guildId: string,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		const drafts = this.$repoAllowlistDrafts.get();
+		const repos = drafts[guildId];
+		if (!repos) {
+			return { ok: false, error: 'No draft loaded yet' };
+		}
+		const saving = {
+			...this.$repoAllowlistSavingFor.get(),
+			[guildId]: true,
+		};
+		this.$repoAllowlistSavingFor.set(saving);
+		const errs = {
+			...this.$repoAllowlistErrors.get(),
+			[guildId]: null,
+		};
+		this.$repoAllowlistErrors.set(errs);
+		const r = await this.setRepoAllowlist(repos);
+		const savingDone = { ...this.$repoAllowlistSavingFor.get() };
+		delete savingDone[guildId];
+		this.$repoAllowlistSavingFor.set(savingDone);
+		if (!r.ok) {
+			const errs2 = {
+				...this.$repoAllowlistErrors.get(),
+				[guildId]: r.error,
+			};
+			this.$repoAllowlistErrors.set(errs2);
+		}
+		return r;
+	}
+
+	public setWebhookDraft(guildId: string, secret: string | null): void {
+		const m = { ...this.$webhookDrafts.get() };
+		if (secret === null) delete m[guildId];
+		else m[guildId] = secret;
+		this.$webhookDrafts.set(m);
+	}
+
+	public clearWebhookError(guildId: string): void {
+		const m = { ...this.$webhookErrors.get() };
+		delete m[guildId];
+		this.$webhookErrors.set(m);
+	}
+
+	public async saveWebhookDraft(
+		guildId: string,
+		tokenName: string,
+		description: string,
+	): Promise<{ ok: true; tokenId: string } | { ok: false; error: string }> {
+		const secret = this.$webhookDrafts.get()[guildId];
+		if (!secret) return { ok: false, error: 'No secret to save' };
+		const saving = { ...this.$webhookSavingFor.get(), [guildId]: true };
+		this.$webhookSavingFor.set(saving);
+		const errs = { ...this.$webhookErrors.get(), [guildId]: null };
+		this.$webhookErrors.set(errs);
+		const r = await this.addToken({
+			tokenName,
+			service: 'github_webhook',
+			tokenValue: secret,
+			description,
+		});
+		const savingDone = { ...this.$webhookSavingFor.get() };
+		delete savingDone[guildId];
+		this.$webhookSavingFor.set(savingDone);
+		if (r.ok) {
+			this.setWebhookDraft(guildId, null);
+		} else {
+			const errs2 = {
+				...this.$webhookErrors.get(),
+				[guildId]: r.error,
+			};
+			this.$webhookErrors.set(errs2);
+		}
+		return r;
+	}
+
+	public setPatDraft(guildId: string, pat: string): void {
+		const m = { ...this.$patDrafts.get(), [guildId]: pat };
+		this.$patDrafts.set(m);
+		const validated = { ...this.$patValidatedFor.get() };
+		if (validated[guildId]) {
+			delete validated[guildId];
+			this.$patValidatedFor.set(validated);
+		}
+	}
+
+	public clearPatState(guildId: string): void {
+		const drafts = { ...this.$patDrafts.get() };
+		delete drafts[guildId];
+		this.$patDrafts.set(drafts);
+		const validated = { ...this.$patValidatedFor.get() };
+		delete validated[guildId];
+		this.$patValidatedFor.set(validated);
+		const errs = { ...this.$patErrors.get() };
+		delete errs[guildId];
+		this.$patErrors.set(errs);
+	}
+
+	public async validatePatForGuild(
+		guildId: string,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		const pat = this.$patDrafts.get()[guildId] ?? '';
+		if (!pat) return { ok: false, error: 'No PAT entered' };
+		const validating = {
+			...this.$patValidatingFor.get(),
+			[guildId]: true,
+		};
+		this.$patValidatingFor.set(validating);
+		const errs = { ...this.$patErrors.get(), [guildId]: null };
+		this.$patErrors.set(errs);
+		const validatedClear = { ...this.$patValidatedFor.get() };
+		delete validatedClear[guildId];
+		this.$patValidatedFor.set(validatedClear);
+		const r = await this.validateGithubPat(pat);
+		const validatingDone = { ...this.$patValidatingFor.get() };
+		delete validatingDone[guildId];
+		this.$patValidatingFor.set(validatingDone);
+		if (!r.ok) {
+			const errs2 = { ...this.$patErrors.get(), [guildId]: r.error };
+			this.$patErrors.set(errs2);
+			return r;
+		}
+		const validatedSet = {
+			...this.$patValidatedFor.get(),
+			[guildId]: {
+				login: r.login,
+				scopes: r.scopes,
+				tokenType: r.tokenType,
+			},
+		};
+		this.$patValidatedFor.set(validatedSet);
+		return { ok: true };
+	}
+
+	public async savePatForGuild(
+		guildId: string,
+		tokenName: string,
+	): Promise<{ ok: true; tokenId: string } | { ok: false; error: string }> {
+		const pat = this.$patDrafts.get()[guildId] ?? '';
+		if (!pat) return { ok: false, error: 'No PAT entered' };
+		const validated = this.$patValidatedFor.get()[guildId] ?? null;
+		const saving = { ...this.$patSavingFor.get(), [guildId]: true };
+		this.$patSavingFor.set(saving);
+		const errs = { ...this.$patErrors.get(), [guildId]: null };
+		this.$patErrors.set(errs);
+		const r = await this.addToken({
+			tokenName,
+			service: 'github',
+			tokenValue: pat,
+			description: validated
+				? `GitHub PAT for ${validated.login}`
+				: 'GitHub PAT',
+		});
+		const savingDone = { ...this.$patSavingFor.get() };
+		delete savingDone[guildId];
+		this.$patSavingFor.set(savingDone);
+		if (r.ok) {
+			this.clearPatState(guildId);
+		} else {
+			const errs2 = { ...this.$patErrors.get(), [guildId]: r.error };
+			this.$patErrors.set(errs2);
+		}
+		return r;
+	}
+
+	public patchBackfillDraft(
+		guildId: string,
+		partial: Partial<{ owner: string; repo: string }>,
+	): void {
+		const drafts = this.$backfillDrafts.get();
+		const cur = drafts[guildId] ?? { owner: '', repo: '' };
+		this.$backfillDrafts.set({
+			...drafts,
+			[guildId]: { ...cur, ...partial },
+		});
+	}
+
+	public clearBackfillResult(guildId: string): void {
+		const m = { ...this.$backfillResults.get() };
+		delete m[guildId];
+		this.$backfillResults.set(m);
+	}
+
+	public async runBackfillForGuild(guildId: string): Promise<void> {
+		const draft = this.$backfillDrafts.get()[guildId] ?? {
+			owner: '',
+			repo: '',
+		};
+		if (!draft.owner || !draft.repo) return;
+		const busy = { ...this.$backfillBusyFor.get(), [guildId]: true };
+		this.$backfillBusyFor.set(busy);
+		const resultsClear = { ...this.$backfillResults.get() };
+		delete resultsClear[guildId];
+		this.$backfillResults.set(resultsClear);
+		const r = await this.runBackfill({
+			owner: draft.owner,
+			repo: draft.repo,
+			state: 'open',
+			maxPages: 1,
+			perPage: 30,
+		});
+		const busyDone = { ...this.$backfillBusyFor.get() };
+		delete busyDone[guildId];
+		this.$backfillBusyFor.set(busyDone);
+		const resultsSet = { ...this.$backfillResults.get(), [guildId]: r };
+		this.$backfillResults.set(resultsSet);
 	}
 
 	public async toggleToken(
