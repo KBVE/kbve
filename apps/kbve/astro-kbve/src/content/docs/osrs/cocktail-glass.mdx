@@ -1,6 +1,6 @@
 ---
 title: Cocktail glass | OSRS Price Data
-description: "Cocktail glass: For sipping cocktails.. High alch: 1 GP, GE limit: 13,000."
+description: "Cocktail glass: For sipping cocktails. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 2026
   name: Cocktail glass
@@ -12,9 +12,104 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Cocktail glass is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: glass
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: |-
+    > *"For sipping cocktails."*
+
+    The cocktail glass is the empty drinking vessel used as the base container for every Gnome cocktail produced through the Gnome Cooking sub-skill. Once a player adds the correct combination of cocktail bases, fruit shakes, and garnishes the glass becomes a finished drink such as a Fruit Blast, Pineapple Punch, Wizard Blizzard, Short Green Guy, Drunk Dragon, Choc Saturday, or Blurberry Special. Empty glasses are a near-throwaway item with a 1-coin shop buy price, yet they trade briskly on the Grand Exchange because high-level cooks burn through them quickly while training the gnome cooking experience boost.
+  drop_table:
+    sources:
+      - source: Spawn (Grand Tree, 2 glasses)
+        location: Tree Gnome Stronghold
+        quantity: "1"
+        rarity: Always (respawn)
+        members: true
+        notes: "Two cocktail glasses respawn on the bar level of the Grand Tree, ideal for quickly grabbing a free starter glass when training Gnome Cooking."
+      - source: Spawn (Shayziens' Wall)
+        location: Shayzien
+        quantity: "1"
+        rarity: Always (respawn)
+        members: true
+        notes: "A single glass respawn sits on the Shayziens' Wall, useful for Zeah-based gnome cooking sessions."
+  shops:
+    - shop_name: Funch's Fine Groceries
+      location: Grand Tree, 1st floor
+      price: 1
+      stock: 5
+      currency: Coins
+      members: true
+      notes: "Sells empty cocktail glasses for 1 coin each, the cheapest reliable supply for cocktail mixers."
+  recipes:
+    - skill: cooking
+      level: 6
+      xp: 30
+      output_quantity: 1
+      output_item: Cocktail (made by Gnome Cooking)
+      materials:
+        - item_name: Cocktail glass
+          quantity: 1
+        - item_name: "Vodka / Whisky / Gin / Brandy"
+          quantity: 1
+        - item_name: Cocktail shaker
+          quantity: 1
+      facility: Gnome bartending tutorial
+      members: true
+      notes: "The base cocktail glass is the carrier for every Gnome Cocktail recipe; specific ingredients vary per drink (Fruit Blast, Pineapple Punch, Wizard Blizzard, etc.) and grant Cooking XP from 30 up to 220."
+  history:
+    - date: "2002-12-12"
+      update: Release
+      description: "Added to Old School RuneScape alongside the Tree Gnome Stronghold gnome cooking sub-skill."
+    - date: "2006-08-07"
+      update: Graphical update
+      description: "Received an updated inventory sprite during the Gnome Restaurant renovation patch."
+  related_items:
+    - item_id: 2025
+      item_name: Cocktail shaker
+      slug: cocktail-shaker
+      relationship: component
+      description: "Required tool for combining the cocktail base ingredients before pouring into the glass."
+    - item_id: 2084
+      item_name: Cocktail guide
+      slug: cocktail-guide
+      relationship: component
+      description: "Provides the on-screen mixing interface that turns a cocktail glass into a finished drink."
+    - item_id: 2073
+      item_name: Pineapple punch
+      slug: pineapple-punch
+      relationship: product
+      description: "A finished gnome cocktail crafted on top of an empty cocktail glass."
+    - item_id: 2069
+      item_name: Fruit blast
+      slug: fruit-blast
+      relationship: product
+      description: "Another entry-level gnome cocktail produced from a cocktail glass at 25 Cooking."
+  market_strategy:
+    notes:
+      - "Buy near the 1-coin shop floor and resell to high-level Gnome Cooking trainers who consume cocktail glasses in bulk."
+      - "Margins are razor thin per glass but volume is high; flip in stacks of the full 13,000 limit when prices spike."
+      - "Demand briefly spikes whenever a Twisted League or Leagues relic emphasises Cooking XP from gnome cocktails."
+  trading_tips:
+    - "Stocking up at Funch's Fine Groceries is faster than the Grand Exchange for small orders."
+    - "Cocktails sell at the Gnome Restaurant matrons: pre-craft a stack of glasses before starting a delivery run."
+    - "Buy-limit refreshes every 4 hours: split big orders across two limit windows to avoid overpaying on the GE."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Team-5 cape | OSRS Price Data
-description: "Team-5 cape: Ooohhh look at the pretty colours.... High alch: 30 GP, GE limit: 150."
+description: "Team-5 cape: free-to-play Castle Wars team cape with a swirled colour pattern purchased from Lanthus for 50 coins. High alch: 30 GP, GE limit: 150."
 osrs:
   id: 4323
   name: Team-5 cape
@@ -12,9 +12,83 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-5 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-02-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.45
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weapon_type: null
+    attack_speed: null
+    weight: 0.45
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Lanthus's Castle Wars Shop
+      location: Castle Wars (Saradomin team room)
+      price: 50
+      stock: 50
+      currency: coins
+  related_items:
+    - item_name: Team-1 cape
+      slug: team-1-cape
+      relationship: alternative
+      description: "Different team colour variant"
+    - item_name: Team-10 cape
+      slug: team-10-cape
+      relationship: alternative
+      description: "Different team colour variant"
+    - item_name: Castle wars brace
+      slug: castle-wars-brace
+      relationship: alternative
+      description: "Other Castle Wars cosmetic reward"
+  about: "Team-5 cape is one of fifty numbered team capes sold from Lanthus at Castle Wars for 50 coins each. The capes were introduced so that informal Castle Wars and PvP teams can coordinate their colours when no faction cape is suitable, with each numbered cape sporting a unique swirled colour combination. As a free-to-play, tradeable cosmetic with a 150-per-four-hours GE buy limit, Team-5 cape sits cheaply on the Grand Exchange and is most frequently traded by Castle Wars enthusiasts, fashionscape collectors, and new accounts buying a cheap cape upgrade over none."
+  market_strategy:
+    notes:
+      - "F2P-tradeable cosmetic with a 50 GP shop floor capping upside"
+      - "Buy limit of 150 per 4 hours allows mid-sized flips"
+      - "Alch value of 30 GP sets a soft floor below the shop price"
+  trading_tips:
+    - "Stock at Lanthus is cheaper than the GE for bulk buys"
+    - "Watch for Castle Wars Bond hype or update weekends: short-term price bumps"
+    - "Bundle numbered team capes for fashionscape set listings on community markets"
+  history:
+    - date: "2004-02-09"
+      update: Castle Wars launch
+      description: "Added as part of the Castle Wars minigame release alongside the full numbered team cape family."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

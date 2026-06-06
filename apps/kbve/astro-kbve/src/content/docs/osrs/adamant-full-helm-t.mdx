@@ -1,6 +1,6 @@
 ---
 title: Adamant full helm (t) | OSRS Price Data
-description: "Adamant full helm (t) is a F2P head slot item requiring 30 Defence. High alch: 2,112 GP, GE limit: 8."
+description: "Adamant full helm (t) is a F2P trimmed head slot helmet requiring 30 Defence. High alch: 2,112 GP, GE limit: 8."
 osrs:
   id: 2605
   name: Adamant full helm (t)
@@ -12,22 +12,83 @@ osrs:
   lowalch: 1408
   highalch: 2112
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: adamant
+    tier: mid
+  properties:
+    release_date: "2002-09-12"
+    update: "Treasure Trails"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
+    weapon_type: none
+    weight: 2.721
+    attack_speed: 1
     requirements:
       defence: 30
+    attack_bonus:
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 17
+      slash: 19
+      crush: 16
+      magic: -1
+      ranged: 17
+    other_bonus: {}
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
+    - item_id: 1161
+      item_name: Adamant full helm
+      slug: adamant-full-helm
+      relationship: variant
+      description: "Standard untrimmed version with identical stats"
     - item_id: 2599
       item_name: Adamant platebody (t)
       slug: adamant-platebody-t
       relationship: set-piece
-      description: Matching trimmed platebody
+      description: "Matching trimmed adamant platebody"
+    - item_id: 2607
+      item_name: Adamant full helm (g)
+      slug: adamant-full-helm-g
+      relationship: variant
+      description: "Gold-trimmed cosmetic alternative"
   about: |-
-    > *"Adamant full helm with trim."*
+    > _"Adamant full helmet with trim."_
 
-    The adamant full helm (t) is a trimmed cosmetic variant of the standard adamant full helm. Identical stats, requiring 30 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The adamant full helm (t) is a trimmed cosmetic variant of the standard adamant full helm awarded as a possible reward from medium clue scrolls. It has identical defensive bonuses to its untrimmed counterpart and requires 30 Defence to equip. Players typically wear the trimmed set as a fashionscape statement or to display clue scroll progression.
+  market_strategy:
+    notes:
+      - "Pure cosmetic premium — stats identical to the untrimmed adamant full helm"
+      - "Supply driven entirely by medium clue scroll completion volume"
+      - "Buy limit of 8 caps any large-scale flipping attempts"
+  trading_tips:
+    - "Pair with platebody (t) and platelegs (t) for matching set premium pricing"
+    - "Watch clue scroll meta — new clue content boosts supply quickly"
+  history:
+    - date: "2002-09-12"
+      description: "Released with the Treasure Trails update as a trimmed clue reward."
+    - date: "2014-12-04"
+      description: "Item icon updated to high-resolution sprite."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

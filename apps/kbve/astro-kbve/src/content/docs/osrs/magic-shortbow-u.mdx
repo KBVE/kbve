@@ -1,6 +1,6 @@
 ---
 title: Magic shortbow (u) | OSRS Price Data
-description: "Magic shortbow (u): An unstrung magic shortbow; I need a bowstring for this.. High alch: 480 GP, GE limit: 10,000."
+description: "Magic shortbow (u) is an unstrung Fletching product crafted from magic logs. High alch: 480 GP, GE limit: 10,000."
 osrs:
   id: 72
   name: Magic shortbow (u)
@@ -12,23 +12,72 @@ osrs:
   lowalch: 320
   highalch: 480
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: wood
+    tier: high
+  properties:
+    release_date: "2001-12-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 80
+      xp: 83.25
+      materials:
+        - item_name: Magic logs
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
   related_items:
+    - item_id: 861
+      item_name: Magic shortbow
+      slug: magic-shortbow
+      relationship: product
+      description: "Strung version requiring 50 Ranged to wield and a bowstring at 80 Fletching to assemble."
     - item_id: 68
       item_name: Yew shortbow (u)
       slug: yew-shortbow-u
-      relationship: variant
-      description: Lower tier unstrung shortbow
+      relationship: downgrade
+      description: "Previous-tier unstrung shortbow fletched from yew logs."
     - item_id: 70
       item_name: Magic longbow (u)
       slug: magic-longbow-u
       relationship: variant
-      description: Matching unstrung magic longbow
-  about: |-
-    > _"An unstrung magic shortbow; I need a bowstring for this."_
-
-    The magic shortbow (u) is an unstrung shortbow made from magic logs. String with a bowstring at 80 Fletching to create a magic shortbow. Members only. The highest tier of standard unstrung shortbows.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Matching unstrung longbow variant fletched from magic logs."
+    - item_name: Magic logs
+      slug: magic-logs
+      relationship: component
+      description: "Fletching material chopped from magic trees at 75 Woodcutting."
+    - item_name: Bowstring
+      slug: bowstring
+      relationship: component
+      description: "Crafted from flax; used to string the unstrung bow into a Magic shortbow."
+  about: "Magic shortbow (u) is the unstrung Fletching product cut from a single magic log at 80 Fletching for 83.25 experience. The bow cannot be wielded in its unstrung state and must be combined with a bowstring at the same Fletching level to produce a Magic shortbow, the level-50 Ranged shortbow famous for its Snapshot special attack. Members-only, the unstrung version is the standard high-volume intermediate for Fletching profit loops and ironman Ranged training pipelines."
+  market_strategy:
+    notes:
+      - "Standard high-Fletching profit loop: magic log → unstrung → strung shortbow"
+      - "GE limit of 10,000 supports volume flips and bulk fletching"
+      - "Margins driven by the magic log to bowstring spread"
+  trading_tips:
+    - "Track magic log price dips for cheap fletching pulls"
+    - "Compare unstrung-to-strung margin daily; flip whichever direction has the larger spread"
+    - "Watch PvP and Bandos task spikes for short-term strung shortbow demand"
+  history:
+    - date: "2001-12-19"
+      description: "Released with the original Fletching skill rollout, alongside other unstrung bows."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

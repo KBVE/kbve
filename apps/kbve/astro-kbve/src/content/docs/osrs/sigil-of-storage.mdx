@@ -1,6 +1,6 @@
 ---
 title: Sigil of storage | OSRS Price Data
-description: "Sigil of storage: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP, GE limit: 10."
+description: "Sigil of storage: an unattuned power-enhancing sigil that becomes an Echo dye unlock; trades thinly at extreme prices. High alch: 6,000 GP, GE limit: 10."
 osrs:
   id: 26021
   name: Sigil of storage
@@ -12,9 +12,65 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  about: "Sigil of storage is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: artifact
+    tier: high
+  properties:
+    release_date: "2022-01-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.0
+    options:
+      - "Use"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Are you sure you want to drop this? You can buy it back from Soeb."
+  drop_table:
+    sources:
+      - source: Soeb's Sigil Shop (rotation)
+        quantity: "1"
+        rarity: Limited stock
+        members_only: true
+  shops:
+    - shop_name: Soeb's Sigil Shop
+      location: Ferox Enclave
+      price: 10000
+      stock: 1
+      currency: coins
+  related_items:
+    - item_name: Sigil of consistency
+      slug: sigil-of-consistency
+      relationship: alternative
+      description: "Alternative sigil purchased from the same NPC"
+    - item_name: Sigil of slaughter
+      slug: sigil-of-slaughter
+      relationship: alternative
+      description: "Combat-focused sigil in the same family"
+    - item_name: Sigil of the augur
+      slug: sigil-of-the-augur
+      relationship: alternative
+      description: "Magic-flavoured sigil rotation item"
+  about: "Sigil of storage is an unattuned power-enhancing sigil from the Deadman Mode and Wilderness Sigil family. The item is the inert form that has to be activated by binding it to the player's account, after which it grants a permanent inventory or bank quality-of-life enhancement scoped to the active sigil rotation. Because it ships in fixed shop rotations and is locked to a buy limit of 10 per 4 hours, the tradeable form moves in low daily volume and prices skew toward the upper end whenever the unattuned variant is stocked. It is alchable for 6,000 coins if a player accidentally rolls a duplicate and prefers cleanup over reselling."
+  market_strategy:
+    notes:
+      - "Tradeable sigils trade in extremely thin volume; one big buy can move price"
+      - "Limit of 10 per 4 hours caps flips to small chunks"
+      - "Price tracks Deadman / Sigil rotation hype cycles"
+  trading_tips:
+    - "Camp Soeb's Sigil Shop rotation: cheap restock window beats GE bidding"
+    - "Set both buy and sell offers and let thin volume cross your offer"
+    - "Hold across Deadman finals: demand spikes when sigil meta is hot"
+  history:
+    - date: "2022-01-26"
+      update: Sigil rotation update
+      description: "Added as part of the Wilderness sigil family rebalance."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

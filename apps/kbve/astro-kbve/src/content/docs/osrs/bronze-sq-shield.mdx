@@ -12,25 +12,120 @@ osrs:
   lowalch: 19
   highalch: 28
   limit: 125
-  item_id: 1173
-  item_type: armor
-  slot: shield
-  type: square_shield
-  tradeable: true
-  weight: 3.628
-  requirements:
-    defence: 0
-  stats:
-    stab_defence: 5
-    slash_defence: 6
-    crush_defence: 4
-    magic_defence: 0
-    ranged_defence: 5
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2001-12-08"
+    update: RuneScape Beta
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weight: 3.628
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 5
+      slash: 6
+      crush: 4
+      magic: 0
+      ranged: 5
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 11
+      xp: 25
+      materials:
+        - item_name: Bronze bar
+          quantity: 2
+      tools:
+        - Hammer
+      facility: Anvil
+      output_quantity: 1
+      product: Bronze sq shield
+  shops:
+    - shop_name: Cassie's Shield Shop
+      location: Falador
+      price: 48
+      stock: 3
+      currency: Coins
+      members_only: false
+    - shop_name: Brian's Battleaxe Bazaar
+      location: Port Sarim
+      price: 48
+      stock: 0
+      currency: Coins
+      members_only: false
+  drop_table:
+    sources:
+      - source: Goblin
+        quantity: "1"
+        rarity: uncommon
+      - source: Skeleton
+        quantity: "1"
+        rarity: uncommon
+      - source: Hobgoblin
+        quantity: "1"
+        rarity: uncommon
   related_items:
-    - slug: iron-sq-shield
-    - slug: bronze-kiteshield
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1175
+      item_name: Iron sq shield
+      slug: iron-sq-shield
+      relationship: upgrade
+      description: "Next-tier square shield requiring 1 Defence"
+    - item_id: 1189
+      item_name: Bronze kiteshield
+      slug: bronze-kiteshield
+      relationship: alternative
+      description: "Higher-stat kiteshield form of bronze defensive gear"
+    - item_id: 1171
+      item_name: Wooden shield
+      slug: wooden-shield
+      relationship: downgrade
+      description: "Lowest-tier shield, predecessor to bronze"
+  about: "The bronze square shield is the entry-level metal shield in the F2P square-shield line. It can be smithed from two bronze bars at 11 Smithing for 25 XP and is sold at Cassie's Shield Shop in Falador. It provides marginal melee defence and only sees use by very low-level F2P accounts or smithing-XP grinders who alch it for a small magic XP loop."
+  market_strategy:
+    notes:
+      - "Investment Notes"
+      - "High alch value 28 gp; price is pinned near the alchemy floor"
+      - "F2P shield with shop-restocked supply caps any flip margin"
+      - "Marginal demand from new accounts and pure builds"
+      - "Smithing XP loop demand keeps a baseline of buy pressure"
+  trading_tips:
+    - "Shop runs at Cassie's beat GE for ironman supply"
+    - "Watch for bronze bar price drops to time smithing-and-alch loops"
+  history:
+    - date: "2001-12-08"
+      update: RuneScape Beta
+      description: "Bronze square shield released as part of the original Smithing tier set."
+    - date: "2004-03-29"
+      update: RuneScape 2 Update
+      description: "Updated 3D model added during the RuneScape 2 graphics rework."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

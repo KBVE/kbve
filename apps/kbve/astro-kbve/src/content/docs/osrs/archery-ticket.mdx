@@ -1,6 +1,6 @@
 ---
 title: Archery ticket | OSRS Price Data
-description: "Archery ticket: I can exchange this for equipment.. High alch: 15 GP, GE limit: 18,000."
+description: "Archery ticket is a Ranging Guild reward token exchanged for ranged equipment with the Ticket Merchant. High alch: 15 GP, GE limit: 18,000."
 osrs:
   id: 1464
   name: Archery ticket
@@ -12,12 +12,83 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 18000
-  about: "Archery ticket is a members-only item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 18,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: token
+    tier: low
+  properties:
+    release_date: "2004-03-29"
+    update: "RuneScape 2 launch"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+      - Examine
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Ranging Guild target range
+        quantity: "1"
+        rarity: "0-100 per 10 shots"
+        notes: "Awarded for hitting the bullseye target at the Ranging Guild; 200 coins per 10 shots."
+  shops:
+    - shop_name: Ticket Merchant
+      location: Ranging Guild
+      currency: archery_ticket
+      price: 0
+      stock: 0
+      notes: "Exchanges tickets for ranged equipment such as bows, arrows, leather armour, and coif."
+  recipes:
+    - skill: ranged
+      level: 40
+      xp: 0
+      materials:
+        - item_name: Archery ticket
+          quantity: 2000
+      tools:
+        - Ranging Guild
+      output_quantity: 50
+  related_items:
+    - item_name: Rune arrow
+      slug: rune-arrow
+      relationship: product
+      description: "Exchanged 50 for 2,000 tickets at the Ticket Merchant."
+    - item_name: Adamant javelin
+      slug: adamant-javelin
+      relationship: product
+      description: "Exchanged 20 for 2,000 tickets at the Ticket Merchant."
+    - item_name: Green d'hide body
+      slug: green-dhide-body
+      relationship: product
+      description: "Exchanged for 2,400 tickets at the Ticket Merchant."
+    - item_name: Coif
+      slug: coif
+      relationship: product
+      description: "Exchanged for 100 tickets at the Ticket Merchant."
+  about: "Archery ticket is a Ranging Guild token earned by shooting the bullseye target and spent with the Ticket Merchant for arrows, javelins, leather armour, and other ranged supplies. The tickets are stackable, tradeable, and used during Mourning's End Part II as a quest item gating Ranging Guild access."
+  market_strategy:
+    notes:
+      - "GE limit of 18,000 per 4 hours allows fast bulk movement at razor-thin margins."
+      - "Demand is anchored by Mourning's End Part II progression and casual rune arrow buyers."
+      - "Price tends to track rune arrow exchange value via the Ticket Merchant."
+  trading_tips:
+    - "Compare ticket-to-rune-arrow conversion versus direct GE arrow pricing before committing."
+    - "Stockpile when Mourning's End guide pushes mass-market interest."
+  history:
+    - date: "2004-03-29"
+      update: "RuneScape 2 launch"
+      description: "Archery ticket introduced alongside the Ranging Guild and Ticket Merchant."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

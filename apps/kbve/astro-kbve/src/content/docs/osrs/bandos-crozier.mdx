@@ -1,6 +1,6 @@
 ---
 title: Bandos crozier | OSRS Price Data
-description: "Bandos crozier is a members weapon slot item. High alch: 3,000 GP, GE limit: 8."
+description: "Bandos crozier is a Bandos vestment weapon slot staff requiring 60 Prayer with a +6 prayer bonus. High alch: 3,000 GP, GE limit: 8."
 osrs:
   id: 12275
   name: Bandos crozier
@@ -12,24 +12,113 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 8
+  material:
+    type: prayer_equipment
+    tier: mid
   equipment:
     slot: weapon
+    weapon_type: staff
+    attack_speed: 5
+    weight: 0.005
     requirements:
       prayer: 60
+    attack_bonus:
+      stab: 7
+      slash: -1
+      crush: 25
+      magic: 10
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 10
+      ranged: 0
     other_bonus:
+      strength: 32
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 6
+  drop_table:
+    sources:
+      - source: Reward casket (medium)
+        quantity: "1"
+        rarity: "1/1,133"
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
   related_items:
     - item_id: 12269
       item_name: Bandos stole
       slug: bandos-stole
       relationship: set-piece
-      description: Bandos vestment neck piece
-  about: |-
-    > *"A Bandos crozier."*
-
-    The Bandos crozier is a weapon slot staff from the Bandos vestment set. It provides a +6 Prayer bonus and requires 60 Prayer to wield. Counts as a Bandosian item in the God Wars Dungeon.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Neck slot piece of the Bandos vestment set.
+    - item_id: 12267
+      item_name: Bandos mitre
+      slug: bandos-mitre
+      relationship: set-piece
+      description: Head slot piece of the Bandos vestment set.
+    - item_id: 12273
+      item_name: Bandos cloak
+      slug: bandos-cloak
+      relationship: set-piece
+      description: Cape slot piece of the Bandos vestment set.
+    - item_id: 12271
+      item_name: Bandos robe top
+      slug: bandos-robe-top
+      relationship: set-piece
+      description: Body slot piece of the Bandos vestment set.
+    - item_id: 12277
+      item_name: Bandos robe legs
+      slug: bandos-robe-legs
+      relationship: set-piece
+      description: Legs slot piece of the Bandos vestment set.
+    - item_id: 10440
+      item_name: Saradomin crozier
+      slug: saradomin-crozier
+      relationship: variant
+      description: Saradomin vestment crozier with identical stats.
+    - item_id: 12199
+      item_name: Ancient crozier
+      slug: ancient-crozier
+      relationship: variant
+      description: Ancient (Zaros) vestment crozier with identical stats.
+  about: "Bandos crozier is the weapon slot staff in the Bandos vestment set, awarded as a medium Treasure Trail reward at roughly 1/1,133. It requires 60 Prayer to wield and grants a +6 Prayer bonus along with a respectable crush-focused attack profile (+25 crush, +32 strength) shared across all five god croziers. Bandos crozier counts as a Bandosian item in the God Wars Dungeon, granting protection from Bandos faction NPCs without occupying the helm or cape slot. Like all god croziers it can be stored in a costume room treasure chest and is primarily used for fashionscape, vestment set completion, and Bandos faction protection on GWD trips."
+  market_strategy:
+    notes:
+      - "Supply is gated by medium clue completion rates around 1/1,133 per casket."
+      - "Fashionscape demand keeps a steady floor across all five god croziers."
+      - "God Wars Dungeon Bandos protection adds niche PvM utility."
+      - "Buy limit 8 per 4 hours caps bulk flipping margins."
+      - "Crozier price differentials between gods are driven entirely by aesthetic preference."
+  trading_tips:
+    - "Compare prices across Saradomin, Guthix, Zamorak, Armadyl, Bandos and Ancient croziers — pick the cheapest if you only need a +6 prayer weapon."
+    - "Stock during medium clue update windows when supply temporarily spikes."
+    - "Demand: vestment set collectors keep a floor on price even outside content meta shifts."
+  history:
+    - date: "2014-06-12"
+      description: "Released alongside the Treasure Trail Expansion god vestment rewards."
+  properties:
+    release_date: "2014-06-12"
+    update: "Treasure Trail Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

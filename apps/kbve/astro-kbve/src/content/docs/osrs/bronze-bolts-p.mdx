@@ -1,6 +1,6 @@
 ---
 title: Bronze bolts (p) | OSRS Price Data
-description: "Bronze bolts (p) is a members ammo slot item. High alch: 1 GP, GE limit: 11,000."
+description: "Bronze bolts (p) are poisoned bronze crossbow bolts dealing 2-4 poison damage. High alch: 1 GP, GE limit: 11,000."
 osrs:
   id: 878
   name: Bronze bolts (p)
@@ -12,16 +12,101 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
+  material:
+    type: metal
+    tier: low
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    weight: 0
+    quest_item: false
+    options:
+      - Wield
+      - Drop
+    destroy: "Drop"
   equipment:
     slot: ammo
-    ranged_strength: 10
-  related_items: []
+    attack_speed: null
+    attack_range: null
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 10
+      magic_damage: 0
+      prayer: 0
+    requirements: {}
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 0
+      materials:
+        - item_id: 877
+          item_name: Bronze bolts
+          quantity: 1
+        - item_id: 187
+          item_name: Weapon poison
+          quantity: 1
+      output_quantity: 1
+      output_item: Bronze bolts (p)
+      notes: "Use weapon poison on bronze bolts"
+  related_items:
+    - item_id: 877
+      item_name: Bronze bolts
+      slug: bronze-bolts
+      relationship: variant
+      description: Unpoisoned version
+    - item_id: 9286
+      item_name: Bronze bolts (p+)
+      slug: bronze-bolts-p-plus
+      relationship: upgrade
+      description: Stronger poison variant
+    - item_id: 9293
+      item_name: Bronze bolts (p++)
+      slug: bronze-bolts-p-plus-plus
+      relationship: upgrade
+      description: Strongest poison variant
+  history:
+    - date: "2001-01-04"
+      description: "Bronze bolts released alongside crossbows."
+    - date: "2002-02-27"
+      description: "Poisoned variant added with weapon poison update."
+    - date: "2006-11-27"
+      description: "Renamed from 'bolts' to 'bronze bolts' to clarify metal type."
   about: |-
-    > _"Bronze crossbow bolts with a poisoned tip."_
+    > _"Some poisoned bronze bolts."_
 
     Bronze bolts tipped with basic weapon poison. Usable with any crossbow. Poison deals 2-4 damage over time.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+
+    Combat profile:
+    - Ranged strength: +10
+    - Compatible with all crossbow tiers
+    - Poison cannot be combined with opal or barbed tips
+
+    Created by using weapon poison on regular bronze bolts. Available in three poison strengths (p, p+, p++).
+  market_strategy:
+    notes:
+      - "Basic poison ammo, mostly cosmetic value"
+      - "Low-tier crossbow training ammo"
+      - "Higher tier metals make this niche"
+      - "Compare cost: making vs buying poisoned"
+      - "Demand is minimal due to better alternatives"
+      - "Useful for ironmen learning crossbow combat"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

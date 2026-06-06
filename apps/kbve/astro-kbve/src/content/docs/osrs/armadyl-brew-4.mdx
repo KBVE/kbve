@@ -1,6 +1,6 @@
 ---
 title: Armadyl brew(4) | OSRS Price Data
-description: "Armadyl brew(4): 4 doses of Armadyl brew.. High alch: 150 GP, GE limit: 2,000."
+description: "Armadyl brew(4) heals 10% + 2 HP and boosts Ranged 10% + 4 per dose. Herblore 89 to craft. High alch: 150 GP, GE limit: 2,000."
 osrs:
   id: 31650
   name: Armadyl brew(4)
@@ -12,9 +12,121 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 2000
-  about: "Armadyl brew(4) is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    weight: 0.035
+    quest_item: false
+    options:
+      - Drink
+      - Empty
+      - Drop
+    destroy: "Drop"
+  potion:
+    doses: 4
+    base_item: Armadyl brew(4)
+    base_item_id: 31650
+    herblore_level: 89
+    herblore_xp: 205
+    effects:
+      - stat: Hitpoints
+        boost_formula: floor(level * 0.10) + 2
+        description: "Restores 10% + 2 of current HP (can overheal)"
+        duration: 0
+      - stat: Ranged
+        boost_formula: floor(level * 0.10) + 4
+        description: "Boosts Ranged by 10% + 4 of base level"
+        duration: 0
+      - stat: Attack
+        boost_formula: -(floor(level * 0.10) + 2)
+        description: "Lowers Attack by 10% + 2"
+        duration: 0
+      - stat: Strength
+        boost_formula: -(floor(level * 0.10) + 2)
+        description: "Lowers Strength by 10% + 2"
+        duration: 0
+      - stat: Defence
+        boost_formula: -(floor(level * 0.10) + 2)
+        description: "Lowers Defence by 10% + 2"
+        duration: 0
+      - stat: Magic
+        boost_formula: -(floor(level * 0.10) + 2)
+        description: "Lowers Magic by 10% + 2"
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 89
+      xp: 205
+      materials:
+        - item_id: 31648
+          item_name: Umbral potion (unf)
+          quantity: 1
+        - item_id: 31652
+          item_name: Rainbow crab paste
+          quantity: 1
+      output_quantity: 1
+      output_item: Armadyl brew(3)
+      notes: "Brewed in 2 game ticks; recipe yields 3-dose, decant to 4-dose"
+  related_items:
+    - item_id: 6685
+      item_name: Saradomin brew(4)
+      slug: saradomin-brew-4
+      relationship: alternative
+      description: Defence-focused brew counterpart
+    - item_id: 2450
+      item_name: Zamorak brew(4)
+      slug: zamorak-brew-4
+      relationship: alternative
+      description: Attack and Strength brew counterpart
+    - item_id: 26340
+      item_name: Ancient brew(4)
+      slug: ancient-brew-4
+      relationship: alternative
+      description: Magic-focused brew counterpart
+    - item_id: 31644
+      item_name: Armadyl brew(3)
+      slug: armadyl-brew-3
+      relationship: variant
+      description: 3-dose variant
+  history:
+    - date: "2025-11-19"
+      description: "Armadyl brew released alongside Sailing skill and new Herblore secondaries."
+    - date: "2026-04-01"
+      description: "A typo was fixed in the description of Armadyl brew(1), correcting 'brewn' to 'brew'."
+  about: |-
+    > _"4 doses of Armadyl brew."_
+
+    The Armadyl brew is a Ranged-focused combat potion released with the Sailing update. It serves the Ranged combat style what Zamorak brew does for melee.
+
+    Per dose:
+    - Restores 10% + 2 of current HP (can overheal)
+    - Boosts Ranged by 10% + 4 of base level
+    - Lowers Attack, Strength, Defence, Magic by 10% + 2
+
+    Brewing requirements:
+    - Herblore Level: 89
+    - XP: 205 per brew
+    - Materials: Umbral potion (unf) + Rainbow crab paste
+    - Duration: 2 game ticks (1.2 seconds)
+
+    Stat decay occurs at 1 point per minute (or 90 seconds with Preserve prayer).
+  market_strategy:
+    notes:
+      - "Ranged-focused brew counterpart to Saradomin/Zamorak brews"
+      - "Herblore 89 secondary requirement gates supply"
+      - "High volume on 4-dose variant (65k daily)"
+      - "Rainbow crab paste price drives margin"
+      - "Buy when rainbow crab paste price dips"
+      - "Decant arbitrage: 3-dose vs 4-dose price per dose"
+      - "Demand tied to Ranged PvM endgame meta"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

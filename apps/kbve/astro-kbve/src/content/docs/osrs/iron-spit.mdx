@@ -1,6 +1,6 @@
 ---
 title: Iron spit | OSRS Price Data
-description: "Iron spit: An iron spit.. High alch: 38 GP, GE limit: 11,000."
+description: "Iron spit is a Cooking tool used to roast skewerable meats over a fire. High alch: 38 GP, GE limit: 11,000."
 osrs:
   id: 7225
   name: Iron spit
@@ -12,9 +12,71 @@ osrs:
   lowalch: 25
   highalch: 38
   limit: 11000
-  about: "Iron spit is a members-only item in Old School RuneScape. High alchemy value: 38 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: metal
+    tier: low
+  properties:
+    release_date: "2003-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 17
+      xp: 25
+      materials:
+        - item_name: Iron bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: Aaron's Archery Appendages
+      location: Tree Gnome Stronghold
+      price: 64
+      stock: 5
+    - shop_name: Hickton's Archery Emporium
+      location: Catherby
+      price: 64
+      stock: 5
+  related_items:
+    - item_name: Iron bar
+      slug: iron-bar
+      relationship: component
+      description: "Smithing material consumed when forging the spit."
+    - item_name: Raw chompy
+      slug: raw-chompy
+      relationship: product
+      description: "Chompy bird meat skewered onto the spit for roasting at the bonfire."
+    - item_name: Raw rabbit
+      slug: raw-rabbit
+      relationship: product
+      description: "Skewered rabbit meat roasted on an iron spit at a fire."
+  about: "Iron spit is a members-only Cooking tool used to skewer raw meats — most notably raw chompy bird, raw rabbit and the various skewered kebab meats — before roasting them at a fire. Crafted at 17 Smithing from a single iron bar for 25 Smithing experience, the spit is also stocked by a small handful of archery and Cooking shops near Hickton's and the Gnome Stronghold. It is a staple Cooking-supplies item for Big Chompy Bird Hunting and downstream chompy-meat experience."
+  market_strategy:
+    notes:
+      - "Shop-respawned tool with a steady high buy limit of 11,000 per cycle"
+      - "Smithing path is open from 17 Smithing — alt makers create slow supply pressure"
+      - "Chompy Hunting and Recipe for Disaster demand drive thin but persistent volume"
+  trading_tips:
+    - "Buy at shop price (64) and resell when Chompy Hunt content trends on socials"
+    - "Note-flip for ironmen restocking spits during chompy event weeks"
+    - "Compare smithing margins: an iron bar at low price makes spit-smithing profitable"
+  history:
+    - date: "2003-02-27"
+      description: "Released alongside the original Big Chompy Bird Hunting quest, introducing the spit-roast Cooking mechanic."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

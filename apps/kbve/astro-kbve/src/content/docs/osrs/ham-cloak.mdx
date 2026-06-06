@@ -1,6 +1,6 @@
 ---
 title: Ham cloak | OSRS Price Data
-description: "Ham cloak is a members cape slot item. High alch: 45 GP, GE limit: 15."
+description: "Ham cloak: A HAM cape. High alch: 45 GP, GE limit: 15."
 osrs:
   id: 4304
   name: Ham cloak
@@ -12,31 +12,108 @@ osrs:
   lowalch: 30
   highalch: 45
   limit: 15
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2005-02-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  about: |-
+    > *"A HAM cape."*
+
+    The ham cloak is the cape slot of the H.A.M. (Humans Against Monsters) robe set, a thieving disguise worn by the cult of zealots that operates the H.A.M. Hideout west of Lumbridge. Each piece of the uniform a player wears reduces the chance of being ejected from the hideout after a failed pickpocket, but the cloak does not affect pickpocket success rates. Combat statistics are slight: only minor defensive bonuses are conferred. Adventurers most often acquire one by pickpocketing H.A.M. members or as a drop from H.A.M. guards while training low-level Thieving.
   equipment:
     slot: cape
+    attack_speed: null
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: H.A.M. Guard
+        location: H.A.M. Hideout (west of Lumbridge)
+        quantity: "1"
+        rarity: 1/110
+        members: true
+        notes: "Standard drop; H.A.M. Guards require completing the early portion of the Death to the Dorgeshuun quest to engage cleanly."
+      - source: H.A.M. Member (pickpocket)
+        location: H.A.M. Hideout
+        quantity: "1"
+        rarity: 1/102
+        members: true
+        notes: "Requires 15 Thieving to pickpocket; the cloak appears in their loot pool alongside other robe pieces."
+  history:
+    - date: "2005-02-22"
+      update: H.A.M. update
+      description: "Released with the H.A.M. Hideout and the H.A.M. cultists, introducing the robe set as both a thieving target and pickpocket disguise."
+    - date: "2014-12-08"
+      update: Wardrobe interface
+      description: "Made storable in the player-owned house Costume Room cape rack alongside other clue and quest capes."
   related_items:
     - item_id: 4302
       item_name: Ham hood
       slug: ham-hood
       relationship: set-piece
-      description: H.A.M. head piece
+      description: "Head slot piece of the H.A.M. robe set; required to maximise hideout retention."
     - item_id: 4298
       item_name: Ham shirt
       slug: ham-shirt
       relationship: set-piece
-      description: H.A.M. body piece
+      description: "Body slot piece of the H.A.M. robe set."
     - item_id: 4300
       item_name: Ham robe
       slug: ham-robe
       relationship: set-piece
-      description: H.A.M. legs piece
-  about: |-
-    > *"A HAM cape."*
-
-    The ham cloak is the cape piece of the H.A.M. (Humans Against Monsters) robes set. Wearing more pieces reduces the chance of being ejected from the H.A.M. Hideout when caught pickpocketing. A members-only item with no combat stats.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Legs slot piece of the H.A.M. robe set."
+    - item_id: 4308
+      item_name: Ham gloves
+      slug: ham-gloves
+      relationship: set-piece
+      description: "Hands slot piece of the H.A.M. robe set."
+    - item_id: 4310
+      item_name: Ham boots
+      slug: ham-boots
+      relationship: set-piece
+      description: "Feet slot piece of the H.A.M. robe set."
+  market_strategy:
+    notes:
+      - "Tight buy limit of 15 means inventory turn is slow; stagger orders across multiple 4-hour windows."
+      - "Demand spikes from new players unlocking the Lumbridge & Draynor Easy Diary and chasing the full H.A.M. set."
+      - "High alch sits well below GE price, so this is a flip-only item, not an alchemy filler."
+  trading_tips:
+    - "Stack pickpocket runs at H.A.M. Hideout for a self-supplied set instead of buying off the GE."
+    - "Wearing the full H.A.M. set including the cloak reduces hideout ejection chance: stack pieces before training Thieving here."
+    - "Bring the full robe set when farming for the H.A.M. Robber from the Hard clue scroll Wanted! emote step."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

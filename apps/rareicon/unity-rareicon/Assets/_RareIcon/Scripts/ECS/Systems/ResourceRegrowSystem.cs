@@ -4,39 +4,12 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>
-    /// Periodic regrowth for harvestable hex resources.
-    ///
-    /// Every TickInterval seconds, every loaded hex gets an independent roll
-    /// per renewable resource (mushrooms, berries, herbs, wood). On hit, the
-    /// amount ticks up by 1 — capped at the deterministic max from
-    /// HexResourceTable.Roll so a sand tile never grows mushrooms and a
-    /// "rich" forest hex caps where it started.
-    ///
-    /// Stone never regrows (geology > biology). Wood is renewable but slow.
-    ///
-    /// When a resource crosses the 0 → non-zero boundary the HexResourceVisual
-    /// mask is also rewritten so the shader starts drawing the decoration
-    /// again on tiles that were depleted.
-    ///
-    /// Burst ISystem — pure data-flow over EntityQuery, no managed access.
-    /// </summary>
+    /// <summary>Periodic regrowth for harvestable hex resources. Every TickInterval seconds each loaded hex gets an independent roll per renewable resource (mushrooms, berries, herbs, wood, leaves, branches, cactus). On a hit the amount ticks up by 1 — capped at the deterministic max from HexResourceTable.Roll so a sand tile never grows mushrooms and a "rich" forest hex caps where it started. Stone never regrows (geology > biology). Wood is renewable but slow. When a resource crosses the 0 → non-zero boundary the HexResourceVisual / HexTreeVisual / HexFloorAmounts / HexCactusVisual buffers are also rewritten so the shader starts drawing decoration again on tiles that were depleted. ResourceRegrowJob is the [BurstCompile] IJobEntity that runs parallel across hex chunks — at 10k+ loaded terrain hexes the prior main-thread foreach was the per-cadence spike.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct ResourceRegrowSystem : ISystem
     {
-
         const float TickInterval = 2.0f;
-
-        const float MushroomRegrowChance = 0.05f;
-        const float BerryRegrowChance    = 0.04f;
-        const float HerbRegrowChance     = 0.03f;
-        const float WoodRegrowChance     = 0.01f;
-
-        const float CactusRegrowChance   = 0.006f;
-
-        const float LeavesRegrowChance   = 0.06f;
-        const float BranchesRegrowChance = 0.03f;
 
         float _accumTime;
         uint  _tickCounter;
@@ -58,64 +31,66 @@ namespace RareIcon
             if (_accumTime < TickInterval) return;
             _accumTime = 0f;
             _tickCounter++;
-            uint tick = _tickCounter;
 
-            foreach (var (hexCoord, biome, resourcesRW, visualRW, treeRW, floorRW, cactusRW) in
-                     SystemAPI.Query<
-                         RefRO<HexCoord>,
-                         RefRO<BiomeType>,
-                         RefRW<HexResources>,
-                         RefRW<HexResourceVisual>,
-                         RefRW<HexTreeVisual>,
-                         RefRW<HexFloorAmounts>,
-                         RefRW<HexCactusVisual>>())
+            state.Dependency = new ResourceRegrowJob { Tick = _tickCounter }
+                                   .ScheduleParallel(state.Dependency);
+        }
+    }
+
+    [BurstCompile]
+    public partial struct ResourceRegrowJob : IJobEntity
+    {
+        const float MushroomRegrowChance = 0.05f;
+        const float BerryRegrowChance    = 0.04f;
+        const float HerbRegrowChance     = 0.03f;
+        const float WoodRegrowChance     = 0.01f;
+        const float CactusRegrowChance   = 0.006f;
+        const float LeavesRegrowChance   = 0.06f;
+        const float BranchesRegrowChance = 0.03f;
+
+        public uint Tick;
+
+        void Execute(
+            in  HexCoord            hexCoord,
+            in  BiomeType           biome,
+            ref HexResources        resources,
+            ref HexResourceVisual   visual,
+            ref HexTreeVisual       tree,
+            ref HexFloorAmounts     floor,
+            ref HexCactusVisual     cactus)
+        {
+            int  q = hexCoord.Q;
+            int  r = hexCoord.R;
+            byte b = biome.Value;
+
+            var (maxes, _) = HexResourceTable.Roll(b, q, r);
+            var current = resources;
+
+            uint h = (uint)q * 0x9E3779B1u ^ (uint)r * 0x85EBCA77u ^ Tick;
+
+            bool changed = false;
+            changed |= TryRegrow(ref current.Mushrooms, maxes.Mushrooms, MushroomRegrowChance, ref h);
+            changed |= TryRegrow(ref current.Berries,   maxes.Berries,   BerryRegrowChance,    ref h);
+            changed |= TryRegrow(ref current.Herbs,     maxes.Herbs,     HerbRegrowChance,     ref h);
+            changed |= TryRegrow(ref current.Wood,      maxes.Wood,      WoodRegrowChance,     ref h);
+            changed |= TryRegrow(ref current.Leaves,    maxes.Leaves,    LeavesRegrowChance,   ref h);
+            changed |= TryRegrow(ref current.Branches,  maxes.Branches,  BranchesRegrowChance, ref h);
+
+            if (TryRegrow(ref current.Cactus, maxes.Cactus, CactusRegrowChance, ref h))
             {
-                int  q = hexCoord.ValueRO.Q;
-                int  r = hexCoord.ValueRO.R;
-                byte b = biome.ValueRO.Value;
-
-                var (maxes, _) = HexResourceTable.Roll(b, q, r);
-                var current = resourcesRW.ValueRO;
-
-                uint h = (uint)q * 0x9E3779B1u ^ (uint)r * 0x85EBCA77u ^ tick;
-
-                bool changed = false;
-                changed |= TryRegrow(ref current.Mushrooms, maxes.Mushrooms, MushroomRegrowChance, ref h);
-                changed |= TryRegrow(ref current.Berries,   maxes.Berries,   BerryRegrowChance,    ref h);
-                changed |= TryRegrow(ref current.Herbs,     maxes.Herbs,     HerbRegrowChance,     ref h);
-                changed |= TryRegrow(ref current.Wood,      maxes.Wood,      WoodRegrowChance,     ref h);
-                changed |= TryRegrow(ref current.Leaves,    maxes.Leaves,    LeavesRegrowChance,   ref h);
-                changed |= TryRegrow(ref current.Branches,  maxes.Branches,  BranchesRegrowChance, ref h);
-
-                if (TryRegrow(ref current.Cactus, maxes.Cactus, CactusRegrowChance, ref h))
-                {
-                    if (current.CactusVariant == CactusVariantType.None)
-                        current.CactusVariant = maxes.CactusVariant;
-                    changed = true;
-                }
-
-                if (!changed) continue;
-
-                resourcesRW.ValueRW = current;
-
-                visualRW.ValueRW = new HexResourceVisual
-                {
-                    Value = HexResourceTable.ComputeVisualMask(in current)
-                };
-
-                treeRW.ValueRW = new HexTreeVisual
-                {
-                    Value = HexResourceTable.ComputeTreeAmount(in current)
-                };
-                floorRW.ValueRW = new HexFloorAmounts
-                {
-                    Value = HexResourceTable.ComputeFloorAmounts(in current)
-                };
-                cactusRW.ValueRW = new HexCactusVisual
-                {
-                    Value = HexResourceTable.ComputeCactusAmount(in current)
-                };
+                if (current.CactusVariant == CactusVariantType.None)
+                    current.CactusVariant = maxes.CactusVariant;
+                changed = true;
             }
+
+            if (!changed) return;
+
+            resources = current;
+
+            visual = new HexResourceVisual { Value = HexResourceTable.ComputeVisualMask(in current) };
+            tree   = new HexTreeVisual     { Value = HexResourceTable.ComputeTreeAmount(in current) };
+            floor  = new HexFloorAmounts   { Value = HexResourceTable.ComputeFloorAmounts(in current) };
+            cactus = new HexCactusVisual   { Value = HexResourceTable.ComputeCactusAmount(in current) };
         }
 
         static bool TryRegrow(ref byte amount, byte max, float chance, ref uint hashState)

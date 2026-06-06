@@ -1,6 +1,6 @@
 ---
 title: Oak shortbow (u) | OSRS Price Data
-description: "Oak shortbow (u): An unstrung oak shortbow; I need a bowstring for this.. High alch: 30 GP, GE limit: 10,000."
+description: "Oak shortbow (u) is an unstrung oak shortbow fletched at 20 Fletching and strung with a bowstring to complete the bow. High alch: 30 GP, GE limit: 10,000."
 osrs:
   id: 54
   name: Oak shortbow (u)
@@ -12,23 +12,84 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Use
+      - Drop
+    destroy: "Drop"
+    alchable: true
+  material:
+    type: wood
+    tier: low
+  recipes:
+    - skill: fletching
+      level: 20
+      xp: 16.5
+      materials:
+        - item_name: Oak logs
+          quantity: 1
+      tools:
+        - Knife
+      output_quantity: 1
+    - skill: fletching
+      level: 20
+      xp: 16.5
+      materials:
+        - item_name: Oak shortbow (u)
+          quantity: 1
+        - item_name: Bowstring
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      product: Oak shortbow
+      product_id: 50
   related_items:
     - item_id: 50
-      item_name: Shortbow (u)
-      slug: shortbow-u
-      relationship: variant
-      description: Lower tier unstrung shortbow
+      item_name: Oak shortbow
+      slug: oak-shortbow
+      relationship: product
+      description: Strung oak shortbow, the completed weapon.
     - item_id: 56
       item_name: Oak longbow (u)
       slug: oak-longbow-u
       relationship: variant
-      description: Matching unstrung oak longbow
+      description: Slower-tier unstrung oak longbow.
+    - item_id: 50
+      item_name: Shortbow (u)
+      slug: shortbow-u
+      relationship: downgrade
+      description: Lower-tier unstrung shortbow at 5 Fletching.
+    - item_id: 5439
+      item_name: Bowstring
+      slug: bowstring
+      relationship: component
+      description: Crafted from flax; required to string the bow.
   about: |-
-    > _"An unstrung oak shortbow; I need a bowstring for this."_
+    Oak shortbow (u) is a Fletching intermediate created by using a knife on oak logs at level 20 Fletching for 16.5 XP. Stringing it with a bowstring at the same level produces an oak shortbow, granting another 16.5 XP for a clean 33 XP per log when both steps are completed.
 
-    The oak shortbow (u) is an unstrung shortbow made from oak logs. String with a bowstring at 20 Fletching to create an oak shortbow. Members only.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The unstrung-then-string pipeline is one of the cheapest mid-game Fletching XP methods, and bulk crafters often hold tens of thousands at a time to flip when bowstring or oak log prices spike.
+  market_strategy:
+    notes:
+      - "Supply driven by Fletching trainers at level 20+."
+      - "Profit comes from stringing margin: bowstring price vs strung bow price."
+      - "Demand sinks: Fletching XP buyers and bowstring resellers."
+  trading_tips:
+    - "Watch bowstring GE price: stringing margin flips daily."
+    - "10,000 buy limit makes bulk Fletching flips viable."
+    - "Hold unstrung when oak log prices fall, sell after Fletching events."
+  history:
+    - date: "2002-02-27"
+      description: "Released with the Fletching skill rework alongside oak Fletching tiers."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

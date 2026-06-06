@@ -1,6 +1,6 @@
 ---
 title: Lemon | OSRS Price Data
-description: "Lemon: A fresh lemon.. High alch: 1 GP, GE limit: 13,000."
+description: "Lemon is a Gnome-cooking citrus ingredient with niche Hosidius drink uses. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 2102
   name: Lemon
@@ -12,9 +12,56 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Lemon is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: fruit
+    tier: low
+  properties:
+    release_date: "2002-12-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Slice
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Lemon chunks
+      slug: lemon-chunks
+      relationship: product
+      description: "Sliced lemon used in Gnome cocktails and bartending recipes."
+    - item_name: Lemon slices
+      slug: lemon-slices
+      relationship: product
+      description: "Alternative cut used in cocktail garnishes."
+    - item_name: Lime
+      slug: lime
+      relationship: alternative
+      description: "Parallel citrus ingredient with overlapping cocktail uses."
+    - item_name: Orange
+      slug: orange
+      relationship: alternative
+      description: "Comparable Gnome-cocktail fruit ingredient."
+  about: "Lemon is a members-only citrus fruit used primarily in Gnome bartending recipes such as the Drunk Dragon and Choc Saturday cocktails after being sliced into lemon chunks or lemon slices. The fruit can be picked from lemon trees grown in farming patches at 27 Farming or bought from a small handful of food shops, and is rarely traded outside of niche cocktail crafting runs."
+  market_strategy:
+    notes:
+      - "Cheap Gnome-cocktail ingredient with thin GE demand"
+      - "13,000 buy limit overshoots realistic traded volume"
+      - "Useful as a low-cost cocktail-XP ingredient for ironmen training Cooking through bartending"
+  trading_tips:
+    - "Slice into chunks before listing if cocktail demand spikes — chunks often clear faster"
+    - "Track Gnome restaurant minigame popularity for thin demand swings"
+  history:
+    - date: "2002-12-11"
+      description: "Released alongside the Gnome Stronghold update which introduced Gnome cooking and cocktails."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

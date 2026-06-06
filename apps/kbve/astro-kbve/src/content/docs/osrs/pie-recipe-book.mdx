@@ -12,9 +12,67 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 15
-  about: "Pie recipe book is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - "Read"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: Pie Shop
+      location: Cooks' Guild
+      price: 5
+      currency: Coins
+      stock: 50
+  related_items:
+    - item_name: Apple pie
+      slug: apple-pie
+      relationship: product
+      description: "One of the pies documented in the book"
+    - item_name: Meat pie
+      slug: meat-pie
+      relationship: product
+      description: "One of the pies documented in the book"
+    - item_name: Summer pie
+      slug: summer-pie
+      relationship: product
+      description: "One of the pies documented in the book"
+    - item_name: Wild pie
+      slug: wild-pie
+      relationship: product
+      description: "One of the pies documented in the book"
+    - item_name: Dragonfruit pie
+      slug: dragonfruit-pie
+      relationship: product
+      description: "One of the pies documented in the book"
+  about: "Pie recipe book documents twelve pie recipes available to OSRS cooks. It is sold by Romily Weaklax at the Pie Shop in the Cooks' Guild for 5 coins, restocking every 30 seconds. The book can be read for reference and also displayed on a player-owned house bookshelf as a decorative item."
+  market_strategy:
+    notes:
+      - "Shop-stocked at 5 gp caps any flipping potential"
+      - "Tiny buy limit (15) and weak alch value (3 gp) make profit razor thin"
+      - "Primarily collected for POH bookshelf displays"
+  trading_tips:
+    - "Buy directly from Romily Weaklax instead of the Grand Exchange"
+    - "Skip alching — low alch (2 gp) is below a nature rune"
+    - "Stack one for the bookshelf and move on"
+  history:
+    - date: "2006-02-20"
+      description: "Released alongside the Cooks' Guild Pie Shop"
+    - date: "2019-01-23"
+      description: "Added dragonfruit pie entry"
+    - date: "2020-01-08"
+      description: "Added botanical and mushroom pie entries"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

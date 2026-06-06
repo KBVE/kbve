@@ -1,6 +1,6 @@
 ---
 title: Fremennik blue cloak | OSRS Price Data
-description: "Fremennik blue cloak: The latest fashion in Rellekka.. High alch: 150 GP, GE limit: 150."
+description: "Fremennik blue cloak: The latest fashion in Rellekka. High alch: 150 GP, GE limit: 150."
 osrs:
   id: 3763
   name: Fremennik blue cloak
@@ -12,9 +12,99 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 150
-  about: "Fremennik blue cloak is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-11-02"
+    update: "The Fremennik Trials"
+    quest_item: false
+    quest_required: "The Fremennik Trials"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    weight: 0.453
+    destroy: "Drop"
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    examine_options:
+      - Examine
+  equipment:
+    slot: cape
+    type: cape
+    attack_style: none
+    attack_speed: 4
+    tradeable: true
+    weight: 0.453
+    requirements:
+      quest: "The Fremennik Trials"
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 1
+      defence_crush: 1
+      defence_magic: 0
+      defence_ranged: 2
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer_bonus: 0
+  shops:
+    - shop_name: Yrsa's Shoe Store
+      location: Rellekka
+      price: 325
+      sell_price: 175
+      stock: 5
+      restock_time: 60
+      currency: coins
+      notes: "Yrsa stocks all eleven cloak colours after The Fremennik Trials"
+  related_items:
+    - item_id: 3759
+      item_name: Fremennik cyan cloak
+      slug: fremennik-cyan-cloak
+      relationship: variant
+      description: Cyan colour swap of the same cape
+    - item_id: 3761
+      item_name: Fremennik brown cloak
+      slug: fremennik-brown-cloak
+      relationship: variant
+      description: Brown colour swap
+    - item_id: 3765
+      item_name: Fremennik green cloak
+      slug: fremennik-green-cloak
+      relationship: variant
+      description: Green colour swap
+    - item_id: 3767
+      item_name: Fremennik red cloak
+      slug: fremennik-red-cloak
+      relationship: variant
+      description: Red colour swap
+    - item_id: 3791
+      item_name: Fremennik shirt
+      slug: fremennik-shirt
+      relationship: set-piece
+      description: Body slot of the Fremennik outfit
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Stock cap of 5 at Yrsa caps merchanting upside"
+      - "Demand is mostly fashionscape and Fremennik diary clothing"
+      - "Buy direct from Yrsa for 325 gp when GE listings are dry"
+      - "Yrsa restock: 60s, 5 units per cycle"
+      - "Players already past The Fremennik Trials can self-supply cheaper than GE"
+  history:
+    - date: "2004-11-02"
+      description: "Added with The Fremennik Trials quest as part of Yrsa's cloak palette"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

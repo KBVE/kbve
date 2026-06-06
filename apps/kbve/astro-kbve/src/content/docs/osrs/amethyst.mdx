@@ -1,6 +1,6 @@
 ---
 title: Amethyst | OSRS Price Data
-description: "Amethyst: Maybe I can make something with this.. High alch: 2,340 GP, GE limit: 13,000."
+description: "Amethyst: Maybe I can make something with this. High alch: 2,340 GP, GE limit: 13,000."
 osrs:
   id: 21347
   name: Amethyst
@@ -12,71 +12,144 @@ osrs:
   lowalch: 1560
   highalch: 2340
   limit: 13000
+  about: Amethyst is a members-only purple gem mined inside the Mining Guild at level 92 Mining. It is cut with a chisel into arrow tips, bolt tips, javelin heads, or dart tips, producing the highest-DPS non-special ammunition in the game and serving as a popular semi-AFK Mining money-maker.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2017-09-21"
+    update: Amethyst Crystals
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
   material:
     type: gem
-    tier: amethyst
-    tradeable: true
-    weight: 0.01
-  gathering:
+    tier: high
+  mining:
     skill: mining
     level: 92
     xp: 240
     tool: Pickaxe
-    location: Mining Guild
+    locations:
+      - Mining Guild amethyst chamber
     members_only: true
-  crafting_products:
-    - product_id: 21350
-      product_name: Amethyst arrowtips
-      crafting_level: 85
+  drop_table:
+    sources:
+      - source: Crystal impling jar
+        quantity: "1"
+        rarity: rare
+      - source: Larran's small chest
+        quantity: "1"
+        rarity: uncommon
+      - source: Larran's big chest
+        quantity: "1"
+        rarity: uncommon
+      - source: Brimstone chest
+        quantity: "1"
+        rarity: uncommon
+  recipes:
+    - skill: crafting
+      level: 83
       xp: 60
-      quantity: "15"
-    - product_id: 21338
-      product_name: Amethyst bolt tips
-      crafting_level: 83
+      tools:
+        - Chisel
+      materials:
+        - item_name: Amethyst
+          item_id: 21347
+          quantity: 1
+      product: Amethyst bolt tips
+      product_id: 21338
+      output_quantity: 15
+      members_only: true
+    - skill: crafting
+      level: 85
       xp: 60
-      quantity: "15"
-    - product_id: 21352
-      product_name: Amethyst javelin heads
-      crafting_level: 87
+      tools:
+        - Chisel
+      materials:
+        - item_name: Amethyst
+          item_id: 21347
+          quantity: 1
+      product: Amethyst arrowtips
+      product_id: 21350
+      output_quantity: 15
+      members_only: true
+    - skill: crafting
+      level: 87
       xp: 60
-      quantity: "5"
-    - product_id: 25853
-      product_name: Amethyst dart tips
-      crafting_level: 89
+      tools:
+        - Chisel
+      materials:
+        - item_name: Amethyst
+          item_id: 21347
+          quantity: 1
+      product: Amethyst javelin heads
+      product_id: 21352
+      output_quantity: 5
+      members_only: true
+    - skill: crafting
+      level: 89
       xp: 60
-      quantity: "8"
-  market:
-    buy_limit: 13000
-    price_estimate: 1500
+      tools:
+        - Chisel
+      materials:
+        - item_name: Amethyst
+          item_id: 21347
+          quantity: 1
+      product: Amethyst dart tip
+      product_id: 25853
+      output_quantity: 8
+      members_only: true
   related_items:
-    - item_id: 21326
-      item_name: Amethyst arrow
-      slug: amethyst-arrow
+    - item_id: 21350
+      item_name: Amethyst arrowtips
+      slug: amethyst-arrowtips
       relationship: product
-      description: Popular ammo
-    - item_id: 21316
-      item_name: Amethyst broad bolts
-      slug: amethyst-broad-bolts
+      description: Highest-tier arrowtip with elf-bow synergy
+    - item_id: 21338
+      item_name: Amethyst bolt tips
+      slug: amethyst-bolt-tips
       relationship: product
-      description: Slayer bolts
-    - item_id: 25849
-      item_name: Amethyst dart
-      slug: amethyst-dart
+      description: Crafted into broad-equivalent bolts
+    - item_id: 25853
+      item_name: Amethyst dart tip
+      slug: amethyst-dart-tip
       relationship: product
-      description: Blowpipe ammo
+      description: Blowpipe ammunition tip
     - item_id: 1755
       item_name: Chisel
       slug: chisel
       relationship: component
-      description: For cutting
+      description: Required tool for cutting amethyst
   market_strategy:
     notes:
-      - Mining Guild only
-      - Expert mining gloves help
-      - AFK mining income
-      - Cut for more profit
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Mining Margin Notes"
+      - "Mining Guild access is gated by 60 Mining or Diary credits"
+      - "Expert mining gloves remove the rock cooldown"
+      - "Cutting amethyst into ammo lifts margin per gem"
+      - "Volume is high enough for instant buys at GE mid"
+  trading_tips:
+    - "Compare uncut vs cut margins before listing"
+    - "Sell cut tips during high-Ranged league weeks"
+    - "Stockpile during Mining XP weekends for discounted buys"
+  history:
+    - date: "2017-09-21"
+      update: Amethyst Crystals
+      description: "Amethyst added with the Mining Guild expansion."
+    - date: "2018-08-23"
+      update: Ranging Guild Updates
+      description: "Amethyst javelin heads added, expanding gem demand."
+    - date: "2022-04-27"
+      update: Forestry pre-update
+      description: "Amethyst dart tips introduced, raising consumption rate."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

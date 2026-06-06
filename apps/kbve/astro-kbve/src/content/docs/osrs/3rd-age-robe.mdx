@@ -1,6 +1,6 @@
 ---
 title: 3rd age robe | OSRS Price Data
-description: "3rd age robe is a members legs slot item requiring 30 Defence. High alch: 30,360 GP, GE limit: 8."
+description: "3rd age robe is a members legs slot item requiring 65 Magic and 30 Defence. High alch: 30,360 GP, GE limit: 8."
 osrs:
   id: 10340
   name: 3rd age robe
@@ -12,60 +12,111 @@ osrs:
   lowalch: 20240
   highalch: 30360
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: enchanted-cloth
+    tier: high
+  properties:
+    release_date: "2006-12-05"
+    update: "Treasure Trails Expansion"
+    quest_item: false
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    weight: 1.8
+    destroy: "You will need to do another Treasure Trail to replace this item."
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    examine_options:
+      - Examine
   equipment:
     slot: legs
     type: magic armour
     attack_style: magic
+    attack_speed: 4
+    tradeable: true
+    weight: 1.8
     requirements:
       magic: 65
       defence: 30
     stats:
-      attack_magic: 17
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: 19
+      attack_ranged: 0
       defence_stab: 26
       defence_slash: 20
       defence_crush: 29
       defence_magic: 17
       defence_ranged: 0
-      magic_damage: 0
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 1
       prayer_bonus: 0
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Master
-        rarity: Very Rare
-        description: Extremely rare reward from master clue scrolls
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        combat_level: 0
+        quantity: "1"
+        rarity: "1/211,250"
+        notes: "Rolled on the hard clue rare table"
+      - source: Reward casket (elite)
+        combat_level: 0
+        quantity: "1"
+        rarity: Very rare
+        notes: "Rolled from elite clue scroll caskets"
+      - source: Reward casket (master)
+        combat_level: 0
+        quantity: "1"
+        rarity: "1/313,168"
+        notes: "Rolled from master clue scroll caskets"
   related_items:
     - item_id: 10342
       item_name: 3rd age mage hat
       slug: 3rd-age-mage-hat
       relationship: set-piece
-      description: Head slot of 3rd age mage set
+      description: Head slot of the 3rd age mage set
     - item_id: 10338
       item_name: 3rd age robe top
       slug: 3rd-age-robe-top
       relationship: set-piece
-      description: Body slot of 3rd age mage set
+      description: Body slot of the 3rd age mage set
     - item_id: 10344
       item_name: 3rd age amulet
       slug: 3rd-age-amulet
       relationship: set-piece
-      description: Neck slot of 3rd age mage set
-  about: |-
-    The 3rd age robe (legs) is part of the 3rd age mage set, one of the rarest and most prestigious armour sets in Old School RuneScape. It requires 65 Magic and 30 Defence to wear.
-
-    3rd age equipment is highly sought after due to its extreme rarity and status symbol value. It can only be obtained from Treasure Trails, specifically from master clue scroll caskets at an exceptionally low drop rate.
+      description: Neck slot of the 3rd age mage set
+    - item_id: 10336
+      item_name: 3rd age wand
+      slug: 3rd-age-wand
+      relationship: set-piece
+      description: Magic weapon paired with the 3rd age mage set
+    - item_id: 4093
+      item_name: Mystic robe bottom
+      slug: mystic-robe-bottom
+      relationship: alternative
+      description: Common-tier magic robe bottoms
   market_strategy:
-    title: Investment Notes
     notes:
-      - Extremely valuable due to rarity
-      - Price fluctuates based on collector demand
-      - Consider set value vs individual pieces
-      - Verify authenticity when trading high-value items
-      - Use Grand Exchange for secure trades
-      - Monitor price trends before purchasing
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Investment Notes"
+      - "Extreme rarity drives multi-million coin GE prices"
+      - "Demand is collector and fashionscape, not raw combat upside"
+      - "Set value tends to outrun the sum of individual pieces during hype cycles"
+      - "Buy limit of 8 every 4 hours throttles flipping volume"
+      - "Watch master clue completion rates: more clues finished = more supply"
+      - "Listings often sit overstocked; placing within 1 percent of last sale clears fastest"
+      - "Magic damage: +1 percent is the practical combat win vs cheaper alternatives"
+  history:
+    - date: "2006-12-05"
+      description: "Released as part of the Treasure Trails Expansion update"
+    - date: "2017-04-06"
+      description: "Drop pool expanded: rolled on hard, elite, and master clue rare tables"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

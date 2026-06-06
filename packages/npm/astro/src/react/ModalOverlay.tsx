@@ -21,6 +21,8 @@ export function ModalOverlay({
 }: ModalOverlayProps) {
 	const { isOpen, close } = useModal();
 	const vnodeRef = useRef<HTMLDivElement>(null);
+	const panelRef = useRef<HTMLDivElement>(null);
+	const restoreFocusRef = useRef<HTMLElement | null>(null);
 	const [hoverClose, setHoverClose] = useState(false);
 	const open = isOpen(id);
 
@@ -42,15 +44,54 @@ export function ModalOverlay({
 		};
 	}, [open, vnode, children]);
 
-	// Escape key handler
+	// Escape to close + Tab focus trap so keyboard users can't tab out of the
+	// open dialog into the inert page behind it.
 	useEffect(() => {
 		if (!open) return;
 		const handler = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') close(id);
+			if (e.key === 'Escape') {
+				close(id);
+				return;
+			}
+			if (e.key !== 'Tab') return;
+			const panel = panelRef.current;
+			if (!panel) return;
+			const focusables = panel.querySelectorAll<HTMLElement>(
+				'a[href], button:not([disabled]), textarea, input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+			);
+			if (focusables.length === 0) {
+				e.preventDefault();
+				panel.focus();
+				return;
+			}
+			const first = focusables[0];
+			const last = focusables[focusables.length - 1];
+			const activeEl = document.activeElement;
+			if (e.shiftKey && (activeEl === first || activeEl === panel)) {
+				e.preventDefault();
+				last.focus();
+			} else if (!e.shiftKey && activeEl === last) {
+				e.preventDefault();
+				first.focus();
+			}
 		};
 		document.addEventListener('keydown', handler);
 		return () => document.removeEventListener('keydown', handler);
 	}, [open, id, close]);
+
+	// Save the element that had focus before opening, move focus into the
+	// dialog, and restore it on close — WCAG 2.4.3 focus order.
+	useEffect(() => {
+		if (!open) return;
+		restoreFocusRef.current =
+			document.activeElement instanceof HTMLElement
+				? document.activeElement
+				: null;
+		panelRef.current?.focus();
+		return () => {
+			restoreFocusRef.current?.focus();
+		};
+	}, [open]);
 
 	// Lock body scroll
 	useEffect(() => {
@@ -125,7 +166,10 @@ export function ModalOverlay({
 				if (open && closeOnBackdrop && e.target === e.currentTarget)
 					close(id);
 			}}>
-			<div style={panelStyle}>
+			<div
+				ref={panelRef}
+				tabIndex={-1}
+				style={{ ...panelStyle, outline: 'none' }}>
 				{title && (
 					<div
 						style={{

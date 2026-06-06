@@ -1,6 +1,6 @@
 ---
 title: Shayzien hood | OSRS Price Data
-description: "Shayzien hood: A rare hood from Shayzien.. High alch: 1 GP, GE limit: 4."
+description: "Shayzien hood is a master Treasure Trails cosmetic head reward. High alch: 1 GP, GE limit: 4."
 osrs:
   id: 20125
   name: Shayzien hood
@@ -12,9 +12,89 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  about: "Shayzien hood is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: mid-high
+  properties:
+    release_date: "2016-07-06"
+    update: Treasure Trails Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    weight: 0.1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  equipment:
+    slot: head
+    weapon_type: ""
+    attack_speed: 4
+    weight: 0.1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+    rarity: "1/851"
+  related_items:
+    - item_id: 20122
+      item_name: Shayzien body
+      slug: shayzien-body
+      relationship: set-piece
+      description: "Cosmetic body matching the hood"
+    - item_id: 20128
+      item_name: Shayzien robe
+      slug: shayzien-robe
+      relationship: set-piece
+      description: "Cosmetic robe legs matching the hood"
+    - item_id: 20131
+      item_name: Shayzien boots
+      slug: shayzien-boots
+      relationship: set-piece
+      description: "Cosmetic boots completing the look"
+  market_strategy:
+    notes:
+      - "Investment Notes"
+      - "Master clue cosmetic with zero combat stats"
+      - "Tiny four-per-four-hour buy limit gives thin liquidity"
+      - "Storable in the costume room mahogany treasure chest"
+      - "Prices track broader master clue cosmetic demand"
+      - "Demand: spikes whenever Hosidius/Shayzien transmogs trend"
+      - "Sell into hype around Kebos-themed events for best margin"
+  history:
+    - date: "2016-07-06"
+      update: Treasure Trails Expansion
+      description: "Released as a master Treasure Trail reward, originally named Shayzien house hood."
+    - date: "2019-01-10"
+      update: Kebos Lowlands
+      description: "Renamed to Shayzien hood with a refreshed examine line."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

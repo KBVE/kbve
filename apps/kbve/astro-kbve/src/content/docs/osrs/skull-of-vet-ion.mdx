@@ -1,6 +1,6 @@
 ---
 title: Skull of vet'ion | OSRS Price Data
-description: "Skull of vet'ion is a members-only OSRS item. High alch: 48,000 GP, GE limit: 8."
+description: "Skull of vet'ion is a Wilderness boss unique that upgrades Thammaron's sceptre into the accursed sceptre. High alch: 48,000 GP, GE limit: 8."
 osrs:
   id: 27673
   name: Skull of vet'ion
@@ -12,9 +12,85 @@ osrs:
   lowalch: 32000
   highalch: 48000
   limit: 8
-  about: "Skull of vet'ion is a members-only item in Old School RuneScape. High alchemy value: 48,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: wilderness-unique
+    tier: high
+  properties:
+    release_date: "2023-01-25"
+    update: Wilderness Boss Rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 2
+    options:
+      - Inspect
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  drop_table:
+    sources:
+      - source: Vet'ion
+        combat_level: 454
+        quantity: "1"
+        rarity: "1/196"
+        members_only: true
+        notes: "Wilderness Boss Rework variant"
+      - source: Calvar'ion
+        combat_level: 264
+        quantity: "1"
+        rarity: "1/618"
+        members_only: true
+        notes: "Singles-only Wilderness instance"
+  recipes:
+    - skill: crafting
+      level: 85
+      xp: 0
+      materials:
+        - item_id: 27670
+          item_name: Thammaron's sceptre (u)
+          quantity: 1
+        - item_id: 27673
+          item_name: Skull of vet'ion
+          quantity: 1
+      output_id: 27676
+      output_name: Accursed sceptre (u)
+      output_quantity: 1
+      notes: "Or pay Phabelle Bile in Ferox Enclave 500,000 coins to bypass the Crafting requirement"
+  related_items:
+    - item_id: 27676
+      item_name: Accursed sceptre (u)
+      slug: accursed-sceptre-u
+      relationship: product
+      description: "Upgraded sceptre crafted from the skull"
+    - item_id: 27670
+      item_name: Thammaron's sceptre (u)
+      slug: thammarons-sceptre-u
+      relationship: component
+      description: "Base sceptre combined with the skull"
+    - item_id: 27656
+      item_name: Voidwaker hilt
+      slug: voidwaker-hilt
+      relationship: alternative
+      description: "Other Vet'ion-tier Wilderness boss unique"
+  market_strategy:
+    notes:
+      - "Investment Notes"
+      - "Only sourced from Vet'ion and Calvar'ion in the Wilderness"
+      - "Demand tied directly to accursed sceptre crafting"
+      - "Buy limit of eight per four hours throttles flips"
+      - "Lower drop rate on Calvar'ion biases supply toward main-Wilderness Vet'ion"
+      - "Track accursed sceptre spread vs raw skull and Thammaron's sceptre (u) to spot crafting margin"
+      - "Wilderness mass events: supply spikes from increased boss farming"
+  history:
+    - date: "2023-01-25"
+      update: Wilderness Boss Rework
+      description: "Skull of vet'ion released as a unique drop from the reworked Vet'ion and singles-only Calvar'ion."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

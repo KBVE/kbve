@@ -1,6 +1,6 @@
 ---
 title: Unfinished broad bolts | OSRS Price Data
-description: "Unfinished broad bolts: Add feathers to make broad-tipped crossbow bolts.. High alch: 33 GP, GE limit: 7,000."
+description: "Unfinished broad bolts are members Fletching intermediates that become broad bolts after adding feathers at 55 Fletching. High alch: 33 GP, GE limit: 7,000."
 osrs:
   id: 11876
   name: Unfinished broad bolts
@@ -12,9 +12,81 @@ osrs:
   lowalch: 22
   highalch: 33
   limit: 7000
-  about: "Unfinished broad bolts is a members-only item in Old School RuneScape. High alchemy value: 33 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: ammunition
+    tier: low
+  recipes:
+    - skill: smithing
+      level: 27
+      xp: 25
+      materials:
+        - item_name: Steel bar
+          quantity: 1
+        - item_name: Broad arrowheads
+          quantity: 10
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 10
+    - skill: fletching
+      level: 55
+      xp: 30
+      materials:
+        - item_name: Unfinished broad bolts
+          quantity: 10
+        - item_name: Feather
+          quantity: 10
+      tools: []
+      output_quantity: 10
+  related_items:
+    - item_name: Broad bolts
+      slug: broad-bolts
+      relationship: product
+      description: Finished broad bolt produced after adding feathers at 55 Fletching.
+    - item_name: Broad arrowheads
+      slug: broad-arrowheads
+      relationship: component
+      description: Smithing reagent combined with a steel bar to forge unfinished broad bolts.
+    - item_name: Feather
+      slug: feather
+      relationship: component
+      description: Attached to unfinished bolts to finish them into broad bolts.
+    - item_name: Amethyst broad bolts
+      slug: amethyst-broad-bolts
+      relationship: alternative
+      description: Higher-tier amethyst-tipped variant fletched from the broad bolt product.
+  about: "Unfinished broad bolts are the Smithing intermediate for the broad-tipped crossbow ammunition family used against Turoth and Kurask Slayer tasks. They are forged at 27 Smithing by combining a steel bar with 10 broad arrowheads on an anvil for 25 Smithing experience per bar; the 10 unfinished broad bolts are then completed at 55 Fletching by adding 10 feathers for 30 Fletching experience. Crafting them requires the Broader Fletching unlock from the Slayer rewards interface (300 Slayer reward points). They are members-only with a Grand Exchange buy limit of 7,000 per 4 hours, and they cannot be wielded — they only exist as a step toward broad bolts and the upgraded amethyst broad bolts."
+  market_strategy:
+    notes:
+      - "Profit hinges on the spread between unfinished and finished broad bolt prices versus 10 feathers."
+      - "Steel bar and broad arrowhead prices feed the production cost — track all three when sizing buy orders."
+      - "Demand follows broad bolt and amethyst broad bolt usage on Slayer ranged setups."
+      - "GE buy limit of 7,000 per 4 hours supports bulk Fletching XP flips."
+  trading_tips:
+    - "Buy unfinished broad bolts during low-feather periods to lock in cheaper completed inventory."
+    - "Pair with feather flips when Slayer XP weekends drive broad bolt demand."
+    - "Watch the Broader Fletching unlock rate — content updates that lower its point cost flood supply."
+  history:
+    - date: "2007-08-15"
+      description: "Released as part of the Slayer rewards interface and Broader Fletching unlock update."
+    - date: "2015-05-21"
+      description: "Crafting tweak unified broad bolt smithing batch yields at 10 per steel bar."
+  properties:
+    release_date: "2007-08-15"
+    update: "Slayer rewards and Broader Fletching"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

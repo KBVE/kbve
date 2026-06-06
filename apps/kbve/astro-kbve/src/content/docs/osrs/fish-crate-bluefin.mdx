@@ -1,6 +1,6 @@
 ---
 title: Fish crate (bluefin) | OSRS Price Data
-description: "Fish crate (bluefin): A sturdy container packed with ice and full to the brim with bluefin.. High alch: 3 GP."
+description: "Fish crate (bluefin): A sturdy container packed with ice and full to the brim with bluefin. High alch: 3 GP."
 osrs:
   id: 32380
   name: Fish crate (bluefin)
@@ -11,10 +11,82 @@ osrs:
   value: 5
   lowalch: 2
   highalch: 3
-  limit: null
-  about: "Fish crate (bluefin) is a members-only item in Old School RuneScape. High alchemy value: 3 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: 250
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing"
+    quest_item: false
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    weight: 1
+    destroy: "Drop"
+    options:
+      - Empty
+      - Drop
+    examine_options:
+      - Examine
+    notes: "Can only be emptied inside a bank; returns a camphor crate plus 10 raw bluefin"
+  drop_table:
+    sources:
+      - source: Trawling net (bluefin)
+        combat_level: 0
+        quantity: "1"
+        rarity: Always
+        notes: "Empty a trawling net containing 10+ raw bluefin while an empty fish crate sits in the ship cargo hold"
+  recipes:
+    - skill: fishing
+      level: 1
+      xp: 0
+      tools:
+        - Empty fish crate
+        - Trawling net
+      materials:
+        - item_id: 32382
+          item_name: Empty fish crate
+          quantity: 1
+        - item_id: 21343
+          item_name: Raw bluefin
+          quantity: 10
+      output:
+        item_id: 32380
+        item_name: Fish crate (bluefin)
+        output_quantity: 1
+      members: true
+      notes: "Pack 10 raw bluefin into an empty fish crate, or empty a trawling net into the cargo hold"
+  related_items:
+    - item_id: 32382
+      item_name: Empty fish crate
+      slug: empty-fish-crate
+      relationship: component
+      description: Storage container needed to assemble a packed crate
+    - item_id: 21343
+      item_name: Raw bluefin
+      slug: raw-bluefin
+      relationship: component
+      description: Fish packed inside the crate
+    - item_id: 32390
+      item_name: Camphor crate
+      slug: camphor-crate
+      relationship: product
+      description: Returned to the player when the crate is emptied in a bank
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Supply is gated by Sailing trawling net throughput"
+      - "Each crate banks 10 raw bluefin in one slot - useful for bulk hauls"
+      - "GE limit 250 every 4 hours keeps it as a bulk consumer item"
+      - "Margin tracks: bluefin price x 10 vs crate sale price"
+      - "Empty in a bank to recover the camphor crate for resale"
+  history:
+    - date: "2025-11-19"
+      description: "Released with the Sailing skill update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

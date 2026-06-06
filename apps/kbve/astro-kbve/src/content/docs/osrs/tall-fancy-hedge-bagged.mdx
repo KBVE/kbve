@@ -1,6 +1,6 @@
 ---
 title: Tall fancy hedge (bagged) | OSRS Price Data
-description: "Tall fancy hedge (bagged): You can plant this in your garden.. High alch: 30,000 GP, GE limit: 10,000."
+description: "Tall fancy hedge (bagged): You can plant this in your garden. High alch: 30,000 GP, GE limit: 10,000."
 osrs:
   id: 8447
   name: Tall fancy hedge (bagged)
@@ -12,9 +12,81 @@ osrs:
   lowalch: 20000
   highalch: 30000
   limit: 10000
-  about: "Tall fancy hedge (bagged) is a members-only item in Old School RuneScape. High alchemy value: 30,000 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: Tall fancy hedge (bagged) is a members-only Construction decoration item used to plant a tall fancy hedge in the garden hotspot of a player-owned house. It is the highest-end hedge variant and requires a respectable Construction level to deploy, but it is fully tradeable so non-builders can buy a bagged copy from the Grand Exchange.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2006-05-31"
+    update: Construction
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  material:
+    type: construction_item
+    tier: high
+  construction:
+    construction_level: 42
+    construction_xp: 70
+    room: Garden
+    hotspot: Hedge
+    flatpack: false
+  recipes:
+    - skill: construction
+      level: 42
+      xp: 70
+      materials:
+        - item_name: Tall fancy hedge (bagged)
+          item_id: 8447
+          quantity: 1
+      product: Tall fancy hedge (planted)
+      facility: Garden hotspot
+      members_only: true
+  shops:
+    - shop_name: Garden Supplier
+      location: Falador POH portal
+      price: 50000
+      stock: 5
+      currency: Coins
+  related_items:
+    - item_id: 8445
+      item_name: Tall fancy hedge (planted)
+      slug: tall-fancy-hedge-planted
+      relationship: product
+      description: Result after planting in a garden hotspot
+    - item_id: 8443
+      item_name: Tall hedge (bagged)
+      slug: tall-hedge-bagged
+      relationship: downgrade
+      description: Cheaper plain hedge variant
+    - item_id: 8449
+      item_name: Tall thorny hedge (bagged)
+      slug: tall-thorny-hedge-bagged
+      relationship: alternative
+      description: Higher level thorny hedge variant
+  market_strategy:
+    notes:
+      - "Builder Notes"
+      - "Niche Construction-only demand keeps volume light"
+      - "Buy from the Garden Supplier when in stock for guaranteed inflow"
+      - "List slightly above GE mid for slow but reliable flips"
+      - "Bundle with other bagged plants for full-garden buyers"
+  trading_tips:
+    - "Check the Falador Garden Supplier for cheap restocks"
+    - "Manual offers near tax cap profit best on bagged plants"
+    - "Avoid undercutting when GE volume is under 100 per day"
+  history:
+    - date: "2006-05-31"
+      update: Construction
+      description: "Tall fancy hedge added with the Construction skill launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

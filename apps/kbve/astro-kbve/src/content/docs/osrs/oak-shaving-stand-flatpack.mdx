@@ -1,6 +1,6 @@
 ---
 title: Oak shaving stand (flatpack) | OSRS Price Data
-description: "Oak shaving stand (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Oak shaving stand (flatpack): How does it all fit in there? High alch: 6 GP, GE limit: 500."
 osrs:
   id: 8598
   name: Oak shaving stand (flatpack)
@@ -12,9 +12,67 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Oak shaving stand (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: oak
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    update: "Construction skill"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.0
+    options:
+      - Build
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 28
+      xp: 240
+      materials:
+        - item_name: Oak plank
+          quantity: 3
+      tools:
+        - Hammer
+        - Saw
+      facility: Mahogany Homes / Workshop benches
+      output_quantity: 1
+  related_items:
+    - item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: "Three oak planks per flatpack"
+    - item_name: Saw
+      slug: saw
+      relationship: component
+      description: "Required tool for flatpack assembly"
+    - item_name: Mahogany shaving stand (flatpack)
+      slug: mahogany-shaving-stand-flatpack
+      relationship: upgrade
+      description: "Mahogany version yielding more XP per build"
+  about: |-
+    > _"How does it all fit in there?"_
+
+    The oak shaving stand (flatpack) is a Construction-made flatpack assembled at a workshop bench from 3 oak planks at level 28 Construction for 240 XP. Flatpacks are commonly produced by ironmen and skill alts for chained Construction XP gains in player-owned houses without needing the full hotspot setup. Resulting flatpacks unfold into a placed oak shaving stand in the Costume Room.
+  market_strategy:
+    notes:
+      - "Bulk supplier source: Construction skillers training via flatpack method"
+      - "Used primarily by players furnishing costume rooms without building on-site"
+      - "Buy limit of 500 supports moderate flipping volume"
+  trading_tips:
+    - "Margin between oak plank cost and flatpack price drives profit; track plank prices"
+    - "Demand spikes during Construction-related double XP weekends"
+  history:
+    - date: "2006-05-31"
+      description: "Released with the Construction skill rework introducing flatpack workshop benches."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Mystic set (light) | OSRS Price Data
-description: "Mystic set (light): A set containing light mystic hat, robe top and bottom, gloves and boots.. High alch: 141,000 GP, GE limit: 70."
+description: "Mystic set (light) bundles the full light mystic outfit. High alch: 141,000 GP, GE limit: 70."
 osrs:
   id: 23110
   name: Mystic set (light)
@@ -12,9 +12,76 @@ osrs:
   lowalch: 94000
   highalch: 141000
   limit: 70
-  about: "Mystic set (light) is a members-only item in Old School RuneScape. High alchemy value: 141,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: set
+    tier: high
+  properties:
+    release_date: "2019-03-14"
+    weight: 5.894
+    tradeable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    options:
+      - Exchange
+      - Drop
+    destroy: "Are you sure you want to drop this item?"
+  related_items:
+    - item_id: 3097
+      item_name: Light mystic hat
+      slug: light-mystic-hat
+      relationship: component
+      description: Headpiece included in the set
+    - item_id: 3099
+      item_name: Light mystic robe top
+      slug: light-mystic-robe-top
+      relationship: component
+      description: Torso piece included in the set
+    - item_id: 3101
+      item_name: Light mystic robe bottom
+      slug: light-mystic-robe-bottom
+      relationship: component
+      description: Legs piece included in the set
+    - item_id: 3103
+      item_name: Light mystic gloves
+      slug: light-mystic-gloves
+      relationship: component
+      description: Hands piece included in the set
+    - item_id: 3105
+      item_name: Light mystic boots
+      slug: light-mystic-boots
+      relationship: component
+      description: Feet piece included in the set
+    - item_id: 23104
+      item_name: Mystic set (dark)
+      slug: mystic-set-dark
+      relationship: variant
+      description: Dark mystic colour variant set
+    - item_id: 23107
+      item_name: Mystic set (blue)
+      slug: mystic-set-blue
+      relationship: variant
+      description: Blue mystic colour variant set
+  market_strategy:
+    notes:
+      - "Set is a Grand Exchange convenience bundle exchanged via the clerk"
+      - "Spread: bundled price typically runs 5,000 to 6,000 GP above individual pieces"
+      - "Useful for bulk flipping of light mystic robes"
+      - "Convert play: split set and resell pieces when premium widens"
+      - "Buy point: split below piece sum to lock arbitrage"
+      - "Magic training demand drives steady volume"
+  history:
+    - date: "2019-03-14"
+      update: Item sets release
+      description: "Mystic set (light) added alongside other mystic colour variants in the GE clerk item sets interface."
+  about: |-
+    > _"A set containing light mystic hat, robe top and bottom, gloves and boots."_
+
+    Mystic set (light) bundles the five-piece light mystic outfit (hat, robe top, robe bottom, gloves, boots) into a single tradeable item via the Grand Exchange clerk. The full outfit grants +45 Magic attack and +45 Magic defence with negligible weight, making it a staple for early-mid Magic combat training.
+
+    The bundled set typically trades a few thousand coins above the sum of individual pieces, offering a small arbitrage window for flippers willing to split and resell.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

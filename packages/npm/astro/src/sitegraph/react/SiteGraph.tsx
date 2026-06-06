@@ -4,6 +4,7 @@ import {
 	useState,
 	useCallback,
 	useMemo,
+	useDeferredValue,
 	type CSSProperties,
 } from 'react';
 import {
@@ -300,6 +301,10 @@ export function SiteGraph({
 		return loadStoredDepth(depthProp, minDepth, maxDepth);
 	});
 	const [search, setSearch] = useState(() => readUrlState().q ?? '');
+	// Keep the input responsive while the expensive per-node filter/label
+	// recompute (and on big graphs, the reconcile of every node) lags a frame
+	// behind keystrokes instead of blocking them.
+	const deferredSearch = useDeferredValue(search);
 	const reducedMotion = useMemo(prefersReducedMotion, []);
 
 	// Responsive sizing — ResizeObserver on the container.
@@ -966,8 +971,8 @@ export function SiteGraph({
 	};
 
 	const matchesSearch = (node: GraphNode): boolean => {
-		if (!search) return true;
-		const q = search.toLowerCase();
+		if (!deferredSearch) return true;
+		const q = deferredSearch.toLowerCase();
 		return (
 			node.title.toLowerCase().includes(q) ||
 			node.id.toLowerCase().includes(q)
@@ -1156,7 +1161,7 @@ export function SiteGraph({
 						const labelVisible =
 							node.isCurrent ||
 							hoveredId === node.id ||
-							(search && filterPass) ||
+							(deferredSearch && filterPass) ||
 							node.degree >= 5 ||
 							zoom >= 1.2;
 
@@ -1379,6 +1384,8 @@ export function SiteGraph({
 					value={zoom}
 					onChange={handleSliderChange}
 					title={`Zoom: ${Math.round(zoom * 100)}%`}
+					aria-label="Zoom level"
+					aria-valuetext={`${Math.round(zoom * 100)}%`}
 					style={{
 						flex: 1,
 						height: '3px',
@@ -1387,7 +1394,6 @@ export function SiteGraph({
 						background: `linear-gradient(to right, var(--sl-color-accent, #06b6d4) 0%, var(--sl-color-accent, #06b6d4) ${((zoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100}%, var(--sl-color-gray-5, #262626) ${((zoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100}%, var(--sl-color-gray-5, #262626) 100%)`,
 						borderRadius: '2px',
 						cursor: 'pointer',
-						outline: 'none',
 					}}
 				/>
 			</div>

@@ -1,6 +1,6 @@
 ---
 title: Onyx amulet (u) | OSRS Price Data
-description: "Onyx amulet (u): It needs a string so I can wear it.. High alch: 120,600 GP, GE limit: 10,000."
+description: "Onyx amulet (u): unstrung Onyx amulet crafted at 90 Crafting that becomes the Amulet of fury after stringing and enchanting. High alch: 120,600 GP, GE limit: 10,000."
 osrs:
   id: 6579
   name: Onyx amulet (u)
@@ -12,9 +12,81 @@ osrs:
   lowalch: 80400
   highalch: 120600
   limit: 10000
-  about: "Onyx amulet (u) is a members-only item in Old School RuneScape. High alchemy value: 120,600 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: gem
+    tier: high
+  properties:
+    release_date: "2005-08-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - "Use"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 90
+      xp: 165
+      materials:
+        - item_name: Gold bar
+          quantity: 1
+        - item_name: Onyx
+          quantity: 1
+        - item_name: Amulet mould
+          quantity: 1
+      facility: Furnace
+      output_quantity: 1
+      product: Onyx amulet (u)
+      product_id: 6579
+  related_items:
+    - item_id: 6581
+      item_name: Onyx amulet
+      slug: onyx-amulet
+      relationship: product
+      description: "Strung amulet ready for enchantment"
+    - item_id: 6585
+      item_name: Amulet of fury
+      slug: amulet-of-fury
+      relationship: upgrade
+      description: "Lvl-5 Enchant target produced from a strung Onyx amulet"
+    - item_id: 6573
+      item_name: Onyx
+      slug: onyx
+      relationship: component
+      description: "Cut Onyx gem required to craft the amulet"
+    - item_id: 2357
+      item_name: Gold bar
+      slug: gold-bar
+      relationship: component
+      description: "Smelted gold bar required to craft the amulet"
+    - item_id: 1595
+      item_name: Amulet mould
+      slug: amulet-mould
+      relationship: component
+      description: "Reusable mould required to craft any amulet"
+  about: "Onyx amulet (u) is the unstrung output of the highest non-Zenyte amulet recipe, crafted at level 90 Crafting by using a Gold bar with an Onyx and an Amulet mould at any furnace. The craft awards 165 Crafting experience and is the bottleneck step in the Amulet of fury production line: the unstrung amulet still needs a ball of wool to become an Onyx amulet, after which Lvl-5 Enchant turns it into the Amulet of fury. Despite the steep Onyx cost, players sometimes craft and bank the unstrung form because the GE buy limit on the unstrung version (10,000 per 4 hours) is significantly more generous than the limit on raw Onyx gems for bulk Fury production runs."
+  market_strategy:
+    notes:
+      - "Margin is squeezed by the Onyx + Gold bar input prices"
+      - "Bulk buyers craft (u) form to bypass Onyx GE limit on Fury production"
+      - "Demand tracks Fury Amulet PvM popularity and Zenyte upgrade discussions"
+  trading_tips:
+    - "Spread crafts across two GE limit windows to avoid overpaying on Onyx"
+    - "Watch Lvl-5 Enchant rune prices: cheap enchant phases boost Fury demand"
+    - "Time crafting around Onyx supply spikes from TzHaar streamers / Pyramid Plunder updates"
+  history:
+    - date: "2005-08-22"
+      update: "Onyx gem release"
+      description: "Added with the original Onyx gem family and 90 Crafting cap raise."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

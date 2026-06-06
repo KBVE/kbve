@@ -1,6 +1,6 @@
 ---
 title: Crushed superior dragon bones | OSRS Price Data
-description: "Crushed superior dragon bones: Ground up superior dragon bones.. High alch: 30 GP, GE limit: 11,000."
+description: "Crushed superior dragon bones are a members Herblore secondary for super and extended super antifire. High alch: 30 GP, GE limit: 11,000."
 osrs:
   id: 21975
   name: Crushed superior dragon bones
@@ -12,90 +12,100 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
   material:
     type: secondary
     tier: high
+  properties:
+    release_date: "2017-12-14"
+    update: "Vorkath"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: herblore
-      level: 0
+      level: 1
       xp: 0
       materials:
         - item_name: Superior dragon bones
-          item_id: 22124
           quantity: 1
-      product: Crushed superior dragon bones
-      product_id: 21975
-      product_quantity: 1
-      tool: Pestle and mortar
-      members_only: true
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
     - skill: herblore
       level: 92
       xp: 130
       materials:
         - item_name: Antifire(4)
-          item_id: 2452
           quantity: 1
         - item_name: Crushed superior dragon bones
-          item_id: 21975
           quantity: 1
-      product: Super antifire(4)
-      product_id: 21978
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
     - skill: herblore
       level: 98
       xp: 160
       materials:
         - item_name: Extended antifire(4)
-          item_id: 11951
           quantity: 1
         - item_name: Crushed superior dragon bones
-          item_id: 21975
           quantity: 1
-      product: Extended super antifire(4)
-      product_id: 22209
-      product_quantity: 1
-      members_only: true
+      tools: []
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Vorkath
+        quantity: "1"
+        rarity: "Crafted from drop"
+      - source: Frost dragon
+        quantity: "1"
+        rarity: "Crafted from drop"
   related_items:
-    - item_id: 22124
-      item_name: Superior dragon bones
+    - item_name: Superior dragon bones
       slug: superior-dragon-bones
       relationship: component
-      description: Crushed from these bones
-    - item_id: 21978
-      item_name: Super antifire(4)
+      description: "Raw bones crushed with a pestle and mortar"
+    - item_name: Super antifire(4)
       slug: super-antifire-4
       relationship: product
-      description: Made at 92 Herblore
-    - item_id: 22209
-      item_name: Extended super antifire(4)
+      description: "Brewed at 92 Herblore using this secondary"
+    - item_name: Extended super antifire(4)
       slug: extended-super-antifire-4
       relationship: product
-      description: Made at 98 Herblore
-    - item_id: 233
-      item_name: Pestle and mortar
+      description: "Brewed at 98 Herblore using this secondary"
+    - item_name: Pestle and mortar
       slug: pestle-and-mortar
       relationship: component
-      description: Tool for crushing
+      description: "Tool used to crush superior dragon bones"
   about: |-
-    Use a pestle and mortar on superior dragon bones:
-    - No skill requirement to crush
-    - 1 bone = 1 crushed bones
+    Crushed superior dragon bones are a high-tier Herblore secondary produced by using a pestle and mortar on Superior dragon bones with no skill requirement. They are the limiting reagent for Super antifire potions at 92 Herblore and Extended super antifire potions at 98 Herblore.
+
+    Superior dragon bones come almost entirely from Vorkath (two per kill) and Frost dragons. Players typically buy Superior dragon bones rather than the crushed variant when supply is thin, since crushing is instant and lossless — the per-bone arbitrage is usually small but worth checking when running large Herblore batches.
   market_strategy:
-    title: Supply Chain
-    profit_formulas:
-      - Super antifire - Antifire - Crushed bones = Profit
     notes:
-      - Superior dragon bones from Vorkath (2 per kill)
-      - Rare drop from frost dragons
-      - Crush bones for herblore use
-      - Compare bone price vs crushed price
-      - Crushing is instant, no XP loss
-      - Usually minimal price difference
-      - "Calculate:"
-      - High demand from Vorkath and dragon killers
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Superior dragon bones from Vorkath (2 per kill) drive most supply"
+      - "Crushing is instant with no XP — compare raw vs crushed price per bone"
+      - "Limiting reagent for Super antifire and Extended super antifire"
+      - "Demand tracks dragon-heavy PvM and Slayer task popularity"
+  trading_tips:
+    - "Spread check before crushing — sometimes the crushed bin sells cheaper than the raw bin"
+    - "Run super antifire flips: Super antifire price minus Antifire minus Crushed bones equals margin"
+    - "Stock up during Vorkath XP weekends when bone supply spikes"
+  history:
+    - date: "2017-12-14"
+      description: "Added with the release of Vorkath as a Herblore secondary route"
+    - date: "2018-04-18"
+      description: "Used as a component in the Divine super potion line"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
