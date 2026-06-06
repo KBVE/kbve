@@ -78,7 +78,7 @@ namespace RareIcon
 
         protected override void OnDestroy()
         {
-            // Destroy entities and free per-chunk native lists
+
             foreach (var kvp in _loadedChunks)
             {
                 if (kvp.Value.IsCreated)
@@ -105,8 +105,7 @@ namespace RareIcon
 
             for (int i = 0; i < BiomeGenerator.BIOME_COUNT; i++)
             {
-                // Major-river hexes get the dedicated water shader; everything
-                // else uses the procedural ground shader.
+
                 bool isRiver = i == BiomeGenerator.BIOME_RIVER && riverTileShader != null;
                 _biomeMaterials[i] = new Material(isRiver ? riverTileShader : hexShader);
                 _biomeMaterials[i].enableInstancing = true;
@@ -117,15 +116,13 @@ namespace RareIcon
 
                 if (isRiver)
                 {
-                    // River-tile material reads world-space water from
-                    // OceanWater.hlsl; _BaseColor nudges the regional palette.
+
                     continue;
                 }
 
                 if (i == BiomeGenerator.BIOME_GRASS)
                 {
-                    // Two greens: dark (shadow) and bright (highlight) — noise
-                    // blends between them in world space across all grass hexes.
+
                     _biomeMaterials[i].SetColor("_BaseColor2", new Color(0.42f, 0.72f, 0.28f, 1f));
                 }
                 else
@@ -133,18 +130,13 @@ namespace RareIcon
                     _biomeMaterials[i].SetColor("_BaseColor2", primary);
                 }
 
-                // Procedural pixel trees — only forest opts in. The shader
-                // gates on _TreeDensity so other biomes never run the tree path.
                 if (i == BiomeGenerator.BIOME_FOREST)
                 {
                     _biomeMaterials[i].SetFloat("_TreeDensity", 0.6f);
-                    // A second darker green pair makes the canopy read against
-                    // the forest base.
+
                     _biomeMaterials[i].SetColor("_BaseColor2", new Color(0.20f, 0.50f, 0.15f, 1f));
                 }
 
-                // Forest-floor decorations — opt in for biomes whose hexes
-                // carry resources. Shader picks the icon from _ResourceType.
                 if (i == BiomeGenerator.BIOME_FOREST)
                 {
                     _biomeMaterials[i].SetFloat("_FloorDensity", 0.85f);
@@ -157,8 +149,7 @@ namespace RareIcon
                 }
                 else if (i == BiomeGenerator.BIOME_SAND)
                 {
-                    // Sand is sparse but cacti want to read clearly when they
-                    // do appear — high density gates nothing out on a 5% roll.
+
                     _biomeMaterials[i].SetFloat("_FloorDensity", 0.95f);
                 }
             }
@@ -195,11 +186,6 @@ namespace RareIcon
                 UnloadDistantChunks(cameraChunk, unloadRadius);
             }
 
-            // Consume worker thread results. SpawnChunk appends to the
-            // HexDB pending-request queue via HexHoverSystem.AddHex — the
-            // drain lives in HexDomainSystem.OnUpdate which runs
-            // OrderFirst in Initialization, so the write happens cleanly
-            // through the DOTS job graph without a manual sync.
             int budget = _initialLoad ? 50 : MaxSpawnsPerFrame;
             int spawned = 0;
 
@@ -267,7 +253,6 @@ namespace RareIcon
             int startX = chunkCoord.x * ChunkSize;
             int startY = chunkCoord.y * ChunkSize;
 
-            // Pre-count land tiles for ECB capacity
             int landCount = 0;
             for (int i = 0; i < biomes.Length; i++)
                 if (biomes[i] != BiomeGenerator.BIOME_OCEAN) landCount++;
@@ -279,7 +264,6 @@ namespace RareIcon
                 return;
             }
 
-            // Batch create all entities at once with NativeArray
             var archetype = em.CreateArchetype(
                 typeof(LocalTransform),
                 typeof(LocalToWorld),
@@ -302,9 +286,6 @@ namespace RareIcon
             var batchEntities = em.CreateEntity(archetype, landCount, Allocator.Temp);
             int idx = 0;
 
-            // Cheap fast-path: only call into the Rust store if this chunk
-            // ever diverged from gen. Pristine chunks (the common case)
-            // skip the per-hex FFI hop entirely.
             var world = WorldStoreSystem.Instance;
             bool hasGhost = world != null && world.IsValid &&
                             world.HasChunk(chunkCoord.x, chunkCoord.y);
@@ -327,8 +308,7 @@ namespace RareIcon
                     em.SetComponentData(entity, new ChunkCoord { Value = chunkCoord });
 
                     var (res, mask) = HexResourceTable.Roll(biome, gx, gy);
-                    // Override with stored ghost-chunk state if this hex
-                    // was harvested before the chunk previously unloaded.
+
                     if (hasGhost && world.TryGetHex(gx, gy, out var stored))
                     {
                         res = new HexResources
@@ -358,7 +338,6 @@ namespace RareIcon
                         Value = HexResourceTable.ComputeCactusAmount(in res)
                     });
 
-                    // Rendering — must be on main thread (managed shared component)
                     RenderMeshUtility.AddComponents(
                         entity, em, _renderMeshDesc, _renderMeshArray,
                         MaterialMeshInfo.FromRenderMeshArrayIndices(biome, 0)
@@ -372,16 +351,9 @@ namespace RareIcon
             batchEntities.Dispose();
             _loadedChunks[chunkCoord] = entities;
 
-            // Procedural landmark scatter — deterministic per-chunk RNG
-            // drops 0-3 landmarks at random hexes inside the chunk. Same
-            // chunk coord = same landmarks across saves / reloads.
             LandmarkChunkSpawner.RollForChunk(chunkCoord, biomes, startX, startY);
             WaterResourceInjector.InjectForChunk(EntityManager, biomes, startX, startY);
 
-            // Re-materialize any ghost units that were saved when this chunk
-            // last unloaded. Has to come AFTER the hex loop so the units land
-            // on top of restored hex state (otherwise their CurrentHex lookup
-            // races the chunk entity creation).
             if (SystemAPI.HasSingleton<UnitsDBSingleton>())
             {
                 ref var udb = ref SystemAPI.GetSingletonRW<UnitsDBSingleton>().ValueRW;
@@ -415,10 +387,6 @@ namespace RareIcon
                             Inv3Id = g.inv3_id, Inv3Qty = g.inv3_qty,
                         };
 
-                        // Dispatch by unit_type so a saved King restores as
-                        // a King (KingTag, no auto-wander) rather than a
-                        // generic goblin. Future creature types add cases
-                        // here; default falls through to Goblin.
                         uint rng = (uint)g.q * 0x9E3779B1u
                                  ^ (uint)g.r * 0x85EBCA77u
                                  ^ ((uint)i + 1u);
@@ -442,9 +410,7 @@ namespace RareIcon
             }
             else
             {
-                // Fresh chunks (no ghost state) roll for ambient wildlife.
-                // Ghost-bearing chunks skip this — any animals that existed
-                // are restored above, and a fresh roll would double-populate.
+
                 for (int ly = 0; ly < ChunkSize; ly++)
                 {
                     for (int lx = 0; lx < ChunkSize; lx++)
@@ -456,9 +422,6 @@ namespace RareIcon
                 }
             }
 
-            // Phase 4 hydrate — any buildings snapshotted into
-            // BuildingsDBSingleton.Unloaded when this chunk last unloaded
-            // get respawned with accumulated production / health deltas.
             HydrateUnloadedBuildings(chunkCoord);
         }
 
@@ -475,13 +438,6 @@ namespace RareIcon
             var events   = dbRW.ValueRW.Events;
             if (!unloaded.IsCreated) return;
 
-            // FFI drain — cleans up the Rust-side mirror for this chunk so
-            // the write-back cache stays in sync with the live list. The
-            // drained records themselves are discarded because the in-memory
-            // list already holds ghost-sim-advanced copies; using the
-            // FFI records would overwrite accrued deltas with stale data.
-            // (Future: crash-recovery startup path reads FFI to seed the
-            // in-memory list before any session-local sim runs.)
             var nativeWorld = WorldStoreSystem.Instance;
             if (nativeWorld != null && nativeWorld.IsValid)
             {
@@ -504,7 +460,6 @@ namespace RareIcon
             int endX   = startX + ChunkSize;
             int endY   = startY + ChunkSize;
 
-            // Iterate reverse so RemoveAtSwapBack doesn't skip records.
             for (int i = unloaded.Length - 1; i >= 0; i--)
             {
                 var rec = unloaded[i];
@@ -513,7 +468,7 @@ namespace RareIcon
 
                 var entity = em.Instantiate(prefab);
                 var pos = HexMeshUtil.HexToWorld(rec.RootHex.x, rec.RootHex.y, HexSize);
-                pos.z = -0.6f;  // BuildingZ — matches BuildingSpawnSystem.
+                pos.z = -0.6f;
                 float scale = BuildingDB.GetVisualScale(rec.Type);
                 em.SetComponentData(entity, LocalTransform.FromPositionRotationScale(pos, quaternion.identity, scale));
                 em.SetComponentData(entity, new Building
@@ -528,7 +483,6 @@ namespace RareIcon
                 em.SetComponentData(entity, new BuildingActiveVisual { Value = 1f });
                 em.SetComponentData(entity, new ConstructionProgressVisual { Value = 1f });
 
-                // Health + tier aren't on the prefab archetype — add them.
                 if (em.HasComponent<BuildingHealth>(entity))
                     em.SetComponentData(entity, new BuildingHealth { Value = rec.Health, Max = rec.HealthMax });
                 else
@@ -542,24 +496,12 @@ namespace RareIcon
                         em.AddComponentData(entity, new BuildingTier { Value = rec.Tier });
                 }
 
-                // Drain accumulated offline production into the Capital
-                // treasury. Each full unit of AccruedProduction → one
-                // output item deposited. Fractional remainder discards
-                // (rounding in the player's favour ≈ never applies).
                 DrainAccruedToCapital(rec);
 
-                // Replay the per-type init pass (tags + production
-                // components + ledger buffers) so the hydrated building
-                // joins live production again instead of being a visual
-                // shell. Mirrors ConstructionCompleteSystem's switch.
                 RehydratePerTypeComponents(entity, rec.Type, rec.RootHex, rec.OwnerFaction);
 
-                // Restore per-type ledger contents from the inline slot
-                // snapshot so stored resources survive the round-trip.
                 RestoreLedgerSlots(entity, rec);
 
-                // Resume the active ProductionRecipe at its pre-unload
-                // phase when we preserved remaining cycle time.
                 if ((rec.Flags & UnloadedBuildingFlags.HadRecipe) != 0 && rec.RecipeCycleRemaining > 0f)
                 {
                     if (em.HasBuffer<ProductionRecipe>(entity) && SystemAPI.HasSingleton<WorldClock>())
@@ -575,9 +517,6 @@ namespace RareIcon
                     }
                 }
 
-                // Re-claim the footprint hexes via HexOccupant so
-                // placement + targeting systems see the building on
-                // every tile it occupies, not just the root.
                 ReclaimFootprint(entity, rec.Type, rec.RootHex);
 
                 if (events.IsCreated)
@@ -775,8 +714,7 @@ namespace RareIcon
         /// <summary>Deterministic per-hex animal spawn roll. Low biome-gated chance; no-ops for most hexes.</summary>
         static void TryRollAnimal(EntityManager em, byte biome, int gx, int gy)
         {
-            // Hash distinct from HexResourceTable's so cactus and animal
-            // rolls don't collide on the same draw.
+
             uint h = (uint)gx * 0x27D4EB2Fu ^ (uint)gy * 0xC2B2AE3Du;
             h ^= h >> 13;
             h *= 0x85EBCA77u;
@@ -799,10 +737,7 @@ namespace RareIcon
                     if (roll < 0.006f) species = UnitType.Cow;
                     break;
                 case BiomeGenerator.BIOME_FOREST:
-                    // Wolves are rarer than wildlife rolls and use a
-                    // separate spawn helper because they're hostile, not
-                    // passive. Rate kept low so the forest reads as "risky"
-                    // rather than impassable.
+
                     if (roll < 0.006f) { species = UnitType.Wolf; isBeast = true; }
                     break;
             }
@@ -826,22 +761,11 @@ namespace RareIcon
                 for (int lx = 0; lx < ChunkSize; lx++)
                     HexHoverSystem.RemoveHex(new int2(startX + lx, startY + ly));
 
-            // Save any hex whose resources have diverged from the gen-time
-            // roll. Pristine hexes (the common case) skip the FFI hop —
-            // saving them would just bloat the Rust store.
             var world = WorldStoreSystem.Instance;
             bool canSave = world != null && world.IsValid;
 
-            // Phase 4 snapshot — any Building inside the chunk bounds is
-            // serialised into BuildingsDBSingleton.Unloaded so the
-            // ghost-sim layer can advance it while the chunk is offline
-            // and hydrate it on reload. Runs BEFORE entity destruction.
             SnapshotBuildingsInChunk(startX, startY, startX + ChunkSize, startY + ChunkSize);
 
-            // Save + destroy any units whose CurrentHex falls inside this
-            // chunk. UnitColdStoreOps.Snapshot builds the in-memory ghost-sim
-            // record and the same struct converts to FfiGhostUnit for the
-            // Rust crash-recovery store.
             {
                 int chunkX0 = startX;
                 int chunkY0 = startY;
@@ -964,17 +888,9 @@ namespace RareIcon
                                         ? UnloadedBuildingFlags.InHostileTerritory : (byte)0,
                 };
 
-                // FFI write-through — persist record across process
-                // restart via the Rust world store. In-memory list below
-                // is the ghost-sim working set for this session; FFI is
-                // the crash-recovery + long-term home.
                 var nativeWorld = WorldStoreSystem.Instance;
                 bool canFfi = nativeWorld != null && nativeWorld.IsValid;
-                // populated after recipe/ledger fields finalise; see below.
 
-                // Recipe cycle preservation — grab the first recipe's
-                // remaining cycle time (if any) so hydrate can resume
-                // the cycle at its pre-unload phase.
                 if (em.HasBuffer<ProductionRecipe>(entity))
                 {
                     var recipes = em.GetBuffer<ProductionRecipe>(entity);
@@ -987,18 +903,12 @@ namespace RareIcon
                     }
                 }
 
-                // Ledger snapshot — read up to 4 slots from the per-type
-                // ledger buffer. Each type carries its own named buffer
-                // that reinterprets to BankLedgerBase, so we dispatch on
-                // Type to pick the right buffer lookup.
                 BuildingColdStoreOps.SnapshotLedgerSlots(em, entity, building.Type, ref rec);
                 BuildingColdStoreOps.SnapshotAttack(em, entity, ref rec);
 
                 unloaded.Add(rec);
                 if (canFfi) nativeWorld.SaveBuilding(ToFfi(rec));
 
-                // Entity destruction is deferred to the main DespawnChunk
-                // loop so the iteration order below stays stable.
                 em.DestroyEntity(entity);
             }
             buildingArr.Dispose();

@@ -72,7 +72,7 @@ namespace RareIcon
             if (_root == null) return;
 
             var wrapper  = _root.Q<VisualElement>("citizens-wrapper");
-            _panel       = wrapper; // toggle hides the whole modal (backdrop + card)
+            _panel       = wrapper;
             var card     = _root.Q<VisualElement>("citizens-root");
             var backdrop = _root.Q<VisualElement>("citizens-backdrop");
             _sidebar     = _root.Q<VisualElement>("citizens-sidebar");

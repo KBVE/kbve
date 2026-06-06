@@ -37,7 +37,7 @@ namespace RareIcon
             if (_publisher == null)
             {
                 try { _publisher = GlobalMessagePipe.GetPublisher<HexChangedMessage>(); }
-                catch { return; }  // pipe provider not installed yet — retry next frame.
+                catch { return; }
             }
 
             var dbRW = SystemAPI.GetSingletonRW<HexDBSingleton>();

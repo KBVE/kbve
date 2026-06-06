@@ -371,11 +371,15 @@ function Step2WebhookConfig({
 	const selectedMap = useStore(agentsService.$webhookInstallSelected);
 	const installBusyMap = useStore(agentsService.$webhookInstallBusyFor);
 	const installResultMap = useStore(agentsService.$webhookInstallResults);
+	const pingBusyMap = useStore(agentsService.$webhookPingBusyFor);
+	const pingResultMap = useStore(agentsService.$webhookPingResults);
 
 	const repos = allowlistMap[guild.id] ?? [];
 	const selectedRepo = selectedMap[guild.id] ?? repos[0] ?? '';
 	const installing = !!installBusyMap[guild.id];
 	const installResult = installResultMap[guild.id] ?? null;
+	const pinging = !!pingBusyMap[guild.id];
+	const pingResult = pingResultMap[guild.id] ?? null;
 	const [copied, setCopied] = useState(false);
 
 	useEffect(() => {
@@ -383,6 +387,11 @@ function Step2WebhookConfig({
 			agentsService.setWebhookInstallSelected(guild.id, repos[0]);
 		}
 	}, [guild.id, repos, selectedMap]);
+
+	useEffect(() => {
+		if (!hasWebhook || !selectedRepo) return;
+		void agentsService.verifyWebhookInstall(guild.id, selectedRepo);
+	}, [guild.id, hasWebhook, selectedRepo]);
 
 	async function copy() {
 		const ok = await copyToClipboard(url);
@@ -396,11 +405,26 @@ function Step2WebhookConfig({
 		await agentsService.installWebhookForGuild(guild.id);
 	}
 
+	async function ping() {
+		if (!selectedRepo || pinging) return;
+		await agentsService.pingWebhookForGuild(guild.id);
+	}
+
+	const installedOk =
+		!!installResult &&
+		installResult.ok &&
+		(installResult.installed || installResult.alreadyPresent);
+	const step2Status: StepStatus = !hasWebhook
+		? 'todo'
+		: installedOk
+			? 'done'
+			: 'pending';
+
 	return (
 		<StepCard
 			n={2}
 			title="Configure the GitHub webhook"
-			status={hasWebhook ? 'pending' : 'todo'}
+			status={step2Status}
 			disabled={!hasWebhook}>
 			<p style={mutedText}>
 				Copy the per-guild webhook URL, then create a new webhook on the
@@ -583,6 +607,43 @@ function Step2WebhookConfig({
 								{' · hook id '}
 								<code>{installResult.hookId}</code>
 							</>
+						)}
+					</div>
+				)}
+				{installResult && installResult.ok && hasWebhook && (
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: '0.5rem',
+							flexWrap: 'wrap',
+						}}>
+						<button
+							type="button"
+							onClick={() => void ping()}
+							disabled={pinging || !selectedRepo}
+							style={secondaryBtn}
+							title="Tells GitHub to redeliver a `ping` event to your gh-webhook URL. Server enforces 30s cooldown + 10 pings/hour per repo.">
+							{pinging ? (
+								<Loader2 size={14} style={spinStyle} />
+							) : (
+								<PlayCircle size={14} />
+							)}
+							{pinging ? 'Pinging…' : 'Send test ping'}
+						</button>
+						{pingResult && pingResult.ok && (
+							<span
+								style={{
+									fontSize: '0.82rem',
+									color: '#4ade80',
+								}}>
+								Ping sent · hook{' '}
+								<code>{pingResult.hookId}</code>. Check Recent
+								Deliveries on GitHub for the 200.
+							</span>
+						)}
+						{pingResult && !pingResult.ok && (
+							<span style={errText}>{pingResult.error}</span>
 						)}
 					</div>
 				)}

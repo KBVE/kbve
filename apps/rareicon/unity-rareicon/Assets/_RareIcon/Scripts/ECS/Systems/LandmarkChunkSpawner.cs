@@ -28,8 +28,6 @@ namespace RareIcon
                 int gx = startX + lx;
                 int gy = startY + ly;
 
-                // Skip the Capital flower so the spawn ring around origin
-                // never crowds the player's home.
                 if (math.abs(gx) < CapitalSafeRadius && math.abs(gy) < CapitalSafeRadius) continue;
 
                 byte biome = biomes[ly * ChunkSize + lx];
@@ -43,10 +41,7 @@ namespace RareIcon
 
         static string PickRef(byte biome, uint roll)
         {
-            // Weighted picks per biome — common veins / trees come first
-            // and are listed multiple times to bias the roll without needing
-            // a separate weight table; rare crystals appear once. Returning
-            // null = skip (water biomes, anything we don't want lit up).
+
             switch (biome)
             {
                 case BiomeGenerator.BIOME_FOREST:
@@ -80,9 +75,6 @@ namespace RareIcon
             return table[(int)(roll % (uint)table.Length)];
         }
 
-        // Common refs are listed multiple times to bias the roll toward
-        // them; rare refs appear once. Tables are mapdb-driven — every slug
-        // here must exist in StreamingAssets/mapdb.json or SpawnAt skips it.
         static readonly string[] _forestRefs = {
             "oak-tree", "oak-tree", "oak-tree",
             "redwood-tree",

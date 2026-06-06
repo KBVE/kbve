@@ -344,9 +344,7 @@ namespace RareIcon
 
         void OnDialogueEnded(DialogueEndedMessage msg)
         {
-            // Branch on (treeId, choice). Most random-event trees use
-            // choice 0 == accept; MysteriousStranger has 3 distinct paths
-            // (gold / blessing / refuse) with different rewards.
+
             if (msg.TreeId == DialogueTreeId.LostGoblinBand && msg.LastChoiceIndex == 0)
             { SpawnLostGoblins(); return; }
             if (msg.TreeId == DialogueTreeId.MerchantCaravan && msg.LastChoiceIndex == 0)
@@ -448,9 +446,6 @@ namespace RareIcon
             var world = GameplayWorld.Resolve();
             if (world == null || !world.IsCreated) return;
 
-            // Pick a hero role at random; falls into the existing hero
-            // spawn pipeline so the unit picks up its trait roll, profession
-            // bias, name, and HUD treatment via the shared SpawnHeroAt path.
             byte[] roles = { HeroRole.MasterBlacksmith, HeroRole.MasterCraftsman };
             byte role = roles[_rng.Next(0, roles.Length)];
             int2 hex = new int2(capitalHex.x + NextOffset(2), capitalHex.y + NextOffset(2));
@@ -492,10 +487,7 @@ namespace RareIcon
 
         void SpawnWolfPack()
         {
-            // Wolves prefer the edge of player territory — find the nearest
-            // Farm to anchor the pack so the threat lands on a specific
-            // production target. No farm = no event (toast skipped to avoid
-            // empty-world false alarms).
+
             if (!TryGetFarmHex(out var farmHex))
             {
                 if (!TryGetCapitalHex(out farmHex)) return;
@@ -538,10 +530,6 @@ namespace RareIcon
                 capitalHex.x + (int)Math.Round(Math.Cos(angle) * dist),
                 capitalHex.y + (int)Math.Round(Math.Sin(angle) * dist));
 
-            // "quiet-spring" is a shrine-flavored landmark already wired
-            // through ShrineProductionSystem + LandmarkInteractSystem; the
-            // event piggy-backs on that existing reward path instead of
-            // shipping a bespoke shrine spawner.
             var entity = LandmarkSpawnSystem.SpawnAt("quiet-spring", hex);
             if (entity == Entity.Null) return;
 
@@ -609,16 +597,12 @@ namespace RareIcon
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
 
-            // Player-faction non-Capital buildings only — sparing the Capital
-            // keeps the event from one-shotting the player's empire centre.
             var query = em.CreateEntityQuery(
                 ComponentType.ReadOnly<Building>(),
                 ComponentType.ReadWrite<BuildingHealth>());
             using var arr = query.ToEntityArray(Allocator.Temp);
             if (arr.Length == 0) return;
 
-            // Reservoir-sample up to N candidates so we don't bias toward
-            // earlier-spawned buildings; cheap because we'll only damage 1-3.
             int targetCount = EarthquakeMinTargets + _rng.Next(0, EarthquakeMaxTargets - EarthquakeMinTargets + 1);
             int picked = 0;
             for (int i = 0; i < arr.Length && picked < targetCount; i++)
@@ -649,8 +633,6 @@ namespace RareIcon
                 capitalHex.x + (int)Math.Round(Math.Cos(angle) * dist),
                 capitalHex.y + (int)Math.Round(Math.Sin(angle) * dist));
 
-            // "the-still-pool" is a shrine-flavored landmark with reward
-            // wiring already in place via LandmarkInteractSystem.
             var entity = LandmarkSpawnSystem.SpawnAt("the-still-pool", hex);
             if (entity == Entity.Null) return;
 
@@ -664,9 +646,6 @@ namespace RareIcon
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
 
-            // Heal every Player-faction unit to max HP. The blessing is
-            // narrative — no per-unit toast since players notice via the
-            // single empire-wide toast + healed unit list when inspecting.
             var query = em.CreateEntityQuery(
                 ComponentType.ReadOnly<Unit>(),
                 ComponentType.ReadOnly<Faction>(),
@@ -681,7 +660,6 @@ namespace RareIcon
                 em.SetComponentData(arr[i], h);
             }
 
-            // Bonus coin sweetens the heal for empires with no wounded.
             if (TryGetCapitalEntity(out var capital, out _) && em.HasBuffer<CapitalLedger>(capital))
             {
                 var ledger = em.GetBuffer<CapitalLedger>(capital).Reinterpret<BankLedgerBase>();
@@ -704,9 +682,6 @@ namespace RareIcon
             var entity = LandmarkSpawnSystem.SpawnAt("luminous-alcove", hex);
             if (entity == Entity.Null) return;
 
-            // Drop a small coin bonus alongside the discoverable landmark
-            // so the event still rewards the player even if they never walk
-            // out to find the wreckage.
             if (TryGetCapitalEntity(out var capital, out _))
             {
                 var world = GameplayWorld.Resolve();
@@ -759,7 +734,7 @@ namespace RareIcon
 
         void ResolveMysteriousStranger(int choice)
         {
-            // 0 = take gold, 1 = accept blessing, 2 = refuse.
+
             switch (choice)
             {
                 case 0:
@@ -839,9 +814,7 @@ namespace RareIcon
         void SpawnCrowOmen()
         {
             if (!TryGetCapitalHex(out var capitalHex)) return;
-            // Anchor on a random Player building when one exists; otherwise
-            // drop near the Capital with wider jitter so the omen still lands
-            // in the player's neighbourhood.
+
             int2 anchor = capitalHex;
             var world = GameplayWorld.Resolve();
             if (world != null && world.IsCreated)

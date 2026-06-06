@@ -186,6 +186,115 @@ async function handleList(
   return jsonResponse({ expected_url: expectedUrl, hooks });
 }
 
+const PING_COOLDOWN_MS = 30_000;
+const PING_RATE_WINDOW_MS = 60 * 60 * 1000;
+const PING_RATE_MAX = 10;
+const pingCooldown = new Map<string, number>();
+const pingHistory = new Map<string, number[]>();
+
+function checkPingRateLimit(
+  userSub: string,
+  serverId: string,
+  owner: string,
+  repo: string,
+): { ok: true } | { ok: false; retryAfterMs: number; reason: string } {
+  const cdKey = `${userSub}:${serverId}`;
+  const now = Date.now();
+  const last = pingCooldown.get(cdKey) ?? 0;
+  if (now - last < PING_COOLDOWN_MS) {
+    return {
+      ok: false,
+      retryAfterMs: PING_COOLDOWN_MS - (now - last),
+      reason: "cooldown",
+    };
+  }
+  const histKey = `${userSub}:${serverId}:${owner}/${repo}`;
+  const hist = (pingHistory.get(histKey) ?? []).filter(
+    (t) => now - t < PING_RATE_WINDOW_MS,
+  );
+  if (hist.length >= PING_RATE_MAX) {
+    return {
+      ok: false,
+      retryAfterMs: PING_RATE_WINDOW_MS - (now - hist[0]),
+      reason: "hourly_limit",
+    };
+  }
+  hist.push(now);
+  pingHistory.set(histKey, hist);
+  pingCooldown.set(cdKey, now);
+  return { ok: true };
+}
+
+async function handlePing(
+  serverId: string,
+  owner: string,
+  repo: string,
+): Promise<Response> {
+  const pat = await fetchGuildSecret(serverId, "github");
+  if (!pat) {
+    return jsonResponse(
+      { error: "No GitHub PAT stored for this guild" },
+      400,
+    );
+  }
+  const list = await githubCallback(
+    "GET",
+    `/repos/${owner}/${repo}/hooks`,
+    pat,
+  );
+  if (list.status === 401 || list.status === 403) {
+    return jsonResponse(
+      { error: "GitHub PAT unauthorized for this repo" },
+      403,
+    );
+  }
+  if (list.status === 404) {
+    return jsonResponse(
+      { error: "Repo not found or PAT lacks access" },
+      404,
+    );
+  }
+  if (list.status < 200 || list.status >= 300 || !Array.isArray(list.body)) {
+    return jsonResponse(
+      { error: "GitHub API error listing hooks", status: list.status },
+      502,
+    );
+  }
+  const expectedUrl = `${SUPABASE_URL}/functions/v1/gh-webhook/${serverId}`;
+  const kbveHook = (list.body as GithubHook[]).find(
+    (h) => h.config?.url === expectedUrl,
+  );
+  if (!kbveHook) {
+    return jsonResponse(
+      {
+        error:
+          "No kbve webhook found on this repo — run webhooks.install first",
+      },
+      404,
+    );
+  }
+  const ping = await githubCallback(
+    "POST",
+    `/repos/${owner}/${repo}/hooks/${kbveHook.id}/pings`,
+    pat,
+  );
+  if (ping.status < 200 || ping.status >= 300) {
+    return jsonResponse(
+      {
+        error: "GitHub ping failed",
+        status: ping.status,
+        detail: ping.body,
+      },
+      502,
+    );
+  }
+  return jsonResponse({
+    pinged: true,
+    hook_id: kbveHook.id,
+    url: expectedUrl,
+  });
+}
+
 async function handleInstall(
   serverId: string,
   owner: string,
@@ -382,11 +491,34 @@ serve(async (req) => {
       return await handleInstall(serverId, owner, repo);
     case "webhooks.list":
       return await handleList(serverId, owner, repo);
+    case "webhooks.ping": {
+      const userSub = typeof claims.sub === "string" ? claims.sub : "";
+      if (!userSub) {
+        return jsonResponse(
+          { error: "Authenticated user token missing sub claim" },
+          401,
+        );
+      }
+      const rate = checkPingRateLimit(userSub, serverId, owner, repo);
+      if (!rate.ok) {
+        return jsonResponse(
+          {
+            error:
+              rate.reason === "cooldown"
+                ? `Wait ${Math.ceil(rate.retryAfterMs / 1000)}s between pings`
+                : `Hourly ping limit of ${PING_RATE_MAX} per repo exceeded — retry in ${Math.ceil(rate.retryAfterMs / 60_000)}m`,
+            retry_after_ms: rate.retryAfterMs,
+          },
+          429,
+        );
+      }
+      return await handlePing(serverId, owner, repo);
+    }
     default:
       return jsonResponse(
         {
           error:
-            'command required (one of: "webhooks.install", "webhooks.list")',
+            'command required (one of: "webhooks.install", "webhooks.list", "webhooks.ping")',
         },
         400,
       );

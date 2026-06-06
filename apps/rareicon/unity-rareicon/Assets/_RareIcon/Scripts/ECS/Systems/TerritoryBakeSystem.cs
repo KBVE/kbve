@@ -35,14 +35,6 @@ namespace RareIcon
             int emitterHash = HashEmitters(ref state);
             int tileCount   = _tileQuery.CalculateEntityCount();
 
-            // Bake only when something relevant actually changed. Territory
-            // geometry is static between emitter mutations and the byte we
-            // wrote last tick is still correct for every existing tile —
-            // the only reasons to redo the work are (a) a building was
-            // added/removed/expanded (emitter hash shifts), or (b) new
-            // chunks streamed in and their tiles are sitting at the default
-            // 0 waiting to be classified. A turn boundary doesn't change
-            // territory on its own, so we don't poll WorldClock here.
             bool emittersChanged = emitterHash != _lastEmitterHash;
             bool tilesChanged    = tileCount   != _lastTileCount;
             if (!emittersChanged && !tilesChanged) return;
@@ -141,8 +133,6 @@ namespace RareIcon
             return (math.abs(d.x) + math.abs(d.y) + math.abs(ds)) / 2;
         }
 
-        // Six axial-neighbour offsets. Matches HexMeshUtil.HexNeighbor but inlined
-        // here so the Burst job stays free of managed/static lookups.
         static int2 HexNeighbor(int dir)
         {
             switch (dir)

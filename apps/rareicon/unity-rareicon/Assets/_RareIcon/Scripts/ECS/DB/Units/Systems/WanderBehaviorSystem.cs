@@ -35,12 +35,6 @@ namespace RareIcon
         }
     }
 
-    // Wander is wildlife / beast only. Player units (anything with
-    // ProfessionPriorities) stay put when idle — Jobs / Relief / ReturnToBase
-    // / Shelter cover every legitimate "do something" path, and an
-    // aimless goblin drifting across the map reads as broken, not
-    // bored. ControlledUnitTag + GarrisonPost filters stay for the
-    // remaining wildlife archetypes (future tamed / posted beasts).
     [BurstCompile]
     [WithNone(typeof(ControlledUnitTag))]
     [WithNone(typeof(GarrisonPost))]
@@ -73,11 +67,6 @@ namespace RareIcon
         }
     }
 
-    // Water-locked wander — Fishing Boats + Whales only accept river /
-    // ocean destinations. Reroll up to a handful of times per tick; if
-    // every candidate is dry the unit stays put and re-rolls next
-    // tick. Cheap for water-heavy maps; harmless even on land-heavy
-    // ones because the reject loop caps at MaxTries.
     [BurstCompile]
     [WithAll(typeof(WaterLockedTag))]
     [WithNone(typeof(ControlledUnitTag))]
@@ -120,8 +109,6 @@ namespace RareIcon
                 }
             }
 
-            // All candidates were dry — advance rng so the next tick
-            // rolls fresh.
             m.RandomState = rng;
         }
 

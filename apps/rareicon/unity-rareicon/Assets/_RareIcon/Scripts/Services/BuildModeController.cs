@@ -31,12 +31,11 @@ namespace RareIcon
         public bool IsBlocked => BlockFlags != BuildBlockFlags.None;
         public bool IsActive => HasTarget && !IsBlocked;
 
-
         public readonly bool Equals(BuildModeSnapshot other)
         {
         return Target == other.Target && BlockFlags == other.BlockFlags;
         }
-        
+
         public override bool Equals(object obj)
         {
             return obj is BuildModeSnapshot other && Equals(other);
@@ -49,7 +48,7 @@ namespace RareIcon
 
         public static bool operator ==(BuildModeSnapshot left, BuildModeSnapshot right) => left.Equals(right);
         public static bool operator !=(BuildModeSnapshot left, BuildModeSnapshot right) => !left.Equals(right);
-    
+
     }
 
     public sealed class BuildModeController : IDisposable
@@ -67,7 +66,6 @@ namespace RareIcon
         public ReadOnlyReactiveProperty<byte> Target => _targetReactive;
         public ReadOnlyReactiveProperty<int> BlockFlags => _blockFlagsReactive;
         public ReadOnlyReactiveProperty<BuildModeSnapshot> State => _snapshotReactive;
-
 
         public byte CurrentTarget => (byte)Volatile.Read(ref _target);
         public BuildBlockFlags CurrentBlockFlags => (BuildBlockFlags)Volatile.Read(ref _blockFlags);
@@ -173,7 +171,6 @@ namespace RareIcon
             if (flags == BuildBlockFlags.None) return;
 
             var changed = false;
-
 
             while (true)
             {

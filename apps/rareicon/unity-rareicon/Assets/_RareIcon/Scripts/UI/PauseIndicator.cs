@@ -86,9 +86,6 @@ namespace RareIcon
             _root.Add(_reasonLabel);
             root.Add(_root);
 
-            // Debug toggle + indicator refresh cadence. Scheduled on the
-            // always-present uiDoc root so it keeps firing even while the
-            // indicator itself is hidden.
             root.schedule.Execute(Tick).Every(16);
         }
 

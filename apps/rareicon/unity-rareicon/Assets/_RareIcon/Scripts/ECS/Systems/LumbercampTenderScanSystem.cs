@@ -1,11 +1,12 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Writes TenderMultiplier.Value = 1 when any Lumberjack-intent unit stands on a Lumbercamp's footprint *or* is ShelteredInside the camp (Phase B garrison path). Otherwise 0 — LumbercampProductionSystem refuses to start a cycle without a worker. Mirrors FarmTenderScanSystem's shape plus the shelter roster.</summary>
+    /// <summary>Writes TenderMultiplier.Value = 1 when any Lumberjack-intent unit stands on a Lumbercamp's footprint *or* is ShelteredInside the camp (Phase B garrison path). Otherwise 0 — LumbercampProductionSystem refuses to start a cycle without a worker. Prep scans run as parallel IJobEntity passes into NativeParallelHashSet ParallelWriters, replacing the prior pair of main-thread foreach scans.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(ProfessionDispatchSystem))]
@@ -17,28 +18,24 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var tendedHexes  = new NativeHashSet<int2>(16, Allocator.TempJob);
-            var tendingHosts = new NativeHashSet<Entity>(16, Allocator.TempJob);
+            var tendedHexes  = new NativeParallelHashSet<int2>(256, Allocator.TempJob);
+            var tendingHosts = new NativeParallelHashSet<Entity>(64, Allocator.TempJob);
 
-            foreach (var (intent, movement) in
-                     SystemAPI.Query<RefRO<ProfessionIntent>, RefRO<UnitMovement>>().WithNone<ShelteredInside>())
+            var hexHandle = new CollectLumberjackHexesJob
             {
-                if (intent.ValueRO.Kind != ProfessionKind.Lumberjack) continue;
-                tendedHexes.Add(movement.ValueRO.CurrentHex);
-            }
+                Writer = tendedHexes.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
 
-            foreach (var (intent, sheltered) in
-                     SystemAPI.Query<RefRO<ProfessionIntent>, RefRO<ShelteredInside>>())
+            var hostHandle = new CollectLumberjackHostsJob
             {
-                if (intent.ValueRO.Kind != ProfessionKind.Lumberjack) continue;
-                tendingHosts.Add(sheltered.ValueRO.Host);
-            }
+                Writer = tendingHosts.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
 
             state.Dependency = new LumbercampTenderJob
             {
-                TendedHexes  = tendedHexes.AsReadOnly(),
-                TendingHosts = tendingHosts.AsReadOnly(),
-            }.ScheduleParallel(state.Dependency);
+                TendedHexes  = tendedHexes,
+                TendingHosts = tendingHosts,
+            }.ScheduleParallel(JobHandle.CombineDependencies(hexHandle, hostHandle));
 
             state.Dependency = tendedHexes.Dispose(state.Dependency);
             state.Dependency = tendingHosts.Dispose(state.Dependency);
@@ -46,11 +43,36 @@ namespace RareIcon
     }
 
     [BurstCompile]
+    [WithNone(typeof(ShelteredInside))]
+    public partial struct CollectLumberjackHexesJob : IJobEntity
+    {
+        public NativeParallelHashSet<int2>.ParallelWriter Writer;
+
+        void Execute(in ProfessionIntent intent, in UnitMovement movement)
+        {
+            if (intent.Kind != ProfessionKind.Lumberjack) return;
+            Writer.Add(movement.CurrentHex);
+        }
+    }
+
+    [BurstCompile]
+    public partial struct CollectLumberjackHostsJob : IJobEntity
+    {
+        public NativeParallelHashSet<Entity>.ParallelWriter Writer;
+
+        void Execute(in ProfessionIntent intent, in ShelteredInside sheltered)
+        {
+            if (intent.Kind != ProfessionKind.Lumberjack) return;
+            Writer.Add(sheltered.Host);
+        }
+    }
+
+    [BurstCompile]
     [WithAll(typeof(LumbercampTag))]
     public partial struct LumbercampTenderJob : IJobEntity
     {
-        [ReadOnly] public NativeHashSet<int2>.ReadOnly   TendedHexes;
-        [ReadOnly] public NativeHashSet<Entity>.ReadOnly TendingHosts;
+        [ReadOnly] public NativeParallelHashSet<int2>   TendedHexes;
+        [ReadOnly] public NativeParallelHashSet<Entity> TendingHosts;
 
         void Execute(Entity entity, in Building building, ref TenderMultiplier tender)
         {
@@ -59,7 +81,7 @@ namespace RareIcon
         }
     }
 
-    /// <summary>Writes TenderMultiplier.Value = 1 when any Miner-intent unit stands on a Mining Pit's footprint *or* is ShelteredInside the pit (Phase B garrison path). Otherwise 0 — MiningPitProductionSystem refuses to start a cycle without a worker.</summary>
+    /// <summary>Writes TenderMultiplier.Value = 1 when any Miner-intent unit stands on a Mining Pit's footprint *or* is ShelteredInside the pit (Phase B garrison path). Otherwise 0 — MiningPitProductionSystem refuses to start a cycle without a worker. Prep scans run as parallel IJobEntity passes into NativeParallelHashSet ParallelWriters, replacing the prior pair of main-thread foreach scans.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(ProfessionDispatchSystem))]
@@ -71,28 +93,24 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var tendedHexes  = new NativeHashSet<int2>(16, Allocator.TempJob);
-            var tendingHosts = new NativeHashSet<Entity>(16, Allocator.TempJob);
+            var tendedHexes  = new NativeParallelHashSet<int2>(256, Allocator.TempJob);
+            var tendingHosts = new NativeParallelHashSet<Entity>(64, Allocator.TempJob);
 
-            foreach (var (intent, movement) in
-                     SystemAPI.Query<RefRO<ProfessionIntent>, RefRO<UnitMovement>>().WithNone<ShelteredInside>())
+            var hexHandle = new CollectMinerHexesJob
             {
-                if (intent.ValueRO.Kind != ProfessionKind.Miner) continue;
-                tendedHexes.Add(movement.ValueRO.CurrentHex);
-            }
+                Writer = tendedHexes.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
 
-            foreach (var (intent, sheltered) in
-                     SystemAPI.Query<RefRO<ProfessionIntent>, RefRO<ShelteredInside>>())
+            var hostHandle = new CollectMinerHostsJob
             {
-                if (intent.ValueRO.Kind != ProfessionKind.Miner) continue;
-                tendingHosts.Add(sheltered.ValueRO.Host);
-            }
+                Writer = tendingHosts.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
 
             state.Dependency = new MiningPitTenderJob
             {
-                TendedHexes  = tendedHexes.AsReadOnly(),
-                TendingHosts = tendingHosts.AsReadOnly(),
-            }.ScheduleParallel(state.Dependency);
+                TendedHexes  = tendedHexes,
+                TendingHosts = tendingHosts,
+            }.ScheduleParallel(JobHandle.CombineDependencies(hexHandle, hostHandle));
 
             state.Dependency = tendedHexes.Dispose(state.Dependency);
             state.Dependency = tendingHosts.Dispose(state.Dependency);
@@ -100,11 +118,36 @@ namespace RareIcon
     }
 
     [BurstCompile]
+    [WithNone(typeof(ShelteredInside))]
+    public partial struct CollectMinerHexesJob : IJobEntity
+    {
+        public NativeParallelHashSet<int2>.ParallelWriter Writer;
+
+        void Execute(in ProfessionIntent intent, in UnitMovement movement)
+        {
+            if (intent.Kind != ProfessionKind.Miner) return;
+            Writer.Add(movement.CurrentHex);
+        }
+    }
+
+    [BurstCompile]
+    public partial struct CollectMinerHostsJob : IJobEntity
+    {
+        public NativeParallelHashSet<Entity>.ParallelWriter Writer;
+
+        void Execute(in ProfessionIntent intent, in ShelteredInside sheltered)
+        {
+            if (intent.Kind != ProfessionKind.Miner) return;
+            Writer.Add(sheltered.Host);
+        }
+    }
+
+    [BurstCompile]
     [WithAll(typeof(MiningPitTag))]
     public partial struct MiningPitTenderJob : IJobEntity
     {
-        [ReadOnly] public NativeHashSet<int2>.ReadOnly   TendedHexes;
-        [ReadOnly] public NativeHashSet<Entity>.ReadOnly TendingHosts;
+        [ReadOnly] public NativeParallelHashSet<int2>   TendedHexes;
+        [ReadOnly] public NativeParallelHashSet<Entity> TendingHosts;
 
         void Execute(Entity entity, in Building building, ref TenderMultiplier tender)
         {

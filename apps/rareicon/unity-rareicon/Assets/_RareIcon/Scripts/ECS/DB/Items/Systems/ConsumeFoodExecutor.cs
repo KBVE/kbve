@@ -58,9 +58,6 @@ namespace RareIcon
             if (intent.Kind != ReliefKind.Eat) return;
             if (hunger.Max <= 0f) return;
 
-            // Meal fast-path — look for a Meal slot first and fire the full
-            // restore. Hunger zeroes unconditionally; HP/Mana/Energy restore
-            // only if not Sated. Sated timer refreshes on every Meal consume.
             for (int i = 0; i < inv.Length; i++)
             {
                 if (inv[i].Count == 0) continue;
@@ -104,11 +101,6 @@ namespace RareIcon
                 return;
             }
 
-            // Ordinary edible burst — pop up to MaxConsumePerTick items
-            // until hunger is below the exit threshold OR inventory has no
-            // more edible. Replaces the single-pop-per-tick loop so a
-            // freshly-arrived hungry unit clears relief in one frame
-            // instead of N frames, eliminating the starvation-mid-meal race.
             float exitAbs = hunger.Max * ReliefSystem.HungerExit;
             int eaten = 0;
             while (eaten < MaxConsumePerTick && hunger.Value > exitAbs)

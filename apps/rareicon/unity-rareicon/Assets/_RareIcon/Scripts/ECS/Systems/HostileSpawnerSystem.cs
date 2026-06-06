@@ -4,7 +4,7 @@ using Unity.Mathematics;
 namespace RareIcon
 {
     /// <summary>Periodically spawns Hostile units (goblins + bandits) on a ring around the Capital, capped by a max alive count. Bandit chance ramps with the wave so early raids are pure goblin and later waves carry mixed bandits as the empire grows.</summary>
-    // TODO(rust-ffi): wave cadence + max-alive cap belong on the server side so the cap is authoritative — replace local _timer / _rng with reads from a Rust-owned spawn director.
+
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial class HostileSpawnerSystem : SystemBase
     {
@@ -13,9 +13,7 @@ namespace RareIcon
         const int   SpawnRingHexes  = 32;
         const int   SpawnRingJitter = 6;
         const int   SpawnBatchSize  = 2;
-        // Bandit-share starts at 0 and ramps to ~50% by wave 10. Linear
-        // ramp keeps the early game digestible (goblins only) and gives
-        // raid composition something to escalate into.
+
         const float BanditShareStart = 0.0f;
         const float BanditShareCap   = 0.5f;
         const int   BanditRampWaves  = 10;

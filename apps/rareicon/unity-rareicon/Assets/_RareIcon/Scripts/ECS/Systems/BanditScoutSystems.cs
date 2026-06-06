@@ -100,12 +100,6 @@ namespace RareIcon
             ref var meta = ref SystemAPI.GetComponentRW<KnownPlayerHexesSingleton>(singletonEntity).ValueRW;
             var buffer = SystemAPI.GetBuffer<KnownPlayerHex>(singletonEntity);
 
-            // Prune stale entries — when a Player building is destroyed
-            // its hex stays cached in this buffer forever otherwise. Hunt
-            // bandits then read the dead hex, distance-zero "wins" their
-            // target loop, and the unit locks its goal on its own current
-            // tile = idle. Walk the buffer once per tick and drop hexes
-            // that no longer carry a Player building.
             for (int i = buffer.Length - 1; i >= 0; i--)
             {
                 int2 hex = buffer[i].Hex;

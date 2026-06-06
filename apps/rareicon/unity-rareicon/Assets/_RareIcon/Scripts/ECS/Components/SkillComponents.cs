@@ -3,7 +3,7 @@ using Unity.Entities;
 namespace RareIcon
 {
     /// <summary>Skill IDs parallel to ProfessionKind so UI + progression can cross-reference by index; values are canonical for Rust FFI.</summary>
-    // TODO(rust-ffi): mirror as #[repr(u8)] SkillKind enum.
+
     public static class SkillKind
     {
         public const byte Foraging     = 0;
@@ -17,7 +17,7 @@ namespace RareIcon
     }
 
     /// <summary>Per-unit skill levels (byte 0..SkillCap); lookups by SkillKind byte index.</summary>
-    // TODO(rust-ffi): persist across chunk unload.
+
     public struct Skills : IComponentData
     {
         public const byte SkillCap = 10;

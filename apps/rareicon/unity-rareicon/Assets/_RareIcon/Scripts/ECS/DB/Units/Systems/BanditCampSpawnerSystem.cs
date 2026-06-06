@@ -39,8 +39,7 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
-            // Authoritative-only: in MP the host owns world events, clients
-            // receive replicated camp entities and don't spawn their own.
+
             if (!MultiplayerAuthority.IsAuthority) return;
 
             _spawnCheckTimer -= SystemAPI.Time.DeltaTime;

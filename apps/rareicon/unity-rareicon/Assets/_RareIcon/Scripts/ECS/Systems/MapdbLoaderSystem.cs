@@ -17,7 +17,7 @@ namespace RareIcon
 
         protected override void OnUpdate()
         {
-            Enabled = false;  // one-shot — self-disable whether we succeed or fail
+            Enabled = false;
 
             if (MapdbCache.IsLoaded) return;
 

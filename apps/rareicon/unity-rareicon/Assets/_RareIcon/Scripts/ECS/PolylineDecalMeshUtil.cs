@@ -31,7 +31,7 @@ namespace RareIcon
 
             for (int i = 0; i < n - 1; i++)
             {
-                // Phantom endpoints for proper tangents at boundaries.
+
                 float2 p0 = i == 0           ? control[0] + (control[0] - control[1])
                                              : control[i - 1];
                 float2 p1 = control[i];
@@ -105,7 +105,6 @@ namespace RareIcon
             {
                 float halfW = widths[i] * 0.5f;
 
-                // Tangent at vertex i — average of incoming + outgoing segment.
                 float2 tangent;
                 if (i == 0)
                 {
@@ -125,11 +124,8 @@ namespace RareIcon
                         : outDir;
                 }
 
-                // Perpendicular in 2D — rotate tangent 90°.
                 float2 normal = new float2(-tangent.y, tangent.x);
 
-                // Miter scale: at sharp corners the bisector overshoots width.
-                // Project onto outgoing segment normal for correct extrusion.
                 float miter = 1f;
                 if (i > 0 && i < n - 1)
                 {
@@ -138,7 +134,7 @@ namespace RareIcon
                          math.normalize(points[i + 1] - points[i]).x);
                     float dot = math.dot(normal, outNormal);
                     miter = math.abs(dot) > 1e-3f ? 1f / dot : 1f;
-                    miter = math.clamp(miter, 1f, 4f); // cap to avoid spikes
+                    miter = math.clamp(miter, 1f, 4f);
                 }
 
                 float2 left = points[i] + normal * halfW * miter;
@@ -161,7 +157,7 @@ namespace RareIcon
                 int v3 = (i + 1) * 2 + 1;
 
                 int t = i * 6;
-                // Two triangles per segment (CCW).
+
                 triangles[t + 0] = v0;
                 triangles[t + 1] = v2;
                 triangles[t + 2] = v1;

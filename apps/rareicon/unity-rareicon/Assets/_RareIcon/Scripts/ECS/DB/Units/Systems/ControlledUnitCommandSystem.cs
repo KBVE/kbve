@@ -28,8 +28,7 @@ namespace RareIcon
                 _sub = GlobalMessagePipe
                     .GetSubscriber<ControlledUnitMoveMessage>()
                     .Subscribe(OnMoveOrder);
-                // Subscriber callback fires independently — kill OnUpdate so
-                // the system stops getting ticked once we're wired in.
+
                 Enabled = false;
             }
             catch (Exception ex)

@@ -13,3 +13,21 @@ export const AUTH_ROUTES = [
 ] as const;
 
 export const SPLASH_ROUTES = [{ path: '/', label: 'Homepage' }] as const;
+
+export const ALL_ROUTES = [
+	...SPLASH_ROUTES,
+	...CONTENT_ROUTES,
+	...GAME_ROUTES,
+	...AUTH_ROUTES,
+] as const;
+
+export const FOOTER_EXTERNAL_LINKS = [
+	'https://kbve.com',
+	'https://openfret.com/',
+	'https://trymelo.ai/',
+	'https://github.com/kbve/kbve',
+	'https://discord.gg/kbve',
+	'https://kbve.com/legal/tos/',
+	'https://kbve.com/legal/privacy/',
+	'https://kbve.com/legal/',
+] as const;

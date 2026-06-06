@@ -4,7 +4,7 @@ using Unity.Mathematics;
 namespace RareIcon
 {
     /// <summary>Marks a building entity as a construction site (not yet functional); paired with a ConstructionMaterial buffer that tracks required-vs-delivered amounts.</summary>
-    // TODO(rust-ffi): persist site + materials across chunk unload so in-flight builds don't reset.
+
     public struct ConstructionSite : IComponentData
     {
         public int2 RootHex;

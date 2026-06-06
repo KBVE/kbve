@@ -38,7 +38,7 @@ namespace RareIcon
             }
             catch
             {
-                // FFI may not be loaded in the editor on some platforms — best-effort.
+
             }
         }
 
@@ -48,11 +48,6 @@ namespace RareIcon
             if (world == null || !world.IsCreated) return;
             var em = world.EntityManager;
 
-            // Match-any sweep: anything carrying a gameplay-domain marker is
-            // a candidate for destruction. Singletons (HexDBSingleton,
-            // CombatDBSingleton, BuildingsDBSingleton, etc) don't carry these
-            // markers so they survive the sweep — their owning systems
-            // refresh contents on the next run.
             var desc = new EntityQueryDesc
             {
                 Any = new[]

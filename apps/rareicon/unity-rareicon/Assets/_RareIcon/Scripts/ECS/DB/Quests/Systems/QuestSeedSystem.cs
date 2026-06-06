@@ -46,13 +46,10 @@ namespace RareIcon
             var ecb = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
-            // Lazily attach the player-side buffers the first time we seed.
             if (!activeLookup.HasBuffer(player))   ecb.AddBuffer<ActiveQuest>(player);
             if (!progressLookup.HasBuffer(player)) ecb.AddBuffer<QuestProgress>(player);
             if (!killLookup.HasBuffer(player))     ecb.AddBuffer<QuestKillTally>(player);
 
-            // Without buffers live yet we can't seed this tick — ECB will
-            // attach them and we pick up next tick.
             if (!activeLookup.HasBuffer(player) || !progressLookup.HasBuffer(player)) return;
 
             var active   = activeLookup[player];
@@ -61,7 +58,6 @@ namespace RareIcon
                 ? SystemAPI.GetSingleton<WorldClock>().TurnIndex
                 : 0u;
 
-            // Request-entity drain — queue then destroy.
             foreach (var (req, reqEntity) in
                      SystemAPI.Query<RefRO<QuestStartRequest>>().WithEntityAccess())
             {
@@ -69,7 +65,6 @@ namespace RareIcon
                 ecb.DestroyEntity(reqEntity);
             }
 
-            // Pending-start drain — chained follow-up quests from the reward applier.
             while (db.PendingStart.TryDequeue(out ushort pendingId))
             {
                 TryStart(pendingId, ref db, ref active, ref progress, turn);
@@ -97,8 +92,6 @@ namespace RareIcon
                 StartedTurn = turn,
             });
 
-            // Always append MaxObjectives rows so (quest-slot * MaxObjectives + oi)
-            // indexing stays constant-time across the progress buffer.
             progress.Add(ToProgress(def.Obj0));
             progress.Add(ToProgress(def.Obj1));
             progress.Add(ToProgress(def.Obj2));

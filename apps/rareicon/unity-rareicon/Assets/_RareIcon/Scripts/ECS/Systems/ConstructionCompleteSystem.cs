@@ -73,7 +73,7 @@ namespace RareIcon
             {
                 case BuildingType.Farm:
                     Ecb.AddComponent<FarmTag>(chunkIdx, entity);
-                    // Tier 0 Farm → tier 1 Village upgrade path.
+
                     Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
                     break;
                 case BuildingType.Barracks:
@@ -82,7 +82,7 @@ namespace RareIcon
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesHealing { Priority = 2 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesSleep   { Capacity = 5 });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesFood    { Priority = 1 });
-                    // Tier 0 Barracks → tier 1 Keep / Stables / Guildhall → tier 2 Castle.
+
                     Ecb.AddComponent(chunkIdx, entity, new BuildingTier { Value = 0 });
                     Ecb.AddComponent(chunkIdx, entity, new BuildingVariant { Value = 0 });
                     break;
@@ -136,16 +136,14 @@ namespace RareIcon
                     break;
                 case BuildingType.Dock:
                     Ecb.AddComponent<DockTag>(chunkIdx, entity);
-                    // Boat-build cadence: every 2 turns drain 1 Timber
-                    // from Capital, emit a FishingBoat on an adjacent hex.
+
                     Ecb.AddComponent(chunkIdx, entity, new DockProduction
                     {
                         LastProducedTurn = 0,
                         CadenceTurns     = 2,
                         TimberCost       = 1,
                     });
-                    // Passive fishing — outputs 2 Meat every 20s into the
-                    // Capital via the existing passive-production pipeline.
+
                     Ecb.AddComponent(chunkIdx, entity, new PassiveProduction
                     {
                         OutputId      = (ushort)ItemId.Meat,
@@ -154,10 +152,7 @@ namespace RareIcon
                         CycleDuration = 20f,
                     });
                     Ecb.AddComponent(chunkIdx, entity, new ProvidesFood { Priority = 1 });
-                    // Manning bonus — DockTenderScanSystem writes 1 while
-                    // a Craftsman-intent unit stands on the dock hex,
-                    // DockProductionSystem halves the cadence while the
-                    // multiplier is 1.
+
                     Ecb.AddComponent(chunkIdx, entity, new TenderMultiplier { Value = 0f });
                     break;
                 case BuildingType.Outpost:
@@ -223,10 +218,6 @@ namespace RareIcon
             Ecb.RemoveComponent<ConstructionSite>(chunkIdx, entity);
             Ecb.RemoveComponent<ConstructionMaterial>(chunkIdx, entity);
 
-            // Emit ConstructionComplete event so UI / audio / achievement
-            // subscribers receive a main-thread MessagePipe notification
-            // next Presentation tick. HasEvents gates the ParallelWriter
-            // access for the case where BuildingsDBSingleton isn't booted.
             if (HasEvents)
             {
                 Events.AddNoResize(new BuildingEvent

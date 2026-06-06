@@ -8,10 +8,7 @@ namespace RareIcon
     /// <summary>Cooldown-gated AoE arrow volley from Player outposts. Each outpost ticks its cooldown, then — if a hostile sits inside CombatDBSingleton.Threats within Range and its OutpostArrowPool has enough stock — spawns ArrowsPerVolley SpawnProjectileRequest entities aimed at the closest threat with uniform random angular jitter inside SpreadHalfAngleRad. Burns ArrowCost from the pool per volley, resets the cooldown. Hostile-owned outposts are skipped for now (no faction-agnostic AI yet). Reads the Burst-safe combat snapshot, no per-outpost spatial scan.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(CombatSystemGroup))]
-    // CombatThreatScanSystem lives in BehaviorSystemGroup; CombatSystemGroup
-    // already runs after BehaviorSystemGroup via MovementSystemGroup ordering,
-    // so the threat snapshot is stable by the time this volley ticks. A
-    // same-frame UpdateAfter across groups triggers a cross-group warning.
+
     public partial struct OutpostVolleySystem : ISystem
     {
         public void OnCreate(ref SystemState state)
@@ -30,8 +27,7 @@ namespace RareIcon
             if (dt <= 0f) return;
 
             var combatDB = SystemAPI.GetSingleton<CombatDBSingleton>();
-            // CombatThreatScanSystem schedules parallel work that populates
-            // Threats — make sure it's done before main-thread reads.
+
             combatDB.PipelineHandle.Complete();
             var threats  = combatDB.Threats;
 

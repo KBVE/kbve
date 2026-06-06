@@ -1,14 +1,11 @@
 namespace RareIcon
 {
-    // -- Locale --
 
     public readonly struct LocaleChangedMessage
     {
         public readonly string Locale;
         public LocaleChangedMessage(string locale) => Locale = locale;
     }
-
-    // -- Hex hover --
 
     public readonly struct HexHoverMessage
     {
@@ -163,7 +160,6 @@ namespace RareIcon
         }
     }
 
-
     /// <summary>Identifies the active hint the driver wants the bottom-right panel to render. <c>None</c> hides. Ranges: 1–9 onboarding chain (sequential), 10–49 ambient management hints, 50+ crisis hints (override chain + ambient).</summary>
     public enum TutorialStepId : byte
     {
@@ -244,8 +240,6 @@ namespace RareIcon
         public readonly int Q, R;
         public ControlledUnitMoveMessage(int q, int r) { Q = q; R = r; }
     }
-
-    // -- Selection (drag-select → bulk orders) --
 
     /// <summary>"Drag completed" — world-space rect of the selection marquee. SelectionSystem re-tags every Player-faction unit inside with SelectedTag.</summary>
     public readonly struct SelectionDragMessage

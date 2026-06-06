@@ -33,9 +33,6 @@ namespace RareIcon
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(state.WorldUnmanaged);
 
-            // Seed HexSlotOffset on any unit that doesn't have it yet. Next
-            // frame's rank pass will populate it with a real slot — this
-            // frame the unit walks to the raw hex centre (Value = zero).
             state.Dependency = new SeedMissingSlotJob
             {
                 Ecb = ecb.AsParallelWriter(),

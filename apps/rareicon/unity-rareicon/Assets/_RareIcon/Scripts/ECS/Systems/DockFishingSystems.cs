@@ -31,8 +31,7 @@ namespace RareIcon
                          .WithAll<DockTag>().WithEntityAccess())
             {
                 var prod = prodRef.ValueRO;
-                // Manning bonus — a Craftsman on the dock hex halves the
-                // build cadence (rounded up so 1-turn cadence stays 1).
+
                 float tender = em.HasComponent<TenderMultiplier>(entity)
                     ? em.GetComponentData<TenderMultiplier>(entity).Value
                     : 0f;
@@ -46,10 +45,6 @@ namespace RareIcon
 
                 BankLedgerOps.RemoveItem(ref capitalBuf, (ushort)ItemId.Timber, prod.TimberCost);
 
-                // Spawn on an adjacent hex so the boat lands on the river
-                // surface, not inside the dock's own hex. Dock production
-                // doesn't know which neighbour is water yet — spawn in a
-                // deterministic rotation and let movement sort it out.
                 int2 rootHex = building.ValueRO.RootHex;
                 int dir = (int)((uint)(entity.Index + (int)turn) % 6u);
                 int2 spawnHex = rootHex + HexMeshUtil.HexNeighbor(dir);

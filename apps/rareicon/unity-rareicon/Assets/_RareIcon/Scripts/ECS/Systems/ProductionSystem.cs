@@ -178,13 +178,6 @@ namespace RareIcon
                     inputStore  = selfStorage;
                 }
 
-                // Hard-gate on a Farmer tending the farm — no worker means
-                // no new cycle starts. Mirrors the Lumbercamp / Mining Pit
-                // contract; food is the most important resource so it
-                // shouldn't passively flow without an assigned hand.
-                // In-flight cycles still finish if the worker walks away
-                // mid-cycle (CycleEndsAt > 0 path above), giving the player
-                // a grace window to re-staff before output stalls.
                 if (tender <= 0f) continue;
 
                 if (!HasInputs(inputStore, r)) continue;

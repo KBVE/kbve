@@ -35,7 +35,6 @@ namespace RareIcon
                 return;
             }
 
-            // Create ocean quad mesh — large enough to fill any camera view
             var mesh = CreateQuad();
             var material = new Material(shader);
             material.enableInstancing = true;
@@ -53,7 +52,6 @@ namespace RareIcon
             var em = state.EntityManager;
             var entity = em.CreateEntity();
 
-            // Position behind hex tiles (higher Z = further from 2D camera)
             em.AddComponentData(entity, LocalTransform.FromPositionRotationScale(
                 new float3(0, 0, 10f),
                 quaternion.identity,
@@ -91,7 +89,7 @@ namespace RareIcon
                     new Vector2(1, 1),
                     new Vector2(0, 1),
                 },
-                // Double-sided
+
                 triangles = new[]
                 {
                     0, 1, 2, 0, 2, 3,

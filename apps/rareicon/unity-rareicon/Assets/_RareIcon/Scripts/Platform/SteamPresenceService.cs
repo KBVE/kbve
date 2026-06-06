@@ -1,8 +1,4 @@
-// Rich presence + connect-string. Drives the "Join Game" button that
-// shows up on the local user's entry in their friends' Steam clients.
-// The connect-string is read by the receiving client via
-// GameRichPresenceJoinRequested_t; SteamLobbyService parses
-// `+connect_lobby <id>` and auto-joins.
+
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 
 using System;
@@ -56,10 +52,7 @@ namespace RareIcon.Platform
         {
             if (!SteamManager.IsReady) return;
             SteamFriends.SetRichPresence("status", status ?? string.Empty);
-            // "steam_display" localisation key pair — the Rareicon App
-            // config on the Partner portal needs matching localisation
-            // tokens for this to render; until then Steam falls back to
-            // the raw status string.
+
             SteamFriends.SetRichPresence("steam_display", "#StatusGeneric");
         }
 

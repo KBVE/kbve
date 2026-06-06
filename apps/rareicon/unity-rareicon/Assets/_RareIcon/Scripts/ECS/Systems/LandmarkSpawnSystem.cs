@@ -54,11 +54,7 @@ namespace RareIcon
             if (visual == WorldObjectVisualType.None) return Entity.Null;
 
             var em = _instance.EntityManager;
-            // Biome is baked from the world seed at chunk spawn → deterministic
-            // across clients. HexDB lookup may miss right after chunk creation
-            // (drain not yet applied); treat a miss as "trust the caller"
-            // since LandmarkChunkSpawner.PickRef has already filtered water
-            // via the same biome map.
+
             if (HexHoverSystem.TryGetHexEntity(hex, out var tile)
                 && em.HasComponent<BiomeType>(tile))
             {

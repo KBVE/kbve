@@ -71,8 +71,6 @@ namespace RareIcon
                 capitalFootprint[6] = capitalHex + new int2( 0,  1);
             }
 
-            // HealFlowField is a singleton with a small dynamic buffer that
-            // gets snapshotted into a TempJob array. Cheap, stays main-thread.
             int healCount = 0;
             DynamicBuffer<HealerHexElement> healSrc = default;
             if (SystemAPI.TryGetSingletonEntity<HealFlowFieldSingleton>(out var healSingleton))
@@ -85,10 +83,6 @@ namespace RareIcon
 
             SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial);
 
-            // Capacity grow each frame to the query upper bound. ParallelWriter
-            // needs the headroom before scheduling so AddNoResize is safe
-            // across worker threads. Capital footprints contribute 7 hexes
-            // each in food / sleep — size for the worst case.
             int foodCount     = _foodQuery.CalculateEntityCount();
             int sleepCount    = _sleepQuery.CalculateEntityCount();
             int wildlifeCount = _wildlifeQuery.CalculateEntityCount();

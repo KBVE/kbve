@@ -55,7 +55,7 @@ namespace RareIcon
             if (_root == null) return;
 
             var wrapper  = _root.Q<VisualElement>("palette-wrapper");
-            _panel       = wrapper; // toggle hides the whole modal (backdrop + panel)
+            _panel       = wrapper;
             var card     = _root.Q<VisualElement>("palette-root");
             var backdrop = _root.Q<VisualElement>("palette-backdrop");
             _rowsHost    = _root.Q<VisualElement>("palette-rows");
@@ -72,11 +72,6 @@ namespace RareIcon
                 _rowsHost.Add(_rows[i].Element);
             }
 
-            // Responsive breakpoints — reshape padding + per-row layout
-            // when the modal is squeezed on small screens or stretched
-            // on ultrawide displays. Class toggles fire on every
-            // GeometryChangedEvent so resizing the editor mid-session
-            // re-flows immediately.
             _layout = new BuildingPanelLayout(card, _rowsHost);
 
             _isOpen.Subscribe(open =>
@@ -142,8 +137,6 @@ namespace RareIcon
             _disposables?.Dispose();
         }
 
-        // -- Per-building row — a row VisualElement with name + cost labels,
-        // refreshed in place on each poll. --
         sealed class Row
         {
             public readonly byte BuildingType;

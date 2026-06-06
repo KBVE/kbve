@@ -69,9 +69,7 @@ namespace RareIcon
 
         void BuildUI(VisualElement root)
         {
-            // Top-left in-tile bar — uses TileHudBg (the green-tinted
-            // surface) to read as a different "context" than the main
-            // World HUD. Same chrome helpers otherwise.
+
             _root = new VisualElement().ApplyPanelChrome(
                 background: UIStyles.Palette.TileHudBg,
                 padV: 8, padH: 14);
@@ -83,8 +81,6 @@ namespace RareIcon
             _tileLabel = UIStyles.MakeHeading("", fontSize: 16);
             _tileLabel.style.marginRight = 12;
 
-            // Exit button uses the alert palette — leaving the tile is
-            // a destructive context switch.
             _exitButton = UIStyles.MakeButton("Exit", OnExit);
             _exitButton.style.height = 28;
             _exitButton.style.fontSize = 13;

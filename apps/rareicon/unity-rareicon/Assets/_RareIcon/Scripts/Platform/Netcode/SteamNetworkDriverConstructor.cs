@@ -1,14 +1,4 @@
-// Injects the Steam-backed INetworkInterface into Unity NetCode's driver
-// store. NetCodeConfig.Global.NetworkStreamDriverConstructor picks this
-// up at bootstrap time.
-//
-// Usage — set once during application startup (TitleEntryPoint or a
-// custom ClientServerBootstrap):
-//
-//   SteamNetworkDriverConstructor.Install();
-//
-// To fall back to UDP, call NetworkStreamReceiveSystem.DriverConstructor =
-// new IPCAndSocketDriverConstructor(); (NetCode's default).
+
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 
 using Unity.Entities;

@@ -25,9 +25,8 @@ namespace RareIcon
         const float HexSize    = 0.25f;
         const float HiddenZ    = 99999f;
         const float OverlayZ   = -0.95f;
-        const int   MaxPreviewSlots = 7;   // matches Capital flower footprint
+        const int   MaxPreviewSlots = 7;
 
-        // Matches HexBuildPreview.shader Properties defaults.
         static readonly float4 ValidFill       = new(0.30f, 0.90f, 0.40f, 0.35f);
         static readonly float4 ValidBorder     = new(0.30f, 0.90f, 0.40f, 0.85f);
         static readonly float4 BlueprintFill   = new(0.30f, 0.55f, 0.95f, 0.35f);
@@ -35,7 +34,7 @@ namespace RareIcon
         static readonly float4 InvalidFill     = new(0.92f, 0.22f, 0.22f, 0.40f);
         static readonly float4 InvalidBorder   = new(0.92f, 0.22f, 0.22f, 0.90f);
 
-        Entity[] _previews;    // pool of MaxPreviewSlots overlays
+        Entity[] _previews;
         bool _initialized;
         int2 _lastAnchor;
         byte _lastTarget;
@@ -53,7 +52,7 @@ namespace RareIcon
             _lastAnchor = new int2(int.MinValue, int.MinValue);
         }
 
-        protected override void OnDestroy() { /* entities cleaned on world teardown */ }
+        protected override void OnDestroy() {  }
 
         protected override void OnUpdate()
         {
@@ -83,9 +82,6 @@ namespace RareIcon
             _wasActive  = true;
             _lastTarget = buildMode.Target;
 
-            // Skip unchanged frames — only repaint when the cursor moves
-            // to a new hex, the target building changed, OR we just
-            // entered build mode (so the initial paint reflects validity).
             bool hexChanged = !mouse.HexCoord.Equals(_lastAnchor);
             if (!justEntered && !hexChanged && !targetChanged) return;
             _lastAnchor = mouse.HexCoord;
@@ -94,7 +90,6 @@ namespace RareIcon
             var footprint = BuildingDB.GetFootprint(buildMode.Target);
             byte state = EvaluatePlacement(em, mouse.HexCoord, buildMode.Target, footprint);
 
-            // Position the active preview slots, hide the rest.
             for (int i = 0; i < footprint.Length && i < MaxPreviewSlots; i++)
             {
                 var hex = mouse.HexCoord + footprint[i];
@@ -126,11 +121,6 @@ namespace RareIcon
             }
         }
 
-        // Mirrors BuildingSpawnSystem's checks. Red = impossible (bad
-        // biome / occupied / off-map / outside territory); Blue = placeable
-        // now but resources aren't there yet (blueprint — spawns as a
-        // ConstructionSite waiting for Builders); Green = placeable +
-        // resources on hand.
         static byte EvaluatePlacement(EntityManager em, int2 centerHex,
                                       byte buildingType, int2[] footprint)
         {
@@ -227,7 +217,6 @@ namespace RareIcon
             return (math.abs(d.x) + math.abs(d.y) + math.abs(ds)) / 2;
         }
 
-
         void HideAllPreviews()
         {
             if (_previews == null) return;
@@ -246,8 +235,6 @@ namespace RareIcon
                 return;
             }
 
-            // Mesh slightly larger than the tile so the ring sits outside
-            // the tile edge and the fill fully covers the tile underneath.
             var mesh = HexMeshUtil.CreateHexMesh(HexSize * 1.02f);
             var material = new Material(shader) { enableInstancing = true };
 
@@ -262,9 +249,7 @@ namespace RareIcon
             {
                 var e = em.CreateEntity();
                 em.AddComponentData(e, LocalTransform.FromPosition(new float3(HiddenZ, HiddenZ, HiddenZ)));
-                // MaterialProperty components MUST be attached BEFORE
-                // RenderMeshUtility.AddComponents — Entities Graphics
-                // snapshots the property set at bind time.
+
                 em.AddComponentData(e, new HexBuildPreviewFill   { Value = ValidFill });
                 em.AddComponentData(e, new HexBuildPreviewBorder { Value = ValidBorder });
                 RenderMeshUtility.AddComponents(

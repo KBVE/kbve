@@ -43,8 +43,6 @@ namespace RareIcon
                 });
                 ecb.AddComponent(e, new StorageCapacity { Total = 200 });
 
-                // Arrow recipe: inputs pulled from Capital, outputs held as a forward arsenal in
-                // BarracksLedger; SurplusExport floor 20 drains the overflow back to Capital.
                 var recipes = ecb.AddBuffer<ProductionRecipe>(e);
                 recipes.Add(new ProductionRecipe
                 {

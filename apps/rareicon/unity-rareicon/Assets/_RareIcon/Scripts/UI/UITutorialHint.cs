@@ -52,11 +52,7 @@ namespace RareIcon
             _root.style.maxWidth = 280;
             _root.style.display = DisplayStyle.None;
             _root.pickingMode = PickingMode.Position;
-            // Mount above the footer via absolute positioning inside the
-            // WorldOverlay region. Previously this lived inside the
-            // bottom bar's right region, which made the bar grow when
-            // the hint appeared and shifted every other footer item
-            // sideways. Absolute keeps the footer geometry stable.
+
             _root.style.position = Position.Absolute;
             _root.style.right    = 16;
             _root.style.bottom   = 12;

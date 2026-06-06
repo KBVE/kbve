@@ -37,19 +37,12 @@ namespace RareIcon
                 else if (em.OwnerFaction == FactionType.Hostile) db.HostileEmitters.Add(em);
             }
 
-            // Upper bound = full archetype population (hostiles share
-            // Faction+LocalTransform with friendlies / neutrals; the job
-            // filters by Faction.Value). Pre-sizing to this bound lets
-            // ParallelWriter.AddNoResize run lockless with no growth risk.
             int bound = _scanQuery.CalculateEntityCountWithoutFiltering();
 
             EnsureListCapacity(ref db.Threats,                   bound);
             EnsureListCapacity(ref db.ThreatDetectedWriteBuffer, bound);
             EnsureListCapacity(ref db.ThreatClearedWriteBuffer,  db.PreviousFrameThreats.Count());
 
-            // ThisFrame is built in parallel by the scan job and drained
-            // by the serial cleared-and-update job the same tick. TempJob
-            // is disposed at end of pipeline.
             var thisFrame = new NativeParallelHashSet<Entity>(math.max(bound, 16), Allocator.TempJob);
 
             var combined = JobHandle.CombineDependencies(state.Dependency, db.PipelineHandle);
