@@ -12,6 +12,23 @@ architecture: standalone
 commonAnnotations:
     reloader.stakater.com/auto: 'true'
 
+global:
+    security:
+        allowInsecureImages: true
+
+image:
+    registry: docker.io
+    repository: bitnamilegacy/redis
+
+metrics:
+    enabled: true
+    serviceMonitor:
+        enabled: true
+        namespace: redis
+    image:
+        registry: docker.io
+        repository: bitnamilegacy/redis-exporter
+
 auth:
     enabled: true
     existingSecret: redis-auth
@@ -33,12 +50,6 @@ master:
         limits:
             memory: '512Mi'
             cpu: '500m'
-
-metrics:
-    enabled: true
-    serviceMonitor:
-        enabled: true
-        namespace: redis
 
 # Network policy to allow cluster-wide access
 networkPolicy:
