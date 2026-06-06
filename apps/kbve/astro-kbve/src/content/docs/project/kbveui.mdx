@@ -1,0 +1,35 @@
+---
+title: KBVEUI
+description: |
+    Shared Slate UI component library for KBVE Unreal games — movable frames, settings frame + rows, hotbar, slots, tooltips, info panels.
+sidebar:
+    label: KBVEUI
+    order: 90
+tags:
+    - unreal
+    - ui
+key: ue_kbveui
+pipeline: unreal
+plugin_name: KBVEUI
+plugin_path: packages/unreal/KBVEUI
+version: "0.1.0"
+source_path: packages/unreal/KBVEUI
+version_toml: packages/unreal/KBVEUI/version.toml
+author: h0lybyte
+license: KBVE
+status: active
+min_engine_version: "5.4"
+supported_platforms:
+    - Win64
+    - Linux
+    - Mac
+---
+
+## Overview
+
+Shared Slate UI component library for KBVE Unreal games — game-agnostic visual
+primitives (Core + Slate only): movable frames, the settings frame + reusable
+settings rows (toggle / slider / combo), hotbar, slots, tooltips, info panels.
+
+Plugin source ships via its own PR; this entry wires it into the build/release
+pipeline alongside the other UE plugins.

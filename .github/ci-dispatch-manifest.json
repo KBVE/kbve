@@ -748,6 +748,18 @@
 			"version_toml": "packages/unreal/KBVETinyBVH/version.toml"
 		},
 		{
+			"key": "ue_kbveui",
+			"plugin_name": "KBVEUI",
+			"plugin_path": "packages/unreal/KBVEUI",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVEUI/version.toml"
+		},
+		{
 			"key": "ue_kbveulid",
 			"plugin_name": "KBVEULID",
 			"plugin_path": "packages/unreal/KBVEULID",
@@ -960,12 +972,12 @@
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
-		"unreal": 16,
+		"unreal": 17,
 		"ue5_server": 2,
 		"unity": 1,
 		"godot": 1,
 		"unreal_game": 1,
 		"bevy_game": 0,
-		"total": 80
+		"total": 81
 	}
 }
