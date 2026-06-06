@@ -337,6 +337,15 @@ class AgentsService {
 			| null
 		>
 	>({});
+	public readonly $webhookPingBusyFor = atom<Record<string, boolean>>({});
+	public readonly $webhookPingResults = atom<
+		Record<
+			string,
+			| { ok: true; hookId: number; at: number }
+			| { ok: false; error: string }
+			| null
+		>
+	>({});
 
 	// Dedup state — singleton so the cache survives ClientRouter swaps.
 	private initPromise: Promise<void> | null = null;
@@ -1230,6 +1239,28 @@ class AgentsService {
 		this.$webhookInstallResults.set(resultsSet);
 	}
 
+	public async pingWebhookForGuild(guildId: string): Promise<void> {
+		const repoFull = this.$webhookInstallSelected.get()[guildId] ?? '';
+		const [owner, repo] = repoFull.split('/');
+		if (!owner || !repo) return;
+		const busy = {
+			...this.$webhookPingBusyFor.get(),
+			[guildId]: true,
+		};
+		this.$webhookPingBusyFor.set(busy);
+		const r = await this.pingRepoWebhook(guildId, owner, repo);
+		const busyDone = { ...this.$webhookPingBusyFor.get() };
+		delete busyDone[guildId];
+		this.$webhookPingBusyFor.set(busyDone);
+		const result = r.ok
+			? { ok: true as const, hookId: r.hookId, at: Date.now() }
+			: { ok: false as const, error: r.error };
+		this.$webhookPingResults.set({
+			...this.$webhookPingResults.get(),
+			[guildId]: result,
+		});
+	}
+
 	public async toggleToken(
 		tokenId: string,
 		isActive: boolean,
@@ -1431,6 +1462,32 @@ class AgentsService {
 			installed: !!r.data.installed,
 			alreadyPresent: !!r.data.already_present,
 			hookId: r.data.hook_id ?? null,
+		};
+	}
+
+	public async pingRepoWebhook(
+		guildId: string,
+		owner: string,
+		repo: string,
+	): Promise<
+		| { ok: true; hookId: number; url: string }
+		| { ok: false; error: string; retryAfterMs?: number }
+	> {
+		const r = await this.callJson<{
+			pinged: boolean;
+			hook_id: number;
+			url: string;
+		}>(GH_ADMIN_URL, {
+			command: 'webhooks.ping',
+			server_id: guildId,
+			owner,
+			repo,
+		});
+		if (!r.ok) return { ok: false, error: r.error };
+		return {
+			ok: true,
+			hookId: r.data.hook_id,
+			url: r.data.url,
 		};
 	}
 
