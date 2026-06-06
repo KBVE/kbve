@@ -229,6 +229,27 @@ export default function ReactVMVncViewer() {
 		return () => cancelAnimationFrame(rafId);
 	}, [fullscreen]);
 
+	// Keep noVNC's scaling in sync with the viewer container size. noVNC only
+	// recomputes scaleViewport on connect and on window resize, so if the
+	// container measures 0 at connect time (flex/grid layout race on some
+	// window sizes/browsers) the canvas scales to 0×0 and renders black even
+	// though the framebuffer is drawn. Re-dispatch a resize whenever the
+	// container actually changes size so noVNC rescales to fit; the rAF nudge
+	// covers the initial layout settle right after connect.
+	useEffect(() => {
+		if (!connected) return;
+		const viewerEl = viewerRef.current;
+		if (!viewerEl || typeof ResizeObserver === 'undefined') return;
+		const nudge = () => window.dispatchEvent(new Event('resize'));
+		const rafId = requestAnimationFrame(nudge);
+		const ro = new ResizeObserver(nudge);
+		ro.observe(viewerEl);
+		return () => {
+			cancelAnimationFrame(rafId);
+			ro.disconnect();
+		};
+	}, [connected]);
+
 	const toggleFullscreen = useCallback(() => {
 		const el = containerRef.current;
 		if (!el) return;
