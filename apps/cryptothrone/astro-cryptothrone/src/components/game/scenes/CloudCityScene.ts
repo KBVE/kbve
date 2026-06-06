@@ -138,6 +138,12 @@ export class CloudCityScene extends Scene {
 		this.gridEngine.create(tilemap, gridEngineConfig);
 		this.loadRanges();
 
+		if (import.meta.env.DEV) {
+			(
+				window as Window & { __ctGame?: { gridEngine: unknown } }
+			).__ctGame = { gridEngine: this.gridEngine };
+		}
+
 		this.playerController = new PlayerController(
 			this,
 			this.gridEngine,

@@ -59,6 +59,17 @@
 				"commands": ["nx exec -- astro sync"],
 				"parallel": false
 			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/cryptothrone/astro-cryptothrone",
+				"commands": [
+					"nx exec -- vitest run --coverage --config vitest.config.ts"
+				],
+				"parallel": false
+			},
+			"cache": true
 		}
 	}
 }
