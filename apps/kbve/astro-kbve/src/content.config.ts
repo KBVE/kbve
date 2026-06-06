@@ -184,6 +184,13 @@ export const collections = {
 				mc_block: McBlockSchema.optional(),
 				'yt-tracks': z.array(z.string()).optional(),
 				'yt-sets': z.array(z.string()).optional(),
+				// Journal post metadata consumed by the RSS feed
+				// (src/pages/rss.xml.ts). Without these the docs schema strips
+				// them from entry.data.
+				date: z.coerce.date().optional(),
+				img: z.string().optional(),
+				category: z.string().optional(),
+				tags: z.array(z.string()).optional(),
 				// Per-page social-meta overrides consumed by
 				// src/components/navigation/Head.astro. Astro silently strips
 				// nested z.object fields imported across zod-package boundaries
