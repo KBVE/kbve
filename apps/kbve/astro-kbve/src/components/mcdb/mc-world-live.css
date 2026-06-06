@@ -1,12 +1,26 @@
-.mcworldlive {
+.mcworldlive,
+.mcworldlive-skeleton {
 	display: flex;
 	flex-direction: column;
 	gap: 0.4rem;
 	padding: 0.6rem 0.8rem;
-	border: 1px solid var(--sl-color-gray-5);
 	border-radius: 0.4rem;
 	background: var(--sl-color-bg);
 	max-width: 640px;
+	/* Pin the height so the skeleton -> live swap and the
+	   "servers list arrives" growth don't shift the page. */
+	min-height: 6.5rem;
+	box-sizing: border-box;
+}
+
+.mcworldlive {
+	border: 1px solid var(--sl-color-gray-5);
+}
+
+.mcworldlive-skeleton {
+	border: 1px dashed var(--sl-color-gray-5);
+	color: var(--sl-color-gray-3);
+	font-size: 0.9em;
 }
 
 .mcworldlive__row {

@@ -45,6 +45,10 @@ export function MCWorldMapLive({ world, minChunk, maxChunk }: Props) {
 	const [error, setError] = useState<string | null>(null);
 	const mountedRef = useRef(false);
 	const abortRef = useRef<AbortController | null>(null);
+	// Cache the static-side SVG + injection-point lookup once on mount so
+	// dbLots updates don't re-walk the DOM every refresh.
+	const liveLayerRef = useRef<SVGGElement | null>(null);
+	const svgRef = useRef<SVGSVGElement | null>(null);
 
 	const cancel = useCallback(() => {
 		if (abortRef.current) {
@@ -90,6 +94,17 @@ export function MCWorldMapLive({ world, minChunk, maxChunk }: Props) {
 
 	useEffect(() => {
 		mountedRef.current = true;
+		// Bind DOM handles ONCE per mount. ClientRouter swap-back rebuilds
+		// the DOM, so the next mount picks up fresh references.
+		const wrap = document.querySelector<HTMLDivElement>(
+			`[data-world="${world}"]`,
+		);
+		svgRef.current =
+			wrap?.querySelector<SVGSVGElement>('.mcworld__svg') ?? null;
+		liveLayerRef.current =
+			wrap?.querySelector<SVGGElement>('[data-mcworld-live-lots]') ??
+			null;
+
 		document
 			.querySelectorAll('[data-mcworld-live-skeleton]')
 			.forEach((el) => el.remove());
@@ -117,20 +132,23 @@ export function MCWorldMapLive({ world, minChunk, maxChunk }: Props) {
 			document.removeEventListener('visibilitychange', onHidden);
 			window.removeEventListener('pagehide', teardown);
 			cancel();
+			// Drop any injected rects so a clean React unmount doesn't leak
+			// nodes into the Astro-owned SVG. ClientRouter swap-away tears
+			// the whole DOM anyway, but this covers the React-only path.
+			if (liveLayerRef.current) {
+				liveLayerRef.current.replaceChildren();
+			}
+			liveLayerRef.current = null;
+			svgRef.current = null;
 		};
-	}, [refresh, cancel]);
+	}, [refresh, cancel, world]);
 
-	// Project DB lots into the parent SVG's grid using the data-* attrs.
+	// Project DB lots into the cached SVG group. No DOM walk per update.
 	useEffect(() => {
-		const wrap = document.querySelector<HTMLDivElement>('[data-world]');
-		const liveLayer = wrap?.querySelector<SVGGElement>(
-			'[data-mcworld-live-lots]',
-		);
-		if (!wrap || !liveLayer || !dbLots) return;
-		const svg = wrap.querySelector<SVGSVGElement>('.mcworld__svg');
-		if (!svg) return;
-		const vb = svg.viewBox.baseVal;
-		const SIZE = vb.width;
+		const liveLayer = liveLayerRef.current;
+		const svg = svgRef.current;
+		if (!liveLayer || !svg || !dbLots) return;
+		const SIZE = svg.viewBox.baseVal.width;
 		const span = maxChunk - minChunk + 1;
 		const cell = SIZE / span;
 		liveLayer.replaceChildren();
