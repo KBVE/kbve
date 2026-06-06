@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "HAL/CriticalSection.h"
 #include "Templates/Atomic.h"
-#include "chuckTerrainCache.h"
+#include "KBVEWorldChunkCache.h"
 
 class UWorld;
 
@@ -24,7 +24,7 @@ private:
 	FchuckTerrainPrewarm();
 	void GenerateOne(uint32 Seed, FIntPoint Coord, int32 CellsPerEdge, float CellSize);
 
-	FchuckTerrainCache Cache;
+	FKBVEWorldChunkCache Cache;
 	FCriticalSection   CacheMutex;
 	bool               bCacheOpen = false;
 

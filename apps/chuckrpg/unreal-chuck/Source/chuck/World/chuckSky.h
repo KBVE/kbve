@@ -9,6 +9,7 @@ class USkyAtmosphereComponent;
 class USkyLightComponent;
 class UExponentialHeightFogComponent;
 class UStaticMeshComponent;
+class UPostProcessComponent;
 
 UCLASS()
 class AchuckSky : public AActor
@@ -45,6 +46,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UExponentialHeightFogComponent> Fog;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UPostProcessComponent> PostProcess;
 
 	UPROPERTY(EditAnywhere, Category = "Chuck|Sky")
 	float DayLengthSeconds = 7200.f;

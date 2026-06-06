@@ -4,7 +4,7 @@
 #include "Misc/Paths.h"
 #include "Serialization/BufferArchive.h"
 #include "chuckNoise.h"
-#include "chuckTerrainBlob.h"
+#include "KBVEWorldChunkBlob.h"
 #include "KismetProceduralMeshLibrary.h"
 
 FchuckTerrainPrewarm& FchuckTerrainPrewarm::Get()
@@ -83,7 +83,7 @@ void FchuckTerrainPrewarm::GenerateOne(uint32 Seed, FIntPoint Coord, int32 Cells
 		if (Cache.Read(Seed, Coord, Probe)) return;
 	}
 
-	FchuckChunkMesh Mesh;
+	FKBVEWorldChunkMesh Mesh;
 	Mesh.CellsPerEdge = CellsPerEdge;
 	Mesh.CellSize     = CellSize;
 

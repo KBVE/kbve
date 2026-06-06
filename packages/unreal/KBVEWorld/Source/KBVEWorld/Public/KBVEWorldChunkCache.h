@@ -2,11 +2,11 @@
 
 #include "CoreMinimal.h"
 
-class FchuckTerrainCache
+class KBVEWORLD_API FKBVEWorldChunkCache
 {
 public:
-	FchuckTerrainCache() = default;
-	~FchuckTerrainCache();
+	FKBVEWorldChunkCache() = default;
+	~FKBVEWorldChunkCache();
 
 	bool Open(const FString& DbPath);
 	void Close();

@@ -67,6 +67,34 @@ void UROWSAuthSubsystem::Logout(const FString& UserSessionGUID)
 		FHttpRequestCompleteDelegate::CreateUObject(this, &UROWSAuthSubsystem::OnLogoutResponse));
 }
 
+void UROWSAuthSubsystem::AdoptSupabaseSession(const FString& AccessToken, const FString& InSupabaseUserId, const FString& UsernameHint)
+{
+	if (!Core)
+	{
+		return;
+	}
+	Core->SetSupabaseAccessToken(AccessToken);
+	Core->SetSupabaseUserId(InSupabaseUserId);
+	Core->SetUserSessionGUID(InSupabaseUserId);
+
+	UE_LOG(LogROWS, Log, TEXT("ROWS adopted Supabase session — userId=%s usernameHint=%s"),
+		*InSupabaseUserId, *UsernameHint);
+
+	OnLoginSuccess.Broadcast(InSupabaseUserId);
+}
+
+void UROWSAuthSubsystem::ClearSupabaseSession()
+{
+	if (!Core)
+	{
+		return;
+	}
+	Core->SetSupabaseAccessToken(FString());
+	Core->SetSupabaseUserId(FString());
+	Core->ClearSession();
+	OnLogoutSuccess.Broadcast();
+}
+
 // ---------------------------------------------------------------------------
 // Response Handlers
 // ---------------------------------------------------------------------------

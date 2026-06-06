@@ -250,23 +250,44 @@ export default function ReactVMVncViewer() {
 		return () => cancelAnimationFrame(rafId);
 	}, [fullscreen]);
 
-	// Keep noVNC's scaling in sync with the viewer container size. noVNC only
-	// recomputes scaleViewport on connect and on window resize, so if the
-	// container measures 0 at connect time (flex/grid layout race on some
-	// window sizes/browsers) the canvas scales to 0×0 and renders black even
-	// though the framebuffer is drawn. Re-dispatch a resize whenever the
-	// container actually changes size so noVNC rescales to fit; the rAF nudge
-	// covers the initial layout settle right after connect.
 	useEffect(() => {
 		if (!connected) return;
 		const viewerEl = viewerRef.current;
 		if (!viewerEl || typeof ResizeObserver === 'undefined') return;
-		const nudge = () => window.dispatchEvent(new Event('resize'));
-		const rafId = requestAnimationFrame(nudge);
-		const ro = new ResizeObserver(nudge);
+		const rescale = () => {
+			const rfb = rfbRef.current;
+			if (rfb) {
+				try {
+					rfb.scaleViewport = true;
+				} catch {
+					/* */
+				}
+			}
+			window.dispatchEvent(new Event('resize'));
+			const canvas = viewerEl.querySelector('canvas');
+			if (canvas && canvas.clientHeight === 0) {
+				const wrap = canvas.parentElement;
+				if (wrap) {
+					wrap.style.height = '100%';
+					wrap.style.width = '100%';
+				}
+				canvas.style.height = '100%';
+				canvas.style.width = 'auto';
+				canvas.style.maxWidth = '100%';
+				canvas.style.objectFit = 'contain';
+				canvas.style.display = 'block';
+				canvas.style.margin = 'auto';
+			}
+		};
+		const t0 = requestAnimationFrame(rescale);
+		const t1 = setTimeout(rescale, 150);
+		const t2 = setTimeout(rescale, 600);
+		const ro = new ResizeObserver(rescale);
 		ro.observe(viewerEl);
 		return () => {
-			cancelAnimationFrame(rafId);
+			cancelAnimationFrame(t0);
+			clearTimeout(t1);
+			clearTimeout(t2);
 			ro.disconnect();
 		};
 	}, [connected]);

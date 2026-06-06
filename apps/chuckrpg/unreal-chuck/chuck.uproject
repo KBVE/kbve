@@ -83,10 +83,14 @@
 		},
 		{
 			"Name": "KBVEROWS",
-			"Enabled": false
+			"Enabled": true
 		},
 		{
 			"Name": "KBVESupabase",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEWorld",
 			"Enabled": true
 		}
 	]
