@@ -269,12 +269,50 @@ export default function ReactVMVncViewer() {
 		if (!connected) return;
 		const viewerEl = viewerRef.current;
 		if (!viewerEl || typeof ResizeObserver === 'undefined') return;
-		const nudge = () => window.dispatchEvent(new Event('resize'));
-		const rafId = requestAnimationFrame(nudge);
-		const ro = new ResizeObserver(nudge);
+		// Force noVNC to recompute its scale against the box's *current* size.
+		// Re-assigning scaleViewport invokes noVNC's internal rescale directly
+		// — more reliable than dispatching a window 'resize' event, which it
+		// sometimes misses, leaving the canvas (and noVNC's wrapper div) sized
+		// 0×0 and the desktop invisible even though the framebuffer is drawn.
+		const rescale = () => {
+			const rfb = rfbRef.current;
+			if (rfb) {
+				try {
+					rfb.scaleViewport = true;
+				} catch {
+					/* noop */
+				}
+			}
+			window.dispatchEvent(new Event('resize'));
+			// Fallback: if noVNC still left the canvas collapsed to 0×0 (its
+			// wrapper measured the box as 0 at connect and never recovered),
+			// size the wrapper + canvas directly so the desktop is visible and
+			// the collapsed element can't overlay the toolbar.
+			const canvas = viewerEl.querySelector('canvas');
+			if (canvas && canvas.clientHeight === 0) {
+				const wrap = canvas.parentElement;
+				if (wrap) {
+					wrap.style.height = '100%';
+					wrap.style.width = '100%';
+				}
+				canvas.style.height = '100%';
+				canvas.style.width = 'auto';
+				canvas.style.maxWidth = '100%';
+				canvas.style.objectFit = 'contain';
+				canvas.style.display = 'block';
+				canvas.style.margin = 'auto';
+			}
+		};
+		// A few staggered passes cover the post-connect flex/layout settle.
+		const t0 = requestAnimationFrame(rescale);
+		const t1 = setTimeout(rescale, 150);
+		const t2 = setTimeout(rescale, 600);
+		const ro = new ResizeObserver(rescale);
 		ro.observe(viewerEl);
 		return () => {
-			cancelAnimationFrame(rafId);
+			cancelAnimationFrame(t0);
+			clearTimeout(t1);
+			clearTimeout(t2);
 			ro.disconnect();
 		};
 	}, [connected]);
