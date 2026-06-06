@@ -140,6 +140,20 @@
 				"cwd": "{workspaceRoot}"
 			}
 		},
+		"sync:unreal": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "node apps/kbve/astro-kbve/scripts/sync-unreal-uplugin.mjs",
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"sync:unreal:check": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "node apps/kbve/astro-kbve/scripts/sync-unreal-uplugin.mjs --check",
+				"cwd": "{workspaceRoot}"
+			}
+		},
 		"sync:mapdb": {
 			"executor": "nx:run-commands",
 			"inputs": [
