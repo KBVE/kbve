@@ -165,17 +165,12 @@ namespace RareIcon
             else
                 Ecb.AddComponent(target, new BuildingVariant { Value = variantId });
 
-            // Remap shader variant so the upgraded building renders as its
-            // tier-specific silhouette. Burst-safe: pure byte→byte switch
-            // mirrors BuildingDB.GetTieredVisualId.
             byte visualId = TieredVisualId(type, newTier, variantId);
             if (visualId != 0 && VisualLookup.HasComponent(target))
             {
                 VisualLookup[target] = new BuildingVisual { Value = visualId };
             }
 
-            // Emit lifecycle event so MessagePipe subscribers (UI, audio,
-            // achievements) react on the main thread next Presentation.
             if (Events.IsCreated)
             {
                 Events.Add(new BuildingEvent

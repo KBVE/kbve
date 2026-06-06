@@ -38,9 +38,6 @@ namespace RareIcon
             if (!activeLookup.HasBuffer(player)) return;
             var active = activeLookup[player];
 
-            // Capital ledger — optional; if absent, reward pay is deferred
-            // until a Capital exists (but RewardPaid stays 0 so the retry
-            // lands next tick once the ledger materialises).
             DynamicBuffer<BankLedgerBase> ledger = default;
             bool hasLedger = false;
             {
@@ -65,7 +62,7 @@ namespace RareIcon
 
                 if (def.RewardItemId != 0 && def.RewardItemCount > 0)
                 {
-                    if (!hasLedger) continue; // retry next tick
+                    if (!hasLedger) continue;
                     BankLedgerOps.AddItem(ref ledger, def.RewardItemId, def.RewardItemCount, default);
                 }
 

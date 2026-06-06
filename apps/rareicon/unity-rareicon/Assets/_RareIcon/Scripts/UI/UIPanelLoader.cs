@@ -30,9 +30,6 @@ namespace RareIcon
 
             host.rootVisualElement.Add(tree);
 
-            // Auto-apply YoRHA-style corner notches to every modal panel in
-            // the loaded tree. Centralised here so every UXML panel picks
-            // up the chrome without per-panel C# wiring.
             foreach (var modal in tree.Query<VisualElement>(className: "panel--modal").ToList())
                 modal.AddCornerNotches();
 

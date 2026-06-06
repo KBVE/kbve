@@ -73,11 +73,6 @@ namespace RareIcon
                 float amount = ev.Amount;
                 if (ev.Mod == ArrowMod.Obsidian) amount *= ObsidianDamageMul;
 
-                // Equipment mitigation: armor + helmet always apply,
-                // shield rolls per hit. Combined cap at 80% so the
-                // tankiest possible kit still takes 20% of incoming
-                // damage — keeps fights from stalling on full-plate
-                // immortals.
                 if (DefenseLookup.HasComponent(ev.Target))
                 {
                     var mit = DefenseLookup[ev.Target];

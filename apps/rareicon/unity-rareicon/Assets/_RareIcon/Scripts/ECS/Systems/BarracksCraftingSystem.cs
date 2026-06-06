@@ -85,10 +85,6 @@ namespace RareIcon
 
                     var inv = BarracksLookup[barracks].Reinterpret<BankLedgerBase>();
 
-                    // Three arrow recipes — needle (premium) > stonehead (mid) > wooden (fallback).
-                    // First match consumes its inputs and produces 5 of the matching ammo type;
-                    // the next craftsman cycle picks again so a barracks with mixed stock rotates
-                    // through every recipe instead of starving the cheaper one.
                     if (BankLedgerOps.CountOf(inv, (ushort)ItemId.Log) >= WoodLogCost &&
                         BankLedgerOps.CountOf(inv, (ushort)ItemId.CactiNeedle) >= NeedleCost)
                     {

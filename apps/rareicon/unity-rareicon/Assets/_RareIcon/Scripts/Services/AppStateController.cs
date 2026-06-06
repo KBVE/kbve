@@ -448,18 +448,11 @@ namespace RareIcon
                 return TryGetUnitAtLinear(em, hex, out unit);
 
             var snap = _hashQuery.GetSingleton<SpatialHashSingleton>();
-            // Wait for the in-flight ResetHash + BuildHash jobs before
-            // touching the container from the main thread; Burst readers
-            // chain via NativeContainer safety, but managed code bypasses
-            // that path so we Complete the handle here.
+
             snap.WriteHandle.Complete();
             var hash = snap.Hash;
             if (!hash.IsCreated) return TryGetUnitAtLinear(em, hex, out unit);
 
-            // Walk the clicked cell + 8 neighbors to cover units sitting on
-            // cell boundaries; cell size is 1.0 world unit so a single hex
-            // (0.5 wide) always lands inside one cell, but a unit's render
-            // position can drift to the adjacent cell mid-step.
             int cx = (int)math.floor(click.x / SpatialHashSystem.CellSize);
             int cy = (int)math.floor(click.y / SpatialHashSystem.CellSize);
 

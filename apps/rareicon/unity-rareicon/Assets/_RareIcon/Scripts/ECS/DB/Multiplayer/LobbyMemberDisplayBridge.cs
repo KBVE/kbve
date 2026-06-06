@@ -36,7 +36,7 @@ namespace RareIcon
 
                 if (_lastSeen.TryGetValue(id, out var seen) && seen == v) continue;
                 _lastSeen[id] = v;
-                if (v == 0) continue; // producer hasn't composed yet
+                if (v == 0) continue;
                 coord.UpdateMemberDisplayLine(id, displayRO.ValueRO.Line);
             }
 

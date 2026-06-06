@@ -66,7 +66,7 @@ namespace RareIcon.Platform
     public readonly struct SteamLobbyDataChangedMessage
     {
         public readonly ulong LobbyId;
-        public readonly ulong SubjectSteamId;  // 0 = lobby-level data, else per-member.
+        public readonly ulong SubjectSteamId;
         public SteamLobbyDataChangedMessage(ulong lobbyId, ulong subjectSteamId) { LobbyId = lobbyId; SubjectSteamId = subjectSteamId; }
     }
 

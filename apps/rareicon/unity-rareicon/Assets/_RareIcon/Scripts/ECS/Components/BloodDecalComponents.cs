@@ -5,7 +5,7 @@ using Unity.Rendering;
 namespace RareIcon
 {
     /// <summary>Ground decal marker; DespawnAtAbsSeconds reads against WorldClock.AbsSeconds so the lifetime is persistence-friendly.</summary>
-    // TODO(rust-ffi): serialize {Position, SpawnedAt, DespawnAt, Seed} into the per-chunk store so decals survive unload; on reload, drop any whose DespawnAt already passed.
+
     public struct BloodDecal : IComponentData
     {
         public float SpawnedAtAbsSeconds;

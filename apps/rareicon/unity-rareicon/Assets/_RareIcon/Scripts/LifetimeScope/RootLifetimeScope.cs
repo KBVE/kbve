@@ -12,7 +12,7 @@ namespace RareIcon
     {
         protected override void Configure(IContainerBuilder builder)
         {
-            // -- MessagePipe --
+
             var options = builder.RegisterMessagePipe();
 
             builder.RegisterMessageBroker<LocaleChangedMessage>(options);
@@ -64,7 +64,6 @@ namespace RareIcon
             builder.RegisterMessageBroker<WorldEventTriggeredMessage>(options);
             builder.RegisterMessageBroker<LandmarkDemolishedEvent>(options);
 
-            // -- Steam platform events (standalone-only; stripped on iOS/Android via asmdef) --
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             builder.RegisterMessageBroker<SteamLobbyCreatedMessage>(options);
             builder.RegisterMessageBroker<SteamLobbyJoinedMessage>(options);
@@ -96,7 +95,6 @@ namespace RareIcon
 #endif
             });
 
-            // -- Services --
             builder.Register<CameraService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<UiToolkitPointerBlocker>(Lifetime.Singleton).AsImplementedInterfaces();
             builder.Register<MouseStateSource>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
@@ -114,19 +112,13 @@ namespace RareIcon
             builder.Register<PauseService>(Lifetime.Singleton).AsSelf();
             builder.Register<ActivityFeedService>(Lifetime.Singleton).AsSelf();
             builder.Register<InventoryService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
-            // Factory so VContainer doesn't try to resolve the int defaults.
+
             builder.Register(_ => new BiomeGenerator(), Lifetime.Singleton).AsSelf();
             builder.Register<ChunkGeneratorService>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<RiverRouter>(Lifetime.Singleton).AsSelf();
             builder.Register<WorldGenSession>(Lifetime.Singleton).AsSelf().AsImplementedInterfaces();
             builder.Register<WorldResetService>(Lifetime.Singleton).AsSelf();
 
-            // -- Steam services (standalone-only; entire RareIcon.Platform asmdef
-            //    is excluded on iOS/Android/WebGL targets) --
-            // SteamManager itself self-bootstraps via RuntimeInitializeOnLoad —
-            // these are the managed service facades that consume its callbacks.
-            // RegisterEntryPoint wires IStartable (callback subscription),
-            // ITickable (per-frame message polling), and IDisposable (cleanup).
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
             builder.RegisterEntryPoint<SteamLobbyService>(Lifetime.Singleton)
                 .AsSelf().As<ISteamLobbyService>();
@@ -143,88 +135,60 @@ namespace RareIcon
             builder.RegisterEntryPoint<SteamLobbyBrowserService>(Lifetime.Singleton)
                 .AsSelf().As<ISteamLobbyBrowserService>();
 
-            // Phase 1 multiplayer orchestrator + lobby waiting room UI.
             builder.RegisterEntryPoint<MultiplayerCoordinator>(Lifetime.Singleton).AsSelf();
             builder.RegisterEntryPoint<UILobbyRoom>().AsSelf();
-            // Phase 2b transport lifecycle — boots SteamPacketBridge on match start.
+
             builder.RegisterEntryPoint<MultiplayerLifecycleService>(Lifetime.Singleton).AsSelf();
 #endif
 
-            // -- UI --
             builder.RegisterComponentOnNewGameObject<UIPanelManager>(Lifetime.Singleton, "UIPanelManager")
                 .DontDestroyOnLoad()
                 .AsSelf();
 
-            // -- App state machine (DotsUI-style: single enum drives HUD visibility) --
             builder.RegisterEntryPoint<AppStateController>().AsSelf();
 
-            // -- Settings window (tabbed; first tab is world Search) --
             builder.RegisterEntryPoint<UISettings>().AsSelf();
 
-            // -- Screen frame (root layout regions; mount FIRST so other
-            //    panels can await its Ready and grab region refs) --
             builder.RegisterEntryPoint<ScreenFrameHost>().AsSelf();
 
             builder.RegisterEntryPoint<SelectionOverlay>().AsSelf();
 
-            // -- Title screen (locale → seed → background gen → start) --
             builder.RegisterEntryPoint<UITitleScreen>().AsSelf();
 
-            // -- Treasury panel (capital storage viewer) --
             builder.RegisterEntryPoint<UITreasury>().AsSelf();
 
-            // -- Citizens panel (tabbed: Jobs, Roster, ...) --
             builder.RegisterEntryPoint<UICitizensPanel>().AsSelf();
 
-            // -- Military panel (quick list of armed Player units) --
             builder.RegisterEntryPoint<UIMilitary>().AsSelf();
 
-            // -- Toast notification service (pool + queue, bottom-center) --
             builder.RegisterEntryPoint<ToastService>().AsSelf();
 
             builder.RegisterEntryPoint<TutorialDriverService>().AsSelf();
             builder.RegisterEntryPoint<UITutorialHint>().AsSelf();
 
-            // -- Pause indicator (top-right overlay + F9 debug toggle) --
             builder.RegisterEntryPoint<PauseIndicator>().AsSelf();
 
-            // -- Game-over loss screen (full-screen modal on AppInterfaceState.GameOver) --
             builder.RegisterEntryPoint<UIGameOverScreen>().AsSelf();
 
-            // -- Dialogue: VN renderer is DI-resolvable so the controller
-            //    can drive it directly; bubble + controller are pure
-            //    entry points that self-manage via the message bus. --
             builder.RegisterEntryPoint<DialogueVN>().AsSelf();
             builder.RegisterEntryPoint<DialogueBubble>();
             builder.RegisterEntryPoint<DialogueController>();
 
-            // -- Random world events (dispatcher + handler) --
             builder.RegisterEntryPoint<WorldEventScheduler>().AsSelf();
             builder.RegisterEntryPoint<WorldEventHandler>().AsSelf();
 
-            // -- Building palette panel (per-type cost + affordability) --
             builder.RegisterEntryPoint<UIBuildingPalette>().AsSelf();
 
-            // -- Building inspector (auto-opens on click router's
-            //    BuildingInspectMessage; closes via X button) --
             builder.RegisterEntryPoint<UIBuildingInspector>().AsSelf();
 
-            // -- Global escape handler — registered AFTER every modal so
-            //    its Inject pulls already-registered references. --
             builder.RegisterEntryPoint<EscapeMenuController>();
 
-            // -- HUDs (VContainer-managed lifecycle, gated on AppInterfaceState) --
             builder.RegisterEntryPoint<WorldHUD>();
             builder.RegisterEntryPoint<TileHUD>();
             builder.RegisterEntryPoint<HexEnterModal>();
 
-            // -- Entry Points --
             builder.RegisterEntryPoint<TitleEntryPoint>();
 
-            // World rendering (ocean, hex tiles) handled by ECS systems:
-            // - OceanSpawnSystem: creates ocean entity
-            // - OceanTrackCameraSystem: follows camera each frame
-            // - HexSpawnSystem: generates biome data + spawns hex entities
         }
 
         protected override void Awake()

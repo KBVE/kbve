@@ -79,23 +79,18 @@ namespace RareIcon
             for (int i = 0; i < DamagedHexes.Length; i++)
             {
                 int d = AxialDistance(m.CurrentHex - DamagedHexes[i]);
-                if (d <= 0) continue;            // skip self-equal — never lock onto own hex
+                if (d <= 0) continue;
                 if (d > TargetingRadius) continue;
                 if (d < bestD) { bestD = d; target = DamagedHexes[i]; }
             }
             for (int i = 0; i < KnownHexes.Length; i++)
             {
                 int d = AxialDistance(m.CurrentHex - KnownHexes[i]);
-                if (d <= 0) continue;            // skip stale entry that equals the bandit's current hex (destroyed building leaves it cached)
+                if (d <= 0) continue;
                 if (d > KnownTargetRadius) continue;
                 if (d < bestD) { bestD = d; target = KnownHexes[i]; }
             }
 
-            // If every candidate was skipped + the bandit is already
-            // standing on the Capital fallback, leave the goal alone
-            // so PathfindingJob won't see TargetHex == CurrentHex and
-            // permanently park the unit. Hunt re-evaluates next tick
-            // once damagedHexes / KnownHexes refreshes.
             if (target.Equals(m.CurrentHex)) return;
 
             goal = new MovementGoal

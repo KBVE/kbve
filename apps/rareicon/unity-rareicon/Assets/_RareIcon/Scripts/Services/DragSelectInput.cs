@@ -16,7 +16,6 @@ namespace RareIcon
 
         readonly CompositeDisposable _disposables = new();
 
-
         const float MinDragDistanceSq = 0.01f;
 
         [Inject]
@@ -67,7 +66,7 @@ namespace RareIcon
         }
 
         public void Dispose()
-        { 
+        {
             _disposables.Dispose();
         }
     }

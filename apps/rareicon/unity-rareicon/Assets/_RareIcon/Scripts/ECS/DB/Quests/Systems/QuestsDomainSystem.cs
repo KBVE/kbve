@@ -24,15 +24,10 @@ namespace RareIcon
                 LastEvaluatedTurn    = uint.MaxValue,
             };
 
-            // One-time managed crossing — mirror QuestDB into the Burst map.
             QuestDB.PopulateRuntime(ref db.Defs);
 
-            // Overlay proto-authored quests (loaded from StreamingAssets/
-            // questdb.binpb by QuestdbLoaderSystem one tick earlier).
             QuestdbCacheBridge.PopulateRuntime(ref db.Defs);
 
-            // Tutorial auto-start — the player's first quest lands the instant
-            // QuestSeedSystem sees the Player singleton.
             db.PendingStart.Enqueue(QuestId.FoundingOrder);
 
             _singleton = state.EntityManager.CreateEntity(typeof(QuestDBSingleton));
@@ -47,8 +42,6 @@ namespace RareIcon
 
             live.PipelineHandle.Complete();
 
-            // Double-buffer swap — producers wrote to Write last frame, bridge
-            // will drain the old Write (now Read) this frame.
             var startedTmp          = live.StartedReadBuffer;
             live.StartedReadBuffer  = live.StartedWriteBuffer;
             live.StartedWriteBuffer = startedTmp;

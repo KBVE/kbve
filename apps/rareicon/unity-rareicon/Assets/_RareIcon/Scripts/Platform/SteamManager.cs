@@ -1,20 +1,4 @@
-// Steamworks.NET only compiles on Windows / macOS / Linux standalone. On
-// mobile + web + server-only dedicated builds, the entire file is stripped
-// via the platform guard so the project still builds without Steam linkage.
-//
-// Rareicon AppIDs:
-//   prod = 2238370
-//   demo = 3791950
-// AppID is supplied via steam_appid.txt at the project root. Editor +
-// non-released builds read the file on startup; the shipped Steam depot
-// launcher supplies it via the Steam client instead. CI swaps the file
-// contents between the demo + prod depots during build time. Itch.io
-// uploads either keep or strip steam_appid.txt — SteamAPI.Init fails
-// cleanly in either case and the game falls back to offline mode.
-//
-// Set scripting define `DISABLESTEAMWORKS` on platforms where you want to
-// compile standalone but skip Steam — useful for a dedicated Linux server
-// build that still targets UNITY_STANDALONE_LINUX.
+
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 
 using System;
@@ -72,9 +56,7 @@ namespace RareIcon.Platform
 
             try
             {
-                // Restarts via Steam if the game was launched outside (Editor
-                // skips this; the steam_appid.txt file in the project root
-                // lets the SDK know which AppID we're running as).
+
                 if (!Application.isEditor && SteamAPI.RestartAppIfNecessary(AppId_t.Invalid))
                 {
                     Application.Quit();

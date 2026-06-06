@@ -55,10 +55,6 @@ namespace RareIcon
             ApplyWorldGate();
         }
 
-        // World hasn't started yet → SAVE GAME is meaningless (no live
-        // sim to snapshot). Hide the button + status hint at the title
-        // screen. EXIT GAME stays since the player still wants a clean
-        // shutdown path from the menu.
         void ApplyWorldGate()
         {
             if (_saveBtn == null) return;
@@ -79,12 +75,7 @@ namespace RareIcon
 
         void OnExitClicked()
         {
-            // Persist before quitting so the autosave reflects the latest
-            // tick. RustPersistenceFlushHook also fires on OnApplicationQuit
-            // as a backstop, but driving it from here is more responsive.
-            // Skip the autosave at the title screen — there's no live sim
-            // to snapshot and writing an empty bundle would clobber a
-            // legitimate prior autosave.
+
             if (WorldGenSession.HasStarted)
             {
                 byte[] thumb = ScreenshotService.CaptureThumbnailPng();

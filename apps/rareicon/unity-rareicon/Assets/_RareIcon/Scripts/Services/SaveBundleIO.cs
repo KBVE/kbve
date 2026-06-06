@@ -12,7 +12,7 @@ namespace RareIcon
         public const string ThumbnailEntry = "thumbnail.png";
         public const string StateEntry     = "state.sqlite.zst";
 
-        static readonly byte[] ZipMagic  = { 0x50, 0x4B, 0x03, 0x04 }; // PK..
+        static readonly byte[] ZipMagic  = { 0x50, 0x4B, 0x03, 0x04 };
         static readonly byte[] ZstdMagic = { 0x28, 0xB5, 0x2F, 0xFD };
 
         /// <summary>Write the slot bundle atomically to <paramref name="outPath"/>. <paramref name="stateZstPath"/> must point at a freshly-archived uniti zstd file (will be copied in, not moved). Returns true on success.</summary>

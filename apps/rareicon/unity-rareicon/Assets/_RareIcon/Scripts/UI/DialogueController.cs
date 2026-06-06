@@ -65,9 +65,6 @@ namespace RareIcon
             _cancelSub.Subscribe(_ => End()).AddTo(bag);
             _disposables.Add(bag.Build());
 
-            // Debug hotkey — F10 fires the hello-world tree. Scheduled on
-            // the UIDocument root so it keeps firing while the VN panel
-            // is hidden.
             var uiDoc = _panelManager.GetComponent<UIDocument>();
             if (uiDoc == null) return;
 
@@ -112,7 +109,7 @@ namespace RareIcon
         void OnAdvance(DialogueAdvanceMessage _)
         {
             if (!_isActive || _currentNode == null) return;
-            // Choices block auto-advance — must pick one.
+
             if (_currentNode.Choices != null && _currentNode.Choices.Length > 0) return;
             VisitNode(_currentNode.NextNodeId);
         }
@@ -149,9 +146,7 @@ namespace RareIcon
             }
             else
             {
-                // Bubble node — fire-and-forget, auto-advance. If the tree
-                // has no active speaker, skip bubble emission but still
-                // advance so mixed-mode trees don't stall.
+
                 if (_activeSpeaker != Entity.Null && node.Emoji != BubbleEmoji.None)
                 {
                     _bubblePub.Publish(new SpeechBubbleMessage(

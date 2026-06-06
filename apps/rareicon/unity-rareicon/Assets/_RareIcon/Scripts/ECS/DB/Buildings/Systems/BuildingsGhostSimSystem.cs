@@ -35,12 +35,12 @@ namespace RareIcon
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct BuildingsGhostSimSystem : ISystem
     {
-        const float TickInterval    = 1.0f;   // advance once per world-second
-        const int   BudgetThreshold = 1024;   // below this, advance all
-        const int   BudgetPerTick   = 1024;   // above threshold, process this many per tick
+        const float TickInterval    = 1.0f;
+        const int   BudgetThreshold = 1024;
+        const int   BudgetPerTick   = 1024;
 
         float _lastTickAbsSeconds;
-        int   _cursor;                        // round-robin start index when budget active
+        int   _cursor;
 
         public void OnCreate(ref SystemState state)
         {
@@ -53,7 +53,6 @@ namespace RareIcon
         {
             var clock = SystemAPI.GetSingleton<WorldClock>();
 
-            // First tick — prime clock, no elapsed yet.
             if (_lastTickAbsSeconds <= 0f)
             {
                 _lastTickAbsSeconds = clock.AbsSeconds;
@@ -108,26 +107,15 @@ namespace RareIcon
                 int idx = (Start + i) % Count;
                 var rec = Unloaded[idx];
 
-                // Production accrual — plain rate model for v0. Recipe
-                // cycle preservation lives on RecipeCycleRemaining so
-                // live resumption is exact; the rate figure below feeds
-                // the offline treasury deposit on hydrate.
                 float rate = ProductionRate(rec.Type);
                 if (rate > 0f) rec.AccruedProduction += rate * DeltaTime;
 
-                // Recipe cycle decays — when it reaches 0 a cycle completes
-                // offline (counted toward AccruedProduction via the rate
-                // model above, so we just reset the clock).
                 if (rec.RecipeCycleRemaining > 0f)
                 {
                     rec.RecipeCycleRemaining -= DeltaTime;
                     if (rec.RecipeCycleRemaining < 0f) rec.RecipeCycleRemaining = 0f;
                 }
 
-                // Hostile-faction health decay — Bandit Camps + hostile
-                // buildings slowly erode while offline if they're flagged
-                // as sitting in enemy territory at snapshot time. Prevents
-                // abandoned raid sources from piling up forever.
                 if ((rec.Flags & UnloadedBuildingFlags.InHostileTerritory) != 0 && rec.Health > 0)
                 {
                     float decayPerSec = HostileHealthDecayRate(rec.Type);
@@ -163,7 +151,7 @@ namespace RareIcon
             {
                 switch (type)
                 {
-                    case BuildingType.BanditCamp: return 1.5f;  // 1.5 HP / s → dies in ~3.3 min at full HP
+                    case BuildingType.BanditCamp: return 1.5f;
                     case BuildingType.GoblinCave: return 0.75f;
                     case BuildingType.Outpost:    return 0.5f;
                     default:                      return 0f;

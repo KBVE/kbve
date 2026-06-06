@@ -1,7 +1,4 @@
-// Steam avatar loader. Caches Texture2D per SteamID so repeat queries
-// don't hit the RGBA conversion path twice. Supports both large (128)
-// and medium (64) avatars; falls back from large → medium if the large
-// variant isn't cached on the client yet.
+
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 
 using System;
@@ -61,7 +58,6 @@ namespace RareIcon.Platform
                 ? SteamFriends.GetLargeFriendAvatar(new CSteamID(steamId))
                 : SteamFriends.GetMediumFriendAvatar(new CSteamID(steamId));
 
-            // -1 = invalid (user doesn't exist), 0 = loading (callback fires later), >0 = ready
             if (handle <= 0) return null;
 
             var tex = DecodeImage(handle);
@@ -72,7 +68,7 @@ namespace RareIcon.Platform
         void OnLoaded(AvatarImageLoaded_t evt)
         {
             ulong id = evt.m_steamID.m_SteamID;
-            // Steam reports the size via pixel dimensions; 64 = medium, 184 = large.
+
             var size = evt.m_iWide >= 128 ? SteamAvatarSize.Large : SteamAvatarSize.Medium;
             var tex = DecodeImage(evt.m_iImage, evt.m_iWide, evt.m_iTall);
             if (tex != null)
@@ -97,7 +93,6 @@ namespace RareIcon.Platform
             var buf = new byte[byteLen];
             if (!SteamUtils.GetImageRGBA(handle, buf, byteLen)) return null;
 
-            // Steam's RGBA comes top-down; flip to Unity's bottom-up.
             FlipRowsInPlace(buf, w, h);
 
             var tex = new Texture2D(w, h, TextureFormat.RGBA32, mipChain: false, linear: false);

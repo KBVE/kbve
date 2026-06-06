@@ -52,7 +52,7 @@ namespace RareIcon
     }
 
     /// <summary>Per-unit display name as two pool indexes — 4 bytes total. FirstNameId picks from a language-neutral pool (goblin names like "Skab" read the same in any locale); EpithetId picks from a localizable pool ("the Sly" / "ずる賢き"). 0 in either slot = unset; the UI falls back to the creature.* locale label when both are 0.</summary>
-    // TODO(rust-ffi): persist {FirstNameId, EpithetId} in the per-chunk store so a goblin keeps its name across chunk unload.
+
     public struct UnitName : IComponentData
     {
         public ushort FirstNameId;
@@ -301,10 +301,10 @@ namespace RareIcon
     /// </summary>
     public static class UnitFacing
     {
-        public const byte East  = 0;  // looking right (default)
-        public const byte North = 1;  // looking up — back of character
-        public const byte West  = 2;  // looking left (mirrored East sprite)
-        public const byte South = 3;  // looking down — toward camera
+        public const byte East  = 0;
+        public const byte North = 1;
+        public const byte West  = 2;
+        public const byte South = 3;
     }
 
     /// <summary>
@@ -328,23 +328,15 @@ namespace RareIcon
     {
         public int2 CurrentHex;
         public int2 TargetHex;
-        public float MoveSpeed;   // world units / second
-        public byte Facing;       // mirrors UnitFacingVisual
-        public uint RandomState;  // per-unit xorshift state
-        public uint WanderStep;   // monotonic counter, advances each arrival
-        // Time remaining (seconds) the unit stands still at its current hex
-        // after arriving. Lets the sprite-facing flip happen while stationary,
-        // so a 90°/180° turn reads as a deliberate pause-then-walk instead of
-        // a teleport-flip.
+        public float MoveSpeed;
+        public byte Facing;
+        public uint RandomState;
+        public uint WanderStep;
+
         public float DwellTimer;
-        // Last hex-neighbour direction (0..5) the unit moved in. Lets the
-        // wander pick bias toward "continue forward" instead of uniform-
-        // random ping-ponging. 255 = no previous direction (uniform pick).
+
         public byte LastDir;
-        // The WanderStep value at which this unit harvested its current hex.
-        // Lets HarvestSystem fire exactly once per arrival without needing a
-        // separate event tag — when LastHarvestStep != WanderStep the unit
-        // hasn't harvested THIS stop yet.
+
         public uint LastHarvestStep;
         public float HarvestCooldown;
     }

@@ -24,11 +24,6 @@ namespace RareIcon
             ref var dbRef       = ref SystemAPI.GetSingletonRW<ProfessionsDBSingleton>().ValueRW;
             var     writeBuffer = dbRef.WriteBuffer;
 
-            // Capacity headroom for the worst case where every unit emits a
-            // ReliefOverride / ManualOverride this tick. Reconcile is the
-            // first profession system to write into WriteBuffer each frame,
-            // so we grow once here on behalf of Preempt + Dispatch too — all
-            // three then AddNoResize without contention.
             var unitQuery = SystemAPI.QueryBuilder()
                 .WithAll<ProfessionPriorities, ReliefIntent, ProfessionIntent, TaskMemory>()
                 .Build();
@@ -93,8 +88,6 @@ namespace RareIcon
                     return;
                 }
 
-                // Pop drained / invalidated heads so Preempt + Dispatch see
-                // the next live task (or an empty queue).
                 while (tasks.Length > 0 &&
                        (tasks[0].State == TaskState.Invalidated ||
                         tasks[0].State == TaskState.Completed))

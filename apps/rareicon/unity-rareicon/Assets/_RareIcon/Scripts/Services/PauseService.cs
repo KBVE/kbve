@@ -48,8 +48,6 @@ namespace RareIcon
             return PauseReason.None;
         }
 
-        // Single swap point for multiplayer: rebind this body to a no-op
-        // and the world keeps running while IsPausedRx still drives local UI.
         void ApplyTimeScale()
         {
             Time.timeScale = _reasons.Count > 0 ? 0f : 1f;

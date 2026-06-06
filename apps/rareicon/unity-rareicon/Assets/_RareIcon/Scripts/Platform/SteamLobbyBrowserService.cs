@@ -1,6 +1,4 @@
-// Lobby browser — RequestLobbyList + filter builder + result capture.
-// Emits SteamLobbyBrowserResultMessage on completion; game UI reads the
-// cached snapshot from LastResults.
+
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 
 using System;

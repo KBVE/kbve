@@ -84,11 +84,6 @@ namespace RareIcon
             _warp.SetDomainWarpAmp(40f);
             _warp.SetFrequency(0.005f);
 
-            // Major-river contour — biome cells fall on the zero-crossing of
-            // a smooth, low-frequency noise field warped through _warp. That
-            // gives long, snaky Amazon-style rivers (not blobs). Width comes
-            // from the threshold band in GetBiome below; restricting to one
-            // hex is a tuning knob (RiverContourThreshold).
             _river = new FastNoiseLite(seed + 400);
             _river.SetNoiseType(FastNoiseLite.NoiseType.OpenSimplex2S);
             _river.SetFrequency(0.0035f);
@@ -150,7 +145,7 @@ namespace RareIcon
             float cont = (_continental.GetNoise(wx, wy) + 1f) * 0.5f;
             float elev = (_elevation.GetNoise(wx, wy) + 1f) * 0.5f;
             float isle = 1f - (_islands.GetNoise(wx, wy) + 1f) * 0.5f;
-            // Same weight mix the chunk generator used historically.
+
             float landHeight = cont * 0.4f + isle * 0.2f + elev * 0.15f;
 
             float moist = (_moisture.GetNoise(wx, wy) + 1f) * 0.5f;
@@ -204,36 +199,27 @@ namespace RareIcon
             return pixels;
         }
 
-        // Width of the major-river contour band, in noise-value units. Narrower
-        // = thinner river. With the chosen river noise frequency this gives a
-        // ~1 hex wide ribbon — single-tile snaky rivers like the Amazon.
         const float RiverContourThreshold = 0.012f;
 
         static int GetBiome(float height, float moisture, float temperature, float riverNoise)
         {
-            // Deep ocean
+
             if (height < 0.32f) return BIOME_OCEAN;
 
-            // Major river — the zero-crossing band of a smooth low-freq noise.
-            // Checked BEFORE the beach so rivers cut through sand to reach the sea.
-            // Restricted to lowland/midland so rivers don't snake over peaks.
             if (height < 0.62f
                 && math.abs(riverNoise) < RiverContourThreshold)
             {
                 return BIOME_RIVER;
             }
 
-            // Beach / shore
             if (height < 0.36f) return BIOME_SAND;
 
-            // Highlands
             if (height > 0.75f)
             {
                 if (temperature < 0.35f) return BIOME_SNOW;
                 return BIOME_STONE;
             }
 
-            // Mountains
             if (height > 0.65f)
             {
                 if (temperature < 0.3f) return BIOME_SNOW;
@@ -241,7 +227,6 @@ namespace RareIcon
                 return BIOME_STONE;
             }
 
-            // Lowlands — biome from moisture + temperature
             if (temperature < 0.25f)
                 return BIOME_SNOW;
 

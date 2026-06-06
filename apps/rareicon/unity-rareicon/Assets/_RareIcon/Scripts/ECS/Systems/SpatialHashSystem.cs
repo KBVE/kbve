@@ -63,9 +63,7 @@ namespace RareIcon
 
             if (!_primed)
             {
-                // First-frame prime: synchronously build A so this frame's
-                // readers see real data, then kick off an async build into B
-                // so the next frame can swap-and-publish without waiting.
+
                 Dependency = new ResetHashJob
                 {
                     Hash       = _hashA,
@@ -98,30 +96,18 @@ namespace RareIcon
                 return;
             }
 
-            // Sync last frame's build into the back buffer, then promote.
-            // Complete() is cheap when the build already finished during the
-            // back half of the previous frame; expensive only when build
-            // overruns the rest of the frame (rare at typical unit counts).
             _writeHandle.Complete();
             _readIsA = !_readIsA;
 
             var readBuf  = _readIsA ? _hashA : _hashB;
             var writeBuf = _readIsA ? _hashB : _hashA;
 
-            // Publish the freshly-built buffer to consumers. WriteHandle on
-            // the singleton stays default — the read buffer is fully built
-            // by the time we set it, and Complete on default is a no-op so
-            // existing main-thread readers (AppStateController click router)
-            // keep working without changes.
             SystemAPI.SetSingleton(new SpatialHashSingleton
             {
                 Hash        = readBuf,
                 WriteHandle = default,
             });
 
-            // Schedule next frame's build into the back buffer; runs async
-            // through the rest of this frame. Capture the handle for the
-            // next OnUpdate to wait on before promoting.
             Dependency = new ResetHashJob
             {
                 Hash       = writeBuf,
@@ -136,8 +122,6 @@ namespace RareIcon
             _writeHandle = Dependency;
         }
 
-        // Cheap pair hash. Spreads int2 cell coords across an int space
-        // without collisions for typical world sizes.
         public static int CellKey(int cx, int cy)
         {
             return (cx * 73856093) ^ (cy * 19349663);

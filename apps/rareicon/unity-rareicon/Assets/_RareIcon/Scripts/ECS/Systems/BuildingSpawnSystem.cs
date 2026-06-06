@@ -20,17 +20,14 @@ namespace RareIcon
     /// dispatches by per-instance BuildingVisual, so the same mesh +
     /// material renders Capital / Farm / Barracks / Furnace correctly.
     /// </summary>
-    // Client-only today: Shader.Find + Material creation + mesh prefab live
-    // in this system. When multiplayer lands, split into a server-side sim
-    // spawner (authoritative entity + state) and a client-side visual mirror
-    // that drives the render prefab off a Ghost-replicated Building.
+
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(MovementSystemGroup))]
     public partial class BuildingSpawnSystem : SystemBase
     {
         const float HexSize      = 0.25f;
-        const float BuildingSize = 1.5f;    // quad covers the 7-hex Capital flower; smaller buildings render inside
-        const float BuildingZ    = -0.6f;   // between tiles and units
+        const float BuildingSize = 1.5f;
+        const float BuildingZ    = -0.6f;
 
         Entity _buildingPrefab;
         bool _initialized;
@@ -52,13 +49,9 @@ namespace RareIcon
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                .CreateCommandBuffer(World.Unmanaged);
 
-            // GlobalMessagePipe lazily — provider is set by RootLifetimeScope.Awake
-            // which fires after our OnCreate but before any player click could
-            // produce a BuildRequest, so by the time we have something to
-            // toast about the publisher exists.
             IPublisher<ToastMessage> toast = null;
             try { toast = GlobalMessagePipe.GetPublisher<ToastMessage>(); }
-            catch { /* provider not ready yet — silent skip, very early frames */ }
+            catch {  }
 
             foreach (var (reqRef, reqEntity) in
                 SystemAPI.Query<RefRO<BuildRequest>>().WithEntityAccess())
@@ -80,14 +73,9 @@ namespace RareIcon
             }
         }
 
-        // Returns true on success (footprint claimed, building entity
-        // queued, cost deducted). Rejection writes to `reason` and
-        // makes NO mutations — partial validation never half-applies.
         bool TrySpawn(EntityManager em, EntityCommandBuffer ecb, BuildRequest req, out string reason)
         {
-            // 1. Footprint validation — every claimed hex must exist on
-            //    the loaded map, be unoccupied, and pass the per-type
-            //    biome rule (Ocean / River refuse all builds).
+
             var footprint = BuildingDB.GetFootprint(req.BuildingType);
             for (int i = 0; i < footprint.Length; i++)
             {
@@ -138,9 +126,6 @@ namespace RareIcon
                 }
             }
 
-            // 3. Cost validation — find the source inventory (King for
-            //    Capital, Capital storage for everything else) and
-            //    confirm every ingredient is in stock BEFORE deducting.
             if (!TryFindCostSource(em, req.BuildingType, out var sourceEntity, out var sourceIsKing, out reason))
                 return false;
 
@@ -177,20 +162,9 @@ namespace RareIcon
             });
             ecb.SetComponent(building, new BuildingVisual { Value = req.BuildingType });
 
-            // Spawn at full HP regardless of construction state — the
-            // ConstructionSite tag tracks "incomplete", BuildingHealth
-            // tracks "damaged". Builders repair damage; construction
-            // completion is a separate flow handled by ConstructionCompleteSystem.
             ushort maxHp = BuildingDB.GetMaxHealth(req.BuildingType);
             ecb.AddComponent(building, new BuildingHealth { Value = maxHp, Max = maxHp });
 
-            // Per-type tag — production systems query on these so the
-            // recipe components get auto-attached by the matching
-            // *InitSystem (FarmInitSystem, FurnaceInitSystem, ...).
-            // Capital is a magical grant — it lands fully functional at
-            // placement. Everything else becomes a ConstructionSite and
-            // waits for Builders to deliver materials before
-            // ConstructionCompleteSystem wires up its tag + production.
             if (req.BuildingType == BuildingType.Capital)
             {
                 ecb.AddComponent<CapitalTag>(building);
@@ -199,10 +173,6 @@ namespace RareIcon
                 ecb.AddComponent<NeedsStaffing>(building);
                 ecb.AddComponent(building, new CapitalStatus { HasFood = 0 });
 
-                // Two recipes run in parallel — Arrow craft pulls wood /
-                // cacti / stone, Compost make pulls leaves + branches.
-                // Both consume from + emit to the Capital's own storage
-                // (PullsFromCapital = 0).
                 var recipes = ecb.AddBuffer<ProductionRecipe>(building);
                 recipes.Add(new ProductionRecipe
                 {
@@ -221,10 +191,7 @@ namespace RareIcon
                     CycleDuration = 2f,
                     CycleEndsAt   = 0f,
                 });
-                // Capital claims radius 4 from its centre (7-hex footprint +
-                // 3 rings of influence). Future Cities/Villages attach the
-                // same component with smaller radii; TerritoryBakeSystem
-                // unions all same-faction emitters.
+
                 ecb.AddComponent(building, new TerritoryEmitter
                 {
                     Center       = req.CenterHex,
@@ -234,11 +201,6 @@ namespace RareIcon
 
                 ecb.AddComponent<EmpireConnected>(building);
 
-                // Founding stockpile — arrows for immediate defence, enough
-                // raw materials to keep the craft cycle running, and some
-                // cooked food so goblins don't starve before Foragers/Farms
-                // kick in. Tuned so the first night is survivable without
-                // player micromanagement.
                 ecb.AddComponent(building, new ReservedRoles
                 {
                     Guard   = 2,
@@ -286,9 +248,6 @@ namespace RareIcon
                 }
             }
 
-            // Claim every hex in the footprint — HexOccupant on each tile
-            // points back at the building so future queries can traverse
-            // either way.
             for (int i = 0; i < footprint.Length; i++)
             {
                 var hex = req.CenterHex + footprint[i];
@@ -300,9 +259,6 @@ namespace RareIcon
             return true;
         }
 
-        // Resolves the entity whose inventory buffer holds the cost for
-        // this building type. Capital draws from the King's PackSlot
-        // (founding act); everything else draws from Capital's InventorySlot.
         bool TryFindCostSource(EntityManager em, byte buildingType, out Entity source, out bool sourceIsKing, out string reason)
         {
             source = Entity.Null;
@@ -340,11 +296,6 @@ namespace RareIcon
             return true;
         }
 
-        // Walks slots and decrements until `amount` is satisfied. Caller
-        // must have confirmed availability via HasItem first — this
-        // function assumes the inventory holds enough. For the AnyFood
-        // sentinel the walk pulls from any edible slot in buffer order;
-        // which food gets spent first is arbitrary but stable.
         static void ConsumePack(DynamicBuffer<PackSlot> pack, ushort itemId, ushort amount)
         {
             int remaining = amount;
@@ -359,9 +310,6 @@ namespace RareIcon
             }
         }
 
-        // Matches a concrete inventory-slot ItemId against a cost-line ItemId.
-        // Cost lines usually name a specific item, but BuildingDB.AnyFoodSentinel
-        // means "any slot that holds an edible item" per ItemDB.RestoreEnergy.
         static bool MatchesCostItem(ushort slotId, ushort costId)
         {
             if (costId == BuildingDB.AnyFoodSentinel)
@@ -419,10 +367,7 @@ namespace RareIcon
             em.AddComponentData(_buildingPrefab, LocalTransform.Identity);
             em.AddComponentData(_buildingPrefab, new Building());
             em.AddComponentData(_buildingPrefab, new BuildingVisual());
-            // Per-bank ledger is attached per concrete building type at spawn
-            // (CapitalLedger inline here for BuildingType.Capital; Farm/
-            // Barracks/Furnace/GoblinCave get their ledger from the
-            // *InitSystem or ConstructionCompleteSystem).
+
             em.AddComponentData(_buildingPrefab, new BuildingActiveVisual());
             em.AddComponentData(_buildingPrefab, new ConstructionProgressVisual { Value = 1f });
             em.AddComponent<Prefab>(_buildingPrefab);

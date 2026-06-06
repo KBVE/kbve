@@ -29,10 +29,7 @@ namespace RareIcon
 
         protected override unsafe void OnUpdate()
         {
-            // Re-arm whenever WorldResetService bumps the generation — the
-            // SystemBase instance survives the world reset, but the Rust-side
-            // ticker was stopped + the snapshot cache cleared, so the next
-            // run needs a fresh async_start before publishing.
+
             if (UnitSpawnSystem.RespawnGeneration != _bridgeAtGeneration)
             {
                 _runtimeStarted = false;

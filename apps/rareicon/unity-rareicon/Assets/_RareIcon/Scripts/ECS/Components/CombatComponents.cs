@@ -25,7 +25,7 @@ namespace RareIcon
     }
 
     /// <summary>How a melee attacker prioritises targets when both units and buildings are in range. Closest is the default "whatever's nearest"; the Prefer* modes give units a strong bonus toward their preferred class, UnitsOnly / BuildingsOnly are hard filters.</summary>
-    // TODO(rust-ffi): mirror as #[repr(u8)] enum alongside MeleeAttack.
+
     public static class MeleeTargetMode
     {
         public const byte Closest         = 0;

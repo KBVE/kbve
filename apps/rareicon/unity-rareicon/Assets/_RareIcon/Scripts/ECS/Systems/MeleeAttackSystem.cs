@@ -19,9 +19,7 @@ namespace RareIcon
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<MeleeAttack>();
-            // EntityQueryBuilder uses a stack-scratch Allocator.Temp buffer so the
-            // whole construction stays Burst-safe. The GetEntityQuery(params ComponentType[])
-            // overload allocates a managed array and trips Burst BC1028.
+
             _buildingQuery = new EntityQueryBuilder(Allocator.Temp)
                 .WithAll<Building>()
                 .WithAll<BuildingHealth>()
@@ -37,12 +35,6 @@ namespace RareIcon
             if (!SystemAPI.TryGetSingleton<SpatialHashSingleton>(out var spatial)) return;
             if (!spatial.Hash.IsCreated) return;
 
-            // Stage building targets through a Burst IJob so the
-            // ComponentLookup<LocalTransform> reads chain via lookup safety
-            // against in-flight writers (UnitMovementJob etc.). Main-thread
-            // indexer access in Burst-direct OnUpdate doesn't auto-sync;
-            // moving the loop into a job both fixes the latent race and
-            // leaves the chain async (no Complete barrier needed).
             var buildingEntities = _buildingQuery.ToEntityArray(Allocator.TempJob);
             var buildingTargets  = new NativeArray<MeleeBuildingTarget>(
                 buildingEntities.Length, Allocator.TempJob);

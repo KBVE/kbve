@@ -50,7 +50,6 @@ namespace RareIcon
             var kb = Keyboard.current;
             if (kb == null || !kb.escapeKey.wasPressedThisFrame) return;
 
-            // Build-mode cancel is owned by BuildInputSource; don't fight it.
             if (_buildMode.IsActive) return;
 
             var state = _appState.Current.CurrentValue;
@@ -66,9 +65,7 @@ namespace RareIcon
 
         bool TryCloseTopmost()
         {
-            // Settings goes first so a second escape after the menu opens
-            // closes it cleanly. Inspector last because it auto-opens on
-            // every building click — easy for the user to leave open.
+
             if (_settings.IsOpen.CurrentValue)  { _settings.Close();  return true; }
             if (_palette.IsOpen.CurrentValue)   { _palette.Close();   return true; }
             if (_treasury.IsOpen.CurrentValue)  { _treasury.Close();  return true; }

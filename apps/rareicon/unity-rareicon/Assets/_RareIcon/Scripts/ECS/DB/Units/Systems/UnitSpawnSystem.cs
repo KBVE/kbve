@@ -8,7 +8,7 @@ using UnityEngine.Rendering;
 namespace RareIcon
 {
     /// <summary>Optional restore state for ghost units pulled from the Rust persistence store; default = fresh NPCDB spawn.</summary>
-    // TODO(rust-ffi): extend with Hunger/Fatigue/Energy current values + ReliefIntent.Kind so ghost-restore picks up mid-loop state, not just HP + inventory. Struct must stay blittable and mirror a repr(C) Rust equivalent.
+
     public struct UnitSpawnState
     {
         public float Health;
@@ -49,9 +49,7 @@ namespace RareIcon
         protected override void OnUpdate()
         {
             if (!WorldGenSession.HasStarted) return;
-            // Initial cluster (King + retinue + 100 wandering goblins) is
-            // host-authoritative in MP — clients receive these entities
-            // via replication and skip the spawn pass.
+
             if (!MultiplayerAuthority.IsAuthority) return;
             if (RespawnGeneration != _spawnedAtGeneration) _spawned = false;
             if (_spawned) return;
@@ -176,9 +174,6 @@ namespace RareIcon
             AttachJobsIfPlayer(em, entity, faction, def.UnitType, rngSeed);
             AttachTraitsIfApplicable(em, entity, def.UnitType, faction, rngSeed);
 
-            // Player goblins get individual names — drives the "Controlling: X"
-            // indicator + RosterTab + future tooltips. Hostile / Beast goblins
-            // stay nameless; the UI falls back to the creature.* locale label.
             if (faction == FactionType.Player)
             {
                 var (firstId, epithetId) = UnitNaming.GenerateGoblin(rngSeed);
@@ -330,12 +325,6 @@ namespace RareIcon
             AttachNeedsIfPlayer(em, entity, FactionType.Player, def);
             AttachJobsIfPlayer(em, entity, FactionType.Player, def.UnitType);
 
-            // King intentionally has no UnitName — the goblin name pool
-            // doesn't fit, and the resolver falls back to the creature.king
-            // locale label which already reads as "The King" in EN / "王様"
-            // in JP. Future cosmetic-rename UI lands as a tagged override
-            // component, not by squeezing the King into the goblin pool.
-
             em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
             em.AddBuffer<StatusEffect>(entity);
 
@@ -420,8 +409,6 @@ namespace RareIcon
             em.AddComponentData(entity, new MovementModifier { SpeedMul = 1f });
             em.AddBuffer<StatusEffect>(entity);
 
-            // Per-animal speed jitter — slower range than goblins so even
-            // fast chickens stay slower than the slowest goblin.
             float speedJit = 0.85f + ((rngSeed >> 8) & 0xFFu) / 255f * 0.3f;
             em.AddComponentData(entity, new UnitMovement
             {
@@ -443,9 +430,6 @@ namespace RareIcon
                 TargetHex = hex,
             });
 
-            // No inventory buffer — HarvestSystem queries require it, so
-            // animals are automatically skipped from resource pickup.
-            // No RangedAttack / ReliefIntent / needs either: passive + mute.
             em.AddComponent<PassiveAnimalTag>(entity);
 
             RenderMeshUtility.AddComponents(
@@ -534,8 +518,6 @@ namespace RareIcon
                 Priority  = GoalPriority.None,
                 TargetHex = hex,
             });
-
-            // No inventory — death drops via EnemyLootDropSystem instead.
 
             RenderMeshUtility.AddComponents(
                 entity, em, _renderDesc, _renderArray,
@@ -916,9 +898,6 @@ namespace RareIcon
             em.AddComponentData(entity, new Faction    { Value = FactionType.Beast });
             em.AddComponentData(entity, new Collidable { Radius = 0.20f });
 
-            // Bite is a no-weapon-prop melee. Slightly slower cooldown
-            // than a Club so wolves feel like a hazard the player can
-            // outrun rather than an instant TPK.
             em.AddComponentData(entity, new MeleeAttack
             {
                 Range         = 0.45f,
@@ -951,10 +930,6 @@ namespace RareIcon
                 Priority  = GoalPriority.None,
                 TargetHex = hex,
             });
-
-            // No PassiveAnimalTag — wolves don't flee, they engage.
-            // No inventory — wolves don't loot or carry, they drop on death.
-            // No ProfessionPriorities / Needs — Beast faction is excluded from those systems.
 
             RenderMeshUtility.AddComponents(
                 entity, em, _renderDesc, _renderArray,
@@ -992,10 +967,6 @@ namespace RareIcon
             em.AddComponent<FishingBoatTag>(entity);
             em.AddComponent<WaterLockedTag>(entity);
 
-            // Harpoon — short-range melee that preferentially lines up on
-            // whales via MeleeTargetMode.PreferUnits. Whales are the
-            // intended prey; other beast targets (wolves in crossfire)
-            // also count.
             em.AddComponentData(entity, new MeleeAttack
             {
                 Range         = 0.6f,
@@ -1237,7 +1208,6 @@ namespace RareIcon
             return entity;
         }
 
-        // Lazily creates the shared render assets the first time anything
         static bool EnsureRenderAssets()
         {
             if (_renderAssetsReady) return true;
@@ -1324,10 +1294,6 @@ namespace RareIcon
             em.AddComponentData(entity, new Skills());
             em.AddComponentData(entity, new SkillXP());
 
-            // Sticky per-entity record of the last activity the writer
-            // emitted for this unit. Initialised to None so the very
-            // first classification (whatever ReliefSystem / ProfessionDispatchSystem
-            // pick on tick 1) registers as a delta and surfaces to UI.
             em.AddComponentData(entity, new ActivityState { LastKind = ActivityKind.None });
         }
 
@@ -1430,12 +1396,6 @@ namespace RareIcon
             }
         }
 
-        // Player-faction goblins use clubs for self-defence (PreferUnits —
-        // don't wander off to smack your own storehouses when a hostile is
-        // right there). Hostile-faction clubs bias toward PreferBuildings
-        // so raids actually feel like raids, with defenders running
-        // interference. Tune TargetMode per creature once we add more
-        // hostile archetypes (sapper = BuildingsOnly, raider = Closest, etc).
         static void AttachMeleeAttackIfArmed(EntityManager em, Entity entity, byte weapon, byte faction)
         {
             if (weapon != WeaponType.Club) return;

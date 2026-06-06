@@ -20,80 +20,54 @@ namespace RareIcon
     /// </summary>
     public static class UIStyles
     {
-        // -- Palette --
-        // Black surfaces (shadcn / tailwind zinc) + gold-yellow (tailwind amber)
-        // text. NieR's orange-red survives as the alert swatch.
+
         public static class Palette
         {
-            // Surfaces — tailwind `zinc` ramp. Lower numbers = lighter, but
-            // we lean into the dark end of the ramp on purpose.
-            public static readonly Color Black   = FromHex(0x00, 0x00, 0x00);
-            public static readonly Color Zinc950 = FromHex(0x09, 0x09, 0x0B); // shadcn page bg
-            public static readonly Color Zinc900 = FromHex(0x18, 0x18, 0x1B); // card / panel
-            public static readonly Color Zinc800 = FromHex(0x27, 0x27, 0x2A); // muted surface
-            public static readonly Color Zinc700 = FromHex(0x3F, 0x3F, 0x46); // border / divider
-            public static readonly Color Zinc500 = FromHex(0x71, 0x71, 0x7A); // disabled text
 
-            // Foreground — tailwind `amber` / `yellow`. Default body text
-            // is amber-300 (warm gold). Headings step up to amber-200.
-            public static readonly Color Gold        = FromHex(0xFC, 0xD3, 0x4D); // amber-300
-            public static readonly Color GoldBright  = FromHex(0xFD, 0xE6, 0x8A); // amber-200 (headings)
-            public static readonly Color GoldDeep    = FromHex(0xF5, 0x9E, 0x0B); // amber-500 (button/active)
-            public static readonly Color Yellow      = FromHex(0xFA, 0xCC, 0x15); // yellow-400
+            public static readonly Color Black   = FromHex(0x00, 0x00, 0x00);
+            public static readonly Color Zinc950 = FromHex(0x09, 0x09, 0x0B);
+            public static readonly Color Zinc900 = FromHex(0x18, 0x18, 0x1B);
+            public static readonly Color Zinc800 = FromHex(0x27, 0x27, 0x2A);
+            public static readonly Color Zinc700 = FromHex(0x3F, 0x3F, 0x46);
+            public static readonly Color Zinc500 = FromHex(0x71, 0x71, 0x7A);
+
+            public static readonly Color Gold        = FromHex(0xFC, 0xD3, 0x4D);
+            public static readonly Color GoldBright  = FromHex(0xFD, 0xE6, 0x8A);
+            public static readonly Color GoldDeep    = FromHex(0xF5, 0x9E, 0x0B);
+            public static readonly Color Yellow      = FromHex(0xFA, 0xCC, 0x15);
             public static readonly Color GoldMuted   = new(0xFC / 255f, 0xD3 / 255f, 0x4D / 255f, 0.65f);
 
-            // Alert — tailwind `orange-500`, the NieR-red analogue.
             public static readonly Color Alert = FromHex(0xF9, 0x73, 0x16);
-            // Success — tailwind `emerald-500`. Reserved for positive
-            // notifications (build success, recipe completed, level-up).
+
             public static readonly Color Success = FromHex(0x10, 0xB9, 0x81);
 
-            // -- Semantic aliases --
-            // Existing panels / future panels reference these names.
-            // Re-themes happen by editing this section only.
-            public static readonly Color PanelBg     = new(0x09 / 255f, 0x09 / 255f, 0x0B / 255f, 0.92f); // zinc-950 @ 92%
-            public static readonly Color TileHudBg   = new(0x18 / 255f, 0x18 / 255f, 0x1B / 255f, 0.90f); // zinc-900 @ 90%
-            public static readonly Color ModalBg     = new(0x09 / 255f, 0x09 / 255f, 0x0B / 255f, 0.98f); // near-opaque
-            public static readonly Color BackdropDim = new(0f,         0f,         0f,         0.65f);   // modal scrim
+            public static readonly Color PanelBg     = new(0x09 / 255f, 0x09 / 255f, 0x0B / 255f, 0.92f);
+            public static readonly Color TileHudBg   = new(0x18 / 255f, 0x18 / 255f, 0x1B / 255f, 0.90f);
+            public static readonly Color ModalBg     = new(0x09 / 255f, 0x09 / 255f, 0x0B / 255f, 0.98f);
+            public static readonly Color BackdropDim = new(0f,         0f,         0f,         0.65f);
 
-            // Borders default to gold to mirror YoRHA's framed look.
-            // 0.4 alpha keeps the chrome quiet without losing the outline.
             public static readonly Color BorderGold  = new(0xFC / 255f, 0xD3 / 255f, 0x4D / 255f, 0.40f);
-            public static readonly Color BorderSubtle = new(0x3F / 255f, 0x3F / 255f, 0x46 / 255f, 1.00f); // zinc-700
+            public static readonly Color BorderSubtle = new(0x3F / 255f, 0x3F / 255f, 0x46 / 255f, 1.00f);
 
-            // Buttons — dark surface with gold text + bright hover.
             public static readonly Color ButtonBg      = Zinc900;
             public static readonly Color ButtonBgHover = Zinc800;
 
-            // Text — semantic names so future panels pick the right swatch.
-            public static readonly Color TextPrimary   = Gold;        // body
-            public static readonly Color TextStrong    = GoldBright;  // headings
-            public static readonly Color TextMuted     = GoldMuted;   // captions
-            public static readonly Color TextStat      = Gold;        // unit stats
-            public static readonly Color TextCreature  = Alert;       // creature names (warning-ish)
-            public static readonly Color TextInventory = Yellow;      // inventory list
-            public static readonly Color TextResource  = GoldDeep;    // resource counts
+            public static readonly Color TextPrimary   = Gold;
+            public static readonly Color TextStrong    = GoldBright;
+            public static readonly Color TextMuted     = GoldMuted;
+            public static readonly Color TextStat      = Gold;
+            public static readonly Color TextCreature  = Alert;
+            public static readonly Color TextInventory = Yellow;
+            public static readonly Color TextResource  = GoldDeep;
             public static readonly Color TextDanger    = Alert;
         }
 
-        // -- Radius --
-        // YoRHA aesthetic = sharp corners. Soft corners exist for cases
-        // where readability beats vibe (e.g. tooltip pills).
         public static class Radius
         {
             public const float Sharp = 0f;
             public const float Soft  = 4f;
         }
 
-        // -- Spacing scale --
-        // shadcn/tailwind-flavoured ramp. Use these in place of raw pixel
-        // numbers so panel density stays consistent — bumping the ramp
-        // here re-spaces the entire UI in one edit.
-        //   Xs : pixel-pair gaps (label/value pair, icon flush)
-        //   Sm : intra-section gaps (list rows, button paddings)
-        //   Md : inter-element gaps (header→body, between rows)
-        //   Lg : section gaps (header bar margin, strip dividers)
-        //   Xl : panel-level gaps (rare — modal padding)
         public static class Spacing
         {
             public const float Xs = 2f;
@@ -103,20 +77,15 @@ namespace RareIcon
             public const float Xl = 12f;
         }
 
-        // -- Type scale --
-        // Five sizes covering everything from dense list rows to panel
-        // titles. Body / Label are the workhorses; Heading / Title only
-        // for panel-level chrome. Stays small on purpose so panels can
-        // pack more data without scrolling at our standard zoom.
         public static class Type
         {
-            public const int Tiny    = 9;   // pip / unit annotation
-            public const int Body    = 10;  // dense list row body
-            public const int BodyLg  = 11;  // standard panel body
-            public const int Label   = 12;  // bold labels, button text
-            public const int Heading = 14;  // section headings inside a panel
-            public const int Title   = 18;  // panel title (top of card)
-            public const int Display = 24;  // hero / title-screen display headings
+            public const int Tiny    = 9;
+            public const int Body    = 10;
+            public const int BodyLg  = 11;
+            public const int Label   = 12;
+            public const int Heading = 14;
+            public const int Title   = 18;
+            public const int Display = 24;
         }
 
         /// <summary>Letter-spacing presets for headings — tracking that lifts a label from "default Unity text" to "designed UI" without swapping the font. Use <see cref="Display"/> on hero headings, <see cref="Title"/> on panel titles, <see cref="Tag"/> on small caps labels.</summary>
@@ -151,10 +120,6 @@ namespace RareIcon
             public const float Tall   = 80f;
         }
 
-        // -- Equal-sided setters (chainable) --
-        // Each replaces 4 inline calls. Chain them with the C# initializer
-        // pattern: `panel.style.BorderRadius(0).BorderWidth(1).BorderColor(...)`.
-
         public static IStyle BorderRadius(this IStyle s, float r)
         {
             s.borderTopLeftRadius     = r;
@@ -182,7 +147,6 @@ namespace RareIcon
             return s;
         }
 
-        // CSS-style padding: vertical / horizontal pair.
         public static IStyle Padding(this IStyle s, float vertical, float horizontal)
         {
             s.paddingTop    = vertical;
@@ -207,12 +171,6 @@ namespace RareIcon
         public static IStyle Margin(this IStyle s, float all)
             => s.Margin(all, all);
 
-        // -- Compound helpers --
-        // ApplyPanelChrome handles the bg/border/radius/padding combo every
-        // panel sets in nearly-identical form. Defaults are tighter than
-        // the v1 spacing — old panels passed padV: 12 / padH: 14 ad-hoc
-        // which made everything feel oversized; new defaults pull from the
-        // Spacing ramp so the entire UI moves together when we re-tune.
         public static VisualElement ApplyPanelChrome(
             this VisualElement v,
             Color? background = null,
@@ -252,10 +210,6 @@ namespace RareIcon
 
             v.ApplyPanelChrome(background, outer, radius: Radius.Sharp, borderWidth: 2f, padV: padV, padH: padH);
 
-            // Inset secondary rule — absolute child that draws the inner
-            // gold line offset 4px in from the outer frame, picking-mode
-            // ignored so it never blocks clicks. The double-rule reads as
-            // "framed parchment" without altering the panel's flex layout.
             var innerFrame = new VisualElement();
             innerFrame.style.position = Position.Absolute;
             innerFrame.style.top     = 4;
@@ -280,9 +234,6 @@ namespace RareIcon
             return v;
         }
 
-        // Small rotated square anchored at the panel's top-center / bottom-center
-        // outer edge — reads as a stamped seal on a scroll. Ignores picking so
-        // it never blocks pointer events even when it overlaps content slightly.
         static void AddFantasyDiamond(VisualElement panel, bool top, Color color)
         {
             const float size = 8f;
@@ -300,10 +251,6 @@ namespace RareIcon
             panel.Add(dot);
         }
 
-        // -- Anchoring --
-        // Absolute-positioned panels use percent offsets so they track the
-        // safe area as the window resizes. These two cover the common cases
-        // (bottom-right HUD, top-left toolbar). Add more as needed.
         public static IStyle AnchorBottomRight(this IStyle s, float marginPct = 2f)
         {
             s.position = Position.Absolute;
@@ -335,10 +282,6 @@ namespace RareIcon
             s.left     = new Length(marginPct, LengthUnit.Percent);
             return s;
         }
-
-        // -- NieR/YoRHA primitives --
-        // Visual atoms borrowed from the NieR design system. Use these
-        // instead of raw labels when you want the YoRHA look.
 
         /// <summary>
         /// Square accent block — the small marker that prefixes NieR's
@@ -385,14 +328,12 @@ namespace RareIcon
             row.style.flexDirection = FlexDirection.Row;
             row.style.alignItems    = Align.Center;
 
-            // Marker square sized to the cap-height of the label so they
-            // visually align without padding tweaks.
             var marker = MakeMarker(size: fontSize, color: markerColor);
             marker.style.marginRight = gap;
             row.Add(marker);
 
             var label = new Label(text);
-            label.name  = "marker-row-label"; // stable handle for retext
+            label.name  = "marker-row-label";
             label.style.color   = textColor ?? Palette.TextStrong;
             label.style.fontSize = fontSize;
             label.style.unityFontStyleAndWeight = FontStyle.Bold;
@@ -578,9 +519,7 @@ namespace RareIcon
 
             if (withEndDot)
             {
-                // Square (not round) — UI Toolkit border-radius on tiny
-                // boxes ends up jagged at default DPI. Square reads as a
-                // YoRHA terminator anyway.
+
                 var dot = new VisualElement();
                 dot.style.width  = thickness * 3f;
                 dot.style.height = thickness * 3f;
@@ -652,8 +591,6 @@ namespace RareIcon
 
             content.style.display = startExpanded ? DisplayStyle.Flex : DisplayStyle.None;
 
-            // Local variable captured by the click handler — toggles state
-            // and swaps glyphs / display in lockstep.
             bool expanded = startExpanded;
             header.RegisterCallback<ClickEvent>(_ =>
             {
@@ -805,7 +742,7 @@ namespace RareIcon
                 Palette.Gold.r, Palette.Gold.g, Palette.Gold.b, 0.85f);
             label.style.fontSize = fontSize;
             label.style.unityFontStyleAndWeight = FontStyle.Bold;
-            label.style.whiteSpace = WhiteSpace.Normal; // honor \n in source text
+            label.style.whiteSpace = WhiteSpace.Normal;
             return label;
         }
 
@@ -829,8 +766,7 @@ namespace RareIcon
                 label.text = string.Empty;
                 for (int i = 1; i <= text.Length; i++)
                 {
-                    // Detached from a panel mid-reveal — caller probably
-                    // closed the dialogue box. Bail silently.
+
                     if (label.panel == null) return;
 
                     label.text = text[..i];
@@ -839,15 +775,11 @@ namespace RareIcon
             }
             catch (System.OperationCanceledException)
             {
-                // "Skip" — show the rest of the line and exit cleanly so
-                // callers don't need to special-case cancellation.
+
                 if (label.panel != null) label.text = text;
             }
         }
 
-        // -- Color helper --
-        // Hex-style construction — keeps tailwind/shadcn values readable in
-        // source instead of float divisions scattered everywhere.
         static Color FromHex(byte r, byte g, byte b, float a = 1f)
             => new(r / 255f, g / 255f, b / 255f, a);
     }

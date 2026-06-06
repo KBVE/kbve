@@ -14,14 +14,14 @@ namespace RareIcon
         /// </summary>
         public static Mesh CreateHexMesh(float outerRadius)
         {
-            float innerRadius = outerRadius * 0.866025f; // sqrt(3)/2
+            float innerRadius = outerRadius * 0.866025f;
 
             var vertices = new Vector3[7];
-            vertices[0] = Vector3.zero; // center
+            vertices[0] = Vector3.zero;
 
             for (int i = 0; i < 6; i++)
             {
-                float angle = 60f * i - 30f; // pointy-top starts at -30 degrees
+                float angle = 60f * i - 30f;
                 float rad = angle * Mathf.Deg2Rad;
                 vertices[i + 1] = new Vector3(
                     outerRadius * Mathf.Cos(rad),
@@ -30,7 +30,6 @@ namespace RareIcon
                 );
             }
 
-            // Double-sided — both windings so it's visible from either direction
             var triangles = new int[]
             {
                 0, 1, 2,
@@ -39,7 +38,7 @@ namespace RareIcon
                 0, 4, 5,
                 0, 5, 6,
                 0, 6, 1,
-                // Back face
+
                 0, 2, 1,
                 0, 3, 2,
                 0, 4, 3,
@@ -99,11 +98,6 @@ namespace RareIcon
             return (math.abs(dq) + math.abs(dr) + math.abs(dq + dr)) / 2;
         }
 
-        // Six axial direction vectors for ring traversal (pointy-top).
-        // Order must match the Rust uniti side of the FFI — any future
-        // server-authoritative pathfinding passes hex directions as
-        // byte indices, not as packed (q, r) pairs.
-        //   0 = E, 1 = NE, 2 = NW, 3 = W, 4 = SW, 5 = SE
         static readonly int2[] HexDirections = new[]
         {
             new int2( 1,  0),
@@ -121,10 +115,7 @@ namespace RareIcon
         /// </summary>
         public static int2 HexNeighbor(int dir)
         {
-            // Modulo so behavior code can pass signed relative indices
-            // without extra guards — WanderBehavior's forward-biased
-            // direction pick emits values like -2..+3 before wrap, and
-            // this table absorbs it.
+
             int d = ((dir % 6) + 6) % 6;
             return HexDirections[d];
         }
@@ -164,7 +155,7 @@ namespace RareIcon
             yield return center;
             for (int k = 1; k <= maxRadius; k++)
             {
-                // Walk to the start of ring k, then trace its 6 sides.
+
                 int2 hex = center + HexDirections[4] * k;
                 for (int side = 0; side < 6; side++)
                 {
@@ -191,7 +182,7 @@ namespace RareIcon
                 BiomeGenerator.BIOME_SNOW   => new float4(0.92f, 0.94f, 0.96f, 1f),
                 BiomeGenerator.BIOME_STONE  => new float4(0.50f, 0.50f, 0.48f, 1f),
                 BiomeGenerator.BIOME_RIVER  => new float4(0.10f, 0.38f, 0.62f, 1f),
-                _ => new float4(0f, 0f, 0f, 0f), // ocean = no entity
+                _ => new float4(0f, 0f, 0f, 0f),
             };
         }
     }

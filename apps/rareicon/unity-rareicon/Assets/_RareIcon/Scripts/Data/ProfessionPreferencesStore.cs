@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace RareIcon
 {
     /// <summary>Runtime override store for per-UnitType job priorities; UnitSpawnSystem consults this before falling back to ProfessionDefaults, and UICitizensPanel writes here on Apply.</summary>
-    // TODO(rust-ffi): persist overrides per save so player tuning survives restarts; mirror in uniti.
+
     public static class ProfessionPreferencesStore
     {
         static readonly Dictionary<byte, ProfessionPriorities> _overrides = new();

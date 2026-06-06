@@ -6,10 +6,7 @@ namespace RareIcon
     /// <summary>Flush point for the quests event pipeline. Each tick: completes the pipeline handle, hands both ReadBuffers to the coalescing <see cref="IQuestEventDispatcher"/> which publishes one <see cref="QuestStartedMessage"/> / <see cref="QuestCompletedMessage"/> per distinct QuestId. Dispatcher is resolved lazily from <see cref="GlobalMessagePipe"/> so this system can exist before VContainer initialisation. Only managed system in the quests domain — everything else is Burst ISystem.</summary>
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(PresentationSystemGroup))]
-    // QuestsDomainSystem runs in InitializationSystemGroup (OrderFirst), so
-    // by the time PresentationSystemGroup runs its ReadBuffer is already
-    // populated. A same-frame UpdateAfter across groups triggers a
-    // cross-group warning; frame-ordering alone is sufficient.
+
     public partial class QuestsBridgeSystem : SystemBase
     {
         IQuestEventDispatcher _dispatcher;
