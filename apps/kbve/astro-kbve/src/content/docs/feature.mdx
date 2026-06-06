@@ -1,6 +1,6 @@
 ---
 title: Features
-description: KBVE platform features — community, gaming, automation, and more.
+description: What the KBVE platform ships — game development, managed game servers, CI/CD automation, observability, identity, and open-source libraries.
 editUrl: false
 lastUpdated: false
 next: false
@@ -11,17 +11,149 @@ sidebar:
 
 import DeferredFeature from '@/components/kbve/DeferredFeature.astro';
 import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
+import JsonLd from '@kbve/astro/seo/JsonLd.astro';
+import { seo } from '@/lib/seo';
+import RingShipGrid from '@kbve/astro/components/hero/ring/RingShipGrid.astro';
+import RingShipCard from '@kbve/astro/components/hero/ring/RingShipCard.astro';
 import ScrollRing from '@kbve/astro/components/hero/observer/ScrollRing.astro';
+
+export const features = [
+	{
+		title: 'Game Development',
+		description:
+			'In-house engines and worlds — Rareicon (DOTS/ECS), isometric Bevy worlds, and Unreal/AngelScript pipelines.',
+		href: '/rareicon/',
+		icon: 'controller',
+		accent: '#a855f7',
+	},
+	{
+		title: 'Managed Game Servers',
+		description:
+			'Auto-scaling Minecraft, Unreal, and Bevy world hosting on Kubernetes with built-in observability.',
+		href: '/service/',
+		icon: 'server',
+		accent: '#22c55e',
+	},
+	{
+		title: 'CI/CD Automation',
+		description:
+			'Nx monorepo builds, manifest-driven dispatch, and event-driven pipelines that ship versioned artifacts.',
+		href: '/github/',
+		icon: 'cog',
+		accent: '#f59e0b',
+	},
+	{
+		title: 'Observability',
+		description:
+			'End-to-end metrics and logs — Vector to ClickHouse, Prometheus alerts, and tracing across every service.',
+		href: '/service/',
+		icon: 'zap',
+		accent: '#06b6d4',
+	},
+	{
+		title: 'Identity & Auth',
+		description:
+			'Supabase-backed accounts with canonical kbve.com/@username profiles and JWT claims wired into Rust services.',
+		href: '/profile/',
+		icon: 'compass',
+		accent: '#3b82f6',
+	},
+	{
+		title: 'Open Source',
+		description:
+			'A public monorepo of libraries, tools, and game code. Read it, fork it, sponsor a maintainer, ship with us.',
+		href: 'https://github.com/kbve',
+		icon: 'github',
+		accent: '#ef4444',
+	},
+];
+
+export const highlights = [
+	{
+		title: 'Built in the Open',
+		description:
+			'Every library, pipeline, and game system lives in one public monorepo — audit it, fork it, contribute back.',
+		icon: 'star',
+	},
+	{
+		title: 'Scales on Kubernetes',
+		description:
+			'Talos + Cilium clusters, ArgoCD GitOps, and auto-scaling workloads keep services fast under real load.',
+		icon: 'bolt',
+	},
+	{
+		title: 'Production Hardened',
+		description:
+			'Sealed secrets, network policies, observability, and restore drills — the boring parts done right.',
+		icon: 'shield',
+	},
+];
+
+export const pageDescription =
+	'What the KBVE platform ships — game development, managed game servers, CI/CD automation, observability, identity, and open-source libraries.';
+
+<JsonLd
+	graph={seo.graph(
+		seo.webPage({
+			url: seo.url('/feature/'),
+			name: 'KBVE Features',
+			description: pageDescription,
+			primaryImageOfPage: seo.config.logo,
+			breadcrumb: `${seo.url('/feature/')}#breadcrumb`,
+		}),
+		seo.breadcrumbs(
+			[
+				['KBVE', '/'],
+				['Features', '/feature/'],
+			],
+			`${seo.url('/feature/')}#breadcrumb`,
+		),
+		seo.itemList(
+			features.map((f) => ({
+				name: f.title,
+				description: f.description,
+				url: f.href,
+			})),
+			{
+				id: `${seo.url('/feature/')}#features`,
+				name: 'KBVE Features',
+				description: pageDescription,
+			},
+		),
+	)}
+/>
 
 <div class="ring-page kbve-dashboard-page relative min-h-screen w-full bg-transparent">
 
 # Features
 
-What KBVE actually ships:
+KBVE is a platform for building, shipping, and hosting games and software. Here is what we actually ship:
 
-<DeferredFeature />
+<RingShipGrid tagline="Six capabilities, one open-source monorepo — pick a thread to pull.">
+	{
+		features.map((f) => (
+			<RingShipCard
+				title={f.title}
+				description={f.description}
+				href={f.href}
+				icon={f.icon}
+				accent={f.accent}
+			/>
+		))
+	}
+</RingShipGrid>
+
+## Why it holds up
+
+<DeferredFeature features={highlights} imageUrl="/assets/images/gameplay/rentearth.webp" imageAlt="KBVE game world rendered in-engine" />
 
 <DeferredAdsense label="Sponsored" />
+
+## Start here
+
+- **Play** — explore [Rareicon](/rareicon/) and the worlds we are building.
+- **Host** — spin up a [managed game server](/service/).
+- **Build** — read the [source on GitHub](https://github.com/kbve) or join us in [Discord](/discord/).
 
 </div>
 
