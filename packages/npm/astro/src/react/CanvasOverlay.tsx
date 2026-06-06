@@ -18,7 +18,6 @@ export function CanvasOverlay({
 		const canvas = canvasRef.current;
 		if (!canvas) return;
 
-		// Size to viewport
 		const resize = () => {
 			canvas.width = window.innerWidth;
 			canvas.height = window.innerHeight;
@@ -26,7 +25,6 @@ export function CanvasOverlay({
 		resize();
 		window.addEventListener('resize', resize);
 
-		// Transfer to worker
 		void overlayManager.bindCanvas(canvas, dbGet);
 
 		return () => {
