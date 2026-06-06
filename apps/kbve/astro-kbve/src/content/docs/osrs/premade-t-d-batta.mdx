@@ -1,6 +1,6 @@
 ---
 title: Premade t'd batta | OSRS Price Data
-description: "Premade t'd batta: A Premade Toad Batta.. High alch: 72 GP, GE limit: 6,000."
+description: "Premade t'd batta: A Premade Toad Batta from the Gnome Stronghold. High alch: 72 GP, GE limit: 6,000."
 osrs:
   id: 2221
   name: Premade t'd batta
@@ -12,9 +12,74 @@ osrs:
   lowalch: 48
   highalch: 72
   limit: 6000
-  about: "Premade t'd batta is a members-only item in Old School RuneScape. High alchemy value: 72 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: Premade t'd batta is a members-only Gnome cuisine bought ready-made from gnome chefs at the Grand Tree, the Stronghold, and Hazelmere's hut. It is a flat-pack Toad batta that bypasses the cooking step entirely, heals identically to the Cooked version, and is occasionally requested by gnome chef delivery hand-ins.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2002-12-09"
+    update: Gnome Cooking
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.46
+    options:
+      - Eat
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  material:
+    type: food
+    tier: mid
+  food:
+    heals: 11
+    cooking_level: 26
+    type: gnome_meal
+  shops:
+    - shop_name: Gnome Stronghold Bar
+      location: Grand Tree
+      price: 120
+      stock: 5
+      currency: Coins
+    - shop_name: Hudo's Grocery Store
+      location: Tree Gnome Stronghold
+      price: 120
+      stock: 5
+      currency: Coins
+  related_items:
+    - item_id: 2217
+      item_name: Toad batta
+      slug: toad-batta
+      relationship: variant
+      description: Player-cooked version of the same dish
+    - item_id: 2219
+      item_name: Toad's legs
+      slug: toads-legs
+      relationship: component
+      description: Required ingredient for the player-cooked variant
+    - item_id: 2215
+      item_name: Batta tin
+      slug: batta-tin
+      relationship: component
+      description: Container required to bake the batta
+  market_strategy:
+    notes:
+      - "Gnome Food Notes"
+      - "Bulk-bought from gnome chefs for delivery contracts"
+      - "Cheap heal-11 food for low-Cooking accounts"
+      - "Demand spikes with Gnome Delivery side activity"
+      - "Volume mostly driven by ironmen restocking from shops"
+  trading_tips:
+    - "Hop gnome chef shops for fast restocks"
+    - "Buy near alch floor for safe flips"
+    - "Sell during gnome restaurant minigame spotlight"
+  history:
+    - date: "2002-12-09"
+      update: Gnome Cooking
+      description: "Premade gnome dishes added with the Gnome cuisine system."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

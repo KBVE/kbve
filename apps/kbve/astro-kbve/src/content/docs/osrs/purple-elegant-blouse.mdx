@@ -1,6 +1,6 @@
 ---
 title: Purple elegant blouse | OSRS Price Data
-description: "Purple elegant blouse is a members body slot item. High alch: 1,200 GP, GE limit: 4."
+description: "Purple elegant blouse: well made elegant ladies' purple blouse, a hard clue cosmetic body slot piece with no combat bonuses. High alch: 1,200 GP, GE limit: 4."
 osrs:
   id: 10436
   name: Purple elegant blouse
@@ -12,21 +12,91 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2005-08-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.226
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (hard)
+        quantity: "1"
+        rarity: "1/1,133"
+        members_only: true
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
     - item_id: 10438
       item_name: Purple elegant skirt
       slug: purple-elegant-skirt
       relationship: set-piece
-      description: Matching elegant skirt
-  about: |-
-    > *"A well made elegant ladies' purple blouse."*
-
-    Purely cosmetic treasure trail reward with no combat stats. Part of the purple elegant clothing set (women's variant). Pairs with the purple elegant skirt.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Matching elegant skirt piece"
+    - item_id: 10420
+      item_name: Red elegant blouse
+      slug: red-elegant-blouse
+      relationship: alternative
+      description: "Red colour variant of the elegant blouse"
+    - item_id: 10432
+      item_name: Blue elegant blouse
+      slug: blue-elegant-blouse
+      relationship: alternative
+      description: "Blue colour variant of the elegant blouse"
+  about: "Purple elegant blouse is the female-variant torso of the purple elegant clothing set obtained as a hard Treasure Trail reward. The blouse is purely cosmetic, provides zero combat or defensive bonuses, and is part of the elegant clothing family that pairs with the matching purple elegant skirt. It can be sold back to Mr Mordaut after completion of the appropriate clue trail, and like other elegant pieces it sees steady niche demand from fashionscape collectors building matched outfits, Castle Wars cosmetics enthusiasts, and ironmen completing the elegant clothing log."
+  market_strategy:
+    notes:
+      - "Hard clue cosmetic with thin daily volume but stable demand from fashionscape collectors"
+      - "Buy limit of only 4 per 4 hours restricts large-scale flipping"
+      - "Price scales with bulk clue stash openings during clue update hype"
+  trading_tips:
+    - "Pair purchase with Purple elegant skirt: set demand bumps both prices"
+    - "Set buy offers a touch below market and wait for clue sellers to flush stock"
+    - "Hold across Treasure Trail update weekends for price drops to buy in"
+  history:
+    - date: "2005-08-22"
+      update: Treasure Trails update
+      description: "Added as a hard clue cosmetic reward alongside the elegant clothing set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

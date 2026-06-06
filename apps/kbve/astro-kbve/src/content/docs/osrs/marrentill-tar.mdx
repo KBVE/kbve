@@ -1,6 +1,6 @@
 ---
 title: Marrentill tar | OSRS Price Data
-description: "Marrentill tar: A thick, foul-smelling, tar-like substance with an orange tinge.. High alch: 1 GP, GE limit: 7,000."
+description: "Marrentill tar: A thick, foul-smelling, tar-like substance with an orange tinge. High alch: 1 GP, GE limit: 7,000."
 osrs:
   id: 10143
   name: Marrentill tar
@@ -12,9 +12,91 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7000
-  about: "Marrentill tar is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: Marrentill tar is a members-only Slayer secondary made by combining a clean marrentill, swamp tar, and a pestle and mortar. It is the ammunition consumed by the marrentill-tier guthix balance loaded crossbow against undead targets, and is the cheapest tar variant in the herb-tar tree.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2006-04-04"
+    update: Slayer Skill
+    tradeable: true
+    stackable: true
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+      - Examine
+    alchable: false
+    destroy: Drop
+  material:
+    type: secondary
+    tier: low
+  recipes:
+    - skill: herblore
+      level: 19
+      xp: 31.5
+      materials:
+        - item_name: Clean marrentill
+          item_id: 251
+          quantity: 1
+        - item_name: Swamp tar
+          item_id: 1939
+          quantity: 15
+      product: Marrentill tar
+      product_id: 10143
+      output_quantity: 15
+      tools:
+        - Pestle and mortar
+      members_only: true
+  shops:
+    - shop_name: Slayer Master Shops
+      location: Various Slayer Masters
+      price: 1
+      stock: 0
+      currency: Coins
+  related_items:
+    - item_id: 10142
+      item_name: Guam tar
+      slug: guam-tar
+      relationship: alternative
+      description: Lower-level tar variant
+    - item_id: 10144
+      item_name: Tarromin tar
+      slug: tarromin-tar
+      relationship: upgrade
+      description: Mid-tier tar variant
+    - item_id: 10145
+      item_name: Harralander tar
+      slug: harralander-tar
+      relationship: upgrade
+      description: Higher-tier tar used in spells and PvM
+    - item_id: 251
+      item_name: Clean marrentill
+      slug: clean-marrentill
+      relationship: component
+      description: Required herb input
+    - item_id: 1939
+      item_name: Swamp tar
+      slug: swamp-tar
+      relationship: component
+      description: Required secondary input
+  market_strategy:
+    notes:
+      - "Tar Margin Notes"
+      - "Herblore XP method during DXP weekends"
+      - "Demand barely exceeds raw input cost"
+      - "Profit comes from XP, not flips"
+      - "Buy clean marrentill plus swamp tar in bulk for compost"
+  trading_tips:
+    - "Combine for XP, not for GE profit"
+    - "Use swamp tar bulk buys to keep input cost minimal"
+    - "Track combined cost against alch floor before listing"
+  history:
+    - date: "2006-04-04"
+      update: Slayer Skill
+      description: "Marrentill tar added with the Slayer skill and herb-tar Herblore recipes."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

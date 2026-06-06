@@ -1,20 +1,89 @@
 ---
 title: Grid master tabard (g) | OSRS Price Data
-description: "Grid master tabard (g): A symbol of grid mastery."
+description: "Grid master tabard (g) is a members cosmetic torso cape awarded for mastering the Grid minigame."
 osrs:
   id: 31190
   name: Grid master tabard (g)
   slug: grid-master-tabard-g
-  examine: A symbol of grid mastery
+  examine: A symbol of grid mastery.
   members: true
   icon: Grid master tabard (g).png
   value: 100000
-  lowalch: null
-  highalch: null
-  limit: null
-  about: Grid master tabard (g) is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  lowalch: 40000
+  highalch: 60000
+  limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2025-09-17"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: false
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Grid master tabard
+      slug: grid-master-tabard
+      relationship: variant
+      description: "Untrimmed variant of the same prestige tabard"
+    - item_name: Grid hat
+      slug: grid-hat
+      relationship: set-piece
+      description: "Companion headpiece from the Grid minigame"
+    - item_name: Grid cape
+      slug: grid-cape
+      relationship: set-piece
+      description: "Companion cape rewarded by the Grid minigame"
+  about: |-
+    The Grid master tabard (g) is a gold-trimmed cosmetic tabard awarded to players who reach the highest mastery tier in the Grid minigame. It occupies the cape slot and offers no combat stats, serving purely as a prestige garment for fashionscape and a visual badge of achievement.
+
+    Like other (g) trimmed rewards, the gold trim distinguishes the tabard from the standard untrimmed version and is the rarer of the two pairings. The piece is untradeable, locked to the account that earned it, and tied to the Grid minigame reward shop.
+  market_strategy:
+    notes:
+      - "Untradeable — value is purely cosmetic and account-locked"
+      - "Acquisition cost is time invested in the Grid minigame, not GP"
+      - "No alch profit since the item cannot be alched"
+  trading_tips:
+    - "Cannot be flipped — only earned through Grid mastery progression"
+    - "Plan Grid runs around weekly XP and reward boosts when available"
+  history:
+    - date: "2025-09-17"
+      description: "Released alongside the Grid minigame as a top-tier mastery cosmetic"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Samurai shirt | OSRS Price Data
-description: "Samurai shirt: A type of shirt worn by the Samurai.. High alch: 4,200 GP, GE limit: 70."
+description: "Samurai shirt is a cosmetic Aldarin clothing piece bought from Norv. High alch: 4,200 GP, GE limit: 70."
 osrs:
   id: 20038
   name: Samurai shirt
@@ -12,9 +12,84 @@ osrs:
   lowalch: 2800
   highalch: 4200
   limit: 70
-  about: "Samurai shirt is a members-only item in Old School RuneScape. High alchemy value: 4,200 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2018-04-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.9
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    weight: 0.9
+    tradeable: true
+    degradable: false
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Norv's Outfits
+      location: Aldarin
+      price: 7000
+      stock: 5
+  related_items:
+    - item_name: Samurai boots
+      slug: samurai-boots
+      relationship: set-piece
+      description: "Matching boots from the Samurai cosmetic outfit."
+    - item_name: Samurai gloves
+      slug: samurai-gloves
+      relationship: set-piece
+      description: "Matching gloves from the Samurai cosmetic outfit."
+    - item_name: Samurai trousers
+      slug: samurai-trousers
+      relationship: set-piece
+      description: "Matching trousers from the Samurai cosmetic outfit."
+    - item_name: Samurai kasa
+      slug: samurai-kasa
+      relationship: set-piece
+      description: "Matching head covering from the Samurai cosmetic outfit."
+  about: "Samurai shirt is a cosmetic body slot item that forms part of the Samurai outfit sold from Norv's Aldarin clothing shop. The piece provides no combat or skilling bonuses, instead acting purely as a fashionscape choice for players themed around the Aldarin and broader Wushanko-style aesthetic. With a tight 70 buy limit and a steady shop respawn it sits in a low-volume cosmetic niche on the GE."
+  market_strategy:
+    notes:
+      - "Shop-respawned cosmetic — shopscape buyers absorb supply slowly"
+      - "70 GE limit caps daily flips but keeps spreads forgiving"
+      - "Demand tied to Aldarin and fashionscape trends rather than combat updates"
+  trading_tips:
+    - "Buy at or just above shop price (7,000) and flip to fashionscape collectors"
+    - "Watch promotional outfit weeks for short-term demand spikes"
+  history:
+    - date: "2018-04-25"
+      description: "Added with the cosmetic outfit shop expansion that introduced Samurai clothing."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

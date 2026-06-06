@@ -1,6 +1,6 @@
 ---
 title: Moonlight mead | OSRS Price Data
-description: "Moonlight mead: A foul smelling brew.. High alch: 3 GP, GE limit: 2,000."
+description: "Moonlight mead is a members brewed beverage made via the Cooking brewing line. High alch: 3 GP, GE limit: 2,000."
 osrs:
   id: 2955
   name: Moonlight mead
@@ -12,9 +12,91 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 2000
-  about: "Moonlight mead is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: mead
+    tier: low
+  properties:
+    release_date: "2005-01-04"
+    update: "Forgettable Tale of a Drunken Dwarf"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 44
+      xp: 208
+      materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Bittercap mushroom
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Beer glass
+          quantity: 8
+      tools: []
+      output_quantity: 8
+  shops:
+    - shop_name: Rising Sun Inn
+      location: Burthorpe
+      price: 2
+      stock: 3
+      currency: coins
+  potion:
+    effects:
+      - description: "Boosts Slayer level by 2"
+        duration: 0
+      - description: "Drains Attack by 1 to 3 depending on level"
+        duration: 0
+      - description: "Heals 1 Hitpoint"
+        duration: 0
+  related_items:
+    - item_name: Moonlight mead(m)
+      slug: moonlight-mead-m
+      relationship: variant
+      description: "Mature variant brewed by leaving the keg to age, boosts Slayer by 3."
+    - item_name: Moonlight mead(4)
+      slug: moonlight-mead-4
+      relationship: variant
+      description: "Full 4-pint keg variant."
+    - item_name: Bittercap mushroom
+      slug: bittercap-mushroom
+      relationship: component
+      description: "Farming ingredient required for brewing moonlight mead."
+    - item_name: Ale yeast
+      slug: ale-yeast
+      relationship: component
+      description: "Brewery starter used across the ale and mead line."
+  about: "Moonlight mead is a members brewed beverage that grants a +2 Slayer boost in exchange for a small Attack drain - one of only a handful of Slayer-boosting consumables in the game. Brewed at 44 Cooking using bittercap mushrooms and barley malt at the Keldagrim or Port Phasmatys breweries, it is bought routinely from the Burthorpe brewery patch and turned in for Death Plateau and Tai Bwo Wannai Trio quest objectives, and used by slayers grinding Wyrms or Drakes who want to outrun the Slayer level requirement."
+  market_strategy:
+    notes:
+      - "Shop spawn floor caps the price; flips usually rely on bulk pickup."
+      - "Mature (m) variant holds a higher premium for the +3 Slayer boost."
+      - "Brewery training and Tai Bwo Wannai Trio re-runs anchor the long-tail demand."
+      - "Buy limit 2,000 supports steady volume for decanters and shop runners."
+  trading_tips:
+    - "Bank-stand the Burthorpe brewery shop for free spawns to resell."
+    - "Stockpile during brewing training surges to flip into Slayer task waves."
+    - "Track mature mead premium - decant from keg variants when spreads invert."
+  history:
+    - date: "2005-01-04"
+      description: "Released with the Forgettable Tale of a Drunken Dwarf quest and the Brewing update."
+    - date: "2009-09-15"
+      description: "Slayer task list expansion increased moonlight mead demand by pulling more players into Slayer-boost niches."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

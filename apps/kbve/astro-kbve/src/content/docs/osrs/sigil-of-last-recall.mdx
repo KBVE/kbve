@@ -1,6 +1,6 @@
 ---
 title: Sigil of last recall | OSRS Price Data
-description: "Sigil of last recall: A power enhancing sigil not yet attuned to you.. High alch: 18,000 GP, GE limit: 4."
+description: "Sigil of last recall teleports you to your previous teleport location. Deadman Mode tier 3 utility sigil. High alch: 18,000 GP, GE limit: 4."
 osrs:
   id: 26144
   name: Sigil of last recall
@@ -12,9 +12,70 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: 4
-  about: "Sigil of last recall is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: misc
+    tier: high
+  properties:
+    release_date: "2021-08-25"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    weight: 0.1
+    quest_item: false
+    options:
+      - Activate
+      - Attune
+      - Drop
+    destroy: "Drop"
+  drop_table:
+    primary_source: Deadman Mode global loot table
+    sources:
+      - source: Deadman Mode monsters
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: varies
+        members_only: true
+  related_items:
+    - item_id: 28561
+      item_name: Trinket of vengeance
+      slug: trinket-of-vengeance
+      relationship: alternative
+      description: Another Deadman Mode utility item
+    - item_id: 21349
+      item_name: Sigil of escaping
+      slug: sigil-of-escaping
+      relationship: alternative
+      description: Deadman teleport escape utility
+  history:
+    - date: "2021-08-25"
+      description: "Released during the Deadman: Reborn update."
+    - date: "2023-08-23"
+      description: "Cooldown reduced for Apocalypse event; received graphical update."
+  about: |-
+    > _"A power enhancing sigil not yet attuned to you."_
+
+    Tier 3 utility sigil that teleports players back to their previous teleport location. Released during the Deadman: Reborn event, this sigil is only obtained during temporary Deadman Mode events and is currently unavailable in the live game.
+
+    Activation rules:
+    - Untradeable when attuned; unattuned version is tradeable
+    - Attuned in a safezone via Attune option
+    - Cooldown: 5 minutes (Reborn/Armageddon), 3 minutes (Apocalypse)
+
+    Excluded locations: Agility Pyramid, Entrana, Fossil Island underwater areas, Mogre Camp, Pyramid Plunder, and God Wars Dungeon boss rooms.
+  market_strategy:
+    notes:
+      - "Deadman Mode exclusive sigil"
+      - "Tier 3 utility item with teleport return"
+      - "Cooldown varies by event variant"
+      - "Currently unavailable on live game"
+      - "Supply limited to active Deadman events"
+      - "Value spikes during seasonal Deadman cycles"
+      - "Attune timing matters: untradeable after attunement"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

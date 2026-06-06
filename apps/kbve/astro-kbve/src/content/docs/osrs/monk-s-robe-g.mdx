@@ -1,6 +1,6 @@
 ---
 title: Monk's robe (g) | OSRS Price Data
-description: "Monk's robe (g) is a F2P legs slot item. High alch: 18 GP, GE limit: 4."
+description: "Monk's robe (g) is a F2P legs slot item with +5 Prayer bonus. High alch: 18 GP, GE limit: 4."
 osrs:
   id: 20202
   name: Monk's robe (g)
@@ -12,23 +12,88 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 4
+  about: Monk's robe (g) is a free-to-play gold-trimmed cosmetic variant of the classic Monk's robe leg slot piece. It grants the same +5 Prayer bonus with no requirements, making it a fashion-focused upgrade for Prayer hybrids and low-level pures who want extra style without the prestige cost of god-aligned robes.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2018-04-12"
+    update: Treasure Trails Improvements
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  material:
+    type: armor
+    tier: low
   equipment:
     slot: legs
+    weight: 1
+    attack_speed: 4
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
     other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 5
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
     - item_id: 20199
       item_name: Monk's robe top (g)
-      slug: monks-robe-top-g
+      slug: monk-s-robe-top-g
       relationship: set-piece
       description: Matching gold-trimmed monk's robe top
-  about: |-
-    > *"I feel the gods don't enjoy my materialistic obsessions."*
-
-    The monk's robe (g) is a gold-trimmed cosmetic variant of monk's robes. It provides an identical +5 Prayer bonus with no requirements. F2P item.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 544
+      item_name: Monk's robe
+      slug: monks-robe
+      relationship: variant
+      description: Standard plain version of the same robe
+    - item_id: 12830
+      item_name: Monk's robe (t)
+      slug: monks-robe-t
+      relationship: variant
+      description: Trimmed variant from clue scrolls
+  market_strategy:
+    notes:
+      - "Clue Supply Notes"
+      - "GE limit of 4 per 4 hours forces patience for stockpilers"
+      - "Supply is purely from easy clue caskets"
+      - "Cosmetic demand fluctuates with new clue updates"
+      - "Price is alch-floored at 18 GP"
+  trading_tips:
+    - "Buy near alch value for risk-free flips"
+    - "Stack offers across multiple alts to bypass the 4-limit"
+    - "Watch for easy clue spotlight events for sell windows"
+  history:
+    - date: "2018-04-12"
+      update: Treasure Trails Improvements
+      description: "Gold-trimmed monk's robes added to easy clue scroll reward pool."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

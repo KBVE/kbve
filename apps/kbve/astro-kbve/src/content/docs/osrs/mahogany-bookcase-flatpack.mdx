@@ -1,6 +1,6 @@
 ---
 title: Mahogany bookcase (flatpack) | OSRS Price Data
-description: "Mahogany bookcase (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Mahogany bookcase (flatpack): How does it all fit in there? High alch: 6 GP, GE limit: 500."
 osrs:
   id: 8514
   name: Mahogany bookcase (flatpack)
@@ -12,9 +12,69 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Mahogany bookcase (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: mahogany
+    tier: mid-high
+  properties:
+    release_date: "2006-05-31"
+    update: "Construction skill"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.0
+    options:
+      - Build
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 40
+      xp: 420
+      materials:
+        - item_name: Mahogany plank
+          quantity: 3
+      tools:
+        - Hammer
+        - Saw
+      facility: Workshop bench
+      output_quantity: 1
+  related_items:
+    - item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: "Three mahogany planks per flatpack"
+    - item_name: Oak bookcase (flatpack)
+      slug: oak-bookcase-flatpack
+      relationship: downgrade
+      description: "Oak-tier alternative built from oak planks"
+    - item_name: Saw
+      slug: saw
+      relationship: component
+      description: "Required tool for flatpack assembly"
+  about: |-
+    > _"How does it all fit in there?"_
+
+    The mahogany bookcase (flatpack) is a Construction-made flatpack assembled at a workshop bench from 3 mahogany planks at level 40 Construction for 420 XP. It is one of the most efficient mahogany-plank flatpacks for cost-effective Construction training and is a frequent skiller go-to between Carved oak magic wardrobe and Gnome bench methods. Resulting flatpacks unfold into a placed mahogany bookcase in the Study or Costume Room.
+  market_strategy:
+    notes:
+      - "Demand driven by ironmen and skill alts converting mahogany planks to flatpacks"
+      - "Margin sensitive to mahogany plank price; supply tracks Construction training meta"
+      - "Buy limit of 500 enables moderate flipping in batches"
+  trading_tips:
+    - "Track mahogany plank prices — flatpack margin moves together"
+    - "Bonus XP weekends boost both supply and downstream demand for placed furniture"
+  history:
+    - date: "2006-05-31"
+      description: "Released with the Construction skill rework introducing flatpack workshop benches."
+    - date: "2017-08-10"
+      description: "Mahogany Homes update increased mahogany plank usage and downstream flatpack demand."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

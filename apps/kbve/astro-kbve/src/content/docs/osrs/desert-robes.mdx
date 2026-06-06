@@ -1,6 +1,6 @@
 ---
 title: Desert robes | OSRS Price Data
-description: "Desert robes: Has a coarse hard wearing texture.. High alch: 15 GP, GE limit: 150."
+description: "Desert robes: Has a coarse hard wearing texture. High alch: 15 GP, GE limit: 150."
 osrs:
   id: 6386
   name: Desert robes
@@ -12,9 +12,99 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 150
-  about: "Desert robes is a members-only item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2003-04-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  about: |-
+    > *"Has a coarse hard wearing texture."*
+
+    The desert robes are the legs slot of the Kharidian desert clothing set, designed to delay the desert heat effect by an additional 12 seconds per piece worn. While they grant zero combat stats, they are a near-essential utility item for any extended trip through the Kharidian Desert, from Pollnivneach to the Jaldraocht Pyramid and the Mirage Arena. A full desert outfit is also turned in to a slave miner during The Tourist Trap quest to access deeper portions of the desert mining camp. The robes can be purchased from desert merchants for a handful of coins, making them the cheapest reusable heat counter available to free-questing adventurers.
+  equipment:
+    slot: legs
+    attack_speed: null
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Desert heat delay
+      description: "Each desert clothing piece worn delays the Kharidian Desert dehydration damage tick by an additional 12 seconds, stacking with desert boots, desert top, and desert shirt for the full outfit bonus."
+  shops:
+    - shop_name: Shantay Pass Shop
+      location: Shantay Pass
+      price: 40
+      stock: 5
+      currency: Coins
+      members: true
+      notes: "First reliable supplier any adventurer reaches; sits directly on the desert border, ideal for restocking en route to Pollnivneach."
+    - shop_name: Raetul and Co's Cloth Store
+      location: Sophanem
+      price: 40
+      stock: 5
+      currency: Coins
+      members: true
+      notes: "Stocks desert clothing inside Sophanem, convenient for the Tourist Trap and Contact! quest lines."
+  history:
+    - date: "2003-04-14"
+      update: Desert update
+      description: "Added with the Kharidian Desert heat mechanic and Shantay Pass quest content."
+  related_items:
+    - item_id: 6384
+      item_name: Desert top
+      slug: desert-top
+      relationship: set-piece
+      description: "Matching body piece of the desert outfit, adds the same 12-second heat delay when worn."
+    - item_id: 6388
+      item_name: Desert boots
+      slug: desert-boots
+      relationship: set-piece
+      description: "Feet piece of the desert outfit, also delays the heat tick when stacked with the rest."
+    - item_id: 1833
+      item_name: Desert shirt
+      slug: desert-shirt
+      relationship: alternative
+      description: "Alternate body wear from desert merchants that grants the same per-piece heat delay."
+  market_strategy:
+    notes:
+      - "Effectively a price floor item: shop-bought stock keeps the GE near minimum value."
+      - "Brief demand spikes around new quest releases that route through the Kharidian Desert."
+      - "Stack-buying from Pollnivneach and Shantay is faster and cheaper than the GE for single-trip needs."
+  trading_tips:
+    - "Quest hunters need a full set: pair desert robes, top, and boots in single listings."
+    - "Cheaper to shop from Shantay or Sophanem than the GE for adventurers passing through."
+    - "Avoid alching: high alch value is far below shop price."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Pharaoh's sceptre (uncharged) | OSRS Price Data
-description: "Pharaoh's sceptre (uncharged) is a members weapon slot item requiring 30 Attack. High alch: 50,000 GP."
+description: "Pharaoh's sceptre (uncharged) is a members weapon slot teleport sceptre requiring 30 Attack and 30 Magic. High alch: 50,000 GP."
 osrs:
   id: 26945
   name: Pharaoh's sceptre (uncharged)
@@ -12,90 +12,129 @@ osrs:
   lowalch: 33333
   highalch: 50000
   limit: null
+  about: Pharaoh's sceptre (uncharged) is the depleted form of the Pyramid Plunder reward sceptre. It functions as a one-handed crush staff with respectable Magic accuracy, but its main appeal is the four-destination teleport network across the Kharidian Desert once charged with Pyramid Plunder artefacts.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2005-11-09"
+    update: Pyramid Plunder
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Wield
+      - Teleport
+      - Check
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+      - Teleport
+      - Check
+    alchable: true
+    destroy: Destroy
+  material:
+    type: weapon
+    tier: mid-high
   equipment:
     slot: weapon
-    type: staff
-    tradeable: true
+    weapon_type: staff
     weight: 2
     attack_speed: 5
+    tradeable: false
     requirements:
       attack: 30
       magic: 30
-    stats:
-      attack_stab: 7
-      attack_slash: -1
-      attack_crush: 25
-      attack_magic: 10
-      attack_ranged: 0
-      defence_stab: 2
-      defence_slash: 3
-      defence_crush: 1
-      defence_magic: 10
-      defence_ranged: 0
-      strength: 32
+    attack_bonus:
+      stab: 7
+      slash: -1
+      crush: 25
+      magic: 10
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 10
+      ranged: 0
+    other_bonus:
+      melee_strength: 32
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  obtaining:
-    - source: Pyramid Plunder
-      location: Golden chests and sarcophagi
-      rates:
-        - rooms: 1-4
-          drop_rate: 1/4,200
-        - rooms: 5-6
-          drop_rate: 1/1,250
-        - rooms: 7-8
-          drop_rate: 1/650
-  effect:
-    teleport_locations:
-      - destination: Jalsavrah
+  drop_table:
+    sources:
+      - source: Pyramid Plunder (rooms 1-4)
+        quantity: "1"
+        rarity: very-rare
+        drop_rate: "1/4,200"
+      - source: Pyramid Plunder (rooms 5-6)
+        quantity: "1"
+        rarity: very-rare
+        drop_rate: "1/1,250"
+      - source: Pyramid Plunder (rooms 7-8)
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/650"
+  teleport:
+    destinations:
+      - name: Jalsavrah
         location: Pyramid Plunder lobby
-      - destination: Jaleustrophos
+      - name: Jaleustrophos
         location: Simon Templeton's camp
-      - destination: Jaldraocht
+      - name: Jaldraocht
         location: Pyramid entrance
-      - destination: Jaltevas
+      - name: Jaltevas
         location: Necropolis obelisk
-  charging:
-    base_capacity: 3
-    elite_desert_capacity: 100
+    charges: 0
+    recharge_method: Sceptre charging via Pyramid Plunder artefacts
+    type: other
+  charges:
+    max_charges: 100
+    charge_cost_item: Pyramid Plunder artefact
+    charges_per_item: 1
+    repairable: true
+  passive_effects:
+    - name: Necropolis Diary Capacity
+      description: Elite Desert Diary raises max charges from 3 to 100.
+      trigger: always
+      affected_skill: magic
   related_items:
     - item_id: 9010
-      item_name: Skull sceptre
-      slug: skull-sceptre
+      item_name: Skull sceptre (i)
+      slug: skull-sceptre-i
       relationship: alternative
-      description: Similar teleport sceptre item
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Stab | +7 |
-    | Slash | -1 |
-    | Crush | +25 |
-    | Magic | +10 |
-    | Strength | +32 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Stab | +2 |
-    | Slash | +3 |
-    | Crush | +1 |
-    | Magic | +10 |
-
-    Attack Speed: 5-tick (3.0s)
-
-    | Destination | Location |
-    |-------------|----------|
-    | Jalsavrah | Pyramid Plunder lobby |
-    | Jaleustrophos | Simon Templeton's camp |
-    | Jaldraocht | Pyramid entrance |
-    | Jaltevas | Necropolis obelisk |
-
-    | Diary Tier | Capacity |
-    |------------|----------|
-    | None | 3 |
-    | Elite Desert | 100 |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: F2P teleport sceptre alternative
+    - item_id: 26948
+      item_name: Pharaoh's sceptre
+      slug: pharaohs-sceptre
+      relationship: variant
+      description: Charged version with active teleport charges
+  market_strategy:
+    notes:
+      - "Sceptre Notes"
+      - "Untradeable so cannot be flipped on the GE"
+      - "Always uncharged in this form, requires Pyramid Plunder runs to refill"
+      - "Elite Desert Diary boosts capacity from 3 to 100 charges"
+      - "Often paired with desert amulet for full desert mobility kit"
+  trading_tips:
+    - "Cannot be Grand-Exchanged: focus on charge efficiency instead"
+    - "Complete Elite Desert Diary before recharging to bank charges"
+    - "Use sceptre on artefact stack at Simon Templeton for fast charging"
+  history:
+    - date: "2005-11-09"
+      update: Pyramid Plunder
+      description: "Pharaoh's sceptre released as a rare Pyramid Plunder reward."
+    - date: "2022-08-24"
+      update: Desert Diary Update
+      description: "Charge capacity expanded to 100 with Elite Desert Diary."
+    - date: "2024-03-20"
+      update: Desert Treasure II
+      description: "Jaltevas Necropolis destination added for post-DT2 players."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

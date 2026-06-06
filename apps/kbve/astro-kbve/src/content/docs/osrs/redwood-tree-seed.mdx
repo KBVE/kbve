@@ -1,6 +1,6 @@
 ---
 title: Redwood tree seed | OSRS Price Data
-description: "Redwood tree seed: Plant this in a plantpot of soil to grow a sapling.. High alch: 390 GP, GE limit: 200."
+description: "Redwood tree seed is a level 90 Farming seed that grows into a redwood tree at the Farming Guild patch. High alch: 390 GP, GE limit: 200."
 osrs:
   id: 22871
   name: Redwood tree seed
@@ -12,52 +12,90 @@ osrs:
   lowalch: 260
   highalch: 390
   limit: 200
-  item:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
     type: seed
+    tier: high
+  properties:
+    release_date: "2019-01-10"
+    update: "Farming Guild"
     tradeable: true
     stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0
-    requirements:
-      farming: 90
+    options:
+      - Drop
+      - Examine
+    alchable: true
+    destroy: "Drop"
   farming:
     patch_type: redwood
     location: Farming Guild
-    growth_time: 6402
-    xp:
-      planting: 230
-      check_health: 22450
+    growth_time_minutes: 6400
+    planting_xp: 230
+    check_health_xp: 22450
+    payment: "6 dragonfruits to Alexandra"
+    requirements:
+      farming: 90
+  drop_table:
+    sources:
+      - source: Hespori
+        quantity: "1"
+        rarity: "1/80"
+      - source: Brimstone chest
+        quantity: "1"
+        rarity: "1/60"
+      - source: "Larran's big chest"
+        quantity: "1"
+        rarity: "1/60"
+      - source: "Bird nest (seeds)"
+        quantity: "1"
+        rarity: "2/1,011"
+      - source: Abyssal Sire
+        quantity: "1"
+        rarity: Rare seed drop
+      - source: Demonic gorilla
+        quantity: "1"
+        rarity: Rare seed drop
+      - source: Vorkath
+        quantity: "1"
+        rarity: Rare seed drop
   related_items:
     - item_id: 19669
       item_name: Redwood logs
       slug: redwood-logs
       relationship: product
-      description: Woodcutting product from grown tree
+      description: "Woodcutting product harvested from the grown tree."
     - item_id: 5316
       item_name: Magic seed
       slug: magic-seed
       relationship: alternative
-      description: Alternative high-level tree seed
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Tree Seed |
-    | Tradeable | Yes |
-    | Weight | 0 kg |
-    | Requirements | 90 Farming |
-
-    Plant in the redwood patch (Farming Guild only).
-
-    Growth Time: ~106.7 hours (4.4 days)
-
-    Payment: Cannot be protected
-
-    XP: 230 (planting) + 22,450 (check-health)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Alternative high-level tree seed planted in tree patches."
+    - item_name: Redwood sapling
+      slug: redwood-sapling
+      relationship: component
+      description: "Sapling stage grown from the seed in a plant pot."
+  about: "Redwood tree seed is the highest-tier farmable tree seed in Old School RuneScape, requiring 90 Farming and growing only in the dedicated redwood patch inside the Farming Guild. It yields 22,450 Farming XP per check-health, making it the most valuable single-action tree XP source in the game."
+  market_strategy:
+    notes:
+      - "Demand is dominated by 99 Farming pushes: price tracks Hespori clear rates and elite clue volume."
+      - "Supply tightens around double-XP weekends and pet hunt events."
+      - "GE limit of 200 per 4 hours caps daily resupply for big farmers."
+  trading_tips:
+    - "Stack patches before buying: redwood seeds rebuy fast during XP weekends."
+    - "Compare seed cost vs Hespori farming as a substitute pipeline."
+  history:
+    - date: "2019-01-10"
+      update: "Farming Guild"
+      description: "Redwood tree seed added with the Farming Guild expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

@@ -1,6 +1,6 @@
 ---
 title: Master wand | OSRS Price Data
-description: "Master wand is a members weapon slot item. High alch: 60,000 GP, GE limit: 70."
+description: "Master wand is a members weapon slot magic wand requiring 60 Magic. High alch: 60,000 GP, GE limit: 70."
 osrs:
   id: 6914
   name: Master wand
@@ -12,54 +12,109 @@ osrs:
   lowalch: 40000
   highalch: 60000
   limit: 70
-  item_id: 6914
-  type: equipment
-  tradeable: true
-  weight: 0.907
-  buy_limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: wand
+    tier: mid-high
+  properties:
+    release_date: "2006-01-04"
+    update: "Mage Training Arena"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: magic_wand
+    weapon_type: powered-staff
     attack_speed: 4
+    weight: 0.907
     requirements:
-      skills:
-        - skill: magic
-          level: 60
-    stats:
-      attack_magic: 20
-      defence_magic: 0
-  obtaining:
-    minigame:
-      name: Mage Training Arena
-      points_required:
-        telekinetic: 240
-        alchemist: 240
-        enchantment: 2400
-        graveyard: 240
-    upgrade_from:
-      item: Teacher wand
-      item_id: 6912
+      magic: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 20
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 20
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Mage Training Arena Reward Shop
+      location: Mage Training Arena
+      price: 0
+      stock: 0
+      currency: pizazz_points
+      notes: "Requires Teacher wand plus 240 Telekinetic, 240 Alchemist, 2,400 Enchantment, and 240 Graveyard points."
+  recipes:
+    - skill: magic
+      level: 60
+      xp: 0
+      materials:
+        - item_name: Teacher wand
+          quantity: 1
+      tools: []
+      output_quantity: 1
   related_items:
-    - slug: kodai-wand
-      name: Kodai wand
-      relation: best_upgrade
-    - slug: teacher-wand
-      name: Teacher wand
-      relation: lower_tier
-    - slug: ancient-staff
-      name: Ancient staff
-      relation: alternative
-    - slug: nightmare-staff
-      name: Nightmare staff
-      relation: best_upgrade
-  about: |-
-    1. Beginner wand (level 45)
-    2. Apprentice wand (level 50)
-    3. Teacher wand (level 55)
-    4. Master wand (level 60)
-    5. Kodai wand (level 75)
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 6908
+      item_name: Beginner wand
+      slug: beginner-wand
+      relationship: downgrade
+      description: "Entry-level MTA wand (45 Magic)."
+    - item_id: 6910
+      item_name: Apprentice wand
+      slug: apprentice-wand
+      relationship: downgrade
+      description: "Second-tier MTA wand (50 Magic)."
+    - item_id: 6912
+      item_name: Teacher wand
+      slug: teacher-wand
+      relationship: downgrade
+      description: "Third-tier MTA wand required to claim master."
+    - item_id: 11998
+      item_name: Kodai wand
+      slug: kodai-wand
+      relationship: upgrade
+      description: "BIS wand from the Chambers of Xeric and Kodai insignia combine."
+    - item_name: Nightmare staff
+      slug: nightmare-staff
+      relationship: alternative
+      description: "Two-handed magic alternative with higher base bonuses."
+  about: "Master wand is the top of the Mage Training Arena wand ladder, claimed from the reward shop at 60 Magic after handing in a Teacher wand and the requisite Pizazz points. It grants +20 Magic attack and +20 Magic defence, a 4-tick attack speed, and shares the one-handed wand slot with mage books and shields - the long-standing budget BIS until Kodai wand, and still the cheapest one-hander capable of casting Ancient Magicks at high level."
+  market_strategy:
+    notes:
+      - "Time-gated MTA grind floors the price near the cost of the underlying point grind."
+      - "Stable mid-game demand from PvMers and ironmen stepping up to Ancient Magicks."
+      - "Kodai wand caps the upside; Master wand sits as the cheap one-hander for spellbook swaps."
+      - "Buy limit 70 keeps the GE order book thin - large buys clear stock fast."
+  trading_tips:
+    - "Buy ahead of Chambers of Xeric or Ancient Magicks meta updates."
+    - "Watch Kodai insignia drops - Master wand demand picks up when ironmen finish CoX."
+    - "Use limit orders during weekend PvM peaks for best fill."
+  history:
+    - date: "2006-01-04"
+      description: "Released with the Mage Training Arena minigame as the top of the wand reward ladder."
+    - date: "2017-09-21"
+      description: "Combined with Kodai insignia at 75 Magic to create the Kodai wand."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

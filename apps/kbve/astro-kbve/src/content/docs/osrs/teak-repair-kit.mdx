@@ -1,6 +1,6 @@
 ---
 title: Teak repair kit | OSRS Price Data
-description: "Teak repair kit: A boat repair kit made from teak.. High alch: 600 GP, GE limit: 13,000."
+description: "Teak repair kit: A boat repair kit made from teak. High alch: 600 GP, GE limit: 13,000."
 osrs:
   id: 31970
   name: Teak repair kit
@@ -12,12 +12,79 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 13000
-  about: "Teak repair kit is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: wood
+    tier: mid
+  properties:
+    release_date: "2024-08-21"
+    update: Fishing Trawler Rework
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.85
+    options:
+      - "Use"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 35
+      xp: 90
+      materials:
+        - item_name: Teak plank
+          quantity: 2
+        - item_name: Bronze nails
+          quantity: 10
+        - item_name: Hammer
+          quantity: 1
+        - item_name: Saw
+          quantity: 1
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+      notes: "Made on a workbench inside a player-owned house workshop or at the Fishing Trawler dock."
+  related_items:
+    - item_name: Oak repair kit
+      slug: oak-repair-kit
+      relationship: alternative
+      description: "Lower-tier repair kit used at the Fishing Trawler."
+    - item_name: Mahogany repair kit
+      slug: mahogany-repair-kit
+      relationship: alternative
+      description: "Higher-tier repair kit used at the Fishing Trawler."
+    - item_name: Teak plank
+      slug: teak-plank
+      relationship: component
+      description: "Crafting ingredient consumed when building the kit."
+    - item_name: Angler's outfit
+      slug: anglers-outfit
+      relationship: product
+      description: "Trawler reward chain that benefits from faster repair cadence."
+  about: "Teak repair kit is the mid-tier patch consumable used at the reworked Fishing Trawler minigame to plug hull leaks faster than bare-hand patching. Each kit instantly repairs one section, making it a popular bring-along for Angler's outfit and Trawler pet grinders who don't want to lose a wave to a slow patch."
+  market_strategy:
+    notes:
+      - "13,000 buy limit allows bulk supply for Angler's outfit grinders."
+      - "Demand follows Fishing Trawler activity, which spikes around DMM and seasonal events."
+      - "Mahogany kits are stronger; teak undercuts them as the value option."
+  trading_tips:
+    - "Bulk-buy when teak plank price drops; profit margin tracks plank cost."
+    - "Sell into Trawler resurgences after Jagex highlights the minigame."
+    - "Low alch margin; flip rather than alch."
+  history:
+    - date: "2024-08-21"
+      description: "Introduced with the Fishing Trawler rework as the mid-tier repair consumable."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

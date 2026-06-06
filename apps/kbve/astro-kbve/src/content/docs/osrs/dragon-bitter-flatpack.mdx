@@ -1,6 +1,6 @@
 ---
 title: Dragon bitter (flatpack) | OSRS Price Data
-description: "Dragon bitter (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Dragon bitter (flatpack) is a members Construction barrel flatpack assembled at 38 Construction. High alch: 6 GP, GE limit: 500."
 osrs:
   id: 8524
   name: Dragon bitter (flatpack)
@@ -12,9 +12,71 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Dragon bitter (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: flatpack
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 38
+      xp: 246
+      materials:
+        - item_name: Oak plank
+          quantity: 3
+        - item_name: Dragon bitter
+          quantity: 8
+      tools:
+        - Hammer
+        - Saw
+      output_quantity: 1
+  related_items:
+    - item_name: Dragon bitter
+      slug: dragon-bitter
+      relationship: component
+      description: "Beer consumed as a material when assembling the flatpack"
+    - item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: "Plank consumed in the flatpack recipe"
+    - item_name: Asgarnian ale (flatpack)
+      slug: asgarnian-ale-flatpack
+      relationship: variant
+      description: "Lower tier barrel flatpack with the same recipe shape"
+    - item_name: Greenman's ale (flatpack)
+      slug: greenmans-ale-flatpack
+      relationship: variant
+      description: "Sibling barrel flatpack from the workbench list"
+  about: |-
+    Dragon bitter (flatpack) is a Player-Owned House barrel flatpack assembled at a workbench, allowing the Dragon bitter beer barrel to be ported between houses without rebuilding from raw materials in place. It requires 38 Construction and grants 246 XP per flatpack.
+
+    Compared to the lower-tier Asgarnian ale flatpack, Dragon bitter consumes a more expensive ale per craft but pays a higher Construction XP rate per oak plank invested. It is a common ironman pick for cheap-plank Construction training when Dragon bitter is in good supply.
+  market_strategy:
+    notes:
+      - "Low GE price — XP method rather than a flip target"
+      - "Dragon bitter ale supply caps the flatpack output rate"
+      - "Demand mostly from ironman Construction trainers chasing XP per plank"
+  trading_tips:
+    - "Track Dragon bitter price — flatpack margin lives or dies on ale cost"
+    - "Buy oak planks in bulk during Construction XP weekends for better fill rates"
+    - "Consider decanting via Asgarnian flatpack alternative when Dragon bitter spikes"
+  history:
+    - date: "2006-05-31"
+      description: "Added with the Player-Owned House update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

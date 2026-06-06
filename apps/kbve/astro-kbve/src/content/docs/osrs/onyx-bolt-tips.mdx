@@ -1,6 +1,6 @@
 ---
 title: Onyx bolt tips | OSRS Price Data
-description: "Onyx bolt tips: Onyx bolt tips.. High alch: 600 GP, GE limit: 11,000."
+description: "Onyx bolt tips: Onyx bolt tips. High alch: 600 GP, GE limit: 11,000."
 osrs:
   id: 9194
   name: Onyx bolt tips
@@ -12,11 +12,26 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 11000
-  item:
-    type: ammunition_component
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: ammunition
+    tier: high
+  properties:
+    release_date: "2005-09-26"
+    update: Mining and Smithing improvements
     tradeable: true
     stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0
+    options:
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: fletching
       level: 73
@@ -24,39 +39,70 @@ osrs:
       materials:
         - item_name: Onyx
           quantity: 1
-      product: Onyx bolt tips
-      product_quantity: 24
-      note: Not recommended - onyx worth far more than tips
+      tools:
+        - Chisel
+      output_quantity: 24
+      notes: "Cutting an onyx with a chisel produces 24 onyx bolt tips; rarely profitable because raw onyx is worth far more."
+    - skill: fletching
+      level: 73
+      xp: 9.4
+      materials:
+        - item_name: Onyx bolt tips
+          quantity: 1
+        - item_name: Runite bolts
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      notes: "Attached one at a time to runite bolts; produces unenchanted onyx bolts."
+    - skill: fletching
+      level: 84
+      xp: 17
+      materials:
+        - item_name: Onyx bolt tips
+          quantity: 1
+        - item_name: Dragon bolts
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      notes: "Attached to dragon bolts to make onyx dragon bolts."
   related_items:
-    - item_id: 9342
-      item_name: Onyx bolts
+    - item_name: Onyx
+      slug: onyx
+      relationship: component
+      description: "Raw gem chiselled into onyx bolt tips."
+    - item_name: Onyx bolts
       slug: onyx-bolts
       relationship: product
-      description: Created item
-    - item_id: 9245
-      item_name: Onyx bolts (e)
+      description: "Runite bolts tipped with onyx bolt tips."
+    - item_name: Onyx bolts (e)
       slug: onyx-bolts-e
       relationship: alternative
-      description: Enchanted version
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Ammunition Component |
-    | Tradeable | Yes |
-    | Stackable | Yes |
-    | Weight | 0 kg |
-
-    | Bolt Created | Materials | Fletching |
-    |--------------|-----------|-----------|
-    | Onyx bolts | Runite bolts + Onyx bolt tips | 73 |
-    | Onyx dragon bolts | Dragon bolts + Onyx bolt tips | 84 |
-
-    9.4 XP per tip attached. Can be enchanted after attachment.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Enchanted variant featuring the Life Leech bolt effect."
+    - item_name: Onyx dragon bolts
+      slug: onyx-dragon-bolts
+      relationship: product
+      description: "Dragon bolts tipped with onyx, the high-tier ranged option."
+  about: "Onyx bolt tips are the high-tier gem ammunition tip used to upgrade runite or dragon bolts into onyx bolts. They are chiselled from a single onyx at 73 Fletching (yielding 24 tips), but in practice almost nobody crafts them directly because the raw gem is worth far more uncut than the tips it produces. Attaching the tips to bolts is the standard step toward onyx (e) bolts, which carry the strongest gem-bolt effect (Life Leech) and are the BIS dragon bolt option for many PvM bosses."
+  market_strategy:
+    notes:
+      - "Price is anchored by raw onyx supply through Tzhaar tokkul exchange and Brimstone chests."
+      - "Demand surges around Inferno, Vorkath, and Zulrah ranged metas."
+      - "Buy limit of 11,000 supports steady bulk flips for high-tier rangers."
+  trading_tips:
+    - "Spread orders across the 11,000 buy limit when ranged content trends."
+    - "Pair purchases with runite or dragon bolts to capture the combined margin."
+    - "Avoid alching - the 600 gp high alch is well below GE value."
+  history:
+    - date: "2005-09-26"
+      description: "Released alongside onyx gem with the Mining and Smithing improvements update."
+    - date: "2007-11-26"
+      description: "Onyx dragon bolts added, expanding bolt tip demand."
+    - date: "2019-12-18"
+      description: "Brimstone chest loot table added onyx, indirectly boosting bolt tip supply."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

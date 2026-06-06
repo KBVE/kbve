@@ -1,6 +1,6 @@
 ---
 title: Trinket of vengeance | OSRS Price Data
-description: "Trinket of vengeance: A magic rock! This one casts the Vengeance spell.. High alch: 6,000 GP."
+description: "Trinket of vengeance casts the Vengeance spell without requirements. Deadman Mode exclusive. High alch: 60,000 GP."
 osrs:
   id: 28561
   name: Trinket of vengeance
@@ -8,13 +8,70 @@ osrs:
   examine: A magic rock! This one casts the Vengeance spell.
   members: true
   icon: Trinket of vengeance.png
-  value: 10000
-  lowalch: 4000
-  highalch: 6000
-  limit: null
-  about: "Trinket of vengeance is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  value: 100000
+  lowalch: 40000
+  highalch: 60000
+  limit: 100
+  material:
+    type: misc
+    tier: high
+  properties:
+    release_date: "2023-08-23"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    weight: 1
+    quest_item: false
+    options:
+      - Activate
+      - Drop
+    destroy: "Drop"
+  drop_table:
+    primary_source: Deadman Mode global loot table
+    sources:
+      - source: Deadman Mode monsters
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: common
+        drop_rate: varies
+        members_only: true
+  related_items:
+    - item_id: 21347
+      item_name: Sigil of last recall
+      slug: sigil-of-last-recall
+      relationship: alternative
+      description: Another Deadman Mode utility sigil
+    - item_id: 21349
+      item_name: Sigil of escaping
+      slug: sigil-of-escaping
+      relationship: alternative
+      description: Deadman teleport utility item
+  history:
+    - date: "2023-08-23"
+      description: "Released as part of the Deadman: Apocalypse event."
+    - date: "2025-03-12"
+      description: "Made available in permanent Deadman Mode (World 345)."
+    - date: "2026-01-21"
+      description: "Item value increased from 10,000 to 100,000 coins."
+  about: |-
+    > _"A magic rock! This one casts the Vengeance spell."_
+
+    The Trinket of vengeance enables players to cast the Vengeance spell without meeting typical requirements (94 Magic, Lunar spellbook completion). It retains the spell's standard 30-second cooldown between uses.
+
+    Exclusive to Deadman Mode and its seasonal variants (Apocalypse, Armageddon). Became available in permanent Deadman Mode (World 345) as of March 12, 2025. Not accessible in Deadman: Annihilation.
+  market_strategy:
+    notes:
+      - "Deadman Mode exclusive item"
+      - "Allows Vengeance casting without Lunar spellbook"
+      - "30-second cooldown still applies"
+      - "Limited availability tied to Deadman events"
+      - "Value jumped 10x in January 2026 update"
+      - "Demand peaks during Deadman seasonal events"
+      - "Limited supply outside of seasonal Deadman activity"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

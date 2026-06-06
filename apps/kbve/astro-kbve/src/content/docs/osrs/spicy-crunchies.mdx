@@ -1,6 +1,6 @@
 ---
 title: Spicy crunchies | OSRS Price Data
-description: "Spicy crunchies: Yum... smells spicy.. High alch: 1 GP, GE limit: 6,000."
+description: "Spicy crunchies are gnome-cooked snacks, 12 Cooking, 102 XP each. High alch: 1 GP, GE limit: 6,000."
 osrs:
   id: 2213
   name: Spicy crunchies
@@ -12,9 +12,82 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 6000
-  about: "Spicy crunchies is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    weight: 0.02
+    tradeable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    options:
+      - Eat
+      - Drop
+    destroy: "Are you sure you want to drop this item?"
+  recipes:
+    - skill: cooking
+      level: 12
+      xp: 102
+      materials:
+        - item_name: Unfinished crunchy (spicy)
+          item_id: 2211
+          quantity: 1
+        - item_name: Gnome spice
+          item_id: 2169
+          quantity: 1
+      product: Spicy crunchies
+      product_id: 2213
+      output_quantity: 1
+      facility: Range
+  related_items:
+    - item_id: 2211
+      item_name: Half made crunchy (spicy)
+      slug: half-made-crunchy-spicy
+      relationship: component
+      description: Intermediate stage requiring 2 equa leaves and gnome spice
+    - item_id: 2169
+      item_name: Gnome spice
+      slug: gnome-spice
+      relationship: component
+      description: Required spice ingredient sprinkled to finish the snack
+    - item_id: 2217
+      item_name: Toad crunchies
+      slug: toad-crunchies
+      relationship: variant
+      description: Toad legs gnome crunchy variant
+    - item_id: 2225
+      item_name: Worm crunchies
+      slug: worm-crunchies
+      relationship: variant
+      description: King worm gnome crunchy variant
+    - item_id: 2221
+      item_name: Chocchip crunchies
+      slug: chocchip-crunchies
+      relationship: variant
+      description: Chocolate chip gnome crunchy variant
+  market_strategy:
+    notes:
+      - "Gnome cooking food: 12 Cooking required to make, stops burning at 38"
+      - "102 Cooking XP per craft makes it a strong sub-30 training option"
+      - "Five-step prep: dough, raw, half-baked, spicy, finished"
+      - "Used for Gnome Restaurant minigame deliveries"
+      - "Buy point: gianne dough and equa leaf supply set the floor"
+      - "Sell point: minigame meta swings can spike demand"
+      - "Note: 6,000 GE limit allows bulk daily flipping"
+  history:
+    - date: "2002-12-12"
+      update: Gnome Restaurant release
+      description: "Spicy crunchies added with the Gnome Restaurant minigame and gnome cooking content."
+  about: |-
+    > _"Yum... smells spicy."_
+
+    Spicy crunchies are the highest-XP gnome crunchy variant, made by sprinkling gnome spice on an unfinished crunchy (spicy). The full chain takes gianne dough on a crunchy tray, a range bake, two equa leaves with gnome spice for the spicy half-made stage, another bake, and a final spice sprinkle.
+
+    Requires 12 Cooking to prepare and awards 102 Cooking XP per finished item, stopping the burn chance at level 38. Often used for Gnome Restaurant minigame deliveries.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

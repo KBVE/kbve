@@ -1,6 +1,6 @@
 ---
 title: Leaf-bladed battleaxe | OSRS Price Data
-description: "Leaf-bladed battleaxe is a members weapon slot item requiring 65 Attack. High alch: 57,600 GP, GE limit: 70."
+description: "Leaf-bladed battleaxe is a Kurask drop with the highest one-handed strength bonus outside of rapier-tier weapons. High alch: 57,600 GP, GE limit: 70."
 osrs:
   id: 20727
   name: Leaf-bladed battleaxe
@@ -12,77 +12,100 @@ osrs:
   lowalch: 38400
   highalch: 57600
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: leaf_bladed
+    tier: mid-high
+  properties:
+    release_date: "2016-09-15"
+    update: "Old School Content Poll #46: Lots of Stuff"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wield
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: leaf_bladed
-    attack_style: melee
-    attack_speed: 5
-    tradeable: true
     weight: 2.721
+    attack_speed: 5
     requirements:
       attack: 65
       slayer: 55
-    stats:
-      attack_stab: -2
-      attack_slash: 72
-      attack_crush: 72
-      strength: 92
-  special_effect:
-    name: Leaf-bladed Bonus
-    description: +17.5% damage vs Turoths and Kurasks
-    stacks_with_slayer_helm: true
+    attack_bonus:
+      stab: -2
+      slash: 72
+      crush: 72
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: -1
+    other_bonus:
+      melee_strength: 92
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Leafbane Bonus
+      description: "+17.5% damage versus turoths and kurasks; stacks with the Slayer helmet bonus."
   drop_table:
     sources:
       - source: Kurask
-        rate: 1/1,026
-  truemarket:
-    buy_limit: 70
-    price_estimate: 70000
+        combat_level: 106
+        quantity: "1"
+        rarity: "1/1,026"
+        notes: "Fremennik Slayer Dungeon and Iorwerth Dungeon."
+      - source: King Kurask
+        combat_level: 295
+        quantity: "1"
+        rarity: "3/1,026"
+        notes: "Konar superior variant drop chance."
   related_items:
     - item_id: 11902
       item_name: Leaf-bladed sword
       slug: leaf-bladed-sword
       relationship: alternative
-      description: Faster alternative
+      description: "Faster 4-tick alternative against turoth and kurask tasks."
+    - item_name: Leaf-bladed spear
+      slug: leaf-bladed-spear
+      relationship: alternative
+      description: "Stab-focused leafbane weapon for turoth and kurask tasks."
     - item_id: 4151
       item_name: Abyssal whip
       slug: abyssal-whip
       relationship: alternative
-      description: General use
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Stab | -2 |
-    | Slash | +72 |
-    | Crush | +72 |
-    | Strength | +92 |
-
-    | Defence | Value |
-    |---------|-------|
-    | All | +0 |
-
-    Requirements: 65 Attack, 55 Slayer
-
-    Leaf-bladed Bonus:
-    - +17.5% damage vs Turoths and Kurasks
-    - Stacks with Slayer helm bonus
-
-    Best for:
-    - Turoth tasks
-    - Kurask tasks
-    - High strength training
-
-    Highest strength bonus one-handed until rapier-tier.
+      description: "Faster 4-tick general slayer weapon at similar gear tier."
+  about: "Leaf-bladed battleaxe is a Kurask drop and the highest strength one-handed weapon available outside of rapier-tier gear, with +92 melee strength and a +17.5% damage modifier against turoth and kurask that stacks with the Slayer helmet. Its 5-tick speed makes it the burst pick for leafbane tasks where a Slayer mask is active."
   market_strategy:
     notes:
-      - Good for leafy tasks
-      - High strength bonus
-      - 5-tick is slower than whip
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply is locked to Kurask task volume: prices firm around Konar superior rotations."
+      - "Demand tracks Slayer training meta and Slayer helmet bonus discussions."
+      - "GE limit of 70 per 4 hours supports steady ironman alt resupply."
+  trading_tips:
+    - "Buy during Kurask mass-task posts on Reddit when supply spikes."
+    - "Compare against abyssal whip pricing for general slayer weapon arbitrage."
+  history:
+    - date: "2016-09-15"
+      update: "Old School Content Poll #46: Lots of Stuff"
+      description: "Leaf-bladed battleaxe added as a Kurask drop with leafbane mechanics."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

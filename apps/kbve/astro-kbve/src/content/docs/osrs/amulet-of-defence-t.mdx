@@ -12,9 +12,33 @@ osrs:
   lowalch: 510
   highalch: 765
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: amulet
+    tier: low
+  properties:
+    release_date: "2018-08-16"
+    update: Twisted League
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.01
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
     weight: 0.01
+    requirements:
+      defence: 1
     attack_bonus:
       stab: 0
       slash: 0
@@ -32,51 +56,50 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Beginner
+  treasure_trail:
+    tier: beginner
+    is_reward: true
+    reward_tiers:
+      - beginner
+  drop_table:
+    sources:
+      - source: Reward casket (beginner)
+        quantity: "1"
+        rarity: rare
         drop_rate: 1/360
-        description: Rare reward from beginner clue scrolls
   related_items:
     - item_id: 1729
       item_name: Amulet of defence
       slug: amulet-of-defence
       relationship: variant
-      description: Standard (untrimmed) version
+      description: Standard untrimmed version with identical stats
     - item_id: 1725
       item_name: Amulet of strength
       slug: amulet-of-strength
       relationship: alternative
       description: Offensive amulet alternative
-    - item_id: 6919
+    - item_id: 1727
       item_name: Amulet of power
       slug: amulet-of-power
       relationship: upgrade
-      description: All-round combat amulet with offensive and defensive stats
-  about: |-
-    > *"An enchanted emerald amulet of protection that looks good."*
-
-    | Property | Amulet of Defence | Amulet of Defence (t) |
-    |----------|-------------------|----------------------|
-    | All Defence | +7 | +7 |
-    | Appearance | Standard | Gold trimmed |
-    | Source | Crafting (Lvl-2 Enchant) | Beginner clue |
-    | F2P | Yes | Yes |
-
-    Stats are identical. The trimmed version is purely cosmetic.
+      description: F2P all-round combat amulet with offensive and defensive stats
+  about: "Amulet of defence (t) is the gold-trimmed cosmetic variant of the amulet of defence, awarded exclusively from beginner reward caskets at roughly 1/360. Stats are identical to the standard amulet of defence (+7 to all defence bonuses), so the trim is purely fashionscape. Free-to-play tradeable and counts as a collection log unlock for beginner clue completionists."
   market_strategy:
-    title: Investment Notes
     notes:
-      - Beginner clue exclusive cosmetic
-      - Free-to-play tradeable
-      - Higher drop rate than other trimmed amulets (1/360)
-      - Defensive-only amulet with limited PvP demand
-      - Good starter defensive amulet for new accounts
-      - Beginner clues are the fastest to complete, so supply is relatively high
-      - Collection log item for completionists
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Investment Notes"
+      - "Beginner clue exclusive cosmetic, identical stats to plain amulet of defence"
+      - "Free-to-play tradeable; supply driven by beginner clue completion rate"
+      - "Beginner clues are the fastest clue tier so supply is steady"
+      - "Collection log item for completionists drives baseline demand"
+      - "Thin GE limit of 4 per 4 hours; price moves on small volume"
+  trading_tips:
+    - "Watch beginner clue spotlight weeks for supply spikes"
+    - "Compare against plain amulet of defence price as a cosmetic premium gauge"
+    - "Hold long-term for fashionscape demand; flips are slow due to 4 limit"
+  history:
+    - date: "2018-08-16"
+      update: Twisted League
+      description: "Trimmed beginner clue rewards including amulet of defence (t) introduced."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

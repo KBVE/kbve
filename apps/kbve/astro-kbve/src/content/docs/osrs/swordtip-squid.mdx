@@ -1,6 +1,6 @@
 ---
 title: Swordtip squid | OSRS Price Data
-description: "Swordtip squid: Doesn't look too appetising, but looks can be deceiving.. High alch: 60 GP."
+description: "Swordtip squid: Doesn't look too appetising, but looks can be deceiving. High alch: 60 GP, GE limit: 0."
 osrs:
   id: 31556
   name: Swordtip squid
@@ -11,13 +11,79 @@ osrs:
   value: 100
   lowalch: 40
   highalch: 60
-  limit: null
-  about: "Swordtip squid is a members-only item in Old School RuneScape. High alchemy value: 60 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: 0
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: food
+    tier: mid
+  properties:
+    release_date: "2025-03-19"
+    update: Sailing skill beta
+    tradeable: false
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - "Eat"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Sailing fishing spots (deep-sea route)
+        quantity: "1"
+        rarity: "Common while fishing"
+      - source: Cooking swordtip squid raw
+        quantity: "1"
+        rarity: "Always"
+  recipes:
+    - skill: cooking
+      level: 53
+      xp: 130
+      materials:
+        - item_name: Raw swordtip squid
+          quantity: 1
+      tools:
+        - Cooking range
+      output_quantity: 1
+      notes: "Stops burning at 70 Cooking on a range; cooks faster on a Sailing ship grill."
+  related_items:
+    - item_name: Raw swordtip squid
+      slug: raw-swordtip-squid
+      relationship: component
+      description: "Raw form caught from the deep-sea Sailing route."
+    - item_name: Cooked karambwan
+      slug: cooked-karambwan
+      relationship: alternative
+      description: "Comparable mid-tier food used in combo-eating builds."
+    - item_name: Sailing pet
+      slug: sailing-pet
+      relationship: alternative
+      description: "Skill pet roll on each successful catch of the raw form."
+  about: "Swordtip squid is a Sailing-tier mid-game food cooked from raw swordtip squid caught on the deep-sea Sailing routes. It heals 16 Hitpoints per consumption with a one-tick eat delay, making it a solid replacement for monkfish in mid-game PvM trips when players are out fishing or sailing for skill xp. Currently untradeable through the Grand Exchange while the Sailing skill is in beta - GE limit is 0 by design."
+  market_strategy:
+    notes:
+      - "Untradeable during Sailing beta - all supply must be self-fished and cooked."
+      - "Demand exists only at the player level; treat as personal stockpile."
+      - "Expected to gain tradeable status when Sailing launches live; price will then track monkfish."
+  trading_tips:
+    - "Never bank on cooked squid; cook only what you intend to consume in the same trip."
+    - "When Sailing launches live, watch the first 48 hours for arbitrage between raw and cooked tiers."
+    - "Useful skilling AFK food for low-stakes Sailing tasks."
+  history:
+    - date: "2025-03-19"
+      description: "Introduced in the Sailing skill beta as the mid-tier cooked seafood option."
+    - date: "2025-05-07"
+      description: "Heal value adjusted to 16 Hitpoints during second beta tuning pass."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

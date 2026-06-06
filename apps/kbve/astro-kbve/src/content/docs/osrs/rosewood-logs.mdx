@@ -1,6 +1,6 @@
 ---
 title: Rosewood logs | OSRS Price Data
-description: "Rosewood logs: Logs cut from a rosewood tree.. High alch: 288 GP, GE limit: 12,000."
+description: "Rosewood logs are top-tier Sailing-era logs, 92 WC/FM. High alch: 288 GP, GE limit: 12,000."
 osrs:
   id: 32910
   name: Rosewood logs
@@ -12,9 +12,96 @@ osrs:
   lowalch: 192
   highalch: 288
   limit: 12000
-  about: "Rosewood logs is a members-only item in Old School RuneScape. High alchemy value: 288 coins. Grand Exchange buy limit: 12,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: logs
+    tier: high
+  properties:
+    release_date: "2025-11-19"
+    weight: 2.0
+    tradeable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    options:
+      - Drop
+    destroy: "Are you sure you want to drop this item?"
+  recipes:
+    - skill: woodcutting
+      level: 92
+      xp: 212.5
+      materials:
+        - item_name: Rosewood tree
+          item_id: 0
+          quantity: 1
+      product: Rosewood logs
+      product_id: 32910
+      output_quantity: 1
+      facility: Drumstick Isle
+    - skill: firemaking
+      level: 92
+      xp: 268
+      materials:
+        - item_name: Rosewood logs
+          item_id: 32910
+          quantity: 1
+        - item_name: Tinderbox
+          item_id: 590
+          quantity: 1
+      product: Ashes
+      product_id: 592
+      output_quantity: 1
+      facility: Anywhere
+    - skill: construction
+      level: 1
+      xp: 35
+      materials:
+        - item_name: Rosewood logs
+          item_id: 32910
+          quantity: 1
+        - item_name: Coins
+          item_id: 995
+          quantity: 7500
+      product: Rosewood plank
+      product_id: 32912
+      output_quantity: 1
+      facility: Sawmill
+  related_items:
+    - item_id: 32912
+      item_name: Rosewood plank
+      slug: rosewood-plank
+      relationship: product
+      description: Plank produced at the sawmill or via Plank Make
+    - item_id: 1513
+      item_name: Magic logs
+      slug: magic-logs
+      relationship: alternative
+      description: Pre-Sailing top-tier logs at 75 Woodcutting
+    - item_id: 32914
+      item_name: Rosewood blowpipe
+      slug: rosewood-blowpipe
+      relationship: product
+      description: Fletching product at level 84
+  market_strategy:
+    notes:
+      - "Top-tier Sailing-era logs requiring 92 Woodcutting and 79 Sailing"
+      - "Cutting rates: roughly 86,800 GP per hour at maxed conditions"
+      - "High Firemaking XP per log makes them a popular 99 FM training option"
+      - "Demand split: planks for Construction, blowpipes for Fletching"
+      - "Buy point: dips below 450 GP undercut FM training demand floor"
+      - "Sell point: Construction patch days spike rosewood plank demand"
+      - "GE limit 12,000: plenty of headroom for bulk flips"
+  history:
+    - date: "2025-11-19"
+      update: Sailing release
+      description: "Rosewood logs added with the Sailing skill on Drumstick Isle."
+  about: |-
+    > _"Logs cut from a rosewood tree."_
+
+    Rosewood logs are the highest-tier logs introduced with the Sailing skill, requiring 92 Woodcutting and 79 Sailing to harvest from rosewood trees on Drumstick Isle. Each cut grants 212.5 Woodcutting XP and trees respawn every 123 seconds.
+
+    Burning rosewood logs at 92 Firemaking awards 268 XP, making them the top FM training option. They convert into rosewood planks at the sawmill (7,500 GP each) for Construction, or via the Lunar Plank Make spell. Fletching consumes them at level 84 to produce rosewood blowpipes.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

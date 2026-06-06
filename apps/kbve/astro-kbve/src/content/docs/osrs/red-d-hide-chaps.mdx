@@ -1,6 +1,6 @@
 ---
 title: Red d'hide chaps | OSRS Price Data
-description: "Red d'hide chaps is a members legs slot item. High alch: 3,108 GP, GE limit: 70."
+description: "Red d'hide chaps are members ranged legs requiring 60 Ranged and 40 Defence. High alch: 3,108 GP, GE limit: 70."
 osrs:
   id: 2495
   name: Red d'hide chaps
@@ -12,92 +12,118 @@ osrs:
   lowalch: 2072
   highalch: 3108
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: dragonhide
+    tier: mid-high
+  properties:
+    release_date: "2002-09-30"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
-    type: ranged_armour
-    ranged_requirement: 60
-    defence_requirement: 40
-  attack_bonuses:
-    ranged: 14
-  defence_bonuses:
-    ranged: 27
-    magic: 22
-  crafting:
-    level: 75
-    xp: 156
+    weapon_type: null
+    attack_speed: null
+    weight: 4.5
+    requirements:
+      ranged: 60
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -4
+      ranged: 8
+    defence_bonus:
+      stab: 17
+      slash: 20
+      crush: 16
+      magic: 18
+      ranged: 17
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 75
       xp: 156
       materials:
         - item_name: Red dragon leather
-          item_id: 2507
           quantity: 2
         - item_name: Thread
-          item_id: 1734
           quantity: 1
-      product: Red d'hide chaps
-      product_id: 2495
-      product_quantity: 1
-      facility: Needle and thread
-      members_only: true
+      tools:
+        - Needle
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Brutal red dragon
+        quantity: "1"
+        rarity: 1/512
+      - source: Red dragon
+        quantity: "1"
+        rarity: 1/1024
+  shops:
+    - shop_name: Aaron's Archery Appendages
+      location: Catherby
+      price: 5180
+      currency: coins
+      stock: 5
   related_items:
-    - item_id: 1749
-      item_name: Red dragonhide
+    - item_name: Red dragonhide
       slug: red-dragonhide
       relationship: component
-      description: Raw material
-    - item_id: 2507
-      item_name: Red dragon leather
+      description: "Raw hide tanned into the crafting material"
+    - item_name: Red dragon leather
       slug: red-dragon-leather
       relationship: component
-      description: Tanned hide
-    - item_id: 2501
-      item_name: Red d'hide body
-      slug: red-dhide-body
-      relationship: alternative
-      description: Matching body
-    - item_id: 2489
-      item_name: Red d'hide vambraces
-      slug: red-dhide-vambraces
-      relationship: alternative
-      description: Matching gloves
-    - item_id: 2493
-      item_name: Blue d'hide chaps
-      slug: blue-dhide-chaps
-      relationship: alternative
-      description: Lower tier chaps
-    - item_id: 2497
-      item_name: Black d'hide chaps
-      slug: black-dhide-chaps
-      relationship: alternative
-      description: Higher tier chaps
+      description: "Tanned hide used in the crafting recipe"
+    - item_name: Red d'hide body
+      slug: red-d-hide-body
+      relationship: set-piece
+      description: "Matching body slot dragonhide"
+    - item_name: Blue d'hide chaps
+      slug: blue-d-hide-chaps
+      relationship: downgrade
+      description: "Lower tier dragonhide chaps (50 Ranged)"
+    - item_name: Black d'hide chaps
+      slug: black-d-hide-chaps
+      relationship: upgrade
+      description: "Higher tier dragonhide chaps (70 Ranged)"
   about: |-
-    | Method | Level | Materials |
-    |--------|-------|-----------|
-    | Crafting | 75 | 2 Red dragon leather |
-    | XP | 156 | - |
+    Red d'hide chaps are the third-tier dragonhide leg armour in Old School RuneScape, requiring 60 Ranged and 40 Defence to wear. They are crafted at 75 Crafting from two red dragon leathers and one thread for 156 Crafting XP, making them a popular Crafting training method between Blue and Black d'hide chaps.
 
-    | Stat | Value |
-    |------|-------|
-    | Ranged requirement | 60 |
-    | Defence requirement | 40 |
-    | Ranged attack | +14 |
-    | Ranged defence | +27 |
-    | Magic defence | +22 |
+    The chaps provide solid mid-tier ranged stats with respectable magic defence, and are commonly used by mid-level rangers training Slayer or Wilderness PKers who want budget gear with reasonable Ranged attack and magic protection.
   market_strategy:
     notes:
-      - Third dragonhide leg tier
-      - Members only
-      - Popular crafting item
-      - Crafting training (156 XP)
-      - High-level ranged armor
-      - Budget gear
-      - 2 leather per chaps
-      - Good XP for level
-      - Second best d'hide chaps
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Steady supply from Crafting trainers running red dragonhide for 156 XP per piece"
+      - "Demand from mid-level rangers, ironmen, and budget PKers"
+      - "Margin tracks red dragon leather price closely — 2 leather per chaps"
+      - "Catherby shop run via Aaron's Archery Appendages is a stable secondary source"
+  trading_tips:
+    - "Compare cost of red dragon leather pair plus thread vs. finished chaps for craft margin"
+    - "Bulk-buy during Crafting XP events when supply spikes"
+    - "Stock up before Wilderness PK events for short-term demand bumps"
+  history:
+    - date: "2002-09-30"
+      description: "Released with the dragonhide armour expansion"
+    - date: "2018-06-21"
+      description: "Stats and recipe adjusted in line with the dragonhide rebalance"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

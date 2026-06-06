@@ -1,6 +1,6 @@
 ---
 title: Stripy pirate shirt (brown) | OSRS Price Data
-description: "Stripy pirate shirt (brown): A sea worthy shirt.. High alch: 180 GP, GE limit: 150."
+description: "Stripy pirate shirt (brown) is a members body slot cosmetic from the Mos Le'Harmless pirate outfit. High alch: 180 GP, GE limit: 150."
 osrs:
   id: 7134
   name: Stripy pirate shirt (brown)
@@ -12,9 +12,104 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 150
-  about: "Stripy pirate shirt (brown) is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: body
+    weapon_type: not_applicable
+    weight: 0.226
+    requirements:
+      none: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Dodgy Mike's Second Hand Clothing
+      location: Mos Le'Harmless
+      stock: 5
+      price: 300
+      restock_time: 1 minute
+  related_items:
+    - item_id: 7124
+      item_name: Pirate bandana (brown)
+      slug: pirate-bandana-brown
+      relationship: set-piece
+      description: Matching head slot piece of the brown pirate outfit.
+    - item_id: 7140
+      item_name: Pirate boots
+      slug: pirate-boots
+      relationship: set-piece
+      description: Shared feet slot piece of the pirate outfit.
+    - item_id: 7138
+      item_name: Pirate leggings (brown)
+      slug: pirate-leggings-brown
+      relationship: set-piece
+      description: Matching legs slot piece of the brown pirate outfit.
+    - item_id: 7126
+      item_name: Stripy pirate shirt (blue)
+      slug: stripy-pirate-shirt-blue
+      relationship: variant
+      description: Blue recolour of the same Dodgy Mike's shirt.
+    - item_id: 7130
+      item_name: Stripy pirate shirt (red)
+      slug: stripy-pirate-shirt-red
+      relationship: variant
+      description: Red recolour of the same Dodgy Mike's shirt.
+    - item_id: 7132
+      item_name: Stripy pirate shirt (white)
+      slug: stripy-pirate-shirt-white
+      relationship: variant
+      description: White recolour of the same Dodgy Mike's shirt.
+  about: "Stripy pirate shirt (brown) is a members-only cosmetic body slot item sold by Dodgy Mike's Second Hand Clothing on Mos Le'Harmless after completing the Cabin Fever quest. It is part of the brown pirate outfit used during the Rocking Out quest line and Mos Le'Harmless Cave access requirements, as well as a fashionscape staple for nautical loadouts. The shirt provides no combat bonuses, weighs effectively nothing, and has a Grand Exchange buy limit of 150 every 4 hours. Supply is anchored by Dodgy Mike restocking 5 every minute at 300 gp."
+  market_strategy:
+    notes:
+      - "Quest progression demand spikes around Rocking Out and Mos Le'Harmless content runs."
+      - "Shop stock at 300 gp every minute keeps the price floor close to shop value."
+      - "Buy limit 150 per 4 hours allows steady stacked flipping at thin margins."
+      - "Brown recolour holds a small fashionscape premium over the other stripy variants for collectors completing the full pirate set."
+  trading_tips:
+    - "Buy from Dodgy Mike at 300 gp and flip on the GE when quest demand surges."
+    - "Bundle with pirate bandana (brown), pirate leggings (brown) and pirate boots — players often buy the full outfit at once."
+    - "Watch Rocking Out and pirate-themed content updates for short-term demand spikes."
+  history:
+    - date: "2006-02-07"
+      description: "Released alongside the Cabin Fever quest update which opened Mos Le'Harmless and Dodgy Mike's shop."
+    - date: "2006-06-13"
+      description: "Item name aligned with the broader stripy pirate shirt naming pass."
+  properties:
+    release_date: "2006-02-07"
+    update: "Cabin Fever"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

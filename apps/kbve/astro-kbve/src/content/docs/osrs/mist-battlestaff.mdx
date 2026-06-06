@@ -12,67 +12,125 @@ osrs:
   lowalch: 6200
   highalch: 9300
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: staff
+    tier: mid
+  properties:
+    release_date: "2017-08-10"
+    update: Slayer Rewards Update
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: staff
-    attack_style: magic
-    tradeable: true
+    weapon_type: staff
+    attack_speed: 5
     weight: 2.267
     requirements:
       attack: 30
       magic: 30
-    stats:
-      magic_attack: 12
-      attack_crush: 28
-      strength: 35
-      magic_def: 12
-  special_effect:
-    name: Unlimited Runes
-    description: Provides infinite air and water runes
-    autocast: true
+    attack_bonus:
+      stab: 0
+      slash: -1
+      crush: 25
+      magic: 12
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 3
+      crush: 1
+      magic: 12
+      ranged: 0
+    other_bonus:
+      melee_strength: 35
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Unlimited Air and Water Runes
+      description: "Provides unlimited air and water runes when wielded and autocasts mist spells."
+      trigger: while_worn
+      affected_skill: magic
   drop_table:
     sources:
       - source: Waterfiend
-        rate: 1/3,000
-      - source: Superior slayer monsters
-        rate: Varies
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/3000
+      - source: Cave horror
+        quantity: "1"
+        rarity: very-rare
+        drop_rate: 1/512
       - source: Colossal Hydra
-        rate: 1/46
-  market:
-    buy_limit: 8
-    price_estimate: 112000
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/46
+  recipes:
+    - skill: crafting
+      level: 54
+      xp: 100
+      materials:
+        - item_name: Air battlestaff
+          quantity: 1
+        - item_name: Mist orb
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      product: Mist battlestaff
+      facility: Use orb on battlestaff
   related_items:
-    - item_id: 2574
-      item_name: Waterfiend
-      slug: waterfiend
+    - item_id: 1397
+      item_name: Air battlestaff
+      slug: air-battlestaff
       relationship: component
-      description: Drop source
+      description: "Base battlestaff used to craft the mist battlestaff"
     - item_id: 20733
       item_name: Mystic mist staff
       slug: mystic-mist-staff
       relationship: upgrade
-      description: Upgraded version
+      description: "Higher-tier mystic version requiring 40 Attack and Magic"
     - item_id: 20736
       item_name: Dust battlestaff
       slug: dust-battlestaff
-      relationship: variant
-      description: Earth variant
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Magic | +12 |
-    | Crush | +28 |
-    | Strength | +35 |
-
-    | Defence | Bonus |
-    |---------|-------|
-    | Magic | +12 |
-
-    Unlimited Runes: Provides infinite air and water runes.
-
-    Enables autocast for relevant spells.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: alternative
+      description: "Air and earth combination battlestaff variant"
+    - item_id: 11787
+      item_name: Steam battlestaff
+      slug: steam-battlestaff
+      relationship: alternative
+      description: "Water and fire combination battlestaff variant"
+  about: "The mist battlestaff is a combination elemental staff that supplies unlimited air and water runes when wielded, made by combining an air battlestaff with a mist orb at 54 Crafting for 100 XP. Released alongside other elemental combination staves in 2017 to expand budget magic loadouts. Members-only, tradeable on the Grand Exchange with a thin 8-item buy limit."
+  market_strategy:
+    notes:
+      - "Investment Notes"
+      - "Unlimited air and water runes is the core value; budget alternative to a tome"
+      - "Drops from slayer monsters and Colossal Hydra add supply pressure on update weeks"
+      - "Thin 8 GE limit makes flips slow but high-margin around content releases"
+      - "Demand tracks ice barrage and other water spell PvM popularity"
+  trading_tips:
+    - "Watch slayer task spotlight for waterfiends and cave horrors to time buys"
+    - "Combination staves typically dump after major slayer XP updates"
+    - "Pair Mist orb supply trends with battlestaff base price for craft margin"
+  history:
+    - date: "2017-08-10"
+      update: Slayer Rewards Update
+      description: "Mist battlestaff added as part of the combination elemental staff expansion."
+    - date: "2021-10-13"
+      update: Colossal Hydra
+      description: "Drop added to Colossal Hydra at improved 1/46 rate."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

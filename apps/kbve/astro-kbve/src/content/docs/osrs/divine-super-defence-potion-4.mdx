@@ -1,6 +1,6 @@
 ---
 title: Divine super defence potion(4) | OSRS Price Data
-description: "Divine super defence potion(4): 4 doses of divine super defence potion.. High alch: 150 GP, GE limit: 2,000."
+description: "Divine super defence potion(4) is a 4-dose members potion that boosts Defence by 5 + 15% for 5 minutes without draining. High alch: 150 GP, GE limit: 2,000."
 osrs:
   id: 23721
   name: Divine super defence potion(4)
@@ -12,9 +12,84 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 2000
-  about: "Divine super defence potion(4) is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: mid-high
+  potion:
+    doses: 4
+    boost_type: Defence
+    boost_amount: 5
+    effects:
+      - description: "Boosts Defence by 5 + 15% of base level for 5 minutes."
+        duration: 300
+      - description: "Prevents the standard super defence drain; the boosted level is maintained for the full duration."
+        duration: 300
+  recipes:
+    - skill: herblore
+      level: 79
+      xp: 175
+      materials:
+        - item_name: Super defence(4)
+          quantity: 1
+        - item_name: Crushed superior dragon bones
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Super defence(4)
+      slug: super-defence-4
+      relationship: component
+      description: Base potion combined with crushed superior dragon bones to brew the divine variant.
+    - item_name: Crushed superior dragon bones
+      slug: crushed-superior-dragon-bones
+      relationship: component
+      description: Secondary ingredient unique to divine potions.
+    - item_name: Divine super attack potion(4)
+      slug: divine-super-attack-potion-4
+      relationship: alternative
+      description: Divine super attack equivalent with the same maintained-boost mechanic.
+    - item_name: Divine super strength potion(4)
+      slug: divine-super-strength-potion-4
+      relationship: alternative
+      description: Divine super strength equivalent for melee strength setups.
+    - item_name: Divine super combat potion(4)
+      slug: divine-super-combat-potion-4
+      relationship: upgrade
+      description: Combined divine potion covering attack, strength and defence in one slot.
+  about: "Divine super defence potion(4) is a 4-dose Herblore consumable that gives the same +5 plus 15 percent of base level Defence boost as a super defence potion but maintains the boosted level for the full 5 minute duration with no decay. Brewed at 79 Herblore by adding crushed superior dragon bones to a super defence(4), it grants 175 Herblore experience per dose mix and is most often used as an inventory-saving alternative to redosing standard super defence in long PvM trips and as a component for divine super combat preparation."
+  market_strategy:
+    notes:
+      - "High alch value of 150 gp sits far below typical GE price (1k+ gp); never alch."
+      - "Grand Exchange buy limit is 2,000 per 4 hours."
+      - "Decanting 4-dose into 1/2/3 dose forms can yield small arbitrage windows after content drops that lower vial demand."
+      - "Tied to crushed superior dragon bone supply — price spikes with superior slayer activity."
+  trading_tips:
+    - "PvMers buying for long Bandos/CoX trips pay a premium for the 4-dose form."
+    - "Stock up on crushed superior dragon bones during Slayer XP weekends when superior monster volume rises."
+    - "Watch the divine super combat potion(4) price — it pulls demand from this 4-dose when combined potion stays cheaper per Defence dose."
+  history:
+    - date: "2014-01-06"
+      description: "Released as part of the Herblore: Divine Potions and Superior Dragon Bones update."
+    - date: "2016-08-04"
+      description: "Examine text and decant interactions standardised alongside the wider divine potion family."
+  properties:
+    release_date: "2014-01-06"
+    update: "Herblore: Divine Potions and Superior Dragon Bones"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

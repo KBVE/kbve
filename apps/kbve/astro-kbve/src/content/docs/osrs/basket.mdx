@@ -12,9 +12,108 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Basket is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: container
+    tier: low
+  properties:
+    release_date: "2003-10-27"
+    update: RuneScape 2 Beta
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 36
+      xp: 56
+      materials:
+        - item_name: Willow branch
+          quantity: 6
+      tools: []
+      output_quantity: 1
+      product: Basket
+      facility: Use willow branches together
+  shops:
+    - shop_name: Heckel Funch's Grocery
+      location: Grand Tree
+      price: 2
+      stock: 5
+      currency: Coins
+      members_only: true
+    - shop_name: Brimhaven General Store
+      location: Brimhaven
+      price: 2
+      stock: 0
+      currency: Coins
+      members_only: true
+  used_in:
+    - product: Basket of strawberries
+      slug: basket-of-strawberries
+      quantity: 1
+      members_only: true
+      notes: "Filled by picking strawberries from a strawberry farm patch."
+    - product: Basket of apples
+      slug: basket-of-apples
+      quantity: 1
+      members_only: true
+    - product: Basket of bananas
+      slug: basket-of-bananas
+      quantity: 1
+      members_only: true
+    - product: Basket of oranges
+      slug: basket-of-oranges
+      quantity: 1
+      members_only: true
+    - product: Basket of tomatoes
+      slug: basket-of-tomatoes
+      quantity: 1
+      members_only: true
+  related_items:
+    - item_name: Willow branch
+      slug: willow-branch
+      relationship: component
+      description: "Six willow branches are woven into a basket at 36 Crafting"
+    - item_name: Basket of strawberries
+      slug: basket-of-strawberries
+      relationship: product
+      description: "Filled by collecting strawberries from a strawberry patch"
+    - item_name: Basket of apples
+      slug: basket-of-apples
+      relationship: product
+      description: "Filled by picking apples from an apple tree patch"
+    - item_name: Sack
+      slug: sack
+      relationship: alternative
+      description: "Cheaper container for non-fruit Farming produce"
+  about: "The basket is a fruit container crafted from six willow branches at 36 Crafting for 56 XP. It holds up to five of a single fruit type (apples, bananas, oranges, strawberries, or tomatoes) and is used to carry produce harvested from Farming patches. Members-only, sold at a handful of grocery shops for 2 gp, and tradeable on the Grand Exchange with a 10,000 buy limit."
+  market_strategy:
+    notes:
+      - "Investment Notes"
+      - "Pinned at the 1 gp alchemy floor; almost no flip margin"
+      - "Demand tied to Farming patch runs and fruit-based Cooking training"
+      - "Crafting baskets is rarely profitable due to willow branch cost"
+      - "Shop runs from Grand Tree and Brimhaven beat GE for ironman supply"
+  trading_tips:
+    - "Buy in bulk for Farming run prep; resale margins are negligible"
+    - "Compare against sack supply for cheap container alternatives"
+  history:
+    - date: "2003-10-27"
+      update: RuneScape 2 Beta
+      description: "Basket released as part of the original Farming and Cooking container set."
+    - date: "2005-05-09"
+      update: Farming
+      description: "Use case expanded as the standard fruit container with Farming's launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
