@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-    name: valkey-allow-arc-runners
+    name: valkey-allow-consumers
     namespace: valkey
 spec:
     podSelector:
@@ -14,6 +14,15 @@ spec:
               - namespaceSelector:
                     matchLabels:
                         kubernetes.io/metadata.name: arc-runners
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: forgejo
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: n8n
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: discordsh
           ports:
               - port: 6379
                 protocol: TCP
