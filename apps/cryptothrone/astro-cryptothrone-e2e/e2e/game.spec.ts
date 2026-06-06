@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import { supportsWebGL } from './helpers/env';
 
 test.describe('game page layout', () => {

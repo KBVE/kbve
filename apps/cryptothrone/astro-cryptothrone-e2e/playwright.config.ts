@@ -11,7 +11,41 @@ export default defineConfig({
 	forbidOnly: !!process.env['CI'],
 	retries: process.env['CI'] ? 2 : 0,
 	workers: process.env['CI'] ? 1 : undefined,
-	reporter: 'html',
+	reporter: [
+		['list'],
+		[
+			'monocart-reporter',
+			{
+				name: 'astro-cryptothrone E2E + Coverage',
+				outputFile: './test-results/monocart/index.html',
+				coverage: {
+					sourceFilter: (sourcePath: string) =>
+						sourcePath.includes('src/') &&
+						!sourcePath.includes('.spec.'),
+					reports: [
+						['console-summary'],
+						['html'],
+						['lcovonly', { file: 'lcov.info' }],
+					],
+					onEnd: (results: {
+						summary?: { lines?: { pct?: number } };
+					}) => {
+						const pct = results?.summary?.lines?.pct ?? 0;
+						const min = Number(process.env['COVERAGE_MIN'] ?? '80');
+						if (pct < min) {
+							console.error(
+								`\n✘ Line coverage ${pct}% is below the required ${min}% threshold\n`,
+							);
+							process.exit(1);
+						}
+						console.log(
+							`\n✓ Line coverage ${pct}% meets the ${min}% threshold\n`,
+						);
+					},
+				},
+			},
+		],
+	],
 	use: {
 		trace: 'on-first-retry',
 	},
@@ -58,5 +92,6 @@ export default defineConfig({
 		url: baseURL,
 		reuseExistingServer: !process.env['CI'],
 		timeout: process.env['CI'] ? 600_000 : 120_000,
+		env: { COVERAGE: '1' },
 	},
 });

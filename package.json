@@ -38,6 +38,8 @@
 		"@playform/compress": "^0.2.3",
 		"@axe-core/playwright": "^4.10.2",
 		"@playwright/test": "^1.59.1",
+		"monocart-reporter": "^2.9.19",
+		"vite-plugin-istanbul": "^7.2.0",
 		"@scalar/api-reference": "^1.55.3",
 		"@swc-node/register": "1.11.1",
 		"@swc/core": "1.15.21",
