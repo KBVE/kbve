@@ -37,6 +37,16 @@ public:
 	UFUNCTION(BlueprintPure, Category = "KBVE|Supabase")
 	EKBVESupabaseAuthStatus GetStatus() const { return Status; }
 
+	UFUNCTION(BlueprintPure, Category = "KBVE|Supabase|Flags")
+	int32 GetStateFlagsRaw() const { return static_cast<int32>(StateFlags); }
+
+	UFUNCTION(BlueprintPure, Category = "KBVE|Supabase|Flags")
+	bool HasStateFlag(EKBVESupabaseStateFlags Flag) const { return EnumHasAnyFlags(StateFlags, Flag); }
+
+	void AddStateFlag(EKBVESupabaseStateFlags Flag);
+	void RemoveStateFlag(EKBVESupabaseStateFlags Flag);
+	void ReplaceStateFlags(EKBVESupabaseStateFlags Mask, EKBVESupabaseStateFlags NewBits);
+
 	UFUNCTION(BlueprintPure, Category = "KBVE|Supabase")
 	const FKBVESupabaseSession& GetSession() const { return CurrentSession; }
 
@@ -182,6 +192,9 @@ protected:
 
 	UPROPERTY(Transient)
 	EKBVESupabaseAuthStatus Status = EKBVESupabaseAuthStatus::SignedOut;
+
+	UPROPERTY(Transient, meta = (Bitmask, BitmaskEnum = "EKBVESupabaseStateFlags"))
+	EKBVESupabaseStateFlags StateFlags = EKBVESupabaseStateFlags::None;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UKBVESupabaseStorage> Storage;

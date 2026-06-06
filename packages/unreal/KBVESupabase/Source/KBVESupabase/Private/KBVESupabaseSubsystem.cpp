@@ -156,7 +156,33 @@ bool UKBVESupabaseSubsystem::IsConfigured() const
 
 bool UKBVESupabaseSubsystem::IsSignedIn() const
 {
-	return Status == EKBVESupabaseAuthStatus::SignedIn && CurrentSession.IsValid();
+	if (!EnumHasAnyFlags(StateFlags, EKBVESupabaseStateFlags::HasSession))   return false;
+	if (!EnumHasAnyFlags(StateFlags, EKBVESupabaseStateFlags::HasValidJwt))  return false;
+	if (EnumHasAnyFlags(StateFlags, EKBVESupabaseStateFlags::SignInInflight))return false;
+	return true;
+}
+
+void UKBVESupabaseSubsystem::AddStateFlag(EKBVESupabaseStateFlags Flag)
+{
+	EnumAddFlags(StateFlags, Flag);
+}
+
+void UKBVESupabaseSubsystem::RemoveStateFlag(EKBVESupabaseStateFlags Flag)
+{
+	EnumRemoveFlags(StateFlags, Flag);
+}
+
+void UKBVESupabaseSubsystem::ReplaceStateFlags(EKBVESupabaseStateFlags Mask, EKBVESupabaseStateFlags NewBits)
+{
+	EnumRemoveFlags(StateFlags, Mask);
+	EnumAddFlags(StateFlags, NewBits);
+}
+
+static bool KBVE_JwtNotExpired(const FKBVESupabaseSession& S)
+{
+	if (S.AccessToken.IsEmpty()) return false;
+	if (S.ExpiresAt.GetTicks() == 0) return true;
+	return S.ExpiresAt > FDateTime::UtcNow();
 }
 
 FString UKBVESupabaseSubsystem::GetAnonKey() const
@@ -213,6 +239,27 @@ TSharedRef<IHttpRequest, ESPMode::ThreadSafe> UKBVESupabaseSubsystem::BuildReque
 
 void UKBVESupabaseSubsystem::SetStatus(EKBVESupabaseAuthStatus NewStatus)
 {
+	switch (NewStatus)
+	{
+	case EKBVESupabaseAuthStatus::SignedIn:
+		EnumAddFlags(StateFlags, EKBVESupabaseStateFlags::HasSession);
+		if (KBVE_JwtNotExpired(CurrentSession)) EnumAddFlags(StateFlags, EKBVESupabaseStateFlags::HasValidJwt);
+		EnumRemoveFlags(StateFlags, EKBVESupabaseStateFlags::SignInInflight | EKBVESupabaseStateFlags::RefreshInflight | EKBVESupabaseStateFlags::NetworkError);
+		break;
+	case EKBVESupabaseAuthStatus::SigningIn:
+		EnumAddFlags(StateFlags, EKBVESupabaseStateFlags::SignInInflight);
+		break;
+	case EKBVESupabaseAuthStatus::Refreshing:
+		EnumAddFlags(StateFlags, EKBVESupabaseStateFlags::RefreshInflight);
+		break;
+	case EKBVESupabaseAuthStatus::SignedOut:
+		StateFlags = EKBVESupabaseStateFlags::None;
+		break;
+	case EKBVESupabaseAuthStatus::Error:
+		EnumAddFlags(StateFlags, EKBVESupabaseStateFlags::NetworkError);
+		EnumRemoveFlags(StateFlags, EKBVESupabaseStateFlags::SignInInflight | EKBVESupabaseStateFlags::RefreshInflight);
+		break;
+	}
 	if (Status == NewStatus) return;
 	const EKBVESupabaseAuthStatus Old = Status;
 	Status = NewStatus;
@@ -401,10 +448,6 @@ void UKBVESupabaseSubsystem::ScheduleRefresh()
 	const UKBVESupabaseSettings* Settings = GetSettings();
 	if (!Settings || !CurrentSession.IsValid()) return;
 
-	// Implicit-grant sentinel: no real refresh_token exists, so we can't refresh.
-	// Skip scheduling — the access token rides until expiry, then user re-signs in.
-	if (CurrentSession.RefreshToken.Equals(CurrentSession.AccessToken)) return;
-
 	UGameInstance* GI = GetGameInstance();
 	if (!GI) return;
 	UWorld* World = GI->GetWorld();
@@ -412,6 +455,32 @@ void UKBVESupabaseSubsystem::ScheduleRefresh()
 
 	const FDateTime Now = FDateTime::UtcNow();
 	const FTimespan ToExpiry = CurrentSession.ExpiresAt - Now;
+
+	// Implicit-grant sentinel: no real refresh_token exists. Instead of silently
+	// keeping a stale JWT, schedule a hard sign-out at expiry so the user has to
+	// re-sign-in and downstream consumers (chat WS, ROWS Bearer header) get a
+	// fresh token.
+	if (CurrentSession.RefreshToken.Equals(CurrentSession.AccessToken))
+	{
+		float SignOutSec = static_cast<float>(ToExpiry.GetTotalSeconds());
+		if (SignOutSec < 5.0f) SignOutSec = 5.0f;
+		World->GetTimerManager().ClearTimer(RefreshTimerHandle);
+		World->GetTimerManager().SetTimer(
+			RefreshTimerHandle,
+			FTimerDelegate::CreateLambda([WeakThis = TWeakObjectPtr<UKBVESupabaseSubsystem>(this)]()
+			{
+				if (UKBVESupabaseSubsystem* Self = WeakThis.Get())
+				{
+					UE_LOG(LogKBVESupabase, Log, TEXT("JWT expired (implicit grant) — signing out."));
+					Self->SignOut(false);
+				}
+			}),
+			SignOutSec,
+			false);
+		UE_LOG(LogKBVESupabase, Verbose, TEXT("Scheduled forced sign-out in %.0fs (implicit grant)"), SignOutSec);
+		return;
+	}
+
 	float Seconds = static_cast<float>(ToExpiry.GetTotalSeconds()) - static_cast<float>(Settings->RefreshLeadSeconds);
 	if (Seconds < 5.0f) Seconds = 5.0f;
 
