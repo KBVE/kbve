@@ -1,6 +1,6 @@
 ---
 title: Steel hasta(p+) | OSRS Price Data
-description: "Steel hasta(p+): A poison-tipped, one-handed steel hasta.. High alch: 195 GP, GE limit: 125."
+description: "Steel hasta(p+): A poison-tipped, one-handed steel hasta. High alch: 195 GP, GE limit: 125."
 osrs:
   id: 11396
   name: Steel hasta(p+)
@@ -12,9 +12,110 @@ osrs:
   lowalch: 130
   highalch: 195
   limit: 125
-  about: "Steel hasta(p+) is a members-only item in Old School RuneScape. High alchemy value: 195 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: steel
+    tier: low
+  properties:
+    tradeable: true
+    stackable: false
+    equipable: true
+    noteable: true
+    weight: 2.267
+    release_date: "2007-07-03"
+    quest_item: false
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    type: spear
+    attack_style: stab
+    attack_speed: 4
+    two_handed: false
+    requirements:
+      attack: 5
+    stats:
+      attack_stab: 12
+      attack_slash: 12
+      attack_crush: 12
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: -3
+      defence_slash: -3
+      defence_crush: -3
+      defence_magic: 0
+      defence_ranged: -3
+      melee_strength: 12
+      ranged_strength: 0
+      magic_damage: 0
+      prayer_bonus: 0
+  passive_effects:
+    - name: Weapon poison+
+      description: "Inflicts enhanced poison on hit dealing higher starting damage than standard weapon poison"
+      trigger: on_hit
+  recipes:
+    - skill: herblore
+      level: 73
+      xp: 0
+      materials:
+        - item_name: Steel hasta
+          quantity: 1
+        - item_name: Weapon poison+
+          quantity: 1
+      output_quantity: 1
+      notes: "Apply weapon poison+ to a regular steel hasta to create the enhanced poisoned variant"
+  related_items:
+    - item_id: 11374
+      item_name: Steel hasta
+      slug: steel-hasta
+      relationship: variant
+      description: "Unpoisoned base steel hasta"
+    - item_id: 11380
+      item_name: Steel hasta(p)
+      slug: steel-hasta-p-11380
+      relationship: variant
+      description: "Standard weapon poison variant"
+    - item_id: 11412
+      item_name: Steel hasta(p++)
+      slug: steel-hasta-p-11412
+      relationship: variant
+      description: "Superior weapon poison++ variant"
+    - item_id: 11392
+      item_name: Iron hasta(p+)
+      slug: iron-hasta-p
+      relationship: downgrade
+      description: "Lower-tier iron hasta with weapon poison+"
+    - item_id: 11400
+      item_name: Mithril hasta(p+)
+      slug: mithril-hasta-p
+      relationship: upgrade
+      description: "Higher-tier mithril hasta with weapon poison+"
+  about: |-
+    > _"A poison-tipped, one-handed steel hasta."_
+
+    The steel hasta(p+) is a members one-handed spear coated with enhanced weapon poison. It requires only 5 Attack plus Barbarian Training (Otto Godblessed) to wield and shares the steel-tier stat block: +12 to every melee attack style and +12 strength with -3 defence across the board.
+
+    The "+" suffix marks the enhanced poison tier: hits inflict the stronger weapon poison+ effect rather than the basic version, dealing higher initial damage and ticking longer before fading. Hastas hit at 4 ticks (2.4 seconds), which lines up well with the F2P-equivalent shortsword speed while keeping the spear's stab bonus.
+
+    Players poison the weapon at Herblore 73 by applying a weapon poison+ vial to a regular steel hasta. Because the unpoisoned hasta is cheap and demand for the poisoned variant comes from low-Attack pures and barbarian-themed builds, the (p+) variant typically trades at a premium over the base item once supply is thin.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Cheap craft, niche audience: pure builds and barbarian-themed accounts drive demand"
+      - "Poisoned variants trend higher than the base hasta once Herblore inputs are factored"
+      - "Buy limit of 125 per 4 hours keeps the market thin and easy to swing"
+      - "Watch weapon poison+ price: the vial cost largely sets the (p+) hasta margin"
+      - "Stock a small inventory of bases plus poison vials to undercut listed offers"
+      - "Avoid mass-poisoning during high vial prices: margins compress fast"
+      - "Coordinate flips with Barbarian Training questline guides being shared in-game"
+  history:
+    - date: "2007-07-03"
+      description: "Released with the Barbarian Training update adding hastas across tiers"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

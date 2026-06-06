@@ -1,6 +1,6 @@
 ---
 title: Mystic robe top (light) | OSRS Price Data
-description: "Mystic robe top (light): The upper half of a bright magical robe.. High alch: 72,000 GP, GE limit: 70."
+description: "Mystic robe top (light): The upper half of a bright magical robe. High alch: 72,000 GP, GE limit: 70."
 osrs:
   id: 4111
   name: Mystic robe top (light)
@@ -12,9 +12,116 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 70
-  about: "Mystic robe top (light) is a members-only item in Old School RuneScape. High alchemy value: 72,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: mystic
+    tier: mid-high
+  properties:
+    release_date: "2005-01-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  about: |-
+    > *"The upper half of a bright magical robe."*
+
+    The mystic robe top (light) is the body slot of the light mystic robes, a recolour variant of the standard blue mystic robe top that carries identical combat stats and identical Magic and Defence level requirements. Light mystics are a step up from splitbark or wizard robes for magic damage progression and serve as a budget alternative to the dragonhide or ahrim's gear of high-tier mages. The robe set is one of the cleaner pieces of magic fashion in the game, frequently combined with mystic hat (light) and mystic robe bottom (light) for a uniform white-and-gold look while training Magic at Nightmare Zone or splashing combat XP.
+  equipment:
+    slot: body
+    attack_speed: null
+    requirements:
+      Magic: 40
+      Defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 20
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 20
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Kurask
+        location: Fremennik Slayer Dungeon
+        quantity: "1"
+        rarity: 1/512
+        members: true
+        notes: "Slayer task drop; one of the more popular sources of light mystic robes thanks to fast kill speeds."
+      - source: King Kurask
+        location: Catacombs of Kourend (Konar task)
+        quantity: "1"
+        rarity: 3/512
+        members: true
+        notes: "Three separate rolls on the mystic light robe top drop pool, making King Kurask one of the better farming targets."
+      - source: Alchemical Hydra
+        location: Karuulm Slayer Dungeon
+        quantity: "1"
+        rarity: 2/101
+        members: true
+        notes: "Doubles as a high-level Slayer task and an extremely fast money-maker; mystic light robe top drops are common side rewards."
+  history:
+    - date: "2005-01-26"
+      update: Mystic robes release
+      description: "Released as a magic armour tier between wizard robes and splitbark armour."
+    - date: "2014-12-15"
+      update: Item rename
+      description: "Officially renamed mystic robe top (light) to disambiguate from the dark and dusk variants released as recolours."
+  related_items:
+    - item_id: 4091
+      item_name: Mystic robe top
+      slug: mystic-robe-top
+      relationship: variant
+      description: "Default blue colour variant with identical stats and requirements."
+    - item_id: 4101
+      item_name: Mystic robe top (dark)
+      slug: mystic-robe-top-dark
+      relationship: variant
+      description: "Dark recolour variant with identical stats; sourced from the same drop tables."
+    - item_id: 4121
+      item_name: Mystic robe top (dusk)
+      slug: mystic-robe-top-dusk
+      relationship: variant
+      description: "Dusk recolour from the Alchemical Hydra; the most expensive mystic robe top variant."
+    - item_id: 4109
+      item_name: Mystic hat (light)
+      slug: mystic-hat-light
+      relationship: set-piece
+      description: "Light mystic hat that completes the matching upper outfit."
+    - item_id: 4113
+      item_name: Mystic robe bottom (light)
+      slug: mystic-robe-bottom-light
+      relationship: set-piece
+      description: "Light mystic robe bottom for the legs slot to complete the set."
+  market_strategy:
+    notes:
+      - "Slayer task supply keeps light mystic robes in a tighter range than dusk variants."
+      - "Magic-training updates and Nightmare Zone changes drive periodic demand for the full mid-tier mage set."
+      - "Buy limit is 70 per 4 hours: ample headroom for medium-volume flippers."
+  trading_tips:
+    - "Pair sales with mystic robe bottom (light) and mystic hat (light): full-set buyers pay an outfit premium."
+    - "Watch Slayer DPS updates: any nerf to Kurask kill speed tightens supply."
+    - "Avoid alching above GE price: light mystics are usually worth less than high-alch return."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

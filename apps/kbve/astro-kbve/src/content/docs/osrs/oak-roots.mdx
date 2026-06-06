@@ -1,6 +1,6 @@
 ---
 title: Oak roots | OSRS Price Data
-description: "Oak roots: The roots of the Oak tree.. High alch: 1 GP, GE limit: 11,000."
+description: "Oak roots is a Farming and Woodcutting byproduct from felled oak trees. High alch: 1 GP, GE limit: 11,000."
 osrs:
   id: 6043
   name: Oak roots
@@ -12,9 +12,50 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 11000
-  about: "Oak roots is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: root
+    tier: low
+  properties:
+    release_date: "2006-08-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Oak logs
+      slug: oak-logs
+      relationship: component
+      description: "Primary Woodcutting product harvested from the same tree."
+    - item_name: Willow roots
+      slug: willow-roots
+      relationship: upgrade
+      description: "Next-tier root drop from felled willow trees."
+    - item_name: Maple roots
+      slug: maple-roots
+      relationship: upgrade
+      description: "Higher-tier root drop from felled maple trees."
+  about: "Oak roots are a low-value byproduct dug from the stump of a chopped-down oak tree during Farming clean-up after the tree has been felled. They have no direct Construction or Herblore use but appear regularly in ironman pipelines through Farming tree runs and are occasionally hoarded for clue-step or future content speculation."
+  market_strategy:
+    notes:
+      - "Bulk byproduct of oak tree Farming runs — supply is steady and price-floor capped"
+      - "11,000 buy limit dwarfs realistic daily trade volume"
+      - "Useful as cheap noted filler for slot manipulation strategies"
+  trading_tips:
+    - "Treat as a Farming-tax sink: list at 1 over GE floor rather than chasing flips"
+    - "Watch tree-run patch updates for any reuse that could spike price"
+  history:
+    - date: "2006-08-29"
+      description: "Added with the Farming skill rework that introduced root drops on chopping felled fruit and standard trees."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

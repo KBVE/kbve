@@ -1,6 +1,6 @@
 ---
 title: Sigil of the rigorous ranger | OSRS Price Data
-description: "Sigil of the rigorous ranger: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP, GE limit: 10."
+description: "Sigil of the rigorous ranger: Deadman Mode tier 1 ranged combat sigil. High alch: 6,000 GP, GE limit: 10."
 osrs:
   id: 26000
   name: Sigil of the rigorous ranger
@@ -12,9 +12,67 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  about: "Sigil of the rigorous ranger is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: sigil
+    tier: mid
+  properties:
+    tradeable: false
+    stackable: false
+    equipable: false
+    noteable: false
+    weight: 0.1
+    release_date: "2021-08-25"
+    quest_item: false
+    options:
+      - Attune
+      - Inspect
+    destroy: "Drop"
+  passive_effects:
+    - name: Ranged accuracy boost
+      description: "Once attuned, increases ranged accuracy by +20 during Deadman Mode events"
+      trigger: passive
+    - name: Ammo conservation
+      description: "Grants a 50% chance to save ammunition for ranged weapons (excluding chinchompas)"
+      trigger: on_attack
+  related_items:
+    - item_id: 25985
+      item_name: Sigil of the ruthless ranger
+      slug: sigil-of-the-ruthless-ranger
+      relationship: upgrade
+      description: "Tier 2 ranged sigil with stronger ranged combat benefits"
+    - item_id: 25996
+      item_name: Sigil of the formidable fighter
+      slug: sigil-of-the-formidable-fighter
+      relationship: alternative
+      description: "Tier 1 melee combat sigil from the same Deadman Mode sigil set"
+    - item_id: 25998
+      item_name: Sigil of the menacing mage
+      slug: sigil-of-the-menacing-mage
+      relationship: alternative
+      description: "Tier 1 magic combat sigil from the same Deadman Mode sigil set"
+  about: |-
+    > _"A power enhancing sigil not yet attuned to you."_
+
+    The sigil of the rigorous ranger is a tier 1 Deadman Mode combat sigil introduced with the Deadman: Reborn season in August 2021. Once attuned via the "Attune" option, the sigil grants a flat +20 ranged accuracy bonus and a 50% chance to save ammunition on every ranged shot except chinchompas.
+
+    Players can keep up to three sigils active simultaneously, mixing ranged, melee and magic effects to fit their build. The rigorous ranger is the standard pick-up for early-season DMM ranged accounts because the accuracy floor smooths out missed hits before pegasians, max gear, or higher-tier sigils come online.
+
+    Outside of temporary Deadman Mode events the sigil cannot be obtained. During recent seasons (Deadman: Annihilation) unattuned copies can be purchased from the skull shop, while older seasons distributed them as monster drops with on-GE tradeability before deactivation.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Only obtainable during temporary Deadman Mode events: post-season supply is frozen"
+      - "Skull-shop purchasable in recent DMM seasons, which compresses peak-season price"
+      - "Tier 1 ranged sigils are baseline picks for early DMM ranged accounts"
+      - "Buy limit of 10 per 4 hours keeps the GE thin during active seasons"
+      - "Pricing only matters during active DMM seasons: ignore between events"
+      - "If the season offers a skull-shop buy, market price will cap near shop cost"
+      - "Stock up early in a season before mid-game pures push demand higher"
+  history:
+    - date: "2021-08-25"
+      description: "Released with Deadman: Reborn as part of the new sigil system"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

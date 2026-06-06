@@ -1,6 +1,6 @@
 ---
 title: Adamant battleaxe | OSRS Price Data
-description: "Adamant battleaxe is a F2P weapon slot item requiring 30 Attack. High alch: 2,496 GP, GE limit: 125."
+description: "Adamant battleaxe is a F2P two-handed melee weapon requiring 30 Attack. High alch: 2,496 GP, GE limit: 125."
 osrs:
   id: 1371
   name: Adamant battleaxe
@@ -12,9 +12,34 @@ osrs:
   lowalch: 1664
   highalch: 2496
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: metal
+    tier: mid
+  properties:
+    release_date: "2001-01-04"
+    update: "RuneScape Classic launch"
+    quest_item: false
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    weight: 3.175
+    destroy: "Drop"
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    examine_options:
+      - Examine
   equipment:
     slot: weapon
     type: battleaxe
+    attack_style: slash
+    attack_speed: 6
+    attack_range: 1
     tradeable: true
     weight: 3.175
     requirements:
@@ -30,23 +55,95 @@ osrs:
       defence_crush: 0
       defence_magic: 0
       defence_ranged: 0
-      strength: 41
+      melee_strength: 41
       ranged_strength: 0
       magic_damage: 0
-      prayer: 0
+      prayer_bonus: 0
+  recipes:
+    - skill: smithing
+      level: 80
+      xp: 187.5
+      tools:
+        - Hammer
+        - Anvil
+      materials:
+        - item_id: 2361
+          item_name: Adamantite bar
+          quantity: 3
+      output:
+        item_id: 1371
+        item_name: Adamant battleaxe
+        output_quantity: 1
+      members: false
+      notes: "Forged on any anvil; high-level Smithing tier for adamant gear"
+  shops:
+    - shop_name: Brian's Battleaxe Bazaar
+      location: Port Sarim
+      price: 4160
+      sell_price: 2496
+      stock: 0
+      restock_time: 100
+      currency: coins
+      notes: "Stocks adamant battleaxes when player-sold"
+    - shop_name: Mount Karuulm Weapon Shop
+      location: Mount Karuulm
+      price: 4160
+      sell_price: 2496
+      stock: 0
+      restock_time: 100
+      currency: coins
+      notes: "Members-area weapon shop that buys and sells adamant battleaxes"
+  drop_table:
+    sources:
+      - source: Hobgoblin (level 42)
+        combat_level: 42
+        quantity: "1"
+        rarity: Uncommon
+        notes: "Common adamant battleaxe drop tier"
+      - source: Reward casket (easy)
+        combat_level: 0
+        quantity: "1"
+        rarity: Uncommon
+        notes: "Rolled from easy clue scroll rewards"
+      - source: Reward casket (medium)
+        combat_level: 0
+        quantity: "1"
+        rarity: Uncommon
+        notes: "Rolled from medium clue scroll rewards"
   related_items:
     - item_id: 1373
       item_name: Rune battleaxe
       slug: rune-battleaxe
       relationship: upgrade
-      description: Higher tier battleaxe
+      description: Next tier two-handed slashing weapon
+    - item_id: 1369
+      item_name: Mithril battleaxe
+      slug: mithril-battleaxe
+      relationship: downgrade
+      description: Lower tier battleaxe
     - item_id: 1287
       item_name: Adamant sword
       slug: adamant-sword
       relationship: alternative
-      description: Better accuracy alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Stab-style alternative with shield slot free
+    - item_id: 1331
+      item_name: Adamant scimitar
+      slug: adamant-scimitar
+      relationship: alternative
+      description: Faster one-handed slash alternative
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Smithing is loss-making: 3 adamantite bars vs raw GE price"
+      - "Demand comes from Slayer alt fashion and clue completion stock"
+      - "Use as bulk high alch fodder when nature rune prices are low"
+      - "High alch profit: 2,496 gp minus nature rune cost vs GE buy price"
+      - "Cross-shop arbitrage at Mount Karuulm for instant buyout"
+  history:
+    - date: "2001-01-04"
+      description: "Released with RuneScape Classic launch"
+    - date: "2004-05-05"
+      description: "Graphical update applied with RuneScape 2 transition"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

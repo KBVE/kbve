@@ -1,6 +1,6 @@
 ---
 title: Unicorn horn dust | OSRS Price Data
-description: "Unicorn horn dust: Finely ground horn of Unicorn.. High alch: 12 GP, GE limit: 13,000."
+description: "Unicorn horn dust: Finely ground horn of Unicorn. Herblore secondary for Super antipoison and Sanfew serum; high alch 12 GP; GE limit 13,000."
 osrs:
   id: 235
   name: Unicorn horn dust
@@ -23,16 +23,18 @@ osrs:
         - item_name: Unicorn horn
           item_id: 237
           quantity: 1
+      tools:
+        - Pestle and mortar
       product: Unicorn horn dust
       product_id: 235
       product_quantity: 1
-      tool: Pestle and mortar
+      output_quantity: 1
     - skill: herblore
       level: 48
-      xp: 100
+      xp: 106
       materials:
         - item_name: Irit potion (unf)
-          item_id: 2481
+          item_id: 105
           quantity: 1
         - item_name: Unicorn horn dust
           item_id: 235
@@ -40,6 +42,7 @@ osrs:
       product: Super antipoison(3)
       product_id: 2448
       product_quantity: 1
+      output_quantity: 1
       members_only: true
     - skill: herblore
       level: 65
@@ -60,43 +63,70 @@ osrs:
       product: Sanfew serum(4)
       product_id: 10925
       product_quantity: 1
+      output_quantity: 1
       members_only: true
+  drop_table:
+    sources:
+      - source: H.A.M. Member
+        quantity: "1"
+        rarity: 1/256
+      - source: Hill Giant
+        quantity: "1"
+        rarity: 1/128
   related_items:
     - item_id: 237
       item_name: Unicorn horn
       slug: unicorn-horn
       relationship: component
-      description: Ground into dust
+      description: Ground into dust with a pestle and mortar
     - item_id: 10925
       item_name: Sanfew serum(4)
       slug: sanfew-serum-4
       relationship: product
-      description: High-tier product
+      description: High-tier Herblore product consuming this dust
     - item_id: 2448
       item_name: Super antipoison(3)
       slug: super-antipoison-3
       relationship: product
-      description: Mid-tier product
+      description: Mid-tier Herblore product consuming this dust
     - item_id: 233
       item_name: Pestle and mortar
       slug: pestle-and-mortar
       relationship: component
-      description: Tool for grinding
+      description: Tool required for grinding the horn
   about: |-
-    Grind a unicorn horn with a pestle and mortar:
-    - No skill requirement
-    - Unicorn horns from unicorns (level 15)
+    Unicorn horn dust is made by grinding a unicorn horn with a pestle and mortar (no Herblore level requirement). It is the secondary ingredient for Super antipoison(3) at 48 Herblore and a key component of Sanfew serum(4) at 65 Herblore. Unicorn horns are dropped by unicorns (combat level 15) and a number of monsters, making this a high-volume Herblore secondary used across CoX, ToB and general PvM restock stacks.
   market_strategy:
-    title: Sanfew Serum Chain
     notes:
-      - Kill unicorns (common locations)
-      - Buy unicorn horns on GE
-      - Grind into dust for profit
-      - Most valuable use of unicorn horn dust
-      - Sanfew serum = Super restore + antipoison effects
-      - Popular for CoX and high-level PvM
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Sanfew Serum Chain"
+      - "Kill unicorns in common spawn locations or buy horns on the GE"
+      - "Grind horns into dust for the most valuable use of the raw horn"
+      - "Sanfew serum stacks Super restore with antipoison effects in one dose"
+      - "Popular for CoX, ToB and high-level PvM restock stacks"
+      - "High GE limit (13,000) supports bulk flips"
+  trading_tips:
+    - "Dust pricing: track Super antipoison(3) market — biggest demand driver"
+    - "Sanfew arbitrage: compare horn dust cost versus Sanfew serum(4) buyout for Herblore profit"
+    - "Bulk play: 13k GE limit makes this a viable supply lane for clan restocks"
+  history:
+    - date: "2005-01-04"
+      description: "Released as part of the Herblore skill expansion adding new secondaries."
+  properties:
+    release_date: "2005-01-04"
+    update: Herblore Expansion
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

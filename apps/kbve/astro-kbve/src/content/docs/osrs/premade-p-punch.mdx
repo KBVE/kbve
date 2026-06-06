@@ -1,6 +1,6 @@
 ---
 title: Premade p' punch | OSRS Price Data
-description: "Premade p' punch: A premade Pineapple punch.. High alch: 18 GP, GE limit: 2,000."
+description: "Premade p' punch: a pre-made Pineapple punch from the Blurberry Bar. Heals 9 HP. Cannot be used in the Gnome Restaurant minigame. High alch: 18 GP, GE limit: 2,000."
 osrs:
   id: 2036
   name: Premade p' punch
@@ -12,9 +12,67 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 2000
-  about: "Premade p' punch is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    equipable: false
+    noteable: true
+    weight: 0.4
+    quest_item: false
+    options:
+      - Drink
+      - Drop
+    destroy: "Are you sure you want to drop the Premade p' punch?"
+  consumable:
+    type: food
+    heals: 9
+  shops:
+    - shop_name: Blurberry Bar (Grand Tree)
+      location: Grand Tree
+      price: 30
+      stock: 10
+      currency: coins
+    - shop_name: Blurberry Bar (Gnome Stronghold)
+      location: Gnome Stronghold
+      price: 30
+      stock: 10
+      currency: coins
+  related_items:
+    - item_id: 2034
+      item_name: Pineapple punch
+      slug: pineapple-punch
+      relationship: alternative
+      description: Player-mixed cocktail equivalent
+    - item_id: 2030
+      item_name: Fruit blast
+      slug: fruit-blast
+      relationship: alternative
+      description: Heals identical 9 HP
+  market_strategy:
+    notes:
+      - "Heals 9 HP per drink"
+      - "Cannot be used in Gnome Restaurant minigame"
+      - "Shop price 30 GP per drink, restock 1 minute"
+      - "Buy limit gates large bulk purchases"
+      - "Buy limit: 2,000 per 4 hours"
+      - "Cheap snack food for low-level training"
+      - "Shop buy-back is 7 coins"
+  history:
+    - date: "2002-12-12"
+      update: Release
+      description: "Released as Pineapple punch with the Gnome Restaurant minigame."
+    - date: "2006-08-07"
+      update: Rename + graphics
+      description: "Renamed to Premade p' punch alongside Gnome Restaurant rework."
+  trivia:
+    - Part of the gnome cocktail collection.
+    - Shares heal value with fruit blasts (9 HP).
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

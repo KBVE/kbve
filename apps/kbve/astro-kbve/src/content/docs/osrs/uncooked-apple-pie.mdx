@@ -12,9 +12,78 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 13000
-  about: "Uncooked apple pie is a free-to-play item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2001-03-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.5
+    options:
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 30
+      xp: 0
+      materials:
+        - item_name: Pie shell
+          quantity: 1
+        - item_name: Cooking apple
+          quantity: 1
+      tools: []
+      output_quantity: 1
+    - skill: cooking
+      level: 30
+      xp: 130
+      materials:
+        - item_name: Uncooked apple pie
+          quantity: 1
+      tools:
+        - Range
+      output_quantity: 1
+  related_items:
+    - item_name: Apple pie
+      slug: apple-pie
+      relationship: product
+      description: "Result of cooking the uncooked apple pie at 30 Cooking"
+    - item_name: Pie shell
+      slug: pie-shell
+      relationship: component
+      description: "Empty pastry shell used to fill the pie"
+    - item_name: Pastry dough
+      slug: pastry-dough
+      relationship: component
+      description: "Dough used to make the pie shell"
+    - item_name: Cooking apple
+      slug: cooking-apple
+      relationship: component
+      description: "Filling ingredient added to the pie shell"
+    - item_name: Burnt pie
+      slug: burnt-pie
+      relationship: alternative
+      description: "Failure result when cooking on a range"
+  about: "Uncooked apple pie is an in-progress food item created by combining a pie shell with a cooking apple. At 30 Cooking it can be cooked on a range for 130 experience, with a chance to burn into a Burnt pie. Using the Lunar spell Bake Pie removes the burn chance entirely. Members and free players alike can prepare and cook them."
+  market_strategy:
+    notes:
+      - "Profit ladder ties tightly to pie shell and cooking apple prices"
+      - "Lunar Bake Pie cooks remove burn risk for f2p-friendly profit"
+      - "Buy limit (13,000) supports bulk cook-and-flip strategies"
+  trading_tips:
+    - "Watch pie shell margins as the dominant cost input"
+    - "Bake Pie cooks remove burn loss — premium for Lunar accounts"
+    - "Decant cooked apple pies back to GE when raw-to-cooked spread widens"
+  history:
+    - date: "2001-03-17"
+      description: "Released with the original RuneScape Cooking skill"
+    - date: "2015-03-12"
+      description: "Became tradeable on the Grand Exchange"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Opal | OSRS Price Data
-description: "Opal: A semi precious stone.. High alch: 60 GP, GE limit: 13,000."
+description: "Opal is a low-tier members gem cut from an uncut opal at 1 Crafting and used for jewellery and bolt tips. High alch: 60 GP, GE limit: 13,000."
 osrs:
   id: 1609
   name: Opal
@@ -12,9 +12,87 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 13000
-  about: "Opal is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: gem
+    tier: low
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 15
+      materials:
+        - item_name: Uncut opal
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+    - skill: fletching
+      level: 11
+      xp: 1.5
+      materials:
+        - item_name: Opal
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 12
+  related_items:
+    - item_id: 1625
+      item_name: Uncut opal
+      slug: uncut-opal
+      relationship: component
+      description: Rough form mined or obtained as drops and cut into an opal.
+    - item_id: 45
+      item_name: Opal bolt tips
+      slug: opal-bolt-tips
+      relationship: product
+      description: Chiselled at 11 Fletching, 12 tips per opal.
+    - item_id: 1668
+      item_name: Opal ring
+      slug: opal-ring
+      relationship: product
+      description: Crafted at 1 Crafting on a furnace with a silver bar and ring mould.
+    - item_id: 1666
+      item_name: Opal necklace
+      slug: opal-necklace
+      relationship: product
+      description: Crafted at 16 Crafting from a silver bar and necklace mould.
+    - item_id: 21073
+      item_name: Opal amulet (u)
+      slug: opal-amulet-u
+      relationship: product
+      description: Unstrung amulet crafted at 27 Crafting.
+  about: "Opal is the lowest-tier semi-precious gem in Old School RuneScape. Players obtain rough opals from mining, gem rocks, drops, and various skilling activities, then cut them at 1 Crafting for 15 experience using a chisel (about a 1 in 4 chance to crush per attempt at low levels). The cut opal is then used either for low-level jewellery — opal ring, opal necklace, opal amulet, and opal bracelet — or chiselled into 12 opal bolt tips at 11 Fletching for 1.5 experience per tip. Opals are members-only and have a Grand Exchange buy limit of 13,000 every 4 hours, making them a high-volume Crafting and Fletching supply for ironman skillers and bolt manufacturers alike."
+  market_strategy:
+    notes:
+      - "High alch (60 gp) sits below GE price; never alch."
+      - "GE buy limit is 13,000 per 4 hours — supports large skilling buy orders."
+      - "Bolt tip flip: 1 opal yields 12 opal bolt tips at 11 Fletching."
+      - "Opal supply tracks gem rock mining throughput and clue scroll opal-rich rewards."
+      - "Demand pressure comes from low-level Crafting trainers and bolt enchanters."
+  trading_tips:
+    - "Compare opal vs opal bolt tip prices times 12 to decide whether to flip raw or cut."
+    - "Buy uncut opal when mining tick rates favour gem rock farming and the cut differential widens."
+    - "Steady demand from ironmen levelling Crafting and Fletching keeps the floor stable."
+  history:
+    - date: "2003-08-18"
+      description: "Released alongside the broader gem cutting system update."
+    - date: "2005-01-26"
+      description: "Opal bolt tips integration added with the Fletching skill expansion."
+  properties:
+    release_date: "2003-08-18"
+    update: "Gem cutting and jewellery expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

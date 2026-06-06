@@ -1,6 +1,6 @@
 ---
 title: Red robe top | OSRS Price Data
-description: "Red robe top: Some fine werewolf clothing.. High alch: 300 GP, GE limit: 150."
+description: "Red robe top is a members cosmetic body robe worn by werewolves in Canifis. High alch: 300 GP, GE limit: 150."
 osrs:
   id: 2906
   name: Red robe top
@@ -12,9 +12,90 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Red robe top is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2003-02-25"
+    update: "Priest in Peril"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Barker's Haberdashery
+      location: Canifis
+      price: 500
+      currency: coins
+      stock: 5
+  related_items:
+    - item_name: Red robe bottoms
+      slug: red-robe-bottoms
+      relationship: set-piece
+      description: "Matching werewolf robe bottoms"
+    - item_name: Blue robe top
+      slug: blue-robe-top
+      relationship: variant
+      description: "Blue colour variant from the same Canifis shop"
+    - item_name: Green robe top
+      slug: green-robe-top
+      relationship: variant
+      description: "Green colour variant from the same Canifis shop"
+    - item_name: Black robe
+      slug: black-robe
+      relationship: alternative
+      description: "Generic mage robe used for early Magic training fashion"
+  about: |-
+    Red robe top is a cosmetic body slot robe sold by Barker's Haberdashery in Canifis after the Priest in Peril quest is started. It provides no combat stats and is purely fashionscape — most commonly used by mages building a werewolf-style cosmetic loadout or by players collecting the Canifis robe colour line.
+
+    Despite being a members-only piece, it is one of the cheapest cosmetic body items in the game and a common early-game alching target for the small high-alch margin over its 500 GP shop price.
+  market_strategy:
+    notes:
+      - "Cheap fashionscape staple — supply driven by Canifis shop runs"
+      - "Small high-alch margin from the 500 GP shop price"
+      - "Demand from werewolf-themed cosmetic setups and clue scroll completion"
+  trading_tips:
+    - "Shop run at Barker's Haberdashery feeds steady GE supply"
+    - "Pair with red robe bottoms when listing — sets clear faster than singles"
+    - "Limit of 150 per 4 hours is generous for low-budget alch flips"
+  history:
+    - date: "2003-02-25"
+      description: "Released with Priest in Peril and the Canifis area"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

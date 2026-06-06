@@ -1,6 +1,6 @@
 ---
 title: Adamant kiteshield | OSRS Price Data
-description: "Adamant kiteshield: A large metal shield.. High alch: 3,264 GP, GE limit: 125."
+description: "Adamant kiteshield: A large metal shield. High alch: 3,264 GP, GE limit: 125."
 osrs:
   id: 1199
   name: Adamant kiteshield
@@ -12,24 +12,95 @@ osrs:
   lowalch: 2176
   highalch: 3264
   limit: 125
-  item_id: 1199
-  item_type: armor
-  slot: shield
-  type: kiteshield
-  tradeable: true
-  weight: 5.896
-  requirements:
-    defence: 30
-  stats:
-    stab_defence: 27
-    slash_defence: 31
-    crush_defence: 29
-    ranged_defence: 29
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: adamant
+    tier: mid
+  properties:
+    release_date: "2001-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 5.896
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type: none
+    weight: 5.896
+    attack_speed: 1
+    requirements:
+      defence: 30
+    attack_bonus:
+      magic: -8
+      ranged: -6
+    defence_bonus:
+      stab: 27
+      slash: 31
+      crush: 29
+      magic: -1
+      ranged: 29
+    other_bonus: {}
+  recipes:
+    - skill: smithing
+      level: 78
+      xp: 187.5
+      materials:
+        - item_name: Adamantite bar
+          quantity: 3
+      tools:
+        - Hammer
+      facility: Anvil
+      output_quantity: 1
+  shops:
+    - shop_name: Cassie's Shield Shop
+      location: Falador
+      price: 5440
+      stock: 3
+      currency: coins
+      members_only: false
   related_items:
-    - slug: rune-kiteshield
-    - slug: adamant-platebody
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1163
+      item_name: Rune kiteshield
+      slug: rune-kiteshield
+      relationship: upgrade
+      description: "Higher-tier rune metal kiteshield"
+    - item_id: 1197
+      item_name: Mithril kiteshield
+      slug: mithril-kiteshield
+      relationship: downgrade
+      description: "Lower-tier mithril kiteshield"
+    - item_id: 1123
+      item_name: Adamant platebody
+      slug: adamant-platebody
+      relationship: set-piece
+      description: "Matching adamant body armour"
+  about: |-
+    > _"A large metal shield."_
+
+    The adamant kiteshield is a Free-to-Play medium-tier shield requiring 30 Defence to equip and offering strong Stab, Slash, Crush and Ranged defence. It can be smithed at 78 Smithing using three adamantite bars at an anvil, dropped from a variety of mid-level enemies, or purchased from Cassie's Shield Shop in Falador. A common upgrade target for free players climbing the Defence ladder before rune.
+  market_strategy:
+    notes:
+      - "F2P Defence training audience keeps consistent demand"
+      - "Cassie's Shield Shop in Falador offers a reliable buy-out source for flipping"
+      - "Smithing supply scales with Adamantite bar prices — track ore meta"
+  trading_tips:
+    - "Watch Adamantite bar price swings — kiteshield price often lags by a tick"
+    - "Buy from Cassie when shop stock refreshes for guaranteed margin"
+  history:
+    - date: "2001-02-27"
+      description: "Adamant kiteshield released as part of the original armour tier expansion."
+    - date: "2014-12-04"
+      description: "Sprite updated to high-resolution kiteshield model."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

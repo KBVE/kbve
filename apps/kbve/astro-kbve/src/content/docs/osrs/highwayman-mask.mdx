@@ -1,6 +1,6 @@
 ---
 title: Highwayman mask | OSRS Price Data
-description: "Highwayman mask is a members head slot item. High alch: 24 GP, GE limit: 4."
+description: "Highwayman mask: easy clue cosmetic head slot mask that combines with a black cavalier to create a cavalier and mask. High alch: 24 GP, GE limit: 4."
 osrs:
   id: 2631
   name: Highwayman mask
@@ -12,15 +12,91 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-12-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
+    weapon_type: null
+    attack_speed: null
+    weight: 0.226
     requirements: {}
-  about: |-
-    > *"Your money or your life!"*
-
-    The highwayman mask is a purely cosmetic head slot item from easy treasure trails. It provides no combat bonuses. Can be combined with a black cavalier at NPC Patchy to create a cavalier and mask.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: "1/1,404"
+        members_only: true
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_name: Black cavalier
+      slug: black-cavalier
+      relationship: component
+      description: "Combined with the mask at Patchy to make the Cavalier and mask"
+    - item_name: Cavalier and mask
+      slug: cavalier-and-mask
+      relationship: product
+      description: "Combined cosmetic produced from Highwayman mask + Black cavalier"
+    - item_name: Pirate's hat
+      slug: pirates-hat
+      relationship: alternative
+      description: "Other easy clue head slot cosmetic"
+  about: "Highwayman mask is an easy Treasure Trail head slot cosmetic that provides no combat bonuses and exists purely as a fashionscape piece. The mask carries the iconic 'Your money or your life!' examine text inspired by 18th-century English highway robbers and can be combined with a Black cavalier at NPC Patchy on Mos Le'Harmless to create the Cavalier and mask, an exclusive merged cosmetic with a distinct appearance. As an easy clue cosmetic with a 4-item buy limit it trades thinly but reliably, with prices rising when Treasure Trail cosmetic patches release."
+  market_strategy:
+    notes:
+      - "Easy clue cosmetic with deep collector demand and thin supply"
+      - "Buy limit of only 4 per 4 hours caps flips at tiny chunks"
+      - "Combinable with Black cavalier: combo demand bumps both prices"
+  trading_tips:
+    - "Pair purchase with Black cavalier: combine then resell Cavalier and mask"
+    - "Camp the GE during clue update weekends: supply briefly inflates"
+    - "Listing tip: thin volume rewards patience; price moves with single fills"
+  history:
+    - date: "2004-12-06"
+      update: Treasure Trails launch
+      description: "Added as an easy clue cosmetic head slot reward."
+    - date: "2008-12-09"
+      update: Patchy cosmetic combiner
+      description: "Patchy combiner mechanic added to merge with Black cavalier into Cavalier and mask."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

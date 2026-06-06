@@ -1,6 +1,6 @@
 ---
 title: Leaf-bladed sword | OSRS Price Data
-description: "Leaf-bladed sword is a members weapon slot item with +50 melee strength requiring 50 Attack. High alch: 40,800 GP, GE limit: 70."
+description: "Leaf-bladed sword is a members weapon slot item with +50 melee strength requiring 50 Attack and 55 Slayer. High alch: 40,800 GP, GE limit: 70."
 osrs:
   id: 11902
   name: Leaf-bladed sword
@@ -12,12 +12,31 @@ osrs:
   lowalch: 27200
   highalch: 40800
   limit: 70
+  material:
+    type: metal
+    tier: mid-high
+  properties:
+    release_date: "2014-01-23"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    weight: 1.814
+    quest_item: false
+    options:
+      - Wield
+      - Drop
+    destroy: "Drop"
   equipment:
     slot: weapon
     weapon_type: sword
-    weight: 1.814
     attack_speed: 4
     attack_range: 1
+    combat_styles:
+      - Accurate (Stab)
+      - Aggressive (Slash)
+      - Aggressive (Lunge)
+      - Defensive (Block)
     attack_bonus:
       stab: 67
       slash: 62
@@ -86,6 +105,11 @@ osrs:
       slug: dragon-scimitar
       relationship: alternative
       description: Similar tier weapon without Slayer requirement
+  history:
+    - date: "2014-01-23"
+      description: "Leaf-bladed sword released as part of the leaf-bladed weapons rework, dropping from Kurask and Turoth."
+    - date: "2017-09-21"
+      description: "King kurask and Spiked Turoth variants added with triple drop rates."
   about: |-
     Essential for killing:
     - Turoth (requires leaf-bladed weapon or magic dart)
@@ -95,13 +119,19 @@ osrs:
     - 4-tick attack speed (same as scimitar)
     - Decent stab and slash bonuses
     - Lower strength than leaf-bladed battleaxe
+
+    Unlike the leaf-bladed battleaxe, this sword lacks special damage bonuses against its target enemies, making the higher-tier axe preferable at Attack 65+.
   market_strategy:
     notes:
-      - Budget option for Slayer tasks
-      - Many players prefer leaf-bladed battleaxe for higher damage
-      - Good for accounts with 50 Attack
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Budget option for Slayer tasks"
+      - "Many players prefer leaf-bladed battleaxe for higher damage"
+      - "Good for accounts with 50 Attack"
+      - "Supply tied to Kurask and Turoth slayer task activity"
+      - "Buy during off-peak hours when Kurask tasks are less common"
+      - "Demand spikes when Slayer is the weekly skill"
+      - "Compare price vs leaf-bladed battleaxe before purchase"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

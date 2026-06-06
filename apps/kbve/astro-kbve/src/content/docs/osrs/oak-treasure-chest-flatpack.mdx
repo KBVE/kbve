@@ -1,6 +1,6 @@
 ---
 title: Oak treasure chest (flatpack) | OSRS Price Data
-description: "Oak treasure chest (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Oak treasure chest (flatpack): How does it all fit in there? High alch: 6 GP, GE limit: 500."
 osrs:
   id: 9862
   name: Oak treasure chest (flatpack)
@@ -12,9 +12,75 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Oak treasure chest (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2006-10-18"
+    update: "Costume room"
+    quest_item: false
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    weight: 1
+    destroy: "Drop"
+    options:
+      - Drop
+    examine_options:
+      - Examine
+  recipes:
+    - skill: construction
+      level: 48
+      xp: 120
+      tools:
+        - Hammer
+        - Saw
+      facility: Steel framed workbench
+      materials:
+        - item_id: 8778
+          item_name: Oak plank
+          quantity: 2
+      output:
+        item_id: 9862
+        item_name: Oak treasure chest (flatpack)
+        output_quantity: 1
+      members: true
+      notes: "Built at a steel framed workbench in a player-owned house workshop"
+  related_items:
+    - item_id: 8778
+      item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: Construction material used to flatpack the chest
+    - item_id: 9860
+      item_name: Treasure chest (flatpack)
+      slug: treasure-chest-flatpack
+      relationship: downgrade
+      description: Regular plank version of the costume room chest
+    - item_id: 9864
+      item_name: Teak treasure chest (flatpack)
+      slug: teak-treasure-chest-flatpack
+      relationship: upgrade
+      description: Teak plank tier of the costume room chest
+    - item_id: 9866
+      item_name: Mahogany treasure chest (flatpack)
+      slug: mahogany-treasure-chest-flatpack
+      relationship: upgrade
+      description: Top-tier mahogany costume room chest
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Flatpacks are XP-loss items used to deploy chests instantly in costume rooms"
+      - "Profit potential is normally negative vs raw oak planks"
+      - "Demand spikes during costume room build phases and clue armour storage hype"
+      - "Build cost: 2 oak planks at the steel framed workbench"
+      - "Compare GE flatpack price vs 2 oak plank cost minus tax before flipping"
+  history:
+    - date: "2006-10-18"
+      description: "Released alongside the Costume room construction update"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

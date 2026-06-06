@@ -1,6 +1,6 @@
 ---
 title: Hunting mix(2) | OSRS Price Data
-description: "Hunting mix(2): Two doses of fishy Hunter potion.. High alch: 5 GP, GE limit: 2,000."
+description: "Hunting mix(2) is a 2-dose Barbarian Hunter potion that boosts Hunter by 3 and restores 6 hitpoints per dose. High alch: 5 GP, GE limit: 2,000."
 osrs:
   id: 11517
   name: Hunting mix(2)
@@ -12,9 +12,81 @@ osrs:
   lowalch: 3
   highalch: 5
   limit: 2000
-  about: "Hunting mix(2) is a members-only item in Old School RuneScape. High alchemy value: 5 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: low
+  potion:
+    doses: 2
+    boost_type: Hunter
+    boost_amount: 3
+    effects:
+      - description: "Each dose boosts Hunter level by 3."
+        duration: 0
+      - description: "Each dose restores 6 hitpoints when drunk."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 53
+      xp: 50
+      materials:
+        - item_name: Hunter potion(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+  related_items:
+    - item_name: Hunter potion(2)
+      slug: hunter-potion-2
+      relationship: component
+      description: Base potion combined with caviar to produce the barbarian mix.
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: Secondary added with a pestle and mortar to brew the mix.
+    - item_name: Hunter potion(4)
+      slug: hunter-potion-4
+      relationship: alternative
+      description: Full 4-dose hunter potion with the same boost mechanic but no heal.
+    - item_name: Hunting mix(1)
+      slug: hunting-mix-1
+      relationship: variant
+      description: Single-dose version with the same effect.
+  about: "Hunting mix(2) is a two-dose Barbarian Herblore variant of the Hunter potion, brewed at 53 Herblore by combining a Hunter potion(2) with caviar after completing the Herblore portion of Otto Godblessed's Barbarian Training. Each dose boosts the player's Hunter level by 3 and restores 6 hitpoints, making the mix a small but stackable utility for prolonged Hunter trips where boosted level access to traps and creatures matters more than dose efficiency. The buy limit of 2,000 per 4 hours and low alch value keep it firmly in the Herblore-supply niche."
+  market_strategy:
+    notes:
+      - "Niche Hunter boost item; demand spikes during Hunter XP weekends and Chinchompa rushers."
+      - "Combined heal makes it useful as a small inventory-saver on Black/Red Chinchompa task lines."
+      - "Caviar supply drives production cost — track caviar GE price when sizing buy orders."
+      - "Decanting between 1- and 2-dose mix forms is rarely profitable due to thin volume."
+  trading_tips:
+    - "Stock during Hunter XP weekends and bounty hunter clue events that lift Hunter demand."
+    - "Pair with caviar flips; one barbarian mix lot drives both prices."
+    - "Sell to ironmen requiring boosted Hunter level for high-tier creature traps."
+  history:
+    - date: "2007-07-03"
+      description: "Released with the Barbarian Herblore Training update."
+    - date: "2016-08-04"
+      description: "Decant interactions standardised across the barbarian potion family."
+  properties:
+    release_date: "2007-07-03"
+    update: "Barbarian Herblore Training"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.025
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

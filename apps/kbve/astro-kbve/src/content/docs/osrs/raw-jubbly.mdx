@@ -1,6 +1,6 @@
 ---
 title: Raw jubbly | OSRS Price Data
-description: "Raw jubbly: The uncooked meat of a Jubbly bird.. High alch: 60 GP, GE limit: 11,000."
+description: "Raw jubbly: The uncooked meat of a Jubbly bird. High alch: 60 GP, GE limit: 11,000."
 osrs:
   id: 7566
   name: Raw jubbly
@@ -12,9 +12,86 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 11000
-  about: "Raw jubbly is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: meat
+    tier: mid
+  properties:
+    release_date: "2006-03-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 10
+    options:
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: |-
+    > *"The uncooked meat of a Jubbly bird."*
+
+    Raw jubbly is the uncooked drop from jubbly birds and jubsters in the Feldip Jungle south-east of the Gnome Stronghold. Players unlock access during Recipe for Disaster - Freeing Skrach Uglogwee, and the meat then becomes the highest-tier non-fish food the Cooking skill can prepare on an ogre spit-roast. Cooking a raw jubbly requires 41 Cooking, rewards 160 Cooking experience, and produces a cooked jubbly that heals 22 hitpoints, putting it on par with shark or anglerfish for non-divine healing in entry-level PvM. Raw jubbly can also be combined with raw lobster in the Creature Creation altar to spawn a jubster training target.
+  drop_table:
+    sources:
+      - source: Jubbly bird
+        location: Feldip Hills (south of Castle Wars)
+        quantity: "1"
+        rarity: Always
+        members: true
+        notes: "Requires the Big Chompy Bird Hunting prerequisites and progress in Recipe for Disaster (Skrach Uglogwee) to encounter and damage."
+      - source: Jubster
+        location: Feldip Hills / Creature Creation altar
+        quantity: "1"
+        rarity: Always
+        members: true
+        notes: "Hybrid creature spawned during Creature Creation using a raw jubbly and a raw lobster; combat level 87, drops raw jubbly back on death."
+  recipes:
+    - skill: cooking
+      level: 41
+      xp: 160
+      output_quantity: 1
+      output_item: Cooked jubbly
+      materials:
+        - item_name: Raw jubbly
+          quantity: 1
+        - item_name: Iron spit
+          quantity: 1
+      facility: Ogre spit-roast
+      members: true
+      notes: "Must be cooked on an ogre spit-roast with an iron spit; the burn chance never fully disappears without a Cooking cape, even at 99 Cooking."
+  history:
+    - date: "2006-03-15"
+      update: Recipe for Disaster - Skrach Uglogwee
+      description: "Introduced alongside the Skrach Uglogwee sub-quest of Recipe for Disaster and the jubbly bird hunting mini-mechanic."
+  related_items:
+    - item_id: 7568
+      item_name: Cooked jubbly
+      slug: cooked-jubbly
+      relationship: product
+      description: "Cooked output that restores 22 hitpoints per dose."
+    - item_id: 7572
+      item_name: Iron spit
+      slug: iron-spit
+      relationship: component
+      description: "Tool required to spit-roast raw jubbly on an ogre fire."
+    - item_id: 2150
+      item_name: Raw chompy
+      slug: raw-chompy
+      relationship: alternative
+      description: "Sister Feldip-jungle meat from the Big Chompy Bird Hunting line."
+  market_strategy:
+    notes:
+      - "Supply is bottlenecked by jubbly bird hunting throughput: prices stay elevated relative to lower-tier raw meats."
+      - "Pair with cooked jubbly listings: Cooking trainers will sometimes buy raw and resell cooked."
+      - "PvM demand is low but Cooking-XP grinders provide a steady price floor."
+  trading_tips:
+    - "Buy when GE volume dips and resell during major Cooking XP events such as Bonus XP weekends."
+    - "Hold inventory in noted form: weight is 10kg per piece, which kills travel speed."
+    - "Watch for Big Chompy Bird Hunting changes: any nerf to ogre arrow drop rates tightens raw jubbly supply."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

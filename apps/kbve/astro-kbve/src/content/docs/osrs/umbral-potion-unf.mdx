@@ -1,6 +1,6 @@
 ---
 title: Umbral potion (unf) | OSRS Price Data
-description: "Umbral potion (unf): I need another ingredient to finish this Umbral potion.. High alch: 15 GP."
+description: "Umbral potion (unf): I need another ingredient to finish this Umbral potion. High alch: 15 GP."
 osrs:
   id: 31668
   name: Umbral potion (unf)
@@ -11,10 +11,92 @@ osrs:
   value: 25
   lowalch: 10
   highalch: 15
-  limit: null
-  about: "Umbral potion (unf) is a members-only item in Old School RuneScape. High alchemy value: 15 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.056
+    options:
+      - "Drink (empty progress)"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: |-
+    > *"I need another ingredient to finish this Umbral potion."*
+
+    Umbral potion (unf) is the unfinished base used to brew the high-tier Sailing-era Armadyl brew analogue. It is created by combining umbral coral with a vial of water at 89 Herblore, then finished by adding rainbow crab paste to grant the player a powerful Ranged and Hitpoints booster that drains Attack, Strength, Defence, and Magic in exchange. Like other unfinished potions it grants no XP at the mixing step; the finishing step delivers 205 Herblore XP per dose. The unfinished form is tradeable on the Grand Exchange and frequently outsourced to Herblore alts producing supplies for raid teams or PvM money-makers.
+  recipes:
+    - skill: herblore
+      level: 89
+      xp: 0
+      output_quantity: 1
+      output_item: Umbral potion (unf)
+      materials:
+        - item_name: Umbral coral
+          quantity: 1
+        - item_name: Vial of water
+          quantity: 1
+      facility: Anywhere
+      members: true
+      notes: "Combining umbral coral with a vial of water creates the unfinished potion with no XP reward, mirroring every other unfinished potion in the Herblore skill."
+    - skill: herblore
+      level: 89
+      xp: 205
+      output_quantity: 1
+      output_item: Armadyl brew
+      materials:
+        - item_name: Umbral potion (unf)
+          quantity: 1
+        - item_name: Rainbow crab paste
+          quantity: 1
+      facility: Anywhere
+      members: true
+      notes: "Adds rainbow crab paste to produce a finished Armadyl brew dose that boosts Ranged and Hitpoints at the cost of other combat stats."
+  history:
+    - date: "2025-11-19"
+      update: Sailing launch
+      description: "Released alongside the Sailing skill and the new high-level Herblore tier that introduced rainbow crab paste and umbral coral."
+  related_items:
+    - item_id: 31666
+      item_name: Umbral coral
+      slug: umbral-coral
+      relationship: component
+      description: "Primary ingredient combined with a vial of water to produce this unfinished potion."
+    - item_id: 31670
+      item_name: Armadyl brew
+      slug: armadyl-brew
+      relationship: product
+      description: "Finished potion produced by adding rainbow crab paste to this unfinished base."
+    - item_id: 227
+      item_name: Vial of water
+      slug: vial-of-water
+      relationship: component
+      description: "Liquid base required for the unfinished step."
+    - item_id: 31672
+      item_name: Rainbow crab paste
+      slug: rainbow-crab-paste
+      relationship: component
+      description: "Secondary ingredient that finishes the unfinished umbral potion into Armadyl brew."
+  market_strategy:
+    notes:
+      - "Unfinished potion price tracks umbral coral plus a small Herblore-XP-only premium."
+      - "Buyers are typically Herblore alts or PvMers stockpiling Armadyl brew for inferno or raids."
+      - "Profit per dose is GE-tax sensitive: model both raw flip and finished sell-through before stacking volume."
+  trading_tips:
+    - "Watch for umbral coral supply spikes when Sailing weekly events run: unfinished potion margins widen."
+    - "Selling finished Armadyl brew direct often beats reselling the unfinished base in laggy markets."
+    - "Buy limit refreshes every 4 hours: stagger large Herblore alt fills across two windows."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

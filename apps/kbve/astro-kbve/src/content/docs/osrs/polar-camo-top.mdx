@@ -1,6 +1,6 @@
 ---
 title: Polar camo top | OSRS Price Data
-description: "Polar camo top: This should make me harder to spot in polar areas.. High alch: 12 GP."
+description: "Polar camo top is hunter camouflage for snowy regions, -3 kg worn weight. High alch: 12 GP."
 osrs:
   id: 10065
   name: Polar camo top
@@ -11,10 +11,100 @@ osrs:
   value: 20
   lowalch: 8
   highalch: 12
-  limit: null
-  about: "Polar camo top is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: 0
+  material:
+    type: fur
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    weight: -3.0
+    tradeable: false
+    stackable: false
+    noteable: false
+    quest_item: false
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    destroy: "Are you sure you want to drop this item?"
+  equipment:
+    slot: body
+    attack_speed: null
+    requirements:
+      hunter: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Pellem (Hunter Guild)
+      location: Hunter Guild
+      price: 20
+      stock: 5
+      currency: coins
+      notes: "Requires two polar kebbit furs as payment alongside the 20 GP fee."
+    - shop_name: Fancy Clothes Store
+      location: Varrock
+      price: 20
+      stock: 5
+      currency: coins
+      notes: "Costs two polar kebbit furs plus 20 GP."
+    - shop_name: Seamstress
+      location: Prifddinas
+      price: 20
+      stock: 5
+      currency: coins
+      notes: "Requires elven city access; two polar kebbit furs plus 20 GP."
+  related_items:
+    - item_id: 10067
+      item_name: Polar camo legs
+      slug: polar-camo-legs
+      relationship: set-piece
+      description: Matching polar camouflage legs
+    - item_id: 10115
+      item_name: Polar kebbit fur
+      slug: polar-kebbit-fur
+      relationship: component
+      description: Hunter fur traded to NPC tailors for the top
+    - item_id: 10069
+      item_name: Wood camo top
+      slug: wood-camo-top
+      relationship: variant
+      description: Woodland biome camouflage variant
+  market_strategy:
+    notes:
+      - "Untradeable: only obtainable from tailor NPCs"
+      - "Reduces equipped weight by 3 kg for Agility-light Hunter routes"
+      - "Cosmetic-only, does not boost Hunter catch rates despite the examine"
+      - "Stack polar kebbit furs first: each piece costs two"
+      - "Carry coins to Pellem in the Hunter Guild for fastest restock"
+      - "Note: weight bonus stacks with boots of lightness for long Hunter runs"
+  history:
+    - date: "2006-11-21"
+      update: Hunter release
+      description: "Polar camo top added with the Hunter skill rollout."
+  about: |-
+    > _"This should make me harder to spot in polar areas."_
+
+    Polar camo top is hunter camouflage purchased from Pellem at the Hunter Guild, the Fancy Clothes Store in Varrock, or the Seamstress in Prifddinas for 20 GP plus two polar kebbit furs.
+
+    It reduces equipped weight by 3 kg when worn, useful for long Hunter routes paired with boots of lightness. Despite the flavor text, the top does not actually affect Hunter catch rates - cosmetic-only camouflage. Untradeable.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

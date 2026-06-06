@@ -12,9 +12,107 @@ osrs:
   lowalch: 110000
   highalch: 165000
   limit: 15
-  about: "Verac's plateskirt 0 is a members-only item in Old School RuneScape. High alchemy value: 165,000 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: barrows
+    tier: high
+  properties:
+    release_date: "2005-05-09"
+    update: Barrows
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.535
+    options:
+      - Wear
+      - Check
+      - Repair
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weapon_type: none
+    weight: 4.535
+    requirements:
+      defence: 70
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -11
+    defence_bonus:
+      stab: 85
+      slash: 82
+      crush: 83
+      magic: -4
+      ranged: 84
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 4
+  charges:
+    max_charges: 0
+    repairable: true
+    repair_cost: 90000
+    repair_npc: Bob's Brilliant Axes (Lumbridge) / armour stand
+  drop_table:
+    sources:
+      - source: Barrows chest
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/2448
+  related_items:
+    - item_id: 4759
+      item_name: Verac's plateskirt
+      slug: verac-s-plateskirt
+      relationship: variant
+      description: "Fully-charged 100 combat-charges version of the plateskirt"
+    - item_id: 4753
+      item_name: Verac's helm 0
+      slug: verac-s-helm-0
+      relationship: set-piece
+      description: "Broken Verac's helmet set piece"
+    - item_id: 4757
+      item_name: Verac's brassard 0
+      slug: verac-s-brassard-0
+      relationship: set-piece
+      description: "Broken Verac's brassard set piece"
+    - item_id: 4755
+      item_name: Verac's flail 0
+      slug: verac-s-flail-0
+      relationship: set-piece
+      description: "Broken Verac's flail set piece"
+  about: "Verac's plateskirt 0 is the fully-degraded zero-charge state of Verac's plateskirt. It cannot be equipped in combat without repair and must be restored at an armour stand in a player-owned house or by Bob in Lumbridge for 90,000 coins. The repaired plateskirt grants identical melee defence to Dharok and Torag legs plus a +4 prayer bonus, and is part of Verac the Defiled's set effect (25% chance to bypass defence and Protection prayers). Members-only with a 15 buy limit per four hours."
+  market_strategy:
+    notes:
+      - "Investment Notes"
+      - "Discounted entry to Verac's set vs the fully-charged plateskirt"
+      - "Repair cost of 90,000 gp must be priced into total cost of ownership"
+      - "Demand from prayer setups and Slayer accounts hunting effect procs"
+      - "Thin GE limit of 15 keeps margins healthy on flips around Barrows update weeks"
+  trading_tips:
+    - "Compare degraded vs charged price: degraded - 90k repair should beat charged"
+    - "Watch Barrows tab demand and Slayer task spotlight for proc-effect users"
+    - "Stock degraded pieces when Barrows is featured in weekly content polls"
+  history:
+    - date: "2005-05-09"
+      update: Barrows
+      description: "Verac's plateskirt released with the Barrows minigame including the 0-charge state."
+    - date: "2015-04-16"
+      update: Quality of Life
+      description: "Check option added to display remaining combat charges."
+    - date: "2021-04-28"
+      update: Armour Rebalance
+      description: "Ranged attack penalty reduced from -7 to -11 in line with other Barrows legs."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,84 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 5
-  about: "Twisted coat (t1) is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: high
+  properties:
+    release_date: "2020-01-16"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - "Wear"
+      - "Drop"
+    worn_options:
+      - "Remove"
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: null
+    attack_speed: null
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Twisted hat (t1)
+      slug: twisted-hat-t1
+      relationship: set-piece
+      description: "Head piece of the t1 Twisted relic hunter outfit"
+    - item_name: Twisted trousers (t1)
+      slug: twisted-trousers-t1
+      relationship: set-piece
+      description: "Leg piece of the t1 Twisted relic hunter outfit"
+    - item_name: Twisted boots (t1)
+      slug: twisted-boots-t1
+      relationship: set-piece
+      description: "Foot piece of the t1 Twisted relic hunter outfit"
+    - item_name: Twisted coat (t2)
+      slug: twisted-coat-t2
+      relationship: upgrade
+      description: "Higher-tier variant of this coat earned from later Leagues"
+    - item_name: Twisted coat (t3)
+      slug: twisted-coat-t3
+      relationship: upgrade
+      description: "Top-tier variant of this coat earned from later Leagues"
+  about: "Twisted coat (t1) is a cosmetic body slot piece from the original Twisted League (2019) reward shop, costing 1,000 League points. It provides no combat bonuses and is part of the four-piece t1 Twisted relic hunter outfit. The full outfit can be stored in the armour case of a costume room."
+  market_strategy:
+    notes:
+      - "Finite supply locked to a one-time Leagues event; price trends up long term"
+      - "Tiny buy limit of 5 per 4 hours means accumulation is slow"
+      - "Cosmetic demand spikes during new Leagues hype cycles"
+  trading_tips:
+    - "Treat as a long hold; capital ties up for weeks before exit"
+    - "Watch new Leagues announcements — twisted gear pops on hype"
+    - "Confirm t1 vs t2/t3 valuation gap before flipping the set"
+  history:
+    - date: "2020-01-16"
+      description: "Released as a Twisted League reward shop cosmetic"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

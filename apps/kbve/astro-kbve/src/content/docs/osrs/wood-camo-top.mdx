@@ -1,6 +1,6 @@
 ---
 title: Wood camo top | OSRS Price Data
-description: "Wood camo top: This should make me harder to spot in wooded areas.. High alch: 12 GP."
+description: "Wood camo top: This should make me harder to spot in wooded areas. High alch: 12 GP, GE limit: 150."
 osrs:
   id: 10053
   name: Wood camo top
@@ -11,10 +11,82 @@ osrs:
   value: 20
   lowalch: 8
   highalch: 12
-  limit: null
-  about: "Wood camo top is a members-only item in Old School RuneScape. High alchemy value: 12 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: 150
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: leather
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    update: "Hunter skill"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.0
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: none
+    weight: 1.0
+    attack_speed: 1
+    requirements: {}
+    attack_bonus: {}
+    defence_bonus: {}
+    other_bonus: {}
+  shops:
+    - shop_name: Hunting Store
+      location: Yanille
+      price: 20
+      stock: 5
+      currency: coins
+      members_only: true
+    - shop_name: Nardah Hunting Store
+      location: Nardah
+      price: 20
+      stock: 5
+      currency: coins
+      members_only: true
+  related_items:
+    - item_id: 10055
+      item_name: Wood camo legs
+      slug: wood-camo-legs
+      relationship: set-piece
+      description: "Matching wood camouflage legwear"
+    - item_id: 10057
+      item_name: Jungle camo top
+      slug: jungle-camo-top
+      relationship: alternative
+      description: "Jungle terrain camouflage top variant"
+    - item_id: 10061
+      item_name: Desert camo top
+      slug: desert-camo-top
+      relationship: alternative
+      description: "Desert terrain camouflage top variant"
+  about: |-
+    > _"This should make me harder to spot in wooded areas."_
+
+    The wood camo top is a members-only Hunter clothing item providing camouflage in wooded biomes such as Piscatoris and the Feldip Hills. While worn together with wood camo legs it enables players to pass by certain Hunter creatures without spooking them. It is sold by Hunter clothing shops in Yanille and Nardah for 20 coins each and is a one-time purchase that most hunters keep banked for low-level bird snare runs.
+  market_strategy:
+    notes:
+      - "Niche demand — limited to low-level Hunter players doing wooded-area tasks"
+      - "Shop price (20 gp) caps profitable flipping margins"
+      - "Buy limit of 150 is rarely a bottleneck"
+  trading_tips:
+    - "Always buy from Hunter shops first; GE rarely undercuts shop price"
+    - "Pair wood camo top with legs for matching set when reselling"
+  history:
+    - date: "2006-11-21"
+      description: "Wood camo top added with the launch of the Hunter skill."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

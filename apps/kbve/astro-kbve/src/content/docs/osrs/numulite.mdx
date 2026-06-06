@@ -1,6 +1,6 @@
 ---
 title: Numulite | OSRS Price Data
-description: "Numulite: A form of currency on Fossil Island.. High alch: 6 GP, GE limit: 30,000."
+description: "Numulite: A form of currency on Fossil Island. High alch: 6 GP, GE limit: 30,000."
 osrs:
   id: 21555
   name: Numulite
@@ -12,84 +12,101 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 30000
-  currency:
-    type: island_currency
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: currency
+    tier: low
+  properties:
+    release_date: "2017-04-12"
+    update: Fossil Island
     tradeable: true
     stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0
+    options:
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
-      - source: Killing wyverns and crabs
-      - source: Chopping sulliusceps
-      - source: Tracking herbiboars
-      - source: Mining in Volcanic Mine
-      - source: Digging soil at Museum Camp
-      - source: Looting underwater chests/clams
-      - source: Trading fossils with Fossil Collector
-  special_effect:
-    name: Auto-Collect
-    description: Ring of wealth auto-collects drops
-  uses:
-    - use: Giant seaweed patch protection
-      cost: 200
-      notes: Per patch
-    - use: Fish shoal access (daily)
-      cost: 200
-    - use: Fish shoal access (permanent)
-      cost: 20000
-    - use: Volcanic Mine entry
-      cost: 30
-    - use: Volcanic Mine access (permanent)
-      cost: 3000
-    - use: Ancient wyvern shield charge
-      cost: 500
-      notes: Per charge
-    - use: Volcanic Mine item recovery
-      cost: 150
-    - use: Stone chest unlock
-      cost: 100
-  market:
-    buy_limit: 11000
-    price_estimate: 16
+      - source: Ammonite Crab
+        quantity: "1-3"
+        rarity: Common
+      - source: Sulphur Lizard
+        quantity: "1-3"
+        rarity: Common
+      - source: Wyvern (Fossil Island)
+        quantity: "5-12"
+        rarity: Common
+      - source: Volcanic Mine
+        quantity: "varies"
+        rarity: Always
+      - source: Sulliuscep (Mushroom Forest)
+        quantity: "1-2"
+        rarity: Common
+      - source: Herbiboar
+        quantity: "varies"
+        rarity: Tracking
+      - source: Museum Camp soil dig
+        quantity: "1-2"
+        rarity: Common
+      - source: Underwater Mogres area
+        quantity: "varies"
+        rarity: Looting
+      - source: Fossil Collector
+        quantity: "100-500"
+        rarity: "Trade-in"
+  recipes:
+    - skill: agility
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Numulite
+          quantity: 200
+      tools: []
+      output_quantity: 1
+      notes: "Spend at the giant seaweed patch to protect it from disease."
   related_items:
-    - item_id: 21516
-      item_name: Fossil Island
-      slug: fossil-island
-      relationship: alternative
-      description: Location
-    - item_id: 21634
-      item_name: Ancient wyvern shield
+    - item_name: Ancient wyvern shield
       slug: ancient-wyvern-shield
       relationship: product
-      description: Charging use
-    - item_id: 22028
-      item_name: Volcanic Mine
+      description: "Recharged using numulite at the Fossil Island workbench."
+    - item_name: Volcanic Mine
       slug: volcanic-mine
       relationship: alternative
-      description: Access use
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Currency |
-    | Tradeable | Yes |
-    | Stackable | Yes |
-    | Weight | 0 kg |
-
-    | Use | Cost |
-    |-----|------|
-    | Giant seaweed patch protection | 200 per patch |
-    | Fish shoal access (daily) | 200 |
-    | Fish shoal access (permanent) | 20,000 |
-    | Volcanic Mine entry | 30 |
-    | Volcanic Mine access (permanent) | 3,000 |
-    | Ancient wyvern shield charge | 500 per charge |
-    | Volcanic Mine item recovery | 150 |
-    | Stone chest unlock | 100 |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Numulite gateway content awarding Mining xp."
+    - item_name: Fossil Island
+      slug: fossil-island
+      relationship: alternative
+      description: "Region where numulite is the local currency."
+    - item_name: Mark of grace
+      slug: mark-of-grace
+      relationship: alternative
+      description: "Comparable activity-based currency rewarded by an Agility minigame."
+  about: "Numulite is the local currency of Fossil Island, awarded passively from nearly every Fossil Island activity (Mining, Hunter, Fishing, Slayer and Farming). Numulite are spent on access fees (Volcanic Mine entry, fish shoal access, stone chests), seaweed patch protection, and recharging the Ancient wyvern shield. They are tradeable on the Grand Exchange, so high-end Slayers and farmers often buy bulk numulite rather than grind them organically."
+  market_strategy:
+    notes:
+      - "30,000 buy limit keeps the price liquid for shield rechargers."
+      - "Demand follows Ancient wyvern shield popularity at Vorkath and wyrm tasks."
+      - "Supply comes from Fossil Island AFK methods - oversupplied during ironman bursts."
+  trading_tips:
+    - "Bulk-buy after wyvern shield meta shifts and resell on price spikes."
+    - "Track giant seaweed patch popularity; protection cost is 200 per cycle."
+    - "Low alch margin; flip rather than alch."
+  history:
+    - date: "2017-04-12"
+      description: "Released with the Fossil Island update as the regional currency."
+    - date: "2017-06-22"
+      description: "Volcanic Mine entry cost set to 30 numulite at launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

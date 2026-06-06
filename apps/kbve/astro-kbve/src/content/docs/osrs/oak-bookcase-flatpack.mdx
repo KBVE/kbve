@@ -1,6 +1,6 @@
 ---
 title: Oak bookcase (flatpack) | OSRS Price Data
-description: "Oak bookcase (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Oak bookcase (flatpack): How does it all fit in there? Mahogany Homes Construction flatpack; high alch 6 GP; GE limit 500."
 osrs:
   id: 8512
   name: Oak bookcase (flatpack)
@@ -12,9 +12,86 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Oak bookcase (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: flatpack
+    tier: low
+  construction:
+    construction_level: 29
+    construction_xp: 180
+    room: Study
+    hotspot: Bookcase
+    flatpack: true
+    built_item_id: 8511
+  recipes:
+    - skill: construction
+      level: 29
+      xp: 180
+      materials:
+        - item_name: Oak plank
+          item_id: 8778
+          quantity: 3
+      tools:
+        - Saw
+        - Hammer
+      facility: Workbench (POH workshop)
+      product: Oak bookcase (flatpack)
+      product_id: 8512
+      product_quantity: 1
+      output_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 8778
+      item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: Three required to flatpack the oak bookcase
+    - item_id: 8511
+      item_name: Oak bookcase
+      slug: oak-bookcase
+      relationship: product
+      description: Built form placed in a Study hotspot
+    - item_id: 8510
+      item_name: Bookcase (flatpack)
+      slug: bookcase-flatpack
+      relationship: downgrade
+      description: Lower-tier flatpack made from regular planks
+    - item_id: 8514
+      item_name: Mahogany bookcase (flatpack)
+      slug: mahogany-bookcase-flatpack
+      relationship: upgrade
+      description: Higher-tier flatpack made from mahogany planks
+  about: "Oak bookcase (flatpack) is a Construction product made at a POH workbench using 3 oak planks (29 Construction, 180 XP). The flatpack can be carried out of the POH and built directly into a Bookcase hotspot in a Study, primarily used by Mahogany Homes contractors who want to skip carrying raw planks. Flatpacks consume identical materials to the in-room build but offer convenience for bulk Construction training routes."
+  market_strategy:
+    notes:
+      - "Supply driven by Mahogany Homes contractors and Construction skillers banking flatpacks"
+      - "GE limit 500/4h restricts wholesale flips"
+      - "Demand is steady from Mahogany Homes weekly cycles"
+      - "High alch (6 gp) is irrelevant — never alchable"
+  trading_tips:
+    - "Compare 3 oak planks cost versus flatpack market — Construction skillers profit when flatpack price > plank cost"
+    - "Track Mahogany Homes XP rate changes for demand spikes"
+    - "Watch oak plank price for direct cost-floor signal"
+  history:
+    - date: "2006-05-31"
+      description: "Released with the Construction skill flatpack expansion."
+    - date: "2019-07-04"
+      description: "Mahogany Homes minigame released, driving long-term flatpack demand."
+  properties:
+    release_date: "2006-05-31"
+    update: Construction Flatpacks
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.45
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

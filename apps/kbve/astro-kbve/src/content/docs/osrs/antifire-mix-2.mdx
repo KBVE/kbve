@@ -1,6 +1,6 @@
 ---
 title: Antifire mix(2) | OSRS Price Data
-description: "Antifire mix(2): Two doses of fishy anti-firebreath potion.. High alch: 118 GP, GE limit: 2,000."
+description: "Antifire mix(2): Two doses of fishy anti-firebreath potion. High alch: 118 GP, GE limit: 2,000."
 osrs:
   id: 11505
   name: Antifire mix(2)
@@ -12,9 +12,82 @@ osrs:
   lowalch: 79
   highalch: 118
   limit: 2000
-  about: "Antifire mix(2) is a members-only item in Old School RuneScape. High alchemy value: 118 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    tradeable: true
+    stackable: false
+    equipable: false
+    noteable: true
+    weight: 0.075
+    release_date: "2007-07-03"
+    quest_item: false
+    options:
+      - Drink
+      - Empty
+    destroy: "Drop"
+  potion:
+    doses: 2
+    effects:
+      - item_name: Anti-dragonfire
+        description: "Provides anti-dragonfire protection mitigating dragonfire damage"
+        duration: 360
+      - item_name: Restore hitpoints
+        description: "Heals a small amount of hitpoints on drink"
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 75
+      xp: 53
+      materials:
+        - item_name: Antifire potion(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      output_quantity: 1
+      notes: "Barbarian Herblore mix recipe; requires Barbarian Herblore training with Otto Godblessed"
+  related_items:
+    - item_id: 11506
+      item_name: Antifire mix(1)
+      slug: antifire-mix-1
+      relationship: variant
+      description: "Single-dose variant of the same Barbarian Herblore mix"
+    - item_id: 2452
+      item_name: Antifire potion(2)
+      slug: antifire-potion-2
+      relationship: component
+      description: "Base antifire potion combined with caviar to brew the mix"
+    - item_id: 7944
+      item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: "Required secondary ingredient for the Barbarian Herblore mix"
+  about: |-
+    > _"Two doses of fishy anti-firebreath potion."_
+
+    Antifire mix(2) is a two-dose Barbarian Herblore potion created by combining an antifire potion(2) with caviar at Herblore level 75 for 53 experience. Like all Barbarian mixes, it grants the standard antifire effect while also healing a small amount of hitpoints per dose, blending utility with a minor combat-survival benefit.
+
+    The mix retains the full dragonfire protection of a regular antifire potion: paired with an anti-dragon shield, dragonfire shield, or Protect from Magic, it reduces dragonfire damage to negligible levels for roughly six minutes per dose. Players need to have started Dragon Slayer I to drink antifire-line potions.
+
+    Barbarian Herblore must first be unlocked through training with Otto Godblessed at Otto's Grotto. Although the recipe usually runs at a small per-dose loss versus selling the inputs directly, the heal-on-drink behaviour makes the mix attractive for solo dragon trips where bringing fewer food items frees inventory space for kills.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Niche demand: appeals to mid-game Herblorists with Barbarian training unlocked"
+      - "Brew price typically tracks below combined input cost, so flipping margins are thin"
+      - "Demand spikes alongside dragon-task Slayer streaks and Vorkath-style farming guides"
+      - "Buy limit of 2,000 per 4 hours leaves plenty of room for bulk PvM consumers"
+      - "Watch antifire potion(2) and caviar prices: when both dip, the mix usually follows"
+      - "List GE offers around margins under 10 coins per dose to clear quickly"
+      - "Stockpiling makes sense before major dragon-content events or Slayer-buff updates"
+  history:
+    - date: "2007-07-03"
+      description: "Released with the Barbarian Training update introducing Barbarian Herblore mixes"
+    - date: "2016-04-01"
+      description: "Half-full potion conversions to bank placeholders updated alongside placeholder rework"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

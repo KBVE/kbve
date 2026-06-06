@@ -1,6 +1,6 @@
 ---
 title: Gryphon feather | OSRS Price Data
-description: "Gryphon feather: A feather from a gryphon.. High alch: 9 GP, GE limit: 11,000."
+description: "Gryphon feather: A feather from a gryphon. High alch: 9 GP, GE limit: 11,000."
 osrs:
   id: 31235
   name: Gryphon feather
@@ -12,9 +12,105 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 11000
-  about: "Gryphon feather is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: feather
+    tier: low
+  properties:
+    tradeable: true
+    stackable: true
+    equipable: false
+    noteable: false
+    weight: 0
+    release_date: "2025-11-19"
+    quest_item: false
+    options:
+      - Drop
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Gryphon
+        combat_level: 95
+        quantity: "1-3"
+        rarity: Always
+        notes: "Guaranteed drop in addition to chance at larger feather stacks"
+      - source: Gryphon
+        combat_level: 95
+        quantity: "10-25"
+        rarity: "17/128"
+        notes: "Bonus feather stack roll from the standard gryphon drop table"
+      - source: Dire gryphon
+        combat_level: 209
+        quantity: "1-3"
+        rarity: Always
+        notes: "Guaranteed drop from dire gryphons"
+      - source: Dire gryphon
+        combat_level: 209
+        quantity: "10-25"
+        rarity: "3 x 17/128"
+        notes: "Three independent rolls on the bonus feather stack"
+      - source: Shellbane gryphon
+        combat_level: 235
+        quantity: "7-10"
+        rarity: Always
+        notes: "Guaranteed larger drop from shellbane gryphons"
+      - source: Shellbane gryphon
+        combat_level: 235
+        quantity: "35-50"
+        rarity: "2 x 11/128"
+        notes: "Two independent rolls on the bonus shellbane feather stack"
+  recipes:
+    - skill: hunter
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Gryphon feather
+          quantity: 1
+      output_quantity: 1
+      notes: "Used to recharge the horn of plenty for Hunter rumour buffs"
+    - skill: fletching
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Gryphon feather
+          quantity: 1
+      output_quantity: 1
+      notes: "Substitutes for standard feathers when fletching arrows, darts, or bolts"
+  related_items:
+    - item_id: 314
+      item_name: Feather
+      slug: feather
+      relationship: alternative
+      description: "Standard chicken feather that gryphon feathers can substitute for in fletching"
+    - item_id: 30000
+      item_name: Horn of plenty
+      slug: horn-of-plenty
+      relationship: component
+      description: "Hunter-rumour reward charged using gryphon feathers"
+  about: |-
+    > _"A feather from a gryphon."_
+
+    Gryphon feathers are members fletching and Hunter materials introduced alongside the Sailing skill expansion in late 2025. They drop in bulk from the three gryphon variants found around Varlamore and the Sailing-era frontier islands, with shellbane gryphons being by far the densest source per kill.
+
+    In fletching, gryphon feathers behave as a 1:1 substitute for ordinary feathers across arrows, darts, and bolts. The big upside is the supply line: a single shellbane gryphon trip dumps tens of feathers per kill, which makes them a cheap drop-in for high-volume Fletching grinds without touching the chicken-feather GE supply.
+
+    The feathers double as the recharge consumable for the horn of plenty, the Hunter-rumour buff item added in the same content drop. Storing them inside the huntsman's kit (post January 2026 update) frees up inventory slots during long Hunter sessions.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Bulk drops from gryphons keep supply high so margins stay tight"
+      - "Hunter rumour and Fletching demand together stabilise the price floor"
+      - "Buy limit of 11,000 per 4 hours allows large flips without spread shock"
+      - "Watch ordinary feather prices: divergence opens an arbitrage window"
+      - "Buy near low alch when gryphon farmers dump after weekly clears"
+      - "Sell into peak Fletching event windows when feather demand spikes"
+      - "Track shellbane gryphon spawn changes: any nerf tightens supply quickly"
+  history:
+    - date: "2025-11-19"
+      description: "Released with the Sailing skill update introducing gryphons"
+    - date: "2026-01-14"
+      description: "Made storable inside the huntsman's kit for Hunter-rumour QoL"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

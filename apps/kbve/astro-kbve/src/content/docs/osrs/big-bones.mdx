@@ -1,6 +1,6 @@
 ---
 title: Big bones | OSRS Price Data
-description: "Big bones: Ew it's a pile of bones.. High alch: 1 GP, GE limit: 3,000."
+description: "Big bones grant 15 Prayer XP when buried and are the F2P staple for early prayer training from hill giants and ogres. High alch: 1 GP, GE limit: 3,000."
 osrs:
   id: 532
   name: Big bones
@@ -12,6 +12,22 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 3000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Bury
+      - Drop
+    destroy: "Drop"
+    alchable: true
   material:
     type: bone
     tier: low
@@ -22,62 +38,64 @@ osrs:
     xp_ectofuntus: 60
   drop_table:
     sources:
-      - source: Hill Giant
-        source_id: 2098
-        combat_level: 28
+      - source: Hill giant
         quantity: "1"
-        rarity: always
+        rarity: Always
       - source: Moss giant
-        source_id: 2090
-        combat_level: 42
         quantity: "1"
-        rarity: always
+        rarity: Always
       - source: Fire giant
-        source_id: 2075
-        combat_level: 86
         quantity: "1"
-        rarity: always
+        rarity: Always
+      - source: Ice giant
+        quantity: "1"
+        rarity: Always
       - source: Ogre
-        source_id: 2095
-        combat_level: 53
         quantity: "1"
-        rarity: always
+        rarity: Always
+      - source: Cyclops
+        quantity: "1"
+        rarity: Always
+      - source: Cave horror
+        quantity: "1"
+        rarity: Always
+      - source: Jogre
+        quantity: "1"
+        rarity: Always
   related_items:
-    - item_id: 536
-      item_name: Dragon bones
-      slug: dragon-bones
-      relationship: alternative
-      description: Higher tier bones
     - item_id: 526
       item_name: Bones
       slug: bones
-      relationship: alternative
-      description: Lower tier bones
-    - item_id: 251
-      item_name: Marrentill
-      slug: marrentill
-      relationship: component
-      description: For incense
+      relationship: downgrade
+      description: "Lower tier bones: 4.5 prayer XP per bury."
+    - item_id: 536
+      item_name: Dragon bones
+      slug: dragon-bones
+      relationship: upgrade
+      description: "Mid-game prayer training: 72 XP per bury."
     - item_id: 18337
       item_name: Bonecrusher
       slug: bonecrusher
       relationship: alternative
-      description: Auto bury
+      description: Auto-buries bones on monster kill for passive prayer XP.
+  about: |-
+    Big bones are the F2P prayer staple, dropped by hill giants, moss giants, fire giants, ogres, cyclopes, and several jungle and cave-dwelling humanoids. Each bone grants 15 Prayer XP buried, 52.5 at the Chaos Altar or Gilded Altar with two burners lit, and 60 at the Ectofuntus.
+
+    Hill Giants under the Edgeville Dungeon are the iconic F2P prayer XP source. Ironmen frequently bank big bones for late-game Chaos Altar runs.
   market_strategy:
     notes:
-      - Best F2P prayer training
-      - Very high volume
-      - Low cost per XP
-      - F2P Prayer training
-      - Low-level members
-      - Budget training
-      - Ironman early game
-      - Hill Giants popular spot
-      - Wilderness Bone Yard spawns
-      - Very cheap per XP
-      - High daily volume
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Hill giant kill volume is the dominant supply driver."
+      - "Cost-per-XP at the Chaos Altar is the demand benchmark."
+      - "Bonecrusher meta and gilded altar housing pushes consistent uptake."
+  trading_tips:
+    - "Buy bulk during low-traffic hours: 3,000 limit fills fast."
+    - "Watch dragon bone price gaps: when dragon XP/gp inverts, big bones spike."
+    - "Stock up before double XP weekends — prayer demand spikes dramatically."
+  history:
+    - date: "2001-01-04"
+      description: "Released as part of the original prayer training drop tables."
+    - date: "2007-09-04"
+      description: "Chaos Altar mechanics introduced via Zeah added a major demand sink."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

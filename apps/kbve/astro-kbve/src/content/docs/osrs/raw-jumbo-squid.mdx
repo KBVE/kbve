@@ -1,6 +1,6 @@
 ---
 title: Raw jumbo squid | OSRS Price Data
-description: "Raw jumbo squid: I should try cooking this.. High alch: 96 GP."
+description: "Raw jumbo squid: rare Tempoross catch cooked into a Cooked jumbo squid that heals up to 22 Hitpoints at level 99 Cooking. High alch: 96 GP."
 osrs:
   id: 31561
   name: Raw jumbo squid
@@ -11,10 +11,70 @@ osrs:
   value: 160
   lowalch: 64
   highalch: 96
-  limit: null
-  about: "Raw jumbo squid is a members-only item in Old School RuneScape. High alchemy value: 96 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: 13000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: fish
+    tier: mid-high
+  properties:
+    release_date: "2022-10-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - "Use"
+      - "Drop"
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  about: "Raw jumbo squid is the uncooked form of the variable-heal Tempoross reward fish. It can be received as a rare drop from a successful Tempoross encounter at a roughly 1/400 chance per reward roll and requires level 30 Cooking to attempt cooking. When cooked it becomes a Cooked jumbo squid which heals between 14 and 22 Hitpoints depending on the player's Cooking level, with the maximum heal unlocked at level 99. Despite being uncookable below level 30, it remains untradeable on the Grand Exchange when caught directly from Tempoross fish swarms during the encounter but the standalone collectable variant id 31561 can be alched and noted for bank space."
+  drop_table:
+    sources:
+      - source: Tempoross reward pool
+        quantity: "1"
+        rarity: "1/400"
+        members_only: true
+  recipes:
+    - skill: cooking
+      level: 30
+      xp: 240
+      materials:
+        - item_name: Raw jumbo squid
+          quantity: 1
+      facility: Range or fire
+      output_quantity: 1
+      product: Cooked jumbo squid
+  related_items:
+    - item_name: Cooked jumbo squid
+      slug: cooked-jumbo-squid
+      relationship: product
+      description: Cooked form that heals up to 22 HP at level 99 Cooking
+    - item_name: Spirit flakes
+      slug: spirit-flakes
+      relationship: alternative
+      description: Other shared Tempoross reward
+    - item_name: Raw shark
+      slug: raw-shark
+      relationship: alternative
+      description: Standard high-tier fishing food
+  market_strategy:
+    notes:
+      - "Tempoross-exclusive supply keeps daily volume tied to boss participation"
+      - "Cooking it at 30+ Cooking yields significantly more GP than alching raw"
+      - "Buy raw if you need quick cooking XP without grinding Tempoross"
+  trading_tips:
+    - "Cook before listing: cooked jumbo squid trades at a higher mid-game premium"
+    - "Watch Tempoross update weekends: supply briefly inflates and price dips"
+    - "Stack the full 13,000 GE limit during droughts when Tempoross is unpopular"
+  history:
+    - date: "2022-10-05"
+      update: Tempoross release
+      description: "Added as a reward fish drop alongside the Tempoross boss launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

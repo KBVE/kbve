@@ -1,6 +1,6 @@
 ---
 title: Summer pie | OSRS Price Data
-description: "Summer pie: All the fruits of a very small forest.. High alch: 84 GP, GE limit: 10,000."
+description: "Summer pie is a members-only two-bite pie that heals 11 hitpoints per bite and boosts Agility by 5 levels for skilling shortcuts. High alch: 84 GP, GE limit: 10,000."
 osrs:
   id: 7218
   name: Summer pie
@@ -12,9 +12,73 @@ osrs:
   lowalch: 56
   highalch: 84
   limit: 10000
-  about: "Summer pie is a members-only item in Old School RuneScape. High alchemy value: 84 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2004-12-13"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    destroy: "Drop"
+    alchable: true
+  material:
+    type: food
+    tier: high
+  recipes:
+    - skill: cooking
+      level: 95
+      xp: 260
+      materials:
+        - item_name: Raw summer pie
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  passive_effects:
+    - name: Summer pie boost
+      description: "Boosts Agility by 5 levels for one minute when eaten."
+      trigger: while_worn
+      affected_skill: agility
+      boost_value: 5
+  related_items:
+    - item_name: Raw summer pie
+      slug: raw-summer-pie
+      relationship: component
+      description: Uncooked pie made with summer fruits and pastry dough.
+    - item_name: Half a summer pie
+      slug: half-a-summer-pie
+      relationship: variant
+      description: First-bite leftover with one heal remaining.
+    - item_name: Wild pie
+      slug: wild-pie
+      relationship: alternative
+      description: Pie that boosts Slayer and Ranged instead.
+    - item_name: Saradomin brew
+      slug: saradomin-brew
+      relationship: alternative
+      description: Higher-tier healing flask used in bossing rotations.
+  about: |-
+    Summer pie is one of the highest-tier two-bite pies in OSRS, cooked at 95 Cooking for a hefty 260 XP per bake. Each pie restores 11 hitpoints per bite (22 total) and grants a +5 Agility boost for one minute, valuable for clearing skilling shortcut checks like the Wilderness Sword 4 spirit-tree route.
+
+    Ironmen frequently bake summer pies for their guaranteed Agility boost on tight rooftop XP checks, while bossers occasionally pack them as a backup heal in solo content.
+  market_strategy:
+    notes:
+      - "Supply driven by 95 Cooking bakers chasing 260 XP per pie."
+      - "Demand from Agility-shortcut runners and ironmen passing skilling checks."
+      - "Raw summer pie price spread defines the cook-and-sell margin."
+  trading_tips:
+    - "Flip when raw summer pie price drops: cooked margin widens."
+    - "Stock 10,000 ahead of Wilderness skilling events or league restrictions."
+    - "Watch for Agility shortcut buffs: demand spikes immediately."
+  history:
+    - date: "2004-12-13"
+      description: "Released as part of the Christmas 2004 cooking content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
