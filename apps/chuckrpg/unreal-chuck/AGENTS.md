@@ -79,8 +79,8 @@ ue_image_tag  = "dev-5.7.4"
 server_config = "Development"
 ```
 
-Server build workflow lives in `.github/workflows/ci-ue5-rows.yml` and
-`ci-ue.yml`. The dedicated-server target is built from
+Server build runs via `.github/workflows/ci-unreal.yml` (`task: server`,
+routes to `ci-unreal-build.yml` mode `server`). The dedicated-server target is built from
 `chuckServer.Target.cs` — if you rename the target class, update
 `build.toml`'s `server_target` field in the same commit or CI will fail.
 

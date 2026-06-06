@@ -526,7 +526,7 @@ jobs:
 
                   echo "=== Unreal Game ==="
                   while IFS= read -r entry; do
-                    dispatch_game_engine unreal_game ci-unreal-game.yml "$entry"
+                    dispatch_game_engine unreal_game ci-unreal.yml "$entry"
                   done < <(jq -c '.unreal_game[]? // empty' "$MANIFEST")
 
                   echo ""
