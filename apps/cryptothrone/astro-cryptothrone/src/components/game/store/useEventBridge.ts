@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { laserEvents } from '@kbve/laser';
 import type { CharacterEventData, NotificationEventData } from '@kbve/laser';
 import type { GameAction } from './game-store';
+import type { NPCAction } from '../types';
 import type { Dispatch } from 'react';
 
 export function useEventBridge(dispatch: Dispatch<GameAction>) {
@@ -42,86 +43,64 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 		);
 
 		unsubs.push(
-			laserEvents.on(
-				'npc:interact' as keyof typeof laserEvents,
-				((data: {
-					npcId: string;
-					npcName: string;
-					actions: string[];
-					coords: { x: number; y: number };
-				}) => {
-					dispatch({
-						type: 'SET_NPC_INTERACTION',
-						payload: data as any,
-					});
-				}) as any,
-			),
+			laserEvents.on('npc:interact', (data) => {
+				dispatch({
+					type: 'SET_NPC_INTERACTION',
+					payload: {
+						npcId: data.npcId,
+						npcName: data.npcName,
+						actions: data.actions as NPCAction[],
+						coords: data.coords,
+					},
+				});
+			}),
 		);
 
 		unsubs.push(
-			laserEvents.on(
-				'player:damage' as keyof typeof laserEvents,
-				((data: { damage: number }) => {
-					dispatch({
-						type: 'PLAYER_DAMAGE',
-						payload: { damage: Number(data.damage) },
-					});
-				}) as any,
-			),
+			laserEvents.on('player:damage', (data) => {
+				dispatch({
+					type: 'PLAYER_DAMAGE',
+					payload: { damage: Number(data.damage) },
+				});
+			}),
 		);
 
 		unsubs.push(
-			laserEvents.on(
-				'player:stats' as keyof typeof laserEvents,
-				((data: { stats: any }) => {
-					dispatch({
-						type: 'SET_PLAYER_STATS',
-						payload: data.stats,
-					});
-				}) as any,
-			),
+			laserEvents.on('player:stats', (data) => {
+				dispatch({
+					type: 'SET_PLAYER_STATS',
+					payload: data.stats,
+				});
+			}),
 		);
 
 		unsubs.push(
-			laserEvents.on(
-				'dice:roll' as keyof typeof laserEvents,
-				((data: {
-					npcId: string;
-					npcName: string;
-					diceCount: number;
-				}) => {
-					dispatch({
-						type: 'SET_DICE_ROLL',
-						payload: {
-							npcId: data.npcId,
-							npcName: data.npcName,
-							diceCount: data.diceCount,
-							diceValues: [],
-							totalRoll: null,
-							phase: 'rolling',
-						},
-					});
-				}) as any,
-			),
+			laserEvents.on('dice:roll', (data) => {
+				dispatch({
+					type: 'SET_DICE_ROLL',
+					payload: {
+						npcId: data.npcId,
+						npcName: data.npcName,
+						diceCount: data.diceCount,
+						diceValues: [],
+						totalRoll: null,
+						phase: 'rolling',
+					},
+				});
+			}),
 		);
 
 		unsubs.push(
-			laserEvents.on(
-				'dice:result' as keyof typeof laserEvents,
-				((data: { diceValues: number[] }) => {
-					const total = data.diceValues.reduce(
-						(a: number, b: number) => a + b,
-						0,
-					);
-					dispatch({
-						type: 'UPDATE_DICE_VALUES',
-						payload: {
-							diceValues: data.diceValues,
-							totalRoll: total,
-						},
-					});
-				}) as any,
-			),
+			laserEvents.on('dice:result', (data) => {
+				const total = data.diceValues.reduce((a, b) => a + b, 0);
+				dispatch({
+					type: 'UPDATE_DICE_VALUES',
+					payload: {
+						diceValues: data.diceValues,
+						totalRoll: total,
+					},
+				});
+			}),
 		);
 
 		return () => unsubs.forEach((fn) => fn());

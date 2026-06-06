@@ -401,6 +401,10 @@ void UKBVESupabaseSubsystem::ScheduleRefresh()
 	const UKBVESupabaseSettings* Settings = GetSettings();
 	if (!Settings || !CurrentSession.IsValid()) return;
 
+	// Implicit-grant sentinel: no real refresh_token exists, so we can't refresh.
+	// Skip scheduling — the access token rides until expiry, then user re-signs in.
+	if (CurrentSession.RefreshToken.Equals(CurrentSession.AccessToken)) return;
+
 	UGameInstance* GI = GetGameInstance();
 	if (!GI) return;
 	UWorld* World = GI->GetWorld();

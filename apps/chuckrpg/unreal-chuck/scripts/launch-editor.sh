@@ -78,18 +78,32 @@ if [ -n "$EXISTING_PIDS" ]; then
 	pkill -f "EpicWebHelper" 2>/dev/null || true
 fi
 
+mkdir -p "$PROJ_DIR/Saved/Logs"
+RAW_LOG="$(cd "$PROJ_DIR" && pwd)/Saved/Logs/chuck-stream.log"
+FRIENDLY_LOG="$(cd "$PROJ_DIR" && pwd)/Saved/Logs/chuck.log"
+: > "$FRIENDLY_LOG"
+
+# Pipeline:
+# 1. tee streams ALL output to RAW_LOG for forensics
+# 2. grep keeps only [chuck], LogKBVESupabase, KBVETooltip, errors, warnings,
+#    crashes, and Supabase URL launches → friendly console + chuck.log
 echo "==> launching UnrealEditor (uproject=$UPROJECT)"
-echo "==> log stream:"
+echo "==> raw log    : $RAW_LOG"
+echo "==> friendly   : $FRIENDLY_LOG"
+echo "==> filtered console (only [chuck], supabase, errors, warnings) below:"
+echo ""
 
 "$EDITOR" \
 	"$ABS_UPROJECT" \
 	-stdout \
 	-FullStdOutLogOutput \
-	-NoSplash \
-	-AbsLog="$PROJ_DIR/Saved/Logs/chuck-stream.log" \
-	"$@"
+	-AbsLog="$RAW_LOG" \
+	"$@" 2>&1 \
+	| tee "$RAW_LOG" \
+	| grep --line-buffered -E '\[chuck\]|LogKBVESupabase|KBVETooltip|LaunchURL|Error|Warning|Fatal|Assertion|CrashGUID|Caught signal|Engine exit requested' \
+	| tee "$FRIENDLY_LOG"
 
-EXIT=$?
+EXIT=${PIPESTATUS[0]}
 
 if [ "$EXIT" -ne 0 ]; then
 	echo ""

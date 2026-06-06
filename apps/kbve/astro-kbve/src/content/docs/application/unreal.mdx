@@ -623,7 +623,7 @@ xcodebuild -license accept
 
 ### CI Workflow
 
-The `ci-ue-mac-setup.yml` workflow (stub) follows the same two-job pattern as Windows:
+The `ci-unreal.yml` workflow (`task: mac-setup`, routes to `ci-unreal-build.yml` mode `mac-setup`) follows the same two-job pattern as Windows:
 1. **Linux runner**: stages downloads via download-proxy (aria2c)
 2. **macOS VM runner**: installs from staged files on the shared PVC
 

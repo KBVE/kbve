@@ -7,6 +7,7 @@
 class SchuckMainMenu;
 class SchuckLoginWidget;
 class SchuckAccountPanel;
+class SchuckLoadingPanel;
 class UKBVESupabaseSubsystem;
 struct FKBVESupabaseSession;
 
@@ -24,10 +25,12 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void Tick(float DeltaSeconds) override;
 
 private:
 	void HandlePlay();
 	void HandleQuit();
+	void TickLoadingTransition(float DeltaSeconds);
 
 	void RefreshAuthVisibility(bool bSignedIn);
 
@@ -43,7 +46,13 @@ private:
 	TSharedPtr<SchuckMainMenu>     MenuWidget;
 	TSharedPtr<SchuckLoginWidget>  LoginWidget;
 	TSharedPtr<SchuckAccountPanel> AccountWidget;
+	TSharedPtr<SchuckLoadingPanel> LoadingWidget;
 
 	UPROPERTY(Transient)
 	TWeakObjectPtr<UKBVESupabaseSubsystem> SupabaseSubsystem;
+
+	bool       bLoadingActive = false;
+	uint32     LoadingSeed    = 0;
+	FIntPoint  LoadingAnchor  = FIntPoint::ZeroValue;
+	float      LoadingElapsed = 0.f;
 };

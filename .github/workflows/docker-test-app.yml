@@ -17,10 +17,15 @@ on:
                 type: string
                 default: ''
             install_playwright:
-                description: 'Install Playwright browsers on host (default: true). Set false for vitest-only e2e projects.'
+                description: 'Force-install Playwright browsers regardless of detection (default: auto). Leave empty to auto-detect from source_path.'
                 required: false
-                type: boolean
-                default: true
+                type: string
+                default: 'auto'
+            source_path:
+                description: 'Project source path (e.g. apps/cryptothrone). Used to auto-detect @nx/playwright usage.'
+                required: false
+                type: string
+                default: ''
             version_source:
                 description: 'Path to MDX/JSON file with version field (for pre-build sync)'
                 required: false
@@ -127,24 +132,70 @@ jobs:
               with:
                   enable-cache: false
 
+            - name: Detect Playwright usage
+              id: detect-playwright
+              run: |
+                  FORCE="${{ inputs.install_playwright }}"
+                  if [ "$FORCE" = "true" ]; then
+                    echo "uses_playwright=true" >> "$GITHUB_OUTPUT"
+                    echo "Playwright forced ON via input"
+                    exit 0
+                  fi
+                  if [ "$FORCE" = "false" ]; then
+                    echo "uses_playwright=false" >> "$GITHUB_OUTPUT"
+                    echo "Playwright forced OFF via input"
+                    exit 0
+                  fi
+                  ROOT="${{ inputs.source_path }}"
+                  if [ -z "$ROOT" ] || [ ! -d "$ROOT" ]; then
+                    echo "uses_playwright=false" >> "$GITHUB_OUTPUT"
+                    echo "No source_path provided — defaulting to no Playwright"
+                    exit 0
+                  fi
+                  if grep -rlq '@nx/playwright:playwright' "$ROOT" 2>/dev/null; then
+                    echo "uses_playwright=true" >> "$GITHUB_OUTPUT"
+                    echo "Detected @nx/playwright:playwright executor under ${ROOT}"
+                  else
+                    echo "uses_playwright=false" >> "$GITHUB_OUTPUT"
+                    echo "No Playwright executor under ${ROOT}"
+                  fi
+
+            - name: Resolve Playwright version
+              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' }}
+              id: playwright-version
+              run: |
+                  VER=$(node -e "console.log(require('./node_modules/playwright/package.json').version)" 2>/dev/null || echo "unknown")
+                  echo "version=${VER}" >> "$GITHUB_OUTPUT"
+                  echo "Resolved Playwright version: ${VER}"
+
+            - name: Cache Playwright browsers
+              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' }}
+              id: playwright-cache
+              uses: actions/cache@v5
+              with:
+                  path: ~/.cache/ms-playwright
+                  key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}-chromium-webkit
+                  restore-keys: |
+                      ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}-
+                      ${{ runner.os }}-playwright-
+
             - name: Install Playwright Browsers
-              if: ${{ inputs.install_playwright }}
+              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.playwright-cache.outputs.cache-hit != 'true' }}
               timeout-minutes: 15
               env:
                   UV_THREADPOOL_SIZE: '16'
               run: pnpm exec playwright install --with-deps chromium webkit
 
-            # VALKEY_PASSWORD is injected into the runner container's
-            # process env by the actions-runner-controller values.yaml
-            # (sourced from the valkey-sccache-credentials Secret synced
-            # by ExternalSecret). It auto-inherits into `run:` steps,
-            # so no explicit env entry needed — axum-kbve's container:ci
-            # command picks it up via `${VALKEY_PASSWORD:+--secret ...}`
-            # and only attaches the build secret when present.
+            - name: Install Playwright OS deps (cache hit)
+              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.playwright-cache.outputs.cache-hit == 'true' }}
+              timeout-minutes: 10
+              run: pnpm exec playwright install-deps chromium webkit
+
             - name: Nx e2e ${{ inputs.project }}
               env:
                   BUILDKIT_PROGRESS: plain
                   INPUT_GITHUB_TOKEN: ${{ github.token }}
+                  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && '1' || '' }}
               run: pnpm nx e2e ${{ inputs.project }} --configuration=ci --no-cloud --output-style=stream
 
             - name: Mark test passed

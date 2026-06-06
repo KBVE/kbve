@@ -25,7 +25,8 @@ public class chuck : ModuleRules
 			"StructUtils",
 			"NetCore",
 			"ProceduralMeshComponent",
-			"NavigationSystem"
+			"NavigationSystem",
+			"Foliage"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {
@@ -39,7 +40,10 @@ public class chuck : ModuleRules
 			"KBVEULID",
 			"KBVEUI",
 			"KBVEEvents",
-			"KBVESupabase"
+			"KBVESQLite",
+			"KBVESupabase",
+			"KBVEWorld",
+			"ROWS"
 		});
 
 

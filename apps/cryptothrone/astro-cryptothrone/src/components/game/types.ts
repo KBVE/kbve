@@ -23,6 +23,14 @@ export interface PlayerInventory {
 	equipment: Record<EquipmentSlot, string | null>;
 }
 
+export type ItemRarity =
+	| 'common'
+	| 'uncommon'
+	| 'rare'
+	| 'epic'
+	| 'legendary'
+	| 'mythic';
+
 export interface ItemData {
 	id: string;
 	name: string;
@@ -33,6 +41,8 @@ export interface ItemData {
 	durability: number;
 	weight: number;
 	actions: ItemAction[];
+	rarity: ItemRarity;
+	lore?: string;
 }
 
 export type ItemAction = 'use' | 'equip' | 'drop' | 'inspect';

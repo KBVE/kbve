@@ -17,22 +17,130 @@ Cluster: Talos Linux, Kubernetes 1.33.2, dual /32 external IPs
 
 **Residual Phase 2 cleanup (operational, not repo):**
 
-- ingress-nginx Deployment + Service still alive in `ingress-nginx`
-  namespace 65d after the ArgoCD app was removed in PR #11551 (the
-  app deletion did not prune). The Service still holds
-  `142.132.206.74`, blocking the Cilium gateway from claiming both
-  VIPs (LB IPAM reports `IPS AVAILABLE 0` and the gateway Service has
-  `IPAMRequestSatisfied=False, already_allocated` against `.74`).
-- `ingress-nginx-admission` validating webhook still alive.
 - Three stale Ingress objects (`bugwars/bugwars-ingress`,
-  `restream/restreamer`, `staryo/staryo-ingress`) survive only because
-  nginx is still alive. They were never in the repo. Decide before
-  purge: migrate to HTTPRoute or accept the apps going dark.
-- ACME HTTP-01 solvers migrated from nginx → `gatewayHTTPRoute` in
-  PR #11789. Stuck `memes-cert` / `kbve-wt-tls` / `cryptothrone-tls`
-  renewals reconcile automatically once cert-manager re-issues
-  against the Cilium gateway HTTP listener (after dev→main release
-  and ArgoCD sync of the new cluster-issuer).
+  `restream/restreamer`, `staryo/staryo-ingress`) survive in the
+  cluster only because nginx was still alive when they were created.
+  They were never in the repo and now point at a dead VIP. Decide
+  before purge: migrate to HTTPRoute or accept the apps going dark.
+- The `kube-flannel` and `kube-proxy` DaemonSets are still in
+  `kube-system` after they were temporarily enabled during the
+  2026-06-06 lockout recovery (see Phase 6 below). Talos no longer
+  manages them — they're orphan DaemonSets. Safe to delete once
+  Cilium is fully stable.
+
+---
+
+## Phase 6: Operational invariants and recovery (2026-06-06 incident)
+
+A multi-hour outage exposed a destructive interaction between
+Cilium's eBPF service redirect and the node's primary host IP.
+This section documents the failure mode and the procedure that
+restored the cluster — required reading before any future
+LB IPAM pool or kbve-gateway change.
+
+### Hard invariant: node IP must never appear in a Cilium LB pool
+
+`142.132.206.74` is the Talos node's primary host IP
+(`machine.network.interfaces[0].addresses`). After PR #11551 removed
+ingress-nginx and freed `.74` from the legacy MetalLB Service,
+`CiliumLoadBalancerIPPool/public-ip-pool` still listed `.74/32` as
+a block. Cilium LB IPAM allocated `.74` to the kbve-gateway Service.
+Cilium 1.19's eBPF service-redirect program then intercepted **all**
+TCP traffic to `.74` and silently blackholed every port outside the
+Service's port list:
+
+| Port  | Owner before       | Owner after Cilium claim | Result                    |
+| ----- | ------------------ | ------------------------ | ------------------------- |
+| 80    | (none)             | Cilium Envoy             | served                    |
+| 443   | (none)             | Cilium Envoy             | served                    |
+| 6443  | kube-apiserver     | (nothing, intercepted)   | external client times out |
+| 50000 | apid (Talos API)   | (nothing, intercepted)   | external client times out |
+| 22    | (no sshd on Talos) | (nothing, intercepted)   | external client times out |
+
+External `kubectl` and `talosctl` both lock out. ArgoCD continues
+running in-cluster (it reaches the apiserver via
+`kubernetes.default.svc`, not the external `.74:6443`), but its pods
+can't be re-scheduled if Cilium itself flaps.
+
+**The fix is purely declarative:** PR #11811 dropped `.74` from
+`CiliumLoadBalancerIPPool/public-ip-pool.spec.blocks` and from
+`kbve-gateway.spec.infrastructure.annotations[io.cilium/lb-ipam-ips]`.
+The node IP is permanently excluded from anything Cilium can claim.
+
+### Cilium image cache corruption from rescue-mode disk surgery
+
+The first recovery attempt edited Talos's persistent
+`config.yaml` from Hetzner Rescue to switch CNI to flannel + add
+`extraHostEntries` blocking `quay.io`, AND deleted Cilium image
+config blobs from `/var/lib/containerd/io.containerd.content.v1.content/`.
+The blob-delete left containerd's bolt metadata DB
+(`io.containerd.metadata.v1.bolt/meta.db`) referencing missing
+blobs. Subsequent image pulls failed with
+`blob sha256:<digest> expected at <path>: blob not found`, and
+re-pulling never refreshed the metadata. The pull error survived
+multiple reboots and `talosctl image rm` operations.
+
+**The fix:** wipe the entire containerd state on disk while leaving
+etcd alone. `/var/lib/containerd/io.containerd.content.v1.content/blobs/sha256/*`
+(content blobs), `/var/lib/containerd/io.containerd.metadata.v1.bolt/meta.db`
+(bolt metadata), and the snapshotter trees are all safe to delete.
+`/var/lib/etcd/` is on the same EPHEMERAL partition but is a separate
+directory tree — leave it intact and the cluster state survives.
+
+### Recovery runbook (lock-out from external clients)
+
+If `.74:6443` and `.74:50000` both time out from the laptop while
+ICMP ping to `.74` works and `kbve.com` returns CF 5xx:
+
+1. **Confirm Cilium hijack vs network outage.** ICMP responds but
+   non-80/443 TCP times out = eBPF intercept. If even ICMP fails,
+   the node is dead — Hetzner Robot, KVM console, hardware first.
+2. **Stage the repo fix.** Open a PR shrinking
+   `CiliumLoadBalancerIPPool.spec.blocks` to exclude the node IP
+   and removing the node IP from any `io.cilium/lb-ipam-ips`
+   annotations. Merge to `main`. This is the permanent fix —
+   everything below is the way to get the cluster back to a state
+   where ArgoCD can apply it.
+3. **Hetzner Rescue, cycle 1.** Activate Rescue (Robot → Rescue
+   tab → 64-bit Linux + SSH key), hardware reset, SSH in.
+4. **Identify Talos partitions.** `lsblk -f` — STATE and EPHEMERAL
+   labels move between `/dev/sda` and `/dev/sdb` depending on disk
+   enumeration order. Always mount by label
+   (`/dev/disk/by-label/STATE`, `/dev/disk/by-label/EPHEMERAL`).
+5. **Wipe containerd state, NOT etcd.** Mount EPHEMERAL by label
+   and delete:
+    ```
+    rm -rf /mnt/ephemeral/lib/containerd/io.containerd.content.v1.content/blobs/sha256/*
+    rm -f /mnt/ephemeral/lib/containerd/io.containerd.metadata.v1.bolt/meta.db
+    rm -rf /mnt/ephemeral/lib/containerd/io.containerd.snapshotter.v1.overlayfs/snapshots/*
+    rm -rf /mnt/ephemeral/lib/containerd/io.containerd.snapshotter.v1.native/snapshots/*
+    ```
+    Verify `/mnt/ephemeral/lib/etcd/member/` is untouched before
+    unmount.
+6. **Do NOT edit Talos `config.yaml` from rescue.** Disk-edits to
+   the persistent machineconfig were the source of half the pain
+   in this incident. If a Talos config change is needed, apply it
+   via `talosctl patch machineconfig` AFTER the API is back —
+   never from rescue.
+7. **Reboot to Talos.** Robot → Rescue deactivate → hardware reset.
+8. **Wait 5–10 minutes.** Containerd starts empty. Kubelet pulls
+   every image from scratch. The Cilium agent re-installs from the
+   corrected pool (already on `main` from step 2), claims only the
+   non-node VIPs, and the node's host TCP stack reclaims `.74` for
+   the apiserver and talosctl.
+9. **Cleanup.** Once `kubectl` works again, force-delete pods stuck
+   in `Unknown` (their replacements are already in
+   `ContainerCreating`), and remove the legacy `kube-flannel` /
+   `kube-proxy` DaemonSets if they were enabled during recovery.
+
+### Talos disk layout note
+
+`/dev/sda` and `/dev/sdb` swap between boots — Linux's disk
+enumeration is not stable across the BIOS POST order, and the
+Talos installer drive can appear as either depending on whether
+Rescue mode was used last. Mount partitions by their persistent
+label (xfs `LABEL=STATE`, `LABEL=EPHEMERAL`, `LABEL=BOOT`) via
+`/dev/disk/by-label/<name>`, never by raw `/dev/sd*` path.
 
 ---
 

@@ -100,4 +100,11 @@ private:
 
 	float LastHealthForFlash = -1.f;
 	float LastDamageTime     = -10.f;
+
+	bool   bSpawnSnapPending  = false;
+	float  SpawnSnapElapsed   = 0.f;
+	uint32 SpawnSnapSeed      = 0;
+	FVector2D SpawnSnapAnchor = FVector2D::ZeroVector;
+
+	void TickSpawnSnap(float DeltaSeconds);
 };

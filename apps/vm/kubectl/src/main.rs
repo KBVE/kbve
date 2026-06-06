@@ -437,8 +437,38 @@ async fn cmd_rotate_gameserver(
 
     tracing::info!("desired={desired} running={running} state={state}");
 
-    if desired.is_empty() || running.is_empty() {
-        tracing::info!("missing gs or pod — nothing to rotate");
+    if desired.is_empty() {
+        tracing::info!("missing gs — nothing to rotate");
+        return ExitCode::SUCCESS;
+    }
+
+    let timeout_arg = format!("--timeout={delete_timeout}s");
+    let wrapper_timeout = Duration::from_secs(delete_timeout.saturating_add(30));
+    let delete_args = [
+        "-n",
+        namespace,
+        "delete",
+        &gs_ref,
+        &timeout_arg,
+        "--ignore-not-found",
+    ];
+
+    if state == "Unhealthy" && running.is_empty() {
+        tracing::warn!("gs Unhealthy with no pod — recovering by deleting gs");
+        return match kubectl_output_with_timeout(&delete_args, wrapper_timeout).await {
+            Ok(_) => {
+                tracing::info!("delete sent; ArgoCD selfHeal will recreate from {desired}");
+                ExitCode::SUCCESS
+            }
+            Err(e) => {
+                tracing::error!("recovery delete failed: {e}");
+                ExitCode::FAILURE
+            }
+        };
+    }
+
+    if running.is_empty() {
+        tracing::info!("missing pod (state={state}) — nothing to rotate");
         return ExitCode::SUCCESS;
     }
     if desired == running {
@@ -452,21 +482,7 @@ async fn cmd_rotate_gameserver(
 
     tracing::info!("image drift detected: {running} -> {desired}; rotating");
 
-    let timeout_arg = format!("--timeout={delete_timeout}s");
-    let wrapper_timeout = Duration::from_secs(delete_timeout.saturating_add(30));
-    match kubectl_output_with_timeout(
-        &[
-            "-n",
-            namespace,
-            "delete",
-            &gs_ref,
-            &timeout_arg,
-            "--ignore-not-found",
-        ],
-        wrapper_timeout,
-    )
-    .await
-    {
+    match kubectl_output_with_timeout(&delete_args, wrapper_timeout).await {
         Ok(_) => {
             tracing::info!("delete sent; ArgoCD selfHeal will recreate from {desired}");
             ExitCode::SUCCESS

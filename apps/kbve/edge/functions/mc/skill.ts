@@ -101,7 +101,7 @@ const handlers: Record<string, Handler> = {
     }
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_save_skill_tree", {
+    const { data, error } = await supabase.schema("mc").rpc("service_save_skill_tree", {
       p_skill_tree: skill_tree,
     });
 
@@ -124,7 +124,7 @@ const handlers: Record<string, Handler> = {
     if (serverErr) return serverErr;
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_load_skill_tree", {
+    const { data, error } = await supabase.schema("mc").rpc("service_load_skill_tree", {
       p_player_uuid: player_uuid as string,
       p_server_id: server_id as string,
     });
@@ -179,7 +179,7 @@ const handlers: Record<string, Handler> = {
     }
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.rpc("service_add_skill_xp", {
+    const { data, error } = await supabase.schema("mc").rpc("service_add_skill_xp", {
       p_player_uuid: player_uuid as string,
       p_server_id: server_id as string,
       p_skill_id: skill_id as string,

@@ -12,7 +12,7 @@ Automated builds for the private [KBVE/UnrealEngine-Angelscript](https://github.
 
 ## How It Works
 
-1. **Trigger**: Manual `workflow_dispatch` on `ci-angelscript-engine.yml`
+1. **Trigger**: Manual `workflow_dispatch` on `ci-unreal.yml` with `task: engine` (routes to `ci-unreal-build.yml` mode `engine`)
 2. **Version gate**: Checks `version.toml` against existing releases on `KBVE/UnrealEngine-Angelscript`
 3. **Build**: Clones/updates the private engine repo, builds per-platform
 4. **Release**: Uploads artifacts to GitHub Release on the private repo, pushes Docker image for Linux server
@@ -23,7 +23,7 @@ Automated builds for the private [KBVE/UnrealEngine-Angelscript](https://github.
 Plugins are built and released **separately** from the editor:
 
 - Plugin source lives in `packages/unreal/` in this monorepo
-- Plugin CI runs via `utils-unreal-plugin-cicd.yml` (stock UE containers)
+- Plugin CI runs via `ci-unreal-build.yml` mode `plugin` / `plugin-win` (stock UE containers / Win64 native), dispatched from `ci-publish.yml`
 - Plugin releases land on `KBVE/kbve` GitHub Releases (e.g., `uedevops-v0.1.0`)
 - Users download the editor from the private repo, then download plugin zips from kbve releases and drop them into the editor's `Plugins/` folder
 

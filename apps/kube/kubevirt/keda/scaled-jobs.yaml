@@ -30,7 +30,7 @@ spec:
                 restartPolicy: OnFailure
                 containers:
                     - name: idle-checker
-                      image: registry.k8s.io/kubectl:v1.33.2
+                      image: ghcr.io/kbve/kubectl:0.1.4
                       command: ['/bin/sh', '/scripts/idle-shutdown.sh']
                       env:
                           - name: VM_NAME
@@ -80,7 +80,7 @@ spec:
                 restartPolicy: OnFailure
                 containers:
                     - name: idle-checker
-                      image: registry.k8s.io/kubectl:v1.33.2
+                      image: ghcr.io/kbve/kubectl:0.1.4
                       command: ['/bin/sh', '/scripts/idle-shutdown.sh']
                       env:
                           - name: VM_NAME

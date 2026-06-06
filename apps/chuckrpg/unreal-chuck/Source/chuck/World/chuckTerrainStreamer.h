@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "Tickable.h"
-#include "chuckTerrainCache.h"
+#include "KBVEWorldChunkCache.h"
 #include "chuckTerrainStreamer.generated.h"
 
 class AchuckTerrainChunk;
@@ -24,6 +24,10 @@ public:
 	void SetSeed(uint32 InSeed) { Seed = InSeed; }
 	uint32 GetSeed() const { return Seed; }
 
+	void EnsureBuiltAround(const FVector2D& WorldXY);
+
+	bool IsReady() const { return ChunkPool.Num() > 0; }
+
 protected:
 	float ChunkExtent() const { return CellsPerEdge * CellSize; }
 	FIntPoint WorldToChunk(const FVector& WorldLoc) const;
@@ -39,14 +43,14 @@ protected:
 	UPROPERTY()
 	TMap<FIntPoint, TObjectPtr<AchuckTerrainChunk>> ActiveChunks;
 
-	FchuckTerrainCache Cache;
+	FKBVEWorldChunkCache Cache;
 	uint64 UseCounter   = 0;
 	uint32 Seed         = 0xC1A55E5Au;
 	int32  CellsPerEdge = 32;
 	float  CellSize     = 200.f;
-	int32  ChunkRadius  = 2;
-	int32  PoolSize     = 36;
+	int32  ChunkRadius  = 4;
+	int32  PoolSize     = 100;
 	float  WaterZ       = -120.f;
-	float  StreamInterval = 0.5f;
+	float  StreamInterval = 0.15f;
 	float  TimeSinceStream = 0.f;
 };

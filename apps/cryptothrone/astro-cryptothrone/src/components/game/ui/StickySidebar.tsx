@@ -10,7 +10,7 @@ export function StickySidebar() {
 	const dispatch = useGameDispatch();
 
 	return (
-		<div className="fixed top-24 left-3 w-[350px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-20 transition duration-500 opacity-50 hover:opacity-100 max-h-[80vh] overflow-y-auto">
+		<div className="fixed top-4 left-3 w-[350px] p-4 bg-zinc-800 text-yellow-400 border border-yellow-300 rounded-lg z-20 transition duration-500 opacity-50 hover:opacity-100 max-h-[90vh] overflow-y-auto">
 			<div className="flex gap-2 mb-4">
 				<ToggleButton
 					isCollapsed={settings.isStatsCollapsed}

@@ -325,8 +325,9 @@ jobs:
             packages: read
             issues: write
             pull-requests: write
-        uses: ./.github/workflows/utils-unreal-plugin-cicd.yml
+        uses: ./.github/workflows/ci-unreal-build.yml
         with:
+            mode: plugin
             plugin_path: ${{ inputs.unreal_plugin_path }}
             plugin_name: ${{ inputs.package_name }}
             ue_image_tag: ${{ matrix.ue_tag }}
@@ -338,7 +339,7 @@ jobs:
             dependency_plugin_paths: ${{ inputs.unreal_dependency_plugins }}
         secrets:
             epic_pat: ${{ secrets.UNITY_PAT }}
-            butler_api: ${{ secrets.butler_api }}
+            butler_api: ${{ secrets.ITCH_API }}
 
     # ===========================================================================
     # Unreal Win64 — native Windows build on KubeVirt VM
@@ -352,8 +353,9 @@ jobs:
             contents: write
             issues: write
             pull-requests: write
-        uses: ./.github/workflows/utils-unreal-plugin-win-cicd.yml
+        uses: ./.github/workflows/ci-unreal-build.yml
         with:
+            mode: plugin-win
             plugin_path: ${{ inputs.unreal_plugin_path }}
             plugin_name: ${{ inputs.package_name }}
             target_platforms: Win64
@@ -363,12 +365,13 @@ jobs:
             itch_channel: plugin-win64
             dependency_plugin_paths: ${{ inputs.unreal_dependency_plugins }}
         secrets:
-            butler_api: ${{ secrets.butler_api }}
+            epic_pat: ${{ secrets.UNITY_PAT }}
+            butler_api: ${{ secrets.ITCH_API }}
 
     # ---------------------------------------------------------------------------
     # Post-publish — update version.toml after successful publish.
     # Uses the version_gate output to know what version was published.
-    # Unreal handles its own version.toml update inside utils-unreal-plugin-cicd.yml.
+    # Unreal handles its own version.toml update inside ci-unreal-build.yml.
     # ---------------------------------------------------------------------------
     update_version_npm:
         name: Update version.toml (npm)

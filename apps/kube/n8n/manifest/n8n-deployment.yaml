@@ -56,8 +56,6 @@ spec:
                         protocol: TCP
                   envFrom:
                       - secretRef:
-                            name: n8n-redis-secret
-                      - secretRef:
                             name: discordsh-n8n-hmac
                             optional: true
                   env:
@@ -85,9 +83,14 @@ spec:
                       - name: EXECUTIONS_MODE
                         value: 'queue'
                       - name: QUEUE_BULL_REDIS_HOST
-                        value: 'redis-master.redis.svc.cluster.local'
+                        value: 'valkey.valkey.svc.cluster.local'
                       - name: QUEUE_BULL_REDIS_PORT
                         value: '6379'
+                      - name: QUEUE_BULL_REDIS_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: valkey-auth
+                                key: valkey-password
                       - name: QUEUE_BULL_REDIS_DB
                         value: '2'
                       - name: QUEUE_BULL_PREFIX
