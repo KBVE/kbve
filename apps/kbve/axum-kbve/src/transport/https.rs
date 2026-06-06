@@ -628,6 +628,10 @@ fn router(state: AppState) -> Router {
             axum::routing::get(super::proxy::kubevirt_vnc_info_handler),
         )
         .route(
+            "/dashboard/vm/vnc-control/{name}",
+            axum::routing::post(super::proxy::kubevirt_vnc_control_handler),
+        )
+        .route(
             "/dashboard/vm/vnc-sessions",
             axum::routing::get(super::proxy::kubevirt_vnc_sessions_handler),
         )

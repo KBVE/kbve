@@ -45,35 +45,59 @@ export default function ReactVMVncViewer() {
 	const [keyboardVisible, setKeyboardVisible] = useState(false);
 	const [viewerCount, setViewerCount] = useState(0);
 	const [isPrimary, setIsPrimary] = useState(false);
+	// Stable per-tab id so the control endpoint can target this viewer.
+	const [viewerId] = useState(() =>
+		typeof crypto !== 'undefined' && crypto.randomUUID
+			? crypto.randomUUID()
+			: `v-${Math.random().toString(36).slice(2)}`,
+	);
+	// Whether this tab currently holds input control of the shared session.
+	const [isController, setIsController] = useState(false);
+	// A pending "take control" request inside its grace window, if any.
+	const [pending, setPending] = useState<{
+		requester_viewer_id: string;
+		seconds_remaining: number;
+	} | null>(null);
 	const reconnectAttemptRef = useRef(0);
 	const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
 		null,
 	);
 	const intentionalCloseRef = useRef(false);
 
+	const refreshInfo = useCallback(async () => {
+		if (!vncTarget) return;
+		try {
+			const info = await vmService.getVNCSessionInfo(vncTarget);
+			if (info) {
+				setViewerCount(info.viewers);
+				setIsPrimary(info.has_primary);
+				setIsController(info.controller_viewer_id === viewerId);
+				setPending(info.pending);
+			}
+		} catch {
+			/* ignore */
+		}
+	}, [vncTarget, viewerId]);
+
 	useEffect(() => {
 		if (!vncTarget || !connected) {
 			setViewerCount(0);
 			setIsPrimary(false);
+			setIsController(false);
+			setPending(null);
 			return;
 		}
-
-		const pollViewerCount = async () => {
-			try {
-				const info = await vmService.getVNCSessionInfo(vncTarget);
-				if (info) {
-					setViewerCount(info.viewers);
-					setIsPrimary(info.has_primary);
-				}
-			} catch {
-				/* ignore */
-			}
-		};
-
-		pollViewerCount();
-		const interval = setInterval(pollViewerCount, 5000);
+		refreshInfo();
+		// Poll often enough that the grace countdown + control changes feel live.
+		const interval = setInterval(refreshInfo, 2000);
 		return () => clearInterval(interval);
-	}, [vncTarget, connected]);
+	}, [vncTarget, connected, refreshInfo]);
+
+	// Mirror control state into noVNC: view-only unless we hold control. This
+	// gates user input client-side; the server enforces it authoritatively too.
+	useEffect(() => {
+		if (rfbRef.current) rfbRef.current.viewOnly = !isController;
+	}, [isController, connected]);
 
 	const cleanup = useCallback(() => {
 		if (reconnectTimerRef.current) {
@@ -88,6 +112,8 @@ export default function ReactVMVncViewer() {
 		setStatus('Disconnected');
 		setViewerCount(0);
 		setIsPrimary(false);
+		setIsController(false);
+		setPending(null);
 	}, []);
 
 	const connectVNC = useCallback(async (target: string) => {
@@ -96,7 +122,7 @@ export default function ReactVMVncViewer() {
 
 		viewerEl.innerHTML = '';
 
-		const wsUrl = vmService.getVNCWebSocketURL(target);
+		const wsUrl = vmService.getVNCWebSocketURL(target, viewerId);
 		setStatus(
 			reconnectAttemptRef.current > 0
 				? `Reconnecting (${reconnectAttemptRef.current}/${MAX_RECONNECT_ATTEMPTS})...`
@@ -118,6 +144,9 @@ export default function ReactVMVncViewer() {
 			rfb.showDotCursor = true;
 			rfb.qualityLevel = 6;
 			rfb.compressionLevel = 2;
+			// Start view-only; the info poll flips this on once we're confirmed
+			// as the controller (the first viewer is auto-promoted server-side).
+			rfb.viewOnly = true;
 
 			rfb.addEventListener('connect', () => {
 				setConnected(true);
@@ -271,6 +300,24 @@ export default function ReactVMVncViewer() {
 		}
 	}, [vncTarget, connected, connectVNC]);
 
+	const takeControl = useCallback(async () => {
+		if (!vncTarget) return;
+		await vmService.vncControl(vncTarget, 'take', viewerId);
+		refreshInfo();
+	}, [vncTarget, viewerId, refreshInfo]);
+
+	const releaseControl = useCallback(async () => {
+		if (!vncTarget) return;
+		await vmService.vncControl(vncTarget, 'release', viewerId);
+		refreshInfo();
+	}, [vncTarget, viewerId, refreshInfo]);
+
+	const denyControl = useCallback(async () => {
+		if (!vncTarget) return;
+		await vmService.vncControl(vncTarget, 'deny', viewerId);
+		refreshInfo();
+	}, [vncTarget, viewerId, refreshInfo]);
+
 	const sendCtrlAltDel = useCallback(() => {
 		rfbRef.current?.sendCtrlAltDel();
 	}, []);
@@ -389,8 +436,44 @@ export default function ReactVMVncViewer() {
 							</span>
 						)}
 					</div>
-					<div style={{ display: 'flex', gap: 4 }}>
+					<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
 						{connected && (
+							<span
+								style={{
+									fontSize: '0.6rem',
+									fontWeight: 700,
+									letterSpacing: 0.3,
+									padding: '2px 6px',
+									borderRadius: 4,
+									textTransform: 'uppercase',
+									background: isController
+										? 'rgba(34, 197, 94, 0.15)'
+										: 'rgba(139, 148, 158, 0.15)',
+									color: isController ? '#22c55e' : '#8b949e',
+								}}>
+								{isController ? 'Controlling' : 'View only'}
+							</span>
+						)}
+						{connected && !isController && (
+							<button
+								onClick={takeControl}
+								disabled={pending?.requester_viewer_id === viewerId}
+								title="Request control of this VM"
+								style={controlBtnStyle(false)}>
+								{pending?.requester_viewer_id === viewerId
+									? `Requesting… ${pending?.seconds_remaining ?? ''}s`
+									: 'Take control'}
+							</button>
+						)}
+						{connected && isController && (
+							<button
+								onClick={releaseControl}
+								title="Release control (become view-only)"
+								style={controlBtnStyle(false)}>
+								Release
+							</button>
+						)}
+						{connected && isController && (
 							<>
 								<ToolbarButton
 									title="Send Ctrl+Alt+Del"
@@ -432,6 +515,35 @@ export default function ReactVMVncViewer() {
 						</ToolbarButton>
 					</div>
 				</div>
+				{connected &&
+					isController &&
+					pending &&
+					pending.requester_viewer_id !== viewerId && (
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'space-between',
+								gap: 8,
+								padding: '0.4rem 1rem',
+								borderTop:
+									'1px solid var(--sl-color-gray-5, #30363d)',
+								background: 'rgba(245, 158, 11, 0.12)',
+								fontSize: '0.7rem',
+								color: '#f59e0b',
+							}}>
+							<span>
+								Another viewer is requesting control —
+								transferring in {pending.seconds_remaining}s
+							</span>
+							<button
+								onClick={denyControl}
+								title="Deny the control request"
+								style={controlBtnStyle(true)}>
+								Deny
+							</button>
+						</div>
+					)}
 				<div
 					style={{
 						padding: '0.25rem 1rem 0.4rem',
@@ -448,6 +560,19 @@ export default function ReactVMVncViewer() {
 			</div>
 		</div>
 	);
+}
+
+function controlBtnStyle(danger: boolean): React.CSSProperties {
+	return {
+		fontSize: '0.65rem',
+		fontWeight: 600,
+		padding: '3px 8px',
+		borderRadius: 4,
+		cursor: 'pointer',
+		border: `1px solid ${danger ? 'rgba(239, 68, 68, 0.4)' : 'var(--sl-color-gray-5, #30363d)'}`,
+		background: danger ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
+		color: danger ? '#ef4444' : 'var(--sl-color-text, #e6edf3)',
+	};
 }
 
 function ToolbarButton({

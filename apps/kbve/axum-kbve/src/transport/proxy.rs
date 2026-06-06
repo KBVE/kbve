@@ -971,16 +971,85 @@ pub async fn kubevirt_vnc_handler(
     // VM_NAMESPACE is hardcoded to angelscript; parameterise once another
     // VM namespace lands.
     let vm_key = format!("{VM_NAMESPACE}/{vm_name}");
+    // Browser-supplied stable id used to correlate this viewer with its
+    // control-plane HTTP requests (take/release control).
+    let viewer_id = query_param(query.as_deref(), "viewer_id");
 
     // vnc_hub shares a single upstream connection across every viewer.
     ws.protocols(["binary.k8s.io", "base64.binary.k8s.io"])
         .on_upgrade(move |browser_ws| async move {
-            if let Err(e) =
-                super::vnc_hub::join_session(vm_key, upstream_url, upstream_token, browser_ws).await
+            if let Err(e) = super::vnc_hub::join_session(
+                vm_key,
+                upstream_url,
+                upstream_token,
+                viewer_id,
+                browser_ws,
+            )
+            .await
             {
                 warn!("VNC hub error for {vm_name}: {e}");
             }
         })
+}
+
+/// Extract a single query-string parameter value (no percent-decoding —
+/// callers use it for opaque ids like a UUID viewer_id).
+fn query_param(query: Option<&str>, key: &str) -> Option<String> {
+    query?.split('&').find_map(|pair| {
+        let (k, v) = pair.split_once('=')?;
+        (k == key).then(|| v.to_string())
+    })
+}
+
+/// POST /dashboard/vm/vnc-control/{name} — take / release / deny control of a
+/// shared VNC session. Body: {"action":"take|release|deny","viewer_id":"..."}.
+pub async fn kubevirt_vnc_control_handler(
+    Path(vm_name): Path<String>,
+    req: Request<Body>,
+) -> Response {
+    let headers = req.headers().clone();
+    let query = req.uri().query().map(|q| q.to_string());
+
+    if let Err(resp) =
+        require_dashboard_view_with_query(&headers, query.as_deref(), "VNC-Control").await
+    {
+        return resp;
+    }
+
+    let body_bytes = match axum::body::to_bytes(req.into_body(), 4096).await {
+        Ok(b) => b,
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, axum::Json(json!({"error": "invalid body"})))
+                .into_response();
+        }
+    };
+    let payload: serde_json::Value = match serde_json::from_slice(&body_bytes) {
+        Ok(v) => v,
+        Err(_) => {
+            return (StatusCode::BAD_REQUEST, axum::Json(json!({"error": "invalid JSON"})))
+                .into_response();
+        }
+    };
+
+    let action = payload.get("action").and_then(|v| v.as_str()).unwrap_or("");
+    let viewer_id = payload.get("viewer_id").and_then(|v| v.as_str()).unwrap_or("");
+    if viewer_id.is_empty() {
+        return (StatusCode::BAD_REQUEST, axum::Json(json!({"error": "missing viewer_id"})))
+            .into_response();
+    }
+
+    let vm_key = format!("{VM_NAMESPACE}/{vm_name}");
+    let ok = match action {
+        "take" => super::vnc_hub::request_control(&vm_key, viewer_id),
+        "release" => super::vnc_hub::release_control(&vm_key, viewer_id),
+        "deny" => super::vnc_hub::deny_control(&vm_key, viewer_id),
+        _ => {
+            return (StatusCode::BAD_REQUEST, axum::Json(json!({"error": "unknown action"})))
+                .into_response();
+        }
+    };
+
+    axum::Json(json!({"ok": ok})).into_response()
 }
 
 const VM_NAMESPACE: &str = "angelscript";
@@ -1003,8 +1072,15 @@ pub async fn kubevirt_vnc_info_handler(
     let vm_key = format!("{VM_NAMESPACE}/{vm_name}");
     match super::vnc_hub::get_session_info(&vm_key) {
         Some(info) => axum::Json(info).into_response(),
-        None => axum::Json(json!({"vm_key": vm_key, "viewers": 0, "has_primary": false}))
-            .into_response(),
+        None => axum::Json(json!({
+            "vm_key": vm_key,
+            "viewers": 0,
+            "has_primary": false,
+            "controller_viewer_id": null,
+            "viewers_list": [],
+            "pending": null
+        }))
+        .into_response(),
     }
 }
 
@@ -1301,6 +1377,7 @@ async fn kasm_ws_handler(
                 session_key,
                 upstream_url.clone(),
                 config,
+                None,
                 browser_ws,
             )
             .await

@@ -3,8 +3,10 @@ use axum::extract::ws::{Message as AxumMsg, WebSocket};
 use dashmap::DashMap;
 use futures_util::{SinkExt, StreamExt};
 use serde::Serialize;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Mutex as StdMutex;
+use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, OnceLock};
+use std::time::{Duration, Instant};
 use tokio::sync::{Mutex, broadcast};
 use tokio_tungstenite::tungstenite::http::HeaderValue;
 use tokio_tungstenite::tungstenite::{Message as TungMsg, client::IntoClientRequest};
@@ -23,8 +25,33 @@ pub struct VncSession {
     broadcast: broadcast::Sender<Bytes>,
     upstream_sink: Mutex<Option<UpstreamSink>>,
     clients: AtomicUsize,
-    primary_id: AtomicUsize,
+    /// client_id of the single viewer allowed to send input upstream
+    /// (`0` = nobody). The first viewer to join gets it automatically;
+    /// everyone else is view-only. Control only transfers through the timed
+    /// "take control" flow — never opportunistically — which also keeps late
+    /// joiners' RFB handshake bytes out of the live upstream stream.
+    controller_id: AtomicUsize,
+    /// client_id -> browser-supplied viewer_id, so the (separate) control
+    /// HTTP requests can target a specific connection, and so the dashboard
+    /// can list viewers + identify the controller.
+    clients_map: DashMap<usize, String>,
+    /// In-flight "take control" request inside its 5s grace window, if any.
+    pending: StdMutex<Option<PendingControl>>,
+    /// Bumped on every request/deny so a stale grace timer no-ops.
+    pending_gen: AtomicU64,
 }
+
+/// A "take control" request waiting out its grace period. The current
+/// controller may deny it before `deadline`; otherwise the grace timer
+/// promotes `requester_id` to controller.
+struct PendingControl {
+    requester_id: usize,
+    requester_viewer_id: String,
+    deadline: Instant,
+    generation: u64,
+}
+
+const CONTROL_GRACE: Duration = Duration::from_secs(5);
 
 static SESSIONS: OnceLock<DashMap<String, Arc<VncSession>>> = OnceLock::new();
 static NEXT_CLIENT_ID: AtomicUsize = AtomicUsize::new(1);
@@ -34,34 +61,189 @@ fn sessions() -> &'static DashMap<String, Arc<VncSession>> {
 }
 
 #[derive(Serialize)]
+pub struct ViewerInfo {
+    pub viewer_id: String,
+    pub is_controller: bool,
+}
+
+#[derive(Serialize)]
+pub struct PendingInfo {
+    pub requester_viewer_id: String,
+    pub seconds_remaining: u64,
+}
+
+#[derive(Serialize)]
 pub struct SessionInfo {
     pub vm_key: String,
     pub viewers: usize,
+    /// viewer_id of the current controller, if any.
+    pub controller_viewer_id: Option<String>,
+    /// `true` while someone holds control — kept for dashboard back-compat.
     pub has_primary: bool,
+    pub viewers_list: Vec<ViewerInfo>,
+    /// Set while a "take control" request is in its grace window.
+    pub pending: Option<PendingInfo>,
+}
+
+fn build_session_info(session: &VncSession) -> SessionInfo {
+    let controller_id = session.controller_id.load(Ordering::Relaxed);
+    let controller_viewer_id = session
+        .clients_map
+        .get(&controller_id)
+        .map(|v| v.value().clone());
+    let viewers_list = session
+        .clients_map
+        .iter()
+        .map(|e| ViewerInfo {
+            viewer_id: e.value().clone(),
+            is_controller: *e.key() == controller_id,
+        })
+        .collect();
+    let pending = session
+        .pending
+        .lock()
+        .ok()
+        .and_then(|p| p.as_ref().map(|pc| PendingInfo {
+            requester_viewer_id: pc.requester_viewer_id.clone(),
+            seconds_remaining: pc
+                .deadline
+                .saturating_duration_since(Instant::now())
+                .as_secs(),
+        }));
+    SessionInfo {
+        vm_key: session.vm_key.clone(),
+        viewers: session.clients.load(Ordering::Relaxed),
+        controller_viewer_id,
+        has_primary: controller_id != 0,
+        viewers_list,
+        pending,
+    }
 }
 
 pub fn get_session_info(vm_key: &str) -> Option<SessionInfo> {
     let registry = sessions();
-    registry.get(vm_key).map(|session| SessionInfo {
-        vm_key: session.vm_key.clone(),
-        viewers: session.clients.load(Ordering::Relaxed),
-        has_primary: session.primary_id.load(Ordering::Relaxed) != 0,
-    })
+    registry.get(vm_key).map(|session| build_session_info(&session))
 }
 
 pub fn list_sessions() -> Vec<SessionInfo> {
     let registry = sessions();
     registry
         .iter()
-        .map(|entry| {
-            let session = entry.value();
-            SessionInfo {
-                vm_key: session.vm_key.clone(),
-                viewers: session.clients.load(Ordering::Relaxed),
-                has_primary: session.primary_id.load(Ordering::Relaxed) != 0,
-            }
-        })
+        .map(|entry| build_session_info(entry.value()))
         .collect()
+}
+
+/// A viewer requests control. If nobody holds control (or the requester
+/// already does) it's granted immediately; otherwise a 5s grace window opens
+/// during which the current controller may `deny_control`. Returns `false`
+/// if the session or viewer_id is unknown.
+pub fn request_control(vm_key: &str, viewer_id: &str) -> bool {
+    let Some(session) = sessions().get(vm_key).map(|s| s.clone()) else {
+        return false;
+    };
+    let Some(requester_id) = session
+        .clients_map
+        .iter()
+        .find(|e| e.value() == viewer_id)
+        .map(|e| *e.key())
+    else {
+        return false;
+    };
+
+    let current = session.controller_id.load(Ordering::Relaxed);
+    if current == 0 || current == requester_id {
+        session.controller_id.store(requester_id, Ordering::Relaxed);
+        if let Ok(mut p) = session.pending.lock() {
+            *p = None;
+        }
+        info!(
+            "VNC hub: {} control granted immediately to client {}",
+            session.vm_key, requester_id
+        );
+        return true;
+    }
+
+    let generation = session.pending_gen.fetch_add(1, Ordering::Relaxed) + 1;
+    if let Ok(mut p) = session.pending.lock() {
+        *p = Some(PendingControl {
+            requester_id,
+            requester_viewer_id: viewer_id.to_string(),
+            deadline: Instant::now() + CONTROL_GRACE,
+            generation,
+        });
+    }
+    info!(
+        "VNC hub: {} client {} requested control — {}s grace",
+        session.vm_key,
+        requester_id,
+        CONTROL_GRACE.as_secs()
+    );
+
+    let session_timer = session.clone();
+    tokio::spawn(async move {
+        tokio::time::sleep(CONTROL_GRACE).await;
+        if let Ok(mut p) = session_timer.pending.lock() {
+            if let Some(pc) = p.as_ref() {
+                if pc.generation == generation
+                    && session_timer.clients_map.contains_key(&pc.requester_id)
+                {
+                    session_timer
+                        .controller_id
+                        .store(pc.requester_id, Ordering::Relaxed);
+                    info!(
+                        "VNC hub: {} control transferred to client {} (grace elapsed)",
+                        session_timer.vm_key, pc.requester_id
+                    );
+                    *p = None;
+                }
+            }
+        }
+    });
+    true
+}
+
+/// The current controller denies a pending request (cancels the takeover).
+/// Only the controller may deny. Returns `false` if not allowed / no session.
+pub fn deny_control(vm_key: &str, viewer_id: &str) -> bool {
+    let Some(session) = sessions().get(vm_key).map(|s| s.clone()) else {
+        return false;
+    };
+    let controller_id = session.controller_id.load(Ordering::Relaxed);
+    let is_controller = session
+        .clients_map
+        .get(&controller_id)
+        .map(|v| v.value() == viewer_id)
+        .unwrap_or(false);
+    if !is_controller {
+        return false;
+    }
+    // Bump the generation so the in-flight grace timer no-ops, then clear.
+    session.pending_gen.fetch_add(1, Ordering::Relaxed);
+    if let Ok(mut p) = session.pending.lock() {
+        *p = None;
+    }
+    info!("VNC hub: {} pending control request denied", session.vm_key);
+    true
+}
+
+/// The controller releases control, becoming a viewer (controller -> none).
+/// Only the controller may release. Returns `false` if not allowed.
+pub fn release_control(vm_key: &str, viewer_id: &str) -> bool {
+    let Some(session) = sessions().get(vm_key).map(|s| s.clone()) else {
+        return false;
+    };
+    let controller_id = session.controller_id.load(Ordering::Relaxed);
+    let is_controller = session
+        .clients_map
+        .get(&controller_id)
+        .map(|v| v.value() == viewer_id)
+        .unwrap_or(false);
+    if !is_controller {
+        return false;
+    }
+    session.controller_id.store(0, Ordering::Relaxed);
+    info!("VNC hub: {} controller released control", session.vm_key);
+    true
 }
 
 pub struct UpstreamConfig {
@@ -92,19 +274,23 @@ pub async fn join_session(
     vm_key: String,
     upstream_url: String,
     upstream_token: Option<String>,
+    viewer_id: Option<String>,
     browser_ws: WebSocket,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let config = UpstreamConfig::kubevirt(upstream_token)?;
-    join_session_with_config(vm_key, upstream_url, config, browser_ws).await
+    join_session_with_config(vm_key, upstream_url, config, viewer_id, browser_ws).await
 }
 
 pub async fn join_session_with_config(
     vm_key: String,
     upstream_url: String,
     config: UpstreamConfig,
+    viewer_id: Option<String>,
     browser_ws: WebSocket,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let client_id = NEXT_CLIENT_ID.fetch_add(1, Ordering::Relaxed);
+    // Fall back to a server id if the browser didn't supply a viewer_id.
+    let viewer_id = viewer_id.unwrap_or_else(|| format!("c{client_id}"));
     let registry = sessions();
 
     let session = {
@@ -124,26 +310,36 @@ pub async fn join_session_with_config(
         }
     };
 
+    session.clients_map.insert(client_id, viewer_id.clone());
     let prior = session.clients.fetch_add(1, Ordering::Relaxed);
     if prior == 0 {
-        session.primary_id.store(client_id, Ordering::Relaxed);
+        // First viewer drives the real upstream handshake and gets control.
+        session.controller_id.store(client_id, Ordering::Relaxed);
         info!(
-            "VNC hub: {} opened — client {} is primary",
-            session.vm_key, client_id
+            "VNC hub: {} opened — client {} (viewer {}) is controller",
+            session.vm_key, client_id, viewer_id
         );
     } else {
         info!(
-            "VNC hub: {} client {} joined as observer ({} total)",
+            "VNC hub: {} client {} (viewer {}) joined as view-only ({} total)",
             session.vm_key,
             client_id,
+            viewer_id,
             prior + 1
         );
     }
 
     let result = run_client(session.clone(), client_id, browser_ws).await;
 
-    if session.primary_id.load(Ordering::Relaxed) == client_id {
-        session.primary_id.store(0, Ordering::Relaxed);
+    // Cleanup: drop from the client map and hand off control if we held it.
+    session.clients_map.remove(&client_id);
+    if session.controller_id.load(Ordering::Relaxed) == client_id {
+        // Promote any remaining viewer so framebuffer requests keep flowing;
+        // otherwise control falls to nobody.
+        let next = session.clients_map.iter().next().map(|e| *e.key());
+        session
+            .controller_id
+            .store(next.unwrap_or(0), Ordering::Relaxed);
     }
     let remaining = session.clients.fetch_sub(1, Ordering::Relaxed) - 1;
     if remaining == 0 {
@@ -194,7 +390,10 @@ async fn create_session(
         broadcast: broadcast_tx,
         upstream_sink: Mutex::new(Some(upstream_tx)),
         clients: AtomicUsize::new(0),
-        primary_id: AtomicUsize::new(0),
+        controller_id: AtomicUsize::new(0),
+        clients_map: DashMap::new(),
+        pending: StdMutex::new(None),
+        pending_gen: AtomicU64::new(0),
     });
 
     {
@@ -268,6 +467,14 @@ async fn run_client(
                 Ok(AxumMsg::Close(_)) | Err(_) => break,
                 _ => continue,
             };
+
+            // Only the controller may write upstream. View-only clients have
+            // their input dropped here — crucially including a late joiner's
+            // RFB handshake bytes, which would otherwise corrupt the live
+            // upstream stream and reset everyone's connection.
+            if session_input.controller_id.load(Ordering::Relaxed) != client_id {
+                continue;
+            }
 
             let mut guard = session_input.upstream_sink.lock().await;
             match guard.as_mut() {
