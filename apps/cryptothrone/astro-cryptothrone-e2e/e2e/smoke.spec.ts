@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import { CONTENT_ROUTES, GAME_ROUTES } from './helpers/routes';
 
 test.describe('astro-cryptothrone smoke tests', () => {

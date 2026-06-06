@@ -1,7 +1,7 @@
-import { useRef, useCallback, useMemo, memo } from 'react';
+import { useRef, useCallback, useMemo, memo, useEffect } from 'react';
 import Phaser from 'phaser';
 import GridEngine from 'grid-engine';
-import { PhaserGame } from '@kbve/laser';
+import { PhaserGame, laserEvents } from '@kbve/laser';
 import type { PhaserGameRef } from '@kbve/laser';
 import { PreloaderScene } from './scenes/PreloaderScene';
 import { CloudCityScene } from './scenes/CloudCityScene';
@@ -61,6 +61,14 @@ const PhaserCanvas = memo(function PhaserCanvas() {
 function GameUI() {
 	const dispatch = useGameDispatch();
 	useEventBridge(dispatch);
+
+	useEffect(() => {
+		if (import.meta.env.DEV) {
+			(
+				window as Window & { __ctEvents?: typeof laserEvents }
+			).__ctEvents = laserEvents;
+		}
+	}, []);
 
 	return (
 		<>
