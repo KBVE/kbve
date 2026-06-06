@@ -1,0 +1,96 @@
+name: Fetch UE Plugins
+description: Resolve a game's unreal-plugins.lock.json and download matching prebuilt plugin release assets into the project's Plugins dir. Falls back to source for any plugin without a published asset.
+
+inputs:
+    lockfile:
+        description: Path to unreal-plugins.lock.json (beside the .uproject)
+        required: true
+    project_dir:
+        description: Directory containing the .uproject — plugins land in <project_dir>/Plugins
+        required: true
+    platform:
+        description: 'Target platform: Win64 | Linux | Mac'
+        required: true
+    source_root:
+        description: Monorepo root holding packages/unreal/<name> for source fallback
+        required: false
+        default: '.'
+    github_token:
+        description: Token with contents read on the release repo
+        required: true
+
+outputs:
+    prebuilt:
+        description: Space-separated plugin names satisfied by a prebuilt asset
+        value: ${{ steps.fetch.outputs.prebuilt }}
+    source:
+        description: Space-separated plugin names that fell back to source
+        value: ${{ steps.fetch.outputs.source }}
+
+runs:
+    using: composite
+    steps:
+        - name: Fetch plugins
+          id: fetch
+          shell: bash
+          env:
+              GH_TOKEN: ${{ inputs.github_token }}
+              LOCKFILE: ${{ inputs.lockfile }}
+              PROJECT_DIR: ${{ inputs.project_dir }}
+              PLATFORM: ${{ inputs.platform }}
+              SOURCE_ROOT: ${{ inputs.source_root }}
+              REPO: ${{ github.repository }}
+          run: |
+              set -uo pipefail
+
+              if [ ! -f "$LOCKFILE" ]; then
+                  echo "::error::Lockfile not found: $LOCKFILE"
+                  exit 1
+              fi
+
+              ENGINE=$(jq -r '.engine' "$LOCKFILE")
+              if [ -z "$ENGINE" ] || [ "$ENGINE" = "null" ]; then
+                  echo "::error::Lockfile missing 'engine'"
+                  exit 1
+              fi
+
+              PLUGINS_DIR="${PROJECT_DIR}/Plugins"
+              mkdir -p "$PLUGINS_DIR"
+
+              prebuilt=""
+              source=""
+
+              while IFS= read -r entry; do
+                  name=$(echo "$entry" | jq -r '.name')
+                  version=$(echo "$entry" | jq -r '.version')
+                  lower=$(echo "$name" | tr '[:upper:]' '[:lower:]')
+                  if [ "$PLATFORM" = "Win64" ]; then
+                      tag="${lower}-win64-v${version}"
+                  else
+                      tag="${lower}-v${version}"
+                  fi
+                  asset="${name}-${PLATFORM}-UE${ENGINE}-v${version}.zip"
+
+                  echo "::group::${name} v${version} (${PLATFORM}, UE${ENGINE})"
+                  if gh release download "$tag" --repo "$REPO" --pattern "$asset" --dir /tmp/ue-plugins 2>/dev/null; then
+                      unzip -q -o "/tmp/ue-plugins/${asset}" -d "$PLUGINS_DIR"
+                      echo "prebuilt: $asset"
+                      prebuilt="${prebuilt} ${name}"
+                  else
+                      src="${SOURCE_ROOT}/packages/unreal/${name}"
+                      if [ -d "$src" ]; then
+                          cp -r "$src" "${PLUGINS_DIR}/${name}"
+                          rm -rf "${PLUGINS_DIR}/${name}/Binaries" "${PLUGINS_DIR}/${name}/Intermediate"
+                          echo "::warning::No prebuilt ${asset} — copied source from ${src} (will compile)"
+                          source="${source} ${name}"
+                      else
+                          echo "::error::No prebuilt asset ${asset} and no source at ${src}"
+                          echo "::endgroup::"
+                          exit 1
+                      fi
+                  fi
+                  echo "::endgroup::"
+              done < <(jq -c '.plugins[]' "$LOCKFILE")
+
+              echo "prebuilt=${prebuilt# }" >> "$GITHUB_OUTPUT"
+              echo "source=${source# }" >> "$GITHUB_OUTPUT"

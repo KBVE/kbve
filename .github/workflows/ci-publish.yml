@@ -67,6 +67,11 @@ on:
                 description: 'Unix timestamp when this was dispatched (queue guard)'
                 required: true
                 type: string
+            skip_version_update:
+                description: 'unreal-win64 only — when true, the Win64 publish does NOT bump version.toml (the Linux publish owns it for multi-platform plugins).'
+                required: false
+                type: boolean
+                default: false
 
 # No workflow-level concurrency — each package fans out independently.
 # Queue guard handles stale deploy protection per-package.
@@ -164,14 +169,15 @@ jobs:
                       fi
                       VTOML="packages/python/${PYPI}/version.toml"
                       ;;
-                    unreal)
-                      UPLUGIN="${{ inputs.unreal_plugin_path }}/${NAME}.uplugin"
-                      LOCAL=$(jq -r '.VersionName' "$UPLUGIN" 2>/dev/null || echo "0.0.0")
-                      VTOML="${{ inputs.unreal_plugin_path }}/version.toml"
-                      ;;
-                    unreal-win64)
-                      UPLUGIN="${{ inputs.unreal_plugin_path }}/${NAME}.uplugin"
-                      LOCAL=$(jq -r '.VersionName' "$UPLUGIN" 2>/dev/null || echo "0.0.0")
+                    unreal | unreal-win64)
+                      # MDX manifest_version is the lever; uplugin VersionName is a
+                      # build-stamped/post-publish-synced mirror, not the source.
+                      MANIFEST_V="${{ inputs.manifest_version }}"
+                      if [ -n "$MANIFEST_V" ] && [ "$MANIFEST_V" != "0.0.0" ]; then
+                        LOCAL="$MANIFEST_V"
+                      else
+                        LOCAL=$(jq -r '.VersionName' "${{ inputs.unreal_plugin_path }}/${NAME}.uplugin" 2>/dev/null || echo "0.0.0")
+                      fi
                       VTOML="${{ inputs.unreal_plugin_path }}/version.toml"
                       ;;
                     *)
@@ -330,6 +336,7 @@ jobs:
             mode: plugin
             plugin_path: ${{ inputs.unreal_plugin_path }}
             plugin_name: ${{ inputs.package_name }}
+            manifest_version: ${{ inputs.manifest_version }}
             ue_image_tag: ${{ matrix.ue_tag }}
             target_platforms: Linux
             deploy_to_itch: ${{ inputs.deploy_to_itch }}
@@ -358,6 +365,8 @@ jobs:
             mode: plugin-win
             plugin_path: ${{ inputs.unreal_plugin_path }}
             plugin_name: ${{ inputs.package_name }}
+            manifest_version: ${{ inputs.manifest_version }}
+            ue_image_tag: ${{ fromJson(inputs.ue_image_tags)[0] }}
             target_platforms: Win64
             deploy_to_itch: ${{ inputs.deploy_to_itch }}
             itch_username: kbve
@@ -371,7 +380,6 @@ jobs:
     # ---------------------------------------------------------------------------
     # Post-publish — update version.toml after successful publish.
     # Uses the version_gate output to know what version was published.
-    # Unreal handles its own version.toml update inside ci-unreal-build.yml.
     # ---------------------------------------------------------------------------
     update_version_npm:
         name: Update version.toml (npm)
@@ -420,6 +428,38 @@ jobs:
             version: ${{ needs.version_gate.outputs.local_version }}
             version_toml_path: packages/python/${{ inputs.pypi_name }}/version.toml
             version_target_path: ${{ inputs.version_target }}
+
+    update_version_unreal:
+        name: Update version.toml (unreal)
+        needs: [publish_unreal, version_gate]
+        if: always() && needs.publish_unreal.result == 'success' && needs.version_gate.outputs.should_publish == 'true'
+        permissions:
+            contents: write
+            pull-requests: write
+            actions: write
+        uses: KBVE/kbve/.github/workflows/utils-update-version-toml.yml@dev
+        with:
+            package_type: unreal
+            package_name: ${{ inputs.package_name }}
+            version: ${{ needs.version_gate.outputs.local_version }}
+            version_toml_path: ${{ inputs.unreal_plugin_path }}/version.toml
+            version_target_path: ${{ inputs.unreal_plugin_path }}/${{ inputs.package_name }}.uplugin
+
+    update_version_unreal_win64:
+        name: Update version.toml (unreal-win64)
+        needs: [publish_unreal_win64, version_gate]
+        if: always() && needs.publish_unreal_win64.result == 'success' && needs.version_gate.outputs.should_publish == 'true' && inputs.skip_version_update != true
+        permissions:
+            contents: write
+            pull-requests: write
+            actions: write
+        uses: KBVE/kbve/.github/workflows/utils-update-version-toml.yml@dev
+        with:
+            package_type: unreal
+            package_name: ${{ inputs.package_name }}
+            version: ${{ needs.version_gate.outputs.local_version }}
+            version_toml_path: ${{ inputs.unreal_plugin_path }}/version.toml
+            version_target_path: ${{ inputs.unreal_plugin_path }}/${{ inputs.package_name }}.uplugin
 
     # ---------------------------------------------------------------------------
     # Failure Tracker — opens a GitHub issue on any pipeline failure (#8186).
