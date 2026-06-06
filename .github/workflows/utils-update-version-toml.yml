@@ -78,6 +78,9 @@ jobs:
                     *.toml)
                       sed -i "s/^version = .*/version = \"${VERSION}\"/" "$TARGET"
                       ;;
+                    *.uplugin)
+                      jq --arg v "$VERSION" '.VersionName = $v' "$TARGET" > "$TARGET.tmp" && mv "$TARGET.tmp" "$TARGET"
+                      ;;
                     *.json)
                       jq --arg v "$VERSION" '.version = $v' "$TARGET" > "$TARGET.tmp" && mv "$TARGET.tmp" "$TARGET"
                       ;;

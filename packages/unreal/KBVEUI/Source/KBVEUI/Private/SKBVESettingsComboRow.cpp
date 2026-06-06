@@ -7,6 +7,7 @@
 
 void SKBVESettingsComboRow::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	OnSelectionChanged = InArgs._OnSelectionChanged;
 
 	for (const FString& Option : InArgs._Options)

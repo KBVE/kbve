@@ -73,6 +73,7 @@ namespace
 
 void SKBVEMovableFrame::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	Position                   = InArgs._InitialPosition;
 	FrameSize                  = InArgs._FrameSize;
 	MinFrameSize               = InArgs._MinFrameSize;

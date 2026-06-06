@@ -157,7 +157,12 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 	AccountWidget = SNew(SchuckAccountPanel).Subsystem(SupabaseSubsystem);
 	ChatWidget    = SNew(SchuckChatPanel)
 		.Subsystem(SupabaseSubsystem)
-		.OwningCharacter(Char);
+		.OwningCharacter(Char)
+		.OnCloseClicked(FSimpleDelegate::CreateLambda([this]()
+		{
+			SetUiFlag(EUiFlag::Chat, false);
+			RefreshUiMouseMode();
+		}));
 
 	// Default to hidden. InitSupabaseBridge below flips them on based on auth state.
 	AccountWidget->SetVisibility(EVisibility::Collapsed);
@@ -257,7 +262,7 @@ void AchuckCorePlayerController::OnUnPossess()
 	{
 		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), InventoryWidget.ToSharedRef());
 		InventoryWidget.Reset();
-		bInventoryOpen = false;
+		SetUiFlag(EUiFlag::Inventory, false);
 	}
 	if (HotbarWidget.IsValid())
 	{
@@ -274,7 +279,7 @@ void AchuckCorePlayerController::OnUnPossess()
 
 void AchuckCorePlayerController::OnPausePressed(const FInputActionValue& Value)
 {
-	if (bGamePaused)
+	if (HasUiFlag(EUiFlag::Pause))
 	{
 		ResumeGame();
 	}
@@ -286,11 +291,11 @@ void AchuckCorePlayerController::OnPausePressed(const FInputActionValue& Value)
 
 void AchuckCorePlayerController::PauseGame()
 {
-	if (bGamePaused)
+	if (HasUiFlag(EUiFlag::Pause))
 	{
 		return;
 	}
-	bGamePaused = true;
+	SetUiFlag(EUiFlag::Pause, true);
 
 	UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
 	if (!Viewport)
@@ -316,11 +321,11 @@ void AchuckCorePlayerController::PauseGame()
 
 void AchuckCorePlayerController::ResumeGame()
 {
-	if (!bGamePaused)
+	if (!HasUiFlag(EUiFlag::Pause))
 	{
 		return;
 	}
-	bGamePaused = false;
+	SetUiFlag(EUiFlag::Pause, false);
 
 	if (PauseWidget.IsValid())
 	{
@@ -349,7 +354,7 @@ void AchuckCorePlayerController::QuitGame()
 
 void AchuckCorePlayerController::OnToggleDevOverlayPressed(const FInputActionValue& Value)
 {
-	bDevOverlayShown = !bDevOverlayShown;
+	SetUiFlag(EUiFlag::DevOverlay, !HasUiFlag(EUiFlag::DevOverlay));
 
 	UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
 	if (!Viewport)
@@ -357,7 +362,7 @@ void AchuckCorePlayerController::OnToggleDevOverlayPressed(const FInputActionVal
 		return;
 	}
 
-	if (bDevOverlayShown)
+	if (HasUiFlag(EUiFlag::DevOverlay))
 	{
 		DevOverlayWidget = SNew(SchuckDevOverlay).OwningController(this);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), DevOverlayWidget.ToSharedRef(), 15);
@@ -401,14 +406,14 @@ void AchuckCorePlayerController::Tick(float DeltaSeconds)
 void AchuckCorePlayerController::OnInventoryPressed(const FInputActionValue& Value)
 {
 	UE_LOG(LogTemp, Display, TEXT("[chuck] Inventory key pressed (currently %s)"),
-		bInventoryOpen ? TEXT("open") : TEXT("closed"));
-	if (bInventoryOpen) CloseInventory();
+		HasUiFlag(EUiFlag::Inventory) ? TEXT("open") : TEXT("closed"));
+	if (HasUiFlag(EUiFlag::Inventory)) CloseInventory();
 	else                OpenInventory();
 }
 
 void AchuckCorePlayerController::OpenInventory()
 {
-	if (bInventoryOpen) return;
+	if (HasUiFlag(EUiFlag::Inventory)) return;
 	AchuckCoreCharacter* Char = Cast<AchuckCoreCharacter>(GetPawn());
 	if (!Char) return;
 
@@ -420,12 +425,12 @@ void AchuckCorePlayerController::OpenInventory()
 		.OnCloseClicked(FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::CloseInventory));
 	Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), InventoryWidget.ToSharedRef(), 12);
 
-	FInputModeGameAndUI Mode;
-	Mode.SetWidgetToFocus(InventoryWidget);
-	Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	SetInputMode(Mode);
-	bShowMouseCursor = true;
-	bInventoryOpen   = true;
+	SetUiFlag(EUiFlag::Inventory, true);
+	RefreshUiMouseMode();
+	if (InventoryWidget.IsValid())
+	{
+		FSlateApplication::Get().SetKeyboardFocus(InventoryWidget, EFocusCause::SetDirectly);
+	}
 
 	if (HotbarWidget.IsValid())
 	{
@@ -435,7 +440,7 @@ void AchuckCorePlayerController::OpenInventory()
 
 void AchuckCorePlayerController::CloseInventory()
 {
-	if (!bInventoryOpen) return;
+	if (!HasUiFlag(EUiFlag::Inventory)) return;
 
 	if (InventoryWidget.IsValid())
 	{
@@ -446,9 +451,8 @@ void AchuckCorePlayerController::CloseInventory()
 		InventoryWidget.Reset();
 	}
 
-	SetInputMode(FInputModeGameOnly());
-	bShowMouseCursor = false;
-	bInventoryOpen   = false;
+	SetUiFlag(EUiFlag::Inventory, false);
+	RefreshUiMouseMode();
 
 	if (HotbarWidget.IsValid())
 	{
@@ -534,30 +538,70 @@ void AchuckCorePlayerController::OnToggleChatPressed(const FInputActionValue& /*
 {
 	if (!ChatWidget.IsValid()) return;
 	const bool bNowShown = ChatWidget->ToggleVisible();
-	bShowMouseCursor = bNowShown;
-	if (bNowShown)
-	{
-		FInputModeGameAndUI Mode;
-		Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		Mode.SetHideCursorDuringCapture(false);
-		SetInputMode(Mode);
-		ChatWidget->ShowAndFocusInput();
-	}
-	else
-	{
-		SetInputMode(FInputModeGameOnly());
-	}
+	SetUiFlag(EUiFlag::Chat, bNowShown);
+	if (bNowShown) ChatWidget->ShowAndFocusInput();
+	RefreshUiMouseMode();
 }
 
 void AchuckCorePlayerController::OnFocusChatPressed(const FInputActionValue& /*Value*/)
 {
 	if (!ChatWidget.IsValid()) return;
-	bShowMouseCursor = true;
-	FInputModeGameAndUI Mode;
-	Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	Mode.SetHideCursorDuringCapture(false);
-	SetInputMode(Mode);
 	ChatWidget->ShowAndFocusInput();
+	SetUiFlag(EUiFlag::Chat, true);
+	RefreshUiMouseMode();
+}
+
+bool AchuckCorePlayerController::IsAnyUiPanelOpen() const
+{
+	return HasAnyUiFlags(NeedsCursorMask);
+}
+
+void AchuckCorePlayerController::SetUiFlag(EUiFlag F, bool bOn)
+{
+	const uint16 Bit = static_cast<uint16>(F);
+	const uint16 Old = UiFlags;
+	if (bOn) UiFlags |= Bit;
+	else     UiFlags &= ~Bit;
+	if (UiFlags != Old)
+	{
+		BroadcastUiFlagsChanged(Old);
+	}
+}
+
+void AchuckCorePlayerController::BroadcastUiFlagsChanged(uint16 OldFlags)
+{
+	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
+	{
+		FchuckUiFlagsPayload Payload;
+		Payload.NewFlags = UiFlags;
+		Payload.OldFlags = OldFlags;
+		Payload.Diff     = UiFlags ^ OldFlags;
+		Bus->UiFlags.Publish(Payload);
+	}
+}
+
+void AchuckCorePlayerController::RefreshUiMouseMode()
+{
+	const bool bUi = IsAnyUiPanelOpen();
+	bShowMouseCursor = bUi;
+	if (bUi)
+	{
+		FInputModeGameAndUI Mode;
+		Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		Mode.SetHideCursorDuringCapture(false);
+		SetInputMode(Mode);
+	}
+	else
+	{
+		SetInputMode(FInputModeGameOnly());
+		ResetIgnoreInputFlags();
+		if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
+		{
+			Viewport->SetMouseCaptureMode(EMouseCaptureMode::CapturePermanently_IncludingInitialMouseDown);
+			Viewport->SetMouseLockMode(EMouseLockMode::LockOnCapture);
+			FSlateApplication::Get().SetAllUserFocusToGameViewport();
+		}
+	}
 }
 
 void AchuckCorePlayerController::RefreshAuthOverlayVisibility(bool bSignedIn)
@@ -566,9 +610,9 @@ void AchuckCorePlayerController::RefreshAuthOverlayVisibility(bool bSignedIn)
 	{
 		AccountWidget->SetVisibility(bSignedIn ? EVisibility::SelfHitTestInvisible : EVisibility::Collapsed);
 	}
-	if (ChatWidget.IsValid())
+	if (ChatWidget.IsValid() && !bSignedIn)
 	{
-		ChatWidget->SetVisibility(bSignedIn ? EVisibility::SelfHitTestInvisible : EVisibility::Collapsed);
+		ChatWidget->SetVisibility(EVisibility::Collapsed);
 	}
 	// No auto-kick back to menu. If the subsystem hiccups mid-game (refresh
 	// race, transient 401) we'd otherwise yank the player into a sign-in loop.
@@ -614,6 +658,14 @@ void AchuckCorePlayerController::HandleSupabaseSignedOut()
 		Bus->AuthStatus.Publish(Payload);
 	}
 	RefreshAuthOverlayVisibility(/*bSignedIn=*/false);
+
+	if (!MainMenuLevelName.IsNone())
+	{
+		UE_LOG(LogTemp, Display, TEXT("[chuck] CorePC signed out — returning to %s"), *MainMenuLevelName.ToString());
+		bShowMouseCursor = true;
+		SetInputMode(FInputModeUIOnly());
+		UGameplayStatics::OpenLevel(this, MainMenuLevelName);
+	}
 }
 
 void AchuckCorePlayerController::HandleSupabaseAuthError(const FKBVESupabaseError& Error)

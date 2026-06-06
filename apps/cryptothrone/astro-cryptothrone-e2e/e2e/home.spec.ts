@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import { FOOTER_EXTERNAL_LINKS } from './helpers/routes';
 
 test.describe('homepage hero', () => {

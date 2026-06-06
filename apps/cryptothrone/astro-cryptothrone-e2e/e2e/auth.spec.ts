@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 import { AUTH_ROUTES } from './helpers/routes';
 
 test.describe('astro-cryptothrone auth pages', () => {

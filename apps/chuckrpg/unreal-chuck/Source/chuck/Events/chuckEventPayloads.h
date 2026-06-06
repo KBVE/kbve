@@ -107,3 +107,12 @@ struct FchuckChatLinePayload
 	FString Body;
 	bool    bIsEvent = false;
 };
+
+struct FchuckUiFlagsPayload
+{
+	uint16 NewFlags = 0;
+	uint16 OldFlags = 0;
+	uint16 Diff     = 0;
+	uint16 Added() const   { return NewFlags & Diff; }
+	uint16 Removed() const { return OldFlags & Diff; }
+};

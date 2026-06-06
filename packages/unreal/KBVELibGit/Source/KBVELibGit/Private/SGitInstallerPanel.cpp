@@ -17,6 +17,7 @@
 
 void SGitInstallerPanel::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	InitializeRegistry();
 
 	ChildSlot

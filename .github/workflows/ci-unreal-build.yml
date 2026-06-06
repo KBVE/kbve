@@ -831,82 +831,108 @@ jobs:
                   fi
 
     engine_build_windows:
-        name: Engine Build (Windows client)
+        name: Engine Provision (UE5-Win VM)
         needs: [guard, engine_gate]
         if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true' && needs.engine_gate.outputs.should_build == 'true' && contains(inputs.platforms, 'windows')
-        runs-on: windows-latest
-        timeout-minutes: 360
+        runs-on: UE5-Win
+        timeout-minutes: 600
         permissions:
             contents: read
+        env:
+            ENGINE_ROOT: C:\UnrealEngine
         steps:
             - name: Audit log
+              shell: pwsh
+              run: Write-Host "::notice::Windows engine provision — ref=${{ inputs.engine_ref }}, version=${{ needs.engine_gate.outputs.version }}, root=$env:ENGINE_ROOT"
+
+            - name: Check existing engine
+              id: check
+              shell: pwsh
               run: |
-                  echo "::notice::Windows engine build — ref=${{ inputs.engine_ref }}, version=${{ needs.engine_gate.outputs.version }}"
+                  $runuat = Test-Path (Join-Path $env:ENGINE_ROOT 'Engine\Build\BatchFiles\RunUAT.bat')
+                  $marker = Join-Path $env:ENGINE_ROOT '.kbve-engine-ref'
+                  $builtRef = if (Test-Path $marker) { (Get-Content $marker -Raw).Trim() } else { '' }
+                  $force = '${{ inputs.skip_version_gate }}' -eq 'true'
+                  if ($runuat -and ($builtRef -eq '${{ inputs.engine_ref }}') -and (-not $force)) {
+                      Write-Host "Engine already provisioned (ref=$builtRef) — skipping build."
+                      "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+                  } else {
+                      Write-Host "Building engine (runuat=$runuat builtRef='$builtRef' force=$force)."
+                      "skip=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+                  }
 
             - name: Verify build tools
+              if: steps.check.outputs.skip != 'true'
               shell: pwsh
               run: |
                   $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-                  if (Test-Path $vsWhere) {
-                    $vsPath = & $vsWhere -latest -property installationPath
-                    Write-Host "::notice::Visual Studio found at: $vsPath"
-                  } else {
-                    Write-Host "::warning::vswhere not found — MSVC may not be installed"
-                  }
+                  if (-not (Test-Path $vsWhere)) { Write-Host "::error::vswhere not found — run the win-setup task first"; exit 1 }
+                  Write-Host "::notice::VS: $(& $vsWhere -latest -property installationPath)"
+                  git --version
                   git lfs version
 
-            - name: Clone engine source
+            - name: Clone or update engine source
+              if: steps.check.outputs.skip != 'true'
               env:
                   UNITY_PAT: ${{ secrets.UNITY_PAT }}
               shell: pwsh
               run: |
-                  git clone --depth 1 --branch ${{ inputs.engine_ref }} `
-                    "https://x-access-token:${env:UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" `
-                    engine
+                  $url = "https://x-access-token:${env:UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
+                  if (Test-Path (Join-Path $env:ENGINE_ROOT '.git')) {
+                      Push-Location $env:ENGINE_ROOT
+                      git remote set-url origin $url
+                      git fetch --depth 1 origin '${{ inputs.engine_ref }}'
+                      git checkout -f FETCH_HEAD
+                      git reset --hard FETCH_HEAD
+                      git lfs pull
+                      Pop-Location
+                  } else {
+                      git clone --depth 1 --branch '${{ inputs.engine_ref }}' $url $env:ENGINE_ROOT
+                  }
 
             - name: Run Setup
+              if: steps.check.outputs.skip != 'true'
               shell: pwsh
               run: |
-                  Push-Location engine; .\Setup.bat; Pop-Location
+                  Push-Location $env:ENGINE_ROOT; .\Setup.bat; Pop-Location
 
             - name: Generate project files
+              if: steps.check.outputs.skip != 'true'
               shell: pwsh
               run: |
-                  Push-Location engine; .\GenerateProjectFiles.bat; Pop-Location
+                  Push-Location $env:ENGINE_ROOT; .\GenerateProjectFiles.bat; Pop-Location
 
             - name: Build Editor (Win64)
+              if: steps.check.outputs.skip != 'true'
               shell: pwsh
               run: |
-                  Push-Location engine
+                  Push-Location $env:ENGINE_ROOT
                   .\Engine\Build\BatchFiles\RunUAT.bat BuildTarget `
                     -target=UnrealEditor -platform=Win64 -configuration=Development `
                     -notools -unattended -utf8output
                   Pop-Location
 
-            - name: Package Windows client
+            - name: Mark engine ref
+              if: steps.check.outputs.skip != 'true'
               shell: pwsh
               run: |
-                  $Version = "${{ needs.engine_gate.outputs.version }}"
-                  $OutDir = "angelscript-win64-v${Version}"
-                  New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
-                  Copy-Item -Recurse "engine\Engine\Binaries\Win64\*" "$OutDir\"
-                  Compress-Archive -Path $OutDir -DestinationPath "angelscript-win64-v${Version}.zip"
+                  '${{ inputs.engine_ref }}' | Out-File -FilePath (Join-Path $env:ENGINE_ROOT '.kbve-engine-ref') -Encoding ascii -NoNewline
 
-            - name: Upload Windows artifact
-              uses: actions/upload-artifact@v7
-              with:
-                  name: angelscript-win64-v${{ needs.engine_gate.outputs.version }}
-                  path: angelscript-win64-v${{ needs.engine_gate.outputs.version }}.zip
-                  retention-days: 30
+            - name: Verify engine root
+              shell: pwsh
+              run: |
+                  $runuat = Join-Path $env:ENGINE_ROOT 'Engine\Build\BatchFiles\RunUAT.bat'
+                  if (-not (Test-Path $runuat)) { Write-Host "::error::Engine not provisioned — RunUAT.bat missing at $runuat"; exit 1 }
+                  Write-Host "::notice::Engine ready at $env:ENGINE_ROOT"
 
             - name: Cleanup secrets
               if: always()
               shell: pwsh
               run: |
-                  if (Test-Path "engine\.git") {
-                    Push-Location engine
-                    git remote set-url origin "https://github.com/${{ env.ENGINE_REPO }}.git"
-                    Pop-Location
+                  if (Test-Path (Join-Path $env:ENGINE_ROOT '.git')) {
+                      Push-Location $env:ENGINE_ROOT
+                      git remote set-url origin "https://github.com/${{ env.ENGINE_REPO }}.git"
+                      Pop-Location
                   }
 
     engine_build_mac:
@@ -1021,21 +1047,14 @@ jobs:
 
     engine_release:
         name: Engine GitHub Release
-        needs:
-            [
-                engine_gate,
-                engine_build_windows,
-                engine_build_mac,
-                engine_build_linux,
-            ]
+        needs: [engine_gate, engine_build_mac, engine_build_linux]
         if: |
             inputs.mode == 'engine' &&
             always() &&
             needs.engine_gate.outputs.should_build == 'true' &&
-            (needs.engine_build_windows.result == 'success' || needs.engine_build_windows.result == 'skipped') &&
             (needs.engine_build_mac.result == 'success' || needs.engine_build_mac.result == 'skipped') &&
             (needs.engine_build_linux.result == 'success' || needs.engine_build_linux.result == 'skipped') &&
-            (needs.engine_build_windows.result == 'success' || needs.engine_build_mac.result == 'success' || needs.engine_build_linux.result == 'success')
+            (needs.engine_build_mac.result == 'success' || needs.engine_build_linux.result == 'success')
         runs-on: ubuntu-latest
         timeout-minutes: 15
         permissions:
@@ -1065,7 +1084,6 @@ jobs:
                   ### Artifacts
                   | Platform | Status |
                   |----------|--------|
-                  | Windows x86 | ${{ needs.engine_build_windows.result }} |
                   | Mac x86 | ${{ needs.engine_build_mac.result }} |
                   | Linux Server | ${{ needs.engine_build_linux.result }} |
 
@@ -1150,6 +1168,7 @@ jobs:
             should_release: ${{ steps.compare.outputs.should_release }}
             tag: ${{ steps.compare.outputs.tag }}
             zip_name: ${{ steps.extract.outputs.zip_name }}
+            engine: ${{ steps.extract.outputs.engine }}
         steps:
             - name: Checkout
               uses: actions/checkout@v6
@@ -1159,8 +1178,13 @@ jobs:
               run: |
                   UPLUGIN="${{ inputs.plugin_path }}/${{ inputs.plugin_name }}.uplugin"
                   if [ ! -f "${UPLUGIN}" ]; then echo "::error::Plugin file not found: ${UPLUGIN}"; exit 1; fi
-                  VERSION=$(jq -r '.VersionName' "${UPLUGIN}")
-                  if [ -z "${VERSION}" ] || [ "${VERSION}" = "null" ]; then echo "::error::No VersionName in ${UPLUGIN}"; exit 1; fi
+                  MANIFEST_V="${{ inputs.manifest_version }}"
+                  if [ -n "${MANIFEST_V}" ] && [ "${MANIFEST_V}" != "0.0.0" ]; then
+                    VERSION="${MANIFEST_V}"
+                  else
+                    VERSION=$(jq -r '.VersionName' "${UPLUGIN}")
+                  fi
+                  if [ -z "${VERSION}" ] || [ "${VERSION}" = "null" ]; then echo "::error::No version resolved for ${UPLUGIN}"; exit 1; fi
 
                   VERSION_TOML="${{ inputs.plugin_path }}/version.toml"
                   if [ -f "${VERSION_TOML}" ]; then
@@ -1169,11 +1193,14 @@ jobs:
                     PUBLISHED="0.0.0"
                   fi
 
-                  if [ "${{ inputs.mode }}" = "plugin-win" ]; then SUFFIX="-Win64"; else SUFFIX=""; fi
+                  if [ "${{ inputs.mode }}" = "plugin-win" ]; then SUFFIX="-Win64"; else SUFFIX="-Linux"; fi
+                  ENGINE=$(printf '%s' "${{ inputs.ue_image_tag }}" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1)
+                  [ -z "${ENGINE}" ] && ENGINE="unknown"
                   echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
                   echo "published_version=${PUBLISHED}" >> "$GITHUB_OUTPUT"
-                  echo "zip_name=${{ inputs.plugin_name }}${SUFFIX}-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
-                  echo "::notice::Plugin ${{ inputs.plugin_name }} — uplugin: ${VERSION}, published: ${PUBLISHED}"
+                  echo "engine=${ENGINE}" >> "$GITHUB_OUTPUT"
+                  echo "zip_name=${{ inputs.plugin_name }}${SUFFIX}-UE${ENGINE}-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
+                  echo "::notice::Plugin ${{ inputs.plugin_name }} — uplugin: ${VERSION}, published: ${PUBLISHED}, engine: ${ENGINE}"
 
             - name: Compare versions
               id: compare
@@ -1218,6 +1245,13 @@ jobs:
 
             - name: Checkout repository
               uses: actions/checkout@v6
+
+            - name: Stamp plugin version
+              run: |
+                  UPLUGIN="${{ inputs.plugin_path }}/${{ inputs.plugin_name }}.uplugin"
+                  VERSION="${{ needs.plugin_check.outputs.version }}"
+                  jq --arg v "$VERSION" '.VersionName = $v' "$UPLUGIN" > "$UPLUGIN.tmp" && mv "$UPLUGIN.tmp" "$UPLUGIN"
+                  echo "Stamped $UPLUGIN VersionName=$VERSION"
 
             - name: Login to GHCR
               run: echo "${{ secrets.epic_pat }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -1319,6 +1353,14 @@ jobs:
 
             - name: Checkout repository
               uses: actions/checkout@v6
+
+            - name: Stamp plugin version
+              run: |
+                  $up = Join-Path $env:GITHUB_WORKSPACE '${{ inputs.plugin_path }}' '${{ inputs.plugin_name }}.uplugin'
+                  $json = Get-Content $up -Raw | ConvertFrom-Json
+                  $json.VersionName = '${{ needs.plugin_check.outputs.version }}'
+                  $json | ConvertTo-Json -Depth 20 | Set-Content $up
+                  Write-Host "Stamped $up VersionName=${{ needs.plugin_check.outputs.version }}"
 
             - name: Locate Unreal Engine
               id: engine
@@ -1455,51 +1497,6 @@ jobs:
                   buildChannel: ${{ inputs.itch_channel }}-v${{ needs.plugin_check.outputs.version }}
                   buildNumber: ${{ needs.plugin_check.outputs.version }}
 
-    plugin_update_version:
-        name: Plugin PR version.toml
-        needs:
-            [plugin_check, plugin_build_linux, plugin_build_win, plugin_release]
-        if: |
-            (inputs.mode == 'plugin' || inputs.mode == 'plugin-win') &&
-            always() &&
-            needs.plugin_check.outputs.should_release == 'true' &&
-            (needs.plugin_build_linux.result == 'success' || needs.plugin_build_win.result == 'success')
-        runs-on: ubuntu-latest
-        timeout-minutes: 10
-        permissions:
-            contents: write
-            pull-requests: write
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v6
-              with:
-                  ref: dev
-
-            - name: Update version.toml
-              run: |
-                  VERSION_TOML="${{ inputs.plugin_path }}/version.toml"
-                  echo 'version = "${{ needs.plugin_check.outputs.version }}"' > "${VERSION_TOML}"
-                  cat "${VERSION_TOML}"
-
-            - name: Create PR
-              env:
-                  GH_TOKEN: ${{ github.token }}
-              run: |
-                  PLUGIN="${{ inputs.plugin_name }}"
-                  VERSION="${{ needs.plugin_check.outputs.version }}"
-                  if [ "${{ inputs.mode }}" = "plugin-win" ]; then VARIANT="-win64"; else VARIANT=""; fi
-                  BRANCH="auto/update-${PLUGIN,,}${VARIANT}-version-${VERSION}"
-                  git config user.name "github-actions[bot]"
-                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-                  git checkout -b "${BRANCH}"
-                  git add "${{ inputs.plugin_path }}/version.toml"
-                  git commit -m "chore(${PLUGIN}): update version.toml to ${VERSION} [skip ci]"
-                  git push origin "${BRANCH}"
-                  gh pr create \
-                    --base dev --head "${BRANCH}" \
-                    --title "chore(${PLUGIN}): update version.toml to ${VERSION}" \
-                    --body "Automated post-publish update. ${PLUGIN} v${VERSION} released."
-
     # ════════════════ VM SETUP (Windows / macOS) ════════════════
     win_setup:
         name: Install on UE5-Win
@@ -1508,7 +1505,7 @@ jobs:
         runs-on: UE5-Win
         defaults:
             run:
-                shell: pwsh
+                shell: powershell
         env:
             FILE_SERVER: http://file-server.angelscript.svc:8080
         steps:
@@ -1566,6 +1563,15 @@ jobs:
                   if (Get-Command cmake -ErrorAction SilentlyContinue) { Write-Host "CMake already installed: $(cmake --version | Select-Object -First 1)"; exit 0 }
                   curl.exe -o C:\cmake-install.msi "$env:FILE_SERVER/cmake-install.msi"
                   Start-Process msiexec.exe -ArgumentList '/i C:\cmake-install.msi /quiet /norestart ADD_CMAKE_TO_PATH=System' -Wait
+
+            - name: Install Git LFS
+              run: |
+                  git lfs version 2>$null
+                  if ($LASTEXITCODE -eq 0) { git lfs install; Write-Host "Git LFS already installed: $(git lfs version)"; exit 0 }
+                  curl.exe -o C:\git-lfs-install.exe "$env:FILE_SERVER/git-lfs-install.exe"
+                  if (!(Test-Path C:\git-lfs-install.exe)) { Write-Host "::error::Download failed. Stage git-lfs-install.exe on file-server first."; exit 1 }
+                  Start-Process C:\git-lfs-install.exe -ArgumentList '/VERYSILENT /NORESTART' -Wait
+                  git lfs install
 
             - name: Verify Installation
               run: |

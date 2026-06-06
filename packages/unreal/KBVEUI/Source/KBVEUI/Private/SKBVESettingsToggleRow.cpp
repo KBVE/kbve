@@ -5,6 +5,7 @@
 
 void SKBVESettingsToggleRow::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	OnToggled = InArgs._OnToggled;
 
 	TAttribute<bool> IsChecked = InArgs._IsChecked;

@@ -9,6 +9,7 @@
 
 void SchuckItemInfo::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	Character   = InArgs._OwningCharacter;
 	SelectedKey = InArgs._SelectedKey;
 

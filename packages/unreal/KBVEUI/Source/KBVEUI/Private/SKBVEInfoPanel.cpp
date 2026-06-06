@@ -10,6 +10,7 @@
 
 void SKBVEInfoPanel::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	IconSize     = InArgs._IconSize;
 	HasContent   = InArgs._HasContent;
 	OnPaintIcon  = InArgs._OnPaintIcon;

@@ -30,7 +30,7 @@ class SchuckChatPanel : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SchuckChatPanel)
-		: _DefaultChannel(TEXT("#global"))
+		: _DefaultChannel(TEXT("#general"))
 	{}
 		SLATE_ARGUMENT(TWeakObjectPtr<UKBVESupabaseSubsystem>, Subsystem)
 		SLATE_ARGUMENT(TWeakObjectPtr<AchuckCoreCharacter>, OwningCharacter)
@@ -54,6 +54,7 @@ public:
 protected:
 	virtual bool SupportsKeyboardFocus() const override { return true; }
 	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
+	virtual FReply OnPreviewKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
 
 private:
 	struct FChannelTab

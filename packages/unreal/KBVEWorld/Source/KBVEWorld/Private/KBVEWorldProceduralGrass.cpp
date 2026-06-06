@@ -1,14 +1,48 @@
 #include "KBVEWorldProceduralGrass.h"
 
+#include "Containers/Map.h"
 #include "Engine/StaticMesh.h"
 #include "KBVEWorldGrassShader.h"
 #include "Materials/MaterialInterface.h"
 #include "Math/RandomStream.h"
 #include "MeshDescription.h"
+#include "Misc/ScopeLock.h"
 #include "StaticMeshAttributes.h"
 #include "StaticMeshOperations.h"
 #include "PhysicsEngine/BodySetup.h"
+#include "UObject/Package.h"
 #include "UObject/UObjectGlobals.h"
+
+namespace
+{
+	FCriticalSection& GKBVEGrassCacheLock()
+	{
+		static FCriticalSection Cs;
+		return Cs;
+	}
+
+	TMap<FName, TWeakObjectPtr<UStaticMesh>>& GKBVEGrassCardCache()
+	{
+		static TMap<FName, TWeakObjectPtr<UStaticMesh>> Map;
+		return Map;
+	}
+
+	TMap<FName, TWeakObjectPtr<UStaticMesh>>& GKBVEGrassImpostorCache()
+	{
+		static TMap<FName, TWeakObjectPtr<UStaticMesh>> Map;
+		return Map;
+	}
+
+	FName MakeCardKey(const FKBVEWorldProceduralGrass::FCardSpec& Spec)
+	{
+		return *FString::Printf(TEXT("%s_W%dH%dC%dB%d"),
+			*Spec.UniqueId.ToString(),
+			FMath::RoundToInt(Spec.Width  * 10.f),
+			FMath::RoundToInt(Spec.Height * 10.f),
+			Spec.CardCount,
+			FMath::RoundToInt(Spec.BowAmount * 10.f));
+	}
+}
 
 namespace
 {
@@ -20,11 +54,11 @@ namespace
 		TVertexInstanceAttributesRef<FVector2f> UVs        = Attr.GetVertexInstanceUVs();
 		TVertexInstanceAttributesRef<FVector4f> Colors     = Attr.GetVertexInstanceColors();
 
-		const float HalfW    = W * 0.5f;
-		const float HalfLow  = W * 0.55f;
-		const float HalfMid  = W * 0.35f;
-		const float HalfHigh = W * 0.18f;
-		const float HalfTip  = W * 0.06f;
+		const float HalfW    = W * 0.40f;
+		const float HalfLow  = W * 0.30f;
+		const float HalfMid  = W * 0.20f;
+		const float HalfHigh = W * 0.10f;
+		const float HalfTip  = W * 0.04f;
 		const float HLow     = H * 0.30f;
 		const float HMid     = H * 0.58f;
 		const float HHigh    = H * 0.82f;
@@ -95,10 +129,20 @@ namespace
 
 UStaticMesh* FKBVEWorldProceduralGrass::GetOrCreateCardMesh(UObject* Outer, const FCardSpec& Spec, UMaterialInterface* Material)
 {
-	if (!Outer) Outer = GetTransientPackage();
-	const FName MeshName = MakeUniqueObjectName(Outer, UStaticMesh::StaticClass(), Spec.UniqueId);
+	const FName CacheKey = MakeCardKey(Spec);
+	{
+		FScopeLock Lock(&GKBVEGrassCacheLock());
+		if (TWeakObjectPtr<UStaticMesh>* Hit = GKBVEGrassCardCache().Find(CacheKey))
+		{
+			if (UStaticMesh* Existing = Hit->Get()) return Existing;
+		}
+	}
 
-	UStaticMesh* Mesh = NewObject<UStaticMesh>(Outer, MeshName, RF_Transient);
+	UPackage* CachePkg = GetTransientPackage();
+	const FName MeshName = MakeUniqueObjectName(CachePkg, UStaticMesh::StaticClass(), CacheKey);
+
+	UStaticMesh* Mesh = NewObject<UStaticMesh>(CachePkg, MeshName, RF_Transient);
+	Mesh->AddToRoot();
 	Mesh->bAllowCPUAccess = false;
 	Mesh->NeverStream     = true;
 
@@ -112,13 +156,14 @@ UStaticMesh* FKBVEWorldProceduralGrass::GetOrCreateCardMesh(UObject* Outer, cons
 	const int32 BladesPerClump = FMath::Clamp(Spec.CardCount * 9, 16, 28);
 	const float ClumpRadius    = Spec.Width * 2.0f;
 	FRandomStream ClumpRng(GetTypeHash(Spec.UniqueId));
+	const float YawStep = 360.f / static_cast<float>(BladesPerClump);
 	for (int32 b = 0; b < BladesPerClump; ++b)
 	{
 		const float Theta    = ClumpRng.FRand() * 360.f;
 		const float R        = ClumpRadius * FMath::Sqrt(ClumpRng.FRand());
 		const float OffX     = FMath::Cos(FMath::DegreesToRadians(Theta)) * R;
 		const float OffY     = FMath::Sin(FMath::DegreesToRadians(Theta)) * R;
-		const float YawDeg   = ClumpRng.FRand() * 360.f;
+		const float YawDeg   = YawStep * static_cast<float>(b) + ClumpRng.FRandRange(-YawStep * 0.4f, YawStep * 0.4f);
 		const float PitchDeg = ClumpRng.FRandRange(-12.f, 12.f);
 		const float RollDeg  = ClumpRng.FRandRange(-18.f, 18.f);
 		const float ScaleX   = ClumpRng.FRandRange(0.7f, 1.3f);
@@ -156,17 +201,30 @@ UStaticMesh* FKBVEWorldProceduralGrass::GetOrCreateCardMesh(UObject* Outer, cons
 	Mesh->BuildFromMeshDescriptions(MeshDescs, BuildParams);
 	Mesh->CreateBodySetup();
 	if (UBodySetup* BS = Mesh->GetBodySetup()) BS->bDoubleSidedGeometry = true;
-	Mesh->MarkPackageDirty();
+
+	{
+		FScopeLock Lock(&GKBVEGrassCacheLock());
+		GKBVEGrassCardCache().Add(CacheKey, Mesh);
+	}
 	return Mesh;
 }
 
 UStaticMesh* FKBVEWorldProceduralGrass::GetOrCreateImpostorMesh(UObject* Outer, const FCardSpec& Spec, UMaterialInterface* Material)
 {
-	if (!Outer) Outer = GetTransientPackage();
-	const FName MeshName = MakeUniqueObjectName(Outer, UStaticMesh::StaticClass(),
-		*FString::Printf(TEXT("%s_Imp"), *Spec.UniqueId.ToString()));
+	const FName CacheKey = *(MakeCardKey(Spec).ToString() + TEXT("_Imp"));
+	{
+		FScopeLock Lock(&GKBVEGrassCacheLock());
+		if (TWeakObjectPtr<UStaticMesh>* Hit = GKBVEGrassImpostorCache().Find(CacheKey))
+		{
+			if (UStaticMesh* Existing = Hit->Get()) return Existing;
+		}
+	}
 
-	UStaticMesh* Mesh = NewObject<UStaticMesh>(Outer, MeshName, RF_Transient);
+	UPackage* CachePkg = GetTransientPackage();
+	const FName MeshName = MakeUniqueObjectName(CachePkg, UStaticMesh::StaticClass(), CacheKey);
+
+	UStaticMesh* Mesh = NewObject<UStaticMesh>(CachePkg, MeshName, RF_Transient);
+	Mesh->AddToRoot();
 	Mesh->bAllowCPUAccess = false;
 	Mesh->NeverStream     = true;
 
@@ -251,6 +309,11 @@ UStaticMesh* FKBVEWorldProceduralGrass::GetOrCreateImpostorMesh(UObject* Outer, 
 	Mesh->GetStaticMaterials().Add(Slot);
 
 	Mesh->BuildFromMeshDescriptions(MeshDescs, BuildParams);
+
+	{
+		FScopeLock Lock(&GKBVEGrassCacheLock());
+		GKBVEGrassImpostorCache().Add(CacheKey, Mesh);
+	}
 	return Mesh;
 }
 

@@ -12,6 +12,7 @@
 
 void SKBVESettingsFrame::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	OnApply  = InArgs._OnApplyClicked;
 	OnReset  = InArgs._OnResetClicked;
 	OnCancel = InArgs._OnCancelClicked;

@@ -35,4 +35,5 @@ public:
 	TKBVEChannel<FchuckAuthErrorPayload>       AuthError;
 	TKBVEChannel<FchuckChatStatePayload>       ChatState;
 	TKBVEChannel<FchuckChatLinePayload>        ChatLine;
+	TKBVEChannel<FchuckUiFlagsPayload>         UiFlags;
 };

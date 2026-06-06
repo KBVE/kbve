@@ -14,6 +14,7 @@
 
 void SchuckPauseMenu::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	OnResume     = InArgs._OnResumeClicked;
 	OnQuitToMenu = InArgs._OnQuitToMenuClicked;
 	OnQuit       = InArgs._OnQuitClicked;

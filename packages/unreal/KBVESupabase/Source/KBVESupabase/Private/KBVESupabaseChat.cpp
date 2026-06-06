@@ -127,6 +127,11 @@ void UKBVESupabaseChat::Connect()
 	SetStatus(EKBVEChatStatus::Connecting);
 
 	FString URL = Settings->ChatURL;
+	if (!URL.StartsWith(TEXT("ws://")) && !URL.StartsWith(TEXT("wss://")))
+	{
+		URL = TEXT("wss://chat.kbve.com/ws");
+		UE_LOG(LogKBVESupabase, Warning, TEXT("ChatURL malformed ([%s]); using hardcoded fallback [%s]"), *Settings->ChatURL, *URL);
+	}
 	TMap<FString, FString> Headers;
 
 	if (Settings->bChatTokenInQueryParam)
@@ -140,6 +145,9 @@ void UKBVESupabaseChat::Connect()
 	}
 
 	const FString Protocol = URL.StartsWith(TEXT("wss://")) ? TEXT("wss") : TEXT("ws");
+
+	UE_LOG(LogKBVESupabase, Log, TEXT("Chat WS connecting URL=[%s] Protocol=[%s] HeaderCount=%d"),
+		*URL, *Protocol, Headers.Num());
 
 	Socket = FWebSocketsModule::Get().CreateWebSocket(URL, Protocol, Headers);
 	if (!Socket.IsValid())
@@ -185,11 +193,48 @@ void UKBVESupabaseChat::HandleOpen()
 	UE_LOG(LogKBVESupabase, Log, TEXT("Chat WS connected."));
 	OnConnected.Broadcast();
 	DoAutoJoin();
+	StartKeepAlive();
+}
+
+void UKBVESupabaseChat::StartKeepAlive()
+{
+	StopKeepAlive();
+	UKBVESupabaseSubsystem* Sub = Parent.Get();
+	if (!Sub) return;
+	UGameInstance* GI = Sub->GetGameInstance();
+	if (!GI) return;
+	UWorld* World = GI->GetWorld();
+	if (!World) return;
+	World->GetTimerManager().SetTimer(
+		PingTimerHandle,
+		FTimerDelegate::CreateUObject(this, &UKBVESupabaseChat::SendKeepAlivePing),
+		30.f, true);
+}
+
+void UKBVESupabaseChat::StopKeepAlive()
+{
+	UKBVESupabaseSubsystem* Sub = Parent.Get();
+	if (!Sub) return;
+	UGameInstance* GI = Sub->GetGameInstance();
+	if (!GI) return;
+	if (UWorld* World = GI->GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(PingTimerHandle);
+	}
+}
+
+void UKBVESupabaseChat::SendKeepAlivePing()
+{
+	if (Socket.IsValid() && Socket->IsConnected())
+	{
+		SendRawLine(TEXT("PING :kbvechat"));
+	}
 }
 
 void UKBVESupabaseChat::HandleClose(int32 StatusCode, const FString& Reason, bool /*bWasClean*/)
 {
 	UE_LOG(LogKBVESupabase, Log, TEXT("Chat WS closed (%d): %s"), StatusCode, *Reason);
+	StopKeepAlive();
 	JoinedChannels.Reset();
 	RxBuffer.Empty();
 	Socket.Reset();
@@ -247,9 +292,11 @@ void UKBVESupabaseChat::HandleMessage(const FString& Frame)
 
 void UKBVESupabaseChat::HandleRxLine(const FString& Line)
 {
+	UE_LOG(LogKBVESupabase, Log, TEXT("Chat RX [%s]"), *Line);
 	FKBVEChatIrcLine Parsed;
 	if (!ParseIrcLine(Line, Parsed))
 	{
+		UE_LOG(LogKBVESupabase, Warning, TEXT("Chat RX failed to parse: [%s]"), *Line);
 		return;
 	}
 
@@ -359,9 +406,14 @@ void UKBVESupabaseChat::DoAutoJoin()
 
 bool UKBVESupabaseChat::SendRawLine(const FString& Line)
 {
-	if (!Socket.IsValid() || !Socket->IsConnected()) return false;
+	if (!Socket.IsValid() || !Socket->IsConnected())
+	{
+		UE_LOG(LogKBVESupabase, Warning, TEXT("Chat TX dropped (socket not connected) line=[%s]"), *Line);
+		return false;
+	}
 	const FString Clean = SanitizeLine(Line);
 	if (Clean.IsEmpty()) return false;
+	UE_LOG(LogKBVESupabase, Log, TEXT("Chat TX [%s]"), *Clean);
 	Socket->Send(Clean + TEXT("\r\n"));
 	return true;
 }

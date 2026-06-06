@@ -104,6 +104,7 @@ protected:
 	FString RxBuffer;
 	int32 ReconnectAttempts = 0;
 	FTimerHandle ReconnectTimerHandle;
+	FTimerHandle PingTimerHandle;
 	bool bWantsConnection = false;
 
 	void SetStatus(EKBVEChatStatus NewStatus);
@@ -116,4 +117,7 @@ protected:
 	void ScheduleReconnect();
 	void ClearReconnect();
 	void DoAutoJoin();
+	void StartKeepAlive();
+	void StopKeepAlive();
+	void SendKeepAlivePing();
 };

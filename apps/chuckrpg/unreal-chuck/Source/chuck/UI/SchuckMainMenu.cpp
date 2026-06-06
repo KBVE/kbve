@@ -12,6 +12,7 @@
 
 void SchuckMainMenu::Construct(const FArguments& InArgs)
 {
+	SetCanTick(false);
 	OnPlay = InArgs._OnPlayClicked;
 	OnQuit = InArgs._OnQuitClicked;
 

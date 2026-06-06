@@ -5,6 +5,8 @@ ARG NODE_VERSION=24.16.0
 ARG PNPM_VERSION=10.33.0
 ARG PLAYWRIGHT_VERSION=1.59.1
 
+FROM --platform=linux/amd64 mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-jammy AS playwright-src
+
 FROM --platform=linux/amd64 ghcr.io/actions/actions-runner:${ACTIONS_RUNNER_VERSION} AS runtime
 
 LABEL org.opencontainers.image.source="https://github.com/kbve/kbve"
@@ -61,7 +63,6 @@ RUN set -eux; \
 
 ARG NODE_VERSION
 ARG PNPM_VERSION
-ARG PLAYWRIGHT_VERSION
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 RUN set -eux; \
     cd /tmp; \
@@ -74,13 +75,18 @@ RUN set -eux; \
     ln -s "/opt/node-v${NODE_VERSION}-linux-x64/bin/npx" /usr/local/bin/npx; \
     rm "node-v${NODE_VERSION}-linux-x64.tar.xz" SHASUMS256.txt; \
     npm install -g "pnpm@${PNPM_VERSION}"; \
-    mkdir -p "${PLAYWRIGHT_BROWSERS_PATH}"; \
-    npx --yes "playwright@${PLAYWRIGHT_VERSION}" install --with-deps chromium webkit firefox; \
-    chmod -R a+rX "${PLAYWRIGHT_BROWSERS_PATH}"; \
     node --version >/dev/null; \
-    pnpm --version >/dev/null; \
-    test -d "${PLAYWRIGHT_BROWSERS_PATH}/chromium-"*/chrome-linux*; \
-    test -d "${PLAYWRIGHT_BROWSERS_PATH}/webkit-"*; \
-    test -d "${PLAYWRIGHT_BROWSERS_PATH}/firefox-"*
+    pnpm --version >/dev/null
+
+ARG PLAYWRIGHT_VERSION
+COPY --from=playwright-src /ms-playwright /opt/ms-playwright
+RUN set -eux; \
+    chmod -R a+rX /opt/ms-playwright; \
+    apt-get update; \
+    npx --yes "playwright@${PLAYWRIGHT_VERSION}" install-deps chromium webkit firefox; \
+    rm -rf /var/lib/apt/lists/*; \
+    test -d /opt/ms-playwright/chromium-*/chrome-linux*; \
+    test -d /opt/ms-playwright/webkit-*; \
+    test -d /opt/ms-playwright/firefox-*
 
 USER runner

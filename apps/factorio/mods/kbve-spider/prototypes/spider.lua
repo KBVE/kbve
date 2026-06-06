@@ -217,11 +217,23 @@ local spider_egg_entity = {
 	selection_box = { { -0.45, -0.45 }, { 0.45, 0.45 } },
 	selectable_in_game = true,
 	picture = {
-		filename = "__kbve-spider__/graphics/item/spider-egg.png",
-		width = 64,
-		height = 64,
-		scale = 0.35,
-		shift = { 0, -0.05 },
+		layers = {
+			{
+				filename = "__kbve-spider__/graphics/item/spider-egg.png",
+				width = 64,
+				height = 64,
+				scale = 0.35,
+				shift = { 0, -0.05 },
+			},
+			{
+				filename = "__kbve-spider__/graphics/item/spider-egg.png",
+				width = 64,
+				height = 64,
+				scale = 0.35,
+				shift = { 0.18, 0.15 },
+				draw_as_shadow = true,
+			},
+		},
 	},
 	minable = { mining_time = 0.3, result = "kbve-spider-egg" },
 	max_health = 20,
