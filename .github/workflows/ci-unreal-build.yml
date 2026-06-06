@@ -726,64 +726,18 @@ jobs:
                   if (Test-Path C:\ue5-game-output) { Remove-Item -Recurse -Force C:\ue5-game-output -ErrorAction SilentlyContinue }
 
     game_build_mac:
-        name: Game Build (Mac client)
+        name: Game Build (Mac client — STUB)
         needs: [guard, game_gate]
         if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Mac')
-        runs-on: UE5-Mac
-        timeout-minutes: 480
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
         permissions:
             contents: read
         steps:
-            - name: Resolve PAT
-              id: pat
+            - name: Notice
               run: |
-                  TOKEN="${{ secrets.epic_pat }}"
-                  [ -z "${TOKEN}" ] && TOKEN="${{ secrets.UNITY_PAT }}"
-                  if [ -z "${TOKEN}" ]; then echo "::error::No PAT available"; exit 1; fi
-                  echo "::add-mask::${TOKEN}"
-                  echo "token=${TOKEN}" >> "$GITHUB_OUTPUT"
-
-            - name: Locate Unreal Engine
-              id: engine
-              run: |
-                  for c in "$HOME/UnrealEngine" "/Users/Shared/UnrealEngine" "/Applications/UnrealEngine"; do
-                    if [ -f "$c/Engine/Build/BatchFiles/RunUAT.sh" ]; then echo "runuat=$c/Engine/Build/BatchFiles/RunUAT.sh" >> "$GITHUB_OUTPUT"; FOUND=1; break; fi
-                  done
-                  if [ -z "${FOUND:-}" ]; then echo "::error::RunUAT.sh not found on runner"; exit 1; fi
-
-            - name: Clone game repo
-              run: |
-                  rm -rf ~/game-project
-                  git clone --depth=1 "https://x-access-token:${{ steps.pat.outputs.token }}@github.com/${{ inputs.external_repo_url }}.git" ~/game-project
-                  cd ~/game-project && git lfs install && git lfs pull
-
-            - name: Build Mac client
-              run: |
-                  UPROJECT_FILE=$(find ~/game-project/${{ inputs.project_path }} -maxdepth 1 -name '*.uproject' | head -1)
-                  if [ -z "${UPROJECT_FILE}" ]; then echo "::error::No .uproject found"; exit 1; fi
-                  mkdir -p ~/ue5-game-output
-                  "${{ steps.engine.outputs.runuat }}" BuildCookRun \
-                    -project="${UPROJECT_FILE}" \
-                    -targetplatform=Mac \
-                    -cook -allmaps -build -stage -pak -archive \
-                    -archivedirectory="$HOME/ue5-game-output" \
-                    -unattended -utf8output -NoP4
-
-            - name: Package archive
-              run: |
-                  VERSION="${{ needs.game_gate.outputs.version }}"
-                  cd ~/ue5-game-output && zip -r "$HOME/${{ inputs.app_name }}-Mac-v${VERSION}.zip" .
-
-            - name: Upload artifact
-              uses: actions/upload-artifact@v7
-              with:
-                  name: ${{ inputs.app_name }}-Mac-v${{ needs.game_gate.outputs.version }}
-                  path: ~/${{ inputs.app_name }}-Mac-v${{ needs.game_gate.outputs.version }}.zip
-                  retention-days: 30
-
-            - name: Cleanup
-              if: always()
-              run: rm -rf ~/game-project ~/ue5-game-output 2>/dev/null || true
+                  echo "::warning::Mac client build is a STUB — macos-builder VM not yet provisioned (UE5-Mac runner offline). No-op."
+                  echo "Requested target Mac for ${{ inputs.app_name }} v${{ needs.game_gate.outputs.version }} — skipped."
 
     # ════════════════ ENGINE (AngelScript UE) ════════════════
     engine_gate:
@@ -917,71 +871,18 @@ jobs:
                   }
 
     engine_build_mac:
-        name: Engine Build (Mac client)
+        name: Engine Build (Mac client — STUB)
         needs: [guard, engine_gate]
         if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true' && needs.engine_gate.outputs.should_build == 'true' && contains(inputs.platforms, 'mac')
-        runs-on: arc-runner-ue-mac
-        timeout-minutes: 360
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
         permissions:
             contents: read
         steps:
-            - name: Audit log
+            - name: Notice
               run: |
-                  echo "::notice::Mac engine build — ref=${{ inputs.engine_ref }}, version=${{ needs.engine_gate.outputs.version }}"
-
-            - name: Install build dependencies
-              run: |
-                  xcode-select -p || xcode-select --install
-                  if command -v brew &>/dev/null; then brew install cmake ninja python3 || true; fi
-
-            - name: Clone or update engine source
-              env:
-                  UNITY_PAT: ${{ secrets.UNITY_PAT }}
-              run: |
-                  CACHE="${{ env.ENGINE_CACHE_PATH }}"
-                  if [ -d "${CACHE}/.git" ]; then
-                    cd "${CACHE}"
-                    git remote set-url origin "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
-                    git fetch origin ${{ inputs.engine_ref }}
-                    git reset --hard FETCH_HEAD
-                  else
-                    if [ -d "${CACHE}" ]; then rm -rf "${CACHE:?}"/*; fi
-                    git clone --depth 1 --branch ${{ inputs.engine_ref }} \
-                      "https://x-access-token:${UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git" "${CACHE}"
-                  fi
-
-            - name: Run Setup
-              run: cd "${{ env.ENGINE_CACHE_PATH }}" && chmod +x Setup.sh && ./Setup.sh
-
-            - name: Generate project files
-              run: cd "${{ env.ENGINE_CACHE_PATH }}" && chmod +x GenerateProjectFiles.sh && ./GenerateProjectFiles.sh
-
-            - name: Build Editor (Mac)
-              run: |
-                  cd "${{ env.ENGINE_CACHE_PATH }}"
-                  ./Engine/Build/BatchFiles/RunUAT.sh BuildTarget \
-                    -target=UnrealEditor -platform=Mac -configuration=Development \
-                    -notools -unattended -utf8output
-
-            - name: Package Mac client
-              run: |
-                  VERSION="${{ needs.engine_gate.outputs.version }}"
-                  OUT_DIR="angelscript-mac-v${VERSION}"
-                  mkdir -p "${OUT_DIR}"
-                  cp -r "${{ env.ENGINE_CACHE_PATH }}/Engine/Binaries/Mac/"* "${OUT_DIR}/"
-                  zip -r "angelscript-mac-v${VERSION}.zip" "${OUT_DIR}"
-
-            - name: Upload Mac artifact
-              uses: actions/upload-artifact@v7
-              with:
-                  name: angelscript-mac-v${{ needs.engine_gate.outputs.version }}
-                  path: angelscript-mac-v${{ needs.engine_gate.outputs.version }}.zip
-                  retention-days: 30
-
-            - name: Cleanup secrets
-              if: always()
-              run: |
-                  cd "${{ env.ENGINE_CACHE_PATH }}" && git remote set-url origin "https://github.com/${{ env.ENGINE_REPO }}.git"
+                  echo "::warning::Mac engine build is a STUB — macos-builder VM not yet provisioned. No-op."
+                  echo "Requested mac engine build ref=${{ inputs.engine_ref }} v${{ needs.engine_gate.outputs.version }} — skipped."
 
     engine_build_linux:
         name: Engine Build (Linux dedicated server)
@@ -1645,76 +1546,18 @@ jobs:
                   }
 
     mac_setup:
-        name: Install on UE5-Mac
+        name: Install on UE5-Mac (STUB)
         needs: guard
         if: inputs.mode == 'mac-setup' && needs.guard.outputs.allowed == 'true'
-        runs-on: UE5-Mac
-        env:
-            FILE_SERVER: http://file-server.angelscript.svc:8080
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
         steps:
-            - name: System Info
+            - name: Notice
               run: |
-                  sw_vers
-                  sysctl -n machdep.cpu.brand_string
-                  echo "RAM: $(( $(sysctl -n hw.memsize) / 1073741824 )) GB"
-                  df -h /
-                  xcode-select -p 2>/dev/null && echo "Xcode CLT: installed" || echo "Xcode CLT: not installed"
-                  git --version
-
-            - name: Check file server reachable
-              run: |
-                  STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$FILE_SERVER/")
-                  if [ "$STATUS" != "200" ]; then echo "::error::File server not reachable (HTTP $STATUS)"; exit 1; fi
-                  echo "File server reachable."
-
-            - name: Install Xcode Command Line Tools
-              timeout-minutes: 15
-              run: |
-                  if xcode-select -p &>/dev/null; then echo "Xcode CLT already installed at $(xcode-select -p)."; exit 0; fi
-                  if curl -sf "$FILE_SERVER/CommandLineTools.pkg" -o /tmp/CLT.pkg; then
-                      sudo installer -pkg /tmp/CLT.pkg -target /
-                      rm -f /tmp/CLT.pkg
-                  else
-                      touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
-                      PROD=$(softwareupdate -l 2>&1 | grep -o '.*Command Line Tools.*' | head -1 | sed 's/^[* ]*//')
-                      if [ -n "$PROD" ]; then softwareupdate -i "$PROD" --verbose; else echo "::error::CLT not in softwareupdate catalog"; exit 1; fi
-                      rm -f /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
-                  fi
-                  xcode-select -p && echo "CLT installed."
-
-            - name: Install Homebrew
-              timeout-minutes: 10
-              run: |
-                  if command -v brew &>/dev/null; then brew update; exit 0; fi
-                  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-                  echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-                  eval "$(/opt/homebrew/bin/brew shellenv)"
-                  brew --version
-
-            - name: Install CMake
-              timeout-minutes: 5
-              run: |
-                  if command -v cmake &>/dev/null; then echo "CMake already installed: $(cmake --version | head -1)"; exit 0; fi
-                  eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || true)"
-                  brew install cmake
-                  cmake --version
-
-            - name: Install Python 3
-              timeout-minutes: 5
-              run: |
-                  if command -v python3 &>/dev/null; then echo "Python already installed: $(python3 --version)"; exit 0; fi
-                  eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || true)"
-                  brew install python@3.12
-                  python3 --version
-
-            - name: Verify installation
-              run: |
-                  echo "CLT: $(xcode-select -p 2>/dev/null || echo 'NOT INSTALLED')"
-                  echo "Git: $(git --version)"
-                  echo "CMake: $(cmake --version 2>/dev/null | head -1 || echo 'NOT INSTALLED')"
-                  echo "Python: $(python3 --version 2>/dev/null || echo 'NOT INSTALLED')"
-                  echo "Brew: $(brew --version 2>/dev/null | head -1 || echo 'NOT INSTALLED')"
-                  df -h /
+                  echo "::warning::mac-setup is a STUB — macos-builder VM not yet provisioned (UE5-Mac runner offline). No-op."
+                  echo "Re-enable by restoring the Xcode CLT / Homebrew / CMake / Python install steps once the macOS VM is online."
 
     track_failure:
         name: Track Failures
