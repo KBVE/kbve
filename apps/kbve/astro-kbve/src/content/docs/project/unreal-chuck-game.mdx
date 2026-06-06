@@ -1,0 +1,65 @@
+---
+title: Unreal Chuck Game
+description: |
+    Chuck RPG UE5 standalone game client — Win64 + Linux builds shipped to itch.io as kbve/chuckrpg via the manifest-driven ci-unreal game pipeline.
+sidebar:
+    label: Unreal Chuck Game
+    order: 95
+tags:
+    - ue5
+    - game
+    - chuck
+key: unreal_chuck_game
+pipeline: unreal_game
+app_name: chuck
+source_path: apps/chuckrpg/unreal-chuck
+version_toml: apps/chuckrpg/unreal-chuck/version.toml
+version: "0.3.19"
+runner: arc-runner-ue
+author: h0lybyte
+license: KBVE
+status: beta
+homepage_url: https://kbve.itch.io/chuckrpg
+engine:
+    version: "5.7.4"
+    project_path: "."
+    build_targets:
+        - Win64
+        - Linux
+    external_repo_url: https://github.com/KBVE/chuck
+external_publish:
+    itch_user: kbve
+    itch_game: chuckrpg
+---
+
+## Overview
+
+Chuck RPG UE5 standalone game client. The playable build (distinct from the
+[Unreal Chuck](/project/unreal-chuck) dedicated server) is compiled from the
+`KBVE/chuck` repo and shipped to itch.io under `kbve/chuckrpg`.
+
+## Pipeline
+
+`pipeline: unreal_game` → `ci-main.yml` dispatches `ci-unreal.yml` (`task: game`)
+→ `ci-unreal-build.yml` (`mode: game`) whenever the MDX `version:` here outpaces
+`version.toml`, or `source_path` files change.
+
+## Build Matrix
+
+`engine.build_targets`:
+
+- `Win64` — native build on the `UE5-Win` KubeVirt VM (RunUAT.bat)
+- `Linux` — `BuildCookRun` in the cached Epic UE Docker image on `arc-runner-ue`
+
+Mac is stubbed until the `macos-builder` VM is provisioned.
+
+## Distribution
+
+Ships to itch.io `kbve/chuckrpg`, one channel per platform
+(`win64-v<version>`, `linux-v<version>`). Requires the `butler_api` secret.
+
+## Release
+
+Bump `version:` above `version.toml` (`apps/chuckrpg/unreal-chuck/version.toml`),
+run `npx nx run astro-kbve:sync:ci-manifest`, commit. The next `ci-main` run fans
+out the game build + itch upload for this entry.

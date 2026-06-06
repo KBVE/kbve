@@ -788,7 +788,27 @@
 			"has_test": true
 		}
 	],
-	"unreal_game": [],
+	"unreal_game": [
+		{
+			"key": "unreal_chuck_game",
+			"app_name": "chuck",
+			"engine": {
+				"version": "5.7.4",
+				"project_path": ".",
+				"build_targets": ["Win64", "Linux"],
+				"external_repo_url": "https://github.com/KBVE/chuck"
+			},
+			"source_path": "apps/chuckrpg/unreal-chuck",
+			"version": "0.3.19",
+			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-game.mdx",
+			"runner": "arc-runner-ue",
+			"external_publish": {
+				"itch_user": "kbve",
+				"itch_game": "chuckrpg"
+			}
+		}
+	],
 	"bevy_game": [],
 	"summary": {
 		"docker": 29,
@@ -799,8 +819,8 @@
 		"ue5_server": 2,
 		"unity": 1,
 		"godot": 1,
-		"unreal_game": 0,
+		"unreal_game": 1,
 		"bevy_game": 0,
-		"total": 70
+		"total": 71
 	}
 }

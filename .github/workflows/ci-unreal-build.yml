@@ -573,8 +573,9 @@ jobs:
             - name: Clone game repo
               run: |
                   rm -rf /tmp/game-project
+                  REPO_SLUG=$(echo "${{ inputs.external_repo_url }}" | sed -E 's#^https?://github.com/##; s#/$##; s#\.git$##')
                   git clone --depth=1 \
-                    "https://x-access-token:${{ steps.pat.outputs.token }}@github.com/${{ inputs.external_repo_url }}.git" \
+                    "https://x-access-token:${{ steps.pat.outputs.token }}@github.com/${REPO_SLUG}.git" \
                     /tmp/game-project
                   cd /tmp/game-project
                   git lfs install
@@ -683,8 +684,9 @@ jobs:
             - name: Clone game repo
               run: |
                   $token = '${{ steps.pat.outputs.token }}'
+                  $slug = '${{ inputs.external_repo_url }}' -replace '^https?://github.com/','' -replace '\.git$','' -replace '/$',''
                   if (Test-Path C:\game-project) { Remove-Item -Recurse -Force C:\game-project }
-                  git clone --depth=1 "https://x-access-token:$token@github.com/${{ inputs.external_repo_url }}.git" C:\game-project
+                  git clone --depth=1 "https://x-access-token:$token@github.com/$slug.git" C:\game-project
                   Push-Location C:\game-project
                   git lfs install
                   git lfs pull
