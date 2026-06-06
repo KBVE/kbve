@@ -4,7 +4,7 @@ using Unity.Mathematics;
 
 namespace RareIcon
 {
-    /// <summary>Ticks active RegenBuff components: restores Health.Value by AmountPerSecond * dt each frame, clamps at Health.Max, removes the component via the end-sim ECB when TimeRemaining ≤ 0. Runs in BehaviorSystemGroup after ReliefSystem so consumption-side systems (Medkit, food-at-Barracks) have already added/refreshed the buff this frame.</summary>
+    /// <summary>Ticks active RegenBuff components: restores Health.Value by AmountPerSecond * dt each frame, clamps at Health.Max, removes the component via the end-sim ECB ParallelWriter when TimeRemaining ≤ 0. Runs in BehaviorSystemGroup after ReliefSystem so consumption-side systems (Medkit, food-at-Barracks) have already added/refreshed the buff this frame. Parallel IJobEntity replaces the prior main-thread foreach.</summary>
     [BurstCompile]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     [UpdateAfter(typeof(ReliefSystem))]
@@ -26,18 +26,27 @@ namespace RareIcon
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
-            foreach (var (buffRW, healthRW, entity) in
-                     SystemAPI.Query<RefRW<RegenBuff>, RefRW<Health>>().WithEntityAccess())
+            state.Dependency = new RegenBuffTickJob
             {
-                ref var buff   = ref buffRW.ValueRW;
-                ref var health = ref healthRW.ValueRW;
+                Dt  = dt,
+                Ecb = ecb.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
+        }
+    }
 
-                buff.TimeRemaining -= dt;
-                health.Value = math.min(health.Max, health.Value + buff.AmountPerSecond * dt);
+    [BurstCompile]
+    public partial struct RegenBuffTickJob : IJobEntity
+    {
+        public float                                  Dt;
+        public EntityCommandBuffer.ParallelWriter     Ecb;
 
-                if (buff.TimeRemaining <= 0f)
-                    ecb.RemoveComponent<RegenBuff>(entity);
-            }
+        void Execute([ChunkIndexInQuery] int chunkIndex, Entity entity, ref RegenBuff buff, ref Health health)
+        {
+            buff.TimeRemaining -= Dt;
+            health.Value = math.min(health.Max, health.Value + buff.AmountPerSecond * Dt);
+
+            if (buff.TimeRemaining <= 0f)
+                Ecb.RemoveComponent<RegenBuff>(chunkIndex, entity);
         }
     }
 }
