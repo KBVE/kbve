@@ -69,6 +69,14 @@ spec:
                             secretKeyRef:
                                 name: ows-customer-guid
                                 key: customer-guid
+                      # ─── Supabase Auth ──────────────────────
+                      - name: SUPABASE_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: rows-supabase-jwt
+                                key: jwt-secret
+                      - name: SUPABASE_URL
+                        value: 'https://supabase.kbve.com'
                       # ─── Agones ──────────────────────────────
                       - name: AGONES_NAMESPACE
                         value: 'arc-runners'
