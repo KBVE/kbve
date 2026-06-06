@@ -289,6 +289,39 @@ class AgentsService {
 	);
 	public readonly $repoAllowlistLoadedFor = atom<Record<string, boolean>>({});
 
+	public readonly $webhookDrafts = atom<Record<string, string | null>>({});
+	public readonly $webhookSavingFor = atom<Record<string, boolean>>({});
+	public readonly $webhookErrors = atom<Record<string, string | null>>({});
+
+	public readonly $patDrafts = atom<Record<string, string>>({});
+	public readonly $patValidatedFor = atom<
+		Record<
+			string,
+			{ login: string; scopes: string[]; tokenType: string } | null
+		>
+	>({});
+	public readonly $patValidatingFor = atom<Record<string, boolean>>({});
+	public readonly $patSavingFor = atom<Record<string, boolean>>({});
+	public readonly $patErrors = atom<Record<string, string | null>>({});
+
+	public readonly $backfillDrafts = atom<
+		Record<string, { owner: string; repo: string }>
+	>({});
+	public readonly $backfillBusyFor = atom<Record<string, boolean>>({});
+	public readonly $backfillResults = atom<
+		Record<
+			string,
+			| {
+					ok: true;
+					upserted: number;
+					pages: number;
+					rateLimitRemaining: number | null;
+			  }
+			| { ok: false; error: string }
+			| null
+		>
+	>({});
+
 	// Dedup state — singleton so the cache survives ClientRouter swaps.
 	private initPromise: Promise<void> | null = null;
 	private lastInitAt = 0;
@@ -966,6 +999,183 @@ class AgentsService {
 			this.$repoAllowlistErrors.set(errs2);
 		}
 		return r;
+	}
+
+	public setWebhookDraft(guildId: string, secret: string | null): void {
+		const m = { ...this.$webhookDrafts.get() };
+		if (secret === null) delete m[guildId];
+		else m[guildId] = secret;
+		this.$webhookDrafts.set(m);
+	}
+
+	public clearWebhookError(guildId: string): void {
+		const m = { ...this.$webhookErrors.get() };
+		delete m[guildId];
+		this.$webhookErrors.set(m);
+	}
+
+	public async saveWebhookDraft(
+		guildId: string,
+		tokenName: string,
+		description: string,
+	): Promise<{ ok: true; tokenId: string } | { ok: false; error: string }> {
+		const secret = this.$webhookDrafts.get()[guildId];
+		if (!secret) return { ok: false, error: 'No secret to save' };
+		const saving = { ...this.$webhookSavingFor.get(), [guildId]: true };
+		this.$webhookSavingFor.set(saving);
+		const errs = { ...this.$webhookErrors.get(), [guildId]: null };
+		this.$webhookErrors.set(errs);
+		const r = await this.addToken({
+			tokenName,
+			service: 'github_webhook',
+			tokenValue: secret,
+			description,
+		});
+		const savingDone = { ...this.$webhookSavingFor.get() };
+		delete savingDone[guildId];
+		this.$webhookSavingFor.set(savingDone);
+		if (r.ok) {
+			this.setWebhookDraft(guildId, null);
+		} else {
+			const errs2 = {
+				...this.$webhookErrors.get(),
+				[guildId]: r.error,
+			};
+			this.$webhookErrors.set(errs2);
+		}
+		return r;
+	}
+
+	public setPatDraft(guildId: string, pat: string): void {
+		const m = { ...this.$patDrafts.get(), [guildId]: pat };
+		this.$patDrafts.set(m);
+		const validated = { ...this.$patValidatedFor.get() };
+		if (validated[guildId]) {
+			delete validated[guildId];
+			this.$patValidatedFor.set(validated);
+		}
+	}
+
+	public clearPatState(guildId: string): void {
+		const drafts = { ...this.$patDrafts.get() };
+		delete drafts[guildId];
+		this.$patDrafts.set(drafts);
+		const validated = { ...this.$patValidatedFor.get() };
+		delete validated[guildId];
+		this.$patValidatedFor.set(validated);
+		const errs = { ...this.$patErrors.get() };
+		delete errs[guildId];
+		this.$patErrors.set(errs);
+	}
+
+	public async validatePatForGuild(
+		guildId: string,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		const pat = this.$patDrafts.get()[guildId] ?? '';
+		if (!pat) return { ok: false, error: 'No PAT entered' };
+		const validating = {
+			...this.$patValidatingFor.get(),
+			[guildId]: true,
+		};
+		this.$patValidatingFor.set(validating);
+		const errs = { ...this.$patErrors.get(), [guildId]: null };
+		this.$patErrors.set(errs);
+		const validatedClear = { ...this.$patValidatedFor.get() };
+		delete validatedClear[guildId];
+		this.$patValidatedFor.set(validatedClear);
+		const r = await this.validateGithubPat(pat);
+		const validatingDone = { ...this.$patValidatingFor.get() };
+		delete validatingDone[guildId];
+		this.$patValidatingFor.set(validatingDone);
+		if (!r.ok) {
+			const errs2 = { ...this.$patErrors.get(), [guildId]: r.error };
+			this.$patErrors.set(errs2);
+			return r;
+		}
+		const validatedSet = {
+			...this.$patValidatedFor.get(),
+			[guildId]: {
+				login: r.login,
+				scopes: r.scopes,
+				tokenType: r.tokenType,
+			},
+		};
+		this.$patValidatedFor.set(validatedSet);
+		return { ok: true };
+	}
+
+	public async savePatForGuild(
+		guildId: string,
+		tokenName: string,
+	): Promise<{ ok: true; tokenId: string } | { ok: false; error: string }> {
+		const pat = this.$patDrafts.get()[guildId] ?? '';
+		if (!pat) return { ok: false, error: 'No PAT entered' };
+		const validated = this.$patValidatedFor.get()[guildId] ?? null;
+		const saving = { ...this.$patSavingFor.get(), [guildId]: true };
+		this.$patSavingFor.set(saving);
+		const errs = { ...this.$patErrors.get(), [guildId]: null };
+		this.$patErrors.set(errs);
+		const r = await this.addToken({
+			tokenName,
+			service: 'github',
+			tokenValue: pat,
+			description: validated
+				? `GitHub PAT for ${validated.login}`
+				: 'GitHub PAT',
+		});
+		const savingDone = { ...this.$patSavingFor.get() };
+		delete savingDone[guildId];
+		this.$patSavingFor.set(savingDone);
+		if (r.ok) {
+			this.clearPatState(guildId);
+		} else {
+			const errs2 = { ...this.$patErrors.get(), [guildId]: r.error };
+			this.$patErrors.set(errs2);
+		}
+		return r;
+	}
+
+	public patchBackfillDraft(
+		guildId: string,
+		partial: Partial<{ owner: string; repo: string }>,
+	): void {
+		const drafts = this.$backfillDrafts.get();
+		const cur = drafts[guildId] ?? { owner: '', repo: '' };
+		this.$backfillDrafts.set({
+			...drafts,
+			[guildId]: { ...cur, ...partial },
+		});
+	}
+
+	public clearBackfillResult(guildId: string): void {
+		const m = { ...this.$backfillResults.get() };
+		delete m[guildId];
+		this.$backfillResults.set(m);
+	}
+
+	public async runBackfillForGuild(guildId: string): Promise<void> {
+		const draft = this.$backfillDrafts.get()[guildId] ?? {
+			owner: '',
+			repo: '',
+		};
+		if (!draft.owner || !draft.repo) return;
+		const busy = { ...this.$backfillBusyFor.get(), [guildId]: true };
+		this.$backfillBusyFor.set(busy);
+		const resultsClear = { ...this.$backfillResults.get() };
+		delete resultsClear[guildId];
+		this.$backfillResults.set(resultsClear);
+		const r = await this.runBackfill({
+			owner: draft.owner,
+			repo: draft.repo,
+			state: 'open',
+			maxPages: 1,
+			perPage: 30,
+		});
+		const busyDone = { ...this.$backfillBusyFor.get() };
+		delete busyDone[guildId];
+		this.$backfillBusyFor.set(busyDone);
+		const resultsSet = { ...this.$backfillResults.get(), [guildId]: r };
+		this.$backfillResults.set(resultsSet);
 	}
 
 	public async toggleToken(
