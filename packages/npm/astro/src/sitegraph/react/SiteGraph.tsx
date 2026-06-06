@@ -336,7 +336,32 @@ export function SiteGraph({
 	const [panY, setPanY] = useState(0);
 
 	const isPointerOverSvg = useRef(false);
-	const lastPinchDist = useRef<number | null>(null);
+
+	// Live mirrors of pan/zoom so the once-bound pointer listeners read
+	// current values without re-subscribing on every interaction frame.
+	const panXRef = useRef(panX);
+	panXRef.current = panX;
+	const panYRef = useRef(panY);
+	panYRef.current = panY;
+	const zoomRef = useRef(zoom);
+	zoomRef.current = zoom;
+
+	// Active pointers on the SVG background, keyed by pointerId.
+	// 1 pointer → pan, 2 pointers → pinch-zoom.
+	const bgPointers = useRef(new Map<number, { x: number; y: number }>());
+	const panStart = useRef<{
+		startX: number;
+		startY: number;
+		startPanX: number;
+		startPanY: number;
+	} | null>(null);
+	const pinchStart = useRef<{
+		startDist: number;
+		startZoom: number;
+	} | null>(null);
+	// Set true once a node pointer-drag passes the move threshold, so the
+	// trailing click doesn't navigate.
+	const draggedRef = useRef(false);
 
 	const showTooltip = useCallback(
 		(title: string, id: string, e: React.MouseEvent) => {
@@ -565,101 +590,116 @@ export function SiteGraph({
 		};
 	}, []);
 
+	// Unified Pointer Events for background pan + pinch-zoom. One code path
+	// for mouse, touch, and pen — iOS Safari (13+) ships Pointer Events, so
+	// this is what makes pan/zoom work on mobile. 1 active pointer pans,
+	// 2 pinch-zoom. Pointers that start inside a node are claimed by
+	// `dragNode` (it stops propagation), so this only sees empty-space drags.
 	useEffect(() => {
 		const svg = svgRef.current;
 		if (!svg) return;
 
-		const getTouchDist = (touches: TouchList): number => {
-			const dx = touches[0].clientX - touches[1].clientX;
-			const dy = touches[0].clientY - touches[1].clientY;
-			return Math.hypot(dx, dy);
+		const pinchDist = (): number => {
+			const pts = [...bgPointers.current.values()];
+			return Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
 		};
 
-		const handleTouchStart = (e: TouchEvent) => {
-			if (e.touches.length === 2) {
-				lastPinchDist.current = getTouchDist(e.touches);
+		const beginPan = (x: number, y: number) => {
+			panStart.current = {
+				startX: x,
+				startY: y,
+				startPanX: panXRef.current,
+				startPanY: panYRef.current,
+			};
+		};
+
+		const onDown = (e: PointerEvent) => {
+			const target = e.target as Element | null;
+			if (target?.closest('.sg-node')) return;
+			if (e.pointerType === 'mouse' && e.button !== 0) return;
+			try {
+				svg.setPointerCapture(e.pointerId);
+			} catch {
+				// Safari can throw if the element is detaching; ignore.
+			}
+			bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+			if (bgPointers.current.size === 1) {
+				beginPan(e.clientX, e.clientY);
+				svg.style.cursor = 'grabbing';
+			} else if (bgPointers.current.size === 2) {
+				panStart.current = null;
+				pinchStart.current = {
+					startDist: pinchDist(),
+					startZoom: zoomRef.current,
+				};
 			}
 		};
 
-		const handleTouchMove = (e: TouchEvent) => {
-			if (e.touches.length === 2 && lastPinchDist.current != null) {
+		const onMove = (e: PointerEvent) => {
+			if (!bgPointers.current.has(e.pointerId)) return;
+			bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+			if (bgPointers.current.size >= 2 && pinchStart.current) {
 				e.preventDefault();
-				const dist = getTouchDist(e.touches);
-				const scale = dist / lastPinchDist.current;
-				lastPinchDist.current = dist;
-				setZoom((prev) =>
-					Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, prev * scale)),
+				const scale = pinchDist() / pinchStart.current.startDist;
+				const next = Math.min(
+					MAX_ZOOM,
+					Math.max(MIN_ZOOM, pinchStart.current.startZoom * scale),
 				);
+				setZoom(next);
+			} else if (panStart.current) {
+				const p = panStart.current;
+				setPanX(p.startPanX + (e.clientX - p.startX));
+				setPanY(p.startPanY + (e.clientY - p.startY));
 			}
 		};
 
-		const handleTouchEnd = () => {
-			lastPinchDist.current = null;
+		const onUp = (e: PointerEvent) => {
+			if (!bgPointers.current.has(e.pointerId)) return;
+			bgPointers.current.delete(e.pointerId);
+			try {
+				svg.releasePointerCapture(e.pointerId);
+			} catch {
+				// Capture may already be gone; ignore.
+			}
+			if (bgPointers.current.size < 2) pinchStart.current = null;
+			if (bgPointers.current.size === 1) {
+				const [only] = [...bgPointers.current.values()];
+				beginPan(only.x, only.y);
+			} else if (bgPointers.current.size === 0) {
+				panStart.current = null;
+				svg.style.cursor = 'grab';
+			}
 		};
 
-		svg.addEventListener('touchstart', handleTouchStart, { passive: true });
-		svg.addEventListener('touchmove', handleTouchMove, { passive: false });
-		svg.addEventListener('touchend', handleTouchEnd, { passive: true });
+		svg.addEventListener('pointerdown', onDown);
+		svg.addEventListener('pointermove', onMove);
+		svg.addEventListener('pointerup', onUp);
+		svg.addEventListener('pointercancel', onUp);
 		return () => {
-			svg.removeEventListener('touchstart', handleTouchStart);
-			svg.removeEventListener('touchmove', handleTouchMove);
-			svg.removeEventListener('touchend', handleTouchEnd);
+			svg.removeEventListener('pointerdown', onDown);
+			svg.removeEventListener('pointermove', onMove);
+			svg.removeEventListener('pointerup', onUp);
+			svg.removeEventListener('pointercancel', onUp);
 		};
 	}, []);
-
-	// Click-drag pan on empty SVG space. Clicks that originate inside an
-	// `.sg-node` group are ignored — those are claimed by node-drag below.
-	useEffect(() => {
-		const svg = svgRef.current;
-		if (!svg) return;
-
-		let dragging = false;
-		let startX = 0;
-		let startY = 0;
-		let startPanX = 0;
-		let startPanY = 0;
-
-		const onDown = (e: MouseEvent) => {
-			if (e.button !== 0) return;
-			const target = e.target as SVGElement | null;
-			if (target?.closest('.sg-node')) return;
-			dragging = true;
-			startX = e.clientX;
-			startY = e.clientY;
-			startPanX = panX;
-			startPanY = panY;
-			svg.style.cursor = 'grabbing';
-		};
-		const onMove = (e: MouseEvent) => {
-			if (!dragging) return;
-			setPanX(startPanX + (e.clientX - startX));
-			setPanY(startPanY + (e.clientY - startY));
-		};
-		const onUp = () => {
-			if (!dragging) return;
-			dragging = false;
-			svg.style.cursor = 'grab';
-		};
-
-		svg.addEventListener('mousedown', onDown);
-		window.addEventListener('mousemove', onMove);
-		window.addEventListener('mouseup', onUp);
-		return () => {
-			svg.removeEventListener('mousedown', onDown);
-			window.removeEventListener('mousemove', onMove);
-			window.removeEventListener('mouseup', onUp);
-		};
-	}, [panX, panY]);
 
 	// Node drag — pin the node's simulation position while dragging by
 	// setting fx/fy, and release with `simulation.alphaTarget` ramping back
 	// down so the rest of the graph re-settles.
 	const dragNode = useCallback(
-		(node: GraphNode) => (e: React.MouseEvent) => {
+		(node: GraphNode) => (e: React.PointerEvent) => {
 			e.stopPropagation();
+			if (e.pointerType === 'mouse' && e.button !== 0) return;
 			const sim = simulationRef.current;
 			const svg = svgRef.current;
 			if (!sim || !svg) return;
+
+			const el = e.currentTarget as SVGGElement;
+			try {
+				el.setPointerCapture(e.pointerId);
+			} catch {
+				// Safari may throw mid-teardown; the drag still works without it.
+			}
 
 			const rect = svg.getBoundingClientRect();
 			const toSvg = (clientX: number, clientY: number) => {
@@ -671,30 +711,53 @@ export function SiteGraph({
 				};
 			};
 
+			const downX = e.clientX;
+			const downY = e.clientY;
+			draggedRef.current = false;
+
 			node.fx = node.x;
 			node.fy = node.y;
 			sim.alphaTarget(0.3).restart();
 
-			const onMove = (ev: MouseEvent) => {
+			const onMove = (ev: PointerEvent) => {
+				if (
+					!draggedRef.current &&
+					Math.hypot(ev.clientX - downX, ev.clientY - downY) > 4
+				) {
+					draggedRef.current = true;
+				}
 				const p = toSvg(ev.clientX, ev.clientY);
 				node.fx = p.x;
 				node.fy = p.y;
 			};
-			const onUp = () => {
+			const onUp = (ev: PointerEvent) => {
 				node.fx = null;
 				node.fy = null;
 				sim.alphaTarget(0);
-				window.removeEventListener('mousemove', onMove);
-				window.removeEventListener('mouseup', onUp);
+				try {
+					el.releasePointerCapture(ev.pointerId);
+				} catch {
+					// Capture may already be released; ignore.
+				}
+				el.removeEventListener('pointermove', onMove);
+				el.removeEventListener('pointerup', onUp);
+				el.removeEventListener('pointercancel', onUp);
 			};
-			window.addEventListener('mousemove', onMove);
-			window.addEventListener('mouseup', onUp);
+			el.addEventListener('pointermove', onMove);
+			el.addEventListener('pointerup', onUp);
+			el.addEventListener('pointercancel', onUp);
 		},
 		[panX, panY, zoom, width, height],
 	);
 
 	const handleNodeClick = useCallback(
 		(slug: string, e: React.MouseEvent) => {
+			// Suppress the navigation that a drag's trailing click would
+			// otherwise trigger.
+			if (draggedRef.current) {
+				draggedRef.current = false;
+				return;
+			}
 			if (slug === currentSlug) return;
 			const url = `/${slug}/`;
 			// Match anchor-tag conventions: ctrl/meta/middle-click → new tab.
@@ -1059,7 +1122,7 @@ export function SiteGraph({
 									transition: 'opacity 0.12s',
 								}}
 								onClick={(e) => handleNodeClick(node.id, e)}
-								onMouseDown={dragNode(node)}
+								onPointerDown={dragNode(node)}
 								onMouseEnter={(e) => {
 									setHoveredId(node.id);
 									showTooltip(node.title, node.id, e);
