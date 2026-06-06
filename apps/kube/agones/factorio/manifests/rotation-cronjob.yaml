@@ -4,7 +4,7 @@ metadata:
     name: factorio-rotator
     namespace: factorio
 spec:
-    schedule: '*/5 * * * *'
+    schedule: '*/2 * * * *'
     concurrencyPolicy: Forbid
     successfulJobsHistoryLimit: 1
     failedJobsHistoryLimit: 3

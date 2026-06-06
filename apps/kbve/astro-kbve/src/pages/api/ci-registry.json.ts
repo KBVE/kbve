@@ -65,6 +65,7 @@ interface UnrealEntry {
 	plugin_path: string;
 	dependency_plugins?: string;
 	itch_game_id?: string;
+	supported_platforms?: string[];
 	version?: string;
 	version_toml?: string;
 }
@@ -221,6 +222,8 @@ function toManifestEntry(
 			if (d.dependency_plugins)
 				ue.dependency_plugins = d.dependency_plugins;
 			if (d.itch_game_id) ue.itch_game_id = d.itch_game_id;
+			if (d.supported_platforms?.length)
+				ue.supported_platforms = d.supported_platforms;
 			if (ver) ue.version = ver;
 			if (vt) ue.version_toml = vt;
 			return ue;

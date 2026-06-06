@@ -152,6 +152,12 @@ on:
             butler_api:
                 description: 'Itch.io Butler API key'
                 required: false
+            FORGEJO_USER:
+                description: 'Forgejo (git.kbve.com) user for per-game LFS pull'
+                required: false
+            FORGEJO_TOKEN:
+                description: 'Forgejo (git.kbve.com) token for per-game LFS pull'
+                required: false
         outputs:
             version:
                 description: 'Resolved version (plugin/engine modes)'
@@ -342,18 +348,34 @@ jobs:
               run: |
                   docker pull "${{ env.UE_IMAGE }}"
 
-            - name: Clone game project
-              run: |
-                  rm -rf /tmp/game-project
-                  git clone --depth=1 \
-                    "https://x-access-token:${{ steps.pat.outputs.token }}@github.com/${{ needs.server_config.outputs.project_repo }}.git" \
-                    /tmp/game-project
+            - name: Checkout monorepo
+              uses: actions/checkout@v6
+              with:
+                  lfs: false
 
-            - name: Fetch LFS objects
+            - name: Pull game LFS (Forgejo) + materialize project
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
               run: |
-                  cd /tmp/game-project
-                  git lfs install
-                  git lfs pull
+                  PROJ="${{ inputs.shell_path }}"
+                  if [ ! -f "${PROJ}/.lfsconfig" ]; then
+                    echo "::error::${PROJ}/.lfsconfig not found — cannot resolve game LFS endpoint"
+                    exit 1
+                  fi
+                  if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — cannot pull LFS from git.kbve.com"
+                    exit 1
+                  fi
+                  echo "::add-mask::${FORGEJO_TOKEN}"
+                  LFS_URL=$(git config -f "${PROJ}/.lfsconfig" lfs.url)
+                  AUTH_URL="${LFS_URL/https:\/\//https://${FORGEJO_USER}:${FORGEJO_TOKEN}@}"
+                  echo "::notice::Pulling LFS for ${PROJ} from ${LFS_URL}"
+                  git -c lfs.url="${AUTH_URL}" lfs install --local
+                  git -c lfs.url="${AUTH_URL}" lfs pull --include="${PROJ}/**"
+                  rm -rf /tmp/game-project
+                  mkdir -p /tmp/game-project
+                  cp -r "${PROJ}/." /tmp/game-project/
 
             - name: Build dedicated server
               env:
@@ -425,7 +447,7 @@ jobs:
                   REPO="${{ needs.server_config.outputs.project_repo }}"
                   UE_TAG="${{ needs.server_config.outputs.ue_image_tag }}"
 
-                  CHUCK_SHA=$(cd /tmp/game-project && git rev-parse HEAD)
+                  CHUCK_SHA="${{ github.sha }}"
 
                   SERVER_DIR=$(find /tmp/ue5-build-output -name "LinuxServer" -type d | head -1)
                   if [ -z "${SERVER_DIR}" ]; then
@@ -570,32 +592,48 @@ jobs:
             - name: Pull UE image
               run: docker pull "${{ env.UE_IMAGE }}"
 
-            - name: Clone game repo
-              run: |
-                  rm -rf /tmp/game-project
-                  git clone --depth=1 \
-                    "https://x-access-token:${{ steps.pat.outputs.token }}@github.com/${{ inputs.external_repo_url }}.git" \
-                    /tmp/game-project
-                  cd /tmp/game-project
-                  git lfs install
-                  git lfs pull
+            - name: Checkout monorepo
+              uses: actions/checkout@v6
+              with:
+                  lfs: false
 
-            - name: Build Linux client
+            - name: Pull game LFS (Forgejo) + materialize project
               env:
-                  PROJECT_PATH: ${{ inputs.project_path }}
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
               run: |
-                  mkdir -p /tmp/ue5-game-output
-                  UPROJECT_FILE=$(find "/tmp/game-project/${PROJECT_PATH}" -maxdepth 1 -name '*.uproject' | head -1)
-                  if [ -z "${UPROJECT_FILE}" ]; then
-                    echo "::error::No .uproject under /tmp/game-project/${PROJECT_PATH}"
+                  PROJ="${{ inputs.project_path }}"
+                  if [ ! -f "${PROJ}/.lfsconfig" ]; then
+                    echo "::error::${PROJ}/.lfsconfig not found — cannot resolve game LFS endpoint"
                     exit 1
                   fi
-                  PROJECT_MOUNT=$(dirname "${UPROJECT_FILE}")
+                  if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — cannot pull LFS from git.kbve.com"
+                    exit 1
+                  fi
+                  echo "::add-mask::${FORGEJO_TOKEN}"
+                  LFS_URL=$(git config -f "${PROJ}/.lfsconfig" lfs.url)
+                  AUTH_URL="${LFS_URL/https:\/\//https://${FORGEJO_USER}:${FORGEJO_TOKEN}@}"
+                  echo "::notice::Pulling LFS for ${PROJ} from ${LFS_URL}"
+                  git -c lfs.url="${AUTH_URL}" lfs install --local
+                  git -c lfs.url="${AUTH_URL}" lfs pull --include="${PROJ}/**"
+                  rm -rf /tmp/game-project
+                  mkdir -p /tmp/game-project
+                  cp -r "${PROJ}/." /tmp/game-project/
+
+            - name: Build Linux client
+              run: |
+                  mkdir -p /tmp/ue5-game-output
+                  UPROJECT_FILE=$(find /tmp/game-project -maxdepth 1 -name '*.uproject' | head -1)
+                  if [ -z "${UPROJECT_FILE}" ]; then
+                    echo "::error::No .uproject at /tmp/game-project root"
+                    exit 1
+                  fi
                   UPROJECT_NAME=$(basename "${UPROJECT_FILE}")
-                  echo "::notice::Mounting ${PROJECT_MOUNT} → /project, building ${UPROJECT_NAME} (Linux client)"
+                  echo "::notice::Building ${UPROJECT_NAME} (Linux client)"
 
                   docker run --rm \
-                    -v "${PROJECT_MOUNT}:/project" \
+                    -v /tmp/game-project:/project \
                     -v /tmp/ue5-game-output:/output \
                     "${{ env.UE_IMAGE }}" \
                     /bin/bash -c '
@@ -659,14 +697,10 @@ jobs:
         permissions:
             contents: read
         steps:
-            - name: Resolve PAT
-              id: pat
-              run: |
-                  $token = "${{ secrets.epic_pat }}"
-                  if (-not $token) { $token = "${{ secrets.UNITY_PAT }}" }
-                  if (-not $token) { Write-Host "::error::No PAT available"; exit 1 }
-                  Write-Host "::add-mask::$token"
-                  "token=$token" >> $env:GITHUB_OUTPUT
+            - name: Checkout monorepo
+              uses: actions/checkout@v6
+              with:
+                  lfs: false
 
             - name: Locate Unreal Engine
               id: engine
@@ -680,19 +714,25 @@ jobs:
                   Write-Host "::notice::Engine at $engineRoot"
                   "runuat=$(Join-Path $engineRoot 'Engine\Build\BatchFiles\RunUAT.bat')" >> $env:GITHUB_OUTPUT
 
-            - name: Clone game repo
+            - name: Pull game LFS (Forgejo)
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
               run: |
-                  $token = '${{ steps.pat.outputs.token }}'
-                  if (Test-Path C:\game-project) { Remove-Item -Recurse -Force C:\game-project }
-                  git clone --depth=1 "https://x-access-token:$token@github.com/${{ inputs.external_repo_url }}.git" C:\game-project
-                  Push-Location C:\game-project
-                  git lfs install
-                  git lfs pull
-                  Pop-Location
+                  $proj = '${{ inputs.project_path }}'
+                  $lfsConfig = Join-Path $proj '.lfsconfig'
+                  if (-not (Test-Path $lfsConfig)) { Write-Host "::error::$lfsConfig not found"; exit 1 }
+                  if (-not $env:FORGEJO_USER -or -not $env:FORGEJO_TOKEN) { Write-Host "::error::FORGEJO_USER / FORGEJO_TOKEN missing"; exit 1 }
+                  Write-Host "::add-mask::$($env:FORGEJO_TOKEN)"
+                  $lfsUrl = (git config -f $lfsConfig lfs.url)
+                  $authUrl = $lfsUrl -replace '^https://', "https://$($env:FORGEJO_USER):$($env:FORGEJO_TOKEN)@"
+                  Write-Host "::notice::Pulling LFS for $proj from $lfsUrl"
+                  git -c lfs.url="$authUrl" lfs install --local
+                  git -c lfs.url="$authUrl" lfs pull --include="$proj/**"
 
             - name: Build Win64 client
               run: |
-                  $uproject = Get-ChildItem -Path (Join-Path 'C:\game-project' '${{ inputs.project_path }}') -Filter *.uproject | Select-Object -First 1
+                  $uproject = Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE '${{ inputs.project_path }}') -Filter *.uproject | Select-Object -First 1
                   if (-not $uproject) { Write-Host "::error::No .uproject found"; exit 1 }
                   $out = "C:\ue5-game-output"
                   New-Item -ItemType Directory -Force -Path $out | Out-Null
@@ -722,7 +762,6 @@ jobs:
             - name: Cleanup
               if: always()
               run: |
-                  if (Test-Path C:\game-project) { Remove-Item -Recurse -Force C:\game-project -ErrorAction SilentlyContinue }
                   if (Test-Path C:\ue5-game-output) { Remove-Item -Recurse -Force C:\ue5-game-output -ErrorAction SilentlyContinue }
 
     game_build_mac:

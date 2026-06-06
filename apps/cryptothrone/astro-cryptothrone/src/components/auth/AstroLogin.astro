@@ -1,0 +1,144 @@
+---
+import ReactLoginButtons from './ReactLoginButtons';
+---
+
+<div class="ct-auth-container">
+	<div class="ct-auth-content">
+		<h2>Enter the Throne</h2>
+		<p class="ct-auth-desc">
+			Sign in to save your progress, claim your seat, and compete on the
+			leaderboards.
+		</p>
+
+		<ReactLoginButtons client:load />
+
+		<div class="ct-auth-info">
+			<p>
+				By signing in, you agree to our Terms of Service and Privacy
+				Policy.
+			</p>
+		</div>
+	</div>
+</div>
+
+<style is:global>
+	.ct-auth-container {
+		max-width: 500px;
+		margin: 2rem auto;
+		padding: 2rem 1rem;
+	}
+
+	.ct-auth-content {
+		text-align: center;
+	}
+
+	.ct-auth-content h2 {
+		font-family: var(--sl-font);
+		color: var(--sl-color-white);
+		margin-bottom: 1rem;
+	}
+
+	.ct-auth-desc {
+		color: var(--sl-color-gray-2);
+		margin-bottom: 2rem;
+		line-height: 1.6;
+	}
+
+	.ct-auth-buttons {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin-bottom: 2rem;
+		min-height: 120px;
+	}
+
+	.ct-auth-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		padding: 0.875rem 1.5rem;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 4px;
+		font-size: 1rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.ct-auth-btn:hover:not(:disabled) {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+	}
+
+	.ct-auth-btn:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	.ct-auth-btn--github {
+		background: #24292e;
+		color: white;
+	}
+
+	.ct-auth-btn--github:hover:not(:disabled) {
+		background: #2f363d;
+	}
+
+	.ct-auth-btn--discord {
+		background: #5865f2;
+		color: white;
+	}
+
+	.ct-auth-btn--discord:hover:not(:disabled) {
+		background: #4752c4;
+	}
+
+	.ct-auth-icon {
+		width: 20px;
+		height: 20px;
+	}
+
+	.ct-auth-info {
+		color: var(--sl-color-gray-3);
+		font-size: 0.875rem;
+	}
+
+	.ct-auth-info p {
+		margin: 0;
+	}
+
+	.ct-auth-status {
+		max-width: 500px;
+		margin: 3rem auto;
+		text-align: center;
+	}
+
+	.ct-status-message {
+		font-size: 1.25rem;
+		color: var(--sl-color-white);
+		margin-top: 1rem;
+	}
+
+	.ct-status-sub {
+		color: var(--sl-color-gray-3);
+		font-size: 0.9rem;
+		margin-top: 0.5rem;
+	}
+
+	.ct-spinner {
+		width: 40px;
+		height: 40px;
+		margin: 0 auto;
+		border: 3px solid var(--sl-color-hairline-light);
+		border-top-color: var(--sl-color-text-accent);
+		border-radius: 50%;
+		animation: ct-spin 0.8s linear infinite;
+	}
+
+	@keyframes ct-spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+</style>

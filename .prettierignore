@@ -19,3 +19,5 @@ pnpm-lock.yaml
 packages/data/codegen/generated/*.json
 apps/rareicon/unity-rareicon/Assets/StreamingAssets/*.json
 apps/discordsh/discordsh-bot/data/mapdb.json
+# Generated CI dispatch manifest (raw nx sync output; prettier must not reflow it)
+.github/ci-dispatch-manifest.json

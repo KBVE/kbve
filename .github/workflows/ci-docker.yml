@@ -160,6 +160,7 @@ jobs:
             nx_project: ${{ steps.resolve.outputs.nx_project }}
             source_path: ${{ steps.resolve.outputs.source_path }}
             external_publish: ${{ steps.resolve.outputs.external_publish }}
+            install_playwright: ${{ steps.resolve.outputs.install_playwright }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v6
@@ -193,6 +194,13 @@ jobs:
                   echo "source_path=$(echo "$ENTRY" | jq -r '.source_path // empty')"          >> "$GITHUB_OUTPUT"
                   echo "external_publish=$(echo "$ENTRY" | jq -c '.external_publish // empty')" >> "$GITHUB_OUTPUT"
 
+                  E2E_NAME=$(echo "$ENTRY" | jq -r '.e2e_name // empty')
+                  case "$E2E_NAME" in
+                    irc) PW=true ;;
+                    *)   PW=false ;;
+                  esac
+                  echo "install_playwright=${PW}" >> "$GITHUB_OUTPUT"
+
     # ---------------------------------------------------------------------------
     # Test — builds the app image, tags as ci-{sha} in GHCR, runs e2e tests.
     # Skipped for apps that have no e2e suite (e.g. kilobase).
@@ -214,7 +222,7 @@ jobs:
             project: ${{ needs.config.outputs.e2e_name }}
             runner: ${{ needs.config.outputs.runner }}
             image: ${{ needs.config.outputs.image }}
-            install_playwright: false
+            install_playwright: ${{ needs.config.outputs.install_playwright == 'true' }}
             version_source: ${{ needs.config.outputs.version_source }}
             version_target: ${{ needs.config.outputs.version_target }}
 
