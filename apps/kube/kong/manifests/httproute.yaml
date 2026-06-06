@@ -14,6 +14,24 @@ spec:
         - matches:
               - path:
                     type: PathPrefix
+                    value: /realtime
+          timeouts:
+              backendRequest: 3600s
+          backendRefs:
+              - name: kong-kong-proxy
+                port: 80
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /storage/v1/object/upload
+          timeouts:
+              backendRequest: 600s
+          backendRefs:
+              - name: kong-kong-proxy
+                port: 80
+        - matches:
+              - path:
+                    type: PathPrefix
                     value: /
           backendRefs:
               - name: kong-kong-proxy
