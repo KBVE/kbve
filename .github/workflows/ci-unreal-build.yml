@@ -1519,13 +1519,30 @@ jobs:
 
             - name: Check file server reachable
               run: |
-                  $response = curl.exe -s -o NUL -w "%{http_code}" "$env:FILE_SERVER/" 2>$null
-                  if ($response -eq "200") {
-                      Write-Host "File server reachable."
+                  $fqdn = "http://file-server.angelscript.svc.cluster.local:8080"
+                  $candidates = @($fqdn, $env:FILE_SERVER)
+                  $ok = $false
+                  $url = ""
+                  foreach ($c in $candidates) {
+                      $code = curl.exe -s -o NUL -m 10 -w "%{http_code}" "$c/" 2>$null
+                      Write-Host ("  {0}/ -> HTTP {1}" -f $c, $code)
+                      if ($code -eq "200") { $ok = $true; $url = $c; break }
+                  }
+                  if ($ok) {
+                      Write-Host "File server reachable at $url"
                       Add-Content -Path $env:GITHUB_ENV -Value "FS_OK=true"
+                      Add-Content -Path $env:GITHUB_ENV -Value "FILE_SERVER=$url"
                   } else {
-                      Write-Host "::warning::File server unreachable (HTTP $response) - VM cannot reach $env:FILE_SERVER. Install steps skip downloads and rely on pre-installed tools; Verify reports the real state."
+                      Write-Host "::warning::File server unreachable. Network diagnostics follow; install steps skip downloads and rely on pre-installed tools."
                       Add-Content -Path $env:GITHUB_ENV -Value "FS_OK=false"
+                      Write-Host "--- nslookup FQDN ---"
+                      nslookup file-server.angelscript.svc.cluster.local 2>&1 | Out-Host
+                      Write-Host "--- curl ClusterIP direct ---"
+                      curl.exe -s -o NUL -m 10 -w "  10.101.160.235:8080 -> HTTP %{http_code}`n" "http://10.101.160.235:8080/" 2>$null
+                      Write-Host "--- curl public internet ---"
+                      curl.exe -s -o NUL -m 10 -w "  example.com -> HTTP %{http_code}`n" "http://example.com/" 2>$null
+                      Write-Host "--- DNS servers ---"
+                      Get-DnsClientServerAddress -AddressFamily IPv4 2>&1 | Format-Table -AutoSize | Out-Host
                   }
                   exit 0
 
