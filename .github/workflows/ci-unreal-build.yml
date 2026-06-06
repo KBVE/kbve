@@ -1519,19 +1519,22 @@ jobs:
 
             - name: Check file server reachable
               run: |
-                  $response = curl.exe -s -o NUL -w "%{http_code}" "$env:FILE_SERVER/"
-                  if ($response -ne "200") {
-                      Write-Host "::error::File server not reachable (HTTP $response). Scale up: kubectl scale deploy file-server -n angelscript --replicas=1"
-                      exit 1
+                  $response = curl.exe -s -o NUL -w "%{http_code}" "$env:FILE_SERVER/" 2>$null
+                  if ($response -eq "200") {
+                      Write-Host "File server reachable."
+                      Add-Content -Path $env:GITHUB_ENV -Value "FS_OK=true"
+                  } else {
+                      Write-Host "::warning::File server unreachable (HTTP $response) — VM cannot reach $env:FILE_SERVER. Install steps skip downloads and rely on pre-installed tools; Verify reports the real state."
+                      Add-Content -Path $env:GITHUB_ENV -Value "FS_OK=false"
                   }
-                  Write-Host "File server reachable."
 
             - name: Install Visual Studio 2022 Build Tools
               timeout-minutes: 30
               run: |
                   if (Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools") { Write-Host "VS Build Tools already installed."; exit 0 }
+                  if ($env:FS_OK -ne "true") { Write-Host "::warning::VS Build Tools absent and file-server unreachable — skipping."; exit 0 }
                   curl.exe -o C:\vs_buildtools.exe "$env:FILE_SERVER/vs_buildtools.exe"
-                  if (!(Test-Path C:\vs_buildtools.exe)) { Write-Host "::error::Download failed. Stage vs_buildtools.exe first."; exit 1 }
+                  if (!(Test-Path C:\vs_buildtools.exe)) { Write-Host "::warning::Download failed — stage vs_buildtools.exe."; exit 0 }
                   $p = Start-Process C:\vs_buildtools.exe -ArgumentList @(
                       '--add','Microsoft.VisualStudio.Workload.VCTools',
                       '--add','Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
@@ -1544,39 +1547,60 @@ jobs:
             - name: Install Python 3
               run: |
                   if (Get-Command python -ErrorAction SilentlyContinue) { Write-Host "Python already installed: $(python --version)"; exit 0 }
+                  if ($env:FS_OK -ne "true") { Write-Host "::warning::Python absent and file-server unreachable — skipping."; exit 0 }
                   curl.exe -o C:\python-install.exe "$env:FILE_SERVER/python-install.exe"
+                  if (!(Test-Path C:\python-install.exe)) { Write-Host "::warning::Download failed — stage python-install.exe."; exit 0 }
                   Start-Process C:\python-install.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1' -Wait
 
             - name: Install .NET SDK 8.0
               run: |
                   if (Get-Command dotnet -ErrorAction SilentlyContinue) { Write-Host ".NET already installed: $(dotnet --version)"; exit 0 }
+                  if ($env:FS_OK -ne "true") { Write-Host "::warning::.NET absent and file-server unreachable — skipping."; exit 0 }
                   curl.exe -o C:\dotnet-install.ps1 "$env:FILE_SERVER/dotnet-install.ps1"
+                  if (!(Test-Path C:\dotnet-install.ps1)) { Write-Host "::warning::Download failed — stage dotnet-install.ps1."; exit 0 }
                   & C:\dotnet-install.ps1 -Channel 8.0
 
             - name: Install DirectX Runtime
               run: |
+                  if (Test-Path "$env:SystemRoot\System32\d3dx9_43.dll") { Write-Host "DirectX runtime already present."; exit 0 }
+                  if ($env:FS_OK -ne "true") { Write-Host "::warning::DirectX absent and file-server unreachable — skipping."; exit 0 }
                   curl.exe -o C:\dxsetup.exe "$env:FILE_SERVER/dxsetup.exe"
+                  if (!(Test-Path C:\dxsetup.exe)) { Write-Host "::warning::Download failed — stage dxsetup.exe."; exit 0 }
                   Start-Process C:\dxsetup.exe -ArgumentList '/Q' -Wait
 
             - name: Install CMake
               run: |
                   if (Get-Command cmake -ErrorAction SilentlyContinue) { Write-Host "CMake already installed: $(cmake --version | Select-Object -First 1)"; exit 0 }
+                  if ($env:FS_OK -ne "true") { Write-Host "::warning::CMake absent and file-server unreachable — skipping."; exit 0 }
                   curl.exe -o C:\cmake-install.msi "$env:FILE_SERVER/cmake-install.msi"
+                  if (!(Test-Path C:\cmake-install.msi)) { Write-Host "::warning::Download failed — stage cmake-install.msi."; exit 0 }
                   Start-Process msiexec.exe -ArgumentList '/i C:\cmake-install.msi /quiet /norestart ADD_CMAKE_TO_PATH=System' -Wait
 
             - name: Install Git LFS
               run: |
                   git lfs version 2>$null
                   if ($LASTEXITCODE -eq 0) { git lfs install; Write-Host "Git LFS already installed: $(git lfs version)"; exit 0 }
+                  if ($env:FS_OK -ne "true") { Write-Host "::warning::Git LFS absent and file-server unreachable — skipping."; exit 0 }
                   curl.exe -o C:\git-lfs-install.exe "$env:FILE_SERVER/git-lfs-install.exe"
-                  if (!(Test-Path C:\git-lfs-install.exe)) { Write-Host "::error::Download failed. Stage git-lfs-install.exe on file-server first."; exit 1 }
+                  if (!(Test-Path C:\git-lfs-install.exe)) { Write-Host "::warning::Download failed — stage git-lfs-install.exe."; exit 0 }
                   Start-Process C:\git-lfs-install.exe -ArgumentList '/VERYSILENT /NORESTART' -Wait
                   git lfs install
+
+            - name: Install PowerShell 7
+              run: |
+                  if (Get-Command pwsh -ErrorAction SilentlyContinue) { Write-Host "pwsh already installed: $(pwsh --version)"; exit 0 }
+                  if ($env:FS_OK -ne "true") { Write-Host "::warning::pwsh absent and file-server unreachable — skipping. The engine/plugin/game UE5-Win jobs need pwsh."; exit 0 }
+                  curl.exe -o C:\pwsh-install.msi "$env:FILE_SERVER/pwsh-install.msi"
+                  if (!(Test-Path C:\pwsh-install.msi)) { Write-Host "::warning::Download failed — stage pwsh-install.msi."; exit 0 }
+                  Start-Process msiexec.exe -ArgumentList '/i C:\pwsh-install.msi /quiet /norestart ADD_PATH=1' -Wait
+                  Write-Host "PowerShell 7 installed."
 
             - name: Verify Installation
               run: |
                   $checks = @(
                       @{ Name='git'; Cmd={ git --version } },
+                      @{ Name='git-lfs'; Cmd={ git lfs version } },
+                      @{ Name='pwsh'; Cmd={ if (Get-Command pwsh -ErrorAction SilentlyContinue) { pwsh --version } else { "NOT FOUND" } } },
                       @{ Name='python'; Cmd={ python --version } },
                       @{ Name='dotnet'; Cmd={ dotnet --version } },
                       @{ Name='cmake'; Cmd={ cmake --version | Select-Object -First 1 } },
