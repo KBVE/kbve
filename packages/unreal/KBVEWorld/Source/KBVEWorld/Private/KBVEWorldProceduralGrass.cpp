@@ -20,11 +20,11 @@ namespace
 		TVertexInstanceAttributesRef<FVector2f> UVs        = Attr.GetVertexInstanceUVs();
 		TVertexInstanceAttributesRef<FVector4f> Colors     = Attr.GetVertexInstanceColors();
 
-		const float HalfW    = W * 0.5f;
-		const float HalfLow  = W * 0.55f;
-		const float HalfMid  = W * 0.35f;
-		const float HalfHigh = W * 0.18f;
-		const float HalfTip  = W * 0.06f;
+		const float HalfW    = W * 0.40f;
+		const float HalfLow  = W * 0.30f;
+		const float HalfMid  = W * 0.20f;
+		const float HalfHigh = W * 0.10f;
+		const float HalfTip  = W * 0.04f;
 		const float HLow     = H * 0.30f;
 		const float HMid     = H * 0.58f;
 		const float HHigh    = H * 0.82f;
@@ -112,13 +112,14 @@ UStaticMesh* FKBVEWorldProceduralGrass::GetOrCreateCardMesh(UObject* Outer, cons
 	const int32 BladesPerClump = FMath::Clamp(Spec.CardCount * 9, 16, 28);
 	const float ClumpRadius    = Spec.Width * 2.0f;
 	FRandomStream ClumpRng(GetTypeHash(Spec.UniqueId));
+	const float YawStep = 360.f / static_cast<float>(BladesPerClump);
 	for (int32 b = 0; b < BladesPerClump; ++b)
 	{
 		const float Theta    = ClumpRng.FRand() * 360.f;
 		const float R        = ClumpRadius * FMath::Sqrt(ClumpRng.FRand());
 		const float OffX     = FMath::Cos(FMath::DegreesToRadians(Theta)) * R;
 		const float OffY     = FMath::Sin(FMath::DegreesToRadians(Theta)) * R;
-		const float YawDeg   = ClumpRng.FRand() * 360.f;
+		const float YawDeg   = YawStep * static_cast<float>(b) + ClumpRng.FRandRange(-YawStep * 0.4f, YawStep * 0.4f);
 		const float PitchDeg = ClumpRng.FRandRange(-12.f, 12.f);
 		const float RollDeg  = ClumpRng.FRandRange(-18.f, 18.f);
 		const float ScaleX   = ClumpRng.FRandRange(0.7f, 1.3f);
