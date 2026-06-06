@@ -63,3 +63,11 @@ Ships to itch.io `kbve/chuckrpg`, one channel per platform
 Bump `version:` above `version.toml` (`apps/chuckrpg/unreal-chuck/version.toml`),
 run `npx nx run astro-kbve:sync:ci-manifest`, commit. The next `ci-main` run fans
 out the game build + itch upload for this entry.
+
+## Source: monorepo now, KBVE/chuck later
+
+Builds source from the lightweight monorepo shell `apps/chuckrpg/unreal-chuck`
+— small and fast, so it doubles as the build/test loop for the UE plugins in
+`packages/unreal/`. Later we expand to the full external game repo `KBVE/chuck`
+by re-adding the `engine.external_repo_url` branch (clone external when set,
+else monorepo). Tracked in [#11828](https://github.com/KBVE/kbve/issues/11828).
