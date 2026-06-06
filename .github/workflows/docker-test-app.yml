@@ -204,10 +204,21 @@ jobs:
 
             - name: Install Playwright Browsers
               if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.playwright-cache.outputs.cache-hit != 'true' }}
-              timeout-minutes: 25
+              timeout-minutes: 40
               env:
                   UV_THREADPOOL_SIZE: '16'
-              run: pnpm exec playwright install --with-deps ${{ steps.detect-playwright.outputs.browsers }}
+              run: |
+                  set -euo pipefail
+                  for try in 1 2 3; do
+                    if pnpm exec playwright install --with-deps ${{ steps.detect-playwright.outputs.browsers }}; then
+                      echo "playwright install succeeded on attempt ${try}"
+                      exit 0
+                    fi
+                    echo "::warning::playwright install attempt ${try} failed; retrying in 15s"
+                    sleep 15
+                  done
+                  echo "::error::playwright install failed after 3 attempts"
+                  exit 1
 
             - name: Install Playwright OS deps (cache hit)
               if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.playwright-cache.outputs.cache-hit == 'true' }}
