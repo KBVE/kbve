@@ -667,7 +667,11 @@
 			"key": "ue_kbvesqlite",
 			"plugin_name": "KBVESQLite",
 			"plugin_path": "packages/unreal/KBVESQLite",
-			"supported_platforms": ["Win64", "Linux", "Mac"],
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
 			"version": "3.51.3",
 			"version_toml": "packages/unreal/KBVESQLite/version.toml"
 		},
@@ -675,7 +679,11 @@
 			"key": "ue_kbvewasm",
 			"plugin_name": "KBVEWASM",
 			"plugin_path": "packages/unreal/KBVEWASM",
-			"supported_platforms": ["Win64", "Linux", "Mac"],
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
 			"version": "2.2.0",
 			"version_toml": "packages/unreal/KBVEWASM/version.toml"
 		},
@@ -683,7 +691,11 @@
 			"key": "ue_kbvewebsurface",
 			"plugin_name": "KBVEWebSurface",
 			"plugin_path": "packages/unreal/KBVEWebSurface",
-			"supported_platforms": ["Win64", "Linux", "Mac"],
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
 			"version": "0.2.0",
 			"version_toml": "packages/unreal/KBVEWebSurface/version.toml"
 		},
@@ -691,7 +703,11 @@
 			"key": "ue_kbvexxhash",
 			"plugin_name": "KBVEXXHash",
 			"plugin_path": "packages/unreal/KBVEXXHash",
-			"supported_platforms": ["Win64", "Linux", "Mac"],
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
 			"version": "0.8.3",
 			"version_toml": "packages/unreal/KBVEXXHash/version.toml"
 		},
@@ -699,7 +715,11 @@
 			"key": "ue_kbveyyjson",
 			"plugin_name": "KBVEYYJson",
 			"plugin_path": "packages/unreal/KBVEYYJson",
-			"supported_platforms": ["Win64", "Linux", "Mac"],
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
 			"version": "0.12.0",
 			"version_toml": "packages/unreal/KBVEYYJson/version.toml"
 		},
@@ -707,7 +727,11 @@
 			"key": "ue_kbvezstd",
 			"plugin_name": "KBVEZstd",
 			"plugin_path": "packages/unreal/KBVEZstd",
-			"supported_platforms": ["Win64", "Linux", "Mac"],
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
 			"version": "1.5.7",
 			"version_toml": "packages/unreal/KBVEZstd/version.toml"
 		},
@@ -717,7 +741,11 @@
 			"plugin_path": "packages/unreal/UEDevOps",
 			"dependency_plugins": "packages/unreal/KBVEYYJson packages/unreal/KBVEXXHash packages/unreal/KBVEZstd",
 			"itch_game_id": "uedevops",
-			"supported_platforms": ["Win64", "Linux", "Mac"],
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
 			"version": "0.1.0",
 			"version_toml": "packages/unreal/UEDevOps/version.toml"
 		}
@@ -802,7 +830,10 @@
 			"engine": {
 				"version": "5.7.4",
 				"project_path": "apps/chuckrpg/unreal-chuck",
-				"build_targets": ["Win64", "Linux"]
+				"build_targets": [
+					"Win64",
+					"Linux"
+				]
 			},
 			"source_path": "apps/chuckrpg/unreal-chuck",
 			"version": "0.3.19",
