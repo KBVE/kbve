@@ -23,6 +23,34 @@ export default defineConfig({
 				baseURL,
 			},
 		},
+		{
+			name: 'firefox',
+			use: {
+				...devices['Desktop Firefox'],
+				baseURL,
+			},
+		},
+		{
+			name: 'webkit',
+			use: {
+				...devices['Desktop Safari'],
+				baseURL,
+			},
+		},
+		{
+			name: 'mobile-safari',
+			use: {
+				...devices['iPhone 13'],
+				baseURL,
+			},
+		},
+		{
+			name: 'mobile-chrome',
+			use: {
+				...devices['Pixel 7'],
+				baseURL,
+			},
+		},
 	],
 	webServer: {
 		command: './kbve.sh -nx astro-cryptothrone:dev',
