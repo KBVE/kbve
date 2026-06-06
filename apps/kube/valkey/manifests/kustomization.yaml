@@ -5,4 +5,5 @@ resources:
     - valkey-auth-sealedsecret.yaml
     - valkey-networkpolicy.yaml
     - valkey-sccache-rbac.yaml
+    - valkey-auth-sync-rbac.yaml
     - valkey-auth-sync-policy.yaml
