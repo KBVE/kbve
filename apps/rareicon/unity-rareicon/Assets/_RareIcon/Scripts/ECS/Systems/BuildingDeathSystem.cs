@@ -90,9 +90,6 @@ namespace RareIcon
                 });
             }
 
-            // Capital footprint is the 7-hex flower; every other building
-            // claims just its root hex. Hardcoded here because BuildingDB
-            // returns a managed int2[] that Burst can't reach.
             FreeHex(chunkIdx, building.RootHex);
             if (building.Type == BuildingType.Capital)
             {

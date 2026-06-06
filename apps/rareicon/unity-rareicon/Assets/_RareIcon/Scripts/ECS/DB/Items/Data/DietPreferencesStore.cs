@@ -4,7 +4,7 @@ using Unity.Collections;
 namespace RareIcon
 {
     /// <summary>Per-(UnitType, ItemId) diet preference overrides (byte 0..5 where 0 = never collect, 5 = top preference). Default falls back to DefaultPreference (3). Writes mirror into DietPreferencesSingleton's NativeHashMap so Burst HarvestJob reads stay in sync with UI edits.</summary>
-    // TODO(rust-ffi): persist overrides per save so player tuning survives restarts.
+
     public static class DietPreferencesStore
     {
         public const byte DefaultPreference = 3;

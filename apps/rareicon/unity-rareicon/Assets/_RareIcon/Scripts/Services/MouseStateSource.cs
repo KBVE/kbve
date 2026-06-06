@@ -43,11 +43,7 @@ namespace RareIcon
         public void Tick()
         {
             var cam = _cameras.Camera;
-            // Pointer.current returns the most-recently-used pointer device:
-            // Mouse on desktop, Touchscreen.primaryTouch on mobile.
-            // Pointer.press is the left mouse button or the primary-finger
-            // press, so wasPressedThisFrame / wasReleasedThisFrame work for
-            // both inputs without branching on platform.
+
             var pointer = Pointer.current;
             if (cam == null || pointer == null) return;
 

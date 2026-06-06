@@ -24,7 +24,6 @@ namespace RareIcon
             db.Events.Add(evt);
         }
 
-        // Overloads for the main-thread SystemBase path using World.
         public static void EnqueueSpawned(World w, Entity e, byte type, int2 hex, byte faction) =>
             Enqueue(w, new BuildingEvent
             {

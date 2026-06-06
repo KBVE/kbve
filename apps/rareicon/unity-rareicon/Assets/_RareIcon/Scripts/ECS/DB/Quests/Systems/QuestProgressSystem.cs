@@ -34,7 +34,6 @@ namespace RareIcon
             if (clock.TurnIndex == db.LastEvaluatedTurn) return;
             db.LastEvaluatedTurn = clock.TurnIndex;
 
-            // Resolve Player singleton buffers.
             var players = _playerQ.ToEntityArray(Allocator.Temp);
             if (players.Length == 0) { players.Dispose(); return; }
             Entity player = players[0];
@@ -50,7 +49,6 @@ namespace RareIcon
             var hasKills = killLookup.HasBuffer(player);
             var kills    = hasKills ? killLookup[player] : default;
 
-            // Capital ledger snapshot — same view across every CollectItem objective.
             DynamicBuffer<BankLedgerBase> capitalLedger = default;
             bool hasLedger = false;
             {
@@ -67,7 +65,6 @@ namespace RareIcon
                 caps.Dispose();
             }
 
-            // Player-faction building tally by type — built once per tick.
             var buildCount = new NativeHashMap<byte, int>(8, Allocator.Temp);
             {
                 var buildings = _buildingQ.ToComponentDataArray<Building>(Allocator.Temp);

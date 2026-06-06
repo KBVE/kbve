@@ -25,7 +25,7 @@ namespace RareIcon
     }
 
     /// <summary>Food deficit. 0 = full, Max = starving. Refilled by ConsumeFoodExecutor; ticked up by NeedAccumulationSystem.</summary>
-    // TODO(rust-ffi): persist Value across chunk unload (PerSecond + Max come from NPCDB, don't need to travel).
+
     public struct Hunger : IComponentData
     {
         public float Value;
@@ -34,7 +34,7 @@ namespace RareIcon
     }
 
     /// <summary>Sleep debt. 0 = rested, Max = exhausted. Drained by SleepExecutor at the Capital; ticked up while awake.</summary>
-    // TODO(rust-ffi): persist Value across chunk unload (PerSecond + Max come from NPCDB, don't need to travel).
+
     public struct Fatigue : IComponentData
     {
         public float Value;

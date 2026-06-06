@@ -7,10 +7,10 @@ namespace RareIcon
     public static class QuestId
     {
         public const ushort None             = 0;
-        public const ushort FoundingOrder    = 1;   // Tutorial: plant the Capital.
-        public const ushort FirstHarvest     = 2;   // Stockpile 20 Log.
-        public const ushort SurviveFirstWeek = 3;   // Live through 14 turns.
-        public const ushort ThinBanditHerd   = 4;   // Kill 3 bandits.
+        public const ushort FoundingOrder    = 1;
+        public const ushort FirstHarvest     = 2;
+        public const ushort SurviveFirstWeek = 3;
+        public const ushort ThinBanditHerd   = 4;
     }
 
     /// <summary>One objective slot inside a <see cref="QuestDef"/>.</summary>

@@ -1,7 +1,4 @@
-// Session-based P2P networking over SteamNetworkingMessages. Auto-accepts
-// session requests from the current lobby's members; rejects everyone
-// else. Each frame polls incoming messages on all configured channels and
-// publishes them as SteamNetworkPacketMessage events.
+
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 
 using System;
@@ -31,7 +28,7 @@ namespace RareIcon.Platform
 
     public sealed class SteamNetworkingService : ISteamNetworkingService, IStartable, ITickable, IDisposable
     {
-        const int MaxChannels       = 4;      // tweak up when gameplay needs more isolation
+        const int MaxChannels       = 4;
         const int MaxMessagesPerPoll = 32;
 
         readonly ISteamLobbyService _lobby;
@@ -73,17 +70,11 @@ namespace RareIcon.Platform
         {
             if (!SteamManager.IsReady) return;
             for (int ch = 0; ch < MaxChannels; ch++) PollChannel(ch);
-            // Drain anything UTP jobs queued for outbound Steam delivery.
-            // Safe no-op when NetCode isn't using the Steam driver (bridge
-            // simply has nothing queued).
+
             if (SteamPacketBridge.IsInitialized)
                 SteamPacketBridge.DrainOutgoing(DispatchUtpPacket);
         }
 
-        // UTP-bridged sends always use reliable + NetCode channel 0 because
-        // Unity Transport handles its own reliability + channel muxing in
-        // the driver layer on top of our single Steam channel. Keep this
-        // separate from gameplay's SteamChannel constants.
         const int UtpChannel = 0;
         void DispatchUtpPacket(ulong remoteSteamId, byte[] payload) =>
             Send(remoteSteamId, payload, SteamSendFlag.Reliable, UtpChannel);
@@ -128,8 +119,6 @@ namespace RareIcon.Platform
             SteamNetworkingMessages.CloseSessionWithUser(ref identity);
         }
 
-        // --- Callbacks ---
-
         void OnSessionRequest(SteamNetworkingMessagesSessionRequest_t evt)
         {
             var remote = evt.m_identityRemote.GetSteamID();
@@ -140,7 +129,7 @@ namespace RareIcon.Platform
                 SteamNetworkingMessages.AcceptSessionWithUser(ref identity);
                 _pubSessionReq.Publish(new SteamNetworkSessionRequestMessage(remote.m_SteamID));
             }
-            // Non-lobby peers are ignored; Steam tears down the session.
+
         }
 
         void OnSessionFailed(SteamNetworkingMessagesSessionFailed_t evt)
@@ -174,12 +163,8 @@ namespace RareIcon.Platform
                         Marshal.Copy(msg.m_pData, payload, 0, msg.m_cbSize);
                     ulong from = msg.m_identityPeer.GetSteamID().m_SteamID;
 
-                    // Gameplay layer always gets the packet via MessagePipe.
                     _pubPacket.Publish(new SteamNetworkPacketMessage(from, channel, payload));
 
-                    // UTP layer only consumes channel 0 — by convention the
-                    // NetCode driver runs over it. Avoids leaking gameplay
-                    // RPC traffic on channels 1..3 into UTP's reassembly.
                     if (channel == UtpChannel && SteamPacketBridge.IsInitialized)
                         SteamPacketBridge.PushIncoming(from, payload);
                 }

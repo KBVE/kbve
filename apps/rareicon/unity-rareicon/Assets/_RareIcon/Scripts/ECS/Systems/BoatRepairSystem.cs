@@ -36,7 +36,7 @@ namespace RareIcon
                 if (h.Value >= h.Max) continue;
 
                 if (BankLedgerOps.CountOf(capitalBuf, (ushort)ItemId.Log) < WoodCost)
-                    return; // No wood in treasury — all remaining boats wait.
+                    return;
 
                 BankLedgerOps.RemoveItem(ref capitalBuf, (ushort)ItemId.Log, WoodCost);
                 h.Value = Unity.Mathematics.math.min(h.Max, h.Value + HealPerTick);

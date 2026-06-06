@@ -82,7 +82,6 @@ namespace RareIcon
         public const ushort Food = 1;
     }
 
-    // TODO(rust-ffi): mirror into uniti crate so client/server agree on HarvestRole + weights.
     public static class ItemDB
     {
         static readonly Dictionary<ushort, ItemDef> _byId     = new();

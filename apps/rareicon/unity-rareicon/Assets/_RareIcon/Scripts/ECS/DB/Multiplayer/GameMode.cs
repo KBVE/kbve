@@ -11,9 +11,9 @@ namespace RareIcon
     /// <summary>String keys for <see cref="ISteamLobbyService.SetData"/> / <see cref="ISteamLobbyService.GetData"/>. Lobbies stay tiny (~8 KB cap), so we only stamp what every peer needs to bootstrap a match: mode, world seed, started flag.</summary>
     public static class LobbyDataKeys
     {
-        public const string Mode    = "rareicon.mode";       // GameMode byte as string
-        public const string Seed    = "rareicon.seed";       // int32 as string
-        public const string Started = "rareicon.started";    // "0" / "1"
-        public const string AppVer  = "rareicon.appver";     // build version guard
+        public const string Mode    = "rareicon.mode";
+        public const string Seed    = "rareicon.seed";
+        public const string Started = "rareicon.started";
+        public const string AppVer  = "rareicon.appver";
     }
 }

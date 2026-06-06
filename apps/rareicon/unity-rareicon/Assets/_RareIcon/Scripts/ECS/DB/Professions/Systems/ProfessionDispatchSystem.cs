@@ -46,19 +46,12 @@ namespace RareIcon
 
             _hexOccupancy = new NativeHashMap<int2, int>(4096, Allocator.Persistent);
 
-            // Per-thread accumulators sized to the worker pool. Indexed via
-            // [NativeSetThreadIndex] so each chunk writes into its own slot
-            // without atomics. Reduce job folds across slots after the
-            // parallel build completes.
             _threadSlotCount   = JobsUtility.MaxJobThreadCount;
             _perThreadActive   = new NativeArray<int>(_threadSlotCount * ProfessionKind.Count, Allocator.Persistent);
             _perThreadReserved = new NativeArray<int>(_threadSlotCount * ProfessionKind.Count, Allocator.Persistent);
             _activePerKind     = new NativeArray<int>(ProfessionKind.Count, Allocator.Persistent);
             _reservedPerKind   = new NativeArray<int>(ProfessionKind.Count, Allocator.Persistent);
 
-            // Occupancy contributions land in a parallel multi-map so the
-            // BuildActiveAndOccupancyJob can append without locking. Reduce
-            // job folds entries into _hexOccupancy = count-per-hex.
             _occupancyMulti = new NativeParallelMultiHashMap<int2, byte>(8192, Allocator.Persistent);
         }
 
@@ -87,9 +80,6 @@ namespace RareIcon
             var combatDB = SystemAPI.GetSingleton<CombatDBSingleton>();
             var itemDB   = SystemAPI.GetSingleton<ItemDBSingleton>();
 
-            // CombatThreatScanSystem fills threats / friendlyEmitters via a
-            // parallel job; chain on its handle so the dispatch job sees a
-            // consistent snapshot without a main-thread sync.
             state.Dependency = JobHandle.CombineDependencies(state.Dependency, combatDB.PipelineHandle);
 
             bool doFullDispatch = offersDB.BuildVersion != _lastSeenBuildVersion;
@@ -99,13 +89,6 @@ namespace RareIcon
             ref var dbRef = ref SystemAPI.GetSingletonRW<ProfessionsDBSingleton>().ValueRW;
             var writeBuffer = dbRef.WriteBuffer;
 
-            // Full-dispatch pre-pass — moved off the main thread. A clear
-            // job resets the persistent accumulators on a worker, two
-            // parallel build jobs scan units + reserved roles concurrently,
-            // and a Burst reduce folds the per-thread shards into the
-            // shapes the dispatch job consumes (activePerKind /
-            // reservedPerKind / _hexOccupancy). Main thread only chains
-            // handles; the 100k-unit foreach is gone from its budget.
             if (doFullDispatch)
             {
                 var clearJob = new ClearPrePassJob
@@ -144,9 +127,6 @@ namespace RareIcon
                     JobHandle.CombineDependencies(activeHandle, reservedHandle));
             }
 
-            // ProfessionTaskReconcileSystem pre-grows WriteBuffer for the
-            // whole pipeline this tick, so no capacity grow needed here.
-
             var job = new DispatchJob
             {
                 OffersPerKind      = offersDB.OffersPerKind,
@@ -180,9 +160,6 @@ namespace RareIcon
 
             state.Dependency = job.ScheduleParallel(state.Dependency);
 
-            // Publish the dispatch handle so the bridge system + any other
-            // ProfessionIntent reader can chain on it without forcing the
-            // main thread to sync here.
             dbRef.PipelineHandle = state.Dependency;
         }
 
@@ -328,11 +305,7 @@ namespace RareIcon
                 ref MovementGoal goal,
                 DynamicBuffer<TaskMemory> tasks)
             {
-                // Reconcile + Preempt ran first this tick. If they left
-                // anything on the queue (Pending under relief, Active
-                // committed, or Guard from preempt), or if the unit is
-                // under relief / manual control, skip — only a healthy
-                // empty queue means this unit needs fresh scoring.
+
                 if (reliefIntent.Kind != ReliefKind.None)   return;
                 if (tasks.Length > 0)                       return;
                 if (ControlledLookup.HasComponent(entity))  return;
@@ -466,11 +439,6 @@ namespace RareIcon
                         rng ^= rng >> 7; rng *= 0x27D4EB2Fu;
                         int dr = (int)(rng % (uint)span) - e.Radius;
 
-                        // Axial dq/dr in a square overshoots the hex disc at
-                        // the corners. Walk back toward origin one step at a
-                        // time until the point is inside e.Radius — preserves
-                        // the rng-seeded direction while keeping patrol within
-                        // the emitter's actual territory.
                         while (AxialDistance(dq, dr) > e.Radius)
                         {
                             if (math.abs(dq) > math.abs(dr)) dq -= (int)math.sign(dq);
@@ -616,11 +584,6 @@ namespace RareIcon
                      || variant == OfferVariant.LooterDropPickup));
         }
 
-        // Picks the nearest threat by world distance for in-territory
-        // selection (Euclidean is the correct shape for the scan radius
-        // gate), but emits only hex + entity — callers convert to
-        // HexDistance for scoring so guard scoring scales the same way
-        // as the rest of the dispatcher.
         static bool TryFindClosestThreat(
             NativeArray<ThreatRecord> threats,
             float3 originWorld,

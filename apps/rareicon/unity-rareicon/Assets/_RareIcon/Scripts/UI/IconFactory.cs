@@ -19,10 +19,6 @@ namespace RareIcon
             People = 7,
         }
 
-        // 48px texture against a 24px shader grid — 2x oversample so each
-        // logical pixel covers a 2x2 block on the bake. Point-filtered so
-        // the result still reads as crisp pixel art when scaled to the
-        // 26x22 button.
         const int BakeSize = 48;
 
         static readonly Dictionary<IconType, Texture2D> _cache = new();

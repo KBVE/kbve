@@ -5,12 +5,12 @@ namespace RareIcon
     /// <summary>ECS-side mirror of <see cref="MultiplayerCoordinator"/> state. Singleton entity owned by <see cref="MultiplayerSessionBridge"/>; gameplay systems read it (or the static <see cref="MultiplayerAuthority"/> shortcut) to decide whether to run their authoritative logic. Host + single-player set <see cref="IsAuthority"/> = 1; clients set it to 0 so spawners / world-event drivers stand down and wait on replicated state.</summary>
     public struct MultiplayerSession : IComponentData
     {
-        public byte Mode;          // GameMode byte
-        public byte IsAuthority;   // 1 = host or solo, 0 = remote client
+        public byte Mode;
+        public byte IsAuthority;
         public ulong LocalSteamId;
         public ulong HostSteamId;
-        public byte InMultiplayer; // 1 when in a Steam lobby, 0 otherwise
-        public byte MatchStarted;  // 1 once host flips lobby data started=1
+        public byte InMultiplayer;
+        public byte MatchStarted;
     }
 
     /// <summary>Static fast-path so any system can check authority without doing a SystemAPI singleton fetch on the hot loop. Mirrored from the singleton by <see cref="MultiplayerSessionBridge"/> every frame the session changes. Defaults to <c>true</c> so existing single-player flow stays unaffected before MP infra spins up. Cross-world readable — NetCode Server / Client worlds query this without a singleton replication.</summary>

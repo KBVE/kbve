@@ -11,7 +11,7 @@ namespace RareIcon
 
         readonly VisualElement _root;
         readonly VisualElement _rowsHost;
-        int _state = -1; // 0 = default, 1 = narrow, 2 = wide
+        int _state = -1;
 
         public BuildingPanelLayout(VisualElement root, VisualElement rowsHost = null)
         {

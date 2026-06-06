@@ -8,14 +8,12 @@ namespace RareIcon
     {
         protected override void Configure(IContainerBuilder builder)
         {
-            // -- ECS Systems --
+
             builder.UseDefaultWorld(systems =>
             {
-                // systems.Add<BulletPatternSystem>();
-                // systems.Add<PlayerMovementSystem>();
+
             });
 
-            // -- Entry Points --
         }
 
         protected override void Awake()

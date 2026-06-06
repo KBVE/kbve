@@ -22,12 +22,12 @@ namespace RareIcon
     {
         public BuildingEventKind Kind;
         public Entity Entity;
-        public byte   Type;           // BuildingType
+        public byte   Type;
         public int2   RootHex;
         public byte   OwnerFaction;
-        public byte   Tier;           // Post-change tier (for TierChanged); 0 for others
-        public int    HealthDelta;    // signed; populated for Damaged / Repaired
-        public ushort HealthCurrent;  // post-mutation value
+        public byte   Tier;
+        public int    HealthDelta;
+        public ushort HealthCurrent;
     }
 
     /// <summary>Serialized record of a building in an unloaded chunk. Phase 4 ghost-sim simulator advances per-record state at low cadence; reload path reads the record + applies accrued deltas when the chunk streams back in. All fields blittable so the list crosses the worker-thread boundary cleanly. Ledger stored inline as 4 (ItemId, Count) slots — 99%+ of real-world buildings fit in 4 distinct items; overflow simply truncates (loss acceptable for offline state).</summary>

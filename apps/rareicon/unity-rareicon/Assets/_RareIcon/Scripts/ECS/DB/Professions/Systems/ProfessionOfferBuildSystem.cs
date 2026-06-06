@@ -74,8 +74,6 @@ namespace RareIcon
             var itemDB    = SystemAPI.GetSingleton<ItemDBSingleton>();
             var capLookup = SystemAPI.GetBufferLookup<CapitalLedger>(true);
 
-            // Previous tick's dispatcher / consumers must finish before we
-            // mutate Offers / OffersSortedByKind / OfferKindStart/Count.
             state.CompleteDependency();
 
             db.Offers.Clear();
@@ -119,8 +117,6 @@ namespace RareIcon
 
             var offers = db.Offers;
 
-            // Small scans iterate few entities each — staying main-thread
-            // is cheaper than the schedule overhead of additional jobs.
             foreach (var (siteRO, e) in SystemAPI.Query<RefRO<ConstructionSite>>().WithEntityAccess())
             {
                 offers.Add(new TaskOffer { Kind = ProfessionKind.Builder, Variant = OfferVariant.BuilderSite, Hex = siteRO.ValueRO.RootHex, Target = e });
@@ -172,9 +168,6 @@ namespace RareIcon
             if (db.HasCapital && db.CapitalHasFood && db.NeedyCaves.Length > 0)
                 offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterFetch, Hex = db.CapitalHex, Target = db.Capital });
 
-            // Pre-grow offers capacity for the two big parallel scans so
-            // AddNoResize is safe. HexResources contributes up to 3 offers
-            // per hex (Lumberjack | Miner | Looter), ItemDrop up to 1.
             int hexResourceCount = _hexResourceQuery.CalculateEntityCount();
             int itemDropCount    = _itemDropQuery.CalculateEntityCount();
             int extraNeeded      = hexResourceCount * 3 + itemDropCount;
@@ -253,9 +246,6 @@ namespace RareIcon
                     if (ok < opk.Length) opk[ok]++;
                 }
 
-                // Counting sort offers by Kind into OffersSortedByKind so
-                // ProfessionDispatchSystem can walk the slice for each kind
-                // the unit cares about instead of scanning the global pool.
                 var oks = OfferKindStart;
                 var okc = OfferKindCount;
                 int running = 0;

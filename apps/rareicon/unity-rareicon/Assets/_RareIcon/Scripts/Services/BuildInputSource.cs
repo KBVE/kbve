@@ -44,7 +44,6 @@ namespace RareIcon
             }
         }
 
-
         static bool WasCancelPressed(Keyboard kb)
         {
             if (kb.escapeKey.wasPressedThisFrame)

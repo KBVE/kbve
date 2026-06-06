@@ -15,24 +15,18 @@ namespace RareIcon
                 return false;
             }
 
-            // Block forward-incompatible saves outright — a future build's
-            // slot landing in a current build would otherwise restore
-            // tables this version doesn't know how to read.
             if (manifest.SchemaVersion > SaveManifest.CurrentSchemaVersion)
             {
                 failureReason = $"save schema {manifest.SchemaVersion} newer than build ({SaveManifest.CurrentSchemaVersion})";
                 return false;
             }
 
-            // Walk forward from manifest.SchemaVersion to current. Each
-            // case below mutates the manifest in place + (optionally) hooks
-            // a SQLite-side migration callback. Today the chain is empty.
             int v = manifest.SchemaVersion;
             while (v < SaveManifest.CurrentSchemaVersion)
             {
                 switch (v)
                 {
-                    // case 1: MigrateV1ToV2(manifest); v = 2; break;
+
                     default:
                         failureReason = $"no migration from schema {v}";
                         return false;

@@ -13,7 +13,7 @@ namespace RareIcon
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial class ProjectileBootstrapSystem : SystemBase
     {
-        // Matches UnitSpawnSystem.UnitSize so projectile pixels render at creature scale.
+
         const float ProjectileSize = 0.5f;
 
         bool _initialized;

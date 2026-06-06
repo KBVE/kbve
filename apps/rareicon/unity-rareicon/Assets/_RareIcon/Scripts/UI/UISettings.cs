@@ -92,9 +92,6 @@ namespace RareIcon
                 if (open) _tabs[_activeIndex].OnActivated();
             }).AddTo(_disposables);
 
-            // Global toggle bus — title-screen menu, future hotkey, and
-            // any non-DI'd caller can flip the panel without taking a
-            // hard reference to UISettings.
             if (_toggleSub != null)
             {
                 var bag = MessagePipe.DisposableBag.CreateBuilder();

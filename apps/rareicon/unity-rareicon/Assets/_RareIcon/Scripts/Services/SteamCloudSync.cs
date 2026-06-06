@@ -1,26 +1,4 @@
-// Steam Cloud sync runs through Steamworks.NET — same platform gate as
-// SteamManager. On mobile + WebGL + headless server builds the whole file
-// compiles down to no-op stubs so save / delete still build without
-// linking against Steamworks. DISABLESTEAMWORKS opt-out for standalone
-// builds that ship without Steam (e.g. itch.io Linux build) keeps working
-// since the API surface stays identical via the stub branch.
-//
-// itch.io / non-Steam launch path: even on a Win/Linux/OSX build with the
-// Steamworks gate compiled in, the player may launch the game without the
-// Steam client running OR with steam_api64.dll absent (itch typically
-// strips Steamworks binaries from the upload). SteamManager catches the
-// DllNotFoundException and flips _ready=false for the missing-DLL case;
-// every method below additionally wraps the Steamworks call surface in
-// its own try/catch so a runtime that defers DLL resolution past Init
-// can't take down the save flow.
-//
-// Demo vs prod AppID:
-//   prod = 2238370
-//   demo = 3791950
-// The AppID itself is supplied via steam_appid.txt at the project root
-// (editor) or by the Steam launcher in shipped builds; SteamCloudSync
-// doesn't care which. Save bundles are AppID-namespaced on the cloud
-// side, so demo + prod won't collide.
+
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 #define RAREICON_STEAM_CLOUD
 #endif
@@ -50,7 +28,7 @@ namespace RareIcon
                 }
                 catch (System.DllNotFoundException)
                 {
-                    // itch.io / non-Steam launch — steam_api dll missing.
+
                     return false;
                 }
                 catch (System.Exception)

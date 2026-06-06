@@ -1,5 +1,4 @@
-// Steam achievements + stats. Thin wrapper; game code calls Unlock("name")
-// and the rest (stats flush, callback handling) happens here.
+
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 
 using System;
@@ -29,9 +28,7 @@ namespace RareIcon.Platform
         public void Start()
         {
             if (!SteamManager.IsReady) return;
-            // Newer Steamworks SDKs (1.57+) auto-request stats on API init;
-            // the explicit RequestCurrentStats call was removed from the
-            // C# bindings. UserStatsReceived_t still fires once stats land.
+
             _cbReceived = Callback<UserStatsReceived_t>.Create(OnReceived);
         }
 

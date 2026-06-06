@@ -37,8 +37,7 @@ namespace RareIcon
                 _instance = NativeWorld.OpenAtPath(dbPath);
                 if (_instance == null)
                 {
-                    // Disk path rejected (e.g. readonly volume) — fall back
-                    // to in-memory so the rest of the game still runs.
+
                     Debug.LogWarning($"[WorldStoreSystem] SQLite open failed for {dbPath}; falling back to in-memory store (no disk persistence this session).");
                     _instance = new NativeWorld();
                 }
@@ -67,9 +66,7 @@ namespace RareIcon
 
         protected override void OnDestroy()
         {
-            // Synchronous final flush so any in-flight dirty chunks land on
-            // disk before the NativeWorld drop runs (which also flushes,
-            // but only opportunistically on thread join).
+
             _instance?.Flush();
             _instance?.Dispose();
             _instance = null;
@@ -80,9 +77,6 @@ namespace RareIcon
         {
             failureReason = null;
 
-            // Final flush of any dirty live state — otherwise pending
-            // writes from the old session would race the restore on the
-            // next OpenAtPath call.
             _instance?.Flush();
             _instance?.Dispose();
             _instance = null;
@@ -90,10 +84,6 @@ namespace RareIcon
             string liveDb = LiveDbPath;
             bool restored = SaveSlotService.Restore(slot, liveDb, out failureReason);
 
-            // Reopen regardless — failure path still wants a working
-            // store (the prior Dispose closed the handle). On failure
-            // we open the (potentially stale) DB if it still exists,
-            // otherwise fall back to in-memory.
             try
             {
                 if (File.Exists(liveDb))

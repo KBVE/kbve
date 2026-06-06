@@ -63,9 +63,7 @@ namespace RareIcon
 
             if (capitalFell)
             {
-                // Toast surfaces the loss flavor; signal flips AppState into
-                // GameOver so the loss screen mounts. Both carriers ride the
-                // same end-of-frame ECB and resolve next frame.
+
                 var mainEcb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                                        .CreateCommandBuffer(state.WorldUnmanaged);
 

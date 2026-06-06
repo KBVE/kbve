@@ -5,9 +5,7 @@ using Unity.Entities;
 namespace RareIcon
 {
     /// <summary>Throttled once-per-second scan that fires a <see cref="DialogueStartMessage"/> the first time each hostile/beast <see cref="UnitType"/> is seen. SystemBase because the publish path is managed (<see cref="GlobalMessagePipe"/>); the scan itself is tiny (~200 entities at most, most ticks short-circuit via the <see cref="EncounteredTypes"/> bitmask).</summary>
-    // Why not Burst: publishing crosses into managed MessagePipe. Splitting into a
-    // Burst scan + managed drain is premature at this scale — revisit if the 1Hz
-    // pass ever shows up in a profiler frame.
+
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
     [UpdateInGroup(typeof(BehaviorSystemGroup))]
     public partial class FirstContactSystem : SystemBase

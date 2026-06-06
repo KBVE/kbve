@@ -47,7 +47,6 @@ namespace RareIcon
                 prefab, em, renderDesc, renderArray,
                 MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0));
 
-            // Singleton write — spawn ISystem polls TryGetSingleton each tick.
             var singletonEntity = em.CreateEntity(typeof(BloodDecalPrefabSingleton));
             em.SetComponentData(singletonEntity, new BloodDecalPrefabSingleton { Value = prefab });
 

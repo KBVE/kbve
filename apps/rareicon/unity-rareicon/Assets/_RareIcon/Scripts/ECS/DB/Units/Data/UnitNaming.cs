@@ -15,12 +15,10 @@ namespace RareIcon
     /// </summary>
     public static class UnitNaming
     {
-        // Hand-picked goblin first names — short, gnarled syllables with
-        // hard consonants. Index 0 reserved for "unset"; real names start
-        // at 1. Pool size + 1 (the reserved slot) keeps roll math simple.
+
         public static readonly string[] GoblinFirstNames =
         {
-            "(unset)",  // 0 — sentinel
+            "(unset)",
             "Grok", "Skab", "Vrak", "Murr", "Snik", "Brog", "Knob", "Drez",
             "Krug", "Snag", "Vex",  "Gnash","Brak", "Zog",  "Gak",  "Wog",
             "Squ", "Fungo","Mok",  "Pog",  "Nog",  "Krell","Tusk", "Gob",
@@ -28,9 +26,7 @@ namespace RareIcon
             "Ghu", "Skra", "Tib",  "Wak",  "Gort", "Nub",  "Plok", "Zik",
             "Snor","Vrek", "Glu",  "Crud", "Kob",  "Snerk","Hoog", "Rib",
             "Glub","Moz",
-            // +50 — second batch keeps the same gnarled-syllable feel and
-            // doubles the first-name pool so collisions stay rare even at
-            // ~100 live goblins (with the always-on epithet, 100×N combos).
+
             "Brak", "Trog", "Nrr",  "Skog", "Vog",  "Mug",  "Bork", "Snib",
             "Krog", "Ghez", "Ulk",  "Drogg","Fnar", "Rok",  "Skra", "Vil",
             "Wrek", "Kib",  "Snug", "Burr", "Glok", "Mret", "Ozz",  "Krin",
@@ -40,13 +36,9 @@ namespace RareIcon
             "Zin",  "Goz",
         };
 
-        // Epithet locale keys — fed into LocaleService.Get(...) so the
-        // display string ("the Sly" / "ずる賢き") swaps per language.
-        // Index 0 is the "no epithet" sentinel — resolvers skip it and
-        // print only the first name.
         public static readonly string[] GoblinEpithetKeys =
         {
-            "",                       // 0 — no epithet
+            "",
             "epithet.sly",
             "epithet.sturdy",
             "epithet.quick",
@@ -139,14 +131,9 @@ namespace RareIcon
             uint h1 = MixHash(rngSeed ^ 0x9E3779B1u);
             uint h2 = MixHash(rngSeed ^ 0x85EBCA77u);
 
-            // Skip index 0 (sentinel) — first names start at 1.
             int firstCount = GoblinFirstNames.Length - 1;
             ushort firstId = (ushort)(1 + (int)(h1 % (uint)firstCount));
 
-            // Always draw an epithet — the bare-first-name space (~100 names)
-            // collides quickly via birthday paradox at 30+ goblins. Pairing
-            // FirstName × Epithet (~100 × 20 = 2000) keeps names distinctive
-            // out to ~50 live units.
             int epCount = GoblinEpithetKeys.Length - 1;
             ushort epithetId = (ushort)(1 + (int)(h2 % (uint)epCount));
 
@@ -167,7 +154,6 @@ namespace RareIcon
             return GoblinEpithetKeys[id];
         }
 
-        // Tiny xor-shift mixer.
         static uint MixHash(uint x)
         {
             x ^= x >> 13;

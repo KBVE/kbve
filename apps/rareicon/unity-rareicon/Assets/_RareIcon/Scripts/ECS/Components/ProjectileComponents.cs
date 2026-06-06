@@ -46,12 +46,12 @@ namespace RareIcon
     /// </summary>
     public struct Projectile : IComponentData
     {
-        public byte Type;          // ProjectileType.* constant
-        public byte Mod;           // ArrowMod.* constant — 0 = no overlay
-        public byte Facing;        // UnitFacing.* — set at spawn from velocity
-        public byte OwnerFaction;  // 0 = neutral (faction system lands later)
-        public float Lifetime;     // seconds remaining; ≤ 0 → despawn
-        public float Damage;       // applied on hit (collision TBD)
+        public byte Type;
+        public byte Mod;
+        public byte Facing;
+        public byte OwnerFaction;
+        public float Lifetime;
+        public float Damage;
     }
 
     /// <summary>
@@ -110,13 +110,13 @@ namespace RareIcon
     /// </summary>
     public struct SpawnProjectileRequest : IComponentData
     {
-        public byte Type;          // ProjectileType.* constant
-        public byte Mod;           // ArrowMod.* constant
-        public byte Facing;        // UnitFacing.* constant
-        public byte OwnerFaction;  // 0 = neutral
-        public float2 Position;    // world XY spawn point
-        public float2 Velocity;    // world units/second (direction × speed)
-        public float Lifetime;     // seconds before auto-despawn
+        public byte Type;
+        public byte Mod;
+        public byte Facing;
+        public byte OwnerFaction;
+        public float2 Position;
+        public float2 Velocity;
+        public float Lifetime;
         public float Damage;
     }
 

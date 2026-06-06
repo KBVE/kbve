@@ -1,7 +1,4 @@
-// Steam lobby operations: create, join, leave, browse, metadata, overlay
-// invite. Listener attaches to the lobby-related Steam callbacks and
-// bridges them through MessagePipe so game code never touches Steamworks
-// types directly.
+
 #if (UNITY_STANDALONE_WIN || UNITY_STANDALONE_LINUX || UNITY_STANDALONE_OSX) && !DISABLESTEAMWORKS
 
 using System;
@@ -159,14 +156,12 @@ namespace RareIcon.Platform
             return SteamMatchmaking.GetLobbyMemberData(_currentLobby, new CSteamID(steamId), key) ?? string.Empty;
         }
 
-        // --- Callbacks ---
-
         void OnCreated(LobbyCreated_t evt)
         {
             bool success = evt.m_eResult == EResult.k_EResultOK;
             ulong id = evt.m_ulSteamIDLobby;
             _pubCreated.Publish(new SteamLobbyCreatedMessage(id, success));
-            // LobbyEnter_t fires separately right after on success.
+
         }
 
         void OnEnter(LobbyEnter_t evt)
@@ -204,14 +199,13 @@ namespace RareIcon.Platform
         {
             _pubJoinReq.Publish(new SteamJoinRequestedMessage(
                 evt.m_steamIDLobby.m_SteamID, evt.m_steamIDFriend.m_SteamID));
-            // Auto-join — the overlay's "Join Game" button is a commitment.
+
             Join(evt.m_steamIDLobby.m_SteamID);
         }
 
         void OnRpJoinReq(GameRichPresenceJoinRequested_t evt)
         {
-            // The connect-string schema is "+connect_lobby <lobby_id>" — set
-            // by SteamPresenceService when the local user hosts.
+
             if (string.IsNullOrEmpty(evt.m_rgchConnect)) return;
             if (!TryParseConnectLobby(evt.m_rgchConnect, out var lobbyId)) return;
             _pubJoinReq.Publish(new SteamJoinRequestedMessage(lobbyId, evt.m_steamIDFriend.m_SteamID));

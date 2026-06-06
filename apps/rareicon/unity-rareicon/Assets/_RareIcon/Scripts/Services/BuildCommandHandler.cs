@@ -71,10 +71,7 @@ namespace RareIcon
 
             var em = world.EntityManager;
             var req = em.CreateEntity();
-            // Player-founded city has its own validation + spawn pipeline
-            // (FoundCitySystem) — distance gate, multi-resource bank
-            // withdrawal, dedicated spawn shape with CityTag + CityLedger.
-            // Skip the standard BuildRequest path for the City target.
+
             if (buildingType == BuildingType.City)
             {
                 em.AddComponentData(req, new FoundCityRequest
@@ -125,6 +122,6 @@ namespace RareIcon
             _subscription = null;
             _linkedCts = null;
             _disposeCts = null;
-        }    
+        }
     }
 }

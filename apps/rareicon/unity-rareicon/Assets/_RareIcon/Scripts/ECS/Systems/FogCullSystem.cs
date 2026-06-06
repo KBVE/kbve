@@ -37,9 +37,6 @@ namespace RareIcon
 
             var hexDb = SystemAPI.GetSingleton<HexDBSingleton>();
 
-            // Chain on HexDB's drain handle so the classification jobs read
-            // a consistent hex → entity snapshot without forcing a main-
-            // thread sync.
             state.Dependency = JobHandle.CombineDependencies(state.Dependency, hexDb.DrainHandle);
 
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()

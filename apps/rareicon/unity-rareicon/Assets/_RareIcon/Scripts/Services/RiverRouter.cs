@@ -18,20 +18,16 @@ namespace RareIcon
     {
         const float HexSize = 0.25f;
 
-        // Routing tuning.
-        const float SourceMinElevation = 0.48f;     // only true highlands seed rivers
+        const float SourceMinElevation = 0.48f;
         const int   SourceGridSpacing  = 12;
-        const int   MaxStepsPerRiver   = 80;        // ~20 world units; longer feels artificial
-        const int   MinRiverHexes      = 12;        // drop trivial fragments
+        const int   MaxStepsPerRiver   = 80;
+        const int   MinRiverHexes      = 12;
         const float StartWidth         = 0.10f;
-        const float EndWidth           = 0.30f;     // smaller cap → less lateral spillover
+        const float EndWidth           = 0.30f;
         const int   SmoothSubdivisions = 8;
 
-        // Per-hex elevation jitter — breaks ties and forces meandering on
-        // near-flat slopes. Small enough not to override real elevation drops.
         const float ElevationJitter    = 0.015f;
 
-        // Pointy-top axial neighbour offsets.
         static readonly int2[] HexNeighbors = new[]
         {
             new int2( 1,  0), new int2( 1, -1), new int2( 0, -1),
@@ -117,8 +113,6 @@ namespace RareIcon
                         continue;
                     }
 
-                    // Per-hex jitter forces variation when neighbours are
-                    // nearly equal in elevation (which is most of an FBm field).
                     float effectiveElev = nSample.LandHeight + Jitter(n);
                     if (effectiveElev < bestElev)
                     {
@@ -164,8 +158,6 @@ namespace RareIcon
 
             var smooth = PolylineDecalMeshUtil.Smooth(raw, SmoothSubdivisions);
 
-            // Width profile (computed against the FULL smoothed length so
-            // clipped rivers stay narrow at their cut end).
             var widths = new List<float>(smooth.Count);
             for (int i = 0; i < smooth.Count; i++)
             {
@@ -186,10 +178,6 @@ namespace RareIcon
             };
         }
 
-        // Trim the smoothed polyline at the first sample whose biome is water
-        // — sampling not just the centerline but also two lateral points at
-        // the strip's half-width, so the visible mesh edges never poke into
-        // ocean or lake hexes.
         (List<float2>, List<float>) TrimAtWater(List<float2> points, List<float> widths)
         {
             var resultPoints = new List<float2>(points.Count);
@@ -199,11 +187,8 @@ namespace RareIcon
             {
                 var p = points[i];
 
-                // Centerline check.
                 if (IsWater(_biomes.Sample(p.x, p.y))) break;
 
-                // Lateral checks — perpendicular to flow direction at the
-                // strip's half-width on each side.
                 float2 tangent = i + 1 < points.Count
                     ? math.normalizesafe(points[i + 1] - p, new float2(1f, 0f))
                     : (i > 0 ? math.normalizesafe(p - points[i - 1], new float2(1f, 0f))
@@ -220,11 +205,9 @@ namespace RareIcon
             return (resultPoints, resultWidths);
         }
 
-        // Deterministic per-hex jitter in [-amount, +amount]. Same hex coord
-        // always produces the same offset → reproducible rivers.
         static float Jitter(int2 hex)
         {
-            // Cheap integer hash — inlined so we don't allocate.
+
             uint h = (uint)hex.x * 0x9E3779B1u ^ (uint)hex.y * 0x85EBCA77u;
             h ^= h >> 13;
             h *= 0xC2B2AE3Du;
@@ -233,8 +216,6 @@ namespace RareIcon
             return (u01 - 0.5f) * 2f * ElevationJitter;
         }
 
-        // Decal creeks terminate at any "water already here" — ocean OR a major
-        // river hex. So small rivers naturally merge into the BIOME_RIVER spine.
         static bool IsWater(byte biome) =>
             biome == BiomeGenerator.BIOME_OCEAN || biome == BiomeGenerator.BIOME_RIVER;
 

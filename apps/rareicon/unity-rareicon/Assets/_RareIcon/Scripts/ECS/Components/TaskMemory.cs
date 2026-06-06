@@ -42,10 +42,10 @@ namespace RareIcon
     public static class OfferVariant
     {
         public const byte Default         = 0;
-        public const byte BuilderSite     = 0;   // alias for Default on Builder offers
+        public const byte BuilderSite     = 0;
         public const byte BuilderDamaged  = 1;
-        public const byte LooterDeliver   = 10;  // haul food to a needy cave; unit must be carrying food
-        public const byte LooterFetch     = 11;  // pick food up at Capital; needy caves must exist
+        public const byte LooterDeliver   = 10;
+        public const byte LooterFetch     = 11;
         public const byte LooterArrow     = 12;
         public const byte LooterForage    = 13;
         public const byte LooterDropPickup = 14;

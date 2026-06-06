@@ -74,7 +74,7 @@ namespace RareIcon
     }
 
     /// <summary>Dense byte-indexed creature table — O(1) lookup, zero GC, fallback NPCDef for unknown IDs.</summary>
-    // TODO(rust-ffi): mirror this table in the uniti crate so server-authoritative code uses the same baseline stats (MaxHealth/Hunger/Fatigue + tick rates). Unity + Rust must stay in lockstep on values.
+
     public static class NPCDB
     {
         const int Capacity = 256;
@@ -191,10 +191,6 @@ namespace RareIcon
                 will:          16,
                 defaultWeapon: WeaponType.Crossbow));
 
-            // Passive wildlife — sand/grass fauna. Zero hunger/fatigue/energy
-            // so the Need + Job executors skip them; tiny HP so a stray arrow
-            // or swing ends them cleanly. Slow MoveSpeed keeps them grounded
-            // as ambience rather than chasing anyone.
             Add(new NPCDef(
                 unitType:      UnitType.Chicken,
                 nameKey:       "creature.chicken",
@@ -231,9 +227,6 @@ namespace RareIcon
                 strength:      6, agility: 3, intellect: 2, will: 3,
                 defaultWeapon: WeaponType.None));
 
-            // Forest beast — fast, mid-HP melee predator. Bites adjacent
-            // Player / Wildlife units; the spawn helper hangs a MeleeAttack
-            // on it directly since wolves don't carry a weapon prop.
             Add(new NPCDef(
                 unitType:      UnitType.Wolf,
                 nameKey:       "creature.wolf",
@@ -246,9 +239,6 @@ namespace RareIcon
                 strength:      9, agility: 14, intellect: 3, will: 6,
                 defaultWeapon: WeaponType.None));
 
-            // Hostile humanoid raider — sister to the Hostile Goblin but
-            // tougher, slightly slower, and drops a coin on death so the
-            // Looter job has reason to follow raids around.
             Add(new NPCDef(
                 unitType:      UnitType.Bandit,
                 nameKey:       "creature.bandit",
@@ -275,10 +265,6 @@ namespace RareIcon
                 defaultWeapon: WeaponType.None,
                 dialogueTreeId: DialogueTreeId.FirstContactZombie));
 
-            // Craftsman-built fishing vessel. Slow, water-locked, repairs
-            // with wood. Ranged attack via harpoon/arrow slot (wired by
-            // the spawn helper, not a defaultWeapon since the hull isn't
-            // a humanoid).
             Add(new NPCDef(
                 unitType:      UnitType.FishingBoat,
                 nameKey:       "creature.fishing_boat",
@@ -291,9 +277,6 @@ namespace RareIcon
                 strength:      8, agility: 6, intellect: 4, will: 6,
                 defaultWeapon: WeaponType.None));
 
-            // Oceanic leviathan — FishingBoats' prey. Huge HP pool so a
-            // lone boat can't solo it quickly; drops Oil + bulk Meat via
-            // EnemyLootDropSystem.
             Add(new NPCDef(
                 unitType:      UnitType.Whale,
                 nameKey:       "creature.whale",
@@ -330,9 +313,6 @@ namespace RareIcon
                 strength:      14, agility: 10, intellect: 5, will: 10,
                 defaultWeapon: WeaponType.None));
 
-            // Player recon — fast, light, no weapon. Vision-source value
-            // comes from FogBakeSystem treating every Player unit as a
-            // reveal source.
             Add(new NPCDef(
                 unitType:      UnitType.Scout,
                 nameKey:       "creature.scout",
@@ -345,9 +325,6 @@ namespace RareIcon
                 strength:      6, agility: 16, intellect: 9, will: 7,
                 defaultWeapon: WeaponType.None));
 
-            // Player mounted melee — fast charger, mid HP, sword loadout.
-            // Recruited from Stables. Faster than Soldier, slower than Scout;
-            // tier-services aura on Stables further bumps move speed.
             Add(new NPCDef(
                 unitType:      UnitType.Cavalry,
                 nameKey:       "creature.cavalry",
@@ -360,9 +337,6 @@ namespace RareIcon
                 strength:      13, agility: 12, intellect: 7, will: 9,
                 defaultWeapon: WeaponType.Club));
 
-            // Bandit recon — same speed profile as Scout, slightly more HP
-            // so a single Player Archer can't one-shot it. No weapon; a
-            // BanditScout that runs into combat usually flees.
             Add(new NPCDef(
                 unitType:      UnitType.BanditScout,
                 nameKey:       "creature.bandit_scout",
