@@ -29,6 +29,6 @@ mc_schematic:
         lore: First mid-game build. Khash-priced — a status symbol for established players.
 ---
 
-A 25×24×25 stone keep with four corner towers, a central courtyard, a
-crenellated battlement, and arrow slits along every wall. Footprint
-demands a 4×4 chunk lot; lower-tier lots reject the queue request.
+import MCSchematicPanel from '@/components/mcdb/MCSchematicPanel.astro';
+
+<MCSchematicPanel data={frontmatter.mc_schematic} />

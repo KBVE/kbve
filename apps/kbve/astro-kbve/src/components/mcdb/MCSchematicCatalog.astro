@@ -1,0 +1,222 @@
+---
+import { getCollection } from 'astro:content';
+import { MCSchematicFrontmatterSchema } from '@/data/schema';
+
+const entries = await getCollection('docs', (entry) => {
+	const m = (entry.data as { mc_schematic?: unknown }).mc_schematic;
+	if (!m) return false;
+	try {
+		MCSchematicFrontmatterSchema.parse(m);
+		return true;
+	} catch {
+		return false;
+	}
+});
+
+type Row = ReturnType<typeof MCSchematicFrontmatterSchema.parse> & {
+	slug: string;
+	title: string;
+};
+
+const rows: Row[] = entries
+	.map((e) => {
+		const m = MCSchematicFrontmatterSchema.parse(
+			(e.data as { mc_schematic: unknown }).mc_schematic,
+		);
+		return {
+			...m,
+			slug: e.id.replace(/\.mdx?$/, '').replace(/^mc\//, ''),
+			title: (e.data as { title?: string }).title ?? m.display_name,
+		};
+	})
+	.sort(
+		(a, b) =>
+			a.tier - b.tier || a.display_name.localeCompare(b.display_name),
+	);
+
+const categoryAccent: Record<string, string> = {
+	house: '#86efac',
+	castle: '#fcd34d',
+	tower: '#a5b4fc',
+	farm: '#fde68a',
+	shop: '#7dd3fc',
+	utility: '#cbd5e1',
+	monument: '#f9a8d4',
+};
+
+const THUMB = 90;
+---
+
+<section class="mcschem-catalog not-content">
+	<header class="mcschem-catalog__head">
+		<h2>Schematic catalog</h2>
+		<p>
+			Every editorial build template with its footprint, tier, and price.
+			Click any card to open its detail panel.
+		</p>
+	</header>
+
+	<div class="mcschem-catalog__grid">
+		{
+			rows.map((s) => {
+				const accent = categoryAccent[s.category] ?? '#cbd5e1';
+				const longest = Math.max(s.dims_x, s.dims_z);
+				const px = Math.min(6, THUMB / longest);
+				const w = s.dims_x * px;
+				const h = s.dims_z * px;
+				return (
+					<a class="mcschem-card" href={`/${s.slug}/`}>
+						<div class="mcschem-card__head">
+							<span
+								class="mcschem-card__tier"
+								style={`--accent:${accent}`}>
+								T{s.tier}
+							</span>
+							<span class="mcschem-card__cat">{s.category}</span>
+						</div>
+						<h3>{s.display_name}</h3>
+						<svg
+							viewBox={`0 0 ${Math.max(w, 40)} ${Math.max(h, 40)}`}
+							width={Math.max(w, 40)}
+							height={Math.max(h, 40)}
+							class="mcschem-card__svg"
+							role="img"
+							aria-label={`${s.display_name} footprint`}>
+							<rect
+								x={0}
+								y={0}
+								width={w}
+								height={h}
+								fill="#0c0f14"
+								stroke={accent}
+								stroke-width="1"
+							/>
+						</svg>
+						<dl class="mcschem-card__stats">
+							<div>
+								<dt>Dims</dt>
+								<dd>
+									{s.dims_x}×{s.dims_y}×{s.dims_z}
+								</dd>
+							</div>
+							<div>
+								<dt>Price</dt>
+								<dd>
+									{s.price_credits > 0 && (
+										<>{s.price_credits.toLocaleString()}c</>
+									)}
+									{s.price_credits > 0 &&
+										s.price_khash > 0 &&
+										' · '}
+									{s.price_khash > 0 && (
+										<>{s.price_khash.toLocaleString()}k</>
+									)}
+									{s.price_credits === 0 &&
+										s.price_khash === 0 &&
+										'free'}
+								</dd>
+							</div>
+						</dl>
+					</a>
+				);
+			})
+		}
+	</div>
+</section>
+
+<style>
+	.mcschem-catalog {
+		display: flex;
+		flex-direction: column;
+		gap: 0.7rem;
+	}
+
+	.mcschem-catalog__head h2 {
+		margin: 0;
+		font-size: 1.15rem;
+	}
+
+	.mcschem-catalog__head p {
+		margin: 0.2rem 0 0;
+		color: var(--sl-color-gray-3);
+		font-size: 0.9em;
+	}
+
+	.mcschem-catalog__grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+		gap: 0.7rem;
+	}
+
+	.mcschem-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		padding: 0.7rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.5rem;
+		background: var(--sl-color-bg-nav);
+		color: var(--sl-color-white);
+		text-decoration: none;
+	}
+
+	.mcschem-card:hover {
+		border-color: var(--sl-color-accent);
+	}
+
+	.mcschem-card h3 {
+		margin: 0;
+		font-size: 0.95rem;
+	}
+
+	.mcschem-card__head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.3rem;
+	}
+
+	.mcschem-card__tier {
+		display: inline-block;
+		padding: 0.1rem 0.4rem;
+		border-radius: 0.3rem;
+		font-size: 0.7em;
+		font-weight: 600;
+		background: color-mix(in srgb, var(--accent) 25%, transparent);
+		color: var(--accent);
+		border: 1px solid var(--accent);
+	}
+
+	.mcschem-card__cat {
+		font-size: 0.78em;
+		color: var(--sl-color-gray-3);
+		text-transform: capitalize;
+	}
+
+	.mcschem-card__svg {
+		align-self: center;
+		max-width: 100%;
+		height: auto;
+	}
+
+	.mcschem-card__stats {
+		display: flex;
+		justify-content: space-between;
+		gap: 0.4rem;
+		margin: 0;
+		font-size: 0.78em;
+	}
+
+	.mcschem-card__stats div {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.mcschem-card__stats dt {
+		color: var(--sl-color-gray-3);
+	}
+
+	.mcschem-card__stats dd {
+		margin: 0;
+	}
+</style>

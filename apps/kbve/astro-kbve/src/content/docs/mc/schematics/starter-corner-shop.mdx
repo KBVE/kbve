@@ -28,6 +28,6 @@ mc_schematic:
         lore: First commerce hub. Drop it on a central lot to seed a trading district.
 ---
 
-A 9×6×9 trading post with two stalls, a back-room storage with four
-barrels, and a front-facing sign rack. The roofline drops slightly on
-the corner side for street visibility.
+import MCSchematicPanel from '@/components/mcdb/MCSchematicPanel.astro';
+
+<MCSchematicPanel data={frontmatter.mc_schematic} />

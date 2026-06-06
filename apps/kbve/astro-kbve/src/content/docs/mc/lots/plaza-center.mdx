@@ -24,4 +24,6 @@ mc_lot:
         notes: Central plaza site. Frontage on all four cardinal lots.
 ---
 
-Premium central parcel — frontage on all four cardinal lots.
+import MCLotPanel from '@/components/mcdb/MCLotPanel.astro';
+
+<MCLotPanel data={frontmatter.mc_lot} title={frontmatter.title} />

@@ -5,6 +5,8 @@ description: |
     the lot marketplace. Mirror of the on-disk catalog the survival
     backend ships with.
 tableOfContents: false
+graph:
+    visible: false
 sidebar:
     label: Sample Lots
     order: 6
@@ -14,60 +16,16 @@ tags:
     - mc-lot
 ---
 
-import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+import MCPlazaOverview from '@/components/mcdb/MCPlazaOverview.astro';
 
 A 3×3 plaza of 2×2-chunk parcels centered on the spawn area at sea
-level. These exist as MDX records, not as rows in the `mc.lot` table —
-the marketplace dashboard renders them so prospective buyers can see
-the shape of a parcel before any real lots are surveyed.
+level. Each cell below links to a detailed lot panel with chunk + block
+coordinates and price.
 
-Real parcels are created by admin tooling against the deployed schema
-once a region is opened for sale.
+These exist as MDX records, not as rows in the `mc.lot` table — the
+marketplace dashboard renders them so prospective buyers can see the
+shape of a parcel before any real lots are surveyed. Real parcels are
+created by admin tooling against the deployed schema once a region is
+opened for sale.
 
-<CardGrid>
-  <LinkCard
-    title="Plaza Northwest"
-    description="Outer ring — credit-priced corner parcel at chunks (-4,-4)."
-    href="/mc/lots/plaza-northwest/"
-  />
-  <LinkCard
-    title="Plaza North"
-    description="North-edge parcel at chunks (-1,-4)."
-    href="/mc/lots/plaza-north/"
-  />
-  <LinkCard
-    title="Plaza Northeast"
-    description="Outer ring — credit-priced corner parcel at chunks (2,-4)."
-    href="/mc/lots/plaza-northeast/"
-  />
-  <LinkCard
-    title="Plaza West"
-    description="West-edge parcel at chunks (-4,-1)."
-    href="/mc/lots/plaza-west/"
-  />
-  <LinkCard
-    title="Plaza Center"
-    description="Center premium parcel at chunks (-1,-1) — highest credit price."
-    href="/mc/lots/plaza-center/"
-  />
-  <LinkCard
-    title="Plaza East"
-    description="East-edge parcel at chunks (2,-1)."
-    href="/mc/lots/plaza-east/"
-  />
-  <LinkCard
-    title="Plaza Southwest"
-    description="Outer ring — credit-priced corner parcel at chunks (-4,2)."
-    href="/mc/lots/plaza-southwest/"
-  />
-  <LinkCard
-    title="Plaza South"
-    description="South-edge parcel at chunks (-1,2)."
-    href="/mc/lots/plaza-south/"
-  />
-  <LinkCard
-    title="Plaza Southeast"
-    description="Outer ring — credit-priced corner parcel at chunks (2,2)."
-    href="/mc/lots/plaza-southeast/"
-  />
-</CardGrid>
+<MCPlazaOverview />

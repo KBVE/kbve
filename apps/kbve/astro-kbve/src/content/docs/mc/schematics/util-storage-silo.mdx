@@ -28,6 +28,6 @@ mc_schematic:
         lore: Mid-game storage upgrade. Built tall to keep the lot footprint small.
 ---
 
-A 7×14×7 utility build — a vertical column of double-chests with the
-plumbing pre-laid for a hopper-based item sorter. Footprint stays small
-on the ground floor to fit alongside an existing house.
+import MCSchematicPanel from '@/components/mcdb/MCSchematicPanel.astro';
+
+<MCSchematicPanel data={frontmatter.mc_schematic} />

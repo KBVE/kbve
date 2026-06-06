@@ -28,6 +28,6 @@ mc_schematic:
         lore: The next step up from the Starter Cottage. Room for a chest line and a furnace stack.
 ---
 
-A 9×7×11 spruce cabin with a sleeping loft, covered porch, and an
-internal storage nook. Designed to fit a 2×2 chunk lot with room around
-the exterior for paths and fencing.
+import MCSchematicPanel from '@/components/mcdb/MCSchematicPanel.astro';
+
+<MCSchematicPanel data={frontmatter.mc_schematic} />

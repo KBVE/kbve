@@ -24,4 +24,6 @@ mc_lot:
         notes: Mid-priced. Mirrors the East edge across the plaza.
 ---
 
-West-edge parcel adjacent to the central premium lot.
+import MCLotPanel from '@/components/mcdb/MCLotPanel.astro';
+
+<MCLotPanel data={frontmatter.mc_lot} title={frontmatter.title} />

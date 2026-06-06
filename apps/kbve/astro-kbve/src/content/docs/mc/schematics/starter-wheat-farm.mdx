@@ -28,5 +28,6 @@ mc_schematic:
         lore: First passive food source. Pairs with any starter house.
 ---
 
-An 11×4×11 wheat field laid out around a central irrigation channel,
-fenced for mob protection, with a torch grid for night-time growth.
+import MCSchematicPanel from '@/components/mcdb/MCSchematicPanel.astro';
+
+<MCSchematicPanel data={frontmatter.mc_schematic} />

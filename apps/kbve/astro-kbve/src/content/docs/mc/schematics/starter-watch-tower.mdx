@@ -28,6 +28,6 @@ mc_schematic:
         lore: Slot it into a corner of a settlement for a lookout that doesn't eat much real estate.
 ---
 
-A 5×12×5 stone-and-spruce watch tower with internal ladders, an
-open-air battlement, and slit windows along the climb. Footprint stays
-under a quarter of a 2×2 chunk lot — useful for perimeter coverage.
+import MCSchematicPanel from '@/components/mcdb/MCSchematicPanel.astro';
+
+<MCSchematicPanel data={frontmatter.mc_schematic} />

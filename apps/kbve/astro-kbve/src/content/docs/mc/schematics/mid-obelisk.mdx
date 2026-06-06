@@ -29,5 +29,6 @@ mc_schematic:
         lore: Decorative landmark. Marks plaza centers, guild headquarters, or memorial sites.
 ---
 
-A 5×16×5 obsidian obelisk on a sandstone plinth with subtle end-rod
-illumination. No mechanical effect — it's a landmark.
+import MCSchematicPanel from '@/components/mcdb/MCSchematicPanel.astro';
+
+<MCSchematicPanel data={frontmatter.mc_schematic} />
