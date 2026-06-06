@@ -582,7 +582,14 @@ FReply SchuckChatPanel::HandleSendClicked()
 	if (!Sub) return FReply::Handled();
 	UKBVESupabaseChat* Chat = Sub->GetChat();
 	if (!Chat) return FReply::Handled();
-	Chat->SendPrivMsg(ActiveChannel, Body);
+	if (Chat->SendPrivMsg(ActiveChannel, Body))
+	{
+		const FKBVESupabaseUser& U = Sub->GetUser();
+		FString MyName = U.KbveUsername;
+		if (MyName.IsEmpty()) MyName = U.Email;
+		if (MyName.IsEmpty()) MyName = TEXT("me");
+		AppendLine(ActiveChannel, MyName, TEXT("CHAT"), Body, false);
+	}
 	return FReply::Handled();
 }
 

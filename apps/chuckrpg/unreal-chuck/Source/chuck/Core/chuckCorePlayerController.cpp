@@ -420,12 +420,12 @@ void AchuckCorePlayerController::OpenInventory()
 		.OnCloseClicked(FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::CloseInventory));
 	Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), InventoryWidget.ToSharedRef(), 12);
 
-	FInputModeGameAndUI Mode;
-	Mode.SetWidgetToFocus(InventoryWidget);
-	Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	SetInputMode(Mode);
-	bShowMouseCursor = true;
-	bInventoryOpen   = true;
+	bInventoryOpen = true;
+	RefreshUiMouseMode();
+	if (InventoryWidget.IsValid())
+	{
+		FSlateApplication::Get().SetKeyboardFocus(InventoryWidget, EFocusCause::SetDirectly);
+	}
 
 	if (HotbarWidget.IsValid())
 	{
@@ -446,9 +446,8 @@ void AchuckCorePlayerController::CloseInventory()
 		InventoryWidget.Reset();
 	}
 
-	SetInputMode(FInputModeGameOnly());
-	bShowMouseCursor = false;
-	bInventoryOpen   = false;
+	bInventoryOpen = false;
+	RefreshUiMouseMode();
 
 	if (HotbarWidget.IsValid())
 	{
@@ -534,30 +533,45 @@ void AchuckCorePlayerController::OnToggleChatPressed(const FInputActionValue& /*
 {
 	if (!ChatWidget.IsValid()) return;
 	const bool bNowShown = ChatWidget->ToggleVisible();
-	bShowMouseCursor = bNowShown;
-	if (bNowShown)
-	{
-		FInputModeGameAndUI Mode;
-		Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-		Mode.SetHideCursorDuringCapture(false);
-		SetInputMode(Mode);
-		ChatWidget->ShowAndFocusInput();
-	}
-	else
-	{
-		SetInputMode(FInputModeGameOnly());
-	}
+	if (bNowShown) ChatWidget->ShowAndFocusInput();
+	RefreshUiMouseMode();
 }
 
 void AchuckCorePlayerController::OnFocusChatPressed(const FInputActionValue& /*Value*/)
 {
 	if (!ChatWidget.IsValid()) return;
-	bShowMouseCursor = true;
-	FInputModeGameAndUI Mode;
-	Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	Mode.SetHideCursorDuringCapture(false);
-	SetInputMode(Mode);
 	ChatWidget->ShowAndFocusInput();
+	RefreshUiMouseMode();
+}
+
+bool AchuckCorePlayerController::IsAnyUiPanelOpen() const
+{
+	if (bInventoryOpen) return true;
+	if (bGamePaused) return true;
+	if (bDevOverlayShown) return true;
+	if (ChatWidget.IsValid())
+	{
+		const EVisibility V = ChatWidget->GetVisibility();
+		if (V != EVisibility::Collapsed && V != EVisibility::Hidden) return true;
+	}
+	return false;
+}
+
+void AchuckCorePlayerController::RefreshUiMouseMode()
+{
+	const bool bUi = IsAnyUiPanelOpen();
+	bShowMouseCursor = bUi;
+	if (bUi)
+	{
+		FInputModeGameAndUI Mode;
+		Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		Mode.SetHideCursorDuringCapture(false);
+		SetInputMode(Mode);
+	}
+	else
+	{
+		SetInputMode(FInputModeGameOnly());
+	}
 }
 
 void AchuckCorePlayerController::RefreshAuthOverlayVisibility(bool bSignedIn)
@@ -614,6 +628,14 @@ void AchuckCorePlayerController::HandleSupabaseSignedOut()
 		Bus->AuthStatus.Publish(Payload);
 	}
 	RefreshAuthOverlayVisibility(/*bSignedIn=*/false);
+
+	if (!MainMenuLevelName.IsNone())
+	{
+		UE_LOG(LogTemp, Display, TEXT("[chuck] CorePC signed out — returning to %s"), *MainMenuLevelName.ToString());
+		bShowMouseCursor = true;
+		SetInputMode(FInputModeUIOnly());
+		UGameplayStatics::OpenLevel(this, MainMenuLevelName);
+	}
 }
 
 void AchuckCorePlayerController::HandleSupabaseAuthError(const FKBVESupabaseError& Error)

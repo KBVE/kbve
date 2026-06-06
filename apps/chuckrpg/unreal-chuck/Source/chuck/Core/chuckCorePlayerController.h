@@ -74,6 +74,9 @@ protected:
 	void TearDownSupabaseBridge();
 	void RefreshAuthOverlayVisibility(bool bSignedIn);
 
+	bool IsAnyUiPanelOpen() const;
+	void RefreshUiMouseMode();
+
 private:
 	TSharedPtr<SchuckHUD>             HUDWidget;
 	TSharedPtr<SchuckPauseMenu>       PauseWidget;

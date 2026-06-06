@@ -30,7 +30,7 @@ class SchuckChatPanel : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SchuckChatPanel)
-		: _DefaultChannel(TEXT("#global"))
+		: _DefaultChannel(TEXT("#general"))
 	{}
 		SLATE_ARGUMENT(TWeakObjectPtr<UKBVESupabaseSubsystem>, Subsystem)
 		SLATE_ARGUMENT(TWeakObjectPtr<AchuckCoreCharacter>, OwningCharacter)
