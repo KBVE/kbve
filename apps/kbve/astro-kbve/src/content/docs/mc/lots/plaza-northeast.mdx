@@ -24,4 +24,6 @@ mc_lot:
         notes: Mirrors NW corner price.
 ---
 
-Outer-ring NE corner parcel.
+import MCLotPanel from '@/components/mcdb/MCLotPanel.astro';
+
+<MCLotPanel data={frontmatter.mc_lot} title={frontmatter.title} />

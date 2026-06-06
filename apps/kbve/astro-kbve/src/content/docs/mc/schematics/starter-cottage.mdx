@@ -28,12 +28,6 @@ mc_schematic:
         lore: First-home grant. Cheap to build, easy to extend, and forgiving on smaller lots.
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+import MCSchematicPanel from '@/components/mcdb/MCSchematicPanel.astro';
 
-A 7×6×7 timber cottage. Built from oak planks and cobblestone; ships
-with a hearth, a single bed, and a window facing the entrance.
-
-<Aside type="tip" title="Pairing">
-  Fits any 2×2 chunk lot. Pair with **Wheat Farm** on the adjacent
-  parcel for a self-sufficient starter homestead.
-</Aside>
+<MCSchematicPanel data={frontmatter.mc_schematic} />
