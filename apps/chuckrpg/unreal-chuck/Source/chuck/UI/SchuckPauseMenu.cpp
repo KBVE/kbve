@@ -16,6 +16,7 @@ void SchuckPauseMenu::Construct(const FArguments& InArgs)
 {
 	SetCanTick(false);
 	OnResume     = InArgs._OnResumeClicked;
+	OnSettings   = InArgs._OnSettingsClicked;
 	OnQuitToMenu = InArgs._OnQuitToMenuClicked;
 	OnQuit       = InArgs._OnQuitClicked;
 
@@ -83,6 +84,16 @@ void SchuckPauseMenu::Construct(const FArguments& InArgs)
 							.Padding(Style.GetMargin(FChuckUIStyle::FKeys::Button_SlotPadding))
 							[
 								BuildMenuButton(
+									LOCTEXT("Settings", "Settings"),
+									FOnClicked::CreateSP(this, &SchuckPauseMenu::HandleSettings),
+									ButtonFont)
+							]
+
+							+ SVerticalBox::Slot()
+							.AutoHeight()
+							.Padding(Style.GetMargin(FChuckUIStyle::FKeys::Button_SlotPadding))
+							[
+								BuildMenuButton(
 									LOCTEXT("QuitToMenu", "Main Menu"),
 									FOnClicked::CreateSP(this, &SchuckPauseMenu::HandleQuitToMenu),
 									ButtonFont)
@@ -126,6 +137,12 @@ TSharedRef<SWidget> SchuckPauseMenu::BuildMenuButton(
 FReply SchuckPauseMenu::HandleResume()
 {
 	OnResume.ExecuteIfBound();
+	return FReply::Handled();
+}
+
+FReply SchuckPauseMenu::HandleSettings()
+{
+	OnSettings.ExecuteIfBound();
 	return FReply::Handled();
 }
 

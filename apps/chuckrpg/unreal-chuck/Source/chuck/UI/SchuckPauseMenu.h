@@ -11,6 +11,7 @@ class SchuckPauseMenu : public SCompoundWidget
 public:
 	SLATE_BEGIN_ARGS(SchuckPauseMenu) {}
 		SLATE_EVENT(FSimpleDelegate, OnResumeClicked)
+		SLATE_EVENT(FSimpleDelegate, OnSettingsClicked)
 		SLATE_EVENT(FSimpleDelegate, OnQuitToMenuClicked)
 		SLATE_EVENT(FSimpleDelegate, OnQuitClicked)
 	SLATE_END_ARGS()
@@ -24,10 +25,12 @@ private:
 		const FSlateFontInfo& Font);
 
 	FReply HandleResume();
+	FReply HandleSettings();
 	FReply HandleQuitToMenu();
 	FReply HandleQuit();
 
 	FSimpleDelegate OnResume;
+	FSimpleDelegate OnSettings;
 	FSimpleDelegate OnQuitToMenu;
 	FSimpleDelegate OnQuit;
 };
