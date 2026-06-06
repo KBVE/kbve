@@ -1,6 +1,13 @@
 import { createWorld, addEntity, addComponent, query } from '@kbve/laser';
 import type { World } from '@kbve/laser';
-import { Position, Health, PlayerTag, NpcTag, MonsterTag } from './components';
+import {
+	Position,
+	Health,
+	Active,
+	PlayerTag,
+	NpcTag,
+	MonsterTag,
+} from './components';
 
 export type GameWorld = World;
 
@@ -18,11 +25,13 @@ function spawn(
 	const eid = addEntity(world);
 	addComponent(world, eid, Position);
 	addComponent(world, eid, Health);
+	addComponent(world, eid, Active);
 	addComponent(world, eid, tag);
 	Position.x[eid] = x;
 	Position.y[eid] = y;
 	Health.hp[eid] = hp;
 	Health.maxHp[eid] = hp;
+	Active.value[eid] = 1;
 	return eid;
 }
 

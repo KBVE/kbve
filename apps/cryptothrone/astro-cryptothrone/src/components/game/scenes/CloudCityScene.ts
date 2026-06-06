@@ -19,7 +19,11 @@ import {
 	type GameWorld,
 } from '../ecs/world';
 import { Position } from '../ecs/components';
-import { monstersNearPlayer, nearestMonster } from '../ecs/systems';
+import {
+	monstersNearPlayer,
+	nearestMonster,
+	cullMonsters,
+} from '../ecs/systems';
 
 interface PositionChangeEvent {
 	charId: string;
@@ -29,6 +33,8 @@ interface PositionChangeEvent {
 
 const MAP_SCALE = 3;
 const AGGRO_RADIUS = 4;
+const ACTIVE_RADIUS = 9;
+const CULL_INTERVAL_MS = 250;
 
 export class CloudCityScene extends Scene {
 	private npcSprite: Phaser.GameObjects.Sprite | undefined;
@@ -41,8 +47,11 @@ export class CloudCityScene extends Scene {
 	private world!: GameWorld;
 	private playerEid = -1;
 	private spriteByEid = new SideMap<Phaser.GameObjects.Sprite>();
+	private shadowByEid = new SideMap<Phaser.GameObjects.Sprite>();
 	private eidByChar = new Map<string, number>();
+	private charByEid = new Map<number, string>();
 	private monsterNearby = false;
+	private lastCull = 0;
 
 	constructor() {
 		super({ key: 'CloudCity' });
@@ -165,20 +174,45 @@ export class CloudCityScene extends Scene {
 		this.world = createGameWorld();
 
 		this.playerEid = spawnPlayer(this.world, 5, 12);
-		this.spriteByEid.set(this.playerEid, playerSprite);
-		this.eidByChar.set('player', this.playerEid);
+		this.bind(this.playerEid, 'player', playerSprite);
 
 		if (this.npcSprite) {
 			const npcEid = spawnNpc(this.world, 4, 10);
-			this.spriteByEid.set(npcEid, this.npcSprite);
-			this.eidByChar.set('npc', npcEid);
+			this.bind(npcEid, 'npc', this.npcSprite);
 		}
 
 		this.monsterBirdSprites.forEach((sprite, i) => {
 			const eid = spawnMonster(this.world, 7, 7 + i);
-			this.spriteByEid.set(eid, sprite);
-			this.eidByChar.set('monster_bird_' + i, eid);
+			this.bind(eid, 'monster_bird_' + i, sprite);
+			const shadow = this.monsterBirdShadows[i];
+			if (shadow) this.shadowByEid.set(eid, shadow);
 		});
+	}
+
+	private bind(
+		eid: number,
+		charId: string,
+		sprite: Phaser.GameObjects.Sprite,
+	) {
+		this.spriteByEid.set(eid, sprite);
+		this.eidByChar.set(charId, eid);
+		this.charByEid.set(eid, charId);
+	}
+
+	private setMonsterActive(eid: number, active: boolean) {
+		const charId = this.charByEid.get(eid);
+		if (!charId) return;
+		const sprite = this.spriteByEid.get(eid);
+		const shadow = this.shadowByEid.get(eid);
+		sprite?.setVisible(active);
+		shadow?.setVisible(active);
+		const shadowChar = 'monster_bird_shadow_' + getBirdNum(charId);
+		if (active) {
+			this.gridEngine.moveRandomly(charId, 1000, 20);
+		} else {
+			this.gridEngine.stopMovement(charId);
+			this.gridEngine.stopMovement(shadowChar);
+		}
 	}
 
 	private updateProximity() {
@@ -273,8 +307,18 @@ export class CloudCityScene extends Scene {
 		}
 	}
 
-	update() {
+	update(time: number) {
 		this.playerController?.handleMovement();
 		this.updateProximity();
+
+		if (time - this.lastCull >= CULL_INTERVAL_MS) {
+			this.lastCull = time;
+			cullMonsters(
+				this.world,
+				this.playerEid,
+				ACTIVE_RADIUS,
+				(eid, active) => this.setMonsterActive(eid, active),
+			);
+		}
 	}
 }
