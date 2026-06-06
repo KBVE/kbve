@@ -388,6 +388,11 @@ function Step2WebhookConfig({
 		}
 	}, [guild.id, repos, selectedMap]);
 
+	useEffect(() => {
+		if (!hasWebhook || !selectedRepo) return;
+		void agentsService.verifyWebhookInstall(guild.id, selectedRepo);
+	}, [guild.id, hasWebhook, selectedRepo]);
+
 	async function copy() {
 		const ok = await copyToClipboard(url);
 		setCopied(ok);
@@ -405,11 +410,21 @@ function Step2WebhookConfig({
 		await agentsService.pingWebhookForGuild(guild.id);
 	}
 
+	const installedOk =
+		!!installResult &&
+		installResult.ok &&
+		(installResult.installed || installResult.alreadyPresent);
+	const step2Status: StepStatus = !hasWebhook
+		? 'todo'
+		: installedOk
+			? 'done'
+			: 'pending';
+
 	return (
 		<StepCard
 			n={2}
 			title="Configure the GitHub webhook"
-			status={hasWebhook ? 'pending' : 'todo'}
+			status={step2Status}
 			disabled={!hasWebhook}>
 			<p style={mutedText}>
 				Copy the per-guild webhook URL, then create a new webhook on the
