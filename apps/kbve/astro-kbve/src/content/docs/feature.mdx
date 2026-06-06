@@ -7,6 +7,18 @@ next: false
 sidebar:
     label: Features
     order: 4
+jsonld:
+    keywords:
+        - game development
+        - managed game servers
+        - CI/CD automation
+        - observability
+        - open source
+    breadcrumb:
+        - name: KBVE
+          path: /
+        - name: Features
+          path: /feature/
 ---
 
 import DeferredFeature from '@/components/kbve/DeferredFeature.astro';
@@ -89,25 +101,8 @@ export const highlights = [
 	},
 ];
 
-export const pageDescription =
-	'What the KBVE platform ships — game development, managed game servers, CI/CD automation, observability, identity, and open-source libraries.';
-
 <JsonLd
-	graph={seo.graph(
-		seo.webPage({
-			url: seo.url('/feature/'),
-			name: 'KBVE Features',
-			description: pageDescription,
-			primaryImageOfPage: seo.config.logo,
-			breadcrumb: `${seo.url('/feature/')}#breadcrumb`,
-		}),
-		seo.breadcrumbs(
-			[
-				['KBVE', '/'],
-				['Features', '/feature/'],
-			],
-			`${seo.url('/feature/')}#breadcrumb`,
-		),
+	graph={[
 		seo.itemList(
 			features.map((f) => ({
 				name: f.title,
@@ -117,10 +112,11 @@ export const pageDescription =
 			{
 				id: `${seo.url('/feature/')}#features`,
 				name: 'KBVE Features',
-				description: pageDescription,
+				description:
+					'What the KBVE platform ships — game development, managed game servers, CI/CD automation, observability, identity, and open-source libraries.',
 			},
 		),
-	)}
+	]}
 />
 
 <div class="ring-page kbve-dashboard-page relative min-h-screen w-full bg-transparent">

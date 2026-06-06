@@ -53,6 +53,7 @@ export interface WebPageInput {
 	breadcrumb?: SchemaNode | string;
 	primaryImageOfPage?: string;
 	dateModified?: string;
+	keywords?: string[];
 }
 
 export const webPage = (i: WebPageInput): SchemaNode => ({
@@ -65,6 +66,7 @@ export const webPage = (i: WebPageInput): SchemaNode => ({
 	...(i.primaryImageOfPage
 		? { primaryImageOfPage: i.primaryImageOfPage }
 		: {}),
+	...(i.keywords?.length ? { keywords: i.keywords } : {}),
 	...(i.isPartOf ? { isPartOf: ref(i.isPartOf) } : {}),
 	...(i.breadcrumb ? { breadcrumb: ref(i.breadcrumb) } : {}),
 	...(i.dateModified ? { dateModified: i.dateModified } : {}),
@@ -203,6 +205,36 @@ export const videoGame = (i: VideoGameInput): SchemaNode => ({
 		? { applicationCategory: i.applicationCategory }
 		: {}),
 	...(i.publisher ? { publisher: ref(i.publisher) } : {}),
+});
+
+export interface ArticleInput {
+	url: string;
+	headline: string;
+	description?: string;
+	image?: string;
+	datePublished?: string;
+	dateModified?: string;
+	keywords?: string[];
+	author?: SchemaNode | string;
+	publisher?: SchemaNode | string;
+	isPartOf?: SchemaNode | string;
+	breadcrumb?: SchemaNode | string;
+}
+
+export const article = (i: ArticleInput): SchemaNode => ({
+	'@type': 'Article',
+	'@id': `${i.url}#article`,
+	headline: i.headline,
+	url: i.url,
+	...(i.description ? { description: i.description } : {}),
+	...(i.image ? { image: i.image } : {}),
+	...(i.datePublished ? { datePublished: i.datePublished } : {}),
+	...(i.dateModified ? { dateModified: i.dateModified } : {}),
+	...(i.keywords?.length ? { keywords: i.keywords } : {}),
+	...(i.author ? { author: ref(i.author) } : {}),
+	...(i.publisher ? { publisher: ref(i.publisher) } : {}),
+	...(i.isPartOf ? { isPartOf: ref(i.isPartOf) } : {}),
+	...(i.breadcrumb ? { breadcrumb: ref(i.breadcrumb) } : {}),
 });
 
 export const dedupeGraph = (nodes: SchemaNode[]): SchemaNode[] => {
