@@ -24,6 +24,22 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 		);
 
 		unsubs.push(
+			laserEvents.on('monster:nearby', (data) => {
+				dispatch({
+					type: 'ADD_NOTIFICATION',
+					payload: {
+						title: 'Danger',
+						message:
+							data.count > 1
+								? `${data.count} monsters lurk nearby!`
+								: 'A monster lurks nearby!',
+						type: 'warning',
+					},
+				});
+			}),
+		);
+
+		unsubs.push(
 			laserEvents.on('notification', (data: NotificationEventData) => {
 				const type =
 					(data.notificationType as

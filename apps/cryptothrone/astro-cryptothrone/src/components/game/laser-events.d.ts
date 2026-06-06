@@ -12,5 +12,10 @@ declare module '@kbve/laser' {
 		'player:stats': { stats: PlayerStats };
 		'dice:roll': { npcId: string; npcName: string; diceCount: number };
 		'dice:result': { diceValues: number[] };
+		'monster:nearby': {
+			count: number;
+			nearestEid: number;
+			distance: number;
+		};
 	}
 }

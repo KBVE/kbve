@@ -28,6 +28,7 @@ const PhaserCanvas = memo(function PhaserCanvas() {
 			height: 600,
 			scenes: [PreloaderScene, CloudCityScene],
 			backgroundColor: '#1a1a2e',
+			pixelArt: true,
 			plugins: {
 				scene: [
 					{
