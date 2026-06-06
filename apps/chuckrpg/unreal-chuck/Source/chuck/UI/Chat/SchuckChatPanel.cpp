@@ -538,6 +538,17 @@ void SchuckChatPanel::RecallHistoryDirection(int32 Direction)
 	}
 }
 
+FReply SchuckChatPanel::OnPreviewKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
+{
+	if (InKeyEvent.GetKey() == EKeys::Slash)
+	{
+		ToggleVisible();
+		OnCloseClicked.ExecuteIfBound();
+		return FReply::Handled();
+	}
+	return FReply::Unhandled();
+}
+
 FReply SchuckChatPanel::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
 {
 	if (InputBox.IsValid() && InputBox->HasKeyboardFocus())

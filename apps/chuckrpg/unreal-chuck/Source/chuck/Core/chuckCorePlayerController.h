@@ -103,9 +103,55 @@ private:
 	FLinearColor PendingTooltipBorderColor = FLinearColor::White;
 	FVector2D    PendingTooltipPos = FVector2D::ZeroVector;
 
-	bool bGamePaused      = false;
-	bool bDevOverlayShown = false;
-	bool bInventoryOpen   = false;
+	enum class EUiFlag : uint16
+	{
+		None        = 0,
+		Inventory   = 1 << 0,
+		Pause       = 1 << 1,
+		DevOverlay  = 1 << 2,
+		Chat        = 1 << 3,
+		ChatFocused = 1 << 4,
+		Settings    = 1 << 5,
+		Map         = 1 << 6,
+		Quest       = 1 << 7,
+		Loading     = 1 << 8,
+		Vendor      = 1 << 9,
+		Tooltip     = 1 << 10,
+		Targeting   = 1 << 11,
+		DragArrow   = 1 << 12,
+		MouseHidden = 1 << 13,
+		AllowMove   = 1 << 14,
+		AllowCamera = 1 << 15,
+	};
+
+	uint16 UiFlags = 0;
+
+	bool HasUiFlag(EUiFlag F) const { return (UiFlags & static_cast<uint16>(F)) != 0; }
+	bool HasAllUiFlags(uint16 Mask) const { return (UiFlags & Mask) == Mask; }
+	bool HasAnyUiFlags(uint16 Mask) const { return (UiFlags & Mask) != 0; }
+	void SetUiFlag(EUiFlag F, bool bOn);
+	bool AnyUiFlag() const { return UiFlags != 0; }
+	uint16 GetUiFlags() const { return UiFlags; }
+	uint16 DiffUiFlags(uint16 Prev) const { return UiFlags ^ Prev; }
+	void BroadcastUiFlagsChanged(uint16 OldFlags);
+
+	static constexpr uint16 BlockMovementMask =
+		static_cast<uint16>(EUiFlag::Inventory) |
+		static_cast<uint16>(EUiFlag::Pause) |
+		static_cast<uint16>(EUiFlag::Settings) |
+		static_cast<uint16>(EUiFlag::Map) |
+		static_cast<uint16>(EUiFlag::Loading) |
+		static_cast<uint16>(EUiFlag::Vendor);
+
+	static constexpr uint16 NeedsCursorMask =
+		static_cast<uint16>(EUiFlag::Inventory) |
+		static_cast<uint16>(EUiFlag::Pause) |
+		static_cast<uint16>(EUiFlag::DevOverlay) |
+		static_cast<uint16>(EUiFlag::Chat) |
+		static_cast<uint16>(EUiFlag::Settings) |
+		static_cast<uint16>(EUiFlag::Map) |
+		static_cast<uint16>(EUiFlag::Quest) |
+		static_cast<uint16>(EUiFlag::Vendor);
 
 	float LastHealthForFlash = -1.f;
 	float LastDamageTime     = -10.f;

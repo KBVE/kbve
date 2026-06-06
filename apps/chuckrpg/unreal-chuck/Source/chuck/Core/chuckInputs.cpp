@@ -52,9 +52,7 @@ void UchuckInputs::Build()
 	DefaultIMC->MapKey(Pause,            EKeys::Escape);
 	DefaultIMC->MapKey(ToggleDevOverlay, EKeys::Tilde);
 	DefaultIMC->MapKey(Inventory,        EKeys::I);
-	DefaultIMC->MapKey(ToggleChat,       EKeys::T);
-	DefaultIMC->MapKey(FocusChat,        EKeys::Enter);
-	DefaultIMC->MapKey(FocusChat,        EKeys::Slash);
+	DefaultIMC->MapKey(ToggleChat,       EKeys::Slash);
 
 	{
 		FEnhancedActionKeyMapping& LookMap = DefaultIMC->MapKey(Look, EKeys::Mouse2D);
