@@ -40,7 +40,7 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateMasterMaterial(UObject* /*
 #if WITH_EDITOR
 	UMaterial* M = NewObject<UMaterial>(Outer, TEXT("M_KBVEWorld_Grass"), RF_Transient);
 	M->BlendMode             = BLEND_Opaque;
-	M->TwoSided              = true;
+	M->TwoSided              = false;
 	M->DitheredLODTransition = true;
 	M->SetShadingModel(MSM_DefaultLit);
 
