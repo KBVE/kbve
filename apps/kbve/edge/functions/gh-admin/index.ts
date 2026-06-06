@@ -721,6 +721,8 @@ async function handleRotate(
   return jsonResponse({ rotated: true, hook_id: kbveHook.id });
 }
 
+const REPO_HARD_CAP = 100;
+
 async function handleEventStats(serverId: string): Promise<Response> {
   const repos = await fetchRepoAllowlist(serverId);
   if (repos.length === 0) {
@@ -734,13 +736,29 @@ async function handleEventStats(serverId: string): Promise<Response> {
       oldest_pending_at: null,
     });
   }
+  if (repos.length > REPO_HARD_CAP) {
+    return jsonResponse(
+      {
+        error:
+          `Allowlist has ${repos.length} repos; stats RPC accepts max ${REPO_HARD_CAP}`,
+      },
+      413,
+    );
+  }
   const sb = createServiceClient();
   const { data, error } = await sb.schema("gh").rpc(
     "service_get_guild_event_stats",
     { p_repos: repos },
   );
   if (error) {
-    console.error("gh-admin: service_get_guild_event_stats failed", error.message);
+    const errCode = (error as { code?: string }).code ?? "";
+    if (errCode === "GH006") {
+      return jsonResponse({ error: error.message }, 413);
+    }
+    console.error(
+      "gh-admin: service_get_guild_event_stats failed",
+      error.message,
+    );
     return jsonResponse({ error: "stats lookup failed" }, 500);
   }
   const row = (Array.isArray(data) ? data[0] : data) ?? {};
@@ -755,6 +773,15 @@ async function handleEventFailed(
   if (repos.length === 0) {
     return jsonResponse({ events: [] });
   }
+  if (repos.length > REPO_HARD_CAP) {
+    return jsonResponse(
+      {
+        error:
+          `Allowlist has ${repos.length} repos; failed-events RPC accepts max ${REPO_HARD_CAP}`,
+      },
+      413,
+    );
+  }
   const capped = Math.min(Math.max(limit, 1), 50);
   const sb = createServiceClient();
   const { data, error } = await sb.schema("gh").rpc(
@@ -762,7 +789,14 @@ async function handleEventFailed(
     { p_repos: repos, p_limit: capped },
   );
   if (error) {
-    console.error("gh-admin: service_get_recent_failed_events failed", error.message);
+    const errCode = (error as { code?: string }).code ?? "";
+    if (errCode === "GH006") {
+      return jsonResponse({ error: error.message }, 413);
+    }
+    console.error(
+      "gh-admin: service_get_recent_failed_events failed",
+      error.message,
+    );
     return jsonResponse({ error: "failed-events lookup failed" }, 500);
   }
   return jsonResponse({ events: Array.isArray(data) ? data : [] });
@@ -785,19 +819,33 @@ async function handleEventRequeue(
     p_event_id: eventId,
   });
   if (error) {
-    console.error("gh-admin: service_requeue_event failed", error.message);
+    const errCode = (error as { code?: string }).code ?? "";
+    const message = error.message ?? "requeue failed";
+    if (errCode === "GH004") {
+      return jsonResponse(
+        {
+          error:
+            "Event not found, not in this guild's allowlist, or not in failed state",
+        },
+        404,
+      );
+    }
+    if (errCode === "GH001" || errCode === "GH002" || errCode === "GH003") {
+      return jsonResponse({ error: message }, 400);
+    }
+    if (errCode === "GH006") {
+      return jsonResponse({ error: message }, 413);
+    }
+    console.error("gh-admin: service_requeue_event failed", message);
     return jsonResponse({ error: "requeue failed" }, 500);
   }
   const row = (Array.isArray(data) ? data[0] : data) as
     | { id?: number; delivery_state?: number }
     | null;
-  if (!row || row.id !== eventId) {
-    return jsonResponse(
-      { error: "event not found in this guild's allowlist" },
-      404,
-    );
-  }
-  return jsonResponse({ requeued: true, event_id: row.id });
+  return jsonResponse({
+    requeued: true,
+    event_id: row?.id ?? eventId,
+  });
 }
 
 serve(async (req) => {
