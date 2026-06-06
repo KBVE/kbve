@@ -39,6 +39,8 @@ protected:
 	void OnPausePressed(const FInputActionValue& Value);
 	void OnToggleDevOverlayPressed(const FInputActionValue& Value);
 	void OnInventoryPressed(const FInputActionValue& Value);
+	void OnToggleChatPressed(const FInputActionValue& Value);
+	void OnFocusChatPressed(const FInputActionValue& Value);
 
 	void OpenInventory();
 	void CloseInventory();
@@ -63,6 +65,10 @@ protected:
 	void HandleChatDisconnected(int32 StatusCode, const FString& Reason);
 	UFUNCTION()
 	void HandleChatMessage(const FKBVEChatMessage& Message);
+	UFUNCTION()
+	void HandleChatChannelJoined(const FString& Channel);
+	UFUNCTION()
+	void HandleChatChannelLeft(const FString& Channel);
 
 	void InitSupabaseBridge();
 	void TearDownSupabaseBridge();

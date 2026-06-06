@@ -74,6 +74,14 @@ void AchuckCorePlayerController::SetupInputComponent()
 			{
 				EIC->BindAction(Inputs->Inventory, ETriggerEvent::Started, this, &AchuckCorePlayerController::OnInventoryPressed);
 			}
+			if (Inputs->ToggleChat)
+			{
+				EIC->BindAction(Inputs->ToggleChat, ETriggerEvent::Started, this, &AchuckCorePlayerController::OnToggleChatPressed);
+			}
+			if (Inputs->FocusChat)
+			{
+				EIC->BindAction(Inputs->FocusChat, ETriggerEvent::Started, this, &AchuckCorePlayerController::OnFocusChatPressed);
+			}
 		}
 	}
 }
@@ -147,7 +155,9 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 	}
 
 	AccountWidget = SNew(SchuckAccountPanel).Subsystem(SupabaseSubsystem);
-	ChatWidget    = SNew(SchuckChatPanel).Subsystem(SupabaseSubsystem);
+	ChatWidget    = SNew(SchuckChatPanel)
+		.Subsystem(SupabaseSubsystem)
+		.OwningCharacter(Char);
 
 	// Default to hidden. InitSupabaseBridge below flips them on based on auth state.
 	AccountWidget->SetVisibility(EVisibility::Collapsed);
@@ -460,6 +470,8 @@ void AchuckCorePlayerController::InitSupabaseBridge()
 		Chat->OnConnected.AddDynamic(this, &AchuckCorePlayerController::HandleChatConnected);
 		Chat->OnDisconnected.AddDynamic(this, &AchuckCorePlayerController::HandleChatDisconnected);
 		Chat->OnMessage.AddDynamic(this, &AchuckCorePlayerController::HandleChatMessage);
+		Chat->OnChannelJoined.AddDynamic(this, &AchuckCorePlayerController::HandleChatChannelJoined);
+		Chat->OnChannelLeft.AddDynamic(this, &AchuckCorePlayerController::HandleChatChannelLeft);
 	}
 
 	const bool bSignedIn = Sub->IsSignedIn();
@@ -497,6 +509,40 @@ void AchuckCorePlayerController::TearDownSupabaseBridge()
 		Chat->OnConnected.RemoveDynamic(this, &AchuckCorePlayerController::HandleChatConnected);
 		Chat->OnDisconnected.RemoveDynamic(this, &AchuckCorePlayerController::HandleChatDisconnected);
 		Chat->OnMessage.RemoveDynamic(this, &AchuckCorePlayerController::HandleChatMessage);
+		Chat->OnChannelJoined.RemoveDynamic(this, &AchuckCorePlayerController::HandleChatChannelJoined);
+		Chat->OnChannelLeft.RemoveDynamic(this, &AchuckCorePlayerController::HandleChatChannelLeft);
+	}
+}
+
+void AchuckCorePlayerController::HandleChatChannelJoined(const FString& Channel)
+{
+	if (ChatWidget.IsValid())
+	{
+		ChatWidget->OnChannelJoined(Channel);
+	}
+}
+
+void AchuckCorePlayerController::HandleChatChannelLeft(const FString& Channel)
+{
+	if (ChatWidget.IsValid())
+	{
+		ChatWidget->OnChannelLeft(Channel);
+	}
+}
+
+void AchuckCorePlayerController::OnToggleChatPressed(const FInputActionValue& /*Value*/)
+{
+	if (ChatWidget.IsValid())
+	{
+		ChatWidget->ToggleVisible();
+	}
+}
+
+void AchuckCorePlayerController::OnFocusChatPressed(const FInputActionValue& /*Value*/)
+{
+	if (ChatWidget.IsValid())
+	{
+		ChatWidget->ShowAndFocusInput();
 	}
 }
 
