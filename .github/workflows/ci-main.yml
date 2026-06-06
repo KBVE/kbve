@@ -411,6 +411,7 @@ jobs:
                     path=$(echo "$entry" | jq -r '.plugin_path')
                     deps=$(echo "$entry" | jq -r '.dependency_plugins // ""')
                     itch=$(echo "$entry" | jq -r '.itch_game_id // ""')
+                    platforms=$(echo "$entry" | jq -r 'if (.supported_platforms // [] | length) > 0 then (.supported_platforms | join(",")) else "Linux" end')
                     altered=$(is_altered "$key")
                     deploy_itch="false"
                     [ -n "$itch" ] && deploy_itch="true"
@@ -424,19 +425,39 @@ jobs:
                       SKIPPED=$((SKIPPED + 1))
                       continue
                     fi
-                    if [ "$(is_publish_running unreal "$name")" = "true" ]; then
-                      echo "  · $name — already running ($reason), skipping duplicate"
-                      SKIPPED=$((SKIPPED + 1))
-                      continue
+
+                    # Linux build (docker) — keeps itch deploy when configured.
+                    if printf '%s' ",${platforms}," | grep -q ',Linux,'; then
+                      if [ "$(is_publish_running unreal "$name")" = "true" ]; then
+                        echo "  · $name (Linux) — already running ($reason), skipping duplicate"
+                        SKIPPED=$((SKIPPED + 1))
+                      else
+                        echo "  ✓ $name (Linux) — $reason, dispatching"
+                        dispatch_publish unreal \
+                          --field package_name="$name" \
+                          --field unreal_plugin_path="$path" \
+                          --field deploy_to_itch="$deploy_itch" \
+                          --field itch_game_id="$itch" \
+                          --field unreal_dependency_plugins="$deps"
+                        DISPATCHED=$((DISPATCHED + 1))
+                      fi
                     fi
-                    echo "  ✓ $name — $reason, dispatching"
-                    dispatch_publish unreal \
-                      --field package_name="$name" \
-                      --field unreal_plugin_path="$path" \
-                      --field deploy_to_itch="$deploy_itch" \
-                      --field itch_game_id="$itch" \
-                      --field unreal_dependency_plugins="$deps"
-                    DISPATCHED=$((DISPATCHED + 1))
+
+                    # Win64 build (native UE5-Win VM) — GitHub Release only, no itch.
+                    if printf '%s' ",${platforms}," | grep -q ',Win64,'; then
+                      if [ "$(is_publish_running unreal-win64 "$name")" = "true" ]; then
+                        echo "  · $name (Win64) — already running ($reason), skipping duplicate"
+                        SKIPPED=$((SKIPPED + 1))
+                      else
+                        echo "  ✓ $name (Win64) — $reason, dispatching"
+                        dispatch_publish unreal-win64 \
+                          --field package_name="$name" \
+                          --field unreal_plugin_path="$path" \
+                          --field deploy_to_itch="false" \
+                          --field unreal_dependency_plugins="$deps"
+                        DISPATCHED=$((DISPATCHED + 1))
+                      fi
+                    fi
                   done < <(jq -c '.unreal[]' "$MANIFEST")
 
                   # =================================================================

@@ -22,11 +22,10 @@ status: beta
 homepage_url: https://kbve.itch.io/chuckrpg
 engine:
     version: "5.7.4"
-    project_path: "."
+    project_path: apps/chuckrpg/unreal-chuck
     build_targets:
         - Win64
         - Linux
-    external_repo_url: https://github.com/KBVE/chuck
 external_publish:
     itch_user: kbve
     itch_game: chuckrpg
@@ -36,7 +35,8 @@ external_publish:
 
 Chuck RPG UE5 standalone game client. The playable build (distinct from the
 [Unreal Chuck](/project/unreal-chuck) dedicated server) is compiled from the
-`KBVE/chuck` repo and shipped to itch.io under `kbve/chuckrpg`.
+monorepo source at `apps/chuckrpg/unreal-chuck` (Content pulled from the chuck
+Forgejo LFS endpoint) and shipped to itch.io under `kbve/chuckrpg`.
 
 ## Pipeline
 
