@@ -73,6 +73,14 @@ void UROWSSubsystem::PostRequest(
 	Request->SetVerb(TEXT("POST"));
 	Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
 	Request->SetHeader(TEXT("X-CustomerGUID"), CustomerKey);
+	if (!SupabaseAccessToken.IsEmpty())
+	{
+		Request->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *SupabaseAccessToken));
+	}
+	if (!SupabaseUserId.IsEmpty())
+	{
+		Request->SetHeader(TEXT("X-Supabase-User-Id"), SupabaseUserId);
+	}
 	Request->SetContentAsString(PostContent);
 
 	UE_LOG(LogROWS, Verbose, TEXT("POST %s%s"), *BasePath, *Endpoint);

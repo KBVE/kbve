@@ -41,6 +41,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ROWS|Auth")
 	void Logout(const FString& UserSessionGUID);
 
+	UFUNCTION(BlueprintCallable, Category = "ROWS|Auth")
+	void AdoptSupabaseSession(const FString& AccessToken, const FString& SupabaseUserId, const FString& UsernameHint);
+
+	UFUNCTION(BlueprintCallable, Category = "ROWS|Auth")
+	void ClearSupabaseSession();
+
 	// --- Delegates ---
 
 	UPROPERTY(BlueprintAssignable, Category = "ROWS|Auth")

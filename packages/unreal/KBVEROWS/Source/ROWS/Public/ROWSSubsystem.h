@@ -43,7 +43,19 @@ public:
 	void ClearSession() { UserSessionGUID.Empty(); }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ROWS|Session")
-	bool IsLoggedIn() const { return !UserSessionGUID.IsEmpty(); }
+	bool IsLoggedIn() const { return !UserSessionGUID.IsEmpty() || !SupabaseAccessToken.IsEmpty(); }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ROWS|Session")
+	FString GetSupabaseAccessToken() const { return SupabaseAccessToken; }
+
+	UFUNCTION(BlueprintCallable, Category = "ROWS|Session")
+	void SetSupabaseAccessToken(const FString& InToken) { SupabaseAccessToken = InToken; }
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ROWS|Session")
+	FString GetSupabaseUserId() const { return SupabaseUserId; }
+
+	UFUNCTION(BlueprintCallable, Category = "ROWS|Session")
+	void SetSupabaseUserId(const FString& InId) { SupabaseUserId = InId; }
 
 	// --- Config Accessors ---
 
@@ -97,4 +109,6 @@ protected:
 
 	// Session
 	FString UserSessionGUID;
+	FString SupabaseAccessToken;
+	FString SupabaseUserId;
 };
