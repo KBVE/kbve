@@ -29,6 +29,10 @@ export default defineConfig({
 					label: 'Guides',
 					items: [{ autogenerate: { directory: 'guides' } }],
 				},
+				{
+					label: 'Account',
+					items: [{ autogenerate: { directory: 'auth' } }],
+				},
 			],
 		}),
 		react(),
@@ -36,6 +40,9 @@ export default defineConfig({
 	],
 	vite: {
 		plugins: [tailwindcss()],
+		resolve: {
+			dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
+		},
 		build: {
 			chunkSizeWarningLimit: 1200,
 			rollupOptions: {
