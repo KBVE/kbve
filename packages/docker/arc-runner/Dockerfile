@@ -94,17 +94,24 @@ RUN set -eux; \
     envsubst --version >/dev/null; \
     protoc --version >/dev/null
 
-# node + pnpm + playwright chromium
+# node + pnpm + playwright chromium + webkit + firefox
 #
 # Baked at image-build time so per-job `pnpm exec playwright install` is a
 # no-op cache hit at PLAYWRIGHT_BROWSERS_PATH. Avoids the libuv-threadpool
 # deadlock observed on arc-runner-set when playwright extracts chromium's
-# libwidevinecdm.so onto the pod's overlayfs at runtime.
+# libwidevinecdm.so onto the pod's overlayfs at runtime, and the
+# cdn.playwright.dev hangs that timed out astro-kbve-e2e at the 15-minute
+# (then 25-minute) workflow timeout when a single chromium download
+# stalled to ~280 KB/s — see #11849 / #11853 / #11854 / #11856.
+#
+# All three engines land here so astro-kbve-e2e's chromium + webkit +
+# mobile-chrome + mobile-safari device list (and every other e2e using
+# any subset of these) is cold-install-free.
 #
 # Keep NODE_VERSION/PNPM_VERSION/PLAYWRIGHT_VERSION in lockstep with
 # package.json + .github/workflows/* (actions/setup-node, pnpm/action-setup,
 # @playwright/test). Mismatch falls back to per-job install and re-opens
-# the deadlock.
+# both the deadlock and the CDN-stall failure mode.
 ARG NODE_VERSION
 ARG PNPM_VERSION
 ARG PLAYWRIGHT_VERSION
@@ -121,10 +128,12 @@ RUN set -eux; \
     rm "node-v${NODE_VERSION}-linux-x64.tar.xz" SHASUMS256.txt; \
     npm install -g "pnpm@${PNPM_VERSION}"; \
     mkdir -p "${PLAYWRIGHT_BROWSERS_PATH}"; \
-    npx --yes "playwright@${PLAYWRIGHT_VERSION}" install --with-deps chromium; \
+    npx --yes "playwright@${PLAYWRIGHT_VERSION}" install --with-deps chromium webkit firefox; \
     chmod -R a+rX "${PLAYWRIGHT_BROWSERS_PATH}"; \
     node --version >/dev/null; \
     pnpm --version >/dev/null; \
-    test -d "${PLAYWRIGHT_BROWSERS_PATH}/chromium-"*/chrome-linux*
+    test -d "${PLAYWRIGHT_BROWSERS_PATH}/chromium-"*/chrome-linux*; \
+    test -d "${PLAYWRIGHT_BROWSERS_PATH}/webkit-"*; \
+    test -d "${PLAYWRIGHT_BROWSERS_PATH}/firefox-"*
 
 USER runner

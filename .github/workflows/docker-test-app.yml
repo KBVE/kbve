@@ -191,8 +191,54 @@ jobs:
                   echo "version=${VER}" >> "$GITHUB_OUTPUT"
                   echo "Resolved Playwright version: ${VER}"
 
-            - name: Cache Playwright browsers
+            # Detect whether the runner image has already baked the browsers
+            # this project needs at /opt/ms-playwright (arc-runner does — see
+            # packages/docker/arc-runner/Dockerfile). When every requested
+            # browser is present, skip both the workflow cache and the
+            # install step entirely — the install was the failure mode that
+            # broke every e2e (#11849 / #11853): cdn.playwright.dev stalls
+            # turned a 14-minute chromium download into a 15- (then 25-)
+            # minute timeout. Pre-baked = zero network in the critical
+            # path. Falls back to the legacy cache + install dance on a
+            # github-hosted runner where /opt/ms-playwright isn't there.
+            - name: Check baked Playwright browsers
               if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' }}
+              id: baked-playwright
+              env:
+                  REQ_BROWSERS: ${{ steps.detect-playwright.outputs.browsers }}
+              run: |
+                  set -euo pipefail
+                  BAKE_DIR="${PLAYWRIGHT_BROWSERS_PATH:-/opt/ms-playwright}"
+                  MISSING=""
+                  if [ ! -d "$BAKE_DIR" ]; then
+                    echo "No baked browsers at ${BAKE_DIR} — falling back to install"
+                    echo "all_present=false" >> "$GITHUB_OUTPUT"
+                    echo "missing=${REQ_BROWSERS}" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+                  for b in $REQ_BROWSERS; do
+                    case "$b" in
+                      chromium) glob="${BAKE_DIR}/chromium-"*/chrome-linux*/chrome ;;
+                      webkit)   glob="${BAKE_DIR}/webkit-"*/pw_run.sh ;;
+                      firefox)  glob="${BAKE_DIR}/firefox-"*/firefox/firefox ;;
+                      *)        glob="${BAKE_DIR}/${b}-"* ;;
+                    esac
+                    if compgen -G "$glob" >/dev/null; then
+                      echo "  ${b}: baked"
+                    else
+                      echo "  ${b}: missing"
+                      MISSING="${MISSING:+$MISSING }${b}"
+                    fi
+                  done
+                  if [ -z "$MISSING" ]; then
+                    echo "all_present=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "all_present=false" >> "$GITHUB_OUTPUT"
+                    echo "missing=${MISSING}" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Cache Playwright browsers
+              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.baked-playwright.outputs.all_present != 'true' }}
               id: playwright-cache
               uses: actions/cache@v5
               with:
@@ -203,14 +249,15 @@ jobs:
                       ${{ runner.os }}-playwright-
 
             - name: Install Playwright Browsers
-              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.playwright-cache.outputs.cache-hit != 'true' }}
+              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.baked-playwright.outputs.all_present != 'true' && steps.playwright-cache.outputs.cache-hit != 'true' }}
               timeout-minutes: 40
               env:
                   UV_THREADPOOL_SIZE: '16'
+                  MISSING: ${{ steps.baked-playwright.outputs.missing || steps.detect-playwright.outputs.browsers }}
               run: |
                   set -euo pipefail
                   for try in 1 2 3; do
-                    if pnpm exec playwright install --with-deps ${{ steps.detect-playwright.outputs.browsers }}; then
+                    if pnpm exec playwright install --with-deps ${MISSING}; then
                       echo "playwright install succeeded on attempt ${try}"
                       exit 0
                     fi
@@ -221,7 +268,7 @@ jobs:
                   exit 1
 
             - name: Install Playwright OS deps (cache hit)
-              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.playwright-cache.outputs.cache-hit == 'true' }}
+              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.baked-playwright.outputs.all_present != 'true' && steps.playwright-cache.outputs.cache-hit == 'true' }}
               timeout-minutes: 10
               run: pnpm exec playwright install-deps ${{ steps.detect-playwright.outputs.browsers }}
 
