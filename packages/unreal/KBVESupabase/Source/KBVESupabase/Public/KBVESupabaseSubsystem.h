@@ -193,7 +193,7 @@ protected:
 	UPROPERTY(Transient)
 	EKBVESupabaseAuthStatus Status = EKBVESupabaseAuthStatus::SignedOut;
 
-	UPROPERTY(Transient, meta = (Bitmask, BitmaskEnum = "EKBVESupabaseStateFlags"))
+	UPROPERTY(Transient, meta = (Bitmask, BitmaskEnum = "/Script/KBVESupabase.EKBVESupabaseStateFlags"))
 	EKBVESupabaseStateFlags StateFlags = EKBVESupabaseStateFlags::None;
 
 	UPROPERTY(Transient)
