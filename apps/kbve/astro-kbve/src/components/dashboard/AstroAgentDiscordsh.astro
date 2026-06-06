@@ -3,6 +3,7 @@ import ReactAgentDiscordsh from './ReactAgentDiscordsh';
 import ReactAgentBotConfig from './ReactAgentBotConfig';
 import ReactAgentSetupStatus from './ReactAgentSetupStatus';
 import ReactAgentBotInstall from './ReactAgentBotInstall';
+import ReactAgentEventQueue from './ReactAgentEventQueue';
 ---
 
 <section
@@ -38,6 +39,10 @@ import ReactAgentBotInstall from './ReactAgentBotInstall';
 			<ReactAgentBotConfig
 				client:only="react"
 				transition:persist="agents-bot-config"
+			/>
+			<ReactAgentEventQueue
+				client:only="react"
+				transition:persist="agents-event-queue"
 			/>
 			<ReactAgentDiscordsh client:only="react" />
 		</div>

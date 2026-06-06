@@ -115,6 +115,53 @@ export interface DiscordForumChannel {
 	position: number;
 }
 
+export interface DiscordChannel {
+	id: string;
+	name: string;
+	parent_id: string | null;
+	position: number;
+}
+
+export interface GuildChannels {
+	forums: DiscordChannel[];
+	texts: DiscordChannel[];
+}
+
+export interface WebhookDelivery {
+	id: number;
+	guid: string;
+	delivered_at: string;
+	redelivery: boolean;
+	duration: number;
+	status: string;
+	status_code: number;
+	event: string;
+	action: string | null;
+}
+
+export interface EventQueueStats {
+	last_delivered_at: string | null;
+	last_recorded_at: string | null;
+	pending_count: number;
+	in_flight_count: number;
+	delivered_count: number;
+	failed_count: number;
+	oldest_pending_at: string | null;
+}
+
+export interface FailedEvent {
+	id: number;
+	owner: string;
+	repo: string;
+	number: number;
+	event_type: string;
+	actor: string | null;
+	delivery_attempts: number;
+	last_error: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
 export interface GithubRepoHook {
 	id: number;
 	name: string;
@@ -346,6 +393,39 @@ class AgentsService {
 			| null
 		>
 	>({});
+
+	public readonly $guildChannels = atom<Record<string, GuildChannels>>({});
+	public readonly $guildChannelsLoading = atom<Record<string, boolean>>({});
+	public readonly $guildChannelsError = atom<Record<string, string | null>>(
+		{},
+	);
+
+	public readonly $webhookDeliveries = atom<
+		Record<string, WebhookDelivery[]>
+	>({});
+	public readonly $webhookDeliveriesLoading = atom<Record<string, boolean>>(
+		{},
+	);
+	public readonly $webhookDeliveriesError = atom<
+		Record<string, string | null>
+	>({});
+
+	public readonly $webhookRotateBusyFor = atom<Record<string, boolean>>({});
+	public readonly $webhookRotateResults = atom<
+		Record<
+			string,
+			| { ok: true; hookId: number; at: number }
+			| { ok: false; error: string }
+			| null
+		>
+	>({});
+	public readonly $webhookDeleteBusyFor = atom<Record<string, boolean>>({});
+
+	public readonly $eventStats = atom<Record<string, EventQueueStats>>({});
+	public readonly $eventStatsLoading = atom<Record<string, boolean>>({});
+	public readonly $failedEvents = atom<Record<string, FailedEvent[]>>({});
+	public readonly $failedEventsLoading = atom<Record<string, boolean>>({});
+	public readonly $eventRequeueBusyFor = atom<Record<string, boolean>>({});
 
 	// Dedup state — singleton so the cache survives ClientRouter swaps.
 	private initPromise: Promise<void> | null = null;
@@ -1283,6 +1363,220 @@ class AgentsService {
 			},
 		};
 		this.$webhookInstallResults.set(resultsSet);
+	}
+
+	public async ensureGuildChannelsLoaded(
+		guildId: string,
+		force = false,
+	): Promise<void> {
+		const cur = this.$guildChannels.get()[guildId];
+		if (cur && !force) return;
+		if (this.$guildChannelsLoading.get()[guildId]) return;
+		this.$guildChannelsLoading.set({
+			...this.$guildChannelsLoading.get(),
+			[guildId]: true,
+		});
+		this.$guildChannelsError.set({
+			...this.$guildChannelsError.get(),
+			[guildId]: null,
+		});
+		const r = await this.callJson<GuildChannels>(DISCORD_BOT_URL, {
+			command: 'bot.list_channels',
+			server_id: guildId,
+		});
+		const loading = { ...this.$guildChannelsLoading.get() };
+		delete loading[guildId];
+		this.$guildChannelsLoading.set(loading);
+		if (!r.ok) {
+			this.$guildChannelsError.set({
+				...this.$guildChannelsError.get(),
+				[guildId]: r.error,
+			});
+			return;
+		}
+		this.$guildChannels.set({
+			...this.$guildChannels.get(),
+			[guildId]: {
+				forums: r.data.forums ?? [],
+				texts: r.data.texts ?? [],
+			},
+		});
+	}
+
+	public async loadWebhookDeliveries(
+		guildId: string,
+		owner: string,
+		repo: string,
+		limit = 10,
+	): Promise<void> {
+		const key = `${guildId}:${owner}/${repo}`;
+		this.$webhookDeliveriesLoading.set({
+			...this.$webhookDeliveriesLoading.get(),
+			[key]: true,
+		});
+		this.$webhookDeliveriesError.set({
+			...this.$webhookDeliveriesError.get(),
+			[key]: null,
+		});
+		const r = await this.callJson<{
+			hook_id: number;
+			deliveries: WebhookDelivery[];
+		}>(GH_ADMIN_URL, {
+			command: 'webhooks.deliveries',
+			server_id: guildId,
+			owner,
+			repo,
+			limit,
+		});
+		const loading = { ...this.$webhookDeliveriesLoading.get() };
+		delete loading[key];
+		this.$webhookDeliveriesLoading.set(loading);
+		if (!r.ok) {
+			this.$webhookDeliveriesError.set({
+				...this.$webhookDeliveriesError.get(),
+				[key]: r.error,
+			});
+			return;
+		}
+		this.$webhookDeliveries.set({
+			...this.$webhookDeliveries.get(),
+			[key]: r.data.deliveries ?? [],
+		});
+	}
+
+	public async rotateWebhookForGuild(
+		guildId: string,
+		owner: string,
+		repo: string,
+	): Promise<void> {
+		this.$webhookRotateBusyFor.set({
+			...this.$webhookRotateBusyFor.get(),
+			[guildId]: true,
+		});
+		const r = await this.callJson<{ rotated: boolean; hook_id: number }>(
+			GH_ADMIN_URL,
+			{
+				command: 'webhooks.rotate',
+				server_id: guildId,
+				owner,
+				repo,
+			},
+		);
+		const busy = { ...this.$webhookRotateBusyFor.get() };
+		delete busy[guildId];
+		this.$webhookRotateBusyFor.set(busy);
+		const result = r.ok
+			? {
+					ok: true as const,
+					hookId: r.data.hook_id,
+					at: Date.now(),
+				}
+			: { ok: false as const, error: r.error };
+		this.$webhookRotateResults.set({
+			...this.$webhookRotateResults.get(),
+			[guildId]: result,
+		});
+		if (r.ok) {
+			await this.refreshSelectedGuild();
+		}
+	}
+
+	public async deleteWebhookForGuild(
+		guildId: string,
+		owner: string,
+		repo: string,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		this.$webhookDeleteBusyFor.set({
+			...this.$webhookDeleteBusyFor.get(),
+			[guildId]: true,
+		});
+		const r = await this.callJson<{
+			deleted: boolean;
+			already_absent?: boolean;
+			hook_id?: number;
+		}>(GH_ADMIN_URL, {
+			command: 'webhooks.delete',
+			server_id: guildId,
+			owner,
+			repo,
+		});
+		const busy = { ...this.$webhookDeleteBusyFor.get() };
+		delete busy[guildId];
+		this.$webhookDeleteBusyFor.set(busy);
+		if (!r.ok) return { ok: false, error: r.error };
+		const results = { ...this.$webhookInstallResults.get() };
+		delete results[guildId];
+		this.$webhookInstallResults.set(results);
+		return { ok: true };
+	}
+
+	public async loadEventStats(guildId: string): Promise<void> {
+		this.$eventStatsLoading.set({
+			...this.$eventStatsLoading.get(),
+			[guildId]: true,
+		});
+		const r = await this.callJson<EventQueueStats>(GH_ADMIN_URL, {
+			command: 'events.stats',
+			server_id: guildId,
+		});
+		const loading = { ...this.$eventStatsLoading.get() };
+		delete loading[guildId];
+		this.$eventStatsLoading.set(loading);
+		if (!r.ok) return;
+		this.$eventStats.set({
+			...this.$eventStats.get(),
+			[guildId]: r.data,
+		});
+	}
+
+	public async loadFailedEvents(guildId: string, limit = 10): Promise<void> {
+		this.$failedEventsLoading.set({
+			...this.$failedEventsLoading.get(),
+			[guildId]: true,
+		});
+		const r = await this.callJson<{ events: FailedEvent[] }>(GH_ADMIN_URL, {
+			command: 'events.failed',
+			server_id: guildId,
+			limit,
+		});
+		const loading = { ...this.$failedEventsLoading.get() };
+		delete loading[guildId];
+		this.$failedEventsLoading.set(loading);
+		if (!r.ok) return;
+		this.$failedEvents.set({
+			...this.$failedEvents.get(),
+			[guildId]: r.data.events ?? [],
+		});
+	}
+
+	public async requeueEvent(
+		guildId: string,
+		eventId: number,
+	): Promise<{ ok: true } | { ok: false; error: string }> {
+		const key = `${guildId}:${eventId}`;
+		this.$eventRequeueBusyFor.set({
+			...this.$eventRequeueBusyFor.get(),
+			[key]: true,
+		});
+		const r = await this.callJson<{ requeued: boolean; event_id: number }>(
+			GH_ADMIN_URL,
+			{
+				command: 'events.requeue',
+				server_id: guildId,
+				event_id: eventId,
+			},
+		);
+		const busy = { ...this.$eventRequeueBusyFor.get() };
+		delete busy[key];
+		this.$eventRequeueBusyFor.set(busy);
+		if (!r.ok) return { ok: false, error: r.error };
+		const cur = this.$failedEvents.get()[guildId] ?? [];
+		this.$failedEvents.set({
+			...this.$failedEvents.get(),
+			[guildId]: cur.filter((e) => e.id !== eventId),
+		});
+		void this.loadEventStats(guildId);
+		return { ok: true };
 	}
 
 	public async toggleToken(
