@@ -1505,7 +1505,7 @@ jobs:
         runs-on: UE5-Win
         defaults:
             run:
-                shell: pwsh
+                shell: powershell
         env:
             FILE_SERVER: http://file-server.angelscript.svc:8080
         steps:
