@@ -8,8 +8,6 @@ pub struct UsersRepo<'a>(pub &'a DbPool);
 
 impl<'a> UsersRepo<'a> {
     pub async fn login(&self, email: &str, password: &str) -> Result<LoginResult, RowsError> {
-        // pgcrypto's `crypt()` accepts the legacy OWS C# bcrypt hashes; argon2 fallback below
-        // covers anything already migrated by the auto-rehash path.
         let row: Option<(Uuid, Uuid)> = sqlx::query_as(
             "SELECT c.customerguid, u.userguid
              FROM users u
@@ -24,7 +22,6 @@ impl<'a> UsersRepo<'a> {
 
         let (customer_guid, user_guid) = match row {
             Some(r) => {
-                // Fire-and-forget rehash so the next login uses argon2 (Option B migration).
                 let pool = self.0.clone();
                 let pw = password.to_string();
                 let email_owned = email.to_string();
@@ -293,24 +290,56 @@ impl<'a> UsersRepo<'a> {
         Ok(groups)
     }
 
-    /// OAuth-bridge upsert: the user authenticates via Supabase, so the OWS row gets a random
-    /// argon2 hash purely to satisfy the NOT NULL constraint on `passwordhash`.
-    pub async fn find_or_create_by_email(
+    /// Find-or-create the OWS user keyed on the Supabase UUID (`sub`), which becomes the canonical
+    /// `userguid`. Legacy rows matched by email (random `userguid` from the pre-Supabase era) are
+    /// re-keyed onto the Supabase UUID. A random argon2 hash satisfies the `passwordhash` NOT NULL
+    /// constraint since auth happens against Supabase, not this row.
+    pub async fn find_or_create_supabase_user(
         &self,
         customer_guid: Uuid,
+        supabase_uuid: Uuid,
         email: &str,
         first_name: &str,
         last_name: &str,
     ) -> Result<Uuid, RowsError> {
-        let existing: Option<(Uuid,)> =
+        let by_uuid: Option<(Uuid,)> =
+            sqlx::query_as("SELECT userguid FROM users WHERE customerguid = $1 AND userguid = $2")
+                .bind(customer_guid)
+                .bind(supabase_uuid)
+                .fetch_optional(self.0)
+                .await?;
+
+        if by_uuid.is_some() {
+            return Ok(supabase_uuid);
+        }
+
+        let by_email: Option<(Uuid,)> =
             sqlx::query_as("SELECT userguid FROM users WHERE customerguid = $1 AND email = $2")
                 .bind(customer_guid)
                 .bind(email)
                 .fetch_optional(self.0)
                 .await?;
 
-        if let Some((user_guid,)) = existing {
-            return Ok(user_guid);
+        if let Some((old_guid,)) = by_email {
+            if old_guid == supabase_uuid {
+                return Ok(supabase_uuid);
+            }
+            sqlx::query(
+                "WITH moved_chars AS (
+                     UPDATE characters SET userguid = $1 WHERE customerguid = $2 AND userguid = $3 RETURNING 1
+                 ), moved_sessions AS (
+                     UPDATE usersessions SET userguid = $1 WHERE customerguid = $2 AND userguid = $3 RETURNING 1
+                 )
+                 UPDATE users SET userguid = $1 WHERE customerguid = $2 AND userguid = $3",
+            )
+            .bind(supabase_uuid)
+            .bind(customer_guid)
+            .bind(old_guid)
+            .execute(self.0)
+            .await?;
+
+            tracing::info!(email = %email, old = %old_guid, new = %supabase_uuid, "Re-keyed legacy OWS user onto Supabase UUID");
+            return Ok(supabase_uuid);
         }
 
         use argon2::{
@@ -324,13 +353,12 @@ impl<'a> UsersRepo<'a> {
             .map_err(|e| RowsError::Internal(format!("Hash error: {e}")))?
             .to_string();
 
-        let user_guid = Uuid::new_v4();
         sqlx::query(
             "INSERT INTO users (customerguid, userguid, email, passwordhash, firstname, lastname, role, createdate)
              VALUES ($1, $2, $3, $4, $5, $6, 'Player', NOW())",
         )
         .bind(customer_guid)
-        .bind(user_guid)
+        .bind(supabase_uuid)
         .bind(email)
         .bind(&password_hash)
         .bind(first_name)
@@ -338,8 +366,8 @@ impl<'a> UsersRepo<'a> {
         .execute(self.0)
         .await?;
 
-        tracing::info!(email = %email, user_guid = %user_guid, "Created OWS user from external auth");
-        Ok(user_guid)
+        tracing::info!(email = %email, user_guid = %supabase_uuid, "Created OWS user from Supabase auth");
+        Ok(supabase_uuid)
     }
 
     pub async fn create_session(

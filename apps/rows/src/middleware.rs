@@ -33,6 +33,23 @@ pub async fn require_customer_guid(req: Request, next: Next) -> Response {
     }
 }
 
+/// Pulls the raw token out of an `Authorization: Bearer <jwt>` header. Case-insensitive scheme.
+pub fn extract_bearer(headers: &axum::http::HeaderMap) -> Option<String> {
+    let raw = headers
+        .get(axum::http::header::AUTHORIZATION)
+        .and_then(|v| v.to_str().ok())?
+        .trim();
+    let token = raw
+        .strip_prefix("Bearer ")
+        .or_else(|| raw.strip_prefix("bearer "))?;
+    let token = token.trim();
+    if token.is_empty() {
+        None
+    } else {
+        Some(token.to_string())
+    }
+}
+
 /// Returns `Uuid::nil()` when the header is missing or malformed so unprotected callers don't panic.
 pub fn extract_customer_guid(headers: &axum::http::HeaderMap) -> Uuid {
     headers

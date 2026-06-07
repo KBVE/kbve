@@ -66,7 +66,6 @@ impl OWSService {
         let pipeline = match pipeline.acquire_lock(&self.state.zone_spinup_locks) {
             Ok(p) => p,
             Err(_) => {
-                // Another allocation is already in-flight; tail the poll loop without re-allocating.
                 return AllocationPipeline::new(customer_guid, zone, &self.state.db)
                     .poll_until_ready(char_name)
                     .await;
@@ -82,7 +81,6 @@ impl OWSService {
                 let p = p.create_instance().await?;
                 let p = p.tag_gameserver(agones).await?;
 
-                // Hand the Iris-side server its map assignment via MQ.
                 if let Some(mq) = mq_ref {
                     let msg = crate::mq::SpinUpMessage {
                         customer_guid: customer_guid.to_string(),

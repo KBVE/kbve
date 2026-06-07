@@ -155,7 +155,7 @@ async fn get_all_characters(
 #[serde(rename_all = "camelCase")]
 struct GetServerDto {
     #[serde(default, rename = "userSessionGUID", alias = "userSessionGUId")]
-    _user_session_guid: Option<Uuid>,
+    user_session_guid: Option<Uuid>,
     character_name: String,
     zone_name: String,
     #[serde(default)]
@@ -167,6 +167,9 @@ async fn get_server_to_connect_to(
     headers: HeaderMap,
     Json(body): Json<GetServerDto>,
 ) -> ApiResult<crate::models::JoinMapResult> {
+    hs.svc
+        .confirm_login(&headers, body.user_session_guid)
+        .await?;
     let customer_guid = extract_customer_guid(&headers);
     let result = hs
         .svc
