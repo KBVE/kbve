@@ -44,6 +44,7 @@ data:
         RUNNER_VERSION="${RUNNER_VERSION:-2.333.0}"
         RUNNER_INSTALL_DIR="${RUNNER_INSTALL_DIR:-C:\\actions-runner}"
         RUNNER_LOGON_ACCOUNT="${RUNNER_LOGON_ACCOUNT:-LocalSystem}"
+        ADMIN_PASSWORD="${ADMIN_PASSWORD:-}"
         RUNNER_ZIP="actions-runner-win-x64-${RUNNER_VERSION}.zip"
         RUNNER_DOWNLOAD_URL="https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${RUNNER_ZIP}"
 
@@ -103,29 +104,67 @@ data:
             return "${_ec:-1}"
         }
 
+        # Mint an org runner token (arg: registration-token | remove-token).
+        mint_token() {
+            curl -s -X POST \
+                -H "Authorization: token ${GITHUB_TOKEN}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/orgs/${GITHUB_ORG}/actions/runners/$1" \
+                | sed -n 's/.*"token"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p'
+        }
+
+        # True if the StartName in a RESULT line is an elevated account.
+        elevated() { echo "$1" | grep -iqE "account=(LocalSystem|[^ ]*Administrator|[^ ]*SYSTEM)"; }
+
         # ── Phase 2: CHECK (no token, no download) ──
         echo ""
         echo "--- Phase 2: Check runner state ---"
-        CHECK_PS="\$svc = Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" -ErrorAction SilentlyContinue | Select-Object -First 1; if (\$svc -and \$svc.StartName -eq '${RUNNER_LOGON_ACCOUNT}') { if (\$svc.State -ne 'Running') { Start-Service \$svc.Name }; Write-Output \"ALREADY_OK \$(\$svc.Name) [\$(\$svc.StartName)] \$((Get-Service \$svc.Name).Status)\" } elseif (\$svc) { Write-Output \"NEEDS_ELEVATE \$(\$svc.Name) [\$(\$svc.StartName)]\" } else { Write-Output 'NEEDS_INSTALL absent' }"
+        CHECK_PS="\$svc = Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" -ErrorAction SilentlyContinue | Select-Object -First 1; if (\$svc) { \$sn = \$svc.StartName; if (\$sn -eq 'LocalSystem' -or \$sn -match 'Administrator' -or \$sn -match 'SYSTEM') { if (\$svc.State -ne 'Running') { Start-Service \$svc.Name }; Write-Output \"ALREADY_OK \$(\$svc.Name) account=\$sn \$((Get-Service \$svc.Name).Status)\" } else { Write-Output \"NEEDS_ELEVATE \$(\$svc.Name) [\$sn]\" } } else { Write-Output 'NEEDS_INSTALL absent' }"
         CHECK_OUT=$(guest_exec_ps "${CHECK_PS}" 90 || true)
         echo "Check: ${CHECK_OUT}"
         if echo "${CHECK_OUT}" | grep -q "ALREADY_OK"; then
-            echo "=== Runner already running as ${RUNNER_LOGON_ACCOUNT} — nothing to do. ==="
+            echo "=== Runner already running elevated — nothing to do. ==="
             exit 0
         fi
 
-        # ── Phase 3a: Elevate existing service to LocalSystem (no token) ──
+        # ── Phase 3a: Elevate existing service — fallback chain A -> B -> C ──
         if echo "${CHECK_OUT}" | grep -q "NEEDS_ELEVATE"; then
             echo ""
-            echo "--- Phase 3a: Reconfigure existing service to ${RUNNER_LOGON_ACCOUNT} (no token) ---"
-            ELEVATE_PS="\$ErrorActionPreference = 'Stop'; \$svc = (Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" | Select-Object -First 1).Name; Write-Output \"Reconfiguring \$svc -> ${RUNNER_LOGON_ACCOUNT}\"; Stop-Service \$svc -Force -ErrorAction SilentlyContinue; & sc.exe config \$svc obj= \"${RUNNER_LOGON_ACCOUNT}\" | Out-Null; Start-Service \$svc; \$acct = (Get-CimInstance Win32_Service -Filter \"Name='\$svc'\").StartName; \$st = (Get-Service \$svc).Status; Write-Output \"RESULT account=\$acct state=\$st\""
-            OUT=$(guest_exec_ps "${ELEVATE_PS}" 120 || true)
-            echo "Elevate: ${OUT}"
-            if echo "${OUT}" | grep -q "account=${RUNNER_LOGON_ACCOUNT}"; then
-                echo "=== SUCCESS: runner service now runs as ${RUNNER_LOGON_ACCOUNT} on ${VM_NAME} ==="
-                exit 0
+            echo "--- Phase 3a: Elevate existing service (A: LocalSystem/sc.exe -> B: Administrator/config.cmd -> C: Administrator/sc.exe+secedit) ---"
+
+            # A: LocalSystem via sc.exe (no token, no password, no logon-right grant)
+            echo ">> A: sc.exe config obj= LocalSystem"
+            A_PS="\$ErrorActionPreference='Stop'; \$svc=(Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" | Select-Object -First 1).Name; Stop-Service \$svc -Force -ErrorAction SilentlyContinue; & sc.exe config \$svc obj= 'LocalSystem' | Out-Null; Start-Service \$svc; \$acct=(Get-CimInstance Win32_Service -Filter \"Name='\$svc'\").StartName; \$st=(Get-Service \$svc).Status; Write-Output \"RESULT account=\$acct state=\$st\""
+            OUT=$(guest_exec_ps "${A_PS}" 120 || true); echo "A: ${OUT}"
+            if elevated "${OUT}"; then echo "=== SUCCESS (A: LocalSystem): runner elevated on ${VM_NAME} ==="; exit 0; fi
+            echo "A did not elevate; trying B."
+
+            if [ -z "${ADMIN_PASSWORD}" ]; then
+                echo "ERROR: A failed and ADMIN_PASSWORD unset — B/C (Administrator) unavailable."
+                exit 1
             fi
-            echo "ERROR: service account did not switch to ${RUNNER_LOGON_ACCOUNT}"
+            ADMIN_PASSWORD_PS=$(printf '%s' "${ADMIN_PASSWORD}" | sed "s/'/''/g")
+
+            # B: Administrator via config.cmd remove + fresh install (config.cmd grants the logon right)
+            echo ">> B: config.cmd remove + fresh --windowslogonaccount .\\Administrator"
+            RM_TOKEN=$(mint_token remove-token)
+            RG_TOKEN=$(mint_token registration-token)
+            if [ -n "${RM_TOKEN}" ] && [ -n "${RG_TOKEN}" ]; then
+                B_PS="\$ErrorActionPreference='Stop'; Set-Location '${RUNNER_INSTALL_DIR}'; & .\\config.cmd remove --token '${RM_TOKEN}' 2>&1 | Out-Null; & .\\config.cmd --url \"https://github.com/${GITHUB_ORG}\" --token '${RG_TOKEN}' --name '${RUNNER_NAME}' --labels '${RUNNER_LABELS}' --runasservice --windowslogonaccount '.\\Administrator' --windowslogonpassword '${ADMIN_PASSWORD_PS}' --unattended; \$svc=(Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" | Select-Object -First 1).Name; \$acct=(Get-CimInstance Win32_Service -Filter \"Name='\$svc'\").StartName; Write-Output \"RESULT account=\$acct\""
+                OUT=$(guest_exec_ps "${B_PS}" 420 || true); echo "B: ${OUT}"
+                if elevated "${OUT}"; then echo "=== SUCCESS (B: Administrator via config.cmd): runner elevated ==="; exit 0; fi
+            else
+                echo "B skipped: could not mint remove/registration tokens."
+            fi
+            echo "B did not elevate; trying C."
+
+            # C: Administrator via sc.exe + secedit SeServiceLogonRight grant (token-free)
+            echo ">> C: secedit grant SeServiceLogonRight + sc.exe config obj= .\\Administrator"
+            C_PS="\$ErrorActionPreference='Stop'; \$sid=(New-Object System.Security.Principal.NTAccount('Administrator')).Translate([System.Security.Principal.SecurityIdentifier]).Value; \$inf=Join-Path \$env:TEMP 'sl.inf'; \$db=Join-Path \$env:TEMP 'sl.sdb'; secedit /export /cfg \$inf /areas USER_RIGHTS | Out-Null; \$txt=Get-Content \$inf; if (\$txt -match 'SeServiceLogonRight') { \$txt = \$txt | ForEach-Object { if (\$_.StartsWith('SeServiceLogonRight') -and (-not \$_.Contains(\$sid))) { \$_ + ',*' + \$sid } else { \$_ } } } else { \$txt = \$txt | ForEach-Object { \$_; if (\$_.StartsWith('[Privilege Rights]')) { 'SeServiceLogonRight = *' + \$sid } } }; Set-Content -Path \$inf -Value \$txt; secedit /configure /db \$db /cfg \$inf /areas USER_RIGHTS | Out-Null; \$svc=(Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" | Select-Object -First 1).Name; Stop-Service \$svc -Force -ErrorAction SilentlyContinue; & sc.exe config \$svc obj= '.\\Administrator' password= '${ADMIN_PASSWORD_PS}' | Out-Null; Start-Service \$svc; \$acct=(Get-CimInstance Win32_Service -Filter \"Name='\$svc'\").StartName; Write-Output \"RESULT account=\$acct\""
+            OUT=$(guest_exec_ps "${C_PS}" 180 || true); echo "C: ${OUT}"
+            if elevated "${OUT}"; then echo "=== SUCCESS (C: Administrator via sc.exe+secedit): runner elevated ==="; exit 0; fi
+
+            echo "ERROR: all elevation methods (A/B/C) failed"
             exit 1
         fi
 
