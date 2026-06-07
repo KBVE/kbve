@@ -36,14 +36,8 @@ import ReactAgentEventQueue from './ReactAgentEventQueue';
 		<div class="agent-stack">
 			<ReactAgentSetupStatus client:only="react" />
 			<ReactAgentBotInstall client:only="react" />
-			<ReactAgentBotConfig
-				client:only="react"
-				transition:persist="agents-bot-config"
-			/>
-			<ReactAgentEventQueue
-				client:only="react"
-				transition:persist="agents-event-queue"
-			/>
+			<ReactAgentBotConfig client:only="react" />
+			<ReactAgentEventQueue client:only="react" />
 			<ReactAgentDiscordsh client:only="react" />
 		</div>
 	</div>
