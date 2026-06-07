@@ -395,15 +395,19 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		const clip = await loadClip(url);
 		if (!clip) return;
 		const next = mixer.clipAction(clip);
-		next.reset();
+		if (currentAction === next) {
+			next.paused = false;
+			return;
+		}
+		next.enabled = true;
 		next.setLoop(loop ? LoopRepeat : LoopOnce, Infinity);
 		next.clampWhenFinished = true;
-		next.setEffectiveWeight(1);
+		next.reset();
 		next.setEffectiveTimeScale(1);
-		next.enabled = true;
+		next.setEffectiveWeight(1);
 		next.play();
-		if (currentAction && currentAction !== next) {
-			currentAction.crossFadeTo(next, fade, true);
+		if (currentAction) {
+			currentAction.crossFadeTo(next, fade, false);
 		} else {
 			next.fadeIn(fade);
 		}
