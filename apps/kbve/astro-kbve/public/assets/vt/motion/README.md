@@ -1,10 +1,12 @@
 # Yuki motion pack
 
-VRMA animation files live here at runtime but are excluded from git.
+VRMA animation clips served by [astro-kbve](../../../../../) at
+`/assets/vt/motion/*.vrma` and consumed by
+[YukiVRM](../../../../src/components/jay/dock/YukiVRM.ts).
 
 ## Pixiv VRMA Motion Pack (VRMA_01..VRMA_07)
 
-Download from https://booth.pm/en/items/5894617 and drop into this folder.
+Source: https://booth.pm/en/items/5894617 — Pixiv's free pack.
 
 | File         | Motion         |
 | ------------ | -------------- |
@@ -15,8 +17,6 @@ Download from https://booth.pm/en/items/5894617 and drop into this folder.
 | VRMA_05.vrma | Spin           |
 | VRMA_06.vrma | Model pose     |
 | VRMA_07.vrma | Squat          |
-
-Per Pixiv's terms, do not redistribute these files publicly.
 
 ## Community VRMAs
 
