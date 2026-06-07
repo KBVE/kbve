@@ -11,6 +11,7 @@
 void SchuckToastHost::Construct(const FArguments& InArgs)
 {
 	SetCanTick(false);
+	SetVisibility(EVisibility::SelfHitTestInvisible);
 	Character = InArgs._OwningCharacter;
 
 	ChildSlot
