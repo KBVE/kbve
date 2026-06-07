@@ -47,6 +47,31 @@ struct KBVEWORLD_API FKBVEGrassCluster
 	UPROPERTY() uint8 LODTier        = 0;
 };
 
+// Far-LOD impostor record. Replaces the cluster's per-blade run with a
+// single atlas-backed billboard once the cluster is far enough out.
+// Many clusters share the same AtlasIndex via ClusterVisualKey reuse
+// so the GPU only stores one texture per unique (type, group, biome,
+// palette, density) family.
+USTRUCT()
+struct KBVEWORLD_API FKBVEGrassClusterImpostor
+{
+	GENERATED_BODY()
+
+	UPROPERTY() FVector3f Center      = FVector3f::ZeroVector;
+	UPROPERTY() float     Radius      = 0.f;
+
+	UPROPERTY() uint32    ClusterHash = 0;
+	UPROPERTY() uint32    VisualKey   = 0;
+
+	UPROPERTY() uint16    TypeId      = 0;
+	UPROPERTY() uint16    GroupId     = 0;
+
+	UPROPERTY() uint16    AtlasIndex     = 0;
+	UPROPERTY() uint8     ColorPaletteId = 0;
+	UPROPERTY() uint8     WindZoneId     = 0;
+	UPROPERTY() uint8     LODTier        = 0;
+};
+
 class KBVEWORLD_API FKBVEWorldGrassHash
 {
 public:
@@ -60,6 +85,19 @@ public:
 		H ^= (uint32(TypeId)  << 16) | uint32(GroupId);
 		H *= 0xC2B2AE35u;
 		H ^= uint32(BiomeId) * 0x27D4EB2Fu;
+		H ^= H >> 16;
+		return H ? H : 1u;
+	}
+
+	// Visual-asset reuse key. Same (type, group, biome, palette, density)
+	// resolves to the same impostor atlas slot so unrelated clusters
+	// across the world share one baked texture.
+	static uint32 MakeVisualKey(uint16 TypeId, uint16 GroupId, uint8 BiomeId, uint8 ColorPaletteId, uint8 DensityTier)
+	{
+		uint32 H = (uint32(TypeId) << 16) | uint32(GroupId);
+		H ^= uint32(BiomeId) * 0x9E3779B1u;
+		H ^= uint32(ColorPaletteId) * 0x85EBCA77u;
+		H ^= uint32(DensityTier) * 0xC2B2AE35u;
 		H ^= H >> 16;
 		return H ? H : 1u;
 	}
