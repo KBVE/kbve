@@ -1,0 +1,18 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "KBVE MapDB",
+	"Description": "Game-agnostic world/map database loader + Mass integration for KBVE games. Loads the shared mapdb artifact (Content/Data/mapdb-data.json) into runtime world-object defs (resource nodes, containers, stations) and zone defs, with ref lookup and a world-object Mass fragment for placed/harvestable entities. Synced from astro-kbve MDX (mapdb).",
+	"Category": "KBVE",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EnabledByDefault": false,
+	"Plugins": [ { "Name": "MassEntity", "Enabled": true } ],
+	"Modules": [ { "Name": "KBVEMapDB", "Type": "Runtime", "LoadingPhase": "Default" } ]
+}

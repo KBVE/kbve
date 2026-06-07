@@ -1,0 +1,3 @@
+#include "KBVEMapDB.h"
+
+IMPLEMENT_MODULE(FKBVEMapDBModule, KBVEMapDB)
