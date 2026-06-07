@@ -54,9 +54,10 @@ AchuckArcadeCabinet::AchuckArcadeCabinet()
 	ScreenSurface->SetRelativeScale3D(FVector(0.10f, 0.15f, 0.11f));
 	ScreenSurface->SetDrawSize(FVector2D(480.f, 640.f));
 	ScreenSurface->SetDrawAtDesiredSize(false);
-	ScreenSurface->SetTintColorAndOpacity(FLinearColor(0.55f, 0.55f, 0.55f, 1.f));
+	ScreenSurface->SetTintColorAndOpacity(FLinearColor(0.32f, 0.32f, 0.32f, 1.f));
 	ScreenSurface->SetOpacityFromTexture(1.f);
-	ScreenSurface->bPauseWhenOffscreen = true;
+	ScreenSurface->bPauseWhenOffscreen = false;
+	ScreenSurface->MaxFrameRate         = 30;
 	ScreenSurface->InitialURL = FString();
 
 	SetReplicates(false);
