@@ -472,6 +472,11 @@ export default function ReactAgentBotConfig() {
 					<button
 						type="submit"
 						disabled={saving}
+						title={
+							saving
+								? 'Save in flight — wait for the current request to finish.'
+								: 'Push the current form values to the discordsh_config vault row.'
+						}
 						style={{
 							...primaryBtn(!saving),
 							marginLeft: 'auto',

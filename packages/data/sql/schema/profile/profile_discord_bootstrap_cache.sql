@@ -344,3 +344,59 @@ REVOKE EXECUTE ON FUNCTION profile.get_discord_owned_guilds_claim(uuid, timestam
     FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION profile.get_discord_owned_guilds_claim(uuid, timestamptz)
     TO supabase_auth_admin;
+
+
+-- ============================================================================
+
+-- ============================================================================
+-- profile.service_get_discord_provider_id(uuid)
+--   Returns the Discord provider_id linked to a kbve user_id, or NULL.
+--   PostgREST does not expose auth.* schemas; edge functions that need to
+--   verify a user's linked Discord identity (discord-bootstrap) call this
+--   proxy instead of querying auth.identities directly through .schema().
+--
+--   Security boundary: caller must be service_role and must pass the
+--   already-authenticated Supabase user_id. Function does NOT verify
+--   end-user auth — trusts caller has done so. Never grant EXECUTE to
+--   anon or authenticated; doing so would let any signed-in user
+--   enumerate Discord snowflakes by UUID.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION profile.service_get_discord_provider_id(
+    p_user_id uuid
+)
+RETURNS TEXT
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+COST 25
+AS $$
+    SELECT i.provider_id::text
+    FROM auth.identities AS i
+    WHERE i.user_id = p_user_id
+      AND i.provider = 'discord'
+    ORDER BY i.created_at DESC NULLS LAST
+    LIMIT 1;
+$$;
+
+ALTER FUNCTION profile.service_get_discord_provider_id(uuid) OWNER TO service_role;
+REVOKE ALL ON FUNCTION profile.service_get_discord_provider_id(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION profile.service_get_discord_provider_id(uuid) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.proxy_service_get_discord_provider_id(
+    p_user_id uuid
+)
+RETURNS TEXT
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+COST 25
+AS $$
+    SELECT profile.service_get_discord_provider_id(p_user_id);
+$$;
+
+ALTER FUNCTION public.proxy_service_get_discord_provider_id(uuid) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_service_get_discord_provider_id(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.proxy_service_get_discord_provider_id(uuid) TO service_role;
