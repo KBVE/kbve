@@ -1,12 +1,5 @@
 #include "KBVEInventoryStore.h"
 
-#include "HAL/PlatformFileManager.h"
-#include "Misc/Paths.h"
-
-THIRD_PARTY_INCLUDES_START
-#include "sqlite3.h"
-THIRD_PARTY_INCLUDES_END
-
 namespace
 {
 	static const char* kCreateSql =
@@ -29,110 +22,57 @@ namespace
 		"SELECT slot_idx, item_key, count, durability, flags FROM player_inventory WHERE player_id = ?1 AND bag_ref = ?2;";
 	static const char* kCountSql =
 		"SELECT COALESCE(SUM(count), 0) FROM player_inventory WHERE player_id = ?1 AND item_key = ?2;";
-
-	sqlite3* AsHandle(void* P) { return reinterpret_cast<sqlite3*>(P); }
-}
-
-FKBVEInventoryStore::~FKBVEInventoryStore()
-{
-	Close();
 }
 
 bool FKBVEInventoryStore::Open(const FString& DbPath)
 {
-	if (Db) return true;
-
-	IPlatformFile& FS = FPlatformFileManager::Get().GetPlatformFile();
-	const FString DbDir = FPaths::GetPath(DbPath);
-	if (!DbDir.IsEmpty()) FS.CreateDirectoryTree(*DbDir);
-
-	const FTCHARToUTF8 Conv(*DbPath);
-	sqlite3* Handle = nullptr;
-	if (sqlite3_open_v2(Conv.Get(), &Handle, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr) != SQLITE_OK)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[KBVEInventoryStore] open failed: %s"), UTF8_TO_TCHAR(Handle ? sqlite3_errmsg(Handle) : "null"));
-		if (Handle) sqlite3_close(Handle);
-		return false;
-	}
-
-	sqlite3_exec(Handle, "PRAGMA journal_mode=WAL;",   nullptr, nullptr, nullptr);
-	sqlite3_exec(Handle, "PRAGMA synchronous=NORMAL;", nullptr, nullptr, nullptr);
-	sqlite3_exec(Handle, "PRAGMA temp_store=MEMORY;",  nullptr, nullptr, nullptr);
-
-	char* Err = nullptr;
-	if (sqlite3_exec(Handle, kCreateSql, nullptr, nullptr, &Err) != SQLITE_OK)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[KBVEInventoryStore] create failed: %s"), UTF8_TO_TCHAR(Err ? Err : ""));
-		sqlite3_free(Err);
-		sqlite3_close(Handle);
-		return false;
-	}
-
-	Db = Handle;
-	UE_LOG(LogTemp, Display, TEXT("[KBVEInventoryStore] opened %s"), *DbPath);
-	return true;
+	if (!Conn.Open(DbPath)) return false;
+	return Conn.Exec(kCreateSql);
 }
 
 void FKBVEInventoryStore::Close()
 {
-	if (Db)
-	{
-		sqlite3_close(AsHandle(Db));
-		Db = nullptr;
-	}
+	Conn.Close();
 }
 
 bool FKBVEInventoryStore::InsertBag(const FString& PlayerId, const FKBVEInventoryBag& Bag)
 {
-	const FTCHARToUTF8 PlayerConv(*PlayerId);
-	const FTCHARToUTF8 BagConv(*Bag.BagRef.ToString());
+	const FString BagRef = Bag.BagRef.ToString();
+	TSharedPtr<FKBVESQLiteStatement> Stmt = Conn.Prepare(kInsertSql);
+	if (!Stmt.IsValid()) return false;
 
-	sqlite3_stmt* Stmt = nullptr;
-	if (sqlite3_prepare_v2(AsHandle(Db), kInsertSql, -1, &Stmt, nullptr) != SQLITE_OK) return false;
-
-	bool bOk = true;
 	for (int32 i = 0; i < Bag.Slots.Num(); ++i)
 	{
 		const FKBVEInventoryStack& Slot = Bag.Slots[i];
 		if (Slot.IsEmpty()) continue;
 
-		sqlite3_reset(Stmt);
-		sqlite3_bind_text(Stmt, 1, PlayerConv.Get(), -1, SQLITE_TRANSIENT);
-		sqlite3_bind_text(Stmt, 2, BagConv.Get(), -1, SQLITE_TRANSIENT);
-		sqlite3_bind_int(Stmt, 3, i);
-		sqlite3_bind_int(Stmt, 4, Slot.ItemKey);
-		sqlite3_bind_int(Stmt, 5, Slot.Count);
-		sqlite3_bind_int(Stmt, 6, Slot.Durability);
-		sqlite3_bind_int(Stmt, 7, static_cast<int32>(Slot.Flags));
-
-		if (sqlite3_step(Stmt) != SQLITE_DONE)
-		{
-			bOk = false;
-			break;
-		}
+		Stmt->Reset();
+		Stmt->BindText(1, PlayerId);
+		Stmt->BindText(2, BagRef);
+		Stmt->BindInt(3, i);
+		Stmt->BindInt(4, Slot.ItemKey);
+		Stmt->BindInt(5, Slot.Count);
+		Stmt->BindInt(6, Slot.Durability);
+		Stmt->BindInt(7, static_cast<int32>(Slot.Flags));
+		if (!Stmt->Execute()) return false;
 	}
-	sqlite3_finalize(Stmt);
-	return bOk;
+	return true;
 }
 
 bool FKBVEInventoryStore::SaveInventory(const FString& PlayerId, const FKBVEInventory& Inventory)
 {
-	if (!Db) return false;
+	if (!Conn.IsOpen()) return false;
 
-	sqlite3_exec(AsHandle(Db), "BEGIN;", nullptr, nullptr, nullptr);
-
-	const FTCHARToUTF8 PlayerConv(*PlayerId);
-	sqlite3_stmt* DelStmt = nullptr;
-	if (sqlite3_prepare_v2(AsHandle(Db), kDeleteSql, -1, &DelStmt, nullptr) == SQLITE_OK)
+	Conn.Begin();
+	if (TSharedPtr<FKBVESQLiteStatement> Del = Conn.Prepare(kDeleteSql))
 	{
-		sqlite3_bind_text(DelStmt, 1, PlayerConv.Get(), -1, SQLITE_TRANSIENT);
-		sqlite3_step(DelStmt);
-		sqlite3_finalize(DelStmt);
+		Del->BindText(1, PlayerId);
+		Del->Execute();
 	}
 
 	const bool bOk = InsertBag(PlayerId, Inventory.DefaultBag) && InsertBag(PlayerId, Inventory.Hotbar);
 
-	sqlite3_exec(AsHandle(Db), bOk ? "COMMIT;" : "ROLLBACK;", nullptr, nullptr, nullptr);
+	if (bOk) Conn.Commit(); else Conn.Rollback();
 	return bOk;
 }
 
@@ -143,32 +83,28 @@ void FKBVEInventoryStore::LoadBag(const FString& PlayerId, FKBVEInventoryBag& Ba
 		Slot = FKBVEInventoryStack();
 	}
 
-	const FTCHARToUTF8 PlayerConv(*PlayerId);
-	const FTCHARToUTF8 BagConv(*Bag.BagRef.ToString());
+	TSharedPtr<FKBVESQLiteStatement> Stmt = Conn.Prepare(kLoadSql);
+	if (!Stmt.IsValid()) return;
 
-	sqlite3_stmt* Stmt = nullptr;
-	if (sqlite3_prepare_v2(AsHandle(Db), kLoadSql, -1, &Stmt, nullptr) != SQLITE_OK) return;
+	Stmt->BindText(1, PlayerId);
+	Stmt->BindText(2, Bag.BagRef.ToString());
 
-	sqlite3_bind_text(Stmt, 1, PlayerConv.Get(), -1, SQLITE_TRANSIENT);
-	sqlite3_bind_text(Stmt, 2, BagConv.Get(), -1, SQLITE_TRANSIENT);
-
-	while (sqlite3_step(Stmt) == SQLITE_ROW)
+	while (Stmt->Step())
 	{
-		const int32 SlotIdx = sqlite3_column_int(Stmt, 0);
+		const int32 SlotIdx = Stmt->ColumnInt(0);
 		if (!Bag.Slots.IsValidIndex(SlotIdx)) continue;
 
 		FKBVEInventoryStack& Slot = Bag.Slots[SlotIdx];
-		Slot.ItemKey    = sqlite3_column_int(Stmt, 1);
-		Slot.Count      = sqlite3_column_int(Stmt, 2);
-		Slot.Durability = sqlite3_column_int(Stmt, 3);
-		Slot.Flags      = static_cast<uint8>(sqlite3_column_int(Stmt, 4));
+		Slot.ItemKey    = Stmt->ColumnInt(1);
+		Slot.Count      = Stmt->ColumnInt(2);
+		Slot.Durability = Stmt->ColumnInt(3);
+		Slot.Flags      = static_cast<uint8>(Stmt->ColumnInt(4));
 	}
-	sqlite3_finalize(Stmt);
 }
 
 bool FKBVEInventoryStore::LoadInventory(const FString& PlayerId, FKBVEInventory& Inventory) const
 {
-	if (!Db) return false;
+	if (!Conn.IsOpen()) return false;
 	Inventory.DefaultBag.EnsureSize();
 	Inventory.Hotbar.EnsureSize();
 	LoadBag(PlayerId, Inventory.DefaultBag);
@@ -178,29 +114,19 @@ bool FKBVEInventoryStore::LoadInventory(const FString& PlayerId, FKBVEInventory&
 
 bool FKBVEInventoryStore::ClearPlayer(const FString& PlayerId)
 {
-	if (!Db) return false;
-	const FTCHARToUTF8 PlayerConv(*PlayerId);
-	sqlite3_stmt* Stmt = nullptr;
-	if (sqlite3_prepare_v2(AsHandle(Db), kDeleteSql, -1, &Stmt, nullptr) != SQLITE_OK) return false;
-	sqlite3_bind_text(Stmt, 1, PlayerConv.Get(), -1, SQLITE_TRANSIENT);
-	const int32 Rc = sqlite3_step(Stmt);
-	sqlite3_finalize(Stmt);
-	return Rc == SQLITE_DONE;
+	if (!Conn.IsOpen()) return false;
+	TSharedPtr<FKBVESQLiteStatement> Stmt = Conn.Prepare(kDeleteSql);
+	if (!Stmt.IsValid()) return false;
+	Stmt->BindText(1, PlayerId);
+	return Stmt->Execute();
 }
 
 int32 FKBVEInventoryStore::CountItem(const FString& PlayerId, int32 ItemKey) const
 {
-	if (!Db) return 0;
-	const FTCHARToUTF8 PlayerConv(*PlayerId);
-	sqlite3_stmt* Stmt = nullptr;
-	if (sqlite3_prepare_v2(AsHandle(Db), kCountSql, -1, &Stmt, nullptr) != SQLITE_OK) return 0;
-	sqlite3_bind_text(Stmt, 1, PlayerConv.Get(), -1, SQLITE_TRANSIENT);
-	sqlite3_bind_int(Stmt, 2, ItemKey);
-	int32 Total = 0;
-	if (sqlite3_step(Stmt) == SQLITE_ROW)
-	{
-		Total = sqlite3_column_int(Stmt, 0);
-	}
-	sqlite3_finalize(Stmt);
-	return Total;
+	if (!Conn.IsOpen()) return 0;
+	TSharedPtr<FKBVESQLiteStatement> Stmt = Conn.Prepare(kCountSql);
+	if (!Stmt.IsValid()) return 0;
+	Stmt->BindText(1, PlayerId);
+	Stmt->BindInt(2, ItemKey);
+	return Stmt->Step() ? Stmt->ColumnInt(0) : 0;
 }
