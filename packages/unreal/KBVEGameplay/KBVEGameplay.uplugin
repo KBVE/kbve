@@ -13,6 +13,9 @@
 	"IsExperimentalVersion": false,
 	"Installed": false,
 	"EnabledByDefault": false,
+	"Plugins": [
+		{ "Name": "MassEntity", "Enabled": true }
+	],
 	"Modules": [
 		{
 			"Name": "KBVEGameplay",

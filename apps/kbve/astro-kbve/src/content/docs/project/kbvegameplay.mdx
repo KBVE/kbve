@@ -40,3 +40,20 @@ the effect lifecycle from a data-driven `FKBVEEffectSpec`:
 
 Tick auto-disables when no effects or cooldowns are active. Effect DATA lives in
 the shared itemdb; the game builds an `FKBVEEffectSpec` from its item definition.
+
+## Stats + combat
+
+Also holds the agnostic gameplay-stat layer (the effect target it feeds):
+
+- **`FKBVEStatBlock`** — health / mana / stamina with regen rates + stamina
+  thresholds; `HealthFraction` / `ManaFraction` / `StaminaFraction`.
+- **`EKBVEMovementState`** — movement flag set (`OnGround`/`Moving`/`Sprinting`/…) +
+  `KBVEMove` helpers; gates stamina drain/regen.
+- **`FKBVEStatFragment`** + **`UKBVEStatRegenProcessor`** — Mass fragment + parallel
+  regen processor (health/mana regen, stamina drain on sprint, low-stamina + empty
+  penalty). Worker-thread, cache-coherent.
+- **`IKBVECombatDamageable` / `IKBVECombatAttacker`** — combat interfaces
+  (apply damage/heal/death/danger; attack-trace / combo / charged hooks).
+
+`UKBVEEffectComponent` applies effects through `IKBVEStatTarget`; a game's stat
+owner maps those onto its `FKBVEStatBlock` / `FKBVEStatFragment`.
