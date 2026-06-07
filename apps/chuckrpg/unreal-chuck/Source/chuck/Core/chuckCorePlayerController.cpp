@@ -30,7 +30,6 @@
 #include "SKBVESettingsFrame.h"
 #include "SKBVESettingsToggleRow.h"
 #include "SKBVESettingsSliderRow.h"
-#include "SKBVETopBar.h"
 #include "SchuckToastHost.h"
 #include "Engine/Engine.h"
 #include "GameFramework/GameUserSettings.h"
@@ -160,35 +159,6 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 	DragArrowLayer = SNew(SKBVEDragArrowLayer);
 	ToastHostWidget = SNew(SchuckToastHost).OwningCharacter(Char);
 
-	const FSlateFontInfo TopBarFont = FCoreStyle::GetDefaultFontStyle("Bold", 12);
-	TopBarWidget = SNew(SKBVETopBar)
-		.BarHeight(50.f)
-		.Left()
-		[
-			SNew(STextBlock)
-			.Font(TopBarFont)
-			.ColorAndOpacity(FLinearColor(0.92f, 0.92f, 0.95f, 1.f))
-			.Text_Lambda([this]()
-			{
-				return FText::FromString(BarPlayerName.IsEmpty() ? TEXT("Guest") : BarPlayerName);
-			})
-		]
-		.Right()
-		[
-			SNew(STextBlock)
-			.Font(TopBarFont)
-			.Text_Lambda([this]()
-			{
-				return bBarOnline
-					? NSLOCTEXT("chuck", "BarOnline", "Online")
-					: NSLOCTEXT("chuck", "BarOffline", "Offline");
-			})
-			.ColorAndOpacity_Lambda([this]()
-			{
-				return bBarOnline ? FLinearColor(0.30f, 0.80f, 0.40f, 1.f) : FLinearColor(0.6f, 0.6f, 0.65f, 1.f);
-			})
-		];
-
 	if (UGameInstance* GI = GetGameInstance())
 	{
 		SupabaseSubsystem = GI->GetSubsystem<UKBVESupabaseSubsystem>();
@@ -210,7 +180,6 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 	{
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), TopBarWidget.ToSharedRef(),     6);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef(),       5);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HotbarWidget.ToSharedRef(),    20);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), DragArrowLayer.ToSharedRef(), 29);
@@ -320,11 +289,6 @@ void AchuckCorePlayerController::OnUnPossess()
 	{
 		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), ToastHostWidget.ToSharedRef());
 		ToastHostWidget.Reset();
-	}
-	if (TopBarWidget.IsValid())
-	{
-		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), TopBarWidget.ToSharedRef());
-		TopBarWidget.Reset();
 	}
 	if (SettingsWidget.IsValid())
 	{
@@ -789,8 +753,6 @@ void AchuckCorePlayerController::HandleSupabaseSignedIn(const FKBVESupabaseSessi
 {
 	const FKBVESupabaseUser& U = Session.User;
 
-	BarPlayerName = U.KbveUsername.IsEmpty() ? U.Email : U.KbveUsername;
-
 	if (AccountWidget.IsValid())
 	{
 		AccountWidget->SetUsername(U.KbveUsername.IsEmpty() ? U.Id : U.KbveUsername);
@@ -819,9 +781,6 @@ void AchuckCorePlayerController::HandleSupabaseSignedIn(const FKBVESupabaseSessi
 
 void AchuckCorePlayerController::HandleSupabaseSignedOut()
 {
-	BarPlayerName.Empty();
-	bBarOnline = false;
-
 	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
 	{
 		FchuckAuthStatusPayload Payload;
@@ -854,8 +813,6 @@ void AchuckCorePlayerController::HandleSupabaseAuthError(const FKBVESupabaseErro
 
 void AchuckCorePlayerController::HandleChatConnected()
 {
-	bBarOnline = true;
-
 	if (ChatWidget.IsValid())
 	{
 		FchuckChatStatePayload Payload;
@@ -872,8 +829,6 @@ void AchuckCorePlayerController::HandleChatConnected()
 
 void AchuckCorePlayerController::HandleChatDisconnected(int32 /*StatusCode*/, const FString& /*Reason*/)
 {
-	bBarOnline = false;
-
 	if (ChatWidget.IsValid())
 	{
 		FchuckChatStatePayload Payload;

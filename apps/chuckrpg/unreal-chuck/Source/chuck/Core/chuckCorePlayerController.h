@@ -15,7 +15,6 @@ class SchuckChatPanel;
 class SKBVETooltip;
 class SKBVEDragArrowLayer;
 class SKBVESettingsFrame;
-class SKBVETopBar;
 class SchuckToastHost;
 class UKBVESupabaseSubsystem;
 struct FInputActionValue;
@@ -94,11 +93,7 @@ private:
 	TSharedPtr<SKBVETooltip>          TooltipWidget;
 	TSharedPtr<SKBVEDragArrowLayer>   DragArrowLayer;
 	TSharedPtr<SKBVESettingsFrame>    SettingsWidget;
-	TSharedPtr<SKBVETopBar>           TopBarWidget;
 	TSharedPtr<SchuckToastHost>       ToastHostWidget;
-
-	FString BarPlayerName;
-	bool    bBarOnline = false;
 
 	UPROPERTY(Transient)
 	TWeakObjectPtr<UKBVESupabaseSubsystem> SupabaseSubsystem;
