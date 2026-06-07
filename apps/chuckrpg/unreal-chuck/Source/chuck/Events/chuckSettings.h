@@ -4,9 +4,8 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "chuckSettings.generated.h"
 
-// Per-window geometry persisted across sessions. Storage layer is KBVESQLite
-// (TODO: wire the actual sqlite3 binding). Subsystem exposes the API now so
-// call sites can land + the persistence flip is a one-file change later.
+class FKBVESettingsStore;
+
 USTRUCT()
 struct FchuckWindowGeometry
 {
@@ -33,7 +32,8 @@ public:
 
 private:
 	void LoadAll();
-	void SaveAll();
 
 	UPROPERTY() TMap<FName, FchuckWindowGeometry> WindowStates;
+
+	TUniquePtr<FKBVESettingsStore> Store;
 };
