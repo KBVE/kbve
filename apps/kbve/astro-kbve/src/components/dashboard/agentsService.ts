@@ -194,12 +194,8 @@ const GUILDS_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 // re-mounts; short enough that real changes show up on a refresh".
 const GUILDS_LIVE_TTL_MS = 60 * 1000;
 const TOKENS_CACHE_TTL_MS = 60 * 1000;
-// Channel list rarely changes; cache aggressively to stop hammering
-// discord-bot edge / Discord API rate limits.
 const CHANNELS_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-// Bot membership can flip if the user installs/uninstalls between
-// page loads; short cache so the dashboard doesn't lie for too long.
-const BOT_MEMBERSHIP_CACHE_TTL_MS = 5 * 60 * 1000;
+const BOT_MEMBERSHIP_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 // initAuth dedup: any call within this window of a successful init
 // is a no-op. Prevents the screenshot 429 caused by 5 islands
 // across two agents pages each firing initAuth in useEffect.
@@ -1555,6 +1551,12 @@ class AgentsService {
 				cached_at: Date.now(),
 			},
 		});
+	}
+
+	public invalidateBotMembership(guildId: string): void {
+		const m = { ...this.$botMembership.get() };
+		delete m[guildId];
+		this.$botMembership.set(m);
 	}
 
 	public async loadWebhookDeliveries(

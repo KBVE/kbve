@@ -185,6 +185,13 @@ export default function ReactAgentBotInstall() {
 							href={installUrl}
 							target="_blank"
 							rel="noopener noreferrer"
+							onClick={() => {
+								if (selectedGuildId) {
+									agentsService.invalidateBotMembership(
+										selectedGuildId,
+									);
+								}
+							}}
 							style={{
 								display: 'inline-flex',
 								alignItems: 'center',
