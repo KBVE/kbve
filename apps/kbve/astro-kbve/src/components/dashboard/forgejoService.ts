@@ -1,4 +1,5 @@
 import { atom, computed } from 'nanostores';
+import { persistentAtom } from '@nanostores/persistent';
 import { initSupa, getSupa } from '@/lib/supa';
 
 // ---------------------------------------------------------------------------
@@ -147,6 +148,7 @@ interface CachedData {
 // ---------------------------------------------------------------------------
 
 const CACHE_KEY = 'cache:forgejo:data';
+const EXPANDED_KEY = 'forgejo:expandedRepo';
 const CACHE_TTL_MS = 60 * 1000;
 const PROXY_BASE = '/dashboard/forgejo/proxy';
 const REFRESH_INTERVAL_MS = 30 * 1000;
@@ -404,8 +406,14 @@ class ForgejoService {
 	public readonly $errorReason = atom<string | null>(null);
 	public readonly $lastUpdated = atom<Date | null>(null);
 
-	// Expanded repo detail
-	public readonly $expandedRepo = atom<string | null>(null);
+	public readonly $expandedRepo = persistentAtom<string | null>(
+		EXPANDED_KEY,
+		null,
+		{
+			encode: (v) => (v === null ? '' : v),
+			decode: (raw) => (raw === '' ? null : raw),
+		},
+	);
 	public readonly $repoDetails = atom<Record<string, RepoDetail>>({});
 
 	// Computed
@@ -552,8 +560,20 @@ class ForgejoService {
 			this.$loading.set(false);
 		}
 
-		this.fetchData();
+		this.fetchData().then(() => {
+			const restored = this.$expandedRepo.get();
+			if (restored && !this.$repoDetails.get()[restored]) {
+				this._fetchRepoDetail(restored);
+			}
+		});
 		this._startAutoRefresh();
+	}
+
+	public dispose(): void {
+		if (this._refreshInterval) {
+			clearInterval(this._refreshInterval);
+			this._refreshInterval = undefined;
+		}
 	}
 
 	public refresh(): void {
