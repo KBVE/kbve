@@ -58,6 +58,15 @@ namespace
 		if (V && yyjson_is_bool(V)) return yyjson_get_bool(V);
 		return Default;
 	}
+
+	static float FloatFieldUtf8(yyjson_val* Obj, const char* Key, float Default = 0.f)
+	{
+		yyjson_val* V = yyjson_obj_get(Obj, Key);
+		if (V && yyjson_is_real(V)) return (float)yyjson_get_real(V);
+		if (V && yyjson_is_int(V))  return (float)yyjson_get_int(V);
+		if (V && yyjson_is_uint(V)) return (float)yyjson_get_uint(V);
+		return Default;
+	}
 }
 
 void UchuckItemDB::Initialize(FSubsystemCollectionBase& Collection)
@@ -185,11 +194,24 @@ void UchuckItemDB::LoadFromJson(const FString& JsonText)
 		Def.bStackable    = BoolFieldUtf8(ItemVal, "stackable", false);
 		Def.BuyPrice      = IntFieldUtf8(ItemVal, "buyPrice", 0);
 		Def.SellPrice     = IntFieldUtf8(ItemVal, "sellPrice", 0);
-		Def.bConsumable   = BoolFieldUtf8(ItemVal, "consumable", false);
-		Def.HealHP        = static_cast<float>(IntFieldUtf8(ItemVal, "healHP",    0));
-		Def.RestoreMP     = static_cast<float>(IntFieldUtf8(ItemVal, "restoreMP", 0));
-		Def.RestoreEP     = static_cast<float>(IntFieldUtf8(ItemVal, "restoreEP", 0));
-		if (Def.bConsumable && Def.HealHP == 0.f && Def.RestoreMP == 0.f && Def.RestoreEP == 0.f)
+		Def.ConsumeCooldownSec = FloatFieldUtf8(ItemVal, "cooldown", 0.f);
+
+		bool bHasFoodBlock = false;
+		if (yyjson_val* Food = yyjson_obj_get(ItemVal, "food"))
+		{
+			bHasFoodBlock = true;
+			Def.HealHP        = FloatFieldUtf8(Food, "heals",         0.f);
+			Def.RestoreMP     = FloatFieldUtf8(Food, "restoreMana",   0.f);
+			Def.RestoreEP     = FloatFieldUtf8(Food, "restoreEnergy", 0.f);
+			Def.RegenPerSec   = FloatFieldUtf8(Food, "regenPerSecond", 0.f);
+			Def.RegenDuration = FloatFieldUtf8(Food, "regenDuration",  0.f);
+		}
+
+		Def.bConsumable = BoolFieldUtf8(ItemVal, "consumable", false)
+			|| bHasFoodBlock || Def.IsFood() || Def.IsDrink() || Def.IsPotion();
+
+		if (Def.bConsumable && Def.HealHP == 0.f && Def.RestoreMP == 0.f && Def.RestoreEP == 0.f
+			&& Def.RegenPerSec == 0.f)
 		{
 			const FString R = Def.Ref.ToString().ToLower();
 			if      (R.Contains(TEXT("mana")))   Def.RestoreMP = 25.f;

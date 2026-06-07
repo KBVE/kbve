@@ -2829,6 +2829,8 @@
       "poolGroup": "food",
       "food": {
         "restoreEnergy": 12,
+        "regenPerSecond": 3,
+        "regenDuration": 6,
         "perishable": true,
         "shelfLifeSeconds": 86400,
         "spoilsIntoRef": "rotten-meat"

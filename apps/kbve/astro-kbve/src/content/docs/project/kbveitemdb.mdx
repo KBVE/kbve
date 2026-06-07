@@ -45,6 +45,18 @@ to [KBVEGameplay](/project/kbvegameplay)'s effect half:
 Item DATA stays in the shared itemdb MDX. KBVEItemDB carries it + the inventory
 model; KBVEGameplay applies the consumable effects (atlas/icon rendering deferred).
 
+### Consumables (type- + data-driven)
+
+`type_flags` classify the consumable — FOOD (`0x08`) / DRINK (`0x10`) / POTION
+(`0x20`) — and the `food:` block carries the numbers: `heals` / `restore_mana` /
+`restore_energy` (instant), `regen_per_second` + `regen_duration` (heal-over-time),
+plus top-level `cooldown`. A consumer builds an `FKBVEEffectSpec` from these
+(instant `Restores` + `Regens`, cooldown-gated) and applies it through
+KBVEGameplay's `UKBVEEffectComponent` → `IKBVEStatTarget`. Type picks the regen
+target (food → health, drink → mana/stamina); the data fills the magnitudes. An
+item with a `food:` block or a food/drink/potion type bit is consumable without
+needing an explicit `consumable: true`.
+
 ## Dropped items (`AKBVEDroppedItemActor` / `UKBVEDroppedItemPool`)
 
 Pooled, billboarded world-drop system — extracted from chuck's
