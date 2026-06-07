@@ -1021,6 +1021,37 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 			TEXT("[chuck] CorePC spawn-snap hit z=%.1f actor=%s snapTo=(%.0f,%.0f,%.0f) elapsed=%.2fs"),
 			Hit.ImpactPoint.Z, *Hit.GetActor()->GetName(), Snap.X, Snap.Y, Snap.Z, SpawnSnapElapsed);
 
+		static bool bDidAutoSpawnArcade = false;
+		if (!bDidAutoSpawnArcade)
+		{
+			bDidAutoSpawnArcade = true;
+			const FVector PawnFwd = Pawn->GetActorForwardVector();
+			const FVector ArcadeLoc(
+				SpawnSnapAnchor.X + PawnFwd.X * 400.f,
+				SpawnSnapAnchor.Y + PawnFwd.Y * 400.f,
+				Hit.ImpactPoint.Z + 4.f);
+			const FRotator ArcadeRot(0.f, Pawn->GetActorRotation().Yaw + 180.f, 0.f);
+
+			FTimerHandle ArcadeSpawnTimer;
+			GetWorldTimerManager().SetTimer(ArcadeSpawnTimer,
+				FTimerDelegate::CreateLambda([this, ArcadeLoc, ArcadeRot]()
+				{
+					if (UWorld* World = GetWorld())
+					{
+						FActorSpawnParameters SpawnParams;
+						SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+						SpawnParams.Owner = this;
+						AchuckArcadeCabinet* Arcade = World->SpawnActor<AchuckArcadeCabinet>(
+							AchuckArcadeCabinet::StaticClass(), ArcadeLoc, ArcadeRot, SpawnParams);
+						UE_LOG(LogTemp, Display,
+							TEXT("[chuck] Auto-spawned arcade %s at (%.0f,%.0f,%.0f) yaw=%.0f"),
+							Arcade ? *Arcade->GetName() : TEXT("(null)"),
+							ArcadeLoc.X, ArcadeLoc.Y, ArcadeLoc.Z, ArcadeRot.Yaw);
+					}
+				}),
+				2.0f, false);
+		}
+
 		bSpawnSnapPending = false;
 		return;
 	}
