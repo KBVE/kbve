@@ -343,6 +343,11 @@ function Step1Webhook({
 									type="button"
 									onClick={save}
 									disabled={busy}
+									title={
+										busy
+											? 'HMAC save in flight — wait for it to finish.'
+											: 'Store the generated HMAC secret as github_webhook in the vault.'
+									}
 									style={primaryBtn}>
 									{busy ? (
 										<Loader2 size={14} style={spinStyle} />
@@ -651,6 +656,11 @@ function Step2WebhookConfig({
 							type="button"
 							onClick={() => void install()}
 							disabled={installing}
+							title={
+								installing
+									? 'Install in flight — wait for the GitHub API call to return.'
+									: 'POST /repos/<owner>/<repo>/hooks on GitHub using your stored PAT + HMAC.'
+							}
 							style={primaryBtn}>
 							{installing ? (
 								<Loader2 size={14} style={spinStyle} />
@@ -882,6 +892,11 @@ function Step2WebhookConfig({
 								type="button"
 								onClick={() => void rotate()}
 								disabled={rotating}
+								title={
+									rotating
+										? 'Rotate in flight — wait for the GitHub PATCH + vault upsert to finish.'
+										: 'Generate a new HMAC secret, PATCH GitHub’s hook config, replace the vault row. Rate-limited 60s/5 per hour.'
+								}
 								style={secondaryBtn}>
 								{rotating ? (
 									<Loader2 size={14} style={spinStyle} />
@@ -894,6 +909,11 @@ function Step2WebhookConfig({
 								type="button"
 								onClick={() => void deleteHook()}
 								disabled={deleting}
+								title={
+									deleting
+										? 'Delete in flight — wait for the GitHub DELETE to return.'
+										: 'Remove the kbve hook from GitHub. Vault HMAC row stays so you can reinstall without rotating.'
+								}
 								style={{
 									...secondaryBtn,
 									color: '#f87171',
@@ -1038,6 +1058,11 @@ function Step3Pat({
 							type="button"
 							onClick={validate}
 							disabled={validating}
+							title={
+								validating
+									? 'GitHub /user lookup in flight — wait for it to return.'
+									: 'Hit GitHub’s /user endpoint with the typed PAT to confirm it’s valid before storing.'
+							}
 							style={secondaryBtn}>
 							{validating ? (
 								<Loader2 size={14} style={spinStyle} />
@@ -1051,6 +1076,11 @@ function Step3Pat({
 								type="button"
 								onClick={save}
 								disabled={storing}
+								title={
+									storing
+										? 'PAT save in flight — wait for the vault upsert to finish.'
+										: 'Store the validated PAT as `github` in the per-guild vault.'
+								}
 								style={primaryBtn}>
 								{storing ? (
 									<Loader2 size={14} style={spinStyle} />
@@ -1235,6 +1265,11 @@ function Step4SmokeBackfill({
 				type="button"
 				onClick={run}
 				disabled={busy}
+				title={
+					busy
+						? 'Smoke run in flight — wait for gh-backfill to finish.'
+						: 'Calls gh-backfill against the typed owner/repo with state=open + max_pages=1. Server rate-limits 15s cooldown / 20 per hour per guild.'
+				}
 				style={primaryBtn}>
 				{busy ? (
 					<Loader2 size={14} style={spinStyle} />

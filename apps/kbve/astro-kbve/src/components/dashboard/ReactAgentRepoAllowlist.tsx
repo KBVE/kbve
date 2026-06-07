@@ -217,6 +217,11 @@ export default function ReactAgentRepoAllowlist() {
 									type="button"
 									onClick={() => void remove(r)}
 									disabled={saving}
+									title={
+										saving
+											? 'Allowlist save in flight — wait for it to finish.'
+											: `Drop ${r} from the allowlist. Reversible — just add it back.`
+									}
 									style={dangerSmallBtn(saving)}
 									aria-label={`Remove ${r}`}>
 									<Trash2 size={12} />
@@ -253,6 +258,11 @@ export default function ReactAgentRepoAllowlist() {
 					<button
 						type="submit"
 						disabled={saving}
+						title={
+							saving
+								? 'Allowlist save in flight — wait for it to finish.'
+								: 'Add the typed owner/repo to this guild’s allowlist.'
+						}
 						style={primaryBtn(!saving)}>
 						{saving ? (
 							<Loader2 size={14} style={spinIcon} />

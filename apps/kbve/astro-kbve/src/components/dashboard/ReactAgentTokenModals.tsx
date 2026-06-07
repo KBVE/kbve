@@ -315,6 +315,11 @@ export function AddTokenModal({ onClose }: BaseModalProps) {
 					<button
 						type="submit"
 						disabled={busy}
+						title={
+							busy
+								? 'Vault upsert in flight — wait for it to finish.'
+								: 'Encrypt + store the token value into vault.secrets via discordsh.service_set_guild_token.'
+						}
 						style={primaryButton(!busy)}>
 						{busy ? (
 							<Loader2
@@ -424,6 +429,13 @@ export function DeleteTokenModal({ token, onClose }: DeleteTokenModalProps) {
 						type="button"
 						onClick={submit}
 						disabled={!match || busy}
+						title={
+							busy
+								? 'Vault delete in flight — wait for it to finish.'
+								: !match
+									? `Type the token name (${token.token_name}) to confirm. Safety gate prevents accidental clicks on irreversible deletes.`
+									: 'Permanently remove this vault row. Encrypted value is destroyed; downstream services using this token break immediately.'
+						}
 						style={dangerButton(match && !busy)}>
 						{busy ? (
 							<Loader2
