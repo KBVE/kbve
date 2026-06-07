@@ -33,6 +33,7 @@ private:
 	TSharedPtr<SEditableTextBox> SourceInput;
 	TSharedPtr<SEditableTextBox> DestInput;
 	TSharedPtr<SEditableTextBox> MaterialInput;
+	TSharedPtr<SEditableTextBox> ScaleInput;
 	TSharedPtr<SScrollBox>       LogScroll;
 
 	TArray<TSharedPtr<FString>>            CategoryOptions;

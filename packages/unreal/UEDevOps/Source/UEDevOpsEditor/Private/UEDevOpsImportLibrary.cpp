@@ -91,7 +91,7 @@ namespace
 		return Task;
 	}
 
-	void ConfigureFbxTask(UAssetImportTask* Task)
+	void ConfigureFbxTask(UAssetImportTask* Task, float MeshScale)
 	{
 		UFbxImportUI* Options = NewObject<UFbxImportUI>();
 		Options->bImportMesh       = true;
@@ -105,7 +105,7 @@ namespace
 		SMID->NormalImportMethod      = FBXNIM_ImportNormals;
 		SMID->NormalGenerationMethod  = EFBXNormalGenerationMethod::MikkTSpace;
 		SMID->bComputeWeightedNormals = true;
-		SMID->ImportUniformScale      = 0.01f;
+		SMID->ImportUniformScale      = MeshScale;
 		SMID->bConvertScene           = true;
 		Task->Options = Options;
 	}
@@ -183,7 +183,7 @@ namespace
 	}
 }
 
-bool FUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, const FString& DestContentPath, const FString& MaterialName)
+bool FUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, const FString& DestContentPath, const FString& MaterialName, float MeshScale)
 {
 	const FString Source = FPaths::ConvertRelativePathToFull(SourceFolder);
 	if (!IFileManager::Get().DirectoryExists(*Source))
@@ -215,7 +215,7 @@ bool FUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, c
 		if (IsFbx(Ext))
 		{
 			UAssetImportTask* Task = MakeTask(Full, DestFull);
-			ConfigureFbxTask(Task);
+			ConfigureFbxTask(Task, MeshScale);
 			FbxTasks.Add(Task);
 		}
 		else if (IsImage(Ext))

@@ -51,7 +51,7 @@ protected:
 	TObjectPtr<UKBVEWebSurfaceComponent> ScreenSurface;
 
 	UPROPERTY(EditAnywhere, Category = "Arcade")
-	FString ArcadeURL = TEXT("https://kbve.com/arcade/isometric");
+	FString ArcadeURL = TEXT("https://kbve.com/arcade/");
 
 	UPROPERTY(EditAnywhere, Category = "Arcade", meta = (ClampMin = "50"))
 	float InteractionRadiusCm = 250.f;
