@@ -6,6 +6,9 @@ use axum::http::HeaderMap;
 use uuid::Uuid;
 
 impl OWSService {
+    /// DEPRECATED: legacy OWS local email/password login. Authentication now flows through Supabase
+    /// via [`OWSService::external_login`]; this path is retained only for backwards compatibility
+    /// with old OWS clients and local dev, and will be removed once those are migrated.
     pub async fn login(&self, email: &str, password: &str) -> Result<LoginResult, RowsError> {
         let repo = UsersRepo(&self.state.db);
         let result = repo.login(email, password).await?;
@@ -30,6 +33,9 @@ impl OWSService {
         Ok(result)
     }
 
+    /// DEPRECATED: legacy OWS local account creation. New accounts originate in Supabase and are
+    /// provisioned on first [`OWSService::external_login`]; kept for backwards compatibility only,
+    /// slated for removal.
     pub async fn register(
         &self,
         email: &str,
