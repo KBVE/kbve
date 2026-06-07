@@ -53,6 +53,13 @@ domain-aware UI (item-aware inventory, Supabase auth/chat) composes on top.
   pulls in Engine + HTTP + KBVESupabase, so the base `KBVEUI` module stays pure —
   link `KBVEUIAuth` only when a game wants the Supabase UI. Hence
   `dependency_plugins: packages/unreal/KBVESupabase`.
+- **`KBVEUIChat`** — irc-gateway chat window (`SKBVEChatPanel`): movable frame,
+  channel tabs, scrollback, slash commands, input history. Dispatches through
+  `UKBVESupabaseSubsystem`'s chat object; inbound lines/state are pushed in via
+  `OnChatLine(FKBVEChatLineView)` / `OnChatStateChanged(bool)` so the game owns
+  the event-bus wiring, and geometry persistence is delegated out
+  (`OnSaveGeometry`/`OnLoadGeometry`) — no game settings type leaks in. Shares the
+  same `KBVESupabase` dependency as `KBVEUIAuth`.
 
 Plugin source ships via its own PR; this entry wires it into the build/release
 pipeline alongside the other UE plugins.

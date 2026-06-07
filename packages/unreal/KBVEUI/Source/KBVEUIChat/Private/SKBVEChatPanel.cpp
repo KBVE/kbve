@@ -1,9 +1,8 @@
-#include "SchuckChatPanel.h"
+#include "SKBVEChatPanel.h"
 
 #include "KBVESupabaseSubsystem.h"
 #include "KBVESupabaseChat.h"
-#include "chuckCoreCharacter.h"
-#include "chuckSettings.h"
+#include "KBVESupabaseTypes.h"
 
 #include "SKBVEMovableFrame.h"
 
@@ -17,11 +16,10 @@
 #include "Framework/Application/SlateApplication.h"
 #include "Styling/CoreStyle.h"
 
-#define LOCTEXT_NAMESPACE "SchuckChatPanel"
+#define LOCTEXT_NAMESPACE "SKBVEChatPanel"
 
 namespace
 {
-	const FName ChatWindowKey = TEXT("chuck.chat");
 	const int32 MaxScrollbackLines = 500;
 	const int32 MaxHistoryEntries  = 64;
 
@@ -56,13 +54,14 @@ namespace
 	}
 }
 
-void SchuckChatPanel::Construct(const FArguments& InArgs)
+void SKBVEChatPanel::Construct(const FArguments& InArgs)
 {
 	SetCanTick(false);
 	Subsystem = InArgs._Subsystem;
-	OwningCharacter = InArgs._OwningCharacter;
 	ActiveChannel = InArgs._DefaultChannel;
 	OnCloseClicked = InArgs._OnCloseClicked;
+	OnSaveGeometry = InArgs._OnSaveGeometry;
+	OnLoadGeometry = InArgs._OnLoadGeometry;
 
 	if (!ActiveChannel.IsEmpty())
 	{
@@ -76,16 +75,13 @@ void SchuckChatPanel::Construct(const FArguments& InArgs)
 
 	FVector2D StartPos(64.f, 380.f);
 	FVector2D StartSize(420.f, 280.f);
-	if (AchuckCoreCharacter* C = OwningCharacter.Get())
+	if (OnLoadGeometry.IsBound())
 	{
-		if (UchuckSettings* S = UchuckSettings::Get(C))
+		FVector2D LoadedPos, LoadedSize;
+		if (OnLoadGeometry.Execute(LoadedPos, LoadedSize))
 		{
-			FchuckWindowGeometry G;
-			if (S->GetWindowGeometry(ChatWindowKey, G))
-			{
-				StartPos  = G.Position;
-				StartSize = G.Size;
-			}
+			StartPos  = LoadedPos;
+			StartSize = LoadedSize;
 		}
 	}
 
@@ -136,13 +132,13 @@ void SchuckChatPanel::Construct(const FArguments& InArgs)
 				[
 					SAssignNew(InputBox, SEditableTextBox)
 					.HintText(LOCTEXT("InputHint", "Type a message or /command"))
-					.OnTextCommitted(this, &SchuckChatPanel::HandleInputCommitted)
+					.OnTextCommitted(this, &SKBVEChatPanel::HandleInputCommitted)
 				]
 				+ SHorizontalBox::Slot().AutoWidth()
 				[
 					SNew(SButton)
 					.HAlign(HAlign_Center).VAlign(VAlign_Center)
-					.OnClicked(FOnClicked::CreateSP(this, &SchuckChatPanel::HandleSendClicked))
+					.OnClicked(FOnClicked::CreateSP(this, &SKBVEChatPanel::HandleSendClicked))
 					[
 						SNew(STextBlock).Text(LOCTEXT("Send", "Send")).Font(ButtonFont)
 					]
@@ -156,7 +152,7 @@ void SchuckChatPanel::Construct(const FArguments& InArgs)
 	UpdateHeader();
 }
 
-void SchuckChatPanel::SetActiveChannel(const FString& InChannel)
+void SKBVEChatPanel::SetActiveChannel(const FString& InChannel)
 {
 	const FString Normalized = NormalizeChannel(InChannel);
 	if (Normalized.IsEmpty() || Normalized.Equals(ActiveChannel, ESearchCase::IgnoreCase))
@@ -177,14 +173,14 @@ void SchuckChatPanel::SetActiveChannel(const FString& InChannel)
 	UpdateHeader();
 }
 
-void SchuckChatPanel::OnChatStateChanged(const FchuckChatStatePayload& Payload)
+void SKBVEChatPanel::OnChatStateChanged(bool bInConnected)
 {
-	bConnected = Payload.bConnected;
+	bConnected = bInConnected;
 	UpdateHeader();
 	AppendSystem(bConnected ? TEXT("* connected") : TEXT("* disconnected"));
 }
 
-void SchuckChatPanel::OnChannelJoined(const FString& Channel)
+void SKBVEChatPanel::OnChannelJoined(const FString& Channel)
 {
 	const FString Normalized = NormalizeChannel(Channel);
 	if (Normalized.IsEmpty()) return;
@@ -198,7 +194,7 @@ void SchuckChatPanel::OnChannelJoined(const FString& Channel)
 	AppendSystem(FString::Printf(TEXT("* joined %s"), *Normalized));
 }
 
-void SchuckChatPanel::OnChannelLeft(const FString& Channel)
+void SKBVEChatPanel::OnChannelLeft(const FString& Channel)
 {
 	const FString Normalized = NormalizeChannel(Channel);
 	if (Normalized.IsEmpty()) return;
@@ -212,7 +208,7 @@ void SchuckChatPanel::OnChannelLeft(const FString& Channel)
 	AppendSystem(FString::Printf(TEXT("* left %s"), *Normalized));
 }
 
-void SchuckChatPanel::OnChatLine(const FchuckChatLinePayload& Payload)
+void SKBVEChatPanel::OnChatLine(const FKBVEChatLineView& Payload)
 {
 	if (Payload.Channel.IsEmpty()) return;
 	if (!ActiveChannel.Equals(Payload.Channel, ESearchCase::IgnoreCase))
@@ -225,7 +221,7 @@ void SchuckChatPanel::OnChatLine(const FchuckChatLinePayload& Payload)
 		Payload.Kind, Payload.Body, Payload.bIsEvent);
 }
 
-void SchuckChatPanel::MarkChannelUnread(const FString& Channel)
+void SKBVEChatPanel::MarkChannelUnread(const FString& Channel)
 {
 	for (FChannelTab& Tab : Tabs)
 	{
@@ -247,7 +243,7 @@ void SchuckChatPanel::MarkChannelUnread(const FString& Channel)
 	RebuildTabs();
 }
 
-void SchuckChatPanel::AddTab(const FString& Channel)
+void SKBVEChatPanel::AddTab(const FString& Channel)
 {
 	for (const FChannelTab& Tab : Tabs)
 	{
@@ -258,7 +254,7 @@ void SchuckChatPanel::AddTab(const FString& Channel)
 	Tabs.Add(MoveTemp(T));
 }
 
-void SchuckChatPanel::RemoveTab(const FString& Channel)
+void SKBVEChatPanel::RemoveTab(const FString& Channel)
 {
 	Tabs.RemoveAll([&Channel](const FChannelTab& T)
 	{
@@ -266,7 +262,7 @@ void SchuckChatPanel::RemoveTab(const FString& Channel)
 	});
 }
 
-void SchuckChatPanel::RebuildTabs()
+void SKBVEChatPanel::RebuildTabs()
 {
 	if (!TabRow.IsValid()) return;
 	TabRow->ClearChildren();
@@ -311,7 +307,7 @@ void SchuckChatPanel::RebuildTabs()
 	}
 }
 
-void SchuckChatPanel::RefreshTabStyles()
+void SKBVEChatPanel::RefreshTabStyles()
 {
 	for (FChannelTab& Tab : Tabs)
 	{
@@ -331,7 +327,7 @@ void SchuckChatPanel::RefreshTabStyles()
 	}
 }
 
-void SchuckChatPanel::AppendLine(const FString& /*Channel*/, const FString& Sender, const FString& Kind, const FString& Body, bool bIsEvent)
+void SKBVEChatPanel::AppendLine(const FString& /*Channel*/, const FString& Sender, const FString& Kind, const FString& Body, bool bIsEvent)
 {
 	if (!Scrollback.IsValid()) return;
 
@@ -378,7 +374,7 @@ void SchuckChatPanel::AppendLine(const FString& /*Channel*/, const FString& Send
 	Scrollback->ScrollToEnd();
 }
 
-void SchuckChatPanel::AppendSystem(const FString& Text)
+void SKBVEChatPanel::AppendSystem(const FString& Text)
 {
 	if (!Scrollback.IsValid()) return;
 	const FSlateFontInfo SystemFont = FCoreStyle::GetDefaultFontStyle("Italic", 9);
@@ -396,12 +392,12 @@ void SchuckChatPanel::AppendSystem(const FString& Text)
 	Scrollback->ScrollToEnd();
 }
 
-void SchuckChatPanel::AppendMe(const FString& Channel, const FString& Sender, const FString& Body)
+void SKBVEChatPanel::AppendMe(const FString& Channel, const FString& Sender, const FString& Body)
 {
 	AppendLine(Channel, Sender, TEXT("ME"), TEXT("* ") + Body, /*bIsEvent=*/false);
 }
 
-bool SchuckChatPanel::ExecuteSlashCommand(const FString& InputLine)
+bool SKBVEChatPanel::ExecuteSlashCommand(const FString& InputLine)
 {
 	if (!InputLine.StartsWith(TEXT("/"))) return false;
 
@@ -502,7 +498,7 @@ bool SchuckChatPanel::ExecuteSlashCommand(const FString& InputLine)
 	return true;
 }
 
-void SchuckChatPanel::PushHistory(const FString& Line)
+void SKBVEChatPanel::PushHistory(const FString& Line)
 {
 	if (Line.IsEmpty()) return;
 	if (InputHistory.Num() == 0 || !InputHistory.Last().Equals(Line))
@@ -517,7 +513,7 @@ void SchuckChatPanel::PushHistory(const FString& Line)
 	DraftBeforeRecall.Empty();
 }
 
-void SchuckChatPanel::RecallHistoryDirection(int32 Direction)
+void SKBVEChatPanel::RecallHistoryDirection(int32 Direction)
 {
 	if (!InputBox.IsValid() || InputHistory.Num() == 0) return;
 
@@ -539,7 +535,7 @@ void SchuckChatPanel::RecallHistoryDirection(int32 Direction)
 	}
 }
 
-FReply SchuckChatPanel::OnPreviewKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
+FReply SKBVEChatPanel::OnPreviewKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
 {
 	if (InKeyEvent.GetKey() == EKeys::Slash)
 	{
@@ -550,7 +546,7 @@ FReply SchuckChatPanel::OnPreviewKeyDown(const FGeometry& MyGeometry, const FKey
 	return FReply::Unhandled();
 }
 
-FReply SchuckChatPanel::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
+FReply SKBVEChatPanel::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
 {
 	if (InputBox.IsValid() && InputBox->HasKeyboardFocus())
 	{
@@ -573,7 +569,7 @@ FReply SchuckChatPanel::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& 
 	return SCompoundWidget::OnKeyDown(MyGeometry, InKeyEvent);
 }
 
-FReply SchuckChatPanel::HandleSendClicked()
+FReply SKBVEChatPanel::HandleSendClicked()
 {
 	if (!InputBox.IsValid()) return FReply::Handled();
 	const FString Body = InputBox->GetText().ToString();
@@ -605,7 +601,7 @@ FReply SchuckChatPanel::HandleSendClicked()
 	return FReply::Handled();
 }
 
-void SchuckChatPanel::HandleInputCommitted(const FText& InText, ETextCommit::Type CommitType)
+void SKBVEChatPanel::HandleInputCommitted(const FText& InText, ETextCommit::Type CommitType)
 {
 	if (CommitType == ETextCommit::OnEnter)
 	{
@@ -613,7 +609,7 @@ void SchuckChatPanel::HandleInputCommitted(const FText& InText, ETextCommit::Typ
 	}
 }
 
-bool SchuckChatPanel::ToggleVisible()
+bool SKBVEChatPanel::ToggleVisible()
 {
 	const EVisibility Cur = GetVisibility();
 	const bool bShow = (Cur == EVisibility::Collapsed || Cur == EVisibility::Hidden);
@@ -625,7 +621,7 @@ bool SchuckChatPanel::ToggleVisible()
 	return bShow;
 }
 
-void SchuckChatPanel::ShowAndFocusInput()
+void SKBVEChatPanel::ShowAndFocusInput()
 {
 	SetVisibility(EVisibility::SelfHitTestInvisible);
 	if (InputBox.IsValid())
@@ -634,20 +630,13 @@ void SchuckChatPanel::ShowAndFocusInput()
 	}
 }
 
-void SchuckChatPanel::PersistGeometry()
+void SKBVEChatPanel::PersistGeometry()
 {
 	if (!MovableFrame.IsValid()) return;
-	AchuckCoreCharacter* C = OwningCharacter.Get();
-	UchuckSettings* S = C ? UchuckSettings::Get(C) : nullptr;
-	if (!S) return;
-	FchuckWindowGeometry G;
-	G.WindowKey = ChatWindowKey;
-	G.Position  = MovableFrame->GetCurrentPosition();
-	G.Size      = MovableFrame->GetCurrentSize();
-	S->SetWindowGeometry(G);
+	OnSaveGeometry.ExecuteIfBound(MovableFrame->GetCurrentPosition(), MovableFrame->GetCurrentSize());
 }
 
-void SchuckChatPanel::UpdateHeader()
+void SKBVEChatPanel::UpdateHeader()
 {
 	if (!HeaderText.IsValid()) return;
 	const TCHAR* StateLabel = bConnected ? TEXT("connected") : TEXT("disconnected");
