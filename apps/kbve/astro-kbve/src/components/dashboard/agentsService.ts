@@ -1,4 +1,5 @@
 import { atom } from 'nanostores';
+import { persistentAtom } from '@nanostores/persistent';
 import { initSupa, getSupa, SUPABASE_URL } from '@/lib/supa';
 import { addToast } from '@kbve/droid';
 
@@ -193,6 +194,12 @@ const GUILDS_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 // re-mounts; short enough that real changes show up on a refresh".
 const GUILDS_LIVE_TTL_MS = 60 * 1000;
 const TOKENS_CACHE_TTL_MS = 60 * 1000;
+// Channel list rarely changes; cache aggressively to stop hammering
+// discord-bot edge / Discord API rate limits.
+const CHANNELS_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+// Bot membership can flip if the user installs/uninstalls between
+// page loads; short cache so the dashboard doesn't lie for too long.
+const BOT_MEMBERSHIP_CACHE_TTL_MS = 5 * 60 * 1000;
 // initAuth dedup: any call within this window of a successful init
 // is a no-op. Prevents the screenshot 429 caused by 5 islands
 // across two agents pages each firing initAuth in useEffect.
@@ -407,9 +414,55 @@ class AgentsService {
 		>
 	>({});
 
-	public readonly $guildChannels = atom<Record<string, GuildChannels>>({});
+	public readonly $guildChannels = persistentAtom<
+		Record<string, GuildChannels & { cached_at: number }>
+	>(
+		'kbve:agents:guild_channels:v1',
+		{},
+		{
+			encode: (v) => JSON.stringify(v),
+			decode: (raw) => {
+				try {
+					return raw
+						? (JSON.parse(raw) as Record<
+								string,
+								GuildChannels & { cached_at: number }
+							>)
+						: {};
+				} catch {
+					return {};
+				}
+			},
+		},
+	);
 	public readonly $guildChannelsLoading = atom<Record<string, boolean>>({});
 	public readonly $guildChannelsError = atom<Record<string, string | null>>(
+		{},
+	);
+
+	public readonly $botMembership = persistentAtom<
+		Record<string, { isMember: boolean; cached_at: number }>
+	>(
+		'kbve:agents:bot_membership:v1',
+		{},
+		{
+			encode: (v) => JSON.stringify(v),
+			decode: (raw) => {
+				try {
+					return raw
+						? (JSON.parse(raw) as Record<
+								string,
+								{ isMember: boolean; cached_at: number }
+							>)
+						: {};
+				} catch {
+					return {};
+				}
+			},
+		},
+	);
+	public readonly $botMembershipLoading = atom<Record<string, boolean>>({});
+	public readonly $botMembershipError = atom<Record<string, string | null>>(
 		{},
 	);
 
@@ -1428,7 +1481,9 @@ class AgentsService {
 		force = false,
 	): Promise<void> {
 		const cur = this.$guildChannels.get()[guildId];
-		if (cur && !force) return;
+		const fresh =
+			!!cur && Date.now() - cur.cached_at < CHANNELS_CACHE_TTL_MS;
+		if (fresh && !force) return;
 		if (this.$guildChannelsLoading.get()[guildId]) return;
 		this.$guildChannelsLoading.set({
 			...this.$guildChannelsLoading.get(),
@@ -1457,6 +1512,47 @@ class AgentsService {
 			[guildId]: {
 				forums: r.data.forums ?? [],
 				texts: r.data.texts ?? [],
+				cached_at: Date.now(),
+			},
+		});
+	}
+
+	public async ensureBotMembershipLoaded(
+		guildId: string,
+		force = false,
+	): Promise<void> {
+		const cur = this.$botMembership.get()[guildId];
+		const fresh =
+			!!cur && Date.now() - cur.cached_at < BOT_MEMBERSHIP_CACHE_TTL_MS;
+		if (fresh && !force) return;
+		if (this.$botMembershipLoading.get()[guildId]) return;
+		this.$botMembershipLoading.set({
+			...this.$botMembershipLoading.get(),
+			[guildId]: true,
+		});
+		this.$botMembershipError.set({
+			...this.$botMembershipError.get(),
+			[guildId]: null,
+		});
+		const r = await this.callJson<{ is_member: boolean }>(DISCORD_BOT_URL, {
+			command: 'bot.is_member',
+			server_id: guildId,
+		});
+		const loading = { ...this.$botMembershipLoading.get() };
+		delete loading[guildId];
+		this.$botMembershipLoading.set(loading);
+		if (!r.ok) {
+			this.$botMembershipError.set({
+				...this.$botMembershipError.get(),
+				[guildId]: r.error,
+			});
+			return;
+		}
+		this.$botMembership.set({
+			...this.$botMembership.get(),
+			[guildId]: {
+				isMember: !!r.data.is_member,
+				cached_at: Date.now(),
 			},
 		});
 	}
