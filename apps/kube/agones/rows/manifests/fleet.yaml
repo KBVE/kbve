@@ -109,6 +109,15 @@ spec:
                                     secretKeyRef:
                                         name: ows-gameserver-secrets
                                         key: encryption-key
+                              # Server-to-server key for the gated ROWS write endpoints
+                              # (x-service-key). optional so pods still start before the
+                              # secret is populated; ROWS rejects writes until then.
+                              - name: OWS_SERVICE_KEY
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: ows-service-key
+                                        key: service-key
+                                        optional: true
                           resources:
                               requests:
                                   memory: 2Gi
