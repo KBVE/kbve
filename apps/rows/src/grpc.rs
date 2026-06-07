@@ -24,6 +24,31 @@ fn to_status(e: crate::error::RowsError) -> Status {
     e.into_tonic()
 }
 
+/// Pulls a Supabase token out of the gRPC `authorization: Bearer <jwt>` metadata entry.
+fn bearer_from_meta<T>(req: &Request<T>) -> Option<String> {
+    let raw = req.metadata().get("authorization")?.to_str().ok()?.trim();
+    let token = raw
+        .strip_prefix("Bearer ")
+        .or_else(|| raw.strip_prefix("bearer "))?
+        .trim();
+    if token.is_empty() {
+        None
+    } else {
+        Some(token.to_string())
+    }
+}
+
+/// Optional `x-user-session: <uuid>` metadata entry, the gRPC equivalent of the REST session GUID.
+fn session_from_meta<T>(req: &Request<T>) -> Option<Uuid> {
+    req.metadata()
+        .get("x-user-session")?
+        .to_str()
+        .ok()?
+        .trim()
+        .parse()
+        .ok()
+}
+
 pub struct PublicApiService {
     svc: Arc<OWSService>,
 }
@@ -130,6 +155,10 @@ impl PublicApi for PublicApiService {
         &self,
         req: Request<GetServerToConnectToRequest>,
     ) -> Result<Response<GetServerToConnectToResponse>, Status> {
+        self.svc
+            .confirm_login_parts(bearer_from_meta(&req), session_from_meta(&req))
+            .await
+            .map_err(to_status)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         let result = self
@@ -323,6 +352,10 @@ impl CharacterPersistence for CharacterPersistenceService {
         &self,
         req: Request<JoinMapRequest>,
     ) -> Result<Response<JoinMapResponse>, Status> {
+        self.svc
+            .confirm_login_parts(bearer_from_meta(&req), session_from_meta(&req))
+            .await
+            .map_err(to_status)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         let result = self
