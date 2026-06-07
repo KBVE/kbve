@@ -1,4 +1,4 @@
-#include "SchuckAccountPanel.h"
+#include "SKBVEAccountPanel.h"
 
 #include "KBVESupabaseSubsystem.h"
 
@@ -8,7 +8,6 @@
 #include "Interfaces/IHttpRequest.h"
 #include "Interfaces/IHttpResponse.h"
 #include "Widgets/SBoxPanel.h"
-#include "Widgets/SOverlay.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
@@ -16,9 +15,9 @@
 #include "Widgets/Text/STextBlock.h"
 #include "Styling/CoreStyle.h"
 
-#define LOCTEXT_NAMESPACE "SchuckAccountPanel"
+#define LOCTEXT_NAMESPACE "SKBVEAccountPanel"
 
-void SchuckAccountPanel::Construct(const FArguments& InArgs)
+void SKBVEAccountPanel::Construct(const FArguments& InArgs)
 {
 	SetCanTick(false);
 	Subsystem = InArgs._Subsystem;
@@ -30,9 +29,6 @@ void SchuckAccountPanel::Construct(const FArguments& InArgs)
 	AvatarBrush.ImageSize = FVector2D(36.f, 36.f);
 	AvatarBrush.TintColor = FSlateColor(FLinearColor(0.15f, 0.18f, 0.24f, 1.f));
 
-	// Self hit-test invisible: only the inner tile (border + button) claim
-	// the cursor. Empty viewport area passes through to widgets below
-	// (main menu, gameplay HUD).
 	SetVisibility(EVisibility::SelfHitTestInvisible);
 
 	ChildSlot
@@ -61,7 +57,7 @@ void SchuckAccountPanel::Construct(const FArguments& InArgs)
 			[
 				SNew(SButton)
 				.HAlign(HAlign_Center).VAlign(VAlign_Center)
-				.OnClicked(FOnClicked::CreateSP(this, &SchuckAccountPanel::HandleSignOut))
+				.OnClicked(FOnClicked::CreateSP(this, &SKBVEAccountPanel::HandleSignOut))
 				[
 					SNew(STextBlock).Text(LOCTEXT("SignOut", "Sign Out")).Font(ButtonFont)
 				]
@@ -70,7 +66,7 @@ void SchuckAccountPanel::Construct(const FArguments& InArgs)
 	];
 }
 
-void SchuckAccountPanel::SetUsername(const FString& InUsername)
+void SKBVEAccountPanel::SetUsername(const FString& InUsername)
 {
 	if (UsernameText.IsValid())
 	{
@@ -78,12 +74,11 @@ void SchuckAccountPanel::SetUsername(const FString& InUsername)
 	}
 }
 
-void SchuckAccountPanel::SetEmail(const FString& /*InEmail*/)
+void SKBVEAccountPanel::SetEmail(const FString& /*InEmail*/)
 {
-	// Email no longer rendered; kept for ABI compatibility with callers.
 }
 
-void SchuckAccountPanel::SetAvatarURL(const FString& InURL)
+void SKBVEAccountPanel::SetAvatarURL(const FString& InURL)
 {
 	if (InURL.IsEmpty() || InURL == LastAvatarURL) return;
 	LastAvatarURL = InURL;
@@ -91,18 +86,18 @@ void SchuckAccountPanel::SetAvatarURL(const FString& InURL)
 	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Req = FHttpModule::Get().CreateRequest();
 	Req->SetURL(InURL);
 	Req->SetVerb(TEXT("GET"));
-	TWeakPtr<SchuckAccountPanel> WeakSelf = SharedThis(this);
+	TWeakPtr<SKBVEAccountPanel> WeakSelf = SharedThis(this);
 	Req->OnProcessRequestComplete().BindLambda(
 		[WeakSelf](FHttpRequestPtr, FHttpResponsePtr Resp, bool bOk)
 		{
-			TSharedPtr<SchuckAccountPanel> Self = WeakSelf.Pin();
+			TSharedPtr<SKBVEAccountPanel> Self = WeakSelf.Pin();
 			if (!Self.IsValid() || !bOk || !Resp.IsValid() || Resp->GetResponseCode() < 200 || Resp->GetResponseCode() >= 300) return;
 			Self->HandleAvatarBytes(Resp->GetContent());
 		});
 	Req->ProcessRequest();
 }
 
-void SchuckAccountPanel::HandleAvatarBytes(const TArray<uint8>& Bytes)
+void SKBVEAccountPanel::HandleAvatarBytes(const TArray<uint8>& Bytes)
 {
 	if (Bytes.Num() == 0) return;
 	UTexture2D* NewTex = FImageUtils::ImportBufferAsTexture2D(Bytes);
@@ -118,7 +113,7 @@ void SchuckAccountPanel::HandleAvatarBytes(const TArray<uint8>& Bytes)
 	}
 }
 
-FReply SchuckAccountPanel::HandleSignOut()
+FReply SKBVEAccountPanel::HandleSignOut()
 {
 	if (UKBVESupabaseSubsystem* Sub = Subsystem.Get())
 	{

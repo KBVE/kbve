@@ -19,6 +19,17 @@
 			"Name": "KBVEUI",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "KBVEUIAuth",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "KBVESupabase",
+			"Enabled": true
 		}
 	]
 }

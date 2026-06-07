@@ -5,8 +5,8 @@
 #include "chuckMenuPlayerController.generated.h"
 
 class SchuckMainMenu;
-class SchuckLoginWidget;
-class SchuckAccountPanel;
+class SKBVELoginWidget;
+class SKBVEAccountPanel;
 class SchuckLoadingPanel;
 class UKBVESupabaseSubsystem;
 struct FKBVESupabaseSession;
@@ -44,8 +44,8 @@ private:
 	void ApplyAccountFromSession(const FKBVESupabaseSession& Session);
 
 	TSharedPtr<SchuckMainMenu>     MenuWidget;
-	TSharedPtr<SchuckLoginWidget>  LoginWidget;
-	TSharedPtr<SchuckAccountPanel> AccountWidget;
+	TSharedPtr<SKBVELoginWidget>  LoginWidget;
+	TSharedPtr<SKBVEAccountPanel> AccountWidget;
 	TSharedPtr<SchuckLoadingPanel> LoadingWidget;
 
 	UPROPERTY(Transient)

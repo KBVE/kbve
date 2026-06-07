@@ -1,0 +1,3 @@
+#include "KBVEUIAuth.h"
+
+IMPLEMENT_MODULE(FKBVEUIAuthModule, KBVEUIAuth)
