@@ -170,13 +170,19 @@ async fn get_server_to_connect_to(
     headers: HeaderMap,
     Json(body): Json<GetServerDto>,
 ) -> ApiResult<crate::models::JoinMapResult> {
-    hs.svc
+    let caller_guid = hs
+        .svc
         .confirm_login(&headers, body.user_session_guid)
         .await?;
     let customer_guid = extract_customer_guid(&headers);
     let result = hs
         .svc
-        .get_server_to_connect_to(customer_guid, &body.character_name, &body.zone_name)
+        .get_server_to_connect_to(
+            customer_guid,
+            caller_guid,
+            &body.character_name,
+            &body.zone_name,
+        )
         .await?;
     Ok(Json(result))
 }

@@ -10,6 +10,8 @@ pub enum RowsError {
     NotFound(String),
     #[error("unauthorized: {0}")]
     Unauthorized(String),
+    #[error("forbidden: {0}")]
+    Forbidden(String),
     #[error("bad request: {0}")]
     BadRequest(String),
     #[error("conflict: {0}")]
@@ -25,6 +27,7 @@ impl RowsError {
         match self {
             Self::NotFound(_) => StatusCode::NOT_FOUND,
             Self::Unauthorized(_) => StatusCode::UNAUTHORIZED,
+            Self::Forbidden(_) => StatusCode::FORBIDDEN,
             Self::BadRequest(_) => StatusCode::BAD_REQUEST,
             Self::Conflict(_) => StatusCode::CONFLICT,
             Self::Database(_) | Self::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
@@ -35,6 +38,7 @@ impl RowsError {
         match self {
             Self::NotFound(_) => "NOT_FOUND",
             Self::Unauthorized(_) => "UNAUTHORIZED",
+            Self::Forbidden(_) => "FORBIDDEN",
             Self::BadRequest(_) => "BAD_REQUEST",
             Self::Conflict(_) => "CONFLICT",
             Self::Database(_) => "DATABASE_ERROR",
@@ -46,6 +50,7 @@ impl RowsError {
         match &self {
             Self::NotFound(m) => tonic::Status::not_found(m),
             Self::Unauthorized(m) => tonic::Status::unauthenticated(m),
+            Self::Forbidden(m) => tonic::Status::permission_denied(m),
             Self::BadRequest(m) => tonic::Status::invalid_argument(m),
             Self::Conflict(m) => tonic::Status::already_exists(m),
             Self::Database(e) => tonic::Status::internal(e.to_string()),

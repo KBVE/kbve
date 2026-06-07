@@ -138,38 +138,42 @@ impl OWSService {
     }
 
     /// Confirms the caller is logged in before a protected action (e.g. handing out a world IP),
-    /// reading the bearer token from an HTTP `Authorization` header. Transport-agnostic logic lives
-    /// in [`OWSService::confirm_login_parts`], shared with the gRPC surface.
+    /// reading the bearer token from an HTTP `Authorization` header. Returns the authenticated
+    /// caller's `user_guid` (Supabase UUID). Transport-agnostic logic lives in
+    /// [`OWSService::confirm_login_parts`], shared with the gRPC surface.
     pub async fn confirm_login(
         &self,
         headers: &HeaderMap,
         session_guid: Option<Uuid>,
-    ) -> Result<(), RowsError> {
+    ) -> Result<Uuid, RowsError> {
         self.confirm_login_parts(crate::middleware::extract_bearer(headers), session_guid)
             .await
     }
 
     /// Transport-agnostic login gate: accepts a Supabase bearer token (validated locally) or, failing
-    /// that, a live session GUID that resolves to a real session. Reused by both the REST and gRPC
-    /// entry points so any future gRPC connection handler gates with a single call.
+    /// that, a live session GUID that resolves to a real session. Returns the authenticated caller's
+    /// `user_guid` (the JWT `sub` on the bearer path, the session's user on the session path) so
+    /// downstream checks like character ownership can use it. Reused by both the REST and gRPC entry
+    /// points so any future gRPC connection handler gates with a single call.
     pub async fn confirm_login_parts(
         &self,
         bearer: Option<String>,
         session_guid: Option<Uuid>,
-    ) -> Result<(), RowsError> {
+    ) -> Result<Uuid, RowsError> {
         if let Some(token) = bearer {
             if self.state.supabase.jwt_enabled() {
-                crate::supabase::validate_jwt(&token, &self.state.supabase)
+                let validated = crate::supabase::validate_jwt(&token, &self.state.supabase)
                     .map_err(|e| RowsError::Unauthorized(format!("Invalid access token: {e}")))?;
-                return Ok(());
+                return Ok(validated.user_id);
             }
         }
 
         if let Some(sg) = session_guid {
-            self.resolve_session(sg)
+            let cached = self
+                .resolve_session(sg)
                 .await
                 .map_err(|_| RowsError::Unauthorized("Invalid or expired session".into()))?;
-            return Ok(());
+            return Ok(cached.user_guid);
         }
 
         Err(RowsError::Unauthorized(
