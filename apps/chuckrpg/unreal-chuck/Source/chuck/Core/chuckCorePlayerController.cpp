@@ -620,6 +620,15 @@ void AchuckCorePlayerController::InitSupabaseBridge()
 			AccountWidget->SetUsername(U.KbveUsername.IsEmpty() ? U.Id : U.KbveUsername);
 			AccountWidget->SetEmail(U.Email);
 		}
+		if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
+		{
+			FchuckAuthStatusPayload Payload;
+			Payload.bSignedIn    = true;
+			Payload.UserId       = U.Id;
+			Payload.Email        = U.Email;
+			Payload.KbveUsername = U.KbveUsername;
+			Bus->AuthStatus.Publish(Payload);
+		}
 		if (UKBVESupabaseChat* Chat = Sub->GetChat())
 		{
 			Chat->Connect();
