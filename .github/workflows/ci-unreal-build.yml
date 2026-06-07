@@ -593,11 +593,13 @@ jobs:
               run: docker pull "${{ env.UE_IMAGE }}"
 
             - name: Checkout monorepo
+              if: inputs.external_repo_url == ''
               uses: actions/checkout@v6
               with:
                   lfs: false
 
             - name: Pull game LFS (Forgejo) + materialize project
+              if: inputs.external_repo_url == ''
               env:
                   FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
@@ -620,6 +622,74 @@ jobs:
                   rm -rf /tmp/game-project
                   mkdir -p /tmp/game-project
                   cp -r "${PROJ}/." /tmp/game-project/
+
+            - name: Clone external game repo + materialize project
+              if: inputs.external_repo_url != ''
+              env:
+                  GH_TOKEN: ${{ steps.pat.outputs.token }}
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  SLUG="${{ inputs.external_repo_url }}"
+                  SLUG="${SLUG#https://github.com/}"
+                  SLUG="${SLUG#git@github.com:}"
+                  SLUG="${SLUG%.git}"
+                  SUBDIR="${{ inputs.project_path }}"
+                  echo "::notice::Cloning external game repo ${SLUG} (default branch), subdir '${SUBDIR}'"
+                  rm -rf /tmp/game-clone /tmp/game-project
+
+                  GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 \
+                    "https://x-access-token:${GH_TOKEN}@github.com/${SLUG}.git" /tmp/game-clone
+
+                  cd /tmp/game-clone
+
+                  if [ -n "${SUBDIR}" ] && [ "${SUBDIR}" != "." ]; then
+                    INCLUDE="${SUBDIR}/**"
+                    SRC="/tmp/game-clone/${SUBDIR}"
+                  else
+                    INCLUDE="**"
+                    SRC="/tmp/game-clone"
+                  fi
+
+                  RAW_LFS=""
+                  [ -f .lfsconfig ] && RAW_LFS=$(git config -f .lfsconfig lfs.url 2>/dev/null || true)
+                  case "${RAW_LFS}" in
+                    *forgejo.kbve.com/*|*git.kbve.com/*)
+                      if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
+                        echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — cannot pull LFS from git.kbve.com"
+                        exit 1
+                      fi
+                      echo "::add-mask::${FORGEJO_TOKEN}"
+                      # Derive repo path from the repo's own .lfsconfig (preserves owner/repo case —
+                      # Forgejo LFS routing is case-sensitive: KBVE/chuck = 401, kbve/chuck = 302) and
+                      # force the HTTPS ingress host git.kbve.com (.74) over the ssh/Cilium .71 route.
+                      REPO_PATH="${RAW_LFS#ssh://}"; REPO_PATH="${REPO_PATH#https://}"; REPO_PATH="${REPO_PATH#http://}"
+                      REPO_PATH="${REPO_PATH#*@}"
+                      REPO_PATH="${REPO_PATH#*/}"
+                      REPO_PATH="${REPO_PATH%/}"
+                      case "${REPO_PATH}" in
+                        */info/lfs) ;;
+                        *.git) REPO_PATH="${REPO_PATH}/info/lfs" ;;
+                        *) REPO_PATH="${REPO_PATH%.git}.git/info/lfs" ;;
+                      esac
+                      AUTH_LFS="https://${FORGEJO_USER}:${FORGEJO_TOKEN}@git.kbve.com/${REPO_PATH}"
+                      echo "::notice::Pulling LFS (${INCLUDE}) from git.kbve.com/${REPO_PATH} (normalized from ${RAW_LFS})"
+                      git -c lfs.url="${AUTH_LFS}" lfs install --local
+                      git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"
+                      ;;
+                    *)
+                      echo "::notice::Pulling LFS (${INCLUDE}) from origin (GitHub-native)"
+                      git lfs install --local
+                      git lfs pull --include="${INCLUDE}"
+                      ;;
+                  esac
+
+                  if [ ! -d "${SRC}" ]; then
+                    echo "::error::project_path '${SUBDIR}' not found in ${SLUG}"
+                    exit 1
+                  fi
+                  mkdir -p /tmp/game-project
+                  cp -r "${SRC}/." /tmp/game-project/
 
             - name: Build Linux client
               run: |
@@ -683,7 +753,7 @@ jobs:
               run: |
                   docker logout ghcr.io 2>/dev/null || true
                   docker system prune -f 2>/dev/null || true
-                  rm -rf /tmp/game-project /tmp/ue5-game-output 2>/dev/null || true
+                  rm -rf /tmp/game-project /tmp/game-clone /tmp/ue5-game-output 2>/dev/null || true
 
     game_build_windows:
         name: Game Build (Win64 client)
@@ -698,6 +768,7 @@ jobs:
             contents: read
         steps:
             - name: Checkout monorepo
+              if: inputs.external_repo_url == ''
               uses: actions/checkout@v6
               with:
                   lfs: false
@@ -715,6 +786,8 @@ jobs:
                   "runuat=$(Join-Path $engineRoot 'Engine\Build\BatchFiles\RunUAT.bat')" >> $env:GITHUB_OUTPUT
 
             - name: Pull game LFS (Forgejo)
+              id: monorepo_proj
+              if: inputs.external_repo_url == ''
               env:
                   FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
@@ -729,11 +802,66 @@ jobs:
                   Write-Host "::notice::Pulling LFS for $proj from $lfsUrl"
                   git -c lfs.url="$authUrl" lfs install --local
                   git -c lfs.url="$authUrl" lfs pull --include="$proj/**"
+                  "proj_root=$(Join-Path $env:GITHUB_WORKSPACE $proj)" >> $env:GITHUB_OUTPUT
+
+            - name: Clone external game repo (Win64)
+              id: ext_proj
+              if: inputs.external_repo_url != ''
+              env:
+                  EPIC_PAT: ${{ secrets.epic_pat }}
+                  UNITY_PAT: ${{ secrets.UNITY_PAT }}
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  $token = if ($env:EPIC_PAT) { $env:EPIC_PAT } else { $env:UNITY_PAT }
+                  if (-not $token) { Write-Host "::error::No PAT available — set epic_pat or UNITY_PAT"; exit 1 }
+                  Write-Host "::add-mask::$token"
+
+                  $slug = '${{ inputs.external_repo_url }}'
+                  $slug = $slug -replace '^https://github.com/', '' -replace '^git@github.com:', '' -replace '\.git$', ''
+                  $subdir = '${{ inputs.project_path }}'
+                  $clone = 'C:\game-clone'
+                  if (Test-Path $clone) { Remove-Item -Recurse -Force $clone -ErrorAction SilentlyContinue }
+                  Write-Host "::notice::Cloning external game repo $slug (default branch), subdir '$subdir'"
+
+                  $env:GIT_LFS_SKIP_SMUDGE = '1'
+                  git clone --depth 1 "https://x-access-token:$token@github.com/$slug.git" $clone
+                  if ($LASTEXITCODE -ne 0) { Write-Host "::error::clone failed"; exit $LASTEXITCODE }
+                  Remove-Item Env:\GIT_LFS_SKIP_SMUDGE
+
+                  Push-Location $clone
+                  if ($subdir -and $subdir -ne '.') { $include = "$subdir/**"; $src = Join-Path $clone $subdir }
+                  else { $include = '**'; $src = $clone }
+
+                  $rawLfs = if (Test-Path .lfsconfig) { (git config -f .lfsconfig lfs.url) } else { '' }
+                  if ($rawLfs -match 'kbve\.com') {
+                      if (-not $env:FORGEJO_USER -or -not $env:FORGEJO_TOKEN) { Write-Host "::error::FORGEJO_USER / FORGEJO_TOKEN missing"; exit 1 }
+                      Write-Host "::add-mask::$($env:FORGEJO_TOKEN)"
+                      $repoPath = $rawLfs -replace '^ssh://','' -replace '^https?://',''
+                      $repoPath = $repoPath -replace '^[^/]*@',''
+                      $repoPath = $repoPath -replace '^[^/]+/','' -replace '/$',''
+                      if ($repoPath -notmatch '/info/lfs$') {
+                          $repoPath = ($repoPath -replace '\.git$','') + '.git/info/lfs'
+                      }
+                      $authLfs = "https://$($env:FORGEJO_USER):$($env:FORGEJO_TOKEN)@git.kbve.com/$repoPath"
+                      Write-Host "::notice::Pulling LFS ($include) from git.kbve.com/$repoPath (normalized from $rawLfs)"
+                      git -c lfs.url="$authLfs" lfs install --local
+                      git -c lfs.url="$authLfs" lfs pull --include="$include"
+                  } else {
+                      Write-Host "::notice::Pulling LFS ($include) from origin (GitHub-native)"
+                      git lfs install --local
+                      git lfs pull --include="$include"
+                  }
+                  Pop-Location
+
+                  if (-not (Test-Path $src)) { Write-Host "::error::project_path '$subdir' not found in $slug"; exit 1 }
+                  "proj_root=$src" >> $env:GITHUB_OUTPUT
 
             - name: Build Win64 client
               run: |
-                  $uproject = Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE '${{ inputs.project_path }}') -Filter *.uproject | Select-Object -First 1
-                  if (-not $uproject) { Write-Host "::error::No .uproject found"; exit 1 }
+                  $projRoot = '${{ steps.monorepo_proj.outputs.proj_root }}${{ steps.ext_proj.outputs.proj_root }}'
+                  $uproject = Get-ChildItem -Path $projRoot -Filter *.uproject | Select-Object -First 1
+                  if (-not $uproject) { Write-Host "::error::No .uproject found in $projRoot"; exit 1 }
                   $out = "C:\ue5-game-output"
                   New-Item -ItemType Directory -Force -Path $out | Out-Null
                   Write-Host "::notice::Building $($uproject.FullName) (Win64 client)"
@@ -763,6 +891,7 @@ jobs:
               if: always()
               run: |
                   if (Test-Path C:\ue5-game-output) { Remove-Item -Recurse -Force C:\ue5-game-output -ErrorAction SilentlyContinue }
+                  if (Test-Path C:\game-clone) { Remove-Item -Recurse -Force C:\game-clone -ErrorAction SilentlyContinue }
 
     game_build_mac:
         name: Game Build (Mac client — STUB)
