@@ -5,6 +5,4 @@
 //! precompression + 404 fallback behavior. Layer `corp_static_assets` onto
 //! the router at the call site; keep service-specific middleware local.
 
-pub mod askama;
-
 pub use kbve::web::astro::{StaticConfig, build_static_router, corp_static_assets};

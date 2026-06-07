@@ -12,10 +12,12 @@ test.describe('axum game API', () => {
 		);
 	});
 
-	test('health check returns OK', async ({ request }) => {
+	test('health check reports status and version', async ({ request }) => {
 		const res = await request.get('/health');
 		expect(res.status()).toBe(200);
-		expect(await res.text()).toBe('OK');
+		const body = await res.json();
+		expect(body.status).toBe('ok');
+		expect(body.version).toMatch(/^\d+\.\d+\.\d+$/);
 	});
 
 	test('lists all items as JSON', async ({ request }) => {
@@ -58,9 +60,9 @@ test.describe('axum game API', () => {
 		expect(Array.isArray(dialogue.options)).toBe(true);
 	});
 
-	test('speed endpoint responds', async ({ request }) => {
+	test('speed endpoint returns server time in ms', async ({ request }) => {
 		const res = await request.get('/api/v1/speed');
 		expect(res.status()).toBe(200);
-		expect((await res.json()).time_ms).toBe(0);
+		expect((await res.json()).time_ms).toBeGreaterThan(0);
 	});
 });

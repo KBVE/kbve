@@ -50,7 +50,7 @@ RUN find . -type f \( \
         -name "*.xml" -o \
         -name "*.txt" -o \
         -name "*.html" \
-    \) ! -path "*/askama/*" -print0 | \
+    \) -print0 | \
     xargs -0 -P "$(nproc)" -n 1 sh -c ' \
         gzip -9 -f -k "$1" && \
         brotli -q 9 -f --keep "$1" \
@@ -144,8 +144,6 @@ COPY packages/rust/holy packages/rust/holy
 
 COPY apps/cryptothrone/axum-cryptothrone apps/cryptothrone/axum-cryptothrone
 
-COPY apps/cryptothrone/axum-cryptothrone/templates/askama /app/apps/cryptothrone/axum-cryptothrone/templates/askama
-
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
@@ -160,7 +158,6 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-cryptothrone /app/axum-cryptothrone
 
 COPY --from=builder --chown=10001:10001 /app/apps/cryptothrone/axum-cryptothrone/templates/dist /app/templates/dist
-COPY --from=builder --chown=10001:10001 /app/apps/cryptothrone/axum-cryptothrone/templates/askama /app/templates/askama
 
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321

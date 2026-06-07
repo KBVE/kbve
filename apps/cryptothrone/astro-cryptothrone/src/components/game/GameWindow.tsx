@@ -47,7 +47,9 @@ const PhaserCanvas = memo(function PhaserCanvas() {
 	);
 
 	const handleReady = useCallback((game: Phaser.Game) => {
-		console.log('[CryptoThrone] Game ready', game.config.gameTitle);
+		if (import.meta.env.DEV) {
+			console.log('[CryptoThrone] Game ready', game.config.gameTitle);
+		}
 	}, []);
 
 	return <PhaserGame ref={gameRef} config={config} onReady={handleReady} />;
