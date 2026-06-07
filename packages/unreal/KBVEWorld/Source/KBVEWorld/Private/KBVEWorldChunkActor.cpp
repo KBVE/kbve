@@ -491,6 +491,9 @@ void AKBVEWorldChunkActor::EnsureHISMComponents()
 			Imp->bDisableCollision                = true;
 			Imp->InstanceStartCullDistance        = Cfg.ImpostorCullStart;
 			Imp->InstanceEndCullDistance          = Cfg.ImpostorCullEnd;
+			Imp->MinDrawDistance                  = FMath::Max(0, Cfg.CullEnd - 200);
+			Imp->LDMaxDrawDistance                = Cfg.ImpostorCullEnd;
+			Imp->CachedMaxDrawDistance            = Cfg.ImpostorCullEnd;
 			Imp->WorldPositionOffsetDisableDistance = 0;
 			Imp->NumCustomDataFloats = FMath::Clamp(Cfg.NumCustomDataFloats, 0, 8);
 			Imp->SetStaticMesh(ImpostorToUse);
