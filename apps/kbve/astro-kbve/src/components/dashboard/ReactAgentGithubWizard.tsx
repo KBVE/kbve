@@ -591,7 +591,7 @@ function Step2WebhookConfig({
 									e.target.value,
 								)
 							}
-							disabled={installing || !hasWebhook}
+							disabled={installing}
 							style={{
 								...inputStyle,
 								fontFamily:
@@ -609,9 +609,7 @@ function Step2WebhookConfig({
 						<button
 							type="button"
 							onClick={() => void install()}
-							disabled={
-								installing || !hasWebhook || !selectedRepo
-							}
+							disabled={installing}
 							style={primaryBtn}>
 							{installing ? (
 								<Loader2 size={14} style={spinStyle} />

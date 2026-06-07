@@ -575,9 +575,9 @@ class AgentsService {
 		}
 	}
 
-	private async bootstrapDiscord(providerToken: string): Promise<void> {
+	private async bootstrapDiscord(providerToken: string): Promise<boolean> {
 		const accessToken = this.$accessToken.get();
-		if (!accessToken) return;
+		if (!accessToken) return false;
 		try {
 			const resp = await fetch(DISCORD_BOOTSTRAP_URL, {
 				method: 'POST',
@@ -588,18 +588,61 @@ class AgentsService {
 				body: JSON.stringify({ provider_token: providerToken }),
 			});
 			if (!resp.ok) {
-				// Non-fatal: the JWT claim path + Discord-live path
-				// both still work. Just log so dev tools shows it.
 				const text = await resp.text();
 				console.warn(
 					'[agentsService] discord-bootstrap returned',
 					resp.status,
 					text.slice(0, 200),
 				);
+				return false;
 			}
+			return true;
 		} catch (e) {
 			console.warn('[agentsService] discord-bootstrap threw:', e);
+			return false;
 		}
+	}
+
+	private refreshInflight: Promise<boolean> | null = null;
+	private lastForcedRefreshAt = 0;
+	private readonly FORCED_REFRESH_COOLDOWN_MS = 5 * 1000;
+
+	private async forceTokenRefresh(): Promise<boolean> {
+		const now = Date.now();
+		if (now - this.lastForcedRefreshAt < this.FORCED_REFRESH_COOLDOWN_MS) {
+			return false;
+		}
+		if (this.refreshInflight) return this.refreshInflight;
+		this.refreshInflight = (async () => {
+			try {
+				const { authBridge } =
+					await import('@/components/auth/AuthBridge');
+				const session = await authBridge.refreshSession();
+				if (!session?.access_token) {
+					console.warn(
+						'[agentsService] refreshSession returned no session',
+					);
+					return false;
+				}
+				this.$accessToken.set(session.access_token);
+				this.lastForcedRefreshAt = Date.now();
+				return true;
+			} catch (e) {
+				console.warn('[agentsService] refreshSession threw:', e);
+				return false;
+			} finally {
+				this.refreshInflight = null;
+			}
+		})();
+		return this.refreshInflight;
+	}
+
+	public async resyncOwnedGuilds(): Promise<boolean> {
+		const providerToken = this.$providerToken.get();
+		if (!providerToken) return false;
+		const ok = await this.bootstrapDiscord(providerToken);
+		if (!ok) return false;
+		return await this.forceTokenRefresh();
 	}
 
 	public async loadOwnedGuilds(force = false): Promise<void> {
@@ -1713,6 +1756,7 @@ class AgentsService {
 	private async callJson<T>(
 		url: string,
 		body: Record<string, unknown>,
+		opts: { retriedAfterResync?: boolean } = {},
 	): Promise<{ ok: true; data: T } | { ok: false; error: string }> {
 		const accessToken = this.$accessToken.get();
 		if (!accessToken) return { ok: false, error: 'Not authenticated' };
@@ -1742,7 +1786,20 @@ class AgentsService {
 					hint?: string | null;
 					context?: string | null;
 				} | null;
-				const parts: string[] = [b?.error ?? `HTTP ${resp.status}`];
+				const errMsg = b?.error ?? '';
+				const looksStale =
+					resp.status === 403 &&
+					/owned_guilds/i.test(errMsg) &&
+					!opts.retriedAfterResync;
+				if (looksStale) {
+					const resynced = await this.resyncOwnedGuilds();
+					if (resynced) {
+						return this.callJson<T>(url, body, {
+							retriedAfterResync: true,
+						});
+					}
+				}
+				const parts: string[] = [errMsg || `HTTP ${resp.status}`];
 				if (b?.sqlstate) parts.push(`sqlstate=${b.sqlstate}`);
 				if (b?.hint) parts.push(`hint=${b.hint}`);
 				if (b?.context) parts.push(`context=${b.context}`);
