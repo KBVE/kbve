@@ -6,7 +6,7 @@
 
 class SchuckHUD;
 class SchuckPauseMenu;
-class SchuckDevOverlay;
+class SKBVEDevOverlay;
 class SchuckHotbar;
 class SchuckInventoryWindow;
 class SKBVELoginWidget;
@@ -84,7 +84,7 @@ protected:
 private:
 	TSharedPtr<SchuckHUD>             HUDWidget;
 	TSharedPtr<SchuckPauseMenu>       PauseWidget;
-	TSharedPtr<SchuckDevOverlay>      DevOverlayWidget;
+	TSharedPtr<SKBVEDevOverlay>       DevOverlayWidget;
 	TSharedPtr<SchuckHotbar>          HotbarWidget;
 	TSharedPtr<SchuckInventoryWindow> InventoryWidget;
 	TSharedPtr<SKBVELoginWidget>      LoginWidget;

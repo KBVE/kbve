@@ -13,7 +13,10 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "chuckEventPayloads.h"
 #include "chuckUIEvents.h"
-#include "SchuckDevOverlay.h"
+#include "SKBVEDevOverlay.h"
+#include "GameFramework/PlayerState.h"
+#include "MassEntitySubsystem.h"
+#include "MassEntityManager.h"
 #include "SchuckHotbar.h"
 #include "SchuckHUD.h"
 #include "SchuckInventoryWindow.h"
@@ -492,7 +495,22 @@ void AchuckCorePlayerController::OnToggleDevOverlayPressed(const FInputActionVal
 
 	if (HasUiFlag(EUiFlag::DevOverlay))
 	{
-		DevOverlayWidget = SNew(SchuckDevOverlay).OwningController(this);
+		DevOverlayWidget = SNew(SKBVEDevOverlay)
+			.EntityCountProvider(FKBVEDevOverlayIntProvider::CreateLambda([this]() -> int32
+			{
+				if (UWorld* W = GetWorld())
+				{
+					if (UMassEntitySubsystem* Mass = W->GetSubsystem<UMassEntitySubsystem>())
+					{
+						return (int32)Mass->GetEntityManager().DebugGetEntityCount();
+					}
+				}
+				return 0;
+			}))
+			.PingProvider(FKBVEDevOverlayIntProvider::CreateLambda([this]() -> int32
+			{
+				return PlayerState ? (int32)PlayerState->GetPingInMilliseconds() : 0;
+			}));
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), DevOverlayWidget.ToSharedRef(), 15);
 	}
 	else if (DevOverlayWidget.IsValid())
