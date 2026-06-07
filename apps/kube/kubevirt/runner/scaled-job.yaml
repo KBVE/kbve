@@ -70,6 +70,11 @@ spec:
                                 secretKeyRef:
                                     name: github-arc-token
                                     key: github_token
+                          - name: ADMIN_PASSWORD
+                            valueFrom:
+                                secretKeyRef:
+                                    name: windows-builder-admin
+                                    key: password
                       volumeMounts:
                           - name: script
                             mountPath: /scripts

@@ -82,6 +82,11 @@ spec:
                                 key: github_token
                       - name: RUNNER_LOGON_ACCOUNT
                         value: LocalSystem
+                      - name: ADMIN_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: windows-builder-admin
+                                key: password
                   volumeMounts:
                       - name: script
                         mountPath: /scripts
