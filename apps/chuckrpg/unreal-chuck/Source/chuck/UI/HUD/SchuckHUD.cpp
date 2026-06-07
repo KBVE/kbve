@@ -129,21 +129,21 @@ void SchuckHUD::BindToEventBus()
 	UchuckUIEvents* Bus = C ? UchuckUIEvents::Get(C) : nullptr;
 	if (!Bus) return;
 
-	HealthHandle = Bus->Health.Subscribe(C, [this](const FchuckHealthChangedPayload& P)
+	HealthHandle = Bus->Health.Subscribe(C, [this](const FKBVEHealthChangedPayload& P)
 	{
 		FchuckHUDState S = Target;
 		S.HealthCurrent = P.Current;
 		S.HealthMax     = P.Max;
 		SetState(S);
 	});
-	ManaHandle = Bus->Mana.Subscribe(C, [this](const FchuckManaChangedPayload& P)
+	ManaHandle = Bus->Mana.Subscribe(C, [this](const FKBVEManaChangedPayload& P)
 	{
 		FchuckHUDState S = Target;
 		S.ManaCurrent = P.Current;
 		S.ManaMax     = P.Max;
 		SetState(S);
 	});
-	StaminaHandle = Bus->Stamina.Subscribe(C, [this](const FchuckStaminaChangedPayload& P)
+	StaminaHandle = Bus->Stamina.Subscribe(C, [this](const FKBVEStaminaChangedPayload& P)
 	{
 		FchuckHUDState S = Target;
 		S.StaminaCurrent    = P.Current;
@@ -151,7 +151,7 @@ void SchuckHUD::BindToEventBus()
 		S.StaminaRegenDelay = P.RegenDelay;
 		SetState(S);
 	});
-	DamageHandle = Bus->DamageReceived.Subscribe(C, [this](const FchuckDamageReceivedPayload& P)
+	DamageHandle = Bus->DamageReceived.Subscribe(C, [this](const FKBVEDamageReceivedPayload& P)
 	{
 		DamageFlashUntil = HUDTimeSeconds + 0.6f;
 		FchuckHUDState S = Target;
