@@ -64,8 +64,8 @@ void SUEDevOpsPanel::Construct(const FArguments& InArgs)
 			+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 6)
 			[
 				SAssignNew(DestInput, SEditableTextBox)
-				.HintText(LOCTEXT("DestHint", "/Game/Props/Arcade"))
-				.Text(FText::FromString(TEXT("/Game/Imported")))
+				.HintText(LOCTEXT("DestHint", "/Game/Art/Arcade — pick any category"))
+				.Text(FText::FromString(TEXT("/Game/Art")))
 			]
 			+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 4)
 			[

@@ -26,7 +26,10 @@ public class UEDevOpsEditor : ModuleRules
 			"EditorStyle",
 			"InputCore",
 			"Projects",
-			"DesktopPlatform"
+			"DesktopPlatform",
+			"AssetTools",
+			"MaterialEditor",
+			"EditorScriptingUtilities"
 		});
 	}
 }
