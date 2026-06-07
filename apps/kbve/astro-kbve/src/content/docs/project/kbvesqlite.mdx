@@ -37,6 +37,9 @@ touch raw `sqlite3_*` calls.
   `Exec` / `Prepare` / `Begin` / `Commit` / `Rollback`.
 - **`FKBVESQLiteStatement`** — RAII prepared statement: `Bind*`, `Step` / `Execute`
   / `Reset`, `Column*` accessors.
+- **`FKBVESettingsStore`** — scoped key/value prefs on a connection
+  (`kv_settings(scope, key, value)`, UPSERT): typed `Set/Get String|Int|Float|Bool`,
+  `RemoveKey`, `LoadScope`. Agnostic settings persistence — UI is KBVEUI's job.
 
 Add `KBVESQLite` to your module's `PrivateDependencyModuleNames` and
 `dependency_plugins: packages/unreal/KBVESQLite` to your ci-registry entry so the
@@ -51,4 +54,5 @@ CI plugin build stages it.
   Load at boundaries, keep the working set in memory/Mass fragments, flush async.
 
 Consumers: `FKBVEWorldChunkCache` (KBVEWorld), `FKBVEInventoryStore` +
-`FKBVEItemCatalogStore` (KBVEItemDB).
+`FKBVEItemCatalogStore` (KBVEItemDB), `FKBVESettingsStore` (chuck `UchuckSettings`
+window geometry, `Saved/KBVE/settings.db`).

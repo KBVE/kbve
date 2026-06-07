@@ -1,9 +1,29 @@
 #include "chuckSettings.h"
 
+#include "KBVESettingsStore.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
-#include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
+
+namespace
+{
+	const FString GWindowScope = TEXT("window");
+
+	FString GeometryToValue(const FchuckWindowGeometry& G)
+	{
+		return FString::Printf(TEXT("%f,%f,%f,%f"), G.Position.X, G.Position.Y, G.Size.X, G.Size.Y);
+	}
+
+	bool ValueToGeometry(const FString& Value, FchuckWindowGeometry& Out)
+	{
+		TArray<FString> Parts;
+		Value.ParseIntoArray(Parts, TEXT(","));
+		if (Parts.Num() != 4) return false;
+		Out.Position = FVector2D(FCString::Atod(*Parts[0]), FCString::Atod(*Parts[1]));
+		Out.Size     = FVector2D(FCString::Atod(*Parts[2]), FCString::Atod(*Parts[3]));
+		return true;
+	}
+}
 
 UchuckSettings* UchuckSettings::Get(const UObject* WorldContext)
 {
@@ -17,12 +37,19 @@ UchuckSettings* UchuckSettings::Get(const UObject* WorldContext)
 void UchuckSettings::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
+	Store = MakeUnique<FKBVESettingsStore>();
+	const FString DbPath = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("KBVE"), TEXT("settings.db"));
+	Store->Open(DbPath);
 	LoadAll();
 }
 
 void UchuckSettings::Deinitialize()
 {
-	SaveAll();
+	if (Store.IsValid())
+	{
+		Store->Close();
+		Store.Reset();
+	}
 	WindowStates.Empty();
 	Super::Deinitialize();
 }
@@ -40,22 +67,24 @@ bool UchuckSettings::GetWindowGeometry(FName WindowKey, FchuckWindowGeometry& Ou
 void UchuckSettings::SetWindowGeometry(const FchuckWindowGeometry& InGeometry)
 {
 	WindowStates.FindOrAdd(InGeometry.WindowKey) = InGeometry;
-	// TODO(KBVESQLite): replace this lazy save with a transactional UPSERT
-	// on a chuck_window_state(key, pos_x, pos_y, size_x, size_y) table once
-	// the sqlite binding is wired. For now we coast on in-memory only --
-	// state persists across map travel within a session but not across
-	// process restarts.
+	if (Store.IsValid())
+	{
+		Store->SetString(GWindowScope, InGeometry.WindowKey.ToString(), GeometryToValue(InGeometry));
+	}
 }
 
 void UchuckSettings::LoadAll()
 {
-	// TODO(KBVESQLite): open ~/Documents/chuckrpg/settings.db, SELECT *
-	// FROM chuck_window_state and populate WindowStates.
-}
-
-void UchuckSettings::SaveAll()
-{
-	// TODO(KBVESQLite): begin transaction, UPSERT each WindowStates entry,
-	// commit. Run on Deinitialize + on a periodic timer so we don't lose
-	// state on a hard crash.
+	if (!Store.IsValid()) return;
+	TMap<FString, FString> Pairs;
+	if (!Store->LoadScope(GWindowScope, Pairs)) return;
+	for (const TPair<FString, FString>& Pair : Pairs)
+	{
+		FchuckWindowGeometry G;
+		G.WindowKey = FName(*Pair.Key);
+		if (ValueToGeometry(Pair.Value, G))
+		{
+			WindowStates.Add(G.WindowKey, G);
+		}
+	}
 }
