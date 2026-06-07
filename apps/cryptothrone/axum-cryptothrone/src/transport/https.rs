@@ -1,5 +1,8 @@
 use anyhow::Result;
-use std::{net::SocketAddr, time::Duration};
+use std::{
+    net::SocketAddr,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 
 use axum::{
     Router,
@@ -88,7 +91,7 @@ fn router() -> Router {
 
     let dynamic_router = Router::new()
         .route("/health", get(health))
-        .merge(crate::game::routes::game_router());
+        .route("/api/v1/speed", get(speed));
 
     static_router.merge(dynamic_router).layer(middleware)
 }
@@ -99,6 +102,14 @@ async fn health() -> impl IntoResponse {
         "name": env!("CARGO_PKG_NAME"),
         "version": env!("CARGO_PKG_VERSION"),
     }))
+}
+
+async fn speed() -> impl IntoResponse {
+    let time_ms = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .unwrap_or(0);
+    axum::Json(serde_json::json!({ "time_ms": time_ms }))
 }
 
 async fn cache_headers(request: Request, next: Next) -> Response {
@@ -191,7 +202,7 @@ mod tests {
 
         Router::new()
             .route("/health", get(health))
-            .merge(crate::game::routes::game_router())
+            .route("/api/v1/speed", get(speed))
             .layer(middleware)
     }
 
@@ -304,118 +315,6 @@ mod tests {
             response.headers().get(header::CONTENT_TYPE).unwrap(),
             "application/javascript; charset=utf-8"
         );
-    }
-
-    #[tokio::test]
-    async fn test_items_endpoint() {
-        let app = test_router();
-        let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/api/v1/items")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(response.status(), StatusCode::OK);
-        let body = response.into_body().collect().await.unwrap().to_bytes();
-        let items: Vec<serde_json::Value> = serde_json::from_slice(&body).unwrap();
-        assert_eq!(items.len(), 5);
-    }
-
-    #[tokio::test]
-    async fn test_item_by_id() {
-        let app = test_router();
-        let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/api/v1/items/health_potion")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(response.status(), StatusCode::OK);
-        let body = response.into_body().collect().await.unwrap().to_bytes();
-        let item: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(item["name"], "Health Potion");
-    }
-
-    #[tokio::test]
-    async fn test_item_not_found() {
-        let app = test_router();
-        let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/api/v1/items/nonexistent")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(response.status(), StatusCode::NOT_FOUND);
-    }
-
-    #[tokio::test]
-    async fn test_npcs_endpoint() {
-        let app = test_router();
-        let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/api/v1/npcs")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(response.status(), StatusCode::OK);
-        let body = response.into_body().collect().await.unwrap().to_bytes();
-        let npcs: Vec<serde_json::Value> = serde_json::from_slice(&body).unwrap();
-        assert_eq!(npcs.len(), 2);
-    }
-
-    #[tokio::test]
-    async fn test_npc_by_id() {
-        let app = test_router();
-        let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/api/v1/npcs/npc_barkeep")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(response.status(), StatusCode::OK);
-        let body = response.into_body().collect().await.unwrap().to_bytes();
-        let npc: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(npc["name"], "Evee The BarKeep");
-    }
-
-    #[tokio::test]
-    async fn test_dialogue_by_id() {
-        let app = test_router();
-        let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/api/v1/dialogues/dlg_barkeep_greeting")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(response.status(), StatusCode::OK);
-        let body = response.into_body().collect().await.unwrap().to_bytes();
-        let dialogue: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(dialogue["title"], "Greeting");
-        assert!(dialogue["options"].is_array());
     }
 
     #[tokio::test]

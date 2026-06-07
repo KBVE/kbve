@@ -1529,7 +1529,6 @@ dependencies = [
  "jedi",
  "kbve",
  "num_cpus",
- "serde",
  "serde_json",
  "serial_test",
  "socket2 0.6.3",
