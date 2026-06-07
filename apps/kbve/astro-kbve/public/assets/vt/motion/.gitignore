@@ -1,0 +1,3 @@
+*.vrma
+!.gitignore
+!README.md
