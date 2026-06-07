@@ -104,6 +104,10 @@
 		{
 			"Name": "KBVENPCDB",
 			"Enabled": true
+		},
+		{
+			"Name": "KBVELibGit",
+			"Enabled": true
 		}
 	]
 }
