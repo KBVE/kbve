@@ -56,5 +56,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Arcade", meta = (ClampMin = "50"))
 	float InteractionRadiusCm = 250.f;
 
+	UPROPERTY(EditAnywhere, Category = "Arcade")
+	bool bPreloadScreen = true;
+
 	bool bIsActive = false;
 };

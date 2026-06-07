@@ -69,6 +69,28 @@ void AchuckArcadeCabinet::BeginPlay()
 		InteractionRadius->OnComponentEndOverlap.AddDynamic(this, &AchuckArcadeCabinet::HandleEndOverlap);
 		InteractionRadius->SetSphereRadius(InteractionRadiusCm);
 	}
+	if (bPreloadScreen && ScreenSurface)
+	{
+		FString Token;
+		if (UGameInstance* GI = GetGameInstance())
+		{
+			if (UKBVESupabaseSubsystem* Sub = GI->GetSubsystem<UKBVESupabaseSubsystem>())
+			{
+				Token = Sub->GetAccessToken();
+			}
+		}
+		if (Token.IsEmpty())
+		{
+			ScreenSurface->LoadURL(ArcadeURL);
+		}
+		else
+		{
+			ScreenSurface->LoadURLWithFragmentToken(ArcadeURL, Token);
+		}
+		bIsActive = true;
+		UE_LOG(LogTemp, Display, TEXT("[Arcade] Preload screen url=%s tokenLen=%d"),
+			*ArcadeURL, Token.Len());
+	}
 }
 
 void AchuckArcadeCabinet::EndPlay(const EEndPlayReason::Type Reason)

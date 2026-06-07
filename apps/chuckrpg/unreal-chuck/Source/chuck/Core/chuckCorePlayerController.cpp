@@ -749,6 +749,32 @@ void AchuckCorePlayerController::OnInteractPressed(const FInputActionValue& /*Va
 	}
 }
 
+static FAutoConsoleCommand GchuckSpawnArcadeCmd(
+	TEXT("chuck.SpawnArcade"),
+	TEXT("Spawn an arcade cabinet 4m in front of the local player."),
+	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World)
+	{
+		if (!World) return;
+		APlayerController* PC = World->GetFirstPlayerController();
+		APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+		if (!Pawn)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[chuck] SpawnArcade: no pawn"));
+			return;
+		}
+		const FVector Forward = Pawn->GetActorForwardVector();
+		const FVector Loc     = Pawn->GetActorLocation() + Forward * 400.f + FVector(0.f, 0.f, -90.f);
+		const FRotator Rot(0.f, Pawn->GetActorRotation().Yaw + 180.f, 0.f);
+
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		AchuckArcadeCabinet* Arcade = World->SpawnActor<AchuckArcadeCabinet>(
+			AchuckArcadeCabinet::StaticClass(), Loc, Rot, Params);
+		UE_LOG(LogTemp, Display, TEXT("[chuck] SpawnArcade → %s at (%.0f,%.0f,%.0f)"),
+			Arcade ? *Arcade->GetName() : TEXT("(null)"), Loc.X, Loc.Y, Loc.Z);
+	})
+);
+
 bool AchuckCorePlayerController::IsAnyUiPanelOpen() const
 {
 	return HasAnyUiFlags(NeedsCursorMask);
