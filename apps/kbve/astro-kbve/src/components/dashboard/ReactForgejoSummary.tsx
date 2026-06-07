@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { forgejoService, formatSize, langColor } from './forgejoService';
 import {
@@ -250,10 +249,6 @@ export default function ReactForgejoSummary() {
 	const totalUsers = useStore(forgejoService.$totalUsers);
 	const totalSize = useStore(forgejoService.$totalSize);
 	const totalReleases = useStore(forgejoService.$totalReleases);
-
-	useEffect(() => {
-		forgejoService.loadCacheAndFetch();
-	}, []);
 
 	if (loading && totalRepos === 0) {
 		return (
