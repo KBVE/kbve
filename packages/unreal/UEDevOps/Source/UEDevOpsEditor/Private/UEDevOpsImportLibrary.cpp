@@ -1,11 +1,17 @@
 #include "UEDevOpsImportLibrary.h"
 
+#include "DesktopPlatformModule.h"
 #include "Engine/Engine.h"
+#include "Framework/Application/SlateApplication.h"
 #include "HAL/FileManager.h"
+#include "IDesktopPlatform.h"
 #include "Interfaces/IPluginManager.h"
+#include "Misc/MessageDialog.h"
 #include "Misc/Paths.h"
 
-bool UUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, const FString& DestContentPath, const FString& MaterialName)
+#define LOCTEXT_NAMESPACE "UEDevOpsImport"
+
+bool FUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, const FString& DestContentPath, const FString& MaterialName)
 {
 	if (!GEngine)
 	{
@@ -38,3 +44,37 @@ bool UUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, c
 	UE_LOG(LogTemp, Display, TEXT("[UEDevOps] %s"), *Command);
 	return GEngine->Exec(nullptr, *Command);
 }
+
+void FUEDevOpsImportLibrary::PromptAndImport()
+{
+	IDesktopPlatform* Desktop = FDesktopPlatformModule::Get();
+	if (!Desktop)
+	{
+		return;
+	}
+
+	const void* ParentWindow = FSlateApplication::Get().FindBestParentWindowHandleForDialogs(nullptr);
+
+	FString SourceFolder;
+	if (!Desktop->OpenDirectoryDialog(
+			ParentWindow,
+			TEXT("Pick a Raw asset folder (FBX + textures)"),
+			FPaths::ProjectDir() / TEXT("Raw"),
+			SourceFolder))
+	{
+		return;
+	}
+
+	FString DestContentPath = TEXT("/Game/Imported/") + FPaths::GetCleanFilename(SourceFolder);
+	FString MaterialName    = FPaths::GetCleanFilename(SourceFolder);
+
+	UE_LOG(LogTemp, Display, TEXT("[UEDevOps] Source=%s Dest=%s Material=%s"), *SourceFolder, *DestContentPath, *MaterialName);
+
+	if (!ImportRawAssetFolder(SourceFolder, DestContentPath, MaterialName))
+	{
+		FMessageDialog::Open(EAppMsgType::Ok,
+			LOCTEXT("ImportFailed", "Import failed. Check the Output Log — the Python plugin must be enabled."));
+	}
+}
+
+#undef LOCTEXT_NAMESPACE
