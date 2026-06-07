@@ -725,24 +725,11 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 						}
 					}
 				}
-				if (Self->ImpostorHISMs.IsValidIndex(t))
-				{
-					if (UHierarchicalInstancedStaticMeshComponent* Imp = Self->ImpostorHISMs[t])
-					{
-						const int32 ImpStartIdx = Imp->GetInstanceCount();
-						Imp->AddInstances(Batches[t], false);
-						if (LocalCustomFloats > 0 && CustomBatches[t].Num() > 0)
-						{
-							for (int32 k = 0; k < Batches[t].Num(); ++k)
-							{
-								for (int32 f = 0; f < LocalCustomFloats; ++f)
-								{
-									Imp->SetCustomDataValue(ImpStartIdx + k, f, CustomBatches[t][k * LocalCustomFloats + f], false);
-								}
-							}
-						}
-					}
-				}
+				// Impostor HISM populate disabled: UE InstanceStart/EndCullDistance only
+				// fade out, never gate visibility on the near side, and MinDrawDistance
+				// is bounds-based so it can't hide impostors while the player stands
+				// inside the chunk. Until LOD0/LOD1 mesh swap or distance-fade material
+				// is wired, leave the impostor HISM empty.
 			}
 			UE_LOG(LogTemp, Verbose,
 				TEXT("[KBVEWorld] Chunk foliage(async) coord=(%d,%d) slots=%d instances=%d"),
