@@ -232,25 +232,37 @@ UStaticMesh* FKBVEWorldProceduralGrass::GetOrCreateImpostorMesh(UObject* Outer, 
 
 	const float ClumpW = Spec.Width * 3.5f;
 	const float ClumpH = Spec.Height * 0.95f;
-	const float HalfW  = ClumpW * 0.5f;
+	const float HalfWBase = ClumpW * 0.5f;
+	const float HalfWTip  = ClumpW * 0.05f;
+	const float HMid      = ClumpH * 0.55f;
+	const float HTip      = ClumpH;
 
-	auto AddBillboard = [&](const FRotator& Rot)
+	auto AddTaperedSheet = [&](const FRotator& Rot)
 	{
 		const FTransform X(Rot);
-		const FVector3f L[4] = {
-			FVector3f(-HalfW, 0.f, 0.f),
-			FVector3f( HalfW, 0.f, 0.f),
-			FVector3f( HalfW, 0.f, ClumpH),
-			FVector3f(-HalfW, 0.f, ClumpH)
+		const FVector3f L[5] = {
+			FVector3f(-HalfWBase, 0.f, 0.f),
+			FVector3f( HalfWBase, 0.f, 0.f),
+			FVector3f( HalfWBase * 0.55f, 0.f, HMid),
+			FVector3f(-HalfWBase * 0.55f, 0.f, HMid),
+			FVector3f( 0.f,               0.f, HTip)
 		};
-		const FVector2f UV[4] = { {0,1}, {1,1}, {1,0}, {0,0} };
+		const FVector2f UV[5] = {
+			{0.0f, 1.0f}, {1.0f, 1.0f},
+			{0.78f, 0.45f}, {0.22f, 0.45f},
+			{0.5f, 0.0f}
+		};
 		TArray<FVertexID> V;
-		for (int i = 0; i < 4; ++i)
+		V.Reserve(5);
+		for (int i = 0; i < 5; ++i)
 		{
 			FVertexID Vid = Desc.CreateVertex();
 			Positions[Vid] = FVector3f(X.TransformPosition(FVector(L[i])));
 			V.Add(Vid);
 		}
+
+		const float BendByIdx[5] = { 0.0f, 0.0f, 0.6f, 0.6f, 1.0f };
+
 		auto AddTri = [&](int a, int b, int c)
 		{
 			TArray<FVertexInstanceID> Inst;
@@ -260,18 +272,21 @@ UStaticMesh* FKBVEWorldProceduralGrass::GetOrCreateImpostorMesh(UObject* Outer, 
 				Normals[Vi]  = FVector3f(0.f, -1.f, 0.f);
 				Tangents[Vi] = FVector3f(1.f,  0.f, 0.f);
 				UVs[Vi]      = UV[idx];
-				const float BendT = (idx == 2 || idx == 3) ? 1.f : 0.f;
-				Colors[Vi] = FVector4f(0.05f + 0.07f * BendT, 0.22f + 0.30f * BendT, 0.03f, 1.f);
+				const float BendT = BendByIdx[idx];
+				Colors[Vi] = FVector4f(0.05f + 0.08f * BendT, 0.20f + 0.34f * BendT, 0.03f, 1.f);
 				Inst.Add(Vi);
 			}
 			Desc.CreatePolygon(Group, Inst);
 		};
+
 		AddTri(0, 1, 2);
 		AddTri(0, 2, 3);
+		AddTri(3, 2, 4);
 	};
 
-	AddBillboard(FRotator(0.f, 0.f,  0.f));
-	AddBillboard(FRotator(0.f, 90.f, 0.f));
+	AddTaperedSheet(FRotator(0.f, 0.f,   0.f));
+	AddTaperedSheet(FRotator(0.f, 60.f,  0.f));
+	AddTaperedSheet(FRotator(0.f, 120.f, 0.f));
 
 	FStaticMeshOperations::ComputeTriangleTangentsAndNormals(Desc);
 
