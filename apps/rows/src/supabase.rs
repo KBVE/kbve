@@ -104,16 +104,22 @@ pub fn validate_jwt(token: &str, config: &SupabaseConfig) -> Result<ValidatedUse
     })
 }
 
-/// Compares against the stored argon2 hash (constant-time, defeats timing attacks).
+/// Verifies a presented service key against the stored argon2 hash (`SUPABASE_SERVICE_KEY_HASH`).
+/// Used for trusted server-to-server callers (e.g. the UE dedicated server) that have no player
+/// JWT. argon2 verification is constant-time, defeating timing attacks.
 pub fn validate_service_key(key: &str, config: &SupabaseConfig) -> Result<(), JwtError> {
+    use argon2::{Argon2, PasswordHash, PasswordVerifier};
+
     let hash = config
         .service_key_hash
         .as_ref()
         .ok_or(JwtError::NotConfigured)?;
 
-    let _ = (key, hash);
-
-    Err(JwtError::NotConfigured)
+    let parsed = PasswordHash::new(hash).map_err(|_| JwtError::InvalidServiceKey)?;
+    Argon2::default()
+        .verify_password(key.as_bytes(), &parsed)
+        .map_err(|_| JwtError::InvalidServiceKey)?;
+    Ok(())
 }
 
 #[derive(Debug, thiserror::Error)]
