@@ -32,9 +32,10 @@ Shared Slate UI component library for KBVE Unreal games — game-agnostic visual
 primitives (Core + Slate only): movable frames, the settings frame + reusable
 settings rows (toggle / slider / combo), hotbar, slots, tooltips, info panels,
 the `SKBVEEquipmentPanel` paper-doll (11 generic equip slots via `EKBVEEquipSlot`),
-and the **`SKBVEDevOverlay`** debug HUD (self-computed FPS/ms; entity-count and
-ping fed via `FKBVEDevOverlayIntProvider` delegates so the widget needs no Engine
-or Mass dep — the game supplies the numbers).
+the `SKBVELoadingPanel` full-screen loader (`InitialMessage` + `UnitLabel` args,
+`SetProgress`/`SetMessage`), and the **`SKBVEDevOverlay`** debug HUD (self-computed
+FPS/ms; entity-count and ping fed via `FKBVEDevOverlayIntProvider` delegates so the
+widget needs no Engine or Mass dep — the game supplies the numbers).
 
 Also holds **UI state** — `FKBVEUIState` (panel-flag set + cursor/movement/camera
 policy masks + `Has`/`Set`/`Diff`/`NeedsCursor`/`BlocksMovement` helpers) and
