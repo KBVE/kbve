@@ -98,9 +98,13 @@ namespace
 		Options->bImportTextures   = false;
 		Options->bImportMaterials  = false;
 		Options->bImportAsSkeletal = false;
-		Options->StaticMeshImportData->bCombineMeshes         = true;
-		Options->StaticMeshImportData->bGenerateLightmapUVs   = true;
-		Options->StaticMeshImportData->bAutoGenerateCollision = true;
+		UFbxStaticMeshImportData* SMID = Options->StaticMeshImportData;
+		SMID->bCombineMeshes          = true;
+		SMID->bGenerateLightmapUVs    = true;
+		SMID->bAutoGenerateCollision  = true;
+		SMID->NormalImportMethod      = FBXNIM_ImportNormals;
+		SMID->NormalGenerationMethod  = EFBXNormalGenerationMethod::MikkTSpace;
+		SMID->bComputeWeightedNormals = true;
 		Task->Options = Options;
 	}
 
