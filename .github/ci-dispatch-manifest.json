@@ -700,6 +700,18 @@
 			"version_toml": "packages/unreal/KBVEHexWorld/version.toml"
 		},
 		{
+			"key": "ue_kbveitemdb",
+			"plugin_name": "KBVEItemDB",
+			"plugin_path": "packages/unreal/KBVEItemDB",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVEItemDB/version.toml"
+		},
+		{
 			"key": "ue_kbvelibgit",
 			"plugin_name": "KBVELibGit",
 			"plugin_path": "packages/unreal/KBVELibGit",
