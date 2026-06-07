@@ -31,5 +31,11 @@ Shared Slate UI component library for KBVE Unreal games — game-agnostic visual
 primitives (Core + Slate only): movable frames, the settings frame + reusable
 settings rows (toggle / slider / combo), hotbar, slots, tooltips, info panels.
 
+Also holds **UI state** — `FKBVEUIState` (panel-flag set + cursor/movement/camera
+policy masks + `Has`/`Set`/`Diff`/`NeedsCursor`/`BlocksMovement` helpers) and
+`KBVEUIFlag` common flag bits — so a controller tracks which panels are open and
+derives input/cursor mode without re-rolling the bitfield. Stays Core+Slate;
+domain-aware UI (item-aware inventory, Supabase auth/chat) composes on top.
+
 Plugin source ships via its own PR; this entry wires it into the build/release
 pipeline alongside the other UE plugins.
