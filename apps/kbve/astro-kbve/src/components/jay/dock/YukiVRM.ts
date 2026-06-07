@@ -335,15 +335,21 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 	>();
 	let currentAction: ReturnType<typeof mixer.clipAction> | null = null;
 	let idleAnimationUrl: string | null = null;
-	const DEFAULT_FADE = 0.35;
+	const DEFAULT_FADE = 0.8;
+	const IDLE_RESUME_FADE = 1.0;
 
 	mixer.addEventListener('finished', (e) => {
 		const ev = e as unknown as {
 			action: ReturnType<typeof mixer.clipAction>;
 		};
+		console.warn('[yuki-vrm] action finished', {
+			finished: ev.action,
+			isCurrent: ev.action === currentAction,
+			idleUrl: idleAnimationUrl,
+		});
 		if (ev.action !== currentAction) return;
 		if (idleAnimationUrl) {
-			void playAnimation(idleAnimationUrl, true, 0.6);
+			void playAnimation(idleAnimationUrl, true, IDLE_RESUME_FADE);
 		} else {
 			stopAnimation();
 		}
