@@ -203,6 +203,55 @@ CREATE UNIQUE INDEX IF NOT EXISTS gh_issue_event_delivery_unique
     ON gh.issue_event (github_delivery_id)
     WHERE github_delivery_id IS NOT NULL;
 
+-- Generated, stored repo_key — lowercase "owner/repo". Lets the dashboard
+-- per-guild RPCs (service_get_guild_event_stats, _recent_failed_events,
+-- _requeue_event) filter via plain btree equality instead of recomputing
+-- (lower(owner)||'/'||lower(repo)) per row.
+ALTER TABLE gh.issue_event
+    ADD COLUMN IF NOT EXISTS repo_key TEXT
+    GENERATED ALWAYS AS (lower(owner) || '/' || lower(repo)) STORED;
+
+CREATE INDEX IF NOT EXISTS gh_issue_event_repo_key_state_updated_id_idx
+    ON gh.issue_event (repo_key, delivery_state, updated_at DESC, id DESC);
+
+CREATE INDEX IF NOT EXISTS gh_issue_event_failed_repo_key_updated_id_idx
+    ON gh.issue_event (repo_key, updated_at DESC, id DESC)
+    WHERE delivery_state = 3;
+
+
+-- ============================================================================
+-- TABLE: gh.requeue_audit
+--   Tracks manual requeues from the dashboard / ops tooling. Append-only,
+--   service_role only, primarily for forensics ("which guild requeued what
+--   event, when, why") and quota tracking. Row lifetime is short — a
+--   periodic purge against created_at is expected.
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS gh.requeue_audit (
+    id              BIGSERIAL    PRIMARY KEY,
+    issue_event_id  BIGINT       NOT NULL REFERENCES gh.issue_event (id) ON DELETE CASCADE,
+    repos           TEXT[]       NOT NULL,
+    reason          TEXT,
+    old_state       SMALLINT     NOT NULL,
+    old_attempts    INT          NOT NULL,
+    forced          BOOLEAN      NOT NULL DEFAULT FALSE,
+    created_at      TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    CONSTRAINT gh_requeue_audit_reason_len_chk
+        CHECK (reason IS NULL OR char_length(reason) <= 512),
+    CONSTRAINT gh_requeue_audit_old_state_chk
+        CHECK (old_state IN (0, 1, 2, 3))
+);
+
+COMMENT ON TABLE gh.requeue_audit IS
+'Append-only audit trail of manual gh.issue_event requeues triggered by the dashboard / ops tooling. service_role only.';
+
+CREATE INDEX IF NOT EXISTS gh_requeue_audit_event_created_idx
+    ON gh.requeue_audit (issue_event_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS gh_requeue_audit_created_idx
+    ON gh.requeue_audit (created_at DESC);
+
+
 -- ============================================================================
 -- OWNERSHIP — RPC-only posture. Schema, tables, sequence all owned by
 -- service_role so SECURITY DEFINER functions reach the tables via the
@@ -214,7 +263,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS gh_issue_event_delivery_unique
 ALTER SCHEMA gh OWNER TO service_role;
 ALTER TABLE gh.issue OWNER TO service_role;
 ALTER TABLE gh.issue_event OWNER TO service_role;
+ALTER TABLE gh.requeue_audit OWNER TO service_role;
 ALTER SEQUENCE gh.issue_event_id_seq OWNER TO service_role;
+ALTER SEQUENCE gh.requeue_audit_id_seq OWNER TO service_role;
 
 COMMENT ON SCHEMA gh IS
 'L2 cache for GitHub issue/PR metadata + append-only event queue feeding the discordsh thread sync. Mirror-only, RPC-only surface (no direct table grants), owned by service_role.';

@@ -162,6 +162,19 @@ export interface FailedEvent {
 	updated_at: string;
 }
 
+export interface PendingEvent {
+	id: number;
+	owner: string;
+	repo: string;
+	number: number;
+	event_type: string;
+	actor: string | null;
+	delivery_state: number;
+	delivery_attempts: number;
+	created_at: string;
+	claimed_at: string | null;
+}
+
 export interface GithubRepoHook {
 	id: number;
 	name: string;
@@ -425,6 +438,8 @@ class AgentsService {
 	public readonly $eventStatsLoading = atom<Record<string, boolean>>({});
 	public readonly $failedEvents = atom<Record<string, FailedEvent[]>>({});
 	public readonly $failedEventsLoading = atom<Record<string, boolean>>({});
+	public readonly $pendingEvents = atom<Record<string, PendingEvent[]>>({});
+	public readonly $pendingEventsLoading = atom<Record<string, boolean>>({});
 	public readonly $eventRequeueBusyFor = atom<Record<string, boolean>>({});
 
 	// Dedup state — singleton so the cache survives ClientRouter swaps.
@@ -1549,21 +1564,50 @@ class AgentsService {
 		});
 	}
 
+	public async loadPendingEvents(guildId: string, limit = 10): Promise<void> {
+		this.$pendingEventsLoading.set({
+			...this.$pendingEventsLoading.get(),
+			[guildId]: true,
+		});
+		const r = await this.callJson<{ events: PendingEvent[] }>(
+			GH_ADMIN_URL,
+			{
+				command: 'events.pending',
+				server_id: guildId,
+				limit,
+			},
+		);
+		const loading = { ...this.$pendingEventsLoading.get() };
+		delete loading[guildId];
+		this.$pendingEventsLoading.set(loading);
+		if (!r.ok) return;
+		this.$pendingEvents.set({
+			...this.$pendingEvents.get(),
+			[guildId]: r.data.events ?? [],
+		});
+	}
+
 	public async requeueEvent(
 		guildId: string,
 		eventId: number,
+		reason?: string,
 	): Promise<{ ok: true } | { ok: false; error: string }> {
 		const key = `${guildId}:${eventId}`;
 		this.$eventRequeueBusyFor.set({
 			...this.$eventRequeueBusyFor.get(),
 			[key]: true,
 		});
+		const trimmedReason =
+			typeof reason === 'string' && reason.trim().length > 0
+				? reason.trim().slice(0, 512)
+				: undefined;
 		const r = await this.callJson<{ requeued: boolean; event_id: number }>(
 			GH_ADMIN_URL,
 			{
 				command: 'events.requeue',
 				server_id: guildId,
 				event_id: eventId,
+				...(trimmedReason ? { reason: trimmedReason } : {}),
 			},
 		);
 		const busy = { ...this.$eventRequeueBusyFor.get() };
