@@ -16,14 +16,33 @@ void SKBVEToastLayer::Construct(const FArguments& InArgs)
 
 int32 SKBVEToastLayer::PushToast(const FText& Title, const FText& Message, EKBVEToastLevel Level, float Duration)
 {
+	return PushToastUnique(NAME_None, Title, Message, Level, Duration);
+}
+
+int32 SKBVEToastLayer::PushToastUnique(FName DedupeKey, const FText& Title, const FText& Message, EKBVEToastLevel Level, float Duration)
+{
 	const float Life = (Duration < 0.f) ? DefaultDuration : Duration;
-	const int32 Id   = NextId++;
+
+	if (!DedupeKey.IsNone())
+	{
+		const int32 ExistingIdx = Entries.IndexOfByPredicate([DedupeKey](const FEntry& E)
+		{
+			return E.DedupeKey == DedupeKey;
+		});
+		if (ExistingIdx != INDEX_NONE)
+		{
+			Entries[ExistingIdx].Remaining = Life;
+			Entries[ExistingIdx].bExpires  = Life > 0.f;
+			return Entries[ExistingIdx].Id;
+		}
+	}
 
 	while (Entries.Num() >= MaxToasts)
 	{
 		RemoveEntry(0);
 	}
 
+	const int32 Id = NextId++;
 	TSharedRef<SKBVEToast> Toast = SNew(SKBVEToast)
 		.Title(Title)
 		.Message(Message)
@@ -40,6 +59,7 @@ int32 SKBVEToastLayer::PushToast(const FText& Title, const FText& Message, EKBVE
 
 	FEntry Entry;
 	Entry.Id        = Id;
+	Entry.DedupeKey = DedupeKey;
 	Entry.Widget    = Toast;
 	Entry.Remaining = Life;
 	Entry.bExpires  = Life > 0.f;

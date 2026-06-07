@@ -56,7 +56,8 @@ void SchuckToastHost::BindToEventBus()
 		const FText Msg = (P.HealHP > 0.f)
 			? FText::Format(LOCTEXT("ItemHealFmt", "+{0} HP"), FText::AsNumber(FMath::RoundToInt(P.HealHP)))
 			: LOCTEXT("ItemUsed", "Item used");
-		ToastLayer->PushToast(LOCTEXT("ItemConsumedTitle", "Consumed"), Msg, EKBVEToastLevel::Success);
+		const FName Key = *FString::Printf(TEXT("item.consumed.%d"), P.ItemKey);
+		ToastLayer->PushToastUnique(Key, LOCTEXT("ItemConsumedTitle", "Consumed"), Msg, EKBVEToastLevel::Success);
 	});
 
 	AuthStatusHandle = Bus->AuthStatus.Subscribe(C, [this](const FchuckAuthStatusPayload& P)
@@ -66,7 +67,8 @@ void SchuckToastHost::BindToEventBus()
 			return;
 		}
 		const FString Name = P.KbveUsername.IsEmpty() ? P.Email : P.KbveUsername;
-		ToastLayer->PushToast(LOCTEXT("SignedInTitle", "Signed in"), FText::FromString(Name), EKBVEToastLevel::Info);
+		const FText Welcome = FText::Format(LOCTEXT("WelcomeBackFmt", "Welcome back {0}"), FText::FromString(Name));
+		ToastLayer->PushToastUnique(TEXT("auth.signin"), LOCTEXT("WelcomeTitle", "Signed in"), Welcome, EKBVEToastLevel::Info);
 	});
 
 	AuthErrorHandle = Bus->AuthError.Subscribe(C, [this](const FchuckAuthErrorPayload& P)
@@ -75,7 +77,10 @@ void SchuckToastHost::BindToEventBus()
 		{
 			return;
 		}
-		ToastLayer->PushToast(LOCTEXT("AuthErrTitle", "Auth error"), FText::FromString(P.Message), EKBVEToastLevel::Error);
+		const FName Key = P.Code.IsEmpty()
+			? FName(TEXT("auth.error"))
+			: *FString::Printf(TEXT("auth.error.%s"), *P.Code);
+		ToastLayer->PushToastUnique(Key, LOCTEXT("AuthErrTitle", "Auth error"), FText::FromString(P.Message), EKBVEToastLevel::Error);
 	});
 }
 

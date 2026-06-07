@@ -23,6 +23,7 @@ public:
 	void Construct(const FArguments& InArgs);
 
 	int32 PushToast(const FText& Title, const FText& Message, EKBVEToastLevel Level = EKBVEToastLevel::Info, float Duration = -1.f);
+	int32 PushToastUnique(FName DedupeKey, const FText& Title, const FText& Message, EKBVEToastLevel Level = EKBVEToastLevel::Info, float Duration = -1.f);
 	void Dismiss(int32 ToastId);
 	void DismissAll();
 
@@ -32,6 +33,7 @@ private:
 	struct FEntry
 	{
 		int32 Id = 0;
+		FName DedupeKey;
 		TSharedPtr<SWidget> Widget;
 		float Remaining = 0.f;
 		bool bExpires = false;
