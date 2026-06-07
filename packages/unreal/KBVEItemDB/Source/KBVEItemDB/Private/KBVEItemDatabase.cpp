@@ -1,5 +1,6 @@
 #include "KBVEItemDatabase.h"
 
+#include "KBVEItemCatalogStore.h"
 #include "Dom/JsonObject.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -199,4 +200,16 @@ bool UKBVEItemDatabase::GetItemByRef(FName Ref, FKBVEItemDef& OutDef) const
 		return true;
 	}
 	return false;
+}
+
+bool UKBVEItemDatabase::PersistCatalogToDb(const FString& DbPath) const
+{
+	FKBVEItemCatalogStore Store;
+	if (!Store.Open(DbPath))
+	{
+		return false;
+	}
+	const bool bOk = Store.SaveCatalog(Items);
+	Store.Close();
+	return bOk;
 }

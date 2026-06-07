@@ -27,4 +27,28 @@ supported_platforms:
 
 ## Overview
 
-KBVESQLite wraps SQLite as an embedded database plugin for Unreal Engine.
+KBVESQLite wraps SQLite as an embedded database plugin for Unreal Engine — a
+vendored `sqlite3` amalgamation plus a thin RAII wrapper so consumers never
+touch raw `sqlite3_*` calls.
+
+## Access seam
+
+- **`FKBVESQLiteConnection`** — RAII connection: `Open(path, bUseWAL)` / `Close` /
+  `Exec` / `Prepare` / `Begin` / `Commit` / `Rollback`.
+- **`FKBVESQLiteStatement`** — RAII prepared statement: `Bind*`, `Step` / `Execute`
+  / `Reset`, `Column*` accessors.
+
+Add `KBVESQLite` to your module's `PrivateDependencyModuleNames` and
+`dependency_plugins: packages/unreal/KBVESQLite` to your ci-registry entry so the
+CI plugin build stages it.
+
+## Rules
+
+- **Single sqlite provider** — never link the engine's `SQLiteCore` in the same
+  module; duplicate `sqlite3_*` symbols crash the build/run.
+- **Persistence boundary, not a Mass hot-loop datasource** — one connection is not
+  thread-safe; WAL gives many readers + one writer across separate connections.
+  Load at boundaries, keep the working set in memory/Mass fragments, flush async.
+
+Consumers: `FKBVEWorldChunkCache` (KBVEWorld), `FKBVEInventoryStore` +
+`FKBVEItemCatalogStore` (KBVEItemDB).
