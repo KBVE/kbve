@@ -16,7 +16,10 @@
 #include "Materials/MaterialExpressionTextureSample.h"
 #include "MaterialEditingLibrary.h"
 #include "Misc/MessageDialog.h"
+#include "Misc/PackageName.h"
 #include "Misc/Paths.h"
+#include "UObject/Package.h"
+#include "UObject/SavePackage.h"
 
 #define LOCTEXT_NAMESPACE "UEDevOpsImport"
 
@@ -80,15 +83,40 @@ namespace
 		return Ext == TEXT(".fbx");
 	}
 
-	UAssetImportTask* MakeTask(const FString& Filename, const FString& Dest)
+	UAssetImportTask* MakeTask(const FString& Filename, const FString& Dest, bool bSaveAfterImport)
 	{
 		UAssetImportTask* Task = NewObject<UAssetImportTask>();
 		Task->Filename         = Filename;
 		Task->DestinationPath  = Dest;
 		Task->bReplaceExisting = true;
 		Task->bAutomated       = true;
-		Task->bSave            = true;
+		Task->bSave            = bSaveAfterImport;
 		return Task;
+	}
+
+	bool ForceSavePackage(UObject* Asset)
+	{
+		if (!Asset) return false;
+		UPackage* Pkg = Asset->GetOutermost();
+		if (!Pkg) return false;
+
+		Pkg->FullyLoad();
+		Pkg->SetDirtyFlag(true);
+		Pkg->MarkPackageDirty();
+
+		const bool bSavedHighLevel = UEditorAssetLibrary::SaveLoadedAsset(Asset, /*OnlyIfDirty*/ false);
+
+		const FString Filename = FPackageName::LongPackageNameToFilename(
+			Pkg->GetName(), FPackageName::GetAssetPackageExtension());
+		FSavePackageArgs SaveArgs;
+		SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
+		SaveArgs.SaveFlags     = 0;
+		SaveArgs.Error         = GError;
+		const bool bSavedLowLevel = UPackage::SavePackage(Pkg, nullptr, *Filename, SaveArgs);
+
+		UE_LOG(LogTemp, Display, TEXT("[UEDevOps] SavePackage(%s) -> highLevel=%d lowLevel=%d file=%s"),
+			*Pkg->GetName(), bSavedHighLevel ? 1 : 0, bSavedLowLevel ? 1 : 0, *Filename);
+		return bSavedHighLevel || bSavedLowLevel;
 	}
 
 	void ConfigureFbxTask(UAssetImportTask* Task, float MeshScale)
@@ -130,35 +158,38 @@ namespace
 			return nullptr;
 		}
 
-		int32 Y = -300;
-		for (const auto& Kvp : SlotToTexture)
+		const TPair<UTexture*, EMaterialSamplerType>* BaseColorPair = SlotToTexture.Find(MP_BaseColor);
+		if (BaseColorPair && BaseColorPair->Key)
 		{
 			UMaterialExpression* Expr = UMaterialEditingLibrary::CreateMaterialExpression(
-				Mat, UMaterialExpressionTextureSample::StaticClass(), -400, Y);
+				Mat, UMaterialExpressionTextureSample::StaticClass(), -400, 0);
 			UMaterialExpressionTextureSample* Sample = Cast<UMaterialExpressionTextureSample>(Expr);
-			if (!Sample)
+			if (Sample)
 			{
-				UE_LOG(LogTemp, Error, TEXT("[UEDevOps] CreateMaterialExpression returned null for %d"), (int32)Kvp.Key);
-				continue;
+				Sample->SamplerType = SAMPLERTYPE_Color;
+				Sample->Texture     = BaseColorPair->Key;
+				const bool bConnected = UMaterialEditingLibrary::ConnectMaterialProperty(Sample, FString(), MP_BaseColor);
+				UE_LOG(LogTemp, Display, TEXT("[UEDevOps]   wired BaseColor=%s (connected=%d)"),
+					*BaseColorPair->Key->GetName(), bConnected ? 1 : 0);
 			}
-
-			Sample->SamplerType = Kvp.Value.Value;
-			Sample->Texture     = Kvp.Value.Key;
-
-			const bool bConnected = UMaterialEditingLibrary::ConnectMaterialProperty(Sample, TEXT("RGB"), Kvp.Key);
-			UE_LOG(LogTemp, Display, TEXT("[UEDevOps]   wired %s -> slot %d (connected=%d, sampler=%d)"),
-				*Kvp.Value.Key->GetName(), (int32)Kvp.Key, bConnected ? 1 : 0, (int32)Kvp.Value.Value);
-			Y += 250;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[UEDevOps] No BaseColor texture classified — material left empty"));
 		}
 
 		UMaterialEditingLibrary::RecompileMaterial(Mat);
-		UEditorAssetLibrary::SaveLoadedAsset(Mat);
+		Mat->PostEditChange();
+		ForceSavePackage(Mat);
 		return Mat;
 	}
 
 	void AssignMaterialToMesh(UStaticMesh* Mesh, UMaterialInterface* Material)
 	{
 		if (!Mesh || !Material) return;
+
+		Mesh->Modify();
+		Mesh->PreEditChange(nullptr);
 
 		TArray<FStaticMaterial> Slots = Mesh->GetStaticMaterials();
 		if (Slots.Num() == 0)
@@ -177,7 +208,11 @@ namespace
 			}
 		}
 		Mesh->SetStaticMaterials(Slots);
-		UEditorAssetLibrary::SaveLoadedAsset(Mesh);
+
+		Mesh->PostEditChange();
+		Mesh->Build(/*bSilent*/ true);
+
+		ForceSavePackage(Mesh);
 		UE_LOG(LogTemp, Display, TEXT("[UEDevOps] Assigned %s -> %s (%d slots)"),
 			*Material->GetName(), *Mesh->GetName(), Slots.Num());
 	}
@@ -214,7 +249,7 @@ bool FUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, c
 
 		if (IsFbx(Ext))
 		{
-			UAssetImportTask* Task = MakeTask(Full, DestFull);
+			UAssetImportTask* Task = MakeTask(Full, DestFull, /*save*/ true);
 			ConfigureFbxTask(Task, MeshScale);
 			FbxTasks.Add(Task);
 		}
@@ -226,7 +261,7 @@ bool FUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, c
 				UE_LOG(LogTemp, Warning, TEXT("[UEDevOps] Skipping unclassified texture: %s"), *Filename);
 				continue;
 			}
-			UAssetImportTask* Task = MakeTask(Full, DestFull);
+			UAssetImportTask* Task = MakeTask(Full, DestFull, /*save*/ true);
 			TexTasks.Add(Task);
 			TexRules.Add(Full, Rule);
 		}
@@ -255,9 +290,11 @@ bool FUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, c
 		{
 			UTexture* Tex = Cast<UTexture>(UEditorAssetLibrary::LoadAsset(AssetPath));
 			if (!Tex) continue;
+			Tex->Modify();
 			Tex->CompressionSettings = Rule.Compression;
 			Tex->SRGB                = Rule.bSrgb;
-			UEditorAssetLibrary::SaveLoadedAsset(Tex);
+			Tex->PostEditChange();
+			ForceSavePackage(Tex);
 			if (!SlotToTexture.Contains(Rule.Slot))
 			{
 				SlotToTexture.Add(Rule.Slot, TPair<UTexture*, EMaterialSamplerType>(Tex, Rule.Sampler));
@@ -273,6 +310,7 @@ bool FUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, c
 			if (UStaticMesh* Mesh = Cast<UStaticMesh>(UEditorAssetLibrary::LoadAsset(AssetPath)))
 			{
 				Meshes.Add(Mesh);
+				ForceSavePackage(Mesh);
 			}
 		}
 	}
@@ -288,13 +326,12 @@ bool FUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, c
 		UE_LOG(LogTemp, Warning, TEXT("[UEDevOps] No texture suffixes classified — material skipped"));
 	}
 
-	if (Mat && Meshes.Num() == 1)
+	if (Mat)
 	{
-		AssignMaterialToMesh(Meshes[0], Mat);
-	}
-	else if (Mat && Meshes.Num() > 1)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[UEDevOps] %d meshes imported — leaving material unassigned"), Meshes.Num());
+		for (UStaticMesh* Mesh : Meshes)
+		{
+			AssignMaterialToMesh(Mesh, Mat);
+		}
 	}
 
 	UE_LOG(LogTemp, Display, TEXT("[UEDevOps] Import complete. Meshes=%d Material=%s"),

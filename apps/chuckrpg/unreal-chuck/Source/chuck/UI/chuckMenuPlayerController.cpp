@@ -15,6 +15,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "chuckTerrainPrewarm.h"
 #include "chuckTerrainChunk.h"
+#include "Props/chuckArcadeCabinet.h"
+#include "TimerManager.h"
 #include "KBVEWorldGrassShader.h"
 #include "KBVEWorldProceduralGrass.h"
 #include "ROWSAuthSubsystem.h"
@@ -110,6 +112,7 @@ void AchuckMenuPlayerController::BeginPlay()
 	InputMode.SetWidgetToFocus(MenuWidget);
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	SetInputMode(InputMode);
+
 }
 
 void AchuckMenuPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)

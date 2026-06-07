@@ -802,9 +802,47 @@ async function handleEventFailed(
   return jsonResponse({ events: Array.isArray(data) ? data : [] });
 }
 
+async function handleEventPending(
+  serverId: string,
+  limit: number,
+): Promise<Response> {
+  const repos = await fetchRepoAllowlist(serverId);
+  if (repos.length === 0) {
+    return jsonResponse({ events: [] });
+  }
+  if (repos.length > REPO_HARD_CAP) {
+    return jsonResponse(
+      {
+        error:
+          `Allowlist has ${repos.length} repos; pending-events RPC accepts max ${REPO_HARD_CAP}`,
+      },
+      413,
+    );
+  }
+  const capped = Math.min(Math.max(limit, 1), 50);
+  const sb = createServiceClient();
+  const { data, error } = await sb.schema("gh").rpc(
+    "service_get_recent_pending_events",
+    { p_repos: repos, p_limit: capped },
+  );
+  if (error) {
+    const errCode = (error as { code?: string }).code ?? "";
+    if (errCode === "GH006") {
+      return jsonResponse({ error: error.message }, 413);
+    }
+    console.error(
+      "gh-admin: service_get_recent_pending_events failed",
+      error.message,
+    );
+    return jsonResponse({ error: "pending-events lookup failed" }, 500);
+  }
+  return jsonResponse({ events: Array.isArray(data) ? data : [] });
+}
+
 async function handleEventRequeue(
   serverId: string,
   eventId: number,
+  reason: string | null,
 ): Promise<Response> {
   const repos = await fetchRepoAllowlist(serverId);
   if (repos.length === 0) {
@@ -817,6 +855,7 @@ async function handleEventRequeue(
   const { data, error } = await sb.schema("gh").rpc("service_requeue_event", {
     p_repos: repos,
     p_event_id: eventId,
+    p_reason: reason,
   });
   if (error) {
     const errCode = (error as { code?: string }).code ?? "";
@@ -880,6 +919,7 @@ serve(async (req) => {
     repo?: string;
     event_id?: number;
     limit?: number;
+    reason?: string;
   };
   try {
     body = await req.json();
@@ -912,17 +952,25 @@ serve(async (req) => {
         const limit = typeof body.limit === "number" ? body.limit : 10;
         return await handleEventFailed(serverId, limit);
       }
+      case "events.pending": {
+        const limit = typeof body.limit === "number" ? body.limit : 10;
+        return await handleEventPending(serverId, limit);
+      }
       case "events.requeue": {
         if (typeof body.event_id !== "number" || body.event_id <= 0) {
           return jsonResponse({ error: "event_id must be > 0" }, 400);
         }
-        return await handleEventRequeue(serverId, body.event_id);
+        const reason =
+          typeof body.reason === "string" && body.reason.trim().length > 0
+            ? body.reason.trim().slice(0, 512)
+            : null;
+        return await handleEventRequeue(serverId, body.event_id, reason);
       }
       default:
         return jsonResponse(
           {
             error:
-              'events.* command required (one of: "events.stats", "events.failed", "events.requeue")',
+              'events.* command required (one of: "events.stats", "events.failed", "events.pending", "events.requeue")',
           },
           400,
         );

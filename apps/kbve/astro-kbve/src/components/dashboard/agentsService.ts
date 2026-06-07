@@ -1,4 +1,5 @@
 import { atom } from 'nanostores';
+import { persistentAtom } from '@nanostores/persistent';
 import { initSupa, getSupa, SUPABASE_URL } from '@/lib/supa';
 import { addToast } from '@kbve/droid';
 
@@ -162,6 +163,19 @@ export interface FailedEvent {
 	updated_at: string;
 }
 
+export interface PendingEvent {
+	id: number;
+	owner: string;
+	repo: string;
+	number: number;
+	event_type: string;
+	actor: string | null;
+	delivery_state: number;
+	delivery_attempts: number;
+	created_at: string;
+	claimed_at: string | null;
+}
+
 export interface GithubRepoHook {
 	id: number;
 	name: string;
@@ -180,6 +194,8 @@ const GUILDS_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 // re-mounts; short enough that real changes show up on a refresh".
 const GUILDS_LIVE_TTL_MS = 60 * 1000;
 const TOKENS_CACHE_TTL_MS = 60 * 1000;
+const CHANNELS_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const BOT_MEMBERSHIP_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 // initAuth dedup: any call within this window of a successful init
 // is a no-op. Prevents the screenshot 429 caused by 5 islands
 // across two agents pages each firing initAuth in useEffect.
@@ -394,9 +410,55 @@ class AgentsService {
 		>
 	>({});
 
-	public readonly $guildChannels = atom<Record<string, GuildChannels>>({});
+	public readonly $guildChannels = persistentAtom<
+		Record<string, GuildChannels & { cached_at: number }>
+	>(
+		'kbve:agents:guild_channels:v1',
+		{},
+		{
+			encode: (v) => JSON.stringify(v),
+			decode: (raw) => {
+				try {
+					return raw
+						? (JSON.parse(raw) as Record<
+								string,
+								GuildChannels & { cached_at: number }
+							>)
+						: {};
+				} catch {
+					return {};
+				}
+			},
+		},
+	);
 	public readonly $guildChannelsLoading = atom<Record<string, boolean>>({});
 	public readonly $guildChannelsError = atom<Record<string, string | null>>(
+		{},
+	);
+
+	public readonly $botMembership = persistentAtom<
+		Record<string, { isMember: boolean; cached_at: number }>
+	>(
+		'kbve:agents:bot_membership:v1',
+		{},
+		{
+			encode: (v) => JSON.stringify(v),
+			decode: (raw) => {
+				try {
+					return raw
+						? (JSON.parse(raw) as Record<
+								string,
+								{ isMember: boolean; cached_at: number }
+							>)
+						: {};
+				} catch {
+					return {};
+				}
+			},
+		},
+	);
+	public readonly $botMembershipLoading = atom<Record<string, boolean>>({});
+	public readonly $botMembershipError = atom<Record<string, string | null>>(
 		{},
 	);
 
@@ -425,6 +487,8 @@ class AgentsService {
 	public readonly $eventStatsLoading = atom<Record<string, boolean>>({});
 	public readonly $failedEvents = atom<Record<string, FailedEvent[]>>({});
 	public readonly $failedEventsLoading = atom<Record<string, boolean>>({});
+	public readonly $pendingEvents = atom<Record<string, PendingEvent[]>>({});
+	public readonly $pendingEventsLoading = atom<Record<string, boolean>>({});
 	public readonly $eventRequeueBusyFor = atom<Record<string, boolean>>({});
 
 	// Dedup state — singleton so the cache survives ClientRouter swaps.
@@ -560,9 +624,9 @@ class AgentsService {
 		}
 	}
 
-	private async bootstrapDiscord(providerToken: string): Promise<void> {
+	private async bootstrapDiscord(providerToken: string): Promise<boolean> {
 		const accessToken = this.$accessToken.get();
-		if (!accessToken) return;
+		if (!accessToken) return false;
 		try {
 			const resp = await fetch(DISCORD_BOOTSTRAP_URL, {
 				method: 'POST',
@@ -573,18 +637,61 @@ class AgentsService {
 				body: JSON.stringify({ provider_token: providerToken }),
 			});
 			if (!resp.ok) {
-				// Non-fatal: the JWT claim path + Discord-live path
-				// both still work. Just log so dev tools shows it.
 				const text = await resp.text();
 				console.warn(
 					'[agentsService] discord-bootstrap returned',
 					resp.status,
 					text.slice(0, 200),
 				);
+				return false;
 			}
+			return true;
 		} catch (e) {
 			console.warn('[agentsService] discord-bootstrap threw:', e);
+			return false;
 		}
+	}
+
+	private refreshInflight: Promise<boolean> | null = null;
+	private lastForcedRefreshAt = 0;
+	private readonly FORCED_REFRESH_COOLDOWN_MS = 5 * 1000;
+
+	private async forceTokenRefresh(): Promise<boolean> {
+		const now = Date.now();
+		if (now - this.lastForcedRefreshAt < this.FORCED_REFRESH_COOLDOWN_MS) {
+			return false;
+		}
+		if (this.refreshInflight) return this.refreshInflight;
+		this.refreshInflight = (async () => {
+			try {
+				const { authBridge } =
+					await import('@/components/auth/AuthBridge');
+				const session = await authBridge.refreshSession();
+				if (!session?.access_token) {
+					console.warn(
+						'[agentsService] refreshSession returned no session',
+					);
+					return false;
+				}
+				this.$accessToken.set(session.access_token);
+				this.lastForcedRefreshAt = Date.now();
+				return true;
+			} catch (e) {
+				console.warn('[agentsService] refreshSession threw:', e);
+				return false;
+			} finally {
+				this.refreshInflight = null;
+			}
+		})();
+		return this.refreshInflight;
+	}
+
+	public async resyncOwnedGuilds(): Promise<boolean> {
+		const providerToken = this.$providerToken.get();
+		if (!providerToken) return false;
+		const ok = await this.bootstrapDiscord(providerToken);
+		if (!ok) return false;
+		return await this.forceTokenRefresh();
 	}
 
 	public async loadOwnedGuilds(force = false): Promise<void> {
@@ -1370,7 +1477,9 @@ class AgentsService {
 		force = false,
 	): Promise<void> {
 		const cur = this.$guildChannels.get()[guildId];
-		if (cur && !force) return;
+		const fresh =
+			!!cur && Date.now() - cur.cached_at < CHANNELS_CACHE_TTL_MS;
+		if (fresh && !force) return;
 		if (this.$guildChannelsLoading.get()[guildId]) return;
 		this.$guildChannelsLoading.set({
 			...this.$guildChannelsLoading.get(),
@@ -1399,8 +1508,55 @@ class AgentsService {
 			[guildId]: {
 				forums: r.data.forums ?? [],
 				texts: r.data.texts ?? [],
+				cached_at: Date.now(),
 			},
 		});
+	}
+
+	public async ensureBotMembershipLoaded(
+		guildId: string,
+		force = false,
+	): Promise<void> {
+		const cur = this.$botMembership.get()[guildId];
+		const fresh =
+			!!cur && Date.now() - cur.cached_at < BOT_MEMBERSHIP_CACHE_TTL_MS;
+		if (fresh && !force) return;
+		if (this.$botMembershipLoading.get()[guildId]) return;
+		this.$botMembershipLoading.set({
+			...this.$botMembershipLoading.get(),
+			[guildId]: true,
+		});
+		this.$botMembershipError.set({
+			...this.$botMembershipError.get(),
+			[guildId]: null,
+		});
+		const r = await this.callJson<{ is_member: boolean }>(DISCORD_BOT_URL, {
+			command: 'bot.is_member',
+			server_id: guildId,
+		});
+		const loading = { ...this.$botMembershipLoading.get() };
+		delete loading[guildId];
+		this.$botMembershipLoading.set(loading);
+		if (!r.ok) {
+			this.$botMembershipError.set({
+				...this.$botMembershipError.get(),
+				[guildId]: r.error,
+			});
+			return;
+		}
+		this.$botMembership.set({
+			...this.$botMembership.get(),
+			[guildId]: {
+				isMember: !!r.data.is_member,
+				cached_at: Date.now(),
+			},
+		});
+	}
+
+	public invalidateBotMembership(guildId: string): void {
+		const m = { ...this.$botMembership.get() };
+		delete m[guildId];
+		this.$botMembership.set(m);
 	}
 
 	public async loadWebhookDeliveries(
@@ -1549,21 +1705,50 @@ class AgentsService {
 		});
 	}
 
+	public async loadPendingEvents(guildId: string, limit = 10): Promise<void> {
+		this.$pendingEventsLoading.set({
+			...this.$pendingEventsLoading.get(),
+			[guildId]: true,
+		});
+		const r = await this.callJson<{ events: PendingEvent[] }>(
+			GH_ADMIN_URL,
+			{
+				command: 'events.pending',
+				server_id: guildId,
+				limit,
+			},
+		);
+		const loading = { ...this.$pendingEventsLoading.get() };
+		delete loading[guildId];
+		this.$pendingEventsLoading.set(loading);
+		if (!r.ok) return;
+		this.$pendingEvents.set({
+			...this.$pendingEvents.get(),
+			[guildId]: r.data.events ?? [],
+		});
+	}
+
 	public async requeueEvent(
 		guildId: string,
 		eventId: number,
+		reason?: string,
 	): Promise<{ ok: true } | { ok: false; error: string }> {
 		const key = `${guildId}:${eventId}`;
 		this.$eventRequeueBusyFor.set({
 			...this.$eventRequeueBusyFor.get(),
 			[key]: true,
 		});
+		const trimmedReason =
+			typeof reason === 'string' && reason.trim().length > 0
+				? reason.trim().slice(0, 512)
+				: undefined;
 		const r = await this.callJson<{ requeued: boolean; event_id: number }>(
 			GH_ADMIN_URL,
 			{
 				command: 'events.requeue',
 				server_id: guildId,
 				event_id: eventId,
+				...(trimmedReason ? { reason: trimmedReason } : {}),
 			},
 		);
 		const busy = { ...this.$eventRequeueBusyFor.get() };
@@ -1610,6 +1795,7 @@ class AgentsService {
 		command: string,
 		accessToken: string,
 		extra: Record<string, unknown>,
+		opts: { retriedAfterResync?: boolean } = {},
 	): Promise<{ ok: true; body: unknown } | { ok: false; error: string }> {
 		try {
 			const resp = await fetch(GUILD_VAULT_URL, {
@@ -1637,8 +1823,26 @@ class AgentsService {
 					hint?: string | null;
 					context?: string | null;
 				} | null;
-				const parts: string[] = [];
-				parts.push(b?.error ?? `HTTP ${resp.status}`);
+				const errMsg = b?.error ?? '';
+				const looksStale =
+					resp.status === 403 &&
+					/owned_guilds/i.test(errMsg) &&
+					!opts.retriedAfterResync;
+				if (looksStale) {
+					const resynced = await this.resyncOwnedGuilds();
+					if (resynced) {
+						const newToken = this.$accessToken.get();
+						if (newToken) {
+							return this.callGuildVault(
+								command,
+								newToken,
+								extra,
+								{ retriedAfterResync: true },
+							);
+						}
+					}
+				}
+				const parts: string[] = [errMsg || `HTTP ${resp.status}`];
 				if (b?.sqlstate) parts.push(`sqlstate=${b.sqlstate}`);
 				if (b?.hint) parts.push(`hint=${b.hint}`);
 				if (b?.context) parts.push(`context=${b.context}`);
@@ -1669,6 +1873,7 @@ class AgentsService {
 	private async callJson<T>(
 		url: string,
 		body: Record<string, unknown>,
+		opts: { retriedAfterResync?: boolean } = {},
 	): Promise<{ ok: true; data: T } | { ok: false; error: string }> {
 		const accessToken = this.$accessToken.get();
 		if (!accessToken) return { ok: false, error: 'Not authenticated' };
@@ -1698,7 +1903,20 @@ class AgentsService {
 					hint?: string | null;
 					context?: string | null;
 				} | null;
-				const parts: string[] = [b?.error ?? `HTTP ${resp.status}`];
+				const errMsg = b?.error ?? '';
+				const looksStale =
+					resp.status === 403 &&
+					/owned_guilds/i.test(errMsg) &&
+					!opts.retriedAfterResync;
+				if (looksStale) {
+					const resynced = await this.resyncOwnedGuilds();
+					if (resynced) {
+						return this.callJson<T>(url, body, {
+							retriedAfterResync: true,
+						});
+					}
+				}
+				const parts: string[] = [errMsg || `HTTP ${resp.status}`];
 				if (b?.sqlstate) parts.push(`sqlstate=${b.sqlstate}`);
 				if (b?.hint) parts.push(`hint=${b.hint}`);
 				if (b?.context) parts.push(`context=${b.context}`);

@@ -23,6 +23,7 @@ public:
 private:
 	FReply HandleImportPickClicked();
 	FReply HandleImportRunClicked();
+	FReply HandleQuickImportArcadeClicked();
 	FReply HandleFlushTelemetryClicked();
 	FReply HandleGitHubIssueClicked();
 

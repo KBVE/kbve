@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	AlertTriangle,
@@ -21,8 +21,31 @@ type Status =
 export default function ReactAgentBotInstall() {
 	const guilds = useStore(agentsService.$guilds);
 	const selectedGuildId = useStore(agentsService.$selectedGuildId);
-	const [status, setStatus] = useState<Status>('idle');
-	const [errorMsg, setErrorMsg] = useState<string | null>(null);
+	const membershipMap = useStore(agentsService.$botMembership);
+	const membershipLoadingMap = useStore(agentsService.$botMembershipLoading);
+	const membershipErrorMap = useStore(agentsService.$botMembershipError);
+
+	const cached = selectedGuildId ? membershipMap[selectedGuildId] : null;
+	const checking = selectedGuildId
+		? !!membershipLoadingMap[selectedGuildId]
+		: false;
+	const cachedError = selectedGuildId
+		? (membershipErrorMap[selectedGuildId] ?? null)
+		: null;
+
+	const errorMsg = cachedError;
+	const status: Status = checking
+		? 'checking'
+		: cachedError
+			? cachedError.includes('DISCORD_BOT_CLIENT_ID') ||
+				cachedError.includes('not configured')
+				? 'unconfigured'
+				: 'error'
+			: cached
+				? cached.isMember
+					? 'present'
+					: 'missing'
+				: 'idle';
 
 	const guild = useMemo(
 		() => guilds.find((g) => g.id === selectedGuildId) ?? null,
@@ -39,28 +62,12 @@ export default function ReactAgentBotInstall() {
 
 	async function probe() {
 		if (!selectedGuildId) return;
-		setStatus('checking');
-		setErrorMsg(null);
-		const r = await agentsService.isBotMember(selectedGuildId);
-		if (!r.ok) {
-			if (
-				r.error.includes('DISCORD_BOT_CLIENT_ID') ||
-				r.error.includes('not configured')
-			) {
-				setStatus('unconfigured');
-			} else {
-				setStatus('error');
-			}
-			setErrorMsg(r.error);
-			return;
-		}
-		setStatus(r.isMember ? 'present' : 'missing');
+		await agentsService.ensureBotMembershipLoaded(selectedGuildId, true);
 	}
 
 	useEffect(() => {
-		setStatus('idle');
-		setErrorMsg(null);
-		if (selectedGuildId) void probe();
+		if (!selectedGuildId) return;
+		void agentsService.ensureBotMembershipLoaded(selectedGuildId);
 	}, [selectedGuildId]);
 
 	if (!guild) return null;
@@ -178,6 +185,13 @@ export default function ReactAgentBotInstall() {
 							href={installUrl}
 							target="_blank"
 							rel="noopener noreferrer"
+							onClick={() => {
+								if (selectedGuildId) {
+									agentsService.invalidateBotMembership(
+										selectedGuildId,
+									);
+								}
+							}}
 							style={{
 								display: 'inline-flex',
 								alignItems: 'center',

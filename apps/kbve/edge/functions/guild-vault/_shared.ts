@@ -199,6 +199,35 @@ export function invalidateOwnershipCache(
   ownershipCache.delete(getCacheKey(userId, serverId));
 }
 
+export function verifyOwnedGuildsClaim(
+  claims: import("../_shared/supabase.ts").JwtClaims,
+  serverId: string,
+): Response | null {
+  const og = (claims as unknown as { owned_guilds?: unknown }).owned_guilds;
+  if (!Array.isArray(og)) {
+    return jsonResponse(
+      {
+        error:
+          "JWT owned_guilds claim missing. Re-bootstrap or sign in with Discord.",
+      },
+      403,
+    );
+  }
+  const found = og.some((g) =>
+    typeof g === "string" && /^[0-9]{17,20}$/.test(g) && g === serverId
+  );
+  if (!found) {
+    return jsonResponse(
+      {
+        error:
+          "JWT owned_guilds claim does not include this server_id. Re-bootstrap or sign in with Discord.",
+      },
+      403,
+    );
+  }
+  return null;
+}
+
 /**
  * Verify that the user owns the specified Discord guild via Discord API.
  * Results are cached for 5 minutes to reduce API calls.

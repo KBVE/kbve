@@ -4,13 +4,12 @@ import {
   invalidateOwnershipCache,
   jsonResponse,
   validateDescription,
-  validateProviderToken,
   validateService,
   validateSnowflake,
   validateTokenName,
   validateTokenValue,
   validateUuid,
-  verifyGuildOwnership,
+  verifyOwnedGuildsClaim,
 } from "./_shared.ts";
 import { safeRpcError } from "../_shared/validators.ts";
 
@@ -31,18 +30,14 @@ const PEEKABLE_SERVICES = new Set([
 ]);
 
 const handlers: Record<string, Handler> = {
-  async set_token({ userId, body }) {
+  async set_token({ userId, claims, body }) {
     const {
       server_id,
       token_name,
       service,
       token_value,
       description,
-      provider_token,
     } = body;
-
-    const ptErr = validateProviderToken(provider_token);
-    if (ptErr) return ptErr;
 
     const sidErr = validateSnowflake(server_id, "server_id");
     if (sidErr) return sidErr;
@@ -59,12 +54,7 @@ const handlers: Record<string, Handler> = {
     const descErr = validateDescription(description);
     if (descErr) return descErr;
 
-    // Discord API ownership verification (cached 5 min)
-    const ownerErr = await verifyGuildOwnership(
-      userId,
-      server_id as string,
-      provider_token as string,
-    );
+    const ownerErr = verifyOwnedGuildsClaim(claims, server_id as string);
     if (ownerErr) return ownerErr;
 
     const supabase = createServiceClient();
@@ -96,20 +86,13 @@ const handlers: Record<string, Handler> = {
     );
   },
 
-  async list_tokens({ userId, body }) {
-    const { server_id, provider_token } = body;
-
-    const ptErr = validateProviderToken(provider_token);
-    if (ptErr) return ptErr;
+  async list_tokens({ userId, claims, body }) {
+    const { server_id } = body;
 
     const sidErr = validateSnowflake(server_id, "server_id");
     if (sidErr) return sidErr;
 
-    const ownerErr = await verifyGuildOwnership(
-      userId,
-      server_id as string,
-      provider_token as string,
-    );
+    const ownerErr = verifyOwnedGuildsClaim(claims, server_id as string);
     if (ownerErr) return ownerErr;
 
     const supabase = createServiceClient();
@@ -127,11 +110,8 @@ const handlers: Record<string, Handler> = {
     return jsonResponse({ success: true, tokens, count: tokens.length });
   },
 
-  async delete_token({ userId, body }) {
-    const { server_id, token_id, provider_token } = body;
-
-    const ptErr = validateProviderToken(provider_token);
-    if (ptErr) return ptErr;
+  async delete_token({ userId, claims, body }) {
+    const { server_id, token_id } = body;
 
     const sidErr = validateSnowflake(server_id, "server_id");
     if (sidErr) return sidErr;
@@ -139,11 +119,7 @@ const handlers: Record<string, Handler> = {
     const tidErr = validateUuid(token_id, "token_id");
     if (tidErr) return tidErr;
 
-    const ownerErr = await verifyGuildOwnership(
-      userId,
-      server_id as string,
-      provider_token as string,
-    );
+    const ownerErr = verifyOwnedGuildsClaim(claims, server_id as string);
     if (ownerErr) return ownerErr;
 
     const supabase = createServiceClient();
@@ -175,11 +151,8 @@ const handlers: Record<string, Handler> = {
     );
   },
 
-  async toggle_token({ userId, body }) {
-    const { server_id, token_id, is_active, provider_token } = body;
-
-    const ptErr = validateProviderToken(provider_token);
-    if (ptErr) return ptErr;
+  async toggle_token({ userId, claims, body }) {
+    const { server_id, token_id, is_active } = body;
 
     const sidErr = validateSnowflake(server_id, "server_id");
     if (sidErr) return sidErr;
@@ -194,11 +167,7 @@ const handlers: Record<string, Handler> = {
       );
     }
 
-    const ownerErr = await verifyGuildOwnership(
-      userId,
-      server_id as string,
-      provider_token as string,
-    );
+    const ownerErr = verifyOwnedGuildsClaim(claims, server_id as string);
     if (ownerErr) return ownerErr;
 
     const supabase = createServiceClient();
@@ -230,11 +199,8 @@ const handlers: Record<string, Handler> = {
       row.success ? 200 : 400,
     );
   },
-	async peek_token({ userId, body }) {
-		const { server_id, service, provider_token } = body;
-
-		const ptErr = validateProviderToken(provider_token);
-		if (ptErr) return ptErr;
+	async peek_token({ userId, claims, body }) {
+		const { server_id, service } = body;
 
 		const sidErr = validateSnowflake(server_id, "server_id");
 		if (sidErr) return sidErr;
@@ -252,11 +218,7 @@ const handlers: Record<string, Handler> = {
 			);
 		}
 
-		const ownerErr = await verifyGuildOwnership(
-			userId,
-			server_id as string,
-			provider_token as string,
-		);
+		const ownerErr = verifyOwnedGuildsClaim(claims, server_id as string);
 		if (ownerErr) return ownerErr;
 
 		const supabase = createServiceClient();
