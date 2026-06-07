@@ -6,13 +6,7 @@ use axum::{Json, Router, extract::State, http::HeaderMap, middleware, routing::p
 use serde::Deserialize;
 
 pub(super) fn character_persistence_routes(hs: HandlerState) -> Router {
-    Router::new()
-        .route("/api/Characters/GetByName", post(get_char_by_name))
-        .route("/api/Characters/GetCustomData", post(get_custom_data))
-        .route(
-            "/api/Characters/AddOrUpdateCustomData",
-            post(add_or_update_custom_data),
-        )
+    let server = Router::new()
         .route(
             "/api/Characters/UpdateCharacterStats",
             post(update_character_stats),
@@ -22,6 +16,18 @@ pub(super) fn character_persistence_routes(hs: HandlerState) -> Router {
             post(update_all_positions),
         )
         .route("/api/Characters/PlayerLogout", post(player_logout))
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            super::require_service_key,
+        ));
+
+    server
+        .route("/api/Characters/GetByName", post(get_char_by_name))
+        .route("/api/Characters/GetCustomData", post(get_custom_data))
+        .route(
+            "/api/Characters/AddOrUpdateCustomData",
+            post(add_or_update_custom_data),
+        )
         .route(
             "/api/Status/GetCharacterStatuses",
             post(get_character_statuses),

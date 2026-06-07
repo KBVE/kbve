@@ -10,7 +10,14 @@ mod zones;
 use crate::models::HealthResponse;
 use crate::service::OWSService;
 use crate::state::AppState;
-use axum::{Json, Router, extract::State, response::IntoResponse, routing::get};
+use axum::{
+    Json, Router,
+    extract::{Request, State},
+    http::StatusCode,
+    middleware::Next,
+    response::{IntoResponse, Response},
+    routing::get,
+};
 use std::sync::Arc;
 
 /// Bundles `AppState` (for middleware) and `OWSService` (for handlers) into one extractor.
@@ -18,6 +25,33 @@ use std::sync::Arc;
 pub struct HandlerState {
     pub app: Arc<AppState>,
     pub svc: Arc<OWSService>,
+}
+
+/// Gates server-to-server write routes: requires a valid `x-service-key` (validated against
+/// `SUPABASE_SERVICE_KEY_HASH`). Player JWTs and session GUIDs do NOT pass here — these endpoints
+/// mutate world/character state and are only for trusted callers like the UE dedicated server.
+pub async fn require_service_key(
+    State(hs): State<HandlerState>,
+    req: Request,
+    next: Next,
+) -> Response {
+    let authorized = crate::middleware::extract_service_key(req.headers())
+        .filter(|_| hs.app.supabase.service_key_enabled())
+        .map(|key| crate::supabase::validate_service_key(&key, &hs.app.supabase).is_ok())
+        .unwrap_or(false);
+
+    if authorized {
+        next.run(req).await
+    } else {
+        (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({
+                "success": false,
+                "errorMessage": "Valid service key required for this endpoint"
+            })),
+        )
+            .into_response()
+    }
 }
 
 pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
