@@ -133,10 +133,25 @@ function writeFloatPos(pos: FloatPos): void {
 	}
 }
 
+const VRMA_BASE = '/assets/vt/motion';
+const MOTIONS = {
+	fullbody: `${VRMA_BASE}/VRMA_01.vrma`,
+	greeting: `${VRMA_BASE}/VRMA_02.vrma`,
+	peace: `${VRMA_BASE}/VRMA_03.vrma`,
+	shoot: `${VRMA_BASE}/VRMA_04.vrma`,
+	spin: `${VRMA_BASE}/VRMA_05.vrma`,
+	pose: `${VRMA_BASE}/VRMA_06.vrma`,
+	squat: `${VRMA_BASE}/VRMA_07.vrma`,
+	dance: `${VRMA_BASE}/dance25-by-stella.vrma`,
+} as const;
+
 interface YukiVRMRuntime {
 	setState(state: string): void;
 	pointAt(x: number, y: number): void;
 	setActive(active: boolean): void;
+	playAnimation(url: string, loop?: boolean, fade?: number): Promise<void>;
+	stopAnimation(fade?: number): void;
+	setIdleAnimation(url: string | null): void;
 	destroy(): void;
 }
 
@@ -150,16 +165,38 @@ function ensureFloatLayer(): HTMLElement {
 	layer.id = FLOAT_LAYER_ID;
 	layer.setAttribute('transition:persist', 'kbve-yuki-float');
 	layer.dataset.astroTransitionPersist = 'kbve-yuki-float';
-	const pos = readFloatPos() ?? {
-		x: Math.max(24, window.innerWidth - 220),
-		y: Math.max(24, window.innerHeight - 320),
-	};
+	const LAYER_W = 420;
+	const LAYER_H = 640;
+	const RIGHT_INSET = 240;
+	const BOTTOM_INSET = 160;
+	const defaultX = Math.max(
+		24,
+		Math.min(
+			window.innerWidth - LAYER_W - 24,
+			window.innerWidth - LAYER_W - RIGHT_INSET,
+		),
+	);
+	const defaultY = Math.max(
+		24,
+		Math.min(
+			window.innerHeight - LAYER_H - 24,
+			window.innerHeight - LAYER_H - BOTTOM_INSET,
+		),
+	);
+	const saved = readFloatPos();
+	const inBounds =
+		saved &&
+		saved.x >= 0 &&
+		saved.y >= 0 &&
+		saved.x + LAYER_W <= window.innerWidth + 4 &&
+		saved.y + LAYER_H <= window.innerHeight + 4;
+	const pos = inBounds ? saved : { x: defaultX, y: defaultY };
 	layer.style.cssText = `
 		position: fixed;
 		left: ${pos.x}px;
 		top: ${pos.y}px;
-		width: 196px;
-		height: 260px;
+		width: 420px;
+		height: 640px;
 		z-index: 60;
 		pointer-events: auto;
 		display: none;
@@ -187,7 +224,7 @@ function ensureFloatLayer(): HTMLElement {
 	layer.appendChild(stage);
 	layer.appendChild(handle);
 	layer.appendChild(close);
-	document.body.appendChild(layer);
+	document.documentElement.appendChild(layer);
 	return layer;
 }
 
@@ -323,12 +360,12 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 		if (!vrmRuntime) return;
 		if (readGreeted()) return;
 		writeGreeted();
-		vrmRuntime.setState('wave');
+		void vrmRuntime.playAnimation(MOTIONS.greeting, false);
 	};
 
 	const clickGreet = (): void => {
 		if (!vrmRuntime) return;
-		vrmRuntime.setState('wave');
+		void vrmRuntime.playAnimation(MOTIONS.greeting, false);
 	};
 
 	const ensureVRM = async (
@@ -359,6 +396,17 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 			vrmHost = hostEl;
 			vrmTransparent = transparent;
 			hostEl.dataset.state = 'ready';
+			(
+				window as unknown as {
+					yuki?: YukiVRMRuntime;
+					yukiMotions?: typeof MOTIONS;
+				}
+			).yuki = vrmRuntime;
+			(
+				window as unknown as { yukiMotions?: typeof MOTIONS }
+			).yukiMotions = MOTIONS;
+			vrmRuntime.setIdleAnimation(MOTIONS.fullbody);
+			void vrmRuntime.playAnimation(MOTIONS.fullbody, true);
 			setTimeout(fireFirstGreet, 600);
 		} catch (err) {
 			console.warn('[yuki-panel] VRM load failed', err);
@@ -609,28 +657,96 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 		};
 	});
 
+	const repositionFloatForDock = (): void => {
+		if (!readFloat()) return;
+		const layer = document.getElementById(FLOAT_LAYER_ID);
+		if (!layer) return;
+		const expanded = dock?.dataset.state === 'expanded';
+		const L_W = 420;
+		const L_H = 640;
+		const x = expanded
+			? Math.max(24, window.innerWidth - L_W - 240)
+			: Math.max(24, window.innerWidth - L_W - 24);
+		const y = expanded
+			? Math.max(24, window.innerHeight - L_H - 160)
+			: Math.max(24, window.innerHeight - L_H - 24);
+		layer.style.left = `${x}px`;
+		layer.style.top = `${y}px`;
+		writeFloatPos({ x, y });
+	};
+
 	if (dock) {
-		const dockObserver = new MutationObserver(evaluateActive);
+		const dockObserver = new MutationObserver(() => {
+			evaluateActive();
+			repositionFloatForDock();
+		});
 		dockObserver.observe(dock, {
 			attributes: true,
 			attributeFilter: ['data-state'],
 		});
+		repositionFloatForDock();
 	}
 
 	const onSwap = (): void => {
-		cancelAnimationFrame(wanderRaf);
 		unbindPageMove();
 	};
-	document.addEventListener('astro:before-swap', onSwap, { once: true });
+	document.addEventListener('astro:before-swap', onSwap);
+	const onAfterSwap = (): void => {
+		wanderLastMove = performance.now();
+		if (readAvatarMode() !== '3d') return;
+		const floatLayer = document.getElementById(FLOAT_LAYER_ID);
+		if (readFloat() && floatLayer) {
+			const fh = floatLayer.querySelector<HTMLElement>(
+				`#${FLOAT_HOST_ID}`,
+			);
+			const canvasAlive = fh?.querySelector<HTMLCanvasElement>(
+				'canvas.yuki-vrm__canvas',
+			);
+			if (!canvasAlive || !canvasAlive.isConnected) {
+				if (fh) fh.innerHTML = '';
+				if (vrmRuntime) {
+					try {
+						vrmRuntime.destroy();
+					} catch {
+						void 0;
+					}
+					vrmRuntime = null;
+				}
+				vrmHost = stage;
+				void ensureVRM(fh ?? stage, true);
+			}
+			bindPageMove();
+		} else {
+			const canvasAlive = stage.querySelector<HTMLCanvasElement>(
+				'canvas.yuki-vrm__canvas',
+			);
+			if (!canvasAlive || !canvasAlive.isConnected) {
+				stage.innerHTML = '';
+				if (vrmRuntime) {
+					try {
+						vrmRuntime.destroy();
+					} catch {
+						void 0;
+					}
+					vrmRuntime = null;
+				}
+				void ensureVRM(stage, false);
+			}
+		}
+	};
+	document.addEventListener('astro:after-swap', onAfterSwap);
 
-	if (!document.getElementById('kbve-yuki-panel-css')) {
+	const ensurePanelStyle = (): void => {
+		if (document.getElementById('kbve-yuki-panel-css')) return;
 		const css = document.createElement('style');
 		css.id = 'kbve-yuki-panel-css';
+		css.setAttribute('transition:persist', 'kbve-yuki-panel-css');
+		css.dataset.astroTransitionPersist = 'kbve-yuki-panel-css';
 		css.textContent = `
 			.yuki-panel { display: grid; grid-template-rows: auto 1fr auto auto; gap: 0.5rem; height: 100%; }
 			.yuki-panel[data-avatar-mode='text'] .yuki-panel__stage { display: none; }
 			.yuki-panel[data-float-mode='1'] .yuki-panel__stage { display: none; }
-			.yuki-panel__stage { height: 180px; border-radius: 12px; overflow: hidden; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08); position: relative; cursor: pointer; }
+			.yuki-panel__stage { height: 240px; border-radius: 12px; overflow: hidden; background: rgba(15,23,42,0.6); border: 1px solid rgba(255,255,255,0.08); position: relative; cursor: pointer; }
 			.yuki-panel__stage-skeleton, .yuki-panel__stage-error { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.78rem; color: rgba(255,255,255,0.5); }
 			.yuki-panel__stage-error { color: #f87171; }
 			.yuki-panel__log { display: grid; gap: 0.5rem; align-content: start; overflow-y: auto; padding-right: 0.25rem; }
@@ -653,6 +769,8 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 			#${FLOAT_LAYER_ID} { transition: filter 0.2s ease; }
 			#${FLOAT_LAYER_ID}:hover { filter: drop-shadow(0 12px 32px rgba(244,114,182,0.45)); }
 		`;
-		document.head.appendChild(css);
-	}
+		document.documentElement.appendChild(css);
+	};
+	ensurePanelStyle();
+	document.addEventListener('astro:after-swap', ensurePanelStyle);
 }

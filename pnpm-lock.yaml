@@ -76,6 +76,9 @@ importers:
       '@pixiv/three-vrm':
         specifier: ^3.5.3
         version: 3.5.3(three@0.184.0)
+      '@pixiv/three-vrm-animation':
+        specifier: ^3.5.3
+        version: 3.5.3(three@0.184.0)
       '@react-three/drei':
         specifier: ^10.7.7
         version: 10.7.7(@react-three/fiber@9.6.1(@types/react@19.2.9)(expo-asset@12.0.12(expo@54.0.9)(react-native@0.81.6(@babel/core@7.26.10)(@react-native-community/cli@15.1.3(typescript@5.9.3))(@types/react@19.2.9)(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(expo-file-system@19.0.21(expo@54.0.9)(react-native@0.81.6(@babel/core@7.26.10)(@react-native-community/cli@15.1.3(typescript@5.9.3))(@types/react@19.2.9)(react@19.2.4)))(expo@54.0.9)(react-dom@19.2.4(react@19.2.4))(react-native@0.81.6(@babel/core@7.26.10)(@react-native-community/cli@15.1.3(typescript@5.9.3))(@types/react@19.2.9)(react@19.2.4))(react@19.2.4)(three@0.184.0))(@types/react@19.2.9)(@types/three@0.176.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.184.0)
@@ -4011,6 +4014,11 @@ packages:
   '@pinojs/redact@0.4.0':
     resolution: {integrity: sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg==}
 
+  '@pixiv/three-vrm-animation@3.5.3':
+    resolution: {integrity: sha512-3zcp8TfPZdVX2y0Tgff9HmLl7KlEQ7WfeTSdmmZzEJpauzqxCK609TOtpQQnFASZBtMsCLt5XIH3B+I1VRfuTw==}
+    peerDependencies:
+      three: '>=0.137'
+
   '@pixiv/three-vrm-core@3.5.3':
     resolution: {integrity: sha512-iZDOkOxOnvT8vGPE2SgNRee3fQw/u11y4MULE9VPXN/LKSf946aVi+YfVnnMBRdwMfQ2uBNHxUvkIQlRIkXnHQ==}
     peerDependencies:
@@ -4066,6 +4074,9 @@ packages:
 
   '@pixiv/types-vrmc-vrm-1.0@3.5.3':
     resolution: {integrity: sha512-3HsBZWKXU/CnY2J6uAVuYmM0NPt/e5jroQZH85WYK0EzYmebqTmWKF/fllguNliJQAovdhn8sIA8NbHZoQvbUA==}
+
+  '@pixiv/types-vrmc-vrm-animation-1.0@3.5.3':
+    resolution: {integrity: sha512-SwwHofRepbZVvseIXIC3THA3Z/EKULOH2JJR9NjHRGOUdDcrIkQuQaZ0ml99P47EaUx5vwSlG7C7FEM9+ByvTQ==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -21240,6 +21251,13 @@ snapshots:
 
   '@pinojs/redact@0.4.0': {}
 
+  '@pixiv/three-vrm-animation@3.5.3(three@0.184.0)':
+    dependencies:
+      '@pixiv/three-vrm-core': 3.5.3(three@0.184.0)
+      '@pixiv/types-vrmc-vrm-1.0': 3.5.3
+      '@pixiv/types-vrmc-vrm-animation-1.0': 3.5.3
+      three: 0.184.0
+
   '@pixiv/three-vrm-core@3.5.3(three@0.184.0)':
     dependencies:
       '@pixiv/types-vrm-0.0': 3.5.3
@@ -21298,6 +21316,10 @@ snapshots:
   '@pixiv/types-vrmc-springbone-extended-collider-1.0@3.5.3': {}
 
   '@pixiv/types-vrmc-vrm-1.0@3.5.3': {}
+
+  '@pixiv/types-vrmc-vrm-animation-1.0@3.5.3':
+    dependencies:
+      '@pixiv/types-vrmc-vrm-1.0': 3.5.3
 
   '@pkgjs/parseargs@0.11.0':
     optional: true

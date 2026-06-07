@@ -763,7 +763,7 @@ jobs:
         timeout-minutes: 480
         defaults:
             run:
-                shell: pwsh
+                shell: powershell
         permissions:
             contents: read
         steps:
@@ -783,7 +783,7 @@ jobs:
                   }
                   if (-not $engineRoot) { Write-Host "::error::RunUAT.bat not found on runner"; exit 1 }
                   Write-Host "::notice::Engine at $engineRoot"
-                  "runuat=$(Join-Path $engineRoot 'Engine\Build\BatchFiles\RunUAT.bat')" >> $env:GITHUB_OUTPUT
+                  "runuat=$(Join-Path $engineRoot 'Engine\Build\BatchFiles\RunUAT.bat')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
 
             - name: Pull game LFS (Forgejo)
               id: monorepo_proj
@@ -802,7 +802,7 @@ jobs:
                   Write-Host "::notice::Pulling LFS for $proj from $lfsUrl"
                   git -c lfs.url="$authUrl" lfs install --local
                   git -c lfs.url="$authUrl" lfs pull --include="$proj/**"
-                  "proj_root=$(Join-Path $env:GITHUB_WORKSPACE $proj)" >> $env:GITHUB_OUTPUT
+                  "proj_root=$(Join-Path $env:GITHUB_WORKSPACE $proj)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
 
             - name: Clone external game repo (Win64)
               id: ext_proj
@@ -855,7 +855,7 @@ jobs:
                   Pop-Location
 
                   if (-not (Test-Path $src)) { Write-Host "::error::project_path '$subdir' not found in $slug"; exit 1 }
-                  "proj_root=$src" >> $env:GITHUB_OUTPUT
+                  "proj_root=$src" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
 
             - name: Build Win64 client
               run: |
@@ -971,12 +971,12 @@ jobs:
             ENGINE_ROOT: C:\UnrealEngine
         steps:
             - name: Audit log
-              shell: pwsh
+              shell: powershell
               run: Write-Host "::notice::Windows engine provision — ref=${{ inputs.engine_ref }}, version=${{ needs.engine_gate.outputs.version }}, root=$env:ENGINE_ROOT"
 
             - name: Check existing engine
               id: check
-              shell: pwsh
+              shell: powershell
               run: |
                   $runuat = Test-Path (Join-Path $env:ENGINE_ROOT 'Engine\Build\BatchFiles\RunUAT.bat')
                   $marker = Join-Path $env:ENGINE_ROOT '.kbve-engine-ref'
@@ -984,15 +984,15 @@ jobs:
                   $force = '${{ inputs.skip_version_gate }}' -eq 'true'
                   if ($runuat -and ($builtRef -eq '${{ inputs.engine_ref }}') -and (-not $force)) {
                       Write-Host "Engine already provisioned (ref=$builtRef) — skipping build."
-                      "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+                      "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
                   } else {
                       Write-Host "Building engine (runuat=$runuat builtRef='$builtRef' force=$force)."
-                      "skip=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+                      "skip=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
                   }
 
             - name: Verify build tools
               if: steps.check.outputs.skip != 'true'
-              shell: pwsh
+              shell: powershell
               run: |
                   $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
                   if (-not (Test-Path $vsWhere)) { Write-Host "::error::vswhere not found — run the win-setup task first"; exit 1 }
@@ -1004,7 +1004,7 @@ jobs:
               if: steps.check.outputs.skip != 'true'
               env:
                   UNITY_PAT: ${{ secrets.UNITY_PAT }}
-              shell: pwsh
+              shell: powershell
               run: |
                   $url = "https://x-access-token:${env:UNITY_PAT}@github.com/${{ env.ENGINE_REPO }}.git"
                   if (Test-Path (Join-Path $env:ENGINE_ROOT '.git')) {
@@ -1021,19 +1021,19 @@ jobs:
 
             - name: Run Setup
               if: steps.check.outputs.skip != 'true'
-              shell: pwsh
+              shell: powershell
               run: |
                   Push-Location $env:ENGINE_ROOT; .\Setup.bat; Pop-Location
 
             - name: Generate project files
               if: steps.check.outputs.skip != 'true'
-              shell: pwsh
+              shell: powershell
               run: |
                   Push-Location $env:ENGINE_ROOT; .\GenerateProjectFiles.bat; Pop-Location
 
             - name: Build Editor (Win64)
               if: steps.check.outputs.skip != 'true'
-              shell: pwsh
+              shell: powershell
               run: |
                   Push-Location $env:ENGINE_ROOT
                   .\Engine\Build\BatchFiles\RunUAT.bat BuildTarget `
@@ -1043,12 +1043,12 @@ jobs:
 
             - name: Mark engine ref
               if: steps.check.outputs.skip != 'true'
-              shell: pwsh
+              shell: powershell
               run: |
                   '${{ inputs.engine_ref }}' | Out-File -FilePath (Join-Path $env:ENGINE_ROOT '.kbve-engine-ref') -Encoding ascii -NoNewline
 
             - name: Verify engine root
-              shell: pwsh
+              shell: powershell
               run: |
                   $runuat = Join-Path $env:ENGINE_ROOT 'Engine\Build\BatchFiles\RunUAT.bat'
                   if (-not (Test-Path $runuat)) { Write-Host "::error::Engine not provisioned — RunUAT.bat missing at $runuat"; exit 1 }
@@ -1056,7 +1056,7 @@ jobs:
 
             - name: Cleanup secrets
               if: always()
-              shell: pwsh
+              shell: powershell
               run: |
                   if (Test-Path (Join-Path $env:ENGINE_ROOT '.git')) {
                       Push-Location $env:ENGINE_ROOT
@@ -1472,7 +1472,7 @@ jobs:
         timeout-minutes: ${{ inputs.build_timeout }}
         defaults:
             run:
-                shell: pwsh
+                shell: powershell
         permissions:
             contents: read
         steps:
@@ -1505,8 +1505,8 @@ jobs:
                       foreach ($c in $candidates) { Write-Host "  - $c" }
                       exit 1
                   }
-                  echo "engine_root=$engineRoot" >> $env:GITHUB_OUTPUT
-                  echo "runuat=$(Join-Path $engineRoot 'Engine\Build\BatchFiles\RunUAT.bat')" >> $env:GITHUB_OUTPUT
+                  "engine_root=$engineRoot" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
+                  "runuat=$(Join-Path $engineRoot 'Engine\Build\BatchFiles\RunUAT.bat')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
 
             - name: Install dependency plugins
               if: inputs.dependency_plugin_paths != ''

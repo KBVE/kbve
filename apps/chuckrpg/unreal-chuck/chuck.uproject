@@ -108,6 +108,14 @@
 		{
 			"Name": "KBVELibGit",
 			"Enabled": true
+		},
+		{
+			"Name": "UEDevOps",
+			"Enabled": true
+		},
+		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true
 		}
 	]
 }

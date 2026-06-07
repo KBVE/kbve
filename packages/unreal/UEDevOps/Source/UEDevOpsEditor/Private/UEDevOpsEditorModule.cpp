@@ -1,20 +1,79 @@
 #include "UEDevOpsEditorModule.h"
-#include "ToolMenus.h"
+
 #include "Editor.h"
 #include "Engine/GameInstance.h"
+#include "Framework/Docking/TabManager.h"
+#include "HAL/IConsoleManager.h"
+#include "SUEDevOpsPanel.h"
+#include "ToolMenus.h"
 #include "UEDevOpsGitHubService.h"
+#include "UEDevOpsImportLibrary.h"
 #include "UEDevOpsTelemetrySubsystem.h"
+#include "Widgets/Docking/SDockTab.h"
 
 #define LOCTEXT_NAMESPACE "FUEDevOpsEditorModule"
 
+static const FName UEDevOpsPanelTabName("UEDevOpsPanel");
+
+static TSharedRef<SDockTab> SpawnUEDevOpsPanelTab(const FSpawnTabArgs& Args)
+{
+	return SNew(SDockTab)
+		.TabRole(NomadTab)
+		.Label(LOCTEXT("PanelTabTitle", "DevOps Panel"))
+		[
+			SNew(SUEDevOpsPanel)
+		];
+}
+
+static FAutoConsoleCommand GUEDevOpsImportRawCmd(
+	TEXT("UEDevOps.ImportRaw"),
+	TEXT("UEDevOps.ImportRaw <SourceFolder> <DestContentPath> [MaterialName]\n"
+	     "Runs the Python raw asset importer on a filesystem folder."),
+	FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
+	{
+		if (Args.Num() < 2)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[UEDevOps] Usage: UEDevOps.ImportRaw <SourceFolder> <DestContentPath> [MaterialName]"));
+			return;
+		}
+		const FString MaterialName = Args.Num() >= 3 ? Args[2] : FString();
+		FUEDevOpsImportLibrary::ImportRawAssetFolder(Args[0], Args[1], MaterialName);
+	})
+);
+
+static FAutoConsoleCommand GUEDevOpsImportPickCmd(
+	TEXT("UEDevOps.ImportPick"),
+	TEXT("Open a directory picker and import the chosen Raw folder into /Game/Imported/<name>."),
+	FConsoleCommandDelegate::CreateLambda([]()
+	{
+		FUEDevOpsImportLibrary::PromptAndImport();
+	})
+);
+
+static FAutoConsoleCommand GUEDevOpsPanelCmd(
+	TEXT("UEDevOps.Panel"),
+	TEXT("Open the UEDevOps panel tab."),
+	FConsoleCommandDelegate::CreateLambda([]()
+	{
+		FGlobalTabmanager::Get()->TryInvokeTab(UEDevOpsPanelTabName);
+	})
+);
+
 void FUEDevOpsEditorModule::StartupModule()
 {
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
+		UEDevOpsPanelTabName,
+		FOnSpawnTab::CreateStatic(&SpawnUEDevOpsPanelTab))
+		.SetDisplayName(LOCTEXT("PanelDisplayName", "DevOps Panel"))
+		.SetTooltipText(LOCTEXT("PanelTooltip", "Asset import, telemetry, GitHub — all under one panel"));
+
 	UToolMenus::RegisterStartupCallback(
 		FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FUEDevOpsEditorModule::RegisterMenus));
 }
 
 void FUEDevOpsEditorModule::ShutdownModule()
 {
+	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(UEDevOpsPanelTabName);
 	UToolMenus::UnRegisterStartupCallback(this);
 	UToolMenus::UnregisterOwner(this);
 }
@@ -23,41 +82,27 @@ void FUEDevOpsEditorModule::RegisterMenus()
 {
 	FToolMenuOwnerScoped OwnerScoped(this);
 
-	UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.Tools");
-	FToolMenuSection& Section = Menu->FindOrAddSection("UEDevOps");
-	Section.Label = LOCTEXT("UEDevOpsSection", "UEDevOps");
-
-	Section.AddMenuEntry(
-		"FlushTelemetry",
-		LOCTEXT("FlushTelemetry", "Flush Telemetry Now"),
-		LOCTEXT("FlushTelemetryTooltip", "Immediately POST all queued telemetry events"),
-		FSlateIcon(),
-		FUIAction(FExecuteAction::CreateLambda([]()
-		{
-			if (GEditor && GEditor->GetPIEWorldContext())
-			{
-				if (UWorld* PIEWorld = GEditor->GetPIEWorldContext()->World())
-				{
-					if (UGameInstance* GI = PIEWorld->GetGameInstance())
-					{
-						if (auto* Sub = GI->GetSubsystem<UUEDevOpsTelemetrySubsystem>())
-						{
-							Sub->FlushEvents();
-						}
-					}
-				}
-			}
-		}))
+	UToolMenu* MenuBar = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu");
+	MenuBar->AddSubMenu(
+		"MainMenu",
+		NAME_None,
+		"KBVE",
+		LOCTEXT("KBVEMenu", "KBVE"),
+		LOCTEXT("KBVEMenuTooltip", "KBVE Tools and Plugin Management")
 	);
 
+	UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.KBVE");
+	FToolMenuSection& Section = Menu->FindOrAddSection("DevOps");
+	Section.Label = LOCTEXT("UEDevOpsSection", "DevOps");
+
 	Section.AddMenuEntry(
-		"CreateGitHubIssue",
-		LOCTEXT("CreateGitHubIssue", "Create GitHub Issue..."),
-		LOCTEXT("CreateGitHubIssueTooltip", "Open a dialog to file a GitHub issue from the editor"),
+		"OpenDevOpsPanel",
+		LOCTEXT("DevOpsPanelEntry", "DevOps Panel"),
+		LOCTEXT("DevOpsPanelEntryTooltip", "Open the DevOps panel — import, telemetry, GitHub"),
 		FSlateIcon(),
 		FUIAction(FExecuteAction::CreateLambda([]()
 		{
-			UUEDevOpsGitHubService::OpenCreateIssueDialog();
+			FGlobalTabmanager::Get()->TryInvokeTab(UEDevOpsPanelTabName);
 		}))
 	);
 }

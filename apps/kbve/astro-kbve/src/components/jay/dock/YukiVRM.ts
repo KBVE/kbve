@@ -1,7 +1,11 @@
 import {
+	AnimationMixer,
+	Box3,
 	Color,
 	DirectionalLight,
 	HemisphereLight,
+	LoopOnce,
+	LoopRepeat,
 	MathUtils,
 	Object3D,
 	PerspectiveCamera,
@@ -10,6 +14,10 @@ import {
 	WebGLRenderer,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import {
+	VRMAnimationLoaderPlugin,
+	createVRMAnimationClip,
+} from '@pixiv/three-vrm-animation';
 
 class FrameTimer {
 	private prev = 0;
@@ -38,6 +46,9 @@ export interface YukiVRMHandle {
 	setState(state: YukiState): void;
 	pointAt(x: number, y: number): void;
 	setActive(active: boolean): void;
+	playAnimation(url: string, loop?: boolean, fade?: number): Promise<void>;
+	stopAnimation(fade?: number): void;
+	setIdleAnimation(url: string | null): void;
 	destroy(): void;
 }
 
@@ -48,10 +59,10 @@ interface MountOpts {
 }
 
 const REST_POSE: Partial<Record<VRMHumanBoneName, [number, number, number]>> = {
-	[VRMHumanBoneName.LeftUpperArm]: [0, 0, MathUtils.degToRad(75)],
-	[VRMHumanBoneName.RightUpperArm]: [0, 0, MathUtils.degToRad(-75)],
-	[VRMHumanBoneName.LeftLowerArm]: [0, MathUtils.degToRad(-12), 0],
-	[VRMHumanBoneName.RightLowerArm]: [0, MathUtils.degToRad(12), 0],
+	[VRMHumanBoneName.LeftUpperArm]: [0, 0, MathUtils.degToRad(85)],
+	[VRMHumanBoneName.RightUpperArm]: [0, 0, MathUtils.degToRad(-85)],
+	[VRMHumanBoneName.LeftLowerArm]: [0, MathUtils.degToRad(-15), 0],
+	[VRMHumanBoneName.RightLowerArm]: [0, MathUtils.degToRad(15), 0],
 	[VRMHumanBoneName.LeftHand]: [0, 0, MathUtils.degToRad(8)],
 	[VRMHumanBoneName.RightHand]: [0, 0, MathUtils.degToRad(-8)],
 };
@@ -91,10 +102,26 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 	});
 	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
+	canvas.addEventListener(
+		'webglcontextlost',
+		(ev) => {
+			ev.preventDefault();
+			console.warn('[yuki-vrm] webgl context lost');
+		},
+		false,
+	);
+	canvas.addEventListener(
+		'webglcontextrestored',
+		() => {
+			console.warn('[yuki-vrm] webgl context restored');
+		},
+		false,
+	);
+
 	const scene = new Scene();
 	if (!transparent) scene.background = new Color(0x0f172a);
 
-	const camera = new PerspectiveCamera(30, 1, 0.1, 20);
+	const camera = new PerspectiveCamera(45, 1, 0.1, 20);
 	camera.position.set(0, 1.45, 1.1);
 	camera.lookAt(0, 1.42, 0);
 
@@ -122,6 +149,7 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 
 	const loader = new GLTFLoader();
 	loader.register((parser) => new VRMLoaderPlugin(parser));
+	loader.register((parser) => new VRMAnimationLoaderPlugin(parser));
 	let gltf;
 	try {
 		gltf = await loader.loadAsync(vrmUrl);
@@ -149,12 +177,25 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		(
 			VRMUtils as unknown as { combineSkeletons?: (s: unknown) => void }
 		).combineSkeletons?.(gltf.scene);
-	} catch {
-		void 0;
+		(VRMUtils as unknown as { rotateVRM0?: (v: VRM) => void }).rotateVRM0?.(
+			vrm,
+		);
+	} catch (err) {
+		console.warn('[yuki-vrm] VRMUtils preprocess threw', err);
 	}
 
 	scene.add(vrm.scene);
 	applyRestPose(vrm);
+
+	vrm.scene.updateMatrixWorld(true);
+	const bounds = new Box3().setFromObject(vrm.scene);
+	const size = new Vector3();
+	bounds.getSize(size);
+
+	const reframedY = bounds.min.y + size.y * 0.5;
+	const distance = size.y * 1.7;
+	camera.position.set(0, reframedY, distance);
+	camera.lookAt(0, reframedY, 0);
 
 	const gl = renderer.getContext();
 	console.warn('[yuki-vrm] mount ready', {
@@ -178,12 +219,12 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 	);
 
 	const lookAtTarget = new Object3D();
-	lookAtTarget.position.set(0, 1.45, 0.6);
+	lookAtTarget.position.set(0, reframedY, 0.6);
 	scene.add(lookAtTarget);
 	if (vrm.lookAt) vrm.lookAt.target = lookAtTarget;
 
-	const targetWorld = new Vector3(0, 1.45, 0.6);
-	const targetCurrent = new Vector3(0, 1.45, 0.6);
+	const targetWorld = new Vector3(0, reframedY, 0.6);
+	const targetCurrent = new Vector3(0, reframedY, 0.6);
 	let lastInteractionMs = performance.now();
 	let lastPointNx = 0;
 
@@ -287,6 +328,97 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 	let active = true;
 	let firstRenderLogged = false;
 
+	const mixer = new AnimationMixer(vrm.scene);
+	const clipCache = new Map<
+		string,
+		ReturnType<typeof createVRMAnimationClip>
+	>();
+	let currentAction: ReturnType<typeof mixer.clipAction> | null = null;
+	let idleAnimationUrl: string | null = null;
+	const DEFAULT_FADE = 0.8;
+	const IDLE_RESUME_FADE = 1.0;
+
+	mixer.addEventListener('finished', (e) => {
+		const ev = e as unknown as {
+			action: ReturnType<typeof mixer.clipAction>;
+		};
+		console.warn('[yuki-vrm] action finished', {
+			finished: ev.action,
+			isCurrent: ev.action === currentAction,
+			idleUrl: idleAnimationUrl,
+		});
+		if (ev.action !== currentAction) return;
+		if (idleAnimationUrl) {
+			void playAnimation(idleAnimationUrl, true, IDLE_RESUME_FADE);
+		} else {
+			stopAnimation();
+		}
+	});
+
+	const stopAnimation = (fade = DEFAULT_FADE): void => {
+		if (!currentAction) {
+			applyRestPose(vrm);
+			return;
+		}
+		const action = currentAction;
+		currentAction = null;
+		action.fadeOut(fade);
+		setTimeout(
+			() => {
+				action.stop();
+				if (!currentAction) applyRestPose(vrm);
+			},
+			Math.ceil(fade * 1000) + 16,
+		);
+	};
+
+	const loadClip = async (
+		url: string,
+	): Promise<ReturnType<typeof createVRMAnimationClip> | null> => {
+		const cached = clipCache.get(url);
+		if (cached) return cached;
+		const gltf = await loader.loadAsync(url);
+		const animations: unknown[] =
+			(gltf.userData as { vrmAnimations?: unknown[] })?.vrmAnimations ??
+			[];
+		if (!animations.length) {
+			console.warn('[yuki-vrm] no vrmAnimations in', url);
+			return null;
+		}
+		const clip = createVRMAnimationClip(
+			animations[0] as Parameters<typeof createVRMAnimationClip>[0],
+			vrm,
+		);
+		clipCache.set(url, clip);
+		return clip;
+	};
+
+	const playAnimation = async (
+		url: string,
+		loop = true,
+		fade = DEFAULT_FADE,
+	): Promise<void> => {
+		const clip = await loadClip(url);
+		if (!clip) return;
+		const next = mixer.clipAction(clip);
+		if (currentAction === next) {
+			next.paused = false;
+			return;
+		}
+		next.enabled = true;
+		next.setLoop(loop ? LoopRepeat : LoopOnce, Infinity);
+		next.clampWhenFinished = true;
+		next.reset();
+		if (currentAction) {
+			currentAction.fadeOut(fade);
+			next.fadeIn(fade);
+		} else {
+			next.setEffectiveWeight(1);
+		}
+		next.play();
+		currentAction = next;
+	};
+
 	const tick = (now: number) => {
 		if (disposed) return;
 		rafId = requestAnimationFrame(tick);
@@ -306,17 +438,41 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		targetCurrent.lerp(targetWorld, Math.min(1, delta * 6));
 		lookAtTarget.position.copy(targetCurrent);
 
-		if (spineBone) {
-			spineBone.rotation.x = Math.sin(now / 1400) * 0.018;
-			spineBone.rotation.z = Math.sin(now / 2700) * 0.012;
+		const animationActive = currentAction !== null;
+		const breath = Math.sin(now / 1400);
+		const sway = Math.sin(now / 2300);
+		const idleHeadDrift = Math.sin(now / 3700);
+
+		if (!animationActive && spineBone) {
+			spineBone.rotation.x = breath * 0.02 - 0.035;
+			spineBone.rotation.z = sway * 0.015;
 			spineBone.rotation.y = MathUtils.lerp(
 				spineBone.rotation.y,
-				lastPointNx * 0.12,
+				lastPointNx * 0.12 + sway * 0.04,
 				Math.min(1, delta * 4),
 			);
 		}
-		if (hipsBone) {
+		if (!animationActive && hipsBone) {
 			hipsBone.position.y = Math.sin(now / 1100) * 0.005;
+			hipsBone.rotation.y = sway * 0.05;
+			hipsBone.rotation.z = Math.sin(now / 3100) * 0.018;
+		}
+		if (
+			!animationActive &&
+			headBone &&
+			!activeGesture &&
+			currentState === 'idle'
+		) {
+			headBone.rotation.x = MathUtils.lerp(
+				headBone.rotation.x,
+				idleHeadDrift * 0.05 - 0.02,
+				Math.min(1, delta * 2),
+			);
+			headBone.rotation.z = MathUtils.lerp(
+				headBone.rotation.z,
+				Math.sin(now / 5300) * 0.04,
+				Math.min(1, delta * 2),
+			);
 		}
 
 		if (activeGesture) {
@@ -343,6 +499,12 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 			}
 		}
 
+		if (!activeGesture && currentState === 'idle') {
+			const happyPulse = 0.18 + Math.sin(now / 4200) * 0.06;
+			expressionTarget['happy'] = happyPulse;
+			expressionTarget['relaxed'] = 0.12;
+		}
+
 		const expSpeed = Math.min(1, delta * 8);
 		const mgr = vrm.expressionManager;
 		if (mgr) {
@@ -356,6 +518,7 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 			}
 		}
 
+		mixer.update(delta);
 		vrm.update(delta);
 		try {
 			renderer.render(scene, camera);
@@ -421,6 +584,11 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		setState,
 		pointAt,
 		setActive,
+		playAnimation,
+		stopAnimation,
+		setIdleAnimation: (url: string | null) => {
+			idleAnimationUrl = url;
+		},
 		destroy,
 	};
 }

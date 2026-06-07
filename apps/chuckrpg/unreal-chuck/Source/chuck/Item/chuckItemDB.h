@@ -4,19 +4,25 @@
 #include "Styling/SlateBrush.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Textures/SlateShaderResource.h"
+#include "KBVEDroppedItemVisual.h"
 #include "chuckItemTypes.h"
 #include "chuckItemDB.generated.h"
 
 class UTexture2D;
 
 UCLASS()
-class UchuckItemDB : public UGameInstanceSubsystem
+class UchuckItemDB : public UGameInstanceSubsystem, public IKBVEDroppedItemVisualProvider
 {
 	GENERATED_BODY()
 
 public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
+
+	virtual bool GetDroppedItemVisual(int32 ItemKey, FKBVEDroppedItemVisual& OutVisual) const override;
+
+	UFUNCTION()
+	void HandleDroppedItemPickedUp(AActor* Picker, int32 ItemKey, int32 Count);
 
 	const FchuckItemDef* LookupByKey(int32 Key) const;
 	const FchuckItemDef* LookupByRef(FName Ref) const;
