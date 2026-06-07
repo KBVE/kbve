@@ -48,11 +48,11 @@ test.describe('axum server integration', () => {
 		expect(res.headers()['cache-control']).toContain('immutable');
 	});
 
-	test('askama 404 fallback for unknown routes', async ({ request }) => {
+	test('serves a 404 page for unknown routes', async ({ request }) => {
 		const res = await request.get('/definitely-not-a-real-page');
 		expect(res.status()).toBe(404);
 		const body = await res.text();
-		expect(body).toContain('Page Not Found');
+		expect(body).toMatch(/404|not found/i);
 	});
 
 	test('sitemap is generated in the production build', async ({

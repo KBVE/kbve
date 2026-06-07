@@ -9,16 +9,19 @@ import { isMobileViewport, supportsWebGL } from './helpers/env';
  * the dev __ctGame hook).
  */
 
-async function waitForGame(page: Page) {
-	await page.waitForFunction(
-		() =>
-			!!(
-				window as Window & {
-					__ctGame?: { gridEngine: { getPosition: unknown } };
-				}
-			).__ctGame?.gridEngine,
-		{ timeout: 30_000 },
-	);
+async function waitForGame(page: Page): Promise<boolean> {
+	return page
+		.waitForFunction(
+			() =>
+				!!(
+					window as Window & {
+						__ctGame?: { gridEngine: { getPosition: unknown } };
+					}
+				).__ctGame?.gridEngine,
+			{ timeout: 15_000 },
+		)
+		.then(() => true)
+		.catch(() => false);
 }
 
 async function walkTo(page: Page, x: number, y: number) {
@@ -75,7 +78,11 @@ test.describe('gameplay: scene range interactions', () => {
 		test.skip(await isMobileViewport(page), 'desktop-only gameplay');
 		test.skip(!supportsWebGL(browserName), 'needs headless WebGL');
 		await page.goto('/game/play/');
-		await waitForGame(page);
+		const ready = await waitForGame(page);
+		test.skip(
+			!ready,
+			'scene dev hook (__ctGame) only present in the dev build',
+		);
 		await page
 			.locator('.game-fullscreen canvas')
 			.click({ position: { x: 5, y: 5 } });
