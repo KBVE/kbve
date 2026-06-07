@@ -12,7 +12,6 @@ void UKBVEWebBridge::BindTo(UWebBrowser* Browser, FName BindName)
 	{
 		return;
 	}
-	Browser->BindUObject(BindName.ToString(), this, /*bIsPermanent=*/true);
 	BoundBrowser = Browser;
 	BoundName = BindName;
 }
@@ -23,7 +22,6 @@ void UKBVEWebBridge::UnbindFrom(UWebBrowser* Browser, FName BindName)
 	{
 		return;
 	}
-	Browser->UnbindUObject(BindName.ToString(), this, /*bIsPermanent=*/true);
 	if (BoundBrowser.Get() == Browser && BoundName == BindName)
 	{
 		BoundBrowser = nullptr;

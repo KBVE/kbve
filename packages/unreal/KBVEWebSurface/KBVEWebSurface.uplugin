@@ -29,7 +29,6 @@
 		}
 	],
 	"Plugins": [
-		{ "Name": "WebBrowserWidget", "Enabled": true },
-		{ "Name": "WebBrowser", "Enabled": true }
+		{ "Name": "WebBrowserWidget", "Enabled": true }
 	]
 }

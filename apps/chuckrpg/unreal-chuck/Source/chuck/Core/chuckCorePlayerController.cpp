@@ -13,6 +13,7 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "chuckEventPayloads.h"
 #include "chuckUIEvents.h"
+#include "Props/chuckArcadeCabinet.h"
 #include "SKBVEDevOverlay.h"
 #include "GameFramework/PlayerState.h"
 #include "MassEntitySubsystem.h"
@@ -99,6 +100,10 @@ void AchuckCorePlayerController::SetupInputComponent()
 			if (Inputs->FocusChat)
 			{
 				EIC->BindAction(Inputs->FocusChat, ETriggerEvent::Started, this, &AchuckCorePlayerController::OnFocusChatPressed);
+			}
+			if (Inputs->Interact)
+			{
+				EIC->BindAction(Inputs->Interact, ETriggerEvent::Started, this, &AchuckCorePlayerController::OnInteractPressed);
 			}
 		}
 	}
@@ -734,6 +739,14 @@ void AchuckCorePlayerController::OnFocusChatPressed(const FInputActionValue& /*V
 	ChatWidget->ShowAndFocusInput();
 	SetUiFlag(EUiFlag::Chat, true);
 	RefreshUiMouseMode();
+}
+
+void AchuckCorePlayerController::OnInteractPressed(const FInputActionValue& /*Value*/)
+{
+	if (!AchuckArcadeCabinet::ActivateNearby())
+	{
+		UE_LOG(LogTemp, Verbose, TEXT("[chuck] Interact pressed — no nearby interactable"));
+	}
 }
 
 bool AchuckCorePlayerController::IsAnyUiPanelOpen() const

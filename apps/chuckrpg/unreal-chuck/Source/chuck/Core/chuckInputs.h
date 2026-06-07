@@ -26,6 +26,7 @@ public:
 	UPROPERTY() TObjectPtr<UInputAction>          Inventory;
 	UPROPERTY() TObjectPtr<UInputAction>          ToggleChat;
 	UPROPERTY() TObjectPtr<UInputAction>          FocusChat;
+	UPROPERTY() TObjectPtr<UInputAction>          Interact;
 	UPROPERTY() TObjectPtr<UInputMappingContext>  DefaultIMC;
 
 protected:
