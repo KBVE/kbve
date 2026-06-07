@@ -1,0 +1,12 @@
+# KEDA TriggerAuthentication — GitHub PAT for the github-runner scaler.
+# Same ExternalSecret-synced secret the runner install uses.
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+    name: github-runner-auth
+    namespace: angelscript
+spec:
+    secretTargetRef:
+        - parameter: personalAccessToken
+          name: github-arc-token
+          key: github_token
