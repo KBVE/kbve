@@ -6,13 +6,17 @@ use crate::repo::{CharsRepo, InstanceRepo};
 use uuid::Uuid;
 
 impl OWSService {
-    #[tracing::instrument(skip(self), fields(%customer_guid, char_name, zone_name))]
+    #[tracing::instrument(skip(self), fields(%customer_guid, %caller_guid, char_name, zone_name))]
     pub async fn get_server_to_connect_to(
         &self,
         customer_guid: Uuid,
+        caller_guid: Uuid,
         char_name: &str,
         zone_name: &str,
     ) -> Result<JoinMapResult, RowsError> {
+        self.verify_character_owner(customer_guid, caller_guid, char_name)
+            .await?;
+
         let resolved_zone = self
             .resolve_zone(customer_guid, char_name, zone_name)
             .await?;
@@ -29,6 +33,45 @@ impl OWSService {
     }
 
     /// Handles the `GETLASTZONENAME` magic string by reading the character's last `map_name`.
+    /// Enforces that the authenticated caller owns the character before a world IP is handed out.
+    /// Backwards compatibility: a character with no owner (legacy `NULL` `userguid`) is allowed
+    /// through with a warning; a missing character is left for the downstream zone lookup to report.
+    /// Only a character owned by a different user is rejected.
+    async fn verify_character_owner(
+        &self,
+        customer_guid: Uuid,
+        caller_guid: Uuid,
+        char_name: &str,
+    ) -> Result<(), RowsError> {
+        let chars_repo = CharsRepo(&self.state.db);
+        let Some(character) = chars_repo.get_by_name(customer_guid, char_name).await? else {
+            return Ok(());
+        };
+
+        match character.user_guid {
+            Some(owner) if owner == caller_guid => Ok(()),
+            None => {
+                tracing::warn!(
+                    char_name,
+                    caller = %caller_guid,
+                    "Character has no owner — allowing for backwards compatibility"
+                );
+                Ok(())
+            }
+            Some(owner) => {
+                tracing::warn!(
+                    char_name,
+                    caller = %caller_guid,
+                    owner = %owner,
+                    "Rejected world-IP request: character owned by another user"
+                );
+                Err(RowsError::Forbidden(format!(
+                    "Character '{char_name}' does not belong to the authenticated user"
+                )))
+            }
+        }
+    }
+
     async fn resolve_zone(
         &self,
         customer_guid: Uuid,
@@ -66,7 +109,6 @@ impl OWSService {
         let pipeline = match pipeline.acquire_lock(&self.state.zone_spinup_locks) {
             Ok(p) => p,
             Err(_) => {
-                // Another allocation is already in-flight; tail the poll loop without re-allocating.
                 return AllocationPipeline::new(customer_guid, zone, &self.state.db)
                     .poll_until_ready(char_name)
                     .await;
@@ -82,7 +124,6 @@ impl OWSService {
                 let p = p.create_instance().await?;
                 let p = p.tag_gameserver(agones).await?;
 
-                // Hand the Iris-side server its map assignment via MQ.
                 if let Some(mq) = mq_ref {
                     let msg = crate::mq::SpinUpMessage {
                         customer_guid: customer_guid.to_string(),

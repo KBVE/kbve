@@ -62,6 +62,9 @@ struct LoginDto {
     password: String,
 }
 
+/// DEPRECATED: `LoginAndCreateSession` is the legacy OWS local email/password login. Clients should
+/// authenticate against Supabase and call `ExternalLoginAndCreateSession`; this endpoint stays only
+/// for backwards compatibility and will be removed.
 async fn login(
     State(hs): State<HandlerState>,
     Json(body): Json<LoginDto>,
@@ -155,7 +158,7 @@ async fn get_all_characters(
 #[serde(rename_all = "camelCase")]
 struct GetServerDto {
     #[serde(default, rename = "userSessionGUID", alias = "userSessionGUId")]
-    _user_session_guid: Option<Uuid>,
+    user_session_guid: Option<Uuid>,
     character_name: String,
     zone_name: String,
     #[serde(default)]
@@ -167,10 +170,19 @@ async fn get_server_to_connect_to(
     headers: HeaderMap,
     Json(body): Json<GetServerDto>,
 ) -> ApiResult<crate::models::JoinMapResult> {
+    let caller_guid = hs
+        .svc
+        .confirm_login(&headers, body.user_session_guid)
+        .await?;
     let customer_guid = extract_customer_guid(&headers);
     let result = hs
         .svc
-        .get_server_to_connect_to(customer_guid, &body.character_name, &body.zone_name)
+        .get_server_to_connect_to(
+            customer_guid,
+            caller_guid,
+            &body.character_name,
+            &body.zone_name,
+        )
         .await?;
     Ok(Json(result))
 }
@@ -209,6 +221,9 @@ struct RegisterUserDto {
     last_name: String,
 }
 
+/// DEPRECATED: `RegisterUser` creates a legacy OWS local account with a password hash. Accounts now
+/// originate in Supabase and are provisioned on first `ExternalLoginAndCreateSession`; kept for
+/// backwards compatibility only, slated for removal.
 async fn register_user(
     State(hs): State<HandlerState>,
     headers: HeaderMap,

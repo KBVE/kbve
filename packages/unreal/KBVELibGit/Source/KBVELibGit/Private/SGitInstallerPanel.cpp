@@ -569,6 +569,11 @@ FReply SGitInstallerPanel::OnWriteLockClicked()
 	{
 		FGitRepoService::GetRepoStatus(RegistryStagingPath, HeadRef, HeadSha);
 	}
+	else
+	{
+		// No local clone — resolve the registry HEAD over the wire (ls-remote, no clone)
+		FGitRepoService::GetRemoteHeadSha(Lock.Registry, FKBVEPluginRegistry::DefaultBranch, HeadSha);
+	}
 
 	int32 PinCount = 0;
 	for (const TSharedPtr<FKBVEPluginEntry>& E : RegistryEntries)

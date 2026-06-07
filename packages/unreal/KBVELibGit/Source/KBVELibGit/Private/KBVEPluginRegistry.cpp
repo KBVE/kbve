@@ -137,3 +137,37 @@ void FKBVEPluginRegistry::ApplyLockStatus(TArray<FKBVEPluginEntry>& Entries, con
 		}
 	}
 }
+
+TArray<FString> FKBVEPluginRegistry::GetLockDrift()
+{
+	TArray<FString> Drift;
+
+	FKBVEPluginLockFile Lock;
+	if (!FKBVEPluginLock::Load(Lock) || Lock.Plugins.Num() == 0)
+	{
+		return Drift;
+	}
+
+	TArray<FKBVEPluginEntry> Entries = GetDefaultEntries();
+	CheckLocalInstallStatus(Entries);
+	ApplyLockStatus(Entries, Lock);
+
+	for (const FKBVEPluginEntry& Entry : Entries)
+	{
+		if (!Entry.bInLock)
+		{
+			continue;
+		}
+
+		if (!Entry.bInstalled)
+		{
+			Drift.Add(FString::Printf(TEXT("%s: locked v%s but not installed"), *Entry.Name, *Entry.LockedVersion));
+		}
+		else if (!Entry.bMatchesLock)
+		{
+			Drift.Add(FString::Printf(TEXT("%s: installed v%s != locked v%s"), *Entry.Name, *Entry.LocalVersion, *Entry.LockedVersion));
+		}
+	}
+
+	return Drift;
+}

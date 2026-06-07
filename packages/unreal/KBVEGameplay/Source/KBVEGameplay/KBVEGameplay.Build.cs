@@ -10,7 +10,8 @@ public class KBVEGameplay : ModuleRules
 		{
 			"Core",
 			"CoreUObject",
-			"Engine"
+			"Engine",
+			"MassEntity"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });

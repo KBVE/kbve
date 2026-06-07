@@ -24,12 +24,39 @@ fn to_status(e: crate::error::RowsError) -> Status {
     e.into_tonic()
 }
 
+/// Pulls a Supabase token out of the gRPC `authorization: Bearer <jwt>` metadata entry.
+fn bearer_from_meta<T>(req: &Request<T>) -> Option<String> {
+    let raw = req.metadata().get("authorization")?.to_str().ok()?.trim();
+    let token = raw
+        .strip_prefix("Bearer ")
+        .or_else(|| raw.strip_prefix("bearer "))?
+        .trim();
+    if token.is_empty() {
+        None
+    } else {
+        Some(token.to_string())
+    }
+}
+
+/// Optional `x-user-session: <uuid>` metadata entry, the gRPC equivalent of the REST session GUID.
+fn session_from_meta<T>(req: &Request<T>) -> Option<Uuid> {
+    req.metadata()
+        .get("x-user-session")?
+        .to_str()
+        .ok()?
+        .trim()
+        .parse()
+        .ok()
+}
+
 pub struct PublicApiService {
     svc: Arc<OWSService>,
 }
 
 #[tonic::async_trait]
 impl PublicApi for PublicApiService {
+    /// DEPRECATED: legacy OWS local email/password login. Prefer Supabase auth (bearer metadata on
+    /// the protected RPCs); retained for backwards compatibility and slated for removal.
     async fn login(&self, req: Request<LoginRequest>) -> Result<Response<LoginResponse>, Status> {
         let r = req.get_ref();
         let result = self
@@ -51,6 +78,8 @@ impl PublicApi for PublicApiService {
         }))
     }
 
+    /// DEPRECATED: legacy OWS local account creation. Accounts now originate in Supabase and are
+    /// provisioned on first external login; retained for backwards compatibility, slated for removal.
     async fn register(
         &self,
         req: Request<RegisterRequest>,
@@ -130,11 +159,16 @@ impl PublicApi for PublicApiService {
         &self,
         req: Request<GetServerToConnectToRequest>,
     ) -> Result<Response<GetServerToConnectToResponse>, Status> {
+        let caller_guid = self
+            .svc
+            .confirm_login_parts(bearer_from_meta(&req), session_from_meta(&req))
+            .await
+            .map_err(to_status)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         let result = self
             .svc
-            .get_server_to_connect_to(guid, &r.character_name, &r.character_name)
+            .get_server_to_connect_to(guid, caller_guid, &r.character_name, &r.character_name)
             .await
             .map_err(to_status)?;
         if !result.success {
@@ -323,11 +357,16 @@ impl CharacterPersistence for CharacterPersistenceService {
         &self,
         req: Request<JoinMapRequest>,
     ) -> Result<Response<JoinMapResponse>, Status> {
+        let caller_guid = self
+            .svc
+            .confirm_login_parts(bearer_from_meta(&req), session_from_meta(&req))
+            .await
+            .map_err(to_status)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         let result = self
             .svc
-            .get_server_to_connect_to(guid, &r.character_name, &r.zone_name)
+            .get_server_to_connect_to(guid, caller_guid, &r.character_name, &r.zone_name)
             .await
             .map_err(to_status)?;
         Ok(Response::new(JoinMapResponse {

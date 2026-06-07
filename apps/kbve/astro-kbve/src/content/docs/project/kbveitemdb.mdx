@@ -12,6 +12,7 @@ key: ue_kbveitemdb
 pipeline: unreal
 plugin_name: KBVEItemDB
 plugin_path: packages/unreal/KBVEItemDB
+dependency_plugins: packages/unreal/KBVESQLite
 version: "0.1.0"
 source_path: packages/unreal/KBVEItemDB
 version_toml: packages/unreal/KBVEItemDB/version.toml
@@ -43,3 +44,20 @@ to [KBVEGameplay](/project/kbvegameplay)'s effect half:
 
 Item DATA stays in the shared itemdb MDX. KBVEItemDB carries it + the inventory
 model; KBVEGameplay applies the consumable effects (atlas/icon rendering deferred).
+
+## Persistence (`FKBVEInventoryStore` / `UKBVEInventoryStoreSubsystem`)
+
+Durable local inventory via the **KBVESQLite** plugin — row-per-slot
+(`player_inventory(player_id, bag_ref, slot_idx, item_key, count, durability, flags)`,
+WAL), save/load/count/clear by player id, opened at `Saved/KBVE/inventory.db`.
+
+**Two boundaries to respect:**
+
+1. **SQLite ⟂ Mass.** SQLite is a persistence boundary, not a per-tick datasource:
+   load → seed Mass fragments at spawn/login, mutate fragments on worker threads,
+   flush fragments → SQLite at intervals/logout (game thread / async). A single
+   `sqlite3*` is not thread-safe; never query it inside the Mass processor loop.
+2. **KBVESQLite ⟂ UE SQLiteCore.** KBVESQLite is the single sqlite provider for
+   KBVE code (its own vendored `sqlite3`). Do not also link the engine's
+   `SQLiteCore` in the same module — duplicate `sqlite3_*` symbols crash the build/run.
+   Plugins depending on KBVESQLite declare `dependency_plugins: packages/unreal/KBVESQLite`.

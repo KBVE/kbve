@@ -50,6 +50,9 @@ public:
 	 */
 	static FGitResult GetRepoStatus(const FString& LocalPath, FString& OutRef, FString& OutSha);
 
+	/** Read a remote branch's HEAD commit SHA without cloning (ls-remote). */
+	static FGitResult GetRemoteHeadSha(const FString& RepoUrl, const FString& Branch, FString& OutSha);
+
 private:
 	/** Convert a libgit2 error code into an FGitResult */
 	static FGitResult MakeError(int32 GitErrorCode);

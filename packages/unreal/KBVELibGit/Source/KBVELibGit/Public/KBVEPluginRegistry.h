@@ -76,4 +76,7 @@ public:
 
 	/** Populate LockedVersion/bInLock/bMatchesLock from the project lockfile. */
 	static void ApplyLockStatus(TArray<FKBVEPluginEntry>& Entries, const FKBVEPluginLockFile& Lock);
+
+	/** Drift messages vs the lockfile (missing or version-mismatched pins). Empty = in sync. */
+	static TArray<FString> GetLockDrift();
 };

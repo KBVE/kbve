@@ -33,6 +33,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "KBVE|Item")
 	int32 Num() const { return Items.Num(); }
 
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Item")
+	bool PersistCatalogToDb(const FString& DbPath) const;
+
 private:
 	UPROPERTY()
 	TArray<FKBVEItemDef> Items;

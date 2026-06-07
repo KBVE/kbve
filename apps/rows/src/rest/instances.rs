@@ -283,7 +283,7 @@ async fn shut_down_server_instance(
 #[serde(rename_all = "camelCase")]
 struct GetServerDto {
     #[serde(default, rename = "userSessionGUID", alias = "userSessionGUId")]
-    _user_session_guid: Option<Uuid>,
+    user_session_guid: Option<Uuid>,
     character_name: String,
     zone_name: String,
     #[serde(default)]
@@ -295,10 +295,19 @@ async fn instance_get_server_to_connect_to(
     headers: HeaderMap,
     Json(body): Json<GetServerDto>,
 ) -> ApiResult<crate::models::JoinMapResult> {
+    let caller_guid = hs
+        .svc
+        .confirm_login(&headers, body.user_session_guid)
+        .await?;
     let customer_guid = extract_customer_guid(&headers);
     let result = hs
         .svc
-        .get_server_to_connect_to(customer_guid, &body.character_name, &body.zone_name)
+        .get_server_to_connect_to(
+            customer_guid,
+            caller_guid,
+            &body.character_name,
+            &body.zone_name,
+        )
         .await?;
     Ok(Json(result))
 }
