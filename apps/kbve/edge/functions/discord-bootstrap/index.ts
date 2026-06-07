@@ -148,16 +148,13 @@ serve(async (req) => {
   //    stolen Discord token but signs in as themselves" gap.
   const supabase = createServiceClient();
   {
-    const { data, error } = await supabase
-      .schema("auth")
-      .from("identities")
-      .select("provider_id")
-      .eq("user_id", userId)
-      .eq("provider", "discord")
-      .maybeSingle();
+    const { data: linkedProviderId, error } = await supabase.rpc(
+      "service_get_discord_provider_id",
+      { p_user_id: userId },
+    );
     if (error) {
       console.error(
-        "discord-bootstrap: auth.identities lookup failed:",
+        "discord-bootstrap: service_get_discord_provider_id failed:",
         error.message,
       );
       return jsonResponse(
@@ -165,16 +162,16 @@ serve(async (req) => {
         500,
       );
     }
-    if (!data) {
+    if (!linkedProviderId) {
       return jsonResponse(
         { error: "No Discord identity linked to this kbve account" },
         403,
       );
     }
-    if (data.provider_id !== discordUserId) {
+    if (linkedProviderId !== discordUserId) {
       console.warn(
         "discord-bootstrap: provider_id mismatch",
-        { expected: data.provider_id, got: discordUserId, userId },
+        { expected: linkedProviderId, got: discordUserId, userId },
       );
       return jsonResponse(
         {

@@ -344,3 +344,59 @@ REVOKE EXECUTE ON FUNCTION profile.get_discord_owned_guilds_claim(uuid, timestam
     FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION profile.get_discord_owned_guilds_claim(uuid, timestamptz)
     TO supabase_auth_admin;
+
+
+-- ============================================================================
+-- profile.service_get_discord_provider_id(uuid)
+--   Returns the Discord provider_id linked to a kbve user_id, or NULL.
+--   PostgREST does not expose auth.* schemas; edge functions that need to
+--   verify a user's linked Discord identity (discord-bootstrap) call this
+--   proxy instead of querying auth.identities directly through .schema().
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION profile.service_get_discord_provider_id(
+    p_user_id uuid
+)
+RETURNS TEXT
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_provider_id TEXT;
+BEGIN
+    IF p_user_id IS NULL THEN
+        RETURN NULL;
+    END IF;
+
+    SELECT provider_id
+      INTO v_provider_id
+    FROM auth.identities
+    WHERE user_id = p_user_id
+      AND provider = 'discord'
+    LIMIT 1;
+
+    RETURN v_provider_id;
+END;
+$$;
+
+ALTER FUNCTION profile.service_get_discord_provider_id(uuid) OWNER TO service_role;
+REVOKE ALL ON FUNCTION profile.service_get_discord_provider_id(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION profile.service_get_discord_provider_id(uuid) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.service_get_discord_provider_id(
+    p_user_id uuid
+)
+RETURNS TEXT
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+    SELECT profile.service_get_discord_provider_id(p_user_id);
+$$;
+
+ALTER FUNCTION public.service_get_discord_provider_id(uuid) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.service_get_discord_provider_id(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.service_get_discord_provider_id(uuid) TO service_role;
