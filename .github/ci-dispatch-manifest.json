@@ -1033,12 +1033,12 @@
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
-		"unreal": 21,
+		"unreal": 22,
 		"ue5_server": 2,
 		"unity": 1,
 		"godot": 1,
 		"unreal_game": 1,
 		"bevy_game": 0,
-		"total": 85
+		"total": 86
 	}
 }
