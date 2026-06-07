@@ -134,7 +134,13 @@ void UchuckTerrainStreamer::Tick(float DeltaSeconds)
 	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
 	if (!Pawn) return;
 
-	const FIntPoint Center = WorldToChunk(Pawn->GetActorLocation());
+	const FVector PawnLoc = Pawn->GetActorLocation();
+	const FIntPoint Center = WorldToChunk(PawnLoc);
+
+	constexpr float ImpostorLookaheadSec = 1.0f;
+	const FVector Vel = Pawn->GetVelocity();
+	const FVector LookaheadLoc = PawnLoc + Vel * ImpostorLookaheadSec;
+	const FIntPoint ImpostorCenter = WorldToChunk(LookaheadLoc);
 
 	TSet<FIntPoint> Wanted;
 	for (int32 Dy = -ChunkRadius; Dy <= ChunkRadius; ++Dy)
@@ -170,8 +176,8 @@ void UchuckTerrainStreamer::Tick(float DeltaSeconds)
 	{
 		if (!Pair.Value) continue;
 		const int32 Dist = FMath::Max(
-			FMath::Abs(Pair.Key.X - Center.X),
-			FMath::Abs(Pair.Key.Y - Center.Y));
+			FMath::Abs(Pair.Key.X - ImpostorCenter.X),
+			FMath::Abs(Pair.Key.Y - ImpostorCenter.Y));
 		Pair.Value->SetImpostorVisible(Dist >= ImpostorRing);
 	}
 }
