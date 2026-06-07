@@ -17,8 +17,8 @@
 #include "SchuckHotbar.h"
 #include "SchuckHUD.h"
 #include "SchuckInventoryWindow.h"
-#include "SchuckLoginWidget.h"
-#include "SchuckAccountPanel.h"
+#include "SKBVELoginWidget.h"
+#include "SKBVEAccountPanel.h"
 #include "SchuckChatPanel.h"
 #include "SchuckPauseMenu.h"
 #include "chuckInventory.h"
@@ -164,7 +164,7 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 		SupabaseSubsystem = GI->GetSubsystem<UKBVESupabaseSubsystem>();
 	}
 
-	AccountWidget = SNew(SchuckAccountPanel).Subsystem(SupabaseSubsystem);
+	AccountWidget = SNew(SKBVEAccountPanel).Subsystem(SupabaseSubsystem);
 	ChatWidget    = SNew(SchuckChatPanel)
 		.Subsystem(SupabaseSubsystem)
 		.OwningCharacter(Char)

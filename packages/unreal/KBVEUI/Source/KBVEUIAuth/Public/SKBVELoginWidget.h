@@ -9,17 +9,14 @@ class UKBVESupabaseSubsystem;
 class SEditableTextBox;
 class STextBlock;
 
-/**
- * Modal login panel. Sign-in / sign-up / OAuth bootstrap (Discord, GitHub,
- * Google) hooked straight to UKBVESupabaseSubsystem. Auth state changes are
- * surfaced via the chuck event bus (FchuckAuthStatusPayload), so this widget
- * just drives the subsystem and renders status text.
- */
-class SchuckLoginWidget : public SCompoundWidget
+class KBVEUIAUTH_API SKBVELoginWidget : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SchuckLoginWidget) {}
+	SLATE_BEGIN_ARGS(SKBVELoginWidget)
+		: _Title(NSLOCTEXT("SKBVELoginWidget", "DefaultTitle", "Sign In"))
+	{}
 		SLATE_ARGUMENT(TWeakObjectPtr<UKBVESupabaseSubsystem>, Subsystem)
+		SLATE_ARGUMENT(FText, Title)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);

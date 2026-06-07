@@ -1,8 +1,8 @@
 #include "chuckMenuPlayerController.h"
 
 #include "SchuckMainMenu.h"
-#include "SchuckLoginWidget.h"
-#include "SchuckAccountPanel.h"
+#include "SKBVELoginWidget.h"
+#include "SKBVEAccountPanel.h"
 #include "SchuckLoadingPanel.h"
 #include "Engine/GameInstance.h"
 #include "Engine/GameViewportClient.h"
@@ -40,8 +40,8 @@ void AchuckMenuPlayerController::BeginPlay()
 		.OnPlayClicked(FSimpleDelegate::CreateUObject(this, &AchuckMenuPlayerController::HandlePlay))
 		.OnQuitClicked(FSimpleDelegate::CreateUObject(this, &AchuckMenuPlayerController::HandleQuit));
 
-	LoginWidget   = SNew(SchuckLoginWidget).Subsystem(SupabaseSubsystem);
-	AccountWidget = SNew(SchuckAccountPanel).Subsystem(SupabaseSubsystem);
+	LoginWidget   = SNew(SKBVELoginWidget).Subsystem(SupabaseSubsystem).Title(NSLOCTEXT("chuck", "LoginTitle", "Sign in to ChuckRPG"));
+	AccountWidget = SNew(SKBVEAccountPanel).Subsystem(SupabaseSubsystem);
 	LoadingWidget = SNew(SchuckLoadingPanel);
 	LoadingWidget->SetVisibility(EVisibility::Collapsed);
 

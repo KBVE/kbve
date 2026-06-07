@@ -12,6 +12,7 @@ key: ue_kbveui
 pipeline: unreal
 plugin_name: KBVEUI
 plugin_path: packages/unreal/KBVEUI
+dependency_plugins: packages/unreal/KBVESupabase
 version: "0.1.0"
 source_path: packages/unreal/KBVEUI
 version_toml: packages/unreal/KBVEUI/version.toml
@@ -36,6 +37,18 @@ policy masks + `Has`/`Set`/`Diff`/`NeedsCursor`/`BlocksMovement` helpers) and
 `KBVEUIFlag` common flag bits — so a controller tracks which panels are open and
 derives input/cursor mode without re-rolling the bitfield. Stays Core+Slate;
 domain-aware UI (item-aware inventory, Supabase auth/chat) composes on top.
+
+### Modules
+
+- **`KBVEUI`** — base library, Core + Slate only. The agnostic visual primitives
+  and UI state above.
+- **`KBVEUIAuth`** — Supabase auth surface (`SKBVELoginWidget` email/password +
+  Discord/GitHub/Google OAuth + guest, `SKBVEAccountPanel` nick/avatar/sign-out).
+  Drives `UKBVESupabaseSubsystem`; status/profile pushed in via setters so the
+  game owns the auth event wiring. Login title is a `SLATE_ARGUMENT`. This module
+  pulls in Engine + HTTP + KBVESupabase, so the base `KBVEUI` module stays pure —
+  link `KBVEUIAuth` only when a game wants the Supabase UI. Hence
+  `dependency_plugins: packages/unreal/KBVESupabase`.
 
 Plugin source ships via its own PR; this entry wires it into the build/release
 pipeline alongside the other UE plugins.

@@ -1,12 +1,10 @@
-#include "SchuckLoginWidget.h"
+#include "SKBVELoginWidget.h"
 
-#include "ChuckUIStyle.h"
 #include "KBVESupabaseSubsystem.h"
 #include "KBVESupabaseTypes.h"
 
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/SOverlay.h"
-#include "Widgets/SBoxPanel.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Input/SButton.h"
@@ -14,7 +12,7 @@
 #include "Widgets/Text/STextBlock.h"
 #include "Styling/CoreStyle.h"
 
-#define LOCTEXT_NAMESPACE "SchuckLoginWidget"
+#define LOCTEXT_NAMESPACE "SKBVELoginWidget"
 
 namespace
 {
@@ -39,7 +37,7 @@ namespace
 	}
 }
 
-void SchuckLoginWidget::Construct(const FArguments& InArgs)
+void SKBVELoginWidget::Construct(const FArguments& InArgs)
 {
 	SetCanTick(false);
 	Subsystem = InArgs._Subsystem;
@@ -60,7 +58,7 @@ void SchuckLoginWidget::Construct(const FArguments& InArgs)
 		[
 			SNew(SButton)
 			.HAlign(HAlign_Center).VAlign(VAlign_Center)
-			.OnClicked(FOnClicked::CreateSP(this, &SchuckLoginWidget::HandleOAuth, Idx))
+			.OnClicked(FOnClicked::CreateSP(this, &SKBVELoginWidget::HandleOAuth, Idx))
 			[
 				SNew(STextBlock).Text(FText::FromString(OAuthLabels[Idx])).Font(ButtonFont)
 			]
@@ -82,7 +80,7 @@ void SchuckLoginWidget::Construct(const FArguments& InArgs)
 					SNew(SVerticalBox)
 					+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 0.f, 0.f, 12.f)
 					[
-						SNew(STextBlock).Text(LOCTEXT("Title", "Sign in to ChuckRPG")).Font(TitleFont)
+						SNew(STextBlock).Text(InArgs._Title).Font(TitleFont)
 					]
 					+ SVerticalBox::Slot().AutoHeight()
 					[
@@ -99,7 +97,7 @@ void SchuckLoginWidget::Construct(const FArguments& InArgs)
 						[
 							SNew(SButton)
 							.HAlign(HAlign_Center).VAlign(VAlign_Center)
-							.OnClicked(FOnClicked::CreateSP(this, &SchuckLoginWidget::HandleSignIn))
+							.OnClicked(FOnClicked::CreateSP(this, &SKBVELoginWidget::HandleSignIn))
 							[
 								SNew(STextBlock).Text(LOCTEXT("SignIn", "Sign In")).Font(ButtonFont)
 							]
@@ -108,7 +106,7 @@ void SchuckLoginWidget::Construct(const FArguments& InArgs)
 						[
 							SNew(SButton)
 							.HAlign(HAlign_Center).VAlign(VAlign_Center)
-							.OnClicked(FOnClicked::CreateSP(this, &SchuckLoginWidget::HandleSignUp))
+							.OnClicked(FOnClicked::CreateSP(this, &SKBVELoginWidget::HandleSignUp))
 							[
 								SNew(STextBlock).Text(LOCTEXT("SignUp", "Sign Up")).Font(ButtonFont)
 							]
@@ -130,7 +128,7 @@ void SchuckLoginWidget::Construct(const FArguments& InArgs)
 					[
 						SNew(SButton)
 						.HAlign(HAlign_Center).VAlign(VAlign_Center)
-						.OnClicked(FOnClicked::CreateSP(this, &SchuckLoginWidget::HandleAnonymous))
+						.OnClicked(FOnClicked::CreateSP(this, &SKBVELoginWidget::HandleAnonymous))
 						[
 							SNew(STextBlock).Text(LOCTEXT("Anon", "Play as Guest")).Font(LabelFont)
 						]
@@ -148,7 +146,7 @@ void SchuckLoginWidget::Construct(const FArguments& InArgs)
 	];
 }
 
-void SchuckLoginWidget::SetStatusText(const FText& InText, const FLinearColor& InColor)
+void SKBVELoginWidget::SetStatusText(const FText& InText, const FLinearColor& InColor)
 {
 	if (StatusText.IsValid())
 	{
@@ -157,13 +155,13 @@ void SchuckLoginWidget::SetStatusText(const FText& InText, const FLinearColor& I
 	}
 }
 
-void SchuckLoginWidget::SetBusy(bool bInBusy)
+void SKBVELoginWidget::SetBusy(bool bInBusy)
 {
 	bBusy = bInBusy;
 	SetVisibility(bInBusy ? EVisibility::HitTestInvisible : EVisibility::Visible);
 }
 
-FReply SchuckLoginWidget::HandleSignIn()
+FReply SKBVELoginWidget::HandleSignIn()
 {
 	if (bBusy) return FReply::Handled();
 	UKBVESupabaseSubsystem* Sub = Subsystem.Get();
@@ -180,7 +178,7 @@ FReply SchuckLoginWidget::HandleSignIn()
 	return FReply::Handled();
 }
 
-FReply SchuckLoginWidget::HandleSignUp()
+FReply SKBVELoginWidget::HandleSignUp()
 {
 	if (bBusy) return FReply::Handled();
 	UKBVESupabaseSubsystem* Sub = Subsystem.Get();
@@ -197,7 +195,7 @@ FReply SchuckLoginWidget::HandleSignUp()
 	return FReply::Handled();
 }
 
-FReply SchuckLoginWidget::HandleOAuth(int32 ProviderIndex)
+FReply SKBVELoginWidget::HandleOAuth(int32 ProviderIndex)
 {
 	if (bBusy) return FReply::Handled();
 	UKBVESupabaseSubsystem* Sub = Subsystem.Get();
@@ -211,7 +209,7 @@ FReply SchuckLoginWidget::HandleOAuth(int32 ProviderIndex)
 	return FReply::Handled();
 }
 
-FReply SchuckLoginWidget::HandleAnonymous()
+FReply SKBVELoginWidget::HandleAnonymous()
 {
 	if (bBusy) return FReply::Handled();
 	UKBVESupabaseSubsystem* Sub = Subsystem.Get();
