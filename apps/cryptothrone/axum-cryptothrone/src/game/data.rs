@@ -1,66 +1,109 @@
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
+use serde::Deserialize;
+
 use super::models::{DialogueNode, DialogueOption, ItemData, NPCData};
 
+/// Canonical itemdb pool, generated from MDX by `astro-kbve:sync:itemdb`.
+/// Embedded at compile time so the API serves the real catalogue, not a stub.
+const ITEMDB_JSON: &str =
+    include_str!("../../../../../packages/data/codegen/generated/itemdb-data.json");
+
+const FLAG_WEAPON: u32 = 1;
+const FLAG_ARMOR: u32 = 1 << 1;
+const FLAG_FOOD: u32 = 1 << 3;
+const FLAG_DRINK: u32 = 1 << 4;
+const FLAG_POTION: u32 = 1 << 5;
+const FLAG_QUEST: u32 = 1 << 12;
+const FLAG_CONSUMABLE: u32 = FLAG_FOOD | FLAG_DRINK | FLAG_POTION;
+
+#[derive(Deserialize)]
+struct RawItemdb {
+    items: Vec<RawItem>,
+}
+
+#[derive(Deserialize)]
+struct RawItem {
+    #[serde(rename = "ref")]
+    reference: String,
+    name: String,
+    #[serde(default)]
+    description: String,
+    #[serde(rename = "typeFlags", default)]
+    type_flags: u32,
+    #[serde(default)]
+    weight: Option<f64>,
+    #[serde(default)]
+    durability: Option<u32>,
+    #[serde(default)]
+    img: Option<String>,
+    #[serde(default)]
+    bonuses: HashMap<String, serde_json::Value>,
+}
+
+fn resolve_type(flags: u32) -> &'static str {
+    if flags & FLAG_WEAPON != 0 {
+        "weapon"
+    } else if flags & FLAG_ARMOR != 0 {
+        "armor"
+    } else if flags & FLAG_CONSUMABLE != 0 {
+        "consumable"
+    } else if flags & FLAG_QUEST != 0 {
+        "quest"
+    } else {
+        "material"
+    }
+}
+
+fn resolve_actions(item_type: &str) -> Vec<String> {
+    let raw = match item_type {
+        "consumable" => ["use", "drop", "inspect"].as_slice(),
+        "weapon" | "armor" => ["equip", "drop", "inspect"].as_slice(),
+        _ => ["drop", "inspect"].as_slice(),
+    };
+    raw.iter().map(|s| s.to_string()).collect()
+}
+
+fn alias_bonus(key: &str) -> &str {
+    match key {
+        "health" => "hp",
+        "mana" => "mp",
+        "energy" => "ep",
+        other => other,
+    }
+}
+
+fn adapt(raw: RawItem) -> ItemData {
+    let item_type = resolve_type(raw.type_flags).to_string();
+    let durability = raw
+        .durability
+        .unwrap_or(if item_type == "consumable" { 1 } else { 100 });
+    let bonuses = raw
+        .bonuses
+        .into_iter()
+        .filter_map(|(k, v)| v.as_f64().map(|n| (alias_bonus(&k).to_string(), n)))
+        .collect();
+    let img = raw
+        .img
+        .unwrap_or_else(|| format!("/assets/items/{}.png", raw.reference));
+    ItemData {
+        actions: resolve_actions(&item_type),
+        id: raw.reference,
+        name: raw.name,
+        item_type,
+        img,
+        description: raw.description.trim().to_string(),
+        bonuses,
+        durability,
+        weight: raw.weight.unwrap_or(1.0),
+    }
+}
+
 static ITEMS: LazyLock<Vec<ItemData>> = LazyLock::new(|| {
-    vec![
-        ItemData {
-            id: "health_potion".into(),
-            name: "Health Potion".into(),
-            item_type: "consumable".into(),
-            img: "/assets/items/health_potion.png".into(),
-            description: "Restores 25 HP.".into(),
-            bonuses: HashMap::from([("hp".into(), 25.0)]),
-            durability: 1,
-            weight: 0.5,
-            actions: vec!["use".into(), "drop".into(), "inspect".into()],
-        },
-        ItemData {
-            id: "mana_potion".into(),
-            name: "Mana Potion".into(),
-            item_type: "consumable".into(),
-            img: "/assets/items/mana_potion.png".into(),
-            description: "Restores 20 MP.".into(),
-            bonuses: HashMap::from([("mp".into(), 20.0)]),
-            durability: 1,
-            weight: 0.5,
-            actions: vec!["use".into(), "drop".into(), "inspect".into()],
-        },
-        ItemData {
-            id: "iron_sword".into(),
-            name: "Iron Sword".into(),
-            item_type: "weapon".into(),
-            img: "/assets/items/iron_sword.png".into(),
-            description: "A sturdy iron sword.".into(),
-            bonuses: HashMap::from([("attack".into(), 5.0)]),
-            durability: 100,
-            weight: 3.0,
-            actions: vec!["equip".into(), "drop".into(), "inspect".into()],
-        },
-        ItemData {
-            id: "salmon".into(),
-            name: "Salmon".into(),
-            item_type: "consumable".into(),
-            img: "/assets/items/salmon.png".into(),
-            description: "A fresh salmon. Restores 10 HP.".into(),
-            bonuses: HashMap::from([("hp".into(), 10.0)]),
-            durability: 1,
-            weight: 1.0,
-            actions: vec!["use".into(), "drop".into(), "inspect".into()],
-        },
-        ItemData {
-            id: "blue_shark".into(),
-            name: "Blue Shark".into(),
-            item_type: "consumable".into(),
-            img: "/assets/items/blue_shark.png".into(),
-            description: "A rare blue shark. Restores 30 HP.".into(),
-            bonuses: HashMap::from([("hp".into(), 30.0)]),
-            durability: 1,
-            weight: 2.0,
-            actions: vec!["use".into(), "drop".into(), "inspect".into()],
-        },
-    ]
+    let parsed: RawItemdb =
+        serde_json::from_str(ITEMDB_JSON).expect("embedded itemdb-data.json is valid");
+    parsed.items.into_iter().map(adapt).collect()
 });
 
 static NPCS: LazyLock<Vec<NPCData>> = LazyLock::new(|| {

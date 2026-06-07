@@ -322,7 +322,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let items: Vec<serde_json::Value> = serde_json::from_slice(&body).unwrap();
-        assert_eq!(items.len(), 5);
+        assert!(items.len() > 50);
     }
 
     #[tokio::test]
@@ -331,7 +331,7 @@ mod tests {
         let response = app
             .oneshot(
                 Request::builder()
-                    .uri("/api/v1/items/health_potion")
+                    .uri("/api/v1/items/iron-sword")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -341,7 +341,7 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let item: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(item["name"], "Health Potion");
+        assert_eq!(item["name"], "Iron Sword");
     }
 
     #[tokio::test]

@@ -26,13 +26,13 @@ test.describe('axum game API', () => {
 		expect(res.headers()['content-type']).toContain('application/json');
 		const items = await res.json();
 		expect(Array.isArray(items)).toBe(true);
-		expect(items.length).toBe(5);
+		expect(items.length).toBeGreaterThan(50);
 	});
 
 	test('fetches a known item by id', async ({ request }) => {
-		const res = await request.get('/api/v1/items/health_potion');
+		const res = await request.get('/api/v1/items/iron-sword');
 		expect(res.status()).toBe(200);
-		expect((await res.json()).name).toBe('Health Potion');
+		expect((await res.json()).name).toBe('Iron Sword');
 	});
 
 	test('unknown item returns 404', async ({ request }) => {

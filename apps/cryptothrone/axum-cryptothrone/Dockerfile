@@ -138,6 +138,7 @@ RUN dpkg -s make >/dev/null 2>&1 || ( \
 COPY --from=astro-precompressor /static /app/apps/cryptothrone/axum-cryptothrone/templates/dist
 
 COPY packages/data/proto packages/data/proto
+COPY packages/data/codegen/generated packages/data/codegen/generated
 COPY packages/rust/jedi packages/rust/jedi
 COPY packages/rust/kbve packages/rust/kbve
 COPY packages/rust/holy packages/rust/holy
