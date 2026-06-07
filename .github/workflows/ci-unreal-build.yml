@@ -30,7 +30,7 @@ on:
                 type: string
                 default: ''
             engine_version:
-                description: '[game] UE version pin (e.g. 5.7.4) — docker tag derived as dev-<version>'
+                description: '[game] UE version pin (e.g. 5.7.4) - docker tag derived as dev-<version>'
                 required: false
                 type: string
                 default: '5.7.4'
@@ -87,7 +87,7 @@ on:
                 type: string
                 default: ''
             plugin_name:
-                description: '[plugin] Plugin name — matches the .uplugin filename'
+                description: '[plugin] Plugin name - matches the .uplugin filename'
                 required: false
                 type: string
                 default: ''
@@ -209,7 +209,7 @@ jobs:
                         if (level === 'admin' || level === 'write') {
                           core.setOutput('allowed', 'true');
                         } else {
-                          core.error(`Actor ${context.actor} has ${level} access — insufficient`);
+                          core.error(`Actor ${context.actor} has ${level} access - insufficient`);
                           core.setOutput('allowed', 'false');
                         }
                       } catch (err) {
@@ -251,7 +251,7 @@ jobs:
 
                   BUILD="${SHELL}/build.toml"
                   if [ ! -f "${BUILD}" ]; then
-                    echo "::error::${BUILD} not found — cannot determine build config"
+                    echo "::error::${BUILD} not found - cannot determine build config"
                     exit 1
                   fi
 
@@ -319,7 +319,7 @@ jobs:
         env:
             UE_IMAGE: ghcr.io/epicgames/unreal-engine:${{ needs.server_config.outputs.ue_image_tag }}
         steps:
-            - name: Resolve PAT (epic_pat → UNITY_PAT fallback)
+            - name: Resolve PAT (epic_pat -> UNITY_PAT fallback)
               id: pat
               run: |
                   TOKEN="${{ secrets.epic_pat }}"
@@ -330,7 +330,7 @@ jobs:
                     echo "::notice::Using epic_pat"
                   fi
                   if [ -z "${TOKEN}" ]; then
-                    echo "::error::No PAT available — set epic_pat or UNITY_PAT"
+                    echo "::error::No PAT available - set epic_pat or UNITY_PAT"
                     exit 1
                   fi
                   echo "::add-mask::${TOKEN}"
@@ -338,7 +338,7 @@ jobs:
 
             - name: Audit log
               run: |
-                  echo "::notice::UE5 dedicated server build — repo=${{ needs.server_config.outputs.project_repo }}, target=${{ needs.server_config.outputs.server_target }}, image=${{ env.UE_IMAGE }}, version=${{ needs.server_config.outputs.version }}, actor=${{ github.actor }}"
+                  echo "::notice::UE5 dedicated server build - repo=${{ needs.server_config.outputs.project_repo }}, target=${{ needs.server_config.outputs.server_target }}, image=${{ env.UE_IMAGE }}, version=${{ needs.server_config.outputs.version }}, actor=${{ github.actor }}"
 
             - name: Login to GitHub Container Registry
               run: |
@@ -360,11 +360,11 @@ jobs:
               run: |
                   PROJ="${{ inputs.shell_path }}"
                   if [ ! -f "${PROJ}/.lfsconfig" ]; then
-                    echo "::error::${PROJ}/.lfsconfig not found — cannot resolve game LFS endpoint"
+                    echo "::error::${PROJ}/.lfsconfig not found - cannot resolve game LFS endpoint"
                     exit 1
                   fi
                   if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
-                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — cannot pull LFS from git.kbve.com"
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing - cannot pull LFS from git.kbve.com"
                     exit 1
                   fi
                   echo "::add-mask::${FORGEJO_TOKEN}"
@@ -394,7 +394,7 @@ jobs:
                     PROJECT_MOUNT="/tmp/game-project/${UPROJECT_DIR}"
                   fi
 
-                  echo "::notice::Mounting ${PROJECT_MOUNT} → /project, building ${UPROJECT_FILE}"
+                  echo "::notice::Mounting ${PROJECT_MOUNT} -> /project, building ${UPROJECT_FILE}"
 
                   docker run --rm \
                     -v "${PROJECT_MOUNT}:/project" \
@@ -468,7 +468,7 @@ jobs:
                   actor=${{ github.actor }}
                   BUILDEOF
 
-                  echo "::notice::BUILD_INFO written — source ${REPO}@${CHUCK_SHA:0:8}, config ${CONFIG}"
+                  echo "::notice::BUILD_INFO written - source ${REPO}@${CHUCK_SHA:0:8}, config ${CONFIG}"
 
             - name: Deploy server to PVC
               run: |
@@ -555,10 +555,10 @@ jobs:
                   fi
 
                   if [ -n "${PUBLISHED}" ] && [ "${VERSION}" = "${PUBLISHED}" ]; then
-                    echo "::notice::v${VERSION} already published — skipping build"
+                    echo "::notice::v${VERSION} already published - skipping build"
                     echo "should_build=false" >> "$GITHUB_OUTPUT"
                   else
-                    echo "::notice::v${VERSION} (published ${PUBLISHED:-none}) — will build"
+                    echo "::notice::v${VERSION} (published ${PUBLISHED:-none}) - will build"
                     echo "should_build=true" >> "$GITHUB_OUTPUT"
                   fi
 
@@ -580,7 +580,7 @@ jobs:
                   TOKEN="${{ secrets.epic_pat }}"
                   [ -z "${TOKEN}" ] && TOKEN="${{ secrets.UNITY_PAT }}"
                   if [ -z "${TOKEN}" ]; then
-                    echo "::error::No PAT available — set epic_pat or UNITY_PAT"
+                    echo "::error::No PAT available - set epic_pat or UNITY_PAT"
                     exit 1
                   fi
                   echo "::add-mask::${TOKEN}"
@@ -606,11 +606,11 @@ jobs:
               run: |
                   PROJ="${{ inputs.project_path }}"
                   if [ ! -f "${PROJ}/.lfsconfig" ]; then
-                    echo "::error::${PROJ}/.lfsconfig not found — cannot resolve game LFS endpoint"
+                    echo "::error::${PROJ}/.lfsconfig not found - cannot resolve game LFS endpoint"
                     exit 1
                   fi
                   if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
-                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — cannot pull LFS from git.kbve.com"
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing - cannot pull LFS from git.kbve.com"
                     exit 1
                   fi
                   echo "::add-mask::${FORGEJO_TOKEN}"
@@ -656,11 +656,11 @@ jobs:
                   case "${RAW_LFS}" in
                     *forgejo.kbve.com/*|*git.kbve.com/*)
                       if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
-                        echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — cannot pull LFS from git.kbve.com"
+                        echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing - cannot pull LFS from git.kbve.com"
                         exit 1
                       fi
                       echo "::add-mask::${FORGEJO_TOKEN}"
-                      # Derive repo path from the repo's own .lfsconfig (preserves owner/repo case —
+                      # Derive repo path from the repo's own .lfsconfig (preserves owner/repo case -
                       # Forgejo LFS routing is case-sensitive: KBVE/chuck = 401, kbve/chuck = 302) and
                       # force the HTTPS ingress host git.kbve.com (.74) over the ssh/Cilium .71 route.
                       REPO_PATH="${RAW_LFS#ssh://}"; REPO_PATH="${REPO_PATH#https://}"; REPO_PATH="${REPO_PATH#http://}"
@@ -814,7 +814,7 @@ jobs:
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
               run: |
                   $token = if ($env:EPIC_PAT) { $env:EPIC_PAT } else { $env:UNITY_PAT }
-                  if (-not $token) { Write-Host "::error::No PAT available — set epic_pat or UNITY_PAT"; exit 1 }
+                  if (-not $token) { Write-Host "::error::No PAT available - set epic_pat or UNITY_PAT"; exit 1 }
                   Write-Host "::add-mask::$token"
 
                   $slug = '${{ inputs.external_repo_url }}'
@@ -894,7 +894,7 @@ jobs:
                   if (Test-Path C:\game-clone) { Remove-Item -Recurse -Force C:\game-clone -ErrorAction SilentlyContinue }
 
     game_build_mac:
-        name: Game Build (Mac client — STUB)
+        name: Game Build (Mac client - STUB)
         needs: [guard, game_gate]
         if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Mac')
         runs-on: ubuntu-latest
@@ -904,8 +904,8 @@ jobs:
         steps:
             - name: Notice
               run: |
-                  echo "::warning::Mac client build is a STUB — macos-builder VM not yet provisioned (UE5-Mac runner offline). No-op."
-                  echo "Requested target Mac for ${{ inputs.app_name }} v${{ needs.game_gate.outputs.version }} — skipped."
+                  echo "::warning::Mac client build is a STUB - macos-builder VM not yet provisioned (UE5-Mac runner offline). No-op."
+                  echo "Requested target Mac for ${{ inputs.app_name }} v${{ needs.game_gate.outputs.version }} - skipped."
 
     # ════════════════ ENGINE (AngelScript UE) ════════════════
     engine_gate:
@@ -949,13 +949,13 @@ jobs:
                     echo "::notice::Version gate skipped (forced rebuild)"
                     echo "should_build=true" >> "$GITHUB_OUTPUT"
                   elif [ "${VERSION}" = "0.0.0" ]; then
-                    echo "::notice::Version is 0.0.0 — initial build"
+                    echo "::notice::Version is 0.0.0 - initial build"
                     echo "should_build=true" >> "$GITHUB_OUTPUT"
                   elif gh release view "${TAG}" --repo "${{ env.ENGINE_REPO }}" --json tagName >/dev/null 2>&1; then
-                    echo "::notice::Release ${TAG} already exists — skipping build"
+                    echo "::notice::Release ${TAG} already exists - skipping build"
                     echo "should_build=false" >> "$GITHUB_OUTPUT"
                   else
-                    echo "::notice::No existing release for ${TAG} — will build"
+                    echo "::notice::No existing release for ${TAG} - will build"
                     echo "should_build=true" >> "$GITHUB_OUTPUT"
                   fi
 
@@ -972,7 +972,7 @@ jobs:
         steps:
             - name: Audit log
               shell: powershell
-              run: Write-Host "::notice::Windows engine provision — ref=${{ inputs.engine_ref }}, version=${{ needs.engine_gate.outputs.version }}, root=$env:ENGINE_ROOT"
+              run: Write-Host "::notice::Windows engine provision - ref=${{ inputs.engine_ref }}, version=${{ needs.engine_gate.outputs.version }}, root=$env:ENGINE_ROOT"
 
             - name: Check existing engine
               id: check
@@ -983,7 +983,7 @@ jobs:
                   $builtRef = if (Test-Path $marker) { (Get-Content $marker -Raw).Trim() } else { '' }
                   $force = '${{ inputs.skip_version_gate }}' -eq 'true'
                   if ($runuat -and ($builtRef -eq '${{ inputs.engine_ref }}') -and (-not $force)) {
-                      Write-Host "Engine already provisioned (ref=$builtRef) — skipping build."
+                      Write-Host "Engine already provisioned (ref=$builtRef) - skipping build."
                       "skip=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
                   } else {
                       Write-Host "Building engine (runuat=$runuat builtRef='$builtRef' force=$force)."
@@ -995,7 +995,7 @@ jobs:
               shell: powershell
               run: |
                   $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-                  if (-not (Test-Path $vsWhere)) { Write-Host "::error::vswhere not found — run the win-setup task first"; exit 1 }
+                  if (-not (Test-Path $vsWhere)) { Write-Host "::error::vswhere not found - run the win-setup task first"; exit 1 }
                   Write-Host "::notice::VS: $(& $vsWhere -latest -property installationPath)"
                   git --version
                   git lfs version
@@ -1051,7 +1051,7 @@ jobs:
               shell: powershell
               run: |
                   $runuat = Join-Path $env:ENGINE_ROOT 'Engine\Build\BatchFiles\RunUAT.bat'
-                  if (-not (Test-Path $runuat)) { Write-Host "::error::Engine not provisioned — RunUAT.bat missing at $runuat"; exit 1 }
+                  if (-not (Test-Path $runuat)) { Write-Host "::error::Engine not provisioned - RunUAT.bat missing at $runuat"; exit 1 }
                   Write-Host "::notice::Engine ready at $env:ENGINE_ROOT"
 
             - name: Cleanup secrets
@@ -1065,7 +1065,7 @@ jobs:
                   }
 
     engine_build_mac:
-        name: Engine Build (Mac client — STUB)
+        name: Engine Build (Mac client - STUB)
         needs: [guard, engine_gate]
         if: inputs.mode == 'engine' && needs.guard.outputs.allowed == 'true' && needs.engine_gate.outputs.should_build == 'true' && contains(inputs.platforms, 'mac')
         runs-on: ubuntu-latest
@@ -1075,8 +1075,8 @@ jobs:
         steps:
             - name: Notice
               run: |
-                  echo "::warning::Mac engine build is a STUB — macos-builder VM not yet provisioned. No-op."
-                  echo "Requested mac engine build ref=${{ inputs.engine_ref }} v${{ needs.engine_gate.outputs.version }} — skipped."
+                  echo "::warning::Mac engine build is a STUB - macos-builder VM not yet provisioned. No-op."
+                  echo "Requested mac engine build ref=${{ inputs.engine_ref }} v${{ needs.engine_gate.outputs.version }} - skipped."
 
     engine_build_linux:
         name: Engine Build (Linux dedicated server)
@@ -1090,7 +1090,7 @@ jobs:
         steps:
             - name: Audit log
               run: |
-                  echo "::notice::Linux engine build — ref=${{ inputs.engine_ref }}, version=${{ needs.engine_gate.outputs.version }}, image=${{ env.DOCKER_IMAGE }}"
+                  echo "::notice::Linux engine build - ref=${{ inputs.engine_ref }}, version=${{ needs.engine_gate.outputs.version }}, image=${{ env.DOCKER_IMAGE }}"
 
             - name: Install build dependencies
               run: |
@@ -1329,7 +1329,7 @@ jobs:
                   echo "published_version=${PUBLISHED}" >> "$GITHUB_OUTPUT"
                   echo "engine=${ENGINE}" >> "$GITHUB_OUTPUT"
                   echo "zip_name=${{ inputs.plugin_name }}${SUFFIX}-UE${ENGINE}-v${VERSION}.zip" >> "$GITHUB_OUTPUT"
-                  echo "::notice::Plugin ${{ inputs.plugin_name }} — uplugin: ${VERSION}, published: ${PUBLISHED}, engine: ${ENGINE}"
+                  echo "::notice::Plugin ${{ inputs.plugin_name }} - uplugin: ${VERSION}, published: ${PUBLISHED}, engine: ${ENGINE}"
 
             - name: Compare versions
               id: compare
@@ -1348,13 +1348,13 @@ jobs:
                   echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
 
                   if [ "${VERSION}" = "${PUBLISHED}" ]; then
-                    echo "::notice::version.toml matches .uplugin (${VERSION}) — skipping publish"
+                    echo "::notice::version.toml matches .uplugin (${VERSION}) - skipping publish"
                     echo "should_release=false" >> "$GITHUB_OUTPUT"
                   elif gh release view "${TAG}" --json tagName >/dev/null 2>&1; then
-                    echo "::notice::Release ${TAG} already exists — skipping publish"
+                    echo "::notice::Release ${TAG} already exists - skipping publish"
                     echo "should_release=false" >> "$GITHUB_OUTPUT"
                   else
-                    echo "::notice::New version ${VERSION} (was ${PUBLISHED}) — will publish"
+                    echo "::notice::New version ${VERSION} (was ${PUBLISHED}) - will publish"
                     echo "should_release=true" >> "$GITHUB_OUTPUT"
                   fi
 
@@ -1370,7 +1370,7 @@ jobs:
         steps:
             - name: Audit log
               run: |
-                  echo "::notice::Plugin build — plugin=${{ inputs.plugin_name }}, version=${{ needs.plugin_check.outputs.version }}, image=ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}"
+                  echo "::notice::Plugin build - plugin=${{ inputs.plugin_name }}, version=${{ needs.plugin_check.outputs.version }}, image=ghcr.io/epicgames/unreal-engine:${{ inputs.ue_image_tag }}"
 
             - name: Checkout repository
               uses: actions/checkout@v6
@@ -1478,7 +1478,7 @@ jobs:
         steps:
             - name: Audit log
               run: |
-                  Write-Host "::notice::Win64 plugin build — plugin=${{ inputs.plugin_name }}, version=${{ needs.plugin_check.outputs.version }}, platforms=${{ inputs.target_platforms }}"
+                  Write-Host "::notice::Win64 plugin build - plugin=${{ inputs.plugin_name }}, version=${{ needs.plugin_check.outputs.version }}, platforms=${{ inputs.target_platforms }}"
 
             - name: Checkout repository
               uses: actions/checkout@v6
@@ -1540,7 +1540,7 @@ jobs:
               run: |
                   $uplugin = Join-Path $env:GITHUB_WORKSPACE 'output' '${{ inputs.plugin_name }}' '${{ inputs.plugin_name }}.uplugin'
                   if (-not (Test-Path $uplugin)) {
-                      Write-Host "::error::Build output missing — .uplugin not found at $uplugin"
+                      Write-Host "::error::Build output missing - .uplugin not found at $uplugin"
                       Get-ChildItem -Path (Join-Path $env:GITHUB_WORKSPACE 'output') -Recurse | Select-Object -First 30
                       exit 1
                   }
@@ -1786,7 +1786,7 @@ jobs:
         steps:
             - name: Notice
               run: |
-                  echo "::warning::mac-setup is a STUB — macos-builder VM not yet provisioned (UE5-Mac runner offline). No-op."
+                  echo "::warning::mac-setup is a STUB - macos-builder VM not yet provisioned (UE5-Mac runner offline). No-op."
                   echo "Re-enable by restoring the Xcode CLT / Homebrew / CMake / Python install steps once the macOS VM is online."
 
     track_failure:
