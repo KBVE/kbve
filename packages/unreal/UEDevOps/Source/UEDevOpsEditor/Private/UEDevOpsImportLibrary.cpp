@@ -16,7 +16,10 @@
 #include "Materials/MaterialExpressionTextureSample.h"
 #include "MaterialEditingLibrary.h"
 #include "Misc/MessageDialog.h"
+#include "Misc/PackageName.h"
 #include "Misc/Paths.h"
+#include "UObject/Package.h"
+#include "UObject/SavePackage.h"
 
 #define LOCTEXT_NAMESPACE "UEDevOpsImport"
 
@@ -80,15 +83,35 @@ namespace
 		return Ext == TEXT(".fbx");
 	}
 
-	UAssetImportTask* MakeTask(const FString& Filename, const FString& Dest)
+	UAssetImportTask* MakeTask(const FString& Filename, const FString& Dest, bool bSaveAfterImport)
 	{
 		UAssetImportTask* Task = NewObject<UAssetImportTask>();
 		Task->Filename         = Filename;
 		Task->DestinationPath  = Dest;
 		Task->bReplaceExisting = true;
 		Task->bAutomated       = true;
-		Task->bSave            = true;
+		Task->bSave            = bSaveAfterImport;
 		return Task;
+	}
+
+	bool ForceSavePackage(UObject* Asset)
+	{
+		if (!Asset) return false;
+		UPackage* Pkg = Asset->GetOutermost();
+		if (!Pkg) return false;
+
+		Pkg->FullyLoad();
+		Pkg->SetDirtyFlag(true);
+
+		const FString Filename = FPackageName::LongPackageNameToFilename(
+			Pkg->GetName(), FPackageName::GetAssetPackageExtension());
+		FSavePackageArgs SaveArgs;
+		SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
+		SaveArgs.SaveFlags     = SAVE_NoError;
+		const bool bSaved = UPackage::SavePackage(Pkg, nullptr, *Filename, SaveArgs);
+		UE_LOG(LogTemp, Display, TEXT("[UEDevOps] SavePackage(%s) -> %s"),
+			*Pkg->GetName(), bSaved ? TEXT("ok") : TEXT("FAIL"));
+		return bSaved;
 	}
 
 	void ConfigureFbxTask(UAssetImportTask* Task, float MeshScale)
@@ -145,20 +168,46 @@ namespace
 			Sample->SamplerType = Kvp.Value.Value;
 			Sample->Texture     = Kvp.Value.Key;
 
-			const bool bConnected = UMaterialEditingLibrary::ConnectMaterialProperty(Sample, TEXT("RGB"), Kvp.Key);
-			UE_LOG(LogTemp, Display, TEXT("[UEDevOps]   wired %s -> slot %d (connected=%d, sampler=%d)"),
-				*Kvp.Value.Key->GetName(), (int32)Kvp.Key, bConnected ? 1 : 0, (int32)Kvp.Value.Value);
+			FString OutputName = TEXT("RGB");
+			switch (Kvp.Key)
+			{
+				case MP_Metallic:
+				case MP_Roughness:
+				case MP_AmbientOcclusion:
+				case MP_Specular:
+				case MP_Opacity:
+				case MP_OpacityMask:
+					OutputName = TEXT("R");
+					break;
+				case MP_Normal:
+					OutputName = TEXT("RGB");
+					break;
+				case MP_BaseColor:
+				case MP_EmissiveColor:
+				case MP_SubsurfaceColor:
+				default:
+					OutputName = TEXT("RGB");
+					break;
+			}
+
+			const bool bConnected = UMaterialEditingLibrary::ConnectMaterialProperty(Sample, OutputName, Kvp.Key);
+			UE_LOG(LogTemp, Display, TEXT("[UEDevOps]   wired %s -> slot %d via '%s' (connected=%d, sampler=%d)"),
+				*Kvp.Value.Key->GetName(), (int32)Kvp.Key, *OutputName, bConnected ? 1 : 0, (int32)Kvp.Value.Value);
 			Y += 250;
 		}
 
 		UMaterialEditingLibrary::RecompileMaterial(Mat);
-		UEditorAssetLibrary::SaveLoadedAsset(Mat);
+		Mat->PostEditChange();
+		ForceSavePackage(Mat);
 		return Mat;
 	}
 
 	void AssignMaterialToMesh(UStaticMesh* Mesh, UMaterialInterface* Material)
 	{
 		if (!Mesh || !Material) return;
+
+		Mesh->Modify();
+		Mesh->PreEditChange(nullptr);
 
 		TArray<FStaticMaterial> Slots = Mesh->GetStaticMaterials();
 		if (Slots.Num() == 0)
@@ -177,7 +226,11 @@ namespace
 			}
 		}
 		Mesh->SetStaticMaterials(Slots);
-		UEditorAssetLibrary::SaveLoadedAsset(Mesh);
+
+		Mesh->PostEditChange();
+		Mesh->Build(/*bSilent*/ true);
+
+		ForceSavePackage(Mesh);
 		UE_LOG(LogTemp, Display, TEXT("[UEDevOps] Assigned %s -> %s (%d slots)"),
 			*Material->GetName(), *Mesh->GetName(), Slots.Num());
 	}
@@ -214,7 +267,7 @@ bool FUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, c
 
 		if (IsFbx(Ext))
 		{
-			UAssetImportTask* Task = MakeTask(Full, DestFull);
+			UAssetImportTask* Task = MakeTask(Full, DestFull, /*save*/ false);
 			ConfigureFbxTask(Task, MeshScale);
 			FbxTasks.Add(Task);
 		}
@@ -226,7 +279,7 @@ bool FUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, c
 				UE_LOG(LogTemp, Warning, TEXT("[UEDevOps] Skipping unclassified texture: %s"), *Filename);
 				continue;
 			}
-			UAssetImportTask* Task = MakeTask(Full, DestFull);
+			UAssetImportTask* Task = MakeTask(Full, DestFull, /*save*/ true);
 			TexTasks.Add(Task);
 			TexRules.Add(Full, Rule);
 		}

@@ -163,11 +163,18 @@ void SUEDevOpsPanel::Construct(const FArguments& InArgs)
 					.Text(LOCTEXT("PickBtn", "Pick Folder..."))
 					.OnClicked(this, &SUEDevOpsPanel::HandleImportPickClicked)
 				]
-				+ SHorizontalBox::Slot().AutoWidth()
+				+ SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 6, 0)
 				[
 					SNew(SButton)
 					.Text(LOCTEXT("RunBtn", "Run Import"))
 					.OnClicked(this, &SUEDevOpsPanel::HandleImportRunClicked)
+				]
+				+ SHorizontalBox::Slot().AutoWidth()
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("QuickArcadeBtn", "Quick Import Arcade"))
+					.ToolTipText(LOCTEXT("QuickArcadeTip", "One-click: import Raw/Props/Arcade -> /Game/Art/Furniture/Arcade with all canonical paths"))
+					.OnClicked(this, &SUEDevOpsPanel::HandleQuickImportArcadeClicked)
 				]
 			]
 
@@ -292,6 +299,18 @@ FReply SUEDevOpsPanel::HandleImportRunClicked()
 		*Source, *Dest,
 		Material.IsEmpty() ? TEXT("") : *FString::Printf(TEXT("  [M_%s]"), *Material),
 		Scale));
+	return FReply::Handled();
+}
+
+FReply SUEDevOpsPanel::HandleQuickImportArcadeClicked()
+{
+	const FString Source = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Raw/Props/Arcade"));
+	const FString Dest   = TEXT("/Game/Art/Furniture/Arcade");
+	const FString MatName = TEXT("Arcade");
+	const float Scale     = 1.0f;
+	const bool bOk = FUEDevOpsImportLibrary::ImportRawAssetFolder(Source, Dest, MatName, Scale);
+	AppendLog(FString::Printf(TEXT("%s Quick Arcade: %s -> %s  [M_%s]  scale=%.2f"),
+		bOk ? TEXT("✓") : TEXT("✖"), *Source, *Dest, *MatName, Scale));
 	return FReply::Handled();
 }
 

@@ -4,6 +4,7 @@
 #include "Engine/GameInstance.h"
 #include "Framework/Docking/TabManager.h"
 #include "HAL/IConsoleManager.h"
+#include "Misc/Paths.h"
 #include "SUEDevOpsPanel.h"
 #include "ToolMenus.h"
 #include "UEDevOpsGitHubService.h"
@@ -56,6 +57,22 @@ static FAutoConsoleCommand GUEDevOpsPanelCmd(
 	FConsoleCommandDelegate::CreateLambda([]()
 	{
 		FGlobalTabmanager::Get()->TryInvokeTab(UEDevOpsPanelTabName);
+	})
+);
+
+static FAutoConsoleCommand GUEDevOpsImportArcadeCmd(
+	TEXT("UEDevOps.ImportArcade"),
+	TEXT("One-shot: import the chuck arcade cabinet from Raw/Props/Arcade with all canonical paths."),
+	FConsoleCommandDelegate::CreateLambda([]()
+	{
+		const FString Source = FPaths::ConvertRelativePathToFull(
+			FPaths::ProjectDir() / TEXT("Raw/Props/Arcade"));
+		const FString Dest   = TEXT("/Game/Art/Furniture/Arcade");
+		const FString MatName = TEXT("Arcade");
+		const float Scale     = 1.0f;
+		const bool bOk = FUEDevOpsImportLibrary::ImportRawAssetFolder(Source, Dest, MatName, Scale);
+		UE_LOG(LogTemp, Display, TEXT("[UEDevOps] ImportArcade %s -> %s [M_%s] scale=%.2f result=%s"),
+			*Source, *Dest, *MatName, Scale, bOk ? TEXT("ok") : TEXT("FAIL"));
 	})
 );
 
