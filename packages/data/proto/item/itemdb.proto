@@ -623,6 +623,11 @@ message Item {
   // Metadata
   optional string credits = 39;
   optional bool drafted = 40;           // Hidden from production
+
+  // Numeric runtime identifier — authored per-item in MDX, stable across builds.
+  // Primary lookup key for engines + the rareicon ItemId enum.
+  int32 key = 65;
+  optional bool has_img = 66;           // Sprite asset present (derived from `img`)
 }
 
 // =============================================================================

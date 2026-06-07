@@ -2786,7 +2786,16 @@
       "cooldown": 15,
       "action": "consume",
       "food": {
-        "restoreMana": 25
+        "restoreMana": 25,
+        "duration": 8,
+        "buffEffects": [
+          {
+            "type": "USE_EFFECT_APPLY_EFFECT",
+            "statusEffect": "STATUS_EFFECT_REGEN",
+            "stacks": 1,
+            "turns": 8
+          }
+        ]
       }
     },
     {

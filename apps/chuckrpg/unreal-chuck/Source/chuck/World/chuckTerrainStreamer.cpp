@@ -134,7 +134,13 @@ void UchuckTerrainStreamer::Tick(float DeltaSeconds)
 	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
 	if (!Pawn) return;
 
-	const FIntPoint Center = WorldToChunk(Pawn->GetActorLocation());
+	const FVector PawnLoc = Pawn->GetActorLocation();
+	const FIntPoint Center = WorldToChunk(PawnLoc);
+
+	constexpr float StreamLookaheadSec = 2.0f;
+	const FVector Vel = Pawn->GetVelocity();
+	const FVector LookaheadLoc = PawnLoc + Vel * StreamLookaheadSec;
+	const FIntPoint LookaheadCenter = WorldToChunk(LookaheadLoc);
 
 	TSet<FIntPoint> Wanted;
 	for (int32 Dy = -ChunkRadius; Dy <= ChunkRadius; ++Dy)
@@ -142,6 +148,7 @@ void UchuckTerrainStreamer::Tick(float DeltaSeconds)
 		for (int32 Dx = -ChunkRadius; Dx <= ChunkRadius; ++Dx)
 		{
 			Wanted.Add(FIntPoint(Center.X + Dx, Center.Y + Dy));
+			Wanted.Add(FIntPoint(LookaheadCenter.X + Dx, LookaheadCenter.Y + Dy));
 		}
 	}
 
@@ -164,6 +171,7 @@ void UchuckTerrainStreamer::Tick(float DeltaSeconds)
 			EnsureChunk(Want);
 		}
 	}
+
 }
 
 FIntPoint UchuckTerrainStreamer::WorldToChunk(const FVector& WorldLoc) const

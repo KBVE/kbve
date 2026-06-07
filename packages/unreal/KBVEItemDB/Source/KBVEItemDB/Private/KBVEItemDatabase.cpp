@@ -1,11 +1,11 @@
 #include "KBVEItemDatabase.h"
 
 #include "KBVEItemCatalogStore.h"
-#include "Dom/JsonObject.h"
+#include "Generated/KBVEItemDBProtoTypes.h"
+#include "Generated/KBVEItemDBProtoParse.h"
+#include "KBVEYYJson.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
-#include "Serialization/JsonReader.h"
-#include "Serialization/JsonSerializer.h"
 
 namespace
 {
@@ -20,13 +20,52 @@ namespace
 		return EKBVEItemRarity::Common;
 	}
 
-	void GetFloat(const TSharedPtr<FJsonObject>& O, const TCHAR* Field, float& Out)
+	// Map the generated proto-mirror struct onto the curated runtime def.
+	// The generated Populate owns all JSON field reads; this is the only
+	// hand-written seam (DTO -> domain), centralized in one place.
+	FKBVEItemDef MapGenToDef(const FKBVEGenItem& G)
 	{
-		double D = 0.0;
-		if (O->TryGetNumberField(Field, D))
+		FKBVEItemDef Def;
+		Def.Key         = G.Key;
+		Def.Ref         = FName(*G.Ref);
+		Def.Name        = G.Name;
+		Def.Description = G.Description;
+		Def.Emoji       = G.Emoji;
+		Def.TypeFlags   = G.TypeFlags;
+		Def.Rarity      = ParseRarity(G.Rarity);
+		Def.MaxStack    = G.MaxStack > 0 ? G.MaxStack : 1;
+		Def.bStackable  = G.Stackable;
+		Def.BuyPrice    = G.BuyPrice;
+		Def.SellPrice   = G.SellPrice;
+		Def.Weight      = G.Weight;
+		Def.bConsumable = G.Consumable;
+		Def.Cooldown    = static_cast<float>(G.Cooldown);
+		Def.Action      = G.Action;
+		if (!G.AnimationRef.IsEmpty()) Def.AnimationRef = FName(*G.AnimationRef);
+		if (!G.SoundRef.IsEmpty())     Def.SoundRef     = FName(*G.SoundRef);
+
+		for (const FString& Tag : G.Tags)
 		{
-			Out = static_cast<float>(D);
+			if (!Tag.IsEmpty()) Def.Tags.Add(FName(*Tag));
 		}
+
+		Def.Food.Heals            = static_cast<float>(G.Food.Heals);
+		Def.Food.RestoreMana      = static_cast<float>(G.Food.RestoreMana);
+		Def.Food.RestoreEnergy    = static_cast<float>(G.Food.RestoreEnergy);
+		Def.Food.RegenPerSecond   = G.Food.RegenPerSecond;
+		Def.Food.RegenDuration    = G.Food.RegenDuration;
+		Def.Food.bPerishable      = G.Food.Perishable;
+		Def.Food.ShelfLifeSeconds = G.Food.ShelfLifeSeconds;
+		if (!G.Food.SpoilsIntoRef.IsEmpty()) Def.Food.SpoilsIntoRef = FName(*G.Food.SpoilsIntoRef);
+
+		const bool bTypeConsumable =
+			(Def.TypeFlags & 0x08) != 0 || (Def.TypeFlags & 0x10) != 0 || (Def.TypeFlags & 0x20) != 0;
+		Def.bHasFood =
+			bTypeConsumable || Def.Food.Heals > 0.f || Def.Food.RestoreMana > 0.f ||
+			Def.Food.RestoreEnergy > 0.f || Def.Food.RegenPerSecond > 0.f;
+		if (bTypeConsumable) Def.bConsumable = true;
+
+		return Def;
 	}
 }
 
@@ -66,101 +105,44 @@ bool UKBVEItemDatabase::LoadFromFile(const FString& FilePath)
 
 bool UKBVEItemDatabase::LoadFromJson(const FString& JsonText)
 {
-	TSharedPtr<FJsonObject> Root;
-	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonText);
-	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
+	const FTCHARToUTF8 Utf8(*JsonText);
+	yyjson_doc* Doc = yyjson_read(Utf8.Get(), Utf8.Length(), 0);
+	if (!Doc)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[KBVEItemDB] itemdb JSON parse failed"));
 		return false;
 	}
 
-	const TArray<TSharedPtr<FJsonValue>>* ItemArray = nullptr;
-	if (!Root->TryGetArrayField(TEXT("items"), ItemArray) || ItemArray == nullptr)
+	yyjson_val* Root = yyjson_doc_get_root(Doc);
+	yyjson_val* Arr  = Root ? yyjson_obj_get(Root, "items") : nullptr;
+	if (!Arr || !yyjson_is_arr(Arr))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[KBVEItemDB] itemdb JSON has no 'items' array"));
+		yyjson_doc_free(Doc);
 		return false;
 	}
 
 	Items.Reset();
 	KeyToIndex.Reset();
 	RefToIndex.Reset();
-	Items.Reserve(ItemArray->Num());
+	Items.Reserve((int32)yyjson_arr_size(Arr));
 
-	for (const TSharedPtr<FJsonValue>& Value : *ItemArray)
+	size_t Idx, MaxN;
+	yyjson_val* ItemVal;
+	yyjson_arr_foreach(Arr, Idx, MaxN, ItemVal)
 	{
-		const TSharedPtr<FJsonObject>* ObjPtr = nullptr;
-		if (!Value.IsValid() || !Value->TryGetObject(ObjPtr) || ObjPtr == nullptr)
-		{
-			continue;
-		}
-		const TSharedPtr<FJsonObject>& Obj = *ObjPtr;
+		FKBVEGenItem Gen;
+		KBVEItemDBProto::Populate(Gen, ItemVal);
+		if (Gen.Key <= 0 || Gen.Ref.IsEmpty()) continue;
 
-		FKBVEItemDef Def;
-
-		Obj->TryGetNumberField(TEXT("key"), Def.Key);
-
-		FString Str;
-		if (Obj->TryGetStringField(TEXT("ref"), Str)) Def.Ref = FName(*Str);
-		if (Def.Key <= 0 || Def.Ref.IsNone()) continue;
-
-		Obj->TryGetStringField(TEXT("name"), Def.Name);
-		Obj->TryGetStringField(TEXT("description"), Def.Description);
-		Obj->TryGetStringField(TEXT("emoji"), Def.Emoji);
-		Obj->TryGetNumberField(TEXT("typeFlags"), Def.TypeFlags);
-		Obj->TryGetNumberField(TEXT("maxStack"), Def.MaxStack);
-		Obj->TryGetBoolField(TEXT("stackable"), Def.bStackable);
-		Obj->TryGetNumberField(TEXT("buyPrice"), Def.BuyPrice);
-		Obj->TryGetNumberField(TEXT("sellPrice"), Def.SellPrice);
-		GetFloat(Obj, TEXT("weight"), Def.Weight);
-		Obj->TryGetBoolField(TEXT("consumable"), Def.bConsumable);
-		GetFloat(Obj, TEXT("cooldown"), Def.Cooldown);
-		Obj->TryGetStringField(TEXT("action"), Def.Action);
-		if (Obj->TryGetStringField(TEXT("animationRef"), Str)) Def.AnimationRef = FName(*Str);
-		if (Obj->TryGetStringField(TEXT("soundRef"), Str)) Def.SoundRef = FName(*Str);
-		if (Obj->TryGetStringField(TEXT("rarity"), Str)) Def.Rarity = ParseRarity(Str);
-
-		if (Def.MaxStack <= 0) Def.MaxStack = 1;
-
-		const TArray<TSharedPtr<FJsonValue>>* TagArray = nullptr;
-		if (Obj->TryGetArrayField(TEXT("tags"), TagArray) && TagArray)
-		{
-			for (const TSharedPtr<FJsonValue>& T : *TagArray)
-			{
-				FString Tag;
-				if (T.IsValid() && T->TryGetString(Tag))
-				{
-					Def.Tags.Add(FName(*Tag));
-				}
-			}
-		}
-
-		const TSharedPtr<FJsonObject>* FoodObj = nullptr;
-		if (Obj->TryGetObjectField(TEXT("food"), FoodObj) && FoodObj)
-		{
-			Def.bHasFood = true;
-			GetFloat(*FoodObj, TEXT("heals"), Def.Food.Heals);
-			GetFloat(*FoodObj, TEXT("restoreMana"), Def.Food.RestoreMana);
-			GetFloat(*FoodObj, TEXT("restoreEnergy"), Def.Food.RestoreEnergy);
-			GetFloat(*FoodObj, TEXT("regenPerSecond"), Def.Food.RegenPerSecond);
-			GetFloat(*FoodObj, TEXT("regenDuration"), Def.Food.RegenDuration);
-			(*FoodObj)->TryGetBoolField(TEXT("perishable"), Def.Food.bPerishable);
-			(*FoodObj)->TryGetNumberField(TEXT("shelfLifeSeconds"), Def.Food.ShelfLifeSeconds);
-			if ((*FoodObj)->TryGetStringField(TEXT("spoilsIntoRef"), Str)) Def.Food.SpoilsIntoRef = FName(*Str);
-		}
-
-		if (!Def.bHasFood && Def.bConsumable)
-		{
-			GetFloat(Obj, TEXT("healHP"), Def.Food.Heals);
-			GetFloat(Obj, TEXT("restoreMP"), Def.Food.RestoreMana);
-			GetFloat(Obj, TEXT("restoreEP"), Def.Food.RestoreEnergy);
-		}
-
+		FKBVEItemDef Def = MapGenToDef(Gen);
 		KeyToIndex.Add(Def.Key, Items.Num());
 		RefToIndex.Add(Def.Ref, Items.Num());
 		Items.Add(MoveTemp(Def));
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("[KBVEItemDB] loaded %d item defs"), Items.Num());
+	yyjson_doc_free(Doc);
+	UE_LOG(LogTemp, Log, TEXT("[KBVEItemDB] loaded %d item defs (generated parse)"), Items.Num());
 	return true;
 }
 

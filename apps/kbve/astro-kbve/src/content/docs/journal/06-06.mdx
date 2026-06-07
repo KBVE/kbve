@@ -1,7 +1,7 @@
 ---
 title: 'June: 06'
 category: Daily
-date: 2025-06-06 12:00:00
+date: 2026-06-06 12:00:00
 client: Self
 unsplash: 1717297808345-b740e9846158
 img: https://images.unsplash.com/photo-1717297808345-b740e9846158?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -15,6 +15,35 @@ import {
   Adsense
 } from '@/components/astropad';
 
+## 2026
+
+### Grass
+
+-   04:10AM
+
+    Grass blades should get updated in chuck rpg.
+    Each blade should be 3 floats for position, 2 floats for facing.
+    Maybe hashing with its type and group, a cluster of it could be useful when pooling.
+    That cluster could be a clump of grass, color too.
+    We need to account for tilt, curve and bend, definitely when it comes to the wind.
+
+```cpp
+
+struct FChuckGrassBladePacked
+{
+    FVector3f Position;    // 12 bytes
+    FVector2f Facing;      // 8 bytes, sin/cos yaw or normalized XY facing
+
+    uint16 TypeId;         // blade type
+    uint16 GroupId;        // clump/cluster group
+
+    uint8 Tilt;            // normalized 0-255
+    uint8 Curve;           // normalized 0-255
+    uint8 BendStrength;    // normalized wind response
+    uint8 ColorVariant;    // palette/random tint index
+};
+
+```
 
 ## 2025
 

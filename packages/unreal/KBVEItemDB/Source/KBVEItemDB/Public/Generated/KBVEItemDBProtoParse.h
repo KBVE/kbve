@@ -641,6 +641,8 @@ namespace KBVEItemDBProto
 		}
 		if ((V = yyjson_obj_get(Obj, "credits"))) Out.Credits = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
 		if ((V = yyjson_obj_get(Obj, "drafted"))) Out.Drafted = (yyjson_is_bool(V) ? yyjson_get_bool(V) : false);
+		if ((V = yyjson_obj_get(Obj, "key"))) Out.Key = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "hasImg"))) Out.HasImg = (yyjson_is_bool(V) ? yyjson_get_bool(V) : false);
 	}
 
 	inline void Populate(FKBVEGenItemRegistry& Out, yyjson_val* Obj)

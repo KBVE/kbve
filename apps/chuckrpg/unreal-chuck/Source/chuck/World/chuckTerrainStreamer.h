@@ -48,7 +48,7 @@ protected:
 	uint32 Seed         = 0xC1A55E5Au;
 	int32  CellsPerEdge = 32;
 	float  CellSize     = 200.f;
-	int32  ChunkRadius  = 4;
+	int32  ChunkRadius  = 6;
 	int32  PoolSize     = 100;
 	float  WaterZ       = -120.f;
 	float  StreamInterval = 0.15f;
