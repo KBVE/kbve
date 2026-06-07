@@ -1,4 +1,5 @@
 #include "KBVEPluginRegistry.h"
+#include "KBVEPluginLock.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "HAL/FileManager.h"
@@ -100,6 +101,26 @@ void FKBVEPluginRegistry::ReadRemoteVersions(TArray<FKBVEPluginEntry>& Entries, 
 		else
 		{
 			Entry.bUpdateAvailable = false;
+		}
+	}
+}
+
+void FKBVEPluginRegistry::ApplyLockStatus(TArray<FKBVEPluginEntry>& Entries, const FKBVEPluginLockFile& Lock)
+{
+	for (FKBVEPluginEntry& Entry : Entries)
+	{
+		const FKBVEPluginLockEntry* Pin = FKBVEPluginLock::FindEntry(Lock, Entry.Name);
+		if (Pin)
+		{
+			Entry.bInLock = true;
+			Entry.LockedVersion = Pin->Version;
+			Entry.bMatchesLock = Entry.bInstalled && Entry.LocalVersion == Pin->Version;
+		}
+		else
+		{
+			Entry.bInLock = false;
+			Entry.LockedVersion.Empty();
+			Entry.bMatchesLock = false;
 		}
 	}
 }
