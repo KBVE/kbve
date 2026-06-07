@@ -11,7 +11,7 @@ class SchuckHotbar;
 class SchuckInventoryWindow;
 class SKBVELoginWidget;
 class SKBVEAccountPanel;
-class SchuckChatPanel;
+class SKBVEChatPanel;
 class SKBVETooltip;
 class SKBVEDragArrowLayer;
 class SKBVESettingsFrame;
@@ -89,7 +89,7 @@ private:
 	TSharedPtr<SchuckInventoryWindow> InventoryWidget;
 	TSharedPtr<SKBVELoginWidget>      LoginWidget;
 	TSharedPtr<SKBVEAccountPanel>     AccountWidget;
-	TSharedPtr<SchuckChatPanel>       ChatWidget;
+	TSharedPtr<SKBVEChatPanel>        ChatWidget;
 	TSharedPtr<SKBVETooltip>          TooltipWidget;
 	TSharedPtr<SKBVEDragArrowLayer>   DragArrowLayer;
 	TSharedPtr<SKBVESettingsFrame>    SettingsWidget;

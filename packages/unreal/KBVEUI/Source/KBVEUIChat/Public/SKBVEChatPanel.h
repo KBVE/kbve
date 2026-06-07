@@ -5,10 +5,8 @@
 #include "Widgets/DeclarativeSyntaxSupport.h"
 #include "Framework/SlateDelegates.h"
 #include "Input/Reply.h"
-#include "chuckEventPayloads.h"
 
 class UKBVESupabaseSubsystem;
-class AchuckCoreCharacter;
 class SEditableTextBox;
 class SScrollBox;
 class SHorizontalBox;
@@ -17,31 +15,44 @@ class STextBlock;
 class SWidget;
 class SKBVEMovableFrame;
 
+struct FKBVEChatLineView
+{
+	FString Channel;
+	FString Nick;
+	FString Sender;
+	FString Platform;
+	FString Kind;
+	FString Body;
+	bool    bIsEvent = false;
+};
+
+DECLARE_DELEGATE_TwoParams(FKBVEChatGeometrySave, const FVector2D& /*Position*/, const FVector2D& /*Size*/);
+DECLARE_DELEGATE_RetVal_TwoParams(bool, FKBVEChatGeometryLoad, FVector2D& /*OutPosition*/, FVector2D& /*OutSize*/);
+
 /**
  * Chat window for the irc-gateway WebSocket. Wraps SKBVEMovableFrame for
- * drag / resize / close, persists geometry via UchuckSettings under the
- * "chuck.chat" key, and renders channel tabs + scrollback + input.
- *
- * Bridges the chuck event bus (FchuckChatStatePayload / FchuckChatLinePayload)
- * onto Slate so the widget never imports UKBVESupabaseSubsystem directly
- * except to dispatch outbound commands.
+ * drag / resize / close, renders channel tabs + scrollback + input, and
+ * dispatches outbound commands through UKBVESupabaseSubsystem's chat object.
+ * Inbound lines/state are pushed in via OnChatLine / OnChatStateChanged so the
+ * game owns the event-bus wiring; geometry persistence is delegated out.
  */
-class SchuckChatPanel : public SCompoundWidget
+class KBVEUICHAT_API SKBVEChatPanel : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SchuckChatPanel)
+	SLATE_BEGIN_ARGS(SKBVEChatPanel)
 		: _DefaultChannel(TEXT("#general"))
 	{}
 		SLATE_ARGUMENT(TWeakObjectPtr<UKBVESupabaseSubsystem>, Subsystem)
-		SLATE_ARGUMENT(TWeakObjectPtr<AchuckCoreCharacter>, OwningCharacter)
 		SLATE_ARGUMENT(FString, DefaultChannel)
 		SLATE_EVENT(FSimpleDelegate, OnCloseClicked)
+		SLATE_EVENT(FKBVEChatGeometrySave, OnSaveGeometry)
+		SLATE_EVENT(FKBVEChatGeometryLoad, OnLoadGeometry)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
 
-	void OnChatStateChanged(const FchuckChatStatePayload& Payload);
-	void OnChatLine(const FchuckChatLinePayload& Payload);
+	void OnChatStateChanged(bool bInConnected);
+	void OnChatLine(const FKBVEChatLineView& Payload);
 	void OnChannelJoined(const FString& Channel);
 	void OnChannelLeft(const FString& Channel);
 
@@ -85,7 +96,6 @@ private:
 	void   UpdateHeader();
 
 	TWeakObjectPtr<UKBVESupabaseSubsystem> Subsystem;
-	TWeakObjectPtr<AchuckCoreCharacter>    OwningCharacter;
 
 	TSharedPtr<SKBVEMovableFrame> MovableFrame;
 	TSharedPtr<SHorizontalBox>   TabRow;
@@ -93,6 +103,8 @@ private:
 	TSharedPtr<SEditableTextBox> InputBox;
 	TSharedPtr<STextBlock>       HeaderText;
 	FSimpleDelegate              OnCloseClicked;
+	FKBVEChatGeometrySave        OnSaveGeometry;
+	FKBVEChatGeometryLoad        OnLoadGeometry;
 
 	TArray<FChannelTab> Tabs;
 
