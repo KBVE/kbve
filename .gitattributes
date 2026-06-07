@@ -27,15 +27,11 @@ apps/godot/**/addons/**/bin/**/*.dll   filter=lfs diff=lfs merge=lfs -text
 apps/godot/**/addons/**/bin/**/*.so    filter=lfs diff=lfs merge=lfs -text
 apps/godot/**/addons/**/bin/**/*.wasm  filter=lfs diff=lfs merge=lfs -text
 
-# KBVE UE plugin runtime shared libs (Binaries/<Platform>/ + ThirdParty bin) via
-# LFS — pointer files here, blobs on the configured LFS endpoint.
-# NOTE: static link libs (.a / .lib) are intentionally NOT LFS — they stay as
-# normal git blobs so a plain clone (and the CI plugin build) gets them at
-# link time without an LFS pull.
-packages/unreal/**/*.dylib filter=lfs diff=lfs merge=lfs -text
-packages/unreal/**/*.dll   filter=lfs diff=lfs merge=lfs -text
-packages/unreal/**/*.so    filter=lfs diff=lfs merge=lfs -text
-packages/unreal/**/*.bundle filter=lfs diff=lfs merge=lfs -text
+# KBVE UE plugin native libs (packages/unreal/**) are intentionally NORMAL git
+# blobs, NOT LFS — static (.a/.lib) and shared (.dylib/.dll/.so/.bundle) alike.
+# A plain clone (and the CI plugin build) gets every prebuilt lib at link/load
+# time with no LFS pull. Plugin libs are pinned third-party versions that change
+# rarely, so the history cost is acceptable for the zero-friction download.
 
 # Unreal Engine — apps/chuckrpg/unreal-chuck binary assets
 # Pointer files live in this repo; blobs live on git.kbve.com/KBVE/chuck.git
