@@ -409,14 +409,32 @@ function Step2WebhookConfig({
 		if (ok) setTimeout(() => setCopied(false), 2500);
 	}
 
+	const [actionBlockMsg, setActionBlockMsg] = useState<string | null>(null);
+
 	async function install() {
-		if (!selectedRepo || installing) return;
+		if (installing) return;
+		setActionBlockMsg(null);
+		if (!selectedRepo) {
+			setActionBlockMsg('Pick a repo from the dropdown first.');
+			return;
+		}
+		if (!hasWebhook) {
+			setActionBlockMsg(
+				'Finish Step 1 first — HMAC secret must be stored.',
+			);
+			return;
+		}
 		agentsService.setWebhookInstallSelected(guild.id, selectedRepo);
 		await agentsService.installWebhookForGuild(guild.id);
 	}
 
 	async function ping() {
-		if (!selectedRepo || pinging) return;
+		if (pinging) return;
+		setActionBlockMsg(null);
+		if (!selectedRepo) {
+			setActionBlockMsg('Pick a repo from the dropdown first.');
+			return;
+		}
 		await agentsService.pingWebhookForGuild(guild.id);
 	}
 
@@ -434,27 +452,50 @@ function Step2WebhookConfig({
 	}, [guild.id, selectedRepo]);
 
 	async function refreshDeliveries() {
-		if (!selectedRepo) return;
+		setActionBlockMsg(null);
+		if (!selectedRepo) {
+			setActionBlockMsg('Pick a repo from the dropdown first.');
+			return;
+		}
 		const [owner, repo] = selectedRepo.split('/');
-		if (!owner || !repo) return;
+		if (!owner || !repo) {
+			setActionBlockMsg('Selected repo is malformed.');
+			return;
+		}
 		await agentsService.loadWebhookDeliveries(guild.id, owner, repo, 10);
 	}
 
 	async function rotate() {
-		if (!selectedRepo || rotating) return;
+		if (rotating) return;
+		setActionBlockMsg(null);
+		if (!selectedRepo) {
+			setActionBlockMsg('Pick a repo from the dropdown first.');
+			return;
+		}
 		const [owner, repo] = selectedRepo.split('/');
-		if (!owner || !repo) return;
+		if (!owner || !repo) {
+			setActionBlockMsg('Selected repo is malformed.');
+			return;
+		}
 		await agentsService.rotateWebhookForGuild(guild.id, owner, repo);
 	}
 
 	async function deleteHook() {
-		if (!selectedRepo || deleting) return;
+		if (deleting) return;
+		setActionBlockMsg(null);
+		if (!selectedRepo) {
+			setActionBlockMsg('Pick a repo from the dropdown first.');
+			return;
+		}
 		if (!confirmDelete) {
 			setConfirmDelete(true);
 			return;
 		}
 		const [owner, repo] = selectedRepo.split('/');
-		if (!owner || !repo) return;
+		if (!owner || !repo) {
+			setActionBlockMsg('Selected repo is malformed.');
+			return;
+		}
 		await agentsService.deleteWebhookForGuild(guild.id, owner, repo);
 		setConfirmDelete(false);
 	}
@@ -622,6 +663,7 @@ function Step2WebhookConfig({
 						</button>
 					</div>
 				)}
+				{actionBlockMsg && <p style={errText}>{actionBlockMsg}</p>}
 				{!hasWebhook && repos.length > 0 && (
 					<p style={{ ...mutedText, fontSize: '0.8rem' }}>
 						Finish Step 1 first — the HMAC row must exist in Vault
@@ -668,7 +710,7 @@ function Step2WebhookConfig({
 						<button
 							type="button"
 							onClick={() => void ping()}
-							disabled={pinging || !selectedRepo}
+							disabled={pinging}
 							style={secondaryBtn}
 							title="Tells GitHub to redeliver a `ping` event to your gh-webhook URL. Server enforces 30s cooldown + 10 pings/hour per repo.">
 							{pinging ? (
@@ -717,7 +759,7 @@ function Step2WebhookConfig({
 							<button
 								type="button"
 								onClick={() => void refreshDeliveries()}
-								disabled={deliveriesLoading || !selectedRepo}
+								disabled={deliveriesLoading}
 								style={{
 									...secondaryBtn,
 									marginLeft: 'auto',
@@ -839,7 +881,7 @@ function Step2WebhookConfig({
 							<button
 								type="button"
 								onClick={() => void rotate()}
-								disabled={rotating || !selectedRepo}
+								disabled={rotating}
 								style={secondaryBtn}>
 								{rotating ? (
 									<Loader2 size={14} style={spinStyle} />
@@ -851,7 +893,7 @@ function Step2WebhookConfig({
 							<button
 								type="button"
 								onClick={() => void deleteHook()}
-								disabled={deleting || !selectedRepo}
+								disabled={deleting}
 								style={{
 									...secondaryBtn,
 									color: '#f87171',
@@ -995,7 +1037,7 @@ function Step3Pat({
 						<button
 							type="button"
 							onClick={validate}
-							disabled={!hasInput || validating}
+							disabled={validating}
 							style={secondaryBtn}>
 							{validating ? (
 								<Loader2 size={14} style={spinStyle} />
@@ -1127,11 +1169,25 @@ function Step4SmokeBackfill({
 	}
 
 	const canRun = ready && draftValid && !busy;
+	const [runBlockMsg, setRunBlockMsg] = useState<string | null>(null);
 
 	async function run() {
-		if (!canRun) return;
-		const o = ownerRef.current?.value ?? '';
-		const r = repoRef.current?.value ?? '';
+		if (busy) return;
+		const o = ownerRef.current?.value.trim() ?? '';
+		const r = repoRef.current?.value.trim() ?? '';
+		setRunBlockMsg(null);
+		if (!ready) {
+			setRunBlockMsg(
+				'Finish Steps 1 + 3 first — HMAC secret and PAT must be stored before the smoke can run.',
+			);
+			return;
+		}
+		if (!GITHUB_OWNER_RE.test(o) || !GITHUB_REPO_RE.test(r)) {
+			setRunBlockMsg('Enter a valid owner + repo (alphanumerics, ._-).');
+			if (!GITHUB_OWNER_RE.test(o)) ownerRef.current?.focus();
+			else repoRef.current?.focus();
+			return;
+		}
 		agentsService.patchBackfillDraft(guildId, { owner: o, repo: r });
 		await agentsService.runBackfillForGuild(guildId);
 	}
@@ -1160,7 +1216,6 @@ function Step4SmokeBackfill({
 					defaultValue={draft.owner}
 					onBlur={commitOwner}
 					onInput={refreshValid}
-					disabled={!ready}
 					style={inputStyle}
 					spellCheck={false}
 					autoComplete="off"
@@ -1171,7 +1226,6 @@ function Step4SmokeBackfill({
 					defaultValue={draft.repo}
 					onBlur={commitRepo}
 					onInput={refreshValid}
-					disabled={!ready}
 					style={inputStyle}
 					spellCheck={false}
 					autoComplete="off"
@@ -1180,7 +1234,7 @@ function Step4SmokeBackfill({
 			<button
 				type="button"
 				onClick={run}
-				disabled={!canRun}
+				disabled={busy}
 				style={primaryBtn}>
 				{busy ? (
 					<Loader2 size={14} style={spinStyle} />
@@ -1189,6 +1243,7 @@ function Step4SmokeBackfill({
 				)}
 				{busy ? 'Running…' : 'Run smoke test'}
 			</button>
+			{runBlockMsg && <p style={errText}>{runBlockMsg}</p>}
 			{result && !result.ok && <p style={errText}>{result.error}</p>}
 			{result && result.ok && (
 				<div
