@@ -31,13 +31,13 @@ struct KBVEWORLD_API FKBVEWorldFoliageBucketConfig
 	UPROPERTY(EditAnywhere) float DensityScale     = 1.0f;
 	UPROPERTY(EditAnywhere) float ScaleMultiplier  = 1.0f;
 	UPROPERTY(EditAnywhere) int32 CullStart        = 0;
-	UPROPERTY(EditAnywhere) int32 CullEnd          = 2500;
+	UPROPERTY(EditAnywhere) int32 CullEnd          = 8000;
 	UPROPERTY(EditAnywhere) bool  bCastShadow      = false;
 	UPROPERTY(EditAnywhere) EKBVEWorldFoliageTier Tier = EKBVEWorldFoliageTier::Grass;
 
 	UPROPERTY(EditAnywhere) TObjectPtr<UStaticMesh> ImpostorMesh;
-	UPROPERTY(EditAnywhere) int32 ImpostorCullStart = 2200;
-	UPROPERTY(EditAnywhere) int32 ImpostorCullEnd   = 9000;
+	UPROPERTY(EditAnywhere) int32 ImpostorCullStart = 7000;
+	UPROPERTY(EditAnywhere) int32 ImpostorCullEnd   = 20000;
 	UPROPERTY(EditAnywhere) bool  bImpostorCastShadow = false;
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0", ClampMax = "5")) int32 ForcedLODBias = 0;
 	UPROPERTY(EditAnywhere) int32 WPODisableDistance = 1800;

@@ -91,6 +91,8 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<UHierarchicalInstancedStaticMeshComponent>> ImpostorHISMs;
 
+	bool bImpostorVisibleCached = false;
+
 	UPROPERTY()
 	TArray<TObjectPtr<UStaticMesh>> FoliageMeshes;
 

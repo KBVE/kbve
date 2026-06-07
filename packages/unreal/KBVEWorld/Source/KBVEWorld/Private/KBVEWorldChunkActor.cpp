@@ -248,6 +248,8 @@ bool AKBVEWorldChunkActor::BuildFromBlob(const FIntPoint& InCoord, uint32 InSeed
 
 void AKBVEWorldChunkActor::SetImpostorVisible(bool bVisible)
 {
+	if (bImpostorVisibleCached == bVisible) return;
+	bImpostorVisibleCached = bVisible;
 	for (UHierarchicalInstancedStaticMeshComponent* H : ImpostorHISMs)
 	{
 		if (IsValid(H))
@@ -260,6 +262,7 @@ void AKBVEWorldChunkActor::SetImpostorVisible(bool bVisible)
 void AKBVEWorldChunkActor::Release()
 {
 	bActive = false;
+	bImpostorVisibleCached = false;
 	SetActorHiddenInGame(true);
 	if (Water) Water->SetVisibility(false);
 	ClearFoliage();

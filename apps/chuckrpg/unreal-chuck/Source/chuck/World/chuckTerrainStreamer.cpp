@@ -171,7 +171,7 @@ void UchuckTerrainStreamer::Tick(float DeltaSeconds)
 		}
 	}
 
-	constexpr int32 ImpostorRing = 2;
+	constexpr int32 ImpostorRing = 1;
 	for (auto& Pair : ActiveChunks)
 	{
 		if (!Pair.Value) continue;
