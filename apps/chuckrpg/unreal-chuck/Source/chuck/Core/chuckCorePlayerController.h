@@ -109,55 +109,57 @@ private:
 	FLinearColor PendingTooltipBorderColor = FLinearColor::White;
 	FVector2D    PendingTooltipPos = FVector2D::ZeroVector;
 
-	enum class EUiFlag : uint16
+	enum class EUiFlag : uint32
 	{
 		None        = 0,
-		Inventory   = 1 << 0,
-		Pause       = 1 << 1,
-		DevOverlay  = 1 << 2,
-		Chat        = 1 << 3,
-		ChatFocused = 1 << 4,
-		Settings    = 1 << 5,
-		Map         = 1 << 6,
-		Quest       = 1 << 7,
-		Loading     = 1 << 8,
-		Vendor      = 1 << 9,
-		Tooltip     = 1 << 10,
-		Targeting   = 1 << 11,
-		DragArrow   = 1 << 12,
-		MouseHidden = 1 << 13,
-		AllowMove   = 1 << 14,
-		AllowCamera = 1 << 15,
+		Inventory   = 1u << 0,
+		Pause       = 1u << 1,
+		DevOverlay  = 1u << 2,
+		Chat        = 1u << 3,
+		ChatFocused = 1u << 4,
+		Settings    = 1u << 5,
+		Map         = 1u << 6,
+		Quest       = 1u << 7,
+		Loading     = 1u << 8,
+		Vendor      = 1u << 9,
+		Tooltip     = 1u << 10,
+		Targeting   = 1u << 11,
+		DragArrow   = 1u << 12,
+		MouseHidden = 1u << 13,
+		AllowMove   = 1u << 14,
+		AllowCamera = 1u << 15,
+		Account     = 1u << 16,
 	};
 
-	uint16 UiFlags = 0;
+	uint32 UiFlags = 0;
 
-	bool HasUiFlag(EUiFlag F) const { return (UiFlags & static_cast<uint16>(F)) != 0; }
-	bool HasAllUiFlags(uint16 Mask) const { return (UiFlags & Mask) == Mask; }
-	bool HasAnyUiFlags(uint16 Mask) const { return (UiFlags & Mask) != 0; }
+	bool HasUiFlag(EUiFlag F) const { return (UiFlags & static_cast<uint32>(F)) != 0; }
+	bool HasAllUiFlags(uint32 Mask) const { return (UiFlags & Mask) == Mask; }
+	bool HasAnyUiFlags(uint32 Mask) const { return (UiFlags & Mask) != 0; }
 	void SetUiFlag(EUiFlag F, bool bOn);
 	bool AnyUiFlag() const { return UiFlags != 0; }
-	uint16 GetUiFlags() const { return UiFlags; }
-	uint16 DiffUiFlags(uint16 Prev) const { return UiFlags ^ Prev; }
-	void BroadcastUiFlagsChanged(uint16 OldFlags);
+	uint32 GetUiFlags() const { return UiFlags; }
+	uint32 DiffUiFlags(uint32 Prev) const { return UiFlags ^ Prev; }
+	void BroadcastUiFlagsChanged(uint32 OldFlags);
+	void ApplyUiFlagsVisibility();
 
-	static constexpr uint16 BlockMovementMask =
-		static_cast<uint16>(EUiFlag::Inventory) |
-		static_cast<uint16>(EUiFlag::Pause) |
-		static_cast<uint16>(EUiFlag::Settings) |
-		static_cast<uint16>(EUiFlag::Map) |
-		static_cast<uint16>(EUiFlag::Loading) |
-		static_cast<uint16>(EUiFlag::Vendor);
+	static constexpr uint32 BlockMovementMask =
+		static_cast<uint32>(EUiFlag::Inventory) |
+		static_cast<uint32>(EUiFlag::Pause) |
+		static_cast<uint32>(EUiFlag::Settings) |
+		static_cast<uint32>(EUiFlag::Map) |
+		static_cast<uint32>(EUiFlag::Loading) |
+		static_cast<uint32>(EUiFlag::Vendor);
 
-	static constexpr uint16 NeedsCursorMask =
-		static_cast<uint16>(EUiFlag::Inventory) |
-		static_cast<uint16>(EUiFlag::Pause) |
-		static_cast<uint16>(EUiFlag::DevOverlay) |
-		static_cast<uint16>(EUiFlag::Chat) |
-		static_cast<uint16>(EUiFlag::Settings) |
-		static_cast<uint16>(EUiFlag::Map) |
-		static_cast<uint16>(EUiFlag::Quest) |
-		static_cast<uint16>(EUiFlag::Vendor);
+	static constexpr uint32 NeedsCursorMask =
+		static_cast<uint32>(EUiFlag::Inventory) |
+		static_cast<uint32>(EUiFlag::Pause) |
+		static_cast<uint32>(EUiFlag::DevOverlay) |
+		static_cast<uint32>(EUiFlag::Chat) |
+		static_cast<uint32>(EUiFlag::Settings) |
+		static_cast<uint32>(EUiFlag::Map) |
+		static_cast<uint32>(EUiFlag::Quest) |
+		static_cast<uint32>(EUiFlag::Vendor);
 
 	float LastHealthForFlash = -1.f;
 	float LastDamageTime     = -10.f;

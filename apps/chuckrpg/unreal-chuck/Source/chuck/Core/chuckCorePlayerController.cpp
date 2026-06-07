@@ -174,10 +174,6 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 			RefreshUiMouseMode();
 		}));
 
-	// Default to hidden. InitSupabaseBridge below flips them on based on auth state.
-	AccountWidget->SetVisibility(EVisibility::Collapsed);
-	ChatWidget->SetVisibility(EVisibility::Collapsed);
-
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 	{
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef(),       5);
@@ -188,6 +184,8 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), ChatWidget.ToSharedRef(),     35);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), AccountWidget.ToSharedRef(),  40);
 	}
+
+	ApplyUiFlagsVisibility();
 
 	InitSupabaseBridge();
 
@@ -688,17 +686,18 @@ bool AchuckCorePlayerController::IsAnyUiPanelOpen() const
 
 void AchuckCorePlayerController::SetUiFlag(EUiFlag F, bool bOn)
 {
-	const uint16 Bit = static_cast<uint16>(F);
-	const uint16 Old = UiFlags;
+	const uint32 Bit = static_cast<uint32>(F);
+	const uint32 Old = UiFlags;
 	if (bOn) UiFlags |= Bit;
 	else     UiFlags &= ~Bit;
 	if (UiFlags != Old)
 	{
 		BroadcastUiFlagsChanged(Old);
+		ApplyUiFlagsVisibility();
 	}
 }
 
-void AchuckCorePlayerController::BroadcastUiFlagsChanged(uint16 OldFlags)
+void AchuckCorePlayerController::BroadcastUiFlagsChanged(uint32 OldFlags)
 {
 	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
 	{
@@ -708,6 +707,24 @@ void AchuckCorePlayerController::BroadcastUiFlagsChanged(uint16 OldFlags)
 		Payload.Diff     = UiFlags ^ OldFlags;
 		Bus->UiFlags.Publish(Payload);
 	}
+}
+
+void AchuckCorePlayerController::ApplyUiFlagsVisibility()
+{
+	auto Apply = [](TSharedPtr<SWidget> W, bool bOn, EVisibility OnVis)
+	{
+		if (W.IsValid())
+		{
+			W->SetVisibility(bOn ? OnVis : EVisibility::Collapsed);
+		}
+	};
+
+	Apply(InventoryWidget, HasUiFlag(EUiFlag::Inventory), EVisibility::Visible);
+	Apply(PauseWidget,     HasUiFlag(EUiFlag::Pause),     EVisibility::Visible);
+	Apply(SettingsWidget,  HasUiFlag(EUiFlag::Settings),  EVisibility::Visible);
+	Apply(DevOverlayWidget,HasUiFlag(EUiFlag::DevOverlay),EVisibility::SelfHitTestInvisible);
+	Apply(ChatWidget,      HasUiFlag(EUiFlag::Chat),      EVisibility::SelfHitTestInvisible);
+	Apply(AccountWidget,   HasUiFlag(EUiFlag::Account),   EVisibility::SelfHitTestInvisible);
 }
 
 void AchuckCorePlayerController::RefreshUiMouseMode()
@@ -736,17 +753,11 @@ void AchuckCorePlayerController::RefreshUiMouseMode()
 
 void AchuckCorePlayerController::RefreshAuthOverlayVisibility(bool bSignedIn)
 {
-	if (AccountWidget.IsValid())
+	SetUiFlag(EUiFlag::Account, bSignedIn);
+	if (!bSignedIn)
 	{
-		AccountWidget->SetVisibility(bSignedIn ? EVisibility::SelfHitTestInvisible : EVisibility::Collapsed);
+		SetUiFlag(EUiFlag::Chat, false);
 	}
-	if (ChatWidget.IsValid() && !bSignedIn)
-	{
-		ChatWidget->SetVisibility(EVisibility::Collapsed);
-	}
-	// No auto-kick back to menu. If the subsystem hiccups mid-game (refresh
-	// race, transient 401) we'd otherwise yank the player into a sign-in loop.
-	// Account + chat overlays just hide; the world stays playable.
 }
 
 void AchuckCorePlayerController::HandleSupabaseSignedIn(const FKBVESupabaseSession& Session)
