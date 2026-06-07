@@ -64,6 +64,14 @@ Pooled, billboarded world-drop system — extracted from chuck's
 The chuck-specific `Cast<AchuckCoreCharacter>` + `ServerAddItemByKey` pickup path
 becomes: provider feeds visuals, `OnItemPickedUp` delegate feeds the inventory.
 
+chuck now consumes this directly — `UchuckItemDB` implements
+`IKBVEDroppedItemVisualProvider` (maps key → atlas icon MID + rarity halo) and
+hosts the `OnItemPickedUp` handler (`HandleDroppedItemPickedUp` → authority-gated
+`ServerAddItemByKey`); `AchuckCoreCharacter::BeginPlay` registers the DB as the
+pool's provider + pickup sink once, and `ServerDropSlot` just calls
+`SpawnDrop(ItemKey, Count, Loc)`. chuck's old `chuckDroppedItemActor` /
+`chuckDroppedItemPool` are deleted.
+
 ## Persistence (`FKBVEInventoryStore` / `UKBVEInventoryStoreSubsystem`)
 
 Durable local inventory via the **KBVESQLite** plugin — row-per-slot

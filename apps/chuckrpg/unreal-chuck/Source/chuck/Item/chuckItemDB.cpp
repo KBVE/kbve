@@ -18,6 +18,7 @@
 #endif
 
 #include "KBVEYYJson.h"
+#include "chuckCoreCharacter.h"
 
 namespace
 {
@@ -480,4 +481,24 @@ UMaterialInstanceDynamic* UchuckItemDB::GetHaloMID(EchuckItemRarity Rarity, cons
 	MID->SetVectorParameterValue (TEXT("Tint"), FLinearColor(RarityColor.R, RarityColor.G, RarityColor.B, 0.85f));
 	HaloMIDByRarity.Add(Key, MID);
 	return MID;
+}
+
+bool UchuckItemDB::GetDroppedItemVisual(int32 ItemKey, FKBVEDroppedItemVisual& OutVisual) const
+{
+	const FchuckItemDef* Def = LookupByKey(ItemKey);
+	if (!Def) return false;
+	UchuckItemDB* Self = const_cast<UchuckItemDB*>(this);
+	OutVisual.RarityColor = chuckItem::RarityColor(Def->Rarity);
+	OutVisual.IconMID     = Self->GetIconMID(ItemKey);
+	OutVisual.HaloMID     = Self->GetHaloMID(Def->Rarity, OutVisual.RarityColor);
+	return true;
+}
+
+void UchuckItemDB::HandleDroppedItemPickedUp(AActor* Picker, int32 ItemKey, int32 Count)
+{
+	AchuckCoreCharacter* Char = Cast<AchuckCoreCharacter>(Picker);
+	if (Char && Char->HasAuthority() && ItemKey > 0 && Count > 0)
+	{
+		Char->ServerAddItemByKey(ItemKey, Count);
+	}
 }
