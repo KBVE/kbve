@@ -99,8 +99,16 @@ C++ emitter (`packages/data/codegen/gen-itemdb-uecpp.mjs`, run via
 So a new proto field regenerates both the struct and its JSON reader — no
 hand-written parser to drift (the class of bug that silently dropped consumable
 data). The mirror of the zod generator, emitting UE-native `USTRUCT`s instead of
-`google::Message` (no libprotobuf runtime). Pilot: generated + compiled by the
-KBVEItemDB build; chuck keeps its hand-parser until it migrates onto these.
+`google::Message` (no libprotobuf runtime).
+
+**`UKBVEItemDatabase` now loads through them** — `LoadFromJson` runs
+`KBVEItemDBProto::Populate(FKBVEGenItem, …)` per item and maps the result onto the
+curated `FKBVEItemDef` (one centralized DTO → domain seam, `MapGenToDef`). The old
+hand-written `FJsonObject` key-reads are gone, so a new proto field flows in
+without editing the loader. `key` + `has_img` were added to the proto (`itemdb.proto`)
+so the generated type is a true superset — the proto is the single source of truth,
+no engine-only injected fields. chuck's `UchuckItemDB` migrates onto the same path
+next.
 
 ## Persistence (`FKBVEInventoryStore` / `UKBVEInventoryStoreSubsystem`)
 

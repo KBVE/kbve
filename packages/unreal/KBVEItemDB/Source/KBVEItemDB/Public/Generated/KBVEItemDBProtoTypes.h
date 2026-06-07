@@ -1018,6 +1018,12 @@ struct KBVEITEMDB_API FKBVEGenItem
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
 	bool Drafted = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
+	int32 Key = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
+	bool HasImg = false;
+
 };
 
 USTRUCT(BlueprintType)

@@ -507,7 +507,7 @@ namespace KBVEItemDBProto
 		if ((V = yyjson_obj_get(Obj, "intValue"))) Out.IntValue = (int64)(yyjson_is_int(V) ? yyjson_get_sint(V) : (yyjson_is_uint(V) ? (int64)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "floatValue"))) Out.FloatValue = (yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
 		if ((V = yyjson_obj_get(Obj, "boolValue"))) Out.BoolValue = (yyjson_is_bool(V) ? yyjson_get_bool(V) : false);
-		if ((V = yyjson_obj_get(Obj, "bytesValue"))) Out.BytesValue.Reset();
+		if ((V = yyjson_obj_get(Obj, "bytesValue"))) Out.BytesValue = 0;
 	}
 
 	inline void Populate(FKBVEGenItem& Out, yyjson_val* Obj)
@@ -641,6 +641,8 @@ namespace KBVEItemDBProto
 		}
 		if ((V = yyjson_obj_get(Obj, "credits"))) Out.Credits = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
 		if ((V = yyjson_obj_get(Obj, "drafted"))) Out.Drafted = (yyjson_is_bool(V) ? yyjson_get_bool(V) : false);
+		if ((V = yyjson_obj_get(Obj, "key"))) Out.Key = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "hasImg"))) Out.HasImg = (yyjson_is_bool(V) ? yyjson_get_bool(V) : false);
 	}
 
 	inline void Populate(FKBVEGenItemRegistry& Out, yyjson_val* Obj)
