@@ -1,4 +1,4 @@
-use super::OWSService;
+use super::{AuthIdentity, OWSService};
 use crate::agones::AllocationPipeline;
 use crate::error::RowsError;
 use crate::models::*;
@@ -6,16 +6,18 @@ use crate::repo::{CharsRepo, InstanceRepo};
 use uuid::Uuid;
 
 impl OWSService {
-    #[tracing::instrument(skip(self), fields(%customer_guid, %caller_guid, char_name, zone_name))]
+    #[tracing::instrument(skip(self, caller), fields(%customer_guid, char_name, zone_name))]
     pub async fn get_server_to_connect_to(
         &self,
         customer_guid: Uuid,
-        caller_guid: Uuid,
+        caller: AuthIdentity,
         char_name: &str,
         zone_name: &str,
     ) -> Result<JoinMapResult, RowsError> {
-        self.verify_character_owner(customer_guid, caller_guid, char_name)
-            .await?;
+        if let AuthIdentity::Player(caller_guid) = caller {
+            self.verify_character_owner(customer_guid, caller_guid, char_name)
+                .await?;
+        }
 
         let resolved_zone = self
             .resolve_zone(customer_guid, char_name, zone_name)

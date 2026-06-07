@@ -1,4 +1,4 @@
-use super::{CachedSession, OWSService};
+use super::{AuthIdentity, CachedSession, OWSService};
 use crate::error::RowsError;
 use crate::models::*;
 use crate::repo::UsersRepo;
@@ -137,34 +137,45 @@ impl OWSService {
         })
     }
 
-    /// Confirms the caller is logged in before a protected action (e.g. handing out a world IP),
-    /// reading the bearer token from an HTTP `Authorization` header. Returns the authenticated
-    /// caller's `user_guid` (Supabase UUID). Transport-agnostic logic lives in
-    /// [`OWSService::confirm_login_parts`], shared with the gRPC surface.
+    /// Confirms the caller before a protected action (e.g. handing out a world IP), reading the
+    /// bearer token and optional service key from HTTP headers. Returns the [`AuthIdentity`].
+    /// Transport-agnostic logic lives in [`OWSService::confirm_login_parts`], shared with gRPC.
     pub async fn confirm_login(
         &self,
         headers: &HeaderMap,
         session_guid: Option<Uuid>,
-    ) -> Result<Uuid, RowsError> {
-        self.confirm_login_parts(crate::middleware::extract_bearer(headers), session_guid)
-            .await
+    ) -> Result<AuthIdentity, RowsError> {
+        self.confirm_login_parts(
+            crate::middleware::extract_bearer(headers),
+            session_guid,
+            crate::middleware::extract_service_key(headers),
+        )
+        .await
     }
 
-    /// Transport-agnostic login gate: accepts a Supabase bearer token (validated locally) or, failing
-    /// that, a live session GUID that resolves to a real session. Returns the authenticated caller's
-    /// `user_guid` (the JWT `sub` on the bearer path, the session's user on the session path) so
-    /// downstream checks like character ownership can use it. Reused by both the REST and gRPC entry
-    /// points so any future gRPC connection handler gates with a single call.
+    /// Transport-agnostic auth gate, in precedence order: a valid service key authenticates a trusted
+    /// server-to-server caller ([`AuthIdentity::Service`]); otherwise a Supabase bearer token or a
+    /// live session GUID authenticates a player ([`AuthIdentity::Player`] carrying the `user_guid` —
+    /// the JWT `sub` or the session's user). Reused by both the REST and gRPC entry points.
     pub async fn confirm_login_parts(
         &self,
         bearer: Option<String>,
         session_guid: Option<Uuid>,
-    ) -> Result<Uuid, RowsError> {
+        service_key: Option<String>,
+    ) -> Result<AuthIdentity, RowsError> {
+        if let Some(key) = service_key {
+            if self.state.supabase.service_key_enabled() {
+                crate::supabase::validate_service_key(&key, &self.state.supabase)
+                    .map_err(|e| RowsError::Unauthorized(format!("Invalid service key: {e}")))?;
+                return Ok(AuthIdentity::Service);
+            }
+        }
+
         if let Some(token) = bearer {
             if self.state.supabase.jwt_enabled() {
                 let validated = crate::supabase::validate_jwt(&token, &self.state.supabase)
                     .map_err(|e| RowsError::Unauthorized(format!("Invalid access token: {e}")))?;
-                return Ok(validated.user_id);
+                return Ok(AuthIdentity::Player(validated.user_id));
             }
         }
 
@@ -173,11 +184,12 @@ impl OWSService {
                 .resolve_session(sg)
                 .await
                 .map_err(|_| RowsError::Unauthorized("Invalid or expired session".into()))?;
-            return Ok(cached.user_guid);
+            return Ok(AuthIdentity::Player(cached.user_guid));
         }
 
         Err(RowsError::Unauthorized(
-            "Login required: send Authorization: Bearer <jwt> or a valid session GUID".into(),
+            "Login required: send Authorization: Bearer <jwt>, a valid session GUID, or a service key"
+                .into(),
         ))
     }
 
