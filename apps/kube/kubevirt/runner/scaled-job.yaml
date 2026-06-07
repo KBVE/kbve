@@ -64,7 +64,7 @@ spec:
                           - name: RUNNER_VERSION
                             value: '2.333.0'
                           - name: RUNNER_LOGON_ACCOUNT
-                            value: '.\Administrator'
+                            value: LocalSystem
                           - name: GITHUB_TOKEN
                             valueFrom:
                                 secretKeyRef:

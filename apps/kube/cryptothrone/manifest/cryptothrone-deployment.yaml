@@ -40,7 +40,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: cryptothrone
-                  image: ghcr.io/kbve/cryptothrone:0.1.6
+                  image: ghcr.io/kbve/cryptothrone:0.1.7
                   imagePullPolicy: Always
                   ports:
                       - name: http

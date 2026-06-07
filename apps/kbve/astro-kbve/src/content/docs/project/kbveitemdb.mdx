@@ -45,6 +45,25 @@ to [KBVEGameplay](/project/kbvegameplay)'s effect half:
 Item DATA stays in the shared itemdb MDX. KBVEItemDB carries it + the inventory
 model; KBVEGameplay applies the consumable effects (atlas/icon rendering deferred).
 
+## Dropped items (`AKBVEDroppedItemActor` / `UKBVEDroppedItemPool`)
+
+Pooled, billboarded world-drop system — extracted from chuck's
+`chuckDroppedItemActor` / `chuckDroppedItemPool` and made game-agnostic.
+
+- **`AKBVEDroppedItemActor`** — sphere overlap root + icon/halo `UMaterialBillboardComponent`
+  + rarity `UPointLightComponent`. Idle bob, then pawn-overlap triggers a homing
+  ease toward the picker; on complete it calls back into the pool. No game types.
+- **`UKBVEDroppedItemPool`** (world subsystem) — preallocates `InitialPoolSize` (64)
+  actors, free-list `SpawnDrop` / `ReleaseDrop`, fires `OnItemPickedUp(Picker, ItemKey, Count)`
+  on homing-complete so the game owns auth + inventory add.
+- **`IKBVEDroppedItemVisualProvider`** (icon-provider seam) — game implements
+  `GetDroppedItemVisual(ItemKey, FKBVEDroppedItemVisual&)` to supply per-item
+  `IconMID` / `HaloMID` / `RarityColor`; registered via `SetVisualProvider`. Keeps
+  atlas/MID generation game-side while the pool stays generic.
+
+The chuck-specific `Cast<AchuckCoreCharacter>` + `ServerAddItemByKey` pickup path
+becomes: provider feeds visuals, `OnItemPickedUp` delegate feeds the inventory.
+
 ## Persistence (`FKBVEInventoryStore` / `UKBVEInventoryStoreSubsystem`)
 
 Durable local inventory via the **KBVESQLite** plugin — row-per-slot

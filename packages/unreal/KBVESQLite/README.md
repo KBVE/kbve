@@ -14,6 +14,11 @@ Embedded SQLite for KBVE Unreal Engine plugins — a vendored `sqlite3` amalgama
     - `BindInt` / `BindInt64` / `BindText` / `BindBlob`
     - `Step()` (row), `Execute()` (done), `Reset()`
     - `ColumnInt` / `ColumnInt64` / `ColumnText` / `ColumnBlob`
+- **`FKBVESettingsStore`** (`KBVESettingsStore.h`) — scoped key/value prefs store
+  on top of a connection (`kv_settings(scope, key, value)`, UPSERT). Typed
+  `SetString/Int/Float/Bool` + `GetString/Int/Float/Bool`, `RemoveKey`,
+  `LoadScope(scope, TMap&)`. The agnostic primitive for game/editor settings —
+  the UI lives in KBVEUI, the persistence lives here.
 
 ## Usage
 
@@ -51,3 +56,4 @@ Add `"KBVESQLite"` to your module's `PrivateDependencyModuleNames`, and (for the
 
 - `FKBVEWorldChunkCache` (KBVEWorld) — terrain chunk BLOB cache.
 - `FKBVEInventoryStore` / `FKBVEItemCatalogStore` (KBVEItemDB) — inventory persistence + queryable item catalog.
+- `FKBVESettingsStore` — used by chuck's `UchuckSettings` (window geometry) under the `Saved/KBVE/settings.db` `window` scope.

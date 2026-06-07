@@ -1519,7 +1519,7 @@ dependencies = [
 
 [[package]]
 name = "axum-cryptothrone"
-version = "0.1.6"
+version = "0.1.7"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
@@ -1529,7 +1529,6 @@ dependencies = [
  "jedi",
  "kbve",
  "num_cpus",
- "serde",
  "serde_json",
  "serial_test",
  "socket2 0.6.3",
@@ -1628,7 +1627,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.186"
+version = "1.0.187"
 dependencies = [
  "anyhow",
  "askama 0.16.0",

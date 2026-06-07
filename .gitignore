@@ -163,7 +163,14 @@ apps/agones/factorio/mods-local/dist/
 
 # Unreal Engine plugin + project build artifacts (per-machine, never commit).
 # Covers packages/unreal/<Plugin>/ and apps/**/unreal-*/.
-packages/unreal/*/Binaries/
+# Exception: shipped native libs under a plugin's Binaries/<Platform>/ ARE
+# tracked (via LFS, see .gitattributes) so consumers pull prebuilt
+# .dylib/.dll/.so without a local build. ThirdParty/ libs are never ignored.
+packages/unreal/*/Binaries/**
+!packages/unreal/*/Binaries/**/
+!packages/unreal/*/Binaries/**/*.dylib
+!packages/unreal/*/Binaries/**/*.dll
+!packages/unreal/*/Binaries/**/*.so
 packages/unreal/*/Build/
 packages/unreal/*/Intermediate/
 packages/unreal/*/Saved/

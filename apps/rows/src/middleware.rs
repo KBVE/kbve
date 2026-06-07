@@ -50,6 +50,19 @@ pub fn extract_bearer(headers: &axum::http::HeaderMap) -> Option<String> {
     }
 }
 
+/// Pulls a trusted server-to-server service key out of the `x-service-key` header.
+pub fn extract_service_key(headers: &axum::http::HeaderMap) -> Option<String> {
+    let key = headers
+        .get("x-service-key")
+        .and_then(|v| v.to_str().ok())?
+        .trim();
+    if key.is_empty() {
+        None
+    } else {
+        Some(key.to_string())
+    }
+}
+
 /// Returns `Uuid::nil()` when the header is missing or malformed so unprotected callers don't panic.
 pub fn extract_customer_guid(headers: &axum::http::HeaderMap) -> Uuid {
     headers

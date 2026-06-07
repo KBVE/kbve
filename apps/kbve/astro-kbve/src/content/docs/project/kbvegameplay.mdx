@@ -54,6 +54,9 @@ Also holds the agnostic gameplay-stat layer (the effect target it feeds):
   penalty). Worker-thread, cache-coherent.
 - **`IKBVECombatDamageable` / `IKBVECombatAttacker`** — combat interfaces
   (apply damage/heal/death/danger; attack-trace / combo / charged hooks).
+- **`UKBVEMeleeComponent`** — generic melee sweep: forward sphere trace from a
+  mesh socket, hits `IKBVECombatDamageable`, applies damage + knockback/launch
+  impulse, fires `OnMeleeHit`; per-swing dedupe (`BeginSwing`/`EndSwing`).
 
 `UKBVEEffectComponent` applies effects through `IKBVEStatTarget`; a game's stat
 owner maps those onto its `FKBVEStatBlock` / `FKBVEStatFragment`.

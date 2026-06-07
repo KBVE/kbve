@@ -81,7 +81,7 @@ spec:
                                 name: github-arc-token
                                 key: github_token
                       - name: RUNNER_LOGON_ACCOUNT
-                        value: '.\Administrator'
+                        value: LocalSystem
                       - name: ADMIN_PASSWORD
                         valueFrom:
                             secretKeyRef:

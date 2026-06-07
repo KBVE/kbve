@@ -224,7 +224,11 @@ jobs:
 
             - name: Set up Docker Buildx
               if: inputs.setup_docker
-              uses: docker/setup-buildx-action@v4
+              uses: Wandalen/wretry.action@v3.7.0
+              with:
+                  action: docker/setup-buildx-action@v4
+                  attempt_limit: 3
+                  attempt_delay: 15000
 
             - name: Restore Docker Buildx Cache
               if: inputs.setup_docker

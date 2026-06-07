@@ -49,6 +49,17 @@ fn session_from_meta<T>(req: &Request<T>) -> Option<Uuid> {
         .ok()
 }
 
+/// Optional `x-service-key: <key>` metadata entry for trusted server-to-server callers (e.g. the UE
+/// dedicated server), validated against `SUPABASE_SERVICE_KEY_HASH`.
+fn service_key_from_meta<T>(req: &Request<T>) -> Option<String> {
+    let key = req.metadata().get("x-service-key")?.to_str().ok()?.trim();
+    if key.is_empty() {
+        None
+    } else {
+        Some(key.to_string())
+    }
+}
+
 pub struct PublicApiService {
     svc: Arc<OWSService>,
 }
@@ -159,16 +170,20 @@ impl PublicApi for PublicApiService {
         &self,
         req: Request<GetServerToConnectToRequest>,
     ) -> Result<Response<GetServerToConnectToResponse>, Status> {
-        let caller_guid = self
+        let caller = self
             .svc
-            .confirm_login_parts(bearer_from_meta(&req), session_from_meta(&req))
+            .confirm_login_parts(
+                bearer_from_meta(&req),
+                session_from_meta(&req),
+                service_key_from_meta(&req),
+            )
             .await
             .map_err(to_status)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         let result = self
             .svc
-            .get_server_to_connect_to(guid, caller_guid, &r.character_name, &r.character_name)
+            .get_server_to_connect_to(guid, caller, &r.character_name, &r.character_name)
             .await
             .map_err(to_status)?;
         if !result.success {
@@ -357,16 +372,20 @@ impl CharacterPersistence for CharacterPersistenceService {
         &self,
         req: Request<JoinMapRequest>,
     ) -> Result<Response<JoinMapResponse>, Status> {
-        let caller_guid = self
+        let caller = self
             .svc
-            .confirm_login_parts(bearer_from_meta(&req), session_from_meta(&req))
+            .confirm_login_parts(
+                bearer_from_meta(&req),
+                session_from_meta(&req),
+                service_key_from_meta(&req),
+            )
             .await
             .map_err(to_status)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         let result = self
             .svc
-            .get_server_to_connect_to(guid, caller_guid, &r.character_name, &r.zone_name)
+            .get_server_to_connect_to(guid, caller, &r.character_name, &r.zone_name)
             .await
             .map_err(to_status)?;
         Ok(Response::new(JoinMapResponse {
