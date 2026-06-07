@@ -1,21 +1,16 @@
-#include "SchuckDevOverlay.h"
+#include "SKBVEDevOverlay.h"
 
-#include "ChuckUIStyle.h"
 #include "KBVEUIRenderer.h"
-#include "Engine/World.h"
-#include "GameFramework/PlayerController.h"
-#include "GameFramework/PlayerState.h"
-#include "MassEntityManager.h"
-#include "MassEntitySubsystem.h"
 #include "Styling/CoreStyle.h"
 
-void SchuckDevOverlay::Construct(const FArguments& InArgs)
+void SKBVEDevOverlay::Construct(const FArguments& InArgs)
 {
-	Owner = InArgs._OwningController;
+	EntityCountProvider = InArgs._EntityCountProvider;
+	PingProvider = InArgs._PingProvider;
 	SetCanTick(true);
 }
 
-void SchuckDevOverlay::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+void SKBVEDevOverlay::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
 	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
 
@@ -27,29 +22,18 @@ void SchuckDevOverlay::Tick(const FGeometry& AllottedGeometry, const double InCu
 		SmoothedMS  = SmoothedMS  * (1.f - Alpha) + (InDeltaTime * 1000.f) * Alpha;
 	}
 
-	APlayerController* PC = Owner.Get();
-	if (!PC)
+	if (EntityCountProvider.IsBound())
 	{
-		return;
-	}
-	UWorld* World = PC->GetWorld();
-	if (!World)
-	{
-		return;
+		EntityCount = EntityCountProvider.Execute();
 	}
 
-	if (APlayerState* PS = PC->PlayerState)
+	if (PingProvider.IsBound())
 	{
-		PingMs = (int32)PS->GetPingInMilliseconds();
-	}
-
-	if (UMassEntitySubsystem* Mass = World->GetSubsystem<UMassEntitySubsystem>())
-	{
-		EntityCount = (int32)Mass->GetEntityManager().DebugGetEntityCount();
+		PingMs = PingProvider.Execute();
 	}
 }
 
-int32 SchuckDevOverlay::OnPaint(
+int32 SKBVEDevOverlay::OnPaint(
 	const FPaintArgs& Args,
 	const FGeometry& AllottedGeometry,
 	const FSlateRect& MyCullingRect,
@@ -58,8 +42,7 @@ int32 SchuckDevOverlay::OnPaint(
 	const FWidgetStyle& InWidgetStyle,
 	bool bParentEnabled) const
 {
-	const ISlateStyle& Style = FChuckUIStyle::Get();
-	const FSlateFontInfo Font = Style.GetFontStyle(FChuckUIStyle::FKeys::HUD_Label_Font);
+	const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Mono", 10);
 	const FVector2D Size = AllottedGeometry.GetLocalSize();
 
 	const FVector2D PanelSize(220.f, 88.f);
