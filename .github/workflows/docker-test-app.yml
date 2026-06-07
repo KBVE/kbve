@@ -236,18 +236,49 @@ jobs:
               env:
                   UV_THREADPOOL_SIZE: '16'
                   MISSING: ${{ steps.baked-playwright.outputs.missing || steps.detect-playwright.outputs.browsers }}
+                  PW_VERSION: ${{ steps.playwright-version.outputs.version }}
               run: |
-                  set -euo pipefail
-                  for try in 1 2 3; do
-                    if pnpm exec playwright install --with-deps ${MISSING}; then
-                      echo "playwright install succeeded on attempt ${try}"
-                      exit 0
-                    fi
-                    echo "::warning::playwright install attempt ${try} failed; retrying in 15s"
-                    sleep 15
-                  done
-                  echo "::error::playwright install failed after 3 attempts"
-                  exit 1
+                  set -uo pipefail
+                  attempt_install() {
+                    local label="$1"
+                    echo "::group::playwright install via ${label}"
+                    timeout 600 pnpm exec playwright install --with-deps ${MISSING}
+                    local rc=$?
+                    echo "::endgroup::"
+                    return $rc
+                  }
+
+                  attempt_install "default cdn (try 1)" && exit 0
+                  echo "::warning::default cdn try 1 failed; retrying"
+                  sleep 10
+                  attempt_install "default cdn (try 2)" && exit 0
+                  echo "::warning::default cdn exhausted; trying azure edge mirror"
+
+                  export PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT=120000
+                  export PLAYWRIGHT_DOWNLOAD_HOST=https://playwright.azureedge.net
+                  attempt_install "azureedge (try 1)" && exit 0
+                  echo "::warning::azureedge try 1 failed; retrying"
+                  sleep 10
+                  attempt_install "azureedge (try 2)" && exit 0
+                  echo "::warning::azureedge exhausted; falling back to mcr playwright image"
+
+                  unset PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT
+                  unset PLAYWRIGHT_DOWNLOAD_HOST
+                  IMG="mcr.microsoft.com/playwright:v${PW_VERSION}-jammy"
+                  DEST="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/.cache/ms-playwright}"
+                  mkdir -p "$DEST"
+                  echo "::group::pull ${IMG}"
+                  if ! docker pull "$IMG"; then
+                    echo "::error::docker pull ${IMG} failed"
+                    echo "::endgroup::"
+                    exit 1
+                  fi
+                  echo "::endgroup::"
+                  CID=$(docker create "$IMG")
+                  docker cp "$CID:/ms-playwright/." "$DEST/"
+                  docker rm "$CID" >/dev/null
+                  pnpm exec playwright install-deps ${MISSING}
+                  echo "playwright browsers restored from ${IMG} into ${DEST}"
 
             - name: Install Playwright OS deps (cache hit)
               if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.baked-playwright.outputs.all_present != 'true' && steps.playwright-cache.outputs.cache-hit == 'true' }}

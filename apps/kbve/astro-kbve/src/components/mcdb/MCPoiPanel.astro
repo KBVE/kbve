@@ -1,0 +1,177 @@
+---
+import { MCPoiFrontmatterSchema } from '@/data/schema';
+
+const { data } = Astro.props;
+const p = MCPoiFrontmatterSchema.parse(data);
+
+const blockX = p.chunk_x * 16;
+const blockZ = p.chunk_z * 16;
+
+const kindAccent: Record<string, string> = {
+	spawn: '#fde68a',
+	marketplace: '#7dd3fc',
+	portal: '#f9a8d4',
+	monument: '#fcd34d',
+	biome: '#86efac',
+	shop: '#a5b4fc',
+	guild: '#fca5a5',
+	admin: '#f87171',
+	landmark: '#cbd5e1',
+};
+const accent = kindAccent[p.kind] ?? '#cbd5e1';
+---
+
+<section class="mcpoi-panel not-content kbve-dashboard-page">
+	<header class="mcpoi-panel__head">
+		<div>
+			<h2>{p.display_name}</h2>
+			<p class="mcpoi-panel__sub">
+				<code>{p.poi_id}</code> · <code>{p.world}</code>
+			</p>
+			<div class="mcpoi-panel__pills">
+				<span class="mcpoi-pill" style={`--accent:${accent}`}>
+					{p.kind}
+				</span>
+				{
+					p.radius_chunks > 0 && (
+						<span class="mcpoi-pill mcpoi-pill--alt">
+							{p.radius_chunks} chunk radius
+						</span>
+					)
+				}
+			</div>
+		</div>
+		{p.icon && <div class="mcpoi-panel__icon">{p.icon}</div>}
+	</header>
+
+	<dl class="mcpoi-stats">
+		<div>
+			<dt>Chunk coords</dt>
+			<dd>({p.chunk_x}, {p.chunk_z})</dd>
+		</div>
+		<div>
+			<dt>Block coords</dt>
+			<dd>({blockX}, {blockZ})</dd>
+		</div>
+		{
+			p.anchor_y !== undefined && (
+				<div>
+					<dt>Anchor Y</dt>
+					<dd>{p.anchor_y}</dd>
+				</div>
+			)
+		}
+		<div>
+			<dt>World</dt>
+			<dd><code>{p.world}</code></dd>
+		</div>
+	</dl>
+
+	{
+		(p.about.summary || p.about.notes) && (
+			<section class="mcpoi-about">
+				{p.about.summary && (
+					<p class="mcpoi-about__summary">{p.about.summary}</p>
+				)}
+				{p.about.notes && (
+					<p class="mcpoi-about__notes">
+						<em>{p.about.notes}</em>
+					</p>
+				)}
+			</section>
+		)
+	}
+
+	<p class="mcpoi-panel__back">
+		<a href="/mc/world/">← Back to world map</a>
+	</p>
+</section>
+
+<style>
+	.mcpoi-panel {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		padding: 1rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.6rem;
+		background: var(--sl-color-bg-nav);
+	}
+
+	.mcpoi-panel__head {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		align-items: flex-start;
+		flex-wrap: wrap;
+	}
+
+	.mcpoi-panel__head h2 {
+		margin: 0;
+	}
+
+	.mcpoi-panel__sub {
+		margin: 0.2rem 0 0.4rem;
+		color: var(--sl-color-gray-3);
+		font-size: 0.85em;
+	}
+
+	.mcpoi-panel__pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+	}
+
+	.mcpoi-pill {
+		display: inline-block;
+		padding: 0.15rem 0.55rem;
+		border-radius: 999px;
+		font-size: 0.78em;
+		background: color-mix(in srgb, var(--accent, #cbd5e1) 25%, transparent);
+		color: var(--accent, #cbd5e1);
+		border: 1px solid var(--accent, #cbd5e1);
+		text-transform: capitalize;
+	}
+
+	.mcpoi-pill--alt {
+		--accent: #94a3b8;
+	}
+
+	.mcpoi-panel__icon {
+		font-size: 2rem;
+		font-weight: 700;
+		color: var(--accent, #cbd5e1);
+		opacity: 0.8;
+	}
+
+	.mcpoi-stats {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		row-gap: 0.4rem;
+		column-gap: 0.75rem;
+		margin: 0;
+	}
+
+	.mcpoi-stats > div {
+		display: contents;
+	}
+
+	.mcpoi-stats dt {
+		color: var(--sl-color-gray-3);
+		font-size: 0.85em;
+	}
+
+	.mcpoi-stats dd {
+		margin: 0;
+	}
+
+	.mcpoi-about__notes {
+		color: var(--sl-color-gray-3);
+		font-size: 0.92em;
+	}
+
+	.mcpoi-panel__back {
+		margin: 0;
+		font-size: 0.88em;
+	}
+</style>

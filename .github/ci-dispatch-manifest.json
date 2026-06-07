@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.185",
+			"version": "1.0.186",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -148,7 +148,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.37",
+			"version": "0.1.38",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -676,6 +676,18 @@
 			"version_toml": "packages/unreal/KBVEEvents/version.toml"
 		},
 		{
+			"key": "ue_kbvegameplay",
+			"plugin_name": "KBVEGameplay",
+			"plugin_path": "packages/unreal/KBVEGameplay",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVEGameplay/version.toml"
+		},
+		{
 			"key": "ue_kbvehexworld",
 			"plugin_name": "KBVEHexWorld",
 			"plugin_path": "packages/unreal/KBVEHexWorld",
@@ -688,6 +700,18 @@
 			"version_toml": "packages/unreal/KBVEHexWorld/version.toml"
 		},
 		{
+			"key": "ue_kbveitemdb",
+			"plugin_name": "KBVEItemDB",
+			"plugin_path": "packages/unreal/KBVEItemDB",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVEItemDB/version.toml"
+		},
+		{
 			"key": "ue_kbvelibgit",
 			"plugin_name": "KBVELibGit",
 			"plugin_path": "packages/unreal/KBVELibGit",
@@ -698,6 +722,18 @@
 			],
 			"version": "0.1.0",
 			"version_toml": "packages/unreal/KBVELibGit/version.toml"
+		},
+		{
+			"key": "ue_kbvenpcdb",
+			"plugin_name": "KBVENPCDB",
+			"plugin_path": "packages/unreal/KBVENPCDB",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVENPCDB/version.toml"
 		},
 		{
 			"key": "ue_kbverows",
@@ -903,7 +939,7 @@
 				"license_method": "personal"
 			},
 			"source_path": "apps/rareicon/unity-rareicon",
-			"version": "0.1.7",
+			"version": "0.1.8",
 			"version_toml": "apps/rareicon/unity-rareicon/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unity-rareicon.mdx",
 			"runner": "ubuntu-latest",
@@ -949,11 +985,12 @@
 			"app_name": "chuck",
 			"engine": {
 				"version": "5.7.4",
-				"project_path": "apps/chuckrpg/unreal-chuck",
+				"project_path": "chuck",
 				"build_targets": [
 					"Win64",
 					"Linux"
-				]
+				],
+				"external_repo_url": "https://github.com/kbve/chuck"
 			},
 			"source_path": "apps/chuckrpg/unreal-chuck",
 			"version": "0.3.19",
@@ -972,12 +1009,12 @@
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
-		"unreal": 17,
+		"unreal": 19,
 		"ue5_server": 2,
 		"unity": 1,
 		"godot": 1,
 		"unreal_game": 1,
 		"bevy_game": 0,
-		"total": 81
+		"total": 83
 	}
 }

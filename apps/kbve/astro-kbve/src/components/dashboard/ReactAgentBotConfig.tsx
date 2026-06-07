@@ -8,11 +8,12 @@ import {
 	type FormEvent,
 } from 'react';
 import { useStore } from '@nanostores/react';
-import { Loader2, RefreshCw, Save, Settings2 } from 'lucide-react';
+import { Hash, Loader2, RefreshCw, Save, Settings2 } from 'lucide-react';
 import {
 	agentsService,
 	emptyBotConfigFormDraft,
 	type BotConfigFormDraft,
+	type DiscordChannel,
 } from './agentsService';
 import { styles } from './dashboard-ui';
 
@@ -89,6 +90,9 @@ export default function ReactAgentBotConfig() {
 	const savingMap = useStore(agentsService.$botConfigSavingFor);
 	const errorsMap = useStore(agentsService.$botConfigErrors);
 	const loadedMap = useStore(agentsService.$botConfigLoadedFor);
+	const channelsMap = useStore(agentsService.$guildChannels);
+	const channelsLoadingMap = useStore(agentsService.$guildChannelsLoading);
+	const channelsErrorMap = useStore(agentsService.$guildChannelsError);
 
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState<string | null>(null);
@@ -157,6 +161,15 @@ export default function ReactAgentBotConfig() {
 			void load();
 		}
 	}, [guildId, loaded, load, hydrate]);
+
+	useEffect(() => {
+		if (!guildId) return;
+		void agentsService.ensureGuildChannelsLoaded(guildId);
+	}, [guildId]);
+
+	const channels = guildId ? channelsMap[guildId] : undefined;
+	const channelsLoading = guildId ? !!channelsLoadingMap[guildId] : false;
+	const channelsError = guildId ? (channelsErrorMap[guildId] ?? null) : null;
 
 	useEffect(() => {
 		if (!success) return;
@@ -296,9 +309,9 @@ export default function ReactAgentBotConfig() {
 				<p style={muted}>
 					Per-guild knobs the bot reads at startup. Stored as
 					<code> discordsh_config:&lt;guild&gt;</code> in Vault.
-					Channels are raw Discord snowflakes — pick them via
-					right-click → Copy ID in your Discord client (Developer Mode
-					required).
+					Channel pickers list the bot's visible channels — if the bot
+					isn't in the guild yet, install it via the bot-install
+					section above first.
 				</p>
 
 				<TextField
@@ -312,51 +325,59 @@ export default function ReactAgentBotConfig() {
 					error={errors.default_repo}
 					fontMono
 				/>
-				<TextField
+				<ChannelPicker
 					label="Claim channel"
 					hint="Channel that /gh claim posts confirmations to."
 					name="claim_channel_id"
+					channelType="text"
 					defaultValue={d.claim_channel_id}
-					placeholder="Discord snowflake"
+					channels={channels?.texts}
+					loading={channelsLoading}
+					error={errors.claim_channel_id}
+					sourceError={channelsError}
 					inputRef={(el) => (refs.current.claim_channel_id = el)}
 					onBlur={onFieldBlur('claim_channel_id')}
-					error={errors.claim_channel_id}
-					fontMono
 				/>
-				<TextField
+				<ChannelPicker
 					label="Forum channel"
 					hint="Forum channel where issue threads are created (P2 of #11262)."
 					name="forum_channel_id"
+					channelType="forum"
 					defaultValue={d.forum_channel_id}
-					placeholder="Discord snowflake"
+					channels={channels?.forums}
+					loading={channelsLoading}
+					error={errors.forum_channel_id}
+					sourceError={channelsError}
 					inputRef={(el) => (refs.current.forum_channel_id = el)}
 					onBlur={onFieldBlur('forum_channel_id')}
-					error={errors.forum_channel_id}
-					fontMono
 				/>
-				<TextField
+				<ChannelPicker
 					label="Notice board channel"
 					hint="Channel for /github noticeboard embeds."
 					name="noticeboard_channel_id"
+					channelType="text"
 					defaultValue={d.noticeboard_channel_id}
-					placeholder="Discord snowflake"
+					channels={channels?.texts}
+					loading={channelsLoading}
+					error={errors.noticeboard_channel_id}
+					sourceError={channelsError}
 					inputRef={(el) =>
 						(refs.current.noticeboard_channel_id = el)
 					}
 					onBlur={onFieldBlur('noticeboard_channel_id')}
-					error={errors.noticeboard_channel_id}
-					fontMono
 				/>
-				<TextField
+				<ChannelPicker
 					label="Task board channel"
 					hint="Channel for /github taskboard embeds."
 					name="taskboard_channel_id"
+					channelType="text"
 					defaultValue={d.taskboard_channel_id}
-					placeholder="Discord snowflake"
+					channels={channels?.texts}
+					loading={channelsLoading}
+					error={errors.taskboard_channel_id}
+					sourceError={channelsError}
 					inputRef={(el) => (refs.current.taskboard_channel_id = el)}
 					onBlur={onFieldBlur('taskboard_channel_id')}
-					error={errors.taskboard_channel_id}
-					fontMono
 				/>
 				<TextField
 					label="Max assignees per claim"
@@ -500,6 +521,167 @@ function TextField(props: TextFieldProps) {
 					...(maxWidth ? { width: maxWidth } : null),
 				}}
 			/>
+			{hint && !error && <span style={subtle}>{hint}</span>}
+			{error && <span style={errText}>{error}</span>}
+		</label>
+	);
+}
+
+interface ChannelPickerProps {
+	label: string;
+	hint?: string;
+	name: string;
+	channelType: 'forum' | 'text';
+	defaultValue: string;
+	channels?: DiscordChannel[];
+	loading: boolean;
+	sourceError: string | null;
+	error?: string;
+	inputRef: (el: HTMLInputElement | null) => void;
+	onBlur: (e: FocusEvent<HTMLInputElement>) => void;
+}
+
+function ChannelPicker(props: ChannelPickerProps) {
+	const {
+		label,
+		hint,
+		name,
+		channelType,
+		defaultValue,
+		channels,
+		loading,
+		sourceError,
+		error,
+		inputRef,
+		onBlur,
+	} = props;
+	const hiddenRef = useRef<HTMLInputElement | null>(null);
+	const [showManual, setShowManual] = useState(false);
+	const [currentValue, setCurrentValue] = useState<string>(defaultValue);
+
+	useEffect(() => {
+		setCurrentValue(defaultValue);
+	}, [defaultValue]);
+
+	const setInputRef = useCallback(
+		(el: HTMLInputElement | null) => {
+			hiddenRef.current = el;
+			inputRef(el);
+		},
+		[inputRef],
+	);
+
+	function commitValue(v: string) {
+		setCurrentValue(v);
+		if (hiddenRef.current) {
+			hiddenRef.current.value = v;
+			const ev = new FocusEvent('blur', {
+				bubbles: true,
+			}) as unknown as FocusEvent<HTMLInputElement>;
+			onBlur(ev);
+		}
+	}
+
+	const list = channels ?? [];
+	const known = list.find((c) => c.id === currentValue);
+	const unknownPicked = !!currentValue && !known && !showManual;
+	const useManual = showManual || sourceError !== null || unknownPicked;
+
+	return (
+		<label
+			style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+			<span style={fieldLabel}>{label}</span>
+			<input
+				ref={setInputRef}
+				name={name}
+				type="hidden"
+				defaultValue={defaultValue}
+			/>
+			{loading && (
+				<span style={subtle}>
+					<Loader2
+						size={12}
+						style={{
+							verticalAlign: '-2px',
+							marginRight: 4,
+							animation: 'spin 1s linear infinite',
+						}}
+					/>
+					Loading channels…
+				</span>
+			)}
+			{!loading && !useManual && list.length > 0 && (
+				<select
+					value={currentValue}
+					onChange={(e) => commitValue(e.target.value)}
+					style={{
+						...inputStyle,
+					}}>
+					<option value="">
+						— pick a {channelType === 'forum' ? 'forum' : 'text'}{' '}
+						channel —
+					</option>
+					{list.map((c) => (
+						<option key={c.id} value={c.id}>
+							#{c.name}
+						</option>
+					))}
+				</select>
+			)}
+			{!loading && useManual && (
+				<input
+					type="text"
+					defaultValue={currentValue}
+					placeholder="Discord snowflake (17–20 digits)"
+					onBlur={(e) => commitValue(e.target.value.trim())}
+					style={{
+						...inputStyle,
+						...mono,
+					}}
+					autoComplete="off"
+					spellCheck={false}
+				/>
+			)}
+			{!loading && (
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: '0.5rem',
+						fontSize: '0.75rem',
+					}}>
+					{!useManual && list.length === 0 && !sourceError && (
+						<span style={subtle}>
+							No {channelType === 'forum' ? 'forum' : 'text'}{' '}
+							channels found.
+						</span>
+					)}
+					{sourceError && (
+						<span style={{ ...subtle, color: '#facc15' }}>
+							<Hash size={11} style={{ verticalAlign: '-1px' }} />{' '}
+							Channel lookup failed — paste a raw snowflake.
+						</span>
+					)}
+					{!sourceError && list.length > 0 && (
+						<button
+							type="button"
+							onClick={() => setShowManual((v) => !v)}
+							style={{
+								background: 'transparent',
+								border: 'none',
+								color: 'var(--sl-color-gray-3, #9ca0aa)',
+								cursor: 'pointer',
+								padding: 0,
+								fontSize: '0.72rem',
+								textDecoration: 'underline',
+							}}>
+							{useManual
+								? 'Use channel picker'
+								: 'Paste raw snowflake instead'}
+						</button>
+					)}
+				</div>
+			)}
 			{hint && !error && <span style={subtle}>{hint}</span>}
 			{error && <span style={errText}>{error}</span>}
 		</label>

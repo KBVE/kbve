@@ -15,6 +15,8 @@ import {
 const DISCORD_API_BASE = "https://discord.com/api/v10";
 const BOT_TOKEN_VAULT_ID = "39781c47-be8f-4a10-ae3a-714da299ca07";
 const FORUM_CHANNEL_TYPE = 15;
+const TEXT_CHANNEL_TYPE = 0;
+const ANNOUNCEMENT_CHANNEL_TYPE = 5;
 
 let cachedBotToken: { value: string; cached_at: number } | null = null;
 const BOT_TOKEN_TTL_MS = 5 * 60 * 1000;
@@ -122,6 +124,56 @@ async function handleIsMember(serverId: string): Promise<Response> {
   return jsonResponse({ error: "Discord API error", status }, 502);
 }
 
+async function handleListChannels(serverId: string): Promise<Response> {
+  const { status, body } = await botCallback(
+    "GET",
+    `/guilds/${serverId}/channels`,
+  );
+  if (status === 401 || status === 403) {
+    return jsonResponse({ error: "Bot token unauthorized" }, 502);
+  }
+  if (status === 404) {
+    return jsonResponse({ error: "Bot not in this guild" }, 404);
+  }
+  if (status === 429) {
+    return jsonResponse({ error: "Discord rate limited" }, 429);
+  }
+  if (status < 200 || status >= 300 || !Array.isArray(body)) {
+    return jsonResponse({ error: "Discord API error", status }, 502);
+  }
+  type Ch = {
+    id?: string;
+    name?: string;
+    type?: number;
+    parent_id?: string | null;
+    position?: number;
+  };
+  const all = body as Ch[];
+  const map = (c: Ch) => ({
+    id: c.id!,
+    name: c.name!,
+    parent_id: c.parent_id ?? null,
+    position: c.position ?? 0,
+  });
+  const sortByPosition = (
+    a: { position: number },
+    b: { position: number },
+  ) => a.position - b.position;
+  const forums = all
+    .filter((c) => c.type === FORUM_CHANNEL_TYPE && c.id && c.name)
+    .map(map)
+    .sort(sortByPosition);
+  const texts = all
+    .filter((c) =>
+      (c.type === TEXT_CHANNEL_TYPE ||
+        c.type === ANNOUNCEMENT_CHANNEL_TYPE) &&
+      c.id && c.name
+    )
+    .map(map)
+    .sort(sortByPosition);
+  return jsonResponse({ forums, texts });
+}
+
 async function handleListForumChannels(serverId: string): Promise<Response> {
   const { status, body } = await botCallback(
     "GET",
@@ -212,11 +264,13 @@ serve(async (req) => {
       return await handleIsMember(serverId);
     case "bot.list_forum_channels":
       return await handleListForumChannels(serverId);
+    case "bot.list_channels":
+      return await handleListChannels(serverId);
     default:
       return jsonResponse(
         {
           error:
-            'command required (one of: "bot.is_member", "bot.list_forum_channels")',
+            'command required (one of: "bot.is_member", "bot.list_forum_channels", "bot.list_channels")',
         },
         400,
       );

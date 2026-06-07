@@ -18,6 +18,7 @@ import {
 	McBlockSchema,
 	MCSchematicFrontmatterSchema,
 	MCLotFrontmatterSchema,
+	MCPoiFrontmatterSchema,
 } from '@/data/schema';
 
 const OSRSFrontmatterSchema = OSRSExtendedSchema;
@@ -186,6 +187,7 @@ export const collections = {
 				mc_block: McBlockSchema.optional(),
 				mc_schematic: MCSchematicFrontmatterSchema.optional(),
 				mc_lot: MCLotFrontmatterSchema.optional(),
+				mc_poi: MCPoiFrontmatterSchema.optional(),
 				'yt-tracks': z.array(z.string()).optional(),
 				'yt-sets': z.array(z.string()).optional(),
 				// Journal post metadata consumed by the RSS feed

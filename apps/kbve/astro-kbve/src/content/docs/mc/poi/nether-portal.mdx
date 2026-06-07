@@ -1,0 +1,28 @@
+---
+title: Nether Portal
+description: Public nether portal — east of spawn, linked to the central nether hub.
+sidebar:
+    label: Nether Portal
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-poi
+mc_poi:
+    poi_id: nether_portal_east
+    display_name: East Nether Portal
+    kind: portal
+    world: minecraft:overworld
+    chunk_x: 12
+    chunk_z: 0
+    radius_chunks: 1
+    anchor_y: 63
+    icon: 'N'
+    about:
+        summary: Public obsidian portal east of spawn linking to the central nether hub.
+        notes: 1:8 scaling means this lines up with nether coords (96, 0). Hub built around the receiving portal.
+---
+
+import MCPoiPanel from '@/components/mcdb/MCPoiPanel.astro';
+
+<MCPoiPanel data={frontmatter.mc_poi} />

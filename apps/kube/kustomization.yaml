@@ -110,3 +110,5 @@ resources:
     # Guacamole — browser-based RDP gateway for Windows VMs
     - kubevirt/guacamole-application.yaml
     - kubevirt/autologon-application.yaml
+    # Runner — (re)register the GitHub Actions runner as Administrator on VM boot
+    - kubevirt/runner-application.yaml

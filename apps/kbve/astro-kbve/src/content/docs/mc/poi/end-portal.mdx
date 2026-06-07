@@ -1,0 +1,28 @@
+---
+title: End Portal Hub
+description: Stronghold-anchored end portal — accessible after the dragon is contested.
+sidebar:
+    label: End Portal
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-poi
+mc_poi:
+    poi_id: end_portal_north
+    display_name: End Portal Hub
+    kind: portal
+    world: minecraft:overworld
+    chunk_x: -8
+    chunk_z: -18
+    radius_chunks: 1
+    anchor_y: 30
+    icon: 'E'
+    about:
+        summary: End portal carved into a stronghold north of spawn.
+        notes: Eyes-of-ender already placed; one-way trip to the end dimension. Respawns drop you back at spawn.
+---
+
+import MCPoiPanel from '@/components/mcdb/MCPoiPanel.astro';
+
+<MCPoiPanel data={frontmatter.mc_poi} />

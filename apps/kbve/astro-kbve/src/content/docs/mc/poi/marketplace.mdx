@@ -1,0 +1,28 @@
+---
+title: Marketplace
+description: Central plaza marketplace covering the sample lot grid.
+sidebar:
+    label: Marketplace
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-poi
+mc_poi:
+    poi_id: marketplace
+    display_name: Plaza Marketplace
+    kind: marketplace
+    world: minecraft:overworld
+    chunk_x: 0
+    chunk_z: 0
+    radius_chunks: 4
+    anchor_y: 63
+    icon: '$'
+    about:
+        summary: Plaza marketplace covering the 3x3 sample lot grid around spawn.
+        notes: Lot purchases settle here. Shop owners build out vendor stalls on their owned parcels.
+---
+
+import MCPoiPanel from '@/components/mcdb/MCPoiPanel.astro';
+
+<MCPoiPanel data={frontmatter.mc_poi} />

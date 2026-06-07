@@ -1,15 +1,16 @@
 # KEDA ScaledJobs for KubeVirt VM lifecycle.
 #
 # Scale UP: removed — VMs are now started via workflow_dispatch from CI.
-# Scale DOWN: cron trigger (every hour) → stop VM if idle + no sessions.
-#
-# The github-runner trigger was removed to eliminate GitHub API rate limit
-# pressure. CI workflows dispatch VM starts directly instead.
+# Scale DOWN: cron trigger fires the idle check; the check only stops the VM
+# when the runner is actually idle. The cron is just the check cadence, NOT a
+# hard timer — an active runner is never stopped.
 ---
 # ──────────────────────────────────────────────────────────────
-# SCALE DOWN — KEDA cron-triggered idle shutdown
-# Runs every hour, checks: age > 30min + no active sessions
-# GitHub API check removed — VMs are stopped based on age + connections only.
+# SCALE DOWN — KEDA cron-triggered idle check (activity-aware)
+# The idle-shutdown script stops the VM only when ALL hold:
+#   age > 30min, no queued/in-progress GitHub jobs for the runner label
+#   (GITHUB_TOKEN below re-enables this check), no VNC/RDP sessions.
+# A few GitHub API calls per check window — negligible rate-limit cost.
 # ──────────────────────────────────────────────────────────────
 
 # Windows VM shutdown
@@ -41,6 +42,13 @@ spec:
                             value: angelscript
                           - name: IDLE_THRESHOLD_MINUTES
                             value: '30'
+                          - name: GITHUB_ORG
+                            value: KBVE
+                          - name: GITHUB_TOKEN
+                            valueFrom:
+                                secretKeyRef:
+                                    name: github-arc-token
+                                    key: github_token
                       volumeMounts:
                           - name: script
                             mountPath: /scripts
@@ -91,6 +99,13 @@ spec:
                             value: angelscript
                           - name: IDLE_THRESHOLD_MINUTES
                             value: '30'
+                          - name: GITHUB_ORG
+                            value: KBVE
+                          - name: GITHUB_TOKEN
+                            valueFrom:
+                                secretKeyRef:
+                                    name: github-arc-token
+                                    key: github_token
                       volumeMounts:
                           - name: script
                             mountPath: /scripts

@@ -10,8 +10,10 @@ import {
 	Loader2,
 	LogIn,
 	PlayCircle,
+	RefreshCw,
 	Shuffle,
 	Webhook,
+	XCircle,
 } from 'lucide-react';
 import {
 	agentsService,
@@ -373,6 +375,14 @@ function Step2WebhookConfig({
 	const installResultMap = useStore(agentsService.$webhookInstallResults);
 	const pingBusyMap = useStore(agentsService.$webhookPingBusyFor);
 	const pingResultMap = useStore(agentsService.$webhookPingResults);
+	const deliveriesMap = useStore(agentsService.$webhookDeliveries);
+	const deliveriesLoadingMap = useStore(
+		agentsService.$webhookDeliveriesLoading,
+	);
+	const deliveriesErrorMap = useStore(agentsService.$webhookDeliveriesError);
+	const rotateBusyMap = useStore(agentsService.$webhookRotateBusyFor);
+	const rotateResultMap = useStore(agentsService.$webhookRotateResults);
+	const deleteBusyMap = useStore(agentsService.$webhookDeleteBusyFor);
 
 	const repos = allowlistMap[guild.id] ?? [];
 	const selectedRepo = selectedMap[guild.id] ?? repos[0] ?? '';
@@ -408,6 +418,45 @@ function Step2WebhookConfig({
 	async function ping() {
 		if (!selectedRepo || pinging) return;
 		await agentsService.pingWebhookForGuild(guild.id);
+	}
+
+	const deliveriesKey = `${guild.id}:${selectedRepo}`;
+	const deliveries = deliveriesMap[deliveriesKey] ?? [];
+	const deliveriesLoading = !!deliveriesLoadingMap[deliveriesKey];
+	const deliveriesError = deliveriesErrorMap[deliveriesKey] ?? null;
+	const rotating = !!rotateBusyMap[guild.id];
+	const rotateResult = rotateResultMap[guild.id] ?? null;
+	const deleting = !!deleteBusyMap[guild.id];
+	const [confirmDelete, setConfirmDelete] = useState(false);
+
+	useEffect(() => {
+		setConfirmDelete(false);
+	}, [guild.id, selectedRepo]);
+
+	async function refreshDeliveries() {
+		if (!selectedRepo) return;
+		const [owner, repo] = selectedRepo.split('/');
+		if (!owner || !repo) return;
+		await agentsService.loadWebhookDeliveries(guild.id, owner, repo, 10);
+	}
+
+	async function rotate() {
+		if (!selectedRepo || rotating) return;
+		const [owner, repo] = selectedRepo.split('/');
+		if (!owner || !repo) return;
+		await agentsService.rotateWebhookForGuild(guild.id, owner, repo);
+	}
+
+	async function deleteHook() {
+		if (!selectedRepo || deleting) return;
+		if (!confirmDelete) {
+			setConfirmDelete(true);
+			return;
+		}
+		const [owner, repo] = selectedRepo.split('/');
+		if (!owner || !repo) return;
+		await agentsService.deleteWebhookForGuild(guild.id, owner, repo);
+		setConfirmDelete(false);
 	}
 
 	const installedOk =
@@ -644,6 +693,197 @@ function Step2WebhookConfig({
 						)}
 						{pingResult && !pingResult.ok && (
 							<span style={errText}>{pingResult.error}</span>
+						)}
+					</div>
+				)}
+				{installResult && installResult.ok && hasWebhook && (
+					<div
+						style={{
+							marginTop: '0.85rem',
+							padding: '0.75rem',
+							border: '1px solid var(--sl-color-gray-5, #2d2f36)',
+							borderRadius: 8,
+							display: 'flex',
+							flexDirection: 'column',
+							gap: '0.5rem',
+						}}>
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								gap: '0.4rem',
+							}}>
+							<strong style={{ fontSize: '0.85rem' }}>
+								Recent deliveries
+							</strong>
+							<button
+								type="button"
+								onClick={() => void refreshDeliveries()}
+								disabled={deliveriesLoading || !selectedRepo}
+								style={{
+									...secondaryBtn,
+									marginLeft: 'auto',
+									padding: '0.25rem 0.5rem',
+									fontSize: '0.78rem',
+								}}>
+								{deliveriesLoading ? (
+									<Loader2 size={12} style={spinStyle} />
+								) : (
+									<RefreshCw size={12} />
+								)}
+								Refresh
+							</button>
+						</div>
+						{deliveriesError && (
+							<p style={errText}>{deliveriesError}</p>
+						)}
+						{!deliveriesError && deliveries.length === 0 && (
+							<p style={{ ...mutedText, fontStyle: 'italic' }}>
+								No deliveries fetched yet. Click Refresh to pull
+								the latest from GitHub.
+							</p>
+						)}
+						{deliveries.length > 0 && (
+							<ul
+								style={{
+									margin: 0,
+									padding: 0,
+									listStyle: 'none',
+									display: 'flex',
+									flexDirection: 'column',
+									gap: '0.2rem',
+								}}>
+								{deliveries.slice(0, 10).map((d) => {
+									const ok =
+										d.status_code >= 200 &&
+										d.status_code < 300;
+									return (
+										<li
+											key={d.id}
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												justifyContent: 'space-between',
+												padding: '0.3rem 0.5rem',
+												borderRadius: 6,
+												background: ok
+													? 'rgba(74,222,128,0.06)'
+													: 'rgba(239,68,68,0.06)',
+												border: ok
+													? '1px solid rgba(74,222,128,0.2)'
+													: '1px solid rgba(239,68,68,0.25)',
+												fontSize: '0.78rem',
+												gap: '0.5rem',
+											}}>
+											<code
+												style={{
+													fontFamily:
+														'var(--sl-font-mono, ui-monospace, monospace)',
+													color: ok
+														? '#4ade80'
+														: '#f87171',
+												}}>
+												{d.status_code}
+											</code>
+											<span
+												style={{
+													fontFamily:
+														'var(--sl-font-mono, ui-monospace, monospace)',
+													flex: 1,
+												}}>
+												{d.event}
+												{d.action ? `.${d.action}` : ''}
+												{d.redelivery
+													? ' (redeliver)'
+													: ''}
+											</span>
+											<span
+												style={{
+													color: 'var(--sl-color-gray-3, #9ca0aa)',
+												}}>
+												{new Date(
+													d.delivered_at,
+												).toLocaleTimeString()}
+											</span>
+										</li>
+									);
+								})}
+							</ul>
+						)}
+					</div>
+				)}
+				{installResult && installResult.ok && hasWebhook && (
+					<div
+						style={{
+							marginTop: '0.85rem',
+							padding: '0.75rem',
+							border: '1px solid rgba(239,68,68,0.25)',
+							borderRadius: 8,
+							display: 'flex',
+							flexDirection: 'column',
+							gap: '0.5rem',
+						}}>
+						<strong style={{ fontSize: '0.85rem' }}>
+							Lifecycle
+						</strong>
+						<p style={{ ...mutedText, fontSize: '0.8rem' }}>
+							Rotate replaces the HMAC on GitHub + vault. Old
+							in-flight deliveries fail signature for a few
+							seconds. Delete removes the hook from GitHub but
+							leaves the vault HMAC row intact.
+						</p>
+						<div
+							style={{
+								display: 'flex',
+								gap: '0.4rem',
+								flexWrap: 'wrap',
+							}}>
+							<button
+								type="button"
+								onClick={() => void rotate()}
+								disabled={rotating || !selectedRepo}
+								style={secondaryBtn}>
+								{rotating ? (
+									<Loader2 size={14} style={spinStyle} />
+								) : (
+									<RefreshCw size={14} />
+								)}
+								{rotating ? 'Rotating…' : 'Rotate HMAC secret'}
+							</button>
+							<button
+								type="button"
+								onClick={() => void deleteHook()}
+								disabled={deleting || !selectedRepo}
+								style={{
+									...secondaryBtn,
+									color: '#f87171',
+									borderColor: 'rgba(239,68,68,0.4)',
+								}}>
+								{deleting ? (
+									<Loader2 size={14} style={spinStyle} />
+								) : (
+									<XCircle size={14} />
+								)}
+								{deleting
+									? 'Deleting…'
+									: confirmDelete
+										? 'Confirm delete?'
+										: 'Delete webhook'}
+							</button>
+						</div>
+						{rotateResult && rotateResult.ok && (
+							<span
+								style={{
+									fontSize: '0.82rem',
+									color: '#4ade80',
+								}}>
+								Rotated · hook{' '}
+								<code>{rotateResult.hookId}</code> updated. New
+								HMAC stored in vault.
+							</span>
+						)}
+						{rotateResult && !rotateResult.ok && (
+							<span style={errText}>{rotateResult.error}</span>
 						)}
 					</div>
 				)}
