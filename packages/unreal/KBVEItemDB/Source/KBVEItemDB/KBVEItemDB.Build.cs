@@ -17,7 +17,8 @@ public class KBVEItemDB : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"Json",
-			"JsonUtilities"
+			"JsonUtilities",
+			"KBVESQLite"
 		});
 	}
 }

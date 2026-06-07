@@ -703,6 +703,7 @@
 			"key": "ue_kbveitemdb",
 			"plugin_name": "KBVEItemDB",
 			"plugin_path": "packages/unreal/KBVEItemDB",
+			"dependency_plugins": "packages/unreal/KBVESQLite",
 			"supported_platforms": [
 				"Win64",
 				"Linux",
