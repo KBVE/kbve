@@ -91,7 +91,7 @@ namespace
 		return Task;
 	}
 
-	void ConfigureFbxTask(UAssetImportTask* Task)
+	void ConfigureFbxTask(UAssetImportTask* Task, float MeshScale)
 	{
 		UFbxImportUI* Options = NewObject<UFbxImportUI>();
 		Options->bImportMesh       = true;
@@ -105,6 +105,8 @@ namespace
 		SMID->NormalImportMethod      = FBXNIM_ImportNormals;
 		SMID->NormalGenerationMethod  = EFBXNormalGenerationMethod::MikkTSpace;
 		SMID->bComputeWeightedNormals = true;
+		SMID->ImportUniformScale      = MeshScale;
+		SMID->bConvertScene           = true;
 		Task->Options = Options;
 	}
 
@@ -157,18 +159,31 @@ namespace
 	void AssignMaterialToMesh(UStaticMesh* Mesh, UMaterialInterface* Material)
 	{
 		if (!Mesh || !Material) return;
-		FStaticMaterial Slot;
-		Slot.MaterialInterface         = Material;
-		Slot.MaterialSlotName          = TEXT("Default");
-		Slot.ImportedMaterialSlotName  = TEXT("Default");
-		TArray<FStaticMaterial> Slots = { Slot };
+
+		TArray<FStaticMaterial> Slots = Mesh->GetStaticMaterials();
+		if (Slots.Num() == 0)
+		{
+			FStaticMaterial Slot;
+			Slot.MaterialInterface        = Material;
+			Slot.MaterialSlotName         = TEXT("Default");
+			Slot.ImportedMaterialSlotName = TEXT("Default");
+			Slots.Add(Slot);
+		}
+		else
+		{
+			for (FStaticMaterial& Slot : Slots)
+			{
+				Slot.MaterialInterface = Material;
+			}
+		}
 		Mesh->SetStaticMaterials(Slots);
 		UEditorAssetLibrary::SaveLoadedAsset(Mesh);
-		UE_LOG(LogTemp, Display, TEXT("[UEDevOps] Assigned %s -> %s"), *Material->GetName(), *Mesh->GetName());
+		UE_LOG(LogTemp, Display, TEXT("[UEDevOps] Assigned %s -> %s (%d slots)"),
+			*Material->GetName(), *Mesh->GetName(), Slots.Num());
 	}
 }
 
-bool FUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, const FString& DestContentPath, const FString& MaterialName)
+bool FUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, const FString& DestContentPath, const FString& MaterialName, float MeshScale)
 {
 	const FString Source = FPaths::ConvertRelativePathToFull(SourceFolder);
 	if (!IFileManager::Get().DirectoryExists(*Source))
@@ -200,7 +215,7 @@ bool FUEDevOpsImportLibrary::ImportRawAssetFolder(const FString& SourceFolder, c
 		if (IsFbx(Ext))
 		{
 			UAssetImportTask* Task = MakeTask(Full, DestFull);
-			ConfigureFbxTask(Task);
+			ConfigureFbxTask(Task, MeshScale);
 			FbxTasks.Add(Task);
 		}
 		else if (IsImage(Ext))

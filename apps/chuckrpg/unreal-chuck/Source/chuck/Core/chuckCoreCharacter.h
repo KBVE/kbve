@@ -5,19 +5,25 @@
 #include "chuckCharacter.h"
 #include "chuckInventory.h"
 #include "chuckStats.h"
+#include "KBVEStatTarget.h"
 #include "chuckCoreCharacter.generated.h"
 
 class UInputAction;
 class UchuckCharacterMovementComponent;
+class UKBVEEffectComponent;
 struct FInputActionValue;
 
 UCLASS()
-class AchuckCoreCharacter : public AchuckCharacter
+class AchuckCoreCharacter : public AchuckCharacter, public IKBVEStatTarget
 {
 	GENERATED_BODY()
 
 public:
 	AchuckCoreCharacter(const FObjectInitializer& ObjectInitializer);
+
+	virtual float GetStatValue(FName StatId) const override;
+	virtual float GetStatMax(FName StatId) const override;
+	virtual void  ApplyStatDelta(FName StatId, float Delta) override;
 
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
@@ -42,6 +48,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, ReplicatedUsing = OnRep_Stats, Category = "Chuck|Stats")
 	FchuckStatBlock Stats;
+
+	UPROPERTY()
+	TObjectPtr<UKBVEEffectComponent> EffectComp;
 
 	FchuckStatBlock LastPublishedStats;
 

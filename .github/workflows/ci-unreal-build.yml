@@ -1023,7 +1023,7 @@ jobs:
               if: steps.check.outputs.skip != 'true'
               shell: powershell
               run: |
-                  Push-Location $env:ENGINE_ROOT; .\Setup.bat; Pop-Location
+                  Push-Location $env:ENGINE_ROOT; .\Setup.bat --force; Pop-Location
 
             - name: Generate project files
               if: steps.check.outputs.skip != 'true'

@@ -106,6 +106,14 @@
 			"Enabled": true
 		},
 		{
+			"Name": "KBVEWebSurface",
+			"Enabled": true
+		},
+		{
+			"Name": "WebBrowserWidget",
+			"Enabled": true
+		},
+		{
 			"Name": "KBVELibGit",
 			"Enabled": true
 		},

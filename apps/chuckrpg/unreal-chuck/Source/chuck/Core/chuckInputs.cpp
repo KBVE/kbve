@@ -31,6 +31,7 @@ void UchuckInputs::Build()
 	Inventory        = NewObject<UInputAction>(this, TEXT("IA_Inventory"));
 	ToggleChat       = NewObject<UInputAction>(this, TEXT("IA_ToggleChat"));
 	FocusChat        = NewObject<UInputAction>(this, TEXT("IA_FocusChat"));
+	Interact         = NewObject<UInputAction>(this, TEXT("IA_Interact"));
 
 	Move->ValueType             = EInputActionValueType::Axis2D;
 	Look->ValueType             = EInputActionValueType::Axis2D;
@@ -42,6 +43,7 @@ void UchuckInputs::Build()
 	ToggleDevOverlay->ValueType = EInputActionValueType::Boolean;
 	ToggleChat->ValueType       = EInputActionValueType::Boolean;
 	FocusChat->ValueType        = EInputActionValueType::Boolean;
+	Interact->ValueType         = EInputActionValueType::Boolean;
 
 	DefaultIMC = NewObject<UInputMappingContext>(this, TEXT("IMC_Default"));
 
@@ -53,6 +55,7 @@ void UchuckInputs::Build()
 	DefaultIMC->MapKey(ToggleDevOverlay, EKeys::Tilde);
 	DefaultIMC->MapKey(Inventory,        EKeys::I);
 	DefaultIMC->MapKey(ToggleChat,       EKeys::Slash);
+	DefaultIMC->MapKey(Interact,         EKeys::F);
 
 	{
 		FEnhancedActionKeyMapping& LookMap = DefaultIMC->MapKey(Look, EKeys::Mouse2D);

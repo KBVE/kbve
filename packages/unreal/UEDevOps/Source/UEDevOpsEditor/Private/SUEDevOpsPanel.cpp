@@ -138,10 +138,20 @@ void SUEDevOpsPanel::Construct(const FArguments& InArgs)
 			[
 				SNew(STextBlock).Text(LOCTEXT("MatLabel", "Material name (optional)"))
 			]
-			+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 8)
+			+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 6)
 			[
 				SAssignNew(MaterialInput, SEditableTextBox)
 				.HintText(LOCTEXT("MatHint", "ArcadeCabinet  → builds M_ArcadeCabinet"))
+			]
+			+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 4)
+			[
+				SNew(STextBlock).Text(LOCTEXT("ScaleLabel", "Mesh import scale (1.0 = default, 0.01 = Blender meters → UE cm)"))
+			]
+			+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 8)
+			[
+				SAssignNew(ScaleInput, SEditableTextBox)
+				.HintText(LOCTEXT("ScaleHint", "1.0"))
+				.Text(FText::FromString(TEXT("1.0")))
 			]
 
 			+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 14)
@@ -265,11 +275,23 @@ FReply SUEDevOpsPanel::HandleImportRunClicked()
 		return FReply::Handled();
 	}
 
-	const bool bOk = FUEDevOpsImportLibrary::ImportRawAssetFolder(Source, Dest, Material);
-	AppendLog(FString::Printf(TEXT("%s Import: %s → %s%s"),
+	float Scale = 1.0f;
+	if (ScaleInput.IsValid())
+	{
+		const FString ScaleStr = ScaleInput->GetText().ToString().TrimStartAndEnd();
+		if (!ScaleStr.IsEmpty())
+		{
+			Scale = FCString::Atof(*ScaleStr);
+			if (Scale <= 0.f) Scale = 1.0f;
+		}
+	}
+
+	const bool bOk = FUEDevOpsImportLibrary::ImportRawAssetFolder(Source, Dest, Material, Scale);
+	AppendLog(FString::Printf(TEXT("%s Import: %s → %s%s  scale=%.3f"),
 		bOk ? TEXT("✓") : TEXT("✖"),
 		*Source, *Dest,
-		Material.IsEmpty() ? TEXT("") : *FString::Printf(TEXT("  [M_%s]"), *Material)));
+		Material.IsEmpty() ? TEXT("") : *FString::Printf(TEXT("  [M_%s]"), *Material),
+		Scale));
 	return FReply::Handled();
 }
 

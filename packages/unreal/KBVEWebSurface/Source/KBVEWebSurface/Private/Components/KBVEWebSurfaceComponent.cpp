@@ -11,6 +11,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GenericPlatform/GenericPlatformHttp.h"
 #include "Kismet/GameplayStatics.h"
+#include "RenderingThread.h"
 
 UKBVEWebSurfaceComponent::UKBVEWebSurfaceComponent()
 {
@@ -51,8 +52,15 @@ void UKBVEWebSurfaceComponent::EndPlay(const EEndPlayReason::Type Reason)
 			LOD->Unregister(this);
 		}
 	}
-	WebBrowser = nullptr;
+
+	SetComponentTickEnabled(false);
 	Bridge = nullptr;
+	WebBrowser = nullptr;
+
+	FlushRenderingCommands();
+	ReleaseResources();
+	FlushRenderingCommands();
+
 	Super::EndPlay(Reason);
 }
 

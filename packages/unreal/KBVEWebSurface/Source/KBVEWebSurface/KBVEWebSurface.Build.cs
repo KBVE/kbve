@@ -26,7 +26,8 @@ public class KBVEWebSurface : ModuleRules
 		{
 			"Projects",
 			"RenderCore",
-			"RHI"
+			"RHI",
+			"HTTP"
 		});
 	}
 }

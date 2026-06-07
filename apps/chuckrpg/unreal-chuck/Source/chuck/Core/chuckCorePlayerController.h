@@ -43,6 +43,7 @@ protected:
 	void OnInventoryPressed(const FInputActionValue& Value);
 	void OnToggleChatPressed(const FInputActionValue& Value);
 	void OnFocusChatPressed(const FInputActionValue& Value);
+	void OnInteractPressed(const FInputActionValue& Value);
 
 	void OpenInventory();
 	void CloseInventory();
