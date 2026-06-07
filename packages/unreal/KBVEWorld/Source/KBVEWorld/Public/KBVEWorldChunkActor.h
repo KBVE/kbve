@@ -28,6 +28,8 @@ public:
 	void SerializeCurrentMesh(TArray<uint8>& OutBytes) const;
 	void Release();
 
+	void SetImpostorVisible(bool bVisible);
+
 	const FIntPoint& GetCoord() const { return Coord; }
 	bool  IsActive() const { return bActive; }
 	bool  HasMeshFor(const FIntPoint& InCoord, uint32 InSeed) const { return bMeshBuilt && Coord == InCoord && Seed == InSeed; }

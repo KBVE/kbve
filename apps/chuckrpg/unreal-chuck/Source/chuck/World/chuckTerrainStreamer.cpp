@@ -164,6 +164,16 @@ void UchuckTerrainStreamer::Tick(float DeltaSeconds)
 			EnsureChunk(Want);
 		}
 	}
+
+	constexpr int32 ImpostorRing = 2;
+	for (auto& Pair : ActiveChunks)
+	{
+		if (!Pair.Value) continue;
+		const int32 Dist = FMath::Max(
+			FMath::Abs(Pair.Key.X - Center.X),
+			FMath::Abs(Pair.Key.Y - Center.Y));
+		Pair.Value->SetImpostorVisible(Dist >= ImpostorRing);
+	}
 }
 
 FIntPoint UchuckTerrainStreamer::WorldToChunk(const FVector& WorldLoc) const
