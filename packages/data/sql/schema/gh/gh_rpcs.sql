@@ -500,6 +500,7 @@ COMMENT ON FUNCTION gh.event_queue_stats() IS
 'Operational counter snapshot per delivery_state plus oldest pending and oldest still-claimed timestamps. Use to surface stuck workers, growing backlogs, or accumulating dead-letters. Cheap full-table aggregate, fine to poll at minute granularity.';
 
 
+
 -- ============================================================================
 -- DASHBOARD SERVICE RPCs — per-guild scope via repo allowlist intersection
 --
@@ -510,13 +511,39 @@ COMMENT ON FUNCTION gh.event_queue_stats() IS
 -- can only read or mutate events for repos it controls.
 --
 -- All raise distinct SQLSTATEs the edge layer translates into HTTP codes:
---   GH001 — invalid event id           (400)
---   GH002 — empty repo allowlist       (400)
---   GH003 — no valid repos             (400)
---   GH004 — event not found / out of scope / not failed (404)
---   GH005 — reason too long            (400)
---   GH006 — allowlist > 100 entries    (413)
+--   GH001 — invalid event id / bad p_before_ts                       (400)
+--   GH002 — empty repo allowlist                                     (400)
+--   GH003 — no valid repos                                           (400)
+--   GH004 — event not found / out of scope / wrong state             (404)
+--   GH005 — reason missing or too long                               (400)
+--   GH006 — allowlist > 100 entries                                  (413)
+--   GH007 — force requeue refused: event currently in-flight (1)     (409)
 -- ============================================================================
+
+CREATE OR REPLACE FUNCTION gh._normalize_repo_allowlist(
+    p_repos TEXT[]
+)
+RETURNS TEXT[]
+LANGUAGE sql
+IMMUTABLE
+STRICT
+SET search_path = gh, pg_temp
+AS $$
+    SELECT ARRAY(
+        SELECT DISTINCT lower(btrim(r))
+        FROM unnest(p_repos) AS r
+        WHERE lower(btrim(r)) ~ '^[a-z0-9._-]{1,100}/[a-z0-9._-]{1,100}$'
+        ORDER BY 1
+    );
+$$;
+
+ALTER FUNCTION gh._normalize_repo_allowlist(TEXT[]) OWNER TO service_role;
+REVOKE ALL ON FUNCTION gh._normalize_repo_allowlist(TEXT[]) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION gh._normalize_repo_allowlist(TEXT[]) TO service_role;
+
+COMMENT ON FUNCTION gh._normalize_repo_allowlist(TEXT[]) IS
+'Shared owner/repo[] normalizer for the dashboard service RPCs. Lowercases, trims, dedupes, regex-filters, sorts. IMMUTABLE STRICT.';
+
 
 -- ----------------------------------------------------------------------------
 -- gh.service_get_guild_event_stats
@@ -551,11 +578,7 @@ BEGIN
         RETURN;
     END IF;
 
-    v_repos := ARRAY(
-        SELECT DISTINCT lower(btrim(r))
-        FROM unnest(p_repos) AS r
-        WHERE lower(btrim(r)) ~ '^[a-z0-9._-]{1,100}/[a-z0-9._-]{1,100}$'
-    );
+    v_repos := gh._normalize_repo_allowlist(p_repos);
 
     IF COALESCE(cardinality(v_repos), 0) = 0 THEN
         RETURN QUERY SELECT NULL::TIMESTAMPTZ, NULL::TIMESTAMPTZ,
@@ -588,7 +611,7 @@ REVOKE ALL ON FUNCTION gh.service_get_guild_event_stats(TEXT[]) FROM PUBLIC, ano
 GRANT EXECUTE ON FUNCTION gh.service_get_guild_event_stats(TEXT[]) TO service_role;
 
 COMMENT ON FUNCTION gh.service_get_guild_event_stats(TEXT[]) IS
-'Aggregate gh.issue_event counts + last-delivery timestamps for the supplied owner/repo allowlist. Filters via repo_key generated column. service_role only; call from gh-admin edge after fetching the guild allowlist from vault.';
+'Aggregate gh.issue_event counts + last-delivery timestamps for the supplied owner/repo allowlist. Filters via repo_key generated column. service_role only.';
 
 
 -- ----------------------------------------------------------------------------
@@ -628,11 +651,7 @@ BEGIN
         RETURN;
     END IF;
 
-    v_repos := ARRAY(
-        SELECT DISTINCT lower(btrim(r))
-        FROM unnest(p_repos) AS r
-        WHERE lower(btrim(r)) ~ '^[a-z0-9._-]{1,100}/[a-z0-9._-]{1,100}$'
-    );
+    v_repos := gh._normalize_repo_allowlist(p_repos);
 
     IF COALESCE(cardinality(v_repos), 0) = 0 THEN
         RETURN;
@@ -665,8 +684,6 @@ COMMENT ON FUNCTION gh.service_get_recent_failed_events(TEXT[], INT) IS
 
 -- ----------------------------------------------------------------------------
 -- gh.service_get_recent_pending_events
---   In-flight visibility for the dashboard: when the failed_count is 0 but
---   queue_depth is high, operators need to see what's actually backed up.
 -- ----------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION gh.service_get_recent_pending_events(
@@ -702,11 +719,7 @@ BEGIN
         RETURN;
     END IF;
 
-    v_repos := ARRAY(
-        SELECT DISTINCT lower(btrim(r))
-        FROM unnest(p_repos) AS r
-        WHERE lower(btrim(r)) ~ '^[a-z0-9._-]{1,100}/[a-z0-9._-]{1,100}$'
-    );
+    v_repos := gh._normalize_repo_allowlist(p_repos);
 
     IF COALESCE(cardinality(v_repos), 0) = 0 THEN
         RETURN;
@@ -734,14 +747,11 @@ REVOKE ALL ON FUNCTION gh.service_get_recent_pending_events(TEXT[], INT) FROM PU
 GRANT EXECUTE ON FUNCTION gh.service_get_recent_pending_events(TEXT[], INT) TO service_role;
 
 COMMENT ON FUNCTION gh.service_get_recent_pending_events(TEXT[], INT) IS
-'Pending + in-flight event tail filtered by allowlist. Use to surface what is backed up when queue_depth > 0 but failed_count = 0. service_role only.';
+'Pending + in-flight event tail filtered by allowlist. Backed by gh_issue_event_pending_repo_tail_idx. service_role only.';
 
 
 -- ----------------------------------------------------------------------------
 -- gh.service_requeue_event
---   Reset a single failed event back to pending. Allowlist-scoped, failed-
---   only, preserves delivery_attempts, optionally records p_reason to the
---   gh.requeue_audit table.
 -- ----------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION gh.service_requeue_event(
@@ -762,12 +772,20 @@ ROWS 1
 COST 50
 AS $$
 DECLARE
-    v_repos        TEXT[];
-    v_old_state    SMALLINT;
-    v_old_attempts INT;
-    v_owner        TEXT;
-    v_repo         TEXT;
-    v_repo_key     TEXT;
+    v_repos            TEXT[];
+    v_reason           TEXT;
+    v_owner            TEXT;
+    v_repo             TEXT;
+    v_repo_key         TEXT;
+    v_number           INT;
+    v_event_type       TEXT;
+    v_old_state        SMALLINT;
+    v_old_attempts     INT;
+    v_old_claim_token  UUID;
+    v_old_claimed_at   TIMESTAMPTZ;
+    v_old_delivered_at TIMESTAMPTZ;
+    v_old_last_error   TEXT;
+    v_updated_id       BIGINT;
 BEGIN
     PERFORM set_config('lock_timeout', '2s', true);
     PERFORM set_config('statement_timeout', '10s', true);
@@ -782,16 +800,13 @@ BEGIN
             USING ERRCODE = 'GH002';
     END IF;
 
-    IF p_reason IS NOT NULL AND char_length(p_reason) > 512 THEN
+    v_reason := NULLIF(btrim(COALESCE(p_reason, '')), '');
+    IF v_reason IS NOT NULL AND char_length(v_reason) > 512 THEN
         RAISE EXCEPTION 'p_reason cannot exceed 512 characters'
             USING ERRCODE = 'GH005';
     END IF;
 
-    v_repos := ARRAY(
-        SELECT DISTINCT lower(btrim(r))
-        FROM unnest(p_repos) AS r
-        WHERE lower(btrim(r)) ~ '^[a-z0-9._-]{1,100}/[a-z0-9._-]{1,100}$'
-    );
+    v_repos := gh._normalize_repo_allowlist(p_repos);
 
     IF COALESCE(cardinality(v_repos), 0) = 0 THEN
         RAISE EXCEPTION 'p_repos contained no valid owner/repo entries'
@@ -803,8 +818,14 @@ BEGIN
             USING ERRCODE = 'GH006';
     END IF;
 
-    SELECT e.delivery_state, e.delivery_attempts, e.owner, e.repo, e.repo_key
-      INTO v_old_state, v_old_attempts, v_owner, v_repo, v_repo_key
+    SELECT
+        e.owner, e.repo, e.repo_key, e.number, e.event_type,
+        e.delivery_state, e.delivery_attempts, e.claim_token,
+        e.claimed_at, e.delivered_at, e.last_error
+      INTO
+        v_owner, v_repo, v_repo_key, v_number, v_event_type,
+        v_old_state, v_old_attempts, v_old_claim_token,
+        v_old_claimed_at, v_old_delivered_at, v_old_last_error
     FROM gh.issue_event e
     WHERE e.id = p_event_id
       AND e.repo_key = ANY(v_repos)
@@ -816,7 +837,6 @@ BEGIN
             USING ERRCODE = 'GH004';
     END IF;
 
-    RETURN QUERY
     UPDATE gh.issue_event e
     SET delivery_state = 0,
         claim_token    = NULL,
@@ -825,13 +845,28 @@ BEGIN
         last_error     = NULL,
         updated_at     = now()
     WHERE e.id = p_event_id
-    RETURNING e.id, e.delivery_state, e.delivery_attempts;
+      AND e.repo_key = ANY(v_repos)
+      AND e.delivery_state = 3
+    RETURNING e.id INTO v_updated_id;
+
+    IF v_updated_id IS NULL THEN
+        RAISE EXCEPTION 'requeue update affected zero rows (concurrent state change)'
+            USING ERRCODE = 'GH004';
+    END IF;
 
     INSERT INTO gh.requeue_audit (
-        issue_event_id, repos, reason, old_state, old_attempts, forced
+        issue_event_id, repo_key, owner, repo, number, event_type,
+        repos, reason, old_state, old_attempts, old_claim_token,
+        old_claimed_at, old_delivered_at, old_last_error, forced
     ) VALUES (
-        p_event_id, v_repos, p_reason, v_old_state, v_old_attempts, FALSE
+        p_event_id, v_repo_key, v_owner, v_repo, v_number, v_event_type,
+        v_repos, v_reason, v_old_state, v_old_attempts, v_old_claim_token,
+        v_old_claimed_at, v_old_delivered_at,
+        left(v_old_last_error, 2048), FALSE
     );
+
+    RETURN QUERY
+    SELECT v_updated_id, 0::SMALLINT, v_old_attempts;
 END;
 $$;
 
@@ -840,14 +875,11 @@ REVOKE ALL ON FUNCTION gh.service_requeue_event(TEXT[], BIGINT, TEXT) FROM PUBLI
 GRANT EXECUTE ON FUNCTION gh.service_requeue_event(TEXT[], BIGINT, TEXT) TO service_role;
 
 COMMENT ON FUNCTION gh.service_requeue_event(TEXT[], BIGINT, TEXT) IS
-'Reset a single failed gh.issue_event row back to pending so gh_sync claims it again. Allowlist-scoped (cross-guild safe), failed-only (cannot replay delivered events), preserves delivery_attempts, writes a row to gh.requeue_audit. Raises GH001/GH002/GH003/GH004/GH005/GH006 with distinct SQLSTATEs. service_role only.';
+'Reset a failed gh.issue_event row back to pending. Allowlist-scoped, failed-only, preserves delivery_attempts. Captures full pre-reset context (claim_token, claimed_at, delivered_at, last_error) into gh.requeue_audit. SQLSTATEs GH001/GH002/GH003/GH004/GH005/GH006. service_role only.';
 
 
 -- ----------------------------------------------------------------------------
 -- gh.service_force_requeue_event
---   Escape hatch for ops: replay a delivered/in-flight event. Requires
---   non-null p_reason. Logs as forced=TRUE in the audit table so a periodic
---   review can spot misuse.
 -- ----------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION gh.service_force_requeue_event(
@@ -868,9 +900,20 @@ ROWS 1
 COST 50
 AS $$
 DECLARE
-    v_repos        TEXT[];
-    v_old_state    SMALLINT;
-    v_old_attempts INT;
+    v_repos            TEXT[];
+    v_reason           TEXT;
+    v_owner            TEXT;
+    v_repo             TEXT;
+    v_repo_key         TEXT;
+    v_number           INT;
+    v_event_type       TEXT;
+    v_old_state        SMALLINT;
+    v_old_attempts     INT;
+    v_old_claim_token  UUID;
+    v_old_claimed_at   TIMESTAMPTZ;
+    v_old_delivered_at TIMESTAMPTZ;
+    v_old_last_error   TEXT;
+    v_updated_id       BIGINT;
 BEGIN
     PERFORM set_config('lock_timeout', '2s', true);
     PERFORM set_config('statement_timeout', '10s', true);
@@ -885,21 +928,17 @@ BEGIN
             USING ERRCODE = 'GH002';
     END IF;
 
-    IF p_reason IS NULL OR char_length(btrim(p_reason)) = 0 THEN
+    v_reason := NULLIF(btrim(COALESCE(p_reason, '')), '');
+    IF v_reason IS NULL THEN
         RAISE EXCEPTION 'p_reason is required for forced requeue'
             USING ERRCODE = 'GH005';
     END IF;
-
-    IF char_length(p_reason) > 512 THEN
+    IF char_length(v_reason) > 512 THEN
         RAISE EXCEPTION 'p_reason cannot exceed 512 characters'
             USING ERRCODE = 'GH005';
     END IF;
 
-    v_repos := ARRAY(
-        SELECT DISTINCT lower(btrim(r))
-        FROM unnest(p_repos) AS r
-        WHERE lower(btrim(r)) ~ '^[a-z0-9._-]{1,100}/[a-z0-9._-]{1,100}$'
-    );
+    v_repos := gh._normalize_repo_allowlist(p_repos);
 
     IF COALESCE(cardinality(v_repos), 0) = 0 THEN
         RAISE EXCEPTION 'p_repos contained no valid owner/repo entries'
@@ -911,8 +950,14 @@ BEGIN
             USING ERRCODE = 'GH006';
     END IF;
 
-    SELECT e.delivery_state, e.delivery_attempts
-      INTO v_old_state, v_old_attempts
+    SELECT
+        e.owner, e.repo, e.repo_key, e.number, e.event_type,
+        e.delivery_state, e.delivery_attempts, e.claim_token,
+        e.claimed_at, e.delivered_at, e.last_error
+      INTO
+        v_owner, v_repo, v_repo_key, v_number, v_event_type,
+        v_old_state, v_old_attempts, v_old_claim_token,
+        v_old_claimed_at, v_old_delivered_at, v_old_last_error
     FROM gh.issue_event e
     WHERE e.id = p_event_id
       AND e.repo_key = ANY(v_repos)
@@ -923,7 +968,11 @@ BEGIN
             USING ERRCODE = 'GH004';
     END IF;
 
-    RETURN QUERY
+    IF v_old_state = 1 THEN
+        RAISE EXCEPTION 'cannot force requeue an in-flight event (delivery_state=1); wait for lease timeout'
+            USING ERRCODE = 'GH007';
+    END IF;
+
     UPDATE gh.issue_event e
     SET delivery_state = 0,
         claim_token    = NULL,
@@ -932,13 +981,27 @@ BEGIN
         last_error     = NULL,
         updated_at     = now()
     WHERE e.id = p_event_id
-    RETURNING e.id, e.delivery_state, e.delivery_attempts;
+      AND e.repo_key = ANY(v_repos)
+    RETURNING e.id INTO v_updated_id;
+
+    IF v_updated_id IS NULL THEN
+        RAISE EXCEPTION 'force requeue update affected zero rows (concurrent state change)'
+            USING ERRCODE = 'GH004';
+    END IF;
 
     INSERT INTO gh.requeue_audit (
-        issue_event_id, repos, reason, old_state, old_attempts, forced
+        issue_event_id, repo_key, owner, repo, number, event_type,
+        repos, reason, old_state, old_attempts, old_claim_token,
+        old_claimed_at, old_delivered_at, old_last_error, forced
     ) VALUES (
-        p_event_id, v_repos, p_reason, v_old_state, v_old_attempts, TRUE
+        p_event_id, v_repo_key, v_owner, v_repo, v_number, v_event_type,
+        v_repos, v_reason, v_old_state, v_old_attempts, v_old_claim_token,
+        v_old_claimed_at, v_old_delivered_at,
+        left(v_old_last_error, 2048), TRUE
     );
+
+    RETURN QUERY
+    SELECT v_updated_id, 0::SMALLINT, v_old_attempts;
 END;
 $$;
 
@@ -947,14 +1010,11 @@ REVOKE ALL ON FUNCTION gh.service_force_requeue_event(TEXT[], BIGINT, TEXT) FROM
 GRANT EXECUTE ON FUNCTION gh.service_force_requeue_event(TEXT[], BIGINT, TEXT) TO service_role;
 
 COMMENT ON FUNCTION gh.service_force_requeue_event(TEXT[], BIGINT, TEXT) IS
-'Ops escape hatch: replay any allowlist-scoped event regardless of delivery_state. Requires non-empty p_reason and logs forced=TRUE in gh.requeue_audit. Should NOT be bound to a dashboard button — gate it behind staff role at the edge layer.';
+'Ops escape hatch: replay any allowlist-scoped event regardless of delivery_state EXCEPT 1 (in-flight). Requires non-empty p_reason and logs forced=TRUE in gh.requeue_audit. SQLSTATE GH007 blocks in-flight forced replays. service_role only; should NOT be wired to a normal dashboard button.';
 
 
 -- ----------------------------------------------------------------------------
 -- gh.service_purge_old_delivered
---   Retention: delete delivered events older than p_before_ts in capped
---   batches. Returns the number of rows actually deleted. Caller picks the
---   cutoff and the batch size; loop externally for full purges.
 -- ----------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION gh.service_purge_old_delivered(
@@ -1009,4 +1069,4 @@ REVOKE ALL ON FUNCTION gh.service_purge_old_delivered(TIMESTAMPTZ, INT) FROM PUB
 GRANT EXECUTE ON FUNCTION gh.service_purge_old_delivered(TIMESTAMPTZ, INT) TO service_role;
 
 COMMENT ON FUNCTION gh.service_purge_old_delivered(TIMESTAMPTZ, INT) IS
-'Retention sweep: delete delivered events older than p_before_ts in capped batches (max 10k). SKIP LOCKED avoids blocking the bot. service_role only; intended for a periodic cron from gh-admin or a workflow.';
+'Retention sweep: delete delivered events older than p_before_ts in capped batches (max 10k). Backed by gh_issue_event_delivered_retention_idx. SKIP LOCKED avoids blocking the bot. gh.requeue_audit rows survive because they no longer FK to gh.issue_event. service_role only.';
