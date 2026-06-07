@@ -120,6 +120,7 @@ void SGitInstallerPanel::Construct(const FArguments& InArgs)
 			[
 				SAssignNew(RepoUrlInput, SEditableTextBox)
 				.HintText(LOCTEXT("RepoUrlHint", "https://github.com/owner/repo"))
+				.Text(FText::FromString(FKBVEPluginRegistry::RegistryRepoUrl))
 			]
 
 			+ SVerticalBox::Slot()
