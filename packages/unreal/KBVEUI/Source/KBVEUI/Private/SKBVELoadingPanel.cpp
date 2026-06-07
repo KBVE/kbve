@@ -1,4 +1,4 @@
-#include "SchuckLoadingPanel.h"
+#include "SKBVELoadingPanel.h"
 
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Layout/SBox.h"
@@ -7,10 +7,15 @@
 #include "Widgets/Text/STextBlock.h"
 #include "Styling/CoreStyle.h"
 
-void SchuckLoadingPanel::Construct(const FArguments& InArgs)
+void SKBVELoadingPanel::Construct(const FArguments& InArgs)
 {
 	SetCanTick(false);
 	SetVisibility(EVisibility::HitTestInvisible);
+	UnitLabel = InArgs._UnitLabel;
+
+	const FString InitialCount = UnitLabel.IsEmpty()
+		? FString(TEXT("0 / 0"))
+		: FString::Printf(TEXT("0 / 0 %s"), *UnitLabel);
 
 	ChildSlot
 	[
@@ -35,7 +40,7 @@ void SchuckLoadingPanel::Construct(const FArguments& InArgs)
 					.Padding(0, 0, 0, 16)
 					[
 						SAssignNew(StatusText, STextBlock)
-						.Text(FText::FromString(TEXT("Generating world...")))
+						.Text(InArgs._InitialMessage)
 						.ColorAndOpacity(FLinearColor::White)
 						.Font(FCoreStyle::GetDefaultFontStyle("Bold", 22))
 					]
@@ -51,7 +56,7 @@ void SchuckLoadingPanel::Construct(const FArguments& InArgs)
 					.HAlign(HAlign_Center)
 					[
 						SAssignNew(CountText, STextBlock)
-						.Text(FText::FromString(TEXT("0 / 0 chunks")))
+						.Text(FText::FromString(InitialCount))
 						.ColorAndOpacity(FLinearColor(0.8f, 0.8f, 0.8f, 1.f))
 						.Font(FCoreStyle::GetDefaultFontStyle("Regular", 12))
 					]
@@ -61,17 +66,20 @@ void SchuckLoadingPanel::Construct(const FArguments& InArgs)
 	];
 }
 
-void SchuckLoadingPanel::SetProgress(int32 Completed, int32 Total)
+void SKBVELoadingPanel::SetProgress(int32 Completed, int32 Total)
 {
 	const float Pct = Total > 0 ? FMath::Clamp(static_cast<float>(Completed) / static_cast<float>(Total), 0.f, 1.f) : 0.f;
 	if (Bar.IsValid()) Bar->SetPercent(Pct);
 	if (CountText.IsValid())
 	{
-		CountText->SetText(FText::FromString(FString::Printf(TEXT("%d / %d chunks"), Completed, Total)));
+		const FString Text = UnitLabel.IsEmpty()
+			? FString::Printf(TEXT("%d / %d"), Completed, Total)
+			: FString::Printf(TEXT("%d / %d %s"), Completed, Total, *UnitLabel);
+		CountText->SetText(FText::FromString(Text));
 	}
 }
 
-void SchuckLoadingPanel::SetMessage(const FString& Msg)
+void SKBVELoadingPanel::SetMessage(const FString& Msg)
 {
 	if (StatusText.IsValid()) StatusText->SetText(FText::FromString(Msg));
 }

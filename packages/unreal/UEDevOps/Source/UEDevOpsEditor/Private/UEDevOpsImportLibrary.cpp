@@ -44,11 +44,11 @@ namespace
 			{ TEXT("_Albedo"),    { TC_Default,   true,  MP_BaseColor,          SAMPLERTYPE_Color       } },
 			{ TEXT("_Normal"),    { TC_Normalmap, false, MP_Normal,             SAMPLERTYPE_Normal      } },
 			{ TEXT("_NormalF"),   { TC_Normalmap, false, MP_Normal,             SAMPLERTYPE_Normal      } },
-			{ TEXT("_Metallic"),  { TC_Masks,     false, MP_Metallic,           SAMPLERTYPE_LinearColor } },
-			{ TEXT("_Metalness"), { TC_Masks,     false, MP_Metallic,           SAMPLERTYPE_LinearColor } },
-			{ TEXT("_Roughness"), { TC_Masks,     false, MP_Roughness,          SAMPLERTYPE_LinearColor } },
-			{ TEXT("_AO"),        { TC_Masks,     false, MP_AmbientOcclusion,   SAMPLERTYPE_LinearColor } },
-			{ TEXT("_Occlusion"), { TC_Masks,     false, MP_AmbientOcclusion,   SAMPLERTYPE_LinearColor } },
+			{ TEXT("_Metallic"),  { TC_Default,   false, MP_Metallic,           SAMPLERTYPE_LinearColor } },
+			{ TEXT("_Metalness"), { TC_Default,   false, MP_Metallic,           SAMPLERTYPE_LinearColor } },
+			{ TEXT("_Roughness"), { TC_Default,   false, MP_Roughness,          SAMPLERTYPE_LinearColor } },
+			{ TEXT("_AO"),        { TC_Default,   false, MP_AmbientOcclusion,   SAMPLERTYPE_LinearColor } },
+			{ TEXT("_Occlusion"), { TC_Default,   false, MP_AmbientOcclusion,   SAMPLERTYPE_LinearColor } },
 			{ TEXT("_Emission"),  { TC_Default,   false, MP_EmissiveColor,      SAMPLERTYPE_LinearColor } },
 			{ TEXT("_Emissive"),  { TC_Default,   false, MP_EmissiveColor,      SAMPLERTYPE_LinearColor } },
 		};
@@ -98,9 +98,13 @@ namespace
 		Options->bImportTextures   = false;
 		Options->bImportMaterials  = false;
 		Options->bImportAsSkeletal = false;
-		Options->StaticMeshImportData->bCombineMeshes         = true;
-		Options->StaticMeshImportData->bGenerateLightmapUVs   = true;
-		Options->StaticMeshImportData->bAutoGenerateCollision = true;
+		UFbxStaticMeshImportData* SMID = Options->StaticMeshImportData;
+		SMID->bCombineMeshes          = true;
+		SMID->bGenerateLightmapUVs    = true;
+		SMID->bAutoGenerateCollision  = true;
+		SMID->NormalImportMethod      = FBXNIM_ImportNormals;
+		SMID->NormalGenerationMethod  = EFBXNormalGenerationMethod::MikkTSpace;
+		SMID->bComputeWeightedNormals = true;
 		Task->Options = Options;
 	}
 

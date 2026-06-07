@@ -31,13 +31,18 @@ const TArray<FString>& SUEDevOpsPanel::GetArtCategories()
 		TEXT("Props"),
 		TEXT("Foliage"),
 		TEXT("Characters"),
+		TEXT("Animations"),
+		TEXT("Skeletons"),
 		TEXT("Weapons"),
 		TEXT("Vehicles"),
 		TEXT("FX"),
+		TEXT("Lighting"),
 		TEXT("UI"),
+		TEXT("Icons"),
 		TEXT("Materials"),
 		TEXT("Textures"),
 		TEXT("Audio"),
+		TEXT("Cinematics"),
 	};
 	return Categories;
 }

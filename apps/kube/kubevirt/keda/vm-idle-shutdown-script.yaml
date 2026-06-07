@@ -1,11 +1,11 @@
 # ConfigMap with the smart idle shutdown script used by KEDA ScaledJobs.
 #
-# Checks THREE conditions before stopping a VM:
+# Checks conditions before stopping a VM:
 #   1. Age > IDLE_THRESHOLD_MINUTES (VM has been running long enough)
-#   2. No GitHub Actions jobs queued/in-progress for RUNNER_LABEL
+#   2. No runner carrying RUNNER_LABEL is busy (active GitHub Actions build)
 #   3. No active VNC (5900) or RDP (3389) connections
 #
-# All three must be true → stop VM. Any one fails → keep running.
+# All must hold to stop the VM. Any one fails -> keep running.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -47,33 +47,20 @@ data:
             exit 0
         fi
 
-        # ── Check 3: Any queued/in-progress GitHub Actions jobs? ──
+        # ── Check 3: Is a runner carrying RUNNER_LABEL currently busy? ──
         if [ -n "${GITHUB_TOKEN}" ]; then
-            # Check for busy runners
-            BUSY_RUNNERS=$(curl -sf \
+            RUNNERS_JSON=$(curl -sf \
                 -H "Authorization: token ${GITHUB_TOKEN}" \
                 -H "Accept: application/vnd.github.v3+json" \
-                "https://api.github.com/orgs/${GITHUB_ORG}/actions/runners?per_page=100" 2>/dev/null \
-                | grep -c '"busy": true' 2>/dev/null || echo "0")
+                "https://api.github.com/orgs/${GITHUB_ORG}/actions/runners?per_page=100" 2>/dev/null || echo '{}')
 
-            # Check for queued runs mentioning our runner label
-            QUEUED_RUNS=$(curl -sf \
-                -H "Authorization: token ${GITHUB_TOKEN}" \
-                -H "Accept: application/vnd.github.v3+json" \
-                "https://api.github.com/repos/${GITHUB_ORG}/kbve/actions/runs?status=queued&per_page=10" 2>/dev/null \
-                | grep -ci "${RUNNER_LABEL}" 2>/dev/null || echo "0")
+            BUSY_LABELED=$(printf '%s' "${RUNNERS_JSON}" | jq -r --arg L "${RUNNER_LABEL}" \
+                '[.runners[]? | select(.busy == true) | select(any(.labels[]?; .name == $L))] | length' 2>/dev/null || echo "0")
 
-            # Check for in-progress runs
-            ACTIVE_RUNS=$(curl -sf \
-                -H "Authorization: token ${GITHUB_TOKEN}" \
-                -H "Accept: application/vnd.github.v3+json" \
-                "https://api.github.com/repos/${GITHUB_ORG}/kbve/actions/runs?status=in_progress&per_page=10" 2>/dev/null \
-                | grep -ci "${RUNNER_LABEL}" 2>/dev/null || echo "0")
+            echo "GitHub: busy runners with label ${RUNNER_LABEL} = ${BUSY_LABELED}"
 
-            echo "GitHub: busy=${BUSY_RUNNERS}, queued=${QUEUED_RUNS}, active=${ACTIVE_RUNS}"
-
-            if [ "${QUEUED_RUNS}" -gt 0 ] || [ "${ACTIVE_RUNS}" -gt 0 ]; then
-                echo "KEEP: GitHub Actions activity detected"
+            if [ "${BUSY_LABELED}" -gt 0 ]; then
+                echo "KEEP: a ${RUNNER_LABEL} runner is busy (active build)"
                 exit 0
             fi
         else

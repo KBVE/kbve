@@ -3,7 +3,7 @@
 #include "SchuckMainMenu.h"
 #include "SKBVELoginWidget.h"
 #include "SKBVEAccountPanel.h"
-#include "SchuckLoadingPanel.h"
+#include "SKBVELoadingPanel.h"
 #include "Engine/GameInstance.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/LocalPlayer.h"
@@ -42,7 +42,7 @@ void AchuckMenuPlayerController::BeginPlay()
 
 	LoginWidget   = SNew(SKBVELoginWidget).Subsystem(SupabaseSubsystem).Title(NSLOCTEXT("chuck", "LoginTitle", "Sign in to ChuckRPG"));
 	AccountWidget = SNew(SKBVEAccountPanel).Subsystem(SupabaseSubsystem);
-	LoadingWidget = SNew(SchuckLoadingPanel);
+	LoadingWidget = SNew(SKBVELoadingPanel).UnitLabel(TEXT("chunks"));
 	LoadingWidget->SetVisibility(EVisibility::Collapsed);
 
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
