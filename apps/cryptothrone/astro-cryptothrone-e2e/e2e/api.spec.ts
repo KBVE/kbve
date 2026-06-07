@@ -12,10 +12,12 @@ test.describe('axum game API', () => {
 		);
 	});
 
-	test('health check returns OK', async ({ request }) => {
+	test('health check reports status and version', async ({ request }) => {
 		const res = await request.get('/health');
 		expect(res.status()).toBe(200);
-		expect(await res.text()).toBe('OK');
+		const body = await res.json();
+		expect(body.status).toBe('ok');
+		expect(body.version).toMatch(/^\d+\.\d+\.\d+$/);
 	});
 
 	test('lists all items as JSON', async ({ request }) => {
