@@ -163,7 +163,7 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 	const FSlateFontInfo TopBarFont = FCoreStyle::GetDefaultFontStyle("Bold", 12);
 	TopBarWidget = SNew(SKBVETopBar)
 		.BarHeight(50.f)
-		.Left
+		.Left()
 		[
 			SNew(STextBlock)
 			.Font(TopBarFont)
@@ -173,7 +173,7 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 				return FText::FromString(BarPlayerName.IsEmpty() ? TEXT("Guest") : BarPlayerName);
 			})
 		]
-		.Right
+		.Right()
 		[
 			SNew(STextBlock)
 			.Font(TopBarFont)
@@ -428,7 +428,7 @@ void AchuckCorePlayerController::OpenSettings()
 				S->SaveSettings();
 			}
 		}))
-		.Rows
+		.Rows()
 		[
 			SNew(SVerticalBox)
 

@@ -92,6 +92,18 @@
 		{
 			"Name": "KBVEWorld",
 			"Enabled": true
+		},
+		{
+			"Name": "KBVEGameplay",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEItemDB",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVENPCDB",
+			"Enabled": true
 		}
 	]
 }
