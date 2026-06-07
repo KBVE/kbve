@@ -23,6 +23,7 @@ export default function ReactAgentRepoAllowlist() {
 	const [loading, setLoading] = useState(false);
 	const [draftValid, setDraftValid] = useState(false);
 	const [draftRaw, setDraftRaw] = useState('');
+	const [blockMsg, setBlockMsg] = useState<string | null>(null);
 	const draftRef = useRef<HTMLInputElement | null>(null);
 
 	const repos = guildId ? (draftsMap[guildId] ?? []) : [];
@@ -77,7 +78,6 @@ export default function ReactAgentRepoAllowlist() {
 
 	const guild = guilds.find((g) => g.id === guildId);
 	const draftOk = draftValid && !saving;
-	const [blockMsg, setBlockMsg] = useState<string | null>(null);
 
 	async function add(e?: FormEvent<HTMLFormElement>) {
 		e?.preventDefault();
