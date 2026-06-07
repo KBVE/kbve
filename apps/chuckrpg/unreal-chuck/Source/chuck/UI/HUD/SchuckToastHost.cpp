@@ -69,6 +69,27 @@ void SchuckToastHost::BindToEventBus()
 		const FString Name = P.KbveUsername.IsEmpty() ? P.Email : P.KbveUsername;
 		const FText Welcome = FText::Format(LOCTEXT("WelcomeBackFmt", "Welcome back {0}"), FText::FromString(Name));
 		ToastLayer->PushToastUnique(TEXT("auth.signin"), LOCTEXT("WelcomeTitle", "Signed in"), Welcome, EKBVEToastLevel::Info);
+
+		ToastLayer->PushToastUnique(
+			TEXT("onboard.inventory"),
+			LOCTEXT("OnboardInvTitle", "Inventory"),
+			LOCTEXT("OnboardInvMsg", "Some gifts are waiting — press I to open your inventory."),
+			EKBVEToastLevel::Success,
+			8.f);
+
+		ToastLayer->PushToastUnique(
+			TEXT("onboard.chat"),
+			LOCTEXT("OnboardChatTitle", "Chat"),
+			LOCTEXT("OnboardChatMsg", "Press / to open the chat window."),
+			EKBVEToastLevel::Info,
+			8.f);
+
+		ToastLayer->PushToastUnique(
+			TEXT("onboard.dev"),
+			LOCTEXT("OnboardDevTitle", "Dev overlay"),
+			LOCTEXT("OnboardDevMsg", "Press F3 to toggle the dev overlay."),
+			EKBVEToastLevel::Info,
+			8.f);
 	});
 
 	AuthErrorHandle = Bus->AuthError.Subscribe(C, [this](const FchuckAuthErrorPayload& P)

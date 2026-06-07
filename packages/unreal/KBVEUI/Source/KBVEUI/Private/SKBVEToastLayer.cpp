@@ -27,7 +27,7 @@ int32 SKBVEToastLayer::PushToastUnique(FName DedupeKey, const FText& Title, cons
 	{
 		const int32 ExistingIdx = Entries.IndexOfByPredicate([DedupeKey](const FEntry& E)
 		{
-			return E.DedupeKey == DedupeKey;
+			return E.DedupeKey == DedupeKey && !E.bExiting;
 		});
 		if (ExistingIdx != INDEX_NONE)
 		{
@@ -37,9 +37,18 @@ int32 SKBVEToastLayer::PushToastUnique(FName DedupeKey, const FText& Title, cons
 		}
 	}
 
-	while (Entries.Num() >= MaxToasts)
+	int32 LiveCount = 0;
+	for (const FEntry& E : Entries) if (!E.bExiting) ++LiveCount;
+	if (LiveCount >= MaxToasts)
 	{
-		RemoveEntry(0);
+		for (int32 i = 0; i < Entries.Num(); ++i)
+		{
+			if (!Entries[i].bExiting)
+			{
+				BeginExit(i, ExitAnimDuration);
+				break;
+			}
+		}
 	}
 
 	const int32 Id = NextId++;
@@ -60,6 +69,7 @@ int32 SKBVEToastLayer::PushToastUnique(FName DedupeKey, const FText& Title, cons
 	FEntry Entry;
 	Entry.Id        = Id;
 	Entry.DedupeKey = DedupeKey;
+	Entry.Toast     = Toast;
 	Entry.Widget    = Toast;
 	Entry.Remaining = Life;
 	Entry.bExpires  = Life > 0.f;
@@ -73,19 +83,31 @@ void SKBVEToastLayer::Dismiss(int32 ToastId)
 	const int32 Index = Entries.IndexOfByPredicate([ToastId](const FEntry& E) { return E.Id == ToastId; });
 	if (Index != INDEX_NONE)
 	{
-		RemoveEntry(Index);
+		BeginExit(Index, ExitAnimDuration);
 	}
 }
 
 void SKBVEToastLayer::DismissAll()
 {
-	for (int32 i = Entries.Num() - 1; i >= 0; --i)
+	for (int32 i = 0; i < Entries.Num(); ++i)
 	{
-		RemoveEntry(i);
+		BeginExit(i, ExitAnimDuration);
 	}
 }
 
-void SKBVEToastLayer::RemoveEntry(int32 Index)
+void SKBVEToastLayer::BeginExit(int32 Index, float Duration)
+{
+	if (!Entries.IsValidIndex(Index) || Entries[Index].bExiting) return;
+	Entries[Index].bExiting  = true;
+	Entries[Index].bExpires  = true;
+	Entries[Index].Remaining = Duration;
+	if (Entries[Index].Toast.IsValid())
+	{
+		Entries[Index].Toast->BeginExit(Duration);
+	}
+}
+
+void SKBVEToastLayer::HardRemoveEntry(int32 Index)
 {
 	if (!Entries.IsValidIndex(Index))
 	{
@@ -104,14 +126,22 @@ void SKBVEToastLayer::Tick(const FGeometry& AllottedGeometry, const double InCur
 
 	for (int32 i = Entries.Num() - 1; i >= 0; --i)
 	{
-		if (!Entries[i].bExpires)
+		FEntry& E = Entries[i];
+		if (!E.bExpires)
 		{
 			continue;
 		}
-		Entries[i].Remaining -= InDeltaTime;
-		if (Entries[i].Remaining <= 0.f)
+		E.Remaining -= InDeltaTime;
+		if (E.bExiting)
 		{
-			RemoveEntry(i);
+			if (E.Remaining <= 0.f)
+			{
+				HardRemoveEntry(i);
+			}
+		}
+		else if (E.Remaining <= 0.f)
+		{
+			BeginExit(i, ExitAnimDuration);
 		}
 	}
 }

@@ -34,8 +34,20 @@ public:
 
 	static FLinearColor LevelColor(EKBVEToastLevel Level);
 
+	void BeginExit(float Duration = 0.25f);
+	bool IsExitFinished() const { return bExiting && ExitTime >= ExitDuration; }
+
+	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
+
 private:
 	FReply HandleClose();
+	void ApplyTransform(float Alpha01, float SlideAlpha01) const;
 
 	FSimpleDelegate OnDismiss;
+
+	float EntryTime    = 0.f;
+	float EntryDuration = 0.18f;
+	float ExitTime     = 0.f;
+	float ExitDuration = 0.25f;
+	bool  bExiting     = false;
 };

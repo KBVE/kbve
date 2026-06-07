@@ -11,7 +11,7 @@ class KBVEUI_API SKBVEToastLayer : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SKBVEToastLayer)
-		: _MaxToasts(6)
+		: _MaxToasts(5)
 		, _DefaultDuration(4.f)
 		, _ToastWidth(320.f)
 	{}
@@ -34,17 +34,21 @@ private:
 	{
 		int32 Id = 0;
 		FName DedupeKey;
+		TSharedPtr<class SKBVEToast> Toast;
 		TSharedPtr<SWidget> Widget;
 		float Remaining = 0.f;
 		bool bExpires = false;
+		bool bExiting = false;
 	};
 
-	void RemoveEntry(int32 Index);
+	void BeginExit(int32 Index, float Duration);
+	void HardRemoveEntry(int32 Index);
 
 	TSharedPtr<SVerticalBox> Stack;
 	TArray<FEntry> Entries;
 	int32 NextId = 1;
-	int32 MaxToasts = 6;
+	int32 MaxToasts = 5;
 	float DefaultDuration = 4.f;
 	float ToastWidth = 320.f;
+	float ExitAnimDuration = 0.25f;
 };
