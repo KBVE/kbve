@@ -12,7 +12,7 @@ key: ue_kbveitemdb
 pipeline: unreal
 plugin_name: KBVEItemDB
 plugin_path: packages/unreal/KBVEItemDB
-dependency_plugins: packages/unreal/KBVESQLite
+dependency_plugins: packages/unreal/KBVESQLite packages/unreal/KBVEYYJson
 version: "0.1.0"
 source_path: packages/unreal/KBVEItemDB
 version_toml: packages/unreal/KBVEItemDB/version.toml
@@ -83,6 +83,24 @@ hosts the `OnItemPickedUp` handler (`HandleDroppedItemPickedUp` → authority-ga
 pool's provider + pickup sink once, and `ServerDropSlot` just calls
 `SpawnDrop(ItemKey, Count, Loc)`. chuck's old `chuckDroppedItemActor` /
 `chuckDroppedItemPool` are deleted.
+
+## Generated proto types (`gen-itemdb-uecpp.mjs`)
+
+The same `itemdb.binpb` descriptor that feeds the zod generator also feeds a UE
+C++ emitter (`packages/data/codegen/gen-itemdb-uecpp.mjs`, run via
+`nx run astro-kbve:sync:itemdb-uecpp`). It writes, into `Public/Generated/`:
+
+- **`KBVEItemDBProtoTypes.h`** — one `USTRUCT` per item-package proto message
+  (`FKBVEGenItem`, `FKBVEGenFoodInfo`, `FKBVEGenUseEffect`, …), topo-ordered so
+  definitions precede use; scalars/enums/nested/`repeated` map to UE types.
+- **`KBVEItemDBProtoParse.h`** — `KBVEItemDBProto::Populate(FStruct&, yyjson_val*)`
+  per message, reading the camelCase JSON keys the data codegen emits.
+
+So a new proto field regenerates both the struct and its JSON reader — no
+hand-written parser to drift (the class of bug that silently dropped consumable
+data). The mirror of the zod generator, emitting UE-native `USTRUCT`s instead of
+`google::Message` (no libprotobuf runtime). Pilot: generated + compiled by the
+KBVEItemDB build; chuck keeps its hand-parser until it migrates onto these.
 
 ## Persistence (`FKBVEInventoryStore` / `UKBVEInventoryStoreSubsystem`)
 

@@ -11,7 +11,8 @@ public class KBVEItemDB : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
-			"MassEntity"
+			"MassEntity",
+			"KBVEYYJson"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

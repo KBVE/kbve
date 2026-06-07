@@ -193,6 +193,22 @@
 			},
 			"cache": true
 		},
+		"sync:itemdb-uecpp": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-itemdb-uecpp.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/itemdb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/unreal/KBVEItemDB/Source/KBVEItemDB/Public/Generated/KBVEItemDBProtoTypes.h",
+				"{workspaceRoot}/packages/unreal/KBVEItemDB/Source/KBVEItemDB/Public/Generated/KBVEItemDBProtoParse.h"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-itemdb-uecpp.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:npcdb": {
 			"executor": "nx:run-commands",
 			"inputs": [
