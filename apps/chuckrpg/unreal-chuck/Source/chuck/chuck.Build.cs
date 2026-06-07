@@ -40,6 +40,7 @@ public class chuck : ModuleRules
 			"KBVEULID",
 			"KBVEUI",
 			"KBVEUIAuth",
+			"KBVEGameplay",
 			"KBVEEvents",
 			"KBVESQLite",
 			"KBVESupabase",
