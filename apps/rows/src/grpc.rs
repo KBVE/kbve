@@ -155,7 +155,8 @@ impl PublicApi for PublicApiService {
         &self,
         req: Request<GetServerToConnectToRequest>,
     ) -> Result<Response<GetServerToConnectToResponse>, Status> {
-        self.svc
+        let caller_guid = self
+            .svc
             .confirm_login_parts(bearer_from_meta(&req), session_from_meta(&req))
             .await
             .map_err(to_status)?;
@@ -163,7 +164,7 @@ impl PublicApi for PublicApiService {
         let guid = self.svc.state().config.customer_guid;
         let result = self
             .svc
-            .get_server_to_connect_to(guid, &r.character_name, &r.character_name)
+            .get_server_to_connect_to(guid, caller_guid, &r.character_name, &r.character_name)
             .await
             .map_err(to_status)?;
         if !result.success {
@@ -352,7 +353,8 @@ impl CharacterPersistence for CharacterPersistenceService {
         &self,
         req: Request<JoinMapRequest>,
     ) -> Result<Response<JoinMapResponse>, Status> {
-        self.svc
+        let caller_guid = self
+            .svc
             .confirm_login_parts(bearer_from_meta(&req), session_from_meta(&req))
             .await
             .map_err(to_status)?;
@@ -360,7 +362,7 @@ impl CharacterPersistence for CharacterPersistenceService {
         let guid = self.svc.state().config.customer_guid;
         let result = self
             .svc
-            .get_server_to_connect_to(guid, &r.character_name, &r.zone_name)
+            .get_server_to_connect_to(guid, caller_guid, &r.character_name, &r.zone_name)
             .await
             .map_err(to_status)?;
         Ok(Response::new(JoinMapResponse {
