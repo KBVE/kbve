@@ -16,7 +16,7 @@
 #include "UObject/ConstructorHelpers.h"
 
 #include "chuckCharacterMovementComponent.h"
-#include "chuckDroppedItemPool.h"
+#include "KBVEDroppedItemPool.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "chuckEventPayloads.h"
 #include "chuckInputs.h"
@@ -136,6 +136,20 @@ void AchuckCoreCharacter::Tick(float DeltaSeconds)
 void AchuckCoreCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	UWorld* World = GetWorld();
+	UGameInstance* GI = GetGameInstance();
+	UchuckItemDB* DB = GI ? GI->GetSubsystem<UchuckItemDB>() : nullptr;
+	UKBVEDroppedItemPool* Pool = World ? World->GetSubsystem<UKBVEDroppedItemPool>() : nullptr;
+	if (DB && Pool)
+	{
+		Pool->SetVisualProvider(DB);
+		if (!Pool->OnItemPickedUp.IsBound())
+		{
+			Pool->OnItemPickedUp.AddDynamic(DB, &UchuckItemDB::HandleDroppedItemPickedUp);
+		}
+	}
+
 	if (HasAuthority())
 	{
 		CreateStatEntity();
@@ -515,15 +529,12 @@ bool AchuckCoreCharacter::ServerDropSlot(int32 SlotIndex, bool bHotbar, int32 Dr
 	if (!Def) return false;
 
 	UWorld* World = GetWorld();
-	UchuckDroppedItemPool* Pool = World ? World->GetSubsystem<UchuckDroppedItemPool>() : nullptr;
+	UKBVEDroppedItemPool* Pool = World ? World->GetSubsystem<UKBVEDroppedItemPool>() : nullptr;
 	if (!Pool) return false;
 
 	const FVector Fwd = GetActorForwardVector();
 	const FVector Loc = GetActorLocation() + Fwd * 110.f + FVector(0, 0, -30.f);
-	const FLinearColor RarityColor = chuckItem::RarityColor(Def->Rarity);
-	UMaterialInstanceDynamic* IconMID = DB->GetIconMID(ItemKey);
-	UMaterialInstanceDynamic* HaloMID = DB->GetHaloMID(Def->Rarity, RarityColor);
-	Pool->SpawnDrop(ItemKey, N, Def->Rarity, RarityColor, Loc, IconMID, HaloMID);
+	Pool->SpawnDrop(ItemKey, N, Loc);
 
 	Stack.Count -= N;
 	if (Stack.Count <= 0)
