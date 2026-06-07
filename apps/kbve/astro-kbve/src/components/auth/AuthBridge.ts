@@ -155,6 +155,18 @@ class AuthBridge {
 		if (error) throw error;
 		return data.session;
 	}
+
+	/**
+	 * Force a refresh of the access token. Re-runs the GoTrue
+	 * custom_access_token_hook so claims like owned_guilds pick up
+	 * fresh values from profile.discord_bootstrap_cache.
+	 */
+	async refreshSession() {
+		const client = this.ensureClient();
+		const { data, error } = await client.auth.refreshSession();
+		if (error) throw error;
+		return data.session;
+	}
 }
 
 // Singleton instance

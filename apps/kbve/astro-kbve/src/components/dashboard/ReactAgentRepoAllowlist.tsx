@@ -23,6 +23,7 @@ export default function ReactAgentRepoAllowlist() {
 	const [loading, setLoading] = useState(false);
 	const [draftValid, setDraftValid] = useState(false);
 	const [draftRaw, setDraftRaw] = useState('');
+	const [blockMsg, setBlockMsg] = useState<string | null>(null);
 	const draftRef = useRef<HTMLInputElement | null>(null);
 
 	const repos = guildId ? (draftsMap[guildId] ?? []) : [];
@@ -81,8 +82,22 @@ export default function ReactAgentRepoAllowlist() {
 	async function add(e?: FormEvent<HTMLFormElement>) {
 		e?.preventDefault();
 		if (!guildId || saving) return;
+		setBlockMsg(null);
 		const v = draftRef.current?.value?.trim() ?? '';
-		if (!REPO_RE.test(v) || repos.includes(v)) return;
+		if (!v) {
+			setBlockMsg('Type owner/repo first.');
+			draftRef.current?.focus();
+			return;
+		}
+		if (!REPO_RE.test(v)) {
+			setBlockMsg('Expected owner/repo matching GitHub name rules.');
+			draftRef.current?.focus();
+			return;
+		}
+		if (repos.includes(v)) {
+			setBlockMsg(`${v} is already in the allowlist.`);
+			return;
+		}
 		const prev = repos;
 		const next = [...repos, v];
 		agentsService.patchRepoAllowlistDraft(guildId, next);
@@ -237,8 +252,8 @@ export default function ReactAgentRepoAllowlist() {
 					/>
 					<button
 						type="submit"
-						disabled={!draftOk}
-						style={primaryBtn(draftOk)}>
+						disabled={saving}
+						style={primaryBtn(!saving)}>
 						{saving ? (
 							<Loader2 size={14} style={spinIcon} />
 						) : (
@@ -247,12 +262,15 @@ export default function ReactAgentRepoAllowlist() {
 						{saving ? 'Saving…' : 'Add'}
 					</button>
 				</form>
-				{draftRaw.length > 0 && !REPO_RE.test(draftRaw) && (
-					<p style={errText}>
-						Expected <code>owner/repo</code> matching GitHub's name
-						rules.
-					</p>
-				)}
+				{blockMsg && <p style={errText}>{blockMsg}</p>}
+				{!blockMsg &&
+					draftRaw.length > 0 &&
+					!REPO_RE.test(draftRaw) && (
+						<p style={errText}>
+							Expected <code>owner/repo</code> matching GitHub's
+							name rules.
+						</p>
+					)}
 			</div>
 		</section>
 	);

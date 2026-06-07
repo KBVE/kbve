@@ -140,9 +140,25 @@ export function AddTokenModal({ onClose }: BaseModalProps) {
 
 	async function submit(e: React.FormEvent) {
 		e.preventDefault();
-		if (!formValid) return;
-		setBusy(true);
+		if (busy) return;
 		setError(null);
+		if (!nameOk) {
+			setError(
+				'Token name must be 3–64 chars: lowercase a–z, 0–9, underscore, dash.',
+			);
+			return;
+		}
+		if (!serviceOk) {
+			setError(
+				'Service must be 2–32 chars: lowercase a–z, 0–9, underscore.',
+			);
+			return;
+		}
+		if (!valueOk) {
+			setError('Token value must be 10–8000 characters.');
+			return;
+		}
+		setBusy(true);
 		const r = await agentsService.addToken({
 			tokenName,
 			service,
@@ -298,8 +314,8 @@ export function AddTokenModal({ onClose }: BaseModalProps) {
 					</button>
 					<button
 						type="submit"
-						disabled={!formValid}
-						style={primaryButton(formValid)}>
+						disabled={busy}
+						style={primaryButton(!busy)}>
 						{busy ? (
 							<Loader2
 								size={14}

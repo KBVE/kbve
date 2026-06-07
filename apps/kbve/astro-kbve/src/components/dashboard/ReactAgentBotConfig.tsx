@@ -285,6 +285,24 @@ export default function ReactAgentBotConfig() {
 				)}
 				<button
 					type="button"
+					onClick={() =>
+						void agentsService.ensureGuildChannelsLoaded(
+							guildId,
+							true,
+						)
+					}
+					disabled={channelsLoading}
+					style={refreshBtn(channelsLoading)}
+					title="Re-fetch the bot's visible channels. Cached for 7 days otherwise to avoid Discord rate limits."
+					aria-label="Refresh channels">
+					<RefreshCw
+						size={14}
+						style={channelsLoading ? spinIcon : undefined}
+					/>
+					Channels
+				</button>
+				<button
+					type="button"
 					onClick={() => void load(true)}
 					disabled={loading || saving}
 					style={refreshBtn(loading || saving)}

@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { Loader2, Users } from 'lucide-react';
+import { Loader2, RefreshCw, Users } from 'lucide-react';
 import { agentsService, type DiscordGuild } from './agentsService';
 import { styles } from './dashboard-ui';
 
@@ -32,6 +33,33 @@ export default function ReactAgentGuildPicker({
 	const error = useStore(agentsService.$guildsError);
 	const selectedGuildId = useStore(agentsService.$selectedGuildId);
 
+	const [resyncing, setResyncing] = useState(false);
+	const [resyncMsg, setResyncMsg] = useState<{
+		kind: 'ok' | 'err';
+		text: string;
+	} | null>(null);
+
+	async function resync() {
+		if (resyncing) return;
+		setResyncing(true);
+		setResyncMsg(null);
+		const ok = await agentsService.resyncOwnedGuilds();
+		await agentsService.loadOwnedGuilds(true);
+		setResyncing(false);
+		setResyncMsg(
+			ok
+				? {
+						kind: 'ok',
+						text: 'Discord guilds refreshed. New servers should now be eligible.',
+					}
+				: {
+						kind: 'err',
+						text: 'Resync failed — try signing out and back in if the issue persists.',
+					},
+		);
+		setTimeout(() => setResyncMsg(null), 5000);
+	}
+
 	return (
 		<section style={styles.sectionBorder}>
 			<header
@@ -53,9 +81,48 @@ export default function ReactAgentGuildPicker({
 						}}
 					/>
 				)}
+				<button
+					type="button"
+					onClick={() => void resync()}
+					disabled={resyncing}
+					style={{
+						marginLeft: 'auto',
+						display: 'inline-flex',
+						alignItems: 'center',
+						gap: '0.35rem',
+						padding: '0.3rem 0.6rem',
+						borderRadius: 6,
+						border: '1px solid var(--sl-color-gray-5, #2d2f36)',
+						background: 'transparent',
+						color: 'var(--sl-color-white, #fff)',
+						cursor: resyncing ? 'wait' : 'pointer',
+						fontSize: '0.78rem',
+					}}
+					title="Re-fetch your owned Discord guilds + refresh the dashboard's session token so newly added servers become eligible without signing out.">
+					{resyncing ? (
+						<Loader2
+							size={12}
+							style={{ animation: 'spin 1s linear infinite' }}
+						/>
+					) : (
+						<RefreshCw size={12} />
+					)}
+					{resyncing ? 'Resyncing…' : 'Resync guilds'}
+				</button>
 			</header>
 
 			<div style={{ padding: '0.85rem 1rem' }}>
+				{resyncMsg && (
+					<p
+						style={{
+							color:
+								resyncMsg.kind === 'ok' ? '#4ade80' : '#f87171',
+							fontSize: '0.82rem',
+							margin: '0 0 0.5rem',
+						}}>
+						{resyncMsg.text}
+					</p>
+				)}
 				{error && (
 					<p
 						style={{

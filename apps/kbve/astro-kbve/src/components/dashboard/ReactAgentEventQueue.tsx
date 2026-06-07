@@ -21,6 +21,8 @@ export default function ReactAgentEventQueue() {
 	const statsLoadingMap = useStore(agentsService.$eventStatsLoading);
 	const failedMap = useStore(agentsService.$failedEvents);
 	const failedLoadingMap = useStore(agentsService.$failedEventsLoading);
+	const pendingMap = useStore(agentsService.$pendingEvents);
+	const pendingLoadingMap = useStore(agentsService.$pendingEventsLoading);
 	const requeueBusyMap = useStore(agentsService.$eventRequeueBusyFor);
 
 	const [autoRefresh, setAutoRefresh] = useState(true);
@@ -29,6 +31,8 @@ export default function ReactAgentEventQueue() {
 	const statsLoading = guildId ? !!statsLoadingMap[guildId] : false;
 	const failed = guildId ? (failedMap[guildId] ?? []) : [];
 	const failedLoading = guildId ? !!failedLoadingMap[guildId] : false;
+	const pending = guildId ? (pendingMap[guildId] ?? []) : [];
+	const pendingLoading = guildId ? !!pendingLoadingMap[guildId] : false;
 	const guild = useMemo(
 		() => guilds.find((g) => g.id === guildId),
 		[guilds, guildId],
@@ -38,6 +42,7 @@ export default function ReactAgentEventQueue() {
 		if (!guildId) return;
 		void agentsService.loadEventStats(guildId);
 		void agentsService.loadFailedEvents(guildId, 10);
+		void agentsService.loadPendingEvents(guildId, 10);
 	}, [guildId]);
 
 	useEffect(() => {
@@ -47,9 +52,15 @@ export default function ReactAgentEventQueue() {
 			if ((failedMap[guildId] ?? []).length > 0) {
 				void agentsService.loadFailedEvents(guildId, 10);
 			}
+			const cur = statsMap[guildId];
+			const queueDepth =
+				(cur?.pending_count ?? 0) + (cur?.in_flight_count ?? 0);
+			if (queueDepth > 0) {
+				void agentsService.loadPendingEvents(guildId, 10);
+			}
 		}, REFRESH_INTERVAL_MS);
 		return () => clearInterval(id);
-	}, [guildId, autoRefresh, failedMap]);
+	}, [guildId, autoRefresh, failedMap, statsMap]);
 
 	if (!guildId) {
 		return (
@@ -73,6 +84,7 @@ export default function ReactAgentEventQueue() {
 		if (!guildId) return;
 		void agentsService.loadEventStats(guildId);
 		void agentsService.loadFailedEvents(guildId, 10);
+		void agentsService.loadPendingEvents(guildId, 10);
 	}
 
 	async function requeue(eventId: number) {
@@ -80,11 +92,11 @@ export default function ReactAgentEventQueue() {
 		await agentsService.requeueEvent(guildId, eventId);
 	}
 
-	const pending = stats?.pending_count ?? 0;
+	const pendingCount = stats?.pending_count ?? 0;
 	const inFlight = stats?.in_flight_count ?? 0;
 	const delivered = stats?.delivered_count ?? 0;
 	const failedCount = stats?.failed_count ?? 0;
-	const queueDepth = pending + inFlight;
+	const queueDepth = pendingCount + inFlight;
 
 	return (
 		<section style={styles.sectionBorder}>
@@ -156,7 +168,7 @@ export default function ReactAgentEventQueue() {
 					<StatCard
 						label="Queue depth"
 						value={queueDepth}
-						hint={`${pending} pending + ${inFlight} in-flight`}
+						hint={`${pendingCount} pending + ${inFlight} in-flight`}
 						tone={queueDepth > 50 ? 'warn' : 'ok'}
 					/>
 					<StatCard
@@ -317,7 +329,110 @@ export default function ReactAgentEventQueue() {
 					</div>
 				)}
 
-				{failedCount === 0 && delivered > 0 && (
+				{queueDepth > 0 && (
+					<div>
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								gap: '0.4rem',
+								marginBottom: '0.4rem',
+							}}>
+							<Clock size={14} color="#fbbf24" />
+							<strong style={{ fontSize: '0.85rem' }}>
+								Backed up in queue ({queueDepth})
+							</strong>
+						</div>
+						{pendingLoading && pending.length === 0 ? (
+							<p
+								style={{
+									margin: 0,
+									color: 'var(--sl-color-gray-3, #9ca0aa)',
+									fontSize: '0.78rem',
+								}}>
+								Loading pending events…
+							</p>
+						) : pending.length === 0 ? (
+							<p
+								style={{
+									margin: 0,
+									color: 'var(--sl-color-gray-3, #9ca0aa)',
+									fontSize: '0.78rem',
+								}}>
+								Queue depth reported but no visible owner/repo
+								rows — your allowlist may be empty.
+							</p>
+						) : (
+							<ul
+								style={{
+									margin: 0,
+									padding: 0,
+									listStyle: 'none',
+									display: 'flex',
+									flexDirection: 'column',
+									gap: '0.25rem',
+								}}>
+								{pending.map((ev) => {
+									const inFlight = ev.delivery_state === 1;
+									return (
+										<li
+											key={ev.id}
+											style={{
+												display: 'flex',
+												alignItems: 'center',
+												justifyContent: 'space-between',
+												padding: '0.3rem 0.55rem',
+												borderRadius: 6,
+												border: inFlight
+													? '1px solid rgba(88,166,255,0.3)'
+													: '1px solid rgba(251,191,36,0.3)',
+												background: inFlight
+													? 'rgba(88,166,255,0.05)'
+													: 'rgba(251,191,36,0.05)',
+												fontSize: '0.78rem',
+												gap: '0.4rem',
+											}}>
+											<code
+												style={{
+													fontFamily:
+														'var(--sl-font-mono, ui-monospace, monospace)',
+													flex: 1,
+												}}>
+												{ev.owner}/{ev.repo}#{ev.number}{' '}
+												<span
+													style={{
+														color: 'var(--sl-color-gray-3, #9ca0aa)',
+													}}>
+													· {ev.event_type}
+												</span>
+											</code>
+											<span
+												style={{
+													color: inFlight
+														? '#58a6ff'
+														: '#fbbf24',
+													fontSize: '0.72rem',
+												}}>
+												{inFlight
+													? 'in-flight'
+													: 'pending'}
+											</span>
+											<span
+												style={{
+													color: 'var(--sl-color-gray-3, #9ca0aa)',
+													fontSize: '0.72rem',
+												}}>
+												{relativeTime(ev.created_at)}
+											</span>
+										</li>
+									);
+								})}
+							</ul>
+						)}
+					</div>
+				)}
+
+				{failedCount === 0 && queueDepth === 0 && delivered > 0 && (
 					<p
 						style={{
 							margin: 0,
