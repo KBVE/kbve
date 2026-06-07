@@ -1,4 +1,5 @@
 #include "SGitInstallerPanel.h"
+#include "KBVEPluginLock.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Layout/SSeparator.h"
@@ -53,9 +54,25 @@ void SGitInstallerPanel::Construct(const FArguments& InArgs)
 			.AutoHeight()
 			.Padding(0, 0, 0, 8)
 			[
-				SNew(SButton)
-				.Text(LOCTEXT("CheckUpdatesBtn", "Check for Updates"))
-				.OnClicked(this, &SGitInstallerPanel::OnCheckForUpdatesClicked)
+				SNew(SHorizontalBox)
+
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(0, 0, 5, 0)
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("CheckUpdatesBtn", "Check for Updates"))
+					.OnClicked(this, &SGitInstallerPanel::OnCheckForUpdatesClicked)
+				]
+
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				[
+					SNew(SButton)
+					.Text(LOCTEXT("WriteLockBtn", "Write Lock"))
+					.ToolTipText(LOCTEXT("WriteLockTip", "Pin installed plugin versions to unreal-plugins.lock.json"))
+					.OnClicked(this, &SGitInstallerPanel::OnWriteLockClicked)
+				]
 			]
 
 			// Registry list
@@ -103,6 +120,7 @@ void SGitInstallerPanel::Construct(const FArguments& InArgs)
 			[
 				SAssignNew(RepoUrlInput, SEditableTextBox)
 				.HintText(LOCTEXT("RepoUrlHint", "https://github.com/owner/repo"))
+				.Text(FText::FromString(FKBVEPluginRegistry::RegistryRepoUrl))
 			]
 
 			+ SVerticalBox::Slot()
@@ -177,6 +195,12 @@ void SGitInstallerPanel::InitializeRegistry()
 	TArray<FKBVEPluginEntry> Defaults = FKBVEPluginRegistry::GetDefaultEntries();
 	FKBVEPluginRegistry::CheckLocalInstallStatus(Defaults);
 
+	FKBVEPluginLockFile Lock;
+	if (FKBVEPluginLock::Load(Lock))
+	{
+		FKBVEPluginRegistry::ApplyLockStatus(Defaults, Lock);
+	}
+
 	RegistryEntries.Empty();
 	for (FKBVEPluginEntry& E : Defaults)
 	{
@@ -221,6 +245,20 @@ TSharedRef<ITableRow> SGitInstallerPanel::OnGenerateRegistryRow(
 			VersionLabel = TEXT("not installed");
 		}
 		StatusColor = FLinearColor::Gray;
+	}
+
+	// Lockfile annotation
+	if (Entry->bInLock)
+	{
+		if (Entry->bInstalled && !Entry->bMatchesLock)
+		{
+			VersionLabel += FString::Printf(TEXT("  [locked v%s — drift]"), *Entry->LockedVersion);
+			StatusColor = FLinearColor::Red;
+		}
+		else
+		{
+			VersionLabel += FString::Printf(TEXT("  [locked v%s]"), *Entry->LockedVersion);
+		}
 	}
 
 	// Action button
@@ -381,6 +419,12 @@ FReply SGitInstallerPanel::OnCheckForUpdatesClicked()
 			FKBVEPluginRegistry::CheckLocalInstallStatus(Updated);
 			FKBVEPluginRegistry::ReadRemoteVersions(Updated, CapturedStagingPath);
 
+			FKBVEPluginLockFile Lock;
+			if (FKBVEPluginLock::Load(Lock))
+			{
+				FKBVEPluginRegistry::ApplyLockStatus(Updated, Lock);
+			}
+
 			Panel->RegistryEntries.Empty();
 			for (FKBVEPluginEntry& E : Updated)
 			{
@@ -457,16 +501,127 @@ void SGitInstallerPanel::InstallPluginFromMonorepo(TSharedPtr<FKBVEPluginEntry> 
 		Entry->bInstalled = true;
 		Entry->LocalVersion = Entry->RemoteVersion;
 		Entry->bUpdateAvailable = false;
+
+		FString HeadRef, HeadSha;
+		FGitRepoService::GetRepoStatus(RegistryStagingPath, HeadRef, HeadSha);
+		PinToLock(Entry->Name, Entry->RemoteVersion, HeadSha);
+
 		RegistryListView->RequestListRefresh();
 
 		SetStatus(FString::Printf(
-			TEXT("Installed %s v%s. Restart the editor to load it."),
+			TEXT("Installed %s v%s and pinned to lockfile. Restart the editor to load it."),
 			*Entry->Name, *Entry->RemoteVersion), FColor::Green);
 	}
 	else
 	{
 		SetStatus(FString::Printf(TEXT("Failed to install %s — check output log."), *Entry->Name), FColor::Red);
 	}
+}
+
+// ─────────────────────────────────────────────────────────
+// Lockfile
+// ─────────────────────────────────────────────────────────
+
+void SGitInstallerPanel::PinToLock(const FString& Name, const FString& Version, const FString& Ref)
+{
+	FKBVEPluginLockFile Lock;
+	FKBVEPluginLock::Load(Lock);
+
+	if (Lock.Registry.IsEmpty())
+	{
+		Lock.Registry = FKBVEPluginRegistry::RegistryRepoUrl;
+	}
+
+	FKBVEPluginLockEntry Entry;
+	Entry.Name = Name;
+	Entry.Version = Version;
+	Entry.Resolution = FKBVEPluginLock::ResolutionSource;
+	Entry.Ref = Ref;
+	Entry.Integrity = Ref;
+	FKBVEPluginLock::UpsertEntry(Lock, Entry);
+
+	FKBVEPluginLock::Save(Lock);
+
+	for (const TSharedPtr<FKBVEPluginEntry>& E : RegistryEntries)
+	{
+		if (E->Name == Name)
+		{
+			E->bInLock = true;
+			E->LockedVersion = Version;
+			E->bMatchesLock = E->bInstalled && E->LocalVersion == Version;
+		}
+	}
+}
+
+FReply SGitInstallerPanel::OnWriteLockClicked()
+{
+	FKBVEPluginLockFile Lock;
+	FKBVEPluginLock::Load(Lock);
+
+	if (Lock.Registry.IsEmpty())
+	{
+		Lock.Registry = FKBVEPluginRegistry::RegistryRepoUrl;
+	}
+
+	FString HeadRef, HeadSha;
+	const bool bHaveStaging = !RegistryStagingPath.IsEmpty() && IFileManager::Get().DirectoryExists(*RegistryStagingPath);
+	if (bHaveStaging)
+	{
+		FGitRepoService::GetRepoStatus(RegistryStagingPath, HeadRef, HeadSha);
+	}
+
+	int32 PinCount = 0;
+	for (const TSharedPtr<FKBVEPluginEntry>& E : RegistryEntries)
+	{
+		if (!E->bInstalled || E->LocalVersion.IsEmpty())
+		{
+			continue;
+		}
+
+		FKBVEPluginLockEntry Entry;
+		Entry.Name = E->Name;
+		Entry.Version = E->LocalVersion;
+		Entry.Resolution = FKBVEPluginLock::ResolutionSource;
+
+		// Keep an existing ref/integrity unless we have a fresh registry SHA
+		if (const FKBVEPluginLockEntry* Existing = FKBVEPluginLock::FindEntry(Lock, E->Name))
+		{
+			Entry.Ref = Existing->Ref;
+			Entry.Integrity = Existing->Integrity;
+		}
+		if (!HeadSha.IsEmpty())
+		{
+			Entry.Ref = HeadSha;
+			Entry.Integrity = HeadSha;
+		}
+
+		FKBVEPluginLock::UpsertEntry(Lock, Entry);
+		E->bInLock = true;
+		E->LockedVersion = E->LocalVersion;
+		E->bMatchesLock = true;
+		PinCount++;
+	}
+
+	if (PinCount == 0)
+	{
+		SetStatus(TEXT("No installed plugins to lock."), FColor::Yellow);
+		return FReply::Handled();
+	}
+
+	if (FKBVEPluginLock::Save(Lock))
+	{
+		if (RegistryListView.IsValid())
+		{
+			RegistryListView->RequestListRefresh();
+		}
+		SetStatus(FString::Printf(TEXT("Wrote lockfile with %d pinned plugin(s)."), PinCount), FColor::Green);
+	}
+	else
+	{
+		SetStatus(TEXT("Failed to write lockfile — check the output log."), FColor::Red);
+	}
+
+	return FReply::Handled();
 }
 
 // ─────────────────────────────────────────────────────────

@@ -30,7 +30,6 @@
 #include "SKBVESettingsFrame.h"
 #include "SKBVESettingsToggleRow.h"
 #include "SKBVESettingsSliderRow.h"
-#include "SKBVETopBar.h"
 #include "SchuckToastHost.h"
 #include "Engine/Engine.h"
 #include "GameFramework/GameUserSettings.h"
@@ -160,35 +159,6 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 	DragArrowLayer = SNew(SKBVEDragArrowLayer);
 	ToastHostWidget = SNew(SchuckToastHost).OwningCharacter(Char);
 
-	const FSlateFontInfo TopBarFont = FCoreStyle::GetDefaultFontStyle("Bold", 12);
-	TopBarWidget = SNew(SKBVETopBar)
-		.BarHeight(50.f)
-		.Left
-		[
-			SNew(STextBlock)
-			.Font(TopBarFont)
-			.ColorAndOpacity(FLinearColor(0.92f, 0.92f, 0.95f, 1.f))
-			.Text_Lambda([this]()
-			{
-				return FText::FromString(BarPlayerName.IsEmpty() ? TEXT("Guest") : BarPlayerName);
-			})
-		]
-		.Right
-		[
-			SNew(STextBlock)
-			.Font(TopBarFont)
-			.Text_Lambda([this]()
-			{
-				return bBarOnline
-					? NSLOCTEXT("chuck", "BarOnline", "Online")
-					: NSLOCTEXT("chuck", "BarOffline", "Offline");
-			})
-			.ColorAndOpacity_Lambda([this]()
-			{
-				return bBarOnline ? FLinearColor(0.30f, 0.80f, 0.40f, 1.f) : FLinearColor(0.6f, 0.6f, 0.65f, 1.f);
-			})
-		];
-
 	if (UGameInstance* GI = GetGameInstance())
 	{
 		SupabaseSubsystem = GI->GetSubsystem<UKBVESupabaseSubsystem>();
@@ -204,13 +174,8 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 			RefreshUiMouseMode();
 		}));
 
-	// Default to hidden. InitSupabaseBridge below flips them on based on auth state.
-	AccountWidget->SetVisibility(EVisibility::Collapsed);
-	ChatWidget->SetVisibility(EVisibility::Collapsed);
-
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 	{
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), TopBarWidget.ToSharedRef(),     6);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef(),       5);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HotbarWidget.ToSharedRef(),    20);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), DragArrowLayer.ToSharedRef(), 29);
@@ -219,6 +184,8 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), ChatWidget.ToSharedRef(),     35);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), AccountWidget.ToSharedRef(),  40);
 	}
+
+	ApplyUiFlagsVisibility();
 
 	InitSupabaseBridge();
 
@@ -320,11 +287,6 @@ void AchuckCorePlayerController::OnUnPossess()
 	{
 		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), ToastHostWidget.ToSharedRef());
 		ToastHostWidget.Reset();
-	}
-	if (TopBarWidget.IsValid())
-	{
-		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), TopBarWidget.ToSharedRef());
-		TopBarWidget.Reset();
 	}
 	if (SettingsWidget.IsValid())
 	{
@@ -428,7 +390,7 @@ void AchuckCorePlayerController::OpenSettings()
 				S->SaveSettings();
 			}
 		}))
-		.Rows
+		.Rows()
 		[
 			SNew(SVerticalBox)
 
@@ -658,6 +620,15 @@ void AchuckCorePlayerController::InitSupabaseBridge()
 			AccountWidget->SetUsername(U.KbveUsername.IsEmpty() ? U.Id : U.KbveUsername);
 			AccountWidget->SetEmail(U.Email);
 		}
+		if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
+		{
+			FchuckAuthStatusPayload Payload;
+			Payload.bSignedIn    = true;
+			Payload.UserId       = U.Id;
+			Payload.Email        = U.Email;
+			Payload.KbveUsername = U.KbveUsername;
+			Bus->AuthStatus.Publish(Payload);
+		}
 		if (UKBVESupabaseChat* Chat = Sub->GetChat())
 		{
 			Chat->Connect();
@@ -724,17 +695,18 @@ bool AchuckCorePlayerController::IsAnyUiPanelOpen() const
 
 void AchuckCorePlayerController::SetUiFlag(EUiFlag F, bool bOn)
 {
-	const uint16 Bit = static_cast<uint16>(F);
-	const uint16 Old = UiFlags;
+	const uint32 Bit = static_cast<uint32>(F);
+	const uint32 Old = UiFlags;
 	if (bOn) UiFlags |= Bit;
 	else     UiFlags &= ~Bit;
 	if (UiFlags != Old)
 	{
 		BroadcastUiFlagsChanged(Old);
+		ApplyUiFlagsVisibility();
 	}
 }
 
-void AchuckCorePlayerController::BroadcastUiFlagsChanged(uint16 OldFlags)
+void AchuckCorePlayerController::BroadcastUiFlagsChanged(uint32 OldFlags)
 {
 	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
 	{
@@ -744,6 +716,24 @@ void AchuckCorePlayerController::BroadcastUiFlagsChanged(uint16 OldFlags)
 		Payload.Diff     = UiFlags ^ OldFlags;
 		Bus->UiFlags.Publish(Payload);
 	}
+}
+
+void AchuckCorePlayerController::ApplyUiFlagsVisibility()
+{
+	auto Apply = [](TSharedPtr<SWidget> W, bool bOn, EVisibility OnVis)
+	{
+		if (W.IsValid())
+		{
+			W->SetVisibility(bOn ? OnVis : EVisibility::Collapsed);
+		}
+	};
+
+	Apply(InventoryWidget, HasUiFlag(EUiFlag::Inventory), EVisibility::Visible);
+	Apply(PauseWidget,     HasUiFlag(EUiFlag::Pause),     EVisibility::Visible);
+	Apply(SettingsWidget,  HasUiFlag(EUiFlag::Settings),  EVisibility::Visible);
+	Apply(DevOverlayWidget,HasUiFlag(EUiFlag::DevOverlay),EVisibility::SelfHitTestInvisible);
+	Apply(ChatWidget,      HasUiFlag(EUiFlag::Chat),      EVisibility::SelfHitTestInvisible);
+	Apply(AccountWidget,   HasUiFlag(EUiFlag::Account),   EVisibility::SelfHitTestInvisible);
 }
 
 void AchuckCorePlayerController::RefreshUiMouseMode()
@@ -772,24 +762,16 @@ void AchuckCorePlayerController::RefreshUiMouseMode()
 
 void AchuckCorePlayerController::RefreshAuthOverlayVisibility(bool bSignedIn)
 {
-	if (AccountWidget.IsValid())
+	SetUiFlag(EUiFlag::Account, bSignedIn);
+	if (!bSignedIn)
 	{
-		AccountWidget->SetVisibility(bSignedIn ? EVisibility::SelfHitTestInvisible : EVisibility::Collapsed);
+		SetUiFlag(EUiFlag::Chat, false);
 	}
-	if (ChatWidget.IsValid() && !bSignedIn)
-	{
-		ChatWidget->SetVisibility(EVisibility::Collapsed);
-	}
-	// No auto-kick back to menu. If the subsystem hiccups mid-game (refresh
-	// race, transient 401) we'd otherwise yank the player into a sign-in loop.
-	// Account + chat overlays just hide; the world stays playable.
 }
 
 void AchuckCorePlayerController::HandleSupabaseSignedIn(const FKBVESupabaseSession& Session)
 {
 	const FKBVESupabaseUser& U = Session.User;
-
-	BarPlayerName = U.KbveUsername.IsEmpty() ? U.Email : U.KbveUsername;
 
 	if (AccountWidget.IsValid())
 	{
@@ -819,9 +801,6 @@ void AchuckCorePlayerController::HandleSupabaseSignedIn(const FKBVESupabaseSessi
 
 void AchuckCorePlayerController::HandleSupabaseSignedOut()
 {
-	BarPlayerName.Empty();
-	bBarOnline = false;
-
 	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
 	{
 		FchuckAuthStatusPayload Payload;
@@ -854,8 +833,6 @@ void AchuckCorePlayerController::HandleSupabaseAuthError(const FKBVESupabaseErro
 
 void AchuckCorePlayerController::HandleChatConnected()
 {
-	bBarOnline = true;
-
 	if (ChatWidget.IsValid())
 	{
 		FchuckChatStatePayload Payload;
@@ -872,8 +849,6 @@ void AchuckCorePlayerController::HandleChatConnected()
 
 void AchuckCorePlayerController::HandleChatDisconnected(int32 /*StatusCode*/, const FString& /*Reason*/)
 {
-	bBarOnline = false;
-
 	if (ChatWidget.IsValid())
 	{
 		FchuckChatStatePayload Payload;

@@ -11,6 +11,7 @@
 void SchuckToastHost::Construct(const FArguments& InArgs)
 {
 	SetCanTick(false);
+	SetVisibility(EVisibility::SelfHitTestInvisible);
 	Character = InArgs._OwningCharacter;
 
 	ChildSlot
@@ -55,7 +56,8 @@ void SchuckToastHost::BindToEventBus()
 		const FText Msg = (P.HealHP > 0.f)
 			? FText::Format(LOCTEXT("ItemHealFmt", "+{0} HP"), FText::AsNumber(FMath::RoundToInt(P.HealHP)))
 			: LOCTEXT("ItemUsed", "Item used");
-		ToastLayer->PushToast(LOCTEXT("ItemConsumedTitle", "Consumed"), Msg, EKBVEToastLevel::Success);
+		const FName Key = *FString::Printf(TEXT("item.consumed.%d"), P.ItemKey);
+		ToastLayer->PushToastUnique(Key, LOCTEXT("ItemConsumedTitle", "Consumed"), Msg, EKBVEToastLevel::Success);
 	});
 
 	AuthStatusHandle = Bus->AuthStatus.Subscribe(C, [this](const FchuckAuthStatusPayload& P)
@@ -65,7 +67,29 @@ void SchuckToastHost::BindToEventBus()
 			return;
 		}
 		const FString Name = P.KbveUsername.IsEmpty() ? P.Email : P.KbveUsername;
-		ToastLayer->PushToast(LOCTEXT("SignedInTitle", "Signed in"), FText::FromString(Name), EKBVEToastLevel::Info);
+		const FText Welcome = FText::Format(LOCTEXT("WelcomeBackFmt", "Welcome back {0}"), FText::FromString(Name));
+		ToastLayer->PushToastUnique(TEXT("auth.signin"), LOCTEXT("WelcomeTitle", "Signed in"), Welcome, EKBVEToastLevel::Info);
+
+		ToastLayer->PushToastUnique(
+			TEXT("onboard.inventory"),
+			LOCTEXT("OnboardInvTitle", "Inventory"),
+			LOCTEXT("OnboardInvMsg", "Some gifts are waiting — press I to open your inventory."),
+			EKBVEToastLevel::Success,
+			8.f);
+
+		ToastLayer->PushToastUnique(
+			TEXT("onboard.chat"),
+			LOCTEXT("OnboardChatTitle", "Chat"),
+			LOCTEXT("OnboardChatMsg", "Press / to open the chat window."),
+			EKBVEToastLevel::Info,
+			8.f);
+
+		ToastLayer->PushToastUnique(
+			TEXT("onboard.dev"),
+			LOCTEXT("OnboardDevTitle", "Dev overlay"),
+			LOCTEXT("OnboardDevMsg", "Press F3 to toggle the dev overlay."),
+			EKBVEToastLevel::Info,
+			8.f);
 	});
 
 	AuthErrorHandle = Bus->AuthError.Subscribe(C, [this](const FchuckAuthErrorPayload& P)
@@ -74,7 +98,10 @@ void SchuckToastHost::BindToEventBus()
 		{
 			return;
 		}
-		ToastLayer->PushToast(LOCTEXT("AuthErrTitle", "Auth error"), FText::FromString(P.Message), EKBVEToastLevel::Error);
+		const FName Key = P.Code.IsEmpty()
+			? FName(TEXT("auth.error"))
+			: *FString::Printf(TEXT("auth.error.%s"), *P.Code);
+		ToastLayer->PushToastUnique(Key, LOCTEXT("AuthErrTitle", "Auth error"), FText::FromString(P.Message), EKBVEToastLevel::Error);
 	});
 }
 

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "MassEntityHandle.h"
 #include "MassEntityTypes.h"
 #include "KBVENpcFragment.h"
 #include "KBVENpcTypes.h"

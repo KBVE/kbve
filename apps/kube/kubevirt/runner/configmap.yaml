@@ -1,21 +1,20 @@
 # ConfigMap with the GitHub Actions runner install/heal script.
 #
 # Runs via the QEMU Guest Agent against the persistent-disk Windows VM:
-#   1. Mint a short-lived registration token from the admin:org PAT
-#      (github-arc-token) — only used if (re)registration is actually needed.
-#   2. Wait for the VM guest agent.
-#   3. Idempotent install/heal inside Windows:
-#        - If the runner service already runs as the desired account
-#          (.\Administrator): just Start-Service if stopped, then exit.
-#        - Otherwise (not installed, or running as NETWORK SERVICE): download
-#          the runner from GitHub (the VM has internet egress; it cannot reach
-#          the in-cluster file-server), then config.cmd --replace as a service
-#          under .\Administrator so build jobs run elevated.
+#   0. Skip if the VM is not running.
+#   1. Wait for the guest agent.
+#   2. CHECK (no token): is the runner service installed and running as
+#      .\Administrator? If so, Start-Service if stopped and EXIT — no token is
+#      minted, nothing is downloaded.
+#   3. Only if the check says otherwise (fresh install, or running as
+#      NETWORK SERVICE): mint a short-lived registration token from the admin:org
+#      PAT (github-arc-token), download the runner from GitHub if needed (the VM
+#      has internet egress but cannot reach the in-cluster file-server), and
+#      config.cmd --replace as a service under .\Administrator.
 #
 # The VM rootdisk is a PVC, so C:\actions-runner (.runner + .credentials)
-# persists across stop/start — normal boots auto-start the service with no
-# token and no re-register. This script only acts when something is missing or
-# the service account is wrong.
+# persists across stop/start — normal boots auto-start the service with no token
+# and no re-register, and this script confirms that fast via the CHECK and exits.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -44,98 +43,91 @@ data:
         echo "=== GitHub Actions Runner Install/Heal: ${VM_NAME} ==="
         echo "  Org: ${GITHUB_ORG} | Runner: ${RUNNER_NAME} (${RUNNER_LABELS}) | v${RUNNER_VERSION}"
 
-        # ── Phase 0: Skip if VM is not running (boot ScaledJob handles next boot) ──
+        # ── Phase 0: Skip if VM is not running ──
         STATUS=$(kubectl get vm "${VM_NAME}" -n "${NAMESPACE}" -o jsonpath='{.status.printableStatus}' 2>/dev/null || echo "Unknown")
         if [ "${STATUS}" != "Running" ]; then
             echo "SKIP: VM not running (${STATUS}); runner (re)registers on next boot."
             exit 0
         fi
 
-        # ── Phase 1: Registration token (minted fresh; used only if registering) ──
+        # ── Phase 1: Wait for VM guest agent ──
         echo ""
-        echo "--- Phase 1: Registration token ---"
-        REG_TOKEN=$(wget -q -O - \
-            --header="Authorization: token ${GITHUB_TOKEN}" \
-            --header="Accept: application/vnd.github.v3+json" \
-            --post-data="" \
+        echo "--- Phase 1: VM guest agent ---"
+        for i in $(seq 1 60); do
+            AGENT=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" \
+                -o jsonpath='{.status.conditions[?(@.type=="AgentConnected")].status}' \
+                2>/dev/null || echo "")
+            [ "${AGENT}" = "True" ] && { echo "Guest agent connected"; break; }
+            [ "$i" -eq 60 ] && { echo "ERROR: Guest agent not connected after 10 minutes"; exit 1; }
+            echo "  Waiting... (${i}/60)"
+            sleep 10
+        done
+
+        POD=$(kubectl get pods -n "${NAMESPACE}" -l "vm.kubevirt.io/name=${VM_NAME}" -o jsonpath='{.items[0].metadata.name}')
+        DOMAIN=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- sh -c "virsh list --name 2>/dev/null | grep -v '^\s*$' | head -1")
+        echo "Virt-launcher: ${POD}, Domain: ${DOMAIN}"
+
+        # Run a PowerShell snippet inside the VM via the guest agent; print its
+        # decoded stdout, mirror stderr, and return the guest exit code. Polls
+        # guest-exec-status until the process exits (or max seconds elapse).
+        guest_exec_ps() {
+            _ps="$1"; _max="${2:-360}"
+            _esc=$(printf '%s' "${_ps}" | sed 's/\\/\\\\/g; s/"/\\"/g')
+            _r=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
+                virsh qemu-agent-command "${DOMAIN}" \
+                "{\"execute\":\"guest-exec\",\"arguments\":{\"path\":\"powershell.exe\",\"arg\":[\"-NoProfile\",\"-ExecutionPolicy\",\"Bypass\",\"-Command\",\"${_esc}\"],\"capture-output\":true}}" \
+                --timeout 60 2>&1)
+            _pid=$(echo "${_r}" | sed -n 's/.*"pid":\([0-9]*\).*/\1/p')
+            if [ -z "${_pid}" ]; then echo "guest-exec returned no pid: ${_r}" >&2; return 99; fi
+            _el=0; _s=""
+            while [ "${_el}" -lt "${_max}" ]; do
+                sleep 10; _el=$((_el + 10))
+                _s=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
+                    virsh qemu-agent-command "${DOMAIN}" \
+                    "{\"execute\":\"guest-exec-status\",\"arguments\":{\"pid\":${_pid}}}" \
+                    --timeout 30 2>&1)
+                echo "${_s}" | grep -q '"exited":true' && break
+            done
+            _out=$(echo "${_s}" | sed -n 's/.*"out-data":"\([^"]*\)".*/\1/p')
+            _err=$(echo "${_s}" | sed -n 's/.*"err-data":"\([^"]*\)".*/\1/p')
+            _ec=$(echo "${_s}" | sed -n 's/.*"exitcode":\([0-9]*\).*/\1/p')
+            [ -n "${_out}" ] && echo "${_out}" | base64 -d 2>/dev/null
+            [ -n "${_err}" ] && { echo "--- guest stderr ---" >&2; echo "${_err}" | base64 -d 2>/dev/null >&2; }
+            return "${_ec:-1}"
+        }
+
+        # ── Phase 2: CHECK (no token, no download) ──
+        echo ""
+        echo "--- Phase 2: Check runner state ---"
+        CHECK_PS="\$svc = Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" -ErrorAction SilentlyContinue | Select-Object -First 1; if (\$svc -and \$svc.StartName -match 'Administrator') { if (\$svc.State -ne 'Running') { Start-Service \$svc.Name }; Write-Output \"ALREADY_OK \$(\$svc.Name) [\$(\$svc.StartName)] \$((Get-Service \$svc.Name).Status)\" } else { Write-Output (\"NEEDS_REGISTER \" + \$(if (\$svc) { \$svc.StartName } else { 'absent' })) }"
+        CHECK_OUT=$(guest_exec_ps "${CHECK_PS}" 60 || true)
+        echo "Check: ${CHECK_OUT}"
+        if echo "${CHECK_OUT}" | grep -q "ALREADY_OK"; then
+            echo "=== Runner already registered as Administrator and running — no token minted, nothing to do. ==="
+            exit 0
+        fi
+
+        # ── Phase 3: Register (mint token only now that it's actually needed) ──
+        echo ""
+        echo "--- Phase 3: Mint token + register as ${RUNNER_LOGON_ACCOUNT} ---"
+        REG_TOKEN=$(curl -s -X POST \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/orgs/${GITHUB_ORG}/actions/runners/registration-token" \
-            2>/dev/null | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+            | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
         if [ -z "${REG_TOKEN}" ]; then
             echo "ERROR: Failed to obtain registration token (GITHUB_TOKEN needs admin:org)"
             exit 1
         fi
         echo "Registration token obtained."
 
-        # ── Phase 2: Wait for VM guest agent ──
-        echo ""
-        echo "--- Phase 2: VM guest agent ---"
-        for i in $(seq 1 60); do
-            AGENT=$(kubectl get vmi "${VM_NAME}" -n "${NAMESPACE}" \
-                -o jsonpath='{.status.conditions[?(@.type=="AgentConnected")].status}' \
-                2>/dev/null || echo "")
-            if [ "${AGENT}" = "True" ]; then
-                echo "Guest agent connected"
-                break
-            fi
-            if [ "$i" -eq 60 ]; then
-                echo "ERROR: Guest agent not connected after 10 minutes"
-                exit 1
-            fi
-            echo "  Waiting... (${i}/60)"
-            sleep 10
-        done
-
-        POD=$(kubectl get pods -n "${NAMESPACE}" \
-            -l "vm.kubevirt.io/name=${VM_NAME}" \
-            -o jsonpath='{.items[0].metadata.name}')
-        DOMAIN=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
-            sh -c "virsh list --name 2>/dev/null | grep -v '^\s*$' | head -1")
-        echo "Virt-launcher: ${POD}, Domain: ${DOMAIN}"
-
-        # ── Phase 3: Idempotent install/heal via guest agent ──
-        echo ""
-        echo "--- Phase 3: Install/heal runner ---"
-        # PS uses single quotes to avoid escaping; password single-quotes doubled.
         ADMIN_PASSWORD_PS=$(printf '%s' "${ADMIN_PASSWORD}" | sed "s/'/''/g")
-        PS_SCRIPT="\$ErrorActionPreference = 'Stop'; \$installDir = '${RUNNER_INSTALL_DIR}'; \$dlUrl = '${RUNNER_DOWNLOAD_URL}'; \$zip = '${RUNNER_ZIP}'; \$org = '${GITHUB_ORG}'; \$token = '${REG_TOKEN}'; \$name = '${RUNNER_NAME}'; \$labels = '${RUNNER_LABELS}'; \$logonAccount = '${RUNNER_LOGON_ACCOUNT}'; \$logonPwd = '${ADMIN_PASSWORD_PS}'; \$svc = Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" -ErrorAction SilentlyContinue | Select-Object -First 1; if (\$svc -and \$svc.StartName -match 'Administrator') { if (\$svc.State -ne 'Running') { Start-Service \$svc.Name }; Write-Output \"ALREADY_OK: \$(\$svc.Name) runs as \$(\$svc.StartName)\"; exit 0 }; if (\$svc) { Write-Output \"Re-registering: service runs as \$(\$svc.StartName), switching to \$logonAccount\" } else { Write-Output 'Fresh install' }; try { Stop-Service actions.runner.* -Force -ErrorAction SilentlyContinue } catch {}; New-Item -ItemType Directory -Force -Path \$installDir | Out-Null; if (-not (Test-Path (Join-Path \$installDir 'config.cmd'))) { Write-Output 'Downloading runner from GitHub...'; \$zipPath = Join-Path \$installDir \$zip; curl.exe -L -s --retry 5 --retry-all-errors -C - -o \$zipPath \$dlUrl; Expand-Archive -Path \$zipPath -DestinationPath \$installDir -Force; Remove-Item \$zipPath -Force } else { Write-Output 'Runner binaries present, reusing' }; Set-Location \$installDir; & .\\config.cmd --url \"https://github.com/\$org\" --token \$token --name \$name --labels \$labels --runasservice --windowslogonaccount \$logonAccount --windowslogonpassword \$logonPwd --replace --unattended; Write-Output \"REGISTERED runner as \$logonAccount\""
-
-        ESCAPED_PS=$(printf '%s' "${PS_SCRIPT}" | sed 's/\\/\\\\/g; s/"/\\"/g')
-
-        echo "Executing runner install/heal inside Windows..."
-        RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
-            virsh qemu-agent-command "${DOMAIN}" \
-            "{\"execute\":\"guest-exec\",\"arguments\":{\"path\":\"powershell.exe\",\"arg\":[\"-NoProfile\",\"-ExecutionPolicy\",\"Bypass\",\"-Command\",\"${ESCAPED_PS}\"],\"capture-output\":true}}" \
-            --timeout 300 2>&1)
-        echo "Guest agent response: ${RESULT}"
-
-        PID=$(echo "${RESULT}" | sed -n 's/.*"pid":\([0-9]*\).*/\1/p')
-        if [ -z "${PID}" ]; then
-            echo "ERROR: Could not parse guest-exec PID"
-            exit 1
-        fi
-
-        echo "Waiting for install/heal to complete (PID: ${PID})..."
-        sleep 60
-        STATUS_RESULT=$(kubectl exec "${POD}" -n "${NAMESPACE}" -c compute -- \
-            virsh qemu-agent-command "${DOMAIN}" \
-            "{\"execute\":\"guest-exec-status\",\"arguments\":{\"pid\":${PID}}}" \
-            --timeout 30 2>&1)
-        echo "Exec status: ${STATUS_RESULT}"
-
-        OUT_DATA=$(echo "${STATUS_RESULT}" | sed -n 's/.*"out-data":"\([^"]*\)".*/\1/p')
-        if [ -n "${OUT_DATA}" ]; then
-            echo "Output: $(echo "${OUT_DATA}" | base64 -d 2>/dev/null || echo "${OUT_DATA}")"
-        fi
-        ERR_DATA=$(echo "${STATUS_RESULT}" | sed -n 's/.*"err-data":"\([^"]*\)".*/\1/p')
-        if [ -n "${ERR_DATA}" ]; then
-            echo "Stderr: $(echo "${ERR_DATA}" | base64 -d 2>/dev/null || echo "${ERR_DATA}")"
-        fi
-
-        EXITCODE=$(echo "${STATUS_RESULT}" | sed -n 's/.*"exitcode":\([0-9]*\).*/\1/p')
-        if [ "${EXITCODE}" = "0" ]; then
-            echo ""
-            echo "=== SUCCESS: runner healthy on ${VM_NAME} (${RUNNER_NAME}, ${RUNNER_LABELS}) ==="
+        REGISTER_PS="\$ErrorActionPreference = 'Stop'; \$installDir = '${RUNNER_INSTALL_DIR}'; \$dlUrl = '${RUNNER_DOWNLOAD_URL}'; \$zip = '${RUNNER_ZIP}'; \$org = '${GITHUB_ORG}'; \$token = '${REG_TOKEN}'; \$name = '${RUNNER_NAME}'; \$labels = '${RUNNER_LABELS}'; \$logonAccount = '${RUNNER_LOGON_ACCOUNT}'; \$logonPwd = '${ADMIN_PASSWORD_PS}'; try { Stop-Service actions.runner.* -Force -ErrorAction SilentlyContinue } catch {}; New-Item -ItemType Directory -Force -Path \$installDir | Out-Null; if (-not (Test-Path (Join-Path \$installDir 'config.cmd'))) { Write-Output 'Downloading runner from GitHub...'; \$zipPath = Join-Path \$installDir \$zip; curl.exe -L -s --retry 5 --retry-all-errors -C - -o \$zipPath \$dlUrl; Expand-Archive -Path \$zipPath -DestinationPath \$installDir -Force; Remove-Item \$zipPath -Force } else { Write-Output 'Runner binaries present, reusing' }; Set-Location \$installDir; & .\\config.cmd --url \"https://github.com/\$org\" --token \$token --name \$name --labels \$labels --runasservice --windowslogonaccount \$logonAccount --windowslogonpassword \$logonPwd --replace --unattended; Write-Output \"REGISTERED runner as \$logonAccount\""
+        REG_OUT=$(guest_exec_ps "${REGISTER_PS}" 420 || true)
+        echo "Register: ${REG_OUT}"
+        if echo "${REG_OUT}" | grep -q "REGISTERED"; then
+            echo "=== SUCCESS: runner registered as ${RUNNER_LOGON_ACCOUNT} on ${VM_NAME} (${RUNNER_NAME}, ${RUNNER_LABELS}) ==="
         else
-            echo "ERROR: install/heal exited with code ${EXITCODE:-unknown}"
+            echo "ERROR: registration did not confirm"
             exit 1
         fi

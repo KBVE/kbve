@@ -110,9 +110,9 @@ struct FchuckChatLinePayload
 
 struct FchuckUiFlagsPayload
 {
-	uint16 NewFlags = 0;
-	uint16 OldFlags = 0;
-	uint16 Diff     = 0;
-	uint16 Added() const   { return NewFlags & Diff; }
-	uint16 Removed() const { return OldFlags & Diff; }
+	uint32 NewFlags = 0;
+	uint32 OldFlags = 0;
+	uint32 Diff     = 0;
+	uint32 Added() const   { return NewFlags & Diff; }
+	uint32 Removed() const { return OldFlags & Diff; }
 };

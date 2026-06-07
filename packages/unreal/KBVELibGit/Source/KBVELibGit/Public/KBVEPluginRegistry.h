@@ -24,7 +24,18 @@ struct FKBVEPluginEntry
 
 	/** Whether an update is available (remote > local) */
 	bool bUpdateAvailable = false;
+
+	/** Version pinned in the project lockfile (empty if not pinned) */
+	FString LockedVersion;
+
+	/** Whether this plugin appears in the lockfile */
+	bool bInLock = false;
+
+	/** Whether the installed version matches the lockfile pin */
+	bool bMatchesLock = false;
 };
+
+struct FKBVEPluginLockFile;
 
 /**
  * Manages the list of known KBVE plugins from the kbve/kbve monorepo.
@@ -62,4 +73,7 @@ public:
 	 * Populates RemoteVersion and bUpdateAvailable on each entry.
 	 */
 	static void ReadRemoteVersions(TArray<FKBVEPluginEntry>& Entries, const FString& ClonedRepoPath);
+
+	/** Populate LockedVersion/bInLock/bMatchesLock from the project lockfile. */
+	static void ApplyLockStatus(TArray<FKBVEPluginEntry>& Entries, const FKBVEPluginLockFile& Lock);
 };
