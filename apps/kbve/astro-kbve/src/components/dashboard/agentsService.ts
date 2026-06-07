@@ -1795,6 +1795,7 @@ class AgentsService {
 		command: string,
 		accessToken: string,
 		extra: Record<string, unknown>,
+		opts: { retriedAfterResync?: boolean } = {},
 	): Promise<{ ok: true; body: unknown } | { ok: false; error: string }> {
 		try {
 			const resp = await fetch(GUILD_VAULT_URL, {
@@ -1822,8 +1823,26 @@ class AgentsService {
 					hint?: string | null;
 					context?: string | null;
 				} | null;
-				const parts: string[] = [];
-				parts.push(b?.error ?? `HTTP ${resp.status}`);
+				const errMsg = b?.error ?? '';
+				const looksStale =
+					resp.status === 403 &&
+					/owned_guilds/i.test(errMsg) &&
+					!opts.retriedAfterResync;
+				if (looksStale) {
+					const resynced = await this.resyncOwnedGuilds();
+					if (resynced) {
+						const newToken = this.$accessToken.get();
+						if (newToken) {
+							return this.callGuildVault(
+								command,
+								newToken,
+								extra,
+								{ retriedAfterResync: true },
+							);
+						}
+					}
+				}
+				const parts: string[] = [errMsg || `HTTP ${resp.status}`];
 				if (b?.sqlstate) parts.push(`sqlstate=${b.sqlstate}`);
 				if (b?.hint) parts.push(`hint=${b.hint}`);
 				if (b?.context) parts.push(`context=${b.context}`);
