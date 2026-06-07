@@ -737,24 +737,9 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 						}
 					}
 				}
-				if (Self->ImpostorHISMs.IsValidIndex(t))
-				{
-					if (UHierarchicalInstancedStaticMeshComponent* Imp = Self->ImpostorHISMs[t])
-					{
-						const int32 ImpStartIdx = Imp->GetInstanceCount();
-						Imp->AddInstances(Batches[t], false);
-						if (LocalCustomFloats > 0 && CustomBatches[t].Num() > 0)
-						{
-							for (int32 k = 0; k < Batches[t].Num(); ++k)
-							{
-								for (int32 f = 0; f < LocalCustomFloats; ++f)
-								{
-									Imp->SetCustomDataValue(ImpStartIdx + k, f, CustomBatches[t][k * LocalCustomFloats + f], false);
-								}
-							}
-						}
-					}
-				}
+				// Impostor populate skipped — current impostor visibility toggle popped
+				// during traversal. Real blade CullStart/CullEnd handles the fade alone
+				// until a proper LOD0/LOD1 mesh-asset swap or dither fade lands.
 			}
 			UE_LOG(LogTemp, Verbose,
 				TEXT("[KBVEWorld] Chunk foliage(async) coord=(%d,%d) slots=%d instances=%d"),
