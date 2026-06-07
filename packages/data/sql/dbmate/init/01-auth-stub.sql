@@ -16,6 +16,20 @@ CREATE TABLE IF NOT EXISTS auth.users (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Minimal auth.identities stub (FK target for profile.service_get_discord_provider_id
+-- and any future RPC that reads OAuth-link rows). Matches Supabase auth's column
+-- subset used by KBVE code; ignores the columns we never read locally.
+CREATE TABLE IF NOT EXISTS auth.identities (
+    id            UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    provider_id   TEXT NOT NULL,
+    provider      TEXT NOT NULL,
+    identity_data JSONB NOT NULL DEFAULT '{}'::JSONB,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS identities_user_id_idx ON auth.identities(user_id);
+
 -- Stub auth.uid() — reads request.jwt.claims (matches Supabase auth's
 -- behaviour closely enough for proxy-function tests that set the GUC
 -- via `SET LOCAL request.jwt.claims = '{"role":...,"sub":...}'`.

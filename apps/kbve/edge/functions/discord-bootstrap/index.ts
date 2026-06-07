@@ -149,7 +149,7 @@ serve(async (req) => {
   const supabase = createServiceClient();
   {
     const { data: linkedProviderId, error } = await supabase.rpc(
-      "service_get_discord_provider_id",
+      "proxy_service_get_discord_provider_id",
       { p_user_id: userId },
     );
     if (error) {
