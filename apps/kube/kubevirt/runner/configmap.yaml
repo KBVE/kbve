@@ -54,12 +54,11 @@ data:
         # ── Phase 1: Registration token (minted fresh; used only if registering) ──
         echo ""
         echo "--- Phase 1: Registration token ---"
-        REG_TOKEN=$(wget -q -O - \
-            --header="Authorization: token ${GITHUB_TOKEN}" \
-            --header="Accept: application/vnd.github.v3+json" \
-            --post-data="" \
+        REG_TOKEN=$(curl -s -X POST \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json" \
             "https://api.github.com/orgs/${GITHUB_ORG}/actions/runners/registration-token" \
-            2>/dev/null | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
+            | sed -n 's/.*"token":"\([^"]*\)".*/\1/p')
         if [ -z "${REG_TOKEN}" ]; then
             echo "ERROR: Failed to obtain registration token (GITHUB_TOKEN needs admin:org)"
             exit 1
