@@ -101,14 +101,23 @@ hand-written parser to drift (the class of bug that silently dropped consumable
 data). The mirror of the zod generator, emitting UE-native `USTRUCT`s instead of
 `google::Message` (no libprotobuf runtime).
 
-**`UKBVEItemDatabase` now loads through them** — `LoadFromJson` runs
-`KBVEItemDBProto::Populate(FKBVEGenItem, …)` per item and maps the result onto the
-curated `FKBVEItemDef` (one centralized DTO → domain seam, `MapGenToDef`). The old
-hand-written `FJsonObject` key-reads are gone, so a new proto field flows in
-without editing the loader. `key` + `has_img` were added to the proto (`itemdb.proto`)
-so the generated type is a true superset — the proto is the single source of truth,
-no engine-only injected fields. chuck's `UchuckItemDB` migrates onto the same path
-next.
+**One item type, one parser, one map.** Both loaders run
+`KBVEItemDBProto::Populate(FKBVEGenItem, …)` then the single shared map
+`KBVEItemMap::FromGen` → the curated `FKBVEItemDef`:
+
+- **plugin** `UKBVEItemDatabase` and **chuck** `UchuckItemDB` both store + return
+  `FKBVEItemDef` (chuck retired its `FchuckItemDef` / `FchuckItemFood` /
+  `EchuckItemRarity` / `chuckItem::RarityColor` — deleted `chuckItemTypes.h`).
+- `FKBVEItemDef` absorbed chuck's needs: `IsFood/IsDrink/IsPotion`, `ConsumeStatuses`
+  + `ConsumeBuffDuration`, and `KBVEItem::RarityColor`. chuck consumers (consume,
+  inventory slot, item info, drop visuals) read it directly.
+- `key` + `has_img` are now proto fields (`itemdb.proto`) so the generated type is a
+  true superset — the proto is the single source of truth, no engine-only injected
+  fields. The old hand-written `FJsonObject` / yyjson key-reads in both loaders are
+  gone; a new proto field flows everywhere by regenerating, no loader edits.
+
+`UchuckItemDB` still owns chuck's atlas / icon-MID / rarity-halo rendering on top of
+the shared `FKBVEItemDef`.
 
 ## Persistence (`FKBVEInventoryStore` / `UKBVEInventoryStoreSubsystem`)
 

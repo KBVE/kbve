@@ -5,7 +5,7 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "Textures/SlateShaderResource.h"
 #include "KBVEDroppedItemVisual.h"
-#include "chuckItemTypes.h"
+#include "KBVEItemTypes.h"
 #include "chuckItemDB.generated.h"
 
 class UTexture2D;
@@ -24,10 +24,10 @@ public:
 	UFUNCTION()
 	void HandleDroppedItemPickedUp(AActor* Picker, int32 ItemKey, int32 Count);
 
-	const FchuckItemDef* LookupByKey(int32 Key) const;
-	const FchuckItemDef* LookupByRef(FName Ref) const;
+	const FKBVEItemDef* LookupByKey(int32 Key) const;
+	const FKBVEItemDef* LookupByRef(FName Ref) const;
 
-	const TArray<FchuckItemDef>& GetAll() const { return ByKey; }
+	const TArray<FKBVEItemDef>& GetAll() const { return ByKey; }
 	int32 Num() const { return Items.Num(); }
 	int32 MaxKey() const { return ByKey.Num() - 1; }
 
@@ -38,7 +38,7 @@ public:
 	UTexture2D* GetRadialDiscTexture();
 	class UMaterialInterface* GetTranslucentBillboardMaterial();
 	class UMaterialInstanceDynamic* GetIconMID(int32 ItemKey);
-	class UMaterialInstanceDynamic* GetHaloMID(EchuckItemRarity Rarity, const FLinearColor& RarityColor);
+	class UMaterialInstanceDynamic* GetHaloMID(EKBVEItemRarity Rarity, const FLinearColor& RarityColor);
 
 	static constexpr int32 AtlasGridSize = 32;
 	static constexpr int32 AtlasTilePixels = 64;
@@ -47,8 +47,8 @@ private:
 	void LoadFromJson(const FString& JsonText);
 	void LoadAtlas();
 
-	UPROPERTY() TArray<FchuckItemDef> Items;
-	UPROPERTY() TArray<FchuckItemDef> ByKey;
+	UPROPERTY() TArray<FKBVEItemDef> Items;
+	UPROPERTY() TArray<FKBVEItemDef> ByKey;
 
 	UPROPERTY() TObjectPtr<UTexture2D> AtlasTexture = nullptr;
 

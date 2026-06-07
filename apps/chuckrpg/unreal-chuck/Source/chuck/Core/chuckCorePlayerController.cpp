@@ -28,7 +28,7 @@
 #include "SchuckPauseMenu.h"
 #include "chuckInventory.h"
 #include "chuckItemDB.h"
-#include "chuckItemTypes.h"
+#include "KBVEItemTypes.h"
 #include "Engine/GameInstance.h"
 #include "SKBVEDragArrowLayer.h"
 #include "SKBVETooltip.h"
@@ -250,10 +250,10 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 				for (const FchuckInventoryStack& S : Slots)
 				{
 					if (S.IsEmpty()) continue;
-					const FchuckItemDef* Def = DB->LookupByKey(S.ItemKey);
+					const FKBVEItemDef* Def = DB->LookupByKey(S.ItemKey);
 					if (!Def) continue;
 					DB->GetIconMID(S.ItemKey);
-					DB->GetHaloMID(Def->Rarity, chuckItem::RarityColor(Def->Rarity));
+					DB->GetHaloMID(Def->Rarity, KBVEItem::RarityColor(Def->Rarity));
 				}
 			};
 			WarmBag(Inv.DefaultBag.Slots);

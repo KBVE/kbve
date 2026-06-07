@@ -2,7 +2,7 @@
 
 #include "chuckCoreCharacter.h"
 #include "chuckItemDB.h"
-#include "chuckItemTypes.h"
+#include "KBVEItemTypes.h"
 #include "Engine/GameInstance.h"
 #include "Rendering/DrawElements.h"
 #include "SKBVEInfoPanel.h"
@@ -36,7 +36,7 @@ UchuckItemDB* SchuckItemInfo::GetDB() const
 	return GI ? GI->GetSubsystem<UchuckItemDB>() : nullptr;
 }
 
-const FchuckItemDef* SchuckItemInfo::GetDef() const
+const FKBVEItemDef* SchuckItemInfo::GetDef() const
 {
 	if (!SelectedKey.IsValid()) return nullptr;
 	UchuckItemDB* DB = GetDB();
@@ -50,30 +50,30 @@ bool SchuckItemInfo::HasContent() const
 
 FText SchuckItemInfo::GetTitle() const
 {
-	const FchuckItemDef* Def = GetDef();
+	const FKBVEItemDef* Def = GetDef();
 	return Def ? FText::FromString(Def->Name) : FText::GetEmpty();
 }
 
 FText SchuckItemInfo::GetSubtitle() const
 {
-	const FchuckItemDef* Def = GetDef();
+	const FKBVEItemDef* Def = GetDef();
 	if (!Def) return FText::GetEmpty();
 	const TCHAR* RarityName = TEXT("Common");
 	switch (Def->Rarity)
 	{
-		case EchuckItemRarity::Common:    RarityName = TEXT("Common");    break;
-		case EchuckItemRarity::Uncommon:  RarityName = TEXT("Uncommon");  break;
-		case EchuckItemRarity::Rare:      RarityName = TEXT("Rare");      break;
-		case EchuckItemRarity::Epic:      RarityName = TEXT("Epic");      break;
-		case EchuckItemRarity::Legendary: RarityName = TEXT("Legendary"); break;
-		case EchuckItemRarity::Mythic:    RarityName = TEXT("Mythic");    break;
+		case EKBVEItemRarity::Common:    RarityName = TEXT("Common");    break;
+		case EKBVEItemRarity::Uncommon:  RarityName = TEXT("Uncommon");  break;
+		case EKBVEItemRarity::Rare:      RarityName = TEXT("Rare");      break;
+		case EKBVEItemRarity::Epic:      RarityName = TEXT("Epic");      break;
+		case EKBVEItemRarity::Legendary: RarityName = TEXT("Legendary"); break;
+		case EKBVEItemRarity::Mythic:    RarityName = TEXT("Mythic");    break;
 	}
 	return FText::FromString(FString::Printf(TEXT("%s    ref: %s"), RarityName, *Def->Ref.ToString()));
 }
 
 FText SchuckItemInfo::GetDetail() const
 {
-	const FchuckItemDef* Def = GetDef();
+	const FKBVEItemDef* Def = GetDef();
 	if (!Def) return FText::GetEmpty();
 	return FText::FromString(FString::Printf(
 		TEXT("Buy %d   Sell %d   Stack %d%s"),
@@ -84,7 +84,7 @@ FText SchuckItemInfo::GetDetail() const
 
 FText SchuckItemInfo::GetBody() const
 {
-	const FchuckItemDef* Def = GetDef();
+	const FKBVEItemDef* Def = GetDef();
 	if (!Def) return FText::GetEmpty();
 	FString Desc = Def->Description;
 	Desc.ReplaceInline(TEXT("\n"), TEXT(" "));
@@ -93,13 +93,13 @@ FText SchuckItemInfo::GetBody() const
 
 FSlateColor SchuckItemInfo::GetTitleColor() const
 {
-	const FchuckItemDef* Def = GetDef();
-	return FSlateColor(Def ? chuckItem::RarityColor(Def->Rarity) : FLinearColor::White);
+	const FKBVEItemDef* Def = GetDef();
+	return FSlateColor(Def ? KBVEItem::RarityColor(Def->Rarity) : FLinearColor::White);
 }
 
 void SchuckItemInfo::PaintIcon(const FGeometry& Geom, FSlateWindowElementList& Out, int32 Layer, const FVector2D& IconSize)
 {
-	const FchuckItemDef* Def = GetDef();
+	const FKBVEItemDef* Def = GetDef();
 	UchuckItemDB* DB = GetDB();
 	if (!Def || !DB || !DB->HasAtlas() || !DB->GetAtlasHandle().IsValid())
 	{
