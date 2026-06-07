@@ -2,9 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "KBVESettingsStore.h"
 #include "chuckSettings.generated.h"
-
-class FKBVESettingsStore;
 
 USTRUCT()
 struct FchuckWindowGeometry
@@ -22,6 +21,9 @@ class UchuckSettings : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public:
+	UchuckSettings();
+	virtual ~UchuckSettings() override;
+
 	static UchuckSettings* Get(const UObject* WorldContext);
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;

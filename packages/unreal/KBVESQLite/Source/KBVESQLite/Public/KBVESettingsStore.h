@@ -1,8 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
-class FKBVESQLiteConnection;
+#include "KBVESQLiteConnection.h"
 
 class KBVESQLITE_API FKBVESettingsStore
 {

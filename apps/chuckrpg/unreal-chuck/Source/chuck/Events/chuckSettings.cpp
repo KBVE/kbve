@@ -25,6 +25,9 @@ namespace
 	}
 }
 
+UchuckSettings::UchuckSettings() = default;
+UchuckSettings::~UchuckSettings() = default;
+
 UchuckSettings* UchuckSettings::Get(const UObject* WorldContext)
 {
 	if (!WorldContext) return nullptr;
