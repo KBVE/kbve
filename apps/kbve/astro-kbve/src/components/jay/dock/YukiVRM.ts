@@ -46,8 +46,9 @@ export interface YukiVRMHandle {
 	setState(state: YukiState): void;
 	pointAt(x: number, y: number): void;
 	setActive(active: boolean): void;
-	playAnimation(url: string, loop?: boolean): Promise<void>;
-	stopAnimation(): void;
+	playAnimation(url: string, loop?: boolean, fade?: number): Promise<void>;
+	stopAnimation(fade?: number): void;
+	setIdleAnimation(url: string | null): void;
 	destroy(): void;
 }
 
@@ -328,36 +329,85 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 	let firstRenderLogged = false;
 
 	const mixer = new AnimationMixer(vrm.scene);
+	const clipCache = new Map<
+		string,
+		ReturnType<typeof createVRMAnimationClip>
+	>();
 	let currentAction: ReturnType<typeof mixer.clipAction> | null = null;
+	let idleAnimationUrl: string | null = null;
+	const DEFAULT_FADE = 0.35;
 
-	const stopAnimation = (): void => {
-		if (currentAction) {
-			currentAction.stop();
-			currentAction = null;
+	mixer.addEventListener('finished', (e) => {
+		const ev = e as unknown as {
+			action: ReturnType<typeof mixer.clipAction>;
+		};
+		if (ev.action !== currentAction) return;
+		if (idleAnimationUrl) {
+			void playAnimation(idleAnimationUrl, true, 0.6);
+		} else {
+			stopAnimation();
 		}
-		mixer.stopAllAction();
-		applyRestPose(vrm);
+	});
+
+	const stopAnimation = (fade = DEFAULT_FADE): void => {
+		if (!currentAction) {
+			applyRestPose(vrm);
+			return;
+		}
+		const action = currentAction;
+		currentAction = null;
+		action.fadeOut(fade);
+		setTimeout(
+			() => {
+				action.stop();
+				if (!currentAction) applyRestPose(vrm);
+			},
+			Math.ceil(fade * 1000) + 16,
+		);
 	};
 
-	const playAnimation = async (url: string, loop = true): Promise<void> => {
+	const loadClip = async (
+		url: string,
+	): Promise<ReturnType<typeof createVRMAnimationClip> | null> => {
+		const cached = clipCache.get(url);
+		if (cached) return cached;
 		const gltf = await loader.loadAsync(url);
 		const animations: unknown[] =
 			(gltf.userData as { vrmAnimations?: unknown[] })?.vrmAnimations ??
 			[];
 		if (!animations.length) {
 			console.warn('[yuki-vrm] no vrmAnimations in', url);
-			return;
+			return null;
 		}
 		const clip = createVRMAnimationClip(
 			animations[0] as Parameters<typeof createVRMAnimationClip>[0],
 			vrm,
 		);
-		stopAnimation();
-		currentAction = mixer.clipAction(clip);
-		currentAction.setLoop(loop ? LoopRepeat : LoopOnce, Infinity);
-		currentAction.clampWhenFinished = true;
-		currentAction.play();
-		console.warn('[yuki-vrm] animation playing', url);
+		clipCache.set(url, clip);
+		return clip;
+	};
+
+	const playAnimation = async (
+		url: string,
+		loop = true,
+		fade = DEFAULT_FADE,
+	): Promise<void> => {
+		const clip = await loadClip(url);
+		if (!clip) return;
+		const next = mixer.clipAction(clip);
+		next.reset();
+		next.setLoop(loop ? LoopRepeat : LoopOnce, Infinity);
+		next.clampWhenFinished = true;
+		next.setEffectiveWeight(1);
+		next.setEffectiveTimeScale(1);
+		next.enabled = true;
+		next.play();
+		if (currentAction && currentAction !== next) {
+			currentAction.crossFadeTo(next, fade, true);
+		} else {
+			next.fadeIn(fade);
+		}
+		currentAction = next;
 	};
 
 	const tick = (now: number) => {
@@ -527,6 +577,9 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		setActive,
 		playAnimation,
 		stopAnimation,
+		setIdleAnimation: (url: string | null) => {
+			idleAnimationUrl = url;
+		},
 		destroy,
 	};
 }
