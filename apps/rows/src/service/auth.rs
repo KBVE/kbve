@@ -2,6 +2,7 @@ use super::{CachedSession, OWSService};
 use crate::error::RowsError;
 use crate::models::*;
 use crate::repo::UsersRepo;
+use axum::http::HeaderMap;
 use uuid::Uuid;
 
 impl OWSService {
@@ -102,7 +103,7 @@ impl OWSService {
         let name_part = email.split('@').next().unwrap_or("Player");
 
         let user_guid = repo
-            .find_or_create_by_email(customer_guid, &email, name_part, "")
+            .find_or_create_supabase_user(customer_guid, validated.user_id, &email, name_part, "")
             .await?;
 
         let session_guid = repo.create_session(customer_guid, user_guid).await?;
@@ -128,6 +129,34 @@ impl OWSService {
             user_session_guid: Some(session_guid),
             error_message: String::new(),
         })
+    }
+
+    /// Confirms the caller is logged in before a protected action (e.g. handing out a world IP).
+    /// Accepts a Supabase `Authorization: Bearer <jwt>` (validated locally) or, failing that, a
+    /// live `userSessionGUID` that resolves to a real session.
+    pub async fn confirm_login(
+        &self,
+        headers: &HeaderMap,
+        session_guid: Option<Uuid>,
+    ) -> Result<(), RowsError> {
+        if let Some(token) = crate::middleware::extract_bearer(headers) {
+            if self.state.supabase.jwt_enabled() {
+                crate::supabase::validate_jwt(&token, &self.state.supabase)
+                    .map_err(|e| RowsError::Unauthorized(format!("Invalid access token: {e}")))?;
+                return Ok(());
+            }
+        }
+
+        if let Some(sg) = session_guid {
+            self.resolve_session(sg)
+                .await
+                .map_err(|_| RowsError::Unauthorized("Invalid or expired session".into()))?;
+            return Ok(());
+        }
+
+        Err(RowsError::Unauthorized(
+            "Login required: send Authorization: Bearer <jwt> or a valid userSessionGUID".into(),
+        ))
     }
 
     pub async fn set_selected_character_and_get_session(
