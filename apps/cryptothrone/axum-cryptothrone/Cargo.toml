@@ -24,7 +24,6 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 axum = { version = "0.8.5", features = ["ws", "macros"] }
 axum-extra = { version = "0.12.1", features = ["cookie"] }
-askama = "0.15.4"
 socket2 = "0.6.1"
 num_cpus = "1.17.0"
 dotenvy = "0.15"
@@ -43,6 +42,3 @@ http-body-util = "0.1"
 [features]
 default = []
 jemalloc = ["dep:tikv-jemallocator"]
-
-[package.metadata.askama]
-dirs = ["templates"]

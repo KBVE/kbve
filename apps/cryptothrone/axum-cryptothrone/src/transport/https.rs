@@ -434,6 +434,6 @@ mod tests {
         assert_eq!(response.status(), StatusCode::OK);
         let body = response.into_body().collect().await.unwrap().to_bytes();
         let speed: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(speed["time_ms"], 0);
+        assert!(speed["time_ms"].as_u64().unwrap() > 0);
     }
 }

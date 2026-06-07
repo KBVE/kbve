@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use axum::{Json, Router, extract::Path, http::StatusCode, response::IntoResponse, routing::get};
 
 use super::data;
@@ -33,7 +35,11 @@ async fn get_dialogue(Path(id): Path<String>) -> impl IntoResponse {
 }
 
 async fn speed() -> Json<SpeedResponse> {
-    Json(SpeedResponse { time_ms: 0 })
+    let time_ms = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .unwrap_or(0);
+    Json(SpeedResponse { time_ms })
 }
 
 pub fn game_router() -> Router {

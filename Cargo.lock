@@ -1522,7 +1522,6 @@ name = "axum-cryptothrone"
 version = "0.1.6"
 dependencies = [
  "anyhow",
- "askama 0.15.6",
  "axum 0.8.9",
  "axum-extra",
  "dotenvy",
