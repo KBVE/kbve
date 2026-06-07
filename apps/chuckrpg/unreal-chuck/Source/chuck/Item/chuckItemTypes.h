@@ -15,6 +15,16 @@ enum class EchuckItemRarity : uint8
 };
 
 USTRUCT(BlueprintType)
+struct FchuckConsumeStatus
+{
+	GENERATED_BODY()
+
+	UPROPERTY() FName Kind;
+	UPROPERTY() int32 Stacks = 1;
+	UPROPERTY() float Duration = 0.f;
+};
+
+USTRUCT(BlueprintType)
 struct FchuckItemDef
 {
 	GENERATED_BODY()
@@ -38,6 +48,8 @@ struct FchuckItemDef
 	UPROPERTY() float  RegenPerSec   = 0.f;
 	UPROPERTY() float  RegenDuration = 0.f;
 	UPROPERTY() float  ConsumeCooldownSec = 0.f;
+	UPROPERTY() float  ConsumeBuffDuration = 0.f;
+	UPROPERTY() TArray<FchuckConsumeStatus> ConsumeStatuses;
 
 	static constexpr int32 TypeBit_Food   = 0x00000008;
 	static constexpr int32 TypeBit_Drink  = 0x00000010;

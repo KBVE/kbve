@@ -582,6 +582,10 @@ bool AchuckCoreCharacter::ServerConsumeSlot(int32 SlotIndex, bool bHotbar)
 			: FName(TEXT("Health"));
 		Spec.Regens.Add({ RegenStat, Def->RegenPerSec, Def->RegenDuration });
 	}
+	for (const FchuckConsumeStatus& St : Def->ConsumeStatuses)
+	{
+		Spec.Statuses.Add({ St.Kind, St.Stacks, St.Duration });
+	}
 
 	const float OldH = Stats.Health, OldM = Stats.Mana, OldE = Stats.Stamina;
 	if (!EffectComp->TryApplyEffect(Spec))

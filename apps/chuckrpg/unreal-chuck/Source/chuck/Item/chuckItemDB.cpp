@@ -18,6 +18,8 @@
 #endif
 
 #include "KBVEYYJson.h"
+#include "Generated/KBVEItemDBProtoTypes.h"
+#include "Generated/KBVEItemDBProtoParse.h"
 #include "chuckCoreCharacter.h"
 
 namespace
@@ -31,41 +33,6 @@ namespace
 		if (FCStringAnsi::Strcmp(Str, "ITEM_RARITY_LEGENDARY") == 0) return EchuckItemRarity::Legendary;
 		if (FCStringAnsi::Strcmp(Str, "ITEM_RARITY_MYTHIC")    == 0) return EchuckItemRarity::Mythic;
 		return EchuckItemRarity::Common;
-	}
-
-	static FString StrFieldUtf8(yyjson_val* Obj, const char* Key)
-	{
-		yyjson_val* V = yyjson_obj_get(Obj, Key);
-		if (V && yyjson_is_str(V))
-		{
-			return FString(UTF8_TO_TCHAR(yyjson_get_str(V)));
-		}
-		return FString();
-	}
-
-	static int32 IntFieldUtf8(yyjson_val* Obj, const char* Key, int32 Default = 0)
-	{
-		yyjson_val* V = yyjson_obj_get(Obj, Key);
-		if (V && yyjson_is_int(V)) return (int32)yyjson_get_int(V);
-		if (V && yyjson_is_uint(V)) return (int32)yyjson_get_uint(V);
-		if (V && yyjson_is_real(V)) return (int32)yyjson_get_real(V);
-		return Default;
-	}
-
-	static bool BoolFieldUtf8(yyjson_val* Obj, const char* Key, bool Default = false)
-	{
-		yyjson_val* V = yyjson_obj_get(Obj, Key);
-		if (V && yyjson_is_bool(V)) return yyjson_get_bool(V);
-		return Default;
-	}
-
-	static float FloatFieldUtf8(yyjson_val* Obj, const char* Key, float Default = 0.f)
-	{
-		yyjson_val* V = yyjson_obj_get(Obj, Key);
-		if (V && yyjson_is_real(V)) return (float)yyjson_get_real(V);
-		if (V && yyjson_is_int(V))  return (float)yyjson_get_int(V);
-		if (V && yyjson_is_uint(V)) return (float)yyjson_get_uint(V);
-		return Default;
 	}
 }
 
@@ -182,51 +149,59 @@ void UchuckItemDB::LoadFromJson(const FString& JsonText)
 	yyjson_val* ItemVal;
 	yyjson_arr_foreach(Arr, Idx, N, ItemVal)
 	{
-		FchuckItemDef Def;
-		Def.Key           = IntFieldUtf8(ItemVal, "key", 0);
-		Def.Ref           = FName(*StrFieldUtf8(ItemVal, "ref"));
-		Def.Name          = StrFieldUtf8(ItemVal, "name");
-		Def.Description   = StrFieldUtf8(ItemVal, "description");
-		Def.Emoji         = StrFieldUtf8(ItemVal, "emoji");
-		Def.bHasImg       = BoolFieldUtf8(ItemVal, "hasImg", false);
-		Def.TypeFlags     = IntFieldUtf8(ItemVal, "typeFlags", 0);
-		Def.MaxStack      = IntFieldUtf8(ItemVal, "maxStack", 1);
-		Def.bStackable    = BoolFieldUtf8(ItemVal, "stackable", false);
-		Def.BuyPrice      = IntFieldUtf8(ItemVal, "buyPrice", 0);
-		Def.SellPrice     = IntFieldUtf8(ItemVal, "sellPrice", 0);
-		Def.ConsumeCooldownSec = FloatFieldUtf8(ItemVal, "cooldown", 0.f);
-
-		bool bHasFoodBlock = false;
-		if (yyjson_val* Food = yyjson_obj_get(ItemVal, "food"))
+		FKBVEGenItem Gen;
+		KBVEItemDBProto::Populate(Gen, ItemVal);
+		if (Gen.Key <= 0 || Gen.Ref.IsEmpty())
 		{
-			bHasFoodBlock = true;
-			Def.HealHP        = FloatFieldUtf8(Food, "heals",         0.f);
-			Def.RestoreMP     = FloatFieldUtf8(Food, "restoreMana",   0.f);
-			Def.RestoreEP     = FloatFieldUtf8(Food, "restoreEnergy", 0.f);
-			Def.RegenPerSec   = FloatFieldUtf8(Food, "regenPerSecond", 0.f);
-			Def.RegenDuration = FloatFieldUtf8(Food, "regenDuration",  0.f);
+			continue;
 		}
 
-		Def.bConsumable = BoolFieldUtf8(ItemVal, "consumable", false)
-			|| bHasFoodBlock || Def.IsFood() || Def.IsDrink() || Def.IsPotion();
+		FchuckItemDef Def;
+		Def.Key         = Gen.Key;
+		Def.Ref         = FName(*Gen.Ref);
+		Def.Name        = Gen.Name;
+		Def.Description  = Gen.Description;
+		Def.Emoji       = Gen.Emoji;
+		Def.bHasImg     = Gen.HasImg;
+		Def.TypeFlags   = Gen.TypeFlags;
+		Def.Rarity      = ParseRarity(TCHAR_TO_UTF8(*Gen.Rarity));
+		Def.MaxStack    = Gen.MaxStack > 0 ? Gen.MaxStack : 1;
+		Def.bStackable  = Gen.Stackable;
+		Def.BuyPrice    = Gen.BuyPrice;
+		Def.SellPrice   = Gen.SellPrice;
+		Def.ConsumeCooldownSec = static_cast<float>(Gen.Cooldown);
 
-		if (Def.bConsumable && Def.HealHP == 0.f && Def.RestoreMP == 0.f && Def.RestoreEP == 0.f
-			&& Def.RegenPerSec == 0.f)
+		Def.HealHP        = static_cast<float>(Gen.Food.Heals);
+		Def.RestoreMP     = static_cast<float>(Gen.Food.RestoreMana);
+		Def.RestoreEP     = static_cast<float>(Gen.Food.RestoreEnergy);
+		Def.RegenPerSec   = Gen.Food.RegenPerSecond;
+		Def.RegenDuration = Gen.Food.RegenDuration;
+		Def.ConsumeBuffDuration = static_cast<float>(Gen.Food.Duration);
+
+		for (const FKBVEGenUseEffect& Buff : Gen.Food.BuffEffects)
+		{
+			FString Kind = Buff.StatusEffect;
+			if (Kind.IsEmpty()) Kind = Buff.EffectKindCustom;
+			Kind.RemoveFromStart(TEXT("STATUS_EFFECT_"));
+			if (Kind.IsEmpty()) continue;
+
+			FchuckConsumeStatus St;
+			St.Kind     = FName(*Kind.ToLower());
+			St.Stacks   = Buff.Stacks > 0 ? Buff.Stacks : 1;
+			St.Duration = Buff.Turns > 0 ? static_cast<float>(Buff.Turns) : Def.ConsumeBuffDuration;
+			Def.ConsumeStatuses.Add(St);
+		}
+
+		const bool bHasFood =
+			Def.HealHP > 0.f || Def.RestoreMP > 0.f || Def.RestoreEP > 0.f || Def.RegenPerSec > 0.f;
+		Def.bConsumable = Gen.Consumable || bHasFood || Def.IsFood() || Def.IsDrink() || Def.IsPotion();
+
+		if (Def.bConsumable && !bHasFood && Def.ConsumeStatuses.Num() == 0)
 		{
 			const FString R = Def.Ref.ToString().ToLower();
 			if      (R.Contains(TEXT("mana")))   Def.RestoreMP = 25.f;
 			else if (R.Contains(TEXT("stam")) || R.Contains(TEXT("energy"))) Def.RestoreEP = 30.f;
 			else                                  Def.HealHP    = 20.f;
-		}
-
-		if (yyjson_val* RV = yyjson_obj_get(ItemVal, "rarity"))
-		{
-			Def.Rarity = ParseRarity(yyjson_get_str(RV));
-		}
-
-		if (Def.Key <= 0 || Def.Ref.IsNone())
-		{
-			continue;
 		}
 
 		MaxKeyVal = FMath::Max(MaxKeyVal, Def.Key);

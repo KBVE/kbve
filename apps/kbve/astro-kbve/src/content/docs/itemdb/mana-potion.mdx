@@ -19,6 +19,12 @@ cooldown: 15
 action: 'consume'
 food:
   restore_mana: 25
+  duration: 8
+  buff_effects:
+    - type: 'apply_effect'
+      status_effect: 'regen'
+      stacks: 1
+      turns: 8
 ---
 
 import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
