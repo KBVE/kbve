@@ -1,0 +1,45 @@
+---
+title: KBVEItemDB
+description: |
+    Game-agnostic item database loader + inventory model + dropped-item Mass fragment. Loads the shared itemdb artifact into runtime item defs (incl. consumable/food effect fields aligned to KBVEGameplay), with key/ref lookup and a generic inventory slot/stack/bag model.
+sidebar:
+    label: KBVEItemDB
+    order: 78
+tags:
+    - unreal
+    - item
+key: ue_kbveitemdb
+pipeline: unreal
+plugin_name: KBVEItemDB
+plugin_path: packages/unreal/KBVEItemDB
+version: "0.1.0"
+source_path: packages/unreal/KBVEItemDB
+version_toml: packages/unreal/KBVEItemDB/version.toml
+author: h0lybyte
+license: KBVE
+status: beta
+min_engine_version: "5.4"
+supported_platforms:
+    - Win64
+    - Linux
+    - Mac
+---
+
+## Overview
+
+Game-agnostic item database + inventory + Mass bridge. The data/inventory half
+to [KBVEGameplay](/project/kbvegameplay)'s effect half:
+
+- **`FKBVEItemDef` / `FKBVEItemFood`** — runtime item def: identity, type flags,
+  rarity, stacking, prices, tags, and consumable/food effect fields
+  (heals / restoreMana / restoreEnergy / regenPerSecond / regenDuration / cooldown
+  / animationRef) — aligned to `FKBVEEffectSpec` so a game maps item → effect.
+- **`UKBVEItemDatabase`** (GameInstance subsystem) — loads `Content/Data/itemdb-data.json`
+  via UE Json; lookup by key / ref. Mirrors the `chuckItemDB` pattern.
+- **`FKBVEInventory` / `FKBVEInventoryBag` / `FKBVEInventoryStack`** + `UKBVEInventoryLibrary`
+  (`TryAdd` / `CountItem` / `FindFirstSlot`) — generic inventory model.
+- **`FKBVEDroppedItemFragment` / `FKBVEDroppedItemTag`** — Mass fragment for
+  world-dropped items (key, count, rarity, lifetime, magnet/pickup radius).
+
+Item DATA stays in the shared itemdb MDX. KBVEItemDB carries it + the inventory
+model; KBVEGameplay applies the consumable effects (atlas/icon rendering deferred).

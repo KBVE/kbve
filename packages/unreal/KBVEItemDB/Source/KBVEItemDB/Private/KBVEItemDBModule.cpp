@@ -1,0 +1,3 @@
+#include "KBVEItemDB.h"
+
+IMPLEMENT_MODULE(FKBVEItemDBModule, KBVEItemDB)
