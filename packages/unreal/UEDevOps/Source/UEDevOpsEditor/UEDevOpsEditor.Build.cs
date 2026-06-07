@@ -24,7 +24,8 @@ public class UEDevOpsEditor : ModuleRules
 			"Json",
 			"JsonUtilities",
 			"EditorStyle",
-			"InputCore"
+			"InputCore",
+			"Projects"
 		});
 	}
 }
