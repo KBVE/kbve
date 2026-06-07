@@ -31,6 +31,12 @@ metadata:
     labels:
         app: angelscript
         component: vm-runner
+    annotations:
+        # ArgoCD Sync hook: recreate + run the idempotent install on each sync
+        # (avoids the immutable-Job error on resync). Heals the runner when the
+        # VM is up; Phase 0 in the script exits cleanly when the VM is down.
+        argocd.argoproj.io/hook: Sync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
     backoffLimit: 2
     ttlSecondsAfterFinished: 86400
