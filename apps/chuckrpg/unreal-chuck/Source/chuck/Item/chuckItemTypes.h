@@ -35,10 +35,20 @@ struct FchuckItemDef
 	UPROPERTY() float  HealHP     = 0.f;
 	UPROPERTY() float  RestoreMP  = 0.f;
 	UPROPERTY() float  RestoreEP  = 0.f;
+	UPROPERTY() float  RegenPerSec   = 0.f;
+	UPROPERTY() float  RegenDuration = 0.f;
 	UPROPERTY() float  ConsumeCooldownSec = 0.f;
 
+	static constexpr int32 TypeBit_Food   = 0x00000008;
+	static constexpr int32 TypeBit_Drink  = 0x00000010;
+	static constexpr int32 TypeBit_Potion = 0x00000020;
+
+	bool IsFood()   const { return (TypeFlags & TypeBit_Food)   != 0; }
+	bool IsDrink()  const { return (TypeFlags & TypeBit_Drink)  != 0; }
+	bool IsPotion() const { return (TypeFlags & TypeBit_Potion) != 0; }
+
 	bool IsValid() const { return Key > 0 && !Ref.IsNone(); }
-	bool HasConsumeEffect() const { return bConsumable && (HealHP > 0.f || RestoreMP > 0.f || RestoreEP > 0.f); }
+	bool HasConsumeEffect() const { return bConsumable && (HealHP > 0.f || RestoreMP > 0.f || RestoreEP > 0.f || RegenPerSec > 0.f); }
 };
 
 namespace chuckItem

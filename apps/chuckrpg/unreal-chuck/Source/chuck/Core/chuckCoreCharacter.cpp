@@ -24,6 +24,8 @@
 #include "chuckItemDB.h"
 #include "KBVEMovementState.h"
 #include "KBVEStatFragment.h"
+#include "KBVEEffectComponent.h"
+#include "KBVEGameplayTypes.h"
 #include "chuckUIEvents.h"
 #include "Engine/GameInstance.h"
 
@@ -34,6 +36,8 @@ AchuckCoreCharacter::AchuckCoreCharacter(const FObjectInitializer& ObjectInitial
 	SetReplicateMovement(true);
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
+
+	EffectComp = CreateDefaultSubobject<UKBVEEffectComponent>(TEXT("EffectComp"));
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SKM(
 		TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
@@ -136,6 +140,11 @@ void AchuckCoreCharacter::Tick(float DeltaSeconds)
 void AchuckCoreCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (EffectComp)
+	{
+		EffectComp->SetStatTarget(this);
+	}
 
 	UWorld* World = GetWorld();
 	UGameInstance* GI = GetGameInstance();
@@ -558,12 +567,27 @@ bool AchuckCoreCharacter::ServerConsumeSlot(int32 SlotIndex, bool bHotbar)
 	UchuckItemDB* DB = GI ? GI->GetSubsystem<UchuckItemDB>() : nullptr;
 	if (!DB) return false;
 	const FchuckItemDef* Def = DB->LookupByKey(Stack.ItemKey);
-	if (!Def || !Def->bConsumable) return false;
+	if (!Def || !Def->bConsumable || !EffectComp) return false;
+
+	FKBVEEffectSpec Spec;
+	Spec.SourceKey = Def->Ref;
+	Spec.Cooldown  = Def->ConsumeCooldownSec;
+	if (Def->HealHP    > 0.f) Spec.Restores.Add({ TEXT("Health"),  Def->HealHP });
+	if (Def->RestoreMP > 0.f) Spec.Restores.Add({ TEXT("Mana"),    Def->RestoreMP });
+	if (Def->RestoreEP > 0.f) Spec.Restores.Add({ TEXT("Stamina"), Def->RestoreEP });
+	if (Def->RegenPerSec > 0.f && Def->RegenDuration > 0.f)
+	{
+		const FName RegenStat = Def->IsDrink()
+			? (Def->RestoreMP > 0.f ? FName(TEXT("Mana")) : FName(TEXT("Stamina")))
+			: FName(TEXT("Health"));
+		Spec.Regens.Add({ RegenStat, Def->RegenPerSec, Def->RegenDuration });
+	}
 
 	const float OldH = Stats.Health, OldM = Stats.Mana, OldE = Stats.Stamina;
-	if (Def->HealHP    > 0.f) Stats.Health  = FMath::Clamp(Stats.Health  + Def->HealHP,    0.f, Stats.MaxHealth);
-	if (Def->RestoreMP > 0.f) Stats.Mana    = FMath::Clamp(Stats.Mana    + Def->RestoreMP, 0.f, Stats.MaxMana);
-	if (Def->RestoreEP > 0.f) Stats.Stamina = FMath::Clamp(Stats.Stamina + Def->RestoreEP, 0.f, Stats.MaxStamina);
+	if (!EffectComp->TryApplyEffect(Spec))
+	{
+		return false;
+	}
 
 	const int32 ConsumedKey = Stack.ItemKey;
 	Stack.Count -= 1;
@@ -572,6 +596,43 @@ bool AchuckCoreCharacter::ServerConsumeSlot(int32 SlotIndex, bool bHotbar)
 		Stack = FchuckInventoryStack();
 	}
 	Bag.MarkItemDirty(Stack);
+
+	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
+	{
+		FchuckItemConsumedPayload P;
+		P.ItemKey   = ConsumedKey;
+		P.HealHP    = Stats.Health  - OldH;
+		P.RestoreMP = Stats.Mana    - OldM;
+		P.RestoreEP = Stats.Stamina - OldE;
+		Bus->ItemConsumed.Publish(P);
+	}
+	return true;
+}
+
+float AchuckCoreCharacter::GetStatValue(FName StatId) const
+{
+	if (StatId == TEXT("Health"))  return Stats.Health;
+	if (StatId == TEXT("Mana"))    return Stats.Mana;
+	if (StatId == TEXT("Stamina")) return Stats.Stamina;
+	return 0.f;
+}
+
+float AchuckCoreCharacter::GetStatMax(FName StatId) const
+{
+	if (StatId == TEXT("Health"))  return Stats.MaxHealth;
+	if (StatId == TEXT("Mana"))    return Stats.MaxMana;
+	if (StatId == TEXT("Stamina")) return Stats.MaxStamina;
+	return 0.f;
+}
+
+void AchuckCoreCharacter::ApplyStatDelta(FName StatId, float Delta)
+{
+	if (!HasAuthority() || Delta == 0.f) return;
+
+	if (StatId == TEXT("Health"))       Stats.Health  = FMath::Clamp(Stats.Health  + Delta, 0.f, Stats.MaxHealth);
+	else if (StatId == TEXT("Mana"))    Stats.Mana    = FMath::Clamp(Stats.Mana    + Delta, 0.f, Stats.MaxMana);
+	else if (StatId == TEXT("Stamina")) Stats.Stamina = FMath::Clamp(Stats.Stamina + Delta, 0.f, Stats.MaxStamina);
+	else return;
 
 	UWorld* World = GetWorld();
 	UMassEntitySubsystem* Mass = World ? World->GetSubsystem<UMassEntitySubsystem>() : nullptr;
@@ -586,17 +647,6 @@ bool AchuckCoreCharacter::ServerConsumeSlot(int32 SlotIndex, bool bHotbar)
 	}
 
 	PublishStatChanges();
-
-	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
-	{
-		FchuckItemConsumedPayload P;
-		P.ItemKey   = ConsumedKey;
-		P.HealHP    = Stats.Health  - OldH;
-		P.RestoreMP = Stats.Mana    - OldM;
-		P.RestoreEP = Stats.Stamina - OldE;
-		Bus->ItemConsumed.Publish(P);
-	}
-	return true;
 }
 
 void AchuckCoreCharacter::OnRep_Stats()
