@@ -712,6 +712,18 @@
 			"version_toml": "packages/unreal/KBVELibGit/version.toml"
 		},
 		{
+			"key": "ue_kbvenpcdb",
+			"plugin_name": "KBVENPCDB",
+			"plugin_path": "packages/unreal/KBVENPCDB",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVENPCDB/version.toml"
+		},
+		{
 			"key": "ue_kbverows",
 			"plugin_name": "KBVEROWS",
 			"plugin_path": "packages/unreal/KBVEROWS",
@@ -985,12 +997,12 @@
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
-		"unreal": 18,
+		"unreal": 19,
 		"ue5_server": 2,
 		"unity": 1,
 		"godot": 1,
 		"unreal_game": 1,
 		"bevy_game": 0,
-		"total": 82
+		"total": 83
 	}
 }
