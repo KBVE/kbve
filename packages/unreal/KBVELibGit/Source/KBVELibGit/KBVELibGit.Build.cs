@@ -41,11 +41,15 @@ public class KBVELibGit : ModuleRules
 			PublicAdditionalLibraries.Add(Path.Combine(LibDir, "libgit2.a"));
 			// libgit2 uses iconv for Unicode path normalization on macOS
 			PublicAdditionalLibraries.Add("iconv");
+			// HTTPS via SecureTransport (SSL* APIs) — native macOS TLS, no OpenSSL
+			PublicFrameworks.AddRange(new string[] { "Security", "CoreFoundation" });
 		}
 		else if (Target.Platform == UnrealTargetPlatform.Linux)
 		{
 			LibDir = Path.Combine(ThirdPartyDir, "lib", "Linux");
 			PublicAdditionalLibraries.Add(Path.Combine(LibDir, "libgit2.a"));
+			// HTTPS via OpenSSL — link system ssl/crypto
+			PublicSystemLibraries.AddRange(new string[] { "ssl", "crypto" });
 		}
 
 		// Suppress warnings in third-party code
