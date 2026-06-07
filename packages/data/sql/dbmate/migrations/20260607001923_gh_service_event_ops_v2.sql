@@ -434,7 +434,6 @@ LANGUAGE plpgsql
 VOLATILE
 SECURITY DEFINER
 SET search_path = gh, pg_temp
-ROWS 1
 COST 200
 AS $$
 DECLARE
