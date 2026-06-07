@@ -4,17 +4,25 @@
 #   0. Skip if the VM is not running.
 #   1. Wait for the guest agent.
 #   2. CHECK (no token): is the runner service installed and running as
-#      .\Administrator? If so, Start-Service if stopped and EXIT — no token is
-#      minted, nothing is downloaded.
-#   3. Only if the check says otherwise (fresh install, or running as
-#      NETWORK SERVICE): mint a short-lived registration token from the admin:org
-#      PAT (github-arc-token), download the runner from GitHub if needed (the VM
-#      has internet egress but cannot reach the in-cluster file-server), and
-#      config.cmd --replace as a service under .\Administrator.
+#      LocalSystem? If so, Start-Service if stopped and EXIT.
+#   3a. NEEDS_ELEVATE — service exists but runs as the wrong account (e.g.
+#       NETWORK SERVICE): reconfigure it to LocalSystem with `sc.exe config`
+#       and restart. No token, no download — keeps the GitHub registration.
+#   3b. NEEDS_INSTALL — no service yet: mint a registration token from the
+#       admin:org PAT (github-arc-token), download the runner from GitHub if
+#       needed (the VM has internet egress but cannot reach the in-cluster
+#       file-server), config.cmd --runasservice, then sc.exe config to
+#       LocalSystem.
+#
+# LocalSystem is a built-in service account: fully privileged (installs to
+# Program Files + machine PATH for win-setup) with no password and no
+# SeServiceLogonRight grant. config.cmd --windowslogonaccount cannot change an
+# already-installed service's account (it only applies on first install), so the
+# elevation is done with sc.exe against the existing service. See issue #11967.
 #
 # The VM rootdisk is a PVC, so C:\actions-runner (.runner + .credentials)
-# persists across stop/start — normal boots auto-start the service with no token
-# and no re-register, and this script confirms that fast via the CHECK and exits.
+# persists across stop/start — normal boots auto-start the service and the CHECK
+# exits fast.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -35,18 +43,17 @@ data:
         RUNNER_LABELS="${RUNNER_LABELS:-UE5-Win}"
         RUNNER_VERSION="${RUNNER_VERSION:-2.333.0}"
         RUNNER_INSTALL_DIR="${RUNNER_INSTALL_DIR:-C:\\actions-runner}"
-        RUNNER_LOGON_ACCOUNT="${RUNNER_LOGON_ACCOUNT:-.\\Administrator}"
-        ADMIN_PASSWORD="${ADMIN_PASSWORD:?ADMIN_PASSWORD required to run the runner service elevated}"
+        RUNNER_LOGON_ACCOUNT="${RUNNER_LOGON_ACCOUNT:-LocalSystem}"
         RUNNER_ZIP="actions-runner-win-x64-${RUNNER_VERSION}.zip"
         RUNNER_DOWNLOAD_URL="https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${RUNNER_ZIP}"
 
         echo "=== GitHub Actions Runner Install/Heal: ${VM_NAME} ==="
-        echo "  Org: ${GITHUB_ORG} | Runner: ${RUNNER_NAME} (${RUNNER_LABELS}) | v${RUNNER_VERSION}"
+        echo "  Org: ${GITHUB_ORG} | Runner: ${RUNNER_NAME} (${RUNNER_LABELS}) | v${RUNNER_VERSION} | account=${RUNNER_LOGON_ACCOUNT}"
 
         # ── Phase 0: Skip if VM is not running ──
         STATUS=$(kubectl get vm "${VM_NAME}" -n "${NAMESPACE}" -o jsonpath='{.status.printableStatus}' 2>/dev/null || echo "Unknown")
         if [ "${STATUS}" != "Running" ]; then
-            echo "SKIP: VM not running (${STATUS}); runner (re)registers on next boot."
+            echo "SKIP: VM not running (${STATUS}); runner heals on next boot."
             exit 0
         fi
 
@@ -99,17 +106,32 @@ data:
         # ── Phase 2: CHECK (no token, no download) ──
         echo ""
         echo "--- Phase 2: Check runner state ---"
-        CHECK_PS="\$svc = Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" -ErrorAction SilentlyContinue | Select-Object -First 1; if (\$svc -and \$svc.StartName -match 'Administrator') { if (\$svc.State -ne 'Running') { Start-Service \$svc.Name }; Write-Output \"ALREADY_OK \$(\$svc.Name) [\$(\$svc.StartName)] \$((Get-Service \$svc.Name).Status)\" } else { Write-Output (\"NEEDS_REGISTER \" + \$(if (\$svc) { \$svc.StartName } else { 'absent' })) }"
-        CHECK_OUT=$(guest_exec_ps "${CHECK_PS}" 60 || true)
+        CHECK_PS="\$svc = Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" -ErrorAction SilentlyContinue | Select-Object -First 1; if (\$svc -and \$svc.StartName -eq '${RUNNER_LOGON_ACCOUNT}') { if (\$svc.State -ne 'Running') { Start-Service \$svc.Name }; Write-Output \"ALREADY_OK \$(\$svc.Name) [\$(\$svc.StartName)] \$((Get-Service \$svc.Name).Status)\" } elseif (\$svc) { Write-Output \"NEEDS_ELEVATE \$(\$svc.Name) [\$(\$svc.StartName)]\" } else { Write-Output 'NEEDS_INSTALL absent' }"
+        CHECK_OUT=$(guest_exec_ps "${CHECK_PS}" 90 || true)
         echo "Check: ${CHECK_OUT}"
         if echo "${CHECK_OUT}" | grep -q "ALREADY_OK"; then
-            echo "=== Runner already registered as Administrator and running — no token minted, nothing to do. ==="
+            echo "=== Runner already running as ${RUNNER_LOGON_ACCOUNT} — nothing to do. ==="
             exit 0
         fi
 
-        # ── Phase 3: Register (mint token only now that it's actually needed) ──
+        # ── Phase 3a: Elevate existing service to LocalSystem (no token) ──
+        if echo "${CHECK_OUT}" | grep -q "NEEDS_ELEVATE"; then
+            echo ""
+            echo "--- Phase 3a: Reconfigure existing service to ${RUNNER_LOGON_ACCOUNT} (no token) ---"
+            ELEVATE_PS="\$ErrorActionPreference = 'Stop'; \$svc = (Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" | Select-Object -First 1).Name; Write-Output \"Reconfiguring \$svc -> ${RUNNER_LOGON_ACCOUNT}\"; Stop-Service \$svc -Force -ErrorAction SilentlyContinue; & sc.exe config \$svc obj= \"${RUNNER_LOGON_ACCOUNT}\" | Out-Null; Start-Service \$svc; \$acct = (Get-CimInstance Win32_Service -Filter \"Name='\$svc'\").StartName; \$st = (Get-Service \$svc).Status; Write-Output \"RESULT account=\$acct state=\$st\""
+            OUT=$(guest_exec_ps "${ELEVATE_PS}" 120 || true)
+            echo "Elevate: ${OUT}"
+            if echo "${OUT}" | grep -q "account=${RUNNER_LOGON_ACCOUNT}"; then
+                echo "=== SUCCESS: runner service now runs as ${RUNNER_LOGON_ACCOUNT} on ${VM_NAME} ==="
+                exit 0
+            fi
+            echo "ERROR: service account did not switch to ${RUNNER_LOGON_ACCOUNT}"
+            exit 1
+        fi
+
+        # ── Phase 3b: Fresh install (mint token) + elevate ──
         echo ""
-        echo "--- Phase 3: Mint token + register as ${RUNNER_LOGON_ACCOUNT} ---"
+        echo "--- Phase 3b: Fresh install + elevate to ${RUNNER_LOGON_ACCOUNT} ---"
         REG_TOKEN=$(curl -s -X POST \
             -H "Authorization: token ${GITHUB_TOKEN}" \
             -H "Accept: application/vnd.github.v3+json" \
@@ -121,13 +143,12 @@ data:
         fi
         echo "Registration token obtained."
 
-        ADMIN_PASSWORD_PS=$(printf '%s' "${ADMIN_PASSWORD}" | sed "s/'/''/g")
-        REGISTER_PS="\$ErrorActionPreference = 'Stop'; \$installDir = '${RUNNER_INSTALL_DIR}'; \$dlUrl = '${RUNNER_DOWNLOAD_URL}'; \$zip = '${RUNNER_ZIP}'; \$org = '${GITHUB_ORG}'; \$token = '${REG_TOKEN}'; \$name = '${RUNNER_NAME}'; \$labels = '${RUNNER_LABELS}'; \$logonAccount = '${RUNNER_LOGON_ACCOUNT}'; \$logonPwd = '${ADMIN_PASSWORD_PS}'; try { Stop-Service actions.runner.* -Force -ErrorAction SilentlyContinue } catch {}; New-Item -ItemType Directory -Force -Path \$installDir | Out-Null; if (-not (Test-Path (Join-Path \$installDir 'config.cmd'))) { Write-Output 'Downloading runner from GitHub...'; \$zipPath = Join-Path \$installDir \$zip; curl.exe -L -s --retry 5 --retry-all-errors -C - -o \$zipPath \$dlUrl; Expand-Archive -Path \$zipPath -DestinationPath \$installDir -Force; Remove-Item \$zipPath -Force } else { Write-Output 'Runner binaries present, reusing' }; Set-Location \$installDir; & .\\config.cmd --url \"https://github.com/\$org\" --token \$token --name \$name --labels \$labels --runasservice --windowslogonaccount \$logonAccount --windowslogonpassword \$logonPwd --replace --unattended; Write-Output \"REGISTERED runner as \$logonAccount\""
-        REG_OUT=$(guest_exec_ps "${REGISTER_PS}" 420 || true)
-        echo "Register: ${REG_OUT}"
-        if echo "${REG_OUT}" | grep -q "REGISTERED"; then
-            echo "=== SUCCESS: runner registered as ${RUNNER_LOGON_ACCOUNT} on ${VM_NAME} (${RUNNER_NAME}, ${RUNNER_LABELS}) ==="
+        INSTALL_PS="\$ErrorActionPreference = 'Stop'; \$installDir = '${RUNNER_INSTALL_DIR}'; \$dlUrl = '${RUNNER_DOWNLOAD_URL}'; \$zip = '${RUNNER_ZIP}'; \$org = '${GITHUB_ORG}'; \$token = '${REG_TOKEN}'; \$name = '${RUNNER_NAME}'; \$labels = '${RUNNER_LABELS}'; try { Stop-Service actions.runner.* -Force -ErrorAction SilentlyContinue } catch {}; New-Item -ItemType Directory -Force -Path \$installDir | Out-Null; if (-not (Test-Path (Join-Path \$installDir 'config.cmd'))) { Write-Output 'Downloading runner from GitHub...'; \$zipPath = Join-Path \$installDir \$zip; curl.exe -L -s --retry 5 --retry-all-errors -C - -o \$zipPath \$dlUrl; Expand-Archive -Path \$zipPath -DestinationPath \$installDir -Force; Remove-Item \$zipPath -Force } else { Write-Output 'Runner binaries present, reusing' }; Set-Location \$installDir; & .\\config.cmd --url \"https://github.com/\$org\" --token \$token --name \$name --labels \$labels --runasservice --replace --unattended; \$svc = (Get-CimInstance Win32_Service -Filter \"Name like 'actions.runner.%'\" | Select-Object -First 1).Name; Stop-Service \$svc -Force -ErrorAction SilentlyContinue; & sc.exe config \$svc obj= \"${RUNNER_LOGON_ACCOUNT}\" | Out-Null; Start-Service \$svc; \$acct = (Get-CimInstance Win32_Service -Filter \"Name='\$svc'\").StartName; Write-Output \"RESULT account=\$acct\""
+        OUT=$(guest_exec_ps "${INSTALL_PS}" 420 || true)
+        echo "Install: ${OUT}"
+        if echo "${OUT}" | grep -q "account=${RUNNER_LOGON_ACCOUNT}"; then
+            echo "=== SUCCESS: runner installed + running as ${RUNNER_LOGON_ACCOUNT} on ${VM_NAME} (${RUNNER_NAME}, ${RUNNER_LABELS}) ==="
         else
-            echo "ERROR: registration did not confirm"
+            echo "ERROR: install/elevate did not confirm ${RUNNER_LOGON_ACCOUNT}"
             exit 1
         fi
