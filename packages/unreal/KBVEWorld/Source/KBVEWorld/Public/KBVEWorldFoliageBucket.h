@@ -30,8 +30,8 @@ struct KBVEWORLD_API FKBVEWorldFoliageBucketConfig
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "1")) int32 MaxVariants = 32;
 	UPROPERTY(EditAnywhere) float DensityScale     = 1.0f;
 	UPROPERTY(EditAnywhere) float ScaleMultiplier  = 1.0f;
-	UPROPERTY(EditAnywhere) int32 CullStart        = 25000;
-	UPROPERTY(EditAnywhere) int32 CullEnd          = 26000;
+	UPROPERTY(EditAnywhere) int32 CullStart        = 0;
+	UPROPERTY(EditAnywhere) int32 CullEnd          = 0;
 	UPROPERTY(EditAnywhere) bool  bCastShadow      = false;
 	UPROPERTY(EditAnywhere) EKBVEWorldFoliageTier Tier = EKBVEWorldFoliageTier::Grass;
 
