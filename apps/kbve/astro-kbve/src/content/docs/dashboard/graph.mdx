@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## NX Dependency Graph
 
 :::note[Auto-generated]
-Last generated: **2026-06-06T09:03:05Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-06-07T09:12:16Z** — updated daily by `ci-dashboard`.
 :::
 
 <CardGrid>
@@ -26,7 +26,7 @@ Last generated: **2026-06-06T09:03:05Z** — updated daily by `ci-dashboard`.
   <Card title="41 Libs" icon="puzzle">
     arc-runner, aria2-proxy, astro, bevy_battle, bevy_behavior, bevy_cam + 35 more
   </Card>
-  <Card title="47 Dependencies" icon="random">
+  <Card title="48 Dependencies" icon="random">
     Across 107 projects in the monorepo.
   </Card>
 </CardGrid>
@@ -38,7 +38,7 @@ Last generated: **2026-06-06T09:03:05Z** — updated daily by `ci-dashboard`.
     **13** projects depend on this lib. Located at `packages/npm/droid`.
   </Card>
   <Card title="astro" icon="puzzle">
-    **10** projects depend on this lib. Located at `packages/npm/astro`.
+    **11** projects depend on this lib. Located at `packages/npm/astro`.
   </Card>
   <Card title="devops" icon="puzzle">
     **5** projects depend on this lib. Located at `packages/npm/devops`.
@@ -67,7 +67,7 @@ pie showData
 pie showData
     title Dependents per Hub
     "droid" : 13
-    "astro" : 10
+    "astro" : 11
     "devops" : 5
     "laser" : 4
     "axum-kbve" : 2
@@ -87,6 +87,7 @@ graph LR
     astro["astro"] --> droid["droid"]
     astro_chuckrpg["astro-chuckrpg"] --> astro["astro"]
     astro_chuckrpg["astro-chuckrpg"] --> droid["droid"]
+    astro_cryptothrone["astro-cryptothrone"] --> astro["astro"]
     astro_cryptothrone["astro-cryptothrone"] --> laser["laser"]
     astro_cryptothrone_e2e["astro-cryptothrone-e2e"] --> astro_cryptothrone["astro-cryptothrone"]
     astro_discordsh["astro-discordsh"] --> astro["astro"]
@@ -150,9 +151,9 @@ graph LR
 | **arc-runner-e2e** | e2e | `packages/docker/arc-runner-e2e` | 1 | 0 |
 | **aria2-proxy** | lib | `apps/vm/aria2-proxy` | 0 | 1 |
 | **aria2-proxy-e2e** | e2e | `apps/vm/aria2-proxy-e2e` | 1 | 0 |
-| **astro** | lib | `packages/npm/astro` | 2 | 10 |
+| **astro** | lib | `packages/npm/astro` | 2 | 11 |
 | **astro-chuckrpg** | app | `apps/chuckrpg/astro-chuckrpg` | 2 | 0 |
-| **astro-cryptothrone** | app | `apps/cryptothrone/astro-cryptothrone` | 1 | 1 |
+| **astro-cryptothrone** | app | `apps/cryptothrone/astro-cryptothrone` | 2 | 1 |
 | **astro-cryptothrone-e2e** | e2e | `apps/cryptothrone/astro-cryptothrone-e2e` | 1 | 0 |
 | **astro-discordsh** | app | `apps/discordsh/astro-discordsh` | 2 | 1 |
 | **astro-e2e** | e2e | `packages/npm/astro-e2e` | 3 | 0 |
@@ -275,10 +276,11 @@ graph LR
 </details>
 
 <details>
-<summary><strong>astro-cryptothrone</strong> (1 dep)</summary>
+<summary><strong>astro-cryptothrone</strong> (2 deps)</summary>
 
 | Target | Type |
 |--------|------|
+| astro | static |
 | laser | static |
 
 </details>
