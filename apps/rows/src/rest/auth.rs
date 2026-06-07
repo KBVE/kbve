@@ -62,6 +62,9 @@ struct LoginDto {
     password: String,
 }
 
+/// DEPRECATED: `LoginAndCreateSession` is the legacy OWS local email/password login. Clients should
+/// authenticate against Supabase and call `ExternalLoginAndCreateSession`; this endpoint stays only
+/// for backwards compatibility and will be removed.
 async fn login(
     State(hs): State<HandlerState>,
     Json(body): Json<LoginDto>,
@@ -212,6 +215,9 @@ struct RegisterUserDto {
     last_name: String,
 }
 
+/// DEPRECATED: `RegisterUser` creates a legacy OWS local account with a password hash. Accounts now
+/// originate in Supabase and are provisioned on first `ExternalLoginAndCreateSession`; kept for
+/// backwards compatibility only, slated for removal.
 async fn register_user(
     State(hs): State<HandlerState>,
     headers: HeaderMap,

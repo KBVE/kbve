@@ -7,6 +7,9 @@ use uuid::Uuid;
 pub struct UsersRepo<'a>(pub &'a DbPool);
 
 impl<'a> UsersRepo<'a> {
+    /// DEPRECATED: verifies a legacy OWS local password (bcrypt via pgcrypto, argon2 fallback, with
+    /// transparent rehash). Supabase is now the auth source; this and the `passwordhash` column are
+    /// kept for backwards compatibility and will be removed once legacy clients are migrated.
     pub async fn login(&self, email: &str, password: &str) -> Result<LoginResult, RowsError> {
         let row: Option<(Uuid, Uuid)> = sqlx::query_as(
             "SELECT c.customerguid, u.userguid
@@ -180,6 +183,9 @@ impl<'a> UsersRepo<'a> {
         self.get_session(session_guid).await
     }
 
+    /// DEPRECATED: inserts a legacy OWS local account with a password hash. Supabase-backed accounts
+    /// are provisioned via [`UsersRepo::find_or_create_supabase_user`]; kept for backwards
+    /// compatibility, slated for removal.
     pub async fn register(
         &self,
         customer_guid: Uuid,
@@ -293,7 +299,8 @@ impl<'a> UsersRepo<'a> {
     /// Find-or-create the OWS user keyed on the Supabase UUID (`sub`), which becomes the canonical
     /// `userguid`. Legacy rows matched by email (random `userguid` from the pre-Supabase era) are
     /// re-keyed onto the Supabase UUID. A random argon2 hash satisfies the `passwordhash` NOT NULL
-    /// constraint since auth happens against Supabase, not this row.
+    /// constraint since auth happens against Supabase, not this row — the column is now vestigial and
+    /// is kept (unused) for backwards compatibility; it is slated for removal alongside local login.
     pub async fn find_or_create_supabase_user(
         &self,
         customer_guid: Uuid,

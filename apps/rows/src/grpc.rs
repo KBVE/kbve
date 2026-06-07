@@ -55,6 +55,8 @@ pub struct PublicApiService {
 
 #[tonic::async_trait]
 impl PublicApi for PublicApiService {
+    /// DEPRECATED: legacy OWS local email/password login. Prefer Supabase auth (bearer metadata on
+    /// the protected RPCs); retained for backwards compatibility and slated for removal.
     async fn login(&self, req: Request<LoginRequest>) -> Result<Response<LoginResponse>, Status> {
         let r = req.get_ref();
         let result = self
@@ -76,6 +78,8 @@ impl PublicApi for PublicApiService {
         }))
     }
 
+    /// DEPRECATED: legacy OWS local account creation. Accounts now originate in Supabase and are
+    /// provisioned on first external login; retained for backwards compatibility, slated for removal.
     async fn register(
         &self,
         req: Request<RegisterRequest>,
