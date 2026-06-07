@@ -49,15 +49,54 @@ AchuckArcadeCabinet::AchuckArcadeCabinet()
 
 	ScreenSurface = CreateDefaultSubobject<UKBVEWebSurfaceComponent>(TEXT("ScreenSurface"));
 	ScreenSurface->SetupAttachment(RootComponent);
-	ScreenSurface->SetRelativeLocation(FVector(0.f, 15.f, 130.f));
-	ScreenSurface->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
-	ScreenSurface->SetRelativeScale3D(FVector(0.18f, 0.18f, 0.18f));
-	ScreenSurface->SetDrawSize(FVector2D(640.f, 480.f));
+	ScreenSurface->SetRelativeLocation(FVector(0.f, -12.f, 125.f));
+	ScreenSurface->SetRelativeRotation(FRotator(13.f, 90.f, 0.f));
+	ScreenSurface->SetRelativeScale3D(FVector(0.10f, 0.15f, 0.11f));
+	ScreenSurface->SetDrawSize(FVector2D(480.f, 640.f));
 	ScreenSurface->SetDrawAtDesiredSize(false);
+	ScreenSurface->SetTintColorAndOpacity(FLinearColor(0.55f, 0.55f, 0.55f, 1.f));
+	ScreenSurface->SetOpacityFromTexture(1.f);
 	ScreenSurface->bPauseWhenOffscreen = true;
 	ScreenSurface->InitialURL = FString();
 
 	SetReplicates(false);
+}
+
+void AchuckArcadeCabinet::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	if (Mesh && !Mesh->GetStaticMesh())
+	{
+		UStaticMesh* SM = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Art/Furniture/Arcade/ArcadeCabinet.ArcadeCabinet"));
+		if (SM)
+		{
+			Mesh->SetStaticMesh(SM);
+			UE_LOG(LogTemp, Display, TEXT("[Arcade] Runtime-loaded SM_ArcadeCabinet for %s"), *GetName());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[Arcade] %s could not locate /Game/Art/Furniture/Arcade/ArcadeCabinet"), *GetName());
+		}
+	}
+
+	if (Mesh && Mesh->GetStaticMesh())
+	{
+		UMaterialInterface* Mat = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Art/Furniture/Arcade/M_Arcade.M_Arcade"));
+		if (Mat)
+		{
+			const int32 NumSlots = Mesh->GetNumMaterials();
+			for (int32 i = 0; i < NumSlots; ++i)
+			{
+				Mesh->SetMaterial(i, Mat);
+			}
+			UE_LOG(LogTemp, Display, TEXT("[Arcade] Force-patched M_Arcade onto %d slots for %s"), NumSlots, *GetName());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[Arcade] %s could not locate /Game/Art/Furniture/Arcade/M_Arcade"), *GetName());
+		}
+	}
 }
 
 void AchuckArcadeCabinet::BeginPlay()
