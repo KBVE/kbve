@@ -1,0 +1,43 @@
+---
+title: KBVENPCDB
+description: |
+    Game-agnostic NPC database loader + UE Mass Entity integration — loads the shared npcdb artifact into runtime NPC defs, exposes ref lookup, and spawns Mass entities (FKBVENpcFragment) from db data.
+sidebar:
+    label: KBVENPCDB
+    order: 79
+tags:
+    - unreal
+    - npc
+key: ue_kbvenpcdb
+pipeline: unreal
+plugin_name: KBVENPCDB
+plugin_path: packages/unreal/KBVENPCDB
+version: "0.1.0"
+source_path: packages/unreal/KBVENPCDB
+version_toml: packages/unreal/KBVENPCDB/version.toml
+author: h0lybyte
+license: KBVE
+status: beta
+min_engine_version: "5.4"
+supported_platforms:
+    - Win64
+    - Linux
+    - Mac
+---
+
+## Overview
+
+Game-agnostic NPC database + Mass Entity bridge. Mirrors the itemdb loader
+pattern but ships as a reusable plugin:
+
+- **`UKBVENpcDatabase`** (GameInstance subsystem) — loads `Content/Data/npcdb-data.json`
+  (the shared npcdb codegen artifact) into `FKBVENpcDef` records; lookup by `ref`.
+- **`FKBVENpcDef` / `FKBVENpcStats`** — runtime NPC def (identity, stats, level,
+  faction, abilities, tags, aggro, first-strike).
+- **`FKBVENpcFragment` / `FKBVENpcTag`** — Mass fragment + tag carrying the
+  NPC's db identity into the entity world.
+- **`UKBVENpcSpawner`** (World subsystem) — `SpawnNpcEntity(Def)` creates a Mass
+  entity with the NPC fragment; the game adds its own fragments (stats, transform).
+
+NPC DATA stays in the shared npcdb MDX; the plugin owns the load + Mass bridge.
+ChuckRPG calls it to spawn data-driven NPC entities.
