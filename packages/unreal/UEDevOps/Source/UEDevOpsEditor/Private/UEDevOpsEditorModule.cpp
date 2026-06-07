@@ -50,9 +50,18 @@ void FUEDevOpsEditorModule::RegisterMenus()
 {
 	FToolMenuOwnerScoped OwnerScoped(this);
 
-	UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.Tools");
-	FToolMenuSection& Section = Menu->FindOrAddSection("UEDevOps");
-	Section.Label = LOCTEXT("UEDevOpsSection", "UEDevOps");
+	UToolMenu* MenuBar = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu");
+	MenuBar->AddSubMenu(
+		"MainMenu",
+		NAME_None,
+		"KBVE",
+		LOCTEXT("KBVEMenu", "KBVE"),
+		LOCTEXT("KBVEMenuTooltip", "KBVE Tools and Plugin Management")
+	);
+
+	UToolMenu* Menu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.KBVE");
+	FToolMenuSection& Section = Menu->FindOrAddSection("DevOps");
+	Section.Label = LOCTEXT("UEDevOpsSection", "DevOps");
 
 	Section.AddMenuEntry(
 		"FlushTelemetry",
