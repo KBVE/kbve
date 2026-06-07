@@ -11,7 +11,7 @@ UchuckSimEvents* UchuckSimEvents::Get(const UObject* WorldContext)
 
 void UchuckSimEvents::Tick(float DeltaTime)
 {
-	CombatHits.Drain([this](const FchuckCombatHitPayload& P) { OnCombatHit.Publish(P); });
-	Killed.Drain    ([this](const FchuckEntityKilledPayload& P) { OnKilled.Publish(P);    });
+	CombatHits.Drain([this](const FKBVECombatHitPayload& P) { OnCombatHit.Publish(P); });
+	Killed.Drain    ([this](const FKBVEEntityKilledPayload& P) { OnKilled.Publish(P);    });
 	Pickups.Drain   ([this](const FchuckPickupRequestPayload& P) { OnPickup.Publish(P);  });
 }

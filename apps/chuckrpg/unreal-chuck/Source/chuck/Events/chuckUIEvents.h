@@ -23,11 +23,11 @@ class UchuckUIEvents : public UGameInstanceSubsystem
 public:
 	static UchuckUIEvents* Get(const UObject* WorldContext);
 
-	TKBVEChannel<FchuckHealthChangedPayload>   Health;
-	TKBVEChannel<FchuckManaChangedPayload>     Mana;
-	TKBVEChannel<FchuckStaminaChangedPayload>  Stamina;
+	TKBVEChannel<FKBVEHealthChangedPayload>   Health;
+	TKBVEChannel<FKBVEManaChangedPayload>     Mana;
+	TKBVEChannel<FKBVEStaminaChangedPayload>  Stamina;
 	TKBVEChannel<FchuckInventoryDirtyPayload>  InventoryDirty;
-	TKBVEChannel<FchuckDamageReceivedPayload>  DamageReceived;
+	TKBVEChannel<FKBVEDamageReceivedPayload>  DamageReceived;
 	TKBVEChannel<FchuckTooltipPayload>         Tooltip;
 	TKBVEChannel<FchuckItemConsumedPayload>    ItemConsumed;
 

@@ -60,3 +60,14 @@ Also holds the agnostic gameplay-stat layer (the effect target it feeds):
 
 `UKBVEEffectComponent` applies effects through `IKBVEStatTarget`; a game's stat
 owner maps those onto its `FKBVEStatBlock` / `FKBVEStatFragment`.
+
+## Event payloads (`KBVEGameplayEvents.h`)
+
+Shared cross-game vocabulary for stat/combat signals — plain POD structs a game
+and reusable UI agree on: `FKBVEHealthChangedPayload` / `FKBVEManaChangedPayload`
+/ `FKBVEStaminaChangedPayload` (current/max + stamina regen delay),
+`FKBVEDamageReceivedPayload` (amount + damage-bit), and the Mass-sim
+`FKBVECombatHitPayload` / `FKBVEEntityKilledPayload` (entity handles). Transport
+stays the game's — these are only the contract; chuck pipes them through its own
+`TKBVEChannel` hubs. Game-specific payloads (inventory-dirty, tooltip,
+item-consumed, pickup, auth, chat, ui-flags) stay in the game.

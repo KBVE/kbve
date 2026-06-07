@@ -30,11 +30,11 @@ public:
 	virtual bool IsTickable() const override { return true; }
 	virtual bool IsTickableInEditor() const override { return false; }
 
-	TKBVEMpscQueue<FchuckCombatHitPayload>    CombatHits;
-	TKBVEMpscQueue<FchuckEntityKilledPayload> Killed;
+	TKBVEMpscQueue<FKBVECombatHitPayload>    CombatHits;
+	TKBVEMpscQueue<FKBVEEntityKilledPayload> Killed;
 	TKBVEMpscQueue<FchuckPickupRequestPayload> Pickups;
 
-	TKBVEChannel<FchuckCombatHitPayload>      OnCombatHit;
-	TKBVEChannel<FchuckEntityKilledPayload>   OnKilled;
+	TKBVEChannel<FKBVECombatHitPayload>      OnCombatHit;
+	TKBVEChannel<FKBVEEntityKilledPayload>   OnKilled;
 	TKBVEChannel<FchuckPickupRequestPayload>  OnPickup;
 };
