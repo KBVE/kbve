@@ -7,6 +7,7 @@
 class SEditableTextBox;
 class STextBlock;
 class SScrollBox;
+template <typename OptionType> class SComboBox;
 
 class UEDEVOPSEDITOR_API SUEDevOpsPanel : public SCompoundWidget
 {
@@ -16,6 +17,9 @@ public:
 
 	void Construct(const FArguments& InArgs);
 
+	static const TArray<FString>& GetArtCategories();
+	static void ScaffoldArtCategories();
+
 private:
 	FReply HandleImportPickClicked();
 	FReply HandleImportRunClicked();
@@ -23,11 +27,17 @@ private:
 	FReply HandleGitHubIssueClicked();
 
 	void   AppendLog(const FString& Line);
+	void   RefreshDestFromCategory();
+	void   OnCategoryChanged(TSharedPtr<FString> NewCategory, ESelectInfo::Type SelectInfo);
 
 	TSharedPtr<SEditableTextBox> SourceInput;
 	TSharedPtr<SEditableTextBox> DestInput;
 	TSharedPtr<SEditableTextBox> MaterialInput;
 	TSharedPtr<SScrollBox>       LogScroll;
+
+	TArray<TSharedPtr<FString>>            CategoryOptions;
+	TSharedPtr<FString>                    SelectedCategory;
+	TSharedPtr<SComboBox<TSharedPtr<FString>>> CategoryCombo;
 
 	TArray<TSharedPtr<STextBlock>> LogLines;
 };

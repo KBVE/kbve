@@ -300,8 +300,9 @@ void FUEDevOpsImportLibrary::PromptAndImport()
 		return;
 	}
 
-	const FString DestContentPath = TEXT("/Game/Art/") + FPaths::GetCleanFilename(SourceFolder);
-	const FString MaterialName    = FPaths::GetCleanFilename(SourceFolder);
+	const FString FolderName      = FPaths::GetCleanFilename(SourceFolder);
+	const FString DestContentPath = FString::Printf(TEXT("/Game/Art/Furniture/%s"), *FolderName);
+	const FString MaterialName    = FolderName;
 
 	UE_LOG(LogTemp, Display, TEXT("[UEDevOps] Source=%s Dest=%s Material=%s"),
 		*SourceFolder, *DestContentPath, *MaterialName);

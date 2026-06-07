@@ -1,6 +1,7 @@
 #include "SUEDevOpsPanel.h"
 
 #include "Editor.h"
+#include "EditorAssetLibrary.h"
 #include "Engine/GameInstance.h"
 #include "Framework/Notifications/NotificationManager.h"
 #include "Misc/Paths.h"
@@ -9,6 +10,7 @@
 #include "UEDevOpsImportLibrary.h"
 #include "UEDevOpsTelemetrySubsystem.h"
 #include "Widgets/Input/SButton.h"
+#include "Widgets/Input/SComboBox.h"
 #include "Widgets/Input/SEditableTextBox.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SScrollBox.h"
@@ -19,12 +21,50 @@
 
 #define LOCTEXT_NAMESPACE "SUEDevOpsPanel"
 
+const TArray<FString>& SUEDevOpsPanel::GetArtCategories()
+{
+	static const TArray<FString> Categories = {
+		TEXT("Furniture"),
+		TEXT("Environment"),
+		TEXT("Decorations"),
+		TEXT("Architecture"),
+		TEXT("Props"),
+		TEXT("Foliage"),
+		TEXT("Characters"),
+		TEXT("Weapons"),
+		TEXT("Vehicles"),
+		TEXT("FX"),
+		TEXT("UI"),
+		TEXT("Materials"),
+		TEXT("Textures"),
+		TEXT("Audio"),
+	};
+	return Categories;
+}
+
+void SUEDevOpsPanel::ScaffoldArtCategories()
+{
+	UEditorAssetLibrary::MakeDirectory(TEXT("/Game/Art"));
+	for (const FString& Cat : GetArtCategories())
+	{
+		UEditorAssetLibrary::MakeDirectory(FString::Printf(TEXT("/Game/Art/%s"), *Cat));
+	}
+}
+
 void SUEDevOpsPanel::Construct(const FArguments& InArgs)
 {
 	const FSlateFontInfo HeaderFont = FCoreStyle::GetDefaultFontStyle("Bold", 16);
 	const FSlateFontInfo SubFont    = FCoreStyle::GetDefaultFontStyle("Bold", 13);
 
 	const FString DefaultSource = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir() / TEXT("Raw"));
+
+	for (const FString& Cat : GetArtCategories())
+	{
+		CategoryOptions.Add(MakeShared<FString>(Cat));
+	}
+	SelectedCategory = CategoryOptions.Num() > 0 ? CategoryOptions[0] : MakeShared<FString>(TEXT("Furniture"));
+
+	ScaffoldArtCategories();
 
 	ChildSlot
 	[
@@ -56,16 +96,38 @@ void SUEDevOpsPanel::Construct(const FArguments& InArgs)
 				SAssignNew(SourceInput, SEditableTextBox)
 				.HintText(LOCTEXT("SourceHint", "/abs/path/to/Raw/Props/Arcade"))
 				.Text(FText::FromString(DefaultSource))
+				.OnTextChanged_Lambda([this](const FText&){ RefreshDestFromCategory(); })
 			]
 			+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 4)
 			[
-				SNew(STextBlock).Text(LOCTEXT("DestLabel", "Destination content path"))
+				SNew(STextBlock).Text(LOCTEXT("CategoryLabel", "Category (/Game/Art/<category>)"))
+			]
+			+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 6)
+			[
+				SAssignNew(CategoryCombo, SComboBox<TSharedPtr<FString>>)
+				.OptionsSource(&CategoryOptions)
+				.InitiallySelectedItem(SelectedCategory)
+				.OnSelectionChanged(this, &SUEDevOpsPanel::OnCategoryChanged)
+				.OnGenerateWidget_Lambda([](TSharedPtr<FString> Item)
+				{
+					return SNew(STextBlock).Text(FText::FromString(*Item));
+				})
+				[
+					SNew(STextBlock).Text_Lambda([this]()
+					{
+						return SelectedCategory.IsValid() ? FText::FromString(*SelectedCategory) : FText::GetEmpty();
+					})
+				]
+			]
+			+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 4)
+			[
+				SNew(STextBlock).Text(LOCTEXT("DestLabel", "Destination content path (auto-fills from category)"))
 			]
 			+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 6)
 			[
 				SAssignNew(DestInput, SEditableTextBox)
-				.HintText(LOCTEXT("DestHint", "/Game/Art/Arcade — pick any category"))
-				.Text(FText::FromString(TEXT("/Game/Art")))
+				.HintText(LOCTEXT("DestHint", "/Game/Art/Furniture/Arcade"))
+				.Text(FText::FromString(TEXT("/Game/Art/Furniture")))
 			]
 			+ SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 4)
 			[
@@ -131,6 +193,43 @@ void SUEDevOpsPanel::Construct(const FArguments& InArgs)
 			]
 		]
 	];
+
+	RefreshDestFromCategory();
+}
+
+void SUEDevOpsPanel::OnCategoryChanged(TSharedPtr<FString> NewCategory, ESelectInfo::Type)
+{
+	if (!NewCategory.IsValid()) return;
+	SelectedCategory = NewCategory;
+	RefreshDestFromCategory();
+}
+
+void SUEDevOpsPanel::RefreshDestFromCategory()
+{
+	if (!SelectedCategory.IsValid() || !DestInput.IsValid()) return;
+	const FString Category = *SelectedCategory;
+
+	FString SourceFolderName;
+	if (SourceInput.IsValid())
+	{
+		const FString Src = SourceInput->GetText().ToString().TrimStartAndEnd();
+		if (!Src.IsEmpty())
+		{
+			SourceFolderName = FPaths::GetCleanFilename(Src);
+		}
+	}
+
+	FString NewDest = FString::Printf(TEXT("/Game/Art/%s"), *Category);
+	if (!SourceFolderName.IsEmpty())
+	{
+		NewDest /= SourceFolderName;
+	}
+	DestInput->SetText(FText::FromString(NewDest));
+
+	if (MaterialInput.IsValid() && MaterialInput->GetText().IsEmpty() && !SourceFolderName.IsEmpty())
+	{
+		MaterialInput->SetText(FText::FromString(SourceFolderName));
+	}
 }
 
 void SUEDevOpsPanel::AppendLog(const FString& Line)
