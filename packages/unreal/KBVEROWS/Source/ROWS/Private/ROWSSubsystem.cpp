@@ -46,8 +46,14 @@ void UROWSSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	EnsureTrailingSlash(CharacterPersistencePath);
 	EnsureTrailingSlash(GlobalDataPath);
 
-	UE_LOG(LogROWS, Log, TEXT("ROWS initialized — API: %s | Instance: %s | Character: %s | GlobalData: %s"),
-		*APIPath, *InstanceManagementPath, *CharacterPersistencePath, *GlobalDataPath);
+	if (IsRunningDedicatedServer())
+	{
+		ServiceKey = FPlatformMisc::GetEnvironmentVariable(TEXT("OWS_SERVICE_KEY"));
+	}
+
+	UE_LOG(LogROWS, Log, TEXT("ROWS initialized — API: %s | Instance: %s | Character: %s | GlobalData: %s | ServiceKey: %s"),
+		*APIPath, *InstanceManagementPath, *CharacterPersistencePath, *GlobalDataPath,
+		HasServiceKey() ? TEXT("loaded") : TEXT("none"));
 }
 
 void UROWSSubsystem::Deinitialize()
@@ -73,6 +79,10 @@ void UROWSSubsystem::PostRequest(
 	Request->SetVerb(TEXT("POST"));
 	Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
 	Request->SetHeader(TEXT("X-CustomerGUID"), CustomerKey);
+	if (!ServiceKey.IsEmpty())
+	{
+		Request->SetHeader(TEXT("x-service-key"), ServiceKey);
+	}
 	if (!SupabaseAccessToken.IsEmpty())
 	{
 		Request->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *SupabaseAccessToken));
