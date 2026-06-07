@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.187",
+			"version": "1.0.188",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -703,7 +703,7 @@
 			"key": "ue_kbveitemdb",
 			"plugin_name": "KBVEItemDB",
 			"plugin_path": "packages/unreal/KBVEItemDB",
-			"dependency_plugins": "packages/unreal/KBVESQLite",
+			"dependency_plugins": "packages/unreal/KBVESQLite packages/unreal/KBVEYYJson",
 			"supported_platforms": [
 				"Win64",
 				"Linux",
