@@ -403,14 +403,13 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		next.setLoop(loop ? LoopRepeat : LoopOnce, Infinity);
 		next.clampWhenFinished = true;
 		next.reset();
-		next.setEffectiveTimeScale(1);
-		next.setEffectiveWeight(1);
-		next.play();
 		if (currentAction) {
-			currentAction.crossFadeTo(next, fade, false);
-		} else {
+			currentAction.fadeOut(fade);
 			next.fadeIn(fade);
+		} else {
+			next.setEffectiveWeight(1);
 		}
+		next.play();
 		currentAction = next;
 	};
 
