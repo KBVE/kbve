@@ -22,8 +22,8 @@
 #include "chuckInputs.h"
 #include "chuckInventoryFragment.h"
 #include "chuckItemDB.h"
-#include "chuckMoveState.h"
-#include "chuckStatsFragment.h"
+#include "KBVEMovementState.h"
+#include "KBVEStatFragment.h"
 #include "chuckUIEvents.h"
 #include "Engine/GameInstance.h"
 
@@ -170,12 +170,12 @@ void AchuckCoreCharacter::CreateStatEntity()
 	FMassEntityManager& EntityManager = Mass->GetMutableEntityManager();
 
 	TArray<const UScriptStruct*> FragmentTypes;
-	FragmentTypes.Add(FchuckStatsFragment::StaticStruct());
+	FragmentTypes.Add(FKBVEStatFragment::StaticStruct());
 
 	FMassArchetypeHandle Archetype = EntityManager.CreateArchetype(FragmentTypes);
 	StatEntity = EntityManager.CreateEntity(Archetype);
 
-	if (FchuckStatsFragment* Frag = EntityManager.GetFragmentDataPtr<FchuckStatsFragment>(StatEntity))
+	if (FKBVEStatFragment* Frag = EntityManager.GetFragmentDataPtr<FKBVEStatFragment>(StatEntity))
 	{
 		Frag->Health                    = Stats.Health;
 		Frag->MaxHealth                 = Stats.MaxHealth;
@@ -230,7 +230,7 @@ void AchuckCoreCharacter::SyncStatsFragment(float DeltaSeconds)
 	}
 
 	FMassEntityManager& EM = Mass->GetMutableEntityManager();
-	FchuckStatsFragment* Frag = EM.GetFragmentDataPtr<FchuckStatsFragment>(StatEntity);
+	FKBVEStatFragment* Frag = EM.GetFragmentDataPtr<FKBVEStatFragment>(StatEntity);
 	if (!Frag)
 	{
 		return;
@@ -241,13 +241,13 @@ void AchuckCoreCharacter::SyncStatsFragment(float DeltaSeconds)
 	const bool bFalling  = Move && Move->IsFalling();
 	const bool bMoving   = bOnGround && Move->Velocity.SizeSquared2D() > 1.f;
 
-	EchuckMoveState State = EchuckMoveState::None;
-	chuckMove::Assign(State, EchuckMoveState::OnGround,  bOnGround);
-	chuckMove::Assign(State, EchuckMoveState::InAir,     !bOnGround);
-	chuckMove::Assign(State, EchuckMoveState::Falling,   bFalling);
-	chuckMove::Assign(State, EchuckMoveState::Moving,    bMoving);
-	chuckMove::Assign(State, EchuckMoveState::Sprinting, IsSprinting());
-	chuckMove::Assign(State, EchuckMoveState::Crouching, bIsCrouched);
+	EKBVEMovementState State = EKBVEMovementState::None;
+	KBVEMove::Assign(State, EKBVEMovementState::OnGround,  bOnGround);
+	KBVEMove::Assign(State, EKBVEMovementState::InAir,     !bOnGround);
+	KBVEMove::Assign(State, EKBVEMovementState::Falling,   bFalling);
+	KBVEMove::Assign(State, EKBVEMovementState::Moving,    bMoving);
+	KBVEMove::Assign(State, EKBVEMovementState::Sprinting, IsSprinting());
+	KBVEMove::Assign(State, EKBVEMovementState::Crouching, bIsCrouched);
 	Frag->MoveState = State;
 
 	Stats.Health           = Frag->Health;
@@ -566,7 +566,7 @@ bool AchuckCoreCharacter::ServerConsumeSlot(int32 SlotIndex, bool bHotbar)
 	UMassEntitySubsystem* Mass = World ? World->GetSubsystem<UMassEntitySubsystem>() : nullptr;
 	if (Mass && StatEntity.IsValid())
 	{
-		if (FchuckStatsFragment* Frag = Mass->GetMutableEntityManager().GetFragmentDataPtr<FchuckStatsFragment>(StatEntity))
+		if (FKBVEStatFragment* Frag = Mass->GetMutableEntityManager().GetFragmentDataPtr<FKBVEStatFragment>(StatEntity))
 		{
 			Frag->Health  = Stats.Health;
 			Frag->Mana    = Stats.Mana;
