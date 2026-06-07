@@ -1,9 +1,63 @@
 # KEDA ScaledJobs for KubeVirt VM lifecycle.
 #
-# Scale UP: removed — VMs are now started via workflow_dispatch from CI.
-# Scale DOWN: cron trigger fires the idle check; the check only stops the VM
-# when the runner is actually idle. The cron is just the check cadence, NOT a
-# hard timer — an active runner is never stopped.
+# Scale UP: github-runner trigger — boots the VM when a job is queued for the
+# runner label. Windows only (macOS VM not provisioned). Long pollingInterval to
+# keep GitHub API usage low (the original short interval + 2 scalers caused the
+# rate-limit burn that got these removed; one scaler at 600s is well under limit).
+# Scale DOWN: cron trigger fires the idle check; the check only stops the VM when
+# the runner is actually idle (activity-aware), never an active runner.
+---
+# ──────────────────────────────────────────────────────────────
+# SCALE UP — boot the VM when a UE5-Win job is queued
+# ──────────────────────────────────────────────────────────────
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+    name: vm-start-windows-builder
+    namespace: angelscript
+spec:
+    pollingInterval: 600
+    minReplicaCount: 0
+    maxReplicaCount: 1
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    jobTargetRef:
+        parallelism: 1
+        completions: 1
+        backoffLimit: 3
+        ttlSecondsAfterFinished: 300
+        template:
+            spec:
+                serviceAccountName: vm-scaler
+                restartPolicy: OnFailure
+                containers:
+                    - name: scaler
+                      image: ghcr.io/kbve/kubectl:0.1.4
+                      command: ['/bin/sh', '/scripts/scale.sh']
+                      env:
+                          - name: VM_NAME
+                            value: windows-builder
+                          - name: ACTION
+                            value: start
+                          - name: NAMESPACE
+                            value: angelscript
+                      volumeMounts:
+                          - name: script
+                            mountPath: /scripts
+                volumes:
+                    - name: script
+                      configMap:
+                          name: vm-scaler-script
+                          defaultMode: 0755
+    triggers:
+        - type: github-runner
+          metadata:
+              owner: KBVE
+              runnerScope: org
+              labels: UE5-Win
+              targetWorkflowQueueLength: '1'
+          authenticationRef:
+              name: github-runner-auth
 ---
 # ──────────────────────────────────────────────────────────────
 # SCALE DOWN — KEDA cron-triggered idle check (activity-aware)
