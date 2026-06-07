@@ -149,8 +149,9 @@ interface YukiVRMRuntime {
 	setState(state: string): void;
 	pointAt(x: number, y: number): void;
 	setActive(active: boolean): void;
-	playAnimation(url: string, loop?: boolean): Promise<void>;
-	stopAnimation(): void;
+	playAnimation(url: string, loop?: boolean, fade?: number): Promise<void>;
+	stopAnimation(fade?: number): void;
+	setIdleAnimation(url: string | null): void;
 	destroy(): void;
 }
 
@@ -404,6 +405,7 @@ export async function mountYukiPanel(host: HTMLElement): Promise<void> {
 			(
 				window as unknown as { yukiMotions?: typeof MOTIONS }
 			).yukiMotions = MOTIONS;
+			vrmRuntime.setIdleAnimation(MOTIONS.fullbody);
 			void vrmRuntime.playAnimation(MOTIONS.fullbody, true);
 			setTimeout(fireFirstGreet, 600);
 		} catch (err) {
