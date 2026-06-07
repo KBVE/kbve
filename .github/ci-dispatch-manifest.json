@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.186",
+			"version": "1.0.187",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -106,7 +106,7 @@
 		{
 			"key": "cryptothrone",
 			"app_name": "cryptothrone",
-			"version": "0.1.6",
+			"version": "0.1.7",
 			"version_toml": "apps/cryptothrone/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone.mdx",
 			"version_target": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",
@@ -148,7 +148,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.38",
+			"version": "0.1.39",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -392,7 +392,7 @@
 		{
 			"key": "rows",
 			"app_name": "rows",
-			"version": "0.1.24",
+			"version": "0.1.25",
 			"version_toml": "apps/rows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
 			"version_target": "apps/rows/Cargo.toml",
@@ -812,6 +812,7 @@
 			"key": "ue_kbveui",
 			"plugin_name": "KBVEUI",
 			"plugin_path": "packages/unreal/KBVEUI",
+			"dependency_plugins": "packages/unreal/KBVESupabase",
 			"supported_platforms": [
 				"Win64",
 				"Linux",

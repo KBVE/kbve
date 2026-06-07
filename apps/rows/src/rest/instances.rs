@@ -12,20 +12,11 @@ use serde::Deserialize;
 use uuid::Uuid;
 
 pub(super) fn instance_mgmt_routes(hs: HandlerState) -> Router {
-    Router::new()
+    let server = Router::new()
         .route("/api/Instance/SetZoneInstanceStatus", post(set_zone_status))
-        .route(
-            "/api/Instance/GetZoneInstancesForWorldServer",
-            post(get_zone_instances),
-        )
         .route(
             "/api/Instance/UpdateNumberOfPlayers",
             post(update_number_of_players),
-        )
-        .route("/api/Instance/GetZoneInstance", post(get_zone_instance))
-        .route(
-            "/api/Instance/GetServerInstanceFromPort",
-            post(get_server_instance_from_port),
         )
         .route("/api/Instance/RegisterLauncher", post(register_launcher))
         .route(
@@ -43,6 +34,21 @@ pub(super) fn instance_mgmt_routes(hs: HandlerState) -> Router {
         .route(
             "/api/Instance/ShutDownServerInstance",
             post(shut_down_server_instance),
+        )
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            super::require_service_key,
+        ));
+
+    server
+        .route(
+            "/api/Instance/GetZoneInstancesForWorldServer",
+            post(get_zone_instances),
+        )
+        .route("/api/Instance/GetZoneInstance", post(get_zone_instance))
+        .route(
+            "/api/Instance/GetServerInstanceFromPort",
+            post(get_server_instance_from_port),
         )
         .route(
             "/api/Instance/GetServerToConnectTo",

@@ -1,0 +1,3 @@
+#include "KBVEUIChat.h"
+
+IMPLEMENT_MODULE(FKBVEUIChatModule, KBVEUIChat)

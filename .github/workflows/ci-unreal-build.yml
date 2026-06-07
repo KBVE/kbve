@@ -1714,12 +1714,18 @@ jobs:
                   exit 0
 
             - name: Install DirectX Runtime
+              continue-on-error: true
+              timeout-minutes: 5
               run: |
+                  $ErrorActionPreference = 'SilentlyContinue'
                   if (Test-Path "$env:SystemRoot\System32\d3dx9_43.dll") { Write-Host "DirectX runtime already present."; exit 0 }
-                  curl.exe -L -s --retry 5 --retry-all-errors -C - --connect-timeout 30 -o $env:RUNNER_TEMP\dxredist.exe "https://download.microsoft.com/download/8/4/A/84A35BF1-DAFE-4AE8-82AF-AD2AE20B6B14/directx_Jun2010_redist.exe"
-                  if (!(Test-Path $env:RUNNER_TEMP\dxredist.exe)) { Write-Host "::warning::DirectX redist download failed."; exit 0 }
-                  Start-Process $env:RUNNER_TEMP\dxredist.exe -ArgumentList '/Q','/T:$env:RUNNER_TEMP\dxredist' -Wait
-                  if (Test-Path $env:RUNNER_TEMP\dxredist\DXSETUP.exe) { Start-Process $env:RUNNER_TEMP\dxredist\DXSETUP.exe -ArgumentList '/silent' -Wait }
+                  $dst = "$env:RUNNER_TEMP\dxredist.exe"
+                  $ext = "$env:RUNNER_TEMP\dxredist"
+                  curl.exe -L -s --retry 5 --retry-all-errors -C - --connect-timeout 30 -m 180 -o "$dst" "https://download.microsoft.com/download/8/4/A/84A35BF1-DAFE-4AE8-82AF-AD2AE20B6B14/directx_Jun2010_redist.exe"
+                  if (!(Test-Path "$dst")) { Write-Host "::warning::DirectX redist download failed (best-effort, skipping)."; exit 0 }
+                  Start-Process "$dst" -ArgumentList '/Q', "/T:$ext" -Wait
+                  $setup = Join-Path "$ext" 'DXSETUP.exe'
+                  if (Test-Path "$setup") { Start-Process "$setup" -ArgumentList '/silent' -Wait }
                   exit 0
 
             - name: Install CMake

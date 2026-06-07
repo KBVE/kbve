@@ -6,12 +6,12 @@
 
 class SchuckHUD;
 class SchuckPauseMenu;
-class SchuckDevOverlay;
+class SKBVEDevOverlay;
 class SchuckHotbar;
 class SchuckInventoryWindow;
-class SchuckLoginWidget;
-class SchuckAccountPanel;
-class SchuckChatPanel;
+class SKBVELoginWidget;
+class SKBVEAccountPanel;
+class SKBVEChatPanel;
 class SKBVETooltip;
 class SKBVEDragArrowLayer;
 class SKBVESettingsFrame;
@@ -84,12 +84,12 @@ protected:
 private:
 	TSharedPtr<SchuckHUD>             HUDWidget;
 	TSharedPtr<SchuckPauseMenu>       PauseWidget;
-	TSharedPtr<SchuckDevOverlay>      DevOverlayWidget;
+	TSharedPtr<SKBVEDevOverlay>       DevOverlayWidget;
 	TSharedPtr<SchuckHotbar>          HotbarWidget;
 	TSharedPtr<SchuckInventoryWindow> InventoryWidget;
-	TSharedPtr<SchuckLoginWidget>     LoginWidget;
-	TSharedPtr<SchuckAccountPanel>    AccountWidget;
-	TSharedPtr<SchuckChatPanel>       ChatWidget;
+	TSharedPtr<SKBVELoginWidget>      LoginWidget;
+	TSharedPtr<SKBVEAccountPanel>     AccountWidget;
+	TSharedPtr<SKBVEChatPanel>        ChatWidget;
 	TSharedPtr<SKBVETooltip>          TooltipWidget;
 	TSharedPtr<SKBVEDragArrowLayer>   DragArrowLayer;
 	TSharedPtr<SKBVESettingsFrame>    SettingsWidget;

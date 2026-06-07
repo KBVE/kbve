@@ -4,7 +4,7 @@
 #include "chuckCoreCharacter.h"
 #include "chuckInventory.h"
 #include "chuckSettings.h"
-#include "SchuckEquipmentPanel.h"
+#include "SKBVEEquipmentPanel.h"
 #include "SchuckInventorySlot.h"
 #include "SchuckItemInfo.h"
 #include "SKBVEMovableFrame.h"
@@ -106,8 +106,7 @@ void SchuckInventoryWindow::Construct(const FArguments& InArgs)
 				SNew(SBox)
 				.WidthOverride(EquipWidth)
 				[
-					SNew(SchuckEquipmentPanel)
-					.OwningCharacter(Character)
+					SNew(SKBVEEquipmentPanel)
 					.SelectedKey(SelectedKey)
 				]
 			]

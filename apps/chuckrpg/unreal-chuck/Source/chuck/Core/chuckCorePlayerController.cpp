@@ -13,13 +13,17 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "chuckEventPayloads.h"
 #include "chuckUIEvents.h"
-#include "SchuckDevOverlay.h"
+#include "SKBVEDevOverlay.h"
+#include "GameFramework/PlayerState.h"
+#include "MassEntitySubsystem.h"
+#include "MassEntityManager.h"
 #include "SchuckHotbar.h"
 #include "SchuckHUD.h"
 #include "SchuckInventoryWindow.h"
-#include "SchuckLoginWidget.h"
-#include "SchuckAccountPanel.h"
-#include "SchuckChatPanel.h"
+#include "SKBVELoginWidget.h"
+#include "SKBVEAccountPanel.h"
+#include "SKBVEChatPanel.h"
+#include "chuckSettings.h"
 #include "SchuckPauseMenu.h"
 #include "chuckInventory.h"
 #include "chuckItemDB.h"
@@ -41,6 +45,11 @@
 #include "KBVESupabaseSubsystem.h"
 #include "KBVESupabaseChat.h"
 #include "KBVESupabaseTypes.h"
+
+namespace
+{
+	const FName ChatWindowKey = TEXT("chuck.chat");
+}
 
 AchuckCorePlayerController::AchuckCorePlayerController()
 {
@@ -164,14 +173,38 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 		SupabaseSubsystem = GI->GetSubsystem<UKBVESupabaseSubsystem>();
 	}
 
-	AccountWidget = SNew(SchuckAccountPanel).Subsystem(SupabaseSubsystem);
-	ChatWidget    = SNew(SchuckChatPanel)
+	AccountWidget = SNew(SKBVEAccountPanel).Subsystem(SupabaseSubsystem);
+	ChatWidget    = SNew(SKBVEChatPanel)
 		.Subsystem(SupabaseSubsystem)
-		.OwningCharacter(Char)
 		.OnCloseClicked(FSimpleDelegate::CreateLambda([this]()
 		{
 			SetUiFlag(EUiFlag::Chat, false);
 			RefreshUiMouseMode();
+		}))
+		.OnSaveGeometry(FKBVEChatGeometrySave::CreateLambda([this](const FVector2D& Pos, const FVector2D& Size)
+		{
+			if (UchuckSettings* S = UchuckSettings::Get(this))
+			{
+				FchuckWindowGeometry G;
+				G.WindowKey = ChatWindowKey;
+				G.Position  = Pos;
+				G.Size      = Size;
+				S->SetWindowGeometry(G);
+			}
+		}))
+		.OnLoadGeometry(FKBVEChatGeometryLoad::CreateLambda([this](FVector2D& OutPos, FVector2D& OutSize) -> bool
+		{
+			if (UchuckSettings* S = UchuckSettings::Get(this))
+			{
+				FchuckWindowGeometry G;
+				if (S->GetWindowGeometry(ChatWindowKey, G))
+				{
+					OutPos  = G.Position;
+					OutSize = G.Size;
+					return true;
+				}
+			}
+			return false;
 		}));
 
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
@@ -492,7 +525,22 @@ void AchuckCorePlayerController::OnToggleDevOverlayPressed(const FInputActionVal
 
 	if (HasUiFlag(EUiFlag::DevOverlay))
 	{
-		DevOverlayWidget = SNew(SchuckDevOverlay).OwningController(this);
+		DevOverlayWidget = SNew(SKBVEDevOverlay)
+			.EntityCountProvider(FKBVEDevOverlayIntProvider::CreateLambda([this]() -> int32
+			{
+				if (UWorld* W = GetWorld())
+				{
+					if (UMassEntitySubsystem* Mass = W->GetSubsystem<UMassEntitySubsystem>())
+					{
+						return (int32)Mass->GetEntityManager().DebugGetEntityCount();
+					}
+				}
+				return 0;
+			}))
+			.PingProvider(FKBVEDevOverlayIntProvider::CreateLambda([this]() -> int32
+			{
+				return PlayerState ? (int32)PlayerState->GetPingInMilliseconds() : 0;
+			}));
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), DevOverlayWidget.ToSharedRef(), 15);
 	}
 	else if (DevOverlayWidget.IsValid())
@@ -835,9 +883,7 @@ void AchuckCorePlayerController::HandleChatConnected()
 {
 	if (ChatWidget.IsValid())
 	{
-		FchuckChatStatePayload Payload;
-		Payload.bConnected = true;
-		ChatWidget->OnChatStateChanged(Payload);
+		ChatWidget->OnChatStateChanged(true);
 	}
 	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
 	{
@@ -851,9 +897,7 @@ void AchuckCorePlayerController::HandleChatDisconnected(int32 /*StatusCode*/, co
 {
 	if (ChatWidget.IsValid())
 	{
-		FchuckChatStatePayload Payload;
-		Payload.bConnected = false;
-		ChatWidget->OnChatStateChanged(Payload);
+		ChatWidget->OnChatStateChanged(false);
 	}
 	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
 	{
@@ -876,7 +920,15 @@ void AchuckCorePlayerController::HandleChatMessage(const FKBVEChatMessage& Messa
 
 	if (ChatWidget.IsValid())
 	{
-		ChatWidget->OnChatLine(Payload);
+		FKBVEChatLineView View;
+		View.Channel  = Message.Channel;
+		View.Nick     = Message.Nick;
+		View.Sender   = Message.Sender;
+		View.Platform = Message.Platform;
+		View.Kind     = Message.Kind;
+		View.Body     = Message.Body;
+		View.bIsEvent = Message.bIsEvent;
+		ChatWidget->OnChatLine(View);
 	}
 	if (UchuckUIEvents* Bus = UchuckUIEvents::Get(this))
 	{

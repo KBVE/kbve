@@ -4,13 +4,14 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 
-class APlayerController;
+DECLARE_DELEGATE_RetVal(int32, FKBVEDevOverlayIntProvider);
 
-class SchuckDevOverlay : public SCompoundWidget
+class KBVEUI_API SKBVEDevOverlay : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SchuckDevOverlay) {}
-		SLATE_ARGUMENT(TWeakObjectPtr<APlayerController>, OwningController)
+	SLATE_BEGIN_ARGS(SKBVEDevOverlay) {}
+		SLATE_EVENT(FKBVEDevOverlayIntProvider, EntityCountProvider)
+		SLATE_EVENT(FKBVEDevOverlayIntProvider, PingProvider)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
@@ -31,7 +32,8 @@ protected:
 		bool bParentEnabled) const override;
 
 private:
-	TWeakObjectPtr<APlayerController> Owner;
+	FKBVEDevOverlayIntProvider EntityCountProvider;
+	FKBVEDevOverlayIntProvider PingProvider;
 
 	float SmoothedFPS = 60.f;
 	float SmoothedMS  = 16.7f;

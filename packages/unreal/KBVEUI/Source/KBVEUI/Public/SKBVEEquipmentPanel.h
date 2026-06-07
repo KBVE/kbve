@@ -4,10 +4,7 @@
 #include "Widgets/SCompoundWidget.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 
-class AchuckCoreCharacter;
-
-UENUM()
-enum class EchuckEquipSlot : uint8
+enum class EKBVEEquipSlot : uint8
 {
 	Head      = 0,
 	Chest     = 1,
@@ -23,17 +20,15 @@ enum class EchuckEquipSlot : uint8
 	COUNT     = 11
 };
 
-class SchuckEquipmentPanel : public SCompoundWidget
+class KBVEUI_API SKBVEEquipmentPanel : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SchuckEquipmentPanel) {}
-		SLATE_ARGUMENT(TWeakObjectPtr<AchuckCoreCharacter>, OwningCharacter)
+	SLATE_BEGIN_ARGS(SKBVEEquipmentPanel) {}
 		SLATE_ARGUMENT(TSharedPtr<int32>, SelectedKey)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
 
 private:
-	TWeakObjectPtr<AchuckCoreCharacter> Character;
 	TSharedPtr<int32> SelectedKey;
 };

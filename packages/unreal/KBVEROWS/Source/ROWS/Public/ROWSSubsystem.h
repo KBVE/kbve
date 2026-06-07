@@ -74,6 +74,13 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "ROWS|Config")
 	FString GetCustomerKey() const { return CustomerKey; }
 
+	// --- Service Key (dedicated server only) ---
+
+	/// True when a server-to-server service key is loaded. Only populated on a dedicated server
+	/// build from the OWS_SERVICE_KEY env var; never read into a client build. The plaintext key is
+	/// intentionally not exposed via Blueprint to keep it off the client/log surface.
+	bool HasServiceKey() const { return !ServiceKey.IsEmpty(); }
+
 	// --- HTTP Helpers (used by domain subsystems) ---
 
 	void PostRequest(
@@ -106,6 +113,7 @@ protected:
 	FString CharacterPersistencePath;
 	FString GlobalDataPath;
 	FString EncryptionKey;
+	FString ServiceKey;
 
 	// Session
 	FString UserSessionGUID;

@@ -11,10 +11,10 @@ class UTexture2D;
 class STextBlock;
 class SImage;
 
-class SchuckAccountPanel : public SCompoundWidget
+class KBVEUIAUTH_API SKBVEAccountPanel : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SchuckAccountPanel) {}
+	SLATE_BEGIN_ARGS(SKBVEAccountPanel) {}
 		SLATE_ARGUMENT(TWeakObjectPtr<UKBVESupabaseSubsystem>, Subsystem)
 	SLATE_END_ARGS()
 
@@ -33,7 +33,6 @@ private:
 	TSharedPtr<SImage>     AvatarImage;
 	FSlateBrush            AvatarBrush;
 
-	UPROPERTY()
 	TObjectPtr<UTexture2D> AvatarTexture;
 
 	FString LastAvatarURL;
