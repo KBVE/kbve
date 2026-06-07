@@ -816,7 +816,7 @@ struct KBVEITEMDB_API FKBVEGenItemExtension
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
 	bool BoolValue = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
+	UPROPERTY(EditAnywhere, Category = "KBVE|ItemDB")
 	TArray<uint8> BytesValue;
 
 };

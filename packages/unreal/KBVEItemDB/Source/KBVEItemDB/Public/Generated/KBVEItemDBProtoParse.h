@@ -507,7 +507,7 @@ namespace KBVEItemDBProto
 		if ((V = yyjson_obj_get(Obj, "intValue"))) Out.IntValue = (int64)(yyjson_is_int(V) ? yyjson_get_sint(V) : (yyjson_is_uint(V) ? (int64)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "floatValue"))) Out.FloatValue = (yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
 		if ((V = yyjson_obj_get(Obj, "boolValue"))) Out.BoolValue = (yyjson_is_bool(V) ? yyjson_get_bool(V) : false);
-		if ((V = yyjson_obj_get(Obj, "bytesValue"))) Out.BytesValue = 0;
+		if ((V = yyjson_obj_get(Obj, "bytesValue"))) Out.BytesValue.Reset();
 	}
 
 	inline void Populate(FKBVEGenItem& Out, yyjson_val* Obj)
