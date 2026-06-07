@@ -169,6 +169,10 @@ private:
 	float  SpawnSnapElapsed   = 0.f;
 	uint32 SpawnSnapSeed      = 0;
 	FVector2D SpawnSnapAnchor = FVector2D::ZeroVector;
+	bool   bDidAutoSpawnArcade = false;
+
+	UPROPERTY(Transient)
+	TSubclassOf<class AchuckArcadeCabinet> CachedArcadeClass;
 
 	void TickSpawnSnap(float DeltaSeconds);
 };
