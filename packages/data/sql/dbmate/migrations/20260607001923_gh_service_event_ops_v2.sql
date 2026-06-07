@@ -29,7 +29,11 @@ CREATE TABLE IF NOT EXISTS gh.requeue_audit (
     CONSTRAINT gh_requeue_audit_old_attempts_chk
         CHECK (old_attempts >= 0),
     CONSTRAINT gh_requeue_audit_old_last_error_len_chk
-        CHECK (old_last_error IS NULL OR char_length(old_last_error) <= 2048)
+        CHECK (old_last_error IS NULL OR char_length(old_last_error) <= 2048),
+    CONSTRAINT gh_requeue_audit_repos_nonempty_chk
+        CHECK (cardinality(repos) > 0),
+    CONSTRAINT gh_requeue_audit_repo_key_chk
+        CHECK (repo_key ~ '^[a-z0-9._-]{1,100}/[a-z0-9._-]{1,100}$')
 );
 
 COMMENT ON TABLE gh.requeue_audit IS
@@ -48,7 +52,6 @@ CREATE INDEX IF NOT EXISTS gh_requeue_audit_repo_created_idx
     ON gh.requeue_audit (repo_key, created_at DESC);
 
 ALTER TABLE gh.requeue_audit OWNER TO service_role;
-ALTER SEQUENCE IF EXISTS gh.requeue_audit_id_seq OWNER TO service_role;
 
 
 -- Supporting indexes for the new RPCs (partial, keep payload narrow).
@@ -73,6 +76,7 @@ RETURNS TEXT[]
 LANGUAGE sql
 IMMUTABLE
 STRICT
+PARALLEL SAFE
 SET search_path = gh, pg_temp
 AS $$
     SELECT ARRAY(
@@ -311,6 +315,10 @@ BEGIN
         RAISE EXCEPTION 'cannot force requeue an in-flight event (delivery_state=1); wait for lease timeout'
             USING ERRCODE = 'GH007';
     END IF;
+    IF v_old_state = 0 THEN
+        RAISE EXCEPTION 'event is already pending (delivery_state=0); no requeue needed'
+            USING ERRCODE = 'GH008';
+    END IF;
 
     UPDATE gh.issue_event e
     SET delivery_state = 0,
@@ -321,6 +329,7 @@ BEGIN
         updated_at     = now()
     WHERE e.id = p_event_id
       AND e.repo_key = ANY(v_repos)
+      AND e.delivery_state NOT IN (0, 1)
     RETURNING e.id INTO v_updated_id;
 
     IF v_updated_id IS NULL THEN
@@ -349,7 +358,7 @@ REVOKE ALL ON FUNCTION gh.service_force_requeue_event(TEXT[], BIGINT, TEXT) FROM
 GRANT EXECUTE ON FUNCTION gh.service_force_requeue_event(TEXT[], BIGINT, TEXT) TO service_role;
 
 COMMENT ON FUNCTION gh.service_force_requeue_event(TEXT[], BIGINT, TEXT) IS
-    'Ops escape hatch: replay any allowlist-scoped event regardless of delivery_state EXCEPT 1 (in-flight). Requires non-empty p_reason and logs forced=TRUE in gh.requeue_audit. SQLSTATE GH007 blocks in-flight forced replays. service_role only.';
+    'Ops escape hatch: replay any allowlist-scoped event in delivery_state 2 (delivered) or 3 (failed). Refuses 1 (in-flight) with GH007 and 0 (already pending) with GH008. Requires non-empty p_reason; logs forced=TRUE in gh.requeue_audit. service_role only.';
 
 
 CREATE OR REPLACE FUNCTION gh.service_get_recent_pending_events(
@@ -425,6 +434,7 @@ LANGUAGE plpgsql
 VOLATILE
 SECURITY DEFINER
 SET search_path = gh, pg_temp
+ROWS 1
 COST 200
 AS $$
 DECLARE
@@ -476,7 +486,6 @@ DROP FUNCTION IF EXISTS gh.service_purge_old_delivered(TIMESTAMPTZ, INT);
 DROP FUNCTION IF EXISTS gh.service_get_recent_pending_events(TEXT[], INT);
 DROP FUNCTION IF EXISTS gh.service_force_requeue_event(TEXT[], BIGINT, TEXT);
 DROP FUNCTION IF EXISTS gh.service_requeue_event(TEXT[], BIGINT, TEXT);
-DROP FUNCTION IF EXISTS gh._normalize_repo_allowlist(TEXT[]);
 
 DROP INDEX IF EXISTS gh.gh_issue_event_pending_repo_tail_idx;
 DROP INDEX IF EXISTS gh.gh_issue_event_delivered_retention_idx;
@@ -558,3 +567,5 @@ DROP INDEX IF EXISTS gh.gh_requeue_audit_forced_created_idx;
 DROP INDEX IF EXISTS gh.gh_requeue_audit_created_idx;
 DROP INDEX IF EXISTS gh.gh_requeue_audit_event_created_idx;
 DROP TABLE IF EXISTS gh.requeue_audit;
+
+DROP FUNCTION IF EXISTS gh._normalize_repo_allowlist(TEXT[]);

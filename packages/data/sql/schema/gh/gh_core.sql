@@ -251,7 +251,11 @@ CREATE TABLE IF NOT EXISTS gh.requeue_audit (
     CONSTRAINT gh_requeue_audit_old_attempts_chk
         CHECK (old_attempts >= 0),
     CONSTRAINT gh_requeue_audit_old_last_error_len_chk
-        CHECK (old_last_error IS NULL OR char_length(old_last_error) <= 2048)
+        CHECK (old_last_error IS NULL OR char_length(old_last_error) <= 2048),
+    CONSTRAINT gh_requeue_audit_repos_nonempty_chk
+        CHECK (cardinality(repos) > 0),
+    CONSTRAINT gh_requeue_audit_repo_key_chk
+        CHECK (repo_key ~ '^[a-z0-9._-]{1,100}/[a-z0-9._-]{1,100}$')
 );
 
 COMMENT ON TABLE gh.requeue_audit IS
@@ -291,7 +295,6 @@ ALTER TABLE gh.issue OWNER TO service_role;
 ALTER TABLE gh.issue_event OWNER TO service_role;
 ALTER TABLE gh.requeue_audit OWNER TO service_role;
 ALTER SEQUENCE gh.issue_event_id_seq OWNER TO service_role;
-ALTER SEQUENCE IF EXISTS gh.requeue_audit_id_seq OWNER TO service_role;
 
 COMMENT ON SCHEMA gh IS
 'L2 cache for GitHub issue/PR metadata + append-only event queue feeding the discordsh thread sync. Mirror-only, RPC-only surface (no direct table grants), owned by service_role.';
