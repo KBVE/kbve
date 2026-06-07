@@ -108,7 +108,9 @@ namespace RareIcon
             bool inAura = false;
             for (int i = 0; i < Centers.Length; i++)
             {
-                if (LandmarkAuraEffectSystem.HexDistance(here, Centers[i]) <= Radii[i]) { inAura = true; break; }
+                int2 d = Centers[i] - here;
+                int dist = (math.abs(d.x) + math.abs(d.y) + math.abs(-d.x - d.y)) / 2;
+                if (dist <= Radii[i]) { inAura = true; break; }
             }
             if (!inAura) return;
 
