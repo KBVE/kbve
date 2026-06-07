@@ -20,6 +20,7 @@ import OSRSUsedIn from './OSRSUsedIn.astro';
 import OSRSHistory from './OSRSHistory.astro';
 import OSRSItemJsonLd from './OSRSItemJsonLd.astro';
 import OSRSDisclaimer from './OSRSDisclaimer.astro';
+import OSRSAdsenseSlot from './OSRSAdsenseSlot.astro';
 import { getUsedInIndex } from '@/data/osrs-used-in-index';
 import type {
 	OSRSExtended,
@@ -217,6 +218,8 @@ const showUsedIn = (usedInEntries?.length ?? 0) > 0;
 
 		<!-- Price History Chart — full width -->
 		<OSRSCharts itemId={item.id} client:load />
+
+		<OSRSAdsenseSlot />
 
 		<!-- Bento Grid: cards flow into responsive columns -->
 		<div class="osrs-bento">
