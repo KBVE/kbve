@@ -342,13 +342,8 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		const ev = e as unknown as {
 			action: ReturnType<typeof mixer.clipAction>;
 		};
-		console.warn('[yuki-vrm] action finished', {
-			finished: ev.action,
-			isCurrent: ev.action === currentAction,
-			idleUrl: idleAnimationUrl,
-		});
 		if (ev.action !== currentAction) return;
-		if (idleAnimationUrl) {
+		if (idleAnimationUrl && !missingClipUrls.has(idleAnimationUrl)) {
 			void playAnimation(idleAnimationUrl, true, IDLE_RESUME_FADE);
 		} else {
 			stopAnimation();
@@ -372,25 +367,46 @@ export async function mountYukiVRM(opts: MountOpts): Promise<YukiVRMHandle> {
 		);
 	};
 
+	const missingClipUrls = new Set<string>();
 	const loadClip = async (
 		url: string,
 	): Promise<ReturnType<typeof createVRMAnimationClip> | null> => {
 		const cached = clipCache.get(url);
 		if (cached) return cached;
-		const gltf = await loader.loadAsync(url);
-		const animations: unknown[] =
-			(gltf.userData as { vrmAnimations?: unknown[] })?.vrmAnimations ??
-			[];
-		if (!animations.length) {
-			console.warn('[yuki-vrm] no vrmAnimations in', url);
+		if (missingClipUrls.has(url)) return null;
+		try {
+			const head = await fetch(url, { method: 'HEAD' });
+			if (!head.ok) {
+				missingClipUrls.add(url);
+				console.warn('[yuki-vrm] vrma asset missing', url, head.status);
+				return null;
+			}
+		} catch (err) {
+			missingClipUrls.add(url);
+			console.warn('[yuki-vrm] vrma asset probe failed', url, err);
 			return null;
 		}
-		const clip = createVRMAnimationClip(
-			animations[0] as Parameters<typeof createVRMAnimationClip>[0],
-			vrm,
-		);
-		clipCache.set(url, clip);
-		return clip;
+		try {
+			const gltf = await loader.loadAsync(url);
+			const animations: unknown[] =
+				(gltf.userData as { vrmAnimations?: unknown[] })
+					?.vrmAnimations ?? [];
+			if (!animations.length) {
+				missingClipUrls.add(url);
+				console.warn('[yuki-vrm] no vrmAnimations in', url);
+				return null;
+			}
+			const clip = createVRMAnimationClip(
+				animations[0] as Parameters<typeof createVRMAnimationClip>[0],
+				vrm,
+			);
+			clipCache.set(url, clip);
+			return clip;
+		} catch (err) {
+			missingClipUrls.add(url);
+			console.warn('[yuki-vrm] vrma load failed', url, err);
+			return null;
+		}
 	};
 
 	const playAnimation = async (
