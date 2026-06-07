@@ -60,9 +60,9 @@ test.describe('axum game API', () => {
 		expect(Array.isArray(dialogue.options)).toBe(true);
 	});
 
-	test('speed endpoint responds', async ({ request }) => {
+	test('speed endpoint returns server time in ms', async ({ request }) => {
 		const res = await request.get('/api/v1/speed');
 		expect(res.status()).toBe(200);
-		expect((await res.json()).time_ms).toBe(0);
+		expect((await res.json()).time_ms).toBeGreaterThan(0);
 	});
 });
