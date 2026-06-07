@@ -7,7 +7,7 @@
 class SchuckMainMenu;
 class SKBVELoginWidget;
 class SKBVEAccountPanel;
-class SchuckLoadingPanel;
+class SKBVELoadingPanel;
 class UKBVESupabaseSubsystem;
 struct FKBVESupabaseSession;
 
@@ -46,7 +46,7 @@ private:
 	TSharedPtr<SchuckMainMenu>     MenuWidget;
 	TSharedPtr<SKBVELoginWidget>  LoginWidget;
 	TSharedPtr<SKBVEAccountPanel> AccountWidget;
-	TSharedPtr<SchuckLoadingPanel> LoadingWidget;
+	TSharedPtr<SKBVELoadingPanel> LoadingWidget;
 
 	UPROPERTY(Transient)
 	TWeakObjectPtr<UKBVESupabaseSubsystem> SupabaseSubsystem;
