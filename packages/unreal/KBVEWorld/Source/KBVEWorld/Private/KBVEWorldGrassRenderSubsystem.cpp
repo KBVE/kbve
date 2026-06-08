@@ -18,14 +18,16 @@
 
 namespace KBVEGrassCfg
 {
-	constexpr double ChunkExtent      = 6400.0;
-	constexpr int32  ViewRadius       = 2;
-	constexpr int32  EvictRadius      = ViewRadius + 1;
-	constexpr float  PNScaleMul       = 1.f;
-	constexpr int32  BladeStride      = 4;
-	constexpr int32  ImpostorStride   = 16;
-	constexpr int32  BudgetPerTick    = 20000;
-	constexpr int32  MaxAdmitsPerTick = 1;
+	constexpr double ChunkExtent       = 6400.0;
+	constexpr int32  ViewRadius        = 2;
+	constexpr int32  RetentionRadius   = 4;
+	constexpr int32  MaxResidentChunks = 48;
+	constexpr float  PNScaleMul        = 1.f;
+	constexpr int32  BladeStride       = 4;
+	constexpr int32  ImpostorStride    = 16;
+	constexpr int32  BudgetPerTick     = 20000;
+	constexpr int32  MaxAdmitsPerTick  = 1;
+	constexpr int32  MaxEvictsPerTick  = 2;
 
 	constexpr float  ViewDist         = float(ViewRadius * ChunkExtent);
 	constexpr float  BladeCullStart   = ViewDist * 0.35f;
@@ -257,14 +259,34 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 
 	TSet<UHierarchicalInstancedStaticMeshComponent*> Touched;
 
-	int32 Evicted = 0;
-	for (auto It = ResidentChunks.CreateIterator(); It && Evicted < MaxAdmitsPerTick; ++It)
+	const bool bOverCap = ResidentChunks.Num() > MaxResidentChunks;
+	if (bOverCap || ResidentChunks.Num() > 0)
 	{
-		if (Cheb(*It) > EvictRadius)
+		TArray<FIntPoint> Victims;
+		for (const FIntPoint& C : ResidentChunks)
 		{
-			RemoveChunkFromHISMs(*It, Touched);
-			It.RemoveCurrent();
-			++Evicted;
+			if (Cheb(C) > RetentionRadius) Victims.Add(C);
+		}
+
+		if (ResidentChunks.Num() - Victims.Num() > MaxResidentChunks)
+		{
+			TArray<FIntPoint> Spill;
+			for (const FIntPoint& C : ResidentChunks)
+			{
+				if (Cheb(C) <= RetentionRadius) Spill.Add(C);
+			}
+			Spill.Sort([&Cheb](const FIntPoint& A, const FIntPoint& B) { return Cheb(A) > Cheb(B); });
+			const int32 NeedDrop = (ResidentChunks.Num() - Victims.Num()) - MaxResidentChunks;
+			for (int32 i = 0; i < NeedDrop && i < Spill.Num(); ++i) Victims.Add(Spill[i]);
+		}
+
+		Victims.Sort([&Cheb](const FIntPoint& A, const FIntPoint& B) { return Cheb(A) > Cheb(B); });
+		const int32 EvictCap = bOverCap ? (MaxEvictsPerTick * 2) : MaxEvictsPerTick;
+		const int32 EvictThisTick = FMath::Min(Victims.Num(), EvictCap);
+		for (int32 i = 0; i < EvictThisTick; ++i)
+		{
+			RemoveChunkFromHISMs(Victims[i], Touched);
+			ResidentChunks.Remove(Victims[i]);
 		}
 	}
 
@@ -296,7 +318,6 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 	for (UHierarchicalInstancedStaticMeshComponent* H : Touched)
 	{
 		H->BuildTreeIfOutdated(true, false);
-		H->MarkRenderStateDirty();
 	}
 }
 
@@ -336,7 +357,6 @@ void UKBVEWorldGrassRenderSubsystem::ReleaseChunkInstances(FIntPoint ChunkCoord)
 		for (UHierarchicalInstancedStaticMeshComponent* H : Touched)
 		{
 			H->BuildTreeIfOutdated(true, false);
-			H->MarkRenderStateDirty();
 		}
 	}
 }
