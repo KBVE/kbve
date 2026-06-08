@@ -10,6 +10,7 @@ export * from './lib/workers/events';
 export * from './lib/mod/mod-urls';
 export * from './lib/gateway';
 export * from './lib/state';
+export * from './lib/agents';
 
 export type { VirtualNode } from './lib/types/modules';
 

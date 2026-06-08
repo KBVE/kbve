@@ -135,3 +135,27 @@ export {
 	SITE_GRAPH_WORKER_SOURCE,
 	SiteGraphLoader,
 } from './sitegraph';
+
+// Agents dashboard (logic via @kbve/droid, render here)
+export * from './agents';
+export * from './dashboard';
+
+// Agents core pass-through from @kbve/droid
+export { createAgents } from '@kbve/droid';
+export type {
+	AgentsApi,
+	AgentsConfig,
+	AgentsNotice,
+	AgentsSession,
+	AgentTokenRow,
+	BotConfigFormDraft,
+	DiscordChannel,
+	DiscordGuild,
+	DiscordshConfig,
+	GuildChannels,
+} from '@kbve/droid';
+export {
+	emptyBotConfigFormDraft,
+	botConfigToFormDraft,
+	botConfigFromFormDraft,
+} from '@kbve/droid';

@@ -40,6 +40,7 @@ export default defineConfig({
 				'd3-force',
 				'nanostores',
 				'@nanostores/react',
+				'lucide-react',
 			],
 			output: {
 				globals: {

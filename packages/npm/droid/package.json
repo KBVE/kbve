@@ -35,6 +35,7 @@
 		"workers/",
 		"lib/workers/",
 		"lib/gateway/",
+		"lib/agents/",
 		"assets/",
 		"src/",
 		"comlink*.js",
