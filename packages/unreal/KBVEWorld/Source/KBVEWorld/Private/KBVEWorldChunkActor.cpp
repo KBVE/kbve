@@ -5,6 +5,7 @@
 #include "KBVEWorldGrassData.h"
 #include "KBVEWorldGrassMass.h"
 #include "KBVEWorldGrassRenderSubsystem.h"
+#include "KBVEWorldTerrainShader.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/ObjectLibrary.h"
@@ -198,7 +199,9 @@ void AKBVEWorldChunkActor::UploadMesh(const FKBVEWorldChunkMesh& MeshData)
 	Mesh->ClearAllMeshSections();
 	Mesh->CreateMeshSection(0, MeshData.Vertices, MeshData.Triangles, MeshData.Normals, MeshData.UVs, VertexColors, MeshData.Tangents, true);
 
-	UMaterialInterface* Apply = GroundMaterialOverride ? GroundMaterialOverride : GroundMaterial;
+	UMaterialInterface* Apply = GroundMaterialOverride;
+	if (!Apply) Apply = FKBVEWorldTerrainShader::GetOrCreateGroundMaterial(this);
+	if (!Apply) Apply = GroundMaterial;
 	if (Apply) Mesh->SetMaterial(0, Apply);
 }
 
