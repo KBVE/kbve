@@ -154,11 +154,19 @@ serve(async (req) => {
     );
     if (error) {
       console.error(
-        "discord-bootstrap: service_get_discord_provider_id failed:",
+        "discord-bootstrap: proxy_service_get_discord_provider_id failed:",
         error.message,
+        error.code,
+        error.details,
+        error.hint,
       );
       return jsonResponse(
-        { error: "Failed to verify linked Discord identity" },
+        {
+          error: "Failed to verify linked Discord identity",
+          detail: error.message,
+          code: error.code ?? null,
+          hint: error.hint ?? null,
+        },
         500,
       );
     }

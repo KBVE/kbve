@@ -380,7 +380,12 @@ AS $$
     LIMIT 1;
 $$;
 
-ALTER FUNCTION profile.service_get_discord_provider_id(uuid) OWNER TO service_role;
+-- Owner MUST be `postgres` (cluster superuser): the body reads
+-- auth.identities (owned by supabase_auth_admin, no SELECT grant for
+-- service_role). SECURITY DEFINER inherits owner privileges, so
+-- postgres-owned lets the function read auth.identities. service_role
+-- keeps EXECUTE so the edge fn entry point still works.
+ALTER FUNCTION profile.service_get_discord_provider_id(uuid) OWNER TO postgres;
 REVOKE ALL ON FUNCTION profile.service_get_discord_provider_id(uuid) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION profile.service_get_discord_provider_id(uuid) TO service_role;
 
