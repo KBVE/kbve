@@ -26,7 +26,7 @@ namespace KBVEGrassCfg
 	constexpr int32  RetentionRadius   = ImpostorRadius + 1;
 	constexpr int32  MaxResidentChunks = 110;
 	constexpr float  PNScaleMul        = 1.f;
-	constexpr int32  BladeStride       = 6;
+	constexpr int32  BladeStride       = 4;
 	constexpr int32  ImpostorStride    = 14;
 	constexpr float  ImpostorScaleMul  = 1.5f;
 	constexpr int32  BudgetPerTick     = 20000;

@@ -36,7 +36,7 @@ class FKBVEPostKuwaharaPS : public FGlobalShader
 		SHADER_PARAMETER_SAMPLER(SamplerState, TensorSampler)
 		SHADER_PARAMETER(FVector2f, TexelSize)
 		SHADER_PARAMETER(int32, Radius)
-		SHADER_PARAMETER(float, OilStrength)
+		SHADER_PARAMETER(float, WatercolorStrength)
 		RENDER_TARGET_BINDING_SLOTS()
 	END_SHADER_PARAMETER_STRUCT()
 
@@ -59,6 +59,8 @@ class FKBVEPostCompositePS : public FGlobalShader
 		SHADER_PARAMETER(float, EdgeStrength)
 		SHADER_PARAMETER(float, EdgeThreshold)
 		SHADER_PARAMETER(float, Saturation)
+		SHADER_PARAMETER(float, Brightness)
+		SHADER_PARAMETER(float, BandSoftness)
 		RENDER_TARGET_BINDING_SLOTS()
 	END_SHADER_PARAMETER_STRUCT()
 
