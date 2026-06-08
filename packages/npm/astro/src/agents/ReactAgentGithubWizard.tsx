@@ -226,6 +226,12 @@ function Step1Webhook({
 		setCopied(false);
 	}, [guild.id]);
 
+	useEffect(() => {
+		if (!copied) return;
+		const t = setTimeout(() => setCopied(false), 2500);
+		return () => clearTimeout(t);
+	}, [copied]);
+
 	async function generate() {
 		agents.setWebhookDraft(guild.id, genHex(32));
 		setReveal(true);
@@ -247,7 +253,6 @@ function Step1Webhook({
 		if (!secret) return;
 		const ok = await copyToClipboard(secret);
 		setCopied(ok);
-		if (ok) setTimeout(() => setCopied(false), 2500);
 	}
 
 	return (
@@ -406,10 +411,15 @@ function Step2WebhookConfig({
 		void agents.verifyWebhookInstall(guild.id, selectedRepo);
 	}, [guild.id, hasWebhook, selectedRepo]);
 
+	useEffect(() => {
+		if (!copied) return;
+		const t = setTimeout(() => setCopied(false), 2500);
+		return () => clearTimeout(t);
+	}, [copied]);
+
 	async function copy() {
 		const ok = await copyToClipboard(url);
 		setCopied(ok);
-		if (ok) setTimeout(() => setCopied(false), 2500);
 	}
 
 	const [actionBlockMsg, setActionBlockMsg] = useState<string | null>(null);

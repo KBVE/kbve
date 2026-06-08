@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { Loader2, RefreshCw, Users } from 'lucide-react';
 import { useAgents } from './context';
@@ -41,6 +41,12 @@ export default function ReactAgentGuildPicker({
 		text: string;
 	} | null>(null);
 
+	useEffect(() => {
+		if (!resyncMsg) return;
+		const t = setTimeout(() => setResyncMsg(null), 5000);
+		return () => clearTimeout(t);
+	}, [resyncMsg]);
+
 	async function resync() {
 		if (resyncing) return;
 		setResyncing(true);
@@ -59,7 +65,6 @@ export default function ReactAgentGuildPicker({
 						text: 'Resync failed — try signing out and back in if the issue persists.',
 					},
 		);
-		setTimeout(() => setResyncMsg(null), 5000);
 	}
 
 	return (
