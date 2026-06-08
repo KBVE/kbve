@@ -4845,6 +4845,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "cryptothrone-server"
+version = "0.0.1"
+dependencies = [
+ "agones",
+ "axum 0.7.9",
+ "simgrid",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "csbindgen"
 version = "1.9.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -15089,6 +15101,20 @@ name = "simdutf8"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e"
+
+[[package]]
+name = "simgrid"
+version = "0.0.1"
+dependencies = [
+ "axum 0.7.9",
+ "bevy",
+ "futures-util",
+ "jsonwebtoken 9.3.1",
+ "postcard",
+ "serde",
+ "tokio",
+ "tracing",
+]
 
 [[package]]
 name = "simple_asn1"

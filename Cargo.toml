@@ -43,6 +43,8 @@ members = [
 	'apps/mc/mc_auth',
 	'packages/rust/bevy/uniti',
 	'apps/agones/factorio/relay',
+	'packages/rust/simgrid',
+	'apps/agones/cryptothrone/server',
 ]
 
 exclude = [

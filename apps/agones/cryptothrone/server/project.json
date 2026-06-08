@@ -1,0 +1,64 @@
+{
+	"name": "cryptothrone-server",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/agones/cryptothrone/server/src",
+	"tags": ["rust", "game-server", "agones", "cryptothrone"],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo build -p cryptothrone-server"
+			},
+			"outputs": ["{workspaceRoot}/dist/target/debug/cryptothrone-server"]
+		},
+		"build-release": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo build --release -p cryptothrone-server"
+			},
+			"outputs": [
+				"{workspaceRoot}/dist/target/release/cryptothrone-server"
+			]
+		},
+		"run": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo run -p cryptothrone-server"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo test -p cryptothrone-server"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo clippy -p cryptothrone-server --all-targets -- -D warnings"
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/cryptothrone-server:latest --file apps/agones/cryptothrone/server/Dockerfile .",
+						"VERSION=$(grep '^version' apps/agones/cryptothrone/server/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/cryptothrone-server:latest kbve/cryptothrone-server:$VERSION && echo \"Tagged kbve/cryptothrone-server:$VERSION\""
+					]
+				},
+				"ci": {
+					"commands": [
+						"BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/cryptothrone-server:latest --file apps/agones/cryptothrone/server/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache,mode=max,image-manifest=true,oci-mediatypes=true ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .",
+						"VERSION=$(grep '^version' apps/agones/cryptothrone/server/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/cryptothrone-server:latest kbve/cryptothrone-server:$VERSION && echo \"Tagged kbve/cryptothrone-server:$VERSION\""
+					]
+				}
+			}
+		}
+	}
+}
