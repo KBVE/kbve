@@ -10,6 +10,7 @@
 #include "GameFramework/Actor.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
+#include "Engine/StaticMesh.h"
 #include "KBVEWorldGrassShader.h"
 #include "KBVEWorldProceduralGrass.h"
 #include "Materials/Material.h"
@@ -35,20 +36,23 @@ namespace KBVEGrassCfg
 {
 	constexpr double ChunkExtent       = 6400.0;
 	constexpr int32  ViewRadius        = 2;
-	constexpr int32  RetentionRadius   = 4;
-	constexpr int32  MaxResidentChunks = 48;
+	constexpr int32  ImpostorRadius    = 4;
+	constexpr int32  RetentionRadius   = ImpostorRadius + 1;
+	constexpr int32  MaxResidentChunks = 110;
 	constexpr float  PNScaleMul        = 1.f;
 	constexpr int32  BladeStride       = 4;
-	constexpr int32  ImpostorStride    = 16;
+	constexpr int32  ImpostorStride    = 14;
+	constexpr float  ImpostorScaleMul  = 1.5f;
 	constexpr int32  BudgetPerTick     = 20000;
 	constexpr int32  MaxAdmitsPerTick  = 1;
 	constexpr int32  MaxEvictsPerTick  = 2;
 
-	constexpr float  ViewDist         = float(ViewRadius * ChunkExtent);
-	constexpr float  BladeCullStart   = ViewDist * 0.35f;
-	constexpr float  BladeCullEnd     = ViewDist * 0.55f;
-	constexpr float  ImpostorCullStart= ViewDist * 0.45f;
-	constexpr float  ImpostorCullEnd  = ViewDist;
+	constexpr float  ViewDist          = float(ViewRadius * ChunkExtent);
+	constexpr float  ImpostorDist      = float(ImpostorRadius * ChunkExtent);
+	constexpr float  BladeCullStart    = ViewDist * 0.6f;
+	constexpr float  BladeCullEnd      = ViewDist * 0.9f;
+	constexpr float  ImpostorCullStart = ImpostorDist * 0.85f;
+	constexpr float  ImpostorCullEnd   = ImpostorDist;
 }
 
 bool UKBVEWorldGrassRenderSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -76,17 +80,21 @@ void UKBVEWorldGrassRenderSubsystem::Deinitialize()
 	{
 		if (Pair.Value) Pair.Value->ClearInstances();
 	}
+	if (ImpostorHISM) ImpostorHISM->ClearInstances();
 	if (HostActor)
 	{
 		HostActor->Destroy();
 		HostActor = nullptr;
 	}
 	MasterMaterial = nullptr;
+	ImpostorHISM   = nullptr;
 	MeshHISMs.Reset();
 	TrackedMeshes.Reset();
 	MeshOwners.Reset();
+	ImpostorOwners.Reset();
 	RegisteredChunks.Reset();
 	ResidentChunks.Reset();
+	BladeResidentChunks.Reset();
 	Super::Deinitialize();
 }
 
@@ -190,8 +198,50 @@ UHierarchicalInstancedStaticMeshComponent* UKBVEWorldGrassRenderSubsystem::GetOr
 	return H;
 }
 
-int32 UKBVEWorldGrassRenderSubsystem::BladeRenderStride() { return KBVEGrassCfg::BladeStride; }
-float UKBVEWorldGrassRenderSubsystem::RenderScaleMul()    { return KBVEGrassCfg::PNScaleMul; }
+int32 UKBVEWorldGrassRenderSubsystem::BladeRenderStride()      { return KBVEGrassCfg::BladeStride; }
+float UKBVEWorldGrassRenderSubsystem::RenderScaleMul()         { return KBVEGrassCfg::PNScaleMul; }
+int32 UKBVEWorldGrassRenderSubsystem::ImpostorRenderStride()   { return KBVEGrassCfg::ImpostorStride; }
+float UKBVEWorldGrassRenderSubsystem::ImpostorRenderScaleMul() { return KBVEGrassCfg::ImpostorScaleMul; }
+
+UHierarchicalInstancedStaticMeshComponent* UKBVEWorldGrassRenderSubsystem::GetOrCreateImpostorHISM()
+{
+	if (ImpostorHISM) return ImpostorHISM;
+	EnsureHost();
+	if (!HostActor) return nullptr;
+
+	UMaterialInterface* Mat = FKBVEWorldGrassShader::GetOrCreateCardMaterial(this);
+	FKBVEWorldProceduralGrass::FCardSpec Spec;
+	Spec.Width     = 40.f;
+	Spec.Height    = 80.f;
+	Spec.CardCount = 3;
+	Spec.UniqueId  = TEXT("KBVEWorld_Grass_ImpostorCross");
+	UStaticMesh* CrossMesh = FKBVEWorldProceduralGrass::GetOrCreateImpostorMesh(this, Spec, Mat);
+	if (!CrossMesh) return nullptr;
+
+	ImpostorHISM = NewObject<UHierarchicalInstancedStaticMeshComponent>(HostActor, NAME_None, RF_Transient);
+	ImpostorHISM->SetMobility(EComponentMobility::Movable);
+	ImpostorHISM->SetupAttachment(HostActor->GetRootComponent());
+	ImpostorHISM->NumCustomDataFloats       = 0;
+	ImpostorHISM->InstanceStartCullDistance = (int32)KBVEGrassCfg::ImpostorCullStart;
+	ImpostorHISM->InstanceEndCullDistance   = (int32)KBVEGrassCfg::ImpostorCullEnd;
+	ImpostorHISM->SetStaticMesh(CrossMesh);
+	if (CrossMesh->GetStaticMaterials().Num() > 0)
+	{
+		EnsureMaterialISMFlag(CrossMesh->GetMaterial(0));
+	}
+	ImpostorHISM->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ImpostorHISM->SetCanEverAffectNavigation(false);
+	ImpostorHISM->bDisableCollision                = true;
+	ImpostorHISM->SetCastShadow(false);
+	ImpostorHISM->bCastDynamicShadow               = false;
+	ImpostorHISM->bCastStaticShadow                = false;
+	ImpostorHISM->bAffectDistanceFieldLighting     = false;
+	ImpostorHISM->bAffectDynamicIndirectLighting   = false;
+	ImpostorHISM->bReceivesDecals                  = false;
+	ImpostorHISM->bUseAsOccluder                   = false;
+	ImpostorHISM->RegisterComponent();
+	return ImpostorHISM;
+}
 
 void UKBVEWorldGrassRenderSubsystem::PrewarmMeshPool(const TArray<UStaticMesh*>& Meshes)
 {
@@ -202,11 +252,12 @@ void UKBVEWorldGrassRenderSubsystem::PrewarmMeshPool(const TArray<UStaticMesh*>&
 	}
 }
 
-bool UKBVEWorldGrassRenderSubsystem::RegisterChunkInstances(FIntPoint ChunkCoord, const TArray<FKBVEGrassMeshBatch>& Batches)
+bool UKBVEWorldGrassRenderSubsystem::RegisterChunkInstances(FIntPoint ChunkCoord, const TArray<FKBVEGrassMeshBatch>& Batches, const TArray<FTransform>& ImpostorTransforms)
 {
 	FKBVEGrassPendingBuild Build;
-	Build.ChunkCoord = ChunkCoord;
-	Build.Batches    = Batches;
+	Build.ChunkCoord         = ChunkCoord;
+	Build.Batches            = Batches;
+	Build.ImpostorTransforms = ImpostorTransforms;
 	for (const FKBVEGrassMeshBatch& B : Build.Batches)
 	{
 		if (B.Mesh) TrackedMeshes.Add(B.Mesh);
@@ -215,12 +266,9 @@ bool UKBVEWorldGrassRenderSubsystem::RegisterChunkInstances(FIntPoint ChunkCoord
 	return true;
 }
 
-void UKBVEWorldGrassRenderSubsystem::AddChunkToHISMs(const FKBVEGrassPendingBuild& Source,
+void UKBVEWorldGrassRenderSubsystem::AddBladesForChunk(const FKBVEGrassPendingBuild& Source,
 	TSet<UHierarchicalInstancedStaticMeshComponent*>& OutTouched)
 {
-	using namespace KBVEGrassCfg;
-
-	FKBVEHitchLog _t(TEXT("Grass.AddChunk"));
 	for (const FKBVEGrassMeshBatch& Batch : Source.Batches)
 	{
 		if (!Batch.Mesh || Batch.Transforms.Num() == 0) continue;
@@ -234,9 +282,10 @@ void UKBVEWorldGrassRenderSubsystem::AddChunkToHISMs(const FKBVEGrassPendingBuil
 		for (int32 i = 0; i < Batch.Transforms.Num(); ++i) Owners.Add(Source.ChunkCoord);
 		OutTouched.Add(H);
 	}
+	BladeResidentChunks.Add(Source.ChunkCoord);
 }
 
-void UKBVEWorldGrassRenderSubsystem::RemoveChunkFromHISMs(FIntPoint Coord,
+void UKBVEWorldGrassRenderSubsystem::RemoveBladesForChunk(FIntPoint Coord,
 	TSet<UHierarchicalInstancedStaticMeshComponent*>& OutTouched)
 {
 	for (TPair<TObjectPtr<UStaticMesh>, TObjectPtr<UHierarchicalInstancedStaticMeshComponent>>& Pair : MeshHISMs)
@@ -249,6 +298,43 @@ void UKBVEWorldGrassRenderSubsystem::RemoveChunkFromHISMs(FIntPoint Coord,
 		RemoveOwnedInstances(H, *Owners, Coord);
 		if (H->GetInstanceCount() != Before) OutTouched.Add(H);
 	}
+	BladeResidentChunks.Remove(Coord);
+}
+
+void UKBVEWorldGrassRenderSubsystem::AddImpostorForChunk(const FKBVEGrassPendingBuild& Source,
+	TSet<UHierarchicalInstancedStaticMeshComponent*>& OutTouched)
+{
+	if (Source.ImpostorTransforms.Num() == 0) return;
+	UHierarchicalInstancedStaticMeshComponent* IH = GetOrCreateImpostorHISM();
+	if (!IH) return;
+	IH->AddInstances(Source.ImpostorTransforms, false);
+	ImpostorOwners.Reserve(ImpostorOwners.Num() + Source.ImpostorTransforms.Num());
+	for (int32 i = 0; i < Source.ImpostorTransforms.Num(); ++i) ImpostorOwners.Add(Source.ChunkCoord);
+	OutTouched.Add(IH);
+}
+
+void UKBVEWorldGrassRenderSubsystem::RemoveImpostorForChunk(FIntPoint Coord,
+	TSet<UHierarchicalInstancedStaticMeshComponent*>& OutTouched)
+{
+	if (!ImpostorHISM || ImpostorOwners.Num() == 0) return;
+	const int32 Before = ImpostorHISM->GetInstanceCount();
+	RemoveOwnedInstances(ImpostorHISM, ImpostorOwners, Coord);
+	if (ImpostorHISM->GetInstanceCount() != Before) OutTouched.Add(ImpostorHISM);
+}
+
+void UKBVEWorldGrassRenderSubsystem::AddChunkToHISMs(const FKBVEGrassPendingBuild& Source,
+	bool bAddBlades, TSet<UHierarchicalInstancedStaticMeshComponent*>& OutTouched)
+{
+	FKBVEHitchLog _t(TEXT("Grass.AddChunk"));
+	if (bAddBlades) AddBladesForChunk(Source, OutTouched);
+	else            AddImpostorForChunk(Source, OutTouched);
+}
+
+void UKBVEWorldGrassRenderSubsystem::RemoveChunkFromHISMs(FIntPoint Coord,
+	TSet<UHierarchicalInstancedStaticMeshComponent*>& OutTouched)
+{
+	RemoveBladesForChunk(Coord, OutTouched);
+	RemoveImpostorForChunk(Coord, OutTouched);
 }
 
 void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
@@ -310,6 +396,34 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 		}
 	}
 
+	int32 Transitioned = 0;
+	for (const FIntPoint& C : ResidentChunks)
+	{
+		if (Transitioned >= MaxAdmitsPerTick) break;
+		const bool bWantBlades = Cheb(C) <= ViewRadius;
+		const bool bHasBlades  = BladeResidentChunks.Contains(C);
+		if (bWantBlades == bHasBlades) continue;
+
+		if (bWantBlades)
+		{
+			if (const FKBVEGrassPendingBuild* B = RegisteredChunks.Find(C))
+			{
+				AddBladesForChunk(*B, Touched);
+				RemoveImpostorForChunk(C, Touched);
+				++Transitioned;
+			}
+		}
+		else
+		{
+			RemoveBladesForChunk(C, Touched);
+			if (const FKBVEGrassPendingBuild* B = RegisteredChunks.Find(C))
+			{
+				AddImpostorForChunk(*B, Touched);
+			}
+			++Transitioned;
+		}
+	}
+
 	int32 Spent = 0;
 	int32 Admitted = 0;
 	while (Spent < InstanceBudget && Admitted < MaxAdmitsPerTick)
@@ -320,7 +434,7 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 		for (const TPair<FIntPoint, FKBVEGrassPendingBuild>& Pair : RegisteredChunks)
 		{
 			if (ResidentChunks.Contains(Pair.Key)) continue;
-			if (Cheb(Pair.Key) > ViewRadius) continue;
+			if (Cheb(Pair.Key) > ImpostorRadius) continue;
 			const FVector Center(Pair.Key.X * ChunkExtent + ChunkExtent * 0.5,
 				Pair.Key.Y * ChunkExtent + ChunkExtent * 0.5, CamLoc.Z);
 			const double DSq = FVector::DistSquared(Center, CamLoc);
@@ -329,9 +443,11 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 		if (!bFound) break;
 
 		const FKBVEGrassPendingBuild& Build = RegisteredChunks[BestCoord];
-		AddChunkToHISMs(Build, Touched);
+		const bool bAddBlades = Cheb(BestCoord) <= ViewRadius;
+		AddChunkToHISMs(Build, bAddBlades, Touched);
 		ResidentChunks.Add(BestCoord);
 		for (const FKBVEGrassMeshBatch& B : Build.Batches) Spent += B.Transforms.Num();
+		Spent += Build.ImpostorTransforms.Num();
 		++Admitted;
 	}
 

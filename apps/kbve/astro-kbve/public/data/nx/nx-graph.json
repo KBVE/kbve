@@ -2057,6 +2057,114 @@
           ]
         }
       },
+      "cryptothrone-server": {
+        "name": "cryptothrone-server",
+        "type": "app",
+        "data": {
+          "root": "apps/agones/cryptothrone/server",
+          "name": "cryptothrone-server",
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/agones/cryptothrone/server/src",
+          "tags": [
+            "rust",
+            "game-server",
+            "agones",
+            "cryptothrone"
+          ],
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo build -p cryptothrone-server"
+              },
+              "outputs": [
+                "{workspaceRoot}/dist/target/debug/cryptothrone-server"
+              ],
+              "configurations": {},
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "build-release": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo build --release -p cryptothrone-server"
+              },
+              "outputs": [
+                "{workspaceRoot}/dist/target/release/cryptothrone-server"
+              ],
+              "configurations": {},
+              "parallelism": true
+            },
+            "run": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo run -p cryptothrone-server"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo test -p cryptothrone-server"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo clippy -p cryptothrone-server --all-targets -- -D warnings"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            },
+            "container": {
+              "executor": "nx:run-commands",
+              "defaultConfiguration": "local",
+              "options": {
+                "parallel": false
+              },
+              "configurations": {
+                "local": {
+                  "commands": [
+                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/cryptothrone-server:latest --file apps/agones/cryptothrone/server/Dockerfile .",
+                    "VERSION=$(grep '^version' apps/agones/cryptothrone/server/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/cryptothrone-server:latest kbve/cryptothrone-server:$VERSION && echo \"Tagged kbve/cryptothrone-server:$VERSION\""
+                  ]
+                },
+                "ci": {
+                  "commands": [
+                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/cryptothrone-server:latest --file apps/agones/cryptothrone/server/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache,mode=max,image-manifest=true,oci-mediatypes=true ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .",
+                    "VERSION=$(grep '^version' apps/agones/cryptothrone/server/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/cryptothrone-server:latest kbve/cryptothrone-server:$VERSION && echo \"Tagged kbve/cryptothrone-server:$VERSION\""
+                  ]
+                }
+              },
+              "parallelism": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "nd-server": {
         "name": "nd-server",
         "type": "app",
@@ -8692,6 +8800,72 @@
           "implicitDependencies": []
         }
       },
+      "simgrid": {
+        "name": "simgrid",
+        "type": "lib",
+        "data": {
+          "root": "packages/rust/simgrid",
+          "name": "simgrid",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "library",
+          "sourceRoot": "packages/rust/simgrid/src",
+          "tags": [
+            "rust",
+            "bevy",
+            "game-server"
+          ],
+          "targets": {
+            "build": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo build -p simgrid"
+              },
+              "outputs": [
+                "{workspaceRoot}/dist/target/debug/libsimgrid.rlib"
+              ],
+              "configurations": {},
+              "parallelism": true,
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true
+            },
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo test -p simgrid"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "lint": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo clippy -p simgrid --all-targets -- -D warnings"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true
+            }
+          },
+          "implicitDependencies": []
+        }
+      },
       "agones-factorio": {
         "name": "agones-factorio",
         "type": "app",
@@ -9147,6 +9321,24 @@
               ],
               "options": {
                 "command": "node packages/data/codegen/gen-itemdb-data.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:itemdb-uecpp": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/packages/data/codegen/gen-itemdb-uecpp.mjs",
+                "{workspaceRoot}/packages/data/codegen/descriptors/itemdb.binpb"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/unreal/KBVEItemDB/Source/KBVEItemDB/Public/Generated/KBVEItemDBProtoTypes.h",
+                "{workspaceRoot}/packages/unreal/KBVEItemDB/Source/KBVEItemDB/Public/Generated/KBVEItemDBProtoParse.h"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-itemdb-uecpp.mjs",
                 "cwd": ""
               },
               "cache": true,
@@ -12647,33 +12839,6 @@
             "type:sql"
           ],
           "targets": {
-            "dev-up": {
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "docker compose -f dev-docker-compose.yml up -d postgres",
-                "cwd": "packages/data/sql/dbmate"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "dev-down": {
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "docker compose -f dev-docker-compose.yml down",
-                "cwd": "packages/data/sql/dbmate"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "dev-reset": {
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "docker compose -f dev-docker-compose.yml down -v && docker compose -f dev-docker-compose.yml up -d postgres",
-                "cwd": "packages/data/sql/dbmate"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
             "kilobase-up": {
               "executor": "nx:run-commands",
               "options": {
@@ -12728,28 +12893,10 @@
               "configurations": {},
               "parallelism": true
             },
-            "smoke-vanilla": {
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "./smoke.sh vanilla",
-                "cwd": "packages/data/sql/dbmate"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
             "smoke-kilobase": {
               "executor": "nx:run-commands",
               "options": {
                 "command": "./smoke.sh kilobase",
-                "cwd": "packages/data/sql/dbmate"
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "smoke-vanilla-keep": {
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "./smoke.sh vanilla --keep",
                 "cwd": "packages/data/sql/dbmate"
               },
               "configurations": {},
@@ -12764,14 +12911,19 @@
               "configurations": {},
               "parallelism": true
             },
+            "smoke-kilobase-rollback": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "./smoke.sh kilobase --rollback",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "smoke": {
               "executor": "nx:run-commands",
               "options": {
-                "commands": [
-                  "./smoke.sh vanilla",
-                  "./smoke.sh kilobase"
-                ],
-                "parallel": false,
+                "command": "./smoke.sh kilobase --rollback",
                 "cwd": "packages/data/sql/dbmate"
               },
               "configurations": {},
@@ -13729,63 +13881,6 @@
           "implicitDependencies": []
         }
       },
-      "rows-e2e": {
-        "name": "rows-e2e",
-        "type": "e2e",
-        "data": {
-          "root": "apps/rows-e2e",
-          "name": "rows-e2e",
-          "$schema": "../../node_modules/nx/schemas/project-schema.json",
-          "projectType": "application",
-          "implicitDependencies": [
-            "rows"
-          ],
-          "targets": {
-            "test": {
-              "executor": "nx:noop",
-              "cache": false,
-              "configurations": {},
-              "options": {},
-              "parallelism": true,
-              "inputs": [
-                "default",
-                "^production"
-              ]
-            },
-            "e2e": {
-              "executor": "nx:run-commands",
-              "dependsOn": [
-                {
-                  "target": "container",
-                  "projects": [
-                    "rows"
-                  ],
-                  "params": "forward"
-                }
-              ],
-              "cache": false,
-              "options": {
-                "commands": [
-                  "docker rm -f rows-e2e 2>/dev/null || true",
-                  "docker run -d --name rows-e2e -p 4325:4322 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4322 -e RUST_LOG=info -e DATABASE_URL='' kbve/rows:latest",
-                  "npx vitest run; EC=$?; docker rm -f rows-e2e 2>/dev/null || true; exit $EC"
-                ],
-                "parallel": false,
-                "cwd": "apps/rows-e2e"
-              },
-              "configurations": {
-                "ci": {}
-              },
-              "parallelism": true,
-              "inputs": [
-                "default",
-                "^production"
-              ]
-            }
-          },
-          "tags": []
-        }
-      },
       "pydesk": {
         "name": "pydesk",
         "type": "app",
@@ -14040,6 +14135,33 @@
                 }
               },
               "parallelism": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "params": "forward"
+                }
+              ],
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f rows-e2e 2>/dev/null || true",
+                  "docker run -d --name rows-e2e -p 4325:4322 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4322 -e RUST_LOG=info -e DATABASE_URL='' kbve/rows:latest",
+                  "npx vitest run; EC=$?; docker rm -f rows-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false,
+                "cwd": "apps/rows/e2e"
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
             },
             "container": {
               "executor": "nx:run-commands",
@@ -14588,6 +14710,7 @@
           "type": "implicit"
         }
       ],
+      "cryptothrone-server": [],
       "nd-server": [],
       "notification-bot": [],
       "steamcmd-ubuntu": [],
@@ -14817,6 +14940,7 @@
         }
       ],
       "axum-memes": [],
+      "simgrid": [],
       "agones-factorio": [],
       "astro-kbve": [
         {
@@ -14931,13 +15055,6 @@
       "edge": [],
       "herbmail": [],
       "mc-lobby": [],
-      "rows-e2e": [
-        {
-          "source": "rows-e2e",
-          "target": "rows",
-          "type": "implicit"
-        }
-      ],
       "pydesk": [],
       "memes": [],
       "rows": [],

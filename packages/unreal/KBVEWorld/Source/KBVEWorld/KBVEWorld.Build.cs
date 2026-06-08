@@ -36,7 +36,8 @@ public class KBVEWorld : ModuleRules
 			PrivateDependencyModuleNames.AddRange(new string[]
 			{
 				"UnrealEd",
-				"MaterialEditor"
+				"MaterialEditor",
+				"AssetRegistry"
 			});
 		}
 
