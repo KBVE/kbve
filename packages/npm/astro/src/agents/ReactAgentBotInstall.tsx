@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	AlertTriangle,
@@ -53,10 +53,21 @@ export default function ReactAgentBotInstall() {
 		[guilds, selectedGuildId],
 	);
 
-	const installUrl = useMemo(
-		() => (selectedGuildId ? agents.botInstallUrl(selectedGuildId) : null),
-		[selectedGuildId],
-	);
+	const [installUrl, setInstallUrl] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (!selectedGuildId) {
+			setInstallUrl(null);
+			return;
+		}
+		let alive = true;
+		void agents.fetchBotInstallUrl(selectedGuildId).then((u) => {
+			if (alive) setInstallUrl(u);
+		});
+		return () => {
+			alive = false;
+		};
+	}, [selectedGuildId]);
 
 	async function probe() {
 		if (!selectedGuildId) return;
@@ -212,8 +223,8 @@ export default function ReactAgentBotInstall() {
 								color: '#f87171',
 								padding: '0.2rem 0.4rem',
 							}}
-							title="Set PUBLIC_DISCORD_BOT_CLIENT_ID at build time">
-							Install link unavailable (build env missing)
+							title="Bot client_id could not be resolved from the edge function">
+							Install link unavailable
 						</span>
 					))}
 			</div>

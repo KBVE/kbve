@@ -151,6 +151,7 @@ export interface AgentsMethods {
 		guildId: string,
 	): Promise<Result<{ channels: DiscordForumChannel[] }>>;
 	botInstallUrl(guildId?: string): string | null;
+	fetchBotInstallUrl(guildId: string): Promise<string | null>;
 
 	// events
 	loadEventStats(guildId: string): Promise<void>;

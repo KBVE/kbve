@@ -891,6 +891,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+  try {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Only POST is allowed" }, 405);
   }
@@ -1059,5 +1060,15 @@ serve(async (req) => {
         },
         400,
       );
+  }
+  } catch (e) {
+    console.error("gh-admin: unhandled error:", e);
+    return jsonResponse(
+      {
+        error: "Internal error",
+        detail: e instanceof Error ? e.message : String(e),
+      },
+      500,
+    );
   }
 });
