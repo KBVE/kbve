@@ -78,7 +78,7 @@ ROWS has three distinct identities. They are different axes — do not conflate 
 
 **The tenant is not the player.** `customer_guid` partitions every table (users, characters, zones, world servers, maps). All players and all UE instances share the **one** Chuck `customer_guid` so they inhabit the same world — multiple Iris instances are just rows in `worldservers` / `mapinstances` under that single tenant, not separate tenants. The player is identified by their Supabase UUID, which becomes the OWS `userguid`.
 
-**Player login.** The client signs in via Supabase (GoTrue) and posts the JWT to `ExternalLoginAndCreateSession`. ROWS validates it (HS256, `SUPABASE_JWT_SECRET`), keys the OWS user on the Supabase `sub`, and returns a `UserSessionGUID`. The UE client glue lives in the `KBVESupabaseROWSBridge` plugin.
+**Player login.** The client signs in via Supabase (GoTrue) and posts the JWT to `ExternalLoginAndCreateSession`. ROWS validates it (HS256, `SUPABASE_JWT_SECRET`), keys the OWS user on the Supabase `sub`, and returns a `UserSessionGUID`. The UE client glue lives in the `ROWSupabase` module of the `KBVESupabase` plugin.
 
 **Gates.**
 - **World IP** (`GetServerToConnectTo` / `JoinMap`) requires a confirmed login — a Supabase bearer JWT *or* a live session GUID — and verifies the caller owns the requested character before returning a server address.

@@ -16,6 +16,17 @@
 			"Name": "KBVESupabase",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "ROWSupabase",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "KBVEROWS",
+			"Enabled": true
 		}
 	]
 }
