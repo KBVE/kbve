@@ -65,6 +65,11 @@ FScreenPassTexture FKBVEPostViewExtension::AfterTonemap_RenderThread(FRDGBuilder
 		return SceneColor;
 	}
 
+	if (View.bIsSceneCapture || View.bIsReflectionCapture || View.bIsPlanarReflection || !View.Family->EngineShowFlags.PostProcessing)
+	{
+		return SceneColor;
+	}
+
 	const FScreenPassTextureViewport Viewport(SceneColor);
 	const FIntPoint Extent = SceneColor.Texture->Desc.Extent;
 	const FVector2f TexelSize(1.0f / Extent.X, 1.0f / Extent.Y);

@@ -17,7 +17,7 @@ float DepthAt(int2 P)
 // of luminance (hue preserved), warm saturation pop, then darken by the ink mask.
 void MainPS(float4 SvPosition : SV_POSITION, float2 UV : TEXCOORD0, out float4 OutColor : SV_Target0)
 {
-	float3 Painted = ColorTexture.Sample(ColorSampler, UV).rgb;
+	float3 Painted = ColorTexture.SampleLevel(ColorSampler, UV, 0).rgb;
 
 	int2 P = int2(SvPosition.xy);
 	float Dc = DepthAt(P);
@@ -26,10 +26,10 @@ void MainPS(float4 SvPosition : SV_POSITION, float2 UV : TEXCOORD0, out float4 O
 	float DepthEdge = (Dx + Dy) / max(Dc, 1e-4f);
 
 	float Lc = KBVELuma(Painted);
-	float Lr = KBVELuma(ColorTexture.Sample(ColorSampler, UV + float2(1, 0) * TexelSize).rgb);
-	float Ll = KBVELuma(ColorTexture.Sample(ColorSampler, UV + float2(-1, 0) * TexelSize).rgb);
-	float Lu = KBVELuma(ColorTexture.Sample(ColorSampler, UV + float2(0, 1) * TexelSize).rgb);
-	float Ld = KBVELuma(ColorTexture.Sample(ColorSampler, UV + float2(0, -1) * TexelSize).rgb);
+	float Lr = KBVELuma(ColorTexture.SampleLevel(ColorSampler, UV + float2(1, 0) * TexelSize, 0).rgb);
+	float Ll = KBVELuma(ColorTexture.SampleLevel(ColorSampler, UV + float2(-1, 0) * TexelSize, 0).rgb);
+	float Lu = KBVELuma(ColorTexture.SampleLevel(ColorSampler, UV + float2(0, 1) * TexelSize, 0).rgb);
+	float Ld = KBVELuma(ColorTexture.SampleLevel(ColorSampler, UV + float2(0, -1) * TexelSize, 0).rgb);
 	float LumaEdge = abs(Lr - Lc) + abs(Ll - Lc) + abs(Lu - Lc) + abs(Ld - Lc);
 
 	float RawEdge = max(DepthEdge, LumaEdge);

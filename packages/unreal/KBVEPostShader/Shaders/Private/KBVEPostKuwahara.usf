@@ -16,9 +16,9 @@ float OilStrength;
 // strokes smear along features — the oil-paint look.
 void MainPS(float4 SvPosition : SV_POSITION, float2 UV : TEXCOORD0, out float4 OutColor : SV_Target0)
 {
-	float3 Original = ColorTexture.Sample(ColorSampler, UV).rgb;
+	float3 Original = ColorTexture.SampleLevel(ColorSampler, UV, 0).rgb;
 
-	float4 Tensor = TensorTexture.Sample(TensorSampler, UV);
+	float4 Tensor = TensorTexture.SampleLevel(TensorSampler, UV, 0);
 	float2 Flow = normalize(Tensor.xy + float2(1e-4f, 1e-4f));
 	float Anisotropy = saturate(Tensor.z);
 
@@ -52,11 +52,21 @@ void MainPS(float4 SvPosition : SV_POSITION, float2 UV : TEXCOORD0, out float4 O
 
 			float2 Ellipse = float2(Off.x * ScaleAlong, Off.y * ScaleAcross);
 			float2 Sample = mul(Rot, Ellipse) * TexelSize;
-			float3 C = ColorTexture.Sample(ColorSampler, UV + Sample).rgb;
+			float3 C = ColorTexture.SampleLevel(ColorSampler, UV + Sample, 0).rgb;
 
-			float Angle = atan2(Off.y, Off.x) + KBVE_PI;
-			int Sector = int(floor(Angle / (2.0f * KBVE_PI) * KBVE_SECTORS));
-			Sector = clamp(Sector, 0, KBVE_SECTORS - 1);
+			float Ax = abs(Off.x);
+			float Ay = abs(Off.y);
+			int Sector;
+			if (Off.x >= 0.0f)
+			{
+				if (Off.y >= 0.0f) Sector = (Ax >= Ay) ? 4 : 5;
+				else               Sector = (Ax >= Ay) ? 3 : 2;
+			}
+			else
+			{
+				if (Off.y >= 0.0f) Sector = (Ax >= Ay) ? 7 : 6;
+				else               Sector = (Ax >= Ay) ? 0 : 1;
+			}
 
 			MeanSum[Sector] += C;
 			SqSum[Sector] += C * C;
