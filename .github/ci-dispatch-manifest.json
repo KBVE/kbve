@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.188",
+			"version": "1.0.191",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -148,7 +148,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.39",
+			"version": "0.1.42",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -749,6 +749,18 @@
 			"version_toml": "packages/unreal/KBVENPCDB/version.toml"
 		},
 		{
+			"key": "ue_kbveperf",
+			"plugin_name": "KBVEPerf",
+			"plugin_path": "packages/unreal/KBVEPerf",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVEPerf/version.toml"
+		},
+		{
 			"key": "ue_kbvequestdb",
 			"plugin_name": "KBVEQuestDB",
 			"plugin_path": "packages/unreal/KBVEQuestDB",
@@ -1035,12 +1047,12 @@
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
-		"unreal": 22,
+		"unreal": 23,
 		"ue5_server": 2,
 		"unity": 1,
 		"godot": 1,
 		"unreal_game": 1,
 		"bevy_game": 0,
-		"total": 86
+		"total": 87
 	}
 }
