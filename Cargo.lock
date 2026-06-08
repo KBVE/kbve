@@ -4854,6 +4854,7 @@ version = "0.0.1"
 dependencies = [
  "agones",
  "axum 0.7.9",
+ "bevy",
  "simgrid",
  "tokio",
  "tracing",

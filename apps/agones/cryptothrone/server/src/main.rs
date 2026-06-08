@@ -3,6 +3,7 @@ mod game;
 
 use std::net::SocketAddr;
 
+use bevy::prelude::IntoScheduleConfigs;
 use simgrid::net::ServerState;
 use simgrid::{SNAPSHOT_BROADCAST_CAPACITY, build_app, run_sim_loop};
 use tokio::net::TcpListener;
@@ -56,7 +57,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .enable_time()
             .build()
             .expect("sim runtime");
-        let app = build_app(snap_tx, input_rx, roster, seed, config, map);
+        let mut app = build_app(snap_tx, input_rx, roster, seed, config, map);
+        app.add_systems(
+            bevy::prelude::Update,
+            game::spawn_world.in_set(simgrid::SimSet::Spawn),
+        );
         rt.block_on(run_sim_loop(app));
     });
 

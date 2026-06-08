@@ -9,6 +9,8 @@ pub struct EntityId(pub u32);
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct PlayerSlot(pub u16);
 
+pub const PLAYER_SLOT_NONE: PlayerSlot = PlayerSlot(u16::MAX);
+
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Tile {
     pub x: i32,
