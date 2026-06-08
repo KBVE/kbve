@@ -304,9 +304,8 @@ void AKBVEWorldChunkActor::RefreshChunkClusterHISMRefs()
 	FKBVEGrassClusterHISMRefs* Refs = EM.GetFragmentDataPtr<FKBVEGrassClusterHISMRefs>(ChunkClusterEntity);
 	if (!Refs) return;
 
-	UKBVEWorldGrassRenderSubsystem* Render = W->GetSubsystem<UKBVEWorldGrassRenderSubsystem>();
-	Refs->BladeHISM      = Render ? Render->GetBladeHISM()    : nullptr;
-	Refs->ImpostorHISM   = Render ? Render->GetImpostorHISM() : nullptr;
+	Refs->BladeHISM      = nullptr;
+	Refs->ImpostorHISM   = nullptr;
 	Refs->GroundTintHISM = nullptr;
 	Refs->BladeInstanceFirst    = -1;
 	Refs->BladeInstanceCount    = 0;
@@ -407,12 +406,21 @@ void AKBVEWorldChunkActor::LoadBucket(const FKBVEWorldFoliageBucketConfig& Cfg)
 			TArray<UObject*> Loaded;
 			Lib->GetObjects<UObject>(Loaded);
 			Loaded.Sort([](const UObject& A, const UObject& B){ return A.GetName() < B.GetName(); });
+
+			TArray<UFoliageType_InstancedStaticMesh*> Valid;
 			for (UObject* Obj : Loaded)
 			{
-				if (Added >= Cap) break;
 				UFoliageType_InstancedStaticMesh* FT = Cast<UFoliageType_InstancedStaticMesh>(Obj);
 				if (!FT || !FT->GetStaticMesh()) continue;
 				if (!KBVEWorld_NameMatchesFilters(Obj->GetName().ToLower(), Cfg.NameIncludes, Cfg.NameExcludes)) continue;
+				Valid.Add(FT);
+			}
+
+			const int32 Take = FMath::Min(Cap, Valid.Num());
+			for (int32 k = 0; k < Take; ++k)
+			{
+				const int32 Idx = (Take == Valid.Num()) ? k : (k * Valid.Num()) / Take;
+				UFoliageType_InstancedStaticMesh* FT = Valid[Idx];
 
 				FKBVEWorldFoliageMeta M;
 				M.ScaleX    = FT->ScaleX;
@@ -683,29 +691,44 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 			const float ChunkSize = LocalCells * LocalCSize;
 			const FVector ChunkOrigin(LocalCoord.X * ChunkSize, LocalCoord.Y * ChunkSize, 0.f);
 
-			TArray<FTransform> Flattened;
-			int32 Total = 0;
-			for (const TArray<FTransform>& B : Batches) Total += B.Num();
-			Flattened.Reserve(Total);
-			for (TArray<FTransform>& B : Batches)
+			TMap<UStaticMesh*, TArray<FTransform>> ByMesh;
+			for (int32 Slot = 0; Slot < Batches.Num(); ++Slot)
 			{
-				for (FTransform& T : B)
+				if (!Self->ChunkVariantIndices.IsValidIndex(Slot)) continue;
+				const int32 MeshIdx = Self->ChunkVariantIndices[Slot];
+				if (!Self->FoliageMeshes.IsValidIndex(MeshIdx)) continue;
+				UStaticMesh* Mesh = Self->FoliageMeshes[MeshIdx];
+				if (!Mesh || Batches[Slot].Num() == 0) continue;
+
+				TArray<FTransform>& Dst = ByMesh.FindOrAdd(Mesh);
+				Dst.Reserve(Dst.Num() + Batches[Slot].Num());
+				for (FTransform& T : Batches[Slot])
 				{
 					T.AddToTranslation(ChunkOrigin);
+					Dst.Add(T);
 				}
-				Flattened.Append(MoveTemp(B));
 			}
 
 			UWorld* W = Self->GetWorld();
 			if (!W) return;
 			UKBVEWorldGrassRenderSubsystem* Render = W->GetSubsystem<UKBVEWorldGrassRenderSubsystem>();
 			if (!Render) return;
-			TArray<FTransform> EmptyImpostor;
-			Render->RegisterChunkInstances(LocalCoord, Flattened, EmptyImpostor);
+
+			TArray<FKBVEGrassMeshBatch> MeshBatches;
+			MeshBatches.Reserve(ByMesh.Num());
+			int32 Total = 0;
+			for (TPair<UStaticMesh*, TArray<FTransform>>& Pair : ByMesh)
+			{
+				Total += Pair.Value.Num();
+				FKBVEGrassMeshBatch& Out = MeshBatches.AddDefaulted_GetRef();
+				Out.Mesh       = Pair.Key;
+				Out.Transforms = MoveTemp(Pair.Value);
+			}
+			Render->RegisterChunkInstances(LocalCoord, MeshBatches);
 
 			UE_LOG(LogTemp, Verbose,
-				TEXT("[KBVEWorld] Chunk foliage(async) coord=(%d,%d) instances=%d"),
-				LocalCoord.X, LocalCoord.Y, Flattened.Num());
+				TEXT("[KBVEWorld] Chunk foliage(async) coord=(%d,%d) meshes=%d instances=%d"),
+				LocalCoord.X, LocalCoord.Y, MeshBatches.Num(), Total);
 		});
 	});
 }

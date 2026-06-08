@@ -21,7 +21,7 @@ namespace KBVEGrassCfg
 	constexpr double ChunkExtent      = 6400.0;
 	constexpr int32  ViewRadius       = 2;
 	constexpr int32  EvictRadius      = ViewRadius + 1;
-	constexpr float  PNScaleMul       = 5.f;
+	constexpr float  PNScaleMul       = 1.f;
 	constexpr int32  BladeStride      = 4;
 	constexpr int32  ImpostorStride   = 16;
 	constexpr int32  BudgetPerTick    = 20000;
@@ -55,254 +55,184 @@ void UKBVEWorldGrassRenderSubsystem::Tick(float DeltaTime)
 
 void UKBVEWorldGrassRenderSubsystem::Deinitialize()
 {
-	if (GlobalBladeHISM)    { GlobalBladeHISM->ClearInstances(); }
-	if (GlobalImpostorHISM) { GlobalImpostorHISM->ClearInstances(); }
+	for (const TPair<TObjectPtr<UStaticMesh>, TObjectPtr<UHierarchicalInstancedStaticMeshComponent>>& Pair : MeshHISMs)
+	{
+		if (Pair.Value) Pair.Value->ClearInstances();
+	}
 	if (HostActor)
 	{
 		HostActor->Destroy();
 		HostActor = nullptr;
 	}
-	GlobalBladeHISM    = nullptr;
-	GlobalImpostorHISM = nullptr;
-	BladeMesh          = nullptr;
-	ImpostorMesh       = nullptr;
-	MasterMaterial     = nullptr;
-	BladeOwners.Reset();
-	ImpostorOwners.Reset();
+	MasterMaterial = nullptr;
+	MeshHISMs.Reset();
+	TrackedMeshes.Reset();
+	MeshOwners.Reset();
 	RegisteredChunks.Reset();
 	ResidentChunks.Reset();
 	Super::Deinitialize();
 }
 
+static void KBVEGrass_EnsureMaterialISMFlag(UMaterialInterface* MI)
+{
+	if (!MI) return;
+	UMaterialInterface* Cur = MI;
+	while (UMaterialInstance* Inst = Cast<UMaterialInstance>(Cur))
+	{
+		if (!Inst->Parent) break;
+		Cur = Inst->Parent;
+	}
+	if (UMaterial* BaseMat = Cast<UMaterial>(Cur))
+	{
+		if (!BaseMat->bUsedWithInstancedStaticMeshes)
+		{
+			BaseMat->bUsedWithInstancedStaticMeshes = true;
+#if WITH_EDITOR
+			BaseMat->PostEditChange();
+			BaseMat->ForceRecompileForRendering();
+#endif
+		}
+	}
+}
+
 void UKBVEWorldGrassRenderSubsystem::EnsureHost()
 {
-	if (HostActor && GlobalBladeHISM && GlobalImpostorHISM) return;
+	if (HostActor) return;
 
 	UWorld* W = GetWorld();
 	if (!W) return;
 
-	if (!HostActor)
-	{
-		FActorSpawnParameters Params;
-		Params.ObjectFlags |= RF_Transient;
-		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		HostActor = W->SpawnActor<AActor>(AActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
-		if (!HostActor) return;
-		HostActor->SetActorHiddenInGame(false);
-		HostActor->SetCanBeDamaged(false);
-		HostActor->SetActorEnableCollision(false);
-		HostActor->PrimaryActorTick.bCanEverTick = false;
+	FActorSpawnParameters Params;
+	Params.ObjectFlags |= RF_Transient;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	HostActor = W->SpawnActor<AActor>(AActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+	if (!HostActor) return;
+	HostActor->SetActorHiddenInGame(false);
+	HostActor->SetCanBeDamaged(false);
+	HostActor->SetActorEnableCollision(false);
+	HostActor->PrimaryActorTick.bCanEverTick = false;
 
-		USceneComponent* Root = NewObject<USceneComponent>(HostActor, TEXT("Root"), RF_Transient);
-		HostActor->SetRootComponent(Root);
-		Root->RegisterComponent();
-	}
+	USceneComponent* Root = NewObject<USceneComponent>(HostActor, TEXT("Root"), RF_Transient);
+	HostActor->SetRootComponent(Root);
+	Root->RegisterComponent();
 
-	auto EnsureMaterialUsedWithHISM = [](UMaterialInterface* MI)
-	{
-		if (!MI) return;
-		UMaterialInterface* Cur = MI;
-		while (UMaterialInstance* Inst = Cast<UMaterialInstance>(Cur))
-		{
-			if (!Inst->Parent) break;
-			Cur = Inst->Parent;
-		}
-		UMaterial* BaseMat = Cast<UMaterial>(Cur);
-		UE_LOG(LogTemp, Warning, TEXT("[KBVEGrass] EnsureFlag in='%s' walked='%s' base=%s flagBefore=%d"),
-			*MI->GetName(),
-			Cur ? *Cur->GetName() : TEXT("<null>"),
-			BaseMat ? TEXT("UMaterial") : TEXT("<not-UMaterial>"),
-			BaseMat ? (BaseMat->bUsedWithInstancedStaticMeshes ? 1 : 0) : -1);
-		if (BaseMat)
-		{
-			bool bChanged = false;
-			if (!BaseMat->bUsedWithInstancedStaticMeshes) { BaseMat->bUsedWithInstancedStaticMeshes = true; bChanged = true; }
-			if (bChanged)
-			{
-				BaseMat->PostEditChange();
-				BaseMat->ForceRecompileForRendering();
-				UE_LOG(LogTemp, Warning, TEXT("[KBVEGrass] Flipped usage flags + ForceRecompile on %s"), *BaseMat->GetName());
-			}
-		}
-	};
-
-	if (!BladeMesh)
-	{
-		static const TCHAR* BladePath = TEXT("/Game/PN_GrassLibrary/Meshes/grassMesh/grass_01_01_mesh.grass_01_01_mesh");
-		BladeMesh = LoadObject<UStaticMesh>(nullptr, BladePath);
-		if (BladeMesh)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[KBVEGrass] PN blade mesh loaded: %s slots=%d slot0=%s"),
-				*BladeMesh->GetName(),
-				BladeMesh->GetStaticMaterials().Num(),
-				BladeMesh->GetStaticMaterials().Num() > 0 && BladeMesh->GetMaterial(0)
-					? *BladeMesh->GetMaterial(0)->GetName() : TEXT("<null>"));
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("[KBVEGrass] FAILED to load PN blade mesh at %s"), BladePath);
-		}
-	}
-
-	if (!ImpostorMesh)
-	{
-		static const TCHAR* ImpostorPath = TEXT("/Game/PN_GrassLibrary/Meshes/grassMesh/grass_01_05_mesh.grass_01_05_mesh");
-		ImpostorMesh = LoadObject<UStaticMesh>(nullptr, ImpostorPath);
-		if (!ImpostorMesh) ImpostorMesh = BladeMesh;
-	}
-
-	if (BladeMesh    && BladeMesh->GetStaticMaterials().Num()    > 0) EnsureMaterialUsedWithHISM(BladeMesh->GetMaterial(0));
-	if (ImpostorMesh && ImpostorMesh->GetStaticMaterials().Num() > 0) EnsureMaterialUsedWithHISM(ImpostorMesh->GetMaterial(0));
-
-	if (!PNGlobalUpdaterActor && BladeMesh)
+	if (!PNGlobalUpdaterActor)
 	{
 		static const TCHAR* UpdaterPath = TEXT("/Game/PN_GrassLibrary/Blueprints/PN_GlobalUpdater.PN_GlobalUpdater_C");
 		if (UClass* UpdaterClass = LoadClass<AActor>(nullptr, UpdaterPath))
 		{
-			FActorSpawnParameters Params;
-			Params.ObjectFlags |= RF_Transient;
-			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 			PNGlobalUpdaterActor = W->SpawnActor<AActor>(UpdaterClass, FVector::ZeroVector, FRotator::ZeroRotator, Params);
-			UE_LOG(LogTemp, Warning, TEXT("[KBVEGrass] PN_GlobalUpdater spawned=%s"), PNGlobalUpdaterActor ? *PNGlobalUpdaterActor->GetName() : TEXT("<null>"));
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("[KBVEGrass] PN_GlobalUpdater class not found at %s"), UpdaterPath);
 		}
 	}
-
-	auto ConfigureHISM = [&](UHierarchicalInstancedStaticMeshComponent* H, UStaticMesh* M, bool bUseFallbackMaterial, int32 CullStart, int32 CullEnd)
-	{
-		H->SetMobility(EComponentMobility::Movable);
-		H->SetupAttachment(HostActor->GetRootComponent());
-		H->NumCustomDataFloats              = 0;
-		H->InstanceStartCullDistance        = CullStart;
-		H->InstanceEndCullDistance          = CullEnd;
-		if (M) H->SetStaticMesh(M);
-		if (bUseFallbackMaterial && MasterMaterial)
-		{
-			const int32 SlotCount = M ? M->GetStaticMaterials().Num() : 0;
-			for (int32 Slot = 0; Slot < FMath::Max(SlotCount, 1); ++Slot)
-			{
-				H->SetMaterial(Slot, MasterMaterial);
-			}
-		}
-		const FBoxSphereBounds Bounds = M ? M->GetBounds() : FBoxSphereBounds(ForceInit);
-		UMaterialInterface* HISMMat0 = H->GetMaterial(0);
-		UE_LOG(LogTemp, Warning, TEXT("[KBVEGrass] HISM '%s' mesh=%s mat0=%s fallback=%d boundsSphere=%.1f boundsBox=%s"),
-			*H->GetName(),
-			M ? *M->GetName() : TEXT("<null>"),
-			HISMMat0 ? *HISMMat0->GetName() : TEXT("<null>"),
-			bUseFallbackMaterial ? 1 : 0,
-			Bounds.SphereRadius,
-			*Bounds.GetBox().ToString());
-		H->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		H->SetCanEverAffectNavigation(false);
-		H->bDisableCollision                = true;
-		H->SetCastShadow(false);
-		H->bCastDynamicShadow               = false;
-		H->bCastStaticShadow                = false;
-		H->bCastFarShadow                   = false;
-		H->bCastVolumetricTranslucentShadow = false;
-		H->bCastContactShadow               = false;
-		H->bAffectDistanceFieldLighting     = false;
-		H->bAffectDynamicIndirectLighting   = false;
-		H->bReceivesDecals                  = false;
-		H->bUseAsOccluder                   = false;
-		H->RegisterComponent();
-	};
-
-	const bool bBladeUsesFallback    = !BladeMesh    || BladeMesh->GetStaticMaterials().Num() == 0    || !BladeMesh->GetMaterial(0);
-	const bool bImpostorUsesFallback = !ImpostorMesh || ImpostorMesh->GetStaticMaterials().Num() == 0 || !ImpostorMesh->GetMaterial(0);
-
-	if (!GlobalBladeHISM)
-	{
-		GlobalBladeHISM = NewObject<UHierarchicalInstancedStaticMeshComponent>(HostActor, TEXT("GlobalBladeHISM"), RF_Transient);
-		ConfigureHISM(GlobalBladeHISM, BladeMesh, bBladeUsesFallback,
-			(int32)KBVEGrassCfg::BladeCullStart, (int32)KBVEGrassCfg::BladeCullEnd);
-	}
-	if (!GlobalImpostorHISM)
-	{
-		GlobalImpostorHISM = NewObject<UHierarchicalInstancedStaticMeshComponent>(HostActor, TEXT("GlobalImpostorHISM"), RF_Transient);
-		ConfigureHISM(GlobalImpostorHISM, ImpostorMesh, bImpostorUsesFallback,
-			(int32)KBVEGrassCfg::ImpostorCullStart, (int32)KBVEGrassCfg::ImpostorCullEnd);
-	}
-
 }
 
-bool UKBVEWorldGrassRenderSubsystem::RegisterChunkInstances(FIntPoint ChunkCoord,
-	const TArray<FTransform>& BladeTransforms,
-	const TArray<FTransform>& ImpostorTransforms)
+UHierarchicalInstancedStaticMeshComponent* UKBVEWorldGrassRenderSubsystem::GetOrCreateMeshHISM(UStaticMesh* Mesh)
 {
+	if (!Mesh) return nullptr;
+	if (TObjectPtr<UHierarchicalInstancedStaticMeshComponent>* Found = MeshHISMs.Find(Mesh))
+	{
+		return *Found;
+	}
 	EnsureHost();
-	if (!GlobalBladeHISM || !GlobalImpostorHISM) return false;
+	if (!HostActor) return nullptr;
 
+	UHierarchicalInstancedStaticMeshComponent* H =
+		NewObject<UHierarchicalInstancedStaticMeshComponent>(HostActor, NAME_None, RF_Transient);
+	H->SetMobility(EComponentMobility::Movable);
+	H->SetupAttachment(HostActor->GetRootComponent());
+	H->NumCustomDataFloats       = 0;
+	H->InstanceStartCullDistance = (int32)KBVEGrassCfg::BladeCullStart;
+	H->InstanceEndCullDistance   = (int32)KBVEGrassCfg::BladeCullEnd;
+	H->SetStaticMesh(Mesh);
+	if (Mesh->GetStaticMaterials().Num() > 0)
+	{
+		KBVEGrass_EnsureMaterialISMFlag(Mesh->GetMaterial(0));
+	}
+	else if (MasterMaterial)
+	{
+		H->SetMaterial(0, MasterMaterial);
+	}
+	H->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	H->SetCanEverAffectNavigation(false);
+	H->bDisableCollision                = true;
+	H->SetCastShadow(false);
+	H->bCastDynamicShadow               = false;
+	H->bCastStaticShadow                = false;
+	H->bCastFarShadow                   = false;
+	H->bCastVolumetricTranslucentShadow = false;
+	H->bCastContactShadow               = false;
+	H->bAffectDistanceFieldLighting     = false;
+	H->bAffectDynamicIndirectLighting   = false;
+	H->bReceivesDecals                  = false;
+	H->bUseAsOccluder                   = false;
+	H->RegisterComponent();
+
+	MeshHISMs.Add(Mesh, H);
+	MeshOwners.Add(Mesh, {});
+	return H;
+}
+
+bool UKBVEWorldGrassRenderSubsystem::RegisterChunkInstances(FIntPoint ChunkCoord, const TArray<FKBVEGrassMeshBatch>& Batches)
+{
 	FKBVEGrassPendingBuild Build;
-	Build.ChunkCoord         = ChunkCoord;
-	Build.BladeTransforms    = BladeTransforms;
-	Build.ImpostorTransforms = ImpostorTransforms;
+	Build.ChunkCoord = ChunkCoord;
+	Build.Batches    = Batches;
+	for (const FKBVEGrassMeshBatch& B : Build.Batches)
+	{
+		if (B.Mesh) TrackedMeshes.Add(B.Mesh);
+	}
 	RegisteredChunks.Add(ChunkCoord, MoveTemp(Build));
 	return true;
 }
 
-void UKBVEWorldGrassRenderSubsystem::AppendInstancesWithOwners(UHierarchicalInstancedStaticMeshComponent* H,
-	TArray<FIntPoint>& Owners,
-	const FTransform* Begin,
-	int32 Count,
-	FIntPoint Coord)
-{
-	if (!H || Count <= 0) return;
-	TArray<FTransform> Slice;
-	Slice.Append(Begin, Count);
-	H->AddInstances(Slice, false);
-	Owners.Reserve(Owners.Num() + Count);
-	for (int32 i = 0; i < Count; ++i) Owners.Add(Coord);
-}
-
-void UKBVEWorldGrassRenderSubsystem::AddChunkToHISM(const FKBVEGrassPendingBuild& Source)
+void UKBVEWorldGrassRenderSubsystem::AddChunkToHISMs(const FKBVEGrassPendingBuild& Source,
+	TSet<UHierarchicalInstancedStaticMeshComponent*>& OutTouched)
 {
 	using namespace KBVEGrassCfg;
 
-	auto Subsample = [](const TArray<FTransform>& In, int32 Stride)
+	for (const FKBVEGrassMeshBatch& Batch : Source.Batches)
 	{
+		if (!Batch.Mesh || Batch.Transforms.Num() == 0) continue;
+
+		UHierarchicalInstancedStaticMeshComponent* H = GetOrCreateMeshHISM(Batch.Mesh);
+		if (!H) continue;
+
 		TArray<FTransform> Out;
-		if (Stride > 1 && In.Num() > Stride)
+		Out.Reserve(Batch.Transforms.Num() / BladeStride + 1);
+		for (int32 i = 0; i < Batch.Transforms.Num(); i += BladeStride)
 		{
-			Out.Reserve(In.Num() / Stride + 1);
-			for (int32 i = 0; i < In.Num(); i += Stride) Out.Add(In[i]);
+			FTransform T = Batch.Transforms[i];
+			T.MultiplyScale3D(FVector(PNScaleMul));
+			Out.Add(T);
 		}
-		else
-		{
-			Out = In;
-		}
-		for (FTransform& T : Out) T.MultiplyScale3D(FVector(PNScaleMul));
-		return Out;
-	};
+		if (Out.Num() == 0) continue;
 
-	TArray<FTransform> Blades    = Subsample(Source.BladeTransforms, BladeStride);
-	TArray<FTransform> Impostors = Source.ImpostorTransforms.Num() > 0
-		? Subsample(Source.ImpostorTransforms, BladeStride)
-		: Subsample(Source.BladeTransforms, ImpostorStride);
-
-	if (Blades.Num() > 0)
-	{
-		GlobalBladeHISM->AddInstances(Blades, false);
-		BladeOwners.Reserve(BladeOwners.Num() + Blades.Num());
-		for (int32 i = 0; i < Blades.Num(); ++i) BladeOwners.Add(Source.ChunkCoord);
+		H->AddInstances(Out, false);
+		TArray<FIntPoint>& Owners = MeshOwners.FindOrAdd(Batch.Mesh);
+		Owners.Reserve(Owners.Num() + Out.Num());
+		for (int32 i = 0; i < Out.Num(); ++i) Owners.Add(Source.ChunkCoord);
+		OutTouched.Add(H);
 	}
-	if (Impostors.Num() > 0)
+}
+
+void UKBVEWorldGrassRenderSubsystem::RemoveChunkFromHISMs(FIntPoint Coord,
+	TSet<UHierarchicalInstancedStaticMeshComponent*>& OutTouched)
+{
+	for (TPair<TObjectPtr<UStaticMesh>, TObjectPtr<UHierarchicalInstancedStaticMeshComponent>>& Pair : MeshHISMs)
 	{
-		GlobalImpostorHISM->AddInstances(Impostors, false);
-		ImpostorOwners.Reserve(ImpostorOwners.Num() + Impostors.Num());
-		for (int32 i = 0; i < Impostors.Num(); ++i) ImpostorOwners.Add(Source.ChunkCoord);
+		UHierarchicalInstancedStaticMeshComponent* H = Pair.Value;
+		if (!H) continue;
+		TArray<FIntPoint>* Owners = MeshOwners.Find(Pair.Key.Get());
+		if (!Owners || Owners->Num() == 0) continue;
+		const int32 Before = H->GetInstanceCount();
+		RemoveOwnedInstances(H, *Owners, Coord);
+		if (H->GetInstanceCount() != Before) OutTouched.Add(H);
 	}
 }
 
 void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 {
 	if (RegisteredChunks.Num() == 0 && ResidentChunks.Num() == 0) return;
-	EnsureHost();
-	if (!GlobalBladeHISM || !GlobalImpostorHISM) return;
 
 	using namespace KBVEGrassCfg;
 
@@ -325,17 +255,15 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 		return FMath::Max(FMath::Abs(C.X - CamChunk.X), FMath::Abs(C.Y - CamChunk.Y));
 	};
 
-	bool bChanged = false;
+	TSet<UHierarchicalInstancedStaticMeshComponent*> Touched;
 
 	int32 Evicted = 0;
 	for (auto It = ResidentChunks.CreateIterator(); It && Evicted < MaxAdmitsPerTick; ++It)
 	{
 		if (Cheb(*It) > EvictRadius)
 		{
-			RemoveOwnedInstances(GlobalBladeHISM,    BladeOwners,    *It);
-			RemoveOwnedInstances(GlobalImpostorHISM, ImpostorOwners, *It);
+			RemoveChunkFromHISMs(*It, Touched);
 			It.RemoveCurrent();
-			bChanged = true;
 			++Evicted;
 		}
 	}
@@ -359,19 +287,16 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 		if (!bFound) break;
 
 		const FKBVEGrassPendingBuild& Build = RegisteredChunks[BestCoord];
-		AddChunkToHISM(Build);
+		AddChunkToHISMs(Build, Touched);
 		ResidentChunks.Add(BestCoord);
-		Spent += Build.BladeTransforms.Num() + Build.ImpostorTransforms.Num();
+		for (const FKBVEGrassMeshBatch& B : Build.Batches) Spent += B.Transforms.Num();
 		++Admitted;
-		bChanged = true;
 	}
 
-	if (bChanged)
+	for (UHierarchicalInstancedStaticMeshComponent* H : Touched)
 	{
-		GlobalBladeHISM->BuildTreeIfOutdated(true, false);
-		GlobalBladeHISM->MarkRenderStateDirty();
-		GlobalImpostorHISM->BuildTreeIfOutdated(true, false);
-		GlobalImpostorHISM->MarkRenderStateDirty();
+		H->BuildTreeIfOutdated(true, false);
+		H->MarkRenderStateDirty();
 	}
 }
 
@@ -406,9 +331,12 @@ void UKBVEWorldGrassRenderSubsystem::ReleaseChunkInstances(FIntPoint ChunkCoord)
 
 	if (ResidentChunks.Remove(ChunkCoord) > 0)
 	{
-		RemoveOwnedInstances(GlobalBladeHISM,    BladeOwners,    ChunkCoord);
-		RemoveOwnedInstances(GlobalImpostorHISM, ImpostorOwners, ChunkCoord);
-		if (GlobalBladeHISM)    { GlobalBladeHISM->BuildTreeIfOutdated(true, false);    GlobalBladeHISM->MarkRenderStateDirty(); }
-		if (GlobalImpostorHISM) { GlobalImpostorHISM->BuildTreeIfOutdated(true, false); GlobalImpostorHISM->MarkRenderStateDirty(); }
+		TSet<UHierarchicalInstancedStaticMeshComponent*> Touched;
+		RemoveChunkFromHISMs(ChunkCoord, Touched);
+		for (UHierarchicalInstancedStaticMeshComponent* H : Touched)
+		{
+			H->BuildTreeIfOutdated(true, false);
+			H->MarkRenderStateDirty();
+		}
 	}
 }
