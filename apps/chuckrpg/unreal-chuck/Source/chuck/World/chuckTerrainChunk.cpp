@@ -5,7 +5,7 @@
 AchuckTerrainChunk::AchuckTerrainChunk()
 {
 	GrassBucket.bUseProceduralGrass    = true;
-	GrassBucket.ProceduralVariantCount = 6;
+	GrassBucket.ProceduralVariantCount = 3;
 	GrassBucket.ProceduralWidthMin     = 3.f;
 	GrassBucket.ProceduralWidthMax     = 7.f;
 	GrassBucket.ProceduralHeightMin    = 28.f;
@@ -20,6 +20,8 @@ AchuckTerrainChunk::AchuckTerrainChunk()
 	GrassBucket.ImpostorCullStart      = 4500;
 	GrassBucket.ImpostorCullEnd        = 22000;
 	GrassBucket.bImpostorCastShadow    = false;
+	GrassBucket.GroundTintCullStart    = 21500;
+	GrassBucket.GroundTintCullEnd      = 32000;
 	GrassBucket.Tier                   = EKBVEWorldFoliageTier::Grass;
 
 	FoliageBucket.MaxVariants     = 32;
@@ -32,7 +34,7 @@ AchuckTerrainChunk::AchuckTerrainChunk()
 
 	BlockSize         = 4;
 	InstancesPerBlock = 64;
-	PerChunkVariants  = 12;
+	PerChunkVariants  = 2;
 	MaxSlope          = 0.55f;
 }
 

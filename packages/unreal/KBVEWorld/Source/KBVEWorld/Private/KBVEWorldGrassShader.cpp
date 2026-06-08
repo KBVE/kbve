@@ -43,6 +43,8 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateMasterMaterial(UObject* /*
 	M->TwoSided              = false;
 	M->DitheredLODTransition = true;
 	M->SetShadingModel(MSM_DefaultLit);
+	M->bUsedWithInstancedStaticMeshes = true;
+	M->bUsedWithStaticLighting        = true;
 
 	UMaterialExpressionVertexColor*       VC      = MakeExpr<UMaterialExpressionVertexColor>(M);
 	UMaterialExpressionConstant3Vector*   Tint    = MakeExpr<UMaterialExpressionConstant3Vector>(M);

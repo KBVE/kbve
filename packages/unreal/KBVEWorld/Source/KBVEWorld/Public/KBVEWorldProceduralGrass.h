@@ -20,6 +20,7 @@ public:
 
 	static UStaticMesh* GetOrCreateCardMesh(UObject* Outer, const FCardSpec& Spec, UMaterialInterface* Material);
 	static UStaticMesh* GetOrCreateImpostorMesh(UObject* Outer, const FCardSpec& Spec, UMaterialInterface* Material);
+	static UStaticMesh* GetOrCreateGroundTintMesh(UObject* Outer, const FCardSpec& Spec, UMaterialInterface* Material);
 
 	static void PopulateProceduralBucket(
 		UObject* Outer,
@@ -28,5 +29,6 @@ public:
 		float WidthMin, float WidthMax,
 		float HeightMin, float HeightMax,
 		TArray<UStaticMesh*>& OutMeshes,
-		TArray<UStaticMesh*>* OutImpostorMeshes = nullptr);
+		TArray<UStaticMesh*>* OutImpostorMeshes = nullptr,
+		TArray<UStaticMesh*>* OutGroundTintMeshes = nullptr);
 };

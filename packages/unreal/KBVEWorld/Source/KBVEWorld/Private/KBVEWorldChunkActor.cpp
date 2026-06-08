@@ -2,6 +2,9 @@
 
 #include "Async/Async.h"
 #include "KBVEWorldProceduralGrass.h"
+#include "KBVEWorldGrassData.h"
+#include "KBVEWorldGrassMass.h"
+#include "KBVEWorldGrassRenderSubsystem.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/ObjectLibrary.h"
@@ -9,6 +12,8 @@
 #include "Engine/World.h"
 #include "FoliageType_InstancedStaticMesh.h"
 #include "KismetProceduralMeshLibrary.h"
+#include "MassEntityManager.h"
+#include "MassEntitySubsystem.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInterface.h"
 #include "Math/RandomStream.h"
@@ -215,6 +220,43 @@ void AKBVEWorldChunkActor::Build(const FIntPoint& InCoord, uint32 InSeed, int32 
 	PositionWaterAndApplyMaterials(ChunkSize);
 	PopulateFoliage();
 	bMeshBuilt = true;
+
+	if (UWorld* W = GetWorld())
+	{
+		if (UMassEntitySubsystem* Sub = W->GetSubsystem<UMassEntitySubsystem>())
+		{
+			FMassEntityManager& EM = Sub->GetMutableEntityManager();
+			if (!ChunkClusterEntity.IsValid())
+			{
+				FKBVEGrassClusterFragment Frag;
+				const uint32 BiomeId = GrassBucket.BiomeId;
+				Frag.ClusterHash    = FKBVEWorldGrassHash::MakeClusterKey(Coord.X, Coord.Y, 0, 0, BiomeId);
+				Frag.VisualKey      = FKBVEWorldGrassHash::MakeVisualKey(0, 0, BiomeId, 0, 0);
+				Frag.Origin         = FVector3f(Coord.X * ChunkSize, Coord.Y * ChunkSize, 0.f);
+				Frag.Radius         = ChunkSize * 0.5f;
+				Frag.WindPhase      = FKBVEWorldGrassHash::MakeBladePhase(Frag.ClusterHash, 0);
+				Frag.TypeId         = 0;
+				Frag.GroupId        = 0;
+				Frag.ColorPaletteId = 0;
+				Frag.DensityTier    = 0;
+				Frag.WindZoneId     = 0;
+				Frag.LODTier        = (uint8)EKBVEGrassLODTier::LOD0_RealBlade;
+
+				ChunkClusterEntity = EM.ReserveEntity();
+				FMassArchetypeHandle Archetype = EM.CreateArchetype({
+					FKBVEGrassClusterFragment::StaticStruct(),
+					FKBVEGrassClusterHISMRefs::StaticStruct(),
+					FKBVEGrassClusterTag::StaticStruct(),
+				});
+				EM.BuildEntity(ChunkClusterEntity, Archetype);
+				if (FKBVEGrassClusterFragment* Slot = EM.GetFragmentDataPtr<FKBVEGrassClusterFragment>(ChunkClusterEntity))
+				{
+					*Slot = Frag;
+				}
+				RefreshChunkClusterHISMRefs();
+			}
+		}
+	}
 }
 
 bool AKBVEWorldChunkActor::BuildFromBlob(const FIntPoint& InCoord, uint32 InSeed, const TArray<uint8>& Blob, float InWaterZ)
@@ -248,15 +290,30 @@ bool AKBVEWorldChunkActor::BuildFromBlob(const FIntPoint& InCoord, uint32 InSeed
 
 void AKBVEWorldChunkActor::SetImpostorVisible(bool bVisible)
 {
-	if (bImpostorVisibleCached == bVisible) return;
 	bImpostorVisibleCached = bVisible;
-	for (UHierarchicalInstancedStaticMeshComponent* H : ImpostorHISMs)
-	{
-		if (IsValid(H))
-		{
-			H->SetVisibility(bVisible);
-		}
-	}
+}
+
+void AKBVEWorldChunkActor::RefreshChunkClusterHISMRefs()
+{
+	if (!ChunkClusterEntity.IsValid()) return;
+	UWorld* W = GetWorld();
+	if (!W) return;
+	UMassEntitySubsystem* Sub = W->GetSubsystem<UMassEntitySubsystem>();
+	if (!Sub) return;
+	FMassEntityManager& EM = Sub->GetMutableEntityManager();
+	FKBVEGrassClusterHISMRefs* Refs = EM.GetFragmentDataPtr<FKBVEGrassClusterHISMRefs>(ChunkClusterEntity);
+	if (!Refs) return;
+
+	UKBVEWorldGrassRenderSubsystem* Render = W->GetSubsystem<UKBVEWorldGrassRenderSubsystem>();
+	Refs->BladeHISM      = Render ? Render->GetBladeHISM()    : nullptr;
+	Refs->ImpostorHISM   = Render ? Render->GetImpostorHISM() : nullptr;
+	Refs->GroundTintHISM = nullptr;
+	Refs->BladeInstanceFirst    = -1;
+	Refs->BladeInstanceCount    = 0;
+	Refs->ImpostorInstanceFirst = -1;
+	Refs->ImpostorInstanceCount = 0;
+	Refs->TintInstanceFirst     = -1;
+	Refs->TintInstanceCount     = 0;
 }
 
 void AKBVEWorldChunkActor::Release()
@@ -266,6 +323,19 @@ void AKBVEWorldChunkActor::Release()
 	SetActorHiddenInGame(true);
 	if (Water) Water->SetVisibility(false);
 	ClearFoliage();
+
+	if (ChunkClusterEntity.IsValid())
+	{
+		if (UWorld* W = GetWorld())
+		{
+			if (UMassEntitySubsystem* Sub = W->GetSubsystem<UMassEntitySubsystem>())
+			{
+				FMassEntityManager& EM = Sub->GetMutableEntityManager();
+				EM.DestroyEntity(ChunkClusterEntity);
+			}
+		}
+		ChunkClusterEntity.Reset();
+	}
 }
 
 static bool KBVEWorld_NameMatchesFilters(const FString& NameLower, const TArray<FString>& Includes, const TArray<FString>& Excludes)
@@ -297,12 +367,13 @@ void AKBVEWorldChunkActor::LoadBucket(const FKBVEWorldFoliageBucketConfig& Cfg)
 			: Cfg.ProceduralMaterial.LoadSynchronous();
 		TArray<UStaticMesh*> Built;
 		TArray<UStaticMesh*> BuiltImp;
+		TArray<UStaticMesh*> BuiltTint;
 		FKBVEWorldProceduralGrass::PopulateProceduralBucket(
 			this, Mat,
 			FMath::Min(Cfg.ProceduralVariantCount, Cap),
 			Cfg.ProceduralWidthMin,  Cfg.ProceduralWidthMax,
 			Cfg.ProceduralHeightMin, Cfg.ProceduralHeightMax,
-			Built, &BuiltImp);
+			Built, &BuiltImp, &BuiltTint);
 		for (int32 i = 0; i < Built.Num(); ++i)
 		{
 			if (Added >= Cap || !Built[i]) break;
@@ -313,6 +384,7 @@ void AKBVEWorldChunkActor::LoadBucket(const FKBVEWorldFoliageBucketConfig& Cfg)
 			FoliageTypes.Add(RuntimeFT);
 			FoliageMeshes.Add(Built[i]);
 			FoliageImpostorMeshes.Add(BuiltImp.IsValidIndex(i) ? BuiltImp[i] : nullptr);
+			FoliageGroundTintMeshes.Add(BuiltTint.IsValidIndex(i) ? BuiltTint[i] : nullptr);
 			FoliageMetas.Add(M);
 			++Added;
 		}
@@ -424,133 +496,23 @@ void AKBVEWorldChunkActor::EnsureHISMComponents()
 		ChunkVariantIndices.Reserve(Want);
 		for (int32 i = 0; i < Want; ++i) ChunkVariantIndices.Add(Pool[i]);
 	}
-
-	while (FoliageHISMs.Num() < ChunkVariantIndices.Num())
-	{
-		const int32 slot = FoliageHISMs.Num();
-		const int32 i    = ChunkVariantIndices[slot];
-		UStaticMesh* SM = FoliageMeshes.IsValidIndex(i) ? FoliageMeshes[i] : nullptr;
-		const bool bGrass = FoliageMetas.IsValidIndex(i) && FoliageMetas[i].Tier == EKBVEWorldFoliageTier::Grass;
-		const FKBVEWorldFoliageBucketConfig& Cfg = bGrass ? GrassBucket : FoliageBucket;
-
-		UHierarchicalInstancedStaticMeshComponent* H = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
-		H->SetupAttachment(RootComponent);
-		H->RegisterComponent();
-		H->SetMobility(EComponentMobility::Movable);
-		H->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		H->SetCanEverAffectNavigation(false);
-
-		H->SetCastShadow(Cfg.bCastShadow);
-		H->bCastDynamicShadow               = Cfg.bCastShadow;
-		H->bCastShadowAsTwoSided            = bGrass;
-		H->bAffectDynamicIndirectLighting   = bGrass;
-		H->bReceivesDecals                  = bGrass;
-		H->InstanceStartCullDistance        = Cfg.CullStart;
-		H->InstanceEndCullDistance          = Cfg.CullEnd;
-		H->WorldPositionOffsetDisableDistance = Cfg.WPODisableDistance;
-		if (Cfg.ForcedLODBias > 0) H->ForcedLodModel = Cfg.ForcedLODBias;
-		H->bCastStaticShadow                = false;
-		H->bCastFarShadow                   = false;
-		H->bCastVolumetricTranslucentShadow = false;
-		H->bCastContactShadow               = false;
-		H->bCastInsetShadow                 = false;
-		H->bCastHiddenShadow                = false;
-		H->bSelfShadowOnly                  = false;
-		H->bAffectDistanceFieldLighting     = false;
-		H->bUseAsOccluder                   = false;
-		H->bDisableCollision                = true;
-		H->LightingChannels.bChannel0       = true;
-		H->LightingChannels.bChannel1       = false;
-		H->LightingChannels.bChannel2       = false;
-
-		H->NumCustomDataFloats = FMath::Clamp(Cfg.NumCustomDataFloats, 0, 8);
-		if (SM) H->SetStaticMesh(SM);
-		UFoliageType_InstancedStaticMesh* FTSlot = FoliageTypes.IsValidIndex(i) ? FoliageTypes[i] : nullptr;
-		if (FTSlot)
-		{
-			const int32 NumMats = H->GetNumMaterials();
-			const TArray<UMaterialInterface*>& FTMats = FTSlot->OverrideMaterials;
-			for (int32 m = 0; m < NumMats && m < FTMats.Num(); ++m)
-			{
-				if (FTMats[m]) H->SetMaterial(m, FTMats[m]);
-			}
-		}
-		FoliageHISMs.Add(H);
-
-		UStaticMesh* PerVariantImpostor = FoliageImpostorMeshes.IsValidIndex(i) ? FoliageImpostorMeshes[i].Get() : nullptr;
-		UStaticMesh* ImpostorToUse = PerVariantImpostor ? PerVariantImpostor : Cfg.ImpostorMesh.Get();
-		UHierarchicalInstancedStaticMeshComponent* Imp = nullptr;
-		if (ImpostorToUse)
-		{
-			Imp = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
-			Imp->SetupAttachment(RootComponent);
-			Imp->RegisterComponent();
-			Imp->SetMobility(EComponentMobility::Movable);
-			Imp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-			Imp->SetCanEverAffectNavigation(false);
-			Imp->SetCastShadow(Cfg.bImpostorCastShadow);
-			Imp->bCastDynamicShadow               = Cfg.bImpostorCastShadow;
-			Imp->bCastShadowAsTwoSided            = false;
-			Imp->bAffectDynamicIndirectLighting   = false;
-			Imp->bReceivesDecals                  = false;
-			Imp->bCastStaticShadow                = false;
-			Imp->bCastFarShadow                   = false;
-			Imp->bCastVolumetricTranslucentShadow = false;
-			Imp->bCastContactShadow               = false;
-			Imp->bCastInsetShadow                 = false;
-			Imp->bCastHiddenShadow                = false;
-			Imp->bSelfShadowOnly                  = false;
-			Imp->bAffectDistanceFieldLighting     = false;
-			Imp->bUseAsOccluder                   = false;
-			Imp->bDisableCollision                = true;
-			Imp->InstanceStartCullDistance        = Cfg.ImpostorCullStart;
-			Imp->InstanceEndCullDistance          = Cfg.ImpostorCullEnd;
-			Imp->WorldPositionOffsetDisableDistance = 0;
-			Imp->NumCustomDataFloats = FMath::Clamp(Cfg.NumCustomDataFloats, 0, 8);
-			Imp->SetStaticMesh(ImpostorToUse);
-		}
-		ImpostorHISMs.Add(Imp);
-	}
-
-	for (int32 slot = 0; slot < ChunkVariantIndices.Num() && slot < FoliageHISMs.Num(); ++slot)
-	{
-		UHierarchicalInstancedStaticMeshComponent* H = FoliageHISMs[slot];
-		if (!IsValid(H)) continue;
-		const int32 i = ChunkVariantIndices[slot];
-		UStaticMesh* DesiredMesh = FoliageMeshes.IsValidIndex(i) ? FoliageMeshes[i] : nullptr;
-		if (DesiredMesh && H->GetStaticMesh() != DesiredMesh)
-		{
-			H->ClearInstances();
-			H->SetStaticMesh(DesiredMesh);
-		}
-	}
 }
 
 void AKBVEWorldChunkActor::ClearFoliage()
 {
-	for (UHierarchicalInstancedStaticMeshComponent* H : FoliageHISMs)
+	if (UWorld* W = GetWorld())
 	{
-		if (IsValid(H)) H->ClearInstances();
-	}
-	for (UHierarchicalInstancedStaticMeshComponent* H : ImpostorHISMs)
-	{
-		if (IsValid(H)) H->ClearInstances();
+		if (UKBVEWorldGrassRenderSubsystem* Render = W->GetSubsystem<UKBVEWorldGrassRenderSubsystem>())
+		{
+			Render->ReleaseChunkInstances(Coord);
+		}
 	}
 }
 
 void AKBVEWorldChunkActor::PopulateFoliage()
 {
 	EnsureHISMComponents();
-	if (FoliageMeshes.Num() == 0 || FoliageHISMs.Num() == 0) return;
-
-	for (UHierarchicalInstancedStaticMeshComponent* H : FoliageHISMs)
-	{
-		if (IsValid(H)) H->ClearInstances();
-	}
-	for (UHierarchicalInstancedStaticMeshComponent* H : ImpostorHISMs)
-	{
-		if (IsValid(H)) H->ClearInstances();
-	}
+	if (FoliageMeshes.Num() == 0) return;
 
 	const int32 LocalToken = ++PopulateToken;
 
@@ -710,7 +672,7 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 		}
 
 		AsyncTask(ENamedThreads::GameThread,
-			[WeakSelf, LocalToken, LocalCoord, LocalCustomFloats, Batches = MoveTemp(Batches), CustomBatches = MoveTemp(CustomBatches)]() mutable
+			[WeakSelf, LocalToken, LocalCoord, LocalCells, LocalCSize, Batches = MoveTemp(Batches)]() mutable
 		{
 			AKBVEWorldChunkActor* Self = WeakSelf.Get();
 			if (!Self) return;
@@ -718,46 +680,32 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 			if (Self->Coord != LocalCoord)         return;
 			if (!Self->bActive)                    return;
 
-			int32 TotalAdded = 0;
-			for (int32 t = 0; t < Batches.Num() && t < Self->FoliageHISMs.Num(); ++t)
+			const float ChunkSize = LocalCells * LocalCSize;
+			const FVector ChunkOrigin(LocalCoord.X * ChunkSize, LocalCoord.Y * ChunkSize, 0.f);
+
+			TArray<FTransform> Flattened;
+			int32 Total = 0;
+			for (const TArray<FTransform>& B : Batches) Total += B.Num();
+			Flattened.Reserve(Total);
+			for (TArray<FTransform>& B : Batches)
 			{
-				UHierarchicalInstancedStaticMeshComponent* H = Self->FoliageHISMs[t];
-				if (!IsValid(H) || Batches[t].Num() == 0) continue;
-				const int32 StartIdx = H->GetInstanceCount();
-				H->AddInstances(Batches[t], false);
-				TotalAdded += Batches[t].Num();
-				if (LocalCustomFloats > 0 && CustomBatches[t].Num() > 0)
+				for (FTransform& T : B)
 				{
-					for (int32 k = 0; k < Batches[t].Num(); ++k)
-					{
-						for (int32 f = 0; f < LocalCustomFloats; ++f)
-						{
-							H->SetCustomDataValue(StartIdx + k, f, CustomBatches[t][k * LocalCustomFloats + f], false);
-						}
-					}
+					T.AddToTranslation(ChunkOrigin);
 				}
-				if (Self->ImpostorHISMs.IsValidIndex(t))
-				{
-					if (UHierarchicalInstancedStaticMeshComponent* Imp = Self->ImpostorHISMs[t])
-					{
-						const int32 ImpStartIdx = Imp->GetInstanceCount();
-						Imp->AddInstances(Batches[t], false);
-						if (LocalCustomFloats > 0 && CustomBatches[t].Num() > 0)
-						{
-							for (int32 k = 0; k < Batches[t].Num(); ++k)
-							{
-								for (int32 f = 0; f < LocalCustomFloats; ++f)
-								{
-									Imp->SetCustomDataValue(ImpStartIdx + k, f, CustomBatches[t][k * LocalCustomFloats + f], false);
-								}
-							}
-						}
-					}
-				}
+				Flattened.Append(MoveTemp(B));
 			}
+
+			UWorld* W = Self->GetWorld();
+			if (!W) return;
+			UKBVEWorldGrassRenderSubsystem* Render = W->GetSubsystem<UKBVEWorldGrassRenderSubsystem>();
+			if (!Render) return;
+			TArray<FTransform> EmptyImpostor;
+			Render->RegisterChunkInstances(LocalCoord, Flattened, EmptyImpostor);
+
 			UE_LOG(LogTemp, Verbose,
-				TEXT("[KBVEWorld] Chunk foliage(async) coord=(%d,%d) slots=%d instances=%d"),
-				LocalCoord.X, LocalCoord.Y, Batches.Num(), TotalAdded);
+				TEXT("[KBVEWorld] Chunk foliage(async) coord=(%d,%d) instances=%d"),
+				LocalCoord.X, LocalCoord.Y, Flattened.Num());
 		});
 	});
 }

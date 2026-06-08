@@ -1707,20 +1707,27 @@ jobs:
             - name: Install Visual Studio 2022 Build Tools
               timeout-minutes: 90
               run: |
-                  if (Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC") { Write-Host "VS Build Tools already installed."; exit 0 }
-                  Write-Host "Downloading VS Build Tools bootstrapper from aka.ms ..."
-                  curl.exe -L -s --retry 5 --retry-all-errors -C - --connect-timeout 30 -o $env:RUNNER_TEMP\vs_buildtools.exe "https://aka.ms/vs/17/release/vs_BuildTools.exe"
-                  if (!(Test-Path $env:RUNNER_TEMP\vs_buildtools.exe)) { Write-Host "::warning::VS bootstrapper download failed."; exit 0 }
-                  $p = Start-Process $env:RUNNER_TEMP\vs_buildtools.exe -ArgumentList @(
+                  $vsPath = "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"
+                  $components = @(
                       '--add','Microsoft.VisualStudio.Workload.VCTools',
                       '--add','Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
                       '--add','Microsoft.VisualStudio.Component.Windows11SDK.26100',
                       '--add','Microsoft.Component.MSBuild',
                       '--add','Microsoft.Net.Component.4.6.2.SDK',
                       '--add','Microsoft.Net.Component.4.6.2.TargetingPack',
-                      '--add','Microsoft.Net.Component.4.8.SDK',
-                      '--includeRecommended','--quiet','--wait','--norestart'
-                  ) -Wait -PassThru
+                      '--add','Microsoft.Net.Component.4.8.SDK'
+                  )
+                  Write-Host "Downloading VS Build Tools bootstrapper from aka.ms ..."
+                  curl.exe -L -s --retry 5 --retry-all-errors -C - --connect-timeout 30 -o $env:RUNNER_TEMP\vs_buildtools.exe "https://aka.ms/vs/17/release/vs_BuildTools.exe"
+                  if (!(Test-Path $env:RUNNER_TEMP\vs_buildtools.exe)) { Write-Host "::warning::VS bootstrapper download failed."; exit 0 }
+                  if (Test-Path "$vsPath\VC\Tools\MSVC") {
+                      Write-Host "VS present; modifying to ensure components."
+                      $args = @('modify','--installPath',$vsPath) + $components + @('--quiet','--wait','--norestart')
+                  } else {
+                      Write-Host "VS not present; installing."
+                      $args = $components + @('--includeRecommended','--quiet','--wait','--norestart')
+                  }
+                  $p = Start-Process $env:RUNNER_TEMP\vs_buildtools.exe -ArgumentList $args -Wait -PassThru
                   Write-Host "VS Build Tools installer exited: $($p.ExitCode)"
                   exit 0
 

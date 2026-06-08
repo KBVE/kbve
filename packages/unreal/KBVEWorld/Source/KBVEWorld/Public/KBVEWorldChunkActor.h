@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "KBVEWorldChunkBlob.h"
 #include "KBVEWorldFoliageBucket.h"
+#include "MassEntityHandle.h"
 #include "KBVEWorldChunkActor.generated.h"
 
 class UProceduralMeshComponent;
@@ -91,6 +92,9 @@ protected:
 	UPROPERTY()
 	TArray<TObjectPtr<UHierarchicalInstancedStaticMeshComponent>> ImpostorHISMs;
 
+	UPROPERTY()
+	TArray<TObjectPtr<UHierarchicalInstancedStaticMeshComponent>> GroundTintHISMs;
+
 	bool bImpostorVisibleCached = false;
 
 	UPROPERTY()
@@ -98,6 +102,9 @@ protected:
 
 	UPROPERTY()
 	TArray<TObjectPtr<UStaticMesh>> FoliageImpostorMeshes;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UStaticMesh>> FoliageGroundTintMeshes;
 
 	UPROPERTY()
 	TArray<FKBVEWorldFoliageMeta> FoliageMetas;
@@ -115,6 +122,11 @@ protected:
 	uint64  LastUsedTick = 0;
 
 	FKBVEWorldChunkMesh CachedMesh;
+
+	FMassEntityHandle ChunkClusterEntity;
+
+private:
+	void RefreshChunkClusterHISMRefs();
 
 	void UploadMesh(const FKBVEWorldChunkMesh& MeshData);
 	void PositionWaterAndApplyMaterials(float ChunkSize);

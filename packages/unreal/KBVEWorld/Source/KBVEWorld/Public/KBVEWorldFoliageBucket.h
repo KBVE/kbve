@@ -39,6 +39,9 @@ struct KBVEWORLD_API FKBVEWorldFoliageBucketConfig
 	UPROPERTY(EditAnywhere) int32 ImpostorCullStart = 7000;
 	UPROPERTY(EditAnywhere) int32 ImpostorCullEnd   = 20000;
 	UPROPERTY(EditAnywhere) bool  bImpostorCastShadow = false;
+
+	UPROPERTY(EditAnywhere) int32 GroundTintCullStart = 21500;
+	UPROPERTY(EditAnywhere) int32 GroundTintCullEnd   = 35000;
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "0", ClampMax = "5")) int32 ForcedLODBias = 0;
 	UPROPERTY(EditAnywhere) int32 WPODisableDistance = 1800;
 
