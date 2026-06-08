@@ -56,13 +56,18 @@ for arg in "$@"; do
 done
 
 COMPOSE_FILE="kilobase-docker-compose.yml"
+# supabase/postgres image creates the `supabase` DB inside its
+# bundled migrate.sh; dbmate targets that DB. initdb auths as
+# supabase_admin (see compose env).
 DB_NAME="supabase"
+DB_USER="supabase_admin"
+DB_PASS="postgres"
 STACK="kilobase"
 
-DATABASE_URL="postgresql://postgres:postgres@localhost:54322/${DB_NAME}?sslmode=disable&search_path=dbmate,public"
+DATABASE_URL="postgresql://${DB_USER}:${DB_PASS}@localhost:54322/${DB_NAME}?sslmode=disable&search_path=dbmate,public"
 export DATABASE_URL
 
-echo "==> smoke ($STACK / $COMPOSE_FILE / db=$DB_NAME)"
+echo "==> smoke ($STACK / $COMPOSE_FILE / db=$DB_NAME user=$DB_USER)"
 
 # Take down any pre-existing stack so the port frees up regardless of
 # what was last running (incl. legacy vanilla containers from before
@@ -75,13 +80,13 @@ fi
 echo "==> bringing $STACK up clean (volume nuked)"
 docker compose -f "$COMPOSE_FILE" up -d
 
-echo "==> waiting for postgres to accept connections"
+echo "==> waiting for postgres + supabase migrate.sh to settle"
 ATTEMPTS=0
-until PGPASSWORD=postgres psql -h localhost -p 54322 -U postgres -d "$DB_NAME" -c 'SELECT 1' >/dev/null 2>&1; do
+until PGPASSWORD="$DB_PASS" psql -h localhost -p 54322 -U "$DB_USER" -d "$DB_NAME" -c 'SELECT 1 FROM auth.users LIMIT 0' >/dev/null 2>&1; do
     ATTEMPTS=$((ATTEMPTS + 1))
-    if [[ "$ATTEMPTS" -gt 60 ]]; then
-        echo "smoke.sh: postgres did not become ready within 60 attempts" >&2
-        docker compose -f "$COMPOSE_FILE" logs --tail=30 >&2
+    if [[ "$ATTEMPTS" -gt 90 ]]; then
+        echo "smoke.sh: postgres + supabase init did not settle within 90 attempts" >&2
+        docker compose -f "$COMPOSE_FILE" logs --tail=40 >&2
         exit 1
     fi
     sleep 2
