@@ -1,3 +1,4 @@
+mod agones;
 mod astro;
 mod transport;
 
@@ -16,6 +17,8 @@ mod allocator {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
+
+    let _ = rustls::crypto::ring::default_provider().install_default();
 
     tracing_subscriber::registry()
         .with(

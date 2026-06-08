@@ -1,0 +1,89 @@
+apiVersion: agones.dev/v1
+kind: Fleet
+metadata:
+    name: cryptothrone-server
+    namespace: cryptothrone
+    labels:
+        app: cryptothrone-server
+        app.kubernetes.io/part-of: cryptothrone
+spec:
+    replicas: 0
+    scheduling: Packed
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 25%
+            maxUnavailable: 25%
+    template:
+        metadata:
+            labels:
+                app: cryptothrone-server
+                app.kubernetes.io/part-of: cryptothrone
+        spec:
+            ports:
+                - name: ws
+                  portPolicy: Dynamic
+                  containerPort: 7979
+                  protocol: TCP
+            health:
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                failureThreshold: 5
+            sdkServer:
+                logLevel: Info
+            template:
+                spec:
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 10001
+                        runAsGroup: 10001
+                        fsGroup: 10001
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: cryptothrone-server
+                          image: ghcr.io/kbve/cryptothrone-server:0.0.1
+                          imagePullPolicy: IfNotPresent
+                          env:
+                              - name: CT_SERVER_ADDR
+                                value: '0.0.0.0:7979'
+                              - name: CT_SERVER_SEED
+                                value: '0'
+                              - name: RUST_LOG
+                                value: 'info,cryptothrone_server=debug,simgrid=info'
+                              - name: SUPABASE_JWT_SECRET
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: supabase-shared
+                                        key: SUPABASE_JWT_SECRET
+                          ports:
+                              - name: ws
+                                containerPort: 7979
+                                protocol: TCP
+                          readinessProbe:
+                              httpGet:
+                                  path: /healthz
+                                  port: 7979
+                              initialDelaySeconds: 3
+                              periodSeconds: 5
+                              failureThreshold: 3
+                          livenessProbe:
+                              httpGet:
+                                  path: /healthz
+                                  port: 7979
+                              initialDelaySeconds: 10
+                              periodSeconds: 15
+                              failureThreshold: 5
+                          resources:
+                              requests:
+                                  cpu: '250m'
+                                  memory: '128Mi'
+                              limits:
+                                  cpu: '1500m'
+                                  memory: '512Mi'
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL
