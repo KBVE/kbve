@@ -1,4 +1,5 @@
 #include "KBVEWorldChunkActor.h"
+#include "KBVEPerf.h"
 
 #include "Async/Async.h"
 #include "KBVEWorldProceduralGrass.h"
@@ -24,21 +25,6 @@
 #include "Serialization/MemoryReader.h"
 #include "UObject/ConstructorHelpers.h"
 #include "UObject/WeakObjectPtrTemplates.h"
-
-namespace
-{
-	struct FKBVEHitchLog
-	{
-		const TCHAR* Name;
-		double Start;
-		explicit FKBVEHitchLog(const TCHAR* InName) : Name(InName), Start(FPlatformTime::Seconds()) {}
-		~FKBVEHitchLog()
-		{
-			const double Ms = (FPlatformTime::Seconds() - Start) * 1000.0;
-			if (Ms > 3.0) UE_LOG(LogTemp, Warning, TEXT("[KBVEPerf] %s %.1fms"), Name, Ms);
-		}
-	};
-}
 
 AKBVEWorldChunkActor::AKBVEWorldChunkActor()
 {
@@ -75,7 +61,7 @@ void AKBVEWorldChunkActor::BeginPlay()
 
 void AKBVEWorldChunkActor::GenerateMeshData(FKBVEWorldChunkMesh& OutMesh) const
 {
-	FKBVEHitchLog _t(TEXT("GenerateMeshData"));
+	KBVEPERF_SCOPE("Terrain.GenerateMeshData");
 	const int32 VertsPerEdge = CellsPerEdge + 1;
 	const int32 VertCount    = VertsPerEdge * VertsPerEdge;
 	OutMesh.CellsPerEdge = CellsPerEdge;
@@ -192,7 +178,7 @@ void AKBVEWorldChunkActor::GenerateMeshData(FKBVEWorldChunkMesh& OutMesh) const
 
 void AKBVEWorldChunkActor::UploadMesh(const FKBVEWorldChunkMesh& MeshData)
 {
-	FKBVEHitchLog _t(TEXT("UploadMesh"));
+	KBVEPERF_SCOPE("Terrain.UploadMesh");
 	if (!Mesh) return;
 	const int32 VertCount = MeshData.Vertices.Num();
 	TArray<FColor> VertexColors; VertexColors.Init(FColor::White, VertCount);
@@ -224,7 +210,7 @@ void AKBVEWorldChunkActor::SerializeCurrentMesh(TArray<uint8>& OutBytes) const
 
 void AKBVEWorldChunkActor::Build(const FIntPoint& InCoord, uint32 InSeed, int32 InCellsPerEdge, float InCellSize, float InWaterZ)
 {
-	FKBVEHitchLog _t(TEXT("Build(total)"));
+	KBVEPERF_SCOPE("Terrain.Build");
 	const bool bSameTopology = (CellsPerEdge == InCellsPerEdge) && FMath::IsNearlyEqual(CellSize, InCellSize);
 	if (bMeshBuilt && bSameTopology && Coord == InCoord && Seed == InSeed)
 	{
@@ -350,7 +336,7 @@ void AKBVEWorldChunkActor::RefreshChunkClusterHISMRefs()
 
 void AKBVEWorldChunkActor::Release()
 {
-	FKBVEHitchLog _t(TEXT("Release"));
+	KBVEPERF_SCOPE("Terrain.Release");
 	bActive = false;
 	bImpostorVisibleCached = false;
 	SetActorHiddenInGame(true);
@@ -801,7 +787,7 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 			if (Self->Coord != LocalCoord)         return;
 			if (!Self->bActive)                    return;
 
-			FKBVEHitchLog _t(TEXT("Grass.RegisterCallback"));
+			KBVEPERF_SCOPE("Grass.RegisterCallback");
 			UWorld* W = Self->GetWorld();
 			if (!W) return;
 			UKBVEWorldGrassRenderSubsystem* Render = W->GetSubsystem<UKBVEWorldGrassRenderSubsystem>();

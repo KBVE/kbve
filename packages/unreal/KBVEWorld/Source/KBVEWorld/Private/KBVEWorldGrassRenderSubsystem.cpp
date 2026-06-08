@@ -1,4 +1,5 @@
 #include "KBVEWorldGrassRenderSubsystem.h"
+#include "KBVEPerf.h"
 
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Components/SceneComponent.h"
@@ -16,21 +17,6 @@
 #include "Materials/Material.h"
 #include "Materials/MaterialInstance.h"
 #include "Materials/MaterialInterface.h"
-
-namespace
-{
-	struct FKBVEHitchLog
-	{
-		const TCHAR* Name;
-		double Start;
-		explicit FKBVEHitchLog(const TCHAR* InName) : Name(InName), Start(FPlatformTime::Seconds()) {}
-		~FKBVEHitchLog()
-		{
-			const double Ms = (FPlatformTime::Seconds() - Start) * 1000.0;
-			if (Ms > 3.0) UE_LOG(LogTemp, Warning, TEXT("[KBVEPerf] %s %.1fms"), Name, Ms);
-		}
-	};
-}
 
 namespace KBVEGrassCfg
 {
@@ -325,7 +311,7 @@ void UKBVEWorldGrassRenderSubsystem::RemoveImpostorForChunk(FIntPoint Coord,
 void UKBVEWorldGrassRenderSubsystem::AddChunkToHISMs(const FKBVEGrassPendingBuild& Source,
 	bool bAddBlades, TSet<UHierarchicalInstancedStaticMeshComponent*>& OutTouched)
 {
-	FKBVEHitchLog _t(TEXT("Grass.AddChunk"));
+	KBVEPERF_SCOPE("Grass.AddChunk");
 	if (bAddBlades) AddBladesForChunk(Source, OutTouched);
 	else            AddImpostorForChunk(Source, OutTouched);
 }
@@ -341,7 +327,7 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 {
 	if (RegisteredChunks.Num() == 0 && ResidentChunks.Num() == 0) return;
 
-	FKBVEHitchLog _t(TEXT("Grass.TickBuildQueue"));
+	KBVEPERF_SCOPE("Grass.TickBuildQueue");
 	using namespace KBVEGrassCfg;
 
 	FVector CamLoc = FVector::ZeroVector;
@@ -455,6 +441,22 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 	{
 		H->BuildTreeIfOutdated(true, false);
 	}
+
+#if KBVEPERF_ENABLED
+	if (FKBVEPerf::IsEnabled())
+	{
+		int32 TotalInstances = ImpostorHISM ? ImpostorHISM->GetInstanceCount() : 0;
+		for (const TPair<TObjectPtr<UStaticMesh>, TObjectPtr<UHierarchicalInstancedStaticMeshComponent>>& Pair : MeshHISMs)
+		{
+			if (Pair.Value) TotalInstances += Pair.Value->GetInstanceCount();
+		}
+		KBVEPERF_COUNT("Grass.ResidentChunks", ResidentChunks.Num());
+		KBVEPERF_COUNT("Grass.RegisteredChunks", RegisteredChunks.Num());
+		KBVEPERF_COUNT("Grass.BladeResidentChunks", BladeResidentChunks.Num());
+		KBVEPERF_COUNT("Grass.HISMs", MeshHISMs.Num() + (ImpostorHISM ? 1 : 0));
+		KBVEPERF_COUNT("Grass.Instances", TotalInstances);
+	}
+#endif
 }
 
 void UKBVEWorldGrassRenderSubsystem::RemoveOwnedInstances(UHierarchicalInstancedStaticMeshComponent* H,
