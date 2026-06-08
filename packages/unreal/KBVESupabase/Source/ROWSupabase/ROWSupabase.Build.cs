@@ -1,8 +1,8 @@
 using UnrealBuildTool;
 
-public class KBVESupabaseROWSBridge : ModuleRules
+public class ROWSupabase : ModuleRules
 {
-	public KBVESupabaseROWSBridge(ReadOnlyTargetRules Target) : base(Target)
+	public ROWSupabase(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 

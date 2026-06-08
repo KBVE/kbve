@@ -23,7 +23,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSupabaseRowsLinkFailed, const FSt
  * manually (e.g. for a session restored from a persisted refresh token).
  */
 UCLASS()
-class KBVESUPABASEROWSBRIDGE_API USupabaseRowsBridgeSubsystem : public UGameInstanceSubsystem
+class ROWSUPABASE_API USupabaseRowsBridgeSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
 
