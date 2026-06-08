@@ -80,6 +80,9 @@ struct FKBVEItemDef
 	FString Emoji;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Item")
+	bool bHasImg = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Item")
 	int32 TypeFlags = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Item")
