@@ -39,6 +39,30 @@
 				"command": "cargo clippy -p cryptothrone-server --all-targets -- -D warnings"
 			}
 		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["cryptothrone-server"],
+					"params": "forward"
+				}
+			],
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f cryptothrone-server-e2e 2>/dev/null || true",
+					"docker run -d --name cryptothrone-server-e2e -p 7979:7979 -e CT_SERVER_ADDR=0.0.0.0:7979 kbve/cryptothrone-server:latest",
+					"echo 'Waiting for cryptothrone-server...' && for i in $(seq 1 60); do if curl -fsS http://127.0.0.1:7979/healthz >/dev/null 2>&1; then echo 'ready after '\"$i\"'s'; break; fi; if [ $i -eq 60 ]; then echo 'did not start in 60s'; docker logs cryptothrone-server-e2e 2>&1 | tail -80; docker rm -f cryptothrone-server-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+					"CT_HOST=127.0.0.1 CT_PORT=7979 npx vitest run; EC=$?; echo '--- container logs ---'; docker logs cryptothrone-server-e2e 2>&1 | tail -80; docker rm -f cryptothrone-server-e2e 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/agones/cryptothrone/server"
+			},
+			"configurations": {
+				"ci": {}
+			}
+		},
 		"container": {
 			"executor": "nx:run-commands",
 			"defaultConfiguration": "local",

@@ -118,7 +118,28 @@ async fn speed() -> impl IntoResponse {
     axum::Json(serde_json::json!({ "time_ms": time_ms }))
 }
 
-async fn join(Extension(allocator): Extension<Arc<Option<AgonesAllocator>>>) -> Response {
+async fn join(
+    Extension(allocator): Extension<Arc<Option<AgonesAllocator>>>,
+    headers: axum::http::HeaderMap,
+) -> Response {
+    let secret = std::env::var("SUPABASE_JWT_SECRET").unwrap_or_default();
+    if !secret.is_empty() {
+        match crate::auth::bearer_token(&headers)
+            .and_then(|t| crate::auth::verify_supabase_jwt(t, secret.as_bytes()).ok())
+        {
+            Some(claims) => {
+                tracing::info!(user = %claims.kbve_username, "game server join authorized")
+            }
+            None => {
+                return (
+                    StatusCode::UNAUTHORIZED,
+                    "missing or invalid Supabase token",
+                )
+                    .into_response();
+            }
+        }
+    }
+
     let Some(allocator) = allocator.as_ref() else {
         return (StatusCode::SERVICE_UNAVAILABLE, "allocator offline").into_response();
     };

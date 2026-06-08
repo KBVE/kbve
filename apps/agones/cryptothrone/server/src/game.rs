@@ -2,9 +2,11 @@ use bevy::prelude::{Commands, Local};
 use simgrid::proto::Tile;
 use simgrid::{EntityKind, GridPos, Health, MoveSpeed, MoveTarget, SimConfig, WalkableMap, Wander};
 
-pub const MAP_WIDTH: i32 = 64;
-pub const MAP_HEIGHT: i32 = 64;
+pub const MAP_WIDTH: i32 = 50;
+pub const MAP_HEIGHT: i32 = 50;
 pub const MAX_PLAYERS: usize = 32;
+
+const CLOUD_CITY_MAP: &[u8] = include_bytes!("../assets/cloud_city_large.json");
 
 pub const KIND_PLAYER: u16 = 0;
 pub const KIND_MONK: u16 = 1;
@@ -38,7 +40,8 @@ pub fn config() -> SimConfig {
 }
 
 pub fn walkable_map() -> WalkableMap {
-    WalkableMap::open(MAP_WIDTH, MAP_HEIGHT)
+    WalkableMap::from_tiled_json(CLOUD_CITY_MAP)
+        .unwrap_or_else(|_| WalkableMap::open(MAP_WIDTH, MAP_HEIGHT))
 }
 
 pub fn spawn_world(mut done: Local<bool>, mut commands: Commands) {

@@ -1,5 +1,6 @@
 mod agones;
 mod astro;
+mod auth;
 mod transport;
 
 use tracing::info;
