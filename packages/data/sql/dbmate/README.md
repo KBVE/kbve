@@ -147,50 +147,52 @@ schema/
 
 ### Smoke testing the full chain via nx
 
-The fastest way to verify a migration is to run the full chain against a
-fresh database. Two nx targets handle the lifecycle (volume nuke →
-compose up → wait for health → `dbmate up` → status → tear down):
+The fastest way to verify a migration is to run the full chain
+against a prod-replica database. All smoke targets run against the
+`ghcr.io/kbve/postgres:…-kilobase` image (x86, Rosetta on ARM).
 
-| Target                                | Stack                              | When to use                                         |
-| ------------------------------------- | ---------------------------------- | --------------------------------------------------- |
-| `nx run data-sql:smoke-vanilla`       | `postgres:17-alpine`               | Fast feedback loop on iteration (≈ 10s end-to-end). |
-| `nx run data-sql:smoke-kilobase`      | `ghcr.io/kbve/postgres:…-kilobase` | Prod-parity check before opening a migration PR.    |
-| `nx run data-sql:smoke`               | Both, sequential                   | Full sweep — what CI/the merge gate should run.     |
-| `nx run data-sql:smoke-vanilla-keep`  | vanilla, stack left running        | Iterate with `psql`/`dbmate` against a primed DB.   |
-| `nx run data-sql:smoke-kilobase-keep` | kilobase, stack left running       | Same, against the prod image.                       |
+Vanilla `postgres:17-alpine` smoke was retired — it lacks Supabase's
+auth schema, ownership chain (`supabase_auth_admin`, `authenticator`,
+`service_role`), pgsodium vault, PostgREST, and every other
+Supabase-managed object. It silently passed migrations that fail in
+prod with `permission denied for table identities`-class errors
+(see PR #12033). Prod-parity is the whole point of this script, so
+the only stack worth running is the one that mirrors prod.
 
-Underlying script: [`smoke.sh`](./smoke.sh). Pass `--keep` to leave the
-compose stack up, or `--rollback` to additionally exercise the latest
-migration's `down` path before tearing down:
+| Target                                    | When to use                                                                       |
+| ----------------------------------------- | --------------------------------------------------------------------------------- |
+| `nx run data-sql:smoke`                   | Default: up → apply all → rollback → re-apply → tear down. Use before opening PR. |
+| `nx run data-sql:smoke-kilobase`          | Same as `smoke` minus the rollback leg (faster).                                  |
+| `nx run data-sql:smoke-kilobase-keep`     | Apply all + leave the stack up so you can `psql` / `dbmate` against it.           |
+| `nx run data-sql:smoke-kilobase-rollback` | Explicit rollback target (alias of the default `smoke`).                          |
+
+Underlying script: [`smoke.sh`](./smoke.sh). Pass `--keep` to leave
+the compose stack up, or `--rollback` to additionally exercise the
+latest migration's `down` path before tearing down:
 
 ```bash
-./smoke.sh vanilla --rollback
-./smoke.sh kilobase --keep
+./smoke.sh                    # default lifecycle
+./smoke.sh --keep             # leave stack on localhost:54322
+./smoke.sh --rollback         # apply → down → re-apply → tear down
+./smoke.sh kilobase           # `kilobase` arg still accepted (legacy)
 ```
 
-Both stacks bind the same host port (54322), so the script defensively
-takes both composes down before bringing the requested one up — no need
-to worry about port collisions when switching stacks.
+The script defensively takes any pre-existing compose stacks down
+before bringing kilobase up so port 54322 is always free.
 
 Other granular nx targets if you only want one phase:
 
 | Target                                                             | What it does                                                                                          |
 | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| `nx run data-sql:dev-up` / `dev-down` / `dev-reset`                | Lifecycle for the vanilla stack.                                                                      |
 | `nx run data-sql:kilobase-up` / `kilobase-down` / `kilobase-reset` | Lifecycle for the kilobase stack.                                                                     |
-| `nx run data-sql:migrate-up`                                       | `dbmate up` against whichever stack is running.                                                       |
+| `nx run data-sql:migrate-up`                                       | `dbmate up` against the running stack.                                                                |
 | `nx run data-sql:migrate-status`                                   | Print applied / pending status.                                                                       |
 | `nx run data-sql:test-migration -- <basename>`                     | Per-migration smoke via companion `.test.sql` files (see [`test-migration.sh`](./test-migration.sh)). |
 
-### Manual quick test (vanilla Postgres) — what the nx wrapper does
-
-```bash
-cp dev-docker-compose.yml docker-compose.yml
-docker compose up -d
-dbmate --no-dump-schema --migrations-dir migrations up       # apply all
-dbmate --no-dump-schema --migrations-dir migrations rollback  # test rollback
-docker compose down -v
-```
+The `dev-up` / `dev-down` / `dev-reset` targets that drove the
+vanilla stack were dropped alongside the smoke retirement. The
+`dev-docker-compose.yml` file is kept for ad-hoc local experiments
+that genuinely don't need Supabase plumbing.
 
 ### n8n integration test (Postgres + n8n)
 
