@@ -1,9 +1,52 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use bevy::ecs::entity::Entity;
 use bevy::prelude::{Component, Resource};
+use serde::Deserialize;
 
 use crate::proto::{Facing, Tile};
+
+const TILED_GID_FLAGS_MASK: u32 = 0x1FFF_FFFF;
+const TILED_COLLIDE_PROP: &str = "ge_collide";
+
+#[derive(Deserialize)]
+struct TiledMap {
+    width: i32,
+    height: i32,
+    #[serde(default)]
+    layers: Vec<TiledLayer>,
+    #[serde(default)]
+    tilesets: Vec<TiledTileset>,
+}
+
+#[derive(Deserialize)]
+struct TiledLayer {
+    #[serde(rename = "type", default)]
+    kind: String,
+    #[serde(default)]
+    data: Vec<u32>,
+}
+
+#[derive(Deserialize)]
+struct TiledTileset {
+    firstgid: u32,
+    #[serde(default)]
+    tiles: Vec<TiledTile>,
+}
+
+#[derive(Deserialize)]
+struct TiledTile {
+    id: u32,
+    #[serde(default)]
+    properties: Vec<TiledProp>,
+}
+
+#[derive(Deserialize)]
+struct TiledProp {
+    name: String,
+    #[serde(default)]
+    value: serde_json::Value,
+}
 
 #[derive(Resource, Clone)]
 pub struct WalkableMap {
@@ -33,6 +76,43 @@ impl WalkableMap {
             height: h,
             blocked: cells,
         }
+    }
+
+    pub fn from_tiled_json(bytes: &[u8]) -> Result<Self, serde_json::Error> {
+        let map: TiledMap = serde_json::from_slice(bytes)?;
+        let w = map.width.max(1);
+        let h = map.height.max(1);
+
+        let mut collide_gids: HashSet<u32> = HashSet::new();
+        for ts in &map.tilesets {
+            for t in &ts.tiles {
+                let collides = t
+                    .properties
+                    .iter()
+                    .any(|p| p.name == TILED_COLLIDE_PROP && p.value.as_bool() == Some(true));
+                if collides {
+                    collide_gids.insert(ts.firstgid + t.id);
+                }
+            }
+        }
+
+        let mut blocked = vec![false; (w * h) as usize];
+        for layer in &map.layers {
+            if layer.kind != "tilelayer" {
+                continue;
+            }
+            for (i, &raw) in layer.data.iter().enumerate() {
+                if i >= blocked.len() {
+                    break;
+                }
+                let gid = raw & TILED_GID_FLAGS_MASK;
+                if gid != 0 && collide_gids.contains(&gid) {
+                    blocked[i] = true;
+                }
+            }
+        }
+
+        Ok(Self::from_blocked(w, h, blocked))
     }
 
     pub fn in_bounds(&self, tile: Tile) -> bool {
@@ -114,5 +194,34 @@ pub struct MoveSpeed {
 impl Default for MoveSpeed {
     fn default() -> Self {
         Self { ticks_per_tile: 4 }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tiled_collision_parsed() {
+        let json = r#"{"width":2,"height":1,
+            "layers":[{"type":"tilelayer","data":[1,2]}],
+            "tilesets":[{"firstgid":1,"tiles":[
+                {"id":0,"properties":[{"name":"ge_collide","value":true}]}
+            ]}]}"#;
+        let m = WalkableMap::from_tiled_json(json.as_bytes()).expect("parse");
+        assert_eq!((m.width, m.height), (2, 1));
+        assert!(!m.is_walkable(Tile::new(0, 0)));
+        assert!(m.is_walkable(Tile::new(1, 0)));
+    }
+
+    #[test]
+    fn tiled_flip_flags_masked() {
+        let blocked_gid: u32 = 1 | 0x8000_0000;
+        let json = format!(
+            r#"{{"width":1,"height":1,"layers":[{{"type":"tilelayer","data":[{blocked_gid}]}}],
+            "tilesets":[{{"firstgid":1,"tiles":[{{"id":0,"properties":[{{"name":"ge_collide","value":true}}]}}]}}]}}"#
+        );
+        let m = WalkableMap::from_tiled_json(json.as_bytes()).expect("parse");
+        assert!(!m.is_walkable(Tile::new(0, 0)));
     }
 }
