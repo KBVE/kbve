@@ -24,6 +24,11 @@
 			"Name": "KBVENPCDB",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "KBVENPCSprite",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
 		}
 	]
 }
