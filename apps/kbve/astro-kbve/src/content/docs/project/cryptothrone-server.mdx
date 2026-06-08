@@ -1,0 +1,87 @@
+---
+title: CryptoThrone Server
+description: |
+    CryptoThrone authoritative grid game server — axum + tokio + simgrid headless bevy sim, hosted from a chiseled Ubuntu runtime.
+sidebar:
+    label: CryptoThrone Server
+    order: 58
+tags:
+    - docker
+    - rust
+    - game-server
+    - cryptothrone
+key: cryptothrone_server
+pipeline: docker
+app_name: cryptothrone-server
+version: "0.0.1"
+source_path: apps/agones/cryptothrone/server
+version_toml: apps/agones/cryptothrone/server/version.toml
+version_target: apps/agones/cryptothrone/server/Cargo.toml
+runner: arc-runner-set
+image: kbve/cryptothrone-server
+has_test: false
+author: h0lybyte
+license: MIT
+status: beta
+---
+
+## Overview
+
+`cryptothrone-server` is the authoritative shared-world host for **CryptoThrone**. It pairs an `axum` WebSocket router with the `simgrid` headless bevy grid simulation, so movement validation, occupancy, and snapshot framing stay server-owned. Unlike `nd-server`'s rapier2d match sim, CryptoThrone is grid-authoritative — collision is tile occupancy and "physics" is integer grid math, so the runtime stays light.
+
+### Responsibilities
+
+- Terminate the `/ws` WebSocket upgrade and verify the inbound Supabase JWT (dev-accept fallback when the secret is unset).
+- Drive the `simgrid` sim tick (20 Hz) on a tokio multi-thread runtime, fanning out 10 Hz snapshots.
+- Admit players into roster slots and spawn the CloudCity world — wandering NPCs and monsters — for everyone in the shared map.
+- Run the Agones SDK lifecycle (`Ready` / `Health` / `Shutdown`) so the Fleet can manage the pod; degrades gracefully outside Agones for local dev.
+
+### Layout
+
+```
+apps/agones/cryptothrone/server/
+├── Cargo.toml         # package manifest (path-dep to ../../../../packages/rust/simgrid)
+├── Dockerfile         # multi-stage chisel build (cargo-chef + sccache); no webkit stage
+├── project.json       # nx build / run / container targets
+├── version.toml       # ci-publish version sentinel
+└── src/
+    ├── main.rs        # tokio entry + Agones lifecycle + graceful shutdown
+    ├── agones.rs      # Agones SDK heartbeat
+    └── game.rs        # CloudCity spawn config (player tile, monks, birds)
+```
+
+## Build
+
+Local build via nx:
+
+```bash
+nx run cryptothrone-server:build-release
+```
+
+Or directly through cargo:
+
+```bash
+cargo build --release -p cryptothrone-server
+```
+
+The release binary lands at `dist/target/release/cryptothrone-server` per the workspace target dir convention.
+
+## Container
+
+```bash
+nx run cryptothrone-server:container
+```
+
+Drops a `kbve/cryptothrone-server:latest` + version tag locally. CI uses the `ci` configuration with sccache + registry buildcache (`ghcr.io/kbve/cryptothrone-server:buildcache`). The runtime image uses the same `ghcr.io/kbve/chisel-ubuntu-axum` chisel base as the other Axum services. Default listen is `0.0.0.0:7979` (override via `CT_SERVER_ADDR`).
+
+## Sim core
+
+The grid sim lives in the shared `simgrid` crate (`packages/rust/simgrid`): postcard wire types, Supabase HS256 auth, axum WS transport, and the bevy headless `build_app` / `run_sim_loop`. The host registers its CloudCity spawn systems into `simgrid`'s ordered `SimSet` stages, so game content stays in the app crate while transport and movement stay generic.
+
+## Deployment
+
+An Agones `Fleet` (`apps/kube/agones/cryptothrone/`) runs the GameServer pods; the web tier (`axum-cryptothrone`) allocates one via `POST /api/join`. Image must land on `ghcr.io/kbve/cryptothrone-server` before the Fleet can scale up.
+
+## Status
+
+Beta. Shared-world sim with wandering NPCs/monsters; browser client + WSS edge for allocated dynamic ports still in progress.
