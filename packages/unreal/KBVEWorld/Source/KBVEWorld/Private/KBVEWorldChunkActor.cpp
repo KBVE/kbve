@@ -750,6 +750,7 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 				FTransform T = Batches[Slot][i];
 				T.AddToTranslation(ChunkOriginW);
 				T.MultiplyScale3D(FVector(LocalScaleMul));
+				T.NormalizeRotation();
 				Dst.Add(T);
 			}
 		}
@@ -771,8 +772,10 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 		{
 			for (int32 i = 0; i < Batches[Slot].Num(); i += ImpStep)
 			{
-				FTransform T = Batches[Slot][i];
-				T.AddToTranslation(ChunkOriginW);
+				const FTransform& Src = Batches[Slot][i];
+				FTransform T;
+				T.SetLocation(Src.GetLocation() + ChunkOriginW);
+				T.SetRotation(Src.GetRotation().GetNormalized());
 				T.SetScale3D(FVector(LocalImpScale));
 				ImpostorXf.Add(T);
 			}

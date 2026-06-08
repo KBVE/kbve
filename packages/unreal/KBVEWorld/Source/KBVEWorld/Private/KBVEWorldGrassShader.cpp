@@ -11,6 +11,12 @@
 #include "Materials/MaterialExpressionSine.h"
 #include "Materials/MaterialExpressionWorldPosition.h"
 #include "Materials/MaterialExpressionTextureSample.h"
+#include "Materials/MaterialExpressionSubtract.h"
+#include "Materials/MaterialExpressionClamp.h"
+#include "Materials/MaterialExpressionOneMinus.h"
+#include "Materials/MaterialExpressionDistance.h"
+#include "Materials/MaterialExpressionCameraPositionWS.h"
+#include "Materials/MaterialExpressionObjectPositionWS.h"
 #include "Engine/Texture2D.h"
 #include "UObject/Package.h"
 #include "UObject/UObjectGlobals.h"
@@ -189,9 +195,45 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateCardMaterial(UObject* /*Ou
 	}
 	if (UTexture2D* Opacity = LoadMaster(TEXT("springGrass_Opacity_8k")))
 	{
-		UMaterialExpressionTextureSample* S = MakeExpr<UMaterialExpressionTextureSample>(M);
-		S->Texture = Opacity;
-		ED->OpacityMask.Connect(0, S);
+		UMaterialExpressionTextureSample* OpacityS = MakeExpr<UMaterialExpressionTextureSample>(M);
+		OpacityS->Texture = Opacity;
+		ED->OpacityMask.Connect(0, OpacityS);
+	}
+
+	// Near collapse: impostor cards shrink to their pivot (zero area -> no
+	// rasterized pixels, no overdraw) up close where the real blades are,
+	// and expand to full size just past the blade range. WPO is vertex-stage
+	// so camera distance comes from CameraPositionWS, not PixelDepth.
+	{
+		UMaterialExpressionCameraPositionWS* CamPos = MakeExpr<UMaterialExpressionCameraPositionWS>(M);
+		UMaterialExpressionWorldPosition*    WorldPos = MakeExpr<UMaterialExpressionWorldPosition>(M);
+		UMaterialExpressionDistance*         Dist = MakeExpr<UMaterialExpressionDistance>(M);
+		Dist->A.Expression = CamPos;
+		Dist->B.Expression = WorldPos;
+
+		UMaterialExpressionConstant* FadeStart = MakeExpr<UMaterialExpressionConstant>(M);
+		FadeStart->R = 8000.f;
+		UMaterialExpressionSubtract* DistRel = MakeExpr<UMaterialExpressionSubtract>(M);
+		DistRel->A.Expression = Dist;
+		DistRel->B.Expression = FadeStart;
+		UMaterialExpressionConstant* InvRange = MakeExpr<UMaterialExpressionConstant>(M);
+		InvRange->R = 1.f / 4000.f;
+		UMaterialExpressionMultiply* Scaled = MakeExpr<UMaterialExpressionMultiply>(M);
+		Scaled->A.Expression = DistRel;
+		Scaled->B.Expression = InvRange;
+		UMaterialExpressionClamp* FarMask = MakeExpr<UMaterialExpressionClamp>(M);
+		FarMask->Input.Expression = Scaled;
+		UMaterialExpressionOneMinus* Shrink = MakeExpr<UMaterialExpressionOneMinus>(M);
+		Shrink->Input.Expression = FarMask;
+
+		UMaterialExpressionObjectPositionWS* ObjPos = MakeExpr<UMaterialExpressionObjectPositionWS>(M);
+		UMaterialExpressionSubtract* ToPivot = MakeExpr<UMaterialExpressionSubtract>(M);
+		ToPivot->A.Expression = ObjPos;
+		ToPivot->B.Expression = WorldPos;
+		UMaterialExpressionMultiply* WPO = MakeExpr<UMaterialExpressionMultiply>(M);
+		WPO->A.Expression = ToPivot;
+		WPO->B.Expression = Shrink;
+		ED->WorldPositionOffset.Connect(0, WPO);
 	}
 
 	UMaterialExpressionConstant* Rough = MakeExpr<UMaterialExpressionConstant>(M);

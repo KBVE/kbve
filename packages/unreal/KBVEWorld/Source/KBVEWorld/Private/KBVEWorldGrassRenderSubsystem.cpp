@@ -33,12 +33,15 @@ namespace KBVEGrassCfg
 	constexpr int32  MaxAdmitsPerTick  = 1;
 	constexpr int32  MaxEvictsPerTick  = 2;
 
-	constexpr float  ViewDist          = float(ViewRadius * ChunkExtent);
-	constexpr float  ImpostorDist      = float(ImpostorRadius * ChunkExtent);
-	constexpr float  BladeCullStart    = ViewDist * 0.6f;
-	constexpr float  BladeCullEnd      = ViewDist * 0.9f;
-	constexpr float  ImpostorCullStart = ImpostorDist * 0.85f;
-	constexpr float  ImpostorCullEnd   = ImpostorDist;
+	// Cull-end is kept shorter than the tier's admit radius so each tier
+	// fully fades (cull) before the chunk-granular add/remove happens at
+	// the radius boundary — makes admit/evict and the blade transition
+	// invisible. Impostors live on every chunk (sparse), so a faded blade
+	// always reveals an impostor already in place: no gap, no pop.
+	constexpr float  BladeCullStart    = float((ViewRadius     - 1.0) * ChunkExtent);
+	constexpr float  BladeCullEnd      = float((ViewRadius     - 0.5) * ChunkExtent);
+	constexpr float  ImpostorCullStart = float((ImpostorRadius - 1.5) * ChunkExtent);
+	constexpr float  ImpostorCullEnd   = float((ImpostorRadius - 0.5) * ChunkExtent);
 }
 
 bool UKBVEWorldGrassRenderSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -313,7 +316,7 @@ void UKBVEWorldGrassRenderSubsystem::AddChunkToHISMs(const FKBVEGrassPendingBuil
 {
 	KBVEPERF_SCOPE("Grass.AddChunk");
 	if (bAddBlades) AddBladesForChunk(Source, OutTouched);
-	else            AddImpostorForChunk(Source, OutTouched);
+	AddImpostorForChunk(Source, OutTouched);
 }
 
 void UKBVEWorldGrassRenderSubsystem::RemoveChunkFromHISMs(FIntPoint Coord,
@@ -395,17 +398,12 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 			if (const FKBVEGrassPendingBuild* B = RegisteredChunks.Find(C))
 			{
 				AddBladesForChunk(*B, Touched);
-				RemoveImpostorForChunk(C, Touched);
 				++Transitioned;
 			}
 		}
 		else
 		{
 			RemoveBladesForChunk(C, Touched);
-			if (const FKBVEGrassPendingBuild* B = RegisteredChunks.Find(C))
-			{
-				AddImpostorForChunk(*B, Touched);
-			}
 			++Transitioned;
 		}
 	}
