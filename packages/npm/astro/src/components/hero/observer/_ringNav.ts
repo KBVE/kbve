@@ -25,6 +25,7 @@ export const ringNavigate = (href: string, dir: NavDir): void => {
 		}, 600);
 		return;
 	}
+	// @ts-ignore astro:transitions/client is an Astro runtime virtual module, absent during the standalone package typecheck
 	import('astro:transitions/client')
 		.then(({ navigate }) => {
 			w.__astroNavigate = navigate as AstroNav;
