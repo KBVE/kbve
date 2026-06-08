@@ -33,6 +33,12 @@ namespace
 		return Map;
 	}
 
+	TMap<FName, TWeakObjectPtr<UStaticMesh>>& GKBVEGrassGroundTintCache()
+	{
+		static TMap<FName, TWeakObjectPtr<UStaticMesh>> Map;
+		return Map;
+	}
+
 	FName MakeCardKey(const FKBVEWorldProceduralGrass::FCardSpec& Spec)
 	{
 		return *FString::Printf(TEXT("%s_W%dH%dC%dB%d"),
@@ -142,7 +148,7 @@ UStaticMesh* FKBVEWorldProceduralGrass::GetOrCreateCardMesh(UObject* Outer, cons
 	FPolygonGroupID Group = Desc.CreatePolygonGroup();
 	Attr.GetPolygonGroupMaterialSlotNames()[Group] = TEXT("Grass");
 
-	const int32 BladesPerClump = FMath::Clamp(Spec.CardCount * 4, 8, 14);
+	const int32 BladesPerClump = FMath::Clamp(Spec.CardCount * 4, 8, 28);
 	const float ClumpRadius    = Spec.Width * 2.0f;
 	FRandomStream ClumpRng(GetTypeHash(Spec.UniqueId));
 	const float YawStep = 360.f / static_cast<float>(BladesPerClump);
@@ -321,6 +327,105 @@ UStaticMesh* FKBVEWorldProceduralGrass::GetOrCreateImpostorMesh(UObject* Outer, 
 	return Mesh;
 }
 
+UStaticMesh* FKBVEWorldProceduralGrass::GetOrCreateGroundTintMesh(UObject* Outer, const FCardSpec& Spec, UMaterialInterface* Material)
+{
+	const FName CacheKey = *(MakeCardKey(Spec).ToString() + TEXT("_Tint"));
+	{
+		FScopeLock Lock(&GKBVEGrassCacheLock());
+		if (TWeakObjectPtr<UStaticMesh>* Hit = GKBVEGrassGroundTintCache().Find(CacheKey))
+		{
+			if (UStaticMesh* Existing = Hit->Get()) return Existing;
+		}
+	}
+
+	UPackage* CachePkg = GetTransientPackage();
+	const FName MeshName = MakeUniqueObjectName(CachePkg, UStaticMesh::StaticClass(), CacheKey);
+
+	UStaticMesh* Mesh = NewObject<UStaticMesh>(CachePkg, MeshName, RF_Transient);
+	Mesh->AddToRoot();
+	Mesh->bAllowCPUAccess = false;
+	Mesh->NeverStream     = true;
+
+	FMeshDescription Desc;
+	FStaticMeshAttributes Attr(Desc);
+	Attr.Register();
+
+	FPolygonGroupID Group = Desc.CreatePolygonGroup();
+	Attr.GetPolygonGroupMaterialSlotNames()[Group] = TEXT("Grass");
+
+	TVertexAttributesRef<FVector3f>          Positions = Attr.GetVertexPositions();
+	TVertexInstanceAttributesRef<FVector3f>  Normals   = Attr.GetVertexInstanceNormals();
+	TVertexInstanceAttributesRef<FVector3f>  Tangents  = Attr.GetVertexInstanceTangents();
+	TVertexInstanceAttributesRef<FVector2f>  UVs       = Attr.GetVertexInstanceUVs();
+	TVertexInstanceAttributesRef<FVector4f>  Colors    = Attr.GetVertexInstanceColors();
+
+	const float HalfSide = Spec.Width * 4.0f;
+	const FVector3f L[4] = {
+		FVector3f(-HalfSide, -HalfSide, 1.f),
+		FVector3f( HalfSide, -HalfSide, 1.f),
+		FVector3f( HalfSide,  HalfSide, 1.f),
+		FVector3f(-HalfSide,  HalfSide, 1.f)
+	};
+	const FVector2f UV[4] = { {0,0}, {1,0}, {1,1}, {0,1} };
+	TArray<FVertexID> V;
+	V.Reserve(4);
+	for (int i = 0; i < 4; ++i)
+	{
+		FVertexID Vid = Desc.CreateVertex();
+		Positions[Vid] = L[i];
+		V.Add(Vid);
+	}
+
+	auto AddTri = [&](int a, int b, int c)
+	{
+		TArray<FVertexInstanceID> Inst;
+		for (int idx : {a, b, c})
+		{
+			FVertexInstanceID Vi = Desc.CreateVertexInstance(V[idx]);
+			Normals[Vi]  = FVector3f(0.f, 0.f, 1.f);
+			Tangents[Vi] = FVector3f(1.f, 0.f, 0.f);
+			UVs[Vi]      = UV[idx];
+			Colors[Vi]   = FVector4f(0.06f, 0.22f, 0.03f, 1.f);
+			Inst.Add(Vi);
+		}
+		Desc.CreatePolygon(Group, Inst);
+	};
+	AddTri(0, 1, 2);
+	AddTri(0, 2, 3);
+
+	FStaticMeshOperations::ComputeTriangleTangentsAndNormals(Desc);
+
+	UStaticMesh::FBuildMeshDescriptionsParams BuildParams;
+	BuildParams.bBuildSimpleCollision  = false;
+	BuildParams.bFastBuild             = true;
+	BuildParams.bMarkPackageDirty      = false;
+	BuildParams.bAllowCpuAccess        = false;
+	BuildParams.bCommitMeshDescription = false;
+
+	TArray<const FMeshDescription*> MeshDescs;
+	MeshDescs.Add(&Desc);
+
+	UMaterialInterface* EffectiveMat = Material;
+	if (!EffectiveMat)
+	{
+		EffectiveMat = FKBVEWorldGrassShader::GetOrCreateMasterMaterial(Outer);
+	}
+
+	FStaticMaterial Slot;
+	Slot.MaterialInterface        = EffectiveMat;
+	Slot.MaterialSlotName         = TEXT("Grass");
+	Slot.ImportedMaterialSlotName = TEXT("Grass");
+	Mesh->GetStaticMaterials().Add(Slot);
+
+	Mesh->BuildFromMeshDescriptions(MeshDescs, BuildParams);
+
+	{
+		FScopeLock Lock(&GKBVEGrassCacheLock());
+		GKBVEGrassGroundTintCache().Add(CacheKey, Mesh);
+	}
+	return Mesh;
+}
+
 void FKBVEWorldProceduralGrass::PopulateProceduralBucket(
 	UObject* Outer,
 	UMaterialInterface* Material,
@@ -328,10 +433,12 @@ void FKBVEWorldProceduralGrass::PopulateProceduralBucket(
 	float WidthMin, float WidthMax,
 	float HeightMin, float HeightMax,
 	TArray<UStaticMesh*>& OutMeshes,
-	TArray<UStaticMesh*>* OutImpostorMeshes)
+	TArray<UStaticMesh*>* OutImpostorMeshes,
+	TArray<UStaticMesh*>* OutGroundTintMeshes)
 {
 	OutMeshes.Reset();
-	if (OutImpostorMeshes) OutImpostorMeshes->Reset();
+	if (OutImpostorMeshes)   OutImpostorMeshes->Reset();
+	if (OutGroundTintMeshes) OutGroundTintMeshes->Reset();
 	const int32 N = FMath::Clamp(VariantCount, 1, 32);
 	for (int32 i = 0; i < N; ++i)
 	{
@@ -348,6 +455,10 @@ void FKBVEWorldProceduralGrass::PopulateProceduralBucket(
 			if (OutImpostorMeshes)
 			{
 				OutImpostorMeshes->Add(GetOrCreateImpostorMesh(Outer, Spec, Material));
+			}
+			if (OutGroundTintMeshes)
+			{
+				OutGroundTintMeshes->Add(GetOrCreateGroundTintMesh(Outer, Spec, Material));
 			}
 		}
 	}

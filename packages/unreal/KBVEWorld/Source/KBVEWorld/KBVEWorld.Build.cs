@@ -16,7 +16,10 @@ public class KBVEWorld : ModuleRules
 			"Foliage",
 			"MeshDescription",
 			"StaticMeshDescription",
-			"PhysicsCore"
+			"PhysicsCore",
+			"MassEntity",
+			"MassCommon",
+			"StructUtils"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
