@@ -1040,8 +1040,10 @@ jobs:
               if: steps.check.outputs.skip != 'true'
               shell: powershell
               run: |
+                  $logdir = Join-Path $env:GITHUB_WORKSPACE '_enginelogs'
+                  New-Item -ItemType Directory -Force -Path $logdir | Out-Null
+                  $log = Join-Path $logdir 'engine-build-editor.log'
                   Push-Location $env:ENGINE_ROOT
-                  $log = Join-Path $env:RUNNER_TEMP 'engine-build-editor.log'
                   .\Engine\Build\BatchFiles\RunUAT.bat BuildTarget `
                     -target=UnrealEditor -platform=Win64 -configuration=Development `
                     -notools -unattended -utf8output 2>&1 | Tee-Object -FilePath $log
@@ -1051,6 +1053,16 @@ jobs:
                   Write-Host "::notice::Build Editor exit=$rc freeC=${free}GB"
                   if ($rc -ne 0) { Write-Host "::error::Build Editor failed ($rc)"; exit $rc }
 
+            - name: Stage engine logs
+              if: always() && steps.check.outputs.skip != 'true'
+              shell: powershell
+              run: |
+                  $logdir = Join-Path $env:GITHUB_WORKSPACE '_enginelogs'
+                  New-Item -ItemType Directory -Force -Path $logdir | Out-Null
+                  $src = 'C:\UnrealEngine\Engine\Programs\AutomationTool\Saved\Logs'
+                  if (Test-Path $src) { Copy-Item "$src\*" $logdir -Recurse -Force -ErrorAction SilentlyContinue }
+                  Get-ChildItem 'C:\UnrealEngine\Engine\Programs\UnrealBuildTool\Log*.txt' -ErrorAction SilentlyContinue | Copy-Item -Destination $logdir -Force -ErrorAction SilentlyContinue
+
             - name: Upload engine build logs
               if: always() && steps.check.outputs.skip != 'true'
               uses: actions/upload-artifact@v4
@@ -1058,10 +1070,7 @@ jobs:
                   name: engine-win-logs-${{ github.run_id }}
                   if-no-files-found: ignore
                   retention-days: 7
-                  path: |
-                      ${{ runner.temp }}/engine-build-editor.log
-                      C:/UnrealEngine/Engine/Programs/AutomationTool/Saved/Logs/**
-                      C:/UnrealEngine/Engine/Programs/UnrealBuildTool/Log*.txt
+                  path: _enginelogs/
 
             - name: Mark engine ref
               if: steps.check.outputs.skip != 'true'
@@ -1707,6 +1716,9 @@ jobs:
                       '--add','Microsoft.VisualStudio.Component.VC.Tools.x86.x64',
                       '--add','Microsoft.VisualStudio.Component.Windows11SDK.26100',
                       '--add','Microsoft.Component.MSBuild',
+                      '--add','Microsoft.Net.Component.4.6.2.SDK',
+                      '--add','Microsoft.Net.Component.4.6.2.TargetingPack',
+                      '--add','Microsoft.Net.Component.4.8.SDK',
                       '--includeRecommended','--quiet','--wait','--norestart'
                   ) -Wait -PassThru
                   Write-Host "VS Build Tools installer exited: $($p.ExitCode)"
