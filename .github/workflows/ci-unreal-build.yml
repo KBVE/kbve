@@ -1731,6 +1731,21 @@ jobs:
                   Write-Host "VS Build Tools installer exited: $($p.ExitCode)"
                   exit 0
 
+            - name: Install .NET Framework 4.8 Dev Pack (NetFxSDK)
+              timeout-minutes: 20
+              run: |
+                  $ErrorActionPreference = 'SilentlyContinue'
+                  $keys = (Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\Microsoft SDKs\NETFXSDK' -ErrorAction SilentlyContinue).PSChildName
+                  if ($keys) { Write-Host "NETFXSDK already present: $($keys -join ', ')"; exit 0 }
+                  Write-Host "Downloading .NET Framework 4.8 Developer Pack ..."
+                  curl.exe -L -s --retry 5 --retry-all-errors -C - --connect-timeout 30 -o $env:RUNNER_TEMP\ndp48-devpack.exe "https://go.microsoft.com/fwlink/?linkid=2088517"
+                  if (!(Test-Path $env:RUNNER_TEMP\ndp48-devpack.exe)) { Write-Host "::warning::NetFx DevPack download failed."; exit 0 }
+                  $p = Start-Process $env:RUNNER_TEMP\ndp48-devpack.exe -ArgumentList '/q','/norestart' -Wait -PassThru
+                  Write-Host "NetFx 4.8 DevPack exited: $($p.ExitCode)"
+                  $keys = (Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\Microsoft SDKs\NETFXSDK' -ErrorAction SilentlyContinue).PSChildName
+                  Write-Host "NETFXSDK now: $($keys -join ', ')"
+                  exit 0
+
             - name: Install Python 3
               run: |
                   if (Get-Command python -ErrorAction SilentlyContinue) { Write-Host "Python already installed: $(python --version)"; exit 0 }
