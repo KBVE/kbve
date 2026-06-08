@@ -62,8 +62,10 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UMaterialInterface> MasterMaterial;
 	UPROPERTY(Transient) TObjectPtr<AActor> PNGlobalUpdaterActor;
 
+	void AddChunkToHISM(const FKBVEGrassPendingBuild& Build);
+
 	TArray<FIntPoint> BladeOwners;
 	TArray<FIntPoint> ImpostorOwners;
-	TArray<FKBVEGrassPendingBuild> PendingBuilds;
-	TSet<FIntPoint> ActiveChunks;
+	TMap<FIntPoint, FKBVEGrassPendingBuild> RegisteredChunks;
+	TSet<FIntPoint> ResidentChunks;
 };
