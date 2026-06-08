@@ -1,0 +1,59 @@
+---
+title: KBVEPostShader
+description: |
+    Stylized post-process for UE5 — anisotropic Kuwahara oil-paint, cel banding, and depth-driven ink outlines for a BotW / Ghibli look.
+sidebar:
+    label: KBVEPostShader
+    order: 90
+tags:
+    - unreal
+    - rendering
+key: ue_kbvepostshader
+pipeline: unreal
+plugin_name: KBVEPostShader
+plugin_path: packages/unreal/KBVEPostShader
+version: "0.1.0"
+source_path: packages/unreal/KBVEPostShader
+version_toml: packages/unreal/KBVEPostShader/version.toml
+author: h0lybyte
+license: KBVE
+status: active
+min_engine_version: "5.7"
+supported_platforms:
+    - Win64
+    - Linux
+    - Mac
+---
+
+## Overview
+
+`KBVEPostShader` is a stylized post-process pipeline targeting a **Breath of the Wild / Studio Ghibli** painterly look: anisotropic Kuwahara oil-paint smear, cel luminance banding, and depth-driven ink outlines. It runs as chained RDG passes from a `FSceneViewExtension`, inserted after the tonemapper, gated by CVars and off by default.
+
+## Pipeline
+
+1. **Structure tensor** — RGB Sobel resolved into a local flow tangent + anisotropy.
+2. **Anisotropic Kuwahara** — 8-sector generalized Kuwahara over a flow-oriented ellipse → oil-paint base.
+3. **Composite** — ink outlines from scene **depth** + painted-luma discontinuities, cel banding (hue preserved), warm saturation, darkened by the ink mask.
+
+## CVars
+
+| CVar | Default | Purpose |
+|------|---------|---------|
+| `r.KBVEPost.Enable` | `0` | Master on/off. |
+| `r.KBVEPost.Radius` | `6` | Kuwahara sample radius. |
+| `r.KBVEPost.OilStrength` | `0.85` | Blend original → Kuwahara. |
+| `r.KBVEPost.Bands` | `5` | Cel luminance bands. |
+| `r.KBVEPost.EdgeStrength` | `1.4` | Ink outline darkening. |
+| `r.KBVEPost.EdgeThreshold` | `0.15` | Discontinuity threshold. |
+| `r.KBVEPost.Saturation` | `1.15` | Painterly saturation. |
+
+Defaults also live in **Project Settings → KBVE → KBVE Post Shader**.
+
+```bash
+r.KBVEPost.Enable 1
+r.KBVEPost.Radius 8
+```
+
+## Status
+
+P1: the core trio (structure tensor + anisotropic Kuwahara + cel/ink composite), BotW-tuned defaults, desktop SM5+. P2 will add GBuffer-normal outlines, a warm palette LUT, canvas overlay, flow warp, and Ghibli/BotW presets.

@@ -1,0 +1,18 @@
+#pragma once
+
+#include "/Engine/Public/Platform.ush"
+
+#ifndef KBVE_PI
+#define KBVE_PI 3.14159265359f
+#endif
+
+float KBVELuma(float3 Color)
+{
+	return dot(Color, float3(0.299f, 0.587f, 0.114f));
+}
+
+float3 KBVEAdjustSaturation(float3 Color, float Saturation)
+{
+	float L = KBVELuma(Color);
+	return max(lerp(L.xxx, Color, Saturation), 0.0f);
+}

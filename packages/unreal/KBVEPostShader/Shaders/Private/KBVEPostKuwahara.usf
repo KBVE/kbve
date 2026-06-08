@@ -1,0 +1,97 @@
+#include "/Plugin/KBVEPostShader/Private/KBVEPostCommon.ush"
+
+Texture2D ColorTexture;
+SamplerState ColorSampler;
+Texture2D TensorTexture;
+SamplerState TensorSampler;
+float2 TexelSize;
+int   Radius;
+float OilStrength;
+
+#define KBVE_SECTORS 8
+
+// Generalized Kuwahara: split a flow-oriented elliptical neighborhood into 8 angular
+// sectors, take each sector's mean, and keep the mean of the lowest-variance sector.
+// The ellipse is rotated to the structure-tensor flow and squashed by anisotropy so
+// strokes smear along features — the oil-paint look.
+void MainPS(float4 SvPosition : SV_POSITION, float2 UV : TEXCOORD0, out float4 OutColor : SV_Target0)
+{
+	float3 Original = ColorTexture.SampleLevel(ColorSampler, UV, 0).rgb;
+
+	float4 Tensor = TensorTexture.SampleLevel(TensorSampler, UV, 0);
+	float2 Flow = normalize(Tensor.xy + float2(1e-4f, 1e-4f));
+	float Anisotropy = saturate(Tensor.z);
+
+	float2x2 Rot = float2x2(Flow.x, -Flow.y, Flow.y, Flow.x);
+	float ScaleAlong = 1.0f;
+	float ScaleAcross = lerp(1.0f, 0.25f, Anisotropy);
+
+	float3 MeanSum[KBVE_SECTORS];
+	float3 SqSum[KBVE_SECTORS];
+	float  CountSum[KBVE_SECTORS];
+
+	UNROLL
+	for (int s = 0; s < KBVE_SECTORS; ++s)
+	{
+		MeanSum[s] = float3(0, 0, 0);
+		SqSum[s] = float3(0, 0, 0);
+		CountSum[s] = 0.0f;
+	}
+
+	float R2 = float(Radius * Radius);
+	for (int j = -Radius; j <= Radius; ++j)
+	{
+		for (int i = -Radius; i <= Radius; ++i)
+		{
+			float2 Off = float2(i, j);
+			float D2 = dot(Off, Off);
+			if (D2 > R2)
+			{
+				continue;
+			}
+
+			float2 Ellipse = float2(Off.x * ScaleAlong, Off.y * ScaleAcross);
+			float2 Sample = mul(Rot, Ellipse) * TexelSize;
+			float3 C = ColorTexture.SampleLevel(ColorSampler, UV + Sample, 0).rgb;
+
+			float Ax = abs(Off.x);
+			float Ay = abs(Off.y);
+			int Sector;
+			if (Off.x >= 0.0f)
+			{
+				if (Off.y >= 0.0f) Sector = (Ax >= Ay) ? 4 : 5;
+				else               Sector = (Ax >= Ay) ? 3 : 2;
+			}
+			else
+			{
+				if (Off.y >= 0.0f) Sector = (Ax >= Ay) ? 7 : 6;
+				else               Sector = (Ax >= Ay) ? 0 : 1;
+			}
+
+			MeanSum[Sector] += C;
+			SqSum[Sector] += C * C;
+			CountSum[Sector] += 1.0f;
+		}
+	}
+
+	float3 BestColor = Original;
+	float BestVar = 1e20f;
+	UNROLL
+	for (int k = 0; k < KBVE_SECTORS; ++k)
+	{
+		if (CountSum[k] < 1.0f)
+		{
+			continue;
+		}
+		float3 Mean = MeanSum[k] / CountSum[k];
+		float3 Var = abs(SqSum[k] / CountSum[k] - Mean * Mean);
+		float VarL = Var.r + Var.g + Var.b;
+		if (VarL < BestVar)
+		{
+			BestVar = VarL;
+			BestColor = Mean;
+		}
+	}
+
+	OutColor = float4(lerp(Original, BestColor, OilStrength), 1.0f);
+}
