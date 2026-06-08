@@ -40,6 +40,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UKBVEWorldGrassRenderSubsystem, STATGROUP_Tickables); }
 
+	static void EnsureMaterialISMFlag(UMaterialInterface* MI);
+
 	bool RegisterChunkInstances(FIntPoint ChunkCoord, const TArray<FKBVEGrassMeshBatch>& Batches);
 
 	void ReleaseChunkInstances(FIntPoint ChunkCoord);

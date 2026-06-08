@@ -29,10 +29,10 @@ AKBVEWorldChunkActor::AKBVEWorldChunkActor()
 	PrimaryActorTick.bCanEverTick = false;
 
 	Mesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Mesh"));
-	Mesh->bUseAsyncCooking = false;
+	Mesh->bUseAsyncCooking = true;
 	Mesh->SetCollisionProfileName(TEXT("BlockAll"));
-	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	Mesh->SetCanEverAffectNavigation(true);
+	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	Mesh->SetCanEverAffectNavigation(false);
 	RootComponent = Mesh;
 
 	Water = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Water"));
@@ -166,11 +166,6 @@ void AKBVEWorldChunkActor::UploadMesh(const FKBVEWorldChunkMesh& MeshData)
 
 	UMaterialInterface* Apply = GroundMaterialOverride ? GroundMaterialOverride : GroundMaterial;
 	if (Apply) Mesh->SetMaterial(0, Apply);
-
-	if (UNavigationSystemV1* Nav = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld()))
-	{
-		Nav->UpdateComponentInNavOctree(*Mesh);
-	}
 }
 
 void AKBVEWorldChunkActor::PositionWaterAndApplyMaterials(float ChunkSize)
@@ -354,6 +349,22 @@ static bool KBVEWorld_NameMatchesFilters(const FString& NameLower, const TArray<
 	return true;
 }
 
+static UObjectLibrary* KBVEWorld_GetCachedLibrary(UClass* Class, const FString& Path)
+{
+	static TMap<FString, UObjectLibrary*> Cache;
+	const FString Key = Class->GetName() + TEXT("|") + Path;
+	if (UObjectLibrary** Found = Cache.Find(Key)) return *Found;
+
+	UObjectLibrary* Lib = UObjectLibrary::CreateLibrary(Class, false, GIsEditor);
+	if (!Lib) return nullptr;
+	Lib->AddToRoot();
+	Lib->bRecursivePaths = true;
+	Lib->LoadAssetDataFromPath(Path);
+	Lib->LoadAssetsFromAssetData();
+	Cache.Add(Key, Lib);
+	return Lib;
+}
+
 void AKBVEWorldChunkActor::LoadBucket(const FKBVEWorldFoliageBucketConfig& Cfg)
 {
 	const int32 Cap = FMath::Max(1, Cfg.MaxVariants);
@@ -395,14 +406,9 @@ void AKBVEWorldChunkActor::LoadBucket(const FKBVEWorldFoliageBucketConfig& Cfg)
 	if (Cfg.SourcePath.IsEmpty()) return;
 
 	{
-		UObjectLibrary* Lib = UObjectLibrary::CreateLibrary(UFoliageType_InstancedStaticMesh::StaticClass(), false, GIsEditor);
+		UObjectLibrary* Lib = KBVEWorld_GetCachedLibrary(UFoliageType_InstancedStaticMesh::StaticClass(), Cfg.SourcePath);
 		if (Lib)
 		{
-			Lib->AddToRoot();
-			Lib->bRecursivePaths = true;
-			Lib->LoadAssetDataFromPath(Cfg.SourcePath);
-			Lib->LoadAssetsFromAssetData();
-
 			TArray<UObject*> Loaded;
 			Lib->GetObjects<UObject>(Loaded);
 			Loaded.Sort([](const UObject& A, const UObject& B){ return A.GetName() < B.GetName(); });
@@ -414,6 +420,22 @@ void AKBVEWorldChunkActor::LoadBucket(const FKBVEWorldFoliageBucketConfig& Cfg)
 				if (!FT || !FT->GetStaticMesh()) continue;
 				if (!KBVEWorld_NameMatchesFilters(Obj->GetName().ToLower(), Cfg.NameIncludes, Cfg.NameExcludes)) continue;
 				Valid.Add(FT);
+			}
+
+			static TSet<FString> PrewarmedPaths;
+			if (!PrewarmedPaths.Contains(Cfg.SourcePath))
+			{
+				PrewarmedPaths.Add(Cfg.SourcePath);
+				for (UFoliageType_InstancedStaticMesh* FT : Valid)
+				{
+					if (UStaticMesh* SM = FT->GetStaticMesh())
+					{
+						if (SM->GetStaticMaterials().Num() > 0)
+						{
+							UKBVEWorldGrassRenderSubsystem::EnsureMaterialISMFlag(SM->GetMaterial(0));
+						}
+					}
+				}
 			}
 
 			const int32 Take = FMath::Min(Cap, Valid.Num());
@@ -434,20 +456,14 @@ void AKBVEWorldChunkActor::LoadBucket(const FKBVEWorldFoliageBucketConfig& Cfg)
 				FoliageMetas.Add(M);
 				++Added;
 			}
-			Lib->RemoveFromRoot();
 		}
 	}
 
 	if (Added == 0)
 	{
-		UObjectLibrary* Lib = UObjectLibrary::CreateLibrary(UStaticMesh::StaticClass(), false, GIsEditor);
+		UObjectLibrary* Lib = KBVEWorld_GetCachedLibrary(UStaticMesh::StaticClass(), Cfg.SourcePath);
 		if (Lib)
 		{
-			Lib->AddToRoot();
-			Lib->bRecursivePaths = true;
-			Lib->LoadAssetDataFromPath(Cfg.SourcePath);
-			Lib->LoadAssetsFromAssetData();
-
 			TArray<UObject*> Loaded;
 			Lib->GetObjects<UObject>(Loaded);
 			Loaded.Sort([](const UObject& A, const UObject& B){ return A.GetName() < B.GetName(); });
@@ -468,7 +484,6 @@ void AKBVEWorldChunkActor::LoadBucket(const FKBVEWorldFoliageBucketConfig& Cfg)
 				FoliageMetas.Add(M);
 				++Added;
 			}
-			Lib->RemoveFromRoot();
 		}
 	}
 

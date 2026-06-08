@@ -75,7 +75,7 @@ void UKBVEWorldGrassRenderSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
-static void KBVEGrass_EnsureMaterialISMFlag(UMaterialInterface* MI)
+void UKBVEWorldGrassRenderSubsystem::EnsureMaterialISMFlag(UMaterialInterface* MI)
 {
 	if (!MI) return;
 	UMaterialInterface* Cur = MI;
@@ -88,6 +88,7 @@ static void KBVEGrass_EnsureMaterialISMFlag(UMaterialInterface* MI)
 	{
 		if (!BaseMat->bUsedWithInstancedStaticMeshes)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("[KBVEGrass] ISM-flag recompile on material '%s' (synchronous shader compile)"), *BaseMat->GetName());
 			BaseMat->bUsedWithInstancedStaticMeshes = true;
 #if WITH_EDITOR
 			BaseMat->PostEditChange();
@@ -148,7 +149,7 @@ UHierarchicalInstancedStaticMeshComponent* UKBVEWorldGrassRenderSubsystem::GetOr
 	H->SetStaticMesh(Mesh);
 	if (Mesh->GetStaticMaterials().Num() > 0)
 	{
-		KBVEGrass_EnsureMaterialISMFlag(Mesh->GetMaterial(0));
+		EnsureMaterialISMFlag(Mesh->GetMaterial(0));
 	}
 	else if (MasterMaterial)
 	{

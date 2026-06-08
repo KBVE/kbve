@@ -152,26 +152,38 @@ void UchuckTerrainStreamer::Tick(float DeltaSeconds)
 		}
 	}
 
+	auto ChunkDistSq = [Center](const FIntPoint& C)
+	{
+		const int64 Dx = C.X - Center.X;
+		const int64 Dy = C.Y - Center.Y;
+		return Dx * Dx + Dy * Dy;
+	};
+
 	TArray<FIntPoint> ToRelease;
 	for (auto& Pair : ActiveChunks)
 	{
 		if (!Wanted.Contains(Pair.Key)) ToRelease.Add(Pair.Key);
 	}
-	for (const FIntPoint& Key : ToRelease)
+	ToRelease.Sort([&ChunkDistSq](const FIntPoint& A, const FIntPoint& B) { return ChunkDistSq(A) > ChunkDistSq(B); });
+	const int32 ReleaseCount = FMath::Min(ToRelease.Num(), MaxReleasesPerTick);
+	for (int32 i = 0; i < ReleaseCount; ++i)
 	{
-		AchuckTerrainChunk* C = ActiveChunks[Key];
-		ActiveChunks.Remove(Key);
+		AchuckTerrainChunk* C = ActiveChunks[ToRelease[i]];
+		ActiveChunks.Remove(ToRelease[i]);
 		ReleaseChunk(C);
 	}
 
+	TArray<FIntPoint> Missing;
 	for (const FIntPoint& Want : Wanted)
 	{
-		if (!ActiveChunks.Contains(Want))
-		{
-			EnsureChunk(Want);
-		}
+		if (!ActiveChunks.Contains(Want)) Missing.Add(Want);
 	}
-
+	Missing.Sort([&ChunkDistSq](const FIntPoint& A, const FIntPoint& B) { return ChunkDistSq(A) < ChunkDistSq(B); });
+	const int32 BuildCount = FMath::Min(Missing.Num(), MaxBuildsPerTick);
+	for (int32 i = 0; i < BuildCount; ++i)
+	{
+		EnsureChunk(Missing[i]);
+	}
 }
 
 FIntPoint UchuckTerrainStreamer::WorldToChunk(const FVector& WorldLoc) const
