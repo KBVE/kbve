@@ -198,14 +198,14 @@ function ensureFloatLayer(): HTMLElement {
 		width: 420px;
 		height: 640px;
 		z-index: 60;
-		pointer-events: auto;
+		pointer-events: none;
 		display: none;
 		filter: drop-shadow(0 8px 24px rgba(0,0,0,0.35));
 	`;
 	const handle = document.createElement('div');
 	handle.id = 'kbve-yuki-float-drag';
 	handle.style.cssText =
-		'position:absolute;inset:0 0 auto 0;height:18px;cursor:grab;user-select:none;';
+		'position:absolute;inset:0 0 auto 0;height:18px;user-select:none;pointer-events:none;';
 	const close = document.createElement('button');
 	close.id = 'kbve-yuki-float-close';
 	close.type = 'button';
@@ -216,7 +216,7 @@ function ensureFloatLayer(): HTMLElement {
 		display:grid;place-items:center;border-radius:999px;
 		background:rgba(15,23,42,0.65);color:rgba(255,255,255,0.9);
 		border:1px solid rgba(255,255,255,0.15);font-size:14px;
-		line-height:1;cursor:pointer;z-index:2;
+		line-height:1;cursor:pointer;z-index:2;display:none;
 	`;
 	const stage = document.createElement('div');
 	stage.id = FLOAT_HOST_ID;
