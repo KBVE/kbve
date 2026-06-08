@@ -1021,9 +1021,14 @@ jobs:
 
             - name: Run Setup
               if: steps.check.outputs.skip != 'true'
+              timeout-minutes: 90
               shell: powershell
               run: |
-                  Push-Location $env:ENGINE_ROOT; .\Setup.bat --force; Pop-Location
+                  Push-Location $env:ENGINE_ROOT
+                  & .\Engine\Binaries\DotNET\GitDependencies\win-x64\GitDependencies.exe --force
+                  $rc = $LASTEXITCODE
+                  Pop-Location
+                  if ($rc -ne 0) { Write-Host "::error::GitDependencies failed ($rc)"; exit $rc }
 
             - name: Generate project files
               if: steps.check.outputs.skip != 'true'
