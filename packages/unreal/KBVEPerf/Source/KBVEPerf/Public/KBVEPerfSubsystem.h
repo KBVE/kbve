@@ -68,7 +68,7 @@ private:
 	IConsoleVariable* MasterCVar = nullptr;
 
 	TSharedPtr<IHttpRouter> Router;
-	TSharedPtr<FHttpRouteHandleInternal> RouteHandle;
+	TSharedPtr<const FHttpRouteHandleInternal> RouteHandle;
 	int32 BoundPort = 0;
 	bool bHttpActive = false;
 };
