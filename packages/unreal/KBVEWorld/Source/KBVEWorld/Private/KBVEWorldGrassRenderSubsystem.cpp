@@ -16,6 +16,24 @@
 #include "Materials/MaterialInstance.h"
 #include "Materials/MaterialInterface.h"
 
+namespace KBVEGrassCfg
+{
+	constexpr double ChunkExtent      = 6400.0;
+	constexpr int32  ViewRadius       = 2;
+	constexpr int32  EvictRadius      = ViewRadius + 1;
+	constexpr float  PNScaleMul       = 5.f;
+	constexpr int32  BladeStride      = 4;
+	constexpr int32  ImpostorStride   = 16;
+	constexpr int32  BudgetPerTick    = 20000;
+	constexpr int32  MaxAdmitsPerTick = 1;
+
+	constexpr float  ViewDist         = float(ViewRadius * ChunkExtent);
+	constexpr float  BladeCullStart   = ViewDist * 0.35f;
+	constexpr float  BladeCullEnd     = ViewDist * 0.55f;
+	constexpr float  ImpostorCullStart= ViewDist * 0.45f;
+	constexpr float  ImpostorCullEnd  = ViewDist;
+}
+
 bool UKBVEWorldGrassRenderSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
 	if (!Super::ShouldCreateSubsystem(Outer)) return false;
@@ -32,8 +50,7 @@ void UKBVEWorldGrassRenderSubsystem::Initialize(FSubsystemCollectionBase& Collec
 void UKBVEWorldGrassRenderSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	constexpr int32 GrassInstanceBudgetPerTick = 20000;
-	TickBuildQueue(GrassInstanceBudgetPerTick);
+	TickBuildQueue(KBVEGrassCfg::BudgetPerTick);
 }
 
 void UKBVEWorldGrassRenderSubsystem::Deinitialize()
@@ -154,13 +171,13 @@ void UKBVEWorldGrassRenderSubsystem::EnsureHost()
 		}
 	}
 
-	auto ConfigureHISM = [&](UHierarchicalInstancedStaticMeshComponent* H, UStaticMesh* M, bool bUseFallbackMaterial)
+	auto ConfigureHISM = [&](UHierarchicalInstancedStaticMeshComponent* H, UStaticMesh* M, bool bUseFallbackMaterial, int32 CullStart, int32 CullEnd)
 	{
 		H->SetMobility(EComponentMobility::Movable);
 		H->SetupAttachment(HostActor->GetRootComponent());
 		H->NumCustomDataFloats              = 0;
-		H->InstanceStartCullDistance        = 4000;
-		H->InstanceEndCullDistance          = 8000;
+		H->InstanceStartCullDistance        = CullStart;
+		H->InstanceEndCullDistance          = CullEnd;
 		if (M) H->SetStaticMesh(M);
 		if (bUseFallbackMaterial && MasterMaterial)
 		{
@@ -201,12 +218,14 @@ void UKBVEWorldGrassRenderSubsystem::EnsureHost()
 	if (!GlobalBladeHISM)
 	{
 		GlobalBladeHISM = NewObject<UHierarchicalInstancedStaticMeshComponent>(HostActor, TEXT("GlobalBladeHISM"), RF_Transient);
-		ConfigureHISM(GlobalBladeHISM, BladeMesh, bBladeUsesFallback);
+		ConfigureHISM(GlobalBladeHISM, BladeMesh, bBladeUsesFallback,
+			(int32)KBVEGrassCfg::BladeCullStart, (int32)KBVEGrassCfg::BladeCullEnd);
 	}
 	if (!GlobalImpostorHISM)
 	{
 		GlobalImpostorHISM = NewObject<UHierarchicalInstancedStaticMeshComponent>(HostActor, TEXT("GlobalImpostorHISM"), RF_Transient);
-		ConfigureHISM(GlobalImpostorHISM, ImpostorMesh, bImpostorUsesFallback);
+		ConfigureHISM(GlobalImpostorHISM, ImpostorMesh, bImpostorUsesFallback,
+			(int32)KBVEGrassCfg::ImpostorCullStart, (int32)KBVEGrassCfg::ImpostorCullEnd);
 	}
 
 }
@@ -242,38 +261,40 @@ void UKBVEWorldGrassRenderSubsystem::AppendInstancesWithOwners(UHierarchicalInst
 
 void UKBVEWorldGrassRenderSubsystem::AddChunkToHISM(const FKBVEGrassPendingBuild& Source)
 {
-	constexpr int32 GrassDensityStride = 4;
-	constexpr float PNScaleMul         = 5.f;
+	using namespace KBVEGrassCfg;
 
-	TArray<FTransform> Blades;
-	if (GrassDensityStride > 1 && Source.BladeTransforms.Num() > GrassDensityStride)
+	auto Subsample = [](const TArray<FTransform>& In, int32 Stride)
 	{
-		Blades.Reserve(Source.BladeTransforms.Num() / GrassDensityStride + 1);
-		for (int32 i = 0; i < Source.BladeTransforms.Num(); i += GrassDensityStride) Blades.Add(Source.BladeTransforms[i]);
-	}
-	else
-	{
-		Blades = Source.BladeTransforms;
-	}
-	TArray<FTransform> Impostors = Source.ImpostorTransforms;
-	for (FTransform& T : Blades)    T.MultiplyScale3D(FVector(PNScaleMul));
-	for (FTransform& T : Impostors) T.MultiplyScale3D(FVector(PNScaleMul));
+		TArray<FTransform> Out;
+		if (Stride > 1 && In.Num() > Stride)
+		{
+			Out.Reserve(In.Num() / Stride + 1);
+			for (int32 i = 0; i < In.Num(); i += Stride) Out.Add(In[i]);
+		}
+		else
+		{
+			Out = In;
+		}
+		for (FTransform& T : Out) T.MultiplyScale3D(FVector(PNScaleMul));
+		return Out;
+	};
+
+	TArray<FTransform> Blades    = Subsample(Source.BladeTransforms, BladeStride);
+	TArray<FTransform> Impostors = Source.ImpostorTransforms.Num() > 0
+		? Subsample(Source.ImpostorTransforms, BladeStride)
+		: Subsample(Source.BladeTransforms, ImpostorStride);
 
 	if (Blades.Num() > 0)
 	{
 		GlobalBladeHISM->AddInstances(Blades, false);
 		BladeOwners.Reserve(BladeOwners.Num() + Blades.Num());
 		for (int32 i = 0; i < Blades.Num(); ++i) BladeOwners.Add(Source.ChunkCoord);
-		GlobalBladeHISM->BuildTreeIfOutdated(false, true);
-		GlobalBladeHISM->MarkRenderStateDirty();
 	}
 	if (Impostors.Num() > 0)
 	{
 		GlobalImpostorHISM->AddInstances(Impostors, false);
 		ImpostorOwners.Reserve(ImpostorOwners.Num() + Impostors.Num());
 		for (int32 i = 0; i < Impostors.Num(); ++i) ImpostorOwners.Add(Source.ChunkCoord);
-		GlobalImpostorHISM->BuildTreeIfOutdated(false, true);
-		GlobalImpostorHISM->MarkRenderStateDirty();
 	}
 }
 
@@ -283,9 +304,7 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 	EnsureHost();
 	if (!GlobalBladeHISM || !GlobalImpostorHISM) return;
 
-	constexpr double ChunkExtent       = 6400.0;
-	constexpr int32  GrassRenderRadius = 1;
-	constexpr int32  GrassEvictRadius  = GrassRenderRadius + 1;
+	using namespace KBVEGrassCfg;
 
 	FVector CamLoc = FVector::ZeroVector;
 	if (UWorld* W = GetWorld())
@@ -306,27 +325,24 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 		return FMath::Max(FMath::Abs(C.X - CamChunk.X), FMath::Abs(C.Y - CamChunk.Y));
 	};
 
-	bool bRemovedAny = false;
-	for (auto It = ResidentChunks.CreateIterator(); It; ++It)
+	bool bChanged = false;
+
+	int32 Evicted = 0;
+	for (auto It = ResidentChunks.CreateIterator(); It && Evicted < MaxAdmitsPerTick; ++It)
 	{
-		if (Cheb(*It) > GrassEvictRadius)
+		if (Cheb(*It) > EvictRadius)
 		{
 			RemoveOwnedInstances(GlobalBladeHISM,    BladeOwners,    *It);
 			RemoveOwnedInstances(GlobalImpostorHISM, ImpostorOwners, *It);
 			It.RemoveCurrent();
-			bRemovedAny = true;
+			bChanged = true;
+			++Evicted;
 		}
-	}
-	if (bRemovedAny)
-	{
-		GlobalBladeHISM->BuildTreeIfOutdated(false, true);
-		GlobalBladeHISM->MarkRenderStateDirty();
-		GlobalImpostorHISM->BuildTreeIfOutdated(false, true);
-		GlobalImpostorHISM->MarkRenderStateDirty();
 	}
 
 	int32 Spent = 0;
-	while (Spent < InstanceBudget)
+	int32 Admitted = 0;
+	while (Spent < InstanceBudget && Admitted < MaxAdmitsPerTick)
 	{
 		FIntPoint BestCoord;
 		double BestSq = TNumericLimits<double>::Max();
@@ -334,7 +350,7 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 		for (const TPair<FIntPoint, FKBVEGrassPendingBuild>& Pair : RegisteredChunks)
 		{
 			if (ResidentChunks.Contains(Pair.Key)) continue;
-			if (Cheb(Pair.Key) > GrassRenderRadius) continue;
+			if (Cheb(Pair.Key) > ViewRadius) continue;
 			const FVector Center(Pair.Key.X * ChunkExtent + ChunkExtent * 0.5,
 				Pair.Key.Y * ChunkExtent + ChunkExtent * 0.5, CamLoc.Z);
 			const double DSq = FVector::DistSquared(Center, CamLoc);
@@ -346,10 +362,16 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 		AddChunkToHISM(Build);
 		ResidentChunks.Add(BestCoord);
 		Spent += Build.BladeTransforms.Num() + Build.ImpostorTransforms.Num();
+		++Admitted;
+		bChanged = true;
+	}
 
-		UE_LOG(LogTemp, Warning, TEXT("[KBVEGrass] Added chunk=(%d,%d) resident=%d registered=%d totalInst=%d"),
-			BestCoord.X, BestCoord.Y, ResidentChunks.Num(), RegisteredChunks.Num(),
-			GlobalBladeHISM->GetInstanceCount());
+	if (bChanged)
+	{
+		GlobalBladeHISM->BuildTreeIfOutdated(true, false);
+		GlobalBladeHISM->MarkRenderStateDirty();
+		GlobalImpostorHISM->BuildTreeIfOutdated(true, false);
+		GlobalImpostorHISM->MarkRenderStateDirty();
 	}
 }
 
@@ -386,7 +408,7 @@ void UKBVEWorldGrassRenderSubsystem::ReleaseChunkInstances(FIntPoint ChunkCoord)
 	{
 		RemoveOwnedInstances(GlobalBladeHISM,    BladeOwners,    ChunkCoord);
 		RemoveOwnedInstances(GlobalImpostorHISM, ImpostorOwners, ChunkCoord);
-		if (GlobalBladeHISM)    { GlobalBladeHISM->BuildTreeIfOutdated(false, true);    GlobalBladeHISM->MarkRenderStateDirty(); }
-		if (GlobalImpostorHISM) { GlobalImpostorHISM->BuildTreeIfOutdated(false, true); GlobalImpostorHISM->MarkRenderStateDirty(); }
+		if (GlobalBladeHISM)    { GlobalBladeHISM->BuildTreeIfOutdated(true, false);    GlobalBladeHISM->MarkRenderStateDirty(); }
+		if (GlobalImpostorHISM) { GlobalImpostorHISM->BuildTreeIfOutdated(true, false); GlobalImpostorHISM->MarkRenderStateDirty(); }
 	}
 }
