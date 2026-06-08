@@ -17,7 +17,29 @@
 
 #if WITH_EDITOR
 #include "MaterialEditingLibrary.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "Misc/PackageName.h"
+#include "UObject/SavePackage.h"
 #endif
+
+namespace
+{
+#if WITH_EDITOR
+	void KBVE_SaveGeneratedMaterial(UMaterial* M)
+	{
+		UPackage* Pkg = M->GetPackage();
+		M->PreEditChange(nullptr);
+		M->PostEditChange();
+		M->ForceRecompileForRendering();
+		FAssetRegistryModule::AssetCreated(M);
+		Pkg->MarkPackageDirty();
+		const FString File = FPackageName::LongPackageNameToFilename(Pkg->GetName(), FPackageName::GetAssetPackageExtension());
+		FSavePackageArgs Args;
+		Args.TopLevelFlags = RF_Public | RF_Standalone;
+		UPackage::SavePackage(Pkg, M, *File, Args);
+	}
+#endif
+}
 
 namespace
 {
@@ -37,10 +59,17 @@ namespace
 UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateMasterMaterial(UObject* /*Outer*/)
 {
 	if (CachedMaster.IsValid()) return CachedMaster.Get();
-	UObject* Outer = GetTransientPackage();
+
+	static const TCHAR* PkgPath = TEXT("/Game/PN_GrassLibrary/Generated/M_KBVEWorld_Grass");
+	if (UMaterialInterface* Existing = LoadObject<UMaterialInterface>(nullptr, PkgPath))
+	{
+		CachedMaster = Existing;
+		return Existing;
+	}
 
 #if WITH_EDITOR
-	UMaterial* M = NewObject<UMaterial>(Outer, TEXT("M_KBVEWorld_Grass"), RF_Transient);
+	UPackage* Pkg = CreatePackage(PkgPath);
+	UMaterial* M = NewObject<UMaterial>(Pkg, TEXT("M_KBVEWorld_Grass"), RF_Public | RF_Standalone);
 	M->BlendMode             = BLEND_Opaque;
 	M->TwoSided              = false;
 	M->DitheredLODTransition = true;
@@ -114,11 +143,7 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateMasterMaterial(UObject* /*
 	ED->Roughness.Connect(0, Rough);
 	ED->WorldPositionOffset.Connect(0, WPOFinal);
 
-	M->PreEditChange(nullptr);
-	M->PostEditChange();
-	M->ForceRecompileForRendering();
-	M->AddToRoot();
-
+	KBVE_SaveGeneratedMaterial(M);
 	CachedMaster = M;
 	return M;
 #else
@@ -131,9 +156,16 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateCardMaterial(UObject* /*Ou
 	static TWeakObjectPtr<UMaterialInterface> CachedCard;
 	if (CachedCard.IsValid()) return CachedCard.Get();
 
+	static const TCHAR* PkgPath = TEXT("/Game/PN_GrassLibrary/Generated/M_KBVEWorld_GrassCard");
+	if (UMaterialInterface* Existing = LoadObject<UMaterialInterface>(nullptr, PkgPath))
+	{
+		CachedCard = Existing;
+		return Existing;
+	}
+
 #if WITH_EDITOR
-	UObject* Outer = GetTransientPackage();
-	UMaterial* M = NewObject<UMaterial>(Outer, TEXT("M_KBVEWorld_GrassCard"), RF_Transient);
+	UPackage* Pkg = CreatePackage(PkgPath);
+	UMaterial* M = NewObject<UMaterial>(Pkg, TEXT("M_KBVEWorld_GrassCard"), RF_Public | RF_Standalone);
 	M->BlendMode             = BLEND_Masked;
 	M->TwoSided              = true;
 	M->OpacityMaskClipValue  = 0.33f;
@@ -166,11 +198,7 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateCardMaterial(UObject* /*Ou
 	Rough->R = 0.7f;
 	ED->Roughness.Connect(0, Rough);
 
-	M->PreEditChange(nullptr);
-	M->PostEditChange();
-	M->ForceRecompileForRendering();
-	M->AddToRoot();
-
+	KBVE_SaveGeneratedMaterial(M);
 	CachedCard = M;
 	return M;
 #else

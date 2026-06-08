@@ -16,11 +16,30 @@
 
 #if WITH_EDITOR
 #include "MaterialEditingLibrary.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "Misc/PackageName.h"
+#include "UObject/SavePackage.h"
 #endif
 
 namespace
 {
 	static TWeakObjectPtr<UMaterialInterface> CachedGround;
+
+#if WITH_EDITOR
+	void KBVE_SaveGeneratedMaterial(UMaterial* M)
+	{
+		UPackage* Pkg = M->GetPackage();
+		M->PreEditChange(nullptr);
+		M->PostEditChange();
+		M->ForceRecompileForRendering();
+		FAssetRegistryModule::AssetCreated(M);
+		Pkg->MarkPackageDirty();
+		const FString File = FPackageName::LongPackageNameToFilename(Pkg->GetName(), FPackageName::GetAssetPackageExtension());
+		FSavePackageArgs Args;
+		Args.TopLevelFlags = RF_Public | RF_Standalone;
+		UPackage::SavePackage(Pkg, M, *File, Args);
+	}
+#endif
 
 	static const TCHAR* GroundSets[] = {
 		TEXT("ground_I"), TEXT("ground_II"), TEXT("ground_III"), TEXT("ground_IV"),
@@ -48,9 +67,16 @@ UMaterialInterface* FKBVEWorldTerrainShader::GetOrCreateGroundMaterial(UObject* 
 {
 	if (CachedGround.IsValid()) return CachedGround.Get();
 
+	static const TCHAR* PkgPath = TEXT("/Game/PN_GrassLibrary/Generated/M_KBVEWorld_Ground");
+	if (UMaterialInterface* Existing = LoadObject<UMaterialInterface>(nullptr, PkgPath))
+	{
+		CachedGround = Existing;
+		return Existing;
+	}
+
 #if WITH_EDITOR
-	UObject* Outer = GetTransientPackage();
-	UMaterial* M = NewObject<UMaterial>(Outer, TEXT("M_KBVEWorld_Ground"), RF_Transient);
+	UPackage* Pkg = CreatePackage(PkgPath);
+	UMaterial* M = NewObject<UMaterial>(Pkg, TEXT("M_KBVEWorld_Ground"), RF_Public | RF_Standalone);
 	M->BlendMode = BLEND_Opaque;
 	M->TwoSided  = false;
 	M->SetShadingModel(MSM_DefaultLit);
@@ -141,7 +167,7 @@ UMaterialInterface* FKBVEWorldTerrainShader::GetOrCreateGroundMaterial(UObject* 
 	Rough->R = 0.9f;
 	ED->Roughness.Connect(0, Rough);
 
-	M->PostEditChange();
+	KBVE_SaveGeneratedMaterial(M);
 	CachedGround = M;
 	return M;
 #else
