@@ -1,0 +1,82 @@
+---
+title: KBVEPerf
+description: |
+    Runtime-toggleable performance instrumentation for UE5 — scoped timers, counters, log + overlay sinks, and a live HTTP /perf JSON readout.
+sidebar:
+    label: KBVEPerf
+    order: 89
+tags:
+    - unreal
+    - profiling
+key: ue_kbveperf
+pipeline: unreal
+plugin_name: KBVEPerf
+plugin_path: packages/unreal/KBVEPerf
+version: "0.1.0"
+source_path: packages/unreal/KBVEPerf
+version_toml: packages/unreal/KBVEPerf/version.toml
+author: h0lybyte
+license: KBVE
+status: active
+min_engine_version: "5.4"
+supported_platforms:
+    - Win64
+    - Linux
+    - Mac
+---
+
+## Overview
+
+`KBVEPerf` is a lightweight, runtime-toggleable performance instrumentation layer. Scoped timers and counters feed per-name aggregates that drain to three sinks — the log, an on-screen overlay, and a live HTTP `/perf` JSON readout — so any KBVE plugin can be profiled by flipping a CVar, and the results read live by external tooling instead of relaying `stat unit` numbers by hand.
+
+It compiles out of Shipping builds (`KBVEPERF_ENABLED=0`); when compiled in but disabled at runtime it costs a single atomic load + branch per scope.
+
+## Macros
+
+```cpp
+#include "KBVEPerf.h"
+
+void UMyThing::HotPath()
+{
+    KBVEPERF_SCOPE("Grass.AddChunk");          // RAII scoped timer
+    KBVEPERF_COUNT("Grass.Instances", 72627);  // counter / gauge sample
+}
+```
+
+The name prefix before the first `.` is the **category** (`Grass.AddChunk` → `Grass`). Add `KBVEPerf` to your module's `PrivateDependencyModuleNames` and the plugin to your `.uplugin` `Plugins` list.
+
+## CVars
+
+| CVar | Default | Purpose |
+|------|---------|---------|
+| `kbve.perf` | `0` | Master switch — `1` turns collection + `/perf` on. |
+| `kbve.perf.categories` | `""` | Comma-separated allow-list, e.g. `"Grass,Terrain"`. Empty = all. |
+| `kbve.perf.port` | `8099` | Port for the HTTP `/perf` endpoint. |
+| `kbve.perf.overlay` | `0` | On-screen overlay of the worst ops this frame. |
+| `kbve.perf.threshold` | `3.0` | Log-sink threshold (ms). |
+
+## HTTP readout
+
+```bash
+kbve.perf 1
+curl http://localhost:8099/perf
+```
+
+```json
+{
+  "frame": 12345,
+  "fps": 58.2,
+  "ops": [
+    { "name": "Grass.AddChunk", "count": 412, "lastMs": 3.1, "maxMs": 10.9, "avgMs": 3.4, "p95Ms": 7.2 },
+    { "name": "Terrain.GenerateMeshData", "count": 380, "lastMs": 0.6, "maxMs": 1.1, "avgMs": 0.7, "p95Ms": 0.9 }
+  ],
+  "counts": [
+    { "name": "Grass.ResidentChunks", "value": 25 },
+    { "name": "Grass.Instances", "value": 72627 }
+  ]
+}
+```
+
+## Integration
+
+`KBVEWorld` (terrain chunks + grass render subsystem) is the first consumer: the bespoke `FKBVEHitchLog` scoped timers were replaced with `KBVEPERF_SCOPE`, and the grass subsystem publishes `KBVEPERF_COUNT` gauges for resident chunks, registered chunks, HISM count, and total instances.
