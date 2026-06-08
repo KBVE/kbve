@@ -41,6 +41,10 @@ public:
 	virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UKBVEWorldGrassRenderSubsystem, STATGROUP_Tickables); }
 
 	static void EnsureMaterialISMFlag(UMaterialInterface* MI);
+	static int32 BladeRenderStride();
+	static float RenderScaleMul();
+
+	void PrewarmMeshPool(const TArray<UStaticMesh*>& Meshes);
 
 	bool RegisterChunkInstances(FIntPoint ChunkCoord, const TArray<FKBVEGrassMeshBatch>& Batches);
 

@@ -24,6 +24,21 @@
 #include "UObject/ConstructorHelpers.h"
 #include "UObject/WeakObjectPtrTemplates.h"
 
+namespace
+{
+	struct FKBVEHitchLog
+	{
+		const TCHAR* Name;
+		double Start;
+		explicit FKBVEHitchLog(const TCHAR* InName) : Name(InName), Start(FPlatformTime::Seconds()) {}
+		~FKBVEHitchLog()
+		{
+			const double Ms = (FPlatformTime::Seconds() - Start) * 1000.0;
+			if (Ms > 3.0) UE_LOG(LogTemp, Warning, TEXT("[KBVEPerf] %s %.1fms"), Name, Ms);
+		}
+	};
+}
+
 AKBVEWorldChunkActor::AKBVEWorldChunkActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
@@ -59,6 +74,7 @@ void AKBVEWorldChunkActor::BeginPlay()
 
 void AKBVEWorldChunkActor::GenerateMeshData(FKBVEWorldChunkMesh& OutMesh) const
 {
+	FKBVEHitchLog _t(TEXT("GenerateMeshData"));
 	const int32 VertsPerEdge = CellsPerEdge + 1;
 	const int32 VertCount    = VertsPerEdge * VertsPerEdge;
 	OutMesh.CellsPerEdge = CellsPerEdge;
@@ -152,12 +168,30 @@ void AKBVEWorldChunkActor::GenerateMeshData(FKBVEWorldChunkMesh& OutMesh) const
 		}
 	}
 
-	UKismetProceduralMeshLibrary::CalculateTangentsForMesh(
-		OutMesh.Vertices, OutMesh.Triangles, OutMesh.UVs, OutMesh.Normals, OutMesh.Tangents);
+	for (int32 Y = 0; Y < VertsPerEdge; ++Y)
+	{
+		for (int32 X = 0; X < VertsPerEdge; ++X)
+		{
+			const int32 Idx = Y * VertsPerEdge + X;
+			const int32 Xm = FMath::Max(X - 1, 0);
+			const int32 Xp = FMath::Min(X + 1, VertsPerEdge - 1);
+			const int32 Ym = FMath::Max(Y - 1, 0);
+			const int32 Yp = FMath::Min(Y + 1, VertsPerEdge - 1);
+			const float Hl = OutMesh.Vertices[Y * VertsPerEdge + Xm].Z;
+			const float Hr = OutMesh.Vertices[Y * VertsPerEdge + Xp].Z;
+			const float Hd = OutMesh.Vertices[Ym * VertsPerEdge + X].Z;
+			const float Hu = OutMesh.Vertices[Yp * VertsPerEdge + X].Z;
+			const float dzdx = (Hr - Hl) / ((Xp - Xm) * CellSize);
+			const float dzdy = (Hu - Hd) / ((Yp - Ym) * CellSize);
+			OutMesh.Normals[Idx]  = FVector(-dzdx, -dzdy, 1.f).GetSafeNormal();
+			OutMesh.Tangents[Idx] = FProcMeshTangent(FVector(1.f, 0.f, dzdx).GetSafeNormal(), false);
+		}
+	}
 }
 
 void AKBVEWorldChunkActor::UploadMesh(const FKBVEWorldChunkMesh& MeshData)
 {
+	FKBVEHitchLog _t(TEXT("UploadMesh"));
 	if (!Mesh) return;
 	const int32 VertCount = MeshData.Vertices.Num();
 	TArray<FColor> VertexColors; VertexColors.Init(FColor::White, VertCount);
@@ -187,6 +221,7 @@ void AKBVEWorldChunkActor::SerializeCurrentMesh(TArray<uint8>& OutBytes) const
 
 void AKBVEWorldChunkActor::Build(const FIntPoint& InCoord, uint32 InSeed, int32 InCellsPerEdge, float InCellSize, float InWaterZ)
 {
+	FKBVEHitchLog _t(TEXT("Build(total)"));
 	const bool bSameTopology = (CellsPerEdge == InCellsPerEdge) && FMath::IsNearlyEqual(CellSize, InCellSize);
 	if (bMeshBuilt && bSameTopology && Coord == InCoord && Seed == InSeed)
 	{
@@ -312,6 +347,7 @@ void AKBVEWorldChunkActor::RefreshChunkClusterHISMRefs()
 
 void AKBVEWorldChunkActor::Release()
 {
+	FKBVEHitchLog _t(TEXT("Release"));
 	bActive = false;
 	bImpostorVisibleCached = false;
 	SetActorHiddenInGame(true);
@@ -422,23 +458,8 @@ void AKBVEWorldChunkActor::LoadBucket(const FKBVEWorldFoliageBucketConfig& Cfg)
 				Valid.Add(FT);
 			}
 
-			static TSet<FString> PrewarmedPaths;
-			if (!PrewarmedPaths.Contains(Cfg.SourcePath))
-			{
-				PrewarmedPaths.Add(Cfg.SourcePath);
-				for (UFoliageType_InstancedStaticMesh* FT : Valid)
-				{
-					if (UStaticMesh* SM = FT->GetStaticMesh())
-					{
-						if (SM->GetStaticMaterials().Num() > 0)
-						{
-							UKBVEWorldGrassRenderSubsystem::EnsureMaterialISMFlag(SM->GetMaterial(0));
-						}
-					}
-				}
-			}
-
 			const int32 Take = FMath::Min(Cap, Valid.Num());
+			TArray<UStaticMesh*> Selected;
 			for (int32 k = 0; k < Take; ++k)
 			{
 				const int32 Idx = (Take == Valid.Num()) ? k : (k * Valid.Num()) / Take;
@@ -454,7 +475,28 @@ void AKBVEWorldChunkActor::LoadBucket(const FKBVEWorldFoliageBucketConfig& Cfg)
 				FoliageTypes.Add(FT);
 				FoliageMeshes.Add(FT->GetStaticMesh());
 				FoliageMetas.Add(M);
+				Selected.Add(FT->GetStaticMesh());
 				++Added;
+			}
+
+			static TSet<FString> PrewarmedPaths;
+			if (!PrewarmedPaths.Contains(Cfg.SourcePath))
+			{
+				PrewarmedPaths.Add(Cfg.SourcePath);
+				for (UStaticMesh* SM : Selected)
+				{
+					if (SM && SM->GetStaticMaterials().Num() > 0)
+					{
+						UKBVEWorldGrassRenderSubsystem::EnsureMaterialISMFlag(SM->GetMaterial(0));
+					}
+				}
+				if (UWorld* W = GetWorld())
+				{
+					if (UKBVEWorldGrassRenderSubsystem* Render = W->GetSubsystem<UKBVEWorldGrassRenderSubsystem>())
+					{
+						Render->PrewarmMeshPool(Selected);
+					}
+				}
 			}
 		}
 	}
@@ -574,6 +616,11 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 	const uint8 LocalFoliageBiome= FoliageBucket.BiomeId;
 	const int32 LocalCustomFloats= FMath::Max(GrassBucket.NumCustomDataFloats, FoliageBucket.NumCustomDataFloats);
 	const TArray<int32> LocalVariantIdx = ChunkVariantIndices;
+	const int32 LocalStride   = UKBVEWorldGrassRenderSubsystem::BladeRenderStride();
+	const float LocalScaleMul = UKBVEWorldGrassRenderSubsystem::RenderScaleMul();
+	TArray<UStaticMesh*> LocalMeshes;
+	LocalMeshes.Reserve(FoliageMeshes.Num());
+	for (const TObjectPtr<UStaticMesh>& M : FoliageMeshes) LocalMeshes.Add(M.Get());
 	TWeakObjectPtr<AKBVEWorldChunkActor> WeakSelf(this);
 
 	struct FNoiseSample
@@ -593,6 +640,7 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 		 LocalBlockSize, LocalPerBlock, LocalSlopeMax, LocalGrassScale, LocalFoliageScale,
 		 LocalGrassDensity, LocalFoliageDensity, LocalGrassSink, LocalFoliageSink,
 		 LocalGrassBiome, LocalFoliageBiome, LocalCustomFloats, Noise,
+		 LocalStride, LocalScaleMul, LocalMeshes = MoveTemp(LocalMeshes),
 		 LocalIsGrass = MoveTemp(LocalIsGrass), LocalVariantIdx, Meta = MoveTemp(Meta)]() mutable
 	{
 		const float ChunkSize = LocalCells * LocalCSize;
@@ -694,8 +742,38 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 			}
 		}
 
+		const FVector ChunkOriginW(LocalCoord.X * ChunkSize, LocalCoord.Y * ChunkSize, 0.f);
+		TMap<UStaticMesh*, TArray<FTransform>> ByMesh;
+		for (int32 Slot = 0; Slot < Batches.Num(); ++Slot)
+		{
+			if (!LocalVariantIdx.IsValidIndex(Slot)) continue;
+			const int32 MeshIdx = LocalVariantIdx[Slot];
+			if (!LocalMeshes.IsValidIndex(MeshIdx)) continue;
+			UStaticMesh* Mesh = LocalMeshes[MeshIdx];
+			if (!Mesh || Batches[Slot].Num() == 0) continue;
+
+			TArray<FTransform>& Dst = ByMesh.FindOrAdd(Mesh);
+			Dst.Reserve(Dst.Num() + Batches[Slot].Num() / FMath::Max(LocalStride, 1) + 1);
+			for (int32 i = 0; i < Batches[Slot].Num(); i += FMath::Max(LocalStride, 1))
+			{
+				FTransform T = Batches[Slot][i];
+				T.AddToTranslation(ChunkOriginW);
+				T.MultiplyScale3D(FVector(LocalScaleMul));
+				Dst.Add(T);
+			}
+		}
+
+		TArray<FKBVEGrassMeshBatch> MeshBatches;
+		MeshBatches.Reserve(ByMesh.Num());
+		for (TPair<UStaticMesh*, TArray<FTransform>>& Pair : ByMesh)
+		{
+			FKBVEGrassMeshBatch& Out = MeshBatches.AddDefaulted_GetRef();
+			Out.Mesh       = Pair.Key;
+			Out.Transforms = MoveTemp(Pair.Value);
+		}
+
 		AsyncTask(ENamedThreads::GameThread,
-			[WeakSelf, LocalToken, LocalCoord, LocalCells, LocalCSize, Batches = MoveTemp(Batches)]() mutable
+			[WeakSelf, LocalToken, LocalCoord, MeshBatches = MoveTemp(MeshBatches)]() mutable
 		{
 			AKBVEWorldChunkActor* Self = WeakSelf.Get();
 			if (!Self) return;
@@ -703,47 +781,12 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 			if (Self->Coord != LocalCoord)         return;
 			if (!Self->bActive)                    return;
 
-			const float ChunkSize = LocalCells * LocalCSize;
-			const FVector ChunkOrigin(LocalCoord.X * ChunkSize, LocalCoord.Y * ChunkSize, 0.f);
-
-			TMap<UStaticMesh*, TArray<FTransform>> ByMesh;
-			for (int32 Slot = 0; Slot < Batches.Num(); ++Slot)
-			{
-				if (!Self->ChunkVariantIndices.IsValidIndex(Slot)) continue;
-				const int32 MeshIdx = Self->ChunkVariantIndices[Slot];
-				if (!Self->FoliageMeshes.IsValidIndex(MeshIdx)) continue;
-				UStaticMesh* Mesh = Self->FoliageMeshes[MeshIdx];
-				if (!Mesh || Batches[Slot].Num() == 0) continue;
-
-				TArray<FTransform>& Dst = ByMesh.FindOrAdd(Mesh);
-				Dst.Reserve(Dst.Num() + Batches[Slot].Num());
-				for (FTransform& T : Batches[Slot])
-				{
-					T.AddToTranslation(ChunkOrigin);
-					Dst.Add(T);
-				}
-			}
-
+			FKBVEHitchLog _t(TEXT("Grass.RegisterCallback"));
 			UWorld* W = Self->GetWorld();
 			if (!W) return;
 			UKBVEWorldGrassRenderSubsystem* Render = W->GetSubsystem<UKBVEWorldGrassRenderSubsystem>();
 			if (!Render) return;
-
-			TArray<FKBVEGrassMeshBatch> MeshBatches;
-			MeshBatches.Reserve(ByMesh.Num());
-			int32 Total = 0;
-			for (TPair<UStaticMesh*, TArray<FTransform>>& Pair : ByMesh)
-			{
-				Total += Pair.Value.Num();
-				FKBVEGrassMeshBatch& Out = MeshBatches.AddDefaulted_GetRef();
-				Out.Mesh       = Pair.Key;
-				Out.Transforms = MoveTemp(Pair.Value);
-			}
 			Render->RegisterChunkInstances(LocalCoord, MeshBatches);
-
-			UE_LOG(LogTemp, Verbose,
-				TEXT("[KBVEWorld] Chunk foliage(async) coord=(%d,%d) meshes=%d instances=%d"),
-				LocalCoord.X, LocalCoord.Y, MeshBatches.Num(), Total);
 		});
 	});
 }

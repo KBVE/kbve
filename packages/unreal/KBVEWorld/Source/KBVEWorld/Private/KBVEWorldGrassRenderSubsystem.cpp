@@ -16,6 +16,21 @@
 #include "Materials/MaterialInstance.h"
 #include "Materials/MaterialInterface.h"
 
+namespace
+{
+	struct FKBVEHitchLog
+	{
+		const TCHAR* Name;
+		double Start;
+		explicit FKBVEHitchLog(const TCHAR* InName) : Name(InName), Start(FPlatformTime::Seconds()) {}
+		~FKBVEHitchLog()
+		{
+			const double Ms = (FPlatformTime::Seconds() - Start) * 1000.0;
+			if (Ms > 3.0) UE_LOG(LogTemp, Warning, TEXT("[KBVEPerf] %s %.1fms"), Name, Ms);
+		}
+	};
+}
+
 namespace KBVEGrassCfg
 {
 	constexpr double ChunkExtent       = 6400.0;
@@ -175,6 +190,18 @@ UHierarchicalInstancedStaticMeshComponent* UKBVEWorldGrassRenderSubsystem::GetOr
 	return H;
 }
 
+int32 UKBVEWorldGrassRenderSubsystem::BladeRenderStride() { return KBVEGrassCfg::BladeStride; }
+float UKBVEWorldGrassRenderSubsystem::RenderScaleMul()    { return KBVEGrassCfg::PNScaleMul; }
+
+void UKBVEWorldGrassRenderSubsystem::PrewarmMeshPool(const TArray<UStaticMesh*>& Meshes)
+{
+	EnsureHost();
+	for (UStaticMesh* M : Meshes)
+	{
+		GetOrCreateMeshHISM(M);
+	}
+}
+
 bool UKBVEWorldGrassRenderSubsystem::RegisterChunkInstances(FIntPoint ChunkCoord, const TArray<FKBVEGrassMeshBatch>& Batches)
 {
 	FKBVEGrassPendingBuild Build;
@@ -193,6 +220,7 @@ void UKBVEWorldGrassRenderSubsystem::AddChunkToHISMs(const FKBVEGrassPendingBuil
 {
 	using namespace KBVEGrassCfg;
 
+	FKBVEHitchLog _t(TEXT("Grass.AddChunk"));
 	for (const FKBVEGrassMeshBatch& Batch : Source.Batches)
 	{
 		if (!Batch.Mesh || Batch.Transforms.Num() == 0) continue;
@@ -200,20 +228,10 @@ void UKBVEWorldGrassRenderSubsystem::AddChunkToHISMs(const FKBVEGrassPendingBuil
 		UHierarchicalInstancedStaticMeshComponent* H = GetOrCreateMeshHISM(Batch.Mesh);
 		if (!H) continue;
 
-		TArray<FTransform> Out;
-		Out.Reserve(Batch.Transforms.Num() / BladeStride + 1);
-		for (int32 i = 0; i < Batch.Transforms.Num(); i += BladeStride)
-		{
-			FTransform T = Batch.Transforms[i];
-			T.MultiplyScale3D(FVector(PNScaleMul));
-			Out.Add(T);
-		}
-		if (Out.Num() == 0) continue;
-
-		H->AddInstances(Out, false);
+		H->AddInstances(Batch.Transforms, false);
 		TArray<FIntPoint>& Owners = MeshOwners.FindOrAdd(Batch.Mesh);
-		Owners.Reserve(Owners.Num() + Out.Num());
-		for (int32 i = 0; i < Out.Num(); ++i) Owners.Add(Source.ChunkCoord);
+		Owners.Reserve(Owners.Num() + Batch.Transforms.Num());
+		for (int32 i = 0; i < Batch.Transforms.Num(); ++i) Owners.Add(Source.ChunkCoord);
 		OutTouched.Add(H);
 	}
 }
@@ -237,6 +255,7 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 {
 	if (RegisteredChunks.Num() == 0 && ResidentChunks.Num() == 0) return;
 
+	FKBVEHitchLog _t(TEXT("Grass.TickBuildQueue"));
 	using namespace KBVEGrassCfg;
 
 	FVector CamLoc = FVector::ZeroVector;

@@ -50,8 +50,8 @@ protected:
 	float  CellSize     = 200.f;
 	int32  ChunkRadius  = 6;
 	int32  PoolSize     = 280;
-	int32  MaxBuildsPerTick   = 3;
-	int32  MaxReleasesPerTick = 6;
+	int32  MaxBuildsPerTick   = 1;
+	int32  MaxReleasesPerTick = 3;
 	float  WaterZ       = -120.f;
 	float  StreamInterval = 0.03f;
 	float  TimeSinceStream = 0.f;
