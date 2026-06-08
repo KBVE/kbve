@@ -50,15 +50,26 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v6
 
-            - name: Install dbmate + psql client
+            - name: Install dbmate + psql client + docker compose v2
               run: |
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends postgresql-client
                   curl -fsSL -o /usr/local/bin/dbmate \
                       https://github.com/amacneil/dbmate/releases/download/v2.28.0/dbmate-linux-amd64
                   chmod +x /usr/local/bin/dbmate
+                  # ARC runner image ships docker CLI but not the compose
+                  # subcommand plugin. Drop the official v2 plugin binary
+                  # into the standard plugin path so `docker compose ...`
+                  # resolves.
+                  if ! docker compose version >/dev/null 2>&1; then
+                      sudo mkdir -p /usr/local/lib/docker/cli-plugins
+                      sudo curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-compose \
+                          https://github.com/docker/compose/releases/download/v2.31.0/docker-compose-linux-x86_64
+                      sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+                  fi
                   dbmate --version
                   psql --version
+                  docker compose version
 
             - name: Bring up kilobase compose stack
               working-directory: packages/data/sql/dbmate
