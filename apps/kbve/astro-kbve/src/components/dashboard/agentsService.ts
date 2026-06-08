@@ -556,12 +556,13 @@ class AgentsService {
 			if (providerToken) {
 				this.$providerToken.set(providerToken);
 				this.$authState.set('authenticated');
-
-				// Fire the bootstrap edge fn so the JWT hook picks up
-				// fresh owned_guilds on the next mint. Best-effort; a
-				// failure here doesn't block the page.
-				void this.bootstrapDiscord(providerToken);
-				await this.loadOwnedGuilds();
+				const cachedOwned = userId ? loadCachedGuilds(userId) : null;
+				if (cachedOwned && cachedOwned.length > 0) {
+					this.$guilds.set(cachedOwned);
+					if (cachedOwned.length === 1) {
+						this.selectGuild(cachedOwned[0].id);
+					}
+				}
 				return;
 			}
 
@@ -624,32 +625,49 @@ class AgentsService {
 		}
 	}
 
+	private bootstrapInflight: Promise<boolean> | null = null;
+	private lastBootstrapAt = 0;
+	private lastBootstrapOk = false;
+	private readonly BOOTSTRAP_COOLDOWN_MS = 5 * 60 * 1000;
+
 	private async bootstrapDiscord(providerToken: string): Promise<boolean> {
 		const accessToken = this.$accessToken.get();
 		if (!accessToken) return false;
-		try {
-			const resp = await fetch(DISCORD_BOOTSTRAP_URL, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${accessToken}`,
-				},
-				body: JSON.stringify({ provider_token: providerToken }),
-			});
-			if (!resp.ok) {
-				const text = await resp.text();
-				console.warn(
-					'[agentsService] discord-bootstrap returned',
-					resp.status,
-					text.slice(0, 200),
-				);
-				return false;
-			}
+		const now = Date.now();
+		if (
+			this.lastBootstrapOk &&
+			now - this.lastBootstrapAt < this.BOOTSTRAP_COOLDOWN_MS
+		) {
 			return true;
-		} catch (e) {
-			console.warn('[agentsService] discord-bootstrap threw:', e);
-			return false;
 		}
+		if (this.bootstrapInflight) return this.bootstrapInflight;
+		this.bootstrapInflight = (async () => {
+			try {
+				const resp = await fetch(DISCORD_BOOTSTRAP_URL, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${accessToken}`,
+					},
+					body: JSON.stringify({ provider_token: providerToken }),
+				});
+				if (!resp.ok) {
+					if (resp.status === 429) {
+						this.lastBootstrapAt = Date.now();
+						this.lastBootstrapOk = true;
+					}
+					return false;
+				}
+				this.lastBootstrapAt = Date.now();
+				this.lastBootstrapOk = true;
+				return true;
+			} catch {
+				return false;
+			} finally {
+				this.bootstrapInflight = null;
+			}
+		})();
+		return this.bootstrapInflight;
 	}
 
 	private refreshInflight: Promise<boolean> | null = null;
@@ -837,7 +855,6 @@ class AgentsService {
 					body: JSON.stringify({
 						command: 'tokens.list_tokens',
 						server_id: guildId,
-						provider_token: providerToken,
 					}),
 					signal: abort.signal,
 				});
@@ -902,8 +919,7 @@ class AgentsService {
 	}): Promise<{ ok: true; tokenId: string } | { ok: false; error: string }> {
 		const guildId = this.$selectedGuildId.get();
 		const accessToken = this.$accessToken.get();
-		const providerToken = this.$providerToken.get();
-		if (!guildId || !accessToken || !providerToken) {
+		if (!guildId || !accessToken) {
 			return { ok: false, error: 'No guild selected or session missing' };
 		}
 
@@ -912,7 +928,6 @@ class AgentsService {
 			accessToken,
 			{
 				server_id: guildId,
-				provider_token: providerToken,
 				token_name: input.tokenName,
 				service: input.service,
 				token_value: input.tokenValue,
@@ -938,8 +953,7 @@ class AgentsService {
 	): Promise<{ ok: true } | { ok: false; error: string }> {
 		const guildId = this.$selectedGuildId.get();
 		const accessToken = this.$accessToken.get();
-		const providerToken = this.$providerToken.get();
-		if (!guildId || !accessToken || !providerToken) {
+		if (!guildId || !accessToken) {
 			return { ok: false, error: 'No guild selected or session missing' };
 		}
 
@@ -948,7 +962,6 @@ class AgentsService {
 			accessToken,
 			{
 				server_id: guildId,
-				provider_token: providerToken,
 				token_id: tokenId,
 			},
 		);
@@ -971,8 +984,7 @@ class AgentsService {
 	> {
 		const guildId = this.$selectedGuildId.get();
 		const accessToken = this.$accessToken.get();
-		const providerToken = this.$providerToken.get();
-		if (!guildId || !accessToken || !providerToken) {
+		if (!guildId || !accessToken) {
 			return { ok: false, error: 'No guild selected or session missing' };
 		}
 
@@ -981,7 +993,6 @@ class AgentsService {
 			accessToken,
 			{
 				server_id: guildId,
-				provider_token: providerToken,
 				service,
 			},
 		);
@@ -1770,8 +1781,7 @@ class AgentsService {
 	): Promise<{ ok: true } | { ok: false; error: string }> {
 		const guildId = this.$selectedGuildId.get();
 		const accessToken = this.$accessToken.get();
-		const providerToken = this.$providerToken.get();
-		if (!guildId || !accessToken || !providerToken) {
+		if (!guildId || !accessToken) {
 			return { ok: false, error: 'No guild selected or session missing' };
 		}
 
@@ -1780,7 +1790,6 @@ class AgentsService {
 			accessToken,
 			{
 				server_id: guildId,
-				provider_token: providerToken,
 				token_id: tokenId,
 				is_active: isActive,
 			},
