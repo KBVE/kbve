@@ -5,8 +5,8 @@
 #include "Generated/KBVEItemDBProtoTypes.h"
 
 // Single DTO -> domain mapping: generated proto-mirror (FKBVEGenItem) -> curated
-// runtime def (FKBVEItemDef). Shared by every loader (plugin UKBVEItemDatabase,
-// chuck UchuckItemDB) so there is exactly one place that interprets item data.
+// runtime def (FKBVEItemDef). Shared by every loader (UKBVEItemDatabase + any
+// game-side item database) so there is exactly one place that interprets item data.
 
 namespace KBVEItemMap
 {

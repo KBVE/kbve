@@ -34,7 +34,7 @@ itemdb MDX  ──codegen──▶  itemdb-data.json  (canonical source)
                                ▼
         SQLite item_def  (read-only "safe data", queryable)
 
-LIVE inventory  =  Mass fragment (FchuckInventoryFragment)  ← authoritative gameplay, worker-thread accessible
+LIVE inventory  =  Mass fragment (the game's inventory fragment)  ← authoritative gameplay, worker-thread accessible
                                │ flush at boundaries (game thread / async)
                                ▼
         SQLite player_inventory  (durable persistence snapshot)
