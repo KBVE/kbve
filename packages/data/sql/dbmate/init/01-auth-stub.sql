@@ -1,24 +1,36 @@
 -- ============================================================
--- Minimal auth schema stub for local migration testing.
+-- Minimal auth schema stub for local migration smoke.
 --
--- The mc schema references auth.users(id) via foreign keys
--- and auth.uid() in proxy functions. This stub provides just
--- enough for the mc migration to succeed locally.
+-- Kilobase image extends supabase/postgres but does NOT run GoTrue
+-- in the smoke stack. GoTrue is what creates the auth schema +
+-- auth.users / auth.identities / auth.uid()-style helpers in a real
+-- Supabase deployment. Postgres-alone has no auth schema, so any
+-- migration that references auth.users (mc.auth FK, profile.username
+-- FK, etc.) or calls auth.uid() in a SECURITY DEFINER body would
+-- fail without this stub.
 --
--- In production, the full auth schema is managed by Supabase.
+-- The stub is intentionally SHALLOW:
+--   * Only the shape KBVE migrations actually read.
+--   * IF NOT EXISTS / OR REPLACE so re-running the script
+--     (volume kept, repeat smoke) doesn't error.
+--
+-- Tested earlier this turn: deleting this file breaks
+-- 04-profile-stub.sql with "schema auth does not exist".
 -- ============================================================
 
 CREATE SCHEMA IF NOT EXISTS auth;
 
--- Minimal auth.users table (FK target for mc.auth, mc.player, mc.container)
+-- Minimal auth.users (FK target for mc.auth / mc.player / mc.container,
+-- profile.username, profile.discord_bootstrap_cache, wallet.*, etc.)
 CREATE TABLE IF NOT EXISTS auth.users (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Minimal auth.identities stub (FK target for profile.service_get_discord_provider_id
--- and any future RPC that reads OAuth-link rows). Matches Supabase auth's column
--- subset used by KBVE code; ignores the columns we never read locally.
+-- Minimal auth.identities (FK-free pointer to auth.users for
+-- profile.service_get_discord_provider_id which reads provider_id
+-- where provider='discord'). Matches the column subset KBVE code
+-- queries; ignores fields we never read locally.
 CREATE TABLE IF NOT EXISTS auth.identities (
     id            UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -49,22 +61,15 @@ AS $$
     )::UUID;
 $$;
 
--- Grant the auth helpers to the standard Supabase roles so SECURITY
--- DEFINER functions owned by service_role (and called from
--- authenticated/anon proxy paths) can resolve them.
 GRANT USAGE ON SCHEMA auth TO anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION auth.uid()  TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION auth.uid() TO anon, authenticated, service_role;
 
--- Stub auth.jwt() — returns empty JSON locally
--- Used by vault functions and trigger bypass checks
 CREATE OR REPLACE FUNCTION auth.jwt()
 RETURNS JSONB
 LANGUAGE sql
 STABLE
 AS $$ SELECT '{}'::JSONB; $$;
 
--- Stub auth.role() — returns 'service_role' locally so trigger
--- bypasses (protect_servers_columns) work during testing
 CREATE OR REPLACE FUNCTION auth.role()
 RETURNS TEXT
 LANGUAGE sql
