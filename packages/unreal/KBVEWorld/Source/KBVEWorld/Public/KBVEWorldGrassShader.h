@@ -10,4 +10,5 @@ class KBVEWORLD_API FKBVEWorldGrassShader
 {
 public:
 	static UMaterialInterface* GetOrCreateMasterMaterial(UObject* Outer);
+	static UMaterialInterface* GetOrCreateCardMaterial(UObject* Outer);
 };

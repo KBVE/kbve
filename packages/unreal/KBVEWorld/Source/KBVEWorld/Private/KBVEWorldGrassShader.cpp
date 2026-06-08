@@ -10,6 +10,8 @@
 #include "Materials/MaterialExpressionTime.h"
 #include "Materials/MaterialExpressionSine.h"
 #include "Materials/MaterialExpressionWorldPosition.h"
+#include "Materials/MaterialExpressionTextureSample.h"
+#include "Engine/Texture2D.h"
 #include "UObject/Package.h"
 #include "UObject/UObjectGlobals.h"
 
@@ -118,6 +120,58 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateMasterMaterial(UObject* /*
 	M->AddToRoot();
 
 	CachedMaster = M;
+	return M;
+#else
+	return nullptr;
+#endif
+}
+
+UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateCardMaterial(UObject* /*Outer*/)
+{
+	static TWeakObjectPtr<UMaterialInterface> CachedCard;
+	if (CachedCard.IsValid()) return CachedCard.Get();
+
+#if WITH_EDITOR
+	UObject* Outer = GetTransientPackage();
+	UMaterial* M = NewObject<UMaterial>(Outer, TEXT("M_KBVEWorld_GrassCard"), RF_Transient);
+	M->BlendMode             = BLEND_Masked;
+	M->TwoSided              = true;
+	M->OpacityMaskClipValue  = 0.33f;
+	M->DitheredLODTransition = true;
+	M->SetShadingModel(MSM_DefaultLit);
+	M->bUsedWithInstancedStaticMeshes = true;
+
+	auto LoadMaster = [](const TCHAR* Name) -> UTexture2D*
+	{
+		const FString Path = FString::Printf(TEXT("/Game/PN_GrassLibrary/Textures/grassTextures/MasterTextures/%s.%s"), Name, Name);
+		return LoadObject<UTexture2D>(nullptr, *Path);
+	};
+
+	UMaterialEditorOnlyData* ED = M->GetEditorOnlyData();
+
+	if (UTexture2D* Albedo = LoadMaster(TEXT("springGrass_Albedo_8k_I")))
+	{
+		UMaterialExpressionTextureSample* S = MakeExpr<UMaterialExpressionTextureSample>(M);
+		S->Texture = Albedo;
+		ED->BaseColor.Connect(0, S);
+	}
+	if (UTexture2D* Opacity = LoadMaster(TEXT("springGrass_Opacity_8k")))
+	{
+		UMaterialExpressionTextureSample* S = MakeExpr<UMaterialExpressionTextureSample>(M);
+		S->Texture = Opacity;
+		ED->OpacityMask.Connect(0, S);
+	}
+
+	UMaterialExpressionConstant* Rough = MakeExpr<UMaterialExpressionConstant>(M);
+	Rough->R = 0.7f;
+	ED->Roughness.Connect(0, Rough);
+
+	M->PreEditChange(nullptr);
+	M->PostEditChange();
+	M->ForceRecompileForRendering();
+	M->AddToRoot();
+
+	CachedCard = M;
 	return M;
 #else
 	return nullptr;

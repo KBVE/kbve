@@ -619,8 +619,10 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 	const uint8 LocalFoliageBiome= FoliageBucket.BiomeId;
 	const int32 LocalCustomFloats= FMath::Max(GrassBucket.NumCustomDataFloats, FoliageBucket.NumCustomDataFloats);
 	const TArray<int32> LocalVariantIdx = ChunkVariantIndices;
-	const int32 LocalStride   = UKBVEWorldGrassRenderSubsystem::BladeRenderStride();
-	const float LocalScaleMul = UKBVEWorldGrassRenderSubsystem::RenderScaleMul();
+	const int32 LocalStride    = UKBVEWorldGrassRenderSubsystem::BladeRenderStride();
+	const float LocalScaleMul  = UKBVEWorldGrassRenderSubsystem::RenderScaleMul();
+	const int32 LocalImpStride = UKBVEWorldGrassRenderSubsystem::ImpostorRenderStride();
+	const float LocalImpScale  = UKBVEWorldGrassRenderSubsystem::ImpostorRenderScaleMul();
 	TArray<UStaticMesh*> LocalMeshes;
 	LocalMeshes.Reserve(FoliageMeshes.Num());
 	for (const TObjectPtr<UStaticMesh>& M : FoliageMeshes) LocalMeshes.Add(M.Get());
@@ -643,7 +645,7 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 		 LocalBlockSize, LocalPerBlock, LocalSlopeMax, LocalGrassScale, LocalFoliageScale,
 		 LocalGrassDensity, LocalFoliageDensity, LocalGrassSink, LocalFoliageSink,
 		 LocalGrassBiome, LocalFoliageBiome, LocalCustomFloats, Noise,
-		 LocalStride, LocalScaleMul, LocalMeshes = MoveTemp(LocalMeshes),
+		 LocalStride, LocalScaleMul, LocalImpStride, LocalImpScale, LocalMeshes = MoveTemp(LocalMeshes),
 		 LocalIsGrass = MoveTemp(LocalIsGrass), LocalVariantIdx, Meta = MoveTemp(Meta)]() mutable
 	{
 		const float ChunkSize = LocalCells * LocalCSize;
@@ -775,8 +777,23 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 			Out.Transforms = MoveTemp(Pair.Value);
 		}
 
+		// Sparse, mesh-agnostic impostor positions: every Nth blade across all
+		// slots, scaled up to read as a clump on the far crossed-card HISM.
+		TArray<FTransform> ImpostorXf;
+		const int32 ImpStep = FMath::Max(LocalImpStride, 1);
+		for (int32 Slot = 0; Slot < Batches.Num(); ++Slot)
+		{
+			for (int32 i = 0; i < Batches[Slot].Num(); i += ImpStep)
+			{
+				FTransform T = Batches[Slot][i];
+				T.AddToTranslation(ChunkOriginW);
+				T.SetScale3D(FVector(LocalImpScale));
+				ImpostorXf.Add(T);
+			}
+		}
+
 		AsyncTask(ENamedThreads::GameThread,
-			[WeakSelf, LocalToken, LocalCoord, MeshBatches = MoveTemp(MeshBatches)]() mutable
+			[WeakSelf, LocalToken, LocalCoord, MeshBatches = MoveTemp(MeshBatches), ImpostorXf = MoveTemp(ImpostorXf)]() mutable
 		{
 			AKBVEWorldChunkActor* Self = WeakSelf.Get();
 			if (!Self) return;
@@ -789,7 +806,7 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 			if (!W) return;
 			UKBVEWorldGrassRenderSubsystem* Render = W->GetSubsystem<UKBVEWorldGrassRenderSubsystem>();
 			if (!Render) return;
-			Render->RegisterChunkInstances(LocalCoord, MeshBatches);
+			Render->RegisterChunkInstances(LocalCoord, MeshBatches, ImpostorXf);
 		});
 	});
 }
