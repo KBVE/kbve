@@ -127,15 +127,34 @@ export function makeDiscordBot(ctx: AgentsCtx) {
 		return { ok: true, channels: r.data.channels ?? [] };
 	}
 
-	function botInstallUrl(guildId?: string): string | null {
-		const clientId = config.discordBotClientId || config.discordClientId;
-		if (!clientId || !/^[0-9]{17,20}$/.test(clientId)) return null;
+	function buildInstallUrl(
+		clientId: string,
+		guildId?: string,
+	): string | null {
+		if (!/^[0-9]{17,20}$/.test(clientId)) return null;
 		const perms = '326417847872';
 		const scope = 'bot applications.commands';
 		const guildParam = guildId
 			? `&guild_id=${guildId}&disable_guild_select=true`
 			: '';
 		return `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${perms}&scope=${encodeURIComponent(scope)}${guildParam}`;
+	}
+
+	function botInstallUrl(guildId?: string): string | null {
+		const clientId = config.discordBotClientId || config.discordClientId;
+		if (!clientId) return null;
+		return buildInstallUrl(clientId, guildId);
+	}
+
+	async function fetchBotInstallUrl(guildId: string): Promise<string | null> {
+		const fromEnv = botInstallUrl(guildId);
+		if (fromEnv) return fromEnv;
+		const r = await ctx.callJson<{ client_id: string }>(
+			endpoints.discordBot,
+			{ command: 'bot.install_info', server_id: guildId },
+		);
+		if (!r.ok || !r.data.client_id) return null;
+		return buildInstallUrl(r.data.client_id, guildId);
 	}
 
 	return {
@@ -145,5 +164,6 @@ export function makeDiscordBot(ctx: AgentsCtx) {
 		isBotMember,
 		listForumChannels,
 		botInstallUrl,
+		fetchBotInstallUrl,
 	};
 }

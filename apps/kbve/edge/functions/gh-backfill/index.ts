@@ -152,6 +152,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+  try {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Only POST method is allowed" }, 405);
   }
@@ -345,4 +346,14 @@ serve(async (req) => {
     },
     200,
   );
+  } catch (e) {
+    console.error("gh-backfill: unhandled error:", e);
+    return jsonResponse(
+      {
+        error: "Internal error",
+        detail: e instanceof Error ? e.message : String(e),
+      },
+      500,
+    );
+  }
 });
