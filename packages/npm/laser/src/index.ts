@@ -50,3 +50,30 @@ export {
 
 // Physics (Rapier)
 export { RAPIER, createRapierPhysics } from './lib/physics/rapier';
+
+// Net — WS client speaking the simgrid JSON wire
+export { GameClient } from './lib/net/game-client';
+export type {
+	GameClientOptions,
+	GameClientEventMap,
+} from './lib/net/game-client';
+export {
+	PROTOCOL_VERSION,
+	OWNER_NONE,
+	joinFrame,
+	inputFrame,
+} from './lib/net/protocol';
+export type {
+	Dir,
+	Facing,
+	Tile,
+	Input,
+	ClientMessage,
+	ServerEvent,
+	Snapshot,
+	EntityDelta,
+	PlayerView,
+	Welcome,
+	JoinMatch,
+	ClientFrame,
+} from './lib/net/protocol';

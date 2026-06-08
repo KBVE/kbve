@@ -84,6 +84,7 @@ pub struct ServerState {
     pub input_tx: Option<mpsc::UnboundedSender<SlotInput>>,
     pub seed: u64,
     pub jwt_secret: Vec<u8>,
+    pub require_username: bool,
     pub roster: Arc<RwLock<Roster>>,
 }
 
@@ -93,6 +94,7 @@ impl ServerState {
         input_tx: mpsc::UnboundedSender<SlotInput>,
         seed: u64,
         jwt_secret: Vec<u8>,
+        require_username: bool,
         capacity: usize,
     ) -> Self {
         Self {
@@ -100,6 +102,7 @@ impl ServerState {
             input_tx: Some(input_tx),
             seed,
             jwt_secret,
+            require_username,
             roster: Arc::new(RwLock::new(Roster::new(capacity))),
         }
     }
@@ -262,8 +265,8 @@ async fn admit(
     jm: proto::JoinMatch,
     format: WireFormat,
 ) -> Option<AdmittedPlayer> {
-    let kbve_username = if state.jwt_secret.is_empty() {
-        fallback_username(jm.kbve_username)
+    let raw = if state.jwt_secret.is_empty() {
+        jm.kbve_username
     } else {
         match crate::auth::verify_supabase_jwt(&jm.jwt, &state.jwt_secret) {
             Ok(claims) => claims.kbve_username,
@@ -273,7 +276,11 @@ async fn admit(
             }
         }
     };
-    claim_slot(state, socket, kbve_username, format).await
+    let Some(username) = resolve_username(state.require_username, raw) else {
+        send_reject(socket, format, "username required").await;
+        return None;
+    };
+    claim_slot(state, socket, username, format).await
 }
 
 #[cfg(not(feature = "supabase-auth"))]
@@ -283,14 +290,20 @@ async fn admit(
     jm: proto::JoinMatch,
     format: WireFormat,
 ) -> Option<AdmittedPlayer> {
-    claim_slot(state, socket, fallback_username(jm.kbve_username), format).await
+    let Some(username) = resolve_username(state.require_username, jm.kbve_username) else {
+        send_reject(socket, format, "username required").await;
+        return None;
+    };
+    claim_slot(state, socket, username, format).await
 }
 
-fn fallback_username(name: String) -> String {
-    if name.is_empty() {
-        "guest".into()
+fn resolve_username(require_username: bool, name: String) -> Option<String> {
+    if !name.is_empty() {
+        Some(name)
+    } else if require_username {
+        None
     } else {
-        name
+        Some("guest".into())
     }
 }
 
@@ -339,5 +352,25 @@ fn inject_roster(evt: ServerEvent, roster: &Arc<RwLock<Roster>>) -> ServerEvent 
             ServerEvent::Snapshot(snap)
         }
         other => other,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::resolve_username;
+
+    #[test]
+    fn require_username_rejects_empty() {
+        assert_eq!(resolve_username(true, String::new()), None);
+        assert_eq!(
+            resolve_username(true, "h0lybyte".into()),
+            Some("h0lybyte".into())
+        );
+    }
+
+    #[test]
+    fn guest_allowed_when_not_required() {
+        assert_eq!(resolve_username(false, String::new()), Some("guest".into()));
+        assert_eq!(resolve_username(false, "ann".into()), Some("ann".into()));
     }
 }
