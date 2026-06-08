@@ -18,7 +18,7 @@ public:
 	void Construct(const FArguments& InArgs);
 
 private:
-	const struct FchuckItemDef* GetDef() const;
+	const struct FKBVEItemDef* GetDef() const;
 	class UchuckItemDB* GetDB() const;
 
 	bool         HasContent() const;

@@ -29,7 +29,7 @@ public:
 
 private:
 	const struct FchuckInventoryStack* GetStack() const;
-	const struct FchuckItemDef*        GetDef()   const;
+	const struct FKBVEItemDef*        GetDef()   const;
 	class UchuckItemDB*                GetDB()    const;
 
 	bool         OnIsFilled() const;

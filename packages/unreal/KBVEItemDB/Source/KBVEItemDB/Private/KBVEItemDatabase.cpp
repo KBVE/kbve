@@ -1,73 +1,12 @@
 #include "KBVEItemDatabase.h"
 
 #include "KBVEItemCatalogStore.h"
+#include "KBVEItemMap.h"
 #include "Generated/KBVEItemDBProtoTypes.h"
 #include "Generated/KBVEItemDBProtoParse.h"
 #include "KBVEYYJson.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
-
-namespace
-{
-	EKBVEItemRarity ParseRarity(const FString& Raw)
-	{
-		const FString R = Raw.ToUpper();
-		if (R.Contains(TEXT("MYTHIC")))    return EKBVEItemRarity::Mythic;
-		if (R.Contains(TEXT("LEGENDARY"))) return EKBVEItemRarity::Legendary;
-		if (R.Contains(TEXT("EPIC")))      return EKBVEItemRarity::Epic;
-		if (R.Contains(TEXT("RARE")))      return EKBVEItemRarity::Rare;
-		if (R.Contains(TEXT("UNCOMMON")))  return EKBVEItemRarity::Uncommon;
-		return EKBVEItemRarity::Common;
-	}
-
-	// Map the generated proto-mirror struct onto the curated runtime def.
-	// The generated Populate owns all JSON field reads; this is the only
-	// hand-written seam (DTO -> domain), centralized in one place.
-	FKBVEItemDef MapGenToDef(const FKBVEGenItem& G)
-	{
-		FKBVEItemDef Def;
-		Def.Key         = G.Key;
-		Def.Ref         = FName(*G.Ref);
-		Def.Name        = G.Name;
-		Def.Description = G.Description;
-		Def.Emoji       = G.Emoji;
-		Def.TypeFlags   = G.TypeFlags;
-		Def.Rarity      = ParseRarity(G.Rarity);
-		Def.MaxStack    = G.MaxStack > 0 ? G.MaxStack : 1;
-		Def.bStackable  = G.Stackable;
-		Def.BuyPrice    = G.BuyPrice;
-		Def.SellPrice   = G.SellPrice;
-		Def.Weight      = G.Weight;
-		Def.bConsumable = G.Consumable;
-		Def.Cooldown    = static_cast<float>(G.Cooldown);
-		Def.Action      = G.Action;
-		if (!G.AnimationRef.IsEmpty()) Def.AnimationRef = FName(*G.AnimationRef);
-		if (!G.SoundRef.IsEmpty())     Def.SoundRef     = FName(*G.SoundRef);
-
-		for (const FString& Tag : G.Tags)
-		{
-			if (!Tag.IsEmpty()) Def.Tags.Add(FName(*Tag));
-		}
-
-		Def.Food.Heals            = static_cast<float>(G.Food.Heals);
-		Def.Food.RestoreMana      = static_cast<float>(G.Food.RestoreMana);
-		Def.Food.RestoreEnergy    = static_cast<float>(G.Food.RestoreEnergy);
-		Def.Food.RegenPerSecond   = G.Food.RegenPerSecond;
-		Def.Food.RegenDuration    = G.Food.RegenDuration;
-		Def.Food.bPerishable      = G.Food.Perishable;
-		Def.Food.ShelfLifeSeconds = G.Food.ShelfLifeSeconds;
-		if (!G.Food.SpoilsIntoRef.IsEmpty()) Def.Food.SpoilsIntoRef = FName(*G.Food.SpoilsIntoRef);
-
-		const bool bTypeConsumable =
-			(Def.TypeFlags & 0x08) != 0 || (Def.TypeFlags & 0x10) != 0 || (Def.TypeFlags & 0x20) != 0;
-		Def.bHasFood =
-			bTypeConsumable || Def.Food.Heals > 0.f || Def.Food.RestoreMana > 0.f ||
-			Def.Food.RestoreEnergy > 0.f || Def.Food.RegenPerSecond > 0.f;
-		if (bTypeConsumable) Def.bConsumable = true;
-
-		return Def;
-	}
-}
 
 void UKBVEItemDatabase::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -135,7 +74,7 @@ bool UKBVEItemDatabase::LoadFromJson(const FString& JsonText)
 		KBVEItemDBProto::Populate(Gen, ItemVal);
 		if (Gen.Key <= 0 || Gen.Ref.IsEmpty()) continue;
 
-		FKBVEItemDef Def = MapGenToDef(Gen);
+		FKBVEItemDef Def = KBVEItemMap::FromGen(Gen);
 		KeyToIndex.Add(Def.Key, Items.Num());
 		RefToIndex.Add(Def.Ref, Items.Num());
 		Items.Add(MoveTemp(Def));
