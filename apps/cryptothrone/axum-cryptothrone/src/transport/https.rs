@@ -4,17 +4,21 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
+use std::sync::Arc;
+
 use axum::{
-    Router,
+    Extension, Router,
     extract::Request,
-    http::{HeaderName, HeaderValue, header},
+    http::{HeaderName, HeaderValue, StatusCode, header},
     middleware::Next,
     response::{IntoResponse, Response},
-    routing::get,
+    routing::{get, post},
 };
 use tokio::net::TcpListener;
 use tower_http::set_header::SetResponseHeaderLayer;
 use tracing::info;
+
+use crate::agones::AgonesAllocator;
 
 pub async fn serve() -> Result<()> {
     let host = std::env::var("HTTP_HOST").unwrap_or_else(|_| "0.0.0.0".into());
@@ -28,7 +32,8 @@ pub async fn serve() -> Result<()> {
 
     info!("HTTP listening on http://{addr}");
 
-    let app = router();
+    let allocator = Arc::new(AgonesAllocator::try_new().await);
+    let app = router().layer(Extension(allocator));
 
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
@@ -91,7 +96,8 @@ fn router() -> Router {
 
     let dynamic_router = Router::new()
         .route("/health", get(health))
-        .route("/api/v1/speed", get(speed));
+        .route("/api/v1/speed", get(speed))
+        .route("/api/join", post(join));
 
     static_router.merge(dynamic_router).layer(middleware)
 }
@@ -112,16 +118,30 @@ async fn speed() -> impl IntoResponse {
     axum::Json(serde_json::json!({ "time_ms": time_ms }))
 }
 
+async fn join(Extension(allocator): Extension<Arc<Option<AgonesAllocator>>>) -> Response {
+    let Some(allocator) = allocator.as_ref() else {
+        return (StatusCode::SERVICE_UNAVAILABLE, "allocator offline").into_response();
+    };
+    match allocator.allocate().await {
+        Ok(a) => axum::Json(serde_json::json!({
+            "address": a.address,
+            "port": a.port,
+            "gameServerName": a.game_server_name,
+        }))
+        .into_response(),
+        Err(e) => {
+            tracing::warn!(error = %e, "game server allocation failed");
+            (StatusCode::SERVICE_UNAVAILABLE, "no game server available").into_response()
+        }
+    }
+}
+
 async fn cache_headers(request: Request, next: Next) -> Response {
     let path = request.uri().path().to_owned();
     let mut response = next.run(request).await;
 
     let cache_value = if path.starts_with("/_astro/") {
         "public, max-age=31536000, immutable"
-    } else if path.starts_with("/pagefind/") || path.starts_with("/images/") {
-        "public, max-age=86400"
-    } else if path.ends_with(".html") || path == "/" || !path.contains('.') {
-        "public, max-age=86400"
     } else {
         "public, max-age=86400"
     };

@@ -29,7 +29,7 @@ spec:
                 version: '0.1.0'
         spec:
             serviceAccountName: cryptothrone-sa
-            automountServiceAccountToken: false
+            automountServiceAccountToken: true
             terminationGracePeriodSeconds: 30
             securityContext:
                 runAsNonRoot: true
@@ -65,6 +65,10 @@ spec:
                   env:
                       - name: HTTP_PORT
                         value: '4321'
+                      - name: CT_AGONES_NAMESPACE
+                        value: 'cryptothrone'
+                      - name: CT_AGONES_FLEET
+                        value: 'cryptothrone-server'
                   envFrom:
                       # Optional so the pod still boots before the
                       # ExternalSecret has rendered or the kilobase
