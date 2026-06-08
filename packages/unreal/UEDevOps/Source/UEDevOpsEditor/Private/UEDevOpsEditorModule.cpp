@@ -62,7 +62,7 @@ static FAutoConsoleCommand GUEDevOpsPanelCmd(
 
 static FAutoConsoleCommand GUEDevOpsImportArcadeCmd(
 	TEXT("UEDevOps.ImportArcade"),
-	TEXT("One-shot: import the chuck arcade cabinet from Raw/Props/Arcade with all canonical paths."),
+	TEXT("One-shot: import an arcade cabinet prop from Raw/Props/Arcade with all canonical paths."),
 	FConsoleCommandDelegate::CreateLambda([]()
 	{
 		const FString Source = FPaths::ConvertRelativePathToFull(

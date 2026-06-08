@@ -1,13 +1,16 @@
 # =============================================================================
 # CI: dbmate-validate
 #
-# Proof-of-concept stage. Spins a vanilla Postgres 17-alpine service
-# container on the ARC runner, applies init/* + every dbmate migration
-# top-to-bottom against a blank DB, then exercises rollback on the
-# newest migration to verify the migrate:down path. NO production
-# contact. NO CNPG-specific image — we want this to fail loud if a
-# migration relies on a Kilobase-specific extension that isn't in
-# vanilla postgres.
+# Stands up the kilobase prod-replica postgres image (supabase/postgres
+# base + KBVE pgsodium key + zz_* init seeds), applies every dbmate
+# migration top-to-bottom, exercises rollback on the head migration,
+# re-applies to confirm idempotency. NO production contact.
+#
+# Why kilobase (not vanilla postgres:17-alpine):
+#   Real prod-shape auth.* / extensions / pgsodium / vault / role
+#   ownership chain. Shallow vanilla stubs silently masked an OWNER
+#   service_role bug that nuked the dashboard in prod
+#   (PR #12033 retro). Vanilla validation earned nothing here.
 #
 # Triggered on every PR that touches packages/data/sql/dbmate/** so
 # regressions are caught at review time.
@@ -18,40 +21,23 @@ on:
     push:
         branches: [main]
         paths:
-            - 'packages/data/sql/dbmate/**'
+            - 'packages/data/sql/**'
             - '.github/workflows/ci-dbmate-validate.yml'
     pull_request:
         paths:
-            - 'packages/data/sql/dbmate/**'
+            - 'packages/data/sql/**'
             - '.github/workflows/ci-dbmate-validate.yml'
     workflow_dispatch:
 
 jobs:
-    blank-db-rollout:
-        name: Apply all migrations on blank Postgres
+    kilobase-rollout:
+        name: Apply all migrations on kilobase prod-replica
         runs-on: arc-runner-set
-        timeout-minutes: 10
-
-        services:
-            postgres:
-                image: postgres:17-alpine
-                env:
-                    POSTGRES_USER: postgres
-                    POSTGRES_PASSWORD: postgres
-                    POSTGRES_DB: postgres
-                ports:
-                    - 5432:5432
-                options: >-
-                    --health-cmd "pg_isready -U postgres"
-                    --health-interval 5s
-                    --health-timeout 3s
-                    --health-retries 10
+        timeout-minutes: 15
 
         env:
-            DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable&search_path=dbmate,public
-            # Opt into destructive-rollback guards so the "Roll back the
-            # most recent migration" step can exercise migrate:down even
-            # when the head migration is one that refuses unguarded
+            # Opt into destructive-rollback guards so the rollback step
+            # can exercise migrate:down on heads that refuse unguarded
             # rollbacks (inventory schema, marketplace listing wire).
             # Prod URLs never set these GUCs, so a stray rollback against
             # prod still aborts before any drop.
@@ -66,9 +52,6 @@ jobs:
 
             - name: Install dbmate + psql client
               run: |
-                  # ARC runners ship without postgresql-client. apt-get
-                  # under -e (the workflow's default) so a transient
-                  # apt mirror failure aborts the job loud.
                   sudo apt-get update -qq
                   sudo apt-get install -y --no-install-recommends postgresql-client
                   curl -fsSL -o /usr/local/bin/dbmate \
@@ -77,22 +60,37 @@ jobs:
                   dbmate --version
                   psql --version
 
-            - name: Seed init scripts (roles + auth/n8n/profile stubs)
+            - name: Bring up kilobase compose stack
               working-directory: packages/data/sql/dbmate
               run: |
-                  for f in init/00-roles.sql init/01-auth-stub.sql \
-                           init/02-extensions-stub.sql init/03-n8n-stub.sql \
-                           init/04-profile-stub.sql; do
-                    [ -f "$f" ] && PGPASSWORD=postgres psql \
-                      -h localhost -U postgres -d postgres -v ON_ERROR_STOP=1 -f "$f"
+                  docker compose -f kilobase-docker-compose.yml up -d
+                  docker compose -f kilobase-docker-compose.yml ps
+
+            - name: Wait for supabase init to settle (auth.users queryable)
+              run: |
+                  for i in $(seq 1 90); do
+                    if PGPASSWORD=postgres psql \
+                        -h localhost -p 54322 -U supabase_admin -d supabase \
+                        -c 'SELECT 1 FROM auth.users LIMIT 0' >/dev/null 2>&1; then
+                      echo "ready after $i attempts"
+                      exit 0
+                    fi
+                    sleep 2
                   done
+                  echo "::error::kilobase did not become ready in 180s"
+                  docker compose -f packages/data/sql/dbmate/kilobase-docker-compose.yml logs --tail=60
+                  exit 1
 
             - name: Apply all migrations
               working-directory: packages/data/sql/dbmate
+              env:
+                  DATABASE_URL: postgresql://supabase_admin:postgres@localhost:54322/supabase?sslmode=disable&search_path=dbmate,public
               run: dbmate --no-dump-schema --migrations-dir migrations up
 
             - name: Confirm tracker has every migration
               working-directory: packages/data/sql/dbmate
+              env:
+                  DATABASE_URL: postgresql://supabase_admin:postgres@localhost:54322/supabase?sslmode=disable&search_path=dbmate,public
               run: |
                   applied=$(dbmate --migrations-dir migrations status \
                             | grep -c "^\[X\]" || true)
@@ -105,8 +103,17 @@ jobs:
 
             - name: Roll back the most recent migration (verifies migrate:down)
               working-directory: packages/data/sql/dbmate
+              env:
+                  DATABASE_URL: postgresql://supabase_admin:postgres@localhost:54322/supabase?sslmode=disable&search_path=dbmate,public
               run: dbmate --no-dump-schema --migrations-dir migrations rollback
 
             - name: Re-apply to confirm idempotency
               working-directory: packages/data/sql/dbmate
+              env:
+                  DATABASE_URL: postgresql://supabase_admin:postgres@localhost:54322/supabase?sslmode=disable&search_path=dbmate,public
               run: dbmate --no-dump-schema --migrations-dir migrations up
+
+            - name: Tear down kilobase
+              if: always()
+              working-directory: packages/data/sql/dbmate
+              run: docker compose -f kilobase-docker-compose.yml down -v

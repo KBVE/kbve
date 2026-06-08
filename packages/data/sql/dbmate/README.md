@@ -4,29 +4,63 @@ Manages PostgreSQL schema migrations for the KBVE Supabase cluster (`supabase-cl
 
 ## Applied Migrations
 
-| Version          | Name                          | Schema      | Objects                                                                                                                                                         |
-| ---------------- | ----------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `20260227210000` | `mc_schema_init`              | `mc`        | 6 tables, 28 functions                                                                                                                                          |
-| `20260227215000` | `gen_ulid`                    | `public`    | 1 function (`gen_ulid()`)                                                                                                                                       |
-| `20260227220000` | `meme_schema_init`            | `meme`      | 14 tables, 18 functions                                                                                                                                         |
-| `20260228000000` | `discordsh_schema_init`       | `discordsh` | 2 tables, 13 functions                                                                                                                                          |
-| `20260228210000` | `meme_rpcs`                   | `meme`      | +7 service RPC functions                                                                                                                                        |
-| `20260228220000` | `osrs_schema_init`            | `osrs`      | 9 tables, 11 functions                                                                                                                                          |
-| `20260228230000` | `discordsh_update_server`     | `discordsh` | +2 functions, removes direct UPDATE                                                                                                                             |
-| `20260301210000` | `meme_rpcs_v2`                | `meme`      | +12 service RPC functions                                                                                                                                       |
-| `20260302000000` | `discordsh_guild_vault`       | `discordsh` | 1 table, 7 functions (guild token vault)                                                                                                                        |
-| `20260302100000` | `n8n_schema_init`             | `n8n`       | Schema creation for n8n workflow engine                                                                                                                         |
-| `20260303210000` | `meme_create_rpc`             | `meme`      | +1 function (`service_create_meme`)                                                                                                                             |
-| `20260304210000` | `meme_service_get_meme_by_id` | `meme`      | +1 function (`service_get_meme_by_id`)                                                                                                                          |
-| `20260307210000` | `staff_schema_init`           | `staff`     | 2 tables, 12 functions (permissions)                                                                                                                            |
-| `20260312183000` | `discordsh_list_servers`      | `discordsh` | +1 function (`service_list_servers`)                                                                                                                            |
-| `20260316210000` | `discordsh_dungeon_profiles`  | `discordsh` | 2 tables, 4 functions (dungeon RPG)                                                                                                                             |
-| `20260318210000` | `rls_subquery_auth_uid`       | _multi_     | ALTER 39 RLS policies (perf optimization)                                                                                                                       |
-| `20260427210000` | `forum_schema_init`           | `forum`     | 18 tables, 2 views, 15 enums, 42 functions (15 service RPCs), 101 indexes, 30 RLS policies                                                                      |
-| `20260427220000` | `forum_feed_indexes_safe`     | `forum`     | Drop 4 redundant feed indexes, add 7 `_safe` partials (status='active' AND nsfw=FALSE) for service_fetch_feed default path                                      |
-| `20260427230000` | `forum_username_gate`         | `forum`     | Add `forum.assert_user_has_username` helper; `service_create_thread` + `service_create_comment` reject authors with no `profile.username` row                   |
-| `20260429210000` | `forum_staff_comment_rpcs`    | `forum`     | `forum.is_staff(uuid)` cross-schema helper + `service_staff_edit_comment` / `service_staff_remove_comment` RPCs (gated on `staff.members.permissions <> 0`)     |
-| `20260429220000` | `forum_rls_perf`              | `forum`     | Wrap every `auth.uid()` in `(SELECT auth.uid())` (21 policies); merge dual permissive SELECT policies on `threads` + `comments` into single `*_select` policies |
+| Version          | Name                                        | Schema      | Objects                                                                                                                                                                                                                         |
+| ---------------- | ------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `20260227210000` | `mc_schema_init`                            | `mc`        | 6 tables, 28 functions                                                                                                                                                                                                          |
+| `20260227215000` | `gen_ulid`                                  | `public`    | 1 function (`gen_ulid()`)                                                                                                                                                                                                       |
+| `20260227220000` | `meme_schema_init`                          | `meme`      | 14 tables, 18 functions                                                                                                                                                                                                         |
+| `20260228000000` | `discordsh_schema_init`                     | `discordsh` | 2 tables, 13 functions                                                                                                                                                                                                          |
+| `20260228210000` | `meme_rpcs`                                 | `meme`      | +7 service RPC functions                                                                                                                                                                                                        |
+| `20260228220000` | `osrs_schema_init`                          | `osrs`      | 9 tables, 11 functions                                                                                                                                                                                                          |
+| `20260228230000` | `discordsh_update_server`                   | `discordsh` | +2 functions, removes direct UPDATE                                                                                                                                                                                             |
+| `20260301210000` | `meme_rpcs_v2`                              | `meme`      | +12 service RPC functions                                                                                                                                                                                                       |
+| `20260302000000` | `discordsh_guild_vault`                     | `discordsh` | 1 table, 7 functions (guild token vault)                                                                                                                                                                                        |
+| `20260302100000` | `n8n_schema_init`                           | `n8n`       | Schema creation for n8n workflow engine                                                                                                                                                                                         |
+| `20260303210000` | `meme_create_rpc`                           | `meme`      | +1 function (`service_create_meme`)                                                                                                                                                                                             |
+| `20260304210000` | `meme_service_get_meme_by_id`               | `meme`      | +1 function (`service_get_meme_by_id`)                                                                                                                                                                                          |
+| `20260307210000` | `staff_schema_init`                         | `staff`     | 2 tables, 12 functions (permissions)                                                                                                                                                                                            |
+| `20260312183000` | `discordsh_list_servers`                    | `discordsh` | +1 function (`service_list_servers`)                                                                                                                                                                                            |
+| `20260316210000` | `discordsh_dungeon_profiles`                | `discordsh` | 2 tables, 4 functions (dungeon RPG)                                                                                                                                                                                             |
+| `20260318210000` | `rls_subquery_auth_uid`                     | _multi_     | ALTER 39 RLS policies (perf optimization)                                                                                                                                                                                       |
+| `20260427210000` | `forum_schema_init`                         | `forum`     | 18 tables, 2 views, 15 enums, 42 functions (15 service RPCs), 101 indexes, 30 RLS policies                                                                                                                                      |
+| `20260427220000` | `forum_feed_indexes_safe`                   | `forum`     | Drop 4 redundant feed indexes, add 7 `_safe` partials (status='active' AND nsfw=FALSE) for service_fetch_feed default path                                                                                                      |
+| `20260427230000` | `forum_username_gate`                       | `forum`     | Add `forum.assert_user_has_username` helper; `service_create_thread` + `service_create_comment` reject authors with no `profile.username` row                                                                                   |
+| `20260429210000` | `forum_staff_comment_rpcs`                  | `forum`     | `forum.is_staff(uuid)` cross-schema helper + `service_staff_edit_comment` / `service_staff_remove_comment` RPCs (gated on `staff.members.permissions <> 0`)                                                                     |
+| `20260429220000` | `forum_rls_perf`                            | `forum`     | Wrap every `auth.uid()` in `(SELECT auth.uid())` (21 policies); merge dual permissive SELECT policies on `threads` + `comments` into single `*_select` policies                                                                 |
+| `20260430210000` | `forum_tag_autovivify`                      | `forum`     | `forum.service_resolve_tag_ids` auto-creates missing tags inside the same xact instead of erroring                                                                                                                              |
+| `20260503210000` | `forum_gaming_space`                        | `forum`     | Seed `gaming` space row + default tags                                                                                                                                                                                          |
+| `20260509190000` | `discordsh_dungeon_permadeath`              | `discordsh` | Hard-delete profile + runs once `dungeon_profiles.deaths >= max_lives`                                                                                                                                                          |
+| `20260510101731` | `mc_pgcrypto_qualify`                       | `mc`        | Schema-qualify `extensions.gen_random_uuid()` / `extensions.digest()` calls in mc functions for `search_path = ''` safety                                                                                                       |
+| `20260510135547` | `mc_public_proxies`                         | `mc`        | Public-schema `proxy_*` wrappers so PostgREST RPC reaches mc functions without `.schema('mc')` prefix                                                                                                                           |
+| `20260510145108` | `mc_lockdown_proxy_grants`                  | `mc`        | Tighten proxy\_\* grants — service_role only, no anon/authenticated EXECUTE                                                                                                                                                     |
+| `20260510210000` | `profile_custom_access_token_hook`          | `profile`   | GoTrue `custom_access_token` hook injects `kbve_username` (canonical `profile.username`) into every JWT                                                                                                                         |
+| `20260511104220` | `wallet_schema_init`                        | `wallet`    | 8 tables (accounts, balances, ledger, idempotency, transfers, coupon definitions/redemptions, listing), 14 service RPCs                                                                                                         |
+| `20260513114428` | `wallet_auth_user_trigger`                  | `wallet`    | Auto-provision wallet account on `auth.users` insert via trigger                                                                                                                                                                |
+| `20260514011143` | `wallet_ro_proxies`                         | `wallet`    | Public-schema RO proxies for balance + ledger reads (authenticated, RLS-gated)                                                                                                                                                  |
+| `20260514051116` | `wallet_coupon_expiry_sweep`                | `wallet`    | Idempotent expiry sweep + `service_redeem_coupon` rate-limit + audit                                                                                                                                                            |
+| `20260514113538` | `wallet_marketplace_schema`                 | `wallet`    | Marketplace tables (listings, offers, settlement events)                                                                                                                                                                        |
+| `20260515054304` | `wallet_marketplace_rpcs`                   | `wallet`    | service_create_listing / \_accept_offer / \_cancel_listing + 7 more RPCs                                                                                                                                                        |
+| `20260515064554` | `cnpg_pooler_pgbouncer_bootstrap`           | `_internal` | pgbouncer auth role + cnpg pooler bootstrap                                                                                                                                                                                     |
+| `20260515220000` | `wallet_source_kind_referral`               | `wallet`    | Add `referral` to ledger source_kind enum                                                                                                                                                                                       |
+| `20260515221756` | `referral_schema_init`                      | `referral`  | 3 tables (campaigns, claims, targets), 6 service RPCs for the referral payout pipeline                                                                                                                                          |
+| `20260516015242` | `wallet_marketplace_proxies`                | `wallet`    | Public-schema proxies for marketplace listing reads (authenticated)                                                                                                                                                             |
+| `20260516090714` | `referral_user_target_mgmt`                 | `referral`  | service_register_referral_target + \_list_my_targets so users self-manage targets                                                                                                                                               |
+| `20260516094907` | `wallet_source_kind_firecracker`            | `wallet`    | Add `firecracker` to ledger source_kind enum                                                                                                                                                                                    |
+| `20260516094908` | `wallet_firecracker_billing`                | `wallet`    | service_settle_firecracker_session + per-second billing RPC                                                                                                                                                                     |
+| `20260518091000` | `inventory_schema_init`                     | `inventory` | 4 tables (items, instances, holds, transfers), 9 service RPCs                                                                                                                                                                   |
+| `20260518142326` | `wallet_service_user_balance`               | `wallet`    | service_get_user_balance — single-roundtrip balance read for the dashboard                                                                                                                                                      |
+| `20260519121254` | `wallet_firecracker_deployment_history`     | `wallet`    | service_list_firecracker_deployments for billing UI                                                                                                                                                                             |
+| `20260520114243` | `wallet_inventory_listing_wire`             | `wallet`    | Wire inventory_instance_id onto listings + service_create_inventory_listing                                                                                                                                                     |
+| `20260520124536` | `wallet_listing_settle_inventory`           | `wallet`    | service_accept_inventory_offer moves the inventory instance atomically with the wallet ledger entry                                                                                                                             |
+| `20260520132957` | `wallet_service_user_balance_public_proxy`  | `wallet`    | Public-schema proxy for service_get_user_balance                                                                                                                                                                                |
+| `20260523033932` | `tracker_find_claim_identity_by_discord_id` | `tracker`   | service_find_claim_identity_by_discord_id — bot lookup by Discord snowflake                                                                                                                                                     |
+| `20260523033933` | `gh_issue_cache_init`                       | `gh`        | 2 tables (gh.issue, gh.issue_event lease-queue), 7 functions (upsert_issue / set_discord_thread / record_event / get_issue / list_open_issues / claim_undelivered_events / mark_event_delivered / \_failed / event_queue_stats) |
+| `20260526223407` | `mc_lot_system`                             | `mc`        | Lot system (8 tables, 22 functions) for player land claims                                                                                                                                                                      |
+| `20260531005655` | `auth_hook_owned_guilds_claim`              | `profile`   | `profile.discord_bootstrap_cache` + `custom_access_token_hook` v2 injects `owned_guilds` array claim onto every JWT (7-day freshness window, max 50 snowflakes)                                                                 |
+| `20260606120000` | `gh_service_event_ops`                      | `gh`        | repo_key generated column + 2 partial indexes + 3 dashboard RPCs (service_get_guild_event_stats / \_recent_failed_events / \_requeue_event) with allowlist-scoped GH001–GH006 SQLSTATEs                                         |
+| `20260607001923` | `gh_service_event_ops_v2`                   | `gh`        | gh.requeue_audit table (denormalized so it survives purges) + 2 RPCs (service_force_requeue_event / \_purge_old_delivered / \_get_recent_pending_events) + gh.\_normalize_repo_allowlist helper + GH007/GH008                   |
+| `20260607171125` | `profile_service_get_discord_provider_id`   | `profile`   | profile.service_get_discord_provider_id + public.proxy_service_get_discord_provider_id — discord-bootstrap edge fn reaches auth.identities through proxy instead of `.schema('auth')` (PostgREST blocks auth)                   |
+| `20260608014906` | `profile_discord_provider_id_owner`         | `profile`   | ALTER FUNCTION ... OWNER TO postgres so SECURITY DEFINER inherits SELECT on auth.identities (service_role has none). Fixes `permission denied for table identities` 500 cascade across the dashboard                            |
 
 Migration state is tracked in `dbmate.schema_migrations` (not `public`) to isolate it from PostgREST/RPC.
 
@@ -147,50 +181,52 @@ schema/
 
 ### Smoke testing the full chain via nx
 
-The fastest way to verify a migration is to run the full chain against a
-fresh database. Two nx targets handle the lifecycle (volume nuke →
-compose up → wait for health → `dbmate up` → status → tear down):
+The fastest way to verify a migration is to run the full chain
+against a prod-replica database. All smoke targets run against the
+`ghcr.io/kbve/postgres:…-kilobase` image (x86, Rosetta on ARM).
 
-| Target                                | Stack                              | When to use                                         |
-| ------------------------------------- | ---------------------------------- | --------------------------------------------------- |
-| `nx run data-sql:smoke-vanilla`       | `postgres:17-alpine`               | Fast feedback loop on iteration (≈ 10s end-to-end). |
-| `nx run data-sql:smoke-kilobase`      | `ghcr.io/kbve/postgres:…-kilobase` | Prod-parity check before opening a migration PR.    |
-| `nx run data-sql:smoke`               | Both, sequential                   | Full sweep — what CI/the merge gate should run.     |
-| `nx run data-sql:smoke-vanilla-keep`  | vanilla, stack left running        | Iterate with `psql`/`dbmate` against a primed DB.   |
-| `nx run data-sql:smoke-kilobase-keep` | kilobase, stack left running       | Same, against the prod image.                       |
+Vanilla `postgres:17-alpine` smoke was retired — it lacks Supabase's
+auth schema, ownership chain (`supabase_auth_admin`, `authenticator`,
+`service_role`), pgsodium vault, PostgREST, and every other
+Supabase-managed object. It silently passed migrations that fail in
+prod with `permission denied for table identities`-class errors
+(see PR #12033). Prod-parity is the whole point of this script, so
+the only stack worth running is the one that mirrors prod.
 
-Underlying script: [`smoke.sh`](./smoke.sh). Pass `--keep` to leave the
-compose stack up, or `--rollback` to additionally exercise the latest
-migration's `down` path before tearing down:
+| Target                                    | When to use                                                                       |
+| ----------------------------------------- | --------------------------------------------------------------------------------- |
+| `nx run data-sql:smoke`                   | Default: up → apply all → rollback → re-apply → tear down. Use before opening PR. |
+| `nx run data-sql:smoke-kilobase`          | Same as `smoke` minus the rollback leg (faster).                                  |
+| `nx run data-sql:smoke-kilobase-keep`     | Apply all + leave the stack up so you can `psql` / `dbmate` against it.           |
+| `nx run data-sql:smoke-kilobase-rollback` | Explicit rollback target (alias of the default `smoke`).                          |
+
+Underlying script: [`smoke.sh`](./smoke.sh). Pass `--keep` to leave
+the compose stack up, or `--rollback` to additionally exercise the
+latest migration's `down` path before tearing down:
 
 ```bash
-./smoke.sh vanilla --rollback
-./smoke.sh kilobase --keep
+./smoke.sh                    # default lifecycle
+./smoke.sh --keep             # leave stack on localhost:54322
+./smoke.sh --rollback         # apply → down → re-apply → tear down
+./smoke.sh kilobase           # `kilobase` arg still accepted (legacy)
 ```
 
-Both stacks bind the same host port (54322), so the script defensively
-takes both composes down before bringing the requested one up — no need
-to worry about port collisions when switching stacks.
+The script defensively takes any pre-existing compose stacks down
+before bringing kilobase up so port 54322 is always free.
 
 Other granular nx targets if you only want one phase:
 
 | Target                                                             | What it does                                                                                          |
 | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| `nx run data-sql:dev-up` / `dev-down` / `dev-reset`                | Lifecycle for the vanilla stack.                                                                      |
 | `nx run data-sql:kilobase-up` / `kilobase-down` / `kilobase-reset` | Lifecycle for the kilobase stack.                                                                     |
-| `nx run data-sql:migrate-up`                                       | `dbmate up` against whichever stack is running.                                                       |
+| `nx run data-sql:migrate-up`                                       | `dbmate up` against the running stack.                                                                |
 | `nx run data-sql:migrate-status`                                   | Print applied / pending status.                                                                       |
 | `nx run data-sql:test-migration -- <basename>`                     | Per-migration smoke via companion `.test.sql` files (see [`test-migration.sh`](./test-migration.sh)). |
 
-### Manual quick test (vanilla Postgres) — what the nx wrapper does
-
-```bash
-cp dev-docker-compose.yml docker-compose.yml
-docker compose up -d
-dbmate --no-dump-schema --migrations-dir migrations up       # apply all
-dbmate --no-dump-schema --migrations-dir migrations rollback  # test rollback
-docker compose down -v
-```
+The `dev-up` / `dev-down` / `dev-reset` targets that drove the
+vanilla stack were dropped alongside the smoke retirement. The
+`dev-docker-compose.yml` file is kept for ad-hoc local experiments
+that genuinely don't need Supabase plumbing.
 
 ### n8n integration test (Postgres + n8n)
 

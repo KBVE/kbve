@@ -4,7 +4,7 @@
 #include "chuckEventPayloads.h"
 #include "chuckInventory.h"
 #include "chuckItemDB.h"
-#include "chuckItemTypes.h"
+#include "KBVEItemTypes.h"
 #include "chuckUIEvents.h"
 #include "Engine/GameInstance.h"
 #include "Engine/Texture2D.h"
@@ -116,7 +116,7 @@ void SchuckInventorySlot::Construct(const FArguments& InArgs)
 		{
 			AchuckCoreCharacter* C = Character.Get();
 			if (!C) return;
-			const FchuckItemDef* Def = GetDef();
+			const FKBVEItemDef* Def = GetDef();
 			if (!Def || !Def->bConsumable) return;
 			C->ServerConsumeSlot(SlotIndex, bIsHotbar);
 		}))
@@ -167,7 +167,7 @@ void SchuckInventorySlot::Construct(const FArguments& InArgs)
 
 TSharedPtr<SWidget> SchuckInventorySlot::BuildDragDecorator()
 {
-	const FchuckItemDef* Def = GetDef();
+	const FKBVEItemDef* Def = GetDef();
 	UchuckItemDB* DB = GetDB();
 	if (!Def || !DB) return nullptr;
 	UTexture2D* IconTex = DB->GetIconTexture(Def->Key);
@@ -192,7 +192,7 @@ void SchuckInventorySlot::OnHover(bool bEntered, const FVector2D& ScreenPos)
 
 	if (bEntered)
 	{
-		const FchuckItemDef* Def = GetDef();
+		const FKBVEItemDef* Def = GetDef();
 		const FchuckInventoryStack* Stack = GetStack();
 		if (Def)
 		{
@@ -200,12 +200,12 @@ void SchuckInventorySlot::OnHover(bool bEntered, const FVector2D& ScreenPos)
 			FString RarityName;
 			switch (Def->Rarity)
 			{
-				case EchuckItemRarity::Common:    RarityName = TEXT("Common");    break;
-				case EchuckItemRarity::Uncommon:  RarityName = TEXT("Uncommon");  break;
-				case EchuckItemRarity::Rare:      RarityName = TEXT("Rare");      break;
-				case EchuckItemRarity::Epic:      RarityName = TEXT("Epic");      break;
-				case EchuckItemRarity::Legendary: RarityName = TEXT("Legendary"); break;
-				case EchuckItemRarity::Mythic:    RarityName = TEXT("Mythic");    break;
+				case EKBVEItemRarity::Common:    RarityName = TEXT("Common");    break;
+				case EKBVEItemRarity::Uncommon:  RarityName = TEXT("Uncommon");  break;
+				case EKBVEItemRarity::Rare:      RarityName = TEXT("Rare");      break;
+				case EKBVEItemRarity::Epic:      RarityName = TEXT("Epic");      break;
+				case EKBVEItemRarity::Legendary: RarityName = TEXT("Legendary"); break;
+				case EKBVEItemRarity::Mythic:    RarityName = TEXT("Mythic");    break;
 				default:                          RarityName = TEXT("");
 			}
 
@@ -221,9 +221,9 @@ void SchuckInventorySlot::OnHover(bool bEntered, const FVector2D& ScreenPos)
 				BodyLines.Add(Def->Description);
 			}
 			TArray<FString> Stats;
-			if (Def->HealHP    > 0.f) Stats.Add(FString::Printf(TEXT("+%d HP"), FMath::RoundToInt(Def->HealHP)));
-			if (Def->RestoreMP > 0.f) Stats.Add(FString::Printf(TEXT("+%d MP"), FMath::RoundToInt(Def->RestoreMP)));
-			if (Def->RestoreEP > 0.f) Stats.Add(FString::Printf(TEXT("+%d EP"), FMath::RoundToInt(Def->RestoreEP)));
+			if (Def->Food.Heals         > 0.f) Stats.Add(FString::Printf(TEXT("+%d HP"), FMath::RoundToInt(Def->Food.Heals)));
+			if (Def->Food.RestoreMana   > 0.f) Stats.Add(FString::Printf(TEXT("+%d MP"), FMath::RoundToInt(Def->Food.RestoreMana)));
+			if (Def->Food.RestoreEnergy > 0.f) Stats.Add(FString::Printf(TEXT("+%d EP"), FMath::RoundToInt(Def->Food.RestoreEnergy)));
 			if (Stats.Num() > 0) BodyLines.Add(FString::Join(Stats, TEXT("   ")));
 			TArray<FString> PriceParts;
 			if (Def->BuyPrice  > 0) PriceParts.Add(FString::Printf(TEXT("Buy %d"),  Def->BuyPrice));
@@ -232,7 +232,7 @@ void SchuckInventorySlot::OnHover(bool bEntered, const FVector2D& ScreenPos)
 
 			P.Body = FText::FromString(FString::Join(BodyLines, LINE_TERMINATOR));
 
-			const FLinearColor R = chuckItem::RarityColor(Def->Rarity);
+			const FLinearColor R = KBVEItem::RarityColor(Def->Rarity);
 			P.TitleColor  = R;
 			P.BorderColor = FLinearColor(R.R, R.G, R.B, 0.95f);
 		}
@@ -261,7 +261,7 @@ UchuckItemDB* SchuckInventorySlot::GetDB() const
 	return GI ? GI->GetSubsystem<UchuckItemDB>() : nullptr;
 }
 
-const FchuckItemDef* SchuckInventorySlot::GetDef() const
+const FKBVEItemDef* SchuckInventorySlot::GetDef() const
 {
 	const FchuckInventoryStack* S = GetStack();
 	if (!S || S->IsEmpty()) return nullptr;
@@ -277,8 +277,8 @@ bool SchuckInventorySlot::OnIsFilled() const
 
 FLinearColor SchuckInventorySlot::OnGetBorderColor() const
 {
-	const FchuckItemDef* Def = GetDef();
-	return Def ? chuckItem::RarityColor(Def->Rarity) : FLinearColor::White;
+	const FKBVEItemDef* Def = GetDef();
+	return Def ? KBVEItem::RarityColor(Def->Rarity) : FLinearColor::White;
 }
 
 int32 SchuckInventorySlot::OnGetCount() const
@@ -296,7 +296,7 @@ void SchuckInventorySlot::OnClicked()
 
 void SchuckInventorySlot::OnPaintIcon(const FGeometry& Geom, FSlateWindowElementList& Out, int32 Layer, const FVector2D& InSlotSize)
 {
-	const FchuckItemDef* Def = GetDef();
+	const FKBVEItemDef* Def = GetDef();
 	UchuckItemDB* DB = GetDB();
 	if (!Def) return;
 

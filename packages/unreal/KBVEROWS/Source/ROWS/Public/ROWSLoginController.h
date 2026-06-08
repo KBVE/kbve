@@ -15,7 +15,7 @@ class UROWSLoadingWidget;
  * AROWSLoginController
  *
  * Orchestrates: Login Screen -> Character Select -> Loading -> Travel to Game Map
- * Mirrors ChuckLoginController — create-once widgets, HideAllWidgets, delegates to ROWS subsystems.
+ * Create-once widgets, HideAllWidgets, delegates to ROWS subsystems.
  */
 UCLASS()
 class ROWS_API AROWSLoginController : public APlayerController

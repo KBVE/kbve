@@ -424,7 +424,7 @@ int32 AchuckCoreCharacter::ServerAddItemByKey(int32 ItemKey, int32 Count)
 	{
 		return Count;
 	}
-	const FchuckItemDef* Def = DB->LookupByKey(ItemKey);
+	const FKBVEItemDef* Def = DB->LookupByKey(ItemKey);
 	if (!Def)
 	{
 		return Count;
@@ -464,7 +464,7 @@ int32 AchuckCoreCharacter::ServerAddItemByRef(FName Ref, int32 Count)
 	{
 		return Count;
 	}
-	if (const FchuckItemDef* Def = DB->LookupByRef(Ref))
+	if (const FKBVEItemDef* Def = DB->LookupByRef(Ref))
 	{
 		return ServerAddItemByKey(Def->Key, Count);
 	}
@@ -481,7 +481,7 @@ void AchuckCoreCharacter::SeedStarterItems()
 	}
 
 	int32 SlotsLeft = Inventory.DefaultBag.Capacity;
-	for (const FchuckItemDef& Def : DB->GetAll())
+	for (const FKBVEItemDef& Def : DB->GetAll())
 	{
 		if (SlotsLeft <= 0) break;
 		if (!Def.IsValid()) continue;
@@ -534,7 +534,7 @@ bool AchuckCoreCharacter::ServerDropSlot(int32 SlotIndex, bool bHotbar, int32 Dr
 	UGameInstance* GI = GetGameInstance();
 	UchuckItemDB* DB = GI ? GI->GetSubsystem<UchuckItemDB>() : nullptr;
 	if (!DB) return false;
-	const FchuckItemDef* Def = DB->LookupByKey(ItemKey);
+	const FKBVEItemDef* Def = DB->LookupByKey(ItemKey);
 	if (!Def) return false;
 
 	UWorld* World = GetWorld();
@@ -566,23 +566,23 @@ bool AchuckCoreCharacter::ServerConsumeSlot(int32 SlotIndex, bool bHotbar)
 	UGameInstance* GI = GetGameInstance();
 	UchuckItemDB* DB = GI ? GI->GetSubsystem<UchuckItemDB>() : nullptr;
 	if (!DB) return false;
-	const FchuckItemDef* Def = DB->LookupByKey(Stack.ItemKey);
+	const FKBVEItemDef* Def = DB->LookupByKey(Stack.ItemKey);
 	if (!Def || !Def->bConsumable || !EffectComp) return false;
 
 	FKBVEEffectSpec Spec;
 	Spec.SourceKey = Def->Ref;
-	Spec.Cooldown  = Def->ConsumeCooldownSec;
-	if (Def->HealHP    > 0.f) Spec.Restores.Add({ TEXT("Health"),  Def->HealHP });
-	if (Def->RestoreMP > 0.f) Spec.Restores.Add({ TEXT("Mana"),    Def->RestoreMP });
-	if (Def->RestoreEP > 0.f) Spec.Restores.Add({ TEXT("Stamina"), Def->RestoreEP });
-	if (Def->RegenPerSec > 0.f && Def->RegenDuration > 0.f)
+	Spec.Cooldown  = Def->Cooldown;
+	if (Def->Food.Heals         > 0.f) Spec.Restores.Add({ TEXT("Health"),  Def->Food.Heals });
+	if (Def->Food.RestoreMana   > 0.f) Spec.Restores.Add({ TEXT("Mana"),    Def->Food.RestoreMana });
+	if (Def->Food.RestoreEnergy > 0.f) Spec.Restores.Add({ TEXT("Stamina"), Def->Food.RestoreEnergy });
+	if (Def->Food.RegenPerSecond > 0.f && Def->Food.RegenDuration > 0.f)
 	{
 		const FName RegenStat = Def->IsDrink()
-			? (Def->RestoreMP > 0.f ? FName(TEXT("Mana")) : FName(TEXT("Stamina")))
+			? (Def->Food.RestoreMana > 0.f ? FName(TEXT("Mana")) : FName(TEXT("Stamina")))
 			: FName(TEXT("Health"));
-		Spec.Regens.Add({ RegenStat, Def->RegenPerSec, Def->RegenDuration });
+		Spec.Regens.Add({ RegenStat, Def->Food.RegenPerSecond, Def->Food.RegenDuration });
 	}
-	for (const FchuckConsumeStatus& St : Def->ConsumeStatuses)
+	for (const FKBVEConsumeStatus& St : Def->ConsumeStatuses)
 	{
 		Spec.Statuses.Add({ St.Kind, St.Stacks, St.Duration });
 	}
