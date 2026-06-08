@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	AlertTriangle,
@@ -7,8 +7,8 @@ import {
 	Loader2,
 	RefreshCw,
 } from 'lucide-react';
-import { agentsService } from './agentsService';
-import { styles } from './dashboard-ui';
+import { useAgents } from './context';
+import { styles } from '../dashboard/dashboard-ui';
 
 type Status =
 	| 'idle'
@@ -19,11 +19,12 @@ type Status =
 	| 'unconfigured';
 
 export default function ReactAgentBotInstall() {
-	const guilds = useStore(agentsService.$guilds);
-	const selectedGuildId = useStore(agentsService.$selectedGuildId);
-	const membershipMap = useStore(agentsService.$botMembership);
-	const membershipLoadingMap = useStore(agentsService.$botMembershipLoading);
-	const membershipErrorMap = useStore(agentsService.$botMembershipError);
+	const agents = useAgents();
+	const guilds = useStore(agents.$guilds);
+	const selectedGuildId = useStore(agents.$selectedGuildId);
+	const membershipMap = useStore(agents.$botMembership);
+	const membershipLoadingMap = useStore(agents.$botMembershipLoading);
+	const membershipErrorMap = useStore(agents.$botMembershipError);
 
 	const cached = selectedGuildId ? membershipMap[selectedGuildId] : null;
 	const checking = selectedGuildId
@@ -52,22 +53,30 @@ export default function ReactAgentBotInstall() {
 		[guilds, selectedGuildId],
 	);
 
-	const installUrl = useMemo(
-		() =>
-			selectedGuildId
-				? agentsService.botInstallUrl(selectedGuildId)
-				: null,
-		[selectedGuildId],
-	);
+	const [installUrl, setInstallUrl] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (!selectedGuildId) {
+			setInstallUrl(null);
+			return;
+		}
+		let alive = true;
+		void agents.fetchBotInstallUrl(selectedGuildId).then((u) => {
+			if (alive) setInstallUrl(u);
+		});
+		return () => {
+			alive = false;
+		};
+	}, [selectedGuildId]);
 
 	async function probe() {
 		if (!selectedGuildId) return;
-		await agentsService.ensureBotMembershipLoaded(selectedGuildId, true);
+		await agents.ensureBotMembershipLoaded(selectedGuildId, true);
 	}
 
 	useEffect(() => {
 		if (!selectedGuildId) return;
-		void agentsService.ensureBotMembershipLoaded(selectedGuildId);
+		void agents.ensureBotMembershipLoaded(selectedGuildId);
 	}, [selectedGuildId]);
 
 	if (!guild) return null;
@@ -187,7 +196,7 @@ export default function ReactAgentBotInstall() {
 							rel="noopener noreferrer"
 							onClick={() => {
 								if (selectedGuildId) {
-									agentsService.invalidateBotMembership(
+									agents.invalidateBotMembership(
 										selectedGuildId,
 									);
 								}
@@ -214,8 +223,8 @@ export default function ReactAgentBotInstall() {
 								color: '#f87171',
 								padding: '0.2rem 0.4rem',
 							}}
-							title="Set PUBLIC_DISCORD_BOT_CLIENT_ID at build time">
-							Install link unavailable (build env missing)
+							title="Bot client_id could not be resolved from the edge function">
+							Install link unavailable
 						</span>
 					))}
 			</div>

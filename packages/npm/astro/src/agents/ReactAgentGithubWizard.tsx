@@ -15,12 +15,9 @@ import {
 	Webhook,
 	XCircle,
 } from 'lucide-react';
-import {
-	agentsService,
-	type AgentTokenRow,
-	type DiscordGuild,
-} from './agentsService';
-import { styles } from './dashboard-ui';
+import { useAgents } from './context';
+import type { AgentTokenRow, DiscordGuild } from '@kbve/droid';
+import { styles } from '../dashboard/dashboard-ui';
 import ReactAgentGuildPicker from './ReactAgentGuildPicker';
 
 const GITHUB_OWNER_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,38}$/;
@@ -49,13 +46,14 @@ async function copyToClipboard(text: string): Promise<boolean> {
 }
 
 export default function ReactAgentGithubWizard() {
-	const authState = useStore(agentsService.$authState);
-	const guilds = useStore(agentsService.$guilds);
-	const selectedGuildId = useStore(agentsService.$selectedGuildId);
-	const tokens = useStore(agentsService.$tokens);
+	const agents = useAgents();
+	const authState = useStore(agents.$authState);
+	const guilds = useStore(agents.$guilds);
+	const selectedGuildId = useStore(agents.$selectedGuildId);
+	const tokens = useStore(agents.$tokens);
 
 	useEffect(() => {
-		void agentsService.initAuth();
+		void agents.initAuth();
 	}, []);
 
 	const selectedGuild = useMemo<DiscordGuild | null>(
@@ -79,7 +77,7 @@ export default function ReactAgentGithubWizard() {
 				cta={
 					<button
 						type="button"
-						onClick={() => void agentsService.signInWithDiscord()}
+						onClick={() => void agents.signInWithDiscord()}
 						style={primaryBtn}>
 						Sign in with Discord
 					</button>
@@ -95,7 +93,7 @@ export default function ReactAgentGithubWizard() {
 				cta={
 					<button
 						type="button"
-						onClick={() => void agentsService.signInWithDiscord()}
+						onClick={() => void agents.signInWithDiscord()}
 						style={primaryBtn}>
 						Re-sign-in
 					</button>
@@ -209,9 +207,10 @@ function Step1Webhook({
 	guild: DiscordGuild;
 	existing: AgentTokenRow | null;
 }) {
-	const draftsMap = useStore(agentsService.$webhookDrafts);
-	const savingMap = useStore(agentsService.$webhookSavingFor);
-	const errorsMap = useStore(agentsService.$webhookErrors);
+	const agents = useAgents();
+	const draftsMap = useStore(agents.$webhookDrafts);
+	const savingMap = useStore(agents.$webhookSavingFor);
+	const errorsMap = useStore(agents.$webhookErrors);
 
 	const secret = draftsMap[guild.id] ?? null;
 	const busy = !!savingMap[guild.id];
@@ -227,16 +226,22 @@ function Step1Webhook({
 		setCopied(false);
 	}, [guild.id]);
 
+	useEffect(() => {
+		if (!copied) return;
+		const t = setTimeout(() => setCopied(false), 2500);
+		return () => clearTimeout(t);
+	}, [copied]);
+
 	async function generate() {
-		agentsService.setWebhookDraft(guild.id, genHex(32));
+		agents.setWebhookDraft(guild.id, genHex(32));
 		setReveal(true);
 		setCopied(false);
-		agentsService.clearWebhookError(guild.id);
+		agents.clearWebhookError(guild.id);
 	}
 
 	async function save() {
 		if (!secret) return;
-		const r = await agentsService.saveWebhookDraft(
+		const r = await agents.saveWebhookDraft(
 			guild.id,
 			WEBHOOK_TOKEN_NAME,
 			`GitHub webhook HMAC for guild ${guild.id}`,
@@ -248,7 +253,6 @@ function Step1Webhook({
 		if (!secret) return;
 		const ok = await copyToClipboard(secret);
 		setCopied(ok);
-		if (ok) setTimeout(() => setCopied(false), 2500);
 	}
 
 	return (
@@ -373,21 +377,20 @@ function Step2WebhookConfig({
 	guild: DiscordGuild;
 	hasWebhook: boolean;
 }) {
-	const url = agentsService.webhookUrlFor(guild.id);
-	const allowlistMap = useStore(agentsService.$repoAllowlistDrafts);
-	const selectedMap = useStore(agentsService.$webhookInstallSelected);
-	const installBusyMap = useStore(agentsService.$webhookInstallBusyFor);
-	const installResultMap = useStore(agentsService.$webhookInstallResults);
-	const pingBusyMap = useStore(agentsService.$webhookPingBusyFor);
-	const pingResultMap = useStore(agentsService.$webhookPingResults);
-	const deliveriesMap = useStore(agentsService.$webhookDeliveries);
-	const deliveriesLoadingMap = useStore(
-		agentsService.$webhookDeliveriesLoading,
-	);
-	const deliveriesErrorMap = useStore(agentsService.$webhookDeliveriesError);
-	const rotateBusyMap = useStore(agentsService.$webhookRotateBusyFor);
-	const rotateResultMap = useStore(agentsService.$webhookRotateResults);
-	const deleteBusyMap = useStore(agentsService.$webhookDeleteBusyFor);
+	const agents = useAgents();
+	const url = agents.webhookUrlFor(guild.id);
+	const allowlistMap = useStore(agents.$repoAllowlistDrafts);
+	const selectedMap = useStore(agents.$webhookInstallSelected);
+	const installBusyMap = useStore(agents.$webhookInstallBusyFor);
+	const installResultMap = useStore(agents.$webhookInstallResults);
+	const pingBusyMap = useStore(agents.$webhookPingBusyFor);
+	const pingResultMap = useStore(agents.$webhookPingResults);
+	const deliveriesMap = useStore(agents.$webhookDeliveries);
+	const deliveriesLoadingMap = useStore(agents.$webhookDeliveriesLoading);
+	const deliveriesErrorMap = useStore(agents.$webhookDeliveriesError);
+	const rotateBusyMap = useStore(agents.$webhookRotateBusyFor);
+	const rotateResultMap = useStore(agents.$webhookRotateResults);
+	const deleteBusyMap = useStore(agents.$webhookDeleteBusyFor);
 
 	const repos = allowlistMap[guild.id] ?? [];
 	const selectedRepo = selectedMap[guild.id] ?? repos[0] ?? '';
@@ -399,19 +402,24 @@ function Step2WebhookConfig({
 
 	useEffect(() => {
 		if (!selectedMap[guild.id] && repos.length > 0) {
-			agentsService.setWebhookInstallSelected(guild.id, repos[0]);
+			agents.setWebhookInstallSelected(guild.id, repos[0]);
 		}
 	}, [guild.id, repos, selectedMap]);
 
 	useEffect(() => {
 		if (!hasWebhook || !selectedRepo) return;
-		void agentsService.verifyWebhookInstall(guild.id, selectedRepo);
+		void agents.verifyWebhookInstall(guild.id, selectedRepo);
 	}, [guild.id, hasWebhook, selectedRepo]);
+
+	useEffect(() => {
+		if (!copied) return;
+		const t = setTimeout(() => setCopied(false), 2500);
+		return () => clearTimeout(t);
+	}, [copied]);
 
 	async function copy() {
 		const ok = await copyToClipboard(url);
 		setCopied(ok);
-		if (ok) setTimeout(() => setCopied(false), 2500);
 	}
 
 	const [actionBlockMsg, setActionBlockMsg] = useState<string | null>(null);
@@ -429,8 +437,8 @@ function Step2WebhookConfig({
 			);
 			return;
 		}
-		agentsService.setWebhookInstallSelected(guild.id, selectedRepo);
-		await agentsService.installWebhookForGuild(guild.id);
+		agents.setWebhookInstallSelected(guild.id, selectedRepo);
+		await agents.installWebhookForGuild(guild.id);
 	}
 
 	async function ping() {
@@ -440,7 +448,7 @@ function Step2WebhookConfig({
 			setActionBlockMsg('Pick a repo from the dropdown first.');
 			return;
 		}
-		await agentsService.pingWebhookForGuild(guild.id);
+		await agents.pingWebhookForGuild(guild.id);
 	}
 
 	const deliveriesKey = `${guild.id}:${selectedRepo}`;
@@ -467,7 +475,7 @@ function Step2WebhookConfig({
 			setActionBlockMsg('Selected repo is malformed.');
 			return;
 		}
-		await agentsService.loadWebhookDeliveries(guild.id, owner, repo, 10);
+		await agents.loadWebhookDeliveries(guild.id, owner, repo, 10);
 	}
 
 	async function rotate() {
@@ -482,7 +490,7 @@ function Step2WebhookConfig({
 			setActionBlockMsg('Selected repo is malformed.');
 			return;
 		}
-		await agentsService.rotateWebhookForGuild(guild.id, owner, repo);
+		await agents.rotateWebhookForGuild(guild.id, owner, repo);
 	}
 
 	async function deleteHook() {
@@ -501,7 +509,7 @@ function Step2WebhookConfig({
 			setActionBlockMsg('Selected repo is malformed.');
 			return;
 		}
-		await agentsService.deleteWebhookForGuild(guild.id, owner, repo);
+		await agents.deleteWebhookForGuild(guild.id, owner, repo);
 		setConfirmDelete(false);
 	}
 
@@ -632,7 +640,7 @@ function Step2WebhookConfig({
 						<select
 							value={selectedRepo}
 							onChange={(e) =>
-								agentsService.setWebhookInstallSelected(
+								agents.setWebhookInstallSelected(
 									guild.id,
 									e.target.value,
 								)
@@ -959,11 +967,12 @@ function Step3Pat({
 	guildId: string;
 	existing: AgentTokenRow | null;
 }) {
-	const draftsMap = useStore(agentsService.$patDrafts);
-	const validatedMap = useStore(agentsService.$patValidatedFor);
-	const validatingMap = useStore(agentsService.$patValidatingFor);
-	const savingMap = useStore(agentsService.$patSavingFor);
-	const errorsMap = useStore(agentsService.$patErrors);
+	const agents = useAgents();
+	const draftsMap = useStore(agents.$patDrafts);
+	const validatedMap = useStore(agents.$patValidatedFor);
+	const validatingMap = useStore(agents.$patValidatingFor);
+	const savingMap = useStore(agents.$patSavingFor);
+	const errorsMap = useStore(agents.$patErrors);
 
 	const validating = !!validatingMap[guildId];
 	const storing = !!savingMap[guildId];
@@ -978,14 +987,14 @@ function Step3Pat({
 
 	useEffect(() => {
 		if (!inputRef.current) return;
-		const snap = agentsService.$patDrafts.get()[guildId] ?? '';
+		const snap = agents.$patDrafts.get()[guildId] ?? '';
 		if (inputRef.current.value !== snap) inputRef.current.value = snap;
 		setHasInput(snap.length > 0);
 	}, [guildId]);
 
 	function onPatBlur(_: FocusEvent<HTMLInputElement>) {
 		const v = inputRef.current?.value ?? '';
-		agentsService.setPatDraft(guildId, v);
+		agents.setPatDraft(guildId, v);
 	}
 
 	function onPatInput() {
@@ -995,14 +1004,14 @@ function Step3Pat({
 
 	async function validate() {
 		const v = inputRef.current?.value ?? '';
-		agentsService.setPatDraft(guildId, v);
-		await agentsService.validatePatForGuild(guildId);
+		agents.setPatDraft(guildId, v);
+		await agents.validatePatForGuild(guildId);
 	}
 
 	async function save() {
 		const v = inputRef.current?.value ?? '';
-		agentsService.setPatDraft(guildId, v);
-		const r = await agentsService.savePatForGuild(guildId, PAT_TOKEN_NAME);
+		agents.setPatDraft(guildId, v);
+		const r = await agents.savePatForGuild(guildId, PAT_TOKEN_NAME);
 		if (r.ok && inputRef.current) inputRef.current.value = '';
 		if (r.ok) setHasInput(false);
 	}
@@ -1148,9 +1157,10 @@ function Step4SmokeBackfill({
 	guildId: string;
 	ready: boolean;
 }) {
-	const draftsMap = useStore(agentsService.$backfillDrafts);
-	const busyMap = useStore(agentsService.$backfillBusyFor);
-	const resultsMap = useStore(agentsService.$backfillResults);
+	const agents = useAgents();
+	const draftsMap = useStore(agents.$backfillDrafts);
+	const busyMap = useStore(agents.$backfillBusyFor);
+	const resultsMap = useStore(agents.$backfillResults);
 
 	const draft = draftsMap[guildId] ?? { owner: '', repo: '' };
 	const busy = !!busyMap[guildId];
@@ -1163,7 +1173,7 @@ function Step4SmokeBackfill({
 	);
 
 	useEffect(() => {
-		const snap = agentsService.$backfillDrafts.get()[guildId] ?? {
+		const snap = agents.$backfillDrafts.get()[guildId] ?? {
 			owner: '',
 			repo: '',
 		};
@@ -1185,14 +1195,14 @@ function Step4SmokeBackfill({
 	}
 
 	function commitOwner() {
-		agentsService.patchBackfillDraft(guildId, {
+		agents.patchBackfillDraft(guildId, {
 			owner: ownerRef.current?.value ?? '',
 		});
 		refreshValid();
 	}
 
 	function commitRepo() {
-		agentsService.patchBackfillDraft(guildId, {
+		agents.patchBackfillDraft(guildId, {
 			repo: repoRef.current?.value ?? '',
 		});
 		refreshValid();
@@ -1218,8 +1228,8 @@ function Step4SmokeBackfill({
 			else repoRef.current?.focus();
 			return;
 		}
-		agentsService.patchBackfillDraft(guildId, { owner: o, repo: r });
-		await agentsService.runBackfillForGuild(guildId);
+		agents.patchBackfillDraft(guildId, { owner: o, repo: r });
+		await agents.runBackfillForGuild(guildId);
 	}
 
 	return (

@@ -7,12 +7,9 @@ import {
 	RefreshCw,
 	XCircle,
 } from 'lucide-react';
-import {
-	agentsService,
-	type DiscordshConfig,
-	type DiscordGuild,
-} from './agentsService';
-import { styles } from './dashboard-ui';
+import { useAgents } from './context';
+import type { DiscordshConfig, DiscordGuild } from '@kbve/droid';
+import { styles } from '../dashboard/dashboard-ui';
 
 const PAT_SERVICE = 'github';
 const WEBHOOK_SERVICE = 'github_webhook';
@@ -62,10 +59,11 @@ function statusColor(status: StepStatus): string {
 }
 
 export default function ReactAgentSetupStatus() {
-	const guilds = useStore(agentsService.$guilds);
-	const selectedGuildId = useStore(agentsService.$selectedGuildId);
-	const tokens = useStore(agentsService.$tokens);
-	const tokensLoading = useStore(agentsService.$tokensLoading);
+	const agents = useAgents();
+	const guilds = useStore(agents.$guilds);
+	const selectedGuildId = useStore(agents.$selectedGuildId);
+	const tokens = useStore(agents.$tokens);
+	const tokensLoading = useStore(agents.$tokensLoading);
 
 	const [config, setConfig] = useState<DiscordshConfig | null>(null);
 	const [repoCount, setRepoCount] = useState<number | null>(null);
@@ -82,8 +80,8 @@ export default function ReactAgentSetupStatus() {
 		setProbeLoading(true);
 		setProbeError(null);
 		const [cfg, repos] = await Promise.all([
-			agentsService.getBotConfig(),
-			agentsService.getRepoAllowlist(),
+			agents.getBotConfig(),
+			agents.getRepoAllowlist(),
 		]);
 		if (!cfg.ok) {
 			setProbeError(cfg.error);

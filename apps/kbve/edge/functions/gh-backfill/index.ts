@@ -94,6 +94,7 @@ interface GitHubIssueResp {
 const REPO_RE = /^[A-Za-z0-9._-]{1,100}$/;
 const DEFAULT_PER_PAGE = 100;
 const DEFAULT_MAX_PAGES = 10;
+const MAX_BACKFILL_ISSUES = 50;
 
 function isValidSegment(s: unknown): s is string {
   return typeof s === "string" && REPO_RE.test(s);
@@ -152,6 +153,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+  try {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Only POST method is allowed" }, 405);
   }
@@ -283,6 +285,7 @@ serve(async (req) => {
   }
 
   let upserted = 0;
+  let processed = 0;
   let page = 1;
   let lastRateLimitRemaining: number | null = null;
 
@@ -301,6 +304,8 @@ serve(async (req) => {
     if (result.rows.length === 0) break;
 
     for (const issue of result.rows) {
+      if (processed >= MAX_BACKFILL_ISSUES) break;
+      processed++;
       const labels = (issue.labels ?? []).map((l) => ({ name: l.name, color: l.color }));
       const assignees = (issue.assignees ?? []).map((a) => ({ login: a.login }));
       const { error } = await sb.schema("gh").rpc("upsert_issue", {
@@ -329,6 +334,7 @@ serve(async (req) => {
       upserted++;
     }
 
+    if (processed >= MAX_BACKFILL_ISSUES) break;
     if (result.rows.length < perPage) break;
     page++;
   }
@@ -345,4 +351,14 @@ serve(async (req) => {
     },
     200,
   );
+  } catch (e) {
+    console.error("gh-backfill: unhandled error:", e);
+    return jsonResponse(
+      {
+        error: "Internal error",
+        detail: e instanceof Error ? e.message : String(e),
+      },
+      500,
+    );
+  }
 });

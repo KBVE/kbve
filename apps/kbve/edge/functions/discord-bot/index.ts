@@ -43,10 +43,26 @@ async function getBotToken(): Promise<string | null> {
   return secret;
 }
 
-function getBotClientId(): string | null {
-  const id = Deno.env.get("DISCORD_BOT_CLIENT_ID");
-  if (!id || !/^[0-9]{17,20}$/.test(id)) return null;
-  return id;
+function clientIdFromToken(token: string): string | null {
+  try {
+    let first = (token.split(".")[0] ?? "").replace(/-/g, "+").replace(
+      /_/g,
+      "/",
+    );
+    while (first.length % 4) first += "=";
+    const decoded = atob(first);
+    return /^[0-9]{17,20}$/.test(decoded) ? decoded : null;
+  } catch {
+    return null;
+  }
+}
+
+async function getBotClientId(): Promise<string | null> {
+  const envId = Deno.env.get("DISCORD_BOT_CLIENT_ID");
+  if (envId && /^[0-9]{17,20}$/.test(envId)) return envId;
+  const token = await getBotToken();
+  if (!token) return null;
+  return clientIdFromToken(token);
 }
 
 function ownsGuild(claims: Record<string, unknown>, serverId: string): boolean {
@@ -91,10 +107,10 @@ async function botCallback(
 }
 
 async function handleIsMember(serverId: string): Promise<Response> {
-  const botId = getBotClientId();
+  const botId = await getBotClientId();
   if (!botId) {
     return jsonResponse(
-      { error: "DISCORD_BOT_CLIENT_ID env not configured on edge fn" },
+      { error: "Bot client_id unavailable (no env, token decode failed)" },
       500,
     );
   }
@@ -213,10 +229,22 @@ async function handleListForumChannels(serverId: string): Promise<Response> {
   return jsonResponse({ channels });
 }
 
+async function handleInstallInfo(): Promise<Response> {
+  const clientId = await getBotClientId();
+  if (!clientId) {
+    return jsonResponse(
+      { error: "Bot client_id unavailable (no env, token decode failed)" },
+      500,
+    );
+  }
+  return jsonResponse({ client_id: clientId });
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+  try {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Only POST is allowed" }, 405);
   }
@@ -262,6 +290,8 @@ serve(async (req) => {
   switch (body.command) {
     case "bot.is_member":
       return await handleIsMember(serverId);
+    case "bot.install_info":
+      return await handleInstallInfo();
     case "bot.list_forum_channels":
       return await handleListForumChannels(serverId);
     case "bot.list_channels":
@@ -270,9 +300,19 @@ serve(async (req) => {
       return jsonResponse(
         {
           error:
-            'command required (one of: "bot.is_member", "bot.list_forum_channels", "bot.list_channels")',
+            'command required (one of: "bot.is_member", "bot.install_info", "bot.list_forum_channels", "bot.list_channels")',
         },
         400,
       );
+  }
+  } catch (e) {
+    console.error("discord-bot: unhandled error:", e);
+    return jsonResponse(
+      {
+        error: "Internal error",
+        detail: e instanceof Error ? e.message : String(e),
+      },
+      500,
+    );
   }
 });

@@ -9,21 +9,22 @@ import {
 	RefreshCw,
 	RotateCcw,
 } from 'lucide-react';
-import { agentsService } from './agentsService';
-import { styles } from './dashboard-ui';
+import { useAgents } from './context';
+import { styles } from '../dashboard/dashboard-ui';
 
 const REFRESH_INTERVAL_MS = 30_000;
 
 export default function ReactAgentEventQueue() {
-	const guildId = useStore(agentsService.$selectedGuildId);
-	const guilds = useStore(agentsService.$guilds);
-	const statsMap = useStore(agentsService.$eventStats);
-	const statsLoadingMap = useStore(agentsService.$eventStatsLoading);
-	const failedMap = useStore(agentsService.$failedEvents);
-	const failedLoadingMap = useStore(agentsService.$failedEventsLoading);
-	const pendingMap = useStore(agentsService.$pendingEvents);
-	const pendingLoadingMap = useStore(agentsService.$pendingEventsLoading);
-	const requeueBusyMap = useStore(agentsService.$eventRequeueBusyFor);
+	const agents = useAgents();
+	const guildId = useStore(agents.$selectedGuildId);
+	const guilds = useStore(agents.$guilds);
+	const statsMap = useStore(agents.$eventStats);
+	const statsLoadingMap = useStore(agents.$eventStatsLoading);
+	const failedMap = useStore(agents.$failedEvents);
+	const failedLoadingMap = useStore(agents.$failedEventsLoading);
+	const pendingMap = useStore(agents.$pendingEvents);
+	const pendingLoadingMap = useStore(agents.$pendingEventsLoading);
+	const requeueBusyMap = useStore(agents.$eventRequeueBusyFor);
 
 	const [autoRefresh, setAutoRefresh] = useState(true);
 
@@ -40,23 +41,23 @@ export default function ReactAgentEventQueue() {
 
 	useEffect(() => {
 		if (!guildId) return;
-		void agentsService.loadEventStats(guildId);
-		void agentsService.loadFailedEvents(guildId, 10);
-		void agentsService.loadPendingEvents(guildId, 10);
+		void agents.loadEventStats(guildId);
+		void agents.loadFailedEvents(guildId, 10);
+		void agents.loadPendingEvents(guildId, 10);
 	}, [guildId]);
 
 	useEffect(() => {
 		if (!guildId || !autoRefresh) return;
 		const id = setInterval(() => {
-			void agentsService.loadEventStats(guildId);
+			void agents.loadEventStats(guildId);
 			if ((failedMap[guildId] ?? []).length > 0) {
-				void agentsService.loadFailedEvents(guildId, 10);
+				void agents.loadFailedEvents(guildId, 10);
 			}
 			const cur = statsMap[guildId];
 			const queueDepth =
 				(cur?.pending_count ?? 0) + (cur?.in_flight_count ?? 0);
 			if (queueDepth > 0) {
-				void agentsService.loadPendingEvents(guildId, 10);
+				void agents.loadPendingEvents(guildId, 10);
 			}
 		}, REFRESH_INTERVAL_MS);
 		return () => clearInterval(id);
@@ -82,14 +83,14 @@ export default function ReactAgentEventQueue() {
 
 	async function refresh() {
 		if (!guildId) return;
-		void agentsService.loadEventStats(guildId);
-		void agentsService.loadFailedEvents(guildId, 10);
-		void agentsService.loadPendingEvents(guildId, 10);
+		void agents.loadEventStats(guildId);
+		void agents.loadFailedEvents(guildId, 10);
+		void agents.loadPendingEvents(guildId, 10);
 	}
 
 	async function requeue(eventId: number) {
 		if (!guildId) return;
-		await agentsService.requeueEvent(guildId, eventId);
+		await agents.requeueEvent(guildId, eventId);
 	}
 
 	const pendingCount = stats?.pending_count ?? 0;

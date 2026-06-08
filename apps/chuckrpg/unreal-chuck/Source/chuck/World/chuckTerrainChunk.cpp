@@ -4,25 +4,14 @@
 
 AchuckTerrainChunk::AchuckTerrainChunk()
 {
-	GrassBucket.bUseProceduralGrass    = true;
-	GrassBucket.ProceduralVariantCount = 3;
-	GrassBucket.ProceduralWidthMin     = 3.f;
-	GrassBucket.ProceduralWidthMax     = 7.f;
-	GrassBucket.ProceduralHeightMin    = 28.f;
-	GrassBucket.ProceduralHeightMax    = 55.f;
-	GrassBucket.MaxVariants            = 32;
-	GrassBucket.DensityScale           = 3.5f;
-	GrassBucket.ScaleMultiplier        = 1.0f;
-	GrassBucket.SinkDepth              = 8.f;
-	GrassBucket.CullStart              = 2500;
-	GrassBucket.CullEnd                = 5000;
-	GrassBucket.bCastShadow            = false;
-	GrassBucket.ImpostorCullStart      = 4500;
-	GrassBucket.ImpostorCullEnd        = 22000;
-	GrassBucket.bImpostorCastShadow    = false;
-	GrassBucket.GroundTintCullStart    = 21500;
-	GrassBucket.GroundTintCullEnd      = 32000;
-	GrassBucket.Tier                   = EKBVEWorldFoliageTier::Grass;
+	GrassBucket.bUseProceduralGrass = false;
+	GrassBucket.SourcePath          = TEXT("/Game/PN_GrassLibrary/FoliageTypes/grassFoliage");
+	GrassBucket.MaxVariants         = 24;
+	GrassBucket.DensityScale        = 3.5f;
+	GrassBucket.ScaleMultiplier     = 1.0f;
+	GrassBucket.SinkDepth           = 8.f;
+	GrassBucket.bCastShadow         = false;
+	GrassBucket.Tier                = EKBVEWorldFoliageTier::Grass;
 
 	FoliageBucket.MaxVariants     = 32;
 	FoliageBucket.DensityScale    = 0.4f;
@@ -34,7 +23,7 @@ AchuckTerrainChunk::AchuckTerrainChunk()
 
 	BlockSize         = 4;
 	InstancesPerBlock = 64;
-	PerChunkVariants  = 2;
+	PerChunkVariants  = 8;
 	MaxSlope          = 0.55f;
 }
 

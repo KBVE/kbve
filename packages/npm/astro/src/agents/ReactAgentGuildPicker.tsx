@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { Loader2, RefreshCw, Users } from 'lucide-react';
-import { agentsService, type DiscordGuild } from './agentsService';
-import { styles } from './dashboard-ui';
+import { useAgents } from './context';
+import type { DiscordGuild } from '@kbve/droid';
+import { styles } from '../dashboard/dashboard-ui';
 
 const DISCORD_CDN = 'https://cdn.discordapp.com';
 
@@ -28,10 +29,11 @@ interface GuildPickerProps {
 export default function ReactAgentGuildPicker({
 	title = 'Discord guilds you own',
 }: GuildPickerProps) {
-	const guilds = useStore(agentsService.$guilds);
-	const loading = useStore(agentsService.$guildsLoading);
-	const error = useStore(agentsService.$guildsError);
-	const selectedGuildId = useStore(agentsService.$selectedGuildId);
+	const agents = useAgents();
+	const guilds = useStore(agents.$guilds);
+	const loading = useStore(agents.$guildsLoading);
+	const error = useStore(agents.$guildsError);
+	const selectedGuildId = useStore(agents.$selectedGuildId);
 
 	const [resyncing, setResyncing] = useState(false);
 	const [resyncMsg, setResyncMsg] = useState<{
@@ -39,12 +41,18 @@ export default function ReactAgentGuildPicker({
 		text: string;
 	} | null>(null);
 
+	useEffect(() => {
+		if (!resyncMsg) return;
+		const t = setTimeout(() => setResyncMsg(null), 5000);
+		return () => clearTimeout(t);
+	}, [resyncMsg]);
+
 	async function resync() {
 		if (resyncing) return;
 		setResyncing(true);
 		setResyncMsg(null);
-		const ok = await agentsService.resyncOwnedGuilds();
-		await agentsService.loadOwnedGuilds(true);
+		const ok = await agents.resyncOwnedGuilds();
+		await agents.loadOwnedGuilds(true);
 		setResyncing(false);
 		setResyncMsg(
 			ok
@@ -57,7 +65,6 @@ export default function ReactAgentGuildPicker({
 						text: 'Resync failed — try signing out and back in if the issue persists.',
 					},
 		);
-		setTimeout(() => setResyncMsg(null), 5000);
 	}
 
 	return (
@@ -159,9 +166,7 @@ export default function ReactAgentGuildPicker({
 								<button
 									key={g.id}
 									type="button"
-									onClick={() =>
-										agentsService.selectGuild(g.id)
-									}
+									onClick={() => agents.selectGuild(g.id)}
 									style={{
 										display: 'flex',
 										alignItems: 'center',

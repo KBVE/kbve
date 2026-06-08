@@ -10,15 +10,21 @@ class UStaticMesh;
 class UMaterialInterface;
 
 USTRUCT()
+struct FKBVEGrassMeshBatch
+{
+	GENERATED_BODY()
+
+	UPROPERTY() TObjectPtr<UStaticMesh> Mesh = nullptr;
+	UPROPERTY() TArray<FTransform> Transforms;
+};
+
+USTRUCT()
 struct FKBVEGrassPendingBuild
 {
 	GENERATED_BODY()
 
 	UPROPERTY() FIntPoint ChunkCoord = FIntPoint::ZeroValue;
-	UPROPERTY() TArray<FTransform> BladeTransforms;
-	UPROPERTY() TArray<FTransform> ImpostorTransforms;
-	UPROPERTY() int32 BladeCursor    = 0;
-	UPROPERTY() int32 ImpostorCursor = 0;
+	UPROPERTY() TArray<FKBVEGrassMeshBatch> Batches;
 };
 
 UCLASS()
@@ -34,36 +40,32 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override { RETURN_QUICK_DECLARE_CYCLE_STAT(UKBVEWorldGrassRenderSubsystem, STATGROUP_Tickables); }
 
-	bool RegisterChunkInstances(FIntPoint ChunkCoord,
-		const TArray<FTransform>& BladeTransforms,
-		const TArray<FTransform>& ImpostorTransforms);
+	static void EnsureMaterialISMFlag(UMaterialInterface* MI);
+	static int32 BladeRenderStride();
+	static float RenderScaleMul();
+
+	void PrewarmMeshPool(const TArray<UStaticMesh*>& Meshes);
+
+	bool RegisterChunkInstances(FIntPoint ChunkCoord, const TArray<FKBVEGrassMeshBatch>& Batches);
 
 	void ReleaseChunkInstances(FIntPoint ChunkCoord);
 
 	void TickBuildQueue(int32 InstanceBudget);
 
-	UHierarchicalInstancedStaticMeshComponent* GetBladeHISM()    const { return GlobalBladeHISM; }
-	UHierarchicalInstancedStaticMeshComponent* GetImpostorHISM() const { return GlobalImpostorHISM; }
-
 private:
 	void EnsureHost();
+	UHierarchicalInstancedStaticMeshComponent* GetOrCreateMeshHISM(UStaticMesh* Mesh);
+	void AddChunkToHISMs(const FKBVEGrassPendingBuild& Build, TSet<UHierarchicalInstancedStaticMeshComponent*>& OutTouched);
+	void RemoveChunkFromHISMs(FIntPoint Coord, TSet<UHierarchicalInstancedStaticMeshComponent*>& OutTouched);
 	void RemoveOwnedInstances(UHierarchicalInstancedStaticMeshComponent* H, TArray<FIntPoint>& Owners, FIntPoint Coord);
-	void AppendInstancesWithOwners(UHierarchicalInstancedStaticMeshComponent* H,
-		TArray<FIntPoint>& Owners,
-		const FTransform* Begin,
-		int32 Count,
-		FIntPoint Coord);
 
 	UPROPERTY(Transient) TObjectPtr<AActor> HostActor;
-	UPROPERTY(Transient) TObjectPtr<UHierarchicalInstancedStaticMeshComponent> GlobalBladeHISM;
-	UPROPERTY(Transient) TObjectPtr<UHierarchicalInstancedStaticMeshComponent> GlobalImpostorHISM;
-	UPROPERTY(Transient) TObjectPtr<UStaticMesh> BladeMesh;
-	UPROPERTY(Transient) TObjectPtr<UStaticMesh> ImpostorMesh;
 	UPROPERTY(Transient) TObjectPtr<UMaterialInterface> MasterMaterial;
 	UPROPERTY(Transient) TObjectPtr<AActor> PNGlobalUpdaterActor;
+	UPROPERTY(Transient) TMap<TObjectPtr<UStaticMesh>, TObjectPtr<UHierarchicalInstancedStaticMeshComponent>> MeshHISMs;
+	UPROPERTY(Transient) TSet<TObjectPtr<UStaticMesh>> TrackedMeshes;
 
-	TArray<FIntPoint> BladeOwners;
-	TArray<FIntPoint> ImpostorOwners;
-	TArray<FKBVEGrassPendingBuild> PendingBuilds;
-	TSet<FIntPoint> ActiveChunks;
+	TMap<UStaticMesh*, TArray<FIntPoint>> MeshOwners;
+	TMap<FIntPoint, FKBVEGrassPendingBuild> RegisteredChunks;
+	TSet<FIntPoint> ResidentChunks;
 };

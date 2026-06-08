@@ -1525,10 +1525,14 @@ dependencies = [
  "axum 0.8.9",
  "axum-extra",
  "dotenvy",
+ "http 1.4.0",
  "http-body-util",
  "jedi",
+ "k8s-openapi",
  "kbve",
+ "kube",
  "num_cpus",
+ "rustls 0.23.37",
  "serde_json",
  "serial_test",
  "socket2 0.6.3",
@@ -4842,6 +4846,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77727bb15fa921304124b128af125e7e3b968275d1b108b379190264f4423710"
 dependencies = [
  "hybrid-array",
+]
+
+[[package]]
+name = "cryptothrone-server"
+version = "0.0.1"
+dependencies = [
+ "agones",
+ "axum 0.7.9",
+ "bevy",
+ "simgrid",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -15089,6 +15106,20 @@ name = "simdutf8"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e"
+
+[[package]]
+name = "simgrid"
+version = "0.0.1"
+dependencies = [
+ "axum 0.7.9",
+ "bevy",
+ "futures-util",
+ "jsonwebtoken 9.3.1",
+ "postcard",
+ "serde",
+ "tokio",
+ "tracing",
+]
 
 [[package]]
 name = "simple_asn1"

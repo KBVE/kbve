@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2, RefreshCw, Shuffle, X } from 'lucide-react';
-import { agentsService, type AgentTokenRow } from './agentsService';
+import { useAgents } from './context';
+import type { AgentTokenRow } from '@kbve/droid';
 
 const TOKEN_NAME_RE = /^[a-z0-9_-]{3,64}$/;
 const SERVICE_RE = /^[a-z0-9_]{2,32}$/;
@@ -121,6 +122,7 @@ function genSecret(bytes = 32): string {
 }
 
 export function AddTokenModal({ onClose }: BaseModalProps) {
+	const agents = useAgents();
 	const [tokenName, setTokenName] = useState('');
 	const [service, setService] = useState('github_webhook');
 	const [tokenValue, setTokenValue] = useState('');
@@ -159,7 +161,7 @@ export function AddTokenModal({ onClose }: BaseModalProps) {
 			return;
 		}
 		setBusy(true);
-		const r = await agentsService.addToken({
+		const r = await agents.addToken({
 			tokenName,
 			service,
 			tokenValue,
@@ -340,6 +342,7 @@ interface DeleteTokenModalProps extends BaseModalProps {
 }
 
 export function DeleteTokenModal({ token, onClose }: DeleteTokenModalProps) {
+	const agents = useAgents();
 	const [confirmText, setConfirmText] = useState('');
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -350,7 +353,7 @@ export function DeleteTokenModal({ token, onClose }: DeleteTokenModalProps) {
 		if (!match || busy) return;
 		setBusy(true);
 		setError(null);
-		const r = await agentsService.deleteToken(token.token_id);
+		const r = await agents.deleteToken(token.token_id);
 		setBusy(false);
 		if (!r.ok) {
 			setError(r.error);

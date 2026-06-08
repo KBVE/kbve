@@ -9,13 +9,10 @@ import {
 } from 'react';
 import { useStore } from '@nanostores/react';
 import { Hash, Loader2, RefreshCw, Save, Settings2 } from 'lucide-react';
-import {
-	agentsService,
-	emptyBotConfigFormDraft,
-	type BotConfigFormDraft,
-	type DiscordChannel,
-} from './agentsService';
-import { styles } from './dashboard-ui';
+import { useAgents } from './context';
+import { emptyBotConfigFormDraft } from '@kbve/droid';
+import type { BotConfigFormDraft, DiscordChannel } from '@kbve/droid';
+import { styles } from '../dashboard/dashboard-ui';
 
 const SNOWFLAKE_RE = /^[0-9]{17,20}$/;
 const REPO_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,38}\/[A-Za-z0-9._-]{1,100}$/;
@@ -85,14 +82,15 @@ function validateAll(draft: BotConfigFormDraft): Errors {
 }
 
 export default function ReactAgentBotConfig() {
-	const guildId = useStore(agentsService.$selectedGuildId);
-	const guilds = useStore(agentsService.$guilds);
-	const savingMap = useStore(agentsService.$botConfigSavingFor);
-	const errorsMap = useStore(agentsService.$botConfigErrors);
-	const loadedMap = useStore(agentsService.$botConfigLoadedFor);
-	const channelsMap = useStore(agentsService.$guildChannels);
-	const channelsLoadingMap = useStore(agentsService.$guildChannelsLoading);
-	const channelsErrorMap = useStore(agentsService.$guildChannelsError);
+	const agents = useAgents();
+	const guildId = useStore(agents.$selectedGuildId);
+	const guilds = useStore(agents.$guilds);
+	const savingMap = useStore(agents.$botConfigSavingFor);
+	const errorsMap = useStore(agents.$botConfigErrors);
+	const loadedMap = useStore(agents.$botConfigLoadedFor);
+	const channelsMap = useStore(agents.$guildChannels);
+	const channelsLoadingMap = useStore(agents.$guildChannelsLoading);
+	const channelsErrorMap = useStore(agents.$guildChannelsError);
 
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState<string | null>(null);
@@ -121,7 +119,7 @@ export default function ReactAgentBotConfig() {
 		(force: boolean) => {
 			if (!guildId) return;
 			const snapshot =
-				agentsService.$botConfigDrafts.get()[guildId] ??
+				agents.$botConfigDrafts.get()[guildId] ??
 				emptyBotConfigFormDraft();
 			initialDraftRef.current = snapshot;
 			mirrorRef.current = snapshot.mirror_pr_events;
@@ -146,7 +144,7 @@ export default function ReactAgentBotConfig() {
 			if (!guildId) return;
 			setLoading(true);
 			setSuccess(null);
-			await agentsService.ensureBotConfigLoaded(guildId, force);
+			await agents.ensureBotConfigLoaded(guildId, force);
 			setLoading(false);
 			hydrate(true);
 		},
@@ -164,7 +162,7 @@ export default function ReactAgentBotConfig() {
 
 	useEffect(() => {
 		if (!guildId) return;
-		void agentsService.ensureGuildChannelsLoaded(guildId);
+		void agents.ensureGuildChannelsLoaded(guildId);
 	}, [guildId]);
 
 	const channels = guildId ? channelsMap[guildId] : undefined;
@@ -184,7 +182,7 @@ export default function ReactAgentBotConfig() {
 			mirrorRef.current,
 			activeRef.current,
 		);
-		agentsService.patchBotConfigDraft(guildId, cur);
+		agents.patchBotConfigDraft(guildId, cur);
 	}
 
 	function onFieldBlur(k: TextFieldKey) {
@@ -228,9 +226,9 @@ export default function ReactAgentBotConfig() {
 			}
 			return;
 		}
-		agentsService.patchBotConfigDraft(guildId, draft);
+		agents.patchBotConfigDraft(guildId, draft);
 		setSuccess(null);
-		const r = await agentsService.saveBotConfigDraft(guildId);
+		const r = await agents.saveBotConfigDraft(guildId);
 		if (r.ok) setSuccess('Saved.');
 	}
 
@@ -286,10 +284,7 @@ export default function ReactAgentBotConfig() {
 				<button
 					type="button"
 					onClick={() =>
-						void agentsService.ensureGuildChannelsLoaded(
-							guildId,
-							true,
-						)
+						void agents.ensureGuildChannelsLoaded(guildId, true)
 					}
 					disabled={channelsLoading}
 					style={refreshBtn(channelsLoading)}

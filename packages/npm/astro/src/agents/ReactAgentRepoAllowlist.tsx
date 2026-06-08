@@ -7,18 +7,19 @@ import {
 } from 'react';
 import { useStore } from '@nanostores/react';
 import { GitBranch, Loader2, Plus, RefreshCw, Trash2 } from 'lucide-react';
-import { agentsService } from './agentsService';
-import { styles } from './dashboard-ui';
+import { useAgents } from './context';
+import { styles } from '../dashboard/dashboard-ui';
 
 const REPO_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,38}\/[A-Za-z0-9._-]{1,100}$/;
 
 export default function ReactAgentRepoAllowlist() {
-	const guildId = useStore(agentsService.$selectedGuildId);
-	const guilds = useStore(agentsService.$guilds);
-	const draftsMap = useStore(agentsService.$repoAllowlistDrafts);
-	const savingMap = useStore(agentsService.$repoAllowlistSavingFor);
-	const errorsMap = useStore(agentsService.$repoAllowlistErrors);
-	const loadedMap = useStore(agentsService.$repoAllowlistLoadedFor);
+	const agents = useAgents();
+	const guildId = useStore(agents.$selectedGuildId);
+	const guilds = useStore(agents.$guilds);
+	const draftsMap = useStore(agents.$repoAllowlistDrafts);
+	const savingMap = useStore(agents.$repoAllowlistSavingFor);
+	const errorsMap = useStore(agents.$repoAllowlistErrors);
+	const loadedMap = useStore(agents.$repoAllowlistLoadedFor);
 
 	const [loading, setLoading] = useState(false);
 	const [draftValid, setDraftValid] = useState(false);
@@ -35,7 +36,7 @@ export default function ReactAgentRepoAllowlist() {
 		async (force = false) => {
 			if (!guildId) return;
 			setLoading(true);
-			await agentsService.ensureRepoAllowlistLoaded(guildId, force);
+			await agents.ensureRepoAllowlistLoaded(guildId, force);
 			setLoading(false);
 		},
 		[guildId],
@@ -100,14 +101,14 @@ export default function ReactAgentRepoAllowlist() {
 		}
 		const prev = repos;
 		const next = [...repos, v];
-		agentsService.patchRepoAllowlistDraft(guildId, next);
-		const r = await agentsService.saveRepoAllowlistDraft(guildId);
+		agents.patchRepoAllowlistDraft(guildId, next);
+		const r = await agents.saveRepoAllowlistDraft(guildId);
 		if (r.ok) {
 			if (draftRef.current) draftRef.current.value = '';
 			setDraftRaw('');
 			setDraftValid(false);
 		} else {
-			agentsService.patchRepoAllowlistDraft(guildId, prev);
+			agents.patchRepoAllowlistDraft(guildId, prev);
 		}
 	}
 
@@ -115,10 +116,10 @@ export default function ReactAgentRepoAllowlist() {
 		if (!guildId || saving) return;
 		const prev = repos;
 		const next = repos.filter((r) => r !== repo);
-		agentsService.patchRepoAllowlistDraft(guildId, next);
-		const r = await agentsService.saveRepoAllowlistDraft(guildId);
+		agents.patchRepoAllowlistDraft(guildId, next);
+		const r = await agents.saveRepoAllowlistDraft(guildId);
 		if (!r.ok) {
-			agentsService.patchRepoAllowlistDraft(guildId, prev);
+			agents.patchRepoAllowlistDraft(guildId, prev);
 		}
 	}
 

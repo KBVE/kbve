@@ -10,12 +10,9 @@ import {
 	Trash2,
 	Power,
 } from 'lucide-react';
-import {
-	agentsService,
-	type AgentTokenRow,
-	type DiscordGuild,
-} from './agentsService';
-import { styles } from './dashboard-ui';
+import { useAgents } from './context';
+import type { AgentTokenRow, DiscordGuild } from '@kbve/droid';
+import { styles } from '../dashboard/dashboard-ui';
 import { AddTokenModal, DeleteTokenModal } from './ReactAgentTokenModals';
 import ReactAgentGuildPicker from './ReactAgentGuildPicker';
 
@@ -38,15 +35,16 @@ function maskService(svc: string): { label: string; color: string } {
 }
 
 export default function ReactAgentDiscordsh() {
-	const authState = useStore(agentsService.$authState);
-	const guilds = useStore(agentsService.$guilds);
-	const selectedGuildId = useStore(agentsService.$selectedGuildId);
-	const tokens = useStore(agentsService.$tokens);
-	const tokensLoading = useStore(agentsService.$tokensLoading);
-	const tokensError = useStore(agentsService.$tokensError);
+	const agents = useAgents();
+	const authState = useStore(agents.$authState);
+	const guilds = useStore(agents.$guilds);
+	const selectedGuildId = useStore(agents.$selectedGuildId);
+	const tokens = useStore(agents.$tokens);
+	const tokensLoading = useStore(agents.$tokensLoading);
+	const tokensError = useStore(agents.$tokensError);
 
 	useEffect(() => {
-		void agentsService.initAuth();
+		void agents.initAuth();
 	}, []);
 
 	const selectedGuild = useMemo(
@@ -93,7 +91,7 @@ export default function ReactAgentDiscordsh() {
 				</p>
 				<button
 					type="button"
-					onClick={() => void agentsService.signInWithDiscord()}
+					onClick={() => void agents.signInWithDiscord()}
 					style={{
 						marginTop: '1rem',
 						padding: '0.55rem 1.1rem',
@@ -129,7 +127,7 @@ export default function ReactAgentDiscordsh() {
 				</p>
 				<button
 					type="button"
-					onClick={() => void agentsService.signInWithDiscord()}
+					onClick={() => void agents.signInWithDiscord()}
 					style={{
 						marginTop: '1rem',
 						padding: '0.55rem 1.1rem',
@@ -171,7 +169,7 @@ export default function ReactAgentDiscordsh() {
 					tokens={tokens}
 					loading={tokensLoading}
 					error={tokensError}
-					onRefresh={() => void agentsService.refreshSelectedGuild()}
+					onRefresh={() => void agents.refreshSelectedGuild()}
 				/>
 			) : (
 				<EmptyGuildPrompt guildCount={guilds.length} />
@@ -195,6 +193,7 @@ function TokenList({
 	error,
 	onRefresh,
 }: TokenListProps) {
+	const agents = useAgents();
 	const [addOpen, setAddOpen] = useState(false);
 	const [pendingDelete, setPendingDelete] = useState<AgentTokenRow | null>(
 		null,
@@ -203,7 +202,7 @@ function TokenList({
 
 	async function handleToggle(t: AgentTokenRow) {
 		setTogglingId(t.token_id);
-		await agentsService.toggleToken(t.token_id, !t.is_active);
+		await agents.toggleToken(t.token_id, !t.is_active);
 		setTogglingId(null);
 	}
 
