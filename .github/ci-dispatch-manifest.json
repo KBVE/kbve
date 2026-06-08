@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.188",
+			"version": "1.0.191",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -148,7 +148,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.39",
+			"version": "0.1.42",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -1007,6 +1007,27 @@
 	],
 	"unreal_game": [
 		{
+			"key": "unreal_chuck_demo",
+			"app_name": "chuck-demo",
+			"engine": {
+				"version": "5.7.4",
+				"project_path": "apps/chuckrpg/unreal-chuck",
+				"build_targets": [
+					"Win64"
+				]
+			},
+			"source_path": "apps/chuckrpg/unreal-chuck",
+			"version": "0.3.19",
+			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-demo.mdx",
+			"runner": "arc-runner-ue",
+			"external_publish": {
+				"itch_user": "kbve",
+				"itch_game": "chuckrpg",
+				"itch_channel": "demo"
+			}
+		},
+		{
 			"key": "unreal_chuck_game",
 			"app_name": "chuck",
 			"engine": {
@@ -1039,8 +1060,8 @@
 		"ue5_server": 2,
 		"unity": 1,
 		"godot": 1,
-		"unreal_game": 1,
+		"unreal_game": 2,
 		"bevy_game": 0,
-		"total": 86
+		"total": 87
 	}
 }
