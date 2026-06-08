@@ -5,27 +5,6 @@
 	"sourceRoot": "packages/data/sql",
 	"tags": ["scope:data", "type:sql"],
 	"targets": {
-		"dev-up": {
-			"executor": "nx:run-commands",
-			"options": {
-				"command": "docker compose -f dev-docker-compose.yml up -d postgres",
-				"cwd": "{projectRoot}/dbmate"
-			}
-		},
-		"dev-down": {
-			"executor": "nx:run-commands",
-			"options": {
-				"command": "docker compose -f dev-docker-compose.yml down",
-				"cwd": "{projectRoot}/dbmate"
-			}
-		},
-		"dev-reset": {
-			"executor": "nx:run-commands",
-			"options": {
-				"command": "docker compose -f dev-docker-compose.yml down -v && docker compose -f dev-docker-compose.yml up -d postgres",
-				"cwd": "{projectRoot}/dbmate"
-			}
-		},
 		"kilobase-up": {
 			"executor": "nx:run-commands",
 			"options": {
@@ -68,24 +47,10 @@
 				"cwd": "{projectRoot}/dbmate"
 			}
 		},
-		"smoke-vanilla": {
-			"executor": "nx:run-commands",
-			"options": {
-				"command": "./smoke.sh vanilla",
-				"cwd": "{projectRoot}/dbmate"
-			}
-		},
 		"smoke-kilobase": {
 			"executor": "nx:run-commands",
 			"options": {
 				"command": "./smoke.sh kilobase",
-				"cwd": "{projectRoot}/dbmate"
-			}
-		},
-		"smoke-vanilla-keep": {
-			"executor": "nx:run-commands",
-			"options": {
-				"command": "./smoke.sh vanilla --keep",
 				"cwd": "{projectRoot}/dbmate"
 			}
 		},
@@ -96,11 +61,17 @@
 				"cwd": "{projectRoot}/dbmate"
 			}
 		},
+		"smoke-kilobase-rollback": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "./smoke.sh kilobase --rollback",
+				"cwd": "{projectRoot}/dbmate"
+			}
+		},
 		"smoke": {
 			"executor": "nx:run-commands",
 			"options": {
-				"commands": ["./smoke.sh vanilla", "./smoke.sh kilobase"],
-				"parallel": false,
+				"command": "./smoke.sh kilobase --rollback",
 				"cwd": "{projectRoot}/dbmate"
 			}
 		}
