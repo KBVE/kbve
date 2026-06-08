@@ -120,7 +120,6 @@ UMaterialInterface* FKBVEWorldTerrainShader::GetOrCreateGroundMaterial(UObject* 
 
 	const int32 NumSets = UE_ARRAY_COUNT(GroundSets);
 
-	// Macro "area" selector: low-frequency noise in 0..1, scaled across all sets.
 	UMaterialExpressionNoise* AreaNoise = MakeTerrainExpr<UMaterialExpressionNoise>(M);
 	AreaNoise->Position.Expression = WorldPos;
 	AreaNoise->Scale     = 0.00035f;
@@ -134,8 +133,6 @@ UMaterialInterface* FKBVEWorldTerrainShader::GetOrCreateGroundMaterial(UObject* 
 	Seg->A.Expression = AreaNoise;
 	Seg->B.Expression = Span;
 
-	// Walk the 7 sets along the selector: each step blends in the next set
-	// where seg crosses its band, so areas transition through every ground type.
 	auto BlendChain = [&](bool bNormal) -> UMaterialExpression*
 	{
 		UMaterialExpression* Acc = Sample(GroundSets[0], bNormal);

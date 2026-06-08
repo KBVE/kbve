@@ -200,10 +200,6 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateCardMaterial(UObject* /*Ou
 		ED->OpacityMask.Connect(0, OpacityS);
 	}
 
-	// Near collapse: impostor cards shrink to their pivot (zero area -> no
-	// rasterized pixels, no overdraw) up close where the real blades are,
-	// and expand to full size just past the blade range. WPO is vertex-stage
-	// so camera distance comes from CameraPositionWS, not PixelDepth.
 	{
 		UMaterialExpressionCameraPositionWS* CamPos = MakeExpr<UMaterialExpressionCameraPositionWS>(M);
 		UMaterialExpressionWorldPosition*    WorldPos = MakeExpr<UMaterialExpressionWorldPosition>(M);

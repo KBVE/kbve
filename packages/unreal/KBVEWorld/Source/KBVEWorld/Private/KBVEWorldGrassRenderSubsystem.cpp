@@ -26,18 +26,13 @@ namespace KBVEGrassCfg
 	constexpr int32  RetentionRadius   = ImpostorRadius + 1;
 	constexpr int32  MaxResidentChunks = 110;
 	constexpr float  PNScaleMul        = 1.f;
-	constexpr int32  BladeStride       = 4;
+	constexpr int32  BladeStride       = 6;
 	constexpr int32  ImpostorStride    = 14;
 	constexpr float  ImpostorScaleMul  = 1.5f;
 	constexpr int32  BudgetPerTick     = 20000;
 	constexpr int32  MaxAdmitsPerTick  = 1;
 	constexpr int32  MaxEvictsPerTick  = 2;
 
-	// Cull-end is kept shorter than the tier's admit radius so each tier
-	// fully fades (cull) before the chunk-granular add/remove happens at
-	// the radius boundary — makes admit/evict and the blade transition
-	// invisible. Impostors live on every chunk (sparse), so a faded blade
-	// always reveals an impostor already in place: no gap, no pop.
 	constexpr float  BladeCullStart    = float((ViewRadius     - 1.0) * ChunkExtent);
 	constexpr float  BladeCullEnd      = float((ViewRadius     - 0.5) * ChunkExtent);
 	constexpr float  ImpostorCullStart = float((ImpostorRadius - 1.5) * ChunkExtent);
@@ -357,6 +352,7 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 	const bool bOverCap = ResidentChunks.Num() > MaxResidentChunks;
 	if (bOverCap || ResidentChunks.Num() > 0)
 	{
+		KBVEPERF_SCOPE("Grass.Evict");
 		TArray<FIntPoint> Victims;
 		for (const FIntPoint& C : ResidentChunks)
 		{
@@ -410,6 +406,9 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 
 	int32 Spent = 0;
 	int32 Admitted = 0;
+	if (RegisteredChunks.Num() > 0)
+	{
+		KBVEPERF_SCOPE("Grass.Admit");
 	while (Spent < InstanceBudget && Admitted < MaxAdmitsPerTick)
 	{
 		FIntPoint BestCoord;
@@ -433,6 +432,7 @@ void UKBVEWorldGrassRenderSubsystem::TickBuildQueue(int32 InstanceBudget)
 		for (const FKBVEGrassMeshBatch& B : Build.Batches) Spent += B.Transforms.Num();
 		Spent += Build.ImpostorTransforms.Num();
 		++Admitted;
+	}
 	}
 
 	for (UHierarchicalInstancedStaticMeshComponent* H : Touched)

@@ -536,19 +536,33 @@ void AKBVEWorldChunkActor::EnsureHISMComponents()
 
 	if (ChunkVariantIndices.Num() == 0)
 	{
-		const int32 Want = FMath::Min(PerChunkVariants, FoliageMeshes.Num());
-		const uint32 H = HashCombine(HashCombine(GetTypeHash(Coord), Seed), 0xDEADBEEFu);
-		FRandomStream PickRng(static_cast<int32>(H));
+		const int32 N = FoliageMeshes.Num();
+		const int32 Want = FMath::Min(PerChunkVariants, N);
+
+		auto FloorDiv = [](int32 A, int32 B) { return (A >= 0) ? (A / B) : (-((-A + B - 1) / B)); };
+		const int32 RegionSize = FMath::Max(1, BiomeRegionChunks);
+		const FIntPoint Region(FloorDiv(Coord.X, RegionSize), FloorDiv(Coord.Y, RegionSize));
+		const uint32 BiomeHash = HashCombine(HashCombine(GetTypeHash(Region), Seed), 0xB10E51A5u);
+		const int32 NumBiomes  = FMath::Clamp(NumGrassBiomes, 1, N);
+		const int32 BiomeId    = BiomeHash % NumBiomes;
+		ChunkBiomeId = (uint8)BiomeId;
+
+		const int32 SliceLen   = FMath::Max(Want, N / NumBiomes);
+		const int32 SliceStart = (BiomeId * (N / NumBiomes)) % N;
+
 		TArray<int32> Pool;
-		Pool.Reserve(FoliageMeshes.Num());
-		for (int32 i = 0; i < FoliageMeshes.Num(); ++i) Pool.Add(i);
-		for (int32 i = 0; i < Want; ++i)
+		Pool.Reserve(SliceLen);
+		for (int32 i = 0; i < SliceLen; ++i) Pool.Add((SliceStart + i) % N);
+
+		FRandomStream PickRng(static_cast<int32>(HashCombine(BiomeHash, GetTypeHash(Coord))));
+		const int32 Take = FMath::Min(Want, Pool.Num());
+		for (int32 i = 0; i < Take; ++i)
 		{
 			const int32 SwapIdx = PickRng.RandRange(i, Pool.Num() - 1);
 			Pool.Swap(i, SwapIdx);
 		}
-		ChunkVariantIndices.Reserve(Want);
-		for (int32 i = 0; i < Want; ++i) ChunkVariantIndices.Add(Pool[i]);
+		ChunkVariantIndices.Reserve(Take);
+		for (int32 i = 0; i < Take; ++i) ChunkVariantIndices.Add(Pool[i]);
 	}
 }
 
@@ -764,8 +778,6 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 			Out.Transforms = MoveTemp(Pair.Value);
 		}
 
-		// Sparse, mesh-agnostic impostor positions: every Nth blade across all
-		// slots, scaled up to read as a clump on the far crossed-card HISM.
 		TArray<FTransform> ImpostorXf;
 		const int32 ImpStep = FMath::Max(LocalImpStride, 1);
 		for (int32 Slot = 0; Slot < Batches.Num(); ++Slot)

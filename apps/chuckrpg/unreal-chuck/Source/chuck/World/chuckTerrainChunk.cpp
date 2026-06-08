@@ -6,7 +6,7 @@ AchuckTerrainChunk::AchuckTerrainChunk()
 {
 	GrassBucket.bUseProceduralGrass = false;
 	GrassBucket.SourcePath          = TEXT("/Game/PN_GrassLibrary/FoliageTypes/grassFoliage");
-	GrassBucket.MaxVariants         = 24;
+	GrassBucket.MaxVariants         = 110;
 	GrassBucket.DensityScale        = 3.5f;
 	GrassBucket.ScaleMultiplier     = 1.0f;
 	GrassBucket.SinkDepth           = 8.f;
