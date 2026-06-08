@@ -45,6 +45,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         input_tx,
         seed,
         jwt_secret,
+        true,
         game::MAX_PLAYERS,
     );
     let roster = state.roster.clone();
