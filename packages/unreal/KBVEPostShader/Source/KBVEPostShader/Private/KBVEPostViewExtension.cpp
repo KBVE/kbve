@@ -49,7 +49,7 @@ FKBVEPostViewExtension::FKBVEPostViewExtension(const FAutoRegister& AutoRegister
 {
 }
 
-void FKBVEPostViewExtension::SubscribeToPostProcessingPass(EPostProcessingPass Pass, FAfterPassCallbackDelegateArray& InOutPassCallbacks, bool bIsPassEnabled)
+void FKBVEPostViewExtension::SubscribeToPostProcessingPass(EPostProcessingPass Pass, const FSceneView& InView, FAfterPassCallbackDelegateArray& InOutPassCallbacks, bool bIsPassEnabled)
 {
 	if (Pass == EPostProcessingPass::Tonemap)
 	{
@@ -59,7 +59,7 @@ void FKBVEPostViewExtension::SubscribeToPostProcessingPass(EPostProcessingPass P
 
 FScreenPassTexture FKBVEPostViewExtension::AfterTonemap_RenderThread(FRDGBuilder& GraphBuilder, const FSceneView& View, const FPostProcessMaterialInputs& Inputs)
 {
-	const FScreenPassTexture SceneColor = Inputs.GetInput(EPostProcessMaterialInput::SceneColor);
+	const FScreenPassTexture SceneColor = FScreenPassTexture::CopyFromSlice(GraphBuilder, Inputs.GetInput(EPostProcessMaterialInput::SceneColor));
 	if (CVarKBVEPostEnable.GetValueOnRenderThread() == 0 || !SceneColor.IsValid())
 	{
 		return SceneColor;
@@ -121,7 +121,6 @@ FScreenPassTexture FKBVEPostViewExtension::AfterTonemap_RenderThread(FRDGBuilder
 		FKBVEPostCompositePS::FParameters* PassParameters = GraphBuilder.AllocParameters<FKBVEPostCompositePS::FParameters>();
 		PassParameters->ColorTexture = PaintedTexture;
 		PassParameters->ColorSampler = BilinearClamp;
-		PassParameters->SceneTextures = Inputs.SceneTextures.SceneTextures;
 		PassParameters->TexelSize = TexelSize;
 		PassParameters->Bands = FMath::Max(2.0f, CVarKBVEPostBands.GetValueOnRenderThread());
 		PassParameters->EdgeStrength = CVarKBVEPostEdgeStrength.GetValueOnRenderThread();

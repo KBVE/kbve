@@ -2,6 +2,7 @@
 #include "KBVEPostViewExtension.h"
 
 #include "Interfaces/IPluginManager.h"
+#include "Misc/CoreDelegates.h"
 #include "Misc/Paths.h"
 #include "SceneViewExtension.h"
 #include "ShaderCore.h"
@@ -17,11 +18,15 @@ void FKBVEPostShaderModule::StartupModule()
 		AddShaderSourceDirectoryMapping(TEXT("/Plugin/KBVEPostShader"), ShaderDir);
 	}
 
-	ViewExtension = FSceneViewExtensions::NewExtension<FKBVEPostViewExtension>();
+	PostEngineInitHandle = FCoreDelegates::OnPostEngineInit.AddLambda([this]()
+	{
+		ViewExtension = FSceneViewExtensions::NewExtension<FKBVEPostViewExtension>();
+	});
 }
 
 void FKBVEPostShaderModule::ShutdownModule()
 {
+	FCoreDelegates::OnPostEngineInit.Remove(PostEngineInitHandle);
 	ViewExtension.Reset();
 }
 

@@ -54,7 +54,6 @@ class FKBVEPostCompositePS : public FGlobalShader
 	BEGIN_SHADER_PARAMETER_STRUCT(FParameters, )
 		SHADER_PARAMETER_RDG_TEXTURE(Texture2D, ColorTexture)
 		SHADER_PARAMETER_SAMPLER(SamplerState, ColorSampler)
-		SHADER_PARAMETER_RDG_UNIFORM_BUFFER(FSceneTextureUniformParameters, SceneTextures)
 		SHADER_PARAMETER(FVector2f, TexelSize)
 		SHADER_PARAMETER(float, Bands)
 		SHADER_PARAMETER(float, EdgeStrength)

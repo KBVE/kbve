@@ -6,8 +6,9 @@ float2 TexelSize;
 
 // Builds the local image structure tensor from RGB Sobel gradients and resolves
 // it into a flow tangent (xy = direction features run along) plus anisotropy (z).
-void MainPS(float4 SvPosition : SV_POSITION, float2 UV : TEXCOORD0, out float4 OutColor : SV_Target0)
+void MainPS(float4 SvPosition : SV_POSITION, out float4 OutColor : SV_Target0)
 {
+	float2 UV = SvPosition.xy * TexelSize;
 	float3 Sx = float3(0, 0, 0);
 	float3 Sy = float3(0, 0, 0);
 

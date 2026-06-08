@@ -14,8 +14,9 @@ float OilStrength;
 // sectors, take each sector's mean, and keep the mean of the lowest-variance sector.
 // The ellipse is rotated to the structure-tensor flow and squashed by anisotropy so
 // strokes smear along features — the oil-paint look.
-void MainPS(float4 SvPosition : SV_POSITION, float2 UV : TEXCOORD0, out float4 OutColor : SV_Target0)
+void MainPS(float4 SvPosition : SV_POSITION, out float4 OutColor : SV_Target0)
 {
+	float2 UV = SvPosition.xy * TexelSize;
 	float3 Original = ColorTexture.SampleLevel(ColorSampler, UV, 0).rgb;
 
 	float4 Tensor = TensorTexture.SampleLevel(TensorSampler, UV, 0);

@@ -8,22 +8,10 @@ float EdgeStrength;
 float EdgeThreshold;
 float Saturation;
 
-float DepthAt(int2 P)
+void MainPS(float4 SvPosition : SV_POSITION, out float4 OutColor : SV_Target0)
 {
-	return SceneTextures.SceneDepthTexture.Load(int3(P, 0)).r;
-}
-
-// Final stylize: ink outlines from depth + painted-luma discontinuities, cel banding
-// of luminance (hue preserved), warm saturation pop, then darken by the ink mask.
-void MainPS(float4 SvPosition : SV_POSITION, float2 UV : TEXCOORD0, out float4 OutColor : SV_Target0)
-{
+	float2 UV = SvPosition.xy * TexelSize;
 	float3 Painted = ColorTexture.SampleLevel(ColorSampler, UV, 0).rgb;
-
-	int2 P = int2(SvPosition.xy);
-	float Dc = DepthAt(P);
-	float Dx = abs(DepthAt(P + int2(1, 0)) - Dc) + abs(DepthAt(P + int2(-1, 0)) - Dc);
-	float Dy = abs(DepthAt(P + int2(0, 1)) - Dc) + abs(DepthAt(P + int2(0, -1)) - Dc);
-	float DepthEdge = (Dx + Dy) / max(Dc, 1e-4f);
 
 	float Lc = KBVELuma(Painted);
 	float Lr = KBVELuma(ColorTexture.SampleLevel(ColorSampler, UV + float2(1, 0) * TexelSize, 0).rgb);
@@ -32,8 +20,7 @@ void MainPS(float4 SvPosition : SV_POSITION, float2 UV : TEXCOORD0, out float4 O
 	float Ld = KBVELuma(ColorTexture.SampleLevel(ColorSampler, UV + float2(0, -1) * TexelSize, 0).rgb);
 	float LumaEdge = abs(Lr - Lc) + abs(Ll - Lc) + abs(Lu - Lc) + abs(Ld - Lc);
 
-	float RawEdge = max(DepthEdge, LumaEdge);
-	float Edge = saturate((RawEdge - EdgeThreshold) * EdgeStrength);
+	float Edge = saturate((LumaEdge - EdgeThreshold) * EdgeStrength);
 
 	float Quant = floor(Lc * Bands + 0.5f) / Bands;
 	float3 Cel = Painted * (Quant / max(Lc, 1e-4f));

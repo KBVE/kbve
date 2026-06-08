@@ -12,4 +12,5 @@ public:
 
 private:
 	TSharedPtr<FKBVEPostViewExtension, ESPMode::ThreadSafe> ViewExtension;
+	FDelegateHandle PostEngineInitHandle;
 };
