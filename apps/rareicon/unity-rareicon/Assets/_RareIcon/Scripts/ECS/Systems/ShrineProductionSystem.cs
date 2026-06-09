@@ -69,6 +69,7 @@ namespace RareIcon
 
             var territoryLookup = SystemAPI.GetComponentLookup<TerritoryVisual>(true);
             var hexDB           = SystemAPI.GetSingleton<HexDBSingleton>();
+            hexDB.DrainHandle.Complete();
 
             foreach (var (shrineRef, building, rewards) in
                      SystemAPI.Query<RefRW<LandmarkShrine>, RefRO<Building>, DynamicBuffer<LandmarkShrineRewardItem>>())
