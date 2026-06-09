@@ -797,6 +797,7 @@ jobs:
                   if (-not (Test-Path $lfsConfig)) { Write-Host "::error::$lfsConfig not found"; exit 1 }
                   if (-not $env:FORGEJO_USER -or -not $env:FORGEJO_TOKEN) { Write-Host "::error::FORGEJO_USER / FORGEJO_TOKEN missing"; exit 1 }
                   Write-Host "::add-mask::$($env:FORGEJO_TOKEN)"
+                  git config --global --add safe.directory "$env:GITHUB_WORKSPACE"
                   $lfsUrl = (git config -f $lfsConfig lfs.url)
                   $authUrl = $lfsUrl -replace '^https://', "https://$($env:FORGEJO_USER):$($env:FORGEJO_TOKEN)@"
                   Write-Host "::notice::Pulling LFS for $proj from $lfsUrl"
