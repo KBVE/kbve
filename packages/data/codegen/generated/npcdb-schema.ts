@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/npcdb.binpb
  * Config: ../npcdb-zod-config.json
- * Generated: 2026-06-01T06:12:05.343Z
+ * Generated: 2026-06-08T19:13:16.360Z
  */
 
 import { z } from 'zod';
@@ -144,6 +144,37 @@ export const EquipSlots = [
 export type EquipSlotValue = (typeof EquipSlots)[number];
 
 export const EquipSlotSchema = z.enum(EquipSlots);
+
+// SpriteClip
+export const SpriteClipSchema = z.object({
+	anim: z.string(),
+	row: z.number(),
+	start_frame: z.number(),
+	frame_count: z.number(),
+	fps: z.number(),
+	loop: z.boolean().optional(),
+});
+
+export type SpriteClip = z.infer<typeof SpriteClipSchema>;
+
+// SpriteAtlas
+export const SpriteAtlasSchema = z.object({
+	atlas_ref: z.string(),
+	columns: z.number(),
+	rows: z.number(),
+	cell_width: z.number().optional(),
+	cell_height: z.number().optional(),
+	row_front: z.number(),
+	row_side: z.number(),
+	row_back: z.number(),
+	mirror_right_from_side: z.boolean().optional(),
+	world_width: z.number().optional(),
+	world_height: z.number().optional(),
+	pivot_z: z.number().optional(),
+	clips: z.array(SpriteClipSchema).optional(),
+});
+
+export type SpriteAtlas = z.infer<typeof SpriteAtlasSchema>;
 
 // NpcStats
 export const NpcStatsSchema = z
@@ -452,6 +483,7 @@ export const NpcSchema = z.object({
 	model_ref: z.string().optional(),
 	animation_set: z.string().optional(),
 	sound_set: z.string().optional(),
+	sprite_atlas: SpriteAtlasSchema.optional(),
 	level: z.number().min(0).max(999),
 	level_min: z.number().optional(),
 	level_max: z.number().optional(),

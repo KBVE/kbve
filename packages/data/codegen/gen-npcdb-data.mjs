@@ -59,6 +59,7 @@ const ENUM_PREFIX = {
 	movementType:   'MOVEMENT_TYPE_',
 	difficulty:     'DIFFICULTY_',
 	slot:           'EQUIP_SLOT_',
+	anim:           'SPRITE_ANIM_',
 };
 
 const ASTRO_ONLY_FIELDS = new Set([
