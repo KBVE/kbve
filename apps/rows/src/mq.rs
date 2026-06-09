@@ -211,6 +211,12 @@ pub async fn spawn_consumer(url: &str, world_server_id: i32, svc: Arc<OWSService
     }
 }
 
+fn tenant_matches(msg_guid: &str, tenant: uuid::Uuid) -> bool {
+    uuid::Uuid::parse_str(msg_guid)
+        .map(|g| g == tenant)
+        .unwrap_or(false)
+}
+
 async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
     use futures_lite::StreamExt;
 
@@ -232,13 +238,23 @@ async fn consume_spin_up(mut consumer: Consumer, svc: Arc<OWSService>) {
             }
         };
 
+        let guid = svc.state().config.customer_guid;
+        if !tenant_matches(&msg.customer_guid, guid) {
+            warn!(
+                msg_guid = %msg.customer_guid,
+                tenant_guid = %guid,
+                "Dropping spin-up message for a different tenant"
+            );
+            let _ = delivery.ack(BasicAckOptions::default()).await;
+            continue;
+        }
+
         info!(
             map = %msg.map_name,
             zone = msg.zone_instance_id,
             "Processing spin-up message"
         );
 
-        let guid = svc.state().config.customer_guid;
         if let Some(ref agones) = svc.state().agones {
             use crate::agones::AllocationPipeline;
 
@@ -304,6 +320,17 @@ async fn consume_shut_down(mut consumer: Consumer, svc: Arc<OWSService>) {
                 continue;
             }
         };
+
+        let guid = svc.state().config.customer_guid;
+        if !tenant_matches(&msg.customer_guid, guid) {
+            warn!(
+                msg_guid = %msg.customer_guid,
+                tenant_guid = %guid,
+                "Dropping shutdown message for a different tenant"
+            );
+            let _ = delivery.ack(BasicAckOptions::default()).await;
+            continue;
+        }
 
         info!(zone = msg.zone_instance_id, "Processing shutdown message");
 

@@ -127,7 +127,12 @@ async fn main() -> anyhow::Result<()> {
     let rest_router = rest::router(app_state, svc.clone());
     let ws_router = ws::router(svc);
 
-    let (prom_layer, prom_handle) = jedi::entity::pipe_prometheus::build_metrics_layer("rows");
+    // Per-tenant service label so multiple ROWS deployments don't collide in Prometheus.
+    // Leaked once at startup; jedi's metrics API takes a &'static str.
+    let metrics_service: &'static str =
+        Box::leak(format!("rows-{}", cfg.tenant.slug).into_boxed_str());
+    let (prom_layer, prom_handle) =
+        jedi::entity::pipe_prometheus::build_metrics_layer(metrics_service);
 
     let app = rest_router
         .merge(ws_router)
@@ -143,7 +148,7 @@ async fn main() -> anyhow::Result<()> {
 
     tokio::spawn(jedi::entity::pipe_prometheus::serve_metrics(
         jedi::entity::pipe_prometheus::MetricsConfig {
-            service_name: "rows",
+            service_name: metrics_service,
             port: cfg.metrics_port,
         },
         prom_handle,

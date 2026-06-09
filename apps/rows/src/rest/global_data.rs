@@ -20,7 +20,10 @@ pub(super) fn global_data_routes(hs: HandlerState) -> Router {
             "/api/GlobalData/GetGlobalDataItem/{globalDataKey}",
             get(get_global_data),
         )
-        .layer(middleware::from_fn(require_customer_guid))
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            require_customer_guid,
+        ))
         .with_state(hs)
 }
 

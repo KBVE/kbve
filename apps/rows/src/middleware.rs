@@ -1,5 +1,6 @@
+use crate::rest::HandlerState;
 use axum::{
-    extract::Request,
+    extract::{Request, State},
     http::StatusCode,
     middleware::Next,
     response::{IntoResponse, Response},
@@ -8,8 +9,15 @@ use uuid::Uuid;
 
 pub const CUSTOMER_GUID_HEADER: &str = "x-customerguid";
 
-/// Mirrors C# StoreCustomerGUIDMiddleware: skips `/health`, otherwise demands a valid GUID.
-pub async fn require_customer_guid(req: Request, next: Next) -> Response {
+/// Demands a valid `x-customerguid` header that matches THIS process's tenant
+/// (`config.customer_guid`). The DB is shared across tenants and scoped only by the
+/// `customerguid` column, so a client-supplied header that differs from the process
+/// tenant would otherwise read/write another tenant's rows. `/health` is exempt.
+pub async fn require_customer_guid(
+    State(hs): State<HandlerState>,
+    req: Request,
+    next: Next,
+) -> Response {
     if req.uri().path() == "/health" {
         return next.run(req).await;
     }
@@ -21,7 +29,23 @@ pub async fn require_customer_guid(req: Request, next: Next) -> Response {
         .and_then(|s| Uuid::parse_str(s).ok());
 
     match guid {
-        Some(_) => next.run(req).await,
+        Some(g) if g == hs.app.config.customer_guid => next.run(req).await,
+        Some(g) => {
+            tracing::warn!(
+                request_guid = %g,
+                tenant_guid = %hs.app.config.customer_guid,
+                tenant = %hs.app.config.tenant_slug,
+                "Rejected cross-tenant request: x-customerguid does not match process tenant"
+            );
+            (
+                StatusCode::FORBIDDEN,
+                axum::Json(serde_json::json!({
+                    "success": false,
+                    "errorMessage": "X-CustomerGUID does not match this server's tenant"
+                })),
+            )
+                .into_response()
+        }
         None => (
             StatusCode::UNAUTHORIZED,
             axum::Json(serde_json::json!({
