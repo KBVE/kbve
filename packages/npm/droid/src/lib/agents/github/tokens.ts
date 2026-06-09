@@ -8,8 +8,7 @@ export function makeTokens(ctx: AgentsCtx, api: AgentsApi) {
 
 	async function loadTokens(guildId: string, force = false): Promise<void> {
 		const accessToken = store.$accessToken.get();
-		const providerToken = store.$providerToken.get();
-		if (!accessToken || !providerToken) return;
+		if (!accessToken) return;
 
 		const userId = store.$userId.get();
 
