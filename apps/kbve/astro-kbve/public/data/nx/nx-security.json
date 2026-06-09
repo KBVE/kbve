@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-08T09:48:22Z",
+  "generated_at": "2026-06-09T09:20:45Z",
   "summary": {
     "critical": 3,
     "high": 48,
@@ -292,13 +292,6 @@
           "url": "https://github.com/advisories/GHSA-m7pr-hjqh-92cm"
         },
         {
-          "id": "1117585",
-          "title": "Axios: unbounded recursion in toFormData causes DoS via deeply nested request data",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-62hf-57xw-28j9"
-        },
-        {
           "id": "1117587",
           "title": "Axios' HTTP adapter-streamed uploads bypass maxBodyLength when maxRedirects: 0",
           "severity": "medium",
@@ -439,13 +432,6 @@
           "url": "https://github.com/advisories/GHSA-35jp-ww65-95wh"
         },
         {
-          "id": "1120011",
-          "title": "When Vitest UI server is listening, arbitrary file can be read and executed",
-          "severity": "critical",
-          "package": "vitest",
-          "url": "https://github.com/advisories/GHSA-5xrq-8626-4rwp"
-        },
-        {
           "id": "1120073",
           "title": "Axios: Regular Expression Denial of Service (ReDoS) via Cookie Name Injection",
           "severity": "high",
@@ -472,6 +458,20 @@
           "severity": "high",
           "package": "axios",
           "url": "https://github.com/advisories/GHSA-j5f8-grm9-p9fc"
+        },
+        {
+          "id": "1120125",
+          "title": "Axios: unbounded recursion in toFormData causes DoS via deeply nested request data",
+          "severity": "medium",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-62hf-57xw-28j9"
+        },
+        {
+          "id": "1120127",
+          "title": "When Vitest UI server is listening, arbitrary file can be read and executed",
+          "severity": "critical",
+          "package": "vitest",
+          "url": "https://github.com/advisories/GHSA-5xrq-8626-4rwp"
         }
       ]
     },
