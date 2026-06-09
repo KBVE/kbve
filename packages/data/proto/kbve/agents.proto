@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package kbve.agents;
+
+import "kbve/common.proto";
+
+enum TokenService {
+  TOKEN_SERVICE_UNSPECIFIED = 0;
+  TOKEN_SERVICE_GITHUB_WEBHOOK = 1;
+  TOKEN_SERVICE_GITHUB = 2;
+  TOKEN_SERVICE_GITHUB_REPOS = 3;
+  TOKEN_SERVICE_DISCORDSH_CONFIG = 4;
+}
+
+message AgentTokenRow {
+  string token_id = 1;
+  string token_name = 2;
+  string service = 3;
+  optional string description = 4;
+  bool is_active = 5;
+  string created_at = 6;
+  optional string updated_at = 7;
+}
+
+message AgentError {
+  bool success = 1;
+  string message = 2;
+  int32 code = 3;
+  optional string sqlstate = 4;
+  optional string hint = 5;
+  optional string context = 6;
+}
+
+message SetTokenRequest {
+  string server_id = 1;
+  string service = 2;
+  string token_name = 3;
+  string token_value = 4;
+  optional string description = 5;
+}
+
+message SetTokenResponse {
+  kbve.common.Result result = 1;
+  optional string token_id = 2;
+}
+
+message ListTokensRequest {
+  string server_id = 1;
+}
+
+message ListTokensResponse {
+  repeated AgentTokenRow tokens = 1;
+}
+
+message DeleteTokenRequest {
+  string server_id = 1;
+  string token_id = 2;
+}
+
+message DeleteTokenResponse {
+  kbve.common.Result result = 1;
+}
+
+message ToggleTokenRequest {
+  string server_id = 1;
+  string token_id = 2;
+  bool is_active = 3;
+}
+
+message ToggleTokenResponse {
+  kbve.common.Result result = 1;
+}
+
+message PeekTokenRequest {
+  string server_id = 1;
+  string service = 2;
+}
+
+message PeekTokenResponse {
+  optional string value = 1;
+}
+
+service AgentVault {
+  rpc SetToken (SetTokenRequest) returns (SetTokenResponse);
+  rpc ListTokens (ListTokensRequest) returns (ListTokensResponse);
+  rpc DeleteToken (DeleteTokenRequest) returns (DeleteTokenResponse);
+  rpc ToggleToken (ToggleTokenRequest) returns (ToggleTokenResponse);
+  rpc PeekToken (PeekTokenRequest) returns (PeekTokenResponse);
+}

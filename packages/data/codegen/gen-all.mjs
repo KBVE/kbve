@@ -59,6 +59,11 @@ const protos = [
 		package: 'kbve.osrs',
 	},
 	{
+		name: 'agents',
+		protoFile: 'kbve/agents.proto',
+		package: 'kbve.agents',
+	},
+	{
 		name: 'discordsh',
 		protoFile: 'kbve/discordsh.proto',
 		package: 'kbve.discordsh',

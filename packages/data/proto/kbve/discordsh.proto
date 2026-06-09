@@ -3,6 +3,7 @@ syntax = "proto3";
 package kbve.discordsh;
 
 import "kbve/common.proto";
+import "kbve/agents.proto";
 
 // =============================================================================
 // Enums
@@ -308,4 +309,87 @@ service DiscordShData {
   rpc LoadProfile (LoadProfileRequest) returns (LoadProfileResponse);
   rpc SaveProfile (SaveProfileRequest) returns (SaveProfileResponse);
   rpc GetLeaderboard (LeaderboardRequest) returns (LeaderboardResponse);
+}
+
+// =============================================================================
+// Agent surface — per-guild GitHub integration (consumes kbve.agents vault)
+// =============================================================================
+
+message DiscordshConfig {
+  optional string default_repo = 1;
+  optional string claim_channel_id = 2;
+  optional string forum_channel_id = 3;
+  optional string noticeboard_channel_id = 4;
+  optional string taskboard_channel_id = 5;
+  optional int32 max_assignees = 6;
+  optional bool mirror_pr_events = 7;
+  optional bool active = 8;
+}
+
+message RepoAllowlist {
+  repeated string repos = 1;
+}
+
+message PatValidation {
+  string login = 1;
+  repeated string scopes = 2;
+  string token_type = 3;
+}
+
+message GithubRepoHook {
+  int64 id = 1;
+  string name = 2;
+  bool active = 3;
+  repeated string events = 4;
+  optional string url = 5;
+  bool is_kbve = 6;
+  string updated_at = 7;
+}
+
+message WebhookDelivery {
+  int64 id = 1;
+  string guid = 2;
+  string delivered_at = 3;
+  bool redelivery = 4;
+  int64 duration = 5;
+  string status = 6;
+  int32 status_code = 7;
+  string event = 8;
+  optional string action = 9;
+}
+
+message EventQueueStats {
+  optional string last_delivered_at = 1;
+  optional string last_recorded_at = 2;
+  int64 pending_count = 3;
+  int64 in_flight_count = 4;
+  int64 delivered_count = 5;
+  int64 failed_count = 6;
+  optional string oldest_pending_at = 7;
+}
+
+message FailedEvent {
+  int64 id = 1;
+  string owner = 2;
+  string repo = 3;
+  int64 number = 4;
+  string event_type = 5;
+  optional string actor = 6;
+  int32 delivery_attempts = 7;
+  optional string last_error = 8;
+  string created_at = 9;
+  string updated_at = 10;
+}
+
+message PendingEvent {
+  int64 id = 1;
+  string owner = 2;
+  string repo = 3;
+  int64 number = 4;
+  string event_type = 5;
+  optional string actor = 6;
+  int32 delivery_state = 7;
+  int32 delivery_attempts = 8;
+  string created_at = 9;
+  optional string claimed_at = 10;
 }
