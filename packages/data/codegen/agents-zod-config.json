@@ -3,13 +3,10 @@
 		"kbve.agents.AgentTokenRow",
 		"kbve.agents.AgentError",
 		"kbve.agents.SetTokenRequest",
-		"kbve.agents.SetTokenResponse",
 		"kbve.agents.ListTokensRequest",
 		"kbve.agents.ListTokensResponse",
 		"kbve.agents.DeleteTokenRequest",
-		"kbve.agents.DeleteTokenResponse",
 		"kbve.agents.ToggleTokenRequest",
-		"kbve.agents.ToggleTokenResponse",
 		"kbve.agents.PeekTokenRequest",
 		"kbve.agents.PeekTokenResponse"
 	],

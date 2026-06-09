@@ -1,4 +1,5 @@
 import type { AgentsStore } from './state/atoms';
+import type { TokenServiceValue } from './generated/agents-schema';
 import type {
 	AgentTokenRow,
 	BackfillResult,
@@ -26,14 +27,16 @@ export interface AgentsMethods {
 	loadTokens(guildId: string, force?: boolean): Promise<void>;
 	addToken(input: {
 		tokenName: string;
-		service: string;
+		service: TokenServiceValue;
 		tokenValue: string;
 		description?: string | null;
 	}): Promise<Result<{ tokenId: string }>>;
 	deleteToken(tokenId: string): Promise<Result>;
-	peekToken(service: string): Promise<Result<{ value: string | null }>>;
+	peekToken(
+		service: TokenServiceValue,
+	): Promise<Result<{ value: string | null }>>;
 	toggleToken(tokenId: string, isActive: boolean): Promise<Result>;
-	hasService(service: string): AgentTokenRow | null;
+	hasService(service: TokenServiceValue): AgentTokenRow | null;
 
 	// repo allowlist
 	getRepoAllowlist(): Promise<
