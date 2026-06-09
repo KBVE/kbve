@@ -14,6 +14,10 @@ import { generateAndWriteZod } from '../../npm/devops/src/lib/codegen/index.js';
 import { execSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+
+const DENO_ZOD_IMPORT =
+	"import { z } from 'https://deno.land/x/zod@v3.23.8/mod.ts';";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const protoRoot = resolve(__dirname, '../proto');
@@ -57,6 +61,18 @@ const protos = [
 		name: 'osrs',
 		protoFile: 'kbve/osrs.proto',
 		package: 'kbve.osrs',
+	},
+	{
+		name: 'agents',
+		protoFile: 'kbve/agents.proto',
+		package: 'kbve.agents',
+		vendorTo: [
+			{ path: '../../npm/droid/src/lib/agents/generated/agents-schema.ts' },
+			{
+				path: '../../../apps/kbve/edge/functions/_shared/agents-schema.ts',
+				denoZod: true,
+			},
+		],
 	},
 	{
 		name: 'discordsh',
@@ -214,6 +230,17 @@ for (const proto of selected) {
 		protoPackage: proto.package,
 	});
 	console.log(`  ✓ ${proto.name}-schema.ts`);
+
+	for (const dest of proto.vendorTo ?? []) {
+		const destPath = resolve(__dirname, dest.path);
+		mkdirSync(dirname(destPath), { recursive: true });
+		let body = readFileSync(outputPath, 'utf8');
+		if (dest.denoZod) {
+			body = body.replace(/^import \{ z \} from 'zod';$/m, DENO_ZOD_IMPORT);
+		}
+		writeFileSync(destPath, body);
+		console.log(`    ↳ vendored → ${dest.path}`);
+	}
 }
 
 console.log('\n=== Done ===');

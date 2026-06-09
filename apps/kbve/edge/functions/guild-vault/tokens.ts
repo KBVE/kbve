@@ -3,15 +3,13 @@ import {
   type GuildVaultRequest,
   invalidateOwnershipCache,
   jsonResponse,
-  validateDescription,
   validateService,
   validateSnowflake,
-  validateTokenName,
-  validateTokenValue,
   validateUuid,
   verifyOwnedGuildsClaim,
 } from "./_shared.ts";
 import { safeRpcError } from "../_shared/validators.ts";
+import { SetTokenRequestSchema } from "../_shared/agents-schema.ts";
 
 // ---------------------------------------------------------------------------
 // Guild token CRUD handlers — all use service client + Discord ownership
@@ -39,20 +37,19 @@ const handlers: Record<string, Handler> = {
       description,
     } = body;
 
-    const sidErr = validateSnowflake(server_id, "server_id");
-    if (sidErr) return sidErr;
-
-    const tnErr = validateTokenName(token_name);
-    if (tnErr) return tnErr;
-
-    const svcErr = validateService(service);
-    if (svcErr) return svcErr;
-
-    const tvErr = validateTokenValue(token_value);
-    if (tvErr) return tvErr;
-
-    const descErr = validateDescription(description);
-    if (descErr) return descErr;
+    const parsed = SetTokenRequestSchema.safeParse({
+      server_id,
+      service,
+      token_name,
+      token_value,
+      description: description ?? undefined,
+    });
+    if (!parsed.success) {
+      return jsonResponse(
+        { error: parsed.error.issues[0]?.message ?? "Invalid request" },
+        400,
+      );
+    }
 
     const ownerErr = verifyOwnedGuildsClaim(claims, server_id as string);
     if (ownerErr) return ownerErr;

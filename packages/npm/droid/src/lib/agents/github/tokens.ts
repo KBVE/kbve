@@ -1,6 +1,7 @@
 import { loadCachedTokens, saveCachedTokens } from '../cache';
 import type { AgentsCtx } from '../ctx';
 import type { AgentsApi } from '../api-types';
+import type { TokenServiceValue } from '../generated/agents-schema';
 import type { AgentTokenRow, Result } from '../types';
 
 export function makeTokens(ctx: AgentsCtx, api: AgentsApi) {
@@ -92,7 +93,7 @@ export function makeTokens(ctx: AgentsCtx, api: AgentsApi) {
 
 	async function addToken(input: {
 		tokenName: string;
-		service: string;
+		service: TokenServiceValue;
 		tokenValue: string;
 		description?: string | null;
 	}): Promise<Result<{ tokenId: string }>> {
@@ -146,7 +147,7 @@ export function makeTokens(ctx: AgentsCtx, api: AgentsApi) {
 	}
 
 	async function peekToken(
-		service: string,
+		service: TokenServiceValue,
 	): Promise<Result<{ value: string | null }>> {
 		const guildId = store.$selectedGuildId.get();
 		const accessToken = store.$accessToken.get();
@@ -190,7 +191,7 @@ export function makeTokens(ctx: AgentsCtx, api: AgentsApi) {
 		return { ok: true };
 	}
 
-	function hasService(service: string): AgentTokenRow | null {
+	function hasService(service: TokenServiceValue): AgentTokenRow | null {
 		const tokens = store.$tokens.get();
 		return (
 			tokens.find((t) => t.service === service && t.is_active) ??
