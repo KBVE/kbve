@@ -52,6 +52,7 @@ namespace RareIcon
 
             if (_capitalQuery.IsEmpty) return;
             if (!SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexDb)) return;
+            hexDb.DrainHandle.Complete();
 
             var inns       = _innQuery.ToEntityArray(Allocator.Temp);
             var sleepers   = _sleepersQuery.ToEntityArray(Allocator.Temp);

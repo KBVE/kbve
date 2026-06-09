@@ -34,7 +34,9 @@ namespace RareIcon
             if (_whaleQuery.CalculateEntityCount() >= MaxWhales) return;
 
             var em = EntityManager;
-            var lookup = SystemAPI.GetSingleton<HexDBSingleton>().Lookup;
+            var hexDB = SystemAPI.GetSingleton<HexDBSingleton>();
+            hexDB.DrainHandle.Complete();
+            var lookup = hexDB.Lookup;
 
             var keys = lookup.GetKeyArray(Allocator.Temp);
             if (keys.Length == 0) { keys.Dispose(); return; }

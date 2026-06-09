@@ -22,7 +22,9 @@ namespace RareIcon
         protected override void OnUpdate()
         {
             uint nowTick = (uint)(SystemAPI.Time.ElapsedTime * 1000d);
-            var hexLookup = SystemAPI.GetSingleton<HexDBSingleton>().Lookup;
+            var hexDB = SystemAPI.GetSingleton<HexDBSingleton>();
+            hexDB.DrainHandle.Complete();
+            var hexLookup = hexDB.Lookup;
             var resLookup = SystemAPI.GetComponentLookup<HexResources>(true);
 
             foreach (var (scanRef, building, cache) in
