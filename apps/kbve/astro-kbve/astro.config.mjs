@@ -8,6 +8,15 @@ import sitemap from '@astrojs/sitemap';
 import worker from '@astropub/worker';
 import mermaid from 'astro-mermaid';
 import rehypeLinkAttrs from './src/lib/rehype-link-attrs.mjs';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+// Inlined into <head> so it runs before the (edge-injected, async) ad script.
+// Neutralizes malvertising forced redirects without removing AdSense.
+const redirectGuard = readFileSync(
+	fileURLToPath(new URL('./src/lib/redirect-guard.js', import.meta.url)),
+	'utf-8',
+);
 
 export default defineConfig({
 	site: 'https://kbve.com',
@@ -104,6 +113,11 @@ export default defineConfig({
 				Sidebar: './src/components/navigation/Sidebar.astro',
 			},
 			head: [
+				{
+					// Ad redirect guard — must execute before any ad script.
+					tag: 'script',
+					content: redirectGuard,
+				},
 				{
 					tag: 'meta',
 					attrs: {
