@@ -140,101 +140,123 @@ namespace KBVE.Proto.Npc {
             "iAEBEhgKC2lzX21pbmVhYmxlGAYgASgISAWIAQESGAoLaXNfY2l2aWxpYW4Y",
             "ByABKAhIBogBAUISChBfaXNfaW50ZXJhY3RhYmxlQhAKDl9pc19hdHRhY2th",
             "YmxlQhAKDl9pc190YXJnZXRhYmxlQg8KDV9pc19za2lubmFibGVCDgoMX2lz",
-            "X2hlcmJhYmxlQg4KDF9pc19taW5lYWJsZUIOCgxfaXNfY2l2aWxpYW4ilQEK",
-            "DE5wY0V4dGVuc2lvbhILCgNrZXkYASABKAkSFgoMc3RyaW5nX3ZhbHVlGAIg",
-            "ASgJSAASEwoJaW50X3ZhbHVlGAMgASgDSAASFQoLZmxvYXRfdmFsdWUYBCAB",
-            "KAFIABIUCgpib29sX3ZhbHVlGAUgASgISAASFQoLYnl0ZXNfdmFsdWUYBiAB",
-            "KAxIAEIHCgV2YWx1ZSKqDgoDTnBjEgoKAmlkGAEgASgJEgsKA3JlZhgCIAEo",
-            "CRIMCgRuYW1lGAMgASgJEhIKBXRpdGxlGAQgASgJSACIAQESGAoLZGVzY3Jp",
-            "cHRpb24YBSABKAlIAYgBARIRCgRsb3JlGAYgASgJSAKIAQESEgoKdHlwZV9m",
-            "bGFncxgHIAEoBRIeCgZyYXJpdHkYCCABKA4yDi5ucGMuTnBjUmFyaXR5EiUK",
-            "C3BlcnNvbmFsaXR5GAkgASgOMhAubnBjLlBlcnNvbmFsaXR5EiIKB2VsZW1l",
-            "bnQYCiABKA4yDC5ucGMuRWxlbWVudEgDiAEBEgwKBHRhZ3MYCyADKAkSGgoE",
-            "cmFuaxgdIAEoDjIMLm5wYy5OcGNSYW5rEiMKBmZhbWlseRgeIAEoDjITLm5w",
-            "Yy5DcmVhdHVyZUZhbWlseRIQCgNpbWcYDCABKAlIBIgBARIRCgRpY29uGA0g",
-            "ASgJSAWIAQESGgoNcGl4ZWxfZGVuc2l0eRgOIAEoBUgGiAEBEhIKBXNjYWxl",
-            "GB8gASgCSAeIAQESFgoJbW9kZWxfcmVmGCAgASgJSAiIAQESGgoNYW5pbWF0",
-            "aW9uX3NldBghIAEoCUgJiAEBEhYKCXNvdW5kX3NldBgiIAEoCUgKiAEBEg0K",
-            "BWxldmVsGA8gASgFEhYKCWxldmVsX21pbhgQIAEoBUgLiAEBEhYKCWxldmVs",
-            "X21heBgRIAEoBUgMiAEBEhwKBXN0YXRzGBIgASgLMg0ubnBjLk5wY1N0YXRz",
-            "EiIKCWFiaWxpdGllcxgTIAMoCzIPLm5wYy5OcGNBYmlsaXR5EioKCndlYWtu",
-            "ZXNzZXMYIyADKAsyFi5ucGMuRWxlbWVudGFsQWZmaW5pdHkSKwoLcmVzaXN0",
-            "YW5jZXMYJCADKAsyFi5ucGMuRWxlbWVudGFsQWZmaW5pdHkSGQoRc3RhdHVz",
-            "X2ltbXVuaXRpZXMYJSADKAkSKQoOaW50ZW50X3dlaWdodHMYJiADKAsyES5u",
-            "cGMuSW50ZW50V2VpZ2h0EioKCGJlaGF2aW9yGCcgASgLMhMubnBjLkJlaGF2",
-            "aW9yVHJhaXRzSA2IAQESJgoHZmFjdGlvbhgoIAEoCzIQLm5wYy5GYWN0aW9u",
-            "SW5mb0gOiAEBEiEKBGxvb3QYFiABKAsyDi5ucGMuTG9vdFRhYmxlSA+IAQES",
-            "LQoJZXF1aXBtZW50GBwgASgLMhUubnBjLkVxdWlwbWVudExvYWRvdXRIEIgB",
-            "ARIkCgtmbGF2b3JfdGV4dBgXIAMoCzIPLm5wYy5GbGF2b3JQb29sEiMKCGRp",
-            "YWxvZ3VlGBggAygLMhEubnBjLkRpYWxvZ3VlTGluZRItCg1kaWFsb2d1ZV90",
-            "cmVlGDIgASgLMhEubnBjLkRpYWxvZ3VlVHJlZUgRiAEBEhIKCnF1ZXN0X3Jl",
-            "ZnMYKSADKAkSHwoSc2hvcF9pbnZlbnRvcnlfcmVmGCogASgJSBKIAQESHAoP",
-            "a2lsbF9jcmVkaXRfcmVmGCsgASgJSBOIAQESIwoLc3Bhd25fcnVsZXMYGSAD",
-            "KAsyDi5ucGMuU3Bhd25SdWxlEiMKC3BoYXNlX3J1bGVzGCwgAygLMg4ubnBj",
-            "LlBoYXNlUnVsZRI1ChRkaWZmaWN1bHR5X292ZXJyaWRlcxgtIAMoCzIXLm5w",
-            "Yy5EaWZmaWN1bHR5T3ZlcnJpZGUSLQoNcGFydHlfc2NhbGluZxguIAEoCzIR",
-            "Lm5wYy5QYXJ0eVNjYWxpbmdIFIgBARIsCgdzcGF0aWFsGC8gASgLMhYubnBj",
-            "LlNwYXRpYWxQcm9wZXJ0aWVzSBWIAQESLwoLaW50ZXJhY3Rpb24YMCABKAsy",
-            "FS5ucGMuSW50ZXJhY3Rpb25GbGFnc0gWiAEBEiUKCmV4dGVuc2lvbnMYMSAD",
-            "KAsyES5ucGMuTnBjRXh0ZW5zaW9uEhQKB2NyZWRpdHMYGiABKAlIF4gBARIU",
-            "CgdkcmFmdGVkGBsgASgISBiIAQFCCAoGX3RpdGxlQg4KDF9kZXNjcmlwdGlv",
-            "bkIHCgVfbG9yZUIKCghfZWxlbWVudEIGCgRfaW1nQgcKBV9pY29uQhAKDl9w",
-            "aXhlbF9kZW5zaXR5QggKBl9zY2FsZUIMCgpfbW9kZWxfcmVmQhAKDl9hbmlt",
-            "YXRpb25fc2V0QgwKCl9zb3VuZF9zZXRCDAoKX2xldmVsX21pbkIMCgpfbGV2",
-            "ZWxfbWF4QgsKCV9iZWhhdmlvckIKCghfZmFjdGlvbkIHCgVfbG9vdEIMCgpf",
-            "ZXF1aXBtZW50QhAKDl9kaWFsb2d1ZV90cmVlQhUKE19zaG9wX2ludmVudG9y",
-            "eV9yZWZCEgoQX2tpbGxfY3JlZGl0X3JlZkIQCg5fcGFydHlfc2NhbGluZ0IK",
-            "Cghfc3BhdGlhbEIOCgxfaW50ZXJhY3Rpb25CCgoIX2NyZWRpdHNCCgoIX2Ry",
-            "YWZ0ZWQiJQoLTnBjUmVnaXN0cnkSFgoEbnBjcxgBIAMoCzIILm5wYy5OcGMq",
-            "mQIKC05wY1R5cGVGbGFnEhEKDU5QQ19UWVBFX05PTkUQABISCg5OUENfVFlQ",
-            "RV9FTkVNWRABEhUKEU5QQ19UWVBFX01FUkNIQU5UEAISGAoUTlBDX1RZUEVf",
-            "UVVFU1RfR0lWRVIQBBIWChJOUENfVFlQRV9DT01QQU5JT04QCBIUChBOUENf",
-            "VFlQRV9ORVVUUkFMEBASEQoNTlBDX1RZUEVfQk9TUxAgEhUKEU5QQ19UWVBF",
-            "X01JTklCT1NTEEASFAoPTlBDX1RZUEVfU1VNTU9OEIABEhUKEE5QQ19UWVBF",
-            "X1RSQUlORVIQgAISFAoPTlBDX1RZUEVfUkVQQUlSEIAEEhcKEk5QQ19UWVBF",
-            "X0lOTktFRVBFUhCACCq/AgoLUGVyc29uYWxpdHkSGwoXUEVSU09OQUxJVFlf",
-            "VU5TUEVDSUZJRUQQABIaChZQRVJTT05BTElUWV9BR0dSRVNTSVZFEAESFwoT",
-            "UEVSU09OQUxJVFlfQ1VOTklORxACEhcKE1BFUlNPTkFMSVRZX0ZFQVJGVUwQ",
-            "AxIVChFQRVJTT05BTElUWV9TVE9JQxAEEhUKEVBFUlNPTkFMSVRZX0ZFUkFM",
-            "EAUSFwoTUEVSU09OQUxJVFlfQU5DSUVOVBAGEhgKFFBFUlNPTkFMSVRZX0NI",
-            "RUVSRlVMEAcSGgoWUEVSU09OQUxJVFlfTVlTVEVSSU9VUxAIEhgKFFBFUlNP",
-            "TkFMSVRZX0NPV0FSRExZEAkSFQoRUEVSU09OQUxJVFlfTk9CTEUQChIXChNQ",
-            "RVJTT05BTElUWV9QQVNTSVZFEAsq7wEKB0VsZW1lbnQSEAoMRUxFTUVOVF9O",
-            "T05FEAASEAoMRUxFTUVOVF9GSVJFEAESDwoLRUxFTUVOVF9JQ0UQAhIVChFF",
-            "TEVNRU5UX0xJR0hUTklORxADEhIKDkVMRU1FTlRfUE9JU09OEAQSEgoORUxF",
-            "TUVOVF9TSEFET1cQBRIQCgxFTEVNRU5UX0hPTFkQBhISCg5FTEVNRU5UX0FS",
-            "Q0FORRAHEhEKDUVMRU1FTlRfRUFSVEgQCBIQCgxFTEVNRU5UX1dJTkQQCRIS",
-            "Cg5FTEVNRU5UX05BVFVSRRAKEhEKDUVMRU1FTlRfTElHSFQQCyqWAQoJTnBj",
-            "UmFyaXR5EhUKEU5QQ19SQVJJVFlfQ09NTU9OEAASFwoTTlBDX1JBUklUWV9V",
-            "TkNPTU1PThABEhMKD05QQ19SQVJJVFlfUkFSRRACEhMKD05QQ19SQVJJVFlf",
-            "RVBJQxADEhgKFE5QQ19SQVJJVFlfTEVHRU5EQVJZEAQSFQoRTlBDX1JBUklU",
-            "WV9NWVRISUMQBSp5CgdOcGNSYW5rEhMKD05QQ19SQU5LX05PUk1BTBAAEhMK",
-            "D05QQ19SQU5LX01JTklPThABEhIKDk5QQ19SQU5LX0VMSVRFEAISFwoTTlBD",
-            "X1JBTktfUkFSRV9FTElURRADEhcKE05QQ19SQU5LX1dPUkxEX0JPU1MQBCry",
-            "AgoOQ3JlYXR1cmVGYW1pbHkSHwobQ1JFQVRVUkVfRkFNSUxZX1VOU1BFQ0lG",
-            "SUVEEAASGQoVQ1JFQVRVUkVfRkFNSUxZX0JFQVNUEAESGgoWQ1JFQVRVUkVf",
-            "RkFNSUxZX1VOREVBRBACEhkKFUNSRUFUVVJFX0ZBTUlMWV9ERU1PThADEh0K",
-            "GUNSRUFUVVJFX0ZBTUlMWV9FTEVNRU5UQUwQBBIcChhDUkVBVFVSRV9GQU1J",
-            "TFlfSFVNQU5PSUQQBRIeChpDUkVBVFVSRV9GQU1JTFlfTUVDSEFOSUNBTBAG",
-            "EhoKFkNSRUFUVVJFX0ZBTUlMWV9EUkFHT04QBxIeChpDUkVBVFVSRV9GQU1J",
-            "TFlfQUJFUlJBVElPThAIEhkKFUNSRUFUVVJFX0ZBTUlMWV9QTEFOVBAJEhoK",
-            "FkNSRUFUVVJFX0ZBTUlMWV9TUElSSVQQChIdChlDUkVBVFVSRV9GQU1JTFlf",
-            "Q09OU1RSVUNUEAsqiAEKDE1vdmVtZW50VHlwZRIXChNNT1ZFTUVOVF9TVEFU",
-            "SU9OQVJZEAASGgoWTU9WRU1FTlRfUkFORE9NX1dBTkRFUhABEhMKD01PVkVN",
-            "RU5UX1BBVFJPTBACEhUKEU1PVkVNRU5UX1NDUklQVEVEEAMSFwoTTU9WRU1F",
-            "TlRfQUdHUkVTU0lWRRAEKmoKDkRpZmZpY3VsdHlNb2RlEhUKEURJRkZJQ1VM",
-            "VFlfTk9STUFMEAASEwoPRElGRklDVUxUWV9IQVJEEAESFQoRRElGRklDVUxU",
-            "WV9IRVJPSUMQAhIVChFESUZGSUNVTFRZX01ZVEhJQxADKoQCCglFcXVpcFNs",
-            "b3QSGgoWRVFVSVBfU0xPVF9VTlNQRUNJRklFRBAAEhMKD0VRVUlQX1NMT1Rf",
-            "SEVBRBABEhQKEEVRVUlQX1NMT1RfQ0hFU1QQAhITCg9FUVVJUF9TTE9UX0xF",
-            "R1MQAxITCg9FUVVJUF9TTE9UX0ZFRVQQBBIUChBFUVVJUF9TTE9UX0hBTkRT",
-            "EAUSGAoURVFVSVBfU0xPVF9NQUlOX0hBTkQQBhIXChNFUVVJUF9TTE9UX09G",
-            "Rl9IQU5EEAcSEwoPRVFVSVBfU0xPVF9ORUNLEAgSEwoPRVFVSVBfU0xPVF9S",
-            "SU5HEAkSEwoPRVFVSVBfU0xPVF9CQUNLEApCEaoCDktCVkUuUHJvdG8uTnBj",
-            "YgZwcm90bzM="));
+            "X2hlcmJhYmxlQg4KDF9pc19taW5lYWJsZUIOCgxfaXNfY2l2aWxpYW4iiwEK",
+            "ClNwcml0ZUNsaXASHQoEYW5pbRgBIAEoDjIPLm5wYy5TcHJpdGVBbmltEgsK",
+            "A3JvdxgCIAEoBRITCgtzdGFydF9mcmFtZRgDIAEoBRITCgtmcmFtZV9jb3Vu",
+            "dBgEIAEoBRILCgNmcHMYBSABKAISEQoEbG9vcBgGIAEoCEgAiAEBQgcKBV9s",
+            "b29wIqADCgtTcHJpdGVBdGxhcxIRCglhdGxhc19yZWYYASABKAkSDwoHY29s",
+            "dW1ucxgCIAEoBRIMCgRyb3dzGAMgASgFEhcKCmNlbGxfd2lkdGgYBCABKAVI",
+            "AIgBARIYCgtjZWxsX2hlaWdodBgFIAEoBUgBiAEBEhEKCXJvd19mcm9udBgG",
+            "IAEoBRIQCghyb3dfc2lkZRgHIAEoBRIQCghyb3dfYmFjaxgIIAEoBRIjChZt",
+            "aXJyb3JfcmlnaHRfZnJvbV9zaWRlGAkgASgISAKIAQESGAoLd29ybGRfd2lk",
+            "dGgYCiABKAJIA4gBARIZCgx3b3JsZF9oZWlnaHQYCyABKAJIBIgBARIUCgdw",
+            "aXZvdF96GAwgASgCSAWIAQESHgoFY2xpcHMYDSADKAsyDy5ucGMuU3ByaXRl",
+            "Q2xpcEINCgtfY2VsbF93aWR0aEIOCgxfY2VsbF9oZWlnaHRCGQoXX21pcnJv",
+            "cl9yaWdodF9mcm9tX3NpZGVCDgoMX3dvcmxkX3dpZHRoQg8KDV93b3JsZF9o",
+            "ZWlnaHRCCgoIX3Bpdm90X3oilQEKDE5wY0V4dGVuc2lvbhILCgNrZXkYASAB",
+            "KAkSFgoMc3RyaW5nX3ZhbHVlGAIgASgJSAASEwoJaW50X3ZhbHVlGAMgASgD",
+            "SAASFQoLZmxvYXRfdmFsdWUYBCABKAFIABIUCgpib29sX3ZhbHVlGAUgASgI",
+            "SAASFQoLYnl0ZXNfdmFsdWUYBiABKAxIAEIHCgV2YWx1ZSLoDgoDTnBjEgoK",
+            "AmlkGAEgASgJEgsKA3JlZhgCIAEoCRIMCgRuYW1lGAMgASgJEhIKBXRpdGxl",
+            "GAQgASgJSACIAQESGAoLZGVzY3JpcHRpb24YBSABKAlIAYgBARIRCgRsb3Jl",
+            "GAYgASgJSAKIAQESEgoKdHlwZV9mbGFncxgHIAEoBRIeCgZyYXJpdHkYCCAB",
+            "KA4yDi5ucGMuTnBjUmFyaXR5EiUKC3BlcnNvbmFsaXR5GAkgASgOMhAubnBj",
+            "LlBlcnNvbmFsaXR5EiIKB2VsZW1lbnQYCiABKA4yDC5ucGMuRWxlbWVudEgD",
+            "iAEBEgwKBHRhZ3MYCyADKAkSGgoEcmFuaxgdIAEoDjIMLm5wYy5OcGNSYW5r",
+            "EiMKBmZhbWlseRgeIAEoDjITLm5wYy5DcmVhdHVyZUZhbWlseRIQCgNpbWcY",
+            "DCABKAlIBIgBARIRCgRpY29uGA0gASgJSAWIAQESGgoNcGl4ZWxfZGVuc2l0",
+            "eRgOIAEoBUgGiAEBEhIKBXNjYWxlGB8gASgCSAeIAQESFgoJbW9kZWxfcmVm",
+            "GCAgASgJSAiIAQESGgoNYW5pbWF0aW9uX3NldBghIAEoCUgJiAEBEhYKCXNv",
+            "dW5kX3NldBgiIAEoCUgKiAEBEisKDHNwcml0ZV9hdGxhcxgzIAEoCzIQLm5w",
+            "Yy5TcHJpdGVBdGxhc0gLiAEBEg0KBWxldmVsGA8gASgFEhYKCWxldmVsX21p",
+            "bhgQIAEoBUgMiAEBEhYKCWxldmVsX21heBgRIAEoBUgNiAEBEhwKBXN0YXRz",
+            "GBIgASgLMg0ubnBjLk5wY1N0YXRzEiIKCWFiaWxpdGllcxgTIAMoCzIPLm5w",
+            "Yy5OcGNBYmlsaXR5EioKCndlYWtuZXNzZXMYIyADKAsyFi5ucGMuRWxlbWVu",
+            "dGFsQWZmaW5pdHkSKwoLcmVzaXN0YW5jZXMYJCADKAsyFi5ucGMuRWxlbWVu",
+            "dGFsQWZmaW5pdHkSGQoRc3RhdHVzX2ltbXVuaXRpZXMYJSADKAkSKQoOaW50",
+            "ZW50X3dlaWdodHMYJiADKAsyES5ucGMuSW50ZW50V2VpZ2h0EioKCGJlaGF2",
+            "aW9yGCcgASgLMhMubnBjLkJlaGF2aW9yVHJhaXRzSA6IAQESJgoHZmFjdGlv",
+            "bhgoIAEoCzIQLm5wYy5GYWN0aW9uSW5mb0gPiAEBEiEKBGxvb3QYFiABKAsy",
+            "Di5ucGMuTG9vdFRhYmxlSBCIAQESLQoJZXF1aXBtZW50GBwgASgLMhUubnBj",
+            "LkVxdWlwbWVudExvYWRvdXRIEYgBARIkCgtmbGF2b3JfdGV4dBgXIAMoCzIP",
+            "Lm5wYy5GbGF2b3JQb29sEiMKCGRpYWxvZ3VlGBggAygLMhEubnBjLkRpYWxv",
+            "Z3VlTGluZRItCg1kaWFsb2d1ZV90cmVlGDIgASgLMhEubnBjLkRpYWxvZ3Vl",
+            "VHJlZUgSiAEBEhIKCnF1ZXN0X3JlZnMYKSADKAkSHwoSc2hvcF9pbnZlbnRv",
+            "cnlfcmVmGCogASgJSBOIAQESHAoPa2lsbF9jcmVkaXRfcmVmGCsgASgJSBSI",
+            "AQESIwoLc3Bhd25fcnVsZXMYGSADKAsyDi5ucGMuU3Bhd25SdWxlEiMKC3Bo",
+            "YXNlX3J1bGVzGCwgAygLMg4ubnBjLlBoYXNlUnVsZRI1ChRkaWZmaWN1bHR5",
+            "X292ZXJyaWRlcxgtIAMoCzIXLm5wYy5EaWZmaWN1bHR5T3ZlcnJpZGUSLQoN",
+            "cGFydHlfc2NhbGluZxguIAEoCzIRLm5wYy5QYXJ0eVNjYWxpbmdIFYgBARIs",
+            "CgdzcGF0aWFsGC8gASgLMhYubnBjLlNwYXRpYWxQcm9wZXJ0aWVzSBaIAQES",
+            "LwoLaW50ZXJhY3Rpb24YMCABKAsyFS5ucGMuSW50ZXJhY3Rpb25GbGFnc0gX",
+            "iAEBEiUKCmV4dGVuc2lvbnMYMSADKAsyES5ucGMuTnBjRXh0ZW5zaW9uEhQK",
+            "B2NyZWRpdHMYGiABKAlIGIgBARIUCgdkcmFmdGVkGBsgASgISBmIAQFCCAoG",
+            "X3RpdGxlQg4KDF9kZXNjcmlwdGlvbkIHCgVfbG9yZUIKCghfZWxlbWVudEIG",
+            "CgRfaW1nQgcKBV9pY29uQhAKDl9waXhlbF9kZW5zaXR5QggKBl9zY2FsZUIM",
+            "CgpfbW9kZWxfcmVmQhAKDl9hbmltYXRpb25fc2V0QgwKCl9zb3VuZF9zZXRC",
+            "DwoNX3Nwcml0ZV9hdGxhc0IMCgpfbGV2ZWxfbWluQgwKCl9sZXZlbF9tYXhC",
+            "CwoJX2JlaGF2aW9yQgoKCF9mYWN0aW9uQgcKBV9sb290QgwKCl9lcXVpcG1l",
+            "bnRCEAoOX2RpYWxvZ3VlX3RyZWVCFQoTX3Nob3BfaW52ZW50b3J5X3JlZkIS",
+            "ChBfa2lsbF9jcmVkaXRfcmVmQhAKDl9wYXJ0eV9zY2FsaW5nQgoKCF9zcGF0",
+            "aWFsQg4KDF9pbnRlcmFjdGlvbkIKCghfY3JlZGl0c0IKCghfZHJhZnRlZCIl",
+            "CgtOcGNSZWdpc3RyeRIWCgRucGNzGAEgAygLMggubnBjLk5wYyqZAgoLTnBj",
+            "VHlwZUZsYWcSEQoNTlBDX1RZUEVfTk9ORRAAEhIKDk5QQ19UWVBFX0VORU1Z",
+            "EAESFQoRTlBDX1RZUEVfTUVSQ0hBTlQQAhIYChROUENfVFlQRV9RVUVTVF9H",
+            "SVZFUhAEEhYKEk5QQ19UWVBFX0NPTVBBTklPThAIEhQKEE5QQ19UWVBFX05F",
+            "VVRSQUwQEBIRCg1OUENfVFlQRV9CT1NTECASFQoRTlBDX1RZUEVfTUlOSUJP",
+            "U1MQQBIUCg9OUENfVFlQRV9TVU1NT04QgAESFQoQTlBDX1RZUEVfVFJBSU5F",
+            "UhCAAhIUCg9OUENfVFlQRV9SRVBBSVIQgAQSFwoSTlBDX1RZUEVfSU5OS0VF",
+            "UEVSEIAIKr8CCgtQZXJzb25hbGl0eRIbChdQRVJTT05BTElUWV9VTlNQRUNJ",
+            "RklFRBAAEhoKFlBFUlNPTkFMSVRZX0FHR1JFU1NJVkUQARIXChNQRVJTT05B",
+            "TElUWV9DVU5OSU5HEAISFwoTUEVSU09OQUxJVFlfRkVBUkZVTBADEhUKEVBF",
+            "UlNPTkFMSVRZX1NUT0lDEAQSFQoRUEVSU09OQUxJVFlfRkVSQUwQBRIXChNQ",
+            "RVJTT05BTElUWV9BTkNJRU5UEAYSGAoUUEVSU09OQUxJVFlfQ0hFRVJGVUwQ",
+            "BxIaChZQRVJTT05BTElUWV9NWVNURVJJT1VTEAgSGAoUUEVSU09OQUxJVFlf",
+            "Q09XQVJETFkQCRIVChFQRVJTT05BTElUWV9OT0JMRRAKEhcKE1BFUlNPTkFM",
+            "SVRZX1BBU1NJVkUQCyrvAQoHRWxlbWVudBIQCgxFTEVNRU5UX05PTkUQABIQ",
+            "CgxFTEVNRU5UX0ZJUkUQARIPCgtFTEVNRU5UX0lDRRACEhUKEUVMRU1FTlRf",
+            "TElHSFROSU5HEAMSEgoORUxFTUVOVF9QT0lTT04QBBISCg5FTEVNRU5UX1NI",
+            "QURPVxAFEhAKDEVMRU1FTlRfSE9MWRAGEhIKDkVMRU1FTlRfQVJDQU5FEAcS",
+            "EQoNRUxFTUVOVF9FQVJUSBAIEhAKDEVMRU1FTlRfV0lORBAJEhIKDkVMRU1F",
+            "TlRfTkFUVVJFEAoSEQoNRUxFTUVOVF9MSUdIVBALKpYBCglOcGNSYXJpdHkS",
+            "FQoRTlBDX1JBUklUWV9DT01NT04QABIXChNOUENfUkFSSVRZX1VOQ09NTU9O",
+            "EAESEwoPTlBDX1JBUklUWV9SQVJFEAISEwoPTlBDX1JBUklUWV9FUElDEAMS",
+            "GAoUTlBDX1JBUklUWV9MRUdFTkRBUlkQBBIVChFOUENfUkFSSVRZX01ZVEhJ",
+            "QxAFKnkKB05wY1JhbmsSEwoPTlBDX1JBTktfTk9STUFMEAASEwoPTlBDX1JB",
+            "TktfTUlOSU9OEAESEgoOTlBDX1JBTktfRUxJVEUQAhIXChNOUENfUkFOS19S",
+            "QVJFX0VMSVRFEAMSFwoTTlBDX1JBTktfV09STERfQk9TUxAEKvICCg5DcmVh",
+            "dHVyZUZhbWlseRIfChtDUkVBVFVSRV9GQU1JTFlfVU5TUEVDSUZJRUQQABIZ",
+            "ChVDUkVBVFVSRV9GQU1JTFlfQkVBU1QQARIaChZDUkVBVFVSRV9GQU1JTFlf",
+            "VU5ERUFEEAISGQoVQ1JFQVRVUkVfRkFNSUxZX0RFTU9OEAMSHQoZQ1JFQVRV",
+            "UkVfRkFNSUxZX0VMRU1FTlRBTBAEEhwKGENSRUFUVVJFX0ZBTUlMWV9IVU1B",
+            "Tk9JRBAFEh4KGkNSRUFUVVJFX0ZBTUlMWV9NRUNIQU5JQ0FMEAYSGgoWQ1JF",
+            "QVRVUkVfRkFNSUxZX0RSQUdPThAHEh4KGkNSRUFUVVJFX0ZBTUlMWV9BQkVS",
+            "UkFUSU9OEAgSGQoVQ1JFQVRVUkVfRkFNSUxZX1BMQU5UEAkSGgoWQ1JFQVRV",
+            "UkVfRkFNSUxZX1NQSVJJVBAKEh0KGUNSRUFUVVJFX0ZBTUlMWV9DT05TVFJV",
+            "Q1QQCyqIAQoMTW92ZW1lbnRUeXBlEhcKE01PVkVNRU5UX1NUQVRJT05BUlkQ",
+            "ABIaChZNT1ZFTUVOVF9SQU5ET01fV0FOREVSEAESEwoPTU9WRU1FTlRfUEFU",
+            "Uk9MEAISFQoRTU9WRU1FTlRfU0NSSVBURUQQAxIXChNNT1ZFTUVOVF9BR0dS",
+            "RVNTSVZFEAQqagoORGlmZmljdWx0eU1vZGUSFQoRRElGRklDVUxUWV9OT1JN",
+            "QUwQABITCg9ESUZGSUNVTFRZX0hBUkQQARIVChFESUZGSUNVTFRZX0hFUk9J",
+            "QxACEhUKEURJRkZJQ1VMVFlfTVlUSElDEAMqjAIKClNwcml0ZUFuaW0SGwoX",
+            "U1BSSVRFX0FOSU1fVU5TUEVDSUZJRUQQABIUChBTUFJJVEVfQU5JTV9JRExF",
+            "EAESFAoQU1BSSVRFX0FOSU1fV0FMSxACEhUKEVNQUklURV9BTklNX0NSQVdM",
+            "EAMSEwoPU1BSSVRFX0FOSU1fUlVOEAQSFgoSU1BSSVRFX0FOSU1fQVRUQUNL",
+            "EAUSFAoQU1BSSVRFX0FOSU1fQ0FTVBAGEhQKEFNQUklURV9BTklNX0hVUlQQ",
+            "BxIVChFTUFJJVEVfQU5JTV9ERUFUSBAIEhUKEVNQUklURV9BTklNX1NQQVdO",
+            "EAkSFwoTU1BSSVRFX0FOSU1fU1BFQ0lBTBAKKnYKDFNwcml0ZUZhY2luZxId",
+            "ChlTUFJJVEVfRkFDSU5HX1VOU1BFQ0lGSUVEEAASFwoTU1BSSVRFX0ZBQ0lO",
+            "R19GUk9OVBABEhYKElNQUklURV9GQUNJTkdfU0lERRACEhYKElNQUklURV9G",
+            "QUNJTkdfQkFDSxADKoQCCglFcXVpcFNsb3QSGgoWRVFVSVBfU0xPVF9VTlNQ",
+            "RUNJRklFRBAAEhMKD0VRVUlQX1NMT1RfSEVBRBABEhQKEEVRVUlQX1NMT1Rf",
+            "Q0hFU1QQAhITCg9FUVVJUF9TTE9UX0xFR1MQAxITCg9FUVVJUF9TTE9UX0ZF",
+            "RVQQBBIUChBFUVVJUF9TTE9UX0hBTkRTEAUSGAoURVFVSVBfU0xPVF9NQUlO",
+            "X0hBTkQQBhIXChNFUVVJUF9TTE9UX09GRl9IQU5EEAcSEwoPRVFVSVBfU0xP",
+            "VF9ORUNLEAgSEwoPRVFVSVBfU0xPVF9SSU5HEAkSEwoPRVFVSVBfU0xPVF9C",
+            "QUNLEApCEaoCDktCVkUuUHJvdG8uTnBjYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::KBVE.Proto.Common.CommonReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::KBVE.Proto.Npc.NpcTypeFlag), typeof(global::KBVE.Proto.Npc.Personality), typeof(global::KBVE.Proto.Npc.Element), typeof(global::KBVE.Proto.Npc.NpcRarity), typeof(global::KBVE.Proto.Npc.NpcRank), typeof(global::KBVE.Proto.Npc.CreatureFamily), typeof(global::KBVE.Proto.Npc.MovementType), typeof(global::KBVE.Proto.Npc.DifficultyMode), typeof(global::KBVE.Proto.Npc.EquipSlot), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::KBVE.Proto.Npc.NpcTypeFlag), typeof(global::KBVE.Proto.Npc.Personality), typeof(global::KBVE.Proto.Npc.Element), typeof(global::KBVE.Proto.Npc.NpcRarity), typeof(global::KBVE.Proto.Npc.NpcRank), typeof(global::KBVE.Proto.Npc.CreatureFamily), typeof(global::KBVE.Proto.Npc.MovementType), typeof(global::KBVE.Proto.Npc.DifficultyMode), typeof(global::KBVE.Proto.Npc.SpriteAnim), typeof(global::KBVE.Proto.Npc.SpriteFacing), typeof(global::KBVE.Proto.Npc.EquipSlot), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.NpcStats), global::KBVE.Proto.Npc.NpcStats.Parser, new[]{ "Hp", "MaxHp", "Attack", "Defense", "Speed", "Mp", "MaxMp", "Ep", "MaxEp", "Armor", "Intelligence", "Strength", "Agility", "HpRegen", "MpRegen", "EpRegen" }, new[]{ "Mp", "MaxMp", "Ep", "MaxEp", "Armor", "Intelligence", "Strength", "Agility", "HpRegen", "MpRegen", "EpRegen" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.ElementalAffinity), global::KBVE.Proto.Npc.ElementalAffinity.Parser, new[]{ "Element", "Magnitude" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.LootEntry), global::KBVE.Proto.Npc.LootEntry.Parser, new[]{ "ItemRef", "ItemName", "MinQuantity", "MaxQuantity", "DropRate", "LevelRequirement" }, new[]{ "ItemName", "LevelRequirement" }, null, null, null),
@@ -256,8 +278,10 @@ namespace KBVE.Proto.Npc {
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.PhaseRule), global::KBVE.Proto.Npc.PhaseRule.Parser, new[]{ "PhaseId", "PrerequisiteQuestRefs", "EventRef", "TimeStart", "TimeEnd" }, new[]{ "PhaseId", "EventRef", "TimeStart", "TimeEnd" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.SpatialProperties), global::KBVE.Proto.Npc.SpatialProperties.Parser, new[]{ "CombatReach", "BoundingRadius", "WalkSpeed", "RunSpeed", "FlySpeed", "CanSwim", "CanFly" }, new[]{ "CombatReach", "BoundingRadius", "WalkSpeed", "RunSpeed", "FlySpeed", "CanSwim", "CanFly" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.InteractionFlags), global::KBVE.Proto.Npc.InteractionFlags.Parser, new[]{ "IsInteractable", "IsAttackable", "IsTargetable", "IsSkinnable", "IsHerbable", "IsMineable", "IsCivilian" }, new[]{ "IsInteractable", "IsAttackable", "IsTargetable", "IsSkinnable", "IsHerbable", "IsMineable", "IsCivilian" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.SpriteClip), global::KBVE.Proto.Npc.SpriteClip.Parser, new[]{ "Anim", "Row", "StartFrame", "FrameCount", "Fps", "Loop" }, new[]{ "Loop" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.SpriteAtlas), global::KBVE.Proto.Npc.SpriteAtlas.Parser, new[]{ "AtlasRef", "Columns", "Rows", "CellWidth", "CellHeight", "RowFront", "RowSide", "RowBack", "MirrorRightFromSide", "WorldWidth", "WorldHeight", "PivotZ", "Clips" }, new[]{ "CellWidth", "CellHeight", "MirrorRightFromSide", "WorldWidth", "WorldHeight", "PivotZ" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.NpcExtension), global::KBVE.Proto.Npc.NpcExtension.Parser, new[]{ "Key", "StringValue", "IntValue", "FloatValue", "BoolValue", "BytesValue" }, new[]{ "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.Npc), global::KBVE.Proto.Npc.Npc.Parser, new[]{ "Id", "Ref", "Name", "Title", "Description", "Lore", "TypeFlags", "Rarity", "Personality", "Element", "Tags", "Rank", "Family", "Img", "Icon", "PixelDensity", "Scale", "ModelRef", "AnimationSet", "SoundSet", "Level", "LevelMin", "LevelMax", "Stats", "Abilities", "Weaknesses", "Resistances", "StatusImmunities", "IntentWeights", "Behavior", "Faction", "Loot", "Equipment", "FlavorText", "Dialogue", "DialogueTree", "QuestRefs", "ShopInventoryRef", "KillCreditRef", "SpawnRules", "PhaseRules", "DifficultyOverrides", "PartyScaling", "Spatial", "Interaction", "Extensions", "Credits", "Drafted" }, new[]{ "Title", "Description", "Lore", "Element", "Img", "Icon", "PixelDensity", "Scale", "ModelRef", "AnimationSet", "SoundSet", "LevelMin", "LevelMax", "Behavior", "Faction", "Loot", "Equipment", "DialogueTree", "ShopInventoryRef", "KillCreditRef", "PartyScaling", "Spatial", "Interaction", "Credits", "Drafted" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.Npc), global::KBVE.Proto.Npc.Npc.Parser, new[]{ "Id", "Ref", "Name", "Title", "Description", "Lore", "TypeFlags", "Rarity", "Personality", "Element", "Tags", "Rank", "Family", "Img", "Icon", "PixelDensity", "Scale", "ModelRef", "AnimationSet", "SoundSet", "SpriteAtlas", "Level", "LevelMin", "LevelMax", "Stats", "Abilities", "Weaknesses", "Resistances", "StatusImmunities", "IntentWeights", "Behavior", "Faction", "Loot", "Equipment", "FlavorText", "Dialogue", "DialogueTree", "QuestRefs", "ShopInventoryRef", "KillCreditRef", "SpawnRules", "PhaseRules", "DifficultyOverrides", "PartyScaling", "Spatial", "Interaction", "Extensions", "Credits", "Drafted" }, new[]{ "Title", "Description", "Lore", "Element", "Img", "Icon", "PixelDensity", "Scale", "ModelRef", "AnimationSet", "SoundSet", "SpriteAtlas", "LevelMin", "LevelMax", "Behavior", "Faction", "Loot", "Equipment", "DialogueTree", "ShopInventoryRef", "KillCreditRef", "PartyScaling", "Spatial", "Interaction", "Credits", "Drafted" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.NpcRegistry), global::KBVE.Proto.Npc.NpcRegistry.Parser, new[]{ "Npcs" }, null, null, null, null)
           }));
     }
@@ -379,6 +403,33 @@ namespace KBVE.Proto.Npc {
     [pbr::OriginalName("DIFFICULTY_HARD")] DifficultyHard = 1,
     [pbr::OriginalName("DIFFICULTY_HEROIC")] DifficultyHeroic = 2,
     [pbr::OriginalName("DIFFICULTY_MYTHIC")] DifficultyMythic = 3,
+  }
+
+  /// <summary>
+  /// Sprite animation concept — which clip a billboard atlas row/range represents
+  /// </summary>
+  public enum SpriteAnim {
+    [pbr::OriginalName("SPRITE_ANIM_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("SPRITE_ANIM_IDLE")] Idle = 1,
+    [pbr::OriginalName("SPRITE_ANIM_WALK")] Walk = 2,
+    [pbr::OriginalName("SPRITE_ANIM_CRAWL")] Crawl = 3,
+    [pbr::OriginalName("SPRITE_ANIM_RUN")] Run = 4,
+    [pbr::OriginalName("SPRITE_ANIM_ATTACK")] Attack = 5,
+    [pbr::OriginalName("SPRITE_ANIM_CAST")] Cast = 6,
+    [pbr::OriginalName("SPRITE_ANIM_HURT")] Hurt = 7,
+    [pbr::OriginalName("SPRITE_ANIM_DEATH")] Death = 8,
+    [pbr::OriginalName("SPRITE_ANIM_SPAWN")] Spawn = 9,
+    [pbr::OriginalName("SPRITE_ANIM_SPECIAL")] Special = 10,
+  }
+
+  /// <summary>
+  /// Sprite view direction — right is the side row mirrored
+  /// </summary>
+  public enum SpriteFacing {
+    [pbr::OriginalName("SPRITE_FACING_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("SPRITE_FACING_FRONT")] Front = 1,
+    [pbr::OriginalName("SPRITE_FACING_SIDE")] Side = 2,
+    [pbr::OriginalName("SPRITE_FACING_BACK")] Back = 3,
   }
 
   /// <summary>
@@ -10037,6 +10088,1143 @@ namespace KBVE.Proto.Npc {
   }
 
   /// <summary>
+  /// One animation clip inside a sprite atlas — maps a concept to a row + frame range
+  /// </summary>
+  public sealed partial class SpriteClip : pb::IMessage<SpriteClip>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<SpriteClip> _parser = new pb::MessageParser<SpriteClip>(() => new SpriteClip());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<SpriteClip> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[21]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SpriteClip() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SpriteClip(SpriteClip other) : this() {
+      _hasBits0 = other._hasBits0;
+      anim_ = other.anim_;
+      row_ = other.row_;
+      startFrame_ = other.startFrame_;
+      frameCount_ = other.frameCount_;
+      fps_ = other.fps_;
+      loop_ = other.loop_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SpriteClip Clone() {
+      return new SpriteClip(this);
+    }
+
+    /// <summary>Field number for the "anim" field.</summary>
+    public const int AnimFieldNumber = 1;
+    private global::KBVE.Proto.Npc.SpriteAnim anim_ = global::KBVE.Proto.Npc.SpriteAnim.Unspecified;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Npc.SpriteAnim Anim {
+      get { return anim_; }
+      set {
+        anim_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "row" field.</summary>
+    public const int RowFieldNumber = 2;
+    private int row_;
+    /// <summary>
+    /// Atlas row this clip plays from
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Row {
+      get { return row_; }
+      set {
+        row_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "start_frame" field.</summary>
+    public const int StartFrameFieldNumber = 3;
+    private int startFrame_;
+    /// <summary>
+    /// First column (default 0)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int StartFrame {
+      get { return startFrame_; }
+      set {
+        startFrame_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "frame_count" field.</summary>
+    public const int FrameCountFieldNumber = 4;
+    private int frameCount_;
+    /// <summary>
+    /// Frames in the clip
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int FrameCount {
+      get { return frameCount_; }
+      set {
+        frameCount_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "fps" field.</summary>
+    public const int FpsFieldNumber = 5;
+    private float fps_;
+    /// <summary>
+    /// Playback rate
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float Fps {
+      get { return fps_; }
+      set {
+        fps_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "loop" field.</summary>
+    public const int LoopFieldNumber = 6;
+    private bool loop_;
+    /// <summary>
+    /// Loop (default true)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Loop {
+      get { if ((_hasBits0 & 1) != 0) { return loop_; } else { return false; } }
+      set {
+        _hasBits0 |= 1;
+        loop_ = value;
+      }
+    }
+    /// <summary>Gets whether the "loop" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasLoop {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "loop" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearLoop() {
+      _hasBits0 &= ~1;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as SpriteClip);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(SpriteClip other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Anim != other.Anim) return false;
+      if (Row != other.Row) return false;
+      if (StartFrame != other.StartFrame) return false;
+      if (FrameCount != other.FrameCount) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Fps, other.Fps)) return false;
+      if (Loop != other.Loop) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Anim != global::KBVE.Proto.Npc.SpriteAnim.Unspecified) hash ^= Anim.GetHashCode();
+      if (Row != 0) hash ^= Row.GetHashCode();
+      if (StartFrame != 0) hash ^= StartFrame.GetHashCode();
+      if (FrameCount != 0) hash ^= FrameCount.GetHashCode();
+      if (Fps != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Fps);
+      if (HasLoop) hash ^= Loop.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (Anim != global::KBVE.Proto.Npc.SpriteAnim.Unspecified) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) Anim);
+      }
+      if (Row != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(Row);
+      }
+      if (StartFrame != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(StartFrame);
+      }
+      if (FrameCount != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(FrameCount);
+      }
+      if (Fps != 0F) {
+        output.WriteRawTag(45);
+        output.WriteFloat(Fps);
+      }
+      if (HasLoop) {
+        output.WriteRawTag(48);
+        output.WriteBool(Loop);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Anim != global::KBVE.Proto.Npc.SpriteAnim.Unspecified) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) Anim);
+      }
+      if (Row != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(Row);
+      }
+      if (StartFrame != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(StartFrame);
+      }
+      if (FrameCount != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(FrameCount);
+      }
+      if (Fps != 0F) {
+        output.WriteRawTag(45);
+        output.WriteFloat(Fps);
+      }
+      if (HasLoop) {
+        output.WriteRawTag(48);
+        output.WriteBool(Loop);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (Anim != global::KBVE.Proto.Npc.SpriteAnim.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Anim);
+      }
+      if (Row != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Row);
+      }
+      if (StartFrame != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(StartFrame);
+      }
+      if (FrameCount != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(FrameCount);
+      }
+      if (Fps != 0F) {
+        size += 1 + 4;
+      }
+      if (HasLoop) {
+        size += 1 + 1;
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(SpriteClip other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Anim != global::KBVE.Proto.Npc.SpriteAnim.Unspecified) {
+        Anim = other.Anim;
+      }
+      if (other.Row != 0) {
+        Row = other.Row;
+      }
+      if (other.StartFrame != 0) {
+        StartFrame = other.StartFrame;
+      }
+      if (other.FrameCount != 0) {
+        FrameCount = other.FrameCount;
+      }
+      if (other.Fps != 0F) {
+        Fps = other.Fps;
+      }
+      if (other.HasLoop) {
+        Loop = other.Loop;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            Anim = (global::KBVE.Proto.Npc.SpriteAnim) input.ReadEnum();
+            break;
+          }
+          case 16: {
+            Row = input.ReadInt32();
+            break;
+          }
+          case 24: {
+            StartFrame = input.ReadInt32();
+            break;
+          }
+          case 32: {
+            FrameCount = input.ReadInt32();
+            break;
+          }
+          case 45: {
+            Fps = input.ReadFloat();
+            break;
+          }
+          case 48: {
+            Loop = input.ReadBool();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Anim = (global::KBVE.Proto.Npc.SpriteAnim) input.ReadEnum();
+            break;
+          }
+          case 16: {
+            Row = input.ReadInt32();
+            break;
+          }
+          case 24: {
+            StartFrame = input.ReadInt32();
+            break;
+          }
+          case 32: {
+            FrameCount = input.ReadInt32();
+            break;
+          }
+          case 45: {
+            Fps = input.ReadFloat();
+            break;
+          }
+          case 48: {
+            Loop = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
+  /// Billboarded pixel-art sprite atlas — columns are frames, rows are directions/clips.
+  /// Consumed by the KBVENPCSprite UE module (UKBVENpcSpriteDef) and 2D clients.
+  /// </summary>
+  public sealed partial class SpriteAtlas : pb::IMessage<SpriteAtlas>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<SpriteAtlas> _parser = new pb::MessageParser<SpriteAtlas>(() => new SpriteAtlas());
+    private pb::UnknownFieldSet _unknownFields;
+    private int _hasBits0;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<SpriteAtlas> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[22]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SpriteAtlas() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SpriteAtlas(SpriteAtlas other) : this() {
+      _hasBits0 = other._hasBits0;
+      atlasRef_ = other.atlasRef_;
+      columns_ = other.columns_;
+      rows_ = other.rows_;
+      cellWidth_ = other.cellWidth_;
+      cellHeight_ = other.cellHeight_;
+      rowFront_ = other.rowFront_;
+      rowSide_ = other.rowSide_;
+      rowBack_ = other.rowBack_;
+      mirrorRightFromSide_ = other.mirrorRightFromSide_;
+      worldWidth_ = other.worldWidth_;
+      worldHeight_ = other.worldHeight_;
+      pivotZ_ = other.pivotZ_;
+      clips_ = other.clips_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public SpriteAtlas Clone() {
+      return new SpriteAtlas(this);
+    }
+
+    /// <summary>Field number for the "atlas_ref" field.</summary>
+    public const int AtlasRefFieldNumber = 1;
+    private string atlasRef_ = "";
+    /// <summary>
+    /// Texture path / LFS asset ref
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string AtlasRef {
+      get { return atlasRef_; }
+      set {
+        atlasRef_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "columns" field.</summary>
+    public const int ColumnsFieldNumber = 2;
+    private int columns_;
+    /// <summary>
+    /// Frames per row
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Columns {
+      get { return columns_; }
+      set {
+        columns_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "rows" field.</summary>
+    public const int RowsFieldNumber = 3;
+    private int rows_;
+    /// <summary>
+    /// Atlas rows
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Rows {
+      get { return rows_; }
+      set {
+        rows_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "cell_width" field.</summary>
+    public const int CellWidthFieldNumber = 4;
+    private int cellWidth_;
+    /// <summary>
+    /// Source cell px (informational)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CellWidth {
+      get { if ((_hasBits0 & 1) != 0) { return cellWidth_; } else { return 0; } }
+      set {
+        _hasBits0 |= 1;
+        cellWidth_ = value;
+      }
+    }
+    /// <summary>Gets whether the "cell_width" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCellWidth {
+      get { return (_hasBits0 & 1) != 0; }
+    }
+    /// <summary>Clears the value of the "cell_width" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCellWidth() {
+      _hasBits0 &= ~1;
+    }
+
+    /// <summary>Field number for the "cell_height" field.</summary>
+    public const int CellHeightFieldNumber = 5;
+    private int cellHeight_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CellHeight {
+      get { if ((_hasBits0 & 2) != 0) { return cellHeight_; } else { return 0; } }
+      set {
+        _hasBits0 |= 2;
+        cellHeight_ = value;
+      }
+    }
+    /// <summary>Gets whether the "cell_height" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasCellHeight {
+      get { return (_hasBits0 & 2) != 0; }
+    }
+    /// <summary>Clears the value of the "cell_height" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearCellHeight() {
+      _hasBits0 &= ~2;
+    }
+
+    /// <summary>Field number for the "row_front" field.</summary>
+    public const int RowFrontFieldNumber = 6;
+    private int rowFront_;
+    /// <summary>
+    /// Direction row indices
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int RowFront {
+      get { return rowFront_; }
+      set {
+        rowFront_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "row_side" field.</summary>
+    public const int RowSideFieldNumber = 7;
+    private int rowSide_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int RowSide {
+      get { return rowSide_; }
+      set {
+        rowSide_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "row_back" field.</summary>
+    public const int RowBackFieldNumber = 8;
+    private int rowBack_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int RowBack {
+      get { return rowBack_; }
+      set {
+        rowBack_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "mirror_right_from_side" field.</summary>
+    public const int MirrorRightFromSideFieldNumber = 9;
+    private bool mirrorRightFromSide_;
+    /// <summary>
+    /// default true
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool MirrorRightFromSide {
+      get { if ((_hasBits0 & 4) != 0) { return mirrorRightFromSide_; } else { return false; } }
+      set {
+        _hasBits0 |= 4;
+        mirrorRightFromSide_ = value;
+      }
+    }
+    /// <summary>Gets whether the "mirror_right_from_side" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasMirrorRightFromSide {
+      get { return (_hasBits0 & 4) != 0; }
+    }
+    /// <summary>Clears the value of the "mirror_right_from_side" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearMirrorRightFromSide() {
+      _hasBits0 &= ~4;
+    }
+
+    /// <summary>Field number for the "world_width" field.</summary>
+    public const int WorldWidthFieldNumber = 10;
+    private float worldWidth_;
+    /// <summary>
+    /// In-world billboard size (cm)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float WorldWidth {
+      get { if ((_hasBits0 & 8) != 0) { return worldWidth_; } else { return 0F; } }
+      set {
+        _hasBits0 |= 8;
+        worldWidth_ = value;
+      }
+    }
+    /// <summary>Gets whether the "world_width" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasWorldWidth {
+      get { return (_hasBits0 & 8) != 0; }
+    }
+    /// <summary>Clears the value of the "world_width" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearWorldWidth() {
+      _hasBits0 &= ~8;
+    }
+
+    /// <summary>Field number for the "world_height" field.</summary>
+    public const int WorldHeightFieldNumber = 11;
+    private float worldHeight_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float WorldHeight {
+      get { if ((_hasBits0 & 16) != 0) { return worldHeight_; } else { return 0F; } }
+      set {
+        _hasBits0 |= 16;
+        worldHeight_ = value;
+      }
+    }
+    /// <summary>Gets whether the "world_height" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasWorldHeight {
+      get { return (_hasBits0 & 16) != 0; }
+    }
+    /// <summary>Clears the value of the "world_height" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearWorldHeight() {
+      _hasBits0 &= ~16;
+    }
+
+    /// <summary>Field number for the "pivot_z" field.</summary>
+    public const int PivotZFieldNumber = 12;
+    private float pivotZ_;
+    /// <summary>
+    /// 0 = bottom-anchored
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float PivotZ {
+      get { if ((_hasBits0 & 32) != 0) { return pivotZ_; } else { return 0F; } }
+      set {
+        _hasBits0 |= 32;
+        pivotZ_ = value;
+      }
+    }
+    /// <summary>Gets whether the "pivot_z" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasPivotZ {
+      get { return (_hasBits0 & 32) != 0; }
+    }
+    /// <summary>Clears the value of the "pivot_z" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearPivotZ() {
+      _hasBits0 &= ~32;
+    }
+
+    /// <summary>Field number for the "clips" field.</summary>
+    public const int ClipsFieldNumber = 13;
+    private static readonly pb::FieldCodec<global::KBVE.Proto.Npc.SpriteClip> _repeated_clips_codec
+        = pb::FieldCodec.ForMessage(106, global::KBVE.Proto.Npc.SpriteClip.Parser);
+    private readonly pbc::RepeatedField<global::KBVE.Proto.Npc.SpriteClip> clips_ = new pbc::RepeatedField<global::KBVE.Proto.Npc.SpriteClip>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::KBVE.Proto.Npc.SpriteClip> Clips {
+      get { return clips_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as SpriteAtlas);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(SpriteAtlas other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (AtlasRef != other.AtlasRef) return false;
+      if (Columns != other.Columns) return false;
+      if (Rows != other.Rows) return false;
+      if (CellWidth != other.CellWidth) return false;
+      if (CellHeight != other.CellHeight) return false;
+      if (RowFront != other.RowFront) return false;
+      if (RowSide != other.RowSide) return false;
+      if (RowBack != other.RowBack) return false;
+      if (MirrorRightFromSide != other.MirrorRightFromSide) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(WorldWidth, other.WorldWidth)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(WorldHeight, other.WorldHeight)) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(PivotZ, other.PivotZ)) return false;
+      if(!clips_.Equals(other.clips_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (AtlasRef.Length != 0) hash ^= AtlasRef.GetHashCode();
+      if (Columns != 0) hash ^= Columns.GetHashCode();
+      if (Rows != 0) hash ^= Rows.GetHashCode();
+      if (HasCellWidth) hash ^= CellWidth.GetHashCode();
+      if (HasCellHeight) hash ^= CellHeight.GetHashCode();
+      if (RowFront != 0) hash ^= RowFront.GetHashCode();
+      if (RowSide != 0) hash ^= RowSide.GetHashCode();
+      if (RowBack != 0) hash ^= RowBack.GetHashCode();
+      if (HasMirrorRightFromSide) hash ^= MirrorRightFromSide.GetHashCode();
+      if (HasWorldWidth) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(WorldWidth);
+      if (HasWorldHeight) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(WorldHeight);
+      if (HasPivotZ) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(PivotZ);
+      hash ^= clips_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (AtlasRef.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(AtlasRef);
+      }
+      if (Columns != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(Columns);
+      }
+      if (Rows != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(Rows);
+      }
+      if (HasCellWidth) {
+        output.WriteRawTag(32);
+        output.WriteInt32(CellWidth);
+      }
+      if (HasCellHeight) {
+        output.WriteRawTag(40);
+        output.WriteInt32(CellHeight);
+      }
+      if (RowFront != 0) {
+        output.WriteRawTag(48);
+        output.WriteInt32(RowFront);
+      }
+      if (RowSide != 0) {
+        output.WriteRawTag(56);
+        output.WriteInt32(RowSide);
+      }
+      if (RowBack != 0) {
+        output.WriteRawTag(64);
+        output.WriteInt32(RowBack);
+      }
+      if (HasMirrorRightFromSide) {
+        output.WriteRawTag(72);
+        output.WriteBool(MirrorRightFromSide);
+      }
+      if (HasWorldWidth) {
+        output.WriteRawTag(85);
+        output.WriteFloat(WorldWidth);
+      }
+      if (HasWorldHeight) {
+        output.WriteRawTag(93);
+        output.WriteFloat(WorldHeight);
+      }
+      if (HasPivotZ) {
+        output.WriteRawTag(101);
+        output.WriteFloat(PivotZ);
+      }
+      clips_.WriteTo(output, _repeated_clips_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (AtlasRef.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(AtlasRef);
+      }
+      if (Columns != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(Columns);
+      }
+      if (Rows != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(Rows);
+      }
+      if (HasCellWidth) {
+        output.WriteRawTag(32);
+        output.WriteInt32(CellWidth);
+      }
+      if (HasCellHeight) {
+        output.WriteRawTag(40);
+        output.WriteInt32(CellHeight);
+      }
+      if (RowFront != 0) {
+        output.WriteRawTag(48);
+        output.WriteInt32(RowFront);
+      }
+      if (RowSide != 0) {
+        output.WriteRawTag(56);
+        output.WriteInt32(RowSide);
+      }
+      if (RowBack != 0) {
+        output.WriteRawTag(64);
+        output.WriteInt32(RowBack);
+      }
+      if (HasMirrorRightFromSide) {
+        output.WriteRawTag(72);
+        output.WriteBool(MirrorRightFromSide);
+      }
+      if (HasWorldWidth) {
+        output.WriteRawTag(85);
+        output.WriteFloat(WorldWidth);
+      }
+      if (HasWorldHeight) {
+        output.WriteRawTag(93);
+        output.WriteFloat(WorldHeight);
+      }
+      if (HasPivotZ) {
+        output.WriteRawTag(101);
+        output.WriteFloat(PivotZ);
+      }
+      clips_.WriteTo(ref output, _repeated_clips_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (AtlasRef.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(AtlasRef);
+      }
+      if (Columns != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Columns);
+      }
+      if (Rows != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Rows);
+      }
+      if (HasCellWidth) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(CellWidth);
+      }
+      if (HasCellHeight) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(CellHeight);
+      }
+      if (RowFront != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(RowFront);
+      }
+      if (RowSide != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(RowSide);
+      }
+      if (RowBack != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(RowBack);
+      }
+      if (HasMirrorRightFromSide) {
+        size += 1 + 1;
+      }
+      if (HasWorldWidth) {
+        size += 1 + 4;
+      }
+      if (HasWorldHeight) {
+        size += 1 + 4;
+      }
+      if (HasPivotZ) {
+        size += 1 + 4;
+      }
+      size += clips_.CalculateSize(_repeated_clips_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(SpriteAtlas other) {
+      if (other == null) {
+        return;
+      }
+      if (other.AtlasRef.Length != 0) {
+        AtlasRef = other.AtlasRef;
+      }
+      if (other.Columns != 0) {
+        Columns = other.Columns;
+      }
+      if (other.Rows != 0) {
+        Rows = other.Rows;
+      }
+      if (other.HasCellWidth) {
+        CellWidth = other.CellWidth;
+      }
+      if (other.HasCellHeight) {
+        CellHeight = other.CellHeight;
+      }
+      if (other.RowFront != 0) {
+        RowFront = other.RowFront;
+      }
+      if (other.RowSide != 0) {
+        RowSide = other.RowSide;
+      }
+      if (other.RowBack != 0) {
+        RowBack = other.RowBack;
+      }
+      if (other.HasMirrorRightFromSide) {
+        MirrorRightFromSide = other.MirrorRightFromSide;
+      }
+      if (other.HasWorldWidth) {
+        WorldWidth = other.WorldWidth;
+      }
+      if (other.HasWorldHeight) {
+        WorldHeight = other.WorldHeight;
+      }
+      if (other.HasPivotZ) {
+        PivotZ = other.PivotZ;
+      }
+      clips_.Add(other.clips_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            AtlasRef = input.ReadString();
+            break;
+          }
+          case 16: {
+            Columns = input.ReadInt32();
+            break;
+          }
+          case 24: {
+            Rows = input.ReadInt32();
+            break;
+          }
+          case 32: {
+            CellWidth = input.ReadInt32();
+            break;
+          }
+          case 40: {
+            CellHeight = input.ReadInt32();
+            break;
+          }
+          case 48: {
+            RowFront = input.ReadInt32();
+            break;
+          }
+          case 56: {
+            RowSide = input.ReadInt32();
+            break;
+          }
+          case 64: {
+            RowBack = input.ReadInt32();
+            break;
+          }
+          case 72: {
+            MirrorRightFromSide = input.ReadBool();
+            break;
+          }
+          case 85: {
+            WorldWidth = input.ReadFloat();
+            break;
+          }
+          case 93: {
+            WorldHeight = input.ReadFloat();
+            break;
+          }
+          case 101: {
+            PivotZ = input.ReadFloat();
+            break;
+          }
+          case 106: {
+            clips_.AddEntriesFrom(input, _repeated_clips_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            AtlasRef = input.ReadString();
+            break;
+          }
+          case 16: {
+            Columns = input.ReadInt32();
+            break;
+          }
+          case 24: {
+            Rows = input.ReadInt32();
+            break;
+          }
+          case 32: {
+            CellWidth = input.ReadInt32();
+            break;
+          }
+          case 40: {
+            CellHeight = input.ReadInt32();
+            break;
+          }
+          case 48: {
+            RowFront = input.ReadInt32();
+            break;
+          }
+          case 56: {
+            RowSide = input.ReadInt32();
+            break;
+          }
+          case 64: {
+            RowBack = input.ReadInt32();
+            break;
+          }
+          case 72: {
+            MirrorRightFromSide = input.ReadBool();
+            break;
+          }
+          case 85: {
+            WorldWidth = input.ReadFloat();
+            break;
+          }
+          case 93: {
+            WorldHeight = input.ReadFloat();
+            break;
+          }
+          case 101: {
+            PivotZ = input.ReadFloat();
+            break;
+          }
+          case 106: {
+            clips_.AddEntriesFrom(ref input, _repeated_clips_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
   /// Generic extension slot — arbitrary key-value pairs for game-specific data
   /// </summary>
   public sealed partial class NpcExtension : pb::IMessage<NpcExtension>
@@ -10053,7 +11241,7 @@ namespace KBVE.Proto.Npc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[21]; }
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[23]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10473,7 +11661,7 @@ namespace KBVE.Proto.Npc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[22]; }
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[24]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -10514,6 +11702,7 @@ namespace KBVE.Proto.Npc {
       modelRef_ = other.modelRef_;
       animationSet_ = other.animationSet_;
       soundSet_ = other.soundSet_;
+      spriteAtlas_ = other.spriteAtlas_ != null ? other.spriteAtlas_.Clone() : null;
       level_ = other.level_;
       levelMin_ = other.levelMin_;
       levelMax_ = other.levelMax_;
@@ -10953,6 +12142,21 @@ namespace KBVE.Proto.Npc {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public void ClearSoundSet() {
       soundSet_ = null;
+    }
+
+    /// <summary>Field number for the "sprite_atlas" field.</summary>
+    public const int SpriteAtlasFieldNumber = 51;
+    private global::KBVE.Proto.Npc.SpriteAtlas spriteAtlas_;
+    /// <summary>
+    /// Billboarded pixel-art sprite atlas
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Npc.SpriteAtlas SpriteAtlas {
+      get { return spriteAtlas_; }
+      set {
+        spriteAtlas_ = value;
+      }
     }
 
     /// <summary>Field number for the "level" field.</summary>
@@ -11461,6 +12665,7 @@ namespace KBVE.Proto.Npc {
       if (ModelRef != other.ModelRef) return false;
       if (AnimationSet != other.AnimationSet) return false;
       if (SoundSet != other.SoundSet) return false;
+      if (!object.Equals(SpriteAtlas, other.SpriteAtlas)) return false;
       if (Level != other.Level) return false;
       if (LevelMin != other.LevelMin) return false;
       if (LevelMax != other.LevelMax) return false;
@@ -11516,6 +12721,7 @@ namespace KBVE.Proto.Npc {
       if (HasModelRef) hash ^= ModelRef.GetHashCode();
       if (HasAnimationSet) hash ^= AnimationSet.GetHashCode();
       if (HasSoundSet) hash ^= SoundSet.GetHashCode();
+      if (spriteAtlas_ != null) hash ^= SpriteAtlas.GetHashCode();
       if (Level != 0) hash ^= Level.GetHashCode();
       if (HasLevelMin) hash ^= LevelMin.GetHashCode();
       if (HasLevelMax) hash ^= LevelMax.GetHashCode();
@@ -11715,6 +12921,10 @@ namespace KBVE.Proto.Npc {
         output.WriteRawTag(146, 3);
         output.WriteMessage(DialogueTree);
       }
+      if (spriteAtlas_ != null) {
+        output.WriteRawTag(154, 3);
+        output.WriteMessage(SpriteAtlas);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -11878,6 +13088,10 @@ namespace KBVE.Proto.Npc {
         output.WriteRawTag(146, 3);
         output.WriteMessage(DialogueTree);
       }
+      if (spriteAtlas_ != null) {
+        output.WriteRawTag(154, 3);
+        output.WriteMessage(SpriteAtlas);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -11945,6 +13159,9 @@ namespace KBVE.Proto.Npc {
       }
       if (HasSoundSet) {
         size += 2 + pb::CodedOutputStream.ComputeStringSize(SoundSet);
+      }
+      if (spriteAtlas_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(SpriteAtlas);
       }
       if (Level != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(Level);
@@ -12075,6 +13292,12 @@ namespace KBVE.Proto.Npc {
       }
       if (other.HasSoundSet) {
         SoundSet = other.SoundSet;
+      }
+      if (other.spriteAtlas_ != null) {
+        if (spriteAtlas_ == null) {
+          SpriteAtlas = new global::KBVE.Proto.Npc.SpriteAtlas();
+        }
+        SpriteAtlas.MergeFrom(other.SpriteAtlas);
       }
       if (other.Level != 0) {
         Level = other.Level;
@@ -12397,6 +13620,13 @@ namespace KBVE.Proto.Npc {
             input.ReadMessage(DialogueTree);
             break;
           }
+          case 410: {
+            if (spriteAtlas_ == null) {
+              SpriteAtlas = new global::KBVE.Proto.Npc.SpriteAtlas();
+            }
+            input.ReadMessage(SpriteAtlas);
+            break;
+          }
         }
       }
     #endif
@@ -12631,6 +13861,13 @@ namespace KBVE.Proto.Npc {
             input.ReadMessage(DialogueTree);
             break;
           }
+          case 410: {
+            if (spriteAtlas_ == null) {
+              SpriteAtlas = new global::KBVE.Proto.Npc.SpriteAtlas();
+            }
+            input.ReadMessage(SpriteAtlas);
+            break;
+          }
         }
       }
     }
@@ -12652,7 +13889,7 @@ namespace KBVE.Proto.Npc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[23]; }
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[25]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

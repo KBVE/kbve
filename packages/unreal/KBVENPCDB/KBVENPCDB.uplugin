@@ -17,6 +17,10 @@
 		{
 			"Name": "MassEntity",
 			"Enabled": true
+		},
+		{
+			"Name": "KBVEYYJson",
+			"Enabled": true
 		}
 	],
 	"Modules": [

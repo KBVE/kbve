@@ -15,6 +15,7 @@ namespace RareIcon
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<StatusEffect>();
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
 
         [BurstCompile]
@@ -23,7 +24,8 @@ namespace RareIcon
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var ecb = new EntityCommandBuffer(Allocator.TempJob);
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(state.WorldUnmanaged);
 
             new StatusEffectTickJob
             {
@@ -31,10 +33,6 @@ namespace RareIcon
                 Ecb = ecb.AsParallelWriter(),
                 DeadLookup = SystemAPI.GetComponentLookup<DeadTag>(true),
             }.ScheduleParallel();
-
-            state.CompleteDependency();
-            ecb.Playback(state.EntityManager);
-            ecb.Dispose();
         }
     }
 

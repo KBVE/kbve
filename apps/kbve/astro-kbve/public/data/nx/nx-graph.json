@@ -2062,17 +2062,42 @@
         "type": "app",
         "data": {
           "root": "apps/agones/cryptothrone/server",
-          "name": "cryptothrone-server",
-          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
-          "projectType": "application",
-          "sourceRoot": "apps/agones/cryptothrone/server/src",
-          "tags": [
-            "rust",
-            "game-server",
-            "agones",
-            "cryptothrone"
-          ],
+          "metadata": {},
           "targets": {
+            "test": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "cargo test -p cryptothrone-server"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects cryptothrone-server --includeDependentProjects -- pnpm exec nx build-deps cryptothrone-server"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
               "executor": "nx:run-commands",
               "options": {
@@ -2111,19 +2136,6 @@
               "configurations": {},
               "parallelism": true
             },
-            "test": {
-              "executor": "nx:run-commands",
-              "options": {
-                "command": "cargo test -p cryptothrone-server"
-              },
-              "configurations": {},
-              "parallelism": true,
-              "inputs": [
-                "default",
-                "^production"
-              ],
-              "cache": true
-            },
             "lint": {
               "executor": "nx:run-commands",
               "options": {
@@ -2138,6 +2150,37 @@
                 "{workspaceRoot}/eslint.config.js"
               ],
               "cache": true
+            },
+            "e2e": {
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                {
+                  "target": "container",
+                  "projects": [
+                    "cryptothrone-server"
+                  ],
+                  "params": "forward"
+                }
+              ],
+              "cache": false,
+              "options": {
+                "commands": [
+                  "docker rm -f cryptothrone-server-e2e 2>/dev/null || true",
+                  "docker run -d --name cryptothrone-server-e2e -p 7979:7979 -e CT_SERVER_ADDR=0.0.0.0:7979 kbve/cryptothrone-server:latest",
+                  "echo 'Waiting for cryptothrone-server...' && for i in $(seq 1 60); do if curl -fsS http://127.0.0.1:7979/healthz >/dev/null 2>&1; then echo 'ready after '\"$i\"'s'; break; fi; if [ $i -eq 60 ]; then echo 'did not start in 60s'; docker logs cryptothrone-server-e2e 2>&1 | tail -80; docker rm -f cryptothrone-server-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+                  "CT_HOST=127.0.0.1 CT_PORT=7979 npx vitest run; EC=$?; echo '--- container logs ---'; docker logs cryptothrone-server-e2e 2>&1 | tail -80; docker rm -f cryptothrone-server-e2e 2>/dev/null || true; exit $EC"
+                ],
+                "parallel": false,
+                "cwd": "apps/agones/cryptothrone/server"
+              },
+              "configurations": {
+                "ci": {}
+              },
+              "parallelism": true,
+              "inputs": [
+                "default",
+                "^production"
+              ]
             },
             "container": {
               "executor": "nx:run-commands",
@@ -2162,6 +2205,16 @@
               "parallelism": true
             }
           },
+          "projectType": "application",
+          "name": "cryptothrone-server",
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/agones/cryptothrone/server/src",
+          "tags": [
+            "rust",
+            "game-server",
+            "agones",
+            "cryptothrone"
+          ],
           "implicitDependencies": []
         }
       },
@@ -9339,6 +9392,24 @@
               ],
               "options": {
                 "command": "node packages/data/codegen/gen-itemdb-uecpp.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:npcdb-uecpp": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/packages/data/codegen/gen-npcdb-uecpp.mjs",
+                "{workspaceRoot}/packages/data/codegen/descriptors/npcdb.binpb"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/unreal/KBVENPCDB/Source/KBVENPCDB/Public/Generated/KBVENPCDBProtoTypes.h",
+                "{workspaceRoot}/packages/unreal/KBVENPCDB/Source/KBVENPCDB/Public/Generated/KBVENPCDBProtoParse.h"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-npcdb-uecpp.mjs",
                 "cwd": ""
               },
               "cache": true,

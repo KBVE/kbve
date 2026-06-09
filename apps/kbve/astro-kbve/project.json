@@ -209,6 +209,22 @@
 			},
 			"cache": true
 		},
+		"sync:npcdb-uecpp": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-npcdb-uecpp.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/npcdb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/unreal/KBVENPCDB/Source/KBVENPCDB/Public/Generated/KBVENPCDBProtoTypes.h",
+				"{workspaceRoot}/packages/unreal/KBVENPCDB/Source/KBVENPCDB/Public/Generated/KBVENPCDBProtoParse.h"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-npcdb-uecpp.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:npcdb": {
 			"executor": "nx:run-commands",
 			"inputs": [

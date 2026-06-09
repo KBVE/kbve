@@ -110,6 +110,29 @@ enum DifficultyMode {
   DIFFICULTY_MYTHIC = 3;
 }
 
+// Sprite animation concept — which clip a billboard atlas row/range represents
+enum SpriteAnim {
+  SPRITE_ANIM_UNSPECIFIED = 0;
+  SPRITE_ANIM_IDLE = 1;
+  SPRITE_ANIM_WALK = 2;
+  SPRITE_ANIM_CRAWL = 3;
+  SPRITE_ANIM_RUN = 4;
+  SPRITE_ANIM_ATTACK = 5;
+  SPRITE_ANIM_CAST = 6;
+  SPRITE_ANIM_HURT = 7;
+  SPRITE_ANIM_DEATH = 8;
+  SPRITE_ANIM_SPAWN = 9;
+  SPRITE_ANIM_SPECIAL = 10;
+}
+
+// Sprite view direction — right is the side row mirrored
+enum SpriteFacing {
+  SPRITE_FACING_UNSPECIFIED = 0;
+  SPRITE_FACING_FRONT = 1;
+  SPRITE_FACING_SIDE = 2;
+  SPRITE_FACING_BACK = 3;
+}
+
 // =============================================================================
 // Sub-messages
 // =============================================================================
@@ -348,6 +371,34 @@ message InteractionFlags {
   optional bool is_civilian = 7;           // Killing causes reputation penalty
 }
 
+// One animation clip inside a sprite atlas — maps a concept to a row + frame range
+message SpriteClip {
+  SpriteAnim anim = 1;
+  int32 row = 2;                  // Atlas row this clip plays from
+  int32 start_frame = 3;          // First column (default 0)
+  int32 frame_count = 4;          // Frames in the clip
+  float fps = 5;                  // Playback rate
+  optional bool loop = 6;         // Loop (default true)
+}
+
+// Billboarded pixel-art sprite atlas — columns are frames, rows are directions/clips.
+// Consumed by the KBVENPCSprite UE module (UKBVENpcSpriteDef) and 2D clients.
+message SpriteAtlas {
+  string atlas_ref = 1;           // Texture path / LFS asset ref
+  int32 columns = 2;              // Frames per row
+  int32 rows = 3;                 // Atlas rows
+  optional int32 cell_width = 4;  // Source cell px (informational)
+  optional int32 cell_height = 5;
+  int32 row_front = 6;            // Direction row indices
+  int32 row_side = 7;
+  int32 row_back = 8;
+  optional bool mirror_right_from_side = 9;  // default true
+  optional float world_width = 10;           // In-world billboard size (cm)
+  optional float world_height = 11;
+  optional float pivot_z = 12;               // 0 = bottom-anchored
+  repeated SpriteClip clips = 13;
+}
+
 // Generic extension slot — arbitrary key-value pairs for game-specific data
 message NpcExtension {
   string key = 1;                          // Namespace, e.g. "discordsh.encounter_weight"
@@ -390,6 +441,7 @@ message Npc {
   optional string model_ref = 32;   // 3D model or sprite sheet ref
   optional string animation_set = 33;
   optional string sound_set = 34;
+  optional SpriteAtlas sprite_atlas = 51;  // Billboarded pixel-art sprite atlas
 
   // Level & scaling
   int32 level = 15;

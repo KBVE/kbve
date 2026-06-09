@@ -5,6 +5,7 @@
  * Must match the registry in packages/data/codegen/gen-all.mjs.
  */
 
+export * from './agents-schema.js';
 export * from './ci_registry-schema.js';
 export * from './clickhouse-schema.js';
 export * from './common-schema.js';

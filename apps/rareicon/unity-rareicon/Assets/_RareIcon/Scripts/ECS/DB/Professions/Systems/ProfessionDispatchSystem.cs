@@ -80,7 +80,8 @@ namespace RareIcon
             var combatDB = SystemAPI.GetSingleton<CombatDBSingleton>();
             var itemDB   = SystemAPI.GetSingleton<ItemDBSingleton>();
 
-            state.Dependency = JobHandle.CombineDependencies(state.Dependency, combatDB.PipelineHandle);
+            offersDB.PipelineHandle.Complete();
+            combatDB.PipelineHandle.Complete();
 
             bool doFullDispatch = offersDB.BuildVersion != _lastSeenBuildVersion;
             if (doFullDispatch)

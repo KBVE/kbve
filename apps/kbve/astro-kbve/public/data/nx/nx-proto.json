@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-06-08T09:45:30.019Z",
+  "generated_at": "2026-06-09T09:17:42.398Z",
   "summary": {
     "total_protos": 37,
     "registered": 28,
     "orphaned": 8,
     "utility_only": 1,
-    "total_messages": 689,
-    "total_enums": 140
+    "total_messages": 691,
+    "total_enums": 142
   },
   "protos": [
     {
@@ -1201,6 +1201,8 @@
         "PhaseRule",
         "SpatialProperties",
         "InteractionFlags",
+        "SpriteClip",
+        "SpriteAtlas",
         "NpcExtension",
         "Npc",
         "NpcRegistry"
@@ -1214,10 +1216,12 @@
         "CreatureFamily",
         "MovementType",
         "DifficultyMode",
+        "SpriteAnim",
+        "SpriteFacing",
         "EquipSlot"
       ],
-      "message_count": 24,
-      "enum_count": 9,
+      "message_count": 26,
+      "enum_count": 11,
       "codegen": {
         "registered": true,
         "name": "npcdb",
@@ -1465,7 +1469,7 @@
     "packages/data/proto/referral/referral.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-06-08T09:45:30Z",
+  "checked_at": "2026-06-09T09:17:42Z",
   "drift_detected": false,
   "drift_files": []
 }
