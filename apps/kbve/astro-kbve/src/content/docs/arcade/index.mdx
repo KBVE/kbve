@@ -26,7 +26,6 @@ import {
 
 import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
 
-
 <ArcadeTooltipController client:only="react" />
 
 <div class="">
@@ -35,7 +34,7 @@ import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
 	title="KBVE Arcade"
 	tagline="Browser games we built ourselves — blackjack, Klondike with monsters, a WebGL action-RPG demo, an isometric WebGPU prototype, and an endless runner. Plus a Ruffle integration in the oven for Flash classics."
 	stats={[
-		{ value: '6', label: 'Live games' },
+		{ value: '7', label: 'Live games' },
 		{ value: 'WASM', label: 'Phaser · Bevy · R3F' },
 		{ value: 'Free', label: 'Enjoy the run!' },
 	]}
@@ -49,6 +48,15 @@ anywhere else.
 ## Available now
 
 <ArcadeGameGrid columns={2}>
+	<ArcadeGameCard
+		title="Frontline Grid"
+		href="/arcade/tactics/"
+		description="Compact turn-based tactics on an 8×8 battlefield. Move blue command units across terrain, focus fire, survive red counter turns, and clear the convoy guard."
+		tags={['Tactics', 'Strategy', 'React']}
+		status="live"
+		gradient="linear-gradient(135deg, #0f766e 0%, #1d4ed8 100%)"
+		icon="▦"
+	/>
 	<ArcadeGameCard
 		title="Blackjack"
 		href="/arcade/blackjack/"
@@ -104,7 +112,6 @@ anywhere else.
 		icon="✛"
 	/>
 </ArcadeGameGrid>
-
 
 <DeferredAdsense />
 
@@ -162,7 +169,6 @@ actually open the game's page — the rest of the site stays light.
 	Subsequent navigations inside the arcade share cached assets and feel
 	near-instant.
 </Aside>
-
 
 ## Controls cheatsheet
 
