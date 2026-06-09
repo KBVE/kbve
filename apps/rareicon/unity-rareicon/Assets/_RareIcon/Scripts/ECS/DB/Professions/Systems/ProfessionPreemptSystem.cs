@@ -25,7 +25,7 @@ namespace RareIcon
         public void OnUpdate(ref SystemState state)
         {
             var combatDB = SystemAPI.GetSingleton<CombatDBSingleton>();
-            state.Dependency = Unity.Jobs.JobHandle.CombineDependencies(state.Dependency, combatDB.PipelineHandle);
+            combatDB.PipelineHandle.Complete();
 
             if (combatDB.Threats.Length == 0)
                 return;

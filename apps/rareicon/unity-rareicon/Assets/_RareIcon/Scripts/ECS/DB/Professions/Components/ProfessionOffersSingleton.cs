@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 
 namespace RareIcon
@@ -31,6 +32,8 @@ namespace RareIcon
         public int2   FarmHex;
 
         public NativeList<NeedyCave> NeedyCaves;
+
+        public JobHandle PipelineHandle;
 
         public uint BuildVersion;
     }

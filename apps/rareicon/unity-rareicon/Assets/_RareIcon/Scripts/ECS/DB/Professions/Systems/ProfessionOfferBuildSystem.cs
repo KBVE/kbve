@@ -176,7 +176,7 @@ namespace RareIcon
                 offers.SetCapacity(math.max(required, offers.Capacity * 2));
 
             var hexHandle  = new BuildHexResourceOffersJob { Writer = offers.AsParallelWriter() }.ScheduleParallel(state.Dependency);
-            var dropHandle = new BuildItemDropOffersJob    { Writer = offers.AsParallelWriter() }.ScheduleParallel(state.Dependency);
+            var dropHandle = new BuildItemDropOffersJob    { Writer = offers.AsParallelWriter() }.ScheduleParallel(hexHandle);
 
             var finalizeJob = new FinalizeOffersJob
             {
@@ -186,8 +186,8 @@ namespace RareIcon
                 OfferKindStart     = db.OfferKindStart,
                 OfferKindCount     = db.OfferKindCount,
             };
-            state.Dependency = finalizeJob.Schedule(
-                JobHandle.CombineDependencies(hexHandle, dropHandle));
+            state.Dependency  = finalizeJob.Schedule(dropHandle);
+            db.PipelineHandle = state.Dependency;
 
             db.BuildVersion++;
         }
