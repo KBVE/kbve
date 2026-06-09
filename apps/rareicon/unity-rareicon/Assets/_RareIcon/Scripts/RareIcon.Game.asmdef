@@ -1,0 +1,41 @@
+{
+    "name": "RareIcon.Game",
+    "rootNamespace": "RareIcon",
+    "references": [
+        "GUID:7b5e9d6c4f8a4e3a8b1c2d3e4f5a6b7c",
+        "GUID:9772b468fb8547638f63ce07401fbfe8",
+        "GUID:c392f14e218c4157a4465b27cac38e0b",
+        "GUID:734d92eba21c94caba915361bd5ac177",
+        "GUID:8819f35a0fc84499b990e90a4ca1911f",
+        "GUID:7a450cf7ca9694b5a8bfa3fd83ec635a",
+        "GUID:a5baed0c9693541a5bd947d336ec7659",
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:2665a8d13d1b3f18800f46e256720795",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:953adc2a6b8b4e3c8df5b728bcd546e9",
+        "GUID:f2d49d9fa7e7eb3418e39723a7d3b92f",
+        "GUID:08b38f39e2d9e594389b7a4cf4c2c338",
+        "GUID:4f682e06dbb3e624faedad9cc27106cc",
+        "GUID:b0214a6008ed146ff8f122a6a9c2f6cc",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23",
+        "GUID:33661e06c33d31b4c9223810bf503247",
+        "GUID:77221876cc6b8244180b96e320b1bcd4",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:68bd7fdb68ef2684e982e8a9825b18a5"
+    ],
+    "includePlatforms": [
+        "Editor",
+        "LinuxStandalone64",
+        "macOSStandalone",
+        "WindowsStandalone32",
+        "WindowsStandalone64"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
