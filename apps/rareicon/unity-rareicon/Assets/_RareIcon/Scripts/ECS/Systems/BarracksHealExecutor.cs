@@ -24,6 +24,7 @@ namespace RareIcon
         public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingleton<HexDBSingleton>(out var hexLookup)) return;
+            hexLookup.DrainHandle.Complete();
             var itemDB = SystemAPI.GetSingleton<ItemDBSingleton>();
 
             ref var db = ref SystemAPI.GetSingletonRW<LogisticsDBSingleton>().ValueRW;
