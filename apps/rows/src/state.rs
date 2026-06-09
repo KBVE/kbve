@@ -1,4 +1,5 @@
 use crate::agones::AgonesClient;
+use crate::config::{Environment, TenantConfig};
 use crate::db::DbPool;
 use crate::mq::MqProducer;
 use crate::service::CachedSession;
@@ -24,6 +25,8 @@ pub struct AppState {
 
 pub struct AppConfig {
     pub customer_guid: Uuid,
+    pub tenant_slug: String,
+    pub environment: Environment,
     pub agones_namespace: String,
     pub agones_fleet: String,
 }
@@ -37,7 +40,7 @@ impl AppState {
 #[derive(Default)]
 pub struct AppStateBuilder {
     db: Option<DbPool>,
-    customer_guid: Option<Uuid>,
+    tenant: Option<TenantConfig>,
     agones_namespace: Option<String>,
     agones_fleet: Option<String>,
     mq: Option<MqProducer>,
@@ -50,8 +53,8 @@ impl AppStateBuilder {
         self
     }
 
-    pub fn customer_guid(mut self, guid: Uuid) -> Self {
-        self.customer_guid = Some(guid);
+    pub fn tenant(mut self, tenant: TenantConfig) -> Self {
+        self.tenant = Some(tenant);
         self
     }
 
@@ -72,15 +75,18 @@ impl AppStateBuilder {
     }
 
     pub fn build(self) -> anyhow::Result<Arc<AppState>> {
+        let tenant = self
+            .tenant
+            .ok_or_else(|| anyhow::anyhow!("tenant config required"))?;
         Ok(Arc::new(AppState {
             db: self.db.ok_or_else(|| anyhow::anyhow!("db pool required"))?,
             sessions: DashMap::new(),
             zone_servers: DashMap::new(),
             zone_spinup_locks: DashMap::new(),
             config: AppConfig {
-                customer_guid: self
-                    .customer_guid
-                    .ok_or_else(|| anyhow::anyhow!("OWS_API_KEY required"))?,
+                customer_guid: tenant.customer_guid,
+                tenant_slug: tenant.slug,
+                environment: tenant.environment,
                 agones_namespace: self.agones_namespace.unwrap_or_else(|| "ows".into()),
                 agones_fleet: self.agones_fleet.unwrap_or_else(|| "ows-hubworld".into()),
             },

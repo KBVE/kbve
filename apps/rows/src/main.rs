@@ -2,6 +2,7 @@
 #![allow(dead_code)]
 
 mod agones;
+mod config;
 mod convert;
 mod db;
 mod error;
@@ -27,7 +28,6 @@ use tower_http::timeout::TimeoutLayer;
 use tracing::{info, warn};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
-use uuid::Uuid;
 
 /// Regenerate with `BUILD_PROTO=1 cargo build -p rows`.
 pub mod proto {
@@ -59,30 +59,27 @@ async fn main() -> anyhow::Result<()> {
         .with_span_events(tracing_subscriber::fmt::format::FmtSpan::CLOSE)
         .init();
 
-    let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/ows".into());
-    let api_key = std::env::var("OWS_API_KEY").unwrap_or_else(|_| Uuid::new_v4().to_string());
-    let rabbitmq_url =
-        std::env::var("RABBITMQ_URL").unwrap_or_else(|_| "amqp://dev:test@localhost:5672".into());
-    let agones_ns = std::env::var("AGONES_NAMESPACE").unwrap_or_else(|_| "ows".into());
-    let agones_fleet = std::env::var("AGONES_FLEET").unwrap_or_else(|_| "ows-hubworld".into());
+    let cfg = config::RowsConfig::from_env()?;
+    info!(
+        tenant = %cfg.tenant.slug,
+        environment = cfg.tenant.environment.as_str(),
+        customer_guid = %cfg.tenant.customer_guid,
+        agones_fleet = %cfg.agones_fleet,
+        agones_namespace = %cfg.agones_namespace,
+        "Tenant configuration loaded"
+    );
 
-    let host = std::env::var("HTTP_HOST").unwrap_or_else(|_| "0.0.0.0".into());
-    let port: u16 = std::env::var("HTTP_PORT")
-        .unwrap_or_else(|_| "4322".into())
-        .parse()?;
-    let addr: SocketAddr = format!("{host}:{port}").parse()?;
-
-    let pool = db::connect(&database_url).await?;
+    let pool = db::connect(&cfg.database_url).await?;
     info!("Database connected");
 
-    let mq_producer = mq::try_connect(&rabbitmq_url).await;
+    let mq_producer = mq::try_connect(&cfg.rabbitmq_url).await;
     info!(
         available = mq_producer.is_some(),
         "RabbitMQ initialization complete"
     );
 
-    let agones_client = agones::AgonesClient::try_new(&agones_ns, &agones_fleet).await;
+    let agones_client =
+        agones::AgonesClient::try_new(&cfg.agones_namespace, &cfg.agones_fleet).await;
     info!(
         available = agones_client.is_some(),
         "Agones initialization complete"
@@ -90,8 +87,8 @@ async fn main() -> anyhow::Result<()> {
 
     let app_state = state::AppState::builder()
         .db(pool)
-        .customer_guid(Uuid::parse_str(&api_key)?)
-        .agones_config(&agones_ns, &agones_fleet)
+        .tenant(cfg.tenant.clone())
+        .agones_config(&cfg.agones_namespace, &cfg.agones_fleet)
         .mq(mq_producer)
         .agones(agones_client)
         .build()?;
@@ -124,7 +121,7 @@ async fn main() -> anyhow::Result<()> {
     }
 
     // world_server_id=0 is a placeholder; real value comes from register_launcher.
-    mq::spawn_consumer(&rabbitmq_url, 0, svc.clone()).await;
+    mq::spawn_consumer(&cfg.rabbitmq_url, 0, svc.clone()).await;
 
     let grpc_router = grpc::router(svc.clone());
     let rest_router = rest::router(app_state, svc.clone());
@@ -144,24 +141,16 @@ async fn main() -> anyhow::Result<()> {
         .layer(RequestBodyLimitLayer::new(10 * 1024 * 1024))
         .layer(CorsLayer::permissive());
 
-    let metrics_port: u16 = std::env::var("METRICS_PORT")
-        .unwrap_or_else(|_| "4324".into())
-        .parse()
-        .unwrap_or(4324);
     tokio::spawn(jedi::entity::pipe_prometheus::serve_metrics(
         jedi::entity::pipe_prometheus::MetricsConfig {
             service_name: "rows",
-            port: metrics_port,
+            port: cfg.metrics_port,
         },
         prom_handle,
     ));
 
     // Swagger UI binds an internal-only port; deliberately not exposed via HTTPRoute/gateway.
-    let docs_port: u16 = std::env::var("DOCS_PORT")
-        .unwrap_or_else(|_| "4323".into())
-        .parse()
-        .unwrap_or(4323);
-    let docs_addr: SocketAddr = format!("{host}:{docs_port}").parse()?;
+    let docs_addr: SocketAddr = SocketAddr::new(cfg.http_addr.ip(), cfg.docs_port);
     let docs_app = axum::Router::new().merge(
         SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi::ApiDoc::openapi()),
     );
@@ -171,6 +160,7 @@ async fn main() -> anyhow::Result<()> {
         axum::serve(listener, docs_app).await.ok();
     });
 
+    let addr = cfg.http_addr;
     info!("ROWS listening on {addr} (REST + gRPC + WS multiplexed)");
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
