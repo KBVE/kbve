@@ -30,13 +30,13 @@ static TAutoConsoleVariable<float> CVarKBVEPostBands(
 	ECVF_RenderThreadSafe);
 
 static TAutoConsoleVariable<float> CVarKBVEPostEdgeStrength(
-	TEXT("r.KBVEPost.EdgeStrength"), 1.2f,
-	TEXT("Ink outline darkening strength."),
+	TEXT("r.KBVEPost.EdgeStrength"), 3.0f,
+	TEXT("Ink outline darkening strength (Sobel gain)."),
 	ECVF_RenderThreadSafe);
 
 static TAutoConsoleVariable<float> CVarKBVEPostEdgeThreshold(
-	TEXT("r.KBVEPost.EdgeThreshold"), 0.18f,
-	TEXT("Luma discontinuity threshold for ink outlines."),
+	TEXT("r.KBVEPost.EdgeThreshold"), 0.4f,
+	TEXT("Sobel luma-gradient threshold — higher = silhouettes only, fewer texture lines."),
 	ECVF_RenderThreadSafe);
 
 static TAutoConsoleVariable<float> CVarKBVEPostSaturation(
@@ -50,8 +50,23 @@ static TAutoConsoleVariable<float> CVarKBVEPostBrightness(
 	ECVF_RenderThreadSafe);
 
 static TAutoConsoleVariable<float> CVarKBVEPostBandSoftness(
-	TEXT("r.KBVEPost.BandSoftness"), 0.25f,
+	TEXT("r.KBVEPost.BandSoftness"), 0.3f,
 	TEXT("Softness of cel band transitions (0 = hard toon step)."),
+	ECVF_RenderThreadSafe);
+
+static TAutoConsoleVariable<float> CVarKBVEPostDetailRecover(
+	TEXT("r.KBVEPost.DetailRecover"), 6.0f,
+	TEXT("Sobel-driven un-banding — higher keeps more fine detail (grass) out of the cel bands."),
+	ECVF_RenderThreadSafe);
+
+static TAutoConsoleVariable<int32> CVarKBVEPostMask(
+	TEXT("r.KBVEPost.Mask"), 1,
+	TEXT("Restrict the toon pass to Custom-Depth-Stencil tagged meshes. 0 = whole screen, 1 = tagged objects only."),
+	ECVF_RenderThreadSafe);
+
+static TAutoConsoleVariable<int32> CVarKBVEPostDebug(
+	TEXT("r.KBVEPost.Debug"), 0,
+	TEXT("Tint stencil-tagged pixels red to verify masking. 0 = off, 1 = on."),
 	ECVF_RenderThreadSafe);
 
 FKBVEPostViewExtension::FKBVEPostViewExtension(const FAutoRegister& AutoRegister)
@@ -80,24 +95,36 @@ FScreenPassTexture FKBVEPostViewExtension::AfterTonemap_RenderThread(FRDGBuilder
 		return SceneColor;
 	}
 
+	FRDGTextureSRVRef CustomStencilSRV = nullptr;
+	if (Inputs.SceneTextures.SceneTextures)
+	{
+		CustomStencilSRV = Inputs.SceneTextures.SceneTextures->GetParameters()->CustomStencilTexture;
+	}
+	const int32 MaskEnable = (CustomStencilSRV != nullptr && CVarKBVEPostMask.GetValueOnRenderThread() != 0) ? 1 : 0;
+	{
+		static bool bLoggedMask = false;
+		if (!bLoggedMask)
+		{
+			bLoggedMask = true;
+			UE_LOG(LogTemp, Warning, TEXT("[KBVEPostDiag] SceneTexturesUB=%d CustomStencilSRV=%d MaskEnable=%d"),
+				Inputs.SceneTextures.SceneTextures ? 1 : 0,
+				CustomStencilSRV ? 1 : 0,
+				MaskEnable);
+		}
+	}
+	if (CustomStencilSRV == nullptr)
+	{
+		FRDGTextureDesc DummyDesc = FRDGTextureDesc::Create2D(FIntPoint(1, 1), PF_R8G8_UINT, FClearValueBinding::Transparent, TexCreate_ShaderResource | TexCreate_RenderTargetable);
+		FRDGTextureRef DummyTex = GraphBuilder.CreateTexture(DummyDesc, TEXT("KBVEPost.DummyStencil"));
+		AddClearRenderTargetPass(GraphBuilder, DummyTex);
+		CustomStencilSRV = GraphBuilder.CreateSRV(FRDGTextureSRVDesc::Create(DummyTex));
+	}
+
 	const FScreenPassTextureViewport Viewport(SceneColor);
 	const FIntPoint Extent = SceneColor.Texture->Desc.Extent;
 	const FVector2f TexelSize(1.0f / Extent.X, 1.0f / Extent.Y);
 	FRHISamplerState* BilinearClamp = TStaticSamplerState<SF_Bilinear, AM_Clamp, AM_Clamp, AM_Clamp>::GetRHI();
 	FGlobalShaderMap* ShaderMap = GetGlobalShaderMap(View.GetFeatureLevel());
-
-	const FIntPoint HalfExtent(FMath::Max(1, Extent.X / 2), FMath::Max(1, Extent.Y / 2));
-	const FVector2f HalfTexelSize(1.0f / HalfExtent.X, 1.0f / HalfExtent.Y);
-	const FIntRect HalfRect(0, 0, HalfExtent.X, HalfExtent.Y);
-
-	FRDGTextureDesc IntermediateDesc = SceneColor.Texture->Desc;
-	IntermediateDesc.Reset();
-	IntermediateDesc.Extent = HalfExtent;
-	IntermediateDesc.Format = PF_FloatRGBA;
-	IntermediateDesc.Flags = TexCreate_ShaderResource | TexCreate_RenderTargetable;
-
-	FRDGTextureRef TensorTexture = GraphBuilder.CreateTexture(IntermediateDesc, TEXT("KBVEPost.Tensor"));
-	FRDGTextureRef PaintedTexture = GraphBuilder.CreateTexture(IntermediateDesc, TEXT("KBVEPost.Painted"));
 
 	FScreenPassRenderTarget Output = Inputs.OverrideOutput;
 	if (!Output.IsValid())
@@ -106,35 +133,13 @@ FScreenPassTexture FKBVEPostViewExtension::AfterTonemap_RenderThread(FRDGBuilder
 	}
 
 	{
-		FKBVEPostStructureTensorPS::FParameters* PassParameters = GraphBuilder.AllocParameters<FKBVEPostStructureTensorPS::FParameters>();
-		PassParameters->ColorTexture = SceneColor.Texture;
-		PassParameters->ColorSampler = BilinearClamp;
-		PassParameters->TexelSize = HalfTexelSize;
-		PassParameters->RenderTargets[0] = FRenderTargetBinding(TensorTexture, ERenderTargetLoadAction::ENoAction);
-
-		TShaderMapRef<FKBVEPostStructureTensorPS> PixelShader(ShaderMap);
-		FPixelShaderUtils::AddFullscreenPass(GraphBuilder, ShaderMap, RDG_EVENT_NAME("KBVEPost.StructureTensor"), PixelShader, PassParameters, HalfRect);
-	}
-
-	{
-		FKBVEPostKuwaharaPS::FParameters* PassParameters = GraphBuilder.AllocParameters<FKBVEPostKuwaharaPS::FParameters>();
-		PassParameters->ColorTexture = SceneColor.Texture;
-		PassParameters->ColorSampler = BilinearClamp;
-		PassParameters->TensorTexture = TensorTexture;
-		PassParameters->TensorSampler = BilinearClamp;
-		PassParameters->TexelSize = HalfTexelSize;
-		PassParameters->Radius = FMath::Clamp(CVarKBVEPostRadius.GetValueOnRenderThread(), 1, 16);
-		PassParameters->WatercolorStrength = CVarKBVEPostWatercolorStrength.GetValueOnRenderThread();
-		PassParameters->RenderTargets[0] = FRenderTargetBinding(PaintedTexture, ERenderTargetLoadAction::ENoAction);
-
-		TShaderMapRef<FKBVEPostKuwaharaPS> PixelShader(ShaderMap);
-		FPixelShaderUtils::AddFullscreenPass(GraphBuilder, ShaderMap, RDG_EVENT_NAME("KBVEPost.Kuwahara"), PixelShader, PassParameters, HalfRect);
-	}
-
-	{
 		FKBVEPostCompositePS::FParameters* PassParameters = GraphBuilder.AllocParameters<FKBVEPostCompositePS::FParameters>();
-		PassParameters->ColorTexture = PaintedTexture;
+		PassParameters->ColorTexture = SceneColor.Texture;
 		PassParameters->ColorSampler = BilinearClamp;
+		PassParameters->EdgeTexture = SceneColor.Texture;
+		PassParameters->EdgeSampler = BilinearClamp;
+		PassParameters->CustomStencilTexture = CustomStencilSRV;
+		PassParameters->EdgeTexelSize = TexelSize;
 		PassParameters->TexelSize = TexelSize;
 		PassParameters->Bands = FMath::Max(2.0f, CVarKBVEPostBands.GetValueOnRenderThread());
 		PassParameters->EdgeStrength = CVarKBVEPostEdgeStrength.GetValueOnRenderThread();
@@ -142,6 +147,9 @@ FScreenPassTexture FKBVEPostViewExtension::AfterTonemap_RenderThread(FRDGBuilder
 		PassParameters->Saturation = CVarKBVEPostSaturation.GetValueOnRenderThread();
 		PassParameters->Brightness = CVarKBVEPostBrightness.GetValueOnRenderThread();
 		PassParameters->BandSoftness = FMath::Clamp(CVarKBVEPostBandSoftness.GetValueOnRenderThread(), 0.01f, 0.49f);
+		PassParameters->DetailRecover = FMath::Max(0.0f, CVarKBVEPostDetailRecover.GetValueOnRenderThread());
+		PassParameters->MaskEnable = MaskEnable;
+		PassParameters->DebugMask = CVarKBVEPostDebug.GetValueOnRenderThread();
 		PassParameters->RenderTargets[0] = Output.GetRenderTargetBinding();
 
 		TShaderMapRef<FKBVEPostCompositePS> PixelShader(ShaderMap);

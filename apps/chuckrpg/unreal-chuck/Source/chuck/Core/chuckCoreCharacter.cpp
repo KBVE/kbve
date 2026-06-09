@@ -56,6 +56,8 @@ AchuckCoreCharacter::AchuckCoreCharacter(const FObjectInitializer& ObjectInitial
 		}
 		MeshComp->SetRelativeLocation(FVector(0.f, 0.f, -90.f));
 		MeshComp->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+		MeshComp->SetRenderCustomDepth(true);
+		MeshComp->SetCustomDepthStencilValue(1);
 	}
 
 	if (UCharacterMovementComponent* Move = GetCharacterMovement())
