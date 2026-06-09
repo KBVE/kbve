@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: cryptothrone-game
+    namespace: cryptothrone
+    labels:
+        app: cryptothrone-server
+        app.kubernetes.io/part-of: cryptothrone
+spec:
+    type: ClusterIP
+    selector:
+        app: cryptothrone-server
+    sessionAffinity: ClientIP
+    ports:
+        - name: ws
+          port: 7979
+          targetPort: 7979
+          protocol: TCP

@@ -1,0 +1,22 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "KBVE Perf",
+	"Description": "Lightweight runtime-toggleable performance instrumentation: scoped timers and counters with per-name aggregates, a log sink, an on-screen overlay, and a live HTTP /perf JSON readout for external tooling. Compiles out of shipping builds; zero overhead when disabled.",
+	"Category": "KBVE",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"DocsURL": "https://kbve.com/project/kbveperf/",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"EnabledByDefault": false,
+	"Modules": [
+		{
+			"Name": "KBVEPerf",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit"
+		}
+	]
+}

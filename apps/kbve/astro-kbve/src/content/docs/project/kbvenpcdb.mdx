@@ -41,3 +41,17 @@ pattern but ships as a reusable plugin:
 
 NPC DATA stays in the shared npcdb MDX; the plugin owns the load + Mass bridge.
 ChuckRPG calls it to spawn data-driven NPC entities.
+
+## KBVENPCSprite module
+
+The plugin also ships a `KBVENPCSprite` render module for billboarded pixel-art NPC
+sprites in the 3D world (data/Mass stay in the `KBVENPCDB` module; this only draws):
+
+- **`UKBVENpcSpriteDef`** — UDataAsset: atlas + sprite material + grid (columns =
+  animation frames, rows = view directions front/side/back), fps, world size, pivot.
+- **`UKBVENpcSpriteRenderSubsystem`** — `Spawn/Update/Despawn` sprite handles; one HISM
+  per def, CPU Y-locked camera billboard, atlas cell driven by per-instance custom data
+  (offset/scale UV; right view is the side row mirrored via negative U scale).
+
+P1 is standalone (assign a `UKBVENpcSpriteDef`); later it keys off the npcdb `Ref`. The
+sprite material is authored in-editor — see the module README for the custom-data contract.

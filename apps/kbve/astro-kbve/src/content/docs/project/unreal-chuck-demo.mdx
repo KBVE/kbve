@@ -1,0 +1,60 @@
+---
+title: Unreal Chuck Demo
+description: |
+    Chuck RPG UE5 demo client built straight from the monorepo apps/chuckrpg/unreal-chuck shell (no external repo) and shipped to itch.io as kbve/chuckrpg, alongside the full Unreal Chuck Game.
+sidebar:
+    label: Unreal Chuck Demo
+    order: 96
+tags:
+    - ue5
+    - game
+    - chuck
+    - demo
+key: unreal_chuck_demo
+pipeline: unreal_game
+app_name: chuck-demo
+source_path: apps/chuckrpg/unreal-chuck
+version_toml: apps/chuckrpg/unreal-chuck/version.toml
+version: "0.3.19"
+runner: arc-runner-ue
+author: h0lybyte
+license: KBVE
+status: beta
+homepage_url: https://kbve.itch.io/chuckrpg
+engine:
+    version: "5.7.4"
+    project_path: apps/chuckrpg/unreal-chuck
+    build_targets:
+        - Win64
+external_publish:
+    itch_user: kbve
+    itch_game: chuckrpg
+    itch_channel: demo
+---
+
+## Overview
+
+Chuck RPG UE5 demo client. Unlike the [Unreal Chuck Game](/project/unreal-chuck-game),
+which clones the external `KBVE/chuck` repo, this demo compiles the monorepo shell at
+`apps/chuckrpg/unreal-chuck` directly (the working copy with the KBVE plugins). Content is
+pulled from the same chuck Forgejo LFS endpoint (`git.kbve.com/KBVE/chuck`, HTTPS) declared
+in `apps/chuckrpg/unreal-chuck/.lfsconfig`, and the build ships to itch.io under
+`kbve/chuckrpg` on the `demo` channel.
+
+## Pipeline
+
+`pipeline: unreal_game` → `ci-main.yml` dispatches `ci-unreal.yml` (`task: game`)
+→ `ci-unreal-build.yml` (`mode: game`) whenever the MDX `version:` here outpaces
+`version.toml`, or `source_path` files change. With no `engine.external_repo_url`, the
+builder checks out the monorepo and builds the project under `engine.project_path` against
+the prebuilt UE5.7 installed on the `UE5-Win` KubeVirt VM (`C:\Program Files\Epic Games\UE_5.7`).
+
+## Build Matrix
+
+`engine.build_targets`:
+
+- `Win64` — native build on the `UE5-Win` KubeVirt VM (RunUAT.bat, prebuilt UE5.7)
+
+## Distribution
+
+Shipped to itch.io as `kbve/chuckrpg` (channel `demo`) when `deploy_to_itch` is set.

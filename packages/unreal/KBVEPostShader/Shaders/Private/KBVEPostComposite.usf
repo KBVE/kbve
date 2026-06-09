@@ -1,0 +1,41 @@
+#include "/Plugin/KBVEPostShader/Private/KBVEPostCommon.ush"
+
+Texture2D ColorTexture;
+SamplerState ColorSampler;
+float2 TexelSize;
+float Bands;
+float EdgeStrength;
+float EdgeThreshold;
+float Saturation;
+float Brightness;
+float BandSoftness;
+
+void MainPS(float4 SvPosition : SV_POSITION, out float4 OutColor : SV_Target0)
+{
+	float2 UV = SvPosition.xy * TexelSize;
+	float3 Painted = ColorTexture.SampleLevel(ColorSampler, UV, 0).rgb;
+
+	float Lc = KBVELuma(Painted);
+	float Lr = KBVELuma(ColorTexture.SampleLevel(ColorSampler, UV + float2(1, 0) * TexelSize, 0).rgb);
+	float Ll = KBVELuma(ColorTexture.SampleLevel(ColorSampler, UV + float2(-1, 0) * TexelSize, 0).rgb);
+	float Lu = KBVELuma(ColorTexture.SampleLevel(ColorSampler, UV + float2(0, 1) * TexelSize, 0).rgb);
+	float Ld = KBVELuma(ColorTexture.SampleLevel(ColorSampler, UV + float2(0, -1) * TexelSize, 0).rgb);
+	float LumaEdge = abs(Lr - Lc) + abs(Ll - Lc) + abs(Lu - Lc) + abs(Ld - Lc);
+
+	float Edge = saturate((LumaEdge - EdgeThreshold) * EdgeStrength);
+
+	float T = Lc * Bands;
+	float Band = floor(T);
+	float Frac = T - Band;
+	float Step = smoothstep(0.5f - BandSoftness, 0.5f + BandSoftness, Frac);
+	float Quant = (Band + Step) / Bands;
+	float3 Cel = Painted * (Quant / max(Lc, 1e-4f));
+
+	Cel = KBVEAdjustSaturation(Cel, Saturation);
+
+	Cel = pow(saturate(Cel), 0.9f) * Brightness;
+	Cel *= float3(1.04f, 1.0f, 0.96f);
+
+	float3 Result = Cel * (1.0f - Edge * 0.55f);
+	OutColor = float4(saturate(Result), 1.0f);
+}

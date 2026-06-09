@@ -28,7 +28,8 @@ public class KBVEWorld : ModuleRules
 			"RenderCore",
 			"Renderer",
 			"Projects",
-			"KBVESQLite"
+			"KBVESQLite",
+			"KBVEPerf"
 		});
 
 		if (Target.bBuildEditor)

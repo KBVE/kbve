@@ -224,7 +224,7 @@ jobs:
 
             - name: Set up Docker Buildx
               if: inputs.setup_docker
-              uses: Wandalen/wretry.action@v3.7.0
+              uses: Wandalen/wretry.action@v3.8.0
               with:
                   action: docker/setup-buildx-action@v4
                   attempt_limit: 3

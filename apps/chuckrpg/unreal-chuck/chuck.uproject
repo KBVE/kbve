@@ -131,6 +131,10 @@
 			"TargetAllowList": [
 				"Editor"
 			]
+		},
+		{
+			"Name": "KBVEPostShader",
+			"Enabled": true
 		}
 	]
 }

@@ -75,6 +75,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "KBVEWorld|Placement", meta = (ClampMin = "1"))
 	int32 PerChunkVariants = 12;
 
+	UPROPERTY(EditDefaultsOnly, Category = "KBVEWorld|Biome", meta = (ClampMin = "1"))
+	int32 NumGrassBiomes = 6;
+
+	UPROPERTY(EditDefaultsOnly, Category = "KBVEWorld|Biome", meta = (ClampMin = "1"))
+	int32 BiomeRegionChunks = 12;
+
+	uint8 ChunkBiomeId = 0;
+
 	UPROPERTY(EditDefaultsOnly, Category = "KBVEWorld|Terrain")
 	float EdgeSkirtDepth = 200.f;
 

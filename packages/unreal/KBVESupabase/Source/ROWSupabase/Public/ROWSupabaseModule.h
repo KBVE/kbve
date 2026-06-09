@@ -2,7 +2,7 @@
 
 #include "Modules/ModuleManager.h"
 
-class FKBVESupabaseROWSBridgeModule : public IModuleInterface
+class FROWSupabaseModule : public IModuleInterface
 {
 public:
 	virtual void StartupModule() override;

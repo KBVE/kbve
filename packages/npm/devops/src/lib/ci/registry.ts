@@ -175,6 +175,23 @@ export const CI_PROJECTS: CiProject[] = ProjectArraySchema.parse([
 		status: 'beta',
 		tags: ['docker', 'game-server', 'nexus-defense'],
 	},
+	{
+		key: 'cryptothrone_server',
+		name: 'CryptoThrone Server',
+		pipeline: 'docker',
+		app_name: 'cryptothrone-server',
+		test_framework: 'rust',
+		description:
+			'CryptoThrone authoritative grid game server (axum + simgrid bevy sim)',
+		source_path: 'apps/agones/cryptothrone/server',
+		version_toml: 'apps/agones/cryptothrone/server/version.toml',
+		runner: 'arc-runner-set',
+		image: 'kbve/cryptothrone-server',
+		author: 'h0lybyte',
+		license: 'MIT',
+		status: 'beta',
+		tags: ['docker', 'game-server', 'cryptothrone'],
+	},
 
 	{
 		key: 'chisel_ubuntu_axum',

@@ -154,6 +154,14 @@ pub fn decode<T: for<'de> Deserialize<'de>>(buf: &mut [u8]) -> Result<T, postcar
     postcard::from_bytes_cobs(buf)
 }
 
+pub fn encode_json<T: Serialize>(value: &T) -> Result<String, serde_json::Error> {
+    serde_json::to_string(value)
+}
+
+pub fn decode_json<T: for<'de> Deserialize<'de>>(text: &str) -> Result<T, serde_json::Error> {
+    serde_json::from_str(text)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

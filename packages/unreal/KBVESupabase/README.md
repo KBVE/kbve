@@ -229,6 +229,28 @@ FDateTime ExpiresAt = Sb->GetAccessTokenExpiresAt();
 
 `Core`, `CoreUObject`, `Engine`, `HTTP`, `HTTPServer`, `Json`, `JsonUtilities`, `DeveloperSettings`, `WebSockets`; private: `Sockets`, `Networking`. No third-party libs (SHA-256 is a self-contained FIPS 180-4 reference impl in `KBVESupabasePKCE.cpp`).
 
+## ROWSupabase module
+
+The `ROWSupabase` module (ships in this plugin alongside the core `KBVESupabase` module) is the glue layer that links a KBVESupabase sign-in to a **ROWS** session. It depends on both `KBVESupabase` and the `ROWS` module from the `KBVEROWS` plugin, which this plugin pulls in.
+
+On `UKBVESupabaseSubsystem::OnSignedIn`, `USupabaseRowsBridgeSubsystem`:
+
+1. `UROWSAuthSubsystem::AdoptSupabaseSession(AccessToken, User.Id, User.KbveUsername)` — stores the JWT in the ROWS core so every subsequent ROWS request carries `Authorization: Bearer <token>`.
+2. `UROWSAuthSubsystem::ExternalLoginAndCreateSession(AccessToken)` — mints a ROWS `UserSessionGUID` against `POST /api/Users/ExternalLoginAndCreateSession`.
+
+The resulting GUID is surfaced via `OnSupabaseRowsLinked`; failures via `OnSupabaseRowsLinkFailed`. Sign-out clears the ROWS Supabase session.
+
+```cpp
+auto* Bridge = GetGameInstance()->GetSubsystem<USupabaseRowsBridgeSubsystem>();
+Bridge->OnSupabaseRowsLinked.AddDynamic(this, &UMyHud::HandleRowsReady);    // FString UserSessionGUID
+Bridge->OnSupabaseRowsLinkFailed.AddDynamic(this, &UMyHud::HandleRowsError); // FString ErrorMessage
+
+auto* Sb = GetGameInstance()->GetSubsystem<UKBVESupabaseSubsystem>();
+Sb->SignInWithPassword(Email, Password); // or StartOAuthSignIn(...)
+```
+
+The bridge auto-links on sign-in. For a session restored from a persisted refresh token, drive it manually with `Bridge->LinkCurrentSupabaseSession()`. `SetAutoLinkEnabled(false)` disables the automatic `OnSignedIn` hook.
+
 ## License
 
 Part of the KBVE monorepo — see repo root.

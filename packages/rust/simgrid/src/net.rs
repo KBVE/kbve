@@ -84,6 +84,7 @@ pub struct ServerState {
     pub input_tx: Option<mpsc::UnboundedSender<SlotInput>>,
     pub seed: u64,
     pub jwt_secret: Vec<u8>,
+    pub require_username: bool,
     pub roster: Arc<RwLock<Roster>>,
 }
 
@@ -93,6 +94,7 @@ impl ServerState {
         input_tx: mpsc::UnboundedSender<SlotInput>,
         seed: u64,
         jwt_secret: Vec<u8>,
+        require_username: bool,
         capacity: usize,
     ) -> Self {
         Self {
@@ -100,13 +102,43 @@ impl ServerState {
             input_tx: Some(input_tx),
             seed,
             jwt_secret,
+            require_username,
             roster: Arc::new(RwLock::new(Roster::new(capacity))),
         }
     }
 }
 
+#[derive(Clone, Copy)]
+enum WireFormat {
+    Postcard,
+    Json,
+}
+
 struct AdmittedPlayer {
     slot: proto::PlayerSlot,
+    format: WireFormat,
+}
+
+fn decode_client(msg: &Message) -> Option<(ClientMessage, WireFormat)> {
+    match msg {
+        Message::Binary(bytes) => {
+            let mut buf = bytes.clone();
+            proto::decode::<ClientMessage>(&mut buf)
+                .ok()
+                .map(|m| (m, WireFormat::Postcard))
+        }
+        Message::Text(text) => proto::decode_json::<ClientMessage>(text.as_str())
+            .ok()
+            .map(|m| (m, WireFormat::Json)),
+        _ => None,
+    }
+}
+
+fn encode_event(evt: &ServerEvent, format: WireFormat) -> Option<Message> {
+    match format {
+        WireFormat::Postcard => proto::encode(evt).ok().map(Message::Binary),
+        WireFormat::Json => proto::encode_json(evt).ok().map(Message::Text),
+    }
 }
 
 pub fn router(state: ServerState) -> Router {
@@ -129,6 +161,7 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
         None => return,
     };
     let slot = admitted.slot;
+    let format = admitted.format;
     let roster_handle = state.roster.clone();
 
     let welcome = ServerEvent::Welcome {
@@ -136,8 +169,8 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
         your_slot: slot,
         seed: state.seed,
     };
-    if let Ok(buf) = proto::encode(&welcome)
-        && socket.send(Message::Binary(buf)).await.is_err()
+    if let Some(msg) = encode_event(&welcome, format)
+        && socket.send(msg).await.is_err()
     {
         release_slot(&roster_handle, slot);
         return;
@@ -156,26 +189,22 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
             } => {
                 let Some(evt) = evt else { break };
                 let evt = inject_roster(evt, &state.roster);
-                let Ok(buf) = proto::encode(&evt) else { continue };
-                if socket.send(Message::Binary(buf)).await.is_err() {
+                let Some(msg) = encode_event(&evt, format) else { continue };
+                if socket.send(msg).await.is_err() {
                     break;
                 }
             }
             incoming = socket.recv() => {
                 let Some(Ok(msg)) = incoming else { break };
-                match msg {
-                    Message::Binary(bytes) => {
-                        let mut buf = bytes;
-                        if let Ok(ClientMessage::Frame(frame)) = proto::decode::<ClientMessage>(&mut buf)
-                            && let Some(tx) = state.input_tx.as_ref()
-                        {
-                            for input in frame.inputs {
-                                let _ = tx.send((slot, input));
-                            }
-                        }
+                if matches!(msg, Message::Close(_)) {
+                    break;
+                }
+                if let Some((ClientMessage::Frame(frame), _)) = decode_client(&msg)
+                    && let Some(tx) = state.input_tx.as_ref()
+                {
+                    for input in frame.inputs {
+                        let _ = tx.send((slot, input));
                     }
-                    Message::Close(_) => break,
-                    _ => {}
                 }
             }
         }
@@ -196,17 +225,26 @@ async fn await_join_match(
 ) -> Option<AdmittedPlayer> {
     loop {
         let msg = socket.recv().await?.ok()?;
-        let Message::Binary(bytes) = msg else {
+        if matches!(msg, Message::Ping(_) | Message::Pong(_)) {
             continue;
+        }
+        let Some((client_msg, format)) = decode_client(&msg) else {
+            send_reject(
+                socket,
+                WireFormat::Json,
+                "expected JoinMatch as first frame",
+            )
+            .await;
+            return None;
         };
-        let mut buf = bytes;
-        let Ok(ClientMessage::JoinMatch(jm)) = proto::decode::<ClientMessage>(&mut buf) else {
-            send_reject(socket, "expected JoinMatch as first frame").await;
+        let ClientMessage::JoinMatch(jm) = client_msg else {
+            send_reject(socket, format, "expected JoinMatch as first frame").await;
             return None;
         };
         if jm.protocol != proto::PROTOCOL_VERSION {
             send_reject(
                 socket,
+                format,
                 &format!(
                     "protocol mismatch: client={}, server={}",
                     jm.protocol,
@@ -216,7 +254,7 @@ async fn await_join_match(
             .await;
             return None;
         }
-        return admit(state, socket, jm).await;
+        return admit(state, socket, jm, format).await;
     }
 }
 
@@ -225,19 +263,24 @@ async fn admit(
     state: &Arc<ServerState>,
     socket: &mut WebSocket,
     jm: proto::JoinMatch,
+    format: WireFormat,
 ) -> Option<AdmittedPlayer> {
-    let kbve_username = if state.jwt_secret.is_empty() {
-        fallback_username(jm.kbve_username)
+    let raw = if state.jwt_secret.is_empty() {
+        jm.kbve_username
     } else {
         match crate::auth::verify_supabase_jwt(&jm.jwt, &state.jwt_secret) {
             Ok(claims) => claims.kbve_username,
             Err(e) => {
-                send_reject(socket, &format!("auth rejected: {e}")).await;
+                send_reject(socket, format, &format!("auth rejected: {e}")).await;
                 return None;
             }
         }
     };
-    claim_slot(state, socket, kbve_username).await
+    let Some(username) = resolve_username(state.require_username, raw) else {
+        send_reject(socket, format, "username required").await;
+        return None;
+    };
+    claim_slot(state, socket, username, format).await
 }
 
 #[cfg(not(feature = "supabase-auth"))]
@@ -245,15 +288,22 @@ async fn admit(
     state: &Arc<ServerState>,
     socket: &mut WebSocket,
     jm: proto::JoinMatch,
+    format: WireFormat,
 ) -> Option<AdmittedPlayer> {
-    claim_slot(state, socket, fallback_username(jm.kbve_username)).await
+    let Some(username) = resolve_username(state.require_username, jm.kbve_username) else {
+        send_reject(socket, format, "username required").await;
+        return None;
+    };
+    claim_slot(state, socket, username, format).await
 }
 
-fn fallback_username(name: String) -> String {
-    if name.is_empty() {
-        "guest".into()
+fn resolve_username(require_username: bool, name: String) -> Option<String> {
+    if !name.is_empty() {
+        Some(name)
+    } else if require_username {
+        None
     } else {
-        name
+        Some("guest".into())
     }
 }
 
@@ -261,26 +311,27 @@ async fn claim_slot(
     state: &Arc<ServerState>,
     socket: &mut WebSocket,
     kbve_username: String,
+    format: WireFormat,
 ) -> Option<AdmittedPlayer> {
     let slot = match state.roster.write() {
         Ok(mut r) => r.claim(kbve_username),
         Err(_) => None,
     };
     match slot {
-        Some(slot) => Some(AdmittedPlayer { slot }),
+        Some(slot) => Some(AdmittedPlayer { slot, format }),
         None => {
-            send_reject(socket, "match full").await;
+            send_reject(socket, format, "match full").await;
             None
         }
     }
 }
 
-async fn send_reject(socket: &mut WebSocket, reason: &str) {
+async fn send_reject(socket: &mut WebSocket, format: WireFormat, reason: &str) {
     let evt = ServerEvent::Reject {
         reason: reason.to_string(),
     };
-    if let Ok(buf) = proto::encode(&evt) {
-        let _ = socket.send(Message::Binary(buf)).await;
+    if let Some(msg) = encode_event(&evt, format) {
+        let _ = socket.send(msg).await;
     }
     let _ = socket
         .send(Message::Close(Some(axum::extract::ws::CloseFrame {
@@ -301,5 +352,25 @@ fn inject_roster(evt: ServerEvent, roster: &Arc<RwLock<Roster>>) -> ServerEvent 
             ServerEvent::Snapshot(snap)
         }
         other => other,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::resolve_username;
+
+    #[test]
+    fn require_username_rejects_empty() {
+        assert_eq!(resolve_username(true, String::new()), None);
+        assert_eq!(
+            resolve_username(true, "h0lybyte".into()),
+            Some("h0lybyte".into())
+        );
+    }
+
+    #[test]
+    fn guest_allowed_when_not_required() {
+        assert_eq!(resolve_username(false, String::new()), Some("guest".into()));
+        assert_eq!(resolve_username(false, "ann".into()), Some("ann".into()));
     }
 }

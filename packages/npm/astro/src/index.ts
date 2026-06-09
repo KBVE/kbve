@@ -159,3 +159,9 @@ export {
 	botConfigToFormDraft,
 	botConfigFromFormDraft,
 } from '@kbve/droid';
+
+export {
+	KbveUsernameSetup,
+	type KbveUsernameSetupProps,
+	validateUsername,
+} from './components/user/KbveUsernameSetup';

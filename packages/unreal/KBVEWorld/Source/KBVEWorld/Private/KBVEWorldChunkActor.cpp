@@ -1,4 +1,5 @@
 #include "KBVEWorldChunkActor.h"
+#include "KBVEPerf.h"
 
 #include "Async/Async.h"
 #include "KBVEWorldProceduralGrass.h"
@@ -24,21 +25,6 @@
 #include "Serialization/MemoryReader.h"
 #include "UObject/ConstructorHelpers.h"
 #include "UObject/WeakObjectPtrTemplates.h"
-
-namespace
-{
-	struct FKBVEHitchLog
-	{
-		const TCHAR* Name;
-		double Start;
-		explicit FKBVEHitchLog(const TCHAR* InName) : Name(InName), Start(FPlatformTime::Seconds()) {}
-		~FKBVEHitchLog()
-		{
-			const double Ms = (FPlatformTime::Seconds() - Start) * 1000.0;
-			if (Ms > 3.0) UE_LOG(LogTemp, Warning, TEXT("[KBVEPerf] %s %.1fms"), Name, Ms);
-		}
-	};
-}
 
 AKBVEWorldChunkActor::AKBVEWorldChunkActor()
 {
@@ -75,7 +61,7 @@ void AKBVEWorldChunkActor::BeginPlay()
 
 void AKBVEWorldChunkActor::GenerateMeshData(FKBVEWorldChunkMesh& OutMesh) const
 {
-	FKBVEHitchLog _t(TEXT("GenerateMeshData"));
+	KBVEPERF_SCOPE("Terrain.GenerateMeshData");
 	const int32 VertsPerEdge = CellsPerEdge + 1;
 	const int32 VertCount    = VertsPerEdge * VertsPerEdge;
 	OutMesh.CellsPerEdge = CellsPerEdge;
@@ -192,7 +178,7 @@ void AKBVEWorldChunkActor::GenerateMeshData(FKBVEWorldChunkMesh& OutMesh) const
 
 void AKBVEWorldChunkActor::UploadMesh(const FKBVEWorldChunkMesh& MeshData)
 {
-	FKBVEHitchLog _t(TEXT("UploadMesh"));
+	KBVEPERF_SCOPE("Terrain.UploadMesh");
 	if (!Mesh) return;
 	const int32 VertCount = MeshData.Vertices.Num();
 	TArray<FColor> VertexColors; VertexColors.Init(FColor::White, VertCount);
@@ -224,7 +210,7 @@ void AKBVEWorldChunkActor::SerializeCurrentMesh(TArray<uint8>& OutBytes) const
 
 void AKBVEWorldChunkActor::Build(const FIntPoint& InCoord, uint32 InSeed, int32 InCellsPerEdge, float InCellSize, float InWaterZ)
 {
-	FKBVEHitchLog _t(TEXT("Build(total)"));
+	KBVEPERF_SCOPE("Terrain.Build");
 	const bool bSameTopology = (CellsPerEdge == InCellsPerEdge) && FMath::IsNearlyEqual(CellSize, InCellSize);
 	if (bMeshBuilt && bSameTopology && Coord == InCoord && Seed == InSeed)
 	{
@@ -350,7 +336,7 @@ void AKBVEWorldChunkActor::RefreshChunkClusterHISMRefs()
 
 void AKBVEWorldChunkActor::Release()
 {
-	FKBVEHitchLog _t(TEXT("Release"));
+	KBVEPERF_SCOPE("Terrain.Release");
 	bActive = false;
 	bImpostorVisibleCached = false;
 	SetActorHiddenInGame(true);
@@ -550,19 +536,33 @@ void AKBVEWorldChunkActor::EnsureHISMComponents()
 
 	if (ChunkVariantIndices.Num() == 0)
 	{
-		const int32 Want = FMath::Min(PerChunkVariants, FoliageMeshes.Num());
-		const uint32 H = HashCombine(HashCombine(GetTypeHash(Coord), Seed), 0xDEADBEEFu);
-		FRandomStream PickRng(static_cast<int32>(H));
+		const int32 N = FoliageMeshes.Num();
+		const int32 Want = FMath::Min(PerChunkVariants, N);
+
+		auto FloorDiv = [](int32 A, int32 B) { return (A >= 0) ? (A / B) : (-((-A + B - 1) / B)); };
+		const int32 RegionSize = FMath::Max(1, BiomeRegionChunks);
+		const FIntPoint Region(FloorDiv(Coord.X, RegionSize), FloorDiv(Coord.Y, RegionSize));
+		const uint32 BiomeHash = HashCombine(HashCombine(GetTypeHash(Region), Seed), 0xB10E51A5u);
+		const int32 NumBiomes  = FMath::Clamp(NumGrassBiomes, 1, N);
+		const int32 BiomeId    = BiomeHash % NumBiomes;
+		ChunkBiomeId = (uint8)BiomeId;
+
+		const int32 SliceLen   = FMath::Max(Want, N / NumBiomes);
+		const int32 SliceStart = (BiomeId * (N / NumBiomes)) % N;
+
 		TArray<int32> Pool;
-		Pool.Reserve(FoliageMeshes.Num());
-		for (int32 i = 0; i < FoliageMeshes.Num(); ++i) Pool.Add(i);
-		for (int32 i = 0; i < Want; ++i)
+		Pool.Reserve(SliceLen);
+		for (int32 i = 0; i < SliceLen; ++i) Pool.Add((SliceStart + i) % N);
+
+		FRandomStream PickRng(static_cast<int32>(HashCombine(BiomeHash, GetTypeHash(Coord))));
+		const int32 Take = FMath::Min(Want, Pool.Num());
+		for (int32 i = 0; i < Take; ++i)
 		{
 			const int32 SwapIdx = PickRng.RandRange(i, Pool.Num() - 1);
 			Pool.Swap(i, SwapIdx);
 		}
-		ChunkVariantIndices.Reserve(Want);
-		for (int32 i = 0; i < Want; ++i) ChunkVariantIndices.Add(Pool[i]);
+		ChunkVariantIndices.Reserve(Take);
+		for (int32 i = 0; i < Take; ++i) ChunkVariantIndices.Add(Pool[i]);
 	}
 }
 
@@ -764,6 +764,7 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 				FTransform T = Batches[Slot][i];
 				T.AddToTranslation(ChunkOriginW);
 				T.MultiplyScale3D(FVector(LocalScaleMul));
+				T.NormalizeRotation();
 				Dst.Add(T);
 			}
 		}
@@ -777,16 +778,16 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 			Out.Transforms = MoveTemp(Pair.Value);
 		}
 
-		// Sparse, mesh-agnostic impostor positions: every Nth blade across all
-		// slots, scaled up to read as a clump on the far crossed-card HISM.
 		TArray<FTransform> ImpostorXf;
 		const int32 ImpStep = FMath::Max(LocalImpStride, 1);
 		for (int32 Slot = 0; Slot < Batches.Num(); ++Slot)
 		{
 			for (int32 i = 0; i < Batches[Slot].Num(); i += ImpStep)
 			{
-				FTransform T = Batches[Slot][i];
-				T.AddToTranslation(ChunkOriginW);
+				const FTransform& Src = Batches[Slot][i];
+				FTransform T;
+				T.SetLocation(Src.GetLocation() + ChunkOriginW);
+				T.SetRotation(Src.GetRotation().GetNormalized());
 				T.SetScale3D(FVector(LocalImpScale));
 				ImpostorXf.Add(T);
 			}
@@ -801,7 +802,7 @@ void AKBVEWorldChunkActor::PopulateFoliage()
 			if (Self->Coord != LocalCoord)         return;
 			if (!Self->bActive)                    return;
 
-			FKBVEHitchLog _t(TEXT("Grass.RegisterCallback"));
+			KBVEPERF_SCOPE("Grass.RegisterCallback");
 			UWorld* W = Self->GetWorld();
 			if (!W) return;
 			UKBVEWorldGrassRenderSubsystem* Render = W->GetSubsystem<UKBVEWorldGrassRenderSubsystem>();
