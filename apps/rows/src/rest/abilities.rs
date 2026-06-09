@@ -31,7 +31,10 @@ pub(super) fn abilities_routes(hs: HandlerState) -> Router {
             post(get_ability_bars_and_abilities),
         )
         .route("/api/Abilities/GetAbilities", get(get_abilities_list))
-        .layer(middleware::from_fn(require_customer_guid))
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            require_customer_guid,
+        ))
         .with_state(hs)
 }
 

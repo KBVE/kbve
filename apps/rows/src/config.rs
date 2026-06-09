@@ -34,6 +34,23 @@ impl Environment {
     }
 }
 
+/// Defaults are only safe in dev; for beta/release an unset value would silently collide
+/// multiple tenants onto the same fleet/namespace, so require it explicitly there.
+fn require_or_default(
+    var: &str,
+    default: &str,
+    environment: Environment,
+) -> anyhow::Result<String> {
+    match std::env::var(var) {
+        Ok(v) => Ok(v),
+        Err(_) if environment.requires_explicit_guid() => Err(anyhow!(
+            "{var} is required for OWS_ENV={}",
+            environment.as_str()
+        )),
+        Err(_) => Ok(default.to_string()),
+    }
+}
+
 #[derive(Clone)]
 pub struct TenantConfig {
     pub customer_guid: Uuid,
@@ -84,8 +101,8 @@ impl RowsConfig {
             .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/ows".into());
         let rabbitmq_url = std::env::var("RABBITMQ_URL")
             .unwrap_or_else(|_| "amqp://dev:test@localhost:5672".into());
-        let agones_namespace = std::env::var("AGONES_NAMESPACE").unwrap_or_else(|_| "ows".into());
-        let agones_fleet = std::env::var("AGONES_FLEET").unwrap_or_else(|_| "ows-hubworld".into());
+        let agones_namespace = require_or_default("AGONES_NAMESPACE", "ows", environment)?;
+        let agones_fleet = require_or_default("AGONES_FLEET", "ows-hubworld", environment)?;
 
         let host = std::env::var("HTTP_HOST").unwrap_or_else(|_| "0.0.0.0".into());
         let port: u16 = std::env::var("HTTP_PORT")

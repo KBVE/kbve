@@ -7,7 +7,10 @@ use serde::Deserialize;
 pub(super) fn zones_routes(hs: HandlerState) -> Router {
     Router::new()
         .route("/api/Zones/AddZone", post(add_zone))
-        .layer(middleware::from_fn(require_customer_guid))
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            require_customer_guid,
+        ))
         .with_state(hs)
 }
 

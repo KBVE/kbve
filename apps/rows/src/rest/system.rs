@@ -25,7 +25,10 @@ pub fn system_routes(hs: HandlerState) -> Router {
             "/api/System/VerifyDeployment",
             axum::routing::post(verify_deployment),
         )
-        .layer(middleware::from_fn(require_customer_guid))
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            require_customer_guid,
+        ))
         .with_state(hs)
 }
 
