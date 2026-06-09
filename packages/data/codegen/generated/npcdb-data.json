@@ -2044,6 +2044,30 @@
       "rank": "NPC_RANK_ELITE",
       "family": "aberration",
       "level": 1,
+      "spriteAtlas": {
+        "atlasRef": "/Game/NPC/Slime/T_Slime_Crawl",
+        "columns": 5,
+        "rows": 3,
+        "cellWidth": 64,
+        "cellHeight": 64,
+        "rowFront": 0,
+        "rowSide": 1,
+        "rowBack": 2,
+        "mirrorRightFromSide": true,
+        "worldWidth": 128,
+        "worldHeight": 128,
+        "pivotZ": 0,
+        "clips": [
+          {
+            "anim": "SPRITE_ANIM_CRAWL",
+            "row": 0,
+            "startFrame": 0,
+            "frameCount": 5,
+            "fps": 10,
+            "loop": true
+          }
+        ]
+      },
       "stats": {
         "hp": 20,
         "maxHp": 20,
