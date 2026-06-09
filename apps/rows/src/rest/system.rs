@@ -282,6 +282,9 @@ pub async fn deployment_info(State(hs): State<HandlerState>) -> Json<serde_json:
     Json(serde_json::json!({
         "version": env!("CARGO_PKG_VERSION"),
         "rust_version": env!("CARGO_PKG_RUST_VERSION", "unknown"),
+        "tenant_slug": hs.app.config.tenant_slug,
+        "environment": hs.app.config.environment.as_str(),
+        "customer_guid": hs.app.config.customer_guid.to_string(),
         "agones_namespace": hs.app.config.agones_namespace,
         "agones_fleet": hs.app.config.agones_fleet,
         "agones_available": hs.app.agones.is_some(),
