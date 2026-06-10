@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: rows-chuckrpg-beta
+    labels:
+        name: rows-chuckrpg-beta
+        app.kubernetes.io/part-of: ows
