@@ -38,12 +38,12 @@ spec:
                       - name: OWS_API_KEY
                         valueFrom:
                             secretKeyRef:
-                                name: ows-customer-guid
+                                name: rows-customer-guid
                                 key: customer-guid
                       - name: DATABASE_URL
                         valueFrom:
                             secretKeyRef:
-                                name: ows-db-credentials
+                                name: rows-db-credentials
                                 key: db-url
                   volumeMounts:
                       - name: seed

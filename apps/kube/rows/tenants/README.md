@@ -22,15 +22,16 @@ tenants/
 
 ## Tenants
 
-| Tenant slug         | Namespace                | `OWS_ENV` | Agones fleet            |
-| ------------------- | ------------------------ | --------- | ----------------------- |
-| `chuckrpg-dev`      | `rows-chuckrpg-dev`      | `dev`     | `ows-chuckrpg-dev`      |
-| `chuckrpg-beta`     | `rows-chuckrpg-beta`     | `beta`    | `ows-chuckrpg-beta`     |
-| `rentearth-release` | `rows-rentearth-release` | `release` | `ows-rentearth-release` |
+| Tenant slug         | Namespace                | `OWS_ENV` | Agones fleet             | Hostname                |
+| ------------------- | ------------------------ | --------- | ------------------------ | ----------------------- |
+| `chuckrpg-dev`      | `rows-chuckrpg-dev`      | `dev`     | `rows-chuckrpg-dev`      | `api-dev.chuckrpg.com`  |
+| `chuckrpg-beta`     | `rows-chuckrpg-beta`     | `beta`    | `rows-chuckrpg-beta`     | `api-beta.chuckrpg.com` |
+| `rentearth-release` | `rows-rentearth-release` | `release` | `rows-rentearth-release` | `api.rentearth.com`     |
 
 `customer_guid` is never committed — generated once per tenant, stored only in that
-namespace's sealed `ows-customer-guid` secret, and read from there by both the ROWS pod
-(`OWS_API_KEY`) and the seed Job.
+namespace's sealed `rrows-customer-guid` secret, and read from there by both the ROWS pod
+(`OWS_API_KEY`) and the seed Job. New tenant resources use the `rows-*` prefix; chuck's
+`ows-*` single-tenant manifests under `apps/kube/rows/manifest/` are untouched.
 
 ## Adding a new tenant (e.g. `chuckrpg-release`, `rentearth-dev`)
 
@@ -49,7 +50,7 @@ No `base/` edits, no SQL copy — `base/` is shared. (If the repo later adopts A
 ```sh
 SLUG=chuckrpg-dev; NS=rows-chuckrpg-dev
 GUID=$(uuidgen | tr 'A-Z' 'a-z')   # generate once; do NOT commit this value
-kubectl create secret generic ows-customer-guid \
+kubectl create secret generic rows-customer-guid \
   --namespace "$NS" --from-literal=customer-guid="$GUID" --dry-run=client -o yaml \
 | kubeseal --format yaml --controller-namespace sealed-secrets --controller-name sealed-secrets \
 > "overlays/$SLUG/sealed-customer-guid.yaml"
@@ -71,14 +72,29 @@ gameops `psql` step.
 (kustomize cannot read files outside its root). `nx run data-sql:verify-seed-sync` diffs the
 two and fails if they diverge — run it in CI / before merge. Update both together.
 
-## Deferred to follow-up (edge)
+## Wired in `base/` + overlays
 
-- **Secrets per namespace**: `ows-customer-guid` (sealed), `ows-db-credentials`,
-  `ows-rabbitmq-credentials`, `rows-supabase-jwt` (ExternalSecrets, as in `manifest/externalsecret.yaml`).
-  Pods + seed Job stay pending until these exist.
-- **Agones**: per-tenant `Fleet` + `FleetAutoscaler` under `apps/kube/agones/rows/`, plus
-  `ows-instancelauncher` ServiceAccount + cross-ns RBAC.
-- **Public routing**: per-tenant `HTTPRoute` + `Certificate` + gateway listener.
+- **Secrets**: ServiceAccounts `rows-external-secrets` / `rows-instancelauncher`; SecretStores
+  (kilobase, rabbitmq) + ExternalSecrets → `rows-db-credentials`, `rows-rabbitmq-credentials`,
+  `rows-supabase-jwt`. Cross-ns read RBAC for these SAs is appended in
+  `apps/kube/kilobase/manifests/cross-namespace-rbac.yaml` + `apps/kube/rabbitmq/manifests/cross-namespace-rbac.yaml`.
+- **Sealed**: `rows-customer-guid` + `rows-encryption-key` are committed as STUBS per overlay —
+  replace via kubeseal before deploy (below).
+- **Routing**: per-tenant `Certificate` + `HTTPRoute` (overlay patches the hostname), `ReferenceGrant`,
+  and a gateway listener in `apps/kube/kbve/manifest/kbve-gateway.yaml`.
+
+## Steps you must do per tenant (cannot be committed)
+
+1. **Seal** `rows-customer-guid` (+ `rows-encryption-key`) — replace the stub (below).
+2. **DNS** — add an A/CNAME for the tenant hostname (e.g. `api-dev.chuckrpg.com`) to the gateway VIP,
+   or the Certificate stays `Pending` (ACME HTTP-01) and the listener won't serve.
+
+## Deferred to a later PR
+
+- **Agones**: per-tenant `Fleet` + `FleetAutoscaler` + gameserver/service-key ExternalSecrets in
+  `arc-runners`. **Blocked**: a fleet needs a per-tenant UE5 `LinuxServer` build on a
+  `rows-<slug>-server-build` PVC — that build pipeline does not exist yet for dev/beta/rentearth.
+  Until then the ROWS API runs but no game servers allocate.
 
 ## Register the ArgoCD Applications
 

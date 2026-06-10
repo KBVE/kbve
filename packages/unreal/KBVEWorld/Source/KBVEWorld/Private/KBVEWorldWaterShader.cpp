@@ -4,6 +4,19 @@
 #include "Materials/MaterialExpressionConstant.h"
 #include "Materials/MaterialExpressionConstant3Vector.h"
 #include "Materials/MaterialExpressionSingleLayerWaterMaterialOutput.h"
+#include "Materials/MaterialExpressionTime.h"
+#include "Materials/MaterialExpressionWorldPosition.h"
+#include "Materials/MaterialExpressionCameraPositionWS.h"
+#include "Materials/MaterialExpressionComponentMask.h"
+#include "Materials/MaterialExpressionMultiply.h"
+#include "Materials/MaterialExpressionAdd.h"
+#include "Materials/MaterialExpressionSine.h"
+#include "Materials/MaterialExpressionDistance.h"
+#include "Materials/MaterialExpressionDivide.h"
+#include "Materials/MaterialExpressionClamp.h"
+#include "Materials/MaterialExpressionLinearInterpolate.h"
+#include "Materials/MaterialExpressionDepthFade.h"
+#include "Materials/MaterialExpressionOneMinus.h"
 #include "UObject/Package.h"
 #include "UObject/UObjectGlobals.h"
 #include "UObject/StrongObjectPtr.h"
@@ -59,8 +72,28 @@ UMaterialInterface* FKBVEWorldWaterShader::GetOrCreateWaterMaterial(UObject* /*O
 	UMaterialExpressionConstant* Metal = MakeWaterExpr<UMaterialExpressionConstant>(M);
 	Metal->R = 0.0f;
 
-	UMaterialExpressionConstant3Vector* Scatter = MakeWaterExpr<UMaterialExpressionConstant3Vector>(M);
-	Scatter->Constant = FLinearColor(0.04f, 0.12f, 0.16f);
+	UMaterialExpressionWorldPosition* WorldP = MakeWaterExpr<UMaterialExpressionWorldPosition>(M);
+	UMaterialExpressionCameraPositionWS* CamP = MakeWaterExpr<UMaterialExpressionCameraPositionWS>(M);
+
+	UMaterialExpressionConstant3Vector* NearScatter = MakeWaterExpr<UMaterialExpressionConstant3Vector>(M);
+	NearScatter->Constant = FLinearColor(0.05f, 0.16f, 0.20f);
+	UMaterialExpressionConstant3Vector* FarScatter = MakeWaterExpr<UMaterialExpressionConstant3Vector>(M);
+	FarScatter->Constant = FLinearColor(0.02f, 0.08f, 0.12f);
+
+	UMaterialExpressionDistance* CamDist = MakeWaterExpr<UMaterialExpressionDistance>(M);
+	CamDist->A.Expression = CamP;
+	CamDist->B.Expression = WorldP;
+	UMaterialExpressionConstant* DistRange = MakeWaterExpr<UMaterialExpressionConstant>(M);
+	DistRange->R = 9000.f;
+	UMaterialExpressionDivide* DistN = MakeWaterExpr<UMaterialExpressionDivide>(M);
+	DistN->A.Expression = CamDist;
+	DistN->B.Expression = DistRange;
+	UMaterialExpressionClamp* DistC = MakeWaterExpr<UMaterialExpressionClamp>(M);
+	DistC->Input.Expression = DistN;
+	UMaterialExpressionLinearInterpolate* Scatter = MakeWaterExpr<UMaterialExpressionLinearInterpolate>(M);
+	Scatter->A.Expression = NearScatter;
+	Scatter->B.Expression = FarScatter;
+	Scatter->Alpha.Expression = DistC;
 
 	UMaterialExpressionConstant3Vector* Absorb = MakeWaterExpr<UMaterialExpressionConstant3Vector>(M);
 	Absorb->Constant = FLinearColor(0.35f, 0.12f, 0.06f);

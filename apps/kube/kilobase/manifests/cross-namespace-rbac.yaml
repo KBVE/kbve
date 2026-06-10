@@ -65,6 +65,15 @@ subjects:
       name: ows-external-secrets
       namespace: rows
     - kind: ServiceAccount
+      name: rows-external-secrets
+      namespace: rows-chuckrpg-dev
+    - kind: ServiceAccount
+      name: rows-external-secrets
+      namespace: rows-chuckrpg-beta
+    - kind: ServiceAccount
+      name: rows-external-secrets
+      namespace: rows-rentearth-release
+    - kind: ServiceAccount
       name: cryptothrone-external-secrets
       namespace: cryptothrone
     - kind: ServiceAccount
