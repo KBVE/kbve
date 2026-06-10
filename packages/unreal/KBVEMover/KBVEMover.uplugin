@@ -1,0 +1,32 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "KBVE Mover",
+	"Description": "Shared control-character layer built on UE5 Mover. A networked, data-driven Mover pawn (capsule + camera + Enhanced Input) for KBVE games — server-authoritative with client prediction, works standalone and on the dedicated server. Parallel to the legacy CharacterMovementComponent pawns.",
+	"Category": "KBVE",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"DocsURL": "https://kbve.com/project/kbvemover/",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"EnabledByDefault": false,
+	"Modules": [
+		{
+			"Name": "KBVEMover",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "Mover",
+			"Enabled": true
+		},
+		{
+			"Name": "EnhancedInput",
+			"Enabled": true
+		}
+	]
+}

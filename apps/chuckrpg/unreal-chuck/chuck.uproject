@@ -139,6 +139,10 @@
 		{
 			"Name": "KBVENet",
 			"Enabled": true
+		},
+		{
+			"Name": "KBVEMover",
+			"Enabled": true
 		}
 	]
 }

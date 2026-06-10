@@ -749,6 +749,18 @@
 			"version_toml": "packages/unreal/KBVEMapDB/version.toml"
 		},
 		{
+			"key": "ue_kbvemover",
+			"plugin_name": "KBVEMover",
+			"plugin_path": "packages/unreal/KBVEMover",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVEMover/version.toml"
+		},
+		{
 			"key": "ue_kbvenet",
 			"plugin_name": "KBVENet",
 			"plugin_path": "packages/unreal/KBVENet",
@@ -1104,12 +1116,12 @@
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
-		"unreal": 25,
+		"unreal": 26,
 		"ue5_server": 2,
 		"unity": 1,
 		"godot": 1,
 		"unreal_game": 2,
 		"bevy_game": 0,
-		"total": 91
+		"total": 92
 	}
 }
