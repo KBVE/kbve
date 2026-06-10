@@ -183,7 +183,7 @@ static size_t ZSTD_splitBlock_byChunks(const void* blockStart, size_t blockSize,
     }
     assert(pos == blockSize);
     return blockSize;
-    (void)flushEvents; (void)removeEvents;
+    (void)&flushEvents; (void)&removeEvents;
 }
 
 /* ZSTD_splitBlock_fromBorders(): very fast strategy :
