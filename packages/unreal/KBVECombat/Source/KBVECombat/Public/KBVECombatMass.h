@@ -44,6 +44,12 @@ struct KBVECOMBAT_API FKBVECombatResistFragment : public FMassFragment
 	}
 };
 
+template<>
+struct TMassFragmentTraits<FKBVECombatResistFragment> final
+{
+	enum { AuthorAcceptsItsNotTriviallyCopyable = true };
+};
+
 USTRUCT()
 struct KBVECOMBAT_API FKBVECombatTag : public FMassTag
 {
@@ -78,4 +84,10 @@ struct KBVECOMBAT_API FKBVECombatDotFragment : public FMassFragment
 
 	UPROPERTY()
 	TArray<FKBVEActiveDot> Dots;
+};
+
+template<>
+struct TMassFragmentTraits<FKBVECombatDotFragment> final
+{
+	enum { AuthorAcceptsItsNotTriviallyCopyable = true };
 };

@@ -92,10 +92,10 @@ struct FKBVEDamageRequest
 {
 	GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadWrite, Category = "KBVE|Combat")
+	UPROPERTY()
 	FMassEntityHandle Target;
 
-	UPROPERTY(BlueprintReadWrite, Category = "KBVE|Combat")
+	UPROPERTY()
 	FMassEntityHandle Instigator;
 
 	UPROPERTY(BlueprintReadWrite, Category = "KBVE|Combat")

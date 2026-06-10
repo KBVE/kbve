@@ -2,6 +2,7 @@
 #include "KBVECombatStatics.h"
 #include "KBVECombatFeedSubsystem.h"
 #include "Engine/World.h"
+#include "Engine/OverlapResult.h"
 #include "GameFramework/Actor.h"
 #include "TimerManager.h"
 
