@@ -45,6 +45,24 @@ virtual void    ApplyServerCorrection(const FVector& Pos, const FVector& Vel);
 
 **Transport is orthogonal:** a driver decides how movement is _simulated_; Iris / KBVENet decide how it _replicates_. Don't conflate them.
 
+## Selecting a backend (policy)
+
+`UKBVEMovementPolicy` (in **KBVEGameplay**) resolves a situation to a backend — it returns an **enum only**, never referencing the Mover/CMC/Mass plugins, so KBVEGameplay stays backend-agnostic:
+
+```cpp
+EKBVEMovementBackend Backend = Policy->ResolveBackend(Context);
+// spawner (game layer) maps the enum -> a concrete class:
+//   CMC   -> AchuckCoreCharacter
+//   Mover -> AKBVEMoverPawn (or a subclass)
+//   Mass  -> a Mass entity + KBVENet snapshot
+```
+
+Default rule: player → CMC; far → Mass; in-combat → CMC; peaceful + dense population → Mover; else CMC. A **peaceful, high-population city** therefore routes its NPCs to Mover; a combat zone keeps CMC; distant crowds drop to Mass — handled gracefully per situation.
+
+**Dependency direction:** KBVEGameplay owns the contracts (driver interface + policy enum) and depends on no backend. Backends (KBVEMover, …) depend on KBVEGameplay. The game/spawner depends on both and does the enum→class mapping. Gameplay never calls the Mover plugin.
+
+This is **spawn-time / representation-LOD** selection — you don't hot-swap CMC↔Mover on one live actor; you spawn the right backend and swap representation by distance (the Mass-ghost ↔ actor LOD).
+
 ## Where Mover fits (and where it doesn't)
 
 - **Player avatar → stays CMC for now.** Battle-tested prediction/correction/root-motion. Mover is experimental; keep it as the R&D path behind the driver seam.

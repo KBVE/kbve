@@ -11,7 +11,8 @@ public class KBVEGameplay : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
-			"MassEntity"
+			"MassEntity",
+			"GameplayTags"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
