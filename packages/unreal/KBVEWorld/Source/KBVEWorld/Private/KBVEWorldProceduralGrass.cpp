@@ -148,8 +148,8 @@ UStaticMesh* FKBVEWorldProceduralGrass::GetOrCreateCardMesh(UObject* Outer, cons
 	FPolygonGroupID Group = Desc.CreatePolygonGroup();
 	Attr.GetPolygonGroupMaterialSlotNames()[Group] = TEXT("Grass");
 
-	const int32 BladesPerClump = FMath::Clamp(Spec.CardCount * 4, 8, 28);
-	const float ClumpRadius    = Spec.Width * 2.0f;
+	const int32 BladesPerClump = FMath::Clamp(Spec.CardCount * 6, 14, 44);
+	const float ClumpRadius    = Spec.Width * 2.8f;
 	FRandomStream ClumpRng(GetTypeHash(Spec.UniqueId));
 	const float YawStep = 360.f / static_cast<float>(BladesPerClump);
 	for (int32 b = 0; b < BladesPerClump; ++b)
