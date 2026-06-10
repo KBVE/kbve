@@ -6,6 +6,7 @@
 #include "KBVEWorldGrassData.h"
 #include "KBVEWorldGrassMass.h"
 #include "KBVEWorldGrassRenderSubsystem.h"
+#include "KBVEWorldTerrainRenderSubsystem.h"
 #include "KBVEWorldTerrainShader.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -59,6 +60,18 @@ AKBVEWorldChunkActor::AKBVEWorldChunkActor()
 void AKBVEWorldChunkActor::BeginPlay()
 {
 	Super::BeginPlay();
+}
+
+void AKBVEWorldChunkActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (UWorld* W = GetWorld())
+	{
+		if (UKBVEWorldTerrainRenderSubsystem* Terrain = W->GetSubsystem<UKBVEWorldTerrainRenderSubsystem>())
+		{
+			Terrain->ReleaseChunkTerrain(Coord);
+		}
+	}
+	Super::EndPlay(EndPlayReason);
 }
 
 void AKBVEWorldChunkActor::GenerateMeshData(FKBVEWorldChunkMesh& OutMesh) const
@@ -181,37 +194,16 @@ void AKBVEWorldChunkActor::GenerateMeshData(FKBVEWorldChunkMesh& OutMesh) const
 void AKBVEWorldChunkActor::UploadMesh(const FKBVEWorldChunkMesh& MeshData)
 {
 	KBVEPERF_SCOPE("Terrain.UploadMesh");
-	if (!Mesh) return;
-	const int32 VertCount = MeshData.Vertices.Num();
-	TArray<FColor> VertexColors; VertexColors.Init(FColor::White, VertCount);
+	if (Mesh)
 	{
-		KBVEPERF_SCOPE("Terrain.ClearSections");
 		Mesh->ClearAllMeshSections();
 	}
+	if (UWorld* W = GetWorld())
 	{
-		KBVEPERF_SCOPE("Terrain.CreateSection");
-		Mesh->CreateMeshSection(0, MeshData.Vertices, MeshData.Triangles, MeshData.Normals, MeshData.UVs, VertexColors, MeshData.Tangents, true);
-	}
-
-	TWeakObjectPtr<UProceduralMeshComponent> WeakMesh(Mesh);
-	FTimerHandle NavTimer;
-	GetWorldTimerManager().SetTimer(NavTimer, [WeakMesh]()
-	{
-		if (UProceduralMeshComponent* M = WeakMesh.Get())
+		if (UKBVEWorldTerrainRenderSubsystem* Terrain = W->GetSubsystem<UKBVEWorldTerrainRenderSubsystem>())
 		{
-			FNavigationSystem::UpdateComponentData(*M);
+			Terrain->RegisterChunkTerrain(Coord, GetActorLocation(), MeshData);
 		}
-	}, 0.5f, false);
-
-	UMaterialInterface* Apply = GroundMaterialOverride;
-	{
-		KBVEPERF_SCOPE("Terrain.GetGroundMaterial");
-		if (!Apply) Apply = FKBVEWorldTerrainShader::GetOrCreateGroundMaterial(this);
-	}
-	if (!Apply) Apply = GroundMaterial;
-	{
-		KBVEPERF_SCOPE("Terrain.SetMaterial");
-		if (Apply) Mesh->SetMaterial(0, Apply);
 	}
 }
 
@@ -601,6 +593,10 @@ void AKBVEWorldChunkActor::ClearFoliage()
 		if (UKBVEWorldGrassRenderSubsystem* Render = W->GetSubsystem<UKBVEWorldGrassRenderSubsystem>())
 		{
 			Render->ReleaseChunkInstances(Coord);
+		}
+		if (UKBVEWorldTerrainRenderSubsystem* Terrain = W->GetSubsystem<UKBVEWorldTerrainRenderSubsystem>())
+		{
+			Terrain->ReleaseChunkTerrain(Coord);
 		}
 	}
 }
