@@ -25,6 +25,10 @@ void UchuckSessionSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	{
 		Chars->OnGetCharactersSuccess.AddDynamic(this, &UchuckSessionSubsystem::HandleCharactersSuccess);
 		Chars->OnGetCharactersError.AddDynamic(this, &UchuckSessionSubsystem::HandleCharactersError);
+		Chars->OnCreateCharacterSuccess.AddDynamic(this, &UchuckSessionSubsystem::HandleCreateSuccess);
+		Chars->OnCreateCharacterError.AddDynamic(this, &UchuckSessionSubsystem::HandleMutationError);
+		Chars->OnRemoveCharacterSuccess.AddDynamic(this, &UchuckSessionSubsystem::HandleRemoveSuccess);
+		Chars->OnRemoveCharacterError.AddDynamic(this, &UchuckSessionSubsystem::HandleMutationError);
 	}
 	if (UROWSInstanceSubsystem* Instance = GI->GetSubsystem<UROWSInstanceSubsystem>())
 	{
@@ -46,6 +50,10 @@ void UchuckSessionSubsystem::Deinitialize()
 		{
 			Chars->OnGetCharactersSuccess.RemoveDynamic(this, &UchuckSessionSubsystem::HandleCharactersSuccess);
 			Chars->OnGetCharactersError.RemoveDynamic(this, &UchuckSessionSubsystem::HandleCharactersError);
+			Chars->OnCreateCharacterSuccess.RemoveDynamic(this, &UchuckSessionSubsystem::HandleCreateSuccess);
+			Chars->OnCreateCharacterError.RemoveDynamic(this, &UchuckSessionSubsystem::HandleMutationError);
+			Chars->OnRemoveCharacterSuccess.RemoveDynamic(this, &UchuckSessionSubsystem::HandleRemoveSuccess);
+			Chars->OnRemoveCharacterError.RemoveDynamic(this, &UchuckSessionSubsystem::HandleMutationError);
 		}
 		if (UROWSInstanceSubsystem* Instance = GI->GetSubsystem<UROWSInstanceSubsystem>())
 		{
@@ -101,6 +109,55 @@ void UchuckSessionSubsystem::HandleCharactersError(const FString& ErrorMessage)
 void UchuckSessionSubsystem::SelectCharacter(const FString& CharacterName)
 {
 	SelectedCharacter = CharacterName;
+}
+
+void UchuckSessionSubsystem::CreateCharacter(const FString& CharacterName, const FString& ClassName)
+{
+	if (UserSessionGUID.IsEmpty() || CharacterName.IsEmpty())
+	{
+		return;
+	}
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UROWSCharacterSubsystem* Chars = GI->GetSubsystem<UROWSCharacterSubsystem>())
+		{
+			Chars->CreateCharacter(UserSessionGUID, CharacterName, ClassName);
+		}
+	}
+}
+
+void UchuckSessionSubsystem::RemoveCharacter(const FString& CharacterName)
+{
+	if (UserSessionGUID.IsEmpty() || CharacterName.IsEmpty())
+	{
+		return;
+	}
+	if (CharacterName == SelectedCharacter)
+	{
+		SelectedCharacter.Reset();
+	}
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UROWSCharacterSubsystem* Chars = GI->GetSubsystem<UROWSCharacterSubsystem>())
+		{
+			Chars->RemoveCharacter(UserSessionGUID, CharacterName);
+		}
+	}
+}
+
+void UchuckSessionSubsystem::HandleCreateSuccess(const FROWSCreateCharacterResponse& Response)
+{
+	RefreshCharacters();
+}
+
+void UchuckSessionSubsystem::HandleRemoveSuccess()
+{
+	RefreshCharacters();
+}
+
+void UchuckSessionSubsystem::HandleMutationError(const FString& ErrorMessage)
+{
+	OnSessionError.Broadcast(ErrorMessage);
 }
 
 bool UchuckSessionSubsystem::RequestEnterWorld(const FString& ZoneName)
