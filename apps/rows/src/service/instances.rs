@@ -268,6 +268,27 @@ impl OWSService {
             .await
     }
 
+    pub async fn register_launcher(
+        &self,
+        customer_guid: Uuid,
+        launcher_guid: &str,
+        server_ip: &str,
+        max_instances: i32,
+        internal_ip: &str,
+        starting_port: i32,
+    ) -> Result<i32, RowsError> {
+        let repo = InstanceRepo(&self.state.db);
+        repo.register_launcher(
+            customer_guid,
+            launcher_guid,
+            server_ip,
+            max_instances,
+            internal_ip,
+            starting_port,
+        )
+        .await
+    }
+
     pub async fn shut_down_launcher(
         &self,
         customer_guid: Uuid,
