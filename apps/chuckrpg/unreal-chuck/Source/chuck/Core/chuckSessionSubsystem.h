@@ -31,6 +31,12 @@ public:
 	void SelectCharacter(const FString& CharacterName);
 
 	UFUNCTION(BlueprintCallable, Category = "Chuck|Session")
+	void CreateCharacter(const FString& CharacterName, const FString& ClassName);
+
+	UFUNCTION(BlueprintCallable, Category = "Chuck|Session")
+	void RemoveCharacter(const FString& CharacterName);
+
+	UFUNCTION(BlueprintCallable, Category = "Chuck|Session")
 	bool RequestEnterWorld(const FString& ZoneName);
 
 	UFUNCTION(BlueprintPure, Category = "Chuck|Session")
@@ -68,10 +74,19 @@ private:
 	void HandleCharactersError(const FString& ErrorMessage);
 
 	UFUNCTION()
+	void HandleCreateSuccess(const FROWSCreateCharacterResponse& Response);
+
+	UFUNCTION()
+	void HandleRemoveSuccess();
+
+	UFUNCTION()
 	void HandleZoneInstanceSuccess(const FROWSZoneInstance& ZoneInstance);
 
 	UFUNCTION()
 	void HandleZoneInstanceError(const FString& ErrorMessage);
+
+	UFUNCTION()
+	void HandleMutationError(const FString& ErrorMessage);
 
 	FString UserSessionGUID;
 	FString SelectedCharacter;
