@@ -19,6 +19,9 @@
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
 #include "NavigationData.h"
+#include "Engine/GameInstance.h"
+#include "KBVENpcDatabase.h"
+#include "KBVENpcTypes.h"
 
 #if WITH_EDITOR
 #include "Materials/Material.h"
@@ -346,6 +349,23 @@ void UchuckSlimeSubsystem::SpawnSlimes(const FVector& Center, int32 Count, float
 		Archetype = EM.CreateArchetype(Composition);
 	}
 
+	FKBVENpcStats SlimeStats;
+	bool bHaveStats = false;
+	if (UGameInstance* GI = World->GetGameInstance())
+	{
+		if (UKBVENpcDatabase* NpcDB = GI->GetSubsystem<UKBVENpcDatabase>())
+		{
+			FKBVENpcDef Def;
+			if (NpcDB->GetNpcByRef(FName(TEXT("glass-slime")), Def))
+			{
+				SlimeStats = Def.Stats;
+				bHaveStats = true;
+				UE_LOG(LogTemp, Display, TEXT("[chuck] slime stats from NPCDB: HP=%.0f Atk=%.0f Def=%.0f Spd=%.1f"),
+					SlimeStats.HP, SlimeStats.Attack, SlimeStats.Defense, SlimeStats.Speed);
+			}
+		}
+	}
+
 	for (int32 i = 0; i < Count; ++i)
 	{
 		const float Angle = (2.f * PI * i) / FMath::Max(1, Count);
@@ -367,7 +387,19 @@ void UchuckSlimeSubsystem::SpawnSlimes(const FVector& Center, int32 Count, float
 
 		S->GroundZ = GroundZ;
 		S->TargetLocation = FVector(X, Y, GroundZ);
-		S->Speed = FMath::FRandRange(110.f, 170.f);
+		if (bHaveStats)
+		{
+			constexpr float SpeedToUU = 40.f;
+			S->Speed = FMath::Max(40.f, SlimeStats.Speed * SpeedToUU) * FMath::FRandRange(0.9f, 1.1f);
+			S->HP = SlimeStats.HP;
+			S->MaxHP = SlimeStats.MaxHP;
+			S->Attack = SlimeStats.Attack;
+			S->Defense = SlimeStats.Defense;
+		}
+		else
+		{
+			S->Speed = FMath::FRandRange(110.f, 170.f);
+		}
 		S->Frame = 0;
 		S->FrameTime = FMath::FRand() / FrameRate;
 		S->RepathTimer = FMath::FRandRange(0.f, 2.f);

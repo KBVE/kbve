@@ -49,7 +49,8 @@ public class chuck : ModuleRules
 			"KBVEWorld",
 			"KBVEWebSurface",
 			"ROWS",
-			"KBVENet"
+			"KBVENet",
+			"KBVENPCDB"
 		});
 
 
