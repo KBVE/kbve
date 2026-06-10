@@ -88,6 +88,13 @@
 				"command": "./seed-smoke.sh --keep",
 				"cwd": "{projectRoot}/dbmate"
 			}
+		},
+		"verify-seed-sync": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "diff -u schema/ows/seed/tenants_init.sql ../../../apps/kube/rows/tenants/base/tenants_init.sql",
+				"cwd": "{projectRoot}"
+			}
 		}
 	}
 }
