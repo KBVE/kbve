@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: rows-rentearth-release
+    labels:
+        name: rows-rentearth-release
+        app.kubernetes.io/part-of: ows

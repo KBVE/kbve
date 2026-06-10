@@ -1,0 +1,166 @@
+---
+# ROWS — tenant: rentearth-release (game RentEarth, env release)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: rows
+    namespace: rows-rentearth-release
+    labels:
+        app: rows
+        app.kubernetes.io/part-of: ows
+        app.kubernetes.io/instance: rentearth-release
+spec:
+    replicas: 1
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 0
+    selector:
+        matchLabels:
+            app: rows
+    template:
+        metadata:
+            labels:
+                app: rows
+                app.kubernetes.io/part-of: ows
+                app.kubernetes.io/instance: rentearth-release
+        spec:
+            # TODO(follow-up): serviceAccountName ows-instancelauncher + cross-ns RBAC
+            # required before Agones allocation works in this namespace.
+            containers:
+                - name: rows
+                  image: ghcr.io/kbve/rows:0.1.25
+                  imagePullPolicy: Always
+                  env:
+                      # ─── Core ───────────────────────────────
+                      - name: HTTP_HOST
+                        value: '0.0.0.0'
+                      - name: HTTP_PORT
+                        value: '4322'
+                      - name: DOCS_PORT
+                        value: '4323'
+                      - name: METRICS_PORT
+                        value: '4324'
+                      - name: RUST_LOG
+                        value: 'info'
+                      # ─── Tenant identity ────────────────────
+                      - name: OWS_TENANT_SLUG
+                        value: 'rentearth-release'
+                      - name: OWS_ENV
+                        value: 'release'
+                      - name: OWS_API_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-customer-guid
+                                key: customer-guid
+                      # ─── Secrets (provision per-namespace — see tenants/README.md) ───
+                      - name: DATABASE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-db-credentials
+                                key: db-url
+                      - name: RABBITMQ_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-rabbitmq-credentials
+                                key: amqp-url
+                      - name: SUPABASE_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: rows-supabase-jwt
+                                key: jwt-secret
+                      - name: SUPABASE_URL
+                        value: 'https://supabase.kbve.com'
+                      # ─── Agones ──────────────────────────────
+                      - name: AGONES_NAMESPACE
+                        value: 'arc-runners'
+                      - name: AGONES_FLEET
+                        value: 'ows-rentearth-release'
+                      - name: AGONES_API_TIMEOUT_SECS
+                        value: '10'
+                      - name: AGONES_CIRCUIT_BREAKER_THRESHOLD
+                        value: '5'
+                      - name: AGONES_CIRCUIT_BREAKER_RESET_SECS
+                        value: '30'
+                      # ─── Spinup Tuning ───────────────────────
+                      - name: ROWS_SPINUP_TIMEOUT_SECS
+                        value: '60'
+                      - name: ROWS_SPINUP_POLL_INTERVAL_MS
+                        value: '2000'
+                      - name: ROWS_SPINUP_INITIAL_DELAY_MS
+                        value: '3000'
+                  ports:
+                      - name: http
+                        containerPort: 4322
+                        protocol: TCP
+                      - name: docs
+                        containerPort: 4323
+                        protocol: TCP
+                      - name: metrics
+                        containerPort: 4324
+                        protocol: TCP
+                  resources:
+                      requests:
+                          memory: '1Gi'
+                          cpu: '500m'
+                      limits:
+                          memory: '4Gi'
+                          cpu: '2000m'
+                  livenessProbe:
+                      httpGet:
+                          path: /health
+                          port: http
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                      timeoutSeconds: 3
+                      failureThreshold: 3
+                  readinessProbe:
+                      httpGet:
+                          path: /ready
+                          port: http
+                      initialDelaySeconds: 3
+                      periodSeconds: 5
+                      timeoutSeconds: 3
+                      failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: rows
+    namespace: rows-rentearth-release
+    labels:
+        app: rows
+        app.kubernetes.io/part-of: ows
+        app.kubernetes.io/instance: rentearth-release
+spec:
+    type: ClusterIP
+    selector:
+        app: rows
+    ports:
+        - name: http
+          port: 4322
+          targetPort: 4322
+          protocol: TCP
+        - name: docs
+          port: 4323
+          targetPort: 4323
+          protocol: TCP
+        - name: metrics
+          port: 4324
+          targetPort: 4324
+          protocol: TCP
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+    name: rows-pdb
+    namespace: rows-rentearth-release
+    labels:
+        app: rows
+        app.kubernetes.io/part-of: ows
+spec:
+    minAvailable: 1
+    selector:
+        matchLabels:
+            app: rows
