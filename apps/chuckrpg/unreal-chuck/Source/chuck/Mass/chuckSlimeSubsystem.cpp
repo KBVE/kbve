@@ -60,14 +60,15 @@ void UchuckSlimeSubsystem::EnsureSpriteDef()
 	SlimeDef->Atlas = LoadObject<UTexture2D>(nullptr, SlimeTexPath);
 	SlimeDef->Columns = Cols;
 	SlimeDef->Rows = Rows;
-	SlimeDef->RowFront = 0;
+	SlimeDef->RowFront = 2;
 	SlimeDef->RowSide = 1;
-	SlimeDef->RowBack = 2;
+	SlimeDef->RowBack = 0;
 	SlimeDef->bSwapSide = false;
 	SlimeDef->FramesPerAnim = Cols;
 	SlimeDef->Fps = FrameRate;
 	SlimeDef->WorldSize = FVector2f(150.f, 150.f);
 	SlimeDef->PivotZ = 0.12f;
+	SlimeDef->CullDistance = 8000.f;
 }
 
 float UchuckSlimeSubsystem::GroundTraceZ(double X, double Y, float Fallback) const
@@ -308,6 +309,18 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 
 	int32 RepathBudget = 4;
 
+	FVector PlayerLoc = FVector::ZeroVector;
+	bool bHavePlayer = false;
+	if (APlayerController* PC = World->GetFirstPlayerController())
+	{
+		if (APawn* Pn = PC->GetPawn())
+		{
+			PlayerLoc = Pn->GetActorLocation();
+			bHavePlayer = true;
+		}
+	}
+	const double RelevanceRadiusSq = 8500.0 * 8500.0;
+
 	for (int32 i = 0; i < Slimes.Num(); ++i)
 	{
 		const FMassEntityHandle E = Slimes[i];
@@ -373,12 +386,14 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 			T->GetMutableTransform().SetLocation(Pos);
 		}
 
-		if (Renderer && SlimeSprites.IsValidIndex(i))
+		const bool bRelevant = !bHavePlayer || FVector::DistSquaredXY(Pos, PlayerLoc) <= RelevanceRadiusSq;
+
+		if (Renderer && SlimeSprites.IsValidIndex(i) && bRelevant)
 		{
 			Renderer->UpdateSprite(SlimeSprites[i], Pos, MoveYaw);
 		}
 
-		if (Rep)
+		if (Rep && bRelevant)
 		{
 			Rep->ServerUpsert(static_cast<uint32>(i), Pos, MoveYaw, 0, bMoving ? 1 : 0);
 		}

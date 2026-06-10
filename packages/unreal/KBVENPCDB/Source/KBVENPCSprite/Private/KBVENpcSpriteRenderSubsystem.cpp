@@ -222,10 +222,10 @@ UMaterialInterface* UKBVENpcSpriteRenderSubsystem::GetOrCreateBillboardMaterial(
 		"float ad = abs(d);\n"
 		"float row = RowFront;\n"
 		"float flip = 0.0;\n"
-		"if (ad > 2.2689) { row = RowBack; }\n"
+		"if (ad >= 2.3562) { row = RowBack; }\n"
 		"else if (ad > 0.7854) {\n"
 		"  row = RowSide;\n"
-		"  float right = (d > 0.0) ? 1.0 : 0.0;\n"
+		"  float right = (d < 0.0) ? 1.0 : 0.0;\n"
 		"  flip = (right != SwapSide) ? 1.0 : 0.0;\n"
 		"}\n"
 		"float u = lerp(UV.x, 1.0 - UV.x, flip);\n"
@@ -289,6 +289,10 @@ UInstancedStaticMeshComponent* UKBVENpcSpriteRenderSubsystem::GetOrCreateHISM(UK
 	HISM->bDisableCollision = true;
 	HISM->SetCastShadow(false);
 	HISM->bReceivesDecals = false;
+	if (Def->CullDistance > 0.0f)
+	{
+		HISM->SetCullDistances(static_cast<int32>(Def->CullDistance * 0.85f), static_cast<int32>(Def->CullDistance));
+	}
 
 	UMaterialInterface* Base = Def->SpriteMaterial ? Def->SpriteMaterial.Get() : GetOrCreateBillboardMaterial();
 	if (Base)
