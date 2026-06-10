@@ -15021,12 +15021,12 @@
         },
         {
           "source": "astro-kbve",
-          "target": "astro",
+          "target": "droid",
           "type": "static"
         },
         {
           "source": "astro-kbve",
-          "target": "droid",
+          "target": "astro",
           "type": "static"
         },
         {
