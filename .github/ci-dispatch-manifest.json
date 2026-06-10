@@ -676,6 +676,18 @@
 	],
 	"unreal": [
 		{
+			"key": "ue_kbvecombat",
+			"plugin_name": "KBVECombat",
+			"plugin_path": "packages/unreal/KBVECombat",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVECombat/version.toml"
+		},
+		{
 			"key": "ue_kbveevents",
 			"plugin_name": "KBVEEvents",
 			"plugin_path": "packages/unreal/KBVEEvents",
@@ -1116,12 +1128,12 @@
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
-		"unreal": 26,
+		"unreal": 27,
 		"ue5_server": 2,
 		"unity": 1,
 		"godot": 1,
 		"unreal_game": 2,
 		"bevy_game": 0,
-		"total": 92
+		"total": 93
 	}
 }
