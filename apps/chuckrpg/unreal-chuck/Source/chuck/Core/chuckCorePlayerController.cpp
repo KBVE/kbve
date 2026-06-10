@@ -1063,8 +1063,8 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 			bDidAutoSpawnSlimes = true;
 			if (UNavigationSystemV1* Nav = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld()))
 			{
-				Nav->RegisterInvoker(*Pawn, 6000.f, 8000.f, FNavAgentSelector(), ENavigationInvokerPriority::Default);
-				UE_LOG(LogTemp, Warning, TEXT("[SlimeNav] registered invoker on pawn %s"), *Pawn->GetName());
+				Nav->RegisterInvoker(*ControlledPawn, 6000.f, 8000.f, FNavAgentSelector(), ENavigationInvokerPriority::Default);
+				UE_LOG(LogTemp, Warning, TEXT("[SlimeNav] registered invoker on pawn %s"), *ControlledPawn->GetName());
 			}
 			if (UchuckSlimeSubsystem* SlimeSys = GetWorld()->GetSubsystem<UchuckSlimeSubsystem>())
 			{
