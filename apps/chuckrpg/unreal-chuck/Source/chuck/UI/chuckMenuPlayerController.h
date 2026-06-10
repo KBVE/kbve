@@ -24,6 +24,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Menu")
 	FName PlayLevelName = TEXT("L_ChuckWorld");
 
+	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Menu")
+	bool bUseOnlineTravel = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Chuck|Menu")
+	FString DefaultZone = TEXT("HubWorld");
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -48,6 +54,12 @@ private:
 
 	UFUNCTION()
 	void HandleCharactersUpdated(const TArray<FROWSUserCharacter>& Characters);
+
+	UFUNCTION()
+	void HandleServerReady(const FString& ServerIP, int32 Port);
+
+	UFUNCTION()
+	void HandleSessionError(const FString& ErrorMessage);
 
 	void EnterSelectedWorld();
 
