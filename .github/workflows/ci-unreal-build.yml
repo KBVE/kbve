@@ -870,7 +870,8 @@ jobs:
                       -project="$($uproject.FullName)" `
                       -targetplatform=Win64 `
                       -clientconfig=Shipping `
-                      -cook -allmaps -build -stage -pak -archive `
+                      -cook -map=/Game/Menus/L_MainMenu+/Game/Map/L_ChuckWorld+/Game/ThirdPerson/Lvl_ThirdPerson `
+                      -build -stage -pak -archive `
                       -archivedirectory="$out" `
                       -nodebuginfo `
                       -unattended -utf8output -NoP4
