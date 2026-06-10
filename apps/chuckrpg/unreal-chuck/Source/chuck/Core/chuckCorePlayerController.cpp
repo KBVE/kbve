@@ -14,6 +14,8 @@
 #include "chuckEventPayloads.h"
 #include "chuckUIEvents.h"
 #include "Props/chuckArcadeCabinet.h"
+#include "NPC/chuckSpriteNPC.h"
+#include "Mass/chuckSlimeSubsystem.h"
 #include "SKBVEDevOverlay.h"
 #include "GameFramework/PlayerState.h"
 #include "MassEntitySubsystem.h"
@@ -1053,6 +1055,15 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 				Arcade ? *Arcade->GetName() : TEXT("(null)"),
 				*ArcadeClass->GetName(),
 				ArcadeLoc.X, ArcadeLoc.Y, ArcadeLoc.Z, ArcadeRot.Yaw);
+		}
+
+		if (!bDidAutoSpawnSlimes)
+		{
+			bDidAutoSpawnSlimes = true;
+			if (UchuckSlimeSubsystem* SlimeSys = GetWorld()->GetSubsystem<UchuckSlimeSubsystem>())
+			{
+				SlimeSys->SpawnSlimes(Pawn->GetActorLocation(), 8, 600.f);
+			}
 		}
 
 		bSpawnSnapPending = false;

@@ -24,6 +24,8 @@ AchuckArcadeCabinet::AchuckArcadeCabinet()
 	Mesh->SetCollisionProfileName(TEXT("BlockAll"));
 	Mesh->SetCanEverAffectNavigation(true);
 	Mesh->SetMobility(EComponentMobility::Static);
+	Mesh->SetRenderCustomDepth(true);
+	Mesh->SetCustomDepthStencilValue(1);
 	RootComponent = Mesh;
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshFinder(TEXT("/Game/Art/Furniture/Arcade/ArcadeCabinet.ArcadeCabinet"));

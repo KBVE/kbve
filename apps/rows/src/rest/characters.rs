@@ -32,7 +32,10 @@ pub(super) fn character_persistence_routes(hs: HandlerState) -> Router {
             "/api/Status/GetCharacterStatuses",
             post(get_character_statuses),
         )
-        .layer(middleware::from_fn(require_customer_guid))
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            require_customer_guid,
+        ))
         .with_state(hs)
 }
 

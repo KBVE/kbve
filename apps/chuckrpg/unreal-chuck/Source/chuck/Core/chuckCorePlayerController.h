@@ -170,6 +170,7 @@ private:
 	uint32 SpawnSnapSeed      = 0;
 	FVector2D SpawnSnapAnchor = FVector2D::ZeroVector;
 	bool   bDidAutoSpawnArcade = false;
+	bool   bDidAutoSpawnSlimes = false;
 
 	UPROPERTY(Transient)
 	TSubclassOf<class AchuckArcadeCabinet> CachedArcadeClass;

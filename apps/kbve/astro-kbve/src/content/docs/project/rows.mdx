@@ -50,7 +50,7 @@ ROWS is a single-binary Rust reimplementation of the OWS (Open World Server) gam
 | Instance | `/api/instance/*` | Server instance lifecycle |
 | Global | `/api/global/*` | Key/value world state |
 | Health | `/health`, `/ready` | Liveness and readiness probes |
-| gRPC | Port 50051 | Internal service mesh |
+| gRPC | Port 4322 (multiplexed) | Internal service mesh |
 
 <Aside type="tip" title="Production">
     ROWS is the production game backend. The legacy .NET OWS microservices have been fully
@@ -59,10 +59,30 @@ ROWS is a single-binary Rust reimplementation of the OWS (Open World Server) gam
 
 ### Deployment
 
-ROWS deploys as a single Docker image (`ghcr.io/kbve/rows`) into the `rows` Kubernetes namespace. ArgoCD syncs the manifest from `apps/kube/rows/manifest/rows-deployment.yaml` with auto-prune and self-heal enabled.
+ROWS deploys as a single Docker image (`ghcr.io/kbve/rows`). ArgoCD syncs the manifest from `apps/kube/rows/manifest/rows-deployment.yaml` with auto-prune and self-heal enabled.
 
 The container exposes:
 - **Port 4322** — REST + gRPC multiplexed (Axum + Tonic on a single port)
+
+#### Per-tenant deployment
+
+Each game + environment is a **separate ROWS deployment** pinned to its own tenant via env. The config is loaded and validated once at boot (`RowsConfig::from_env`):
+
+| Env | Purpose | Notes |
+|-----|---------|-------|
+| `OWS_API_KEY` | Tenant `customer_guid` (UUID) | **Required** for `beta`/`release`; `dev` falls back to an ephemeral guid with a warning |
+| `OWS_TENANT_SLUG` | Human label (e.g. `chuckrpg-dev`) | Surfaced in logs, `DeploymentInfo`, and the Prometheus `service` label (`rows-<slug>`) |
+| `OWS_ENV` | `dev` \| `beta` \| `release` | Drives the required-env guards |
+| `AGONES_FLEET` | Per-tenant Agones fleet | **Required** for `beta`/`release`; the GameServer watcher filters by `agones.dev/fleet=<fleet>` |
+| `AGONES_NAMESPACE` | Agones namespace | **Required** for `beta`/`release` |
+| `SUPABASE_JWT_SECRET` / `SUPABASE_SERVICE_KEY_HASH` | Player + trusted-server auth | Optional; ROWS boots in legacy mode without them |
+
+`GET /api/System/DeploymentInfo` echoes the active `tenant_slug`, `environment`, and `customer_guid` for verification.
+
+<Aside type="note" title="Related">
+    - Unreal client glue: [KBVEROWS plugin](/project/kbverows/)
+    - Live operations: [ROWS dashboard](/dashboard/gameops/rows/)
+</Aside>
 
 ---
 
@@ -72,11 +92,13 @@ ROWS has three distinct identities. They are different axes — do not conflate 
 
 | Identity | What it is | Source | How ROWS reads it |
 |----------|-----------|--------|-------------------|
-| **Tenant** (`customer_guid`) | The *game* — Chuck. One fixed value for the whole deployment. | `OWS_API_KEY` env (secret `ows-customer-guid`) | `X-CustomerGUID` header on every request |
+| **Tenant** (`customer_guid`) | A *game + environment* — e.g. `chuckrpg-dev`, `chuckrpg-beta`, `xy-release`. One fixed value per deployment. | `OWS_API_KEY` env (per-tenant secret) | `X-CustomerGUID` header, **enforced equal to the process tenant** |
 | **Player** (`userguid`) | A *person*. | Supabase UUID (`sub`) | Supabase JWT, or a session GUID minted from it |
 | **Trusted server** | The UE dedicated server / Iris instances. | Service key | `x-service-key` header, argon2-verified against `SUPABASE_SERVICE_KEY_HASH` |
 
-**The tenant is not the player.** `customer_guid` partitions every table (users, characters, zones, world servers, maps). All players and all UE instances share the **one** Chuck `customer_guid` so they inhabit the same world — multiple Iris instances are just rows in `worldservers` / `mapinstances` under that single tenant, not separate tenants. The player is identified by their Supabase UUID, which becomes the OWS `userguid`.
+**The tenant is not the player.** `customer_guid` partitions every table (users, characters, zones, world servers, maps). Within one tenant, all players and all UE instances share that `customer_guid` so they inhabit the same world — multiple Iris instances are just rows in `worldservers` / `mapinstances` under that tenant. The player is identified by their Supabase UUID, which becomes the OWS `userguid`.
+
+**Multi-tenant by deployment, single-tenant by process.** ROWS runs **one process per tenant** (game + environment); each deployment pins its `customer_guid` from `OWS_API_KEY` at boot. The Postgres DB is shared across tenants and isolated only by the `customerguid` column, so the `require_customer_guid` middleware rejects (`403`) any request whose `X-CustomerGUID` differs from the process tenant — a client cannot reach another game's rows by swapping the header. gRPC, WebSocket, MQ consumers, and background jobs always use the process tenant directly.
 
 **Player login.** The client signs in via Supabase (GoTrue) and posts the JWT to `ExternalLoginAndCreateSession`. ROWS validates it (HS256, `SUPABASE_JWT_SECRET`), keys the OWS user on the Supabase `sub`, and returns a `UserSessionGUID`. The UE client glue lives in the `ROWSupabase` module of the `KBVESupabase` plugin.
 
@@ -84,7 +106,7 @@ ROWS has three distinct identities. They are different axes — do not conflate 
 - **World IP** (`GetServerToConnectTo` / `JoinMap`) requires a confirmed login — a Supabase bearer JWT *or* a live session GUID — and verifies the caller owns the requested character before returning a server address.
 - **Server-write endpoints** (position/stats/logout, zone status, launcher register, spin-up/down) require a valid **service key**; player credentials do not pass. The dedicated server loads the key from `OWS_SERVICE_KEY` only on `IsRunningDedicatedServer()`, so it never enters a client build, and talks to ROWS in-cluster over the ClusterIP — the key never crosses the public internet.
 
-`SUPABASE_SERVICE_KEY_HASH` (rows) and the plaintext `OWS_SERVICE_KEY` (fleet) both derive from the one kilobase secret `supabase-service-key` (`hash` + `key`). Single-tenant by design; the multi-game GoTrue `customer_guid` claim path is intentionally unused.
+`SUPABASE_SERVICE_KEY_HASH` (rows) and the plaintext `OWS_SERVICE_KEY` (fleet) both derive from the one kilobase secret `supabase-service-key` (`hash` + `key`). The GoTrue `customer_guid` JWT claim is intentionally unused — tenant identity comes from the process config (`OWS_API_KEY`), never from the token.
 
 ---
 

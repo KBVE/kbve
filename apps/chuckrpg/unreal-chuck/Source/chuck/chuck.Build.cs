@@ -74,8 +74,17 @@ public class chuck : ModuleRules
 			"chuck/Variant_SideScrolling/AI",
 			"chuck/Variant_SideScrolling/Gameplay",
 			"chuck/Variant_SideScrolling/Interfaces",
-			"chuck/Variant_SideScrolling/UI"
+			"chuck/Variant_SideScrolling/UI",
+			"chuck/NPC"
 		});
+
+		if (Target.bBuildEditor)
+		{
+			PrivateDependencyModuleNames.AddRange(new string[] {
+				"UnrealEd",
+				"MaterialEditor"
+			});
+		}
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

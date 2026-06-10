@@ -51,7 +51,10 @@ pub(super) fn public_api_routes(hs: HandlerState) -> Router {
             post(get_default_custom_data),
         )
         .route("/api/System/Status", get(system_status))
-        .layer(middleware::from_fn(require_customer_guid))
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            require_customer_guid,
+        ))
         .with_state(hs)
 }
 

@@ -11,7 +11,10 @@ pub(super) fn management_routes(hs: HandlerState) -> Router {
             "/api/Users",
             get(list_users).post(create_user_admin).put(edit_user_admin),
         )
-        .layer(middleware::from_fn(require_customer_guid))
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            require_customer_guid,
+        ))
         .with_state(hs)
 }
 

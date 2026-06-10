@@ -63,7 +63,10 @@ pub(super) fn instance_mgmt_routes(hs: HandlerState) -> Router {
             post(get_current_world_time),
         )
         .route("/api/Instance/GetZoneAssignment", post(get_zone_assignment))
-        .layer(middleware::from_fn(require_customer_guid))
+        .layer(middleware::from_fn_with_state(
+            hs.clone(),
+            require_customer_guid,
+        ))
         .with_state(hs)
 }
 

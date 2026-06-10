@@ -1,0 +1,480 @@
+---
+import ReactTacticsApp from './ReactTacticsApp';
+---
+
+<div class="not-content tactics-stage" data-tactics-stage>
+	<div class="tactics-toolbar">
+		<button
+			type="button"
+			class="tactics-btn"
+			data-tactics-theater
+			aria-pressed="false"
+			title="Theater mode">
+			<span class="tactics-btn-icon" aria-hidden="true">▭</span>
+			<span class="tactics-btn-label">Theater</span>
+		</button>
+		<button
+			type="button"
+			class="tactics-btn"
+			data-tactics-fullscreen
+			aria-pressed="false"
+			title="Toggle fullscreen">
+			<span class="tactics-btn-icon" aria-hidden="true">⛶</span>
+			<span class="tactics-btn-label">Fullscreen</span>
+		</button>
+	</div>
+	<div
+		class="tactics-frame rounded-lg overflow-hidden border-2 border-gray-700 shadow-xl focus:outline-none relative bg-[#10151d]"
+		tabindex="0">
+		<ReactTacticsApp client:only="react" />
+	</div>
+	<p class="text-xs text-gray-400 mt-2 text-center">
+		Select a blue unit, tap highlighted tiles to move, tap red targets to
+		attack, then end the turn.
+	</p>
+</div>
+
+<style>
+	.tactics-stage {
+		width: 100%;
+		margin-inline: auto;
+	}
+	.tactics-toolbar {
+		display: flex;
+		gap: 8px;
+		justify-content: flex-end;
+		margin-bottom: 8px;
+	}
+	.tactics-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 6px 12px;
+		font-size: 12px;
+		font-weight: 500;
+		color: #e5e7eb;
+		background: rgba(15, 23, 42, 0.7);
+		border: 1px solid rgba(94, 234, 212, 0.36);
+		border-radius: 6px;
+		cursor: pointer;
+		transition:
+			background 120ms ease,
+			border-color 120ms ease;
+	}
+	.tactics-btn:hover {
+		background: rgba(15, 23, 42, 0.9);
+		border-color: rgba(94, 234, 212, 0.7);
+	}
+	.tactics-btn[aria-pressed='true'] {
+		background: rgba(20, 184, 166, 0.2);
+		border-color: rgba(94, 234, 212, 0.82);
+		color: #ccfbf1;
+	}
+	.tactics-btn-icon {
+		font-size: 14px;
+		line-height: 1;
+	}
+	.tactics-frame {
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		touch-action: manipulation;
+		-webkit-user-select: none;
+		user-select: none;
+	}
+	.tactics-stage.is-theater {
+		position: fixed;
+		top: var(--sl-nav-height, 0px);
+		left: 0;
+		right: 0;
+		bottom: 0;
+		max-width: none;
+		width: 100vw;
+		height: calc(100vh - var(--sl-nav-height, 0px));
+		margin: 0;
+		padding: 16px;
+		z-index: 50;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		background: rgba(8, 13, 24, 0.97);
+		box-sizing: border-box;
+	}
+	.tactics-stage.is-theater .tactics-toolbar {
+		margin-bottom: 0;
+	}
+	.tactics-stage.is-theater .tactics-frame {
+		width: min(
+			100%,
+			calc((100vh - var(--sl-nav-height, 0px) - 110px) * 16 / 9)
+		);
+		max-width: 100%;
+		height: auto;
+	}
+	.tactics-stage:fullscreen {
+		width: 100vw;
+		height: 100vh;
+		max-width: none;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		background: #080d18;
+		padding: 16px;
+	}
+	.tactics-stage:fullscreen .tactics-frame {
+		width: min(100%, calc((100vh - 120px) * 16 / 9));
+		max-width: 100%;
+		aspect-ratio: 16 / 9;
+	}
+	:global(.tactics-shell) {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		padding: 16px;
+		box-sizing: border-box;
+		color: #e5e7eb;
+		background:
+			linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+			linear-gradient(
+				90deg,
+				rgba(148, 163, 184, 0.08) 1px,
+				transparent 1px
+			),
+			linear-gradient(135deg, #0f172a 0%, #111827 42%, #172554 100%);
+		background-size:
+			24px 24px,
+			24px 24px,
+			100% 100%;
+		font-family:
+			Inter,
+			ui-sans-serif,
+			system-ui,
+			-apple-system,
+			BlinkMacSystemFont,
+			'Segoe UI',
+			sans-serif;
+	}
+	:global(.tactics-topbar) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		min-height: 54px;
+	}
+	:global(.tactics-kicker) {
+		margin: 0 0 2px;
+		font-size: 11px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0;
+		color: #5eead4;
+	}
+	:global(.tactics-topbar h2) {
+		margin: 0;
+		font-size: 24px;
+		line-height: 1;
+		color: #f8fafc;
+	}
+	:global(.tactics-status) {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+	}
+	:global(.tactics-status span) {
+		border: 1px solid rgba(148, 163, 184, 0.35);
+		background: rgba(15, 23, 42, 0.72);
+		border-radius: 6px;
+		padding: 6px 9px;
+		font-size: 12px;
+		font-weight: 700;
+		color: #dbeafe;
+	}
+	:global(.tactics-layout) {
+		min-height: 0;
+		flex: 1;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(210px, 260px);
+		gap: 14px;
+	}
+	:global(.tactics-board) {
+		min-height: 0;
+		aspect-ratio: 1;
+		height: 100%;
+		max-height: 100%;
+		margin-inline: auto;
+		display: grid;
+		grid-template-columns: repeat(8, minmax(0, 1fr));
+		grid-template-rows: repeat(8, minmax(0, 1fr));
+		gap: 3px;
+		padding: 6px;
+		border: 1px solid rgba(148, 163, 184, 0.35);
+		border-radius: 8px;
+		background: rgba(2, 6, 23, 0.68);
+		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+	}
+	:global(.tactics-tile) {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
+		border: 1px solid rgba(15, 23, 42, 0.66);
+		border-radius: 4px;
+		cursor: pointer;
+		overflow: hidden;
+		transition:
+			transform 90ms ease,
+			outline-color 120ms ease,
+			filter 120ms ease;
+	}
+	:global(.tactics-tile:hover) {
+		transform: translateY(-1px);
+		filter: brightness(1.08);
+	}
+	:global(.terrain-plain) {
+		background: linear-gradient(135deg, #50672f 0%, #35471f 100%);
+	}
+	:global(.terrain-forest) {
+		background:
+			radial-gradient(
+				circle at 34% 38%,
+				rgba(187, 247, 208, 0.28) 0 8%,
+				transparent 9%
+			),
+			linear-gradient(135deg, #14532d 0%, #052e16 100%);
+	}
+	:global(.terrain-city) {
+		background:
+			linear-gradient(
+				90deg,
+				rgba(226, 232, 240, 0.18) 1px,
+				transparent 1px
+			),
+			linear-gradient(135deg, #475569 0%, #1e293b 100%);
+		background-size:
+			9px 100%,
+			100% 100%;
+	}
+	:global(.terrain-ridge) {
+		background:
+			linear-gradient(
+				135deg,
+				transparent 0 44%,
+				rgba(255, 255, 255, 0.22) 45% 48%,
+				transparent 49%
+			),
+			linear-gradient(135deg, #78716c 0%, #44403c 100%);
+	}
+	:global(.terrain-water) {
+		background:
+			linear-gradient(
+				90deg,
+				rgba(186, 230, 253, 0.2) 0 20%,
+				transparent 20% 45%,
+				rgba(186, 230, 253, 0.18) 45% 58%,
+				transparent 58%
+			),
+			linear-gradient(135deg, #075985 0%, #0c4a6e 100%);
+		cursor: not-allowed;
+	}
+	:global(.terrain-hq) {
+		background:
+			linear-gradient(
+				90deg,
+				rgba(248, 250, 252, 0.2) 0 50%,
+				transparent 50%
+			),
+			linear-gradient(135deg, #334155 0%, #111827 100%);
+		background-size:
+			12px 100%,
+			100% 100%;
+	}
+	:global(.terrain-mark) {
+		position: absolute;
+		left: 4px;
+		top: 3px;
+		font-size: 9px;
+		font-weight: 900;
+		color: rgba(248, 250, 252, 0.58);
+	}
+	:global(.tactics-tile.is-move) {
+		outline: 2px solid rgba(94, 234, 212, 0.78);
+		outline-offset: -3px;
+	}
+	:global(.tactics-tile.is-attack) {
+		outline: 2px solid rgba(248, 113, 113, 0.9);
+		outline-offset: -3px;
+	}
+	:global(.tactics-tile.is-selected) {
+		outline: 3px solid #fde047;
+		outline-offset: -4px;
+	}
+	:global(.unit) {
+		width: min(74%, 48px);
+		aspect-ratio: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 3px;
+		border-radius: 7px;
+		border: 2px solid rgba(255, 255, 255, 0.7);
+		box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+		font-weight: 900;
+		font-size: 16px;
+		color: #f8fafc;
+	}
+	:global(.unit-blue) {
+		background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+	}
+	:global(.unit-red) {
+		background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+	}
+	:global(.unit-rocket) {
+		border-radius: 50%;
+	}
+	:global(.unit meter) {
+		width: 72%;
+		height: 5px;
+	}
+	:global(.tactics-panel) {
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		padding: 12px;
+		border: 1px solid rgba(148, 163, 184, 0.3);
+		border-radius: 8px;
+		background: rgba(15, 23, 42, 0.76);
+	}
+	:global(.panel-section) {
+		border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+		padding-bottom: 10px;
+	}
+	:global(.panel-label) {
+		margin: 0 0 5px;
+		font-size: 11px;
+		font-weight: 800;
+		text-transform: uppercase;
+		color: #5eead4;
+	}
+	:global(.panel-message),
+	:global(.panel-muted) {
+		margin: 0;
+		font-size: 13px;
+		line-height: 1.45;
+		color: #cbd5e1;
+	}
+	:global(.unit-card) {
+		display: grid;
+		gap: 4px;
+		font-size: 12px;
+		color: #cbd5e1;
+	}
+	:global(.unit-card strong) {
+		color: #f8fafc;
+		font-size: 15px;
+	}
+	:global(.score-row) {
+		display: flex;
+		justify-content: space-between;
+		gap: 10px;
+		font-size: 13px;
+		font-weight: 800;
+		color: #dbeafe;
+	}
+	:global(.panel-actions) {
+		margin-top: auto;
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 8px;
+	}
+	:global(.panel-actions button) {
+		min-height: 36px;
+		border: 1px solid rgba(94, 234, 212, 0.38);
+		border-radius: 6px;
+		background: rgba(20, 184, 166, 0.14);
+		color: #ccfbf1;
+		font-weight: 800;
+		cursor: pointer;
+	}
+	:global(.panel-actions button:hover:not(:disabled)) {
+		background: rgba(20, 184, 166, 0.24);
+	}
+	:global(.panel-actions button:disabled) {
+		opacity: 0.45;
+		cursor: not-allowed;
+	}
+	@media (max-width: 760px) {
+		.tactics-frame {
+			aspect-ratio: 9 / 12;
+		}
+		:global(.tactics-shell) {
+			padding: 10px;
+		}
+		:global(.tactics-layout) {
+			grid-template-columns: 1fr;
+			grid-template-rows: minmax(0, 1fr) auto;
+		}
+		:global(.tactics-board) {
+			width: 100%;
+			height: auto;
+		}
+		:global(.tactics-panel) {
+			padding: 10px;
+		}
+		:global(.panel-actions) {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+		:global(.tactics-topbar h2) {
+			font-size: 19px;
+		}
+	}
+</style>
+
+<script>
+	const stage = document.querySelector<HTMLElement>('[data-tactics-stage]');
+	const theaterBtn = document.querySelector<HTMLButtonElement>(
+		'[data-tactics-theater]',
+	);
+	const fsBtn = document.querySelector<HTMLButtonElement>(
+		'[data-tactics-fullscreen]',
+	);
+
+	if (stage && theaterBtn) {
+		const setTheater = (on: boolean) => {
+			stage.classList.toggle('is-theater', on);
+			theaterBtn.setAttribute('aria-pressed', String(on));
+			window.dispatchEvent(new Event('resize'));
+		};
+		theaterBtn.addEventListener('click', () => {
+			setTheater(!stage.classList.contains('is-theater'));
+		});
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape' && stage.classList.contains('is-theater')) {
+				setTheater(false);
+			}
+		});
+	}
+
+	if (stage && fsBtn) {
+		const updateFsLabel = () => {
+			const active = document.fullscreenElement === stage;
+			fsBtn.setAttribute('aria-pressed', String(active));
+		};
+		fsBtn.addEventListener('click', async () => {
+			if (document.fullscreenElement) {
+				await document.exitFullscreen();
+			} else {
+				await stage.requestFullscreen();
+			}
+		});
+		document.addEventListener('fullscreenchange', updateFsLabel);
+	}
+</script>
