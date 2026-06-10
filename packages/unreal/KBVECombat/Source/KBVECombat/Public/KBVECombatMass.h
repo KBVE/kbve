@@ -49,3 +49,33 @@ struct KBVECOMBAT_API FKBVECombatTag : public FMassTag
 {
 	GENERATED_BODY()
 };
+
+USTRUCT()
+struct KBVECOMBAT_API FKBVEActiveDot
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	EKBVEDamageElement Element = EKBVEDamageElement::Poison;
+
+	UPROPERTY()
+	float DamagePerSecond = 0.0f;
+
+	UPROPERTY()
+	float TimeRemaining = 0.0f;
+
+	UPROPERTY()
+	float Interval = 1.0f;
+
+	UPROPERTY()
+	float Accumulator = 0.0f;
+};
+
+USTRUCT()
+struct KBVECOMBAT_API FKBVECombatDotFragment : public FMassFragment
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<FKBVEActiveDot> Dots;
+};

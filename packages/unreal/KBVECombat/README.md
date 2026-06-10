@@ -71,10 +71,16 @@ The actor path (`UKBVECombatComponent` / `UKBVECombatStatics`) stays for hero/bo
 
 `UKBVEStatusEffectComponent` applies a `FKBVEStatusEffectDef` (authority): adds its `FKBVEStatModifierSpec` list to the owner via `IKBVEStatTarget::AddStatModifier` (Additive / Multiplicative), runs an optional DoT (`DotPerSecond` × `DotInterval`, routed through `ApplyDamage` so it composes with resists/feed), and removes the modifiers on expiry. Re-applying the same `EffectId` refreshes it; `OnStatusApplied` / `OnStatusRemoved` fire for UI.
 
+## Mass DoT path
+
+`FKBVECombatDotFragment` holds active DoTs (`FKBVEActiveDot`: element, damage/sec, remaining, interval) on a combatant entity. `UKBVECombatDotProcessor` (Mass `PrePhysics`) ticks them in parallel — decrement timers, and each interval **enqueue** a self-targeted `FKBVEDamageRequest` to the batch subsystem rather than mutating health in the worker. So DoT deaths, resists, and feed events flow through the same serial drain as everything else; dead entities clear their DoTs. `UKBVECombatStatics::ApplyDotToEntity` adds a DoT to an entity (which must carry the fragment).
+
+This is the swarm counterpart to the actor `UKBVEStatusEffectComponent` DoT.
+
 ## Roadmap
 
 - Status replication + stacking rules (stack count, diminishing returns).
-- Mass status/DoT path (fragment-side ticks) for the swarm.
+- Mass status (stat-modifier) fragment for non-DoT effects on the swarm.
 
 ## License
 
