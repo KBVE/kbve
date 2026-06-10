@@ -1,6 +1,9 @@
 #include "chuckSlimeSubsystem.h"
 #include "chuckSlimeTypes.h"
+#include "chuckSlimeNetActor.h"
+#include "KBVENetEntityReplicator.h"
 
+#include "EngineUtils.h"
 #include "MassEntitySubsystem.h"
 #include "MassEntityManager.h"
 #include "MassCommonFragments.h"
@@ -307,6 +310,11 @@ void UchuckSlimeSubsystem::SpawnSlimes(const FVector& Center, int32 Count, float
 	{
 		return;
 	}
+	if (World->GetNetMode() == NM_Client)
+	{
+		return;
+	}
+	EnsureReplicator(true);
 	UMassEntitySubsystem* MassSys = World->GetSubsystem<UMassEntitySubsystem>();
 	if (!MassSys)
 	{
@@ -377,10 +385,66 @@ void UchuckSlimeSubsystem::SpawnSlimes(const FVector& Center, int32 Count, float
 	UE_LOG(LogTemp, Display, TEXT("[chuck] Mass slimes spawned: %d (total %d)"), Count, Slimes.Num());
 }
 
+UKBVENetEntityReplicator* UchuckSlimeSubsystem::EnsureReplicator(bool bAuthority)
+{
+	if (NetActor.IsValid())
+	{
+		return NetActor->GetReplicator();
+	}
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return nullptr;
+	}
+	if (bAuthority)
+	{
+		FActorSpawnParameters Params;
+		Params.ObjectFlags |= RF_Transient;
+		AchuckSlimeNetActor* Spawned = World->SpawnActor<AchuckSlimeNetActor>(
+			AchuckSlimeNetActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+		NetActor = Spawned;
+		return Spawned ? Spawned->GetReplicator() : nullptr;
+	}
+	for (TActorIterator<AchuckSlimeNetActor> It(World); It; ++It)
+	{
+		NetActor = *It;
+		return It->GetReplicator();
+	}
+	return nullptr;
+}
+
 void UchuckSlimeSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	FVector CamLoc = FVector::ZeroVector;
+	FVector CamRight = FVector::RightVector;
+	if (APlayerCameraManager* PCM = UGameplayStatics::GetPlayerCameraManager(World, 0))
+	{
+		CamLoc = PCM->GetCameraLocation();
+		CamRight = FRotationMatrix(PCM->GetCameraRotation()).GetUnitAxis(EAxis::Y);
+		CamRight.Z = 0.f;
+		CamRight.Normalize();
+	}
+
+	if (World->GetNetMode() == NM_Client)
+	{
+		TickClientRender(CamLoc, CamRight);
+	}
+	else
+	{
+		TickServer(DeltaTime, CamLoc, CamRight);
+	}
+}
+
+void UchuckSlimeSubsystem::TickServer(float DeltaTime, const FVector& CamLoc, const FVector& CamRight)
+{
 	if (!ISM || Slimes.Num() == 0)
 	{
 		return;
@@ -392,16 +456,7 @@ void UchuckSlimeSubsystem::Tick(float DeltaTime)
 		return;
 	}
 	FMassEntityManager& EM = MassSys->GetMutableEntityManager();
-
-	FVector CamLoc = FVector::ZeroVector;
-	FVector CamRight = FVector::RightVector;
-	if (APlayerCameraManager* PCM = UGameplayStatics::GetPlayerCameraManager(World, 0))
-	{
-		CamLoc = PCM->GetCameraLocation();
-		CamRight = FRotationMatrix(PCM->GetCameraRotation()).GetUnitAxis(EAxis::Y);
-		CamRight.Z = 0.f;
-		CamRight.Normalize();
-	}
+	UKBVENetEntityReplicator* Rep = EnsureReplicator(true);
 
 	for (int32 i = 0; i < Slimes.Num(); ++i)
 	{
@@ -444,10 +499,12 @@ void UchuckSlimeSubsystem::Tick(float DeltaTime)
 
 		int32 RowVal = 0;
 		float FlipVal = 0.f;
+		FVector MoveDir = FVector::ZeroVector;
 
 		if (bMoving)
 		{
 			Dir /= Flat;
+			MoveDir = Dir;
 			S->HopPhase += DeltaTime * HopRate;
 			const float HopUp = FMath::Max(0.f, FMath::Sin(S->HopPhase));
 
@@ -485,6 +542,63 @@ void UchuckSlimeSubsystem::Tick(float DeltaTime)
 		const FTransform IT(BillboardRot(Pos, CamLoc), Pos, FVector(QuadScale));
 		ISM->UpdateInstanceTransform(i, IT, true, false, true);
 		ISM->SetCustomDataValue(i, 0, (float)S->Frame, false);
+		ISM->SetCustomDataValue(i, 1, (float)RowVal, false);
+		ISM->SetCustomDataValue(i, 2, FlipVal, false);
+
+		if (Rep)
+		{
+			const float MoveYaw = bMoving ? FMath::RadiansToDegrees(FMath::Atan2(MoveDir.Y, MoveDir.X)) : 0.f;
+			Rep->ServerUpsert(static_cast<uint32>(i), Pos, MoveYaw, static_cast<uint8>(S->Frame), bMoving ? 1 : 0);
+		}
+	}
+
+	ISM->MarkRenderStateDirty();
+}
+
+void UchuckSlimeSubsystem::TickClientRender(const FVector& CamLoc, const FVector& CamRight)
+{
+	UKBVENetEntityReplicator* Rep = EnsureReplicator(false);
+	if (!Rep)
+	{
+		return;
+	}
+	EnsureISM();
+	if (!ISM)
+	{
+		return;
+	}
+
+	const TArray<FKBVENetEntitySnapshot>& Snaps = Rep->GetSnapshots();
+	while (ISM->GetInstanceCount() < Snaps.Num())
+	{
+		ISM->AddInstance(FTransform::Identity, true);
+	}
+	while (ISM->GetInstanceCount() > Snaps.Num())
+	{
+		ISM->RemoveInstance(ISM->GetInstanceCount() - 1);
+	}
+
+	for (int32 i = 0; i < Snaps.Num(); ++i)
+	{
+		const FKBVENetEntitySnapshot& Sn = Snaps[i];
+		const FVector Pos = Sn.Location;
+		const bool bMoving = (Sn.StateByte != 0);
+
+		int32 RowVal = 0;
+		float FlipVal = 0.f;
+		if (bMoving)
+		{
+			const float Yaw = FMath::DegreesToRadians(Sn.YawDegrees());
+			const FVector Dir(FMath::Cos(Yaw), FMath::Sin(Yaw), 0.f);
+			FVector ToCam = CamLoc - Pos;
+			ToCam.Z = 0.f;
+			ToCam.Normalize();
+			FacingFromMove(Dir, ToCam, CamRight, RowVal, FlipVal);
+		}
+
+		const FTransform IT(BillboardRot(Pos, CamLoc), Pos, FVector(QuadScale));
+		ISM->UpdateInstanceTransform(i, IT, true, false, true);
+		ISM->SetCustomDataValue(i, 0, (float)Sn.Frame, false);
 		ISM->SetCustomDataValue(i, 1, (float)RowVal, false);
 		ISM->SetCustomDataValue(i, 2, FlipVal, false);
 	}

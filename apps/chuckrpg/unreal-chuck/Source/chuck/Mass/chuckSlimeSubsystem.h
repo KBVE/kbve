@@ -7,6 +7,8 @@
 #include "chuckSlimeSubsystem.generated.h"
 
 class UInstancedStaticMeshComponent;
+class UKBVENetEntityReplicator;
+class AchuckSlimeNetActor;
 
 UCLASS()
 class CHUCK_API UchuckSlimeSubsystem : public UTickableWorldSubsystem
@@ -25,11 +27,17 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UInstancedStaticMeshComponent> ISM;
 
+	UPROPERTY(Transient)
+	TWeakObjectPtr<AchuckSlimeNetActor> NetActor;
+
 	TArray<FMassEntityHandle> Slimes;
 	TArray<TArray<FVector>> Paths;
 	FMassArchetypeHandle Archetype;
 
 	void EnsureISM();
+	UKBVENetEntityReplicator* EnsureReplicator(bool bAuthority);
+	void TickServer(float DeltaTime, const FVector& CamLoc, const FVector& CamRight);
+	void TickClientRender(const FVector& CamLoc, const FVector& CamRight);
 	float GroundTraceZ(double X, double Y, float Fallback) const;
 	void Repath(int32 SlimeIndex, const FVector& From);
 

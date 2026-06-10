@@ -1,0 +1,55 @@
+---
+title: KBVENet
+description: |
+    Shared Iris-ready networking layer for KBVE games — a delta-compressed entity-snapshot replicator for streaming server-authoritative sims to clients.
+sidebar:
+    label: KBVENet
+    order: 91
+tags:
+    - unreal
+    - networking
+key: ue_kbvenet
+pipeline: unreal
+plugin_name: KBVENet
+plugin_path: packages/unreal/KBVENet
+version: "0.1.0"
+source_path: packages/unreal/KBVENet
+version_toml: packages/unreal/KBVENet/version.toml
+author: h0lybyte
+license: KBVE
+status: active
+min_engine_version: "5.7"
+supported_platforms:
+    - Win64
+    - Linux
+    - Mac
+---
+
+## Overview
+
+`KBVENet` is the shared networking layer for KBVE games. It provides Iris-ready replication primitives for streaming a server-authoritative simulation (Mass ECS swarms, etc.) to clients that render it locally.
+
+## Entity-snapshot replicator
+
+`UKBVENetEntityReplicator` holds a delta-compressed `FFastArraySerializer` of lean per-entity snapshots — `Id`, quantized `Location`, packed `YawQ`, `Frame`, and a `StateByte`. FastArrays are transported by **Iris** when the ReplicationSystem is on, by the classic NetDriver otherwise — the consumer writes no Iris-specific code.
+
+```cpp
+// server
+Rep->ServerUpsert(EntityId, WorldPos, MoveYawDeg, Frame, bMoving ? 1 : 0);
+// client
+for (const FKBVENetEntitySnapshot& S : Rep->GetSnapshots()) { /* render */ }
+```
+
+## Enabling Iris
+
+Per game: `bUseIris = true;` in each `*.Target.cs`, and `Net.Iris.UseIrisReplication=1` under `[ConsoleVariables]` in `Config/DefaultEngine.ini`.
+
+## Consumers
+
+- **chuck slime swarm** — server runs the Mass sim and pushes each slime's position/yaw/frame; clients render the swarm from snapshots into a local ISM. Direction row + billboard are computed per-client from the local camera so facing stays view-correct.
+
+## Roadmap
+
+- Push-model dirty tracking on the replicated array.
+- Per-entity Iris NetObjects (replacing the single-actor FastArray) for very large swarms.
+- Relevancy / spatial culling so clients only receive nearby entities.
