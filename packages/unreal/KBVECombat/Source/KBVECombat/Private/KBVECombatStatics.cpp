@@ -1,7 +1,13 @@
 #include "KBVECombatStatics.h"
 #include "KBVECombatant.h"
 #include "KBVECombatComponent.h"
+#include "KBVECombatBatchSubsystem.h"
+#include "KBVECombatMass.h"
 #include "GameFramework/Actor.h"
+#include "Engine/World.h"
+#include "Engine/Engine.h"
+#include "MassEntitySubsystem.h"
+#include "MassEntityManager.h"
 
 namespace
 {
@@ -59,4 +65,43 @@ bool UKBVECombatStatics::AreHostile(const AActor* A, const AActor* B)
 		return false;
 	}
 	return IKBVECombatant::Execute_GetTeamId(CombatantA) != IKBVECombatant::Execute_GetTeamId(CombatantB);
+}
+
+void UKBVECombatStatics::ApplyDamageToEntity(const UObject* WorldContext, FMassEntityHandle Target, float Amount, EKBVEDamageElement Element, FMassEntityHandle Instigator)
+{
+	const UWorld* World = GEngine ? GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull) : nullptr;
+	if (!World)
+	{
+		return;
+	}
+	if (UKBVECombatBatchSubsystem* Batch = World->GetSubsystem<UKBVECombatBatchSubsystem>())
+	{
+		FKBVEDamageRequest Request;
+		Request.Target = Target;
+		Request.Instigator = Instigator;
+		Request.Amount = Amount;
+		Request.Element = Element;
+		Batch->EnqueueDamage(Request);
+	}
+}
+
+bool UKBVECombatStatics::IsEntityAlive(const UObject* WorldContext, FMassEntityHandle Target)
+{
+	const UWorld* World = GEngine ? GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull) : nullptr;
+	if (!World)
+	{
+		return false;
+	}
+	UMassEntitySubsystem* MassSys = World->GetSubsystem<UMassEntitySubsystem>();
+	if (!MassSys)
+	{
+		return false;
+	}
+	FMassEntityManager& EM = MassSys->GetMutableEntityManager();
+	if (!EM.IsEntityValid(Target))
+	{
+		return false;
+	}
+	const FKBVECombatFragment* Fragment = EM.GetFragmentDataPtr<FKBVECombatFragment>(Target);
+	return Fragment && !Fragment->bDead;
 }

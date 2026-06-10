@@ -28,4 +28,10 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "KBVE|Combat")
 	static bool AreHostile(const AActor* A, const AActor* B);
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Combat", meta = (WorldContext = "WorldContext"))
+	static void ApplyDamageToEntity(const UObject* WorldContext, FMassEntityHandle Target, float Amount, EKBVEDamageElement Element, FMassEntityHandle Instigator);
+
+	UFUNCTION(BlueprintPure, Category = "KBVE|Combat", meta = (WorldContext = "WorldContext"))
+	static bool IsEntityAlive(const UObject* WorldContext, FMassEntityHandle Target);
 };

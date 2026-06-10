@@ -52,7 +52,16 @@ void UKBVECombatBatchSubsystem::Tick(float DeltaTime)
 		{
 			continue;
 		}
-		Fragment->Health = FMath::Max(0.0f, Fragment->Health - Request.Amount);
+		float Scaled = Request.Amount;
+		if (const FKBVECombatResistFragment* Resist = EM.GetFragmentDataPtr<FKBVECombatResistFragment>(Request.Target))
+		{
+			Scaled *= Resist->GetMultiplier(Request.Element);
+		}
+		if (Scaled <= 0.0f)
+		{
+			continue;
+		}
+		Fragment->Health = FMath::Max(0.0f, Fragment->Health - Scaled);
 		if (Fragment->Health <= 0.0f)
 		{
 			Fragment->bDead = true;

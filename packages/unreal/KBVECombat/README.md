@@ -59,11 +59,22 @@ Producer pattern (e.g. a Mass combat processor): compute hits across chunks in p
 
 The actor path (`UKBVECombatComponent` / `UKBVECombatStatics`) stays for hero/boss-grade fighters; the Mass path is for the swarm. Both can coexist in one fight.
 
+## Entity-target helpers
+
+`UKBVECombatStatics::ApplyDamageToEntity(WorldContext, Target, Amount, Element, Instigator)` enqueues a `FKBVEDamageRequest` to the batch subsystem, so actor-side code can damage a Mass entity through the same call surface as actors. `IsEntityAlive` reads the entity's `FKBVECombatFragment`.
+
+## Mass resist
+
+`FKBVECombatResistFragment` (per-element affinities) is optional on a Mass combatant; the batch drain scales incoming damage by the matching element before applying — parity with the actor component's `Resistances`.
+
+## Status effects
+
+`UKBVEStatusEffectComponent` applies a `FKBVEStatusEffectDef` (authority): adds its `FKBVEStatModifierSpec` list to the owner via `IKBVEStatTarget::AddStatModifier` (Additive / Multiplicative), runs an optional DoT (`DotPerSecond` × `DotInterval`, routed through `ApplyDamage` so it composes with resists/feed), and removes the modifiers on expiry. Re-applying the same `EffectId` refreshes it; `OnStatusApplied` / `OnStatusRemoved` fire for UI.
+
 ## Roadmap
 
-- Mass-backed `IKBVECombatant` proxy so the actor-side helpers can target ECS entities uniformly.
-- Element resist on `FKBVECombatFragment` (parity with the actor component).
-- Combo / status-effect chains via KBVEGameplay stat modifiers.
+- Status replication + stacking rules (stack count, diminishing returns).
+- Mass status/DoT path (fragment-side ticks) for the swarm.
 
 ## License
 

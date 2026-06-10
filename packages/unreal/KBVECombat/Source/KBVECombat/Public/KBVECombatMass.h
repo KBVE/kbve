@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "MassEntityTypes.h"
+#include "KBVECombatTypes.h"
 #include "KBVECombatMass.generated.h"
 
 USTRUCT()
@@ -20,6 +21,27 @@ struct KBVECOMBAT_API FKBVECombatFragment : public FMassFragment
 
 	UPROPERTY()
 	bool bDead = false;
+};
+
+USTRUCT()
+struct KBVECOMBAT_API FKBVECombatResistFragment : public FMassFragment
+{
+	GENERATED_BODY()
+
+	UPROPERTY()
+	TArray<FKBVEElementAffinity> Affinities;
+
+	float GetMultiplier(EKBVEDamageElement Element) const
+	{
+		for (const FKBVEElementAffinity& Affinity : Affinities)
+		{
+			if (Affinity.Element == Element)
+			{
+				return Affinity.Multiplier;
+			}
+		}
+		return 1.0f;
+	}
 };
 
 USTRUCT()
