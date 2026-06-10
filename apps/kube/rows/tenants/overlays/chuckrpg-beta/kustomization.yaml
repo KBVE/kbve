@@ -5,6 +5,8 @@ namespace: rows-chuckrpg-beta
 
 resources:
     - namespace.yaml
+    - sealed-customer-guid.yaml
+    - sealed-encryption-key.yaml
     - ../../base
 
 labels:
@@ -31,7 +33,7 @@ patches:
             path: /spec/template/spec/containers/0/env/-
             value:
                 name: AGONES_FLEET
-                value: ows-chuckrpg-beta
+                value: rows-chuckrpg-beta
     - target:
           kind: Job
           name: rows-seed
@@ -56,3 +58,20 @@ patches:
             value:
                 name: ZONE_NAME
                 value: MainWorld
+    - target:
+          kind: Certificate
+          name: rows-api-tls
+      patch: |-
+          - op: replace
+            path: /spec/secretName
+            value: rows-chuckrpg-beta-api-tls
+          - op: replace
+            path: /spec/dnsNames/0
+            value: api-beta.chuckrpg.com
+    - target:
+          kind: HTTPRoute
+          name: ows-api-routes
+      patch: |-
+          - op: replace
+            path: /spec/hostnames/0
+            value: api-beta.chuckrpg.com

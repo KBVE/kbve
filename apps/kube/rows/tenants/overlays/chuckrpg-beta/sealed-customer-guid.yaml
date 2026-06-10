@@ -1,0 +1,12 @@
+# STUB — replace before deploy. Generate the real SealedSecret with kubeseal (see
+# tenants/README.md "Seal the customer_guid"); the placeholder below will NOT decrypt.
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: rows-customer-guid
+spec:
+    encryptedData:
+        customer-guid: REPLACE_VIA_KUBESEAL
+    template:
+        metadata:
+            name: rows-customer-guid

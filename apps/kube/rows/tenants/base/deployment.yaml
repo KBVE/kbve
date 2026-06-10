@@ -25,8 +25,7 @@ spec:
                 app: rows
                 app.kubernetes.io/part-of: ows
         spec:
-            # TODO(follow-up): serviceAccountName ows-instancelauncher + cross-ns RBAC
-            # required before Agones allocation works in this namespace.
+            serviceAccountName: rows-instancelauncher
             containers:
                 - name: rows
                   image: ghcr.io/kbve/rows:0.1.25
@@ -45,17 +44,17 @@ spec:
                       - name: OWS_API_KEY
                         valueFrom:
                             secretKeyRef:
-                                name: ows-customer-guid
+                                name: rows-customer-guid
                                 key: customer-guid
                       - name: DATABASE_URL
                         valueFrom:
                             secretKeyRef:
-                                name: ows-db-credentials
+                                name: rows-db-credentials
                                 key: db-url
                       - name: RABBITMQ_URL
                         valueFrom:
                             secretKeyRef:
-                                name: ows-rabbitmq-credentials
+                                name: rows-rabbitmq-credentials
                                 key: amqp-url
                       - name: SUPABASE_JWT_SECRET
                         valueFrom:
