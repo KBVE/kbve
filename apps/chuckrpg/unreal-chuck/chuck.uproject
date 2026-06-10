@@ -143,6 +143,10 @@
 		{
 			"Name": "KBVEMover",
 			"Enabled": true
+		},
+		{
+			"Name": "KBVECombat",
+			"Enabled": true
 		}
 	]
 }
