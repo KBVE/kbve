@@ -18,7 +18,12 @@ public class KBVESQLite : ModuleRules
 		// Suppress warnings in third-party code
 		CppCompileWarningSettings.UndefinedIdentifierWarningLevel = WarningLevel.Off;
 
-		if (Target.Platform != UnrealTargetPlatform.Win64)
+		if (Target.Platform == UnrealTargetPlatform.Win64)
+		{
+			PublicDefinitions.Add("SQLITE_API=KBVESQLITE_API");
+			PublicDefinitions.Add("SQLITE_EXTERN=extern KBVESQLITE_API");
+		}
+		else
 		{
 			PublicDefinitions.Add("SQLITE_API=__attribute__((visibility(\"default\")))");
 			PublicDefinitions.Add("SQLITE_EXTERN=extern __attribute__((visibility(\"default\")))");
