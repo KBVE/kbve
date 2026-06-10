@@ -57,8 +57,7 @@
 				},
 				"production": {
 					"tags": ["latest"],
-					"push": true,
-					"customBuildOptions": "--push",
+					"push": false,
 					"cache-from": [
 						"type=registry,ref=ghcr.io/kbve/nd-server:buildcache"
 					],
