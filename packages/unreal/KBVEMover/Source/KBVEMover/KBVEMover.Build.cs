@@ -1,8 +1,8 @@
 using UnrealBuildTool;
 
-public class KBVEGameplay : ModuleRules
+public class KBVEMover : ModuleRules
 {
-	public KBVEGameplay(ReadOnlyTargetRules Target) : base(Target)
+	public KBVEMover(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -11,10 +11,10 @@ public class KBVEGameplay : ModuleRules
 			"Core",
 			"CoreUObject",
 			"Engine",
-			"MassEntity",
-			"GameplayTags"
+			"EnhancedInput",
+			"GameplayTags",
+			"Mover",
+			"KBVEGameplay"
 		});
-
-		PrivateDependencyModuleNames.AddRange(new string[] { });
 	}
 }
