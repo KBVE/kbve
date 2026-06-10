@@ -22,7 +22,7 @@ namespace KBVEGrassCfg
 {
 	constexpr double ChunkExtent       = 6400.0;
 	constexpr int32  ViewRadius        = 2;
-	constexpr int32  ImpostorRadius    = 4;
+	constexpr int32  ImpostorRadius    = 3;
 	constexpr int32  RetentionRadius   = ImpostorRadius + 1;
 	constexpr int32  MaxResidentChunks = 110;
 	constexpr float  PNScaleMul        = 1.f;
