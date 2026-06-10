@@ -1,0 +1,12 @@
+# STUB — replace before deploy. Generate with kubeseal (see tenants/README.md).
+# Consumed by the Agones gameserver ExternalSecret (rows-encryption-key).
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: rows-encryption-key
+spec:
+    encryptedData:
+        encryption-key: REPLACE_VIA_KUBESEAL
+    template:
+        metadata:
+            name: rows-encryption-key
