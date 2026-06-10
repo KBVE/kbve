@@ -9,6 +9,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "InputAction.h"
+#include "NavigationInvokerComponent.h"
 #include "MassCommonTypes.h"
 #include "MassEntityManager.h"
 #include "MassEntitySubsystem.h"
@@ -59,6 +60,9 @@ AchuckCoreCharacter::AchuckCoreCharacter(const FObjectInitializer& ObjectInitial
 		MeshComp->SetRenderCustomDepth(true);
 		MeshComp->SetCustomDepthStencilValue(1);
 	}
+
+	UNavigationInvokerComponent* NavInvoker = CreateDefaultSubobject<UNavigationInvokerComponent>(TEXT("NavInvoker"));
+	NavInvoker->SetGenerationRadii(6000.f, 8000.f);
 
 	if (UCharacterMovementComponent* Move = GetCharacterMovement())
 	{
