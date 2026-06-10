@@ -1,6 +1,8 @@
 #include "chuckMenuPlayerController.h"
 
 #include "SchuckMainMenu.h"
+#include "SchuckCharacterSelect.h"
+#include "Core/chuckSessionSubsystem.h"
 #include "SKBVELoginWidget.h"
 #include "SKBVEAccountPanel.h"
 #include "SKBVELoadingPanel.h"
@@ -47,12 +49,32 @@ void AchuckMenuPlayerController::BeginPlay()
 	LoadingWidget = SNew(SKBVELoadingPanel).UnitLabel(TEXT("chunks"));
 	LoadingWidget->SetVisibility(EVisibility::Collapsed);
 
+	TWeakObjectPtr<UchuckSessionSubsystem> SessionWeak;
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		SessionWeak = GI->GetSubsystem<UchuckSessionSubsystem>();
+	}
+	CharSelectWidget = SNew(SchuckCharacterSelect)
+		.Session(SessionWeak)
+		.OnEnterWorld(FSimpleDelegate::CreateUObject(this, &AchuckMenuPlayerController::EnterSelectedWorld));
+	CharSelectWidget->SetVisibility(EVisibility::Collapsed);
+
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 	{
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), MenuWidget.ToSharedRef(),    10);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), AccountWidget.ToSharedRef(), 40);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), LoginWidget.ToSharedRef(),   45);
+		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), CharSelectWidget.ToSharedRef(), 50);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), LoadingWidget.ToSharedRef(), 60);
+	}
+
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UchuckSessionSubsystem* SessionSub = GI->GetSubsystem<UchuckSessionSubsystem>())
+		{
+			SessionSub->OnSessionReady.AddDynamic(this, &AchuckMenuPlayerController::HandleSessionReady);
+			SessionSub->OnCharactersUpdated.AddDynamic(this, &AchuckMenuPlayerController::HandleCharactersUpdated);
+		}
 	}
 
 	if (UKBVESupabaseSubsystem* Sub = SupabaseSubsystem.Get())
@@ -122,6 +144,15 @@ void AchuckMenuPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReaso
 		Sub->OnSignedIn.RemoveAll(this);
 		Sub->OnSignedOut.RemoveAll(this);
 		Sub->OnSessionRefreshed.RemoveAll(this);
+	}
+
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UchuckSessionSubsystem* SessionSub = GI->GetSubsystem<UchuckSessionSubsystem>())
+		{
+			SessionSub->OnSessionReady.RemoveAll(this);
+			SessionSub->OnCharactersUpdated.RemoveAll(this);
+		}
 	}
 
 	UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
@@ -310,4 +341,36 @@ void AchuckMenuPlayerController::RefreshAuthVisibility(bool bSignedIn)
 	{
 		AccountWidget->SetVisibility(bSignedIn ? EVisibility::SelfHitTestInvisible : EVisibility::Collapsed);
 	}
+}
+
+void AchuckMenuPlayerController::HandleSessionReady(const FString& UserSessionGUID)
+{
+	if (CharSelectWidget.IsValid())
+	{
+		CharSelectWidget->SetVisibility(EVisibility::Visible);
+	}
+	if (UGameInstance* GI = GetGameInstance())
+	{
+		if (UchuckSessionSubsystem* SessionSub = GI->GetSubsystem<UchuckSessionSubsystem>())
+		{
+			SessionSub->RefreshCharacters();
+		}
+	}
+}
+
+void AchuckMenuPlayerController::HandleCharactersUpdated(const TArray<FROWSUserCharacter>& Characters)
+{
+	if (CharSelectWidget.IsValid())
+	{
+		CharSelectWidget->RefreshList(Characters);
+	}
+}
+
+void AchuckMenuPlayerController::EnterSelectedWorld()
+{
+	if (CharSelectWidget.IsValid())
+	{
+		CharSelectWidget->SetVisibility(EVisibility::Collapsed);
+	}
+	HandlePlay();
 }

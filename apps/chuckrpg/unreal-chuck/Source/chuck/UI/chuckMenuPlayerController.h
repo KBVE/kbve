@@ -5,11 +5,13 @@
 #include "chuckMenuPlayerController.generated.h"
 
 class SchuckMainMenu;
+class SchuckCharacterSelect;
 class SKBVELoginWidget;
 class SKBVEAccountPanel;
 class SKBVELoadingPanel;
 class UKBVESupabaseSubsystem;
 struct FKBVESupabaseSession;
+struct FROWSUserCharacter;
 
 UCLASS()
 class AchuckMenuPlayerController : public APlayerController
@@ -41,9 +43,18 @@ private:
 	UFUNCTION()
 	void HandleSupabaseSessionRefreshed(const FKBVESupabaseSession& Session);
 
+	UFUNCTION()
+	void HandleSessionReady(const FString& UserSessionGUID);
+
+	UFUNCTION()
+	void HandleCharactersUpdated(const TArray<FROWSUserCharacter>& Characters);
+
+	void EnterSelectedWorld();
+
 	void ApplyAccountFromSession(const FKBVESupabaseSession& Session);
 
 	TSharedPtr<SchuckMainMenu>     MenuWidget;
+	TSharedPtr<SchuckCharacterSelect> CharSelectWidget;
 	TSharedPtr<SKBVELoginWidget>  LoginWidget;
 	TSharedPtr<SKBVEAccountPanel> AccountWidget;
 	TSharedPtr<SKBVELoadingPanel> LoadingWidget;

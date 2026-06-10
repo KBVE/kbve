@@ -56,4 +56,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "World", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float PivotZ = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "World", meta = (ClampMin = "0.0"))
+	float CullDistance = 0.0f;
 };
