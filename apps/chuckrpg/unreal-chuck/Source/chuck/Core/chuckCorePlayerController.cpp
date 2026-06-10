@@ -552,7 +552,9 @@ void AchuckCorePlayerController::OnToggleDevOverlayPressed(const FInputActionVal
 				{
 					if (UMassEntitySubsystem* Mass = W->GetSubsystem<UMassEntitySubsystem>())
 					{
+#if !UE_BUILD_SHIPPING
 						return (int32)Mass->GetEntityManager().DebugGetEntityCount();
+#endif
 					}
 				}
 				return 0;

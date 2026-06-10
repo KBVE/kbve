@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "MassCommonFragments.h"
 #include "MassEntityTypes.h"
+#include "MassEntityQuery.h"
 #include "MassProcessor.h"
 #include "KBVEWorldGrassMass.generated.h"
 
