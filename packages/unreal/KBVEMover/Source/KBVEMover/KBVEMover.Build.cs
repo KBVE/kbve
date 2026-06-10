@@ -13,7 +13,8 @@ public class KBVEMover : ModuleRules
 			"Engine",
 			"EnhancedInput",
 			"GameplayTags",
-			"Mover"
+			"Mover",
+			"KBVEGameplay"
 		});
 	}
 }

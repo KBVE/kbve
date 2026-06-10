@@ -27,6 +27,10 @@
 		{
 			"Name": "EnhancedInput",
 			"Enabled": true
+		},
+		{
+			"Name": "KBVEGameplay",
+			"Enabled": true
 		}
 	]
 }
