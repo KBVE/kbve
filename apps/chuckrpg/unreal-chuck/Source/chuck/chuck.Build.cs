@@ -50,7 +50,8 @@ public class chuck : ModuleRules
 			"KBVEWebSurface",
 			"ROWS",
 			"KBVENet",
-			"KBVENPCDB"
+			"KBVENPCDB",
+			"KBVENPCSprite"
 		});
 
 

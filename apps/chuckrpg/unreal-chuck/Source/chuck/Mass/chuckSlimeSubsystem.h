@@ -4,11 +4,12 @@
 #include "Subsystems/WorldSubsystem.h"
 #include "MassEntityTypes.h"
 #include "MassArchetypeTypes.h"
+#include "KBVENpcSpriteRenderSubsystem.h"
 #include "chuckSlimeSubsystem.generated.h"
 
-class UInstancedStaticMeshComponent;
 class UKBVENetEntityReplicator;
 class AchuckSlimeNetActor;
+class UKBVENpcSpriteDef;
 
 UCLASS()
 class CHUCK_API UchuckSlimeSubsystem : public UTickableWorldSubsystem
@@ -25,20 +26,24 @@ public:
 
 private:
 	UPROPERTY(Transient)
-	TObjectPtr<UInstancedStaticMeshComponent> ISM;
+	TObjectPtr<UKBVENpcSpriteDef> SlimeDef;
 
 	UPROPERTY(Transient)
 	TWeakObjectPtr<AchuckSlimeNetActor> NetActor;
 
 	TArray<FMassEntityHandle> Slimes;
 	TArray<TArray<FVector>> Paths;
+	TArray<FKBVENpcSpriteHandle> SlimeSprites;
+	TMap<uint32, FKBVENpcSpriteHandle> ClientSprites;
 	FMassArchetypeHandle Archetype;
 
-	void EnsureISM();
+	void EnsureSpriteDef();
+	UKBVENpcSpriteRenderSubsystem* GetSpriteRenderer() const;
 	UKBVENetEntityReplicator* EnsureReplicator(bool bAuthority);
-	void TickServer(float DeltaTime, const FVector& CamLoc, const FVector& CamRight);
-	void TickClientRender(const FVector& CamLoc, const FVector& CamRight);
+	void TickServer(float DeltaTime);
+	void TickClientRender();
 	float GroundTraceZ(double X, double Y, float Fallback) const;
+	float GroundFootprintMinZ(double X, double Y, float Radius, float Fallback) const;
 	void Repath(int32 SlimeIndex, const FVector& From);
 
 	static constexpr int32 Cols = 5;
@@ -51,4 +56,5 @@ private:
 	static constexpr float HopAmp = 28.f;
 	static constexpr float HopRate = 6.f;
 	static constexpr float HopMoveScale = 3.2f;
+	static constexpr float FootprintRadius = 45.f;
 };
