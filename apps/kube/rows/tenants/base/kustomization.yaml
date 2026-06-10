@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+    - deployment.yaml
+    - seed-job.yaml
+
+# tenants_init.sql is a copy of packages/data/sql/schema/ows/seed/tenants_init.sql.
+# kustomize cannot read files outside its root (no LoadRestrictionsNone configured),
+# so it is mirrored here and kept in sync by `nx run data-sql:verify-seed-sync`.
+configMapGenerator:
+    - name: ows-seed
+      files:
+          - tenants_init.sql
+
+generatorOptions:
+    disableNameSuffixHash: true

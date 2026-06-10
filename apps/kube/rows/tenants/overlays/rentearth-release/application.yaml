@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-    name: rows-chuckrpg-dev
+    name: rows-rentearth-release
     namespace: argocd
     finalizers:
         - resources-finalizer.argocd.argoproj.io
@@ -10,10 +10,10 @@ spec:
     source:
         repoURL: https://github.com/KBVE/kbve
         targetRevision: main
-        path: apps/kube/rows/tenants/chuckrpg-dev/manifest
+        path: apps/kube/rows/tenants/overlays/rentearth-release
     destination:
         server: https://kubernetes.default.svc
-        namespace: rows-chuckrpg-dev
+        namespace: rows-rentearth-release
     syncPolicy:
         automated:
             prune: true

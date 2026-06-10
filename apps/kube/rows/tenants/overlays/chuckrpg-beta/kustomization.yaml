@@ -1,0 +1,58 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: rows-chuckrpg-beta
+
+resources:
+    - namespace.yaml
+    - ../../base
+
+labels:
+    - pairs:
+          app.kubernetes.io/instance: chuckrpg-beta
+      includeSelectors: false
+
+patches:
+    - target:
+          kind: Deployment
+          name: rows
+      patch: |-
+          - op: add
+            path: /spec/template/spec/containers/0/env/-
+            value:
+                name: OWS_TENANT_SLUG
+                value: chuckrpg-beta
+          - op: add
+            path: /spec/template/spec/containers/0/env/-
+            value:
+                name: OWS_ENV
+                value: beta
+          - op: add
+            path: /spec/template/spec/containers/0/env/-
+            value:
+                name: AGONES_FLEET
+                value: ows-chuckrpg-beta
+    - target:
+          kind: Job
+          name: rows-seed
+      patch: |-
+          - op: add
+            path: /spec/template/spec/containers/0/env/-
+            value:
+                name: CUSTOMER_NAME
+                value: ChuckRPG Beta
+          - op: add
+            path: /spec/template/spec/containers/0/env/-
+            value:
+                name: CUSTOMER_EMAIL
+                value: admin@chuckrpg.com
+          - op: add
+            path: /spec/template/spec/containers/0/env/-
+            value:
+                name: MAP_NAME
+                value: Lvl_ThirdPerson
+          - op: add
+            path: /spec/template/spec/containers/0/env/-
+            value:
+                name: ZONE_NAME
+                value: MainWorld

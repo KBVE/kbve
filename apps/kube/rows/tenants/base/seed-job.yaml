@@ -1,0 +1,55 @@
+---
+# One-shot tenant seed Job. Runs schema/ows/seed/tenants_init.sql (mounted from the
+# ows-seed ConfigMap) against the shared DB, pulling customer_guid from this namespace's
+# sealed ows-customer-guid secret. Idempotent (WHERE NOT EXISTS), safe to re-run.
+# Per-tenant CUSTOMER_NAME / CUSTOMER_EMAIL / MAP_NAME / ZONE_NAME are added by the overlay.
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: rows-seed
+    labels:
+        app: rows
+        app.kubernetes.io/part-of: ows
+spec:
+    backoffLimit: 3
+    ttlSecondsAfterFinished: 600
+    template:
+        metadata:
+            labels:
+                app: rows
+                app.kubernetes.io/part-of: ows
+        spec:
+            restartPolicy: OnFailure
+            containers:
+                - name: seed
+                  image: postgres:17-alpine
+                  command: ['/bin/sh', '-c']
+                  args:
+                      - |
+                          set -e
+                          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 \
+                            -v customer_guid="$OWS_API_KEY" \
+                            -v customer_name="$CUSTOMER_NAME" \
+                            -v customer_email="$CUSTOMER_EMAIL" \
+                            -v map_name="$MAP_NAME" \
+                            -v zone_name="$ZONE_NAME" \
+                            -f /seed/tenants_init.sql
+                  env:
+                      - name: OWS_API_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-customer-guid
+                                key: customer-guid
+                      - name: DATABASE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: ows-db-credentials
+                                key: db-url
+                  volumeMounts:
+                      - name: seed
+                        mountPath: /seed
+                        readOnly: true
+            volumes:
+                - name: seed
+                  configMap:
+                      name: ows-seed

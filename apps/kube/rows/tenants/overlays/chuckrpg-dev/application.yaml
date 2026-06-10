@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-    name: rows-chuckrpg-beta
+    name: rows-chuckrpg-dev
     namespace: argocd
     finalizers:
         - resources-finalizer.argocd.argoproj.io
@@ -10,10 +10,10 @@ spec:
     source:
         repoURL: https://github.com/KBVE/kbve
         targetRevision: main
-        path: apps/kube/rows/tenants/chuckrpg-beta/manifest
+        path: apps/kube/rows/tenants/overlays/chuckrpg-dev
     destination:
         server: https://kubernetes.default.svc
-        namespace: rows-chuckrpg-beta
+        namespace: rows-chuckrpg-dev
     syncPolicy:
         automated:
             prune: true
