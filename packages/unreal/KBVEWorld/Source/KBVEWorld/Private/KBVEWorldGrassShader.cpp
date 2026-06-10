@@ -79,9 +79,8 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateMasterMaterial(UObject* /*
 	M->BlendMode             = BLEND_Opaque;
 	M->TwoSided              = false;
 	M->DitheredLODTransition = true;
-	M->SetShadingModel(MSM_DefaultLit);
+	M->SetShadingModel(MSM_Unlit);
 	M->bUsedWithInstancedStaticMeshes = true;
-	M->bUsedWithStaticLighting        = true;
 
 	UMaterialExpressionVertexColor*       VC      = MakeExpr<UMaterialExpressionVertexColor>(M);
 	UMaterialExpressionConstant3Vector*   Tint    = MakeExpr<UMaterialExpressionConstant3Vector>(M);
@@ -91,63 +90,8 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateMasterMaterial(UObject* /*
 	Mul->A.Expression = VC;
 	Mul->B.Expression = Tint;
 
-	UMaterialExpressionConstant*          Rough   = MakeExpr<UMaterialExpressionConstant>(M);
-	Rough->R = 0.55f;
-
-	UMaterialExpressionTime*              TimeE   = MakeExpr<UMaterialExpressionTime>(M);
-
-	UMaterialExpressionConstant*          TimeFreq = MakeExpr<UMaterialExpressionConstant>(M);
-	TimeFreq->R = 0.35f;
-
-	UMaterialExpressionMultiply*          TimeScaled = MakeExpr<UMaterialExpressionMultiply>(M);
-	TimeScaled->A.Expression = TimeE;
-	TimeScaled->B.Expression = TimeFreq;
-
-	UMaterialExpressionWorldPosition*     WorldP  = MakeExpr<UMaterialExpressionWorldPosition>(M);
-	UMaterialExpressionComponentMask*     WorldX  = MakeExpr<UMaterialExpressionComponentMask>(M);
-	WorldX->R = true; WorldX->G = false; WorldX->B = false; WorldX->A = false;
-	WorldX->Input.Expression = WorldP;
-
-	UMaterialExpressionConstant*          PhaseScale = MakeExpr<UMaterialExpressionConstant>(M);
-	PhaseScale->R = 0.0025f;
-
-	UMaterialExpressionMultiply*          PhaseMul = MakeExpr<UMaterialExpressionMultiply>(M);
-	PhaseMul->A.Expression = WorldX;
-	PhaseMul->B.Expression = PhaseScale;
-
-	UMaterialExpressionAdd*               PhaseSum = MakeExpr<UMaterialExpressionAdd>(M);
-	PhaseSum->A.Expression = TimeScaled;
-	PhaseSum->B.Expression = PhaseMul;
-
-	UMaterialExpressionSine*              SineE   = MakeExpr<UMaterialExpressionSine>(M);
-	SineE->Input.Expression = PhaseSum;
-
-	UMaterialExpressionComponentMask*     BendMask = MakeExpr<UMaterialExpressionComponentMask>(M);
-	BendMask->R = true; BendMask->G = false; BendMask->B = false; BendMask->A = false;
-	BendMask->Input.Expression = VC;
-
-	UMaterialExpressionMultiply*          SineBend = MakeExpr<UMaterialExpressionMultiply>(M);
-	SineBend->A.Expression = SineE;
-	SineBend->B.Expression = BendMask;
-
-	UMaterialExpressionConstant*          SwayAmp = MakeExpr<UMaterialExpressionConstant>(M);
-	SwayAmp->R = 1.8f;
-
-	UMaterialExpressionMultiply*          SwayScalar = MakeExpr<UMaterialExpressionMultiply>(M);
-	SwayScalar->A.Expression = SineBend;
-	SwayScalar->B.Expression = SwayAmp;
-
-	UMaterialExpressionConstant3Vector*   WindDir = MakeExpr<UMaterialExpressionConstant3Vector>(M);
-	WindDir->Constant = FLinearColor(1.0f, 0.3f, 0.0f);
-
-	UMaterialExpressionMultiply*          WPOFinal = MakeExpr<UMaterialExpressionMultiply>(M);
-	WPOFinal->A.Expression = WindDir;
-	WPOFinal->B.Expression = SwayScalar;
-
 	UMaterialEditorOnlyData* ED = M->GetEditorOnlyData();
-	ED->BaseColor.Connect(0, Mul);
-	ED->Roughness.Connect(0, Rough);
-	ED->WorldPositionOffset.Connect(0, WPOFinal);
+	ED->EmissiveColor.Connect(0, Mul);
 
 	KBVE_SaveGeneratedMaterial(M);
 	CachedMaster = M;
@@ -176,7 +120,7 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateCardMaterial(UObject* /*Ou
 	M->TwoSided              = true;
 	M->OpacityMaskClipValue  = 0.33f;
 	M->DitheredLODTransition = true;
-	M->SetShadingModel(MSM_DefaultLit);
+	M->SetShadingModel(MSM_Unlit);
 	M->bUsedWithInstancedStaticMeshes = true;
 
 	auto LoadMaster = [](const TCHAR* Name) -> UTexture2D*
@@ -191,7 +135,7 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateCardMaterial(UObject* /*Ou
 	{
 		UMaterialExpressionTextureSample* S = MakeExpr<UMaterialExpressionTextureSample>(M);
 		S->Texture = Albedo;
-		ED->BaseColor.Connect(0, S);
+		ED->EmissiveColor.Connect(0, S);
 	}
 	if (UTexture2D* Opacity = LoadMaster(TEXT("springGrass_Opacity_8k")))
 	{

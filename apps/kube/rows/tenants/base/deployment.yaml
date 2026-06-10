@@ -61,6 +61,12 @@ spec:
                             secretKeyRef:
                                 name: rows-supabase-jwt
                                 key: jwt-secret
+                      - name: SUPABASE_SERVICE_KEY_HASH
+                        valueFrom:
+                            secretKeyRef:
+                                name: rows-supabase-service-key
+                                key: hash
+                                optional: true
                       - name: SUPABASE_URL
                         value: 'https://supabase.kbve.com'
                       - name: AGONES_NAMESPACE

@@ -163,7 +163,9 @@ export function AddTokenModal({ onClose }: BaseModalProps) {
 		setBusy(true);
 		const r = await agents.addToken({
 			tokenName,
-			service,
+			service: service as Parameters<
+				typeof agents.addToken
+			>[0]['service'],
 			tokenValue,
 			description: description.trim() || null,
 		});
