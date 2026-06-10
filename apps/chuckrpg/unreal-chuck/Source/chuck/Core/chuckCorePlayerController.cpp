@@ -15,6 +15,7 @@
 #include "chuckUIEvents.h"
 #include "Props/chuckArcadeCabinet.h"
 #include "NPC/chuckSpriteNPC.h"
+#include "NPC/chuckNpcSpawner.h"
 #include "Mass/chuckSlimeSubsystem.h"
 #include "NavigationSystem.h"
 #include "SKBVEDevOverlay.h"
@@ -1066,9 +1067,9 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 				Nav->RegisterInvoker(*ControlledPawn, 6000.f, 8000.f, FNavAgentSelector(), ENavigationInvokerPriority::Default);
 				UE_LOG(LogTemp, Warning, TEXT("[SlimeNav] registered invoker on pawn %s"), *ControlledPawn->GetName());
 			}
-			if (UchuckSlimeSubsystem* SlimeSys = GetWorld()->GetSubsystem<UchuckSlimeSubsystem>())
+			if (UchuckNpcSpawner* NpcSpawner = GetWorld()->GetSubsystem<UchuckNpcSpawner>())
 			{
-				SlimeSys->SpawnSlimes(ControlledPawn->GetActorLocation(), 8, 600.f);
+				NpcSpawner->SpawnCreature(FName(TEXT("glass-slime")), ControlledPawn->GetActorLocation(), 8, 600.f);
 			}
 		}
 
