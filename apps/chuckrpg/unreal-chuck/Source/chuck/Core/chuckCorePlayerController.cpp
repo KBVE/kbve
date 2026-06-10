@@ -992,24 +992,24 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 {
 	SpawnSnapElapsed += DeltaSeconds;
 
-	APawn* Pawn = GetPawn();
-	if (!Pawn) return;
+	APawn* ControlledPawn = GetPawn();
+	if (!ControlledPawn) return;
 
 	UWorld* W = GetWorld();
 	if (!W) return;
 
-	const FVector PawnLoc = Pawn->GetActorLocation();
+	const FVector PawnLoc = ControlledPawn->GetActorLocation();
 	const FVector Start(SpawnSnapAnchor.X, SpawnSnapAnchor.Y, PawnLoc.Z + 100.f);
 	const FVector End  (SpawnSnapAnchor.X, SpawnSnapAnchor.Y, -10000.f);
 
 	FHitResult Hit;
-	FCollisionQueryParams Params(SCENE_QUERY_STAT(chuckSpawnSnap), false, Pawn);
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(chuckSpawnSnap), false, ControlledPawn);
 	const bool bHit = W->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic, Params);
 
-	if (bHit && Hit.GetActor() && Hit.GetActor() != Pawn)
+	if (bHit && Hit.GetActor() && Hit.GetActor() != ControlledPawn)
 	{
 		float CapsuleHalf = 90.f;
-		if (ACharacter* Char = Cast<ACharacter>(Pawn))
+		if (ACharacter* Char = Cast<ACharacter>(ControlledPawn))
 		{
 			if (UCapsuleComponent* Cap = Char->GetCapsuleComponent())
 			{
@@ -1018,9 +1018,9 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 		}
 
 		const FVector Snap(SpawnSnapAnchor.X, SpawnSnapAnchor.Y, Hit.ImpactPoint.Z + CapsuleHalf + 4.f);
-		Pawn->TeleportTo(Snap, Pawn->GetActorRotation(), false, true);
+		ControlledPawn->TeleportTo(Snap, ControlledPawn->GetActorRotation(), false, true);
 
-		if (ACharacter* Char = Cast<ACharacter>(Pawn))
+		if (ACharacter* Char = Cast<ACharacter>(ControlledPawn))
 		{
 			if (UCharacterMovementComponent* CM = Char->GetCharacterMovement())
 			{
@@ -1038,10 +1038,10 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 		{
 			bDidAutoSpawnArcade = true;
 
-			const FVector ArcadePawnLoc = Pawn->GetActorLocation();
-			const FVector PawnFwd       = Pawn->GetActorForwardVector();
+			const FVector ArcadePawnLoc = ControlledPawn->GetActorLocation();
+			const FVector PawnFwd       = ControlledPawn->GetActorForwardVector();
 			const FVector ArcadeLoc     = ArcadePawnLoc + PawnFwd * 400.f + FVector(0.f, 0.f, -90.f);
-			const FRotator ArcadeRot(0.f, Pawn->GetActorRotation().Yaw + 180.f, 0.f);
+			const FRotator ArcadeRot(0.f, ControlledPawn->GetActorRotation().Yaw + 180.f, 0.f);
 
 			UClass* ArcadeClass = CachedArcadeClass ? CachedArcadeClass.Get() : AchuckArcadeCabinet::StaticClass();
 
@@ -1062,7 +1062,7 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 			bDidAutoSpawnSlimes = true;
 			if (UchuckSlimeSubsystem* SlimeSys = GetWorld()->GetSubsystem<UchuckSlimeSubsystem>())
 			{
-				SlimeSys->SpawnSlimes(Pawn->GetActorLocation(), 8, 600.f);
+				SlimeSys->SpawnSlimes(ControlledPawn->GetActorLocation(), 8, 600.f);
 			}
 		}
 
@@ -1072,7 +1072,7 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 
 	if (SpawnSnapElapsed > 8.f)
 	{
-		if (ACharacter* Char = Cast<ACharacter>(Pawn))
+		if (ACharacter* Char = Cast<ACharacter>(ControlledPawn))
 		{
 			if (UCharacterMovementComponent* CM = Char->GetCharacterMovement())
 			{
