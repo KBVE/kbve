@@ -115,7 +115,7 @@
 		},
 		{
 			"Name": "KBVELibGit",
-			"Enabled": true
+			"Enabled": false
 		},
 		{
 			"Name": "UEDevOps",

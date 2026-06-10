@@ -13,17 +13,17 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-06-09T09:20:45Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-06-10T09:26:28Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**51** critical/high severity findings across the monorepo.
+**52** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
 
 <CardGrid>
-  <Card title="3 Critical" icon="warning">
+  <Card title="4 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
   <Card title="48 High" icon="error">
@@ -41,7 +41,7 @@ Last generated: **2026-06-09T09:20:45Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **65** advisories
+    **66** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **45** advisories
@@ -62,7 +62,7 @@ Last generated: **2026-06-09T09:20:45Z** — updated daily by `ci-dashboard`.
 ```mermaid
 pie showData
     title Findings by Severity
-    "Critical" : 3
+    "Critical" : 4
     "High" : 48
     "Medium" : 61
     "Low" : 29
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 65
+    "npm" : 66
     "Cargo" : 45
     "CodeQL" : 61
 ```
@@ -83,12 +83,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 1 | 30 | 31 | 3 | 65 |
+| **npm** | 2 | 30 | 31 | 3 | 66 |
 | **Cargo** | 0 | 0 | 15 | 0 | 45 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 2 | 18 | 15 | 26 | 61 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 3 | 48 | 61 | 29 | 171 |
+| **Total** | 4 | 48 | 61 | 29 | 172 |
 
   </TabItem>
   <TabItem label="npm">
@@ -96,6 +96,7 @@ pie showData
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
 | Critical | `vitest` | When Vitest UI server is listening, arbitrary file can be... | [Details](https://github.com/advisories/GHSA-5xrq-8626-4rwp) |
+| Critical | `shell-quote` | shell-quote quote() does not escape newlines in object .o... | [Details](https://github.com/advisories/GHSA-w7jw-789q-3m8p) |
 | High | `glob` | glob CLI: Command injection via -c/--cmd executes matches... | [Details](https://github.com/advisories/GHSA-5j98-mcp5-4vw2) |
 | High | `rollup` | Rollup 4 has Arbitrary File Write via Path Traversal | [Details](https://github.com/advisories/GHSA-mw96-cpmx-2vgc) |
 | High | `koa` | Koa has Host Header Injection via ctx.hostname | [Details](https://github.com/advisories/GHSA-7gcc-r8m5-44qm) |
@@ -117,7 +118,6 @@ pie showData
 | High | `fast-uri` | fast-uri vulnerable to path traversal via percent-encoded... | [Details](https://github.com/advisories/GHSA-q3j6-qgpj-74h6) |
 | High | `fast-uri` | fast-uri vulnerable to host confusion via percent-encoded... | [Details](https://github.com/advisories/GHSA-v39h-62p7-jpjc) |
 | High | `axios` | Axios has prototype pollution read-side gadgets in HTTP a... | [Details](https://github.com/advisories/GHSA-q8qp-cvcw-x6jj) |
-| High | `devalue` | Svelte devalue: DoS via sparse array deserialization | [Details](https://github.com/advisories/GHSA-77vg-94rm-hx3p) |
 | High | `tmp` | tmp has Path Traversal via unsanitized prefix/postfix tha... | [Details](https://github.com/advisories/GHSA-ph9p-34f9-6g65) |
 | High | `axios` | axios's shouldBypassProxy does not recognize IPv4-mapped ... | [Details](https://github.com/advisories/GHSA-pjwm-pj3p-43mv) |
 | High | `axios` | axios Vulnerable to Credential Theft and Response Hijacki... | [Details](https://github.com/advisories/GHSA-3g43-6gmg-66jw) |
@@ -126,9 +126,9 @@ pie showData
 | High | `axios` | Allocation of Resources Without Limits or Throttling in A... | [Details](https://github.com/advisories/GHSA-777c-7fjr-54vf) |
 | High | `axios` | Axios: Proxy-Authorization Credential Leak to Origin Serv... | [Details](https://github.com/advisories/GHSA-p92q-9vqr-4j8v) |
 | High | `axios` | Axios: Proxy-Authorization header leaks to redirect targe... | [Details](https://github.com/advisories/GHSA-j5f8-grm9-p9fc) |
+| High | `devalue` | Svelte devalue: DoS via sparse array deserialization | [Details](https://github.com/advisories/GHSA-77vg-94rm-hx3p) |
 | Medium | `got` | Got allows a redirect to a UNIX socket | [Details](https://github.com/advisories/GHSA-pfrx-2q88-qq97) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
-| Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
 | Medium | `js-yaml` | js-yaml has prototype pollution in merge (&lt;&lt;) | [Details](https://github.com/advisories/GHSA-mh29-5h37-fv8m) |
 | Medium | `mdast-util-to-hast` | mdast-util-to-hast has unsanitized class attribute | [Details](https://github.com/advisories/GHSA-4fh9-h7wg-q85m) |
 | Medium | `ajv` | ajv has ReDoS when using `$data` option | [Details](https://github.com/advisories/GHSA-2g4f-4pwh-qvx6) |
@@ -150,13 +150,14 @@ pie showData
 | Medium | `axios` | Axios: HTTP adapter streamed responses bypass maxContentL... | [Details](https://github.com/advisories/GHSA-vf2m-468p-8v99) |
 | Medium | `axios` | Axios: XSRF Token Cross-Origin Leakage via Prototype Poll... | [Details](https://github.com/advisories/GHSA-xx6v-rp6x-q39c) |
 | Medium | `webpack-dev-server` | webpack-dev-server vulnerable to cross-origin source code... | [Details](https://github.com/advisories/GHSA-79cf-xcqc-c78w) |
-| Medium | `brace-expansion` | brace-expansion: Large numeric range defeats documented `... | [Details](https://github.com/advisories/GHSA-jxxr-4gwj-5jf2) |
 | Medium | `ws` | ws: Uninitialized memory disclosure | [Details](https://github.com/advisories/GHSA-58qx-3vcg-4xpx) |
 | Medium | `serialize-javascript` | Serialize JavaScript has CPU Exhaustion Denial of Service... | [Details](https://github.com/advisories/GHSA-qj8w-gfj5-8c6v) |
 | Medium | `uuid` | uuid: Missing buffer bounds check in v3/v5/v6 when buf is... | [Details](https://github.com/advisories/GHSA-w5hq-g745-h8pq) |
 | Medium | `qs` | qs has a remotely triggerable DoS: qs.stringify crashes w... | [Details](https://github.com/advisories/GHSA-q8mj-m7cp-5q26) |
 | Medium | `axios` | axios has DoS &amp; Header Injection via Prototype Pollution ... | [Details](https://github.com/advisories/GHSA-898c-q2cr-xwhg) |
 | Medium | `axios` | Axios: unbounded recursion in toFormData causes DoS via d... | [Details](https://github.com/advisories/GHSA-62hf-57xw-28j9) |
+| Medium | `brace-expansion` | brace-expansion: Large numeric range defeats documented `... | [Details](https://github.com/advisories/GHSA-jxxr-4gwj-5jf2) |
+| Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
 | Low | `axios` | Axios: Null Byte Injection via Reverse-Encoding in AxiosU... | [Details](https://github.com/advisories/GHSA-xhjh-pmcv-23jw) |

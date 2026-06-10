@@ -16,6 +16,11 @@ public class KBVEYYJson : ModuleRules
 
 		PublicIncludePaths.Add(ThirdPartyDir);
 
+		if (Target.Platform == UnrealTargetPlatform.Win64)
+		{
+			PrivateDefinitions.Add("YYJSON_EXPORTS=1");
+		}
+
 		// Suppress warnings in third-party code
 		CppCompileWarningSettings.UndefinedIdentifierWarningLevel = WarningLevel.Off;
 	}
