@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MassEntityHandle.h"
 #include "KBVECombatTypes.generated.h"
 
 /** Damage school — mirrors the npcdb Element taxonomy without coupling to its generated proto. */
@@ -86,7 +87,27 @@ struct FKBVELootDrop
 	int32 Quantity = 1;
 };
 
-/** Combat feed event kind. */
+USTRUCT(BlueprintType)
+struct FKBVEDamageRequest
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, Category = "KBVE|Combat")
+	FMassEntityHandle Target;
+
+	UPROPERTY(BlueprintReadWrite, Category = "KBVE|Combat")
+	FMassEntityHandle Instigator;
+
+	UPROPERTY(BlueprintReadWrite, Category = "KBVE|Combat")
+	float Amount = 0.0f;
+
+	UPROPERTY(BlueprintReadWrite, Category = "KBVE|Combat")
+	EKBVEDamageElement Element = EKBVEDamageElement::Physical;
+
+	UPROPERTY(BlueprintReadWrite, Category = "KBVE|Combat")
+	FVector HitLocation = FVector::ZeroVector;
+};
+
 UENUM(BlueprintType)
 enum class EKBVECombatEventType : uint8
 {

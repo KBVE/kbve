@@ -47,11 +47,23 @@ Damage flows through the Health stat, so it composes with KBVEGameplay effects/m
 
 `UKBVECombatFeedSubsystem` (per-world) collects `FKBVECombatFeedEntry` events (damage, death, ability) into a ring buffer and broadcasts `OnCombatEvent`. UI (damage numbers, combat log) subscribes. Combat/ability components push automatically.
 
+## Multithreaded / Mass path
+
+For large-scale combat (crowds, ECS NPCs) the actor-component path is too heavy. The batched path is **parallel produce, serial apply**:
+
+- **`FKBVECombatFragment`** + `FKBVECombatTag` — combat state (health, team, dead) on a Mass entity, no per-actor component.
+- **`FKBVEDamageRequest`** — blittable POD (entity-handle targets, no UObject pointers), safe to build inside parallel jobs / Mass processors.
+- **`UKBVECombatBatchSubsystem`** — `EnqueueDamage` is thread-safe (MPSC queue), so any number of producer threads enqueue concurrently. Each tick the subsystem drains the queue on the authority **game thread** and applies to the target fragments, collecting deaths and broadcasting `OnEntityDied`.
+
+Producer pattern (e.g. a Mass combat processor): compute hits across chunks in parallel, `EnqueueDamage(...)` per hit (lock-free MPSC), never touch fragments from the worker. The single-threaded drain mutates fragments — no races, no per-entity locks. Mirrors the Rareicon combat pipeline (parallel producers + main-thread apply).
+
+The actor path (`UKBVECombatComponent` / `UKBVECombatStatics`) stays for hero/boss-grade fighters; the Mass path is for the swarm. Both can coexist in one fight.
+
 ## Roadmap
 
-- **Multithreading pass** — make the damage/ability/threat paths Mass/job-friendly (batch damage application, blittable event structs, parallel threat updates) for large-scale combat.
-- Mass-backed `IKBVECombatant` proxy so ECS NPCs fight without per-actor components.
-- Combo/status-effect chains via KBVEGameplay stat modifiers.
+- Mass-backed `IKBVECombatant` proxy so the actor-side helpers can target ECS entities uniformly.
+- Element resist on `FKBVECombatFragment` (parity with the actor component).
+- Combo / status-effect chains via KBVEGameplay stat modifiers.
 
 ## License
 
