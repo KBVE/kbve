@@ -1,0 +1,25 @@
+#pragma once
+
+#include "CoreMinimal.h"
+#include "MassEntityTypes.h"
+#include "chuckSlimeTypes.generated.h"
+
+USTRUCT()
+struct FchuckSlimeTag : public FMassTag
+{
+	GENERATED_BODY()
+};
+
+USTRUCT()
+struct FchuckSlimeFragment : public FMassFragment
+{
+	GENERATED_BODY()
+
+	FVector TargetLocation = FVector::ZeroVector;
+	float Speed = 140.f;
+	float GroundZ = 0.f;
+	float HopPhase = 0.f;
+	float RepathTimer = 0.f;
+	float FrameTime = 0.f;
+	int32 Frame = 0;
+};

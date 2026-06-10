@@ -15,6 +15,7 @@
 #include "chuckUIEvents.h"
 #include "Props/chuckArcadeCabinet.h"
 #include "NPC/chuckSpriteNPC.h"
+#include "Mass/chuckSlimeSubsystem.h"
 #include "SKBVEDevOverlay.h"
 #include "GameFramework/PlayerState.h"
 #include "MassEntitySubsystem.h"
@@ -1059,20 +1060,10 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 		if (!bDidAutoSpawnSlimes)
 		{
 			bDidAutoSpawnSlimes = true;
-
-			const FVector Center = Pawn->GetActorLocation();
-			const int32 Count = 8;
-			const float Radius = 600.f;
-			FActorSpawnParameters SlimeParams;
-			SlimeParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-			SlimeParams.Owner = this;
-			for (int32 i = 0; i < Count; ++i)
+			if (UchuckSlimeSubsystem* SlimeSys = GetWorld()->GetSubsystem<UchuckSlimeSubsystem>())
 			{
-				const float Angle = (2.f * PI * i) / Count;
-				const FVector SlimeLoc = Center + FVector(FMath::Cos(Angle) * Radius, FMath::Sin(Angle) * Radius, 60.f);
-				GetWorld()->SpawnActor<AchuckSpriteNPC>(AchuckSpriteNPC::StaticClass(), SlimeLoc, FRotator::ZeroRotator, SlimeParams);
+				SlimeSys->SpawnSlimes(Pawn->GetActorLocation(), 8, 600.f);
 			}
-			UE_LOG(LogTemp, Display, TEXT("[chuck] Auto-spawned %d slimes around pawn"), Count);
 		}
 
 		bSpawnSnapPending = false;
