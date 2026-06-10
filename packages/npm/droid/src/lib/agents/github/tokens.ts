@@ -1,7 +1,10 @@
 import { loadCachedTokens, saveCachedTokens } from '../cache';
 import type { AgentsCtx } from '../ctx';
 import type { AgentsApi } from '../api-types';
-import type { TokenServiceValue } from '../generated/agents-schema';
+import {
+	AgentTokenRowSchema,
+	type TokenServiceValue,
+} from '../generated/agents-schema';
 import type { AgentTokenRow, Result } from '../types';
 
 export function makeTokens(ctx: AgentsCtx, api: AgentsApi) {
@@ -67,8 +70,16 @@ export function makeTokens(ctx: AgentsCtx, api: AgentsApi) {
 					return;
 				}
 
-				const rows =
-					(body as { tokens?: AgentTokenRow[] } | null)?.tokens ?? [];
+				const rawRows =
+					(body as { tokens?: unknown } | null)?.tokens ?? [];
+				const parsed = AgentTokenRowSchema.array().safeParse(rawRows);
+				if (!parsed.success) {
+					store.$tokensError.set(
+						'Token list failed schema validation',
+					);
+					return;
+				}
+				const rows = parsed.data;
 				store.$tokens.set(rows);
 				if (userId) saveCachedTokens(userId, guildId, rows);
 			} catch (e) {
