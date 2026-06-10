@@ -10,6 +10,7 @@ public class chuckServerTarget : TargetRules
 		Type = TargetType.Server;
 		DefaultBuildSettings = BuildSettingsVersion.V6;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_7;
+		bUseIris = true;
 		ExtraModuleNames.Add("chuck");
 	}
 }

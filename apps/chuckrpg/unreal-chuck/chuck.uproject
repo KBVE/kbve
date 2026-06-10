@@ -135,6 +135,10 @@
 		{
 			"Name": "KBVEPostShader",
 			"Enabled": true
+		},
+		{
+			"Name": "KBVENet",
+			"Enabled": true
 		}
 	]
 }

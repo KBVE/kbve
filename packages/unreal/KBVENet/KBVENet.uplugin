@@ -1,0 +1,22 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "KBVE Net",
+	"Description": "Shared networking layer for KBVE games. Iris-ready replication primitives — a delta-compressed entity-snapshot replicator (FFastArraySerializer push-model, transported by Iris when enabled) for streaming server-authoritative simulations (e.g. Mass ECS swarms) to clients for local rendering.",
+	"Category": "KBVE",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"DocsURL": "https://kbve.com/project/kbvenet/",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"EnabledByDefault": false,
+	"Modules": [
+		{
+			"Name": "KBVENet",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
