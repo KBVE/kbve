@@ -64,22 +64,32 @@
 			}
 		},
 		"container": {
-			"executor": "nx:run-commands",
+			"executor": "@nx-tools/nx-container:build",
 			"defaultConfiguration": "local",
 			"options": {
-				"parallel": false
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/cryptothrone/server/Dockerfile",
+				"metadata": {
+					"images": ["kbve/cryptothrone-server"],
+					"load": true,
+					"tags": ["latest"]
+				}
 			},
 			"configurations": {
 				"local": {
-					"commands": [
-						"BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/cryptothrone-server:latest --file apps/agones/cryptothrone/server/Dockerfile .",
-						"VERSION=$(grep '^version' apps/agones/cryptothrone/server/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/cryptothrone-server:latest kbve/cryptothrone-server:$VERSION && echo \"Tagged kbve/cryptothrone-server:$VERSION\""
-					]
+					"tags": ["latest"],
+					"push": false
 				},
-				"ci": {
-					"commands": [
-						"BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/cryptothrone-server:latest --file apps/agones/cryptothrone/server/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache,mode=max,image-manifest=true,oci-mediatypes=true ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .",
-						"VERSION=$(grep '^version' apps/agones/cryptothrone/server/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/cryptothrone-server:latest kbve/cryptothrone-server:$VERSION && echo \"Tagged kbve/cryptothrone-server:$VERSION\""
+				"production": {
+					"tags": ["latest"],
+					"push": true,
+					"customBuildOptions": "--push",
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache,mode=max"
 					]
 				}
 			}
