@@ -3,13 +3,16 @@ import {
   type GuildVaultRequest,
   invalidateOwnershipCache,
   jsonResponse,
-  validateService,
-  validateSnowflake,
-  validateUuid,
   verifyOwnedGuildsClaim,
 } from "./_shared.ts";
 import { safeRpcError } from "../_shared/validators.ts";
-import { SetTokenRequestSchema } from "../_shared/agents-schema.ts";
+import {
+  DeleteTokenRequestSchema,
+  ListTokensRequestSchema,
+  PeekTokenRequestSchema,
+  SetTokenRequestSchema,
+  ToggleTokenRequestSchema,
+} from "../_shared/agents-schema.ts";
 
 // ---------------------------------------------------------------------------
 // Guild token CRUD handlers — all use service client + Discord ownership
@@ -86,8 +89,13 @@ const handlers: Record<string, Handler> = {
   async list_tokens({ userId, claims, body }) {
     const { server_id } = body;
 
-    const sidErr = validateSnowflake(server_id, "server_id");
-    if (sidErr) return sidErr;
+    const parsed = ListTokensRequestSchema.safeParse({ server_id });
+    if (!parsed.success) {
+      return jsonResponse(
+        { error: parsed.error.issues[0]?.message ?? "Invalid request" },
+        400,
+      );
+    }
 
     const ownerErr = verifyOwnedGuildsClaim(claims, server_id as string);
     if (ownerErr) return ownerErr;
@@ -110,11 +118,13 @@ const handlers: Record<string, Handler> = {
   async delete_token({ userId, claims, body }) {
     const { server_id, token_id } = body;
 
-    const sidErr = validateSnowflake(server_id, "server_id");
-    if (sidErr) return sidErr;
-
-    const tidErr = validateUuid(token_id, "token_id");
-    if (tidErr) return tidErr;
+    const parsed = DeleteTokenRequestSchema.safeParse({ server_id, token_id });
+    if (!parsed.success) {
+      return jsonResponse(
+        { error: parsed.error.issues[0]?.message ?? "Invalid request" },
+        400,
+      );
+    }
 
     const ownerErr = verifyOwnedGuildsClaim(claims, server_id as string);
     if (ownerErr) return ownerErr;
@@ -151,15 +161,14 @@ const handlers: Record<string, Handler> = {
   async toggle_token({ userId, claims, body }) {
     const { server_id, token_id, is_active } = body;
 
-    const sidErr = validateSnowflake(server_id, "server_id");
-    if (sidErr) return sidErr;
-
-    const tidErr = validateUuid(token_id, "token_id");
-    if (tidErr) return tidErr;
-
-    if (typeof is_active !== "boolean") {
+    const parsed = ToggleTokenRequestSchema.safeParse({
+      server_id,
+      token_id,
+      is_active,
+    });
+    if (!parsed.success) {
       return jsonResponse(
-        { error: "is_active (boolean) is required" },
+        { error: parsed.error.issues[0]?.message ?? "Invalid request" },
         400,
       );
     }
@@ -199,11 +208,13 @@ const handlers: Record<string, Handler> = {
 	async peek_token({ userId, claims, body }) {
 		const { server_id, service } = body;
 
-		const sidErr = validateSnowflake(server_id, "server_id");
-		if (sidErr) return sidErr;
-
-		const svcErr = validateService(service);
-		if (svcErr) return svcErr;
+		const parsed = PeekTokenRequestSchema.safeParse({ server_id, service });
+		if (!parsed.success) {
+			return jsonResponse(
+				{ error: parsed.error.issues[0]?.message ?? "Invalid request" },
+				400,
+			);
+		}
 
 		if (!PEEKABLE_SERVICES.has(service as string)) {
 			return jsonResponse(

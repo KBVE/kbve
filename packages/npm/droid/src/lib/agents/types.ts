@@ -34,15 +34,7 @@ export interface BotConfigFormDraft {
 	active: boolean;
 }
 
-export interface AgentTokenRow {
-	token_id: string;
-	token_name: string;
-	service: string;
-	description: string | null;
-	is_active: boolean;
-	created_at: string;
-	updated_at: string | null;
-}
+export type { AgentTokenRow, AgentError } from './generated/agents-schema';
 
 export interface DiscordForumChannel {
 	id: string;
