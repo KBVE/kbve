@@ -60,9 +60,9 @@ namespace RareIcon
                 FogLookup      = fogLookup,
                 DisabledLookup = disabledLookup,
                 Ecb            = pw,
-            }.ScheduleParallel(state.Dependency);
+            }.ScheduleParallel(unitHandle);
 
-            state.Dependency = JobHandle.CombineDependencies(unitHandle, buildingHandle);
+            state.Dependency = buildingHandle;
         }
 
     }
