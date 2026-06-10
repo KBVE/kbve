@@ -1,14 +1,14 @@
 ---
-# ROWS — tenant: chuckrpg-dev (game ChuckRPG, env dev)
+# ROWS tenant base — Deployment + Service + PDB.
+# Common across tenants; per-tenant OWS_TENANT_SLUG / OWS_ENV / AGONES_FLEET and the
+# namespace are added by each overlay. Never deployed directly — only via an overlay.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
     name: rows
-    namespace: rows-chuckrpg-dev
     labels:
         app: rows
         app.kubernetes.io/part-of: ows
-        app.kubernetes.io/instance: chuckrpg-dev
 spec:
     replicas: 1
     strategy:
@@ -24,7 +24,6 @@ spec:
             labels:
                 app: rows
                 app.kubernetes.io/part-of: ows
-                app.kubernetes.io/instance: chuckrpg-dev
         spec:
             # TODO(follow-up): serviceAccountName ows-instancelauncher + cross-ns RBAC
             # required before Agones allocation works in this namespace.
@@ -33,7 +32,6 @@ spec:
                   image: ghcr.io/kbve/rows:0.1.25
                   imagePullPolicy: Always
                   env:
-                      # ─── Core ───────────────────────────────
                       - name: HTTP_HOST
                         value: '0.0.0.0'
                       - name: HTTP_PORT
@@ -44,17 +42,11 @@ spec:
                         value: '4324'
                       - name: RUST_LOG
                         value: 'info'
-                      # ─── Tenant identity ────────────────────
-                      - name: OWS_TENANT_SLUG
-                        value: 'chuckrpg-dev'
-                      - name: OWS_ENV
-                        value: 'dev'
                       - name: OWS_API_KEY
                         valueFrom:
                             secretKeyRef:
                                 name: ows-customer-guid
                                 key: customer-guid
-                      # ─── Secrets (provision per-namespace — see tenants/README.md) ───
                       - name: DATABASE_URL
                         valueFrom:
                             secretKeyRef:
@@ -72,18 +64,14 @@ spec:
                                 key: jwt-secret
                       - name: SUPABASE_URL
                         value: 'https://supabase.kbve.com'
-                      # ─── Agones ──────────────────────────────
                       - name: AGONES_NAMESPACE
                         value: 'arc-runners'
-                      - name: AGONES_FLEET
-                        value: 'ows-chuckrpg-dev'
                       - name: AGONES_API_TIMEOUT_SECS
                         value: '10'
                       - name: AGONES_CIRCUIT_BREAKER_THRESHOLD
                         value: '5'
                       - name: AGONES_CIRCUIT_BREAKER_RESET_SECS
                         value: '30'
-                      # ─── Spinup Tuning ───────────────────────
                       - name: ROWS_SPINUP_TIMEOUT_SECS
                         value: '60'
                       - name: ROWS_SPINUP_POLL_INTERVAL_MS
@@ -128,11 +116,9 @@ apiVersion: v1
 kind: Service
 metadata:
     name: rows
-    namespace: rows-chuckrpg-dev
     labels:
         app: rows
         app.kubernetes.io/part-of: ows
-        app.kubernetes.io/instance: chuckrpg-dev
 spec:
     type: ClusterIP
     selector:
@@ -155,7 +141,6 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
     name: rows-pdb
-    namespace: rows-chuckrpg-dev
     labels:
         app: rows
         app.kubernetes.io/part-of: ows
