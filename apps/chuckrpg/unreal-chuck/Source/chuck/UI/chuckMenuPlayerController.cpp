@@ -74,6 +74,8 @@ void AchuckMenuPlayerController::BeginPlay()
 		{
 			SessionSub->OnSessionReady.AddDynamic(this, &AchuckMenuPlayerController::HandleSessionReady);
 			SessionSub->OnCharactersUpdated.AddDynamic(this, &AchuckMenuPlayerController::HandleCharactersUpdated);
+			SessionSub->OnServerReady.AddDynamic(this, &AchuckMenuPlayerController::HandleServerReady);
+			SessionSub->OnSessionError.AddDynamic(this, &AchuckMenuPlayerController::HandleSessionError);
 		}
 	}
 
@@ -152,6 +154,8 @@ void AchuckMenuPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReaso
 		{
 			SessionSub->OnSessionReady.RemoveAll(this);
 			SessionSub->OnCharactersUpdated.RemoveAll(this);
+			SessionSub->OnServerReady.RemoveAll(this);
+			SessionSub->OnSessionError.RemoveAll(this);
 		}
 	}
 
@@ -372,5 +376,43 @@ void AchuckMenuPlayerController::EnterSelectedWorld()
 	{
 		CharSelectWidget->SetVisibility(EVisibility::Collapsed);
 	}
+
+	if (bUseOnlineTravel)
+	{
+		if (UGameInstance* GI = GetGameInstance())
+		{
+			if (UchuckSessionSubsystem* SessionSub = GI->GetSubsystem<UchuckSessionSubsystem>())
+			{
+				if (SessionSub->RequestEnterWorld(DefaultZone))
+				{
+					if (LoadingWidget.IsValid())
+					{
+						LoadingWidget->SetVisibility(EVisibility::Visible);
+					}
+					return;
+				}
+			}
+		}
+		UE_LOG(LogTemp, Warning, TEXT("[chuck] Online travel unavailable, falling back to local play"));
+	}
+
 	HandlePlay();
+}
+
+void AchuckMenuPlayerController::HandleServerReady(const FString& ServerIP, int32 Port)
+{
+	UE_LOG(LogTemp, Display, TEXT("[chuck] ROWS server ready %s:%d — traveling"), *ServerIP, Port);
+}
+
+void AchuckMenuPlayerController::HandleSessionError(const FString& ErrorMessage)
+{
+	UE_LOG(LogTemp, Warning, TEXT("[chuck] Session error: %s"), *ErrorMessage);
+	if (LoadingWidget.IsValid())
+	{
+		LoadingWidget->SetVisibility(EVisibility::Collapsed);
+	}
+	if (CharSelectWidget.IsValid())
+	{
+		CharSelectWidget->SetVisibility(EVisibility::Visible);
+	}
 }
