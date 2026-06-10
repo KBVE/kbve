@@ -47,6 +47,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Combat")
 	FName HealthStatId = FName(TEXT("Health"));
 
+	/** Per-element multipliers; missing element = 1.0 (neutral). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Combat")
+	TArray<FKBVEElementAffinity> Resistances;
+
+	UFUNCTION(BlueprintPure, Category = "KBVE|Combat")
+	float GetElementMultiplier(EKBVEDamageElement Element) const;
+
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_IsDead)
 	bool bIsDead = false;

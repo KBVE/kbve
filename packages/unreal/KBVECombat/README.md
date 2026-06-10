@@ -27,12 +27,31 @@ UKBVECombatStatics::ApplyDamage(Target, Dmg);   // authority-only effect
 
 Damage flows through the Health stat, so it composes with KBVEGameplay effects/modifiers and replicates via whatever transport the owner uses (Iris / KBVENet).
 
+## Resist scaling
+
+`UKBVECombatComponent.Resistances` is a list of `FKBVEElementAffinity` (element → multiplier; `<1` resist, `>1` weakness, `0` immune). Incoming damage is scaled by the matching element before hitting the Health stat. Games seed these from npcdb affinities.
+
+## Attack / ability driver
+
+`UKBVEAbilityComponent` holds `FKBVEAbilityDef`s (damage, element, range, AoE radius, windup, cooldown, friendly-fire). `TryActivate(AbilityId)` (authority) runs the windup, then resolves a hit — single line trace or AoE sphere overlap on `ECC_Pawn` — and applies damage to hostile combatants via `UKBVECombatStatics`. Cooldowns tracked per ability; one windup at a time.
+
+## Threat / aggro
+
+`UKBVEThreatComponent` auto-binds to the owner's `OnDamaged` and accumulates threat per instigator (`ThreatPerDamage`). AI reads `GetTopThreatTarget()` to choose who to fight. `AddThreat` / `ClearThreat` for manual control.
+
+## Death loot
+
+`UKBVELootComponent` auto-binds to `OnDeath`, rolls its `FKBVELootEntry` table (drop rate + quantity range) on the authority, and emits `OnLootDropped(Drops, Killer)` + an `XpReward`. The game spawns the actual pickups (KBVEItemDB) — combat stays decoupled from the item DB.
+
+## Combat-event feed
+
+`UKBVECombatFeedSubsystem` (per-world) collects `FKBVECombatFeedEntry` events (damage, death, ability) into a ring buffer and broadcasts `OnCombatEvent`. UI (damage numbers, combat log) subscribes. Combat/ability components push automatically.
+
 ## Roadmap
 
-- Element resist/weakness scaling (via KBVEGameplay stat modifiers + npcdb affinities).
-- Attack/ability driver (windups, cooldowns, hitboxes) + an `IKBVECombatant` for Mass-backed NPCs.
-- Threat/aggro + death loot/credit hooks (npcdb LootTable).
-- Damage numbers / combat-event feed for UI.
+- **Multithreading pass** — make the damage/ability/threat paths Mass/job-friendly (batch damage application, blittable event structs, parallel threat updates) for large-scale combat.
+- Mass-backed `IKBVECombatant` proxy so ECS NPCs fight without per-actor components.
+- Combo/status-effect chains via KBVEGameplay stat modifiers.
 
 ## License
 
