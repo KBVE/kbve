@@ -19,6 +19,11 @@ public class KBVEZstd : ModuleRules
 		PublicIncludePaths.Add(Path.Combine(ThirdPartyDir, "compress"));
 		PublicIncludePaths.Add(Path.Combine(ThirdPartyDir, "decompress"));
 
+		if (Target.Platform == UnrealTargetPlatform.Win64)
+		{
+			PrivateDefinitions.Add("ZSTD_DLL_EXPORT=1");
+		}
+
 		// Suppress warnings in third-party code
 		CppCompileWarningSettings.UndefinedIdentifierWarningLevel = WarningLevel.Off;
 	}
