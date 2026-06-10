@@ -663,17 +663,17 @@ void AchuckCorePlayerController::InitSupabaseBridge()
 	UKBVESupabaseSubsystem* Sub = SupabaseSubsystem.Get();
 	if (!Sub) return;
 
-	Sub->OnSignedIn.AddDynamic(this, &AchuckCorePlayerController::HandleSupabaseSignedIn);
-	Sub->OnSignedOut.AddDynamic(this, &AchuckCorePlayerController::HandleSupabaseSignedOut);
-	Sub->OnAuthError.AddDynamic(this, &AchuckCorePlayerController::HandleSupabaseAuthError);
+	Sub->OnSignedIn.AddUniqueDynamic(this, &AchuckCorePlayerController::HandleSupabaseSignedIn);
+	Sub->OnSignedOut.AddUniqueDynamic(this, &AchuckCorePlayerController::HandleSupabaseSignedOut);
+	Sub->OnAuthError.AddUniqueDynamic(this, &AchuckCorePlayerController::HandleSupabaseAuthError);
 
 	if (UKBVESupabaseChat* Chat = Sub->GetChat())
 	{
-		Chat->OnConnected.AddDynamic(this, &AchuckCorePlayerController::HandleChatConnected);
-		Chat->OnDisconnected.AddDynamic(this, &AchuckCorePlayerController::HandleChatDisconnected);
-		Chat->OnMessage.AddDynamic(this, &AchuckCorePlayerController::HandleChatMessage);
-		Chat->OnChannelJoined.AddDynamic(this, &AchuckCorePlayerController::HandleChatChannelJoined);
-		Chat->OnChannelLeft.AddDynamic(this, &AchuckCorePlayerController::HandleChatChannelLeft);
+		Chat->OnConnected.AddUniqueDynamic(this, &AchuckCorePlayerController::HandleChatConnected);
+		Chat->OnDisconnected.AddUniqueDynamic(this, &AchuckCorePlayerController::HandleChatDisconnected);
+		Chat->OnMessage.AddUniqueDynamic(this, &AchuckCorePlayerController::HandleChatMessage);
+		Chat->OnChannelJoined.AddUniqueDynamic(this, &AchuckCorePlayerController::HandleChatChannelJoined);
+		Chat->OnChannelLeft.AddUniqueDynamic(this, &AchuckCorePlayerController::HandleChatChannelLeft);
 	}
 
 	const bool bSignedIn = Sub->IsSignedIn();
