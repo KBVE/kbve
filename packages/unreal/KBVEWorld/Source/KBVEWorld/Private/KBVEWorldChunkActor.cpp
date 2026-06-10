@@ -21,6 +21,7 @@
 #include "Math/RandomStream.h"
 #include "NavigationSystem.h"
 #include "TimerManager.h"
+#include "KBVEWorldWaterShader.h"
 #include "ProceduralMeshComponent.h"
 #include "Serialization/BufferArchive.h"
 #include "Serialization/MemoryReader.h"
@@ -51,8 +52,6 @@ AKBVEWorldChunkActor::AKBVEWorldChunkActor()
 
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> GroundFinder(TEXT("/Engine/EngineMaterials/WorldGridMaterial.WorldGridMaterial"));
 	if (GroundFinder.Succeeded()) GroundMaterial = GroundFinder.Object;
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> WaterFinder(TEXT("/Engine/EngineMaterials/EmissiveTexturedMaterial.EmissiveTexturedMaterial"));
-	if (WaterFinder.Succeeded()) WaterMaterial = WaterFinder.Object;
 
 	SetReplicates(false);
 }
@@ -222,6 +221,10 @@ void AKBVEWorldChunkActor::PositionWaterAndApplyMaterials(float ChunkSize)
 	Water->SetRelativeLocation(FVector(ChunkSize * 0.5f, ChunkSize * 0.5f, WaterZ));
 	Water->SetRelativeScale3D(FVector(ChunkSize / 100.f, ChunkSize / 100.f, 1.f));
 	Water->SetVisibility(true);
+	if (!WaterMaterial)
+	{
+		WaterMaterial = FKBVEWorldWaterShader::GetOrCreateWaterMaterial(this);
+	}
 	if (WaterMaterial) Water->SetMaterial(0, WaterMaterial);
 }
 
