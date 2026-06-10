@@ -23,6 +23,10 @@
 	],
 	"Plugins": [
 		{
+			"Name": "ChaosSolverPlugin",
+			"Enabled": true
+		},
+		{
 			"Name": "ModelingToolsEditorMode",
 			"Enabled": true,
 			"TargetAllowList": [
