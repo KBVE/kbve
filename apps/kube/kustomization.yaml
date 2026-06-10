@@ -55,6 +55,10 @@ resources:
     - memes/application.yaml
     - n8n/application.yaml
     - rabbitmq/application.yaml
+    # ROWS per-tenant deployments (game + environment); see apps/kube/rows/tenants/
+    - rows/tenants/overlays/chuckrpg-dev/application.yaml
+    - rows/tenants/overlays/chuckrpg-beta/application.yaml
+    - rows/tenants/overlays/rentearth-release/application.yaml
     - agones/application.yaml
     - agones/rows/application.yaml
     - agones/mc/application.yaml

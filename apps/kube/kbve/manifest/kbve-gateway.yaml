@@ -115,20 +115,10 @@ spec:
           protocol: HTTPS
           port: 443
           hostname: api.chuckrpg.com
-          tls:
-              mode: Terminate
-              certificateRefs:
-                  - kind: Secret
-                    group: ''
-                    name: chuckrpg-api-tls
-                    namespace: rows
-          allowedRoutes:
-              namespaces:
-                  from: All
-        - name: https-rows-chuckrpg-dev
-          protocol: HTTPS
-          port: 443
-          hostname: api-dev.chuckrpg.com
+          # Cutover: api.chuckrpg.com is now served by the chuckrpg-dev tenant
+          # (first multi-tenant build out). TLS terminates with the tenant's own
+          # cert in rows-chuckrpg-dev; the old single-tenant chuckrpg-api-tls in
+          # ns rows is retired with its HTTPRoute.
           tls:
               mode: Terminate
               certificateRefs:

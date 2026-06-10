@@ -1,12 +1,13 @@
-# STUB — replace before deploy. Generate with kubeseal (see tenants/README.md).
-# Consumed by the Agones gameserver ExternalSecret (rows-encryption-key).
+---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
 metadata:
     name: rows-encryption-key
+    namespace: rows-chuckrpg-dev
 spec:
     encryptedData:
-        encryption-key: REPLACE_VIA_KUBESEAL
+        encryption-key: AgAEoUYorkHevUdiuuFuKQ24YBT8gyq5ParTu75itrFXNAl8fkBhoDvm0i3+OLkRzhJ87OZTNenMOIrLN3bqHBaKOlPA5jd/oWzQYzfGO2Fux4VlGm7xiwiuAP73I2wn9U3Hq4kSHswwv3Xp3Bji3UUO2NYWTrTfp4zuj1cvvXfWHlObKBOFb0bpT886n8STJ421bwFuFXAHZwoF3SLM4cwlaSdmSuuytPrP7kwdrPt45fYBcOF6zsVyVbTjRf/yN6mVBIxKfScx8ahR8NZ62atgm0FwgvH2/VtaQmSfh3kgMH4g7cfpa5Jd2xe6SUIuS868qwlVPQxnssTarTa9TSAtdmWU+IfN6hTLXUPIuVPsAUl/UUJ6cSXzn1ue2IiQ/1kw8N/ah6YCKYaMEMv/yJTiykyKSoQGaiXC1Nkw6BnAgVmc78qjJpaLi65hHi9sCzcDMdKbTplWCmHYOD/KMIFTTvezXDYE1Pci+9z0j+hH9atc7bPEbdkXWxrf5t3kAG/OgR/XowTi3vuodnb8ALjn6WNGDTUszo3XV91hjwJ6jW02MD6Tt4rhU4C+rmNq7lu6pSJmOAumKXF1CQZ5qW/U4mfM4p9I48mzrjMpP9SyW1gGog4fiXb85RzG2Q9NiE/gKMTqxdpy2WdRjic8ZFcnv1jyk4UsTgi0Sq+3vvoDoBKtvbSIxAkT9s6el0V1cM+i+37YKcnj1clJOmDKJzRAstAEGHeX+MfvyIZhmP8gFbLGIvvLZ6xpquHjEA==
     template:
         metadata:
             name: rows-encryption-key
+            namespace: rows-chuckrpg-dev
