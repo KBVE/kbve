@@ -34,7 +34,8 @@ AKBVEWorldChunkActor::AKBVEWorldChunkActor()
 	Mesh->bUseAsyncCooking = true;
 	Mesh->SetCollisionProfileName(TEXT("BlockAll"));
 	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	Mesh->SetCanEverAffectNavigation(false);
+	Mesh->bUseComplexAsSimpleCollision = true;
+	Mesh->SetCanEverAffectNavigation(true);
 	RootComponent = Mesh;
 
 	Water = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Water"));

@@ -22,4 +22,5 @@ struct FchuckSlimeFragment : public FMassFragment
 	float RepathTimer = 0.f;
 	float FrameTime = 0.f;
 	int32 Frame = 0;
+	int32 PathIndex = 0;
 };

@@ -26,10 +26,12 @@ private:
 	TObjectPtr<UInstancedStaticMeshComponent> ISM;
 
 	TArray<FMassEntityHandle> Slimes;
+	TArray<TArray<FVector>> Paths;
 	FMassArchetypeHandle Archetype;
 
 	void EnsureISM();
 	float GroundTraceZ(double X, double Y, float Fallback) const;
+	void Repath(int32 SlimeIndex, const FVector& From);
 
 	static constexpr int32 Cols = 5;
 	static constexpr int32 Rows = 3;

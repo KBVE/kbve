@@ -27,12 +27,13 @@ void MainPS(float4 SvPosition : SV_POSITION, out float4 OutColor : SV_Target0)
 	float2 UV = SvPosition.xy * TexelSize;
 	float3 Original = EdgeTexture.SampleLevel(EdgeSampler, UV, 0).rgb;
 
+	uint Stencil = 1u;
 	if (MaskEnable != 0)
 	{
 		uint SW, SH;
 		CustomStencilTexture.GetDimensions(SW, SH);
 		int2 SPos = clamp(int2(UV * float2(SW, SH)), int2(0, 0), int2(SW - 1, SH - 1));
-		uint Stencil = CustomStencilTexture.Load(int3(SPos, 0)).r;
+		Stencil = CustomStencilTexture.Load(int3(SPos, 0)).r;
 		if (DebugMask != 0)
 		{
 			OutColor = float4((Stencil != 0u) ? float3(1.0f, 0.0f, 0.0f) : Original, 1.0f);
@@ -60,6 +61,12 @@ void MainPS(float4 SvPosition : SV_POSITION, out float4 OutColor : SV_Target0)
 	float Gy = (L02 + 2.0f * L12 + L22) - (L00 + 2.0f * L10 + L20);
 	float Sobel = sqrt(Gx * Gx + Gy * Gy);
 	float Edge = saturate((Sobel - EdgeThreshold) * EdgeStrength);
+
+	if (Stencil == 2u)
+	{
+		OutColor = float4(saturate(Original * (1.0f - Edge)), 1.0f);
+		return;
+	}
 
 	float Lc = KBVELuma(Painted);
 	float T = Lc * Bands;
