@@ -105,3 +105,35 @@ bool UKBVECombatStatics::IsEntityAlive(const UObject* WorldContext, FMassEntityH
 	const FKBVECombatFragment* Fragment = EM.GetFragmentDataPtr<FKBVECombatFragment>(Target);
 	return Fragment && !Fragment->bDead;
 }
+
+bool UKBVECombatStatics::ApplyDotToEntity(const UObject* WorldContext, FMassEntityHandle Target, EKBVEDamageElement Element, float DamagePerSecond, float Duration, float Interval)
+{
+	const UWorld* World = GEngine ? GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull) : nullptr;
+	if (!World || DamagePerSecond <= 0.0f || Duration <= 0.0f)
+	{
+		return false;
+	}
+	UMassEntitySubsystem* MassSys = World->GetSubsystem<UMassEntitySubsystem>();
+	if (!MassSys)
+	{
+		return false;
+	}
+	FMassEntityManager& EM = MassSys->GetMutableEntityManager();
+	if (!EM.IsEntityValid(Target))
+	{
+		return false;
+	}
+	FKBVECombatDotFragment* DotFragment = EM.GetFragmentDataPtr<FKBVECombatDotFragment>(Target);
+	if (!DotFragment)
+	{
+		return false;
+	}
+
+	FKBVEActiveDot Dot;
+	Dot.Element = Element;
+	Dot.DamagePerSecond = DamagePerSecond;
+	Dot.TimeRemaining = Duration;
+	Dot.Interval = FMath::Max(0.05f, Interval);
+	DotFragment->Dots.Add(Dot);
+	return true;
+}
