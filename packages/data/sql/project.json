@@ -74,6 +74,20 @@
 				"command": "./smoke.sh kilobase --rollback",
 				"cwd": "{projectRoot}/dbmate"
 			}
+		},
+		"smoke-seed": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "./seed-smoke.sh",
+				"cwd": "{projectRoot}/dbmate"
+			}
+		},
+		"smoke-seed-keep": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "./seed-smoke.sh --keep",
+				"cwd": "{projectRoot}/dbmate"
+			}
 		}
 	}
 }

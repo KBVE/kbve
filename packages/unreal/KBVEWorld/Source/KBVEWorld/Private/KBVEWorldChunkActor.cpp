@@ -438,7 +438,7 @@ void AKBVEWorldChunkActor::LoadBucket(const FKBVEWorldFoliageBucketConfig& Cfg)
 		{
 			if (Added >= Cap || !Built[i]) break;
 			UFoliageType_InstancedStaticMesh* RuntimeFT = NewObject<UFoliageType_InstancedStaticMesh>(this);
-			RuntimeFT->SetStaticMesh(Built[i]);
+			RuntimeFT->Mesh = Built[i];
 			FKBVEWorldFoliageMeta M;
 			M.Tier = Cfg.Tier;
 			FoliageTypes.Add(RuntimeFT);
@@ -531,7 +531,7 @@ void AKBVEWorldChunkActor::LoadBucket(const FKBVEWorldFoliageBucketConfig& Cfg)
 				if (!KBVEWorld_NameMatchesFilters(Obj->GetName().ToLower(), Cfg.NameIncludes, Cfg.NameExcludes)) continue;
 
 				UFoliageType_InstancedStaticMesh* RuntimeFT = NewObject<UFoliageType_InstancedStaticMesh>(this);
-				RuntimeFT->SetStaticMesh(SM);
+				RuntimeFT->Mesh = SM;
 
 				FKBVEWorldFoliageMeta M;
 				M.Tier = Cfg.Tier;
