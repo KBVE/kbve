@@ -14,113 +14,13 @@
 #include "Engine/World.h"
 #include "Engine/Texture2D.h"
 #include "Engine/GameInstance.h"
-#include "Materials/MaterialInterface.h"
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
 #include "NavigationData.h"
 
-#if WITH_EDITOR
-#include "Materials/Material.h"
-#include "MaterialEditingLibrary.h"
-#include "Materials/MaterialExpressionTextureCoordinate.h"
-#include "Materials/MaterialExpressionTextureSampleParameter2D.h"
-#include "Materials/MaterialExpressionPerInstanceCustomData.h"
-#include "Materials/MaterialExpressionComponentMask.h"
-#include "Materials/MaterialExpressionOneMinus.h"
-#include "Materials/MaterialExpressionAppendVector.h"
-#include "Materials/MaterialExpressionMultiply.h"
-#include "Materials/MaterialExpressionAdd.h"
-#include "AssetRegistry/AssetRegistryModule.h"
-#include "Misc/PackageName.h"
-#include "UObject/Package.h"
-#include "UObject/SavePackage.h"
-#endif
-
 namespace
 {
 	const TCHAR* SlimeTexPath = TEXT("/Game/NPC/Slime/T_SlimeCrawl.T_SlimeCrawl");
-	const TCHAR* NpcSpriteMatPath = TEXT("/Game/NPC/Slime/M_KBVENpcSprite");
-
-	// Material contract for KBVENPCSprite: Atlas param sampled at
-	// UV = MeshUV * (CustomData2, CustomData3) + (CustomData0, CustomData1).
-	UMaterialInterface* GetOrCreateNpcSpriteMaterial()
-	{
-		if (UMaterialInterface* Existing = LoadObject<UMaterialInterface>(nullptr, NpcSpriteMatPath))
-		{
-			return Existing;
-		}
-#if WITH_EDITOR
-		UPackage* Pkg = CreatePackage(NpcSpriteMatPath);
-		UMaterial* M = NewObject<UMaterial>(Pkg, TEXT("M_KBVENpcSprite"), RF_Public | RF_Standalone);
-		M->BlendMode = BLEND_Masked;
-		M->TwoSided = false;
-		M->SetShadingModel(MSM_Unlit);
-		M->bUsedWithInstancedStaticMeshes = true;
-
-		auto Make = [M](UClass* C) { return UMaterialEditingLibrary::CreateMaterialExpression(M, C); };
-
-		UMaterialExpressionTextureCoordinate* UV = Cast<UMaterialExpressionTextureCoordinate>(Make(UMaterialExpressionTextureCoordinate::StaticClass()));
-
-		UMaterialExpressionPerInstanceCustomData* CD0 = Cast<UMaterialExpressionPerInstanceCustomData>(Make(UMaterialExpressionPerInstanceCustomData::StaticClass()));
-		CD0->DataIndex = 0;
-		UMaterialExpressionPerInstanceCustomData* CD1 = Cast<UMaterialExpressionPerInstanceCustomData>(Make(UMaterialExpressionPerInstanceCustomData::StaticClass()));
-		CD1->DataIndex = 1;
-		UMaterialExpressionPerInstanceCustomData* CD2 = Cast<UMaterialExpressionPerInstanceCustomData>(Make(UMaterialExpressionPerInstanceCustomData::StaticClass()));
-		CD2->DataIndex = 2;
-		UMaterialExpressionPerInstanceCustomData* CD3 = Cast<UMaterialExpressionPerInstanceCustomData>(Make(UMaterialExpressionPerInstanceCustomData::StaticClass()));
-		CD3->DataIndex = 3;
-
-		UMaterialExpressionAppendVector* ScaleUV = Cast<UMaterialExpressionAppendVector>(Make(UMaterialExpressionAppendVector::StaticClass()));
-		ScaleUV->A.Expression = CD2;
-		ScaleUV->B.Expression = CD3;
-
-		UMaterialExpressionAppendVector* OffUV = Cast<UMaterialExpressionAppendVector>(Make(UMaterialExpressionAppendVector::StaticClass()));
-		OffUV->A.Expression = CD0;
-		OffUV->B.Expression = CD1;
-
-		UMaterialExpressionComponentMask* MaskU = Cast<UMaterialExpressionComponentMask>(Make(UMaterialExpressionComponentMask::StaticClass()));
-		MaskU->R = true; MaskU->G = false; MaskU->B = false; MaskU->A = false;
-		MaskU->Input.Expression = UV;
-		UMaterialExpressionComponentMask* MaskV = Cast<UMaterialExpressionComponentMask>(Make(UMaterialExpressionComponentMask::StaticClass()));
-		MaskV->R = false; MaskV->G = true; MaskV->B = false; MaskV->A = false;
-		MaskV->Input.Expression = UV;
-		UMaterialExpressionOneMinus* FlipV = Cast<UMaterialExpressionOneMinus>(Make(UMaterialExpressionOneMinus::StaticClass()));
-		FlipV->Input.Expression = MaskV;
-		UMaterialExpressionAppendVector* LocalUV = Cast<UMaterialExpressionAppendVector>(Make(UMaterialExpressionAppendVector::StaticClass()));
-		LocalUV->A.Expression = MaskU;
-		LocalUV->B.Expression = FlipV;
-
-		UMaterialExpressionMultiply* Scaled = Cast<UMaterialExpressionMultiply>(Make(UMaterialExpressionMultiply::StaticClass()));
-		Scaled->A.Expression = LocalUV;
-		Scaled->B.Expression = ScaleUV;
-
-		UMaterialExpressionAdd* FinalUV = Cast<UMaterialExpressionAdd>(Make(UMaterialExpressionAdd::StaticClass()));
-		FinalUV->A.Expression = Scaled;
-		FinalUV->B.Expression = OffUV;
-
-		UMaterialExpressionTextureSampleParameter2D* Atlas = Cast<UMaterialExpressionTextureSampleParameter2D>(Make(UMaterialExpressionTextureSampleParameter2D::StaticClass()));
-		Atlas->ParameterName = TEXT("Atlas");
-		Atlas->SamplerType = SAMPLERTYPE_Color;
-		Atlas->Coordinates.Expression = FinalUV;
-
-		UMaterialEditorOnlyData* ED = M->GetEditorOnlyData();
-		ED->EmissiveColor.Connect(0, Atlas);
-		ED->OpacityMask.Connect(4, Atlas);
-
-		M->PreEditChange(nullptr);
-		M->PostEditChange();
-		M->ForceRecompileForRendering();
-		FAssetRegistryModule::AssetCreated(M);
-		Pkg->MarkPackageDirty();
-		const FString File = FPackageName::LongPackageNameToFilename(Pkg->GetName(), FPackageName::GetAssetPackageExtension());
-		FSavePackageArgs Args;
-		Args.TopLevelFlags = RF_Public | RF_Standalone;
-		UPackage::SavePackage(Pkg, M, *File, Args);
-		return M;
-#else
-		return nullptr;
-#endif
-	}
 }
 
 void UchuckSlimeSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -158,13 +58,12 @@ void UchuckSlimeSubsystem::EnsureSpriteDef()
 	SlimeDef = NewObject<UKBVENpcSpriteDef>(this);
 	SlimeDef->Ref = FName(TEXT("glass-slime"));
 	SlimeDef->Atlas = LoadObject<UTexture2D>(nullptr, SlimeTexPath);
-	SlimeDef->SpriteMaterial = GetOrCreateNpcSpriteMaterial();
 	SlimeDef->Columns = Cols;
 	SlimeDef->Rows = Rows;
 	SlimeDef->RowFront = 0;
 	SlimeDef->RowSide = 1;
 	SlimeDef->RowBack = 2;
-	SlimeDef->bSwapSide = true;
+	SlimeDef->bSwapSide = false;
 	SlimeDef->FramesPerAnim = Cols;
 	SlimeDef->Fps = FrameRate;
 	SlimeDef->WorldSize = FVector2f(150.f, 150.f);

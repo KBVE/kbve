@@ -1,19 +1,61 @@
 #include "KBVENpcSpriteRenderSubsystem.h"
 #include "KBVENpcSpriteDef.h"
-#include "KBVENpcSpriteDirection.h"
 
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/Texture.h"
 #include "Engine/World.h"
-#include "GameFramework/PlayerController.h"
-#include "Camera/PlayerCameraManager.h"
+#include "Materials/Material.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
-#include "UObject/ConstructorHelpers.h"
+#include "UObject/StrongObjectPtr.h"
+
+#if WITH_EDITOR
+#include "Materials/MaterialExpressionCustom.h"
+#include "Materials/MaterialExpressionScalarParameter.h"
+#include "Materials/MaterialExpressionTextureSampleParameter2D.h"
+#include "Materials/MaterialExpressionTextureCoordinate.h"
+#include "Materials/MaterialExpressionWorldPosition.h"
+#include "Materials/MaterialExpressionObjectPositionWS.h"
+#include "Materials/MaterialExpressionCameraPositionWS.h"
+#include "Materials/MaterialExpressionSubtract.h"
+#include "Materials/MaterialExpressionTime.h"
+#include "Materials/MaterialExpressionPerInstanceCustomData.h"
+#include "MaterialEditingLibrary.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "Misc/PackageName.h"
+#include "UObject/Package.h"
+#include "UObject/SavePackage.h"
+#endif
 
 namespace
 {
-	constexpr float PlaneUnit = 100.0f;
+	static TStrongObjectPtr<UMaterialInterface> CachedBillboard;
+
+#if WITH_EDITOR
+	template <typename T>
+	T* MakeExpr(UMaterial* M)
+	{
+		return Cast<T>(UMaterialEditingLibrary::CreateMaterialExpression(M, T::StaticClass()));
+	}
+
+	void AddInput(UMaterialExpressionCustom* C, const TCHAR* Name, UMaterialExpression* Expr, int32 OutIdx = 0)
+	{
+		FCustomInput In;
+		In.InputName = FName(Name);
+		In.Input.Expression = Expr;
+		In.Input.OutputIndex = OutIdx;
+		C->Inputs.Add(In);
+	}
+
+	UMaterialExpressionScalarParameter* MakeScalar(UMaterial* M, const TCHAR* Name, float Default)
+	{
+		UMaterialExpressionScalarParameter* S = MakeExpr<UMaterialExpressionScalarParameter>(M);
+		S->ParameterName = FName(Name);
+		S->DefaultValue = Default;
+		return S;
+	}
+#endif
 }
 
 bool UKBVENpcSpriteRenderSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -78,6 +120,146 @@ UStaticMesh* UKBVENpcSpriteRenderSubsystem::GetPlaneMesh()
 	return PlaneMesh;
 }
 
+UMaterialInterface* UKBVENpcSpriteRenderSubsystem::GetOrCreateBillboardMaterial()
+{
+	if (CachedBillboard.IsValid())
+	{
+		return CachedBillboard.Get();
+	}
+
+	static const TCHAR* PkgPath = TEXT("/Game/KBVE/Generated/M_KBVENpcBillboard");
+	if (UMaterialInterface* Existing = LoadObject<UMaterialInterface>(nullptr, PkgPath))
+	{
+		CachedBillboard.Reset(Existing);
+		return Existing;
+	}
+
+#if WITH_EDITOR
+	UPackage* Pkg = CreatePackage(PkgPath);
+	UMaterial* M = NewObject<UMaterial>(Pkg, TEXT("M_KBVENpcBillboard"), RF_Public | RF_Standalone);
+	M->MaterialDomain = MD_Surface;
+	M->SetShadingModel(MSM_Unlit);
+	M->BlendMode = BLEND_Masked;
+	M->TwoSided = true;
+	M->bUsedWithInstancedStaticMeshes = true;
+	M->OpacityMaskClipValue = 0.5f;
+
+	UMaterialExpressionWorldPosition* WorldP = MakeExpr<UMaterialExpressionWorldPosition>(M);
+	UMaterialExpressionObjectPositionWS* ObjP = MakeExpr<UMaterialExpressionObjectPositionWS>(M);
+	UMaterialExpressionCameraPositionWS* CamP = MakeExpr<UMaterialExpressionCameraPositionWS>(M);
+
+	UMaterialExpressionSubtract* LocalOffset = MakeExpr<UMaterialExpressionSubtract>(M);
+	LocalOffset->A.Expression = WorldP;
+	LocalOffset->B.Expression = ObjP;
+
+	UMaterialExpressionScalarParameter* WorldSizeX = MakeScalar(M, TEXT("WorldSizeX"), 150.0f);
+	UMaterialExpressionScalarParameter* WorldSizeY = MakeScalar(M, TEXT("WorldSizeY"), 150.0f);
+	UMaterialExpressionScalarParameter* PivotZ = MakeScalar(M, TEXT("PivotZ"), 0.0f);
+
+	UMaterialExpressionCustom* WPO = MakeExpr<UMaterialExpressionCustom>(M);
+	WPO->OutputType = CMOT_Float3;
+	WPO->Inputs.Empty();
+	AddInput(WPO, TEXT("L"), LocalOffset);
+	AddInput(WPO, TEXT("CamPos"), CamP);
+	AddInput(WPO, TEXT("ObjPos"), ObjP);
+	AddInput(WPO, TEXT("WorldSizeX"), WorldSizeX);
+	AddInput(WPO, TEXT("WorldSizeY"), WorldSizeY);
+	AddInput(WPO, TEXT("PivotZ"), PivotZ);
+	WPO->Code = TEXT(
+		"float3 toCam = CamPos - ObjPos;\n"
+		"toCam.z = 0.0;\n"
+		"float3 fwd = normalize(toCam + float3(0.0, 0.0001, 0.0));\n"
+		"float3 up = float3(0.0, 0.0, 1.0);\n"
+		"float3 right = normalize(cross(up, fwd));\n"
+		"float sx = WorldSizeX / 100.0;\n"
+		"float sy = WorldSizeY / 100.0;\n"
+		"float3 desired = right * (L.x * sx) + up * (L.y * sy);\n"
+		"desired += up * (50.0 * sy * (1.0 - 2.0 * PivotZ));\n"
+		"return desired - L;");
+
+	UMaterialExpressionTextureCoordinate* UV = MakeExpr<UMaterialExpressionTextureCoordinate>(M);
+	UV->CoordinateIndex = 0;
+	UMaterialExpressionTime* Time = MakeExpr<UMaterialExpressionTime>(M);
+
+	UMaterialExpressionPerInstanceCustomData* MoveYaw = MakeExpr<UMaterialExpressionPerInstanceCustomData>(M);
+	MoveYaw->DataIndex = 0;
+	UMaterialExpressionPerInstanceCustomData* AnimSeed = MakeExpr<UMaterialExpressionPerInstanceCustomData>(M);
+	AnimSeed->DataIndex = 1;
+
+	UMaterialExpressionScalarParameter* Cols = MakeScalar(M, TEXT("Cols"), 5.0f);
+	UMaterialExpressionScalarParameter* Rows = MakeScalar(M, TEXT("Rows"), 3.0f);
+	UMaterialExpressionScalarParameter* Fps = MakeScalar(M, TEXT("Fps"), 8.0f);
+	UMaterialExpressionScalarParameter* Frames = MakeScalar(M, TEXT("Frames"), 5.0f);
+	UMaterialExpressionScalarParameter* SwapSide = MakeScalar(M, TEXT("SwapSide"), 1.0f);
+	UMaterialExpressionScalarParameter* RowFront = MakeScalar(M, TEXT("RowFront"), 0.0f);
+	UMaterialExpressionScalarParameter* RowSide = MakeScalar(M, TEXT("RowSide"), 1.0f);
+	UMaterialExpressionScalarParameter* RowBack = MakeScalar(M, TEXT("RowBack"), 2.0f);
+
+	UMaterialExpressionCustom* Cell = MakeExpr<UMaterialExpressionCustom>(M);
+	Cell->OutputType = CMOT_Float2;
+	Cell->Inputs.Empty();
+	AddInput(Cell, TEXT("UV"), UV);
+	AddInput(Cell, TEXT("MoveYaw"), MoveYaw);
+	AddInput(Cell, TEXT("AnimSeed"), AnimSeed);
+	AddInput(Cell, TEXT("CamPos"), CamP);
+	AddInput(Cell, TEXT("ObjPos"), ObjP);
+	AddInput(Cell, TEXT("T"), Time);
+	AddInput(Cell, TEXT("Cols"), Cols);
+	AddInput(Cell, TEXT("Rows"), Rows);
+	AddInput(Cell, TEXT("Fps"), Fps);
+	AddInput(Cell, TEXT("Frames"), Frames);
+	AddInput(Cell, TEXT("SwapSide"), SwapSide);
+	AddInput(Cell, TEXT("RowFront"), RowFront);
+	AddInput(Cell, TEXT("RowSide"), RowSide);
+	AddInput(Cell, TEXT("RowBack"), RowBack);
+	Cell->Code = TEXT(
+		"float3 toCam = CamPos - ObjPos;\n"
+		"toCam.z = 0.0;\n"
+		"toCam = normalize(toCam + float3(0.0, 0.0001, 0.0));\n"
+		"float camYaw = atan2(toCam.y, toCam.x);\n"
+		"float d = MoveYaw - camYaw;\n"
+		"d = atan2(sin(d), cos(d));\n"
+		"float ad = abs(d);\n"
+		"float row = RowFront;\n"
+		"float flip = 0.0;\n"
+		"if (ad > 2.2689) { row = RowBack; }\n"
+		"else if (ad > 0.7854) {\n"
+		"  row = RowSide;\n"
+		"  float right = (d > 0.0) ? 1.0 : 0.0;\n"
+		"  flip = (right != SwapSide) ? 1.0 : 0.0;\n"
+		"}\n"
+		"float u = lerp(UV.x, 1.0 - UV.x, flip);\n"
+		"float v = 1.0 - UV.y;\n"
+		"float frame = floor(frac((T * Fps + AnimSeed) / Frames) * Frames);\n"
+		"return float2((frame + u) / Cols, (row + v) / Rows);");
+
+	UMaterialExpressionTextureSampleParameter2D* Atlas = MakeExpr<UMaterialExpressionTextureSampleParameter2D>(M);
+	Atlas->ParameterName = FName(TEXT("Atlas"));
+	Atlas->Texture = LoadObject<UTexture>(nullptr, TEXT("/Engine/EngineResources/DefaultTexture.DefaultTexture"));
+	Atlas->SamplerType = SAMPLERTYPE_Color;
+	Atlas->Coordinates.Expression = Cell;
+
+	UMaterialEditorOnlyData* ED = M->GetEditorOnlyData();
+	ED->WorldPositionOffset.Connect(0, WPO);
+	ED->EmissiveColor.Connect(0, Atlas);
+	ED->OpacityMask.Connect(4, Atlas);
+
+	M->PreEditChange(nullptr);
+	M->PostEditChange();
+	M->ForceRecompileForRendering();
+	FAssetRegistryModule::AssetCreated(M);
+	Pkg->MarkPackageDirty();
+	const FString File = FPackageName::LongPackageNameToFilename(Pkg->GetName(), FPackageName::GetAssetPackageExtension());
+	FSavePackageArgs Args;
+	Args.TopLevelFlags = RF_Public | RF_Standalone;
+	UPackage::SavePackage(Pkg, M, *File, Args);
+	CachedBillboard.Reset(M);
+	return M;
+#else
+	return nullptr;
+#endif
+}
+
 UInstancedStaticMeshComponent* UKBVENpcSpriteRenderSubsystem::GetOrCreateHISM(UKBVENpcSpriteDef* Def)
 {
 	if (!Def)
@@ -100,7 +282,7 @@ UInstancedStaticMeshComponent* UKBVENpcSpriteRenderSubsystem::GetOrCreateHISM(UK
 		NewObject<UInstancedStaticMeshComponent>(HostActor, NAME_None, RF_Transient);
 	HISM->SetMobility(EComponentMobility::Movable);
 	HISM->SetupAttachment(HostActor->GetRootComponent());
-	HISM->NumCustomDataFloats = 4;
+	HISM->NumCustomDataFloats = 2;
 	HISM->SetStaticMesh(Mesh);
 	HISM->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HISM->SetCanEverAffectNavigation(false);
@@ -108,39 +290,36 @@ UInstancedStaticMeshComponent* UKBVENpcSpriteRenderSubsystem::GetOrCreateHISM(UK
 	HISM->SetCastShadow(false);
 	HISM->bReceivesDecals = false;
 
-	if (Def->SpriteMaterial)
+	UMaterialInterface* Base = Def->SpriteMaterial ? Def->SpriteMaterial.Get() : GetOrCreateBillboardMaterial();
+	if (Base)
 	{
-		UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Def->SpriteMaterial, this);
-		if (MID && Def->Atlas)
+		UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Base, this);
+		if (MID)
 		{
-			MID->SetTextureParameterValue(TEXT("Atlas"), Def->Atlas);
+			if (Def->Atlas)
+			{
+				MID->SetTextureParameterValue(TEXT("Atlas"), Def->Atlas);
+			}
+			MID->SetScalarParameterValue(TEXT("WorldSizeX"), Def->WorldSize.X);
+			MID->SetScalarParameterValue(TEXT("WorldSizeY"), Def->WorldSize.Y);
+			MID->SetScalarParameterValue(TEXT("PivotZ"), Def->PivotZ);
+			MID->SetScalarParameterValue(TEXT("Cols"), Def->Columns);
+			MID->SetScalarParameterValue(TEXT("Rows"), Def->Rows);
+			MID->SetScalarParameterValue(TEXT("Fps"), Def->Fps);
+			MID->SetScalarParameterValue(TEXT("Frames"), Def->FramesPerAnim);
+			MID->SetScalarParameterValue(TEXT("SwapSide"), Def->bSwapSide ? 1.0f : 0.0f);
+			MID->SetScalarParameterValue(TEXT("RowFront"), Def->RowFront);
+			MID->SetScalarParameterValue(TEXT("RowSide"), Def->RowSide);
+			MID->SetScalarParameterValue(TEXT("RowBack"), Def->RowBack);
+			HISM->SetMaterial(0, MID);
+			DefMIDs.Add(Def, MID);
 		}
-		HISM->SetMaterial(0, MID);
-		DefMIDs.Add(Def, MID);
 	}
 
 	HISM->RegisterComponent();
 	DefHISMs.Add(Def, HISM);
 	IndexToHandle.Add(HISM, {});
 	return HISM;
-}
-
-bool UKBVENpcSpriteRenderSubsystem::GetCameraLocation(FVector& OutLocation) const
-{
-	const UWorld* World = GetWorld();
-	if (!World)
-	{
-		return false;
-	}
-	if (APlayerController* PC = World->GetFirstPlayerController())
-	{
-		if (PC->PlayerCameraManager)
-		{
-			OutLocation = PC->PlayerCameraManager->GetCameraLocation();
-			return true;
-		}
-	}
-	return false;
 }
 
 FKBVENpcSpriteHandle UKBVENpcSpriteRenderSubsystem::SpawnSprite(UKBVENpcSpriteDef* Def, FVector Location, float FacingYawDeg)
@@ -152,14 +331,17 @@ FKBVENpcSpriteHandle UKBVENpcSpriteRenderSubsystem::SpawnSprite(UKBVENpcSpriteDe
 		return Handle;
 	}
 
-	const int32 Index = HISM->AddInstance(FTransform(Location), true);
+	FTransform Xform(FQuat::Identity, Location, FVector::OneVector);
+	const int32 Index = HISM->AddInstance(Xform, true);
+	HISM->SetCustomDataValue(Index, 0, FMath::DegreesToRadians(FacingYawDeg), false);
+	HISM->SetCustomDataValue(Index, 1, FMath::FRand() * FMath::Max(1, Def->FramesPerAnim), false);
 
 	FInstanceRec Rec;
 	Rec.Def = Def;
 	Rec.Location = Location;
 	Rec.FacingYaw = FacingYawDeg;
-	Rec.AnimTime = 0.0f;
-	Rec.Phase = FMath::FRand() * Def->FramesPerAnim;
+	Rec.AppliedLocation = Location;
+	Rec.AppliedYaw = FacingYawDeg;
 	Rec.HISM = HISM;
 	Rec.Index = Index;
 
@@ -218,74 +400,36 @@ void UKBVENpcSpriteRenderSubsystem::Tick(float DeltaTime)
 	{
 		return;
 	}
-	FVector CamLoc;
-	if (!GetCameraLocation(CamLoc))
-	{
-		return;
-	}
 
 	TSet<UInstancedStaticMeshComponent*> Touched;
 
 	for (TPair<int32, FInstanceRec>& Pair : Instances)
 	{
 		FInstanceRec& Rec = Pair.Value;
-		UKBVENpcSpriteDef* Def = Rec.Def;
 		UInstancedStaticMeshComponent* HISM = Rec.HISM;
-		if (!Def || !HISM)
+		if (!HISM)
 		{
 			continue;
 		}
 
-		Rec.AnimTime += DeltaTime;
-		int32 Frame = 0;
-		if (Def->Fps > 0.0f && Def->FramesPerAnim > 0)
+		const bool bMoved = !Rec.Location.Equals(Rec.AppliedLocation, 0.5);
+		const bool bTurned = !FMath::IsNearlyEqual(Rec.FacingYaw, Rec.AppliedYaw, 0.5f);
+		if (!bMoved && !bTurned)
 		{
-			Frame = FMath::FloorToInt(Rec.AnimTime * Def->Fps + Rec.Phase) % Def->FramesPerAnim;
+			continue;
 		}
 
-		const FKBVENpcSpriteView View = FKBVENpcSpriteDirection::Select(Rec.FacingYaw, Rec.Location, CamLoc, Def->bSwapSide);
-		int32 Row = Def->RowFront;
-		if (View.Facing == EKBVENpcSpriteFacing::Side)
+		if (bMoved)
 		{
-			Row = Def->RowSide;
+			FTransform Xform(FQuat::Identity, Rec.Location, FVector::OneVector);
+			HISM->UpdateInstanceTransform(Rec.Index, Xform, true, false, true);
+			Rec.AppliedLocation = Rec.Location;
 		}
-		else if (View.Facing == EKBVENpcSpriteFacing::Back)
+		if (bTurned)
 		{
-			Row = Def->RowBack;
+			HISM->SetCustomDataValue(Rec.Index, 0, FMath::DegreesToRadians(Rec.FacingYaw), false);
+			Rec.AppliedYaw = Rec.FacingYaw;
 		}
-
-		const float InvCols = 1.0f / FMath::Max(1, Def->Columns);
-		const float InvRows = 1.0f / FMath::Max(1, Def->Rows);
-		float OffU = Frame * InvCols;
-		float ScaleU = InvCols;
-		if (View.bFlipX)
-		{
-			OffU = (Frame + 1) * InvCols;
-			ScaleU = -InvCols;
-		}
-		const float OffV = Row * InvRows;
-		const float ScaleV = InvRows;
-
-		HISM->SetCustomDataValue(Rec.Index, 0, OffU, false);
-		HISM->SetCustomDataValue(Rec.Index, 1, OffV, false);
-		HISM->SetCustomDataValue(Rec.Index, 2, ScaleU, false);
-		HISM->SetCustomDataValue(Rec.Index, 3, ScaleV, false);
-
-		FVector ToCam = CamLoc - Rec.Location;
-		ToCam.Z = 0.0f;
-		const FVector Face = ToCam.GetSafeNormal(1e-4f, FVector::ForwardVector);
-		const FVector Up = FVector::UpVector;
-		const FVector Right = FVector::CrossProduct(Up, Face).GetSafeNormal(1e-4f, FVector::RightVector);
-
-		const FMatrix Basis(Right, Up, Face, FVector::ZeroVector);
-		FTransform Transform(Basis);
-		Transform.SetScale3D(FVector(Def->WorldSize.X / PlaneUnit, Def->WorldSize.Y / PlaneUnit, 1.0f));
-
-		const float HalfHeight = 0.5f * Def->WorldSize.Y;
-		const FVector PivotOffset = Up * (HalfHeight * (1.0f - 2.0f * Def->PivotZ));
-		Transform.SetLocation(Rec.Location + PivotOffset);
-
-		HISM->UpdateInstanceTransform(Rec.Index, Transform, true, false, true);
 		Touched.Add(HISM);
 	}
 

@@ -7,6 +7,7 @@
 class UKBVENpcSpriteDef;
 class UInstancedStaticMeshComponent;
 class UMaterialInstanceDynamic;
+class UMaterialInterface;
 class UStaticMesh;
 
 USTRUCT(BlueprintType)
@@ -47,16 +48,16 @@ private:
 		TObjectPtr<UKBVENpcSpriteDef> Def = nullptr;
 		FVector Location = FVector::ZeroVector;
 		float FacingYaw = 0.0f;
-		float AnimTime = 0.0f;
-		float Phase = 0.0f;
+		FVector AppliedLocation = FVector(FLT_MAX);
+		float AppliedYaw = FLT_MAX;
 		TObjectPtr<UInstancedStaticMeshComponent> HISM = nullptr;
 		int32 Index = INDEX_NONE;
 	};
 
 	void EnsureHost();
 	UStaticMesh* GetPlaneMesh();
+	UMaterialInterface* GetOrCreateBillboardMaterial();
 	UInstancedStaticMeshComponent* GetOrCreateHISM(UKBVENpcSpriteDef* Def);
-	bool GetCameraLocation(FVector& OutLocation) const;
 
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> HostActor = nullptr;
