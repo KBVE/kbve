@@ -20,8 +20,7 @@ public class KBVESQLite : ModuleRules
 
 		if (Target.Platform == UnrealTargetPlatform.Win64)
 		{
-			PublicDefinitions.Add("SQLITE_API=KBVESQLITE_API");
-			PublicDefinitions.Add("SQLITE_EXTERN=extern KBVESQLITE_API");
+			PrivateDefinitions.Add("SQLITE_API=__declspec(dllexport)");
 		}
 		else
 		{
