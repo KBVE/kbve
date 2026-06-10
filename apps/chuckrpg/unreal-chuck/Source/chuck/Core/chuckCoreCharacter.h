@@ -6,6 +6,7 @@
 #include "chuckInventory.h"
 #include "chuckStats.h"
 #include "KBVEStatTarget.h"
+#include "KBVEMovementDriver.h"
 #include "chuckCoreCharacter.generated.h"
 
 class UInputAction;
@@ -14,7 +15,7 @@ class UKBVEEffectComponent;
 struct FInputActionValue;
 
 UCLASS()
-class AchuckCoreCharacter : public AchuckCharacter, public IKBVEStatTarget
+class AchuckCoreCharacter : public AchuckCharacter, public IKBVEStatTarget, public IKBVEMovementDriver
 {
 	GENERATED_BODY()
 
@@ -24,6 +25,11 @@ public:
 	virtual float GetStatValue(FName StatId) const override;
 	virtual float GetStatMax(FName StatId) const override;
 	virtual void  ApplyStatDelta(FName StatId, float Delta) override;
+
+	virtual void    SubmitMoveInput(const FVector& WorldIntent) override;
+	virtual void    SubmitJump(bool bPressed) override;
+	virtual FVector GetAuthoritativeVelocity() const override;
+	virtual void    ApplyServerCorrection(const FVector& Position, const FVector& Velocity) override;
 
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;

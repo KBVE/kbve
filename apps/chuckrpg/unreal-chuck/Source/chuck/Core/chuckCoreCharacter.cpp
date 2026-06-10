@@ -691,3 +691,37 @@ void AchuckCoreCharacter::PublishStatChanges()
 	}
 	LastPublishedStats = Stats;
 }
+
+void AchuckCoreCharacter::SubmitMoveInput(const FVector& WorldIntent)
+{
+	if (!WorldIntent.IsNearlyZero())
+	{
+		AddMovementInput(WorldIntent.GetSafeNormal(), (float)FMath::Min(1.0, WorldIntent.Size()));
+	}
+}
+
+void AchuckCoreCharacter::SubmitJump(bool bPressed)
+{
+	if (bPressed)
+	{
+		Jump();
+	}
+	else
+	{
+		StopJumping();
+	}
+}
+
+FVector AchuckCoreCharacter::GetAuthoritativeVelocity() const
+{
+	return GetVelocity();
+}
+
+void AchuckCoreCharacter::ApplyServerCorrection(const FVector& Position, const FVector& Velocity)
+{
+	SetActorLocation(Position, false, nullptr, ETeleportType::TeleportPhysics);
+	if (UCharacterMovementComponent* CM = GetCharacterMovement())
+	{
+		CM->Velocity = Velocity;
+	}
+}
