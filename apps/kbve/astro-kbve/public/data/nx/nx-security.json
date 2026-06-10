@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-09T09:20:45Z",
+  "generated_at": "2026-06-10T09:26:28Z",
   "summary": {
-    "critical": 3,
+    "critical": 4,
     "high": 48,
     "medium": 61,
     "low": 29,
@@ -9,9 +9,9 @@
   },
   "ecosystems": {
     "npm": {
-      "total": 65,
+      "total": 66,
       "severities": {
-        "critical": 1,
+        "critical": 2,
         "high": 30,
         "medium": 31,
         "low": 3,
@@ -38,13 +38,6 @@
           "severity": "medium",
           "package": "vue-template-compiler",
           "url": "https://github.com/advisories/GHSA-g3ch-rx76-35fx"
-        },
-        {
-          "id": "1112455",
-          "title": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
-          "severity": "medium",
-          "package": "lodash",
-          "url": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
         },
         {
           "id": "1112704",
@@ -348,25 +341,11 @@
           "url": "https://github.com/advisories/GHSA-q8qp-cvcw-x6jj"
         },
         {
-          "id": "1119005",
-          "title": "Svelte devalue: DoS via sparse array deserialization",
-          "severity": "high",
-          "package": "devalue",
-          "url": "https://github.com/advisories/GHSA-77vg-94rm-hx3p"
-        },
-        {
           "id": "1119074",
           "title": "webpack-dev-server vulnerable to cross-origin source code exposure on non-HTTPS origins",
           "severity": "medium",
           "package": "webpack-dev-server",
           "url": "https://github.com/advisories/GHSA-79cf-xcqc-c78w"
-        },
-        {
-          "id": "1119088",
-          "title": "brace-expansion: Large numeric range defeats documented `max` DoS protection",
-          "severity": "medium",
-          "package": "brace-expansion",
-          "url": "https://github.com/advisories/GHSA-jxxr-4gwj-5jf2"
         },
         {
           "id": "1119108",
@@ -472,6 +451,34 @@
           "severity": "critical",
           "package": "vitest",
           "url": "https://github.com/advisories/GHSA-5xrq-8626-4rwp"
+        },
+        {
+          "id": "1120311",
+          "title": "brace-expansion: Large numeric range defeats documented `max` DoS protection",
+          "severity": "medium",
+          "package": "brace-expansion",
+          "url": "https://github.com/advisories/GHSA-jxxr-4gwj-5jf2"
+        },
+        {
+          "id": "1120370",
+          "title": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
+          "severity": "medium",
+          "package": "lodash",
+          "url": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
+        },
+        {
+          "id": "1120422",
+          "title": "shell-quote quote() does not escape newlines in object .op values",
+          "severity": "critical",
+          "package": "shell-quote",
+          "url": "https://github.com/advisories/GHSA-w7jw-789q-3m8p"
+        },
+        {
+          "id": "1120448",
+          "title": "Svelte devalue: DoS via sparse array deserialization",
+          "severity": "high",
+          "package": "devalue",
+          "url": "https://github.com/advisories/GHSA-77vg-94rm-hx3p"
         }
       ]
     },
