@@ -1,12 +1,13 @@
-# STUB — replace before deploy. Generate the real SealedSecret with kubeseal (see
-# tenants/README.md "Seal the customer_guid"); the placeholder below will NOT decrypt.
+---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
 metadata:
     name: rows-customer-guid
+    namespace: rows-rentearth-release
 spec:
     encryptedData:
-        customer-guid: REPLACE_VIA_KUBESEAL
+        customer-guid: AgB6FJWF2AjEfA+NTC9i+GibtdNdDWnvOsUH2+I3NRp9A326MDWzQOfcTZyxberNn0aUr7hIpIPlZ6FX65/9GfBFLmetjVaUCYoUDB6hi1hhI6nTek4SmPf9LFUf0LJNRRP5yQofU7gJBARCESvRwxS6Fs+qi11o0A8wkHZxluKYagWCpMRutnip4lZSpeuIDlKHJCtiUz7INbuz+CeNcuiQ4yAh2M9MsHb49B1eEhWioq4aaimiGeAPDaxHveQHblgsOhEaI7FnVpkYuV0YntZ+zyoR+bNIbvULZRmWVW/5Wf+Xtmw0/OiO1Os3u14nKj9kUKsc2Np6g4ntGg6sXNMfbKEXAbrpteRHCsZRF8RRbRT+Zu1H2e16yOZaqNMc4CzXZC97Yczp3dr4fefQkYZWKoPwU+IiKK56c79eJMMcSRbK4wsrjt7Pei8EvbyzzJk9Vb78ne0ZNcnBlXWix6wdC0qs/P7Yjbw9To50+IF3M5Ihm3TNvioIPFnMQs/DIMTGKxN2osE9xdBi286NxXiP2oo4c/4cYzg0NJy8YLglvg7DHPzWkmeg6IZFA9iNxN4qpJIIZNAxZo7xwjDHvVrPzCvLTgrgQTwBMMN1BLgOPSuRfml9zEOQJ9DGwhkx8jgQLn7jlo8EsQXqDZm93ngx459vHvD09FU1auH6J4y/0qKt/F04Lriz0fQ2IICVSJ2AtI+krvuGfJt6U6Z8CQtR+oZYt1kIoYEHo2k9HWNWGCQwQ2Q=
     template:
         metadata:
             name: rows-customer-guid
+            namespace: rows-rentearth-release

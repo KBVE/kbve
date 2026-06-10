@@ -1,12 +1,13 @@
-# STUB — replace before deploy. Generate with kubeseal (see tenants/README.md).
-# Consumed by the Agones gameserver ExternalSecret (rows-encryption-key).
+---
 apiVersion: bitnami.com/v1alpha1
 kind: SealedSecret
 metadata:
     name: rows-encryption-key
+    namespace: rows-rentearth-release
 spec:
     encryptedData:
-        encryption-key: REPLACE_VIA_KUBESEAL
+        encryption-key: AgB6ko3lZXJyFerx4L/srDzID7qIbcXdqbYVdnybxHQwFY9kXm7lzCGdsuQNCRYhIGefnl83m06zL7Uz3Pg6FyzvFVs+/AbE7q9juAlykPMzKxO2WPyzidiMqgHFGC8QglSAdVirlU9VJ14VIH42uy6ZC0ikskLhp71AfIztmletYmXZUn5FHYbgbcVKgmUfuZOjFXvpJvnxKAcxburiHLNFxLGv++Cyamb5q/IwdTvSLJ1RnnZW5AZTzV6hfWo7nQhw7pSMT1Ebo8yyIsJqrWvZRx98+O6vwxi9IN82s177XMiuTpqoSbzUw68GpkHuQrJ3IpUEckeSOcEV+WRlJObbZ0diJ+8UgPRH0antXLKoxsBNrIffZLQ3VGcgldTa91iUcHRvfa8EJRlSAojSq2qxupyhjW2nx2FTKC6vZJXZj2FVv0+n4ZHyLE9vaAeSSZer4vdwTY/cksC6mxNiEFOj5xHIATb4r/mtBReotf6OQ+ckWXd3x+iDZdeCRvk/sTC4awzmCh8ozZ3tRdYll0r9Q+a4clvMTf9kWy2U9y1AxHZlTi6R9gmuNxzF2F/WhAwFVj1x9/ajp/sFCFY+38tSSxv6cme8McufzvV9kLAIbqMjP6wRuar3VyEwES9bnBsuzKusKV7l+8qPviywSnFDUaAbAqS38bOC+edylGN+ALG4Sttovt0ULa5dXJuKtXNPJwRx7Y8Kt0C0dOszYkIQVaeopqkz4pExK63illvwoPE+ZstvDVesK+cFvg==
     template:
         metadata:
             name: rows-encryption-key
+            namespace: rows-rentearth-release
