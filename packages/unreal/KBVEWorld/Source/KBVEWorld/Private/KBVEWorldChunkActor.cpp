@@ -20,6 +20,7 @@
 #include "Materials/MaterialInterface.h"
 #include "Math/RandomStream.h"
 #include "NavigationSystem.h"
+#include "TimerManager.h"
 #include "ProceduralMeshComponent.h"
 #include "Serialization/BufferArchive.h"
 #include "Serialization/MemoryReader.h"
@@ -35,6 +36,7 @@ AKBVEWorldChunkActor::AKBVEWorldChunkActor()
 	Mesh->SetCollisionProfileName(TEXT("BlockAll"));
 	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Mesh->bUseComplexAsSimpleCollision = true;
+	Mesh->bHasCustomNavigableGeometry = EHasCustomNavigableGeometry::Yes;
 	Mesh->SetCanEverAffectNavigation(true);
 	RootComponent = Mesh;
 
@@ -183,13 +185,35 @@ void AKBVEWorldChunkActor::UploadMesh(const FKBVEWorldChunkMesh& MeshData)
 	if (!Mesh) return;
 	const int32 VertCount = MeshData.Vertices.Num();
 	TArray<FColor> VertexColors; VertexColors.Init(FColor::White, VertCount);
-	Mesh->ClearAllMeshSections();
-	Mesh->CreateMeshSection(0, MeshData.Vertices, MeshData.Triangles, MeshData.Normals, MeshData.UVs, VertexColors, MeshData.Tangents, true);
+	{
+		KBVEPERF_SCOPE("Terrain.ClearSections");
+		Mesh->ClearAllMeshSections();
+	}
+	{
+		KBVEPERF_SCOPE("Terrain.CreateSection");
+		Mesh->CreateMeshSection(0, MeshData.Vertices, MeshData.Triangles, MeshData.Normals, MeshData.UVs, VertexColors, MeshData.Tangents, true);
+	}
+
+	TWeakObjectPtr<UProceduralMeshComponent> WeakMesh(Mesh);
+	FTimerHandle NavTimer;
+	GetWorldTimerManager().SetTimer(NavTimer, [WeakMesh]()
+	{
+		if (UProceduralMeshComponent* M = WeakMesh.Get())
+		{
+			FNavigationSystem::UpdateComponentData(*M);
+		}
+	}, 0.5f, false);
 
 	UMaterialInterface* Apply = GroundMaterialOverride;
-	if (!Apply) Apply = FKBVEWorldTerrainShader::GetOrCreateGroundMaterial(this);
+	{
+		KBVEPERF_SCOPE("Terrain.GetGroundMaterial");
+		if (!Apply) Apply = FKBVEWorldTerrainShader::GetOrCreateGroundMaterial(this);
+	}
 	if (!Apply) Apply = GroundMaterial;
-	if (Apply) Mesh->SetMaterial(0, Apply);
+	{
+		KBVEPERF_SCOPE("Terrain.SetMaterial");
+		if (Apply) Mesh->SetMaterial(0, Apply);
+	}
 }
 
 void AKBVEWorldChunkActor::PositionWaterAndApplyMaterials(float ChunkSize)

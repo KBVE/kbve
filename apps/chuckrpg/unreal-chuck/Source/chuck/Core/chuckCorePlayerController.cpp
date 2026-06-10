@@ -16,6 +16,7 @@
 #include "Props/chuckArcadeCabinet.h"
 #include "NPC/chuckSpriteNPC.h"
 #include "Mass/chuckSlimeSubsystem.h"
+#include "NavigationSystem.h"
 #include "SKBVEDevOverlay.h"
 #include "GameFramework/PlayerState.h"
 #include "MassEntitySubsystem.h"
@@ -1060,6 +1061,11 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 		if (!bDidAutoSpawnSlimes)
 		{
 			bDidAutoSpawnSlimes = true;
+			if (UNavigationSystemV1* Nav = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld()))
+			{
+				Nav->RegisterInvoker(*Pawn, 6000.f, 8000.f, FNavAgentSelector(), ENavigationInvokerPriority::Default);
+				UE_LOG(LogTemp, Warning, TEXT("[SlimeNav] registered invoker on pawn %s"), *Pawn->GetName());
+			}
 			if (UchuckSlimeSubsystem* SlimeSys = GetWorld()->GetSubsystem<UchuckSlimeSubsystem>())
 			{
 				SlimeSys->SpawnSlimes(ControlledPawn->GetActorLocation(), 8, 600.f);

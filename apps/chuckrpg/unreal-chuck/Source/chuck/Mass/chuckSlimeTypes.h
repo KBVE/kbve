@@ -23,4 +23,7 @@ struct FchuckSlimeFragment : public FMassFragment
 	float FrameTime = 0.f;
 	int32 Frame = 0;
 	int32 PathIndex = 0;
+	int32 HopCycle = -1;
+	int32 FacingRow = 0;
+	float FacingFlip = 0.f;
 };

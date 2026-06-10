@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.192",
+			"version": "1.0.194",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -749,6 +749,18 @@
 			"version_toml": "packages/unreal/KBVEMapDB/version.toml"
 		},
 		{
+			"key": "ue_kbvenet",
+			"plugin_name": "KBVENet",
+			"plugin_path": "packages/unreal/KBVENet",
+			"supported_platforms": [
+				"Win64",
+				"Linux",
+				"Mac"
+			],
+			"version": "0.1.0",
+			"version_toml": "packages/unreal/KBVENet/version.toml"
+		},
+		{
 			"key": "ue_kbvenpcdb",
 			"plugin_name": "KBVENPCDB",
 			"plugin_path": "packages/unreal/KBVENPCDB",
@@ -1092,12 +1104,12 @@
 		"npm": 4,
 		"crates": 24,
 		"python": 2,
-		"unreal": 24,
+		"unreal": 25,
 		"ue5_server": 2,
 		"unity": 1,
 		"godot": 1,
 		"unreal_game": 2,
 		"bevy_game": 0,
-		"total": 90
+		"total": 91
 	}
 }

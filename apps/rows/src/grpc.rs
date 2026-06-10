@@ -225,38 +225,72 @@ pub struct InstanceManagementService {
 impl InstanceManagement for InstanceManagementService {
     async fn register_launcher(
         &self,
-        _req: Request<RegisterLauncherRequest>,
+        req: Request<RegisterLauncherRequest>,
     ) -> Result<Response<RegisterLauncherResponse>, Status> {
-        Err(Status::unimplemented(
-            "RegisterLauncher not yet implemented",
-        ))
+        let r = req.get_ref();
+        let guid = self.svc.state().config.customer_guid;
+        let world_server_id = self
+            .svc
+            .register_launcher(
+                guid,
+                &r.launcher_guid,
+                &r.server_ip,
+                r.max_number_of_instances,
+                &r.internal_server_ip,
+                r.starting_instance_port,
+            )
+            .await
+            .map_err(to_status)?;
+        Ok(Response::new(RegisterLauncherResponse {
+            success: world_server_id >= 0,
+            world_server_id,
+            error: None,
+        }))
     }
 
     async fn start_instance_launcher(
         &self,
-        _req: Request<StartInstanceLauncherRequest>,
+        req: Request<StartInstanceLauncherRequest>,
     ) -> Result<Response<StartInstanceLauncherResponse>, Status> {
-        Err(Status::unimplemented(
-            "StartInstanceLauncher not yet implemented",
-        ))
+        // The dedicated server is its own launcher in the ROWS topology: it
+        // registers, then spins up its own zone instances. Ack the start.
+        tracing::info!(
+            world_server_id = req.get_ref().world_server_id,
+            "StartInstanceLauncher ack"
+        );
+        Ok(Response::new(StartInstanceLauncherResponse {
+            success: true,
+        }))
     }
 
     async fn shut_down_instance_launcher(
         &self,
-        _req: Request<ShutDownInstanceLauncherRequest>,
+        req: Request<ShutDownInstanceLauncherRequest>,
     ) -> Result<Response<ShutDownInstanceLauncherResponse>, Status> {
-        Err(Status::unimplemented(
-            "ShutDownInstanceLauncher not yet implemented",
-        ))
+        let r = req.get_ref();
+        let guid = self.svc.state().config.customer_guid;
+        self.svc
+            .shut_down_launcher(guid, r.world_server_id)
+            .await
+            .map_err(to_status)?;
+        Ok(Response::new(ShutDownInstanceLauncherResponse {
+            success: true,
+        }))
     }
 
     async fn get_zone_instances_for_world_server(
         &self,
-        _req: Request<GetZoneInstancesRequest>,
+        req: Request<GetZoneInstancesRequest>,
     ) -> Result<Response<GetZoneInstancesResponse>, Status> {
-        Err(Status::unimplemented(
-            "GetZoneInstancesForWorldServer not yet implemented",
-        ))
+        let r = req.get_ref();
+        let guid = self.svc.state().config.customer_guid;
+        let instances = self
+            .svc
+            .get_zone_instances(guid, r.world_server_id)
+            .await
+            .map_err(to_status)?;
+        tracing::debug!(count = instances.len(), "GetZoneInstancesForWorldServer");
+        Ok(Response::new(GetZoneInstancesResponse { success: true }))
     }
 
     async fn set_zone_instance_status(
@@ -276,18 +310,37 @@ impl InstanceManagement for InstanceManagementService {
 
     async fn spin_up_instance(
         &self,
-        _req: Request<SpinUpInstanceRequest>,
+        req: Request<SpinUpInstanceRequest>,
     ) -> Result<Response<SpinUpInstanceResponse>, Status> {
-        Err(Status::unimplemented("SpinUpInstance not yet implemented"))
+        let r = req.get_ref();
+        let guid = self.svc.state().config.customer_guid;
+        self.svc
+            .spin_up_server_instance(
+                guid,
+                r.world_server_id,
+                r.zone_instance_id,
+                &r.zone_name,
+                r.port,
+            )
+            .await
+            .map_err(to_status)?;
+        Ok(Response::new(SpinUpInstanceResponse {
+            success: true,
+            error: None,
+        }))
     }
 
     async fn shut_down_instance(
         &self,
-        _req: Request<ShutDownInstanceRequest>,
+        req: Request<ShutDownInstanceRequest>,
     ) -> Result<Response<ShutDownInstanceResponse>, Status> {
-        Err(Status::unimplemented(
-            "ShutDownInstance not yet implemented",
-        ))
+        let r = req.get_ref();
+        let guid = self.svc.state().config.customer_guid;
+        self.svc
+            .shut_down_server_instance(guid, r.zone_instance_id)
+            .await
+            .map_err(to_status)?;
+        Ok(Response::new(ShutDownInstanceResponse { success: true }))
     }
 
     async fn update_number_of_players(
