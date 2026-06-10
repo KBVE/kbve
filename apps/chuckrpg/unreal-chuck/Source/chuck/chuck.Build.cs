@@ -51,7 +51,8 @@ public class chuck : ModuleRules
 			"ROWS",
 			"KBVENet",
 			"KBVENPCDB",
-			"KBVENPCSprite"
+			"KBVENPCSprite",
+			"KBVECombat"
 		});
 
 
@@ -78,7 +79,8 @@ public class chuck : ModuleRules
 			"chuck/Variant_SideScrolling/Gameplay",
 			"chuck/Variant_SideScrolling/Interfaces",
 			"chuck/Variant_SideScrolling/UI",
-			"chuck/NPC"
+			"chuck/NPC",
+			"chuck/Combat"
 		});
 
 		if (Target.bBuildEditor)

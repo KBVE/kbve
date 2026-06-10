@@ -31,4 +31,5 @@ struct FchuckSlimeFragment : public FMassFragment
 	float MaxHP = 20.f;
 	float Attack = 0.f;
 	float Defense = 0.f;
+	float GroundTimer = 0.f;
 };

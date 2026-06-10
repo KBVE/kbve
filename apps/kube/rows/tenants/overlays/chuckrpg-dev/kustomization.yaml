@@ -67,11 +67,11 @@ patches:
             value: rows-chuckrpg-dev-api-tls
           - op: replace
             path: /spec/dnsNames/0
-            value: api-dev.chuckrpg.com
+            value: api.chuckrpg.com
     - target:
           kind: HTTPRoute
           name: ows-api-routes
       patch: |-
           - op: replace
             path: /spec/hostnames/0
-            value: api-dev.chuckrpg.com
+            value: api.chuckrpg.com

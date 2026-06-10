@@ -5,8 +5,9 @@
 #include "KBVENpcSpriteRenderSubsystem.generated.h"
 
 class UKBVENpcSpriteDef;
-class UHierarchicalInstancedStaticMeshComponent;
+class UInstancedStaticMeshComponent;
 class UMaterialInstanceDynamic;
+class UMaterialInterface;
 class UStaticMesh;
 
 USTRUCT(BlueprintType)
@@ -47,16 +48,16 @@ private:
 		TObjectPtr<UKBVENpcSpriteDef> Def = nullptr;
 		FVector Location = FVector::ZeroVector;
 		float FacingYaw = 0.0f;
-		float AnimTime = 0.0f;
-		float Phase = 0.0f;
-		TObjectPtr<UHierarchicalInstancedStaticMeshComponent> HISM = nullptr;
+		FVector AppliedLocation = FVector(FLT_MAX);
+		float AppliedYaw = FLT_MAX;
+		TObjectPtr<UInstancedStaticMeshComponent> HISM = nullptr;
 		int32 Index = INDEX_NONE;
 	};
 
 	void EnsureHost();
 	UStaticMesh* GetPlaneMesh();
-	UHierarchicalInstancedStaticMeshComponent* GetOrCreateHISM(UKBVENpcSpriteDef* Def);
-	bool GetCameraLocation(FVector& OutLocation) const;
+	UMaterialInterface* GetOrCreateBillboardMaterial();
+	UInstancedStaticMeshComponent* GetOrCreateHISM(UKBVENpcSpriteDef* Def);
 
 	UPROPERTY(Transient)
 	TObjectPtr<AActor> HostActor = nullptr;
@@ -65,12 +66,12 @@ private:
 	TObjectPtr<UStaticMesh> PlaneMesh = nullptr;
 
 	UPROPERTY(Transient)
-	TMap<TObjectPtr<UKBVENpcSpriteDef>, TObjectPtr<UHierarchicalInstancedStaticMeshComponent>> DefHISMs;
+	TMap<TObjectPtr<UKBVENpcSpriteDef>, TObjectPtr<UInstancedStaticMeshComponent>> DefHISMs;
 
 	UPROPERTY(Transient)
 	TMap<TObjectPtr<UKBVENpcSpriteDef>, TObjectPtr<UMaterialInstanceDynamic>> DefMIDs;
 
 	TMap<int32, FInstanceRec> Instances;
-	TMap<UHierarchicalInstancedStaticMeshComponent*, TArray<int32>> IndexToHandle;
+	TMap<UInstancedStaticMeshComponent*, TArray<int32>> IndexToHandle;
 	int32 NextHandle = 1;
 };

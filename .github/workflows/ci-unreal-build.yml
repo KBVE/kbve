@@ -869,8 +869,11 @@ jobs:
                   & '${{ steps.engine.outputs.runuat }}' BuildCookRun `
                       -project="$($uproject.FullName)" `
                       -targetplatform=Win64 `
-                      -cook -allmaps -build -stage -pak -archive `
+                      -clientconfig=Shipping `
+                      -cook -map=/Game/Menus/L_MainMenu+/Game/Map/L_ChuckWorld `
+                      -build -stage -pak -archive `
                       -archivedirectory="$out" `
+                      -nodebuginfo `
                       -unattended -utf8output -NoP4
                   if ($LASTEXITCODE -ne 0) { Write-Host "::error::BuildCookRun failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
 
@@ -887,6 +890,23 @@ jobs:
                   name: ${{ inputs.app_name }}-Win64-v${{ needs.game_gate.outputs.version }}
                   path: C:\${{ inputs.app_name }}-Win64-v${{ needs.game_gate.outputs.version }}.zip
                   retention-days: 30
+
+            - name: Deploy to itch.io
+              if: inputs.deploy_to_itch == true && inputs.itch_game_id != ''
+              env:
+                  BUTLER_API_KEY: ${{ secrets.butler_api }}
+              run: |
+                  $zip = "$env:RUNNER_TEMP\butler.zip"
+                  curl.exe -L -s --retry 5 --retry-all-errors -o $zip "https://broth.itch.zone/butler/windows-amd64/LATEST/archive/default"
+                  Expand-Archive -Path $zip -DestinationPath "$env:RUNNER_TEMP\butler" -Force
+                  $butler = "$env:RUNNER_TEMP\butler\butler.exe"
+                  $version = "${{ needs.game_gate.outputs.version }}"
+                  $channel = '${{ inputs.itch_channel }}'
+                  if (-not $channel) { $channel = "windows-v$version" }
+                  $target = "${{ inputs.itch_username }}/${{ inputs.itch_game_id }}:$channel"
+                  Write-Host "::notice::butler push C:\ue5-game-output -> $target (v$version)"
+                  & $butler push "C:\ue5-game-output" $target --userversion $version
+                  if ($LASTEXITCODE -ne 0) { Write-Host "::error::butler push failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
 
             - name: Cleanup
               if: always()

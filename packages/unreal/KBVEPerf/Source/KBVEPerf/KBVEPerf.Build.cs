@@ -16,7 +16,9 @@ public class KBVEPerf : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"HTTPServer",
-			"Json"
+			"Json",
+			"RHI",
+			"RenderCore"
 		});
 
 		bool bPerfEnabled = Target.Configuration != UnrealTargetConfiguration.Shipping;

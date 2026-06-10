@@ -3,6 +3,8 @@
 
 #include "CoreGlobals.h"
 #include "Engine/Engine.h"
+#include "RHI.h"
+#include "RenderingThread.h"
 #include "HAL/IConsoleManager.h"
 #include "HAL/PlatformTLS.h"
 #include "HttpPath.h"
@@ -184,8 +186,9 @@ FString UKBVEPerfSubsystem::BuildJson() const
 	FScopeLock Lock(&Mutex);
 
 	FString Out;
-	Out += FString::Printf(TEXT("{\"frame\":%llu,\"fps\":%.1f,\"ops\":["),
-		static_cast<uint64>(GFrameCounter), CachedFps);
+	Out += FString::Printf(
+		TEXT("{\"frame\":%llu,\"fps\":%.1f,\"gameMs\":%.3f,\"renderMs\":%.3f,\"gpuMs\":%.3f,\"rhiMs\":%.3f,\"ops\":["),
+		static_cast<uint64>(GFrameCounter), CachedFps, CachedGameMs, CachedRenderMs, CachedGpuMs, CachedRhiMs);
 
 	bool bFirst = true;
 	for (const TPair<FName, FKBVEPerfOpStat>& Pair : Ops)
@@ -283,6 +286,10 @@ void UKBVEPerfSubsystem::StopHttp()
 bool UKBVEPerfSubsystem::Tick(float DeltaSeconds)
 {
 	CachedFps = DeltaSeconds > 0.0f ? 1.0f / DeltaSeconds : 0.0f;
+	CachedGameMs = FPlatformTime::ToMilliseconds(GGameThreadTime);
+	CachedRenderMs = FPlatformTime::ToMilliseconds(GRenderThreadTime);
+	CachedGpuMs = FPlatformTime::ToMilliseconds(GGPUFrameTime);
+	CachedRhiMs = FPlatformTime::ToMilliseconds(GRHIThreadTime);
 
 	if (CVarPerfOverlay.GetValueOnGameThread() != 0 && FKBVEPerf::IsEnabled() && GEngine)
 	{
@@ -298,7 +305,8 @@ bool UKBVEPerfSubsystem::Tick(float DeltaSeconds)
 		Worst.Sort([](const TPair<FName, double>& A, const TPair<FName, double>& B) { return A.Value > B.Value; });
 
 		GEngine->AddOnScreenDebugMessage(OverlayKeyBase, 0.0f, FColor::Green,
-			FString::Printf(TEXT("[KBVEPerf] fps %.0f"), CachedFps));
+			FString::Printf(TEXT("[KBVEPerf] fps %.0f | game %.1f draw %.1f gpu %.1f rhi %.1f ms"),
+				CachedFps, CachedGameMs, CachedRenderMs, CachedGpuMs, CachedRhiMs));
 		const int32 N = FMath::Min(8, Worst.Num());
 		for (int32 i = 0; i < N; ++i)
 		{

@@ -63,6 +63,10 @@ private:
 	bool bAllCategories = true;
 
 	float CachedFps = 0.0f;
+	double CachedGameMs = 0.0;
+	double CachedRenderMs = 0.0;
+	double CachedGpuMs = 0.0;
+	double CachedRhiMs = 0.0;
 
 	FTSTicker::FDelegateHandle TickHandle;
 	IConsoleVariable* MasterCVar = nullptr;

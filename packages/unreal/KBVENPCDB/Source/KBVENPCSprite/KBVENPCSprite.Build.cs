@@ -13,5 +13,14 @@ public class KBVENPCSprite : ModuleRules
 			"Engine",
 			"KBVENPCDB"
 		});
+
+		if (Target.bBuildEditor)
+		{
+			PrivateDependencyModuleNames.AddRange(new string[]
+			{
+				"UnrealEd",
+				"MaterialEditor"
+			});
+		}
 	}
 }

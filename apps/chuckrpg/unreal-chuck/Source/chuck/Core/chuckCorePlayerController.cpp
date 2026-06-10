@@ -552,7 +552,9 @@ void AchuckCorePlayerController::OnToggleDevOverlayPressed(const FInputActionVal
 				{
 					if (UMassEntitySubsystem* Mass = W->GetSubsystem<UMassEntitySubsystem>())
 					{
+#if !UE_BUILD_SHIPPING
 						return (int32)Mass->GetEntityManager().DebugGetEntityCount();
+#endif
 					}
 				}
 				return 0;
@@ -1069,7 +1071,7 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 			}
 			if (UchuckNpcSpawner* NpcSpawner = GetWorld()->GetSubsystem<UchuckNpcSpawner>())
 			{
-				NpcSpawner->SpawnCreature(FName(TEXT("glass-slime")), ControlledPawn->GetActorLocation(), 8, 600.f);
+				NpcSpawner->SpawnCreature(FName(TEXT("glass-slime")), ControlledPawn->GetActorLocation(), 100, 3000.f);
 			}
 		}
 
