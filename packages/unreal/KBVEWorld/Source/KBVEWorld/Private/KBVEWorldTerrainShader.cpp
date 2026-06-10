@@ -13,6 +13,7 @@
 #include "Materials/MaterialExpressionWorldPosition.h"
 #include "UObject/Package.h"
 #include "UObject/UObjectGlobals.h"
+#include "UObject/StrongObjectPtr.h"
 
 #if WITH_EDITOR
 #include "MaterialEditingLibrary.h"
@@ -23,7 +24,7 @@
 
 namespace
 {
-	static TWeakObjectPtr<UMaterialInterface> CachedGround;
+	static TStrongObjectPtr<UMaterialInterface> CachedGround;
 
 #if WITH_EDITOR
 	void KBVE_SaveGeneratedMaterial(UMaterial* M)
@@ -70,7 +71,7 @@ UMaterialInterface* FKBVEWorldTerrainShader::GetOrCreateGroundMaterial(UObject* 
 	static const TCHAR* PkgPath = TEXT("/Game/PN_GrassLibrary/Generated/M_KBVEWorld_Ground");
 	if (UMaterialInterface* Existing = LoadObject<UMaterialInterface>(nullptr, PkgPath))
 	{
-		CachedGround = Existing;
+		CachedGround.Reset(Existing);
 		return Existing;
 	}
 
@@ -165,7 +166,7 @@ UMaterialInterface* FKBVEWorldTerrainShader::GetOrCreateGroundMaterial(UObject* 
 	ED->Roughness.Connect(0, Rough);
 
 	KBVE_SaveGeneratedMaterial(M);
-	CachedGround = M;
+	CachedGround.Reset(M);
 	return M;
 #else
 	return nullptr;

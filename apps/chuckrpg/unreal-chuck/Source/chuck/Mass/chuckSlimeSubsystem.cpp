@@ -240,10 +240,17 @@ void UchuckSlimeSubsystem::Repath(int32 SlimeIndex, const FVector& From)
 	const float WanderDist = FMath::FRandRange(300.f, 700.f);
 	FVector Target = From + FVector(FMath::Cos(WanderAngle) * WanderDist, FMath::Sin(WanderAngle) * WanderDist, 0.f);
 
-	if (UNavigationSystemV1* Nav = FNavigationSystem::GetCurrent<UNavigationSystemV1>(World))
+	bool bNavPath = false;
+	bool bProjStart = false;
+	bool bProjTarget = false;
+	UNavigationSystemV1* Nav = FNavigationSystem::GetCurrent<UNavigationSystemV1>(World);
+	if (Nav)
 	{
+		FNavLocation ProjFrom;
+		bProjStart = Nav->ProjectPointToNavigation(From, ProjFrom, FVector(400.f, 400.f, 800.f));
 		FNavLocation Proj;
-		if (Nav->ProjectPointToNavigation(Target, Proj, FVector(400.f, 400.f, 800.f)))
+		bProjTarget = Nav->ProjectPointToNavigation(Target, Proj, FVector(400.f, 400.f, 800.f));
+		if (bProjTarget)
 		{
 			Target = Proj.Location;
 		}
@@ -255,6 +262,7 @@ void UchuckSlimeSubsystem::Repath(int32 SlimeIndex, const FVector& From)
 				{
 					P.Add(Pt);
 				}
+				bNavPath = true;
 			}
 		}
 	}
@@ -262,6 +270,15 @@ void UchuckSlimeSubsystem::Repath(int32 SlimeIndex, const FVector& From)
 	if (P.Num() == 0)
 	{
 		P.Add(Target);
+	}
+
+	static int32 NavOk = 0;
+	static int32 Fallback = 0;
+	(bNavPath ? NavOk : Fallback)++;
+	if (((NavOk + Fallback) % 16) == 1)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[SlimeNav] navmesh=%d fallback=%d navNull=%d projStart=%d projTarget=%d"),
+			NavOk, Fallback, Nav ? 0 : 1, bProjStart ? 1 : 0, bProjTarget ? 1 : 0);
 	}
 }
 
@@ -295,6 +312,14 @@ void UchuckSlimeSubsystem::SpawnSlimes(const FVector& Center, int32 Count, float
 	{
 		return;
 	}
+
+	if (UNavigationSystemV1* Nav = FNavigationSystem::GetCurrent<UNavigationSystemV1>(World))
+	{
+		Nav->Build();
+		ANavigationData* MainNav = Nav->GetDefaultNavDataInstance(FNavigationSystem::ECreateIfMissing::DontCreate);
+		UE_LOG(LogTemp, Warning, TEXT("[SlimeNav] navdata after build = %s"), MainNav ? *MainNav->GetClass()->GetName() : TEXT("NULL"));
+	}
+
 	EnsureISM();
 	if (!ISM)
 	{
@@ -378,8 +403,6 @@ void UchuckSlimeSubsystem::Tick(float DeltaTime)
 		CamRight.Normalize();
 	}
 
-	const float Step = 1.f / FrameRate;
-
 	for (int32 i = 0; i < Slimes.Num(); ++i)
 	{
 		const FMassEntityHandle E = Slimes[i];
@@ -425,33 +448,38 @@ void UchuckSlimeSubsystem::Tick(float DeltaTime)
 		if (bMoving)
 		{
 			Dir /= Flat;
-			FVector NewPos = Pos + Dir * S->Speed * DeltaTime;
+			S->HopPhase += DeltaTime * HopRate;
+			const float HopUp = FMath::Max(0.f, FMath::Sin(S->HopPhase));
+
+			FVector NewPos = Pos + Dir * S->Speed * DeltaTime * HopUp * HopMoveScale;
 			S->GroundZ = GroundTraceZ(NewPos.X, NewPos.Y, S->GroundZ);
-			S->HopPhase += DeltaTime * 7.f;
-			const float Hop = FMath::Abs(FMath::Sin(S->HopPhase)) * 28.f;
-			NewPos.Z = S->GroundZ + HalfHeight + Hop;
+			NewPos.Z = S->GroundZ + (HalfHeight - FootBias) + HopUp * HopAmp;
 			T->GetMutableTransform().SetLocation(NewPos);
 
-			FVector ToCam = CamLoc - NewPos;
-			ToCam.Z = 0.f;
-			ToCam.Normalize();
-			FacingFromMove(Dir, ToCam, CamRight, RowVal, FlipVal);
-
-			S->FrameTime += DeltaTime;
-			while (S->FrameTime >= Step)
+			const int32 CycleIdx = (int32)(S->HopPhase / (2.f * PI));
+			if (CycleIdx != S->HopCycle)
 			{
-				S->FrameTime -= Step;
-				S->Frame = (S->Frame + 1) % Cols;
+				S->HopCycle = CycleIdx;
+				FVector ToCam = CamLoc - NewPos;
+				ToCam.Z = 0.f;
+				ToCam.Normalize();
+				FacingFromMove(Dir, ToCam, CamRight, S->FacingRow, S->FacingFlip);
 			}
+			RowVal = S->FacingRow;
+			FlipVal = S->FacingFlip;
+
+			const float Cycle = FMath::Frac(S->HopPhase / (2.f * PI));
+			S->Frame = FMath::Clamp((int32)(Cycle * Cols), 0, Cols - 1);
 			Pos = NewPos;
 		}
 		else
 		{
-			Pos.Z = S->GroundZ + HalfHeight;
+			Pos.Z = S->GroundZ + (HalfHeight - FootBias);
 			T->GetMutableTransform().SetLocation(Pos);
 			S->Frame = 0;
-			RowVal = 0;
-			FlipVal = 0.f;
+			S->HopCycle = -1;
+			RowVal = S->FacingRow;
+			FlipVal = S->FacingFlip;
 		}
 
 		const FTransform IT(BillboardRot(Pos, CamLoc), Pos, FVector(QuadScale));

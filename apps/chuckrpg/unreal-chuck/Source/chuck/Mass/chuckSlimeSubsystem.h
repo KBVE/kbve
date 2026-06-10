@@ -39,4 +39,8 @@ private:
 	static constexpr float FrameRate = 8.f;
 	static constexpr float QuadScale = 1.5f;
 	static constexpr float HalfHeight = 50.f * QuadScale;
+	static constexpr float FootBias = 18.f;
+	static constexpr float HopAmp = 28.f;
+	static constexpr float HopRate = 6.f;
+	static constexpr float HopMoveScale = 3.2f;
 };
