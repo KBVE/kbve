@@ -296,9 +296,10 @@ void UchuckSlimeSubsystem::SpawnSlimes(const FVector& Center, int32 Count, float
 
 	for (int32 i = 0; i < Count; ++i)
 	{
-		const float Angle = (2.f * PI * i) / FMath::Max(1, Count);
-		const double X = Center.X + FMath::Cos(Angle) * Radius;
-		const double Y = Center.Y + FMath::Sin(Angle) * Radius;
+		const float Angle = FMath::FRandRange(0.f, 2.f * PI);
+		const float R = Radius * FMath::Sqrt(FMath::FRand());
+		const double X = Center.X + FMath::Cos(Angle) * R;
+		const double Y = Center.Y + FMath::Sin(Angle) * R;
 		const float GroundZ = GroundTraceZ(X, Y, (float)Center.Z);
 
 		const FMassEntityHandle E = EM.CreateEntity(Archetype);
@@ -406,6 +407,8 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 	UKBVENetEntityReplicator* Rep = EnsureReplicator(true);
 	UKBVENpcSpriteRenderSubsystem* Renderer = GetSpriteRenderer();
 
+	int32 RepathBudget = 4;
+
 	for (int32 i = 0; i < Slimes.Num(); ++i)
 	{
 		const FMassEntityHandle E = Slimes[i];
@@ -424,8 +427,9 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 
 		S->RepathTimer -= DeltaTime;
 		TArray<FVector>& P = Paths[i];
-		if (P.Num() == 0 || S->PathIndex >= P.Num() || S->RepathTimer <= 0.f)
+		if ((P.Num() == 0 || S->PathIndex >= P.Num() || S->RepathTimer <= 0.f) && RepathBudget > 0)
 		{
+			--RepathBudget;
 			Repath(i, Pos);
 			S->PathIndex = (P.Num() > 1) ? 1 : 0;
 			S->RepathTimer = FMath::FRandRange(3.f, 6.f);
@@ -454,7 +458,12 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 			const float HopUp = FMath::Max(0.f, FMath::Sin(S->HopPhase));
 
 			FVector NewPos = Pos + Dir * S->Speed * DeltaTime * HopUp * HopMoveScale;
-			S->GroundZ = GroundFootprintMinZ(NewPos.X, NewPos.Y, FootprintRadius, S->GroundZ);
+			S->GroundTimer -= DeltaTime;
+			if (S->GroundTimer <= 0.f)
+			{
+				S->GroundZ = GroundFootprintMinZ(NewPos.X, NewPos.Y, FootprintRadius, S->GroundZ);
+				S->GroundTimer = FMath::FRandRange(0.18f, 0.30f);
+			}
 			NewPos.Z = S->GroundZ + HopUp * HopAmp;
 			T->GetMutableTransform().SetLocation(NewPos);
 			Pos = NewPos;

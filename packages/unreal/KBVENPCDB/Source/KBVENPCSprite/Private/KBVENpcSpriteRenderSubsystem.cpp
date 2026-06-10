@@ -2,7 +2,7 @@
 #include "KBVENpcSpriteDef.h"
 #include "KBVENpcSpriteDirection.h"
 
-#include "Components/HierarchicalInstancedStaticMeshComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
@@ -78,13 +78,13 @@ UStaticMesh* UKBVENpcSpriteRenderSubsystem::GetPlaneMesh()
 	return PlaneMesh;
 }
 
-UHierarchicalInstancedStaticMeshComponent* UKBVENpcSpriteRenderSubsystem::GetOrCreateHISM(UKBVENpcSpriteDef* Def)
+UInstancedStaticMeshComponent* UKBVENpcSpriteRenderSubsystem::GetOrCreateHISM(UKBVENpcSpriteDef* Def)
 {
 	if (!Def)
 	{
 		return nullptr;
 	}
-	if (TObjectPtr<UHierarchicalInstancedStaticMeshComponent>* Found = DefHISMs.Find(Def))
+	if (TObjectPtr<UInstancedStaticMeshComponent>* Found = DefHISMs.Find(Def))
 	{
 		return *Found;
 	}
@@ -96,8 +96,8 @@ UHierarchicalInstancedStaticMeshComponent* UKBVENpcSpriteRenderSubsystem::GetOrC
 		return nullptr;
 	}
 
-	UHierarchicalInstancedStaticMeshComponent* HISM =
-		NewObject<UHierarchicalInstancedStaticMeshComponent>(HostActor, NAME_None, RF_Transient);
+	UInstancedStaticMeshComponent* HISM =
+		NewObject<UInstancedStaticMeshComponent>(HostActor, NAME_None, RF_Transient);
 	HISM->SetMobility(EComponentMobility::Movable);
 	HISM->SetupAttachment(HostActor->GetRootComponent());
 	HISM->NumCustomDataFloats = 4;
@@ -105,6 +105,8 @@ UHierarchicalInstancedStaticMeshComponent* UKBVENpcSpriteRenderSubsystem::GetOrC
 	HISM->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HISM->SetCanEverAffectNavigation(false);
 	HISM->bDisableCollision = true;
+	HISM->SetCastShadow(false);
+	HISM->bReceivesDecals = false;
 
 	if (Def->SpriteMaterial)
 	{
@@ -144,7 +146,7 @@ bool UKBVENpcSpriteRenderSubsystem::GetCameraLocation(FVector& OutLocation) cons
 FKBVENpcSpriteHandle UKBVENpcSpriteRenderSubsystem::SpawnSprite(UKBVENpcSpriteDef* Def, FVector Location, float FacingYawDeg)
 {
 	FKBVENpcSpriteHandle Handle;
-	UHierarchicalInstancedStaticMeshComponent* HISM = GetOrCreateHISM(Def);
+	UInstancedStaticMeshComponent* HISM = GetOrCreateHISM(Def);
 	if (!HISM)
 	{
 		return Handle;
@@ -183,7 +185,7 @@ void UKBVENpcSpriteRenderSubsystem::DespawnSprite(FKBVENpcSpriteHandle Handle)
 	{
 		return;
 	}
-	UHierarchicalInstancedStaticMeshComponent* HISM = Rec->HISM;
+	UInstancedStaticMeshComponent* HISM = Rec->HISM;
 	TArray<int32>* Idx = HISM ? IndexToHandle.Find(HISM) : nullptr;
 	if (!HISM || !Idx)
 	{
@@ -222,13 +224,13 @@ void UKBVENpcSpriteRenderSubsystem::Tick(float DeltaTime)
 		return;
 	}
 
-	TSet<UHierarchicalInstancedStaticMeshComponent*> Touched;
+	TSet<UInstancedStaticMeshComponent*> Touched;
 
 	for (TPair<int32, FInstanceRec>& Pair : Instances)
 	{
 		FInstanceRec& Rec = Pair.Value;
 		UKBVENpcSpriteDef* Def = Rec.Def;
-		UHierarchicalInstancedStaticMeshComponent* HISM = Rec.HISM;
+		UInstancedStaticMeshComponent* HISM = Rec.HISM;
 		if (!Def || !HISM)
 		{
 			continue;
@@ -287,7 +289,7 @@ void UKBVENpcSpriteRenderSubsystem::Tick(float DeltaTime)
 		Touched.Add(HISM);
 	}
 
-	for (UHierarchicalInstancedStaticMeshComponent* HISM : Touched)
+	for (UInstancedStaticMeshComponent* HISM : Touched)
 	{
 		HISM->MarkRenderStateDirty();
 	}

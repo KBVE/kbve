@@ -1069,7 +1069,7 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 			}
 			if (UchuckNpcSpawner* NpcSpawner = GetWorld()->GetSubsystem<UchuckNpcSpawner>())
 			{
-				NpcSpawner->SpawnCreature(FName(TEXT("glass-slime")), ControlledPawn->GetActorLocation(), 8, 600.f);
+				NpcSpawner->SpawnCreature(FName(TEXT("glass-slime")), ControlledPawn->GetActorLocation(), 100, 3000.f);
 			}
 		}
 

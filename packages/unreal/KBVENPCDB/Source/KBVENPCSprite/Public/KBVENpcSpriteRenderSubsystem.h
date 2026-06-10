@@ -5,7 +5,7 @@
 #include "KBVENpcSpriteRenderSubsystem.generated.h"
 
 class UKBVENpcSpriteDef;
-class UHierarchicalInstancedStaticMeshComponent;
+class UInstancedStaticMeshComponent;
 class UMaterialInstanceDynamic;
 class UStaticMesh;
 
@@ -49,13 +49,13 @@ private:
 		float FacingYaw = 0.0f;
 		float AnimTime = 0.0f;
 		float Phase = 0.0f;
-		TObjectPtr<UHierarchicalInstancedStaticMeshComponent> HISM = nullptr;
+		TObjectPtr<UInstancedStaticMeshComponent> HISM = nullptr;
 		int32 Index = INDEX_NONE;
 	};
 
 	void EnsureHost();
 	UStaticMesh* GetPlaneMesh();
-	UHierarchicalInstancedStaticMeshComponent* GetOrCreateHISM(UKBVENpcSpriteDef* Def);
+	UInstancedStaticMeshComponent* GetOrCreateHISM(UKBVENpcSpriteDef* Def);
 	bool GetCameraLocation(FVector& OutLocation) const;
 
 	UPROPERTY(Transient)
@@ -65,12 +65,12 @@ private:
 	TObjectPtr<UStaticMesh> PlaneMesh = nullptr;
 
 	UPROPERTY(Transient)
-	TMap<TObjectPtr<UKBVENpcSpriteDef>, TObjectPtr<UHierarchicalInstancedStaticMeshComponent>> DefHISMs;
+	TMap<TObjectPtr<UKBVENpcSpriteDef>, TObjectPtr<UInstancedStaticMeshComponent>> DefHISMs;
 
 	UPROPERTY(Transient)
 	TMap<TObjectPtr<UKBVENpcSpriteDef>, TObjectPtr<UMaterialInstanceDynamic>> DefMIDs;
 
 	TMap<int32, FInstanceRec> Instances;
-	TMap<UHierarchicalInstancedStaticMeshComponent*, TArray<int32>> IndexToHandle;
+	TMap<UInstancedStaticMeshComponent*, TArray<int32>> IndexToHandle;
 	int32 NextHandle = 1;
 };
