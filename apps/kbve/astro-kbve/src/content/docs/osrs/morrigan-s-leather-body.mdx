@@ -1,6 +1,6 @@
 ---
 title: Morrigan's leather body | OSRS Price Data
-description: "Morrigan's leather body: A powerful leather body.. High alch: 300,000 GP, GE limit: 10."
+description: "Morrigan's leather body: A powerful leather body. PvP-only ranged degradable body from Revenant chests. High alch: 300,000 GP, GE limit: 10."
 osrs:
   id: 22641
   name: Morrigan's leather body
@@ -12,9 +12,109 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: 10
-  about: "Morrigan's leather body is a members-only item in Old School RuneScape. High alchemy value: 300,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: armour
+    tier: high
+  properties:
+    release_date: "2009-05-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: unarmed
+    weight: 4.5
+    requirements:
+      ranged: 70
+      defence: 25
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: 0
+    defence_bonus:
+      stab: 79
+      slash: 65
+      crush: 92
+      magic: 24
+      ranged: 70
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Revenant maledictus
+        quantity: "1"
+        rarity: "1/256"
+      - source: Revenant cyclops
+        quantity: "1"
+        rarity: "1/853"
+      - source: Revenant demon
+        quantity: "1"
+        rarity: "1/1024"
+      - source: Revenant dragon
+        quantity: "1"
+        rarity: "1/1024"
+      - source: Revenant knight
+        quantity: "1"
+        rarity: "1/1024"
+      - source: Revenant ork
+        quantity: "1"
+        rarity: "1/1280"
+  related_items:
+    - item_name: "Morrigan's leather chaps"
+      slug: morrigan-s-leather-chaps
+      relationship: set-piece
+      description: "Matching ranged legs from the Morrigan PvP set."
+    - item_name: "Morrigan's coif"
+      slug: morrigan-s-coif
+      relationship: set-piece
+      description: "Matching ranged head slot from the Morrigan PvP set."
+    - item_name: "Morrigan's javelin"
+      slug: morrigan-s-javelin
+      relationship: set-piece
+      description: "Throwable javelin paired with the Morrigan ranged set in PvP."
+    - item_name: "Morrigan's throwing axe"
+      slug: morrigan-s-throwing-axe
+      relationship: set-piece
+      description: "Throwing axe paired with the Morrigan ranged set in PvP."
+    - item_name: "Karil's leathertop"
+      slug: karil-s-leathertop
+      relationship: alternative
+      description: "Standard non-degrading ranged body for PvM."
+  about: |-
+    > _"A powerful leather body."_
+
+    Morrigan's leather body is the ranged body in the Vesta/Statius/Zuriel/Morrigan ancient warriors line. It's only useful in PvP combat where it degrades over time, providing strong ranged defence and the highest crush defence of any ranged body. Sourced from Revenant chests in the Forinthry Dungeon, with the maledictus carrying the highest drop rate at 1/256.
+  market_strategy:
+    notes:
+      - "Pure PvP utility — PvMers will never wear it, so demand is entirely Wilderness/PKer driven."
+      - "Revenant cave activity (and Wilderness population) sets supply; price spikes during bounty events."
+      - "Degrades to dust after 15 hours of combat, creating constant burn-down demand."
+  trading_tips:
+    - "Buy limit is 10 per 4 hours — large PKers stockpile before tournaments."
+    - "Track Wilderness-update news; any Revenant rework would significantly shift floor."
+  history:
+    - date: "2009-05-19"
+      description: "Originally released in pre-EoC RuneScape as part of the Bounty Hunter ancient warriors gear."
+    - date: "2018-08-23"
+      description: "Added to Old School with the Revenant Caves rework as a 1/256-1/1280 chest drop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

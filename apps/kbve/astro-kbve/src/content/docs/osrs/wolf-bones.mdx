@@ -12,9 +12,73 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Wolf bones is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: bone
+    tier: low
+  properties:
+    release_date: "2002-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Bury
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  prayer:
+    xp_bury: 4.5
+    xp_gilded_altar: 15.75
+    xp_chaos_altar: 31.5
+    xp_ectofuntus: 18
+  drop_table:
+    sources:
+      - source: Wolf
+        quantity: "1"
+        rarity: "always"
+      - source: Werewolf
+        quantity: "1"
+        rarity: "always"
+      - source: White wolf
+        quantity: "1"
+        rarity: "always"
+      - source: Big wolf
+        quantity: "1"
+        rarity: "always"
+  related_items:
+    - item_name: Bones
+      slug: bones
+      relationship: variant
+      description: "Standard regular bones dropped by humans and low-level monsters."
+    - item_name: Big bones
+      slug: big-bones
+      relationship: upgrade
+      description: "Larger bones giving 15 Prayer xp on burial."
+    - item_name: Dragon bones
+      slug: dragon-bones
+      relationship: upgrade
+      description: "High-tier dragon bones at 72 Prayer xp on burial."
+  about: |-
+    > _"Bones of a recently slain wolf."_
+
+    Wolf bones are a members-only bone drop from the various wolves around Gielinor. Mechanically identical to regular bones (4.5 Prayer xp on burial), they are mostly used by Ironmen and quest-step collectors rather than mainline Prayer trainers.
+  market_strategy:
+    notes:
+      - "Niche demand — most regular Prayer trainers buy plain Bones instead."
+      - "Used as a step in the Rag and Bone Man quest line and a few Slayer task fillers."
+      - "Members-only restriction and identical xp to regular bones keep volume thin."
+  trading_tips:
+    - "Buy limit 13,000 per 4 hours — generally only Ironmen care about wolf-specific drops."
+    - "Watch for spikes around Rag and Bone Man wishlist updates."
+  history:
+    - date: "2002-01-04"
+      description: "Wolf bones added with the introduction of wolves around White Wolf Mountain."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Jute fibre | OSRS Price Data
-description: "Jute fibre: I can weave this to make sacks.. High alch: 3 GP, GE limit: 13,000."
+description: "Jute fibre is the Farming harvest of jute seeds at level 13, spun into sack scraps for empty sacks. High alch: 3 GP, GE limit: 13,000."
 osrs:
   id: 5931
   name: Jute fibre
@@ -12,9 +12,98 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 13000
-  about: "Jute fibre is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: plant-fibre
+    tier: low
+  properties:
+    release_date: "2005-05-09"
+    update: "Farming"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  farming:
+    seed_id: 5341
+    seed_name: Jute seed
+    farming_level: 13
+    plant_xp: 8
+    harvest_xp: 13.5
+    patch_type: hops
+    growth_time: 60
+    payment: "3 baskets of cabbages per patch (gardener watch)"
+    compost_type: supercompost
+  skilling_sources:
+    - skill: farming
+      level: 13
+      xp: 13.5
+      location: Hops patches (Lumbridge, Yanille, McGrubor's Wood, Entrana)
+      method: "Plant jute seeds in any hops patch and harvest at 13 Farming"
+      members_only: true
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 0
+      facility: Spinning wheel
+      materials:
+        - item_id: 5931
+          item_name: Jute fibre
+          quantity: 1
+      output_quantity: 1
+      product: Sack scrap
+      members_only: true
+      notes: "Spin jute fibre at a spinning wheel; four scraps make one empty sack"
+  used_in:
+    - product: Empty sack
+      slug: empty-sack
+      skill: crafting
+      level: 21
+      xp: 1
+      quantity: 4
+      members_only: true
+      notes: "Four jute scraps spun together produce an empty sack used in Sandstone delivery"
+  related_items:
+    - item_id: 5341
+      item_name: Jute seed
+      slug: jute-seed
+      relationship: component
+      description: Seed planted at 13 Farming to grow jute fibre
+    - item_id: 5418
+      item_name: Empty sack
+      slug: empty-sack
+      relationship: product
+      description: Crafted from spun jute scraps and used to bag sandstone or grain
+    - item_id: 6010
+      item_name: Hammerstone hops
+      slug: hammerstone-hops
+      relationship: alternative
+      description: Alternative hops-patch crop grown at low Farming levels
+  about: "Jute fibre is a hops-patch crop harvested from jute seeds at 13 Farming. Players spin jute fibre at any spinning wheel to obtain sack scraps that combine into empty sacks used for Sandstone delivery, grain hauling, and Crafting tasks. With a 13,000 GE buy limit and very low alch value, jute fibre is a low-margin bulk Farming output mostly demanded by sandstone bagging routines."
+  market_strategy:
+    notes:
+      - "Investment Notes"
+      - "Farming output keeps GE supply abundant and prices flat"
+      - "Demand spikes around Crafting bot bans and bulk Sandstone bag runs"
+      - "Buy limit of 13,000 supports very large bulk flips at thin margins"
+      - "High alch unprofitable: 3 gp return barely covers nature rune cost"
+  trading_tips:
+    - "Cross-check jute seed price for Farming run profitability"
+    - "Bulk-buy after major bot bans for Crafting demand surge"
+    - "Pair with empty sack arbitrage when sandstone mining is in vogue"
+  history:
+    - date: "2005-05-09"
+      description: "Added with the Farming skill launch as a hops-patch crop."
+    - date: "2006-12-12"
+      description: "Sandstone delivery contract introduced steady empty sack demand for jute fibre spinning."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

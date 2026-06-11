@@ -1,6 +1,6 @@
 ---
 title: Blue d'hide body (g) | OSRS Price Data
-description: "Blue d'hide body (g) is a members body slot item requiring 40 Defence. High alch: 5,616 GP, GE limit: 8."
+description: "Blue d'hide body (g) is a members body slot item requiring 50 Ranged and 40 Defence. High alch: 5,616 GP, GE limit: 8."
 osrs:
   id: 7374
   name: Blue d'hide body (g)
@@ -12,89 +12,104 @@ osrs:
   lowalch: 3744
   highalch: 5616
   limit: 8
+  material:
+    type: hide
+    tier: mid-high
   equipment:
     slot: body
-    type: ranged_armour
+    weight: 6.803
     requirements:
       ranged: 50
       defence: 40
       quest: Dragon Slayer I
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -15
-      attack_ranged: 20
-      defence_stab: 23
-      defence_slash: 30
-      defence_crush: 30
-      defence_magic: 28
-      defence_ranged: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -15
+      ranged: 20
+    defence_bonus:
+      stab: 23
+      slash: 30
+      crush: 30
+      magic: 28
+      ranged: 40
+    other_bonus:
       melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: true
+    quest_item: false
+    quest: Dragon Slayer I
     weight: 6.803
-  obtaining:
-    methods:
+    options:
+      - Wear
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  drop_table:
+    sources:
       - source: Reward casket (hard)
-        drop_rate: 1/1,625
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/1625
+        members_only: true
   related_items:
     - item_id: 2499
       item_name: Blue d'hide body
-      slug: blue-dhide-body
-      relationship: alternative
-      description: Same stats, non-trimmed
+      slug: blue-d-hide-body
+      relationship: variant
+      description: Standard untrimmed variant with identical stats
     - item_id: 7376
       item_name: Blue d'hide body (t)
-      slug: blue-dhide-body-t
-      relationship: alternative
-      description: Trimmed variant, same stats
+      slug: blue-d-hide-body-t
+      relationship: variant
+      description: Trimmed colour variant with identical stats
     - item_id: 7370
       item_name: Green d'hide body (g)
-      slug: green-dhide-body-g
-      relationship: alternative
-      description: Lower tier gold-trimmed body
-  about: |-
-    "Made from 100% real dragonhide. With colourful trim!"
-
-    | Stat | Value |
-    |------|-------|
-    | Stab Attack | +0 |
-    | Slash Attack | +0 |
-    | Crush Attack | +0 |
-    | Magic Attack | -15 |
-    | Ranged Attack | +20 |
-    | Stab Defence | +23 |
-    | Slash Defence | +30 |
-    | Crush Defence | +30 |
-    | Magic Defence | +28 |
-    | Ranged Defence | +40 |
-    | Melee Strength | +0 |
-    | Ranged Strength | +0 |
-    | Magic Damage | +0% |
-    | Prayer | +0 |
-
-    Requirements: 50 Ranged, 40 Defence, Dragon Slayer I
-
-    | Item | Ranged Atk | Ranged Def | Magic Def | Source |
-    |------|-----------|-----------|----------|--------|
-    | Blue d'hide body (g) | +20 | +40 | +28 | Hard clues |
-    | Blue d'hide body | +20 | +40 | +28 | Crafting (71) |
-
-    Stats are identical to the standard blue d'hide body. The gold-trimmed version is purely cosmetic and more expensive due to its rarity from Treasure Trails.
+      slug: green-d-hide-body-g
+      relationship: downgrade
+      description: Lower-tier gold-trimmed dragonhide body
+    - item_id: 7378
+      item_name: Red d'hide body (g)
+      slug: red-d-hide-body-g
+      relationship: upgrade
+      description: Higher-tier gold-trimmed dragonhide body
+  quest_data:
+    quests:
+      - quest_name: Dragon Slayer I
+        role: required
+        notes: Equipping any blue dragonhide body requires completing Dragon Slayer I.
   market_strategy:
     notes:
-      - Fashionscape / cosmetic flex
-      - Hard clue reward rarity
-      - Collection log completionists
-      - Trimmed d'hide set completion
-      - Identical stats to blue d'hide body
-      - Value is purely cosmetic rarity
-      - Price fluctuates with clue scroll activity
-      - Low trade volume, watch for manipulation
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Investment Notes"
+      - "Hard clue reward — supply gated by clue completion rate"
+      - "Stats are identical to the plain blue d'hide body, so value is pure cosmetic"
+      - "Buy limit of 8 makes large positions slow to build"
+      - "Collection-log completionists drive baseline demand"
+  trading_tips:
+    - Watch for clue-scroll event spikes that flood supply
+    - Compare against the (t) variant — collectors price both versions independently
+    - Use the GE for high-volume trades to avoid private-trade scams
+  about: Blue d'hide body (g) is the gold-trimmed cosmetic variant of the blue dragonhide body, rolled as a rare reward from hard clue scroll caskets and identical in stats to the plain version.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  history:
+    - date: "2005-08-08"
+      description: "Blue d'hide body (g) released with the trimmed clue scroll reward expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

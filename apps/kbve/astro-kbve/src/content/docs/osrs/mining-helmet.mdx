@@ -1,6 +1,6 @@
 ---
 title: Mining helmet | OSRS Price Data
-description: "Mining helmet: A helmet with an unlit lamp on it.. High alch: 360 GP, GE limit: 4."
+description: "Mining helmet: A helmet with an unlit lamp on it. High alch: 360 GP, GE limit: 4."
 osrs:
   id: 5014
   name: Mining helmet
@@ -12,9 +12,83 @@ osrs:
   lowalch: 240
   highalch: 360
   limit: 4
-  about: "Mining helmet is a members-only item in Old School RuneScape. High alchemy value: 360 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2005-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Light
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: null
+    attack_speed: null
+    attack_range: null
+    weight: 0.907
+    requirements:
+      none: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: -1
+    defence_bonus:
+      stab: 4
+      slash: 5
+      crush: 3
+      magic: -1
+      ranged: 4
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Miltog's Lamps"
+      location: Dorgesh-Kaan
+      price: 900
+      currency: Coins
+      stock: 1
+  related_items:
+    - item_name: Mining helmet (lit)
+      slug: mining-helmet-lit
+      relationship: upgrade
+      description: "Lit version that acts as an equipped light source"
+    - item_name: Bruma torch
+      slug: bruma-torch
+      relationship: alternative
+      description: "Alternative wieldable light source from Wintertodt"
+    - item_name: Candle lantern
+      slug: candle-lantern
+      relationship: alternative
+      description: "Cheaper handheld light source for dark areas"
+  about: "The Mining helmet is a head slot light source available after The Lost Tribe quest. It can be purchased from Miltog's Lamps in Dorgesh-Kaan or shown to Mistag, and once lit with 65 Firemaking and a tinderbox, it functions as an always-on light source while keeping the inventory free."
+  market_strategy:
+    notes:
+      - "Tiny 4-item buy limit makes the GE more of a convenience than a flipping target"
+      - "Dorgesh-Kaan shop floor at 900 gp keeps the GE price anchored close to alch"
+      - "Demand is concentrated around Dorgesh-Kaan slayer tasks and Lumbridge cave runs"
+  trading_tips:
+    - "Shop-buy from Miltog's at 900 gp when GE supply runs short"
+    - "Quest lock on The Lost Tribe limits the casual supply pool"
+  history:
+    - date: "2005-05-31"
+      description: "Released with The Lost Tribe quest as a wearable light source."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

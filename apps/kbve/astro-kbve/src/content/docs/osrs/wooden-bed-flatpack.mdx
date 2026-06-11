@@ -1,6 +1,6 @@
 ---
 title: Wooden bed (flatpack) | OSRS Price Data
-description: "Wooden bed (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Wooden bed (flatpack): How does it all fit in there? High alch: 6 GP, GE limit: 500."
 osrs:
   id: 8576
   name: Wooden bed (flatpack)
@@ -12,9 +12,69 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Wooden bed (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: flatpack
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 20
+      xp: 117
+      materials:
+        - item_name: Plank
+          quantity: 3
+      tools:
+        - Saw
+        - Hammer
+      facility: Flatpack workbench
+      output_quantity: 1
+      members_only: true
+  construction:
+    construction_level: 20
+    construction_xp: 117
+    room: Bedroom
+    hotspot: Bed
+    flatpack: true
+  related_items:
+    - item_id: 960
+      item_name: Plank
+      slug: plank
+      relationship: component
+      description: "Three planks make one wooden bed flatpack"
+    - item_id: 8578
+      item_name: Large oak bed (flatpack)
+      slug: large-oak-bed-flatpack
+      relationship: upgrade
+      description: "Higher-tier bed flatpack at 34 Construction"
+  about: |-
+    A wooden bed flatpack is a Construction product made at a workbench in the Workshop room of a player-owned house. Crafted from 3 planks at 20 Construction for 117 XP, it can be transported to another player's POH and unpacked in their Bedroom on a bed hotspot.
+
+    Flatpacks are the most common method of training Construction for friends or selling cheap furniture on the Grand Exchange. The wooden bed flatpack is one of the earliest entries in the bed flatpack progression.
+  market_strategy:
+    notes:
+      - "Steady demand from Construction services and low-level house decorators"
+      - "Profit driver is the plank-to-flatpack spread on the Grand Exchange"
+      - "Buy limit 500 per 4 hours allows decent bulk flipping"
+  trading_tips:
+    - "Compare with plank cost: 3 planks vs flatpack price determines margin"
+    - "Mass-make these in your workshop for cheap Construction XP and GE income"
+  history:
+    - date: "2006-05-31"
+      description: "Released with the Construction skill launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,57 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Rune defender ornament kit is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: ornament_kit
+    tier: high
+  properties:
+    release_date: "2018-04-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  related_items:
+    - item_id: 8850
+      item_name: Rune defender
+      slug: rune-defender
+      relationship: component
+      description: "Base defender that the kit is applied to"
+    - item_id: 23230
+      item_name: Rune defender (t)
+      slug: rune-defender-t
+      relationship: product
+      description: "Trimmed cosmetic variant created when the kit is applied"
+    - item_id: 20143
+      item_name: Dragon defender ornament kit
+      slug: dragon-defender-ornament-kit
+      relationship: variant
+      description: "Higher tier defender ornament kit from master clues"
+  about: "Rune defender ornament kit is a hard clue scroll reward applied to a rune defender to create the cosmetic rune defender (t); the kit can be detached and resold, but the trim provides no combat bonuses."
+  market_strategy:
+    notes:
+      - "Hard clue exclusive supply throttled by 4/4hr buy limit"
+      - "Pure cosmetic kit; demand follows Warriors' Guild defender grinders"
+      - "Detach the kit before reselling to recover invested value"
+  trading_tips:
+    - "Watch hard clue volume; price spikes during clue-focused events"
+    - "Pair with a freshly earned rune defender for the cleanest cosmetic build"
+  history:
+    - date: "2018-04-26"
+      description: "Rune defender ornament kit released as a hard clue scroll reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

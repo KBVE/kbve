@@ -1,6 +1,6 @@
 ---
 title: Bow of faerdhinen (inactive) | OSRS Price Data
-description: "Bow of faerdhinen (inactive) is a members two-handed weapon requiring 75 Ranged. High alch: 3,000,000 GP."
+description: "Bow of faerdhinen (inactive) is the tradeable corrupted shell of the elven bow that activates on use. High alch: 3,000,000 GP."
 osrs:
   id: 25862
   name: Bow of faerdhinen (inactive)
@@ -12,106 +12,134 @@ osrs:
   lowalch: 2000000
   highalch: 3000000
   limit: null
+  material:
+    type: crystal
+    tier: high
   equipment:
-    slot: 2h
-    type: bow
-    attack_style: ranged
+    slot: weapon
+    weapon_type: bow
+    weight: 1.36
     attack_speed: 5
     attack_range: 10
+    tradeable: true
     requirements:
       ranged: 75
       agility: 75
-    stats:
-      attack_ranged: 128
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 128
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 106
-  effect:
-    corrupted: true
-    never_degrades: true
-    untradeable: true
-    cannot_revert: true
-    no_ammo_required: true
-    crystal_armor_bonus:
-      accuracy_per_piece: 3
-      damage_per_piece: 6
-      full_set_accuracy: 15
-      full_set_damage: 30
-  creation:
-    base_item_id: 25865
-    base_item_name: Bow of faerdhinen
-    material_id: 23962
-    material_name: Crystal shard
-    material_quantity: 2000
-  drop_table:
-    sources:
-      - source: The Gauntlet
-        source_id: 9021
-        combat_level: 0
-        quantity: 1 (Enhanced crystal weapon seed)
-        rarity: Rare
-        members_only: true
-      - source: The Corrupted Gauntlet
-        source_id: 9035
-        combat_level: 0
-        quantity: 1 (Enhanced crystal weapon seed)
-        rarity: Rare
-        members_only: true
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 0
+      xp: 0
+      facility: Singing bowl
+      materials:
+        - item_name: Bow of faerdhinen
+          quantity: 1
+        - item_name: Crystal shard
+          quantity: 2000
+      tools: []
+      output_quantity: 1
+      product: Bow of faerdhinen (inactive)
+      notes: "Corrupting an enhanced crystal weapon seed via the Singing bowl produces the inactive bow shell once 2,000 shards are consumed."
   related_items:
     - item_id: 25865
       item_name: Bow of faerdhinen
       slug: bow-of-faerdhinen
-      relationship: downgrade
-      description: Uncharged version
+      relationship: upgrade
+      description: "Activated charged version equipped after the first use"
+    - item_id: 25884
+      item_name: Bow of faerdhinen (c)
+      slug: bow-of-faerdhinen-c
+      relationship: variant
+      description: "Charged corrupted bow once activated and fed shards"
     - item_id: 25859
       item_name: Blade of saeldor (c)
       slug: blade-of-saeldor-c
       relationship: alternative
-      description: Melee crystal weapon
-    - item_id: 22325
-      item_name: Twisted bow
-      slug: twisted-bow
-      relationship: alternative
-      description: High magic target alternative
+      description: "Melee crystal weapon from the same Gauntlet seed pool"
     - item_id: 23962
       item_name: Crystal shard
       slug: crystal-shard
       relationship: component
-      description: Corruption material
-    - item_id: 23971
-      item_name: Crystal body
-      slug: crystal-body
-      relationship: set-piece
-      description: Set bonus armor
+      description: "Corruption material consumed during activation"
+    - item_id: 23953
+      item_name: Enhanced crystal weapon seed
+      slug: enhanced-crystal-weapon-seed
+      relationship: component
+      description: "Drop from the Gauntlet that becomes the bow"
+  passive_effects:
+    - name: Crystal armour bonus
+      description: "Each crystal armour piece equipped grants +3% accuracy and +6% damage, capped at +15% accuracy and +30% damage with the full set."
+      trigger: while_worn
+      affected_skill: ranged
+    - name: No ammo required
+      description: "Generates its own crystal arrows so the ammo slot can carry quivers or be empty."
+      trigger: always
+      affected_skill: ranged
+    - name: Crystal of action
+      description: "Cannot be reverted back into an enhanced crystal weapon seed once activated."
+      trigger: always
+      affected_skill: ranged
   about: |-
     | Stat | Value |
     |------|-------|
     | Ranged attack | +128 |
     | Ranged strength | +106 |
-    | Requirements | 75 Ranged, Agility |
     | Attack speed | 5 tick (3s) |
+    | Requirements | 75 Ranged, 75 Agility, Song of the Elves |
 
-    Highest ranged accuracy in-game (excluding Twisted bow).
+    The Bow of faerdhinen (inactive) is the tradeable shell of the corrupted crystal bow. Activating it (by attacking with it) consumes the inactive item and produces a 0-charge Bow of faerdhinen which then needs to be fed crystal shards to fire. The active bow does not degrade in combat, only consumes shards.
 
-    No ammo required - Uses own arrows.
-
-    Crystal armour bonus:
-    - Each piece adds +3% accuracy, +6% damage
-    - Full set: +15% accuracy, +30% damage
-
-    BiS ranged weapon for:
-    - Fight Caves
-    - Inferno
-    - Slayer
-    - Mid-tier bossing
-
-    Outperforms blowpipe with crystal armour.
+    Highest single-target ranged DPS in the game when paired with full crystal armour, eclipsing the toxic blowpipe at most bosses and tied or surpassing the Twisted bow against low-magic targets.
   market_strategy:
     notes:
-      - Enhanced crystal weapon seed from CG
-      - Corrupt for permanent use
-      - Song of the Elves required
-      - Best with crystal armour
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Created by corrupting an Enhanced crystal weapon seed with 2,000 crystal shards."
+      - "Requires Song of the Elves completion to craft or wield."
+      - "Pair with full crystal armour for the +30% damage / +15% accuracy bonus."
+      - "Inactive form exists only because the activated version is untradeable."
+  trading_tips:
+    - "Inactive bows are listed on the GE without a buy limit - watch the cap-2147m alch cushion."
+    - "Crystal shard prices set the floor; track shard price weekly to model risk."
+    - "Spikes follow new boss releases that favour ranged DPS (Nex, Phantom Muspah, DT2 bosses)."
+  history:
+    - date: "2021-08-25"
+      description: "Bow of faerdhinen released with the Song of the Elves expansion as an Enhanced crystal weapon seed upgrade."
+    - date: "2021-09-22"
+      description: "Inactive tradeable form added so the bow could move between accounts."
+    - date: "2022-03-30"
+      description: "Crystal shard charge cost lowered, improving long-term ranging viability."
+  properties:
+    release_date: "2021-09-22"
+    update: Song of the Elves
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Activate
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

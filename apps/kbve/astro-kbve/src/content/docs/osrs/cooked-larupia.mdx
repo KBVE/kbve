@@ -12,9 +12,70 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 10000
-  about: "Cooked larupia is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2024-03-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  food:
+    heals: 11
+    cooking_level: 56
+    type: meat
+  cooking:
+    level: 56
+    xp: 72
+    raw_item_name: Raw larupia
+    ticks: 4
+  recipes:
+    - skill: cooking
+      level: 56
+      xp: 72
+      materials:
+        - item_name: Raw larupia
+          quantity: 1
+      tools:
+        - Cooking range
+      facility: Range
+      output_quantity: 1
+  related_items:
+    - item_name: Raw larupia
+      slug: raw-larupia
+      relationship: component
+      description: "Raw meat dropped by larupias in the Hunter Guild basement."
+    - item_name: Cooked karambwan
+      slug: cooked-karambwan
+      relationship: alternative
+      description: "Combo-eat seafood used as a higher-tier follow-up at boss kills."
+  about: |-
+    > _"Mmm, this looks tasty."_
+
+    Cooked larupia is a Hunter Guild members food cooked from raw larupia at 56 Cooking for 72 Cooking xp. Each one heals 11 Hitpoints, sitting between trout/swordfish in the food curve and giving Hunters a cheap mid-game snack from their own kills.
+  market_strategy:
+    notes:
+      - "Supply is bound to Hunter Guild trapping activity — quiet when fewer players chase the Hunter cape."
+      - "Heal-per-GP is mediocre vs. swordfish, so price is anchored to Cooking xp/hr demand."
+      - "Acts as a sink for raw larupia caught while training Hunter; sellers prefer cooking and offloading."
+  trading_tips:
+    - "Buy limit 10,000 per 4 hours; most volume comes from Hunters bulk-cooking after a guild trip."
+    - "Watch raw larupia margin — when raw outpaces cooked, the burn-rate at 56 Cooking sets the spread."
+  history:
+    - date: "2024-03-20"
+      description: "Added with the Hunter Guild expansion as a tradeable mid-tier cooked food."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

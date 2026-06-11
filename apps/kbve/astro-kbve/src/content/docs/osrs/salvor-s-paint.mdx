@@ -1,20 +1,59 @@
 ---
 title: Salvor's paint | OSRS Price Data
-description: "Salvor's paint: An aquamarine paint. This might look good on a boat.. High alch: 1 GP."
+description: "Salvor's paint is a members untradeable Sailing cosmetic that recolours boats aquamarine. High alch: 1 GP."
 osrs:
   id: 32099
   name: Salvor's paint
   slug: salvor-s-paint
-  examine: An aquamarine paint. This might look good on a boat.
+  examine: "An aquamarine paint. This might look good on a boat."
   members: true
   icon: Salvor's paint.png
   value: 1
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Salvor's paint is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cosmetic
+    tier: low
+  properties:
+    release_date: "2025-11-12"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.0
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - item_name: Crewmate's paint
+      slug: crewmate-s-paint
+      relationship: variant
+      description: "Alternative Sailing-themed boat paint colour"
+    - item_name: Captain's paint
+      slug: captain-s-paint
+      relationship: variant
+      description: "Alternative Sailing-themed boat paint colour"
+  about: |-
+    > _"An aquamarine paint. This might look good on a boat."_
+
+    Salvor's paint is an untradeable cosmetic item earned through the Sailing skill, introduced alongside the Sailing release. Players can apply it to their personal boat to recolour the hull aquamarine, joining a small palette of Sailing-themed paint cosmetics. As an untradeable reward, it has no Grand Exchange value and cannot be alched for meaningful coins.
+  market_strategy:
+    notes:
+      - "Untradeable — no GE flipping possible"
+      - "Cosmetic only, value is account-bound display"
+  trading_tips:
+    - "Earn through Sailing skill activities, not GE"
+  history:
+    - date: "2025-11-12"
+      description: "Released with the Sailing skill launch as an untradeable cosmetic reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

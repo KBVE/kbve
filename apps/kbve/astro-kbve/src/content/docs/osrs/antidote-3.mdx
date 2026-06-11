@@ -1,6 +1,6 @@
 ---
 title: Antidote+(3) | OSRS Price Data
-description: "Antidote+(3): 3 doses of extra strong antipoison potion.. High alch: 172 GP, GE limit: 4,000."
+description: "Antidote+(3): 3 doses of extra strong antipoison potion. High alch: 172 GP, GE limit: 4,000."
 osrs:
   id: 5945
   name: Antidote+(3)
@@ -12,9 +12,103 @@ osrs:
   lowalch: 115
   highalch: 172
   limit: 4000
-  about: "Antidote+(3) is a members-only item in Old School RuneScape. High alchemy value: 172 coins. Grand Exchange buy limit: 4,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: mid
+  potion:
+    doses: 3
+    herblore_level: 68
+    herblore_xp: 155
+    effect: "Cures poison instantly and grants immunity to poison for around 9 minutes per dose."
+    effects:
+      - description: "Cures active poison damage on the player when drunk."
+        duration: 0
+      - description: "Grants approximately 9 minutes (540 seconds) of immunity to poison per dose consumed."
+        duration: 540
+  recipes:
+    - skill: herblore
+      level: 68
+      xp: 155
+      materials:
+        - item_name: Coconut milk
+          quantity: 1
+        - item_name: Toadflax
+          quantity: 1
+        - item_name: Yew roots
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      product: Antidote+(3)
+      notes: "Coconut milk vials are required; the Antidote+ branch is the upgrade of the standard antipoison line."
+  related_items:
+    - item_id: 5943
+      item_name: Antidote+(4)
+      slug: antidote-4
+      relationship: variant
+      description: "Four-dose version of the same antipoison potion"
+    - item_id: 5947
+      item_name: Antidote+(2)
+      slug: antidote-2
+      relationship: variant
+      description: "Two-dose version of the same antipoison potion"
+    - item_id: 5949
+      item_name: Antidote+(1)
+      slug: antidote-1
+      relationship: variant
+      description: "One-dose version of the same antipoison potion"
+    - item_id: 5952
+      item_name: Antidote++(4)
+      slug: antidote-4-5952
+      relationship: upgrade
+      description: "Stronger upgrade brewed with magic roots; longer immunity window"
+    - item_id: 2446
+      item_name: Antipoison(3)
+      slug: antipoison-3
+      relationship: downgrade
+      description: "Base-tier antipoison with a much shorter immunity duration"
+    - item_id: 2483
+      item_name: Toadflax
+      slug: toadflax
+      relationship: component
+      description: "Herblore ingredient brewed into the potion base"
+  about: |-
+    > _"3 doses of extra strong antipoison potion."_
+
+    Antidote+ is the mid-tier antipoison brew that both cures active poison and grants roughly 9 minutes of poison immunity per dose. It bridges the gap between the basic antipoison line and the high-end Antidote++ used at venomous Slayer tasks and bosses. Each sip removes one dose from the vial.
+
+    Antidote+ also synergises with Sanfew serums when extra restoration is needed, and is one of the cheaper long-duration immunity options for mid-level players who do not yet have access to Antidote++ or Anti-venom potions.
+  market_strategy:
+    notes:
+      - "Demand spikes with poisonous Slayer task waves (Spiritual mages, Kalphites, Aviansies are non-poison, focus on Spiders/Snakes/Bloodvelds bursts)."
+      - "Crafted from coconut milk + toadflax + yew roots; track all three input costs to set buy walls."
+      - "Decanted from 4-dose by NPC decanters - 3-dose price tracks 4-dose closely."
+  trading_tips:
+    - "Combine cheap 1-dose Antidote+ off the GE into 3-dose stacks via decanting for a small flip."
+    - "List during late-evening EU/NA hours when Slayer bosses are most active."
+    - "Watch coconut milk supply at Mahogany Homes events - input price drops translate to better margins."
+  history:
+    - date: "2005-01-04"
+      description: "Antidote+ potion line released as part of the Tai Bwo Wannai Trio expansion adding coconut milk Herblore brews."
+    - date: "2017-01-05"
+      description: "Antidote+ added to NPC decanter offers in the Grand Tree and Edgeville."
+  properties:
+    release_date: "2005-01-04"
+    update: Tai Bwo Wannai Trio
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

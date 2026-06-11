@@ -1,20 +1,82 @@
 ---
 title: Wool | OSRS Price Data
-description: "Wool: I think this came from a sheep.. High alch: 1 GP, GE limit: 13,000."
+description: "Wool: I think this came from a sheep. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 1737
   name: Wool
   slug: wool
-  examine: I think this came from a sheep.
+  examine: "I think this came from a sheep."
   members: false
   icon: Wool.png
   value: 1
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Wool is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.4
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 2.5
+      materials:
+        - item_name: Wool
+          quantity: 1
+      tools:
+        - Spinning wheel
+      output_quantity: 1
+  shops:
+    - shop_name: "Wyson's Wool Stall"
+      location: Seers' Village
+      price: 14
+      stock: 10
+      currency: coins
+      members_only: true
+    - shop_name: "Ranael's Super Skirt Store"
+      location: Al Kharid
+      price: 14
+      stock: 0
+      currency: coins
+      members_only: false
+  related_items:
+    - item_id: 1759
+      item_name: Ball of wool
+      slug: ball-of-wool
+      relationship: product
+      description: "Wool spun at a spinning wheel for Crafting XP."
+    - item_id: 952
+      item_name: Shears
+      slug: shears
+      relationship: component
+      description: "Used to shear sheep and obtain wool."
+  about: "Wool is a free-to-play raw material sheared from sheep around Gielinor with a pair of shears. It can be spun on a spinning wheel into a ball of wool at level 1 Crafting for 2.5 experience, making it the entry-point material for early Crafting training and several quest steps such as Sheep Shearer."
+  market_strategy:
+    notes:
+      - "Floored at 1 gp; flipping is purely a volume game."
+      - "Buy limit of 13,000 makes it an easy bulk fill for cloth flippers."
+      - "Spinning into ball of wool roughly doubles per-unit value."
+  trading_tips:
+    - "Buy out cheap GE listings and spin into ball of wool for margin."
+    - "Stock surges during Crafting bonus weekends - sell into the demand."
+  history:
+    - date: "2001-01-04"
+      description: "Available since launch as an early Crafting material."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

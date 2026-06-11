@@ -1,20 +1,83 @@
 ---
 title: Sunlight moth mix (2) | OSRS Price Data
-description: "Sunlight moth mix (2): There's a sunlight moth in here.. High alch: 18 GP, GE limit: 125."
+description: "Sunlight moth mix (2) is a two-dose barbarian potion granting prayer regen and 6 HP heal. High alch: 18 GP, GE limit: 125."
 osrs:
   id: 29192
   name: Sunlight moth mix (2)
   slug: sunlight-moth-mix-2
-  examine: There's a sunlight moth in here.
+  examine: "There's a sunlight moth in here."
   members: true
   icon: Sunlight moth mix (2).png
   value: 30
   lowalch: 12
   highalch: 18
   limit: 125
-  about: "Sunlight moth mix (2) is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2024-08-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.075
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    doses: 2
+    effects:
+      - description: "Restores 12 Prayer points and heals 6 hitpoints per dose."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 28
+      xp: 84
+      materials:
+        - item_name: Sunlight moth mix (1)
+          quantity: 1
+        - item_name: Sunlight moth mix (1)
+          quantity: 1
+      tools:
+        - Pestle and mortar
+      output_quantity: 1
+  related_items:
+    - item_name: Sunlight moth mix (1)
+      slug: sunlight-moth-mix-1
+      relationship: variant
+      description: "One-dose version of the same barbarian potion"
+    - item_name: Sunlight moth
+      slug: sunlight-moth
+      relationship: component
+      description: "Ingredient used to brew the moth mix"
+    - item_name: Moonlight moth mix (2)
+      slug: moonlight-moth-mix-2
+      relationship: alternative
+      description: "Counterpart barbarian mix that restores run energy"
+  about: |-
+    > _"There's a sunlight moth in here."_
+
+    Sunlight moth mix (2) is a two-dose barbarian potion released with the Varlamore moth hunting update. Each dose restores 12 Prayer points and heals 6 hitpoints, making it a niche budget Prayer/HP combo flask for slayer tasks and mid-game bosses. It is created by combining sunlight moth mixes with caviar at 28 Herblore after completing the Herblore portion of Barbarian Training with Otto Godblessed.
+  market_strategy:
+    notes:
+      - "Niche prayer regen item — demand spikes during slayer tasks"
+      - "Sunlight moth catch rate caps supply"
+      - "Low buy limit (125) restricts large flips"
+  trading_tips:
+    - "Track sunlight moth and caviar prices for arbitrage"
+    - "Demand bumps around Varlamore content updates"
+  history:
+    - date: "2024-08-21"
+      description: "Released with the Varlamore: The Final Dawn moth hunting update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

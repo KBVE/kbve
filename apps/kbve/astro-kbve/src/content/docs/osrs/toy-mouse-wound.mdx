@@ -1,6 +1,6 @@
 ---
 title: Toy mouse (wound) | OSRS Price Data
-description: "Toy mouse (wound): Nice bit of crafting!. High alch: 6 GP, GE limit: 150."
+description: "Toy mouse (wound): A clockwork mouse wound up and ready to scurry. High alch: 6 GP, GE limit: 150."
 osrs:
   id: 7769
   name: Toy mouse (wound)
@@ -12,9 +12,70 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 150
-  about: "Toy mouse (wound) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: toy
+    tier: low
+  properties:
+    release_date: "2005-06-27"
+    update: Rat Catchers
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Activate
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 25
+      xp: 50
+      materials:
+        - item_name: Toy mouse
+          quantity: 1
+        - item_name: Clockwork
+          quantity: 1
+      tools: []
+      facility: Crafting table
+      output_quantity: 1
+      quest_required: Rat Catchers
+  shops:
+    - shop_name: "Stankers: Stanker's Cat Shop"
+      location: Port Sarim
+      price: 10
+      currency: coins
+      members_only: true
+  related_items:
+    - item_name: Toy mouse
+      slug: toy-mouse
+      relationship: variant
+      description: "Unwound version made from clockwork mouse without spring tension"
+    - item_name: Clockwork
+      slug: clockwork
+      relationship: component
+      description: "Component used to wind the toy mouse during the Rat Catchers quest"
+  about: |-
+    > _"Nice bit of crafting!"_
+
+    The wound toy mouse is a clockwork mouse used during and after the Rat Catchers quest. Once wound it scurries across the floor, drawing the attention of nearby cats and rats. Required for the Hairy Hands of Hatius cat-luring puzzle and a fun novelty item for cat owners post-quest.
+  market_strategy:
+    notes:
+      - "Demand limited to Rat Catchers quest grinders and collectors"
+      - "Cheap one-time purchase; rarely flipped at the GE"
+      - "Stocked at Stanker's Cat Shop in Port Sarim during the quest line"
+  trading_tips:
+    - "GE buy limit of 150 per 4 hours keeps supply tight"
+    - "Alch value barely covers the shop buy price"
+  history:
+    - date: "2005-06-27"
+      description: "Released alongside the Rat Catchers quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

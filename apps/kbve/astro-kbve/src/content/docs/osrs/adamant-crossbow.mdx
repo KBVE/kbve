@@ -1,6 +1,6 @@
 ---
 title: Adamant crossbow | OSRS Price Data
-description: "Adamant crossbow is a members weapon slot item requiring 46 Ranged. High alch: 1,060 GP, GE limit: 70."
+description: "Adamant crossbow is an adamant-tier one-handed crossbow requiring 46 Ranged, fletched at 61 Fletching. High alch: 1,060 GP, GE limit: 70."
 osrs:
   id: 9183
   name: Adamant crossbow
@@ -12,50 +12,101 @@ osrs:
   lowalch: 706
   highalch: 1060
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: adamant
+    tier: mid
+  properties:
+    release_date: "2007-04-30"
+    update: "RangePack"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.5
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: crossbow
-    tradeable: true
-    weight: 6
+    weapon_type: crossbow
+    weight: 4.5
+    attack_speed: 6
+    attack_range: 7
     requirements:
       ranged: 46
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 0
-      attack_ranged: 78
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 0
-      ranged_strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 78
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 1
       magic_damage: 0
       prayer: 0
-    attack_range: 7
   recipes:
     - skill: fletching
       level: 61
+      xp: 82
       materials:
         - item_name: Adamant crossbow (u)
+          item_id: 9461
           quantity: 1
         - item_name: Crossbow string
+          item_id: 9438
           quantity: 1
+      product: Adamant crossbow
+      output_quantity: 1
   related_items:
     - item_id: 9185
       item_name: Rune crossbow
       slug: rune-crossbow
       relationship: upgrade
-      description: Next tier crossbow
+      description: "Next-tier crossbow with stronger ranged attack and bolt support."
+    - item_id: 9181
+      item_name: Mithril crossbow
+      slug: mithril-crossbow
+      relationship: downgrade
+      description: "Previous-tier crossbow with lower Ranged requirement."
     - item_id: 9143
       item_name: Adamant bolts
       slug: adamant-bolts
       relationship: alternative
-      description: Compatible ammo
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Tier-matched bolts commonly fired from this crossbow."
+    - item_id: 9461
+      item_name: Adamant crossbow (u)
+      slug: adamant-crossbow-u
+      relationship: component
+      description: "Unstrung crossbow stock attached to a crossbow string to fletch the finished weapon."
+  about: "Adamant crossbow is the adamant-tier one-handed crossbow in OSRS, requiring 46 Ranged to wield and 61 Fletching to build from an Adamant crossbow (u) plus crossbow string for 82 Fletching XP. It is the second-strongest pre-rune metal crossbow with a +78 ranged attack bonus and a six-tick attack speed, primarily used as a stepping stone toward the rune crossbow or as a cheap PvM/Slayer option for accounts in the mid-Ranged bracket."
+  market_strategy:
+    notes:
+      - "Demand is steady but light - mostly fletcher self-supply and mid-tier ranged trainers."
+      - "GE buy limit of 70 per 4 hours caps merchant volume."
+      - "High alch return of 1,060 gp is below GE price - not viable as an alching target."
+      - "Supply pressure ties to Adamant crossbow (u) bot output and Slayer/Wilderness drop tables."
+  trading_tips:
+    - "Cross-check Adamant crossbow (u) + Crossbow string spot prices to detect fletcher arbitrage windows."
+    - "Watch for Ranged training meta shifts that push players past the adamant stepping stone faster."
+    - "Stable, low-volatility item - good practice flip but rarely a profit driver."
+  history:
+    - date: "2007-04-30"
+      description: "Released alongside the metal crossbow line in the RangePack content update, replacing the Ranged Guild crossbows for tradeable variants."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

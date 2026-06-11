@@ -1,6 +1,6 @@
 ---
 title: Shaving stand (flatpack) | OSRS Price Data
-description: "Shaving stand (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Shaving stand (flatpack) is a members Construction flatpack built into the Bedroom hotspot. High alch: 6 GP, GE limit: 500."
 osrs:
   id: 8596
   name: Shaving stand (flatpack)
@@ -12,9 +12,74 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Shaving stand (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: flatpack
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    update: "Construction Update"
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Build
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  construction:
+    construction_level: 23
+    construction_xp: 100
+    room: Bedroom
+    hotspot: Dresser
+    flatpack: true
+    built_item_id: 8590
+  recipes:
+    - skill: construction
+      level: 23
+      xp: 100
+      materials:
+        - item_name: Mahogany plank
+          quantity: 1
+      tools:
+        - Saw
+        - Hammer
+      facility: Workshop (Heroes' Guild flatpack stand)
+      output_quantity: 1
+  related_items:
+    - item_id: 8590
+      item_name: Shaving stand
+      slug: shaving-stand
+      relationship: product
+      description: Built furniture form constructed from this flatpack.
+    - item_id: 8594
+      item_name: Oak dresser (flatpack)
+      slug: oak-dresser-flatpack
+      relationship: alternative
+      description: Lower-tier dresser flatpack for the same Bedroom hotspot.
+    - item_id: 8598
+      item_name: Oak-framed dresser (flatpack)
+      slug: oak-framed-dresser-flatpack
+      relationship: upgrade
+      description: Higher-tier dresser flatpack for the same Bedroom hotspot.
+  about: "Shaving stand (flatpack) is the boxed form of the Shaving stand Construction dresser hotspot, made at the Workshop in a Player-Owned House at 23 Construction for 100 xp from one mahogany plank. Flatpacks let house owners stockpile furniture before they bring guests into their POH and are most commonly used by Construction service hosts."
+  market_strategy:
+    notes:
+      - "Tied to the mahogany plank cost: profit margin is razor-thin"
+      - "Supply driven by Construction trainers offloading bulk builds"
+      - "Buy limit of 500 caps both demand spikes and bulk flipping"
+  trading_tips:
+    - "Track mahogany plank prices when valuing flatpack production runs"
+    - "Liquidate flatpacks in small batches to avoid GE price suppression"
+  history:
+    - date: "2006-05-31"
+      description: "Added as a flatpack with the Construction skill flatpack expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

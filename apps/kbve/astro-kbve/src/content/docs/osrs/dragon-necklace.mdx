@@ -1,6 +1,6 @@
 ---
 title: Dragon necklace | OSRS Price Data
-description: "Dragon necklace is a members neck slot item. High alch: 11,025 GP, GE limit: 10,000."
+description: "Dragon necklace is a neck slot dragonstone necklace crafted at 72 Crafting, enchanted into the skills necklace. High alch: 11,025 GP, GE limit: 10,000."
 osrs:
   id: 1664
   name: Dragon necklace
@@ -12,55 +12,105 @@ osrs:
   lowalch: 7350
   highalch: 11025
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: jewellery
+    tier: mid-high
+  properties:
+    release_date: "2002-02-27"
+    update: "Crafting expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.011
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: neck
+    weight: 0.011
     requirements:
       crafting: 72
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 72
       xp: 105
-      inputs:
-        - item_name: Dragonstone
+      facility: Furnace
+      tools:
+        - Necklace mould
+      materials:
+        - item_id: 1615
+          item_name: Dragonstone
           quantity: 1
-        - item_name: Gold bar
+        - item_id: 2357
+          item_name: Gold bar
           quantity: 1
       output_quantity: 1
+      members_only: true
+      notes: "Use a gold bar and dragonstone on any furnace with a necklace mould in inventory"
   related_items:
     - item_id: 1662
       item_name: Diamond necklace
       slug: diamond-necklace
       relationship: downgrade
-      description: Previous tier necklace
+      description: Previous tier crafted necklace
     - item_id: 11113
       item_name: Skills necklace
       slug: skills-necklace
       relationship: upgrade
-      description: Enchanted version (skilling teleports)
-  about: |-
-    Crafting (Level 72): Dragonstone + Gold bar at a furnace with necklace mould (105 XP)
-
-    > *"I wonder if this is valuable."*
-
-    Lvl-5 Enchant (68 Magic): 1 cosmic rune + 15 earth runes + 15 water runes (78 XP)
-
-    The Skills necklace provides 6 charges of teleportation to skilling locations:
-    - Fishing Guild — best fishing spot access
-    - Mining Guild — invisible +7 Mining boost
-    - Crafting Guild — bank + crafting facilities
-    - Cooking Guild — never-burn range
-    - Woodcutting Guild — invisible +7 WC boost
-    - Farming Guild — herb/tree patches
-
-    The Farming Guild teleport is especially popular for daily farming runs.
+      description: Enchanted skilling-teleport version of the dragon necklace
+    - item_id: 1615
+      item_name: Dragonstone
+      slug: dragonstone
+      relationship: component
+      description: Gem cut into the necklace mould at 72 Crafting
+    - item_id: 2357
+      item_name: Gold bar
+      slug: gold-bar
+      relationship: component
+      description: Bar smelted from gold ore and used with a necklace mould
+  about: "Dragon necklace is a Crafting product made at 72 Crafting by combining a gold bar and a dragonstone at a furnace, yielding 105 Crafting XP. The unenchanted necklace has no stats and is primarily a stepping stone to the skills necklace via Lvl-5 Enchant (68 Magic, 1 cosmic + 15 earth + 15 water runes, 78 XP). The enchanted skills necklace teleports to Fishing, Mining, Crafting, Cooking, Woodcutting, and Farming Guilds and is rechargeable at the Legends' Guild fountain."
   market_strategy:
     notes:
-      - Dragonstone cost is the main expense
-      - Skills necklace has steady demand for farming runs
-      - Enchanting usually profitable
-      - Rechargeable at Legends' Guild fountain
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Investment Notes"
+      - "Dragonstone cost dominates the recipe; track stone price for crafting margins"
+      - "Skills necklace demand drives steady dragon necklace turnover"
+      - "Lvl-5 Enchant typically profitable thanks to skills necklace premium"
+      - "Rechargeable at Legends' Guild fountain — important for ironmen sourcing teleports"
+  trading_tips:
+    - "Bulk-craft for Crafting XP when dragonstone dips below break-even"
+    - "Compare unenchanted GE price vs enchanted skills necklace for arbitrage"
+    - "Use the 10,000 buy limit to accumulate stock during Farming Guild meta spikes"
+  history:
+    - date: "2002-02-27"
+      description: "Added with the dragonstone Crafting expansion."
+    - date: "2011-10-13"
+      description: "Skills necklace teleport list expanded with the Farming Guild release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

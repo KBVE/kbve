@@ -132,9 +132,7 @@ void UKBVEAbilityComponent::Commit(FName AbilityId)
 	}
 
 	const float MassRadius = Def->Radius > 0.0f ? Def->Radius : FMath::Max(Def->Range, 150.0f);
-	const int32 MassHits = UKBVECombatStatics::DamageMassStatTargetsInSphere(Owner, HitPoint, MassRadius, Def->Damage);
-	UE_LOG(LogTemp, Warning, TEXT("[KBVECombat] %s commit at (%.0f,%.0f) r=%.0f actorHits=%d massHits=%d"),
-		*AbilityId.ToString(), HitPoint.X, HitPoint.Y, MassRadius, Candidates.Num(), MassHits);
+	UKBVECombatStatics::DamageMassStatTargetsInSphere(Owner, HitPoint, MassRadius, Def->Damage);
 
 	if (UKBVECombatFeedSubsystem* Feed = UKBVECombatFeedSubsystem::Get(Owner))
 	{

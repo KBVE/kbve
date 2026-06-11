@@ -1,6 +1,6 @@
 ---
 title: Large steel keel parts | OSRS Price Data
-description: "Large steel keel parts: Parts for creating a steel keel for larger boats.. High alch: 1,500 GP, GE limit: 100."
+description: "Large steel keel parts: Parts for creating a steel keel for larger boats. High alch: 1,500 GP, GE limit: 100."
 osrs:
   id: 32026
   name: Large steel keel parts
@@ -12,9 +12,68 @@ osrs:
   lowalch: 1000
   highalch: 1500
   limit: 100
-  about: "Large steel keel parts is a members-only item in Old School RuneScape. High alchemy value: 1,500 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: bar
+    tier: mid-high
+  properties:
+    release_date: "2025-12-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4.0
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 50
+      xp: 187.5
+      materials:
+        - item_name: Steel bar
+          quantity: 5
+      tools:
+        - Hammer
+      facility: Anvil
+      output_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 32024
+      item_name: Small steel keel parts
+      slug: small-steel-keel-parts
+      relationship: downgrade
+      description: "Smaller steel keel component for medium-class hulls"
+    - item_id: 32028
+      item_name: Huge steel keel parts
+      slug: huge-steel-keel-parts
+      relationship: upgrade
+      description: "Larger steel keel component for the biggest hulls"
+    - item_id: 2353
+      item_name: Steel bar
+      slug: steel-bar
+      relationship: component
+      description: "Smelted from 1 iron + 2 coal at 30 Smithing"
+  about: |-
+    Large steel keel parts are a Sailing skill component smithed from 5 steel bars at 50 Smithing on an anvil. They form the central keel for large-class steel hulls used in the player's ship at Port Sarim, the Piscarilius Pier, and the Aldarin shipyard.
+
+    Players can either smith their own from steel bars or buy them from the Grand Exchange. The buy limit of 100 per 4 hours makes them a steady mid-tier Smithing-to-Sailing input.
+  market_strategy:
+    notes:
+      - "Steady consumption from Sailing skillers building large hulls"
+      - "Margin tracks the steel bar price closely — flip when bar price dips"
+      - "Alch value (1,500) sits below typical GE price, so not alch fodder"
+  trading_tips:
+    - "Buy when steel bar GE price drops below 500 gp"
+    - "Stock up before Sailing skill bonus events"
+    - "Buy limit 100 per 4 hours"
+  history:
+    - date: "2025-12-03"
+      description: "Released with the Sailing skill launch as part of the steel-tier hull components."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

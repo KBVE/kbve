@@ -1,6 +1,6 @@
 ---
 title: Frozen whip mix | OSRS Price Data
-description: "Frozen whip mix is a members none slot item. High alch: 1 GP, GE limit: 4."
+description: "Frozen whip mix is a Last Man Standing cosmetic reward that recolours an Abyssal whip into a Frozen abyssal whip. High alch: 1 GP, GE limit: 4."
 osrs:
   id: 12769
   name: Frozen whip mix
@@ -12,52 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
-  equipment:
-    slot: none
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2016-12-01"
+    update: "Last Man Standing"
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: false
+    quest_item: false
     weight: 0.001
-  drop_table:
-    primary_source: Last Man Standing shop
-    best_drop_rate: N/A
-    sources:
-      - source: Justine's stuff for the Last Shopper Standing
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
-        rarity: shop
-        drop_rate: 25 LMS points
+    options:
+      - Use
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  shops:
+    - shop_name: "Justine's stuff for the Last Shopper Standing"
+      location: Ferox Enclave
+      price: "25 LMS points"
+      stock: 0
+      currency: "LMS points"
+      requirements: "Last Man Standing minigame"
   related_items:
     - item_id: 12771
       item_name: Volcanic whip mix
       slug: volcanic-whip-mix
       relationship: alternative
-      description: Red whip cosmetic variant
+      description: Red cosmetic whip recolour from the same shop.
     - item_id: 4151
       item_name: Abyssal whip
       slug: abyssal-whip
       relationship: component
-      description: Required base weapon
-    - item_id: 4179
+      description: Base weapon required to apply the mix.
+    - item_id: 12774
       item_name: Frozen abyssal whip
       slug: frozen-abyssal-whip
-      relationship: upgrade
-      description: Final frozen whip product
-  about: |-
-    Creates Frozen abyssal whip:
-    - Use on Abyssal whip
-    - Purely cosmetic change (blue/ice color)
-    - Stats remain identical to regular whip
-
-    Reversible:
-    - Can be reverted at any time
-    - Returns whip mix when removed
+      relationship: product
+      description: Cosmetic frozen whip produced by combining the mix with an Abyssal whip.
+  about: "Frozen whip mix is a cosmetic reward bought from Justine's stuff for the Last Shopper Standing for 25 LMS points. Using it on an Abyssal whip transforms it into a Frozen abyssal whip with an icy blue palette while keeping the underlying stats identical, and the cosmetic can be reverted later to return the mix."
   market_strategy:
     notes:
-      - Cosmetic item only
-      - Popular for fashion
-      - Requires LMS gameplay to obtain directly
-      - "Alternative: Buy from GE"
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Pure cosmetic, so price is driven by fashionscape demand"
+      - "Supply is gated behind active LMS participation"
+      - "Buyers often choose between GE direct purchase and grinding LMS for points"
+  trading_tips:
+    - "Track LMS point cost vs GE price for break-even arbitrage"
+    - "Watch Abyssal whip price when valuing the cosmetic versus a fresh whip"
+  history:
+    - date: "2016-12-01"
+      description: "Added with the launch of the Last Man Standing minigame as a reward-shop cosmetic."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

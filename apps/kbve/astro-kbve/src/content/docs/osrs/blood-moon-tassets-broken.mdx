@@ -1,6 +1,6 @@
 ---
 title: Blood moon tassets (broken) | OSRS Price Data
-description: "Blood moon tassets (broken): The tassets of the Blood Moon.. High alch: 173,946 GP, GE limit: 15."
+description: "Blood moon tassets (broken) is the degraded form of the Blood moon tassets, repaired at a Perfect Junction to restore full charges. High alch: 173,946 GP, GE limit: 15."
 osrs:
   id: 29070
   name: Blood moon tassets (broken)
@@ -12,9 +12,65 @@ osrs:
   lowalch: 115964
   highalch: 173946
   limit: 15
-  about: "Blood moon tassets (broken) is a members-only item in Old School RuneScape. High alchemy value: 173,946 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: blood-moon
+    tier: high
+  properties:
+    release_date: "2024-04-24"
+    update: "Varlamore: The Hunt for Surok"
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: false
+    quest_item: false
+    weight: 9.0
+    options:
+      - Repair
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  charges:
+    repairable: true
+    repair_cost: 1500000
+    repair_npc: Perfect Junction
+    degrade_to_id: 29070
+    degrade_to_name: Blood moon tassets (broken)
+  related_items:
+    - item_id: 29066
+      item_name: Blood moon tassets
+      slug: blood-moon-tassets
+      relationship: upgrade
+      description: Fully repaired version restored at a Perfect Junction.
+    - item_id: 29024
+      item_name: Blood moon helm
+      slug: blood-moon-helm
+      relationship: set-piece
+      description: Head slot piece of the Blood moon armour set.
+    - item_id: 29026
+      item_name: Blood moon chestplate
+      slug: blood-moon-chestplate
+      relationship: set-piece
+      description: Body slot piece of the Blood moon armour set.
+    - item_id: 28967
+      item_name: Eclipse moon tassets
+      slug: eclipse-moon-tassets
+      relationship: alternative
+      description: Crush-focused alternative from the same Moons of Peril boss set.
+  about: "Blood moon tassets (broken) is the depleted form of Blood moon tassets, the legs piece of the strength-focused Blood moon armour set obtained from the Moons of Peril minigame. The broken state has no combat bonuses and must be repaired at a Perfect Junction in the POH workshop or with a smithing-based repair NPC to restore its full charge bar and combat stats."
+  market_strategy:
+    notes:
+      - "Price tracks the cost of restoring the tassets versus buying a fresh pair"
+      - "Liquidity rises with each Moons of Peril content cycle and boss-rebalance update"
+      - "Most demand comes from players cycling broken Blood moon gear through POH repair"
+  trading_tips:
+    - "Compare broken vs repaired tassets price plus repair cost for arbitrage"
+    - "Spike supply during Moons of Peril seasonal events drives broken-piece flips"
+  history:
+    - date: "2024-04-24"
+      description: "Introduced with the Moons of Peril minigame in the Varlamore region."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

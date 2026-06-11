@@ -1,6 +1,6 @@
 ---
 title: Ancient dragonhide set | OSRS Price Data
-description: "Ancient dragonhide set: A set containing an ancient dragonhide coif, body, chaps and bracers.. High alch: 5,700 GP, GE limit: 8."
+description: "Ancient dragonhide set is a members Grand Exchange bundle of the four ancient d'hide armour pieces. High alch: 5,700 GP, GE limit: 8."
 osrs:
   id: 13171
   name: Ancient dragonhide set
@@ -12,9 +12,66 @@ osrs:
   lowalch: 3800
   highalch: 5700
   limit: 8
-  about: "Ancient dragonhide set is a members-only item in Old School RuneScape. High alchemy value: 5,700 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: set
+    tier: mid-high
+  properties:
+    release_date: "2017-11-09"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.0
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Ancient coif
+      slug: ancient-coif
+      relationship: set-piece
+      description: Head slot of the ancient dragonhide set.
+    - item_name: Ancient d'hide body
+      slug: ancient-dhide-body
+      relationship: set-piece
+      description: Body slot of the ancient dragonhide set.
+    - item_name: Ancient chaps
+      slug: ancient-chaps
+      relationship: set-piece
+      description: Leg slot of the ancient dragonhide set.
+    - item_name: Ancient bracers
+      slug: ancient-bracers
+      relationship: set-piece
+      description: Hands slot of the ancient dragonhide set.
+    - item_name: Armadyl dragonhide set
+      slug: armadyl-dragonhide-set
+      relationship: alternative
+      description: God-themed black d'hide bundle alternative.
+    - item_name: Bandos dragonhide set
+      slug: bandos-dragonhide-set
+      relationship: alternative
+      description: God-themed black d'hide bundle alternative.
+  about: Ancient dragonhide set is a Grand Exchange-only bundle that exchanges into an ancient coif, ancient d'hide body, ancient chaps, and ancient bracers. It exists purely as a Grand Exchange convenience and a flip target for full-set arbitrage against the individual pieces.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Pure arbitrage instrument: compare set price vs sum of 4 pieces"
+      - "8-per-4h buy limit caps daily flip volume tightly"
+      - "Demand driven by clue completionists and fashionscape"
+      - "Watch for divergence after clue-scroll rebalances"
+  trading_tips:
+    - "Exchange sets into pieces when piece sum > set price"
+    - "Combine pieces into sets when set sells at a premium"
+    - "Set conversion has no skill or quest requirement"
+  history:
+    - date: "2017-11-09"
+      description: "Released with the god-themed dragonhide sets update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

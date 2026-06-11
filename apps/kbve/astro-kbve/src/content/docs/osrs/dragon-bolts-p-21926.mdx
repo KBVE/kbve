@@ -1,6 +1,6 @@
 ---
 title: Dragon bolts (p+) | OSRS Price Data
-description: "Dragon bolts (p+): Some poisoned dragon bolts.. High alch: 261 GP, GE limit: 11,000."
+description: "Dragon bolts (p+) are members poisoned dragon crossbow bolts requiring 64 Ranged. High alch: 261 GP, GE limit: 11,000."
 osrs:
   id: 21926
   name: Dragon bolts (p+)
@@ -12,9 +12,88 @@ osrs:
   lowalch: 174
   highalch: 261
   limit: 11000
-  about: "Dragon bolts (p+) is a members-only item in Old School RuneScape. High alchemy value: 261 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: dragon
+    tier: high
+  equipment:
+    slot: ammo
+    requirements:
+      ranged: 64
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 122
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 122
+      magic_damage: 0
+      prayer: 0
+  properties:
+    release_date: "2007-12-04"
+    tradeable: true
+    stackable: true
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 73
+      xp: 1
+      materials:
+        - item_name: Dragon bolts
+          quantity: 1
+        - item_name: Weapon poison(+)
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Dragon bolts
+      slug: dragon-bolts
+      relationship: component
+      description: "Base bolt poisoned with weapon poison(+) to produce this variant."
+    - item_name: Dragon bolts (p)
+      slug: dragon-bolts-p
+      relationship: downgrade
+      description: "Lower-grade poison applied to dragon bolts."
+    - item_name: "Dragon bolts (p++)"
+      slug: dragon-bolts-p-plus-plus
+      relationship: upgrade
+      description: "Strongest grade of poisoned dragon bolts."
+    - item_name: "Weapon poison(+)"
+      slug: weapon-poison-plus
+      relationship: component
+      description: "Mid-grade poison vial used to upgrade dragon bolts."
+  about: "Dragon bolts (p+) are dragon crossbow bolts coated with weapon poison(+), inflicting upgraded poison damage on hit and used with rune crossbow and higher."
+  market_strategy:
+    notes:
+      - "Margin tied to dragon bolts and weapon poison(+) spread"
+      - "PvP and Slayer demand keeps prices steady"
+      - "Fletching profit thin; high alch backstop at 261 GP"
+  trading_tips:
+    - "Buy unpoisoned dragon bolts at margin then apply poison"
+    - "Bulk poison vials when prices dip for fletching profit"
+  history:
+    - date: "2007-12-04"
+      description: "Released alongside dragon bolt tip poisoning content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

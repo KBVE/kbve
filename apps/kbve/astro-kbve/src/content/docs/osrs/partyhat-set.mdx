@@ -1,6 +1,6 @@
 ---
 title: Partyhat set | OSRS Price Data
-description: "Partyhat set: A set containing red, yellow, blue, purple, green and white partyhats.. High alch: 6 GP, GE limit: 5."
+description: "Partyhat set is a F2P Grand Exchange bundle of all six original Christmas 2001 partyhats. High alch: 6 GP, GE limit: 5."
 osrs:
   id: 13173
   name: Partyhat set
@@ -12,9 +12,71 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 5
-  about: "Partyhat set is a free-to-play item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: set
+    tier: high
+  properties:
+    release_date: "2007-12-04"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.0
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  related_items:
+    - item_name: Red partyhat
+      slug: red-partyhat
+      relationship: set-piece
+      description: Red partyhat component of the partyhat set.
+    - item_name: Yellow partyhat
+      slug: yellow-partyhat
+      relationship: set-piece
+      description: Yellow partyhat component of the partyhat set.
+    - item_name: Blue partyhat
+      slug: blue-partyhat
+      relationship: set-piece
+      description: Blue partyhat component of the partyhat set.
+    - item_name: Purple partyhat
+      slug: purple-partyhat
+      relationship: set-piece
+      description: Purple partyhat component of the partyhat set.
+    - item_name: Green partyhat
+      slug: green-partyhat
+      relationship: set-piece
+      description: Green partyhat component of the partyhat set.
+    - item_name: White partyhat
+      slug: white-partyhat
+      relationship: set-piece
+      description: White partyhat component of the partyhat set.
+    - item_name: Halloween mask set
+      slug: halloween-mask-set
+      relationship: alternative
+      description: Comparable holiday item GE bundle.
+  about: Partyhat set is a Grand Exchange convenience bundle that exchanges into all six original Christmas 2001 partyhats — red, yellow, blue, purple, green, and white. It is one of the most expensive items in the game and exists purely as a flip and storage convenience for the partyhat collection.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Pure arbitrage instrument: set price vs sum of 6 partyhats"
+      - "5-per-4h buy limit caps daily flip volume tightly"
+      - "Holds reserve-currency status among ultra-rares"
+      - "Tiny divergence between set and pieces is a large absolute flip"
+  trading_tips:
+    - "Exchange sets into pieces when piece sum > set price"
+    - "Combine pieces into sets when set sells at a premium"
+    - "Verify trade authenticity given absolute price level"
+    - "Use Grand Exchange to avoid manual-trade scams"
+  history:
+    - date: "2007-12-04"
+      description: "Released with the Grand Exchange holiday set bundles."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

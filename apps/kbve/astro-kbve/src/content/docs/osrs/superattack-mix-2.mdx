@@ -12,9 +12,81 @@ osrs:
   lowalch: 54
   highalch: 81
   limit: 2000
-  about: "Superattack mix(2) is a members-only item in Old School RuneScape. High alchemy value: 81 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2005-01-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.025
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    doses: 2
+    herblore_level: 45
+    herblore_xp: 100
+    effect: "Boosts Attack by 5 + 15% of base level and restores a small amount of Hitpoints per dose."
+    effects:
+      - stat: attack
+        boost_type: "boost"
+        boost_formula: "5 + 15% of base"
+        duration: 60
+        description: "Raises Attack by 5 + 15% of the player's base Attack level for the standard super-potion duration."
+      - stat: hitpoints
+        boost_type: "heal"
+        boost_value: 3
+        description: "Restores 3 Hitpoints per dose, on top of the Attack boost."
+  recipes:
+    - skill: herblore
+      level: 45
+      xp: 100
+      materials:
+        - item_name: Super attack(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Super attack(2)
+      slug: super-attack-2
+      relationship: component
+      description: "Base 2-dose Super attack potion combined with caviar to make the mix."
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: "Barbarian Herblore secondary that converts the super potion into a fishy mix."
+    - item_name: Superattack mix(1)
+      slug: superattack-mix-1
+      relationship: variant
+      description: "1-dose decant of the same fishy Super attack mix."
+  about: |-
+    > _"Two doses of fishy super Attack potion."_
+
+    Superattack mix(2) is a Barbarian Herblore mix made by combining a Super attack(2) with caviar at 45 Herblore. Each dose gives the standard Super attack boost (5 + 15% of base Attack) and also heals 3 Hitpoints, making it a popular combat utility item for Slayer trips and low-supply boss kills.
+  market_strategy:
+    notes:
+      - "Caviar supply from Barbarian fishing sets the floor; price tracks Otto Godblessed activity."
+      - "Niche but steady demand from Slayer and quest helpers who like the small heal-on-sip."
+      - "Decanting between Superattack mix(1) and (2) can produce small per-dose margins."
+  trading_tips:
+    - "Compare per-dose price against plain Super attack(4) when stocking combat supplies."
+    - "Buy limit 2,000 per 4 hours — bulk only matters for Ironmen and quest cape grinders."
+  history:
+    - date: "2005-01-11"
+      description: "Released as part of the Barbarian Training Herblore expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

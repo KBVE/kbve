@@ -1,6 +1,6 @@
 ---
 title: Superior dragon bones | OSRS Price Data
-description: "Superior dragon bones: There's something unnatural about these bones.. High alch: 96 GP, GE limit: 7,500."
+description: "Superior dragon bones: Top-tier Prayer training bones from Vorkath and Frost dragons giving 150 XP per bury. High alch: 96 GP, GE limit: 7,500."
 osrs:
   id: 22124
   name: Superior dragon bones
@@ -12,52 +12,75 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 7500
-  prayer:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
     type: bones
-    tier: superior
-    xp_bury: 150
-    xp_gilded: 525
-    xp_chaos: 525
-    xp_ectofuntus: 600
-    xp_sinister: 450
+    tier: high
+  properties:
+    release_date: "2018-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Bury
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  passive_effects:
+    - name: Bury
+      description: "Grants 150 Prayer experience when buried."
+    - name: Gilded Altar offering
+      description: "Up to 525 Prayer XP at a Gilded Altar with two burners lit."
+    - name: Chaos Altar offering
+      description: "Up to 525 Prayer XP at the Chaos Altar with a 50% chance to preserve the bones."
+    - name: Ectofuntus offering
+      description: "Up to 600 Prayer XP per bone via the Ectofuntus four-step process."
+    - name: Sinister Offering
+      description: "Up to 450 Prayer XP per bone when cast with the Sinister Offering spell at the Wilderness Chaos Altar."
   drop_table:
     sources:
       - source: Vorkath
-        source_id: 8061
-        combat_level: 732
         quantity: "2"
         rarity: Always
         members_only: true
       - source: Frost dragon
-        source_id: 10083
-        combat_level: 166
         quantity: "1"
         rarity: 3/130
         members_only: true
   related_items:
-    - item_id: 536
-      item_name: Dragon bones
+    - item_name: Dragon bones
       slug: dragon-bones
-      relationship: alternative
-      description: Lower tier bones
-    - item_id: 6729
-      item_name: Dagannoth bones
+      relationship: downgrade
+      description: Standard dragon bones giving 72 Prayer XP per bury
+    - item_name: Dagannoth bones
       slug: dagannoth-bones
       relationship: alternative
-      description: Alternative bones
-    - item_id: 201
-      item_name: Marrentill
-      slug: marrentill
-      relationship: component
-      description: For incense
+      description: Top-tier Prayer training bones from Dagannoth Rex with 125 XP per bury
+    - item_name: Wyvern bones
+      slug: wyvern-bones
+      relationship: alternative
+      description: Mid-tier bones from the Wyvern Cave
+  about: "Superior dragon bones are dropped by Vorkath and Frost dragons, giving 150 Prayer XP on bury and the highest GP-per-XP ratio at the Gilded Altar, making them the meta Prayer training bone for mid-to-high level accounts."
   market_strategy:
     notes:
-      - Best GP/XP ratio at altar
-      - Vorkath makes them common
-      - Wilderness altar doubles XP
-      - Price tied to Vorkath activity
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Best GP/XP ratio at Gilded Altar for Prayer training"
+      - "Vorkath supply keeps liquidity healthy"
+      - "Chaos Altar use compounds value via preservation roll"
+      - "Buy limit of 7,500 supports bulk Prayer training buys"
+  trading_tips:
+    - Track Vorkath kill volume as the leading supply indicator
+    - Stock during Prayer training double XP events for resale lift
+  history:
+    - date: "2018-10-18"
+      description: "Released as the unique drop from Vorkath after Dragon Slayer II."
+    - date: "2020-01-23"
+      description: "Added to Frost dragon drop tables as a secondary supply source."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

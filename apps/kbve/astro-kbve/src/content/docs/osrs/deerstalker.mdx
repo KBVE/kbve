@@ -12,9 +12,95 @@ osrs:
   lowalch: 920
   highalch: 1380
   limit: 4
-  about: "Deerstalker is a members-only item in Old School RuneScape. High alchemy value: 1,380 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: mid
+  equipment:
+    slot: head
+    weight: 0.4
+    requirements:
+      hunter: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Hunter boost
+      description: Provides a +2 boost to the Hunter skill while worn.
+      trigger: while_worn
+  drop_table:
+    sources:
+      - source: Master clue scroll casket
+        quantity: "1"
+        rarity: Uncommon
+        notes: "Reward casket from a Master Treasure Trail."
+      - source: Elite clue scroll casket
+        quantity: "1"
+        rarity: Uncommon
+        notes: "Reward casket from an Elite Treasure Trail."
+  treasure_trail:
+    tier: elite
+    is_reward: true
+    reward_tiers:
+      - elite
+      - master
+  related_items:
+    - item_name: Larupia hat
+      slug: larupia-hat
+      relationship: alternative
+      description: Camouflage head item used for jungle Hunter tasks.
+    - item_name: Spottier cape
+      slug: spottier-cape
+      relationship: alternative
+      description: Cape that grants a similar Hunter boost.
+    - item_name: Hunters' crossbow
+      slug: hunters-crossbow
+      relationship: alternative
+      description: Hunter-themed weapon from clue scroll rewards.
+  about: "Deerstalker is a members head-slot Hunter cosmetic that provides a +2 Hunter level boost while worn, obtained as a reward from elite and master clue scrolls. It requires 40 Hunter to wear."
+  market_strategy:
+    notes:
+      - "Niche boost item, supply driven by elite and master clue completions."
+      - "Steady demand from players pushing Hunter level boosts for trapping."
+      - "Limit of 4 per 4 hours restricts large-scale flipping."
+  trading_tips:
+    - "Price tracks elite/master clue popularity."
+    - "Buyers often want to pair with spottier cape for stacked Hunter boosts."
+  history:
+    - date: "2009-12-02"
+      description: "Added with the Treasure Trails clue scroll expansion."
+  properties:
+    release_date: "2009-12-02"
+    update: "Treasure Trail Tweaks"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

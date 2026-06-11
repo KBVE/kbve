@@ -1,6 +1,6 @@
 ---
 title: Ahrim's staff 0 | OSRS Price Data
-description: "Ahrim's staff 0: Ahrim the Blighted's quarterstaff.. High alch: 51,000 GP, GE limit: 15."
+description: "Ahrim's staff 0 is the broken (zero-charge) variant of the Barrows wizard's quarterstaff, repairable at Bob in Lumbridge or your POH armour stand. High alch: 51,000 GP, GE limit: 15."
 osrs:
   id: 4866
   name: Ahrim's staff 0
@@ -12,9 +12,101 @@ osrs:
   lowalch: 34000
   highalch: 51000
   limit: 15
-  about: "Ahrim's staff 0 is a members-only item in Old School RuneScape. High alchemy value: 51,000 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: barrows
+    tier: high
+  properties:
+    release_date: "2005-05-09"
+    update: "Barrows"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: staff
+    weight: 2.267
+    attack_speed: 5
+    requirements:
+      attack: 70
+      magic: 70
+    attack_bonus:
+      stab: -1
+      slash: 42
+      crush: 65
+      magic: 15
+      ranged: 0
+    defence_bonus:
+      stab: 3
+      slash: 1
+      crush: 6
+      magic: 10
+      ranged: 0
+    other_bonus:
+      melee_strength: 68
+      ranged_strength: 0
+      magic_damage: 5
+      prayer: 0
+  charges:
+    max_charges: 0
+    repairable: true
+    repair_cost: 90000
+    repair_npc: Bob
+    combat_hours: 15
+    degrade_to_id: 4866
+    degrade_to_name: "Ahrim's staff 0"
+  related_items:
+    - item_id: 4710
+      item_name: "Ahrim's staff"
+      slug: ahrim-s-staff
+      relationship: variant
+      description: "Fully-repaired Ahrim's staff with 15 hours of combat charge."
+    - item_id: 4864
+      item_name: "Ahrim's staff 100"
+      slug: ahrim-s-staff-100
+      relationship: variant
+      description: "Ahrim's staff with 100 charges remaining."
+    - item_id: 4865
+      item_name: "Ahrim's staff 50"
+      slug: ahrim-s-staff-50
+      relationship: variant
+      description: "Ahrim's staff with 50 charges remaining."
+    - item_name: "Ahrim's robetop"
+      slug: ahrim-s-robetop
+      relationship: set-piece
+      description: "Body slot piece of Ahrim's Barrows set."
+    - item_name: "Ahrim's hood"
+      slug: ahrim-s-hood
+      relationship: set-piece
+      description: "Head slot piece of Ahrim's Barrows set."
+  about: "Ahrim's staff 0 is the fully-degraded state of Ahrim the Blighted's quarterstaff after 15 hours of combat wear has consumed all charges. It is the cheapest tradeable form on the Grand Exchange and is most commonly bought by players intending to repair it at Bob in Lumbridge or at a POH armour stand back to fully-charged Ahrim's staff for use with the Ahrim's Barrows set. The repaired weapon offers +65 crush, +15 magic, and +5% magic damage, making it a respectable budget magic weapon for set-effect synergy in Ahrim's full kit."
+  market_strategy:
+    notes:
+      - "Pricing tracks repair-cost arbitrage versus the fully-charged Ahrim's staff."
+      - "Repair cost at Bob is 90,000 gp - flip viable only when GE spread exceeds repair cost."
+      - "POH armour stand repair scales with Smithing level - high-Smithing accounts see better margins."
+      - "Demand bottlenecked by Ahrim's full-set buyers; thin volume due to 15 GE limit."
+  trading_tips:
+    - "Buy the 0-charge variant when the fully-repaired version trades 90k+ above this."
+    - "Repair at POH armour stand instead of Bob if you have high Smithing for a cost discount."
+    - "Watch Barrows DPS meta - any spike in Ahrim's set popularity floats both variants."
+  history:
+    - date: "2005-05-09"
+      description: "Released with the Barrows minigame as the fully-degraded state of Ahrim's quarterstaff."
+    - date: "2014-05-08"
+      description: "Re-released to Old School RuneScape alongside the original Barrows brothers loot table."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

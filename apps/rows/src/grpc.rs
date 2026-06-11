@@ -60,6 +60,25 @@ fn service_key_from_meta<T>(req: &Request<T>) -> Option<String> {
     }
 }
 
+/// Enforces a valid `x-service-key` for trusted server-to-server RPCs — the gRPC equivalent of the
+/// REST `require_service_key` gate. Without this, InstanceManagement / CharacterPersistence-write /
+/// GlobalData-write methods would be callable unauthenticated. Player/tenant RPCs use
+/// `confirm_login_parts` (bearer/session) instead.
+#[allow(clippy::result_large_err)]
+fn require_service_key<T>(svc: &OWSService, req: &Request<T>) -> Result<(), Status> {
+    let cfg = &svc.state().supabase;
+    if !cfg.service_key_enabled() {
+        return Err(Status::unauthenticated(
+            "service key auth is not configured on this server",
+        ));
+    }
+    let key = service_key_from_meta(req)
+        .ok_or_else(|| Status::unauthenticated("x-service-key metadata required"))?;
+    crate::supabase::validate_service_key(&key, cfg)
+        .map_err(|_| Status::unauthenticated("invalid service key"))?;
+    Ok(())
+}
+
 pub struct PublicApiService {
     svc: Arc<OWSService>,
 }
@@ -227,6 +246,7 @@ impl InstanceManagement for InstanceManagementService {
         &self,
         req: Request<RegisterLauncherRequest>,
     ) -> Result<Response<RegisterLauncherResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         let world_server_id = self
@@ -252,6 +272,7 @@ impl InstanceManagement for InstanceManagementService {
         &self,
         req: Request<StartInstanceLauncherRequest>,
     ) -> Result<Response<StartInstanceLauncherResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         // The dedicated server is its own launcher in the ROWS topology: it
         // registers, then spins up its own zone instances. Ack the start.
         tracing::info!(
@@ -267,6 +288,7 @@ impl InstanceManagement for InstanceManagementService {
         &self,
         req: Request<ShutDownInstanceLauncherRequest>,
     ) -> Result<Response<ShutDownInstanceLauncherResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc
@@ -297,6 +319,7 @@ impl InstanceManagement for InstanceManagementService {
         &self,
         req: Request<SetZoneInstanceStatusRequest>,
     ) -> Result<Response<SetZoneInstanceStatusResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc
@@ -312,6 +335,7 @@ impl InstanceManagement for InstanceManagementService {
         &self,
         req: Request<SpinUpInstanceRequest>,
     ) -> Result<Response<SpinUpInstanceResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc
@@ -334,6 +358,7 @@ impl InstanceManagement for InstanceManagementService {
         &self,
         req: Request<ShutDownInstanceRequest>,
     ) -> Result<Response<ShutDownInstanceResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc
@@ -347,6 +372,7 @@ impl InstanceManagement for InstanceManagementService {
         &self,
         req: Request<UpdateNumberOfPlayersRequest>,
     ) -> Result<Response<UpdateNumberOfPlayersResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc
@@ -383,6 +409,7 @@ impl CharacterPersistence for CharacterPersistenceService {
         &self,
         req: Request<UpdatePositionRequest>,
     ) -> Result<Response<UpdatePositionResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc
@@ -396,6 +423,7 @@ impl CharacterPersistence for CharacterPersistenceService {
         &self,
         req: Request<UpdateStatsRequest>,
     ) -> Result<Response<UpdateStatsResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc
@@ -409,6 +437,7 @@ impl CharacterPersistence for CharacterPersistenceService {
         &self,
         req: Request<PlayerLogoutRequest>,
     ) -> Result<Response<PlayerLogoutResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let session_guid = parse_session(&r.user_session_guid)?;
         self.svc.logout(session_guid).await.map_err(to_status)?;
@@ -457,6 +486,7 @@ impl CharacterPersistence for CharacterPersistenceService {
         &self,
         req: Request<LeaveMapRequest>,
     ) -> Result<Response<LeaveMapResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc
@@ -493,6 +523,7 @@ impl GlobalDataService for GlobalDataServiceImpl {
         &self,
         req: Request<SetGlobalDataRequest>,
     ) -> Result<Response<SetGlobalDataResponse>, Status> {
+        require_service_key(&self.svc, &req)?;
         let r = req.get_ref();
         let guid = self.svc.state().config.customer_guid;
         self.svc

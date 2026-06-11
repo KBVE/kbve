@@ -1,6 +1,6 @@
 ---
 title: Elven boots | OSRS Price Data
-description: "Elven boots: Decorative elven boots.. High alch: 6,000 GP, GE limit: 125."
+description: "Elven boots are cosmetic feet slot armour sold by Lliann's Wares in Prifddinas after Song of the Elves. High alch: 6,000 GP, GE limit: 125."
 osrs:
   id: 24003
   name: Elven boots
@@ -12,12 +12,92 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 125
-  about: "Elven boots is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2019-07-25"
+    update: "Song of the Elves"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.535
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weight: 4.535
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Lliann's Wares"
+      location: Prifddinas
+      price: 10000
+      currency: Coins
+  related_items:
+    - item_id: 24000
+      item_name: Elven shirt
+      slug: elven-shirt
+      relationship: set-piece
+      description: "Matching elven outfit body."
+    - item_id: 24001
+      item_name: Elven legwear
+      slug: elven-legwear
+      relationship: set-piece
+      description: "Matching elven outfit legs."
+    - item_id: 24006
+      item_name: Elven gloves
+      slug: elven-gloves
+      relationship: set-piece
+      description: "Matching elven outfit gloves."
+    - item_name: Ranger boots
+      slug: ranger-boots
+      relationship: alternative
+      description: "Higher-end ranged feet slot option with combat bonuses."
+  about: "Elven boots are cosmetic-only members feet slot armour sold by Lliann's Wares in Prifddinas after completing Song of the Elves. They provide no combat bonuses and are purely fashionscape, but at 4.535 kg they are among the heaviest boots in the game and round out the matching elven outfit alongside the shirt, legwear, and gloves."
+  market_strategy:
+    notes:
+      - "Cosmetic-only piece - demand is purely fashionscape driven"
+      - "Supply gated on Prifddinas access via Song of the Elves quest"
+      - "Stable shop price of 10,000 coins caps GE upside"
+      - "Buy limit of 125 per 4 hours supports steady flips"
+  trading_tips:
+    - "Compare GE price vs the 10,000 coin Lliann's Wares restock floor"
+    - "Demand bumps during fashionscape events and elf cosmetic showcases"
+    - "Often paired-buy with other elven outfit pieces; flip the set"
+  history:
+    - date: "2019-07-25"
+      description: "Released with the Song of the Elves quest and Prifddinas city."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

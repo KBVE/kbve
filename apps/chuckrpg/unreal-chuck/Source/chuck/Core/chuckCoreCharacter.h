@@ -13,6 +13,7 @@ class UInputAction;
 class UKBVEAbilityComponent;
 class UchuckCharacterMovementComponent;
 class UKBVEEffectComponent;
+class UAnimMontage;
 struct FInputActionValue;
 
 UCLASS()
@@ -100,6 +101,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Chuck|Combat")
 	TObjectPtr<UKBVEAbilityComponent> AbilityComp;
+
+	UPROPERTY(EditAnywhere, Category = "Chuck|Combat")
+	TObjectPtr<UAnimMontage> MeleeMontage;
 
 	void OnSprintPressed(const FInputActionValue& Value);
 	void OnSprintReleased(const FInputActionValue& Value);

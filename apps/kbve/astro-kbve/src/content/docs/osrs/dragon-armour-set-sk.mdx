@@ -1,6 +1,6 @@
 ---
 title: Dragon armour set (sk) | OSRS Price Data
-description: "Dragon armour set (sk): A set containing a full helm, platebody, skirt and kiteshield.. High alch: 300,000 GP, GE limit: 8."
+description: "Dragon armour set (sk) is a Grand Exchange set bundling dragon full helm, platebody, plateskirt, and kiteshield. High alch: 300,000 GP, GE limit: 8."
 osrs:
   id: 21885
   name: Dragon armour set (sk)
@@ -12,9 +12,97 @@ osrs:
   lowalch: 200000
   highalch: 300000
   limit: 8
-  about: "Dragon armour set (sk) is a members-only item in Old School RuneScape. High alchemy value: 300,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: metal
+    tier: high
+  properties:
+    release_date: "2014-09-04"
+    update: "Item sets"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  set_bonus:
+    set_name: Dragon armour set (sk)
+    pieces_required: 4
+    description: "Grand Exchange convenience bundle containing dragon full helm, dragon platebody, dragon plateskirt, and dragon kiteshield"
+    pieces:
+      - 11335
+      - 21892
+      - 4087
+      - 21895
+  recipes:
+    - skill: crafting
+      members_only: true
+      notes: "Created by exchanging a dragon full helm, dragon platebody, dragon plateskirt, and dragon kiteshield with a Grand Exchange clerk"
+      materials:
+        - item_id: 11335
+          item_name: Dragon full helm
+          quantity: 1
+        - item_id: 21892
+          item_name: Dragon platebody
+          quantity: 1
+        - item_id: 4087
+          item_name: Dragon plateskirt
+          quantity: 1
+        - item_id: 21895
+          item_name: Dragon kiteshield
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_id: 21884
+      item_name: Dragon armour set (lg)
+      slug: dragon-armour-set-lg
+      relationship: alternative
+      description: Platelegs variant of the dragon armour set
+    - item_id: 11335
+      item_name: Dragon full helm
+      slug: dragon-full-helm
+      relationship: component
+      description: Helm included in the set
+    - item_id: 21892
+      item_name: Dragon platebody
+      slug: dragon-platebody
+      relationship: component
+      description: Body slot included in the set
+    - item_id: 4087
+      item_name: Dragon plateskirt
+      slug: dragon-plateskirt
+      relationship: component
+      description: Skirt included in the set
+    - item_id: 21895
+      item_name: Dragon kiteshield
+      slug: dragon-kiteshield
+      relationship: component
+      description: Shield included in the set
+  about: "Dragon armour set (sk) is a Grand Exchange convenience bundle that packages a dragon full helm, dragon platebody, dragon plateskirt, and dragon kiteshield into a single tradeable item. Created at the Grand Exchange clerk's set exchange interface, it lets players list a full female-style dragon kit as one ticker instead of four. Set price is driven by the sum of the constituent pieces, especially the dragon platebody."
+  market_strategy:
+    notes:
+      - "Investment Notes"
+      - "Set price tracks the sum of component pieces; arbitrage opportunities exist when components fall behind"
+      - "GE limit of 8 per 4 hours restricts large rotations"
+      - "Most profit is captured by composing or decomposing around dragon platebody price moves"
+      - "Untradeable while held as a set on death until banked; plan ironman/mains use accordingly"
+  trading_tips:
+    - "Compare set vs sum of components daily; flip whichever direction shows positive margin"
+    - "Use Set Exchange interface at any Grand Exchange clerk to swap between set and pieces"
+    - "Avoid buying near alch floor — dragon platebody volatility dominates pricing"
+  history:
+    - date: "2014-09-04"
+      description: "Introduced alongside the Grand Exchange set exchange interface."
+    - date: "2017-03-09"
+      description: "Added to Grand Exchange item sets following the dragon platebody release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
