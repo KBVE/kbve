@@ -106,7 +106,7 @@
 		{
 			"key": "cryptothrone",
 			"app_name": "cryptothrone",
-			"version": "0.1.7",
+			"version": "0.1.9",
 			"version_toml": "apps/cryptothrone/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone.mdx",
 			"version_target": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",
@@ -120,7 +120,7 @@
 		{
 			"key": "cryptothrone_server",
 			"app_name": "cryptothrone-server",
-			"version": "0.0.1",
+			"version": "0.0.2",
 			"version_toml": "apps/agones/cryptothrone/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone-server.mdx",
 			"version_target": "apps/agones/cryptothrone/server/Cargo.toml",
@@ -146,7 +146,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.18",
+			"version": "0.1.19",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -1037,7 +1037,7 @@
 				"license_method": "personal"
 			},
 			"source_path": "apps/rareicon/unity-rareicon",
-			"version": "0.1.8",
+			"version": "0.1.9",
 			"version_toml": "apps/rareicon/unity-rareicon/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unity-rareicon.mdx",
 			"runner": "ubuntu-latest",
