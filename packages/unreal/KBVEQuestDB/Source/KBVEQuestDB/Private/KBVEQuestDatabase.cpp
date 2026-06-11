@@ -1,10 +1,11 @@
 #include "KBVEQuestDatabase.h"
 
-#include "Dom/JsonObject.h"
+#include "KBVEQuestMap.h"
+#include "Generated/KBVEQuestDBProtoTypes.h"
+#include "Generated/KBVEQuestDBProtoParse.h"
+#include "KBVEYYJson.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
-#include "Serialization/JsonReader.h"
-#include "Serialization/JsonSerializer.h"
 
 void UKBVEQuestDatabase::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -24,7 +25,9 @@ void UKBVEQuestDatabase::Initialize(FSubsystemCollectionBase& Collection)
 void UKBVEQuestDatabase::Deinitialize()
 {
 	Quests.Reset();
+	Chains.Reset();
 	RefToIndex.Reset();
+	ChainRefToIndex.Reset();
 	Super::Deinitialize();
 }
 
@@ -41,106 +44,54 @@ bool UKBVEQuestDatabase::LoadFromFile(const FString& FilePath)
 
 bool UKBVEQuestDatabase::LoadFromJson(const FString& JsonText)
 {
-	TSharedPtr<FJsonObject> Root;
-	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(JsonText);
-	if (!FJsonSerializer::Deserialize(Reader, Root) || !Root.IsValid())
+	const FTCHARToUTF8 Utf8(*JsonText);
+	yyjson_doc* Doc = yyjson_read(Utf8.Get(), Utf8.Length(), 0);
+	if (!Doc)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[KBVEQuestDB] questdb JSON parse failed"));
 		return false;
 	}
 
-	const TArray<TSharedPtr<FJsonValue>>* QuestArray = nullptr;
-	if (!Root->TryGetArrayField(TEXT("quests"), QuestArray) || QuestArray == nullptr)
+	yyjson_val* Root = yyjson_doc_get_root(Doc);
+	yyjson_val* QuestArr = Root ? yyjson_obj_get(Root, "quests") : nullptr;
+	if (!QuestArr || !yyjson_is_arr(QuestArr))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("[KBVEQuestDB] questdb JSON has no 'quests' array"));
+		yyjson_doc_free(Doc);
 		return false;
 	}
 
 	Quests.Reset();
+	Chains.Reset();
 	RefToIndex.Reset();
-	Quests.Reserve(QuestArray->Num());
+	ChainRefToIndex.Reset();
+	Quests.Reserve((int32)yyjson_arr_size(QuestArr));
 
-	for (const TSharedPtr<FJsonValue>& Value : *QuestArray)
+	size_t Idx, MaxN;
+	yyjson_val* QuestVal;
+	yyjson_arr_foreach(QuestArr, Idx, MaxN, QuestVal)
 	{
-		const TSharedPtr<FJsonObject>* ObjPtr = nullptr;
-		if (!Value.IsValid() || !Value->TryGetObject(ObjPtr) || ObjPtr == nullptr)
+		FKBVEGenQuest Gen;
+		KBVEQuestDBProto::Populate(Gen, QuestVal);
+		if (Gen.Ref.IsEmpty()) continue;
+
+		FKBVEQuestDef Def = KBVEQuestMap::FromGen(Gen);
+
+		// Flattened top-level `objectives` (single-step MDX convenience) live
+		// outside the proto Quest shape, so the generated parser skips them.
+		if (Def.Steps.Num() == 0)
 		{
-			continue;
-		}
-		const TSharedPtr<FJsonObject>& Obj = *ObjPtr;
-
-		FKBVEQuestDef Def;
-		FString Str;
-		if (Obj->TryGetStringField(TEXT("ref"), Str)) Def.Ref = FName(*Str);
-		if (Def.Ref.IsNone()) continue;
-
-		Obj->TryGetStringField(TEXT("id"), Def.Id);
-		Obj->TryGetStringField(TEXT("title"), Def.Title);
-		Obj->TryGetStringField(TEXT("description"), Def.Description);
-		Obj->TryGetStringField(TEXT("icon"), Def.Icon);
-		if (Obj->TryGetStringField(TEXT("category"), Str)) Def.Category = FName(*Str);
-		Obj->TryGetBoolField(TEXT("hidden"), Def.bHidden);
-		Obj->TryGetBoolField(TEXT("repeatable"), Def.bRepeatable);
-		Obj->TryGetNumberField(TEXT("recommendedLevel"), Def.RecommendedLevel);
-		if (Obj->TryGetStringField(TEXT("nextQuestRef"), Str)) Def.NextQuestRef = FName(*Str);
-
-		const TArray<TSharedPtr<FJsonValue>>* ObjectiveArray = nullptr;
-		if (Obj->TryGetArrayField(TEXT("objectives"), ObjectiveArray) && ObjectiveArray)
-		{
-			for (const TSharedPtr<FJsonValue>& OV : *ObjectiveArray)
+			yyjson_val* ObjArr = yyjson_obj_get(QuestVal, "objectives");
+			if (ObjArr && yyjson_is_arr(ObjArr))
 			{
-				const TSharedPtr<FJsonObject>* OObjPtr = nullptr;
-				if (!OV.IsValid() || !OV->TryGetObject(OObjPtr) || OObjPtr == nullptr) continue;
-				const TSharedPtr<FJsonObject>& OObj = *OObjPtr;
-
-				FKBVEQuestObjective Objective;
-				if (OObj->TryGetStringField(TEXT("id"), Str)) Objective.Id = FName(*Str);
-				OObj->TryGetStringField(TEXT("description"), Objective.Description);
-				if (OObj->TryGetStringField(TEXT("type"), Str)) Objective.Type = FName(*Str);
-				OObj->TryGetNumberField(TEXT("requiredAmount"), Objective.RequiredAmount);
-
-				const TArray<TSharedPtr<FJsonValue>>* Targets = nullptr;
-				if (OObj->TryGetArrayField(TEXT("targetRefs"), Targets) && Targets)
+				size_t OIdx, OMax;
+				yyjson_val* ObjVal;
+				yyjson_arr_foreach(ObjArr, OIdx, OMax, ObjVal)
 				{
-					for (const TSharedPtr<FJsonValue>& T : *Targets)
-					{
-						FString TgtRef;
-						if (T.IsValid() && T->TryGetString(TgtRef)) Objective.TargetRefs.Add(FName(*TgtRef));
-					}
+					FKBVEGenQuestObjective GenObj;
+					KBVEQuestDBProto::Populate(GenObj, ObjVal);
+					Def.Objectives.Add(KBVEQuestMap::FromGen(GenObj));
 				}
-				Def.Objectives.Add(MoveTemp(Objective));
-			}
-		}
-
-		const TSharedPtr<FJsonObject>* RewardsObj = nullptr;
-		if (Obj->TryGetObjectField(TEXT("rewards"), RewardsObj) && RewardsObj)
-		{
-			(*RewardsObj)->TryGetNumberField(TEXT("currency"), Def.Rewards.Currency);
-			(*RewardsObj)->TryGetNumberField(TEXT("xp"), Def.Rewards.Xp);
-			if ((*RewardsObj)->TryGetStringField(TEXT("unlockRef"), Str)) Def.Rewards.UnlockRef = FName(*Str);
-
-			const TArray<TSharedPtr<FJsonValue>>* ItemRewards = nullptr;
-			if ((*RewardsObj)->TryGetArrayField(TEXT("items"), ItemRewards) && ItemRewards)
-			{
-				for (const TSharedPtr<FJsonValue>& IV : *ItemRewards)
-				{
-					const TSharedPtr<FJsonObject>* IObjPtr = nullptr;
-					if (!IV.IsValid() || !IV->TryGetObject(IObjPtr) || IObjPtr == nullptr) continue;
-					FKBVEQuestItemReward ItemReward;
-					if ((*IObjPtr)->TryGetStringField(TEXT("itemRef"), Str)) ItemReward.ItemRef = FName(*Str);
-					(*IObjPtr)->TryGetNumberField(TEXT("amount"), ItemReward.Amount);
-					Def.Rewards.Items.Add(ItemReward);
-				}
-			}
-		}
-
-		const TArray<TSharedPtr<FJsonValue>>* TagArray = nullptr;
-		if (Obj->TryGetArrayField(TEXT("tags"), TagArray) && TagArray)
-		{
-			for (const TSharedPtr<FJsonValue>& T : *TagArray)
-			{
-				FString Tag;
-				if (T.IsValid() && T->TryGetString(Tag)) Def.Tags.Add(FName(*Tag));
 			}
 		}
 
@@ -148,7 +99,26 @@ bool UKBVEQuestDatabase::LoadFromJson(const FString& JsonText)
 		Quests.Add(MoveTemp(Def));
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("[KBVEQuestDB] loaded %d quest defs"), Quests.Num());
+	yyjson_val* ChainArr = yyjson_obj_get(Root, "chains");
+	if (ChainArr && yyjson_is_arr(ChainArr))
+	{
+		Chains.Reserve((int32)yyjson_arr_size(ChainArr));
+		size_t CIdx, CMax;
+		yyjson_val* ChainVal;
+		yyjson_arr_foreach(ChainArr, CIdx, CMax, ChainVal)
+		{
+			FKBVEGenQuestChain GenChain;
+			KBVEQuestDBProto::Populate(GenChain, ChainVal);
+			if (GenChain.Ref.IsEmpty()) continue;
+
+			FKBVEQuestChainDef ChainDef = KBVEQuestMap::FromGen(GenChain);
+			ChainRefToIndex.Add(ChainDef.Ref, Chains.Num());
+			Chains.Add(MoveTemp(ChainDef));
+		}
+	}
+
+	yyjson_doc_free(Doc);
+	UE_LOG(LogTemp, Log, TEXT("[KBVEQuestDB] loaded %d quest defs, %d chains (generated parse)"), Quests.Num(), Chains.Num());
 	return true;
 }
 
@@ -169,4 +139,53 @@ bool UKBVEQuestDatabase::GetQuestByRef(FName Ref, FKBVEQuestDef& OutDef) const
 		return true;
 	}
 	return false;
+}
+
+const FKBVEQuestChainDef* UKBVEQuestDatabase::FindChainByRef(FName Ref) const
+{
+	if (const int32* Index = ChainRefToIndex.Find(Ref))
+	{
+		return &Chains[*Index];
+	}
+	return nullptr;
+}
+
+bool UKBVEQuestDatabase::GetChainByRef(FName Ref, FKBVEQuestChainDef& OutDef) const
+{
+	if (const FKBVEQuestChainDef* Def = FindChainByRef(Ref))
+	{
+		OutDef = *Def;
+		return true;
+	}
+	return false;
+}
+
+TArray<FKBVEQuestDef> UKBVEQuestDatabase::GetQuestsByCategory(EKBVEQuestCategory Category) const
+{
+	TArray<FKBVEQuestDef> Out;
+	for (const FKBVEQuestDef& Q : Quests)
+	{
+		if (Q.Category == Category) Out.Add(Q);
+	}
+	return Out;
+}
+
+TArray<FKBVEQuestDef> UKBVEQuestDatabase::GetQuestsByTag(FName Tag) const
+{
+	TArray<FKBVEQuestDef> Out;
+	for (const FKBVEQuestDef& Q : Quests)
+	{
+		if (Q.Tags.Contains(Tag)) Out.Add(Q);
+	}
+	return Out;
+}
+
+TArray<FKBVEQuestDef> UKBVEQuestDatabase::GetQuestsByGiverNpc(FName NpcRef) const
+{
+	TArray<FKBVEQuestDef> Out;
+	for (const FKBVEQuestDef& Q : Quests)
+	{
+		if (Q.GiverNpcRefs.Contains(NpcRef)) Out.Add(Q);
+	}
+	return Out;
 }

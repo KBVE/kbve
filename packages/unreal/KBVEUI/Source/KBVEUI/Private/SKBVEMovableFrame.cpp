@@ -81,6 +81,10 @@ void SKBVEMovableFrame::Construct(const FArguments& InArgs)
 	OnCloseDelegate            = InArgs._OnCloseClicked;
 	OnGeometryChangedDelegate  = InArgs._OnGeometryChanged;
 	const bool bResizable      = InArgs._bResizable;
+	bDocked                    = InArgs._bStartDocked;
+	DockPadding                = InArgs._DockPadding;
+	DockedPosition             = Position;
+	SetCanTick(bDocked);
 
 	const FSlateFontInfo TitleFont = FCoreStyle::GetDefaultFontStyle("Bold", 18);
 	const FLinearColor TitleBarColor(0.10f, 0.10f, 0.13f, 0.95f);
@@ -92,7 +96,7 @@ void SKBVEMovableFrame::Construct(const FArguments& InArgs)
 		SNew(SCanvas)
 
 		+ SCanvas::Slot()
-		.Position(TAttribute<FVector2D>::CreateLambda([this]() { return Position; }))
+		.Position(TAttribute<FVector2D>::CreateLambda([this]() { return bDocked ? DockedPosition : Position; }))
 		.Size(TAttribute<FVector2D>::CreateLambda([this]() { return FrameSize; }))
 		[
 			SNew(SOverlay)
@@ -101,7 +105,7 @@ void SKBVEMovableFrame::Construct(const FArguments& InArgs)
 			[
 				SNew(SImage)
 				.Image(FCoreStyle::Get().GetBrush("WhiteBrush"))
-				.ColorAndOpacity(BorderColor)
+				.ColorAndOpacity(TAttribute<FSlateColor>::CreateLambda([this, BorderColor]() { return bDocked ? FSlateColor(FLinearColor::Transparent) : FSlateColor(BorderColor); }))
 			]
 
 			+ SOverlay::Slot()
@@ -113,6 +117,7 @@ void SKBVEMovableFrame::Construct(const FArguments& InArgs)
 						SNew(SKBVEDragHandle)
 						.OnDragMoved_Lambda([this](const FVector2D& Delta)
 						{
+							if (bDocked) { return; }
 							FrameSize.X = FMath::Max(MinFrameSize.X, FrameSize.X + Delta.X);
 							FrameSize.Y = FMath::Max(MinFrameSize.Y, FrameSize.Y + Delta.Y);
 							OnGeometryChangedDelegate.ExecuteIfBound();
@@ -139,8 +144,10 @@ void SKBVEMovableFrame::Construct(const FArguments& InArgs)
 				.AutoHeight()
 				[
 					SNew(SKBVEDragHandle)
+					.Visibility_Lambda([this]() { return bDocked ? EVisibility::Collapsed : EVisibility::Visible; })
 					.OnDragMoved_Lambda([this](const FVector2D& Delta)
 					{
+						if (bDocked) { return; }
 						Position += Delta;
 						OnGeometryChangedDelegate.ExecuteIfBound();
 					})
@@ -197,7 +204,7 @@ void SKBVEMovableFrame::Construct(const FArguments& InArgs)
 					[
 						SNew(SImage)
 						.Image(FCoreStyle::Get().GetBrush("WhiteBrush"))
-						.ColorAndOpacity(BodyColor)
+						.ColorAndOpacity(TAttribute<FSlateColor>::CreateLambda([this, BodyColor]() { return bDocked ? FSlateColor(FLinearColor::Transparent) : FSlateColor(BodyColor); }))
 					]
 
 					+ SOverlay::Slot()
@@ -209,6 +216,24 @@ void SKBVEMovableFrame::Construct(const FArguments& InArgs)
 			]
 		]
 	];
+}
+
+void SKBVEMovableFrame::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+{
+	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+	if (!bDocked) { return; }
+	const FVector2D Size = AllottedGeometry.GetLocalSize();
+	DockedPosition.X = DockPadding.Left;
+	const double DockedY = Size.Y - FrameSize.Y - static_cast<double>(DockPadding.Bottom);
+	DockedPosition.Y = DockedY > 0.0 ? DockedY : 0.0;
+}
+
+void SKBVEMovableFrame::SetDocked(bool bInDocked)
+{
+	if (bDocked == bInDocked) { return; }
+	bDocked = bInDocked;
+	SetCanTick(bDocked);
+	Invalidate(EInvalidateWidgetReason::Layout | EInvalidateWidgetReason::Paint);
 }
 
 FReply SKBVEMovableFrame::HandleCloseClicked()

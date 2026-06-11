@@ -225,6 +225,41 @@
 			},
 			"cache": true
 		},
+		"sync:questdb": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/docs/questdb/*.mdx",
+				"{workspaceRoot}/packages/data/codegen/gen-questdb-data.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/questdb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated/questdb-data.json",
+				"{workspaceRoot}/packages/data/codegen/generated/questdb-data.binpb",
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/questdb.json",
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/questdb.binpb"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-questdb-data.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:questdb-uecpp": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-questdb-uecpp.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/questdb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/unreal/KBVEQuestDB/Source/KBVEQuestDB/Public/Generated/KBVEQuestDBProtoTypes.h",
+				"{workspaceRoot}/packages/unreal/KBVEQuestDB/Source/KBVEQuestDB/Public/Generated/KBVEQuestDBProtoParse.h"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-questdb-uecpp.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:npcdb": {
 			"executor": "nx:run-commands",
 			"inputs": [

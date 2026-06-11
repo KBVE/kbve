@@ -1,6 +1,8 @@
 #include "KBVEAbilityComponent.h"
 #include "KBVECombatStatics.h"
 #include "KBVECombatFeedSubsystem.h"
+#include "KBVEStatTarget.h"
+#include "KBVEStatIds.h"
 #include "Engine/World.h"
 #include "Engine/OverlapResult.h"
 #include "GameFramework/Actor.h"
@@ -38,6 +40,18 @@ bool UKBVEAbilityComponent::TryActivate(FName AbilityId)
 	if (!Def || IsOnCooldown(AbilityId))
 	{
 		return false;
+	}
+
+	if (Def->EnergyCost > 0.0f)
+	{
+		if (IKBVEStatTarget* Stat = Cast<IKBVEStatTarget>(Owner))
+		{
+			if (Stat->GetStatValue(KBVEStats::Energy) < Def->EnergyCost)
+			{
+				return false;
+			}
+			Stat->ApplyStatDelta(KBVEStats::Energy, -Def->EnergyCost);
+		}
 	}
 
 	PendingAbility = AbilityId;
@@ -116,6 +130,11 @@ void UKBVEAbilityComponent::Commit(FName AbilityId)
 		}
 		UKBVECombatStatics::ApplyDamage(Target, Damage);
 	}
+
+	const float MassRadius = Def->Radius > 0.0f ? Def->Radius : FMath::Max(Def->Range, 150.0f);
+	const int32 MassHits = UKBVECombatStatics::DamageMassStatTargetsInSphere(Owner, HitPoint, MassRadius, Def->Damage);
+	UE_LOG(LogTemp, Warning, TEXT("[KBVECombat] %s commit at (%.0f,%.0f) r=%.0f actorHits=%d massHits=%d"),
+		*AbilityId.ToString(), HitPoint.X, HitPoint.Y, MassRadius, Candidates.Num(), MassHits);
 
 	if (UKBVECombatFeedSubsystem* Feed = UKBVECombatFeedSubsystem::Get(Owner))
 	{

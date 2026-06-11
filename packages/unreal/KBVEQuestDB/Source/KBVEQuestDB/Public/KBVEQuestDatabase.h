@@ -29,9 +29,29 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "KBVE|Quest")
 	int32 Num() const { return Quests.Num(); }
 
+	const FKBVEQuestChainDef* FindChainByRef(FName Ref) const;
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Quest")
+	bool GetChainByRef(FName Ref, FKBVEQuestChainDef& OutDef) const;
+
+	const TArray<FKBVEQuestChainDef>& GetAllChains() const { return Chains; }
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Quest")
+	TArray<FKBVEQuestDef> GetQuestsByCategory(EKBVEQuestCategory Category) const;
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Quest")
+	TArray<FKBVEQuestDef> GetQuestsByTag(FName Tag) const;
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Quest")
+	TArray<FKBVEQuestDef> GetQuestsByGiverNpc(FName NpcRef) const;
+
 private:
 	UPROPERTY()
 	TArray<FKBVEQuestDef> Quests;
 
+	UPROPERTY()
+	TArray<FKBVEQuestChainDef> Chains;
+
 	TMap<FName, int32> RefToIndex;
+	TMap<FName, int32> ChainRefToIndex;
 };

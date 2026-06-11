@@ -18,6 +18,10 @@ struct KBVEGAMEPLAY_API FKBVEStatFragment : public FMassFragment
 	float MaxMana = 100.f;
 	float ManaRegenPerSec = 3.f;
 
+	float Energy = 100.f;
+	float MaxEnergy = 100.f;
+	float EnergyRegenPerSec = 4.f;
+
 	float Stamina = 100.f;
 	float MaxStamina = 100.f;
 	float StaminaRegenPerSec = 10.f;

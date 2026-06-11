@@ -19,6 +19,12 @@ struct FKBVEManaChangedPayload
 	float Max     = 0.f;
 };
 
+struct FKBVEEnergyChangedPayload
+{
+	float Current = 0.f;
+	float Max     = 0.f;
+};
+
 struct FKBVEStaminaChangedPayload
 {
 	float Current    = 0.f;

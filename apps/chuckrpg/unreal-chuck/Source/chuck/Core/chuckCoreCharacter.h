@@ -10,6 +10,7 @@
 #include "chuckCoreCharacter.generated.h"
 
 class UInputAction;
+class UKBVEAbilityComponent;
 class UchuckCharacterMovementComponent;
 class UKBVEEffectComponent;
 struct FInputActionValue;
@@ -94,10 +95,17 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UInputAction> InventoryAction;
 
+	UPROPERTY()
+	TObjectPtr<UInputAction> AttackAction;
+
+	UPROPERTY(VisibleAnywhere, Category = "Chuck|Combat")
+	TObjectPtr<UKBVEAbilityComponent> AbilityComp;
+
 	void OnSprintPressed(const FInputActionValue& Value);
 	void OnSprintReleased(const FInputActionValue& Value);
 	void OnCrouchPressed(const FInputActionValue& Value);
 	void OnToggleCameraPressed(const FInputActionValue& Value);
+	void OnAttackPressed(const FInputActionValue& Value);
 
 	UchuckCharacterMovementComponent* GetChuckMovement() const;
 

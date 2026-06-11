@@ -62,6 +62,7 @@ void SKBVEChatPanel::Construct(const FArguments& InArgs)
 	OnCloseClicked = InArgs._OnCloseClicked;
 	OnSaveGeometry = InArgs._OnSaveGeometry;
 	OnLoadGeometry = InArgs._OnLoadGeometry;
+	const FMargin DockPad = InArgs._DockPadding;
 
 	if (!ActiveChannel.IsEmpty())
 	{
@@ -97,9 +98,11 @@ void SKBVEChatPanel::Construct(const FArguments& InArgs)
 		.InitialPosition(StartPos)
 		.FrameSize(StartSize)
 		.MinFrameSize(FVector2D(320.f, 180.f))
+		.bStartDocked(true)
+		.DockPadding(DockPad)
 		.OnCloseClicked_Lambda([this]()
 		{
-			SetVisibility(EVisibility::Collapsed);
+			Dock();
 			OnCloseClicked.ExecuteIfBound();
 		})
 		.OnGeometryChanged_Lambda([this]() { PersistGeometry(); })
@@ -107,7 +110,7 @@ void SKBVEChatPanel::Construct(const FArguments& InArgs)
 		[
 			SNew(SBorder)
 			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-			.BorderBackgroundColor(FSlateColor(FLinearColor(0.04f, 0.06f, 0.09f, 0.55f)))
+			.BorderBackgroundColor_Lambda([this]() { return IsDocked() ? FSlateColor(FLinearColor::Transparent) : FSlateColor(FLinearColor(0.04f, 0.06f, 0.09f, 0.55f)); })
 			.Padding(FMargin(2.f))
 			[
 				SNew(SVerticalBox)
@@ -116,6 +119,7 @@ void SKBVEChatPanel::Construct(const FArguments& InArgs)
 					SAssignNew(HeaderText, STextBlock)
 					.Text(FText::GetEmpty())
 					.Font(HeaderFont)
+					.Visibility_Lambda([this]() { return IsDocked() ? EVisibility::Collapsed : EVisibility::Visible; })
 				]
 			+ SVerticalBox::Slot().AutoHeight().Padding(2.f, 0.f, 2.f, 4.f)
 			[
@@ -128,6 +132,7 @@ void SKBVEChatPanel::Construct(const FArguments& InArgs)
 			+ SVerticalBox::Slot().AutoHeight().Padding(2.f)
 			[
 				SNew(SHorizontalBox)
+				.Visibility_Lambda([this]() { return IsDocked() ? EVisibility::Collapsed : EVisibility::Visible; })
 				+ SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 4.f, 0.f)
 				[
 					SAssignNew(InputBox, SEditableTextBox)
@@ -539,7 +544,7 @@ FReply SKBVEChatPanel::OnPreviewKeyDown(const FGeometry& MyGeometry, const FKeyE
 {
 	if (InKeyEvent.GetKey() == EKeys::Slash)
 	{
-		ToggleVisible();
+		Dock();
 		OnCloseClicked.ExecuteIfBound();
 		return FReply::Handled();
 	}
@@ -630,9 +635,32 @@ void SKBVEChatPanel::ShowAndFocusInput()
 	}
 }
 
+void SKBVEChatPanel::Dock()
+{
+	if (MovableFrame.IsValid())
+	{
+		MovableFrame->SetDocked(true);
+	}
+	SetVisibility(EVisibility::SelfHitTestInvisible);
+}
+
+void SKBVEChatPanel::Undock()
+{
+	if (MovableFrame.IsValid())
+	{
+		MovableFrame->SetDocked(false);
+	}
+	ShowAndFocusInput();
+}
+
+bool SKBVEChatPanel::IsDocked() const
+{
+	return MovableFrame.IsValid() && MovableFrame->IsDocked();
+}
+
 void SKBVEChatPanel::PersistGeometry()
 {
-	if (!MovableFrame.IsValid()) return;
+	if (!MovableFrame.IsValid() || MovableFrame->IsDocked()) return;
 	OnSaveGeometry.ExecuteIfBound(MovableFrame->GetCurrentPosition(), MovableFrame->GetCurrentSize());
 }
 

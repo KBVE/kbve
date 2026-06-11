@@ -163,6 +163,9 @@ jobs:
         with:
             mode: server
             shell_path: ${{ inputs.shell_path }}
+            manifest_version: ${{ inputs.manifest_version }}
+            version_source: ${{ inputs.version_source }}
+            version_toml: ${{ inputs.version_toml }}
         secrets:
             UNITY_PAT: ${{ secrets.UNITY_PAT }}
             butler_api: ${{ secrets.ITCH_API }}

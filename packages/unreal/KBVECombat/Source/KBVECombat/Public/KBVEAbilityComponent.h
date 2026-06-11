@@ -34,6 +34,10 @@ struct FKBVEAbilityDef
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Combat", meta = (ClampMin = "0.0"))
 	float CooldownSeconds = 0.8f;
 
+	/** Energy debited from the instigator on activate; 0 = free. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Combat", meta = (ClampMin = "0.0"))
+	float EnergyCost = 0.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Combat")
 	bool bFriendlyFire = false;
 };

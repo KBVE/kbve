@@ -25,6 +25,7 @@ public:
 
 	TKBVEChannel<FKBVEHealthChangedPayload>   Health;
 	TKBVEChannel<FKBVEManaChangedPayload>     Mana;
+	TKBVEChannel<FKBVEEnergyChangedPayload>   Energy;
 	TKBVEChannel<FKBVEStaminaChangedPayload>  Stamina;
 	TKBVEChannel<FchuckInventoryDirtyPayload>  InventoryDirty;
 	TKBVEChannel<FKBVEDamageReceivedPayload>  DamageReceived;

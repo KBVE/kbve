@@ -10,13 +10,8 @@ public class KBVEQuestDB : ModuleRules
 		{
 			"Core",
 			"CoreUObject",
-			"Engine"
-		});
-
-		PrivateDependencyModuleNames.AddRange(new string[]
-		{
-			"Json",
-			"JsonUtilities"
+			"Engine",
+			"KBVEYYJson"
 		});
 	}
 }

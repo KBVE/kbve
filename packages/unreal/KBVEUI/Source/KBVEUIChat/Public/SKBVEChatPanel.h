@@ -44,6 +44,7 @@ public:
 	{}
 		SLATE_ARGUMENT(TWeakObjectPtr<UKBVESupabaseSubsystem>, Subsystem)
 		SLATE_ARGUMENT(FString, DefaultChannel)
+		SLATE_ARGUMENT(FMargin, DockPadding)
 		SLATE_EVENT(FSimpleDelegate, OnCloseClicked)
 		SLATE_EVENT(FKBVEChatGeometrySave, OnSaveGeometry)
 		SLATE_EVENT(FKBVEChatGeometryLoad, OnLoadGeometry)
@@ -61,6 +62,10 @@ public:
 
 	bool ToggleVisible();
 	void ShowAndFocusInput();
+
+	void Dock();
+	void Undock();
+	bool IsDocked() const;
 
 protected:
 	virtual bool SupportsKeyboardFocus() const override { return true; }

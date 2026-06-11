@@ -10,6 +10,7 @@
 #include "MassEntitySubsystem.h"
 #include "MassEntityManager.h"
 #include "MassCommonFragments.h"
+#include "KBVEStatFragment.h"
 
 #include "Engine/World.h"
 #include "Engine/Texture2D.h"
@@ -172,6 +173,7 @@ void UchuckSlimeSubsystem::SpawnSlimes(const FVector& Center, int32 Count, float
 		const TArray<const UScriptStruct*> Composition = {
 			FTransformFragment::StaticStruct(),
 			FchuckSlimeFragment::StaticStruct(),
+			FKBVEStatFragment::StaticStruct(),
 			FchuckSlimeTag::StaticStruct()
 		};
 		Archetype = EM.CreateArchetype(Composition);
@@ -215,6 +217,7 @@ void UchuckSlimeSubsystem::SpawnSlimes(const FVector& Center, int32 Count, float
 
 		S->GroundZ = GroundZ;
 		S->TargetLocation = FVector(X, Y, GroundZ);
+		FKBVEStatFragment* StatF = EM.GetFragmentDataPtr<FKBVEStatFragment>(E);
 		if (bHaveStats)
 		{
 			constexpr float SpeedToUU = 40.f;
@@ -223,6 +226,12 @@ void UchuckSlimeSubsystem::SpawnSlimes(const FVector& Center, int32 Count, float
 			S->MaxHP = SlimeStats.MaxHP;
 			S->Attack = SlimeStats.Attack;
 			S->Defense = SlimeStats.Defense;
+		}
+		if (StatF)
+		{
+			StatF->MaxHealth = bHaveStats ? FMath::Max(1.f, SlimeStats.MaxHP) : 20.f;
+			StatF->Health = StatF->MaxHealth;
+			StatF->HealthRegenPerSec = 0.f;
 		}
 		else
 		{
@@ -335,6 +344,23 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 			continue;
 		}
 
+		if (S->bDead)
+		{
+			continue;
+		}
+		if (FKBVEStatFragment* StatF = EM.GetFragmentDataPtr<FKBVEStatFragment>(E))
+		{
+			if (StatF->Health <= 0.f)
+			{
+				S->bDead = 1;
+				if (Renderer && SlimeSprites.IsValidIndex(i))
+				{
+					Renderer->DespawnSprite(SlimeSprites[i]);
+				}
+				continue;
+			}
+		}
+
 		FVector Pos = T->GetTransform().GetLocation();
 		const bool bRelevant = !bHavePlayer || FVector::DistSquaredXY(Pos, PlayerLoc) <= RelevanceRadiusSq;
 
@@ -404,7 +430,12 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 
 		if (Rep && bRelevant)
 		{
-			Rep->ServerUpsert(static_cast<uint32>(i), Pos, MoveYaw, 0, bMoving ? 1 : 0);
+			S->UpsertTimer -= DeltaTime;
+			if (S->bInCombat || S->UpsertTimer <= 0.f)
+			{
+				Rep->ServerUpsert(static_cast<uint32>(i), Pos, MoveYaw, 0, bMoving ? 1 : 0);
+				S->UpsertTimer = S->bInCombat ? 0.f : FMath::FRandRange(0.35f, 0.55f);
+			}
 		}
 	}
 }
