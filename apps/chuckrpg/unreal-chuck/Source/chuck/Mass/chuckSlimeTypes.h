@@ -26,6 +26,7 @@ struct FchuckSlimeFragment : public FMassFragment
 	int32 HopCycle = -1;
 	int32 FacingRow = 0;
 	float FacingFlip = 0.f;
+	float LastYaw = 0.f;
 
 	float HP = 20.f;
 	float MaxHP = 20.f;

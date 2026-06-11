@@ -135,7 +135,12 @@ UMaterialInterface* FKBVEWorldGrassShader::GetOrCreateCardMaterial(UObject* /*Ou
 	{
 		UMaterialExpressionTextureSample* S = MakeExpr<UMaterialExpressionTextureSample>(M);
 		S->Texture = Albedo;
-		ED->EmissiveColor.Connect(0, S);
+		UMaterialExpressionConstant3Vector* Darken = MakeExpr<UMaterialExpressionConstant3Vector>(M);
+		Darken->Constant = FLinearColor(0.62f, 0.72f, 0.52f);
+		UMaterialExpressionMultiply* DarkMul = MakeExpr<UMaterialExpressionMultiply>(M);
+		DarkMul->A.Expression = S;
+		DarkMul->B.Expression = Darken;
+		ED->EmissiveColor.Connect(0, DarkMul);
 	}
 	if (UTexture2D* Opacity = LoadMaster(TEXT("springGrass_Opacity_8k")))
 	{

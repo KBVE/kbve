@@ -10,6 +10,7 @@
 namespace KBVETerrainCfg
 {
 	constexpr int32 RegionSize = 4;
+	constexpr int32 RebuildsPerTick = 1;
 }
 
 bool UKBVEWorldTerrainRenderSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -43,14 +44,16 @@ void UKBVEWorldTerrainRenderSubsystem::Deinitialize()
 void UKBVEWorldTerrainRenderSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
 	if (DirtyRegions.Num() == 0) return;
 	EnsureHost();
 	if (!HostActor) return;
 
-	TArray<FIntPoint> ToBuild = DirtyRegions.Array();
-	DirtyRegions.Reset();
-	for (const FIntPoint& Key : ToBuild)
+	int32 Budget = KBVETerrainCfg::RebuildsPerTick;
+	for (const FIntPoint& Key : DirtyRegions.Array())
 	{
+		if (Budget-- <= 0) break;
+		DirtyRegions.Remove(Key);
 		RebuildRegion(Key);
 	}
 }
