@@ -13,6 +13,8 @@ void UchuckAnimInstance::NativeInitializeAnimation()
 	{
 		MoveComp = OwnerCharacter->GetCharacterMovement();
 	}
+
+	RootMotionMode = ERootMotionMode::IgnoreRootMotion;
 }
 
 void UchuckAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -61,6 +63,7 @@ void UchuckAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	const float Target = bIsAttacking ? 1.f : 0.f;
 	UpperBodyWeight = FMath::FInterpTo(UpperBodyWeight, Target, DeltaSeconds, 10.f);
+	FootIKAlpha = 1.f;
 }
 
 void UchuckAnimInstance::PlayAction(UAnimMontage* Montage, float BlendIn, float BlendOut, float Recovery)

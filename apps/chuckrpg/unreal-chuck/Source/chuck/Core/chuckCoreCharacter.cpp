@@ -63,7 +63,7 @@ AchuckCoreCharacter::AchuckCoreCharacter(const FObjectInitializer& ObjectInitial
 	if (MeleeMontageFinder.Succeeded())
 	{
 		MeleeMontage = MeleeMontageFinder.Object;
-		MeleeMontage->BlendIn.SetBlendTime(0.15f);
+		MeleeMontage->BlendIn.SetBlendTime(0.25f);
 		MeleeMontage->BlendIn.SetBlendOption(EAlphaBlendOption::HermiteCubic);
 		MeleeMontage->BlendOut.SetBlendTime(0.8f);
 		MeleeMontage->BlendOut.SetBlendOption(EAlphaBlendOption::HermiteCubic);
@@ -73,7 +73,7 @@ AchuckCoreCharacter::AchuckCoreCharacter(const FObjectInitializer& ObjectInitial
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SKM(
 		TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
 	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimBP(
-		TEXT("/Game/Variant_Combat/Anims/ABP_Manny_Combat"));
+		TEXT("/Game/Characters/Animations/ABP_Combat"));
 
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
