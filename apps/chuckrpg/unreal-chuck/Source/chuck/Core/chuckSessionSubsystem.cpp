@@ -3,6 +3,7 @@
 #include "ROWSAuthSubsystem.h"
 #include "ROWSCharacterSubsystem.h"
 #include "ROWSInstanceSubsystem.h"
+#include "KBVESupabaseSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "GameFramework/PlayerController.h"
 
@@ -192,6 +193,14 @@ void UchuckSessionSubsystem::HandleZoneInstanceSuccess(const FROWSZoneInstance& 
 			if (!SelectedCharacter.IsEmpty())
 			{
 				Address += FString::Printf(TEXT("?character=%s"), *SelectedCharacter);
+			}
+			if (UKBVESupabaseSubsystem* Supabase = GI->GetSubsystem<UKBVESupabaseSubsystem>())
+			{
+				const FString Token = Supabase->GetAccessToken();
+				if (!Token.IsEmpty())
+				{
+					Address += FString::Printf(TEXT("?token=%s"), *Token);
+				}
 			}
 			PC->ClientTravel(Address, TRAVEL_Absolute);
 		}
