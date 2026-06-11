@@ -503,10 +503,11 @@ jobs:
                   # =================================================================
                   dispatch_game_engine() {
                     local pipeline="$1"; local workflow="$2"; local entry="$3"
-                    local key app src vtoml ver sv vtgt run has_test
+                    local key app src vtoml ver sv vtgt run has_test shell_path
                     local engine_version proj_path build_targets features dotnet ext_repo lic
                     local itch_user itch_game itch_chan deploy_itch
                     key=$(echo "$entry" | jq -r '.key')
+                    shell_path=$(echo "$entry" | jq -r '.shell_path // empty')
                     app=$(echo "$entry" | jq -r '.app_name')
                     src=$(echo "$entry" | jq -r '.version_source // empty')
                     vtoml=$(echo "$entry" | jq -r '.version_toml // empty')
@@ -573,6 +574,26 @@ jobs:
                       --field dispatched_at="$DISPATCHED_AT" \
                       $extra
                     DISPATCHED=$((DISPATCHED + 1))
+
+                    # Bundled dedicated server: an unreal_game entry carrying a
+                    # shell_path also ships a UE5 dedicated server off the SAME
+                    # version gate (1:1 with the client). build.toml supplies the
+                    # repo / server target / UE image.
+                    if [ "$pipeline" = "unreal_game" ] && [ -n "$shell_path" ]; then
+                      echo "  ✓ $app — bundled dedicated server, dispatching (ue5_server)"
+                      local srv_extra=""
+                      [ -n "$src" ] && srv_extra="$srv_extra --field version_source=${src}"
+                      [ -n "$vtoml" ] && srv_extra="$srv_extra --field version_toml=${vtoml}"
+                      [ -n "$ver" ] && srv_extra="$srv_extra --field manifest_version=${ver}"
+                      gh workflow run ci-unreal.yml --repo "$REPO" --ref main \
+                        --field task=server \
+                        --field key="$key" \
+                        --field app_name="$app" \
+                        --field shell_path="$shell_path" \
+                        --field dispatched_at="$DISPATCHED_AT" \
+                        $srv_extra
+                      DISPATCHED=$((DISPATCHED + 1))
+                    fi
                   }
 
                   echo "=== Unity ==="

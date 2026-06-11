@@ -241,8 +241,11 @@ jobs:
               id: parse
               run: |
                   SHELL="${{ inputs.shell_path }}"
+                  MANIFEST="${{ inputs.manifest_version }}"
 
-                  if [ -f "${SHELL}/version.toml" ]; then
+                  if [ -n "${MANIFEST}" ]; then
+                    VERSION="${MANIFEST}"
+                  elif [ -f "${SHELL}/version.toml" ]; then
                     VERSION=$(grep -m1 '^version' "${SHELL}/version.toml" | sed 's/version = "\(.*\)"/\1/')
                   else
                     VERSION="0.0.1"

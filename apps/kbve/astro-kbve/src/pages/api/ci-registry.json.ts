@@ -93,6 +93,7 @@ interface GameEntryBase {
 	has_test?: boolean;
 	engine: NonNullable<ICiProject['engine']>;
 	external_publish?: ICiProject['external_publish'];
+	shell_path?: string;
 }
 
 interface UnityEntry extends GameEntryBase {}
@@ -248,6 +249,7 @@ function toManifestEntry(
 				app_name: d.app_name,
 				engine: d.engine,
 				...(d.source_path && { source_path: d.source_path }),
+				...(d.shell_path && { shell_path: d.shell_path }),
 				...(ver && { version: ver }),
 				...(vt && { version_toml: vt }),
 				...(mdxPath && { version_source: mdxPath }),
