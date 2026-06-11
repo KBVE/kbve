@@ -1,6 +1,6 @@
 ---
 title: Goading potion(1) | OSRS Price Data
-description: "Goading potion(1): 1 dose of Goading potion.. High alch: 90 GP."
+description: "Goading potion(1) is a one-dose members Herblore potion that aggros monsters in a wider radius. High alch: 90 GP, GE limit: 2,000."
 osrs:
   id: 30146
   name: Goading potion(1)
@@ -11,10 +11,66 @@ osrs:
   value: 150
   lowalch: 60
   highalch: 90
-  limit: null
-  about: "Goading potion(1) is a members-only item in Old School RuneScape. High alchemy value: 90 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: potion
+    tier: mid
+  properties:
+    release_date: "2024-08-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.025
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Increases the aggression radius of monsters by five squares for the duration."
+        duration: 60
+  recipes:
+    - skill: herblore
+      level: 73
+      xp: 80
+      materials:
+        - item_name: Goading potion(2)
+          quantity: 1
+      tools: []
+      output_quantity: 2
+  related_items:
+    - item_name: Goading potion(2)
+      slug: goading-potion-2
+      relationship: variant
+      description: "Two-dose version split into single doses."
+    - item_name: Goading potion(3)
+      slug: goading-potion-3
+      relationship: variant
+      description: "Standard three-dose brew base."
+    - item_name: Goading potion(4)
+      slug: goading-potion-4
+      relationship: variant
+      description: "Decanted four-dose version for full-inventory use."
+  about: "Goading potion(1) is a one-dose aggression-extending Herblore potion released with Varlamore that increases monster aggression radius, used to pull denser Slayer task pulls."
+  market_strategy:
+    notes:
+      - "Decant-arbitrage candidate against goading potion(2/3/4) at the GE"
+      - "Demand tied to AFK Slayer and Forestry meta"
+      - "Low GE limit (2,000) caps flip volume"
+  trading_tips:
+    - "Decant lower doses up when single-dose price overshoots"
+    - "Watch Slayer task popularity for demand swings"
+  history:
+    - date: "2024-08-14"
+      description: "Released alongside the Varlamore Part II content drop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Ranging mix(2) | OSRS Price Data
-description: "Ranging mix(2): Two doses of fishy ranging potion.. High alch: 129 GP, GE limit: 2,000."
+description: "Ranging mix(2): Two doses of fishy ranging potion. High alch: 129 GP, GE limit: 2,000."
 osrs:
   id: 11509
   name: Ranging mix(2)
@@ -12,9 +12,88 @@ osrs:
   lowalch: 86
   highalch: 129
   limit: 2000
-  about: "Ranging mix(2) is a members-only item in Old School RuneScape. High alchemy value: 129 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: mid
+  potion:
+    doses: 2
+    herblore_level: 47
+    herblore_xp: 122
+    effect: "Boosts Ranged by 4 + 10% of the player's level and heals 6 Hitpoints per dose."
+    effects:
+      - description: "Temporarily boosts Ranged by 4 plus 10% of the player's Ranged level."
+        duration: 0
+      - description: "Heals 6 Hitpoints each dose when consumed."
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 47
+      xp: 122
+      materials:
+        - item_name: Ranging potion(2)
+          quantity: 1
+        - item_name: Roe
+          quantity: 1
+      tools: []
+      output_quantity: 2
+      product: Ranging mix(2)
+      notes: "Requires Barbarian Herblore training unlock from Otto Godblessed. Combining a 2-dose Ranging potion with roe yields two 2-dose Ranging mix vials."
+  related_items:
+    - item_id: 11507
+      item_name: Ranging mix(1)
+      slug: ranging-mix-1
+      relationship: variant
+      description: "Single-dose Barbarian Herblore variant of the same potion"
+    - item_id: 169
+      item_name: Ranging potion(4)
+      slug: ranging-potion-4
+      relationship: alternative
+      description: "Standard Ranging potion without the Hitpoints heal effect"
+    - item_id: 11324
+      item_name: Roe
+      slug: roe
+      relationship: component
+      description: "Fish-egg ingredient used to convert the potion into a mix"
+    - item_id: 171
+      item_name: Ranging potion(2)
+      slug: ranging-potion-2
+      relationship: component
+      description: "Base 2-dose potion required for the mix recipe"
+  about: |-
+    > _"Two doses of fishy ranging potion."_
+
+    Ranging mix(2) is the Barbarian Herblore variant of the standard Ranging potion. Drinking a dose boosts the player's Ranged level by 4 + 10% of their current Ranged level and heals 6 Hitpoints. It is used by ranged accounts to bridge cost-of-supplies during long Slayer tasks, by mid-game bossers as a cheap secondary heal, and by Inferno / Fight Caves players for the safety of a small heal layered on top of the ranging boost.
+  market_strategy:
+    notes:
+      - "Demand spikes during ranged-heavy slayer tasks (Aviansies, Wyrms, Drakes) and Inferno attempts."
+      - "Barbarian Herblore unlock gates supply; only post-unlock players can craft this mix."
+      - "Margin is dictated by Ranging potion(2) and roe input costs - track both for crafting flips."
+  trading_tips:
+    - "Watch roe supply during fishing competitions or Tempoross releases - input crashes mean better margins."
+    - "List during peak NA / EU evenings when ranged Slayer tasks drive same-day fills."
+  history:
+    - date: "2007-07-03"
+      description: "Released as part of the Barbarian Training update introducing Barbarian Herblore mixes."
+    - date: "2015-04-30"
+      description: "Decanting at NPC barmen extended to the Ranging mix line so 4-to-2-dose conversions are quicker."
+  properties:
+    release_date: "2007-07-03"
+    update: Barbarian Training
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.045
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

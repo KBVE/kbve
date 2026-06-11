@@ -1,6 +1,6 @@
 ---
 title: Torag's platebody | OSRS Price Data
-description: "Torag's platebody is a members body slot item requiring 70 Defence. High alch: 168,000 GP, GE limit: 15."
+description: "Torag's platebody is a degradable Barrows body slot armour requiring 70 Defence, identical in defensive stats to Dharok's. High alch: 168,000 GP, GE limit: 15."
 osrs:
   id: 4749
   name: Torag's platebody
@@ -12,81 +12,103 @@ osrs:
   lowalch: 112000
   highalch: 168000
   limit: 15
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: barrows
+    tier: high
+  properties:
+    release_date: "2005-05-09"
+    update: "Barrows"
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: true
+    quest_item: false
+    weight: 9.9
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
-    type: barrows
-    set: Torag
-    tradeable: true
-    degradeable: true
     weight: 9.9
+    degradable: true
+    degrade_hours: 15
     requirements:
       defence: 70
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: -30
-      attack_ranged: 0
-      defence_stab: 122
-      defence_slash: 120
-      defence_crush: 107
-      defence_magic: -6
-      defence_ranged: 132
-      strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: 0
+    defence_bonus:
+      stab: 122
+      slash: 120
+      crush: 107
+      magic: -6
+      ranged: 132
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  set_effect:
-    name: Corruption
+  set_bonus:
+    set_name: "Torag the Corrupted's equipment"
     pieces_required: 4
-    description: 25% chance to lower opponent's run energy by 20%
-    amulet_of_damned: Defence is increased by 1% for every 1 HP missing
+    description: "Wearing the full Torag's set in the Barrows tunnels grants a 25 percent chance to lower the opponent's run energy by 20 percent. Wearing the Amulet of the damned with the set increases Defence by 1 percent for each missing hitpoint."
+  charges:
+    repairable: true
+    repair_cost: 90000
+    repair_npc: Bob
+    combat_hours: 15
   related_items:
     - item_id: 4745
       item_name: Torag's helm
       slug: torags-helm
       relationship: set-piece
-      description: Head slot set piece
+      description: Head slot piece of the Torag's set.
     - item_id: 4751
       item_name: Torag's platelegs
       slug: torags-platelegs
       relationship: set-piece
-      description: Legs slot set piece
+      description: Legs slot piece of the Torag's set.
     - item_id: 4747
       item_name: Torag's hammers
       slug: torags-hammers
       relationship: set-piece
-      description: Weapon set piece
-  about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Stab defence | +122 |
-    | Slash defence | +120 |
-    | Crush defence | +107 |
-    | Magic defence | -6 |
-    | Ranged defence | +132 |
-    | Magic attack | -30 |
-
-    Corruption:
-    When wearing full Torag's (helm, platebody, platelegs, hammers):
-    - 25% chance to lower opponent's run energy by 20%
-
-    With Amulet of the Damned:
-    - Defence is increased by 1% for every 1 HP missing
-
-    Best For:
-    - Budget tank body
-    - Identical stats to Dharok's platebody
-    - Cheapest high-defence Barrows body
-
-    - 15 hours of combat use
-    - Repair at Bob in Lumbridge or POH armor stand
+      description: Weapon slot piece of the Torag's set.
+    - item_id: 4720
+      item_name: Dharok's platebody
+      slug: dharoks-platebody
+      relationship: alternative
+      description: Same defensive stats with the high-damage low-HP set effect.
+    - item_id: 4728
+      item_name: Verac's brassard
+      slug: veracs-brassard
+      relationship: alternative
+      description: Barrows body alternative with prayer bonus.
+  about: "Torag's platebody is the body slot piece of the Torag the Corrupted Barrows set, requiring 70 Defence to wear. It shares its defensive profile with Dharok's platebody and is the cheapest of the platebody-style Barrows bodies, making it a budget tank body slot for mid-game PvM. The full Torag's set triggers a Corruption effect in the Barrows tunnels, but most players wear pieces purely for their defensive stats."
   market_strategy:
     notes:
-      - Cheapest Barrows platebody
-      - Used for stats, not set effect
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Cheapest Barrows platebody so it sets the floor for tank body comparisons"
+      - "Primarily bought for stats, not for the set effect"
+      - "Demand is steady from mid-game ironmen and Slayer tanks"
+      - "Repair via Bob in Lumbridge or a POH armour stand at 90k baseline"
+  trading_tips:
+    - "Track Dharok's platebody price for cross-Barrows arbitrage"
+    - "Watch Barrows minigame updates for supply spikes"
+    - "Compare repair cost vs full set buyback when prices dip below repair break-even"
+  history:
+    - date: "2005-05-09"
+      description: "Released with the original Barrows minigame as part of the Torag the Corrupted set."
+    - date: "2017-04-13"
+      description: "Amulet of the damned interaction added the missing-HP Defence scaling effect."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

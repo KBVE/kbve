@@ -1,6 +1,6 @@
 ---
 title: Bear fur | OSRS Price Data
-description: "Bear fur: This would make warm clothing.. High alch: 6 GP, GE limit: 18,000."
+description: "Bear fur: This would make warm clothing. High alch: 6 GP, GE limit: 18,000."
 osrs:
   id: 948
   name: Bear fur
@@ -12,18 +12,102 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 18000
+  material:
+    type: hide
+    tier: low
+  drop_table:
+    sources:
+      - source: Bear
+        combat_level: 21
+        quantity: "1"
+        rarity: always
+      - source: Black bear
+        combat_level: 19
+        quantity: "1"
+        rarity: always
+      - source: Grizzly bear
+        combat_level: 25
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Grizzly bear cub
+        combat_level: 14
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Callisto
+        combat_level: 470
+        quantity: "1"
+        rarity: common
+        members_only: true
+        wilderness: true
+  shops:
+    - shop_name: Fancy Dress Shop
+      location: Varrock
+      price: 20
+      stock: 0
+      currency: Coins
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 1
+      materials:
+        - item_name: Bear fur
+          quantity: 1
+        - item_name: Coins
+          quantity: 20
+      facility: Fancy Dress Shop (Varrock)
+      output_quantity: 1
+      product: Polar kamik
+      notes: "Trader at the Fancy Dress Shop tailors the fur into themed costume pieces."
   related_items:
     - item_id: 958
       item_name: Grey wolf fur
       slug: grey-wolf-fur
       relationship: variant
-      description: Another fur type
+      description: Another low-tier hide drop used for crafting
+    - item_id: 1739
+      item_name: Cowhide
+      slug: cowhide
+      relationship: alternative
+      description: Common starter hide for tanning into leather
+    - item_id: 10814
+      item_name: Polar kamik
+      slug: polar-kamik
+      relationship: product
+      description: Snowy region costume tailored from bear fur
   about: |-
-    > _"Ew it's a\"smelly\" fur."_
+    > _"This would make warm clothing."_
 
-    Bear fur is used in Crafting and quests. Required for crafting fancy clothes at the Fancy Dress Shop in Varrock. Also used in the Nature Spirit quest.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Bear fur is dropped by bears across Gielinor and is primarily used at the Fancy Dress Shop in Varrock to craft costume pieces such as the polar kamik. It is also a quest item for Nature Spirit, where Filliman Tarlock requires bear fur to perform the Mort Myre ritual.
+  market_strategy:
+    notes:
+      - "Cheap supply from low-level bears keeps the price near vendor value."
+      - "Spikes occur when a holiday event rewards costume crafting at the Fancy Dress Shop."
+      - "Quest restarts (Nature Spirit) create steady but small demand from new accounts."
+  trading_tips:
+    - "Buy in stacks of 100+ to flip into costume crafters during seasonal events."
+    - "List slightly above vendor price (20 gp) to undercut shop runs without losing margin."
+  history:
+    - date: "2001-06-04"
+      description: "Bear fur introduced alongside the original bear creatures in RuneScape Classic."
+    - date: "2004-07-21"
+      description: "Fancy Dress Shop in Varrock added, enabling costume crafting from bear fur."
+  properties:
+    release_date: "2001-06-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

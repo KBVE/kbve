@@ -1,6 +1,6 @@
 ---
 title: Enchant emerald or jade | OSRS Price Data
-description: "Enchant emerald or jade: A tablet containing a magic spell.. High alch: 1 GP, GE limit: 10,000."
+description: "Enchant emerald or jade: A tablet containing a magic spell. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 8017
   name: Enchant emerald or jade
@@ -12,9 +12,74 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Enchant emerald or jade is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 27
+      xp: 39
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+        - item_name: Air rune
+          quantity: 3
+      tools: []
+      facility: Mahogany Eagle Lectern
+      output_quantity: 1
+      members_only: true
+  related_items:
+    - item_name: Enchant sapphire or opal
+      slug: enchant-sapphire-or-opal
+      relationship: variant
+      description: Lower-tier enchantment tablet for Sapphire and Opal jewellery.
+    - item_name: Enchant ruby or topaz
+      slug: enchant-ruby-or-topaz
+      relationship: upgrade
+      description: Next-tier enchantment tablet for Ruby and Topaz jewellery.
+    - item_name: Enchant diamond
+      slug: enchant-diamond
+      relationship: upgrade
+      description: Higher-tier enchantment tablet for Diamond jewellery.
+    - item_name: Cosmic rune
+      slug: cosmic-rune
+      relationship: component
+      description: Rune consumed when making the tablet.
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Base material for tablet creation at the lectern.
+  about: |-
+    The Enchant emerald or jade tablet stores a single cast of the Lvl-2 Enchant spell, which is used to enchant Emerald or Jade jewellery (such as amulets of strength or jade rings) without needing the runes or Magic level normally required.
+
+    Tablets are created at a Mahogany Eagle Lectern or higher in a Player-Owned House study, consuming the spell's runes plus a soft clay. They are popular with mid-level jewellery crafters who want to bulk-enchant without disrupting a different active spellbook.
+  market_strategy:
+    notes:
+      - "Demand is gated by Emerald and Jade jewellery production cycles."
+      - "Input cost is soft clay + cosmic + 3 air runes; arbitrage when cosmic or clay prices drop."
+      - "POH-made supply keeps margins thin; volume matters more than per-tablet flip profit."
+  trading_tips:
+    - Watch cosmic rune prices closely — they drive 90% of the tablet floor.
+    - Combine with Emerald necklace crafting flips for a stacked Magic + Crafting income stream.
+  history:
+    - date: "2006-05-31"
+      description: "Magic tablets added with the Construction skill and POH lecterns."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

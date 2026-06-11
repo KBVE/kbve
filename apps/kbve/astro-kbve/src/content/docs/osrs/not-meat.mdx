@@ -1,6 +1,6 @@
 ---
 title: Not meat | OSRS Price Data
-description: "Not meat: Don't eat this.. High alch: 1 GP."
+description: "Not meat is a quest item from A Kingdom Divided, used to bait a wolf to clear the path of the diviner. Untradeable, value 1 GP."
 osrs:
   id: 29098
   name: Not meat
@@ -12,9 +12,45 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: null
-  about: "Not meat is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: quest-item
+    tier: low
+  properties:
+    release_date: "2021-09-15"
+    update: "A Kingdom Divided"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: true
+    quest: "A Kingdom Divided"
+    weight: 0.4
+    options:
+      - Drop
+    alchable: false
+    destroy: "You will need to get a new one from the quest if you wish to use it."
+  quest_data:
+    quests:
+      - quest_name: "A Kingdom Divided"
+        role: required
+        notes: "Bait used to lure the wolf during the chase sequence in the quest."
+  related_items:
+    - item_name: Cooked meat
+      slug: cooked-meat
+      relationship: alternative
+      description: "Standard cooked meat used outside of the quest context."
+  about: "Not meat is a single-use quest item from A Kingdom Divided in Old School RuneScape. The item is given by Erystole during the quest as part of the diviner rescue sequence, with the examine text humorously warning the player not to eat it. It is untradeable, cannot be alched, and is destroyed at the end of the quest, with a replacement obtainable from Erystole if the player loses it before completion."
+  market_strategy:
+    notes:
+      - "Untradeable quest item - no Grand Exchange or shop value."
+      - "Cannot be high-alched and has zero merchanting interest."
+      - "Only obtainable by progressing A Kingdom Divided to the relevant sub-step."
+  history:
+    - date: "2021-09-15"
+      description: "Released as part of the A Kingdom Divided grandmaster quest, introducing the diviner rescue sequence."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

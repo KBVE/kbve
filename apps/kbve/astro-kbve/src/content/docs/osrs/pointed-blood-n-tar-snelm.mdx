@@ -1,6 +1,6 @@
 ---
 title: Pointed blood'n'tar snelm | OSRS Price Data
-description: "Pointed blood'n'tar snelm: A red and black pointed snail shell helmet.. High alch: 180 GP, GE limit: 150."
+description: "Pointed blood'n'tar snelm: A red and black pointed snail shell helmet. High alch: 180 GP, GE limit: 150."
 osrs:
   id: 3339
   name: Pointed blood'n'tar snelm
@@ -12,9 +12,98 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 150
-  about: "Pointed blood'n'tar snelm is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: shell
+    tier: low
+  properties:
+    release_date: "2002-12-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.0
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    type: helmet
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 4
+      crush: 5
+      magic: 0
+      ranged: 4
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      defence: 5
+  recipes:
+    - skill: crafting
+      level: 28
+      xp: 32.5
+      materials:
+        - item_name: Blood'n'tar snail shell (pointed)
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+      members_only: true
+  drop_table:
+    sources:
+      - source: Blood'n'tar snail
+        rarity: "Always (shell)"
+        quantity: "1"
+  related_items:
+    - item_id: 3337
+      item_name: Pointed myre snelm
+      slug: pointed-myre-snelm
+      relationship: variant
+      description: "Lower-tier pointed snelm variant from myre snails"
+    - item_id: 3341
+      item_name: Pointed bruise blamish snelm
+      slug: pointed-bruise-blamish-snelm
+      relationship: variant
+      description: "Other Mort Myre pointed snelm variant"
+    - item_id: 3343
+      item_name: Round blood'n'tar snelm
+      slug: round-blood-n-tar-snelm
+      relationship: alternative
+      description: "Round-shell variant carved from the same shell type"
+  about: |-
+    The Pointed blood'n'tar snelm is a low-level snail-shell helmet carved from a pointed blood'n'tar snail shell at 28 Crafting for 32.5 XP. It requires 5 Defence to wear and is obtained from the Mort Myre Swamp blood'n'tar snail spawns.
+
+    Snelms are unique in that they provide modest melee and ranged defence with no offensive penalty, making them a cheap niche helmet for low-Defence pures and Slayer training in Mort Myre.
+  market_strategy:
+    notes:
+      - "Niche demand from low-Defence Mort Myre Slayer trips"
+      - "Crafting profit driver: shell-to-snelm spread"
+      - "Buy limit 150 per 4 hours"
+  trading_tips:
+    - "Kill blood'n'tar snails for self-supplied shells, then carve in bulk"
+    - "Alch value 180 vs typical GE prices makes alch fodder marginal"
+  history:
+    - date: "2002-12-09"
+      description: "Released with the Mort Myre Swamp and Crafting snelm recipes."
+    - date: "2004-07-13"
+      description: "Snelm carving recipes were re-balanced alongside the Nature Spirit quest expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Rainbow crab meat | OSRS Price Data
-description: "Rainbow crab meat: This looks tricky to eat.. High alch: 180 GP."
+description: "Rainbow crab meat: This looks tricky to eat. High alch: 180 GP."
 osrs:
   id: 31703
   name: Rainbow crab meat
@@ -12,9 +12,66 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: null
-  about: "Rainbow crab meat is a members-only item in Old School RuneScape. High alchemy value: 180 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: meat
+    tier: mid
+  properties:
+    release_date: "2024-01-31"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Rainbow crab
+        rarity: "Always"
+        quantity: "1"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 30
+      materials:
+        - item_name: Rainbow crab meat
+          quantity: 1
+      tools: []
+      facility: Range
+      output_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 31705
+      item_name: Cooked rainbow crab meat
+      slug: cooked-rainbow-crab-meat
+      relationship: product
+      description: "Result of cooking the raw crab meat"
+    - item_id: 31701
+      item_name: Rainbow crab claws
+      slug: rainbow-crab-claws
+      relationship: variant
+      description: "Alternative drop from rainbow crabs used in stews"
+  about: |-
+    Rainbow crab meat is a raw food obtained from killing rainbow crabs in the rainforest region of Varlamore. It is untradeable and used to make cooked rainbow crab meat at a range with no Cooking level requirement.
+
+    The cooked product heals a moderate amount and is one of the cheap supply foods for Varlamore-region content like the Perilous Moons of Neypotzli.
+  market_strategy:
+    notes:
+      - "Untradeable — no Grand Exchange market"
+      - "Self-supply only: kill rainbow crabs and cook the meat in-region"
+      - "Cooked variant is consumed during Perilous Moons attempts"
+  trading_tips:
+    - "Stock up before Perilous Moons attempts"
+    - "Bring a knife or use the cooked variant as a backup food on long Varlamore trips"
+  history:
+    - date: "2024-01-31"
+      description: "Released with the Varlamore: The Rising Darkness update introducing the rainforest region."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Ancient brew(2) | OSRS Price Data
-description: "Ancient brew(2) is a 2-dose members potion that boosts magic by 2, restores prayer, drains attack/strength/defence. High alch: 90 GP, GE limit: 2,000."
+description: "Ancient brew(2) is a 2-dose Herblore potion that boosts Magic, restores prayer, and drains melee stats. High alch: 90 GP, GE limit: 2,000."
 osrs:
   id: 26344
   name: Ancient brew(2)
@@ -12,44 +12,95 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: potion
+    tier: mid-high
+  properties:
+    release_date: "2022-01-05"
+    update: "Nex: The Fifth General"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.02
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   potion:
-    doses: 2
-    herblore_level: 85
-    herblore_xp: 190
-    effect: Boosts Magic by 2, restores Prayer, drains Attack/Strength/Defence
     effects:
-      - stat: Magic
-        boost_type: boost
-        boost_value: 2
-      - stat: Prayer
-        boost_formula: 2 + floor(level / 4)
+      - description: "Boosts Magic by 2 to 6 levels depending on base level, decaying 1 level per minute"
+        duration: 60
+      - description: "Restores Prayer points (2 + roughly 11 at higher levels), comparable to super restore"
+        duration: 0
+      - description: "Drains Attack, Strength, and Defence by 10% plus 2 levels"
+        duration: 60
+  recipes:
+    - skill: herblore
+      level: 85
+      xp: 95
+      materials:
+        - item_name: Ancient brew(4)
+          quantity: 1
+      tools: []
+      output_quantity: 2
+      notes: "Created by decanting from Ancient brew(4) at a GE decanter."
   related_items:
     - item_id: 26340
       item_name: Ancient brew(4)
       slug: ancient-brew-4
       relationship: variant
-      description: 4-dose version
+      description: "Full 4-dose variant most commonly used in PvM."
     - item_id: 26342
       item_name: Ancient brew(3)
       slug: ancient-brew-3
       relationship: variant
-      description: 3-dose version
+      description: "3-dose variant."
     - item_id: 26346
       item_name: Ancient brew(1)
       slug: ancient-brew-1
       relationship: variant
-      description: 1-dose version
-  about: 2-dose variant of Ancient brew.
+      description: "1-dose variant."
+    - item_id: 3024
+      item_name: Super restore(4)
+      slug: super-restore-4
+      relationship: alternative
+      description: "Restores all stats including prayer; no magic boost."
+    - item_name: Nihil dust
+      slug: nihil-dust
+      relationship: component
+      description: "Ground nihil shards used to craft ancient brew at 85 Herblore."
+    - item_name: Dwarf weed potion (unf)
+      slug: dwarf-weed-potion-unf
+      relationship: component
+      description: "Unfinished potion base combined with nihil dust."
+  about: "Ancient brew(2) is the 2-dose variant of the high-tier magic and prayer brew, decanted from full kegs at the GE or directly produced by the herblore line. It pairs a +2 to +6 Magic boost with a flat prayer restore at the cost of melee stats, making it a magic-heavy PvM utility for Tombs of Amascut, Zulrah, and other mage-focused encounters where prayer pots and magic boosts compete for inventory space."
   market_strategy:
     notes:
-      - Compare to 4-dose price
-      - Decanting can profit
-      - Use decanting NPC in GE
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Decant arbitrage candidate against (4) and (3) at the GE"
+      - "Demand correlates with ToA league and Zulrah meta swings"
+      - "85 Herblore plus Nex-gated nihil dust caps supply"
+      - "Buy limit 2,000 keeps flips moderate per 4 hours"
+  trading_tips:
+    - "Decant (4) into (2) when single-dose premium opens"
+    - "Track Nex farming pace as the upstream supply driver"
+    - "Stockpile ahead of ToA league or raid update waves"
+  history:
+    - date: "2021-12-16"
+      description: "Item added to game files but unobtainable in advance of Nex release."
+    - date: "2022-01-05"
+      description: "Released alongside Nex: The Fifth General with the ancient brew herblore line."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

@@ -1,6 +1,6 @@
 ---
 title: Diamond amulet (u) | OSRS Price Data
-description: "Diamond amulet (u): It needs a string so I can wear it.. High alch: 2,115 GP, GE limit: 10,000."
+description: "Diamond amulet (u) is an unstrung free-to-play amulet crafted from a diamond and a gold bar, ready to be strung with a ball of wool. High alch: 2,115 GP, GE limit: 10,000."
 osrs:
   id: 1681
   name: Diamond amulet (u)
@@ -12,9 +12,84 @@ osrs:
   lowalch: 1410
   highalch: 2115
   limit: 10000
-  about: "Diamond amulet (u) is a free-to-play item in Old School RuneScape. High alchemy value: 2,115 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: gold
+    tier: mid
+  properties:
+    release_date: "2001-02-27"
+    update: "Crafting Skill"
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: false
+    quest_item: false
+    weight: 0.005
+    options:
+      - String
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 70
+      xp: 70
+      materials:
+        - item_name: Gold bar
+          quantity: 1
+        - item_name: Diamond
+          quantity: 1
+        - item_name: Amulet mould
+          quantity: 1
+          consumed: false
+      facility: Furnace
+      members_only: false
+      output_quantity: 1
+    - skill: crafting
+      level: 24
+      xp: 4
+      materials:
+        - item_name: Diamond amulet (u)
+          quantity: 1
+        - item_name: Ball of wool
+          quantity: 1
+      product: Diamond amulet
+      output_quantity: 1
+  related_items:
+    - item_id: 1700
+      item_name: Diamond amulet
+      slug: diamond-amulet
+      relationship: product
+      description: Strung version ready to wear once a ball of wool is added.
+    - item_id: 1731
+      item_name: Diamond necklace
+      slug: diamond-necklace
+      relationship: variant
+      description: Necklace cast from a diamond and a gold bar using the necklace mould.
+    - item_id: 1679
+      item_name: Ruby amulet (u)
+      slug: ruby-amulet-u
+      relationship: downgrade
+      description: Lower-tier unstrung gem amulet using a ruby instead of a diamond.
+    - item_id: 1683
+      item_name: Dragonstone amulet (u)
+      slug: dragonstone-amulet-u
+      relationship: upgrade
+      description: Higher-tier unstrung gem amulet using a dragonstone.
+  about: "Diamond amulet (u) is the unstrung result of casting a gold bar and a diamond at a furnace with an amulet mould, requiring 70 Crafting for 70 xp. Players then thread it with a ball of wool at 24 Crafting for an additional 4 xp to produce a Diamond amulet, a common Crafting training step on the gem amulet ladder."
+  market_strategy:
+    notes:
+      - "Price is anchored to gold bar plus diamond cost minus alch value"
+      - "Supply comes from 70 Crafting trainers feeding the unstrung amulet flow"
+      - "Demand is split between strung-amulet crafters and high alchemy fodder"
+  trading_tips:
+    - "Watch gold bar and diamond prices for crafting margin shifts"
+    - "Compare against nature rune cost when alching for break-even"
+  history:
+    - date: "2001-02-27"
+      description: "Released alongside the Crafting skill on the original gem amulet table."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

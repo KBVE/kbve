@@ -1,20 +1,75 @@
 ---
 title: Worm hole | OSRS Price Data
-description: "Worm hole: It actually smells quite good.. High alch: 1 GP, GE limit: 6,000."
+description: "Worm hole: It actually smells quite good. High alch: 1 GP, GE limit: 6,000."
 osrs:
   id: 2191
   name: Worm hole
   slug: worm-hole
-  examine: It actually smells quite good.
+  examine: "It actually smells quite good."
   members: true
   icon: Worm hole.png
   value: 2
   lowalch: 1
   highalch: 1
   limit: 6000
-  about: "Worm hole is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2004-12-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 35
+      xp: 70
+      materials:
+        - item_name: King worm
+          quantity: 1
+        - item_name: Onion
+          quantity: 1
+        - item_name: Potato
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: King worm
+      slug: king-worm
+      relationship: component
+      description: "Primary ingredient cooked into the worm hole."
+    - item_name: Worm crunchies
+      slug: worm-crunchies
+      relationship: alternative
+      description: "Gnome cooking food using ground worms instead."
+    - item_name: Worm batta
+      slug: worm-batta
+      relationship: alternative
+      description: "Higher-tier gnome dish using king worms."
+  about: "The worm hole is a gnome cooking dish made by combining a king worm, an onion, and a potato at 35 Cooking, granting 70 Cooking experience and healing 12 Hitpoints when eaten. It is a popular budget food for low-to-mid level players training in dangerous areas due to its abundance and the cheap nature of king worms."
+  market_strategy:
+    notes:
+      - "Bulk-cooked by gnome diary completers, keeping supply steady."
+      - "Limit of 6,000 means flippers absorb large stacks quickly."
+      - "High alch profit is non-existent at 1 gp."
+  trading_tips:
+    - "Treat as a volume play, not a margin play."
+    - "King worm price drives the ceiling; track both together."
+  history:
+    - date: "2004-12-08"
+      description: "Added with the Gnome Restaurant minigame and Cooking expansions."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

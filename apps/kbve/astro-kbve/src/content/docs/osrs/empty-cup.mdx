@@ -1,6 +1,6 @@
 ---
 title: Empty cup | OSRS Price Data
-description: "Empty cup: An empty cup.. High alch: 1 GP, GE limit: 13,000."
+description: "Empty cup is a members ceramic vessel used in Gnome Restaurant minigame and tea brewing. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 1980
   name: Empty cup
@@ -12,9 +12,67 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Empty cup is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: ceramic
+    tier: low
+  properties:
+    release_date: "2002-12-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+      - Examine
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: "Hudo's Stores"
+      location: Gnome Stronghold
+      price: 1
+    - shop_name: "Heckel Funch's Cocktail Bar"
+      location: Gnome Stronghold
+      price: 1
+  recipes:
+    - skill: cooking
+      level: 20
+      xp: 0
+      materials:
+        - item_name: Cup of tea
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Cup of tea
+      slug: cup-of-tea
+      relationship: variant
+      description: "Filled cup obtained by adding tea leaves and boiled water."
+    - item_name: Beer glass
+      slug: beer-glass
+      relationship: alternative
+      description: "Alternative drinking vessel used for ales and cocktails."
+    - item_name: Empty jug
+      slug: empty-jug
+      relationship: alternative
+      description: "Larger vessel for water, wine, and cocktails."
+  about: "Empty cup is a simple ceramic vessel sold at Hudo's Stores in the Tree Gnome Stronghold and used for brewing tea and serving gnome cocktails."
+  market_strategy:
+    notes:
+      - "Supply driven by Gnome Stronghold shop restocks"
+      - "Common cooking and minigame consumable"
+      - "Margins tight at 1-2 GP per unit"
+  trading_tips:
+    - "Buy from Hudo's Stores at low price for resale"
+    - "Bulk volume needed to make any meaningful profit"
+  history:
+    - date: "2002-12-19"
+      description: "Released with the Tree Gnome Stronghold update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

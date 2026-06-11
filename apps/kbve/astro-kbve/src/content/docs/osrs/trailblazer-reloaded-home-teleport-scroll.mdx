@@ -12,9 +12,61 @@ osrs:
   lowalch: 10000
   highalch: 15000
   limit: 5
-  about: "Trailblazer reloaded home teleport scroll is a members-only item in Old School RuneScape. High alchemy value: 15,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: scroll
+    tier: mid-high
+  passive_effects:
+    - name: Unlock cosmetic teleport
+      description: "Reading the scroll permanently unlocks the Trailblazer Reloaded Home Teleport animation for the player's home teleport spell."
+      trigger: on_use
+  drop_table:
+    sources:
+      - source: Leagues IV Reward Shop
+        quantity: "1"
+        rarity: Always
+        notes: "Purchased from the Leagues IV: Trailblazer Reloaded reward shop for League Points."
+  related_items:
+    - item_name: Crystal teleport seed
+      slug: crystal-teleport-seed
+      relationship: alternative
+      description: "Cosmetic teleport unlock from a different source."
+    - item_name: Trailblazer home teleport scroll
+      slug: trailblazer-home-teleport-scroll
+      relationship: variant
+      description: "Original Trailblazer League home teleport unlock."
+    - item_name: Shattered home teleport scroll
+      slug: shattered-home-teleport-scroll
+      relationship: variant
+      description: "Shattered Relics League home teleport unlock."
+  about: "Trailblazer reloaded home teleport scroll is a Leagues IV reward that permanently unlocks the Trailblazer Reloaded Home Teleport animation. Reading the scroll consumes it, applies the animation to the player's home teleport spell, and the unlock is account-wide."
+  market_strategy:
+    notes:
+      - "Supply fixed by Leagues IV Reward Shop completions; no respawning source."
+      - "Single-use unlock makes long-term demand soft after league hype passes."
+      - "Limit of 5 per 4 hours keeps individual flip volume small."
+  trading_tips:
+    - "Price tends to spike during Leagues anniversaries and league-themed events."
+    - "Compare against other home teleport scrolls before listing."
+  history:
+    - date: "2023-11-15"
+      description: "Released with Leagues IV: Trailblazer Reloaded as a reward shop item."
+  properties:
+    release_date: "2023-11-15"
+    update: "Leagues IV: Trailblazer Reloaded"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Read
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

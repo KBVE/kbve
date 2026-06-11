@@ -1,6 +1,6 @@
 ---
 title: Steel spear(p+) | OSRS Price Data
-description: "Steel spear(p+): A poisoned steel tipped spear.. High alch: 195 GP, GE limit: 125."
+description: "Steel spear(p+) is a members weapon slot item requiring 5 Attack. High alch: 195 GP, GE limit: 125."
 osrs:
   id: 5708
   name: Steel spear(p+)
@@ -12,9 +12,88 @@ osrs:
   lowalch: 130
   highalch: 195
   limit: 125
-  about: "Steel spear(p+) is a members-only item in Old School RuneScape. High alchemy value: 195 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: steel
+    tier: mid
+  properties:
+    release_date: "2003-09-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    weight: 2.267
+    attack_speed: 5
+    requirements:
+      attack: 5
+    attack_bonus:
+      stab: 14
+      slash: 14
+      crush: 14
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 3
+      slash: 3
+      crush: 3
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 13
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Strong poison
+      description: "Has a chance to inflict strong poison on the target, dealing 5 starting damage."
+      trigger: on_hit
+  related_items:
+    - item_id: 1207
+      item_name: Steel spear
+      slug: steel-spear
+      relationship: variant
+      description: "Unpoisoned steel spear"
+    - item_id: 5706
+      item_name: Steel spear(p)
+      slug: steel-spear-p
+      relationship: variant
+      description: "Standard poison variant"
+    - item_id: 5710
+      item_name: Steel spear(p++)
+      slug: steel-spear-p-plus-plus
+      relationship: upgrade
+      description: "Stronger poison variant"
+  about: |-
+    > _"A poisoned steel tipped spear."_
+
+    Steel spear(p+) is a stronger-poisoned variant of the steel spear, dealing 5 damage when poison procs. Requires 5 Attack to wield and is created by applying Weapon poison(+) to a regular steel spear. Like all spears, it can attack with stab, slash or crush styles, making it versatile in low-level combat and useful for poison-vulnerable bosses such as Zulrah.
+  market_strategy:
+    notes:
+      - "Low buy limit (125) caps flipping volume"
+      - "Poison potions and steel spear price both drive cost"
+      - "Niche demand from ironmen and low-level pures"
+  trading_tips:
+    - "Stockpile when weapon poison(+) prices dip — margin scales with poison cost"
+    - "Watch Zulrah meta updates for short-term spear demand"
+  history:
+    - date: "2003-09-15"
+      description: "Steel spear line introduced with the spear weapon class."
+    - date: "2005-12-12"
+      description: "Weapon poison(+) variant added, enabling the steel spear(p+) form."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

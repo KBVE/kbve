@@ -1,6 +1,6 @@
 ---
 title: Maple shortbow (u) | OSRS Price Data
-description: "Maple shortbow (u): An unstrung maple shortbow; I need a bowstring for this.. High alch: 120 GP, GE limit: 10,000."
+description: "Maple shortbow (u): An unstrung maple shortbow; I need a bowstring for this. High alch: 120 GP, GE limit: 10,000."
 osrs:
   id: 64
   name: Maple shortbow (u)
@@ -12,23 +12,88 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: log
+    tier: mid
+  properties:
+    release_date: "2002-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 50
+      xp: 50
+      materials:
+        - item_name: Maple logs
+          quantity: 1
+      tools:
+        - Knife
+      facility: Knife
+      output_quantity: 1
+    - skill: fletching
+      level: 50
+      xp: 32.5
+      materials:
+        - item_name: "Maple shortbow (u)"
+          quantity: 1
+        - item_name: Bow string
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      product: Maple shortbow
   related_items:
-    - item_id: 60
-      item_name: Willow shortbow (u)
+    - item_name: Maple logs
+      slug: maple-logs
+      relationship: component
+      description: "Logs cut into the unstrung shortbow at 50 Fletching."
+    - item_name: Bow string
+      slug: bow-string
+      relationship: component
+      description: "Strung onto the unstrung shortbow to finish the bow."
+    - item_name: Maple shortbow
+      slug: maple-shortbow
+      relationship: product
+      description: "Strung maple shortbow produced from this unstrung version."
+    - item_name: "Willow shortbow (u)"
       slug: willow-shortbow-u
       relationship: variant
-      description: Lower tier unstrung shortbow
-    - item_id: 62
-      item_name: Maple longbow (u)
+      description: "Lower-tier unstrung shortbow at 35 Fletching."
+    - item_name: "Yew shortbow (u)"
+      slug: yew-shortbow-u
+      relationship: upgrade
+      description: "Higher-tier unstrung shortbow at 65 Fletching."
+    - item_name: "Maple longbow (u)"
       slug: maple-longbow-u
       relationship: variant
-      description: Matching unstrung maple longbow
+      description: "Longbow cut from the same maple logs at 55 Fletching."
   about: |-
     > _"An unstrung maple shortbow; I need a bowstring for this."_
 
-    The maple shortbow (u) is an unstrung shortbow made from maple logs. String with a bowstring at 50 Fletching to create a maple shortbow. Members only.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The maple shortbow (u) is a members unfinished bow cut from a single maple log at 50 Fletching for 50 xp. Stringing it with a bow string gives another 32.5 Fletching xp and produces a maple shortbow, the standard mid-game Ranged weapon and a popular target for Crafting/Fletching bow-stringing flips.
+  market_strategy:
+    notes:
+      - "Core bow-stringing flip: buy unstrung, string with bow string, sell strung shortbows."
+      - "Margins scale with the bow string price; watch flax-to-string supply from Crafting trainers."
+      - "Members-only, so daily volume tracks active membership population and Fletching trainers."
+  trading_tips:
+    - "Compare per-unit margin against yew shortbow (u) when picking which tier to bow-string."
+    - "Buy limit 10,000 per 4 hours covers most retail stringing runs."
+  history:
+    - date: "2002-01-04"
+      description: "Released with the original members Fletching expansion that added maple bows."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

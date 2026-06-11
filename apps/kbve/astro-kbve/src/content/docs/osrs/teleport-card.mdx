@@ -1,6 +1,6 @@
 ---
 title: Teleport card | OSRS Price Data
-description: "Teleport card: A card which has magical properties.. GE limit: 500."
+description: "Teleport card: A card which has magical properties that teleports the holder to Diango's toy store in Draynor Village. GE limit: 500."
 osrs:
   id: 13658
   name: Teleport card
@@ -12,9 +12,66 @@ osrs:
   lowalch: null
   highalch: null
   limit: 500
-  about: "Teleport card is a free-to-play item in Old School RuneScape. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: paper
+    tier: low
+  teleport:
+    destinations:
+      - name: Diango's Toy Store
+        location: Draynor Village
+    type: scroll
+    charges: 1
+  related_items:
+    - item_id: 8013
+      item_name: Teleport to house
+      slug: teleport-to-house
+      relationship: alternative
+      description: "Standard spellbook home teleport option for non-card users"
+    - item_id: 8007
+      item_name: Varrock teleport
+      slug: varrock-teleport
+      relationship: alternative
+      description: "Free-to-play scroll teleport to a high-traffic city"
+  passive_effects:
+    - name: One-charge teleport
+      description: "Consumes itself on use to teleport the holder to Diango's toy store in Draynor Village."
+      trigger: on_hit
+      affected_skill: magic
+  about: |-
+    > _"A card which has magical properties."_
+
+    The Teleport card is a free-to-play utility item that teleports the user to Diango's Toy Store in Draynor Village when broken. It is most often purchased by accounts that want a one-click teleport to Diango for redeeming holiday rewards, Christmas / Halloween cosmetic claims, or to use the array of consumable toys he stocks.
+
+    The card is non-magic-restricted, has no level requirement, and works on any spellbook, which is why it remains the go-to teleport option for accounts in Last Man Standing builds, Deadman Mode pures, and ultra-low-level F2P main accounts.
+  market_strategy:
+    notes:
+      - "Diango-bound teleport is unique - the demand floor is set by holiday event claim windows."
+      - "Buy limit of 500 per 4 hours throttles flips but also keeps the price reasonably stable."
+      - "Spikes follow each in-game seasonal event (Halloween, Christmas, Easter)."
+  trading_tips:
+    - "Build inventory in the off-season (mid-January, July) when card supply is highest and demand is lowest."
+    - "List during the first weekend of any seasonal event for the strongest premium."
+  history:
+    - date: "2009-07-22"
+      description: "Teleport card released to free-to-play as part of the Summer's End update so Diango could be reached without combat or quest gates."
+    - date: "2011-10-31"
+      description: "Teleport card stock expanded at Diango to handle Halloween event throughput."
+  properties:
+    release_date: "2009-07-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

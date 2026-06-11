@@ -1,6 +1,6 @@
 ---
 title: Divine super attack potion(3) | OSRS Price Data
-description: "Divine super attack potion(3): 3 doses of divine super attack potion.. High alch: 102 GP, GE limit: 2,000."
+description: "Divine super attack potion(3) is a three-dose Herblore brew that grants a 5-minute divine Attack boost. High alch: 102 GP, GE limit: 2,000."
 osrs:
   id: 23700
   name: Divine super attack potion(3)
@@ -12,9 +12,85 @@ osrs:
   lowalch: 68
   highalch: 102
   limit: 2000
-  about: "Divine super attack potion(3) is a members-only item in Old School RuneScape. High alchemy value: 102 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: potion
+    tier: mid-high
+  properties:
+    release_date: "2018-01-04"
+    update: "Vorkath, Drift Net Fishing and More"
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: false
+    edible: true
+    members: true
+    quest_item: false
+    weight: 0.025
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  potion:
+    doses: 3
+    herblore_level: 97
+    herblore_xp: 200
+    effect: "Boosts Attack level by 5 + 15% for 5 minutes; cannot be overridden by other Attack potions during the boost."
+    effects:
+      - stat: attack
+        boost_type: "absolute+percent"
+        boost_formula: "5 + 15% of base level"
+        duration: 300
+        description: "Grants a divine Attack boost that lasts 5 minutes."
+  recipes:
+    - skill: herblore
+      level: 97
+      xp: 200
+      materials:
+        - item_name: Super attack(3)
+          quantity: 1
+        - item_name: Crystal dust
+          quantity: 1
+      output_quantity: 1
+  related_items:
+    - item_name: Divine super attack potion(1)
+      slug: divine-super-attack-potion-1
+      relationship: variant
+      description: One-dose decant of the same divine brew.
+    - item_name: Divine super attack potion(2)
+      slug: divine-super-attack-potion-2
+      relationship: variant
+      description: Two-dose decant of the same divine brew.
+    - item_name: Divine super attack potion(4)
+      slug: divine-super-attack-potion-4
+      relationship: variant
+      description: Four-dose decant of the same divine brew.
+    - item_name: Super attack(3)
+      slug: super-attack-3
+      relationship: component
+      description: Three-dose super attack used as the base potion.
+    - item_name: Crystal dust
+      slug: crystal-dust
+      relationship: component
+      description: Ground crystal shard added during brewing.
+  about: "Divine super attack potion(3) is a three-dose Herblore-mixed brew created by combining a super attack potion with crystal dust at 97 Herblore. It boosts Attack by 5 + 15% of the base level and locks the boost for 5 minutes, making it a popular alternative to overload at content that does not permit Chambers of Xeric potions."
+  market_strategy:
+    notes:
+      - "Demand driven by Inferno, ToB, and ToA setups that avoid overloads"
+      - "Crystal shard supply from Prifddinas activities sets the floor price"
+      - "Decant arbitrage candidate across the 1/2/3/4 dose variants"
+  trading_tips:
+    - "Buy super attack(4) and decant to (3) when GE prices diverge"
+    - "Track crystal shard prices as the main input cost driver"
+  history:
+    - date: "2018-01-04"
+      description: "Released alongside the rest of the divine potion line."
+    - date: "2019-02-21"
+      description: "Recipe rebalanced to remove vial-of-blood requirements during the divine potion review."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

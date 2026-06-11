@@ -1,6 +1,6 @@
 ---
 title: Dark bow | OSRS Price Data
-description: "Dark bow is a members two-handed weapon requiring 60 Ranged. High alch: 72,001 GP, GE limit: 8."
+description: "Dark bow is a members two-handed Ranged weapon requiring 60 Ranged, dropped by Dark beasts. High alch: 72,001 GP, GE limit: 8."
 osrs:
   id: 11235
   name: Dark bow
@@ -12,76 +12,100 @@ osrs:
   lowalch: 48000
   highalch: 72001
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: dark
+    tier: high
   equipment:
     slot: 2h
     type: bow
     attack_style: ranged
     attack_speed: 9
+    attack_range: 10
     requirements:
       ranged: 60
-    stats:
-      attack_ranged: 95
-  special_attack:
-    name: Descent of Darkness
-    energy: 55
-    effect: +30% max hit, minimum 5 damage per arrow, fires 2 arrows
-    dragon_arrow_name: Descent of Dragons
-    dragon_arrow_effect: +50% max hit, minimum 8 damage per arrow, max 48 per arrow
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 95
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  properties:
+    release_date: "2006-09-26"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  passive_effects:
+    - name: Descent of Darkness
+      description: "Special attack fires two arrows simultaneously with +30% damage and a minimum of 5 damage per arrow at 55% special energy."
+    - name: Descent of Dragons
+      description: "When wielded with dragon arrows the special attack scales to +50% damage with a minimum of 8 damage per arrow and a cap of 48 per arrow."
   drop_table:
     sources:
       - source: Dark beast
         source_id: 4005
         combat_level: 182
         quantity: "1"
-        rarity: 1/512
+        rarity: "1/512"
         members_only: true
       - source: Night beast
         source_id: 8643
         combat_level: 374
         quantity: "1"
-        rarity: 3/512
+        rarity: "3/512"
         members_only: true
+        notes: "Found in Mos Le'Harmless caves and similar Slayer zones."
   related_items:
     - item_id: 11212
       item_name: Dragon arrow
       slug: dragon-arrow
       relationship: component
-      description: Best ammo for spec
+      description: "Best ammo for maximising Descent of Dragons special damage."
     - item_id: 26374
       item_name: Zaryte crossbow
       slug: zaryte-crossbow
       relationship: alternative
-      description: Modern alternative
-  about: |-
-    | Offense | Value |
-    |---------|-------|
-    | Ranged | +95 |
-
-    Requirements: 60 Ranged
-
-    Descent of Darkness (55% energy):
-    - +30% max hit
-    - Minimum 5 damage per arrow
-    - Fires 2 arrows
-
-    Descent of Dragons (55% energy, dragon arrows):
-    - +50% max hit
-    - Minimum 8 damage per arrow
-    - Max capped at 48 per arrow
-
-    Essential for:
-    - PvP KO weapon
-    - Bounty Hunter
-    - Castle Wars
-
-    Iconic PvP weapon, fires 2 arrows.
+      description: "Modern Ranged two-hand alternative with stronger DPS."
+    - item_id: 861
+      item_name: Magic shortbow
+      slug: magic-shortbow
+      relationship: alternative
+      description: "Lower-tier Ranged weapon used for budget PvP specs."
+  about: "Dark bow is an iconic members two-handed shortbow-class weapon dropped by Dark and Night beasts, prized for its Descent of Darkness special attack that fires two arrows for devastating PvP knockouts."
   market_strategy:
     notes:
-      - 90 Slayer for dark beasts
-      - Use dragon arrows for max spec
-      - PvP staple
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "PvP and PKing demand keeps prices steady well above alch"
+      - "Dark beast access requires 90 Slayer"
+      - "GE limit of 8 restricts flip volume"
+  trading_tips:
+    - "Watch PvP meta updates for demand swings"
+    - "Bulk dragon arrows for max-spec resale alongside the bow"
+  history:
+    - date: "2006-09-26"
+      description: "Released as a rare Dark beast drop with the Mourning's End Part II quest update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

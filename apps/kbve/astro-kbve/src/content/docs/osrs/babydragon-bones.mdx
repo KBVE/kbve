@@ -1,6 +1,6 @@
 ---
 title: Babydragon bones | OSRS Price Data
-description: "Babydragon bones: Ew it's a pile of bones.. High alch: 1 GP, GE limit: 3,000."
+description: "Babydragon bones grant 30 Prayer XP buried, 105 XP at a gilded altar, or 210 XP at the Chaos Temple. Dropped by blue and black baby dragons. High alch: 1 GP, GE limit: 3,000."
 osrs:
   id: 534
   name: Babydragon bones
@@ -12,18 +12,91 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 3000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: bone
+    tier: mid
+  properties:
+    release_date: "2002-02-27"
+    update: "Dragons of Crandor"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Bury
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  prayer:
+    xp_bury: 30
+    xp_gilded_altar: 105
+    xp_chaos_altar: 210
+  drop_table:
+    sources:
+      - source: Baby blue dragon
+        source_id: 241
+        combat_level: 65
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Baby black dragon
+        source_id: 252
+        combat_level: 65
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Baby red dragon
+        combat_level: 65
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Baby green dragon
+        combat_level: 65
+        quantity: "1"
+        rarity: always
+        members_only: true
   related_items:
     - item_id: 530
       item_name: Bat bones
       slug: bat-bones
-      relationship: variant
-      description: Lower tier bones
-  about: |-
-    > _"Ew it's a pile of bones."_
-
-    Babydragon bones give 30 Prayer XP when buried. A cost-effective way to train Prayer, especially from blue baby dragons in Taverley Dungeon. Also usable on gilded altars (105 XP) or the Chaos Temple (210 XP).
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: downgrade
+      description: "Lower-tier prayer bone yielding 5 XP per bury."
+    - item_id: 532
+      item_name: Big bones
+      slug: big-bones
+      relationship: downgrade
+      description: "Common F2P prayer bone yielding 15 XP per bury."
+    - item_id: 536
+      item_name: Dragon bones
+      slug: dragon-bones
+      relationship: upgrade
+      description: "Adult dragon bones yielding 72 XP per bury."
+    - item_id: 22124
+      item_name: Superior dragon bones
+      slug: superior-dragon-bones
+      relationship: upgrade
+      description: "Top-tier dragon bones from brutal/mythic dragons yielding 150 XP per bury."
+  about: "Babydragon bones are a Prayer training reagent dropped by every baby dragon in OSRS - blue, black, red, and green variants. Each bone grants 30 Prayer XP buried, 105 XP on a gilded altar in a POH (with both burners lit), or 210 XP on the Chaos Temple altar in the Wilderness. With a GE limit of 3,000 per 4 hours and steady supply from Taverley Dungeon and the Myths' Guild, babydragon bones sit in the budget Prayer training tier between big bones and full dragon bones."
+  market_strategy:
+    notes:
+      - "Demand correlates with mid-game Prayer training meta and gilded altar availability."
+      - "Supply mostly from blue baby dragons in Taverley and Myths' Guild farming."
+      - "Buy limit of 3,000 per 4 hours supports steady volume but caps per-cycle profit."
+      - "Cannot be high alched - utility is entirely Prayer XP."
+  trading_tips:
+    - "Cross-check GP-per-XP against big bones, dragon bones, and superior dragon bones before bulk buying."
+    - "Watch Wilderness Slayer task updates - baby dragon assignments flood supply briefly."
+    - "Stock up before leagues and seasonal modes that highlight Prayer training."
+  history:
+    - date: "2002-02-27"
+      description: "Released with the Dragons of Crandor update that introduced baby dragons to the world."
+    - date: "2014-05-08"
+      description: "Re-released in Old School RuneScape with the original Prayer XP values intact."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

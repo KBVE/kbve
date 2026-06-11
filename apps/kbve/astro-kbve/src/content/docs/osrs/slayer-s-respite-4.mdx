@@ -1,6 +1,6 @@
 ---
 title: Slayer's respite(4) | OSRS Price Data
-description: "Slayer's respite(4): This keg contains 4 pints of Slayer's Respite.. High alch: 1 GP, GE limit: 2,000."
+description: "Slayer's respite(4) is a members beer keg containing 4 pints of Slayer's Respite that temporarily boosts Slayer by 2 and reduces Attack and Strength by 3. High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 5841
   name: Slayer's respite(4)
@@ -12,9 +12,87 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Slayer's respite(4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: ale
+    tier: low
+  properties:
+    release_date: "2006-09-04"
+    quest_item: false
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    weight: 1.8
+    destroy: "Drop"
+    options:
+      - Drink
+      - Empty
+      - Drop
+    examine_options:
+      - Examine
+  recipes:
+    - skill: cooking
+      level: 59
+      xp: 220
+      tools:
+        - Beer barrel
+        - Fermenting vat
+      materials:
+        - item_id: 5739
+          item_name: Beer keg
+          quantity: 1
+        - item_id: 5752
+          item_name: Slayer's respite
+          quantity: 4
+      output:
+        item_id: 5841
+        item_name: Slayer's respite(4)
+        output_quantity: 1
+      members: true
+      notes: "Brewed at Keldagrim brewery using the standard ale brewing process; 4-pint keg form for portable storage"
+  related_items:
+    - item_id: 5839
+      item_name: Slayer's respite(1)
+      slug: slayer-s-respite-1
+      relationship: variant
+      description: Single-pint variant
+    - item_id: 5840
+      item_name: Slayer's respite(2)
+      slug: slayer-s-respite-2
+      relationship: variant
+      description: Two-pint variant
+    - item_id: 5842
+      item_name: Slayer's respite(3)
+      slug: slayer-s-respite-3
+      relationship: variant
+      description: Three-pint variant
+    - item_id: 5752
+      item_name: Slayer's respite
+      slug: slayer-s-respite
+      relationship: variant
+      description: Single-pint glass version
+  passive_effects:
+    - name: Slayer boost
+      description: "Drinking a pint temporarily raises the Slayer level by 2"
+    - name: Combat penalty
+      description: "Lowers Attack and Strength by 3 levels for the duration"
+  about: "Slayer's respite(4) is a 4-pint keg form of Slayer's Respite ale brewed via Cooking; drinking a pint temporarily boosts Slayer by 2 while penalising Attack and Strength."
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Niche niche-niche product: tiny demand, thin liquidity"
+      - "Useful for Slayer level boost when Wildy slayer tasks demand a specific monster"
+      - "Brew-yourself is usually cheaper than buying off GE"
+      - "Buy limit of 2,000 every 4 hours rarely binds"
+  trading_tips:
+    - Most reliable supply is self-brewing in Keldagrim
+    - Compare price vs single-pint Slayer's respite for bulk savings
+    - Stock up before Slayer Master grandmaster-task pushes
+  history:
+    - date: "2006-09-04"
+      description: "Slayer's respite added with The Giant Dwarf brewing content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,85 +12,111 @@ osrs:
   lowalch: 500000
   highalch: 750000
   limit: 8
-  equipment:
-    slot: weapon
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
     type: godsword
-    tradeable: true
+    tier: high
+  equipment:
+    slot: 2h
+    weapon_type: two-handed-sword
+    attack_speed: 6
+    attack_range: 1
     weight: 10
+    tradeable: true
     requirements:
       attack: 75
-    stats:
-      attack_stab: 0
-      attack_slash: 132
-      attack_crush: 80
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 132
+    attack_bonus:
+      stab: 0
+      slash: 132
+      crush: 80
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 132
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  recipes:
-    - materials:
-        - item_name: Godsword blade
-          quantity: 1
-        - item_id: 26370
-          item_name: Ancient hilt
-          quantity: 1
   special_attack:
     name: Blood Sacrifice
-    cost: 50%
-    effects:
-      - Doubled accuracy
-      - +10% max hit
-      - Marks target for 25 damage after 4.8s
-      - Heals 15% of target's max HP (cap 25 PvM, 15 PvP)
-      - Target can avoid by moving 5+ tiles
+    energy: 50
+    description: "Doubled accuracy and a +10% max hit; marks the target for 25 damage after 4.8 seconds and heals the wielder for 15% of the target's max HP (cap 25 PvM, 15 PvP). Target can avoid the heal by moving 5 or more tiles."
+    accuracy_modifier: 2.0
+    damage_modifier: 1.1
+    heals: true
+  recipes:
+    - skill: smithing
+      level: 80
+      xp: 200
+      materials:
+        - item_name: Godsword blade
+          item_id: 11690
+          quantity: 1
+        - item_name: Ancient hilt
+          item_id: 26370
+          quantity: 1
+      tools:
+        - Hammer
+      facility: Anvil
+      product: Ancient godsword
+      product_id: 26233
+      output_quantity: 1
   related_items:
     - item_id: 26370
       item_name: Ancient hilt
       slug: ancient-hilt
       relationship: component
-      description: From Nex
-    - item_id: 11806
-      item_name: Saradomin godsword
-      slug: saradomin-godsword
-      relationship: alternative
-      description: Alternative healing spec weapon
+      description: "Dropped by Nex; attached to a godsword blade"
     - item_id: 11690
       item_name: Godsword blade
       slug: godsword-blade
       relationship: component
-      description: Base component
-  about: |-
-    Combine Godsword blade with Ancient hilt.
-
-    | Offence | Bonus |
-    |---------|-------|
-    | Stab | +0 |
-    | Slash | +132 |
-    | Crush | +80 |
-    | Strength | +132 |
-
-    Blood Sacrifice (50% spec)
-    - Doubled accuracy
-    - +10% max hit
-    - Marks target for 25 damage after 4.8s
-    - Heals 15% of target's max HP (cap 25 PvM, 15 PvP)
-    - Target can avoid by moving 5+ tiles
-
-    Used for:
-    - Spec weapon for healing
-    - Group PvM
-    - Alternative to SGS
-
-    Healing spec weapon.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Base blade forged from three godsword shards"
+    - item_id: 11806
+      item_name: Saradomin godsword
+      slug: saradomin-godsword
+      relationship: alternative
+      description: "Alternative healing-spec godsword"
+    - item_id: 11802
+      item_name: Armadyl godsword
+      slug: armadyl-godsword
+      relationship: alternative
+      description: "Alternative high damage spec godsword"
+  about: "The Ancient godsword is a tier 75 Attack two-handed sword forged by combining the Ancient hilt (dropped by Nex) with a Godsword blade; its Blood Sacrifice special attack delivers a delayed 25 damage strike that heals the wielder for 15% of the target's max HP, making it a top-tier group PvM healing spec weapon."
+  market_strategy:
+    notes:
+      - "Ancient hilt supply is gated by Nex group bosses"
+      - "Buy limit 8/4h keeps the price reactive to demand"
+      - "Healing spec is in high demand for group PvM (CoX, ToB, ToA)"
+      - "Track godsword blade and Ancient hilt costs separately to find arbitrage"
+  trading_tips:
+    - "Spot price gaps between hilt + blade vs assembled sword"
+    - "Buy during Nex DPS race events when hilts flood the market"
+  history:
+    - date: "2022-04-27"
+      description: "Released alongside the Ancient hilt drop and Nex group boss rework."
+  properties:
+    release_date: "2022-04-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 10
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

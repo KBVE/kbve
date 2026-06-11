@@ -1,6 +1,6 @@
 ---
 title: Team-34 cape | OSRS Price Data
-description: "Team-34 cape: Ooohhh look at the pretty colours.... High alch: 30 GP, GE limit: 150."
+description: "Team-34 cape is a F2P cape slot item sold by Captain Rimor and Lowe in Castle Wars. High alch: 30 GP, GE limit: 150."
 osrs:
   id: 4381
   name: Team-34 cape
@@ -12,9 +12,78 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-34 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  equipment:
+    slot: cape
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  properties:
+    release_date: "2004-03-24"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: "Captain Rimor"
+      location: Castle Wars
+      price: 50
+    - shop_name: "Lanthus"
+      location: Castle Wars
+      price: 50
+  related_items:
+    - item_name: Team-1 cape
+      slug: team-1-cape
+      relationship: variant
+      description: "Castle Wars team cape colour variant."
+    - item_name: Team-17 cape
+      slug: team-17-cape
+      relationship: variant
+      description: "Castle Wars team cape colour variant."
+    - item_name: Team-50 cape
+      slug: team-50-cape
+      relationship: variant
+      description: "Castle Wars team cape colour variant."
+  about: "Team-34 cape is one of fifty Castle Wars team capes purchasable from Castle Wars merchants, providing fashionscape colour variety with no combat bonuses."
+  market_strategy:
+    notes:
+      - "Steady supply from Castle Wars shops at 50 GP"
+      - "Demand driven by cosmetic and team coordination needs"
+      - "Low GE limit (150) restricts flip volume"
+  trading_tips:
+    - "Buy direct from Castle Wars shops below GE price"
+    - "Watch for clan event spikes on specific team numbers"
+  history:
+    - date: "2004-03-24"
+      description: "Released with the Castle Wars minigame update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

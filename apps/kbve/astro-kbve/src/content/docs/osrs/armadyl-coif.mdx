@@ -1,6 +1,6 @@
 ---
 title: Armadyl coif | OSRS Price Data
-description: "Armadyl coif is a members head slot item requiring 40 Defence. High alch: 1,200 GP, GE limit: 8."
+description: "Armadyl coif is a members head slot ranged coif requiring 70 Ranged and 40 Defence. High alch: 1,200 GP, GE limit: 8."
 osrs:
   id: 12512
   name: Armadyl coif
@@ -12,8 +12,35 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: dragonhide
+    tier: mid-high
+  properties:
+    release_date: "2015-09-10"
+    update: "Treasure Trail Expansion (Armadyl coifs)"
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.9
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
+    weight: 0.9
+    requirements:
+      ranged: 70
+      defence: 40
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,41 +58,49 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 1
-    requirements:
-      ranged: 70
-      defence: 40
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
     - item_id: 10382
       item_name: Guthix coif
       slug: guthix-coif
       relationship: variant
-      description: God blessed coif variant
+      description: God-blessed coif variant with identical stats.
     - item_id: 10374
       item_name: Zamorak coif
       slug: zamorak-coif
       relationship: variant
-      description: God blessed coif variant
+      description: God-blessed coif variant with identical stats.
     - item_id: 12504
       item_name: Bandos coif
       slug: bandos-coif
       relationship: variant
-      description: God blessed coif variant
+      description: God-blessed coif variant with identical stats.
     - item_id: 12496
       item_name: Ancient coif
       slug: ancient-coif
       relationship: variant
-      description: God blessed coif variant
-  about: |-
-    > *"An Armadyl blessed dragonhide coif."*
-
-    All blessed coifs share identical stats. They offer a +1 prayer bonus over a standard coif while maintaining the same defensive profile. The choice between god variants is purely cosmetic.
+      description: God-blessed coif variant with identical stats.
+    - item_id: 1169
+      item_name: Coif
+      slug: coif
+      relationship: downgrade
+      description: Plain leather coif without the +1 prayer bonus.
+  about: "Armadyl coif is a hard clue scroll reward that blesses a black dragonhide coif with Armadyl iconography, granting a +1 prayer bonus on top of identical defensive stats to the regular black dragonhide coif. All five god-blessed coifs share identical bonuses; the choice between Armadyl, Bandos, Ancient, Guthix, and Zamorak is purely cosmetic."
   market_strategy:
     notes:
-      - Hard clue exclusive — supply tied to clue completion rates
-      - Price differences between gods are cosmetic preference only
-      - Armadyl and Ancient tend to command slight premiums
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Hard clue exclusive: supply tied to hard clue completion rates"
+      - "Price differences between god variants are cosmetic preference only"
+      - "Armadyl and Ancient tend to command slight premiums over the others"
+  trading_tips:
+    - "Compare all five god variants before buying to find the cheapest stats parity piece"
+    - "Watch hard clue volume after Treasure Trail reworks for supply spikes"
+  history:
+    - date: "2015-09-10"
+      description: "Added to the hard clue scroll reward pool with the Treasure Trail Expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

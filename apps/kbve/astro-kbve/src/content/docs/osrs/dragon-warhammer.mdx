@@ -1,6 +1,6 @@
 ---
 title: Dragon warhammer | OSRS Price Data
-description: "Dragon warhammer is a members two-handed weapon. High alch: 72,000 GP, GE limit: 8."
+description: "Dragon warhammer is a members two-handed crush weapon with a Defence-draining special attack. High alch: 72,000 GP, GE limit: 8."
 osrs:
   id: 13576
   name: Dragon warhammer
@@ -12,76 +12,103 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "2015-09-03"
+    update: "Tales of the Godwars"
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: true
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
-    slot: 2h
-    type: warhammer
-    attack_style: crush
+    slot: weapon
+    weapon_type: blunt
     attack_speed: 6
+    weight: 2.721
     requirements:
+      attack: 60
       strength: 60
-    stats:
-      attack_crush: 95
-      strength: 85
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 95
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 85
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   special_attack:
     name: Smash
     energy: 50
-    effect: +50% damage, reduces target Defence by 30%
+    description: "Reduces the target's Defence level by 30% on a successful hit and deals 50% increased damage."
+    accuracy_modifier: 1.0
+    damage_modifier: 1.5
+    drains_defence: true
   drop_table:
+    primary_source: Lizardman shaman
+    best_drop_rate: "1/5000"
     sources:
       - source: Lizardman shaman
         source_id: 6766
         combat_level: 150
         quantity: "1"
-        rarity: 1/3000
+        rarity: rare
+        drop_rate: "1/5000"
         members_only: true
   related_items:
     - item_id: 11804
       item_name: Bandos godsword
       slug: bandos-godsword
       relationship: alternative
-      description: Alternative spec weapon
+      description: Alternative Defence-draining special attack weapon.
     - item_id: 21003
       item_name: Elder maul
       slug: elder-maul
       relationship: alternative
-      description: Higher max hit, no spec
+      description: Higher max hit crush two-hander without a spec.
     - item_id: 22322
       item_name: Avernic defender
       slug: avernic-defender
       relationship: alternative
-      description: Pairs well for melee
-  about: |-
-    | Stat | Value |
-    |------|-------|
-    | Attack style | Crush |
-    | Attack bonus | +95 |
-    | Strength bonus | +85 |
-    | Attack speed | 6 tick (3.6s) |
-    | Requirements | 60 Strength |
-
-    Smash (50% energy):
-    - +50% damage boost
-    - Reduces target's Defence by 30% on hit
-    - Stacks multiplicatively with multiple specs
-
-    Example: 100 Def → 70 → 49 → 34 after 3 successful specs
-
-    Essential for high-level PvM:
-    - Chambers of Xeric (Olm, Tekton)
-    - Theatre of Blood (Verzik, Nylocas)
-    - Tombs of Amascut
-    - General Graardor
-    - Corporeal Beast
-    - Nex
-
-    PvP: Popular for strength pures (no Attack requirement)
+      description: Common one-handed pairing once a non-spec swap is in use.
+  about: "Dragon warhammer is a two-handed crush weapon dropped by Lizardman shamans, prized for its Smash special attack that drains 30 percent of the target's Defence level. Sitting at 60 Attack and Strength to wield with a +95 crush bonus and +85 strength bonus, it is a core PvM utility weapon used at Chambers of Xeric, Theatre of Blood, Tombs of Amascut and most god-wars style bosses."
   market_strategy:
     notes:
-      - One of best spec weapons in game
-      - Essential for endgame PvM
-      - Shamans farmable but slow
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "One of the best Defence-draining spec weapons in the game"
+      - "Demand is driven by mid-to-endgame PvM content (raids, GWD, Nex)"
+      - "Lizardman shamans are farmable but a slow drop, keeping supply tight"
+      - "Often paired with Avernic defender or BGS in spec rotations"
+  trading_tips:
+    - "Track raid update cycles since CoX and ToB drive most demand"
+    - "Watch shaman alch flips when high alch prices line up with nature rune cost"
+    - "Compare against Elder maul and BGS pricing before flipping the spec niche"
+  history:
+    - date: "2015-09-03"
+      description: "Released as a rare drop from Lizardman shamans with Tales of the Godwars."
+    - date: "2017-01-05"
+      description: "Special attack reworked to apply the Defence drain only on a successful hit."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

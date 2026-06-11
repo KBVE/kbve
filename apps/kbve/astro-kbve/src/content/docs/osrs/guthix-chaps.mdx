@@ -12,8 +12,14 @@ osrs:
   lowalch: 2400
   highalch: 3600
   limit: 8
+  material:
+    type: dragonhide
+    tier: high
   equipment:
     slot: legs
+    weight: 4.5
+    requirements:
+      ranged: 70
     attack_bonus:
       stab: 0
       slash: 0
@@ -31,54 +37,79 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 1
-    requirements:
-      ranged: 70
+  passive_effects:
+    - name: Prayer bonus
+      description: Provides +1 Prayer bonus while worn.
+      trigger: while_worn
+  drop_table:
+    sources:
+      - source: Hard clue scroll casket
+        quantity: "1"
+        rarity: Rare
+        notes: "Reward casket from a Hard Treasure Trail."
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
     - item_id: 10372
       item_name: Zamorak chaps
       slug: zamorak-chaps
       relationship: variant
+      description: "Functionally identical Zamorak blessed dragonhide chaps."
     - item_id: 12502
       item_name: Bandos chaps
       slug: bandos-chaps
       relationship: variant
+      description: "Bandos blessed variant."
     - item_id: 12510
       item_name: Armadyl chaps
       slug: armadyl-chaps
       relationship: variant
+      description: "Armadyl blessed variant."
     - item_id: 12494
       item_name: Ancient chaps
       slug: ancient-chaps
       relationship: variant
+      description: "Ancient blessed variant."
     - item_id: 2497
       item_name: Black d'hide chaps
       slug: black-d-hide-chaps
       relationship: downgrade
-      description: Standard version requiring 40 Defence
-  about: |-
-    > *"Guthix blessed dragonhide chaps."*
-
-    | Stat | Blessed | Black D'hide |
-    |------|--------:|-----------:|
-    | Ranged Attack | +8 | +8 |
-    | Stab Defence | +17 | +17 |
-    | Slash Defence | +20 | +20 |
-    | Crush Defence | +16 | +16 |
-    | Magic Defence | +18 | +18 |
-    | Ranged Defence | +17 | +17 |
-    | Prayer | +1 | 0 |
-    | Ranged Req | 70 | 70 |
-    | Defence Req | None | 40 |
-
-    The key advantage: blessed chaps have no Defence requirement, making them ideal for pures and ranged-focused accounts. They also offer a +1 prayer bonus.
+      description: "Standard version requiring 40 Defence."
+  about: "Guthix chaps are members blessed black dragonhide chaps that require 70 Ranged but no Defence requirement, making them best-in-slot for pures and 1-Defence accounts. They grant identical Ranged stats to black d'hide chaps plus a +1 Prayer bonus."
   market_strategy:
     notes:
-      - Hard clue exclusive — supply tied to clue completion rates
-      - Popular with 1-Defence pures who need best-in-slot ranged legs
-      - All god variants are functionally identical
-      - Armadyl and Ancient variants tend to have slight premiums
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Hard clue exclusive — supply tied to clue completion rates."
+      - "Popular with 1-Defence pures who need best-in-slot ranged legs."
+      - "All god variants are functionally identical."
+      - "Armadyl and Ancient variants tend to have slight premiums."
+  trading_tips:
+    - "Compare across all five blessed variants; cheapest variant wins for utility."
+    - "GE limit of 8 per 4 hours throttles bulk flips."
+  history:
+    - date: "2007-08-06"
+      description: "Released with the Treasure Trail Tweaks blessed dragonhide expansion."
+  properties:
+    release_date: "2007-08-06"
+    update: "Treasure Trail Tweaks"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 4.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

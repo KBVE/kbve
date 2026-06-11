@@ -1,6 +1,6 @@
 ---
 title: Black full helm (t) | OSRS Price Data
-description: "Black full helm (t) is a F2P head slot item requiring 10 Defence. High alch: 633 GP, GE limit: 8."
+description: "Black full helm (t): Black full helmet with trim. High alch: 633 GP, GE limit: 8."
 osrs:
   id: 2587
   name: Black full helm (t)
@@ -12,22 +12,82 @@ osrs:
   lowalch: 422
   highalch: 633
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: black
+    tier: mid
+  properties:
+    release_date: "2002-04-29"
+    update: Treasure Trails
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
+    weapon_type: none
+    weight: 2.721
+    attack_speed: 1
     requirements:
       defence: 10
+    attack_bonus:
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 9
+      slash: 10
+      crush: 7
+      magic: -1
+      ranged: 9
+    other_bonus: {}
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
+    - item_id: 2581
+      item_name: Black full helm
+      slug: black-full-helm
+      relationship: variant
+      description: "Untrimmed F2P version of this helm"
+    - item_id: 2589
+      item_name: Black full helm (g)
+      slug: black-full-helm-g
+      relationship: variant
+      description: "Gold-trimmed cosmetic variant from easy Treasure Trails"
     - item_id: 2583
       item_name: Black platebody (t)
       slug: black-platebody-t
       relationship: set-piece
-      description: Matching trimmed platebody
+      description: "Matching trimmed body piece for the black (t) set"
   about: |-
-    > *"Black full helm with trim."*
+    > _"Black full helmet with trim."_
 
-    The black full helm (t) is a trimmed cosmetic variant of the standard black full helm. Identical stats, requiring 10 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The black full helm (t) is a cosmetic trimmed variant of the standard black full helm, awarded as a reward from easy Treasure Trails. It shares identical stats to the untrimmed black full helm and the gold-trimmed black full helm (g), requiring 10 Defence to equip. Free-to-play tradeable with a strict GE buy limit of 8 per 4 hours that keeps prices well above raw alch value.
+  market_strategy:
+    notes:
+      - "Easy clue exclusive — supply locked to clue completion rate"
+      - "Tied with (g) variant in stat profile — cosmetic-only premium"
+      - "GE buy limit 8 per 4 hours throttles bulk speculation"
+      - "F2P tradeable means broader trade audience than members vestments"
+  trading_tips:
+    - "Track easy clue meta during DXP weekends for supply spikes"
+    - "Compare price against gold-trim (g) variant — they swap leader regularly"
+  history:
+    - date: "2002-04-29"
+      description: "Black full helm (t) released with the original Treasure Trails clue reward set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

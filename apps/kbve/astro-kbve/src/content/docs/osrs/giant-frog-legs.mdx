@@ -1,6 +1,6 @@
 ---
 title: Giant frog legs | OSRS Price Data
-description: "Giant frog legs: This could feed a family of gnomes for a week!. High alch: 60 GP, GE limit: 6,000."
+description: "Giant frog legs is a members raw cooking ingredient dropped by giant frogs in the Lumbridge Swamp Caves; used to make fried giant frog legs. High alch: 60 GP, GE limit: 6,000."
 osrs:
   id: 4517
   name: Giant frog legs
@@ -12,9 +12,79 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 6000
-  about: "Giant frog legs is a members-only item in Old School RuneScape. High alchemy value: 60 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2002-12-17"
+    quest_item: false
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    weight: 0.5
+    destroy: "Drop"
+    options:
+      - Use
+      - Drop
+    examine_options:
+      - Examine
+  recipes:
+    - skill: cooking
+      level: 33
+      xp: 65
+      tools:
+        - Range
+      materials:
+        - item_id: 4517
+          item_name: Giant frog legs
+          quantity: 1
+      output:
+        item_id: 4519
+        item_name: Fried frog legs
+        output_quantity: 1
+      members: true
+      notes: "Cook on a range or fire to make fried giant frog legs (heals 8 hp)"
+  drop_table:
+    sources:
+      - source: Giant frog
+        combat_level: 42
+        quantity: "1"
+        rarity: "1/8"
+        notes: "Lumbridge Swamp Caves drop"
+      - source: Big frog
+        combat_level: 24
+        quantity: "1"
+        rarity: "1/10"
+        notes: "Found in the Lumbridge Swamp Caves"
+  related_items:
+    - item_id: 4519
+      item_name: Fried frog legs
+      slug: fried-frog-legs
+      relationship: product
+      description: Cooked form heals 8 hp
+    - item_id: 9981
+      item_name: Cooking gauntlets
+      slug: cooking-gauntlets
+      relationship: alternative
+      description: Reduce burn rate when cooking
+  about: "Giant frog legs are dropped by giant frogs and big frogs in the Lumbridge Swamp Caves; cooking them at level 33 Cooking yields fried frog legs as a low-tier food."
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Steady but low demand for low-level Cooking XP routes"
+      - "Most Cooking trainers prefer raw karambwan or fish for higher XP/hr"
+      - "Stockpile during AFK PvM in the Swamp Caves"
+      - "Buy limit of 6,000 every 4 hours rarely binds"
+  trading_tips:
+    - High alch profit is marginal vs nature rune cost
+    - Compare against alternatives like cave eels for Cooking XP routes
+    - Bulk supply from Slayer alts farming giant frog tasks
+  history:
+    - date: "2002-12-17"
+      description: "Giant frog legs added with the Lumbridge Swamp Caves update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

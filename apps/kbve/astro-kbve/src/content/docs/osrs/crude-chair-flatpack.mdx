@@ -12,9 +12,64 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Crude chair (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: wood
+    tier: low
+  recipes:
+    - skill: construction
+      level: 1
+      xp: 30
+      output_quantity: 1
+      materials:
+        - item_name: Plank
+          quantity: 2
+      tools:
+        - Saw
+        - Hammer
+      facility: Workshop with Flatpack-construction
+      notes: "Built at a Heavy-duty bench in a Workshop with the flatpack option active."
+  related_items:
+    - item_name: Plank
+      slug: plank
+      relationship: component
+      description: Required material for the chair flatpack.
+    - item_name: Wooden chair (flatpack)
+      slug: wooden-chair-flatpack
+      relationship: upgrade
+      description: Slightly higher-tier seating flatpack.
+    - item_name: Crude wooden chair
+      slug: crude-wooden-chair
+      relationship: variant
+      description: In-house furniture version of the same chair.
+  about: "Crude chair (flatpack) is a Construction product made on a Heavy-duty workbench in a player-owned house Workshop, requiring 1 Construction and giving 30 XP per build. Each flatpack consumes 2 planks and can be placed by an owner with the appropriate Construction level."
+  market_strategy:
+    notes:
+      - "Entry-level Construction XP product for low-level housing decoration."
+      - "Small GE limit (500) caps short-term flipping volume."
+      - "Plank price vs. high-alch is usually a small loss; sold for XP, not profit."
+  trading_tips:
+    - "Sell to mid-game players furnishing first houses, not bulk merchants."
+    - "Compare against oak chair flatpack for better XP-per-GP."
+  history:
+    - date: "2006-05-31"
+      description: "Released with the Construction skill launch."
+  properties:
+    release_date: "2006-05-31"
+    update: "Construction skill"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Build
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

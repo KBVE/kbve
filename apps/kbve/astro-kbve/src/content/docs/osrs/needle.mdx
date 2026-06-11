@@ -1,6 +1,6 @@
 ---
 title: Needle | OSRS Price Data
-description: "Needle: Used with a thread to make clothes.. High alch: 1 GP, GE limit: 40."
+description: "Needle: Used with a thread to make clothes. High alch: 1 GP, GE limit: 40."
 osrs:
   id: 1733
   name: Needle
@@ -12,9 +12,81 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 40
-  about: "Needle is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: tool
+    tier: low
+  properties:
+    release_date: "2001-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.005
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: "Aaron's Archery Appendages"
+      location: Isafdar
+      price: 1
+      stock: 5
+      currency: coins
+      members_only: true
+    - shop_name: "Wayne's Chains: Chainmail Specialist"
+      location: Falador
+      price: 1
+      stock: 5
+      currency: coins
+      members_only: false
+    - shop_name: "Frenita's Cookery Shop"
+      location: Yanille
+      price: 1
+      stock: 2
+      currency: coins
+      members_only: true
+    - shop_name: "Ranael's Super Skirt Store"
+      location: Al Kharid
+      price: 1
+      stock: 5
+      currency: coins
+      members_only: false
+    - shop_name: "Thessalia's Fine Clothes"
+      location: Varrock
+      price: 1
+      stock: 5
+      currency: coins
+      members_only: false
+  related_items:
+    - item_id: 1734
+      item_name: Thread
+      slug: thread
+      relationship: component
+      description: "Pair with the needle for any Crafting clothing recipe"
+    - item_id: 1739
+      item_name: Cowhide
+      slug: cowhide
+      relationship: component
+      description: "Leather hide tanned then sewn with needle and thread"
+  about: |-
+    The Needle is the basic Crafting tool used with thread to sew leather and cloth into wearable items. It is the gateway tool for every Crafting recipe in the leather and cloth families, from leather gloves at 1 Crafting through d'hide bodies at 84 Crafting.
+
+    Needles are sold by clothing and crafting shops across Gielinor for 1 coin each. They never break, weigh almost nothing, and are typically picked up once per account.
+  market_strategy:
+    notes:
+      - "Pure shop item; Grand Exchange listings exist as a convenience"
+      - "No realistic flipping profit at value 1 vs alch 1"
+      - "Limit 40 per 4 hours so traders can't corner the market"
+  trading_tips:
+    - "Buy from Wayne's Chains in Falador for the closest F2P bank-adjacent stock"
+    - "Carry one in your tool slot to skip the shop run every time"
+  history:
+    - date: "2001-02-27"
+      description: "Released as a launch tool for the Crafting skill in the original RuneScape Classic build."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

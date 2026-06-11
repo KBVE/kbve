@@ -12,45 +12,90 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  properties:
-    tradeable: true
-    tradeable_ge: true
-    weight: 0.15
+  material:
+    type: produce
+    tier: low
   food:
     heals: 0
-  skilling_sources:
+    type: fruit
+  shops:
+    - shop_name: "Heckel Funch's Fine Groceries"
+      location: Grand Tree (Gnome Stronghold)
+      stock: 5
+      currency: coins
+      sells_at: "2 coins"
+      buys_at: "1 coin"
+    - shop_name: "Solihib's Food Stall"
+      location: Sophanem
+      stock: 30
+      currency: coins
+      sells_at: "2 coins"
+      buys_at: "1 coin"
+  recipes:
     - skill: farming
       level: 51
-      xp: 57
+      xp: 285.6
+      output_quantity: 1
+      materials:
+        - item_name: Pineapple seed
+          quantity: 1
+      tools:
+        - Seed dibber
+        - Spade
+      facility: Fruit tree patch
+      notes: "Grown from a pineapple seed planted in a fruit tree patch; checking the healthy tree gives 6,348 XP."
   related_items:
-    - item_id: 5288
-      item_name: Papaya tree seed
-      slug: papaya-tree-seed
-      relationship: product
-      description: Protection payment target
+    - item_id: 5097
+      item_name: Pineapple seed
+      slug: pineapple-seed
+      relationship: component
+      description: "Seed planted to grow a pineapple tree."
     - item_id: 2118
       item_name: Pineapple ring
       slug: pineapple-ring
       relationship: product
-      description: Sliced product
+      description: "Sliced product made with a knife."
+    - item_id: 2116
+      item_name: Pineapple chunks
+      slug: pineapple-chunks
+      relationship: product
+      description: "Chunked product made with a knife."
     - item_id: 2301
       item_name: Pineapple pizza
       slug: pineapple-pizza
       relationship: product
-      description: Cooking product
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Farming Product / Food |
-    | Tradeable | Yes |
-    | Weight | 0.15 kg |
-
-    Farming: Papaya tree protection payment (10 pineapples)
-
-    Cooking: Cut into rings or chunks for various recipes
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Cooking product using pineapple chunks."
+  about: "Pineapple is a members farming produce item harvested from a pineapple plant grown in a fruit tree patch. It is the protection payment for several fruit tree crops and is sliced with a knife into pineapple rings (used in pizzas) or pineapple chunks (used in fruit batta and other Gnome dishes)."
+  market_strategy:
+    notes:
+      - "Supply driven by pineapple farm plantations and shop runs."
+      - "Steady demand from Cooking recipes and Gnome restaurant content."
+      - "Large GE limit (13,000) supports bulk flipping."
+  trading_tips:
+    - "Compare against pineapple ring/chunks for slicing arbitrage."
+    - "Spot demand spikes during Gnome cooking training pushes."
+  history:
+    - date: "2003-12-09"
+      description: "Released as a farming produce item alongside Gnome cooking content."
+    - date: "2005-08-15"
+      description: "Added to fruit tree patch farming with the Farming skill expansion."
+  properties:
+    release_date: "2003-12-09"
+    update: "Gnome cuisine"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.15
+    options:
+      - Eat
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

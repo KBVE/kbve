@@ -5,48 +5,110 @@ osrs:
   id: 1337
   name: Bronze warhammer
   slug: bronze-warhammer
-  examine: I don't think it's intended for joinery.
+  examine: "I don't think it's intended for joinery."
   members: false
   icon: Bronze warhammer.png
   value: 47
   lowalch: 18
   highalch: 28
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2002-12-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: warhammer
-    tradeable: true
+    weapon_type: warhammer
     weight: 1.814
+    attack_speed: 6
     requirements:
       attack: 1
-    stats:
-      attack_stab: -4
-      attack_slash: -4
-      attack_crush: 10
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
+    attack_bonus:
+      stab: -4
+      slash: -4
+      crush: 10
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
       strength: 8
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  recipes:
+    - skill: smithing
+      level: 9
+      xp: 25
+      materials:
+        - item_name: Bronze bar
+          quantity: 3
+      tools:
+        - Hammer
+      facility: Anvil
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Cave goblin
+        combat_level: 4
+        quantity: "1"
+        rarity: rare
+      - source: Goblin
+        combat_level: 2
+        quantity: "1"
+        rarity: rare
   related_items:
     - item_id: 1335
       item_name: Iron warhammer
       slug: iron-warhammer
       relationship: upgrade
-      description: Higher tier warhammer
+      description: "Higher tier iron warhammer"
+    - item_id: 1339
+      item_name: Steel warhammer
+      slug: steel-warhammer
+      relationship: upgrade
+      description: "Mid tier steel warhammer"
     - item_id: 1422
       item_name: Bronze mace
       slug: bronze-mace
       relationship: alternative
-      description: Alternative crush weapon
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Alternative bronze crush weapon"
+  about: |-
+    > _"I don't think it's intended for joinery."_
+
+    The bronze warhammer is the entry-level warhammer in Old School RuneScape, requiring no Attack level to wield. It can be smithed at 9 Smithing from three bronze bars on an anvil, dropped by low-level goblins and cave goblins, or alched for 28 coins. Its crush bonus and +8 Strength make it a viable starter weapon for new accounts targeting crush-weak NPCs.
+  market_strategy:
+    notes:
+      - "Cheap F2P starter weapon — limited flip margin"
+      - "Smithed in bulk by ironmen for Smithing XP, so supply runs ahead of demand"
+      - "Bronze bar price is the main price driver"
+  trading_tips:
+    - "Watch bronze bar prices for arbitrage opportunities"
+    - "Demand spikes around F2P weekends and league launches"
+  history:
+    - date: "2002-12-09"
+      description: "Released as part of the original warhammer weapon line."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

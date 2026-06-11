@@ -1,6 +1,6 @@
 ---
 title: Bagged plant 1 | OSRS Price Data
-description: "Bagged plant 1: You can plant this in your garden.. High alch: 600 GP, GE limit: 10,000."
+description: "Bagged plant 1: You can plant this in your garden. High alch: 600 GP, GE limit: 10,000."
 osrs:
   id: 8431
   name: Bagged plant 1
@@ -12,9 +12,74 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 10000
-  about: "Bagged plant 1 is a members-only item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: decoration
+    tier: mid
+  properties:
+    release_date: "2006-05-31"
+    update: Construction
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 12
+      xp: 31
+      materials:
+        - item_name: Bagged plant 1
+          quantity: 1
+      tools:
+        - Saw
+        - Hammer
+      facility: Plant 1 hotspot
+      output_quantity: 1
+  shops:
+    - shop_name: "Garden Supplier"
+      location: Falador Park
+      price: 1000
+      stock: 5
+      currency: coins
+      members_only: true
+  related_items:
+    - item_name: Bagged plant 2
+      slug: bagged-plant-2
+      relationship: variant
+      description: "Mid-tier garden plant requiring higher Construction level"
+    - item_name: Bagged plant 3
+      slug: bagged-plant-3
+      relationship: variant
+      description: "Top-tier garden plant requiring even higher Construction level"
+    - item_name: Plant pot
+      slug: plant-pot
+      relationship: alternative
+      description: "Alternative empty container used to grow saplings"
+  about: |-
+    > _"You can plant this in your garden."_
+
+    Bagged plant 1 is a Construction supply purchased from the Garden Supplier in Falador Park. Placed in a Plant 1 hotspot inside a Garden or Formal Garden room of a Player-Owned House, granting 31 Construction XP at level 12. The lowest-tier bagged plant; players typically pair it with a watering can rotation or fancy hedge upgrades for full garden decoration.
+  market_strategy:
+    notes:
+      - "Garden Supplier in Falador Park is the only NPC source"
+      - "Volume demand from Construction trainers pushing low-XP hotspots"
+      - "Often flipped during DXP weekends when Construction rooms see spikes"
+      - "Stock refreshes per-instance — buy-out farming viable"
+  trading_tips:
+    - "Buy when Garden Supplier stock is full, flip 5-10% above base price"
+    - "GE limit of 10,000 per 4 hours keeps bulk flips uncapped"
+  history:
+    - date: "2006-05-31"
+      description: "Released as part of the Construction skill launch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

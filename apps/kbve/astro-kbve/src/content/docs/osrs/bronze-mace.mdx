@@ -1,6 +1,6 @@
 ---
 title: Bronze mace | OSRS Price Data
-description: "Bronze mace is a F2P weapon slot item requiring 1 Attack. High alch: 10 GP, GE limit: 125."
+description: "Bronze mace is a F2P one-handed crush weapon with a small prayer bonus, smithed from a bronze bar at 2 Smithing. High alch: 10 GP, GE limit: 125."
 osrs:
   id: 1422
   name: Bronze mace
@@ -12,10 +12,34 @@ osrs:
   lowalch: 7
   highalch: 10
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: metal
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    update: "RuneScape Classic launch"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
     type: mace
-    tradeable: true
+    attack_style: crush
+    attack_speed: 5
+    attack_range: 1
     weight: 1.814
     requirements:
       attack: 1
@@ -30,26 +54,90 @@ osrs:
       defence_crush: 0
       defence_magic: 0
       defence_ranged: 0
-      strength: 5
+      melee_strength: 5
       ranged_strength: 0
       magic_damage: 0
-      prayer: 1
+      prayer_bonus: 1
+  recipes:
+    - skill: smithing
+      level: 2
+      xp: 12.5
+      materials:
+        - item_name: Bronze bar
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
+      notes: "Smith a bronze bar on any anvil at 2 Smithing."
+  shops:
+    - shop_name: "Bob's Brilliant Axes"
+      location: Lumbridge
+      price: 18
+      sell_price: 8
+      stock: 0
+      currency: Coins
+      notes: "General weapon shop that stocks bronze mace when player-sold."
+    - shop_name: "Cassie's Shield Shop"
+      location: Falador
+      price: 18
+      sell_price: 8
+      stock: 0
+      currency: Coins
+      notes: "Buys and sells F2P maces."
+  drop_table:
+    sources:
+      - source: Skeleton (level 22)
+        combat_level: 22
+        quantity: "1"
+        rarity: Common
+        notes: "Common bronze mace drop from low-level skeletons."
+      - source: Zombie (level 18)
+        combat_level: 18
+        quantity: "1"
+        rarity: Common
+        notes: "Low-level zombie drop."
   related_items:
     - item_id: 1420
       item_name: Iron mace
       slug: iron-mace
       relationship: upgrade
-      description: Higher tier mace
+      description: "Next tier mace with better crush bonus and strength."
+    - item_id: 1424
+      item_name: Steel mace
+      slug: steel-mace
+      relationship: upgrade
+      description: "Higher-tier mace requiring 5 Attack."
     - item_id: 1337
       item_name: Bronze warhammer
       slug: bronze-warhammer
       relationship: alternative
-      description: Higher strength alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Two-handed crush alternative with no prayer bonus."
+    - item_id: 1277
+      item_name: Bronze sword
+      slug: bronze-sword
+      relationship: alternative
+      description: "One-handed stab alternative at the same tier."
+  about: "Bronze mace is the entry-tier one-handed crush weapon in OSRS, smithed from a bronze bar at 2 Smithing for 12.5 xp. It carries a small +1 prayer bonus alongside +6 crush attack and +5 strength, making it a popular budget choice for early F2P prayer-flicking against zombies and skeletons in the Stronghold of Security and Lumbridge graveyard."
+  market_strategy:
+    notes:
+      - "Smithing fodder - 1 bronze bar input keeps margins tight"
+      - "Steady demand from F2P newbies and ironman early game"
+      - "High alch is below GE value so it's never alch fodder"
+      - "Buy limit 125 per 4 hours; bulk flipping is low-volume"
+  trading_tips:
+    - "Compare bronze bar price vs bronze mace for crafting arbitrage"
+    - "Bulk-list at slightly above shop sell price for steady fills"
+    - "Stock during F2P xp event weekends when Smithing demand rises"
+  history:
+    - date: "2001-01-04"
+      description: "Released with RuneScape Classic launch as the entry-tier crush weapon."
+    - date: "2004-05-05"
+      description: "Graphical update applied with the RuneScape 2 transition."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

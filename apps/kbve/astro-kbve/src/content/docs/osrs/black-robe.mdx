@@ -1,6 +1,6 @@
 ---
 title: Black robe | OSRS Price Data
-description: "Black robe is a F2P body slot item. High alch: 7 GP, GE limit: 125."
+description: "Black robe: F2P cosmetic body slot robe with no combat bonuses. High alch: 7 GP, GE limit: 125."
 osrs:
   id: 581
   name: Black robe
@@ -12,15 +12,91 @@ osrs:
   lowalch: 5
   highalch: 7
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
-  related_items: []
-  about: |-
-    > _"A\"dark\" black robe."_
-
-    The black robe is a basic cosmetic body item with no combat bonuses. Sometimes used for roleplaying or budget dark wizard fashionscape.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    weapon_type: null
+    attack_speed: null
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Robe Store
+      location: Varrock Square
+      price: 13
+      currency: coins
+      stock: 5
+      members_only: false
+    - shop_name: Lowe's Archery Emporium
+      location: Varrock
+      price: 13
+      currency: coins
+      stock: 0
+      members_only: false
+  passive_effects:
+    - name: Cosmetic
+      description: "Provides no combat bonuses; equipped purely as a cosmetic dark wizard fashion piece."
+  related_items:
+    - item_name: Black robe (top)
+      slug: black-robe-top
+      relationship: variant
+      description: Matching top half of the dark wizard cosmetic robe set
+    - item_name: Wizard robe
+      slug: wizard-robe
+      relationship: alternative
+      description: Blue Magic-bonus wizard robe variant
+    - item_name: Dark mystic robe top
+      slug: dark-mystic-robe-top
+      relationship: upgrade
+      description: Members combat-grade dark robe with magic bonuses
+  about: "Black robe is a free-to-play cosmetic body slot item with no combat bonuses, often used for roleplaying or budget dark wizard fashionscape; identical stats to other plain robes."
+  market_strategy:
+    notes:
+      - "Shop stock keeps the floor near alch value"
+      - "Cosmetic-only demand; flips depend on fashionscape interest"
+      - "Buy limit of 125 keeps individual trades small"
+  trading_tips:
+    - Buy from Varrock robe shops to undercut GE
+    - Bulk holds rely on rare cosmetic events for resale
+  history:
+    - date: "2001-01-04"
+      description: "Released with the original Varrock robe shop inventory."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

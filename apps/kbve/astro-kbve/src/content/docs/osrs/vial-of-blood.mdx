@@ -1,6 +1,6 @@
 ---
 title: Vial of blood | OSRS Price Data
-description: "Vial of blood: A glass vial containing blood.. High alch: 60 GP, GE limit: 13,000."
+description: "Vial of blood is a Theatre of Blood drop used to charge the Scythe of Vitur and craft Bastion and Battlemage potions. High alch: 60 GP, GE limit: 13,000."
 osrs:
   id: 22446
   name: Vial of blood
@@ -12,58 +12,99 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 13000
-  item:
-    type: crafting material
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: herblore secondary
+    tier: high
+  properties:
+    release_date: "2018-04-26"
+    update: "Theatre of Blood"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
     weight: 0.1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: herblore
       level: 80
+      xp: 155
       materials:
-        - item_id: 22446
-          item_name: Vial of blood
+        - item_name: Cadantine blood potion (unf)
           quantity: 1
-        - item_id: 565
-          item_name: Blood rune
-          quantity: 200
-      product: Scythe charge
-      xp: 0
-      notes: 100 charges per vial
+        - item_name: Vial of blood
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      notes: "Combines a cadantine blood potion (unf) with vial of blood to produce a Bastion potion(4)."
+    - skill: herblore
+      level: 80
+      xp: 155
+      materials:
+        - item_name: Lantadyme blood potion (unf)
+          quantity: 1
+        - item_name: Vial of blood
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      notes: "Combines a lantadyme blood potion (unf) with vial of blood to produce a Battlemage potion(4)."
+  drop_table:
+    sources:
+      - source: Theatre of Blood reward chest
+        quantity: "20-40"
+        rarity: Common
+        notes: "Dropped in stacks from Theatre of Blood completions."
+      - source: Theatre of Blood (Entry Mode) reward chest
+        quantity: "10-20"
+        rarity: Common
+        notes: "Smaller stacks from Entry Mode completions."
   related_items:
     - item_id: 22486
       item_name: Scythe of vitur
       slug: scythe-of-vitur
       relationship: alternative
-      description: Weapon that requires vials of blood to charge
-    - item_id: 22443
-      item_name: Bastion potion
-      slug: bastion-potion
+      description: "Weapon recharged using vials of blood and blood runes."
+    - item_id: 22461
+      item_name: Bastion potion(4)
+      slug: bastion-potion-4
       relationship: product
-      description: Potion created using vial of blood
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Crafting Material |
-    | Tradeable | Yes |
-    | Stackable | No |
-    | Weight | 0.1 kg |
-
-    Charging:
-    - Scythe of Vitur: 1 vial + 200 blood runes = 100 charges
-
-    Herblore (80):
-    - Bastion potion
-    - Battlemage potion
+      description: "Potion produced by combining vial of blood with cadantine blood potion (unf)."
+    - item_id: 22455
+      item_name: Battlemage potion(4)
+      slug: battlemage-potion-4
+      relationship: product
+      description: "Potion produced by combining vial of blood with lantadyme blood potion (unf)."
+    - item_name: Blood rune
+      slug: blood-rune
+      relationship: component
+      description: "Paired with vial of blood when charging the Scythe of Vitur."
+  about: "Vial of blood is the marquee secondary from the Theatre of Blood, dropping in stacks of 10-40 per completion. It charges the Scythe of Vitur at a rate of one vial + 200 blood runes per 100 charges and serves as the secondary ingredient for Bastion and Battlemage potions at 80 Herblore. Steady ToB throughput is what keeps Scythe usage sustainable for end-game PvM."
   market_strategy:
     notes:
-      - Farm Theatre of Blood
-      - Essential for Scythe users
-      - Used for high-level potions
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand is split between Scythe charging and Herblore consumption"
+      - "Theatre of Blood team throughput governs all upstream supply"
+      - "High GE limit of 13,000 supports bulk merch attempts"
+      - "Price tracks blood rune cost and Scythe meta popularity"
+  trading_tips:
+    - "Stack against blood rune dips for cheap Scythe charge cycles"
+    - "Watch ToB team-finder activity for short-term supply swings"
+    - "Hold vials when Herblore xp events lift potion demand"
+  history:
+    - date: "2018-04-26"
+      description: "Released as a Theatre of Blood drop alongside the Scythe of Vitur."
+    - date: "2019-05-09"
+      description: "Added as a secondary ingredient for Bastion and Battlemage potions."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
