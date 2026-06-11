@@ -1,5 +1,9 @@
 import type { AgentsCtx } from '../ctx';
 import type { AgentsApi } from '../api-types';
+import {
+	GithubRepoHookSchema,
+	WebhookDeliverySchema,
+} from '../generated/discordsh-agents-schema';
 import type {
 	GithubRepoHook,
 	Result,
@@ -119,10 +123,19 @@ export function makeWebhook(ctx: AgentsCtx, api: AgentsApi) {
 			repo,
 		});
 		if (!r.ok) return r;
+		const parsed = GithubRepoHookSchema.array().safeParse(
+			r.data.hooks ?? [],
+		);
+		if (!parsed.success) {
+			return {
+				ok: false,
+				error: 'Webhook list failed schema validation',
+			};
+		}
 		return {
 			ok: true,
 			expectedUrl: r.data.expected_url,
-			hooks: r.data.hooks ?? [],
+			hooks: parsed.data,
 		};
 	}
 
@@ -296,9 +309,19 @@ export function makeWebhook(ctx: AgentsCtx, api: AgentsApi) {
 			});
 			return;
 		}
+		const parsed = WebhookDeliverySchema.array().safeParse(
+			r.data.deliveries ?? [],
+		);
+		if (!parsed.success) {
+			store.$webhookDeliveriesError.set({
+				...store.$webhookDeliveriesError.get(),
+				[key]: 'Delivery list failed schema validation',
+			});
+			return;
+		}
 		store.$webhookDeliveries.set({
 			...store.$webhookDeliveries.get(),
-			[key]: r.data.deliveries ?? [],
+			[key]: parsed.data,
 		});
 	}
 

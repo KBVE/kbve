@@ -1,0 +1,23 @@
+{
+	"include": [
+		"kbve.discordsh.DiscordshConfig",
+		"kbve.discordsh.GithubRepoHook",
+		"kbve.discordsh.WebhookDelivery",
+		"kbve.discordsh.EventQueueStats",
+		"kbve.discordsh.FailedEvent",
+		"kbve.discordsh.PendingEvent"
+	],
+
+	"fieldOverrides": {
+		"kbve.discordsh.WebhookDelivery.action": "z.string().nullish()",
+		"kbve.discordsh.EventQueueStats.last_delivered_at": "z.string().nullish()",
+		"kbve.discordsh.EventQueueStats.last_recorded_at": "z.string().nullish()",
+		"kbve.discordsh.EventQueueStats.oldest_pending_at": "z.string().nullish()",
+		"kbve.discordsh.FailedEvent.actor": "z.string().nullish()",
+		"kbve.discordsh.FailedEvent.last_error": "z.string().nullish()",
+		"kbve.discordsh.PendingEvent.actor": "z.string().nullish()",
+		"kbve.discordsh.PendingEvent.claimed_at": "z.string().nullish()",
+		"kbve.discordsh.GithubRepoHook.url": "z.string().nullish()",
+		"kbve.discordsh.GithubRepoHook.events": "z.array(z.string())"
+	}
+}
