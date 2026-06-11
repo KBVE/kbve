@@ -404,7 +404,12 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 
 		if (Rep && bRelevant)
 		{
-			Rep->ServerUpsert(static_cast<uint32>(i), Pos, MoveYaw, 0, bMoving ? 1 : 0);
+			S->UpsertTimer -= DeltaTime;
+			if (S->bInCombat || S->UpsertTimer <= 0.f)
+			{
+				Rep->ServerUpsert(static_cast<uint32>(i), Pos, MoveYaw, 0, bMoving ? 1 : 0);
+				S->UpsertTimer = S->bInCombat ? 0.f : FMath::FRandRange(0.35f, 0.55f);
+			}
 		}
 	}
 }
