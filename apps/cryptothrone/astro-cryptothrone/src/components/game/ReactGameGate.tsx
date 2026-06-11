@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { KbveUsernameSetup } from '@kbve/astro';
 import { authBridge, initSupa } from '@/lib/supa';
+import { setCtNetConfig, resolveWsUrl } from '@/lib/net-config';
 import ReactLoginButtons from '../auth/ReactLoginButtons';
 import GameWindowLoader from './GameWindowLoader';
 
@@ -44,6 +45,11 @@ export default function ReactGameGate() {
 			return;
 		}
 		setUsername(name);
+		setCtNetConfig({
+			jwt: accessToken,
+			username: name,
+			wsUrl: resolveWsUrl(),
+		});
 		setPhase('ready');
 	}
 
