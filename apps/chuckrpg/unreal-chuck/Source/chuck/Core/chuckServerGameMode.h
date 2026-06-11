@@ -21,6 +21,8 @@ public:
 	AchuckServerGameMode();
 
 	virtual void BeginPlay() override;
+	virtual void InitNewPlayer(AController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal) override;
+	virtual void Logout(AController* Exiting) override;
 
 	UPROPERTY(EditDefaultsOnly, Category = "KBVE|Server")
 	int32 SlimeCount = 30;
