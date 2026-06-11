@@ -14,7 +14,7 @@ import AstroNxReport from '@/components/dashboard/AstroNxReport.astro';
 ## NX Workspace Report
 
 :::note[Auto-generated]
-Last generated: **2026-06-10T09:26:19Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-06-11T09:41:48Z** — updated daily by `ci-dashboard`.
 :::
 
 ### Environment
@@ -94,25 +94,25 @@ Cache Usage: 0.00 B / 89.18 GB
 ───────────────────────────────────────────────────────────────────────────────
 Language                 Files     Lines   Blanks  Comments     Code Complexity
 ───────────────────────────────────────────────────────────────────────────────
-MDX                       9056    664839    51973         0   612866          0
-TypeScript                1233    199613    18683     10635   170295      23663
-C#                         826    170532    16640     12934   140958      23145
-Rust                       719    192389    17663     17325   157401      10493
-YAML                       565     46380     2389      3748    40243          0
-C Header                   472    123416    12909     52145    58362       6024
+MDX                       9059    664990    51999         0   612991          0
+TypeScript                1234    199780    18694     10636   170450      23678
+C#                         829    170614    16648     12934   141032      23150
+Rust                       719    192513    17666     17330   157517      10496
+YAML                       583     47311     2406      3767    41138          0
+C Header                   512    127034    13697     52276    61061       6286
 GDScript                   424     48538    10207      6894    31437       5217
-JSON                       325    110702      106         0   110596          0
+JSON                       325    110938      107         0   110831          0
+C++                        290     38565     5394      1079    32092       4427
 Astro                      273     52629     4113      1460    47056       1333
-C++                        260     35534     5047      1075    29412       4052
-SQL                        219     69790     7794      9994    52002        405
-Markdown                   193     28097     7415         0    20682          0
-TOML                       168      3035      329       302     2404         24
+SQL                        221     69874     7798     10033    52043        405
+Markdown                   197     28424     7520         0    20904          0
+TOML                       171      3038      329       302     2407         24
 Python                     154     16609     2553      1591    12465       1305
-JavaScript                 141     64291     5013     13053    46225       8030
+JavaScript                 142     64545     5030     13076    46439       8091
 Java                       102     10717     1440      1427     7850       1118
 C                           83    381822    28720     85598   267504      47760
 HTML                        83      8314      597        81     7636          0
-Shell                       63      7068      885      1159     5024        793
+Shell                       64      7153      900      1178     5075        803
 Protocol Buffers            39     10842     1515      1887     7440          0
 SVG                         39      1407      186       243      978        115
 Dockerfile                  32      3592      675       788     2129        412
@@ -122,7 +122,7 @@ Kotlin                      20      2102      218       314     1570        174
 CSS                         17      6056      551       202     5303          0
 Lua                         17      4420      389       112     3919       1032
 XML                         17     29918      221         0    29697          0
-INI                         16       397       33        57      307          0
+INI                         16       420       39        58      323          0
 License                     16      1307      239         0     1068          0
 TypeScript Typings          15       118        9        30       79          5
 nuspec                      13       450        5         0      445          0
@@ -141,9 +141,9 @@ Go Template                  1       128       15         0      113          0
 Nix                          1        44        9         9       26          3
 Properties File              1         7        0         0        7          0
 ───────────────────────────────────────────────────────────────────────────────
-Total                    15690   2307249   200584    223692  1882973     135288
+Total                    15796   2316365   201932    223934  1890499     136019
 ───────────────────────────────────────────────────────────────────────────────
-Processed 82267414 bytes, 82.267 megabytes (SI)
+Processed 82563889 bytes, 82.564 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
@@ -169,27 +169,6 @@ Processed 82267414 bytes, 82.267 megabytes (SI)
  RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/devops
       Coverage enabled with v8
 
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should create a new PR when none exists
-GitHub Event Name: undefined
-Using github.ref: feature-branch
-
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should create a new PR when none exists
-Pull request created from feature-branch to main
-
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should add comment when PR already exists
-GitHub Event Name: undefined
-Using github.ref: feature-branch
-
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should add comment when PR already exists
-Pull request from feature-branch to main already exists. Comment added.
-
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should use context.payload.pull_request.head.ref when github.ref is not available
-GitHub Event Name: undefined
-Using context.payload.pull_request.head.ref: pr-branch
-
-stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should use context.payload.pull_request.head.ref when github.ref is not available
-Pull request created from pr-branch to main
-
 stderr | src/lib/client/github/issues.spec.ts > _$gha_createIssueComment > should throw when API call fails
 Error creating issue comment: Error: API Error
     at /home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/client/github/issues.spec.ts:72:7
@@ -203,18 +182,39 @@ Error creating issue comment: Error: API Error
     at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
     at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
 
+stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should create a new PR when none exists
+GitHub Event Name: undefined
+Using github.ref: feature-branch
+
+stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should create a new PR when none exists
+Pull request created from feature-branch to main
+
+stdout | src/lib/client/github/issues.spec.ts > _$gha_verifyMatrixLabel > should add label 0 when no matrix labels are present
+No matrix labels present. Added label: 0
+
+stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should add comment when PR already exists
+GitHub Event Name: undefined
+Using github.ref: feature-branch
+
+stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should add comment when PR already exists
+Pull request from feature-branch to main already exists. Comment added.
+
+stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should use context.payload.pull_request.head.ref when github.ref is not available
+GitHub Event Name: undefined
+Using context.payload.pull_request.head.ref: pr-branch
+
+stdout | src/lib/client/github/issues.spec.ts > _$gha_verifyMatrixLabel > should keep highest label and remove lower ones when multiple matrix labels exist
+Removed lower labels, kept highest label: 5
+
+stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should use context.payload.pull_request.head.ref when github.ref is not available
+Pull request created from pr-branch to main
+
 stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should fall back to context.ref when github.ref and payload are unavailable
 GitHub Event Name: undefined
 Using context.ref: fallback-branch
 
 stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should fall back to context.ref when github.ref and payload are unavailable
 Pull request created from fallback-branch to main
-
-stdout | src/lib/client/github/issues.spec.ts > _$gha_verifyMatrixLabel > should add label 0 when no matrix labels are present
-No matrix labels present. Added label: 0
-
-stdout | src/lib/client/github/issues.spec.ts > _$gha_verifyMatrixLabel > should keep highest label and remove lower ones when multiple matrix labels exist
-Removed lower labels, kept highest label: 5
 
 stdout | src/lib/client/github/pulls.spec.ts > _$gha_createOrUpdatePR > should throw when no branch can be determined
 GitHub Event Name: undefined
@@ -233,13 +233,12 @@ Error creating or updating pull request: Error: Unable to determine the referenc
     at processTicksAndRejections (node:internal/process/task_queues:104:5)
     at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
 
- ✓ src/lib/client/github/issues.spec.ts (17 tests) 106ms
- ✓ src/lib/client/github/pulls.spec.ts (9 tests) 103ms
- ✓ src/lib/codegen/__tests__/enum-mapper.spec.ts (18 tests) 80ms
- ✓ src/lib/codegen/__tests__/field-mapper.spec.ts (46 tests) 86ms
- ✓ src/lib/codegen/__tests__/emitter.spec.ts (19 tests) 94ms
- ✓ src/lib/codegen/__tests__/topo-sort.spec.ts (15 tests) 19ms
- ✓ src/lib/client/github/actions.spec.ts (7 tests) 6ms
+ ✓ src/lib/client/github/pulls.spec.ts (9 tests) 99ms
+ ✓ src/lib/client/github/issues.spec.ts (17 tests) 105ms
+ ✓ src/lib/codegen/__tests__/field-mapper.spec.ts (46 tests) 87ms
+ ✓ src/lib/codegen/__tests__/emitter.spec.ts (19 tests) 90ms
+ ✓ src/lib/codegen/__tests__/enum-mapper.spec.ts (18 tests) 19ms
+ ✓ src/lib/codegen/__tests__/topo-sort.spec.ts (15 tests) 15ms
 stderr | src/lib/client/github/docker.spec.ts > _$gha_runDockerContainer > should throw on invalid port
 Error sanitizing input: Error: Invalid port number. Port must be a number between 1 and 65535.
     at sanitizePort (/home/runner/_work/kbve/kbve/packages/npm/devops/src/lib/sanitization.ts:140:11)
@@ -356,23 +355,25 @@ Error removing Docker container: Error: Remove failed
     at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
     at runSuite (file:///home/runner/_work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
 
+ ✓ src/lib/client/github/docker.spec.ts (10 tests) 94ms
+ ✓ src/lib/client/github/actions.spec.ts (7 tests) 8ms
 stderr | src/lib/client/yt.spec.ts > fetchYoutubeTitle > should return null for an invalid YouTube URL
 Invalid YouTube URL
 
 stderr | src/lib/client/yt.spec.ts > fetchYoutubeTitle > should return null if the title is not found
 No valid video found on the page
 
- ✓ src/lib/client/github/docker.spec.ts (10 tests) 25ms
- ✓ src/lib/client/yt.spec.ts (10 tests) 370ms
-     ✓ should return the title of the YouTube video  319ms
- ✓ src/lib/api.spec.ts (5 tests) 294ms
- ✓ src/lib/sanitization.spec.ts (48 tests) 899ms
-     ✓ should convert markdown to JSON-safe string  391ms
+ ✓ src/lib/client/yt.spec.ts (10 tests) 390ms
+     ✓ should return the title of the YouTube video  331ms
+ ✓ src/lib/api.spec.ts (5 tests) 322ms
+     ✓ _message should sanitize message correctly  316ms
+ ✓ src/lib/sanitization.spec.ts (48 tests) 684ms
+     ✓ should convert markdown to JSON-safe string  364ms
 
  Test Files  11 passed (11)
       Tests  204 passed (204)
-   Start at  09:26:26
-   Duration  4.82s (transform 3.25s, setup 0ms, collect 19.03s, tests 2.08s, environment 2ms, prepare 1.65s)
+   Start at  09:41:56
+   Duration  4.62s (transform 2.79s, setup 0ms, collect 18.00s, tests 1.91s, environment 2ms, prepare 1.72s)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
@@ -409,17 +410,17 @@ All files          |   78.21 |    77.22 |   79.43 |   78.16 |
  RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/droid
       Coverage enabled with v8
 
+ ✓ src/lib/gateway/capabilities.spec.ts (10 tests) 11ms
+ ✓ src/lib/state/auth.spec.ts (5 tests) 5ms
  ✓ src/lib/sw-recovery.spec.ts (7 tests) 14ms
- ✓ src/lib/state/auth.spec.ts (5 tests) 7ms
- ✓ src/lib/gateway/capabilities.spec.ts (10 tests) 10ms
  ✓ src/lib/workers/ws-worker.spec.ts (5 tests) 7ms
- ✓ src/lib/types/bento.spec.ts (13 tests) 19ms
- ✓ src/lib/types/event-types.spec.ts (11 tests) 68ms
+ ✓ src/lib/types/bento.spec.ts (13 tests) 13ms
+ ✓ src/lib/types/event-types.spec.ts (11 tests) 13ms
+ ✓ src/lib/workers/events.spec.ts (13 tests) 89ms
+ ✓ src/lib/state/toasts.spec.ts (9 tests) 21ms
+ ✓ src/lib/state/ui.spec.ts (16 tests) 82ms
  ✓ src/lib/types/event-schemas.spec.ts (17 tests) 75ms
- ✓ src/lib/state/ui.spec.ts (16 tests) 16ms
- ✓ src/lib/state/welcome-toast.spec.ts (7 tests) 16ms
- ✓ src/lib/state/toasts.spec.ts (9 tests) 14ms
- ✓ src/lib/workers/events.spec.ts (13 tests) 80ms
+ ✓ src/lib/state/welcome-toast.spec.ts (7 tests) 92ms
  ✓ src/lib/mod/module/supabase/mod-supabase.spec.ts (4 tests) 6ms
 stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
 [DROID]: droid&lt;T>
@@ -443,12 +444,12 @@ stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.
 stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
 [DROID]: droid&lt;T> => await WorkerRefs + URLs
 
- ✓ src/lib/droid.spec.ts (1 test) 160ms
+ ✓ src/lib/droid.spec.ts (1 test) 166ms
 
  Test Files  13 passed (13)
       Tests  118 passed (118)
-   Start at  09:26:26
-   Duration  6.25s (transform 3.22s, setup 1.35s, collect 5.41s, tests 492ms, environment 34.64s, prepare 2.41s)
+   Start at  09:41:56
+   Duration  6.06s (transform 1.85s, setup 1.51s, collect 3.71s, tests 594ms, environment 33.51s, prepare 2.68s)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
@@ -507,32 +508,32 @@ All files          |   24.75 |       18 |   18.76 |   25.33 |
  RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/laser
       Coverage enabled with v8
 
- ✓ src/lib/net/protocol.spec.ts (3 tests) 6ms
- ✓ src/lib/core/events.spec.ts (8 tests) 8ms
- ✓ src/lib/spatial/quadtree.spec.ts (8 tests) 12ms
- ✓ src/lib/phaser/monsters/bird.spec.ts (9 tests) 14ms
+ ✓ src/lib/net/protocol.spec.ts (3 tests) 41ms
+ ✓ src/lib/spatial/quadtree.spec.ts (8 tests) 9ms
+ ✓ src/lib/core/events.spec.ts (8 tests) 9ms
+ ✓ src/lib/phaser/monsters/bird.spec.ts (9 tests) 10ms
 stderr | src/lib/r3f/Stage.spec.tsx > Stage > should render a Canvas wrapper
 &lt;ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
 The tag &lt;ambientLight> is unrecognized in this browser. If you meant to render a React component, start its name with an uppercase letter.
 The tag &lt;mesh> is unrecognized in this browser. If you meant to render a React component, start its name with an uppercase letter.
 
+ ✓ src/lib/phaser/use-phaser.spec.tsx (3 tests) 83ms
 stderr | src/lib/r3f/Stage.spec.tsx > Stage > should pass className to Canvas
 &lt;ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
 
+ ✓ src/lib/r3f/use-game-loop.spec.tsx (3 tests) 85ms
 stderr | src/lib/r3f/Stage.spec.tsx > Stage > should render children inside Canvas
 &lt;ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
 
- ✓ src/lib/r3f/use-game-loop.spec.tsx (3 tests) 27ms
- ✓ src/lib/phaser/use-phaser.spec.tsx (3 tests) 31ms
- ✓ src/lib/r3f/Stage.spec.tsx (3 tests) 39ms
- ✓ src/lib/phaser/use-phaser-event.spec.tsx (7 tests) 91ms
- ✓ src/lib/phaser/player-controller.spec.ts (6 tests) 13ms
- ✓ src/lib/phaser/PhaserGame.spec.tsx (10 tests) 150ms
+ ✓ src/lib/phaser/use-phaser-event.spec.tsx (7 tests) 36ms
+ ✓ src/lib/r3f/Stage.spec.tsx (3 tests) 109ms
+ ✓ src/lib/phaser/player-controller.spec.ts (6 tests) 10ms
+ ✓ src/lib/phaser/PhaserGame.spec.tsx (10 tests) 159ms
 
  Test Files  10 passed (10)
       Tests  60 passed (60)
-   Start at  09:26:26
-   Duration  7.24s (transform 6.43s, setup 0ms, collect 10.73s, tests 391ms, environment 30.11s, prepare 2.14s)
+   Start at  09:41:56
+   Duration  7.01s (transform 6.21s, setup 0ms, collect 10.13s, tests 551ms, environment 29.25s, prepare 2.27s)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
@@ -567,19 +568,19 @@ All files          |   63.51 |    49.33 |   76.78 |    66.9 |
  RUN  v4.0.9 /home/runner/_work/kbve/kbve/packages/npm/khashvault
       Coverage enabled with v8
 
- ✓ src/lib/worker/worker.spec.ts (5 tests) 6ms
+ ✓ src/lib/worker/worker.spec.ts (5 tests) 5ms
  ✓ src/lib/hash/hash.spec.ts (7 tests) 10ms
- ✓ src/lib/keys/keys.spec.ts (6 tests) 12ms
+ ✓ src/lib/keys/keys.spec.ts (6 tests) 17ms
  ✓ src/lib/storage/storage.spec.ts (7 tests) 17ms
- ✓ src/lib/storage/indexeddb.spec.ts (7 tests) 21ms
- ✓ src/lib/pgp/pgp.spec.ts (4 tests) 168ms
- ✓ src/lib/aes/aes.spec.ts (7 tests) 521ms
- ✓ src/lib/kdf/kdf.spec.ts (5 tests) 777ms
+ ✓ src/lib/storage/indexeddb.spec.ts (7 tests) 32ms
+ ✓ src/lib/pgp/pgp.spec.ts (4 tests) 169ms
+ ✓ src/lib/aes/aes.spec.ts (7 tests) 467ms
+ ✓ src/lib/kdf/kdf.spec.ts (5 tests) 650ms
 
  Test Files  8 passed (8)
       Tests  48 passed (48)
-   Start at  09:26:33
-   Duration  1.60s (transform 559ms, setup 559ms, collect 694ms, tests 1.53s, environment 2.81s, prepare 391ms)
+   Start at  09:42:02
+   Duration  1.47s (transform 595ms, setup 439ms, collect 678ms, tests 1.37s, environment 2.49s, prepare 497ms)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|--------------------------------

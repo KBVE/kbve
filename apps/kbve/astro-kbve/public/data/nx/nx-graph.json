@@ -2183,22 +2183,36 @@
               ]
             },
             "container": {
-              "executor": "nx:run-commands",
+              "executor": "@nx-tools/nx-container:build",
               "defaultConfiguration": "local",
               "options": {
-                "parallel": false
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/agones/cryptothrone/server/Dockerfile",
+                "load": true,
+                "tags": [
+                  "kbve/cryptothrone-server:latest"
+                ]
               },
               "configurations": {
                 "local": {
-                  "commands": [
-                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/cryptothrone-server:latest --file apps/agones/cryptothrone/server/Dockerfile .",
-                    "VERSION=$(grep '^version' apps/agones/cryptothrone/server/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/cryptothrone-server:latest kbve/cryptothrone-server:$VERSION && echo \"Tagged kbve/cryptothrone-server:$VERSION\""
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/cryptothrone-server:latest"
                   ]
                 },
-                "ci": {
-                  "commands": [
-                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/cryptothrone-server:latest --file apps/agones/cryptothrone/server/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache,mode=max,image-manifest=true,oci-mediatypes=true ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .",
-                    "VERSION=$(grep '^version' apps/agones/cryptothrone/server/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/cryptothrone-server:latest kbve/cryptothrone-server:$VERSION && echo \"Tagged kbve/cryptothrone-server:$VERSION\""
+                "production": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/cryptothrone-server:latest"
+                  ],
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache,mode=max"
                   ]
                 }
               },
@@ -2300,22 +2314,36 @@
               "cache": true
             },
             "container": {
-              "executor": "nx:run-commands",
+              "executor": "@nx-tools/nx-container:build",
               "defaultConfiguration": "local",
               "options": {
-                "parallel": false
+                "engine": "docker",
+                "context": ".",
+                "file": "apps/godot/nexus-defense/server/Dockerfile",
+                "load": true,
+                "tags": [
+                  "kbve/nd-server:latest"
+                ]
               },
               "configurations": {
                 "local": {
-                  "commands": [
-                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/nd-server:latest --file apps/godot/nexus-defense/server/Dockerfile .",
-                    "VERSION=$(grep '^version' apps/godot/nexus-defense/server/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/nd-server:latest kbve/nd-server:$VERSION && echo \"Tagged kbve/nd-server:$VERSION\""
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/nd-server:latest"
                   ]
                 },
-                "ci": {
-                  "commands": [
-                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/nd-server:latest --file apps/godot/nexus-defense/server/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/nd-server:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/nd-server:buildcache,mode=max,image-manifest=true,oci-mediatypes=true ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .",
-                    "VERSION=$(grep '^version' apps/godot/nexus-defense/server/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/nd-server:latest kbve/nd-server:$VERSION && echo \"Tagged kbve/nd-server:$VERSION\""
+                "production": {
+                  "load": true,
+                  "push": false,
+                  "tags": [
+                    "kbve/nd-server:latest"
+                  ],
+                  "cache-from": [
+                    "type=registry,ref=ghcr.io/kbve/nd-server:buildcache"
+                  ],
+                  "cache-to": [
+                    "type=registry,ref=ghcr.io/kbve/nd-server:buildcache,mode=max"
                   ]
                 }
               },
@@ -9416,6 +9444,45 @@
               "configurations": {},
               "parallelism": true
             },
+            "sync:questdb": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{projectRoot}/src/content/docs/questdb/*.mdx",
+                "{workspaceRoot}/packages/data/codegen/gen-questdb-data.mjs",
+                "{workspaceRoot}/packages/data/codegen/descriptors/questdb.binpb"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/data/codegen/generated/questdb-data.json",
+                "{workspaceRoot}/packages/data/codegen/generated/questdb-data.binpb",
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/questdb.json",
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/questdb.binpb"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-questdb-data.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
+            "sync:questdb-uecpp": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/packages/data/codegen/gen-questdb-uecpp.mjs",
+                "{workspaceRoot}/packages/data/codegen/descriptors/questdb.binpb"
+              ],
+              "outputs": [
+                "{workspaceRoot}/packages/unreal/KBVEQuestDB/Source/KBVEQuestDB/Public/Generated/KBVEQuestDBProtoTypes.h",
+                "{workspaceRoot}/packages/unreal/KBVEQuestDB/Source/KBVEQuestDB/Public/Generated/KBVEQuestDBProtoParse.h"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-questdb-uecpp.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
             "sync:npcdb": {
               "executor": "nx:run-commands",
               "inputs": [
@@ -12996,6 +13063,33 @@
               "options": {
                 "command": "./smoke.sh kilobase --rollback",
                 "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "smoke-seed": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "./seed-smoke.sh",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "smoke-seed-keep": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "./seed-smoke.sh --keep",
+                "cwd": "packages/data/sql/dbmate"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "verify-seed-sync": {
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "diff -u schema/ows/seed/tenants_init.sql ../../../apps/kube/rows/tenants/base/tenants_init.sql",
+                "cwd": "packages/data/sql"
               },
               "configurations": {},
               "parallelism": true
