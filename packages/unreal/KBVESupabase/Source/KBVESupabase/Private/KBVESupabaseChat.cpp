@@ -450,10 +450,47 @@ void UKBVESupabaseChat::DrainTxQueue()
 	}
 }
 
+bool UKBVESupabaseChat::AllowUserSend(const FString& Body)
+{
+	const double Now = FPlatformTime::Seconds();
+
+	constexpr double MaxTokens = 5.0;
+	constexpr double RefillPerSec = 1.0;
+	constexpr double DupWindowSec = 2.0;
+
+	if (Body.Equals(RlLastBody, ESearchCase::CaseSensitive) && (Now - RlLastBodyTime) < DupWindowSec)
+	{
+		UE_LOG(LogKBVESupabase, Warning, TEXT("Chat send dropped (duplicate within %.0fs): [%s]"), DupWindowSec, *Body);
+		return false;
+	}
+
+	if (RlLastRefill <= 0.0)
+	{
+		RlTokens = MaxTokens;
+	}
+	else
+	{
+		RlTokens = FMath::Min(MaxTokens, RlTokens + (Now - RlLastRefill) * RefillPerSec);
+	}
+	RlLastRefill = Now;
+
+	if (RlTokens < 1.0)
+	{
+		UE_LOG(LogKBVESupabase, Warning, TEXT("Chat send throttled (anti-spam rate limit): [%s]"), *Body);
+		return false;
+	}
+
+	RlTokens -= 1.0;
+	RlLastBody = Body;
+	RlLastBodyTime = Now;
+	return true;
+}
+
 bool UKBVESupabaseChat::SendPrivMsg(const FString& Channel, const FString& Body)
 {
 	const FString Target = NormalizeChannel(Channel);
 	if (Target.IsEmpty() || Body.IsEmpty()) return false;
+	if (!AllowUserSend(Body)) return false;
 	return SendRawLine(FString::Printf(TEXT("PRIVMSG %s :%s"), *Target, *SanitizeLine(Body)));
 }
 
