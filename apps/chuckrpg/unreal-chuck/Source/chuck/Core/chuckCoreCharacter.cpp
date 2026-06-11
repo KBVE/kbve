@@ -1,6 +1,7 @@
 #include "chuckCoreCharacter.h"
 
 #include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "EnhancedInputComponent.h"
@@ -17,6 +18,7 @@
 #include "UObject/ConstructorHelpers.h"
 
 #include "chuckCharacterMovementComponent.h"
+#include "chuckAnimInstance.h"
 #include "KBVEAbilityComponent.h"
 #include "KBVEDroppedItemPool.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -56,10 +58,22 @@ AchuckCoreCharacter::AchuckCoreCharacter(const FObjectInitializer& ObjectInitial
 		AbilityComp->Abilities.Add(Melee);
 	}
 
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> MeleeMontageFinder(
+		TEXT("/Game/Variant_Combat/Anims/AM_ComboAttack.AM_ComboAttack"));
+	if (MeleeMontageFinder.Succeeded())
+	{
+		MeleeMontage = MeleeMontageFinder.Object;
+		MeleeMontage->BlendIn.SetBlendTime(0.15f);
+		MeleeMontage->BlendIn.SetBlendOption(EAlphaBlendOption::HermiteCubic);
+		MeleeMontage->BlendOut.SetBlendTime(0.8f);
+		MeleeMontage->BlendOut.SetBlendOption(EAlphaBlendOption::HermiteCubic);
+		MeleeMontage->BlendOutTriggerTime = -1.0f;
+	}
+
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SKM(
 		TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
 	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimBP(
-		TEXT("/Game/Characters/Mannequins/Anims/Unarmed/ABP_Unarmed"));
+		TEXT("/Game/Variant_Combat/Anims/ABP_Manny_Combat"));
 
 	if (USkeletalMeshComponent* MeshComp = GetMesh())
 	{
@@ -344,9 +358,20 @@ void AchuckCoreCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 
 void AchuckCoreCharacter::OnAttackPressed(const FInputActionValue& Value)
 {
-	const bool bOk = AbilityComp ? AbilityComp->TryActivate(FName(TEXT("melee"))) : false;
-	UE_LOG(LogTemp, Warning, TEXT("[chuck] Attack pressed: comp=%d activated=%d auth=%d energy=%.0f"),
-		AbilityComp != nullptr, bOk, HasAuthority(), Stats.Energy);
+	if (!AbilityComp || !AbilityComp->TryActivate(FName(TEXT("melee"))) || !MeleeMontage)
+	{
+		return;
+	}
+
+	USkeletalMeshComponent* MeshComp = GetMesh();
+	if (UchuckAnimInstance* Anim = MeshComp ? Cast<UchuckAnimInstance>(MeshComp->GetAnimInstance()) : nullptr)
+	{
+		Anim->PlayAction(MeleeMontage);
+	}
+	else
+	{
+		PlayAnimMontage(MeleeMontage);
+	}
 }
 
 void AchuckCoreCharacter::OnSprintPressed(const FInputActionValue& Value)
