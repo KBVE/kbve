@@ -12,9 +12,105 @@ osrs:
   lowalch: 140
   highalch: 210
   limit: 11000
-  about: "Rune dart(p++) is a members-only item in Old School RuneScape. High alchemy value: 210 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: rune
+    tier: high
+  equipment:
+    slot: weapon
+    weapon_type: thrown
+    attack_speed: 3
+    weight: 0
+    requirements:
+      ranged: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 26
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Deadly poison
+      description: "Each hit has a chance to inflict the deadly poison status (initial 6 damage), refreshable on subsequent hits."
+      trigger: on_hit
+  recipes:
+    - skill: herblore
+      level: 73
+      xp: 0
+      output_quantity: 1
+      materials:
+        - item_name: Rune dart(p+)
+          quantity: 1
+        - item_name: Weapon poison(++)
+          quantity: 1
+      tools: []
+      notes: "Apply weapon poison(++) (4 doses) to rune dart(p+); requires 73 Herblore."
+  related_items:
+    - item_id: 811
+      item_name: Rune dart
+      slug: rune-dart
+      relationship: variant
+      description: "Unpoisoned base rune dart."
+    - item_id: 5635
+      item_name: Rune dart(p)
+      slug: rune-dart-p
+      relationship: variant
+      description: "Weakest poisoned tier (p)."
+    - item_id: 5638
+      item_name: Rune dart(p+)
+      slug: rune-dart-p-plus
+      relationship: variant
+      description: "Mid-tier poisoned variant (p+)."
+    - item_name: Weapon poison(++)
+      slug: weapon-poison-plus-plus
+      relationship: component
+      description: "Required to upgrade p+ darts to p++."
+    - item_name: Dragon dart(p++)
+      slug: dragon-dart-p-plus-plus
+      relationship: upgrade
+      description: "Higher tier thrown dart with stronger poison-tier carry."
+  about: "Rune dart(p++) is the fully poisoned variant of the rune dart, a members thrown weapon requiring 40 Ranged to wield. It applies the strongest poison tier (initial 6 damage) on hit and is created by applying weapon poison(++) to rune dart(p+) at level 73 Herblore."
+  market_strategy:
+    notes:
+      - "Niche PvP/PvM supply; demand tied to dart blowpipe alternatives and pure builds."
+      - "Bulk-flipped during Castle Wars and PvP world events."
+      - "Higher margin than base rune darts due to poison upgrade cost."
+  trading_tips:
+    - "Compare weapon poison(++) price to flip margin before buying base darts."
+    - "Watch dragon dart price; close substitute among high-tier rangers."
+  history:
+    - date: "2004-06-22"
+      description: "Released with the addition of rune darts and full poison tiers."
+    - date: "2021-06-30"
+      description: "Ranged attack bonus removed; ranged strength bonus increased to +26 in line with other thrown weapons."
+  properties:
+    release_date: "2004-06-22"
+    update: "More Weapons of Power"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Rune dart tip | OSRS Price Data
-description: "Rune dart tip: A deadly-looking dart tip made of runite - needs feathers for flight.. High alch: 105 GP, GE limit: 11,000."
+description: "Rune dart tip: A deadly-looking dart tip made of runite - needs feathers for flight. High alch: 105 GP, GE limit: 11,000."
 osrs:
   id: 824
   name: Rune dart tip
@@ -12,18 +12,82 @@ osrs:
   lowalch: 70
   highalch: 105
   limit: 11000
+  material:
+    type: metal
+    tier: high
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    stackable: true
+    noteable: true
+    equipable: false
+    quest_item: false
+    weight: 0.008
+    options:
+      - Use
+      - Drop
+      - Examine
+    alchable: true
+  recipes:
+    - skill: smithing
+      level: 89
+      xp: 75
+      facility: Anvil
+      tools:
+        - Hammer
+      materials:
+        - item_id: 2363
+          item_name: Runite bar
+          quantity: 1
+      product: Rune dart tip
+      product_id: 824
+      output_quantity: 10
+    - skill: fletching
+      level: 81
+      xp: 18.8
+      materials:
+        - item_id: 824
+          item_name: Rune dart tip
+          quantity: 1
+        - item_id: 314
+          item_name: Feather
+          quantity: 1
+      product: Rune dart
+      product_id: 811
+      output_quantity: 1
   related_items:
     - item_id: 823
       item_name: Adamant dart tip
       slug: adamant-dart-tip
-      relationship: variant
-      description: Lower tier dart tip
-  about: |-
-    > _"Can be used to make rune darts."_
-
-    Rune dart tips are used with feathers at 81 Fletching to create rune darts (18.8 XP each). One bar makes 10 tips. The highest standard dart tip.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: downgrade
+      description: Lower-tier dart tip from adamantite bars
+    - item_id: 811
+      item_name: Rune dart
+      slug: rune-dart
+      relationship: product
+      description: Fletched from rune dart tip + feather
+    - item_id: 2363
+      item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: Smelted into ten rune dart tips at level 89 Smithing
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Crafted in batches of 10 from one runite bar at 89 Smithing"
+      - "Bottleneck for high-level Fletchers training rune darts"
+      - "Demand tracks PKers and Slayer dart users"
+      - "Buy bars during glut, smith and resell as tips for spread"
+  trading_tips:
+    - Compare bar+tip cost vs finished dart margin before committing
+    - Watch DMM and bounty event spikes for short demand bursts
+    - Use the GE for high-volume trades to lock liquidity
+  about: Rune dart tips are the highest standard-tier dart head, smithed in tens from runite bars at level 89 Smithing and combined with feathers at 81 Fletching to make rune darts.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  history:
+    - date: "2005-08-01"
+      description: "Rune dart tip released alongside the Fletching expansion that added rune darts."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

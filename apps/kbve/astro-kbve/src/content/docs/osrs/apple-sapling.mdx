@@ -12,9 +12,80 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 200
-  about: "Apple sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: sapling
+    tier: low
+  properties:
+    release_date: "2005-08-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Plant
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  farming:
+    farming_level: 27
+    plant_xp: 22
+    harvest_xp: 8.5
+    check_health_xp: 1199.5
+    patch_type: fruit tree
+    growth_time: 960
+    payment: "9 sweetcorn"
+    seed_name: Apple tree seed
+    growth_cycles: 6
+    cycle_minutes: 160
+    disease_free: false
+  recipes:
+    - skill: farming
+      level: 27
+      xp: 22
+      materials:
+        - item_name: Apple tree seed
+          quantity: 1
+        - item_name: Plant pot (filled)
+          quantity: 1
+      tools:
+        - Gardening trowel
+        - Watering can
+      facility: Plant pot
+      output_quantity: 1
+  related_items:
+    - item_name: Apple tree seed
+      slug: apple-tree-seed
+      relationship: component
+      description: "Seed planted in a filled plant pot to grow the sapling."
+    - item_name: Cooking apple
+      slug: cooking-apple
+      relationship: product
+      description: "Fruit harvested from a fully grown apple tree."
+    - item_name: Banana sapling
+      slug: banana-sapling
+      relationship: variant
+      description: "Next fruit-tree sapling tier at 33 Farming."
+  about: |-
+    > _"This sapling is ready to be replanted in a fruit tree patch."_
+
+    The apple sapling is the first fruit-tree sapling in the Farming progression. Grow it by planting an apple tree seed in a filled plant pot with a gardening trowel, then water it and wait for the seedling to mature. Once it sprouts, plant the sapling in a fruit tree patch (e.g. Brimhaven or Catherby) for ~14h of growth before harvesting cooking apples.
+  market_strategy:
+    notes:
+      - "Bound to apple tree seed supply from Master Farmer pickpockets and seed packs."
+      - "Most Ironmen grow their own, so GE volume is thin and the price clusters near 1 gp."
+      - "Useful for tick-manipulated tree runs when buying time matters more than gp."
+  trading_tips:
+    - "Buy limit 200 per 4 hours; not worth flipping at scale due to ~1 gp value floor."
+    - "When farming guild tree runs are active, demand may spike briefly before resetting."
+  history:
+    - date: "2005-08-15"
+      description: "Released with the Farming skill update that introduced fruit trees."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

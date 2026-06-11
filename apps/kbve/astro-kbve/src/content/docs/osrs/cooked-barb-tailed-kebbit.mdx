@@ -1,6 +1,6 @@
 ---
 title: Cooked barb-tailed kebbit | OSRS Price Data
-description: "Cooked barb-tailed kebbit: Mmm, this looks tasty.. High alch: 2 GP, GE limit: 10,000."
+description: "Cooked barb-tailed kebbit is a members Hunter food healing a small amount of Hitpoints. High alch: 2 GP, GE limit: 10,000."
 osrs:
   id: 29131
   name: Cooked barb-tailed kebbit
@@ -12,9 +12,72 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 10000
-  about: "Cooked barb-tailed kebbit is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: meat
+    tier: low
+  properties:
+    release_date: "2023-11-15"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  food:
+    heals: 3
+    bites: 1
+    cooking_level: 9
+    cooking_xp: 41
+  recipes:
+    - skill: cooking
+      level: 9
+      xp: 41
+      materials:
+        - item_name: Raw barb-tailed kebbit
+          quantity: 1
+      tools:
+        - Fire
+      output_quantity: 1
+  related_items:
+    - item_name: Raw barb-tailed kebbit
+      slug: raw-barb-tailed-kebbit
+      relationship: component
+      description: Uncooked source meat from Hunter falconry training.
+    - item_name: Barb-tailed kebbit
+      slug: barb-tailed-kebbit
+      relationship: component
+      description: Hunter creature caught with a falcon for the raw meat.
+    - item_name: Cooked wild kebbit
+      slug: cooked-wild-kebbit
+      relationship: alternative
+      description: Lower-level cooked kebbit variant.
+    - item_name: Cooked larupia
+      slug: cooked-larupia
+      relationship: alternative
+      description: Higher-level cooked Hunter meat.
+  about: Cooked barb-tailed kebbit is a low-tier Hunter food made by cooking a raw barb-tailed kebbit at 9 Cooking. It is a niche heal that exists mainly as a by-product of falconry XP grinds at the Piscatoris Hunter Area rather than as a competitive food choice.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Supply driven by Hunter falconry training, not deliberate cooking"
+      - "Most players drop or alch rather than bank for resale"
+      - "High alch of 2 gp makes this strictly nature-rune loss as alch fodder"
+      - "Demand limited to ironmen filling Hunter logs"
+  trading_tips:
+    - "Treat as cooking XP fodder rather than a flip target"
+    - "List small stacks during Hunter content updates for thin spikes"
+  history:
+    - date: "2023-11-15"
+      description: "Added with the Hunter falconry expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

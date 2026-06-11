@@ -1,6 +1,6 @@
 ---
 title: Spider carcass | OSRS Price Data
-description: "Spider carcass: Its creeping days are over!. High alch: 9 GP, GE limit: 13,000."
+description: "Spider carcass: Its creeping days are over! High alch: 9 GP, GE limit: 13,000."
 osrs:
   id: 6291
   name: Spider carcass
@@ -12,9 +12,88 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 13000
-  about: "Spider carcass is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: meat
+    tier: low
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: false
+    quest_item: false
+    weight: 2.0
+    options:
+      - Eat
+      - Use
+      - Drop
+      - Examine
+    alchable: true
+  drop_table:
+    sources:
+      - source: Giant spider
+        combat_level: 39
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Spider
+        combat_level: 1
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Deadly red spider
+        combat_level: 34
+        quantity: "1"
+        rarity: always
+        members_only: true
+  recipes:
+    - skill: cooking
+      level: 16
+      xp: 30
+      facility: Skewer over fire
+      materials:
+        - item_id: 6291
+          item_name: Spider carcass
+          quantity: 1
+        - item_id: 6305
+          item_name: Spider on stick
+          quantity: 1
+      product: Spider on stick
+      product_id: 6297
+      output_quantity: 1
+      notes: Used in the Recipe for Disaster quest to cook spider on stick.
+  related_items:
+    - item_id: 6297
+      item_name: Spider on stick
+      slug: spider-on-stick
+      relationship: product
+      description: Cooked skewered spider used in Recipe for Disaster
+    - item_id: 6299
+      item_name: Spider on shaft
+      slug: spider-on-shaft
+      relationship: alternative
+      description: Alternative skewered spider product
+  quest_data:
+    quests:
+      - quest_name: Recipe for Disaster
+        role: required
+        notes: Spider carcass is skewered and cooked as part of the Evil Dave subquest.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Common drop from low-level spiders across many slayer routes"
+      - "Mass-flooded after Recipe for Disaster reaches steady-state"
+      - "Tiny alch profit even with no cap pressure"
+  trading_tips:
+    - Stock up during quest-guide spikes for Recipe for Disaster
+    - Sell into Slayer Tower flips — slow but consistent
+    - Note carcasses cannot be cooked into food directly outside the quest chain
+  about: Spider carcass is a Recipe for Disaster ingredient dropped by spiders across Gielinor, used together with a kebab skewer and stripy feather to craft spider on stick.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  history:
+    - date: "2006-03-28"
+      description: "Spider carcass added as an ingredient in the Recipe for Disaster quest release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

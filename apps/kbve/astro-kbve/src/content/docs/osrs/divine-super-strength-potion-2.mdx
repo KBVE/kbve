@@ -1,6 +1,6 @@
 ---
 title: Divine super strength potion(2) | OSRS Price Data
-description: "Divine super strength potion(2): 2 doses of divine super strength potion.. High alch: 54 GP, GE limit: 2,000."
+description: "Divine super strength potion(2) is a 2-dose Herblore potion brewed at 97 Herblore that boosts Strength by 5 + 15% and locks the level for 5 minutes. High alch: 54 GP, GE limit: 2,000."
 osrs:
   id: 23715
   name: Divine super strength potion(2)
@@ -12,9 +12,84 @@ osrs:
   lowalch: 36
   highalch: 54
   limit: 2000
-  about: "Divine super strength potion(2) is a members-only item in Old School RuneScape. High alchemy value: 54 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: potion
+    tier: mid-high
+  properties:
+    release_date: "2018-08-30"
+    update: "Divine Potions"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.03
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  potion:
+    doses: 2
+    effect: "Boosts Strength by 5 + 15% of base level and locks the stat for 5 minutes."
+    effects:
+      - stat: strength
+        boost_type: percent_plus_flat
+        boost_formula: "5 + floor(level * 15%)"
+        duration: 300
+        description: "Boosts Strength by 5 + 15% of the base level and prevents the boost from draining for 5 minutes."
+  recipes:
+    - skill: herblore
+      level: 97
+      xp: 200
+      materials:
+        - item_name: Super strength(2)
+          item_id: 159
+          quantity: 1
+        - item_name: Crystal dust
+          item_id: 24004
+          quantity: 1
+      product: Divine super strength potion(2)
+      output_quantity: 1
+  related_items:
+    - item_name: Divine super strength potion(4)
+      slug: divine-super-strength-potion-4
+      relationship: variant
+      description: "Full 4-dose variant - most commonly brewed and traded."
+    - item_name: Divine super strength potion(3)
+      slug: divine-super-strength-potion-3
+      relationship: variant
+      description: "3-dose variant."
+    - item_name: Divine super strength potion(1)
+      slug: divine-super-strength-potion-1
+      relationship: variant
+      description: "1-dose variant."
+    - item_name: Super strength(2)
+      slug: super-strength-2
+      relationship: component
+      description: "Base super strength potion combined with crystal dust to brew the divine variant."
+    - item_name: Crystal dust
+      slug: crystal-dust
+      relationship: component
+      description: "Ground from a crystal shard - the upgrade reagent for divine potions."
+  about: "Divine super strength potion(2) is a 2-dose members-only Herblore potion brewed at 97 Herblore by combining a 2-dose super strength potion with crystal dust, granting 200 Herblore XP per brew. Each dose boosts Strength by 5 + 15% of the player's base level and crucially locks the boost from draining for 5 minutes, making divine potions the meta choice for tick-precise PvM where a single drained level can swing a damage tier or break a one-tick kill threshold."
+  market_strategy:
+    notes:
+      - "Demand is dominated by high-end PvM bracket: ToB, ToA expert, Inferno, and DPS-locked bossing setups."
+      - "Mid-dose stock typically sits in decant arbitrage territory - 4-dose holds the cleanest margin."
+      - "Supply ties directly to crystal shard generation rate via Prif and Gauntlet."
+      - "High alch of 54 gp is meaningless: never alch divine potions."
+  trading_tips:
+    - "Decant into 4-dose when the (2) premium spreads above decant fees."
+    - "Watch crystal shard price as the upstream cost driver - shards move on Prif content updates."
+    - "Stockpile ahead of major PvM releases, leagues, and DMM tournaments."
+  history:
+    - date: "2018-08-30"
+      description: "Released with the Divine Potions update that introduced the crystal-dust upgrade chain for super combat-tier potions."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

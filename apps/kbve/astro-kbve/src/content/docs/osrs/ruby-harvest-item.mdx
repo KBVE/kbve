@@ -12,9 +12,70 @@ osrs:
   lowalch: 7
   highalch: 10
   limit: 125
-  about: "Ruby harvest (item) is a members-only item in Old School RuneScape. High alchemy value: 10 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: hunter-item
+    tier: low
+  properties:
+    release_date: "2006-11-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Release
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  gathering:
+    skill: hunter
+    level: 15
+    xp: 24
+    locations:
+      - Piscatoris Hunter area
+    tool: Butterfly net
+    members_only: true
+  related_items:
+    - item_name: Butterfly net
+      slug: butterfly-net
+      relationship: component
+      description: "Tool used to capture the ruby harvest butterfly in the wild."
+    - item_name: Butterfly jar
+      slug: butterfly-jar
+      relationship: component
+      description: "Empty jar required to store a captured butterfly."
+    - item_name: Sapphire glacialis (item)
+      slug: sapphire-glacialis-item
+      relationship: variant
+      description: "Sapphire-tier Hunter butterfly captured at 25 Hunter."
+    - item_name: Snowy knight (item)
+      slug: snowy-knight-item
+      relationship: variant
+      description: "Mid-tier Hunter butterfly captured at 35 Hunter."
+    - item_name: Black warlock (item)
+      slug: black-warlock-item
+      relationship: variant
+      description: "Top-tier Hunter butterfly captured at 45 Hunter."
+  about: |-
+    > _"There's a ruby harvest butterfly in here."_
+
+    The ruby harvest (item) is a captured ruby harvest butterfly stored in a butterfly jar. Caught with a butterfly net at 15 Hunter for 24 xp, it can be released next to another player to give them a temporary +4 Attack boost, making it a niche supply for low-level pures and quest steps.
+  market_strategy:
+    notes:
+      - "Capture supply is driven by low-level Hunter trainers around Piscatoris."
+      - "Demand mostly comes from Ironmen and PKers stocking minor Attack boosts."
+      - "Buy limit 125 per 4 hours keeps flipping niche."
+  trading_tips:
+    - "Watch the gap between the four butterfly jars — same supply chain, different buff tiers."
+    - "Useful as cheap Attack-boost utility in F2P-restricted PvP scenes."
+  history:
+    - date: "2006-11-27"
+      description: "Released with the Hunter skill update that introduced butterfly catching."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

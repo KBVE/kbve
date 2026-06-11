@@ -1,6 +1,6 @@
 ---
 title: Pink hat | OSRS Price Data
-description: "Pink hat is a members head slot item. High alch: 96 GP, GE limit: 150."
+description: "Pink hat: A silly pink pointed hat. High alch: 96 GP, GE limit: 150."
 osrs:
   id: 656
   name: Pink hat
@@ -12,20 +12,90 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 150
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2002-12-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
+    weapon_type: null
+    weight: 0.226
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Heckel Funch's General Store"
+      location: Tree Gnome Stronghold
+      price: 160
+      stock: 2
+      currency: Coins
   related_items:
-    - item_id: 636
-      item_name: Pink robe top
+    - item_name: Pink robe top
       slug: pink-robe-top
       relationship: set-piece
-      description: Matching top
+      description: Matching pink robe top in the gnome cosmetic outfit.
+    - item_name: Pink skirt
+      slug: pink-skirt
+      relationship: set-piece
+      description: Matching pink skirt in the gnome cosmetic outfit.
+    - item_name: Pink boots
+      slug: pink-boots
+      relationship: set-piece
+      description: Matching pink boots in the gnome cosmetic outfit.
+    - item_name: Blue hat
+      slug: blue-hat
+      relationship: variant
+      description: Same gnome hat style in blue.
+    - item_name: Green hat
+      slug: green-hat
+      relationship: variant
+      description: Same gnome hat style in green.
   about: |-
-    > _"A\"nice\" pink hat."_
+    The Pink hat is part of the gnome clothing range sold by Heckel Funch in the Tree Gnome Stronghold. It is a purely cosmetic head slot item with no stat bonuses and no level requirements.
 
-    The pink hat is part of the gnome clothing set. Purely cosmetic with no stat bonuses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Players mainly use it for fashionscape, themed costume sets, and matching gnome outfits. Because it is sold by an NPC at a fixed price, the GE price stays close to alch value with mild fashionscape premium.
+  market_strategy:
+    notes:
+      - "Pure cosmetic — value floored by NPC shop price and alch ceiling."
+      - "Demand spikes around fashionscape and Pride/holiday events."
+      - "Set demand: matching robe top/skirt/boots prices tend to move in tandem."
+  trading_tips:
+    - Pick up from Heckel Funch when GE undersupplied and flip to fashionscape buyers.
+    - Bundle with the full gnome outfit pieces for premium set-flip margin.
+  history:
+    - date: "2002-12-21"
+      description: "Pink hat added with the Tree Gnome Stronghold and Heckel Funch's general store."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

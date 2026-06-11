@@ -1,6 +1,6 @@
 ---
 title: Fremennik black cloak | OSRS Price Data
-description: "Fremennik black cloak: The latest fashion in Rellekka.. High alch: 150 GP, GE limit: 150."
+description: "Fremennik black cloak: The latest fashion in Rellekka. High alch: 150 GP, GE limit: 150."
 osrs:
   id: 3789
   name: Fremennik black cloak
@@ -12,9 +12,84 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 150
-  about: "Fremennik black cloak is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2004-11-02"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: cape
+    weapon_type: null
+    attack_speed: null
+    attack_range: null
+    weight: 0.453
+    requirements:
+      none: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Yrsa's Accoutrements"
+      location: Rellekka
+      price: 325
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Fremennik cloak
+      slug: fremennik-cloak
+      relationship: variant
+      description: "Brown variant of the Fremennik cloak line"
+    - item_name: Fremennik blue cloak
+      slug: fremennik-blue-cloak
+      relationship: variant
+      description: "Blue colour variant"
+    - item_name: Fremennik gold cloak
+      slug: fremennik-gold-cloak
+      relationship: variant
+      description: "Gold colour variant"
+  about: "The Fremennik black cloak is a members-only cape sold by Yrsa's Accoutrements in Rellekka after completing The Fremennik Trials quest. It is one of eleven colour variants of the Fremennik cloak line, offering minor defensive bonuses and a small fashionscape role."
+  market_strategy:
+    notes:
+      - "Cosmetic cape with low alch headroom; profits come from shop-flip arbitrage off the 325 gp restock price"
+      - "Demand is steady but thin since each variant draws only a fraction of Fremennik fashionscape buyers"
+      - "Bulk buying from Yrsa's restocks scales poorly with the 1-minute restock cadence"
+  trading_tips:
+    - "Restock-flip from Yrsa's at 325 gp when GE bid sits well above shop price"
+    - "Quest gate on The Fremennik Trials keeps supply naturally limited"
+  history:
+    - date: "2004-11-02"
+      description: "Released with The Fremennik Trials quest."
+    - date: "2014-12-10"
+      description: "Renamed from Fremennik cloak to Fremennik black cloak as part of the Trading Post update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

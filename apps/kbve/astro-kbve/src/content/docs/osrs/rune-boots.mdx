@@ -1,6 +1,6 @@
 ---
 title: Rune boots | OSRS Price Data
-description: "Rune boots is a members feet slot item. High alch: 7,500 GP, GE limit: 70."
+description: "Rune boots is a members feet slot melee boot dropped by Nechryael. High alch: 7,500 GP, GE limit: 70."
 osrs:
   id: 4131
   name: Rune boots
@@ -12,73 +12,99 @@ osrs:
   lowalch: 5000
   highalch: 7500
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: metal
+    tier: mid
+  properties:
+    release_date: "2005-08-15"
+    update: "Slayer"
+    tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: feet
-    type: melee_boots
-    stats:
-      defence_stab: 9
-      defence_slash: 10
-      defence_crush: 11
+    weight: 1.36
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 9
+      slash: 10
+      crush: 11
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   drop_table:
-    primary_source: Nechryael
-    best_drop_rate: 1/128
     sources:
       - source: Nechryael
-        source_id: 8
         combat_level: 115
         quantity: "1"
-        rarity: 1/128
+        rarity: rare
+        drop_rate: 1/128
         members_only: true
       - source: Greater Nechryael
-        source_id: 7411
         combat_level: 200
         quantity: "1"
-        rarity: 1/128
+        rarity: rare
+        drop_rate: 1/128
         members_only: true
-      - source: Greater Nechryael (Catacombs)
-        source_id: 7278
+      - source: "Greater Nechryael (Catacombs of Kourend)"
         combat_level: 200
         quantity: "1"
-        rarity: 1/128
+        rarity: rare
+        drop_rate: 1/128
         members_only: true
   related_items:
     - item_id: 11840
       item_name: Dragon boots
       slug: dragon-boots
       relationship: upgrade
-      description: Better melee boots with strength bonus
+      description: Higher-tier melee boots with a melee strength bonus.
     - item_id: 21643
       item_name: Granite boots
       slug: granite-boots
       relationship: upgrade
-      description: Better defensive boots
+      description: Stronger defensive melee boots from Slayer drops.
     - item_id: 2577
       item_name: Ranger boots
       slug: ranger-boots
       relationship: alternative
-      description: Best-in-slot ranged boots
-  about: |-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +9 |
-    | Slash | +10 |
-    | Crush | +11 |
-
-    Requirements: None
-
-    Budget boots used for:
-    - Iron accounts before Dragon boots
-    - Low-level melee setups
-    - F2P-style builds (still members only)
-
-    No requirements make them accessible to any account.
+      description: Best-in-slot ranged boots from medium clue scrolls.
+  about: "Rune boots are members feet-slot melee boots dropped exclusively by the Nechryael family of Slayer monsters at a roughly 1/128 rate. They have no skill requirements and offer the strongest pure-defence numbers in the early melee boot tier, making them a popular cheap pickup for ironmen and a steady alch target for mains farming Greater Nechryaels."
   market_strategy:
     notes:
-      - Very affordable
-      - Used mainly by early-game ironmen
-      - Outclassed by Dragon boots in most scenarios
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply driven by Greater Nechryael Slayer task volume"
+      - "Steady high alch target with a 70/4h GE buy limit"
+      - "Outclassed by Dragon boots once 2.4M gp is in reach"
+  trading_tips:
+    - "Buy after Slayer task rework patches when supply spikes"
+    - "Sell during major dragon boot price rallies for relative arbitrage"
+  history:
+    - date: "2005-08-15"
+      description: "Added with the Slayer skill release as a Nechryael drop."
+    - date: "2017-01-05"
+      description: "Greater Nechryaels in the Catacombs of Kourend added as an additional drop source."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

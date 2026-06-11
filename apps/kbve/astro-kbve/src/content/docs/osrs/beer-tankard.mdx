@@ -1,6 +1,6 @@
 ---
 title: Beer tankard | OSRS Price Data
-description: "Beer tankard: Frothy and alcoholic.. High alch: 12 GP, GE limit: 2,000."
+description: "Beer tankard: Frothy and alcoholic, drained from Fortunato's in Draynor Village. High alch: 12 GP, GE limit: 2,000."
 osrs:
   id: 3803
   name: Beer tankard
@@ -12,9 +12,60 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 2000
-  about: "Beer tankard is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: beer
+    tier: low
+  properties:
+    release_date: "2005-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  passive_effects:
+    - name: Strength boost
+      description: "Drinking the tankard temporarily raises Strength by 1 and drains Attack by 1, while healing 1 Hitpoint."
+    - name: Reusable container
+      description: "Once emptied, the tankard is returned for refilling at Fortunato's Vineyard in Draynor Village."
+  shops:
+    - shop_name: Fortunato's Vineyard
+      location: Draynor Village
+      price: 20
+      currency: coins
+      stock: 4
+      members_only: true
+  related_items:
+    - item_name: Beer
+      slug: beer
+      relationship: variant
+      description: Standard glass mug of beer
+    - item_name: Asgarnian ale
+      slug: asgarnian-ale
+      relationship: alternative
+      description: F2P brewed ale with similar effects
+  about: "Beer tankard is a members-only drinkable purchased from Fortunato's Vineyard in Draynor Village, giving a small temporary Strength boost at the cost of Attack and leaving an empty tankard that can be refilled at the same shop."
+  market_strategy:
+    notes:
+      - "Fortunato's stocks the tankard for 20 coins, keeping the floor near alch value"
+      - "Buy limit of 2,000 supports light bulk flipping"
+      - "Demand mainly from collection log hunters and roleplayers"
+  trading_tips:
+    - Bank-stand outside Fortunato's for free shop spawn flips
+    - Pair with empty tankards for refill arbitrage
+  history:
+    - date: "2005-01-04"
+      description: "Added with the Forgettable Tale of a Drunken Dwarf quest update for Fortunato's Vineyard."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

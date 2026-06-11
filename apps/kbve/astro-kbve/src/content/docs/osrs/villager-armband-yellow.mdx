@@ -1,20 +1,88 @@
 ---
 title: Villager armband (yellow) | OSRS Price Data
-description: "Villager armband (yellow): A dark blue armband, as worn by the Tai Bwo Wannai locals.. High alch: 90 GP, GE limit: 150."
+description: "Villager armband (yellow) is a Tai Bwo Wannai cosmetic hands-slot piece. High alch: 90 GP, GE limit: 150."
 osrs:
   id: 6369
   name: Villager armband (yellow)
   slug: villager-armband-yellow
-  examine: A dark blue armband, as worn by the Tai Bwo Wannai locals.
+  examine: "A yellow armband, as worn by the Tai Bwo Wannai locals."
   members: true
   icon: Villager armband (yellow).png
   value: 150
   lowalch: 60
   highalch: 90
   limit: 150
-  about: "Villager armband (yellow) is a members-only item in Old School RuneScape. High alchemy value: 90 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2003-12-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: hands
+    weight: 0.226
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: "Villager armband (red)"
+      slug: villager-armband-red
+      relationship: variant
+      description: "Red colour variant from the same Tai Bwo Wannai set."
+    - item_name: "Villager armband (blue)"
+      slug: villager-armband-blue
+      relationship: variant
+      description: "Blue colour variant from the same Tai Bwo Wannai set."
+    - item_name: "Villager robe (yellow)"
+      slug: villager-robe-yellow
+      relationship: set-piece
+      description: "Matching yellow villager robe."
+    - item_name: "Villager hat (yellow)"
+      slug: villager-hat-yellow
+      relationship: set-piece
+      description: "Matching yellow villager hat."
+  about: "The villager armband (yellow) is a cosmetic hands-slot item purchased during the Tai Bwo Wannai Trio quest, allowing the player to dress like a Tai Bwo Wannai local in disguise. It has no combat stats and is mainly held by fashionscape collectors and quest completionists."
+  market_strategy:
+    notes:
+      - "Tiny buy limit and thin daily volume keep spreads wide."
+      - "Demand is fashionscape-only; price moves on collection log streams."
+      - "High alch profit is below GE price; do not alch."
+  trading_tips:
+    - "List as part of a full villager set for higher sell-through."
+    - "Quest weekends briefly soak supply from new completers."
+  history:
+    - date: "2003-12-08"
+      description: "Added with the Tai Bwo Wannai Trio quest."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

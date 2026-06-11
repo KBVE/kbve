@@ -1,6 +1,6 @@
 ---
 title: Purple firelighter | OSRS Price Data
-description: "Purple firelighter: Makes firelighting a lot easier.. High alch: 9 GP, GE limit: 250."
+description: "Purple firelighter is a members Firemaking consumable that colours bonfires purple. High alch: 9 GP, GE limit: 250."
 osrs:
   id: 10326
   name: Purple firelighter
@@ -12,9 +12,72 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 250
-  about: "Purple firelighter is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: firelighter
+    tier: low
+  properties:
+    release_date: "2006-12-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  recipes:
+    - skill: firemaking
+      level: 33
+      xp: 0
+      materials:
+        - item_name: Logs
+          quantity: 1
+        - item_name: Purple firelighter
+          quantity: 1
+      tools:
+        - Tinderbox
+      output_quantity: 1
+  related_items:
+    - item_name: Red firelighter
+      slug: red-firelighter
+      relationship: variant
+      description: "Red-coloured firelighter variant from hard clue rewards."
+    - item_name: Green firelighter
+      slug: green-firelighter
+      relationship: variant
+      description: "Green-coloured firelighter variant from hard clue rewards."
+    - item_name: Blue firelighter
+      slug: blue-firelighter
+      relationship: variant
+      description: "Blue-coloured firelighter variant from hard clue rewards."
+    - item_name: Tinderbox
+      slug: tinderbox
+      relationship: component
+      description: "Required to ignite a log with a firelighter applied."
+  about: "Purple firelighter is a Firemaking cosmetic consumable from hard clue scroll rewards that colours the resulting fire purple, popular with Firemaking trainers and fashionscape collectors."
+  market_strategy:
+    notes:
+      - "Supply driven by hard clue scroll caskets"
+      - "Cosmetic Firemaking demand keeps price above alch backstop"
+      - "Low GE limit (250) caps flip volume"
+  trading_tips:
+    - "Watch hard clue casket throughput for supply spikes"
+    - "Bundle colour sets for premium fashionscape sales"
+  history:
+    - date: "2006-12-05"
+      description: "Released with the Treasure Trails reward expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

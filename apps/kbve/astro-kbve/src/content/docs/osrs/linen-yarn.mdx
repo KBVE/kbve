@@ -1,6 +1,6 @@
 ---
 title: Linen yarn | OSRS Price Data
-description: "Linen yarn: Spun from flax.. High alch: 3 GP, GE limit: 13,000."
+description: "Linen yarn: Spun from flax. High alch: 3 GP, GE limit: 13,000."
 osrs:
   id: 31463
   name: Linen yarn
@@ -12,9 +12,66 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 13000
-  about: "Linen yarn is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: textile
+    tier: low
+  properties:
+    release_date: "2024-12-04"
+    update: Varlamore Part Two
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.001
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 10
+      xp: 15
+      materials:
+        - item_name: Flax
+          quantity: 1
+      tools: []
+      facility: Spinning wheel
+      output_quantity: 1
+      product: Linen yarn
+  related_items:
+    - item_name: Flax
+      slug: flax
+      relationship: component
+      description: "Raw material spun into linen yarn on a spinning wheel"
+    - item_name: Bow string
+      slug: bow-string
+      relationship: alternative
+      description: "Higher-XP alternative spinning product made from flax"
+    - item_name: Ball of wool
+      slug: ball-of-wool
+      relationship: alternative
+      description: "Wool counterpart spun from raw wool on the same wheel"
+  about: |-
+    > _"Spun from flax."_
+
+    Linen yarn is a Crafting material spun from flax on any spinning wheel at 10 Crafting for 15 XP per spin. Introduced with Varlamore Part Two, it is used to thread garments and tailoring patterns inside the Hunters' Guild and at Varlamore's tailor stations. Stackable and members-only with a 13,000 GE buy limit.
+  market_strategy:
+    notes:
+      - "Niche Varlamore tailoring demand keeps consistent low-margin flow"
+      - "Cheap stackable mass-craft from flax"
+      - "GE limit 13,000 per 4 hours allows bulk Crafting suppliers"
+      - "Cooked supply scales with Hunters' Guild popularity"
+  trading_tips:
+    - "Spin own flax for guaranteed margin vs GE-bought yarn"
+    - "Watch flax price floor — yarn margin compresses when flax spikes"
+  history:
+    - date: "2024-12-04"
+      description: "Linen yarn released with Varlamore Part Two and the Hunters' Guild tailoring chain."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

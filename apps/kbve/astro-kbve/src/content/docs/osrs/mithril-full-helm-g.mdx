@@ -1,6 +1,6 @@
 ---
 title: Mithril full helm (g) | OSRS Price Data
-description: "Mithril full helm (g): Mithril full helm with gold trim.. High alch: 858 GP, GE limit: 8."
+description: "Mithril full helm (g) is a F2P gold-trimmed head slot armour from easy clue scroll rewards. High alch: 858 GP, GE limit: 8."
 osrs:
   id: 12283
   name: Mithril full helm (g)
@@ -12,9 +12,96 @@ osrs:
   lowalch: 572
   highalch: 858
   limit: 8
-  about: "Mithril full helm (g) is a free-to-play item in Old School RuneScape. High alchemy value: 858 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: metal
+    tier: mid
+  properties:
+    release_date: "2006-12-05"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.721
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weight: 2.721
+    requirements:
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 13
+      slash: 14
+      crush: 12
+      magic: -1
+      ranged: 14
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: Common
+        notes: "Standard trimmed armour reward from easy clue scrolls."
+  related_items:
+    - item_name: Mithril full helm
+      slug: mithril-full-helm
+      relationship: alternative
+      description: Untrimmed standard mithril full helm.
+    - item_name: Mithril full helm (t)
+      slug: mithril-full-helm-t
+      relationship: variant
+      description: Trim-colour variant from easy clue scrolls.
+    - item_name: Mithril platebody (g)
+      slug: mithril-platebody-g
+      relationship: set-piece
+      description: Body piece of the gold-trimmed mithril set.
+    - item_name: Mithril platelegs (g)
+      slug: mithril-platelegs-g
+      relationship: set-piece
+      description: Legs piece of the gold-trimmed mithril set.
+    - item_name: Mithril kiteshield (g)
+      slug: mithril-kiteshield-g
+      relationship: set-piece
+      description: Shield piece of the gold-trimmed mithril set.
+  about: Mithril full helm (g) is a gold-trimmed cosmetic re-skin of the standard mithril full helm, awarded only from easy clue scroll caskets. It shares the exact defence bonuses of the untrimmed version and exists for fashionscape and clue-set completion.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Value comes entirely from clue-set rarity, not stats"
+      - "8-per-4h GE limit caps flip volume hard"
+      - "Demand driven by F2P fashionscape and clue collectors"
+      - "Watch easy clue supply spikes after major updates"
+  trading_tips:
+    - "Buy the full gold-trimmed set together for fashionscape"
+    - "Compare set-vs-pieces price for arbitrage"
+    - "Easy clues flood supply after clue-update events"
+  history:
+    - date: "2006-12-05"
+      description: "Released with the Treasure Trails reward overhaul."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

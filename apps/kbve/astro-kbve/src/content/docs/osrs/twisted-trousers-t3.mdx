@@ -1,6 +1,6 @@
 ---
 title: Twisted trousers (t3) | OSRS Price Data
-description: "Twisted trousers (t3): The trousers of a twisted relic hunter.. High alch: 60,000 GP, GE limit: 5."
+description: "Twisted trousers (t3) is a members tier-3 LMS cosmetic legs slot override. High alch: 60,000 GP, GE limit: 5."
 osrs:
   id: 24391
   name: Twisted trousers (t3)
@@ -12,9 +12,84 @@ osrs:
   lowalch: 40000
   highalch: 60000
   limit: 5
-  about: "Twisted trousers (t3) is a members-only item in Old School RuneScape. High alchemy value: 60,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2019-08-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weight: 0.5
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_name: Twisted hood (t3)
+      slug: twisted-hood-t3
+      relationship: set-piece
+      description: Head slot of the tier-3 Twisted Relic Hunter set.
+    - item_name: Twisted coat (t3)
+      slug: twisted-coat-t3
+      relationship: set-piece
+      description: Body slot of the tier-3 Twisted Relic Hunter set.
+    - item_name: Twisted boots (t3)
+      slug: twisted-boots-t3
+      relationship: set-piece
+      description: Feet slot of the tier-3 Twisted Relic Hunter set.
+    - item_name: Twisted trousers (t2)
+      slug: twisted-trousers-t2
+      relationship: variant
+      description: Tier-2 Twisted Relic Hunter trouser variant.
+    - item_name: Twisted trousers (t1)
+      slug: twisted-trousers-t1
+      relationship: variant
+      description: Tier-1 Twisted Relic Hunter trouser variant.
+  about: Twisted trousers (t3) is the tier-3 legs piece of the Twisted Relic Hunter cosmetic outfit, purchased from the Last Man Standing reward shop. The set is purely cosmetic with no combat bonuses and is bought with LMS points for fashionscape and prestige.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Pure cosmetic value: no stats, no PvM demand"
+      - "Supply gated by LMS reward shop point grind"
+      - "5-per-4h buy limit and high unit cost cap flip volume hard"
+      - "Demand tracks LMS update cycles and fashionscape trends"
+  trading_tips:
+    - "Verify authenticity on high-value cosmetic trades"
+    - "Use Grand Exchange to avoid scams on rare cosmetics"
+    - "Watch LMS reward shop price changes before flipping"
+  history:
+    - date: "2019-08-08"
+      description: "Added to the Last Man Standing reward shop as a tier-3 cosmetic."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

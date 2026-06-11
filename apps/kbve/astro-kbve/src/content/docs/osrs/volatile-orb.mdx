@@ -1,6 +1,6 @@
 ---
 title: Volatile orb | OSRS Price Data
-description: "Volatile orb: An ancient magical orb, corrupted by darkness.. High alch: 2,400,000 GP, GE limit: 8."
+description: "Volatile orb: An ancient magical orb, corrupted by darkness. High alch: 2,400,000 GP, GE limit: 8."
 osrs:
   id: 24514
   name: Volatile orb
@@ -12,59 +12,91 @@ osrs:
   lowalch: 1600000
   highalch: 2400000
   limit: 8
-  item:
-    type: upgrade material
+  material:
+    type: magical
+    tier: high
+  properties:
     tradeable: true
+    tradeable_ge: true
+    stackable: false
+    noteable: true
+    equipable: false
+    quest_item: false
     weight: 0.1
-  obtaining:
-    - source: The Nightmare
-      drop_rate: 1/960 to 1/548.7
-    - source: Phosani's Nightmare
-      drop_rate: 1/1,600
+    options:
+      - Use
+      - Drop
+      - Examine
+    alchable: true
+  drop_table:
+    sources:
+      - source: The Nightmare
+        combat_level: 814
+        quantity: "1"
+        rarity: very-rare
+        drop_rate: 1/960
+        members_only: true
+      - source: Phosani's Nightmare
+        combat_level: 1318
+        quantity: "1"
+        rarity: very-rare
+        drop_rate: 1/1600
+        members_only: true
   recipes:
     - skill: crafting
       level: 1
+      xp: 0
       materials:
-        - item_id: 24514
-          item_name: Volatile orb
-          quantity: 1
         - item_id: 24422
           item_name: Nightmare staff
           quantity: 1
+        - item_id: 24514
+          item_name: Volatile orb
+          quantity: 1
       product: Volatile nightmare staff
       product_id: 24502
-  effect:
-    description: Creates powerful magic spec weapon with high burst damage special attack
+      output_quantity: 1
+      notes: Combined with the Nightmare staff to create the Volatile nightmare staff PvP spec weapon.
   related_items:
     - item_id: 24422
       item_name: Nightmare staff
       slug: nightmare-staff
       relationship: component
-      description: Base weapon for upgrade
+      description: Base staff upgraded with one of the three Nightmare orbs
     - item_id: 24502
       item_name: Volatile nightmare staff
       slug: volatile-nightmare-staff
       relationship: product
-      description: Created PvP spec weapon
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Upgrade Material |
-    | Tradeable | Yes |
-    | Weight | 0.1 kg |
-
-    | Item Created | Materials |
-    |--------------|-----------|
-    | Volatile nightmare staff | Nightmare staff + Volatile orb |
-
-    Creates powerful magic spec weapon with high burst damage special attack.
+      description: Resulting PvP spec staff that scales damage with Magic level
+    - item_id: 24511
+      item_name: Harmonised orb
+      slug: harmonised-orb
+      relationship: alternative
+      description: Sister orb that creates the Harmonised nightmare staff for PvM
+    - item_id: 24517
+      item_name: Eldritch orb
+      slug: eldritch-orb
+      relationship: alternative
+      description: Sister orb that creates the Eldritch nightmare staff with a prayer-draining spec
   market_strategy:
     notes:
-      - Farm Nightmare/Phosani's
-      - Creates PvP spec weapon
-      - Great for burst damage
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Investment Notes"
+      - "Supply gated by Nightmare and Phosani's group sizes"
+      - "PvP-only utility caps demand on the staff downstream"
+      - "Watch DMM and bounty event announcements for short price spikes"
+      - "Buy at the limit only when the combined staff covers full orb cost"
+  trading_tips:
+    - Use the GE for high-value trades to mitigate scams
+    - Verify staff combine economics before flipping the orb alone
+    - Track Nightmare scaling reworks — drop rates have been tuned multiple times
+  about: Volatile orb is a very rare Nightmare drop combined with the Nightmare staff to create the Volatile nightmare staff, a PvP-focused magic spec weapon known for explosive burst damage.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  history:
+    - date: "2020-02-13"
+      description: "Volatile orb released as part of The Nightmare boss launch."
+    - date: "2021-03-04"
+      description: "Phosani's Nightmare added as a solo-only secondary source for Volatile orb."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

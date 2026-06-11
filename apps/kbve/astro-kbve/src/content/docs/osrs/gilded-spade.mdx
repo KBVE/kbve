@@ -1,6 +1,6 @@
 ---
 title: Gilded spade | OSRS Price Data
-description: "Gilded spade: Oh, I'm a gold digger?. High alch: 600 GP, GE limit: 4."
+description: "Gilded spade: Oh, I'm a gold digger? High alch: 600 GP, GE limit: 4."
 osrs:
   id: 23282
   name: Gilded spade
@@ -12,9 +12,80 @@ osrs:
   lowalch: 400
   highalch: 600
   limit: 4
-  about: "Gilded spade is a free-to-play item in Old School RuneScape. High alchemy value: 600 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: gilded
+    tier: high
+  properties:
+    release_date: "2017-08-10"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.45
+    options:
+      - Dig
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Master Treasure Trail reward casket
+        quantity: "1"
+        rarity: "1/65,536"
+      - source: Elite Treasure Trail reward casket
+        quantity: "1"
+        rarity: "1/55,000"
+      - source: Hard Treasure Trail reward casket
+        quantity: "1"
+        rarity: "1/47,500"
+      - source: Medium Treasure Trail reward casket
+        quantity: "1"
+        rarity: "1/35,000"
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - medium
+      - hard
+      - elite
+      - master
+  related_items:
+    - item_name: Spade
+      slug: spade
+      relationship: downgrade
+      description: Standard spade with identical function and no cosmetic finish.
+    - item_name: Gilded coif
+      slug: gilded-coif
+      relationship: variant
+      description: Other gilded clue-only cosmetic item.
+    - item_name: Gilded pickaxe
+      slug: gilded-pickaxe
+      relationship: variant
+      description: Companion gilded skilling tool from clue rewards.
+    - item_name: Gilded axe
+      slug: gilded-axe
+      relationship: variant
+      description: Companion gilded woodcutting tool from clue rewards.
+  about: |-
+    The gilded spade is a cosmetic Treasure Trails reward that functions exactly like a normal spade for digging clue scroll steps, Fossil Island bird houses, and Hallowed Sepulchre flooring. Its only difference is the gold-trimmed appearance.
+
+    It is one of the rarest clue-only items, so price is driven entirely by fashionscape demand rather than utility.
+  market_strategy:
+    notes:
+      - "Pure cosmetic — value driven by Treasure Trail completionists and ironman-adjacent collectors."
+      - "Buy limit of only 4 per 4 hours keeps sudden price moves manageable."
+      - "Listings stay thin; expect wide bid-ask spreads on the GE."
+  trading_tips:
+    - Place buy offers slightly above mid-price to actually fill given low supply.
+    - Track other gilded clue cosmetics — their prices move together with each clue meta update.
+  history:
+    - date: "2017-08-10"
+      description: "Gilded skilling tool set (including the gilded spade) added to Treasure Trail reward pools."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Extended stamina potion(3) | OSRS Price Data
-description: "Extended stamina potion(3): 3 doses of extended stamina potion.. High alch: 102 GP."
+description: "Extended stamina potion(3): 3 doses of extended stamina potion. High alch: 102 GP, GE limit: 2,000."
 osrs:
   id: 31641
   name: Extended stamina potion(3)
@@ -11,10 +11,80 @@ osrs:
   value: 170
   lowalch: 68
   highalch: 102
-  limit: null
-  about: "Extended stamina potion(3) is a members-only item in Old School RuneScape. High alchemy value: 102 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit: 2000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2024-08-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    doses: 3
+    herblore_level: 87
+    herblore_xp: 30
+    effects:
+      - description: "Restores 20% run energy per dose."
+        duration: 0
+      - description: "Reduces run energy depletion to 30% of normal for 4 minutes per dose."
+        duration: 240
+  recipes:
+    - skill: herblore
+      level: 87
+      xp: 30
+      materials:
+        - item_name: Stamina potion (3)
+          quantity: 1
+        - item_name: Aldarium
+          quantity: 1
+      tools: []
+      output_quantity: 1
+  related_items:
+    - item_name: Extended stamina potion(1)
+      slug: extended-stamina-potion-1
+      relationship: variant
+      description: 1-dose variant.
+    - item_name: Extended stamina potion(2)
+      slug: extended-stamina-potion-2
+      relationship: variant
+      description: 2-dose variant.
+    - item_name: Extended stamina potion(4)
+      slug: extended-stamina-potion-4
+      relationship: variant
+      description: 4-dose variant.
+    - item_name: Stamina potion (3)
+      slug: stamina-potion-3
+      relationship: component
+      description: Base potion before adding Aldarium.
+    - item_name: Aldarium
+      slug: aldarium
+      relationship: component
+      description: Secondary ingredient that extends the duration.
+  about: |-
+    Extended stamina potion(3) is a Herblore consumable that grants the run-energy-saving stamina effect for double the normal duration. Each dose restores 20% run energy and reduces depletion to 30% of normal for 4 minutes.
+
+    Players make it at 87 Herblore by combining a stamina potion with Aldarium, gaining 30 Herblore XP per dose. It is heavily used in long-distance content like Wilderness slayer, raids prep, and farm runs where keeping run active matters more than damage potions.
+  market_strategy:
+    notes:
+      - "Demand peaks around endgame PvM and long Slayer trips on Fossil Island, Wilderness, and Kourend."
+      - "Stamina potion + Aldarium spread sets a hard input floor; arbitrage when raw potions dump."
+  trading_tips:
+    - "Decant ratio matters: 3-dose price tracks the 4-dose closely on a per-dose basis."
+    - Stock Aldarium during raid metas to fletch margin from the conversion.
+  history:
+    - date: "2024-08-21"
+      description: "Extended stamina potions introduced via the Varlamore Part 2 Herblore expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

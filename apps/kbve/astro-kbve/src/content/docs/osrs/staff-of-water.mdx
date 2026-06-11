@@ -1,6 +1,6 @@
 ---
 title: Staff of water | OSRS Price Data
-description: "Staff of water: A Magical staff.. High alch: 900 GP, GE limit: 125."
+description: "Staff of water: A Magical staff that provides unlimited water runes when equipped. High alch: 900 GP, GE limit: 125."
 osrs:
   id: 1383
   name: Staff of water
@@ -12,25 +12,115 @@ osrs:
   lowalch: 600
   highalch: 900
   limit: 125
-  item_id: 1383
-  item_type: equipment
-  slot: weapon
-  type: staff
-  tradeable: true
-  weight: 2.267
-  requirements:
-    magic: 0
-  stats:
-    magic_attack: 10
-    magic_defence: 10
-  effect:
-    description: Provides unlimited water runes when equipped.
+  material:
+    type: wood
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: staff
+    weight: 2.267
+    attack_speed: 5
+    tradeable: true
+    requirements:
+      magic: 30
+    attack_bonus:
+      stab: 0
+      slash: 7
+      crush: 0
+      magic: 10
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 10
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Zaff: Superior Staves"
+      location: Varrock
+      price: 1500
+      stock: 5
+      currency: Coins
+    - shop_name: Aubury's Rune Shop
+      location: Varrock
+      price: 1500
+      stock: 0
+      currency: Coins
   related_items:
-    - slug: water-battlestaff
-    - slug: mystic-water-staff
-  about: Provides unlimited water runes when equipped.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1395
+      item_name: Water battlestaff
+      slug: water-battlestaff
+      relationship: upgrade
+      description: "Members upgrade with higher magic attack and defence bonuses"
+    - item_id: 1403
+      item_name: Mystic water staff
+      slug: mystic-water-staff
+      relationship: upgrade
+      description: "Higher-tier mystic variant of the water staff line"
+    - item_id: 1381
+      item_name: Staff of air
+      slug: staff-of-air
+      relationship: variant
+      description: "Sister elemental staff providing unlimited air runes"
+    - item_id: 1385
+      item_name: Staff of earth
+      slug: staff-of-earth
+      relationship: variant
+      description: "Sister elemental staff providing unlimited earth runes"
+    - item_id: 1387
+      item_name: Staff of fire
+      slug: staff-of-fire
+      relationship: variant
+      description: "Sister elemental staff providing unlimited fire runes"
+  passive_effects:
+    - name: Unlimited water runes
+      description: "Provides an unlimited supply of water runes for spell casting when equipped or wielded."
+      trigger: while_worn
+      affected_skill: magic
+  about: |-
+    > _"A Magical staff."_
+
+    The Staff of water is a basic elemental staff usable in free-to-play that supplies an unlimited number of water runes while equipped. It is a staple early-game item for Magic training - particularly Water strike through Water blast spells and the Water surge line for higher-level players who do not yet have a Kodai wand or Master wand.
+
+    Players typically buy it from Zaff in Varrock or off the Grand Exchange and either keep it as a low-cost utility weapon or upgrade to a Water battlestaff once they have access to members content.
+  market_strategy:
+    notes:
+      - "Steady demand from F2P Magic trainers grinding Water strike / Water surge."
+      - "Zaff sells five per day at base 1,500 gp - GE listings flex around this baseline."
+      - "Mid-level mains often buy it once before transitioning to Water battlestaff."
+  trading_tips:
+    - "Stock 4-5 staves while levelling Magic - bulk discount on Zaff's stock translates to easy resale."
+    - "List during weekend mornings when new F2P accounts come online and stock up on training kit."
+  history:
+    - date: "2001-03-27"
+      description: "Staff of water released alongside the initial elemental staves in RuneScape Classic."
+    - date: "2004-03-29"
+      description: "Carried into RuneScape 2 with its unlimited water rune effect intact."
+    - date: "2018-02-22"
+      description: "Auto-cast functionality added so the staff can directly cast Magic spells without spellbook clicks."
+  properties:
+    release_date: "2001-03-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

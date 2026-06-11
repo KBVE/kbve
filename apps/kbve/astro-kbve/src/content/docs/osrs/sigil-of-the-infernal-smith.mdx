@@ -1,20 +1,68 @@
 ---
 title: Sigil of the infernal smith | OSRS Price Data
-description: "Sigil of the infernal smith: A power enhancing sigil not yet attuned to you."
+description: "Sigil of the infernal smith is a Trailblazer Reloaded relic granting Smithing perks while active."
 osrs:
   id: 28505
   name: Sigil of the infernal smith
   slug: sigil-of-the-infernal-smith
-  examine: A power enhancing sigil not yet attuned to you.
+  examine: "A power enhancing sigil not yet attuned to you."
   members: true
   icon: Sigil of the infernal smith.png
   value: 10000
   lowalch: null
   highalch: null
   limit: null
-  about: Sigil of the infernal smith is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: relic
+    tier: high
+  properties:
+    release_date: "2023-11-15"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.0
+    options:
+      - Activate
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  passive_effects:
+    - name: Infernal Smith
+      description: "While active, smelting grants double bars from a single ore-set and Smithing actions are twice as fast at anvils, blast furnaces and forges."
+      trigger: while_worn
+      affected_skill: smithing
+    - name: Coal halving
+      description: "Halves the coal cost when smelting steel, mithril, adamant and rune bars."
+      trigger: always
+      affected_skill: smithing
+  related_items:
+    - item_name: Sigil of the abyss
+      slug: sigil-of-the-abyss
+      relationship: alternative
+      description: "Runecrafting sigil from the same Trailblazer Reloaded relic pool"
+    - item_name: Sigil of the formidable mining helmet
+      slug: sigil-of-the-formidable-mining-helmet
+      relationship: alternative
+      description: "Companion Mining-themed sigil"
+  about: |-
+    > _"A power enhancing sigil not yet attuned to you."_
+
+    Sigil of the infernal smith is a Trailblazer Reloaded league relic that doubles Smithing speed at anvils, blast furnaces and forges, and halves the coal cost when smelting steel, mithril, adamantite or runite bars. Activated from the relic loadout interface, it dramatically accelerates Smithing training during the seasonal league. Outside Leagues worlds it is unobtainable and exists only as an untradeable seasonal item.
+  market_strategy:
+    notes:
+      - "Untradeable seasonal relic — no GE market"
+      - "Active only on Trailblazer Reloaded league worlds"
+  trading_tips:
+    - "Cannot be traded — earned via Leagues IV relic loadout"
+  history:
+    - date: "2023-11-15"
+      description: "Released as a Smithing relic in Trailblazer Reloaded (Leagues IV)."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Sigil of aggression | OSRS Price Data
-description: "Sigil of aggression: A power enhancing sigil not yet attuned to you.. High alch: 18,000 GP, GE limit: 4."
+description: "Sigil of aggression: A power enhancing sigil not yet attuned to you. High alch: 18,000 GP, GE limit: 4."
 osrs:
   id: 26132
   name: Sigil of aggression
@@ -12,9 +12,70 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: 4
-  about: "Sigil of aggression is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: sigil
+    tier: high
+  properties:
+    release_date: "2021-08-25"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  passive_effects:
+    - name: Sigil of Aggression (Annihilation)
+      description: "All attacks deal 10% more damage; does not stack with the Sigil of Rampage."
+    - name: Sigil of Aggression (Apocalypse)
+      description: "All attacks deal 10% more damage, but the wielder takes 5% more damage."
+    - name: Sigil of Aggression (Reborn)
+      description: "All attacks deal 20% more damage, but the wielder takes 30% more damage."
+  drop_table:
+    sources:
+      - source: Deadman Mode skull shop (Annihilation)
+        quantity: "1"
+        rarity: Purchase
+      - source: Deadman Mode drop table
+        quantity: "1"
+        rarity: Rare
+  related_items:
+    - item_name: Sigil of rampage
+      slug: sigil-of-rampage
+      relationship: alternative
+      description: "Tier 3 damage sigil that does not stack with aggression"
+    - item_name: Sigil of finality
+      slug: sigil-of-finality
+      relationship: alternative
+      description: "Tier 3 sigil focused on execute damage"
+    - item_name: Sigil of pious protection
+      slug: sigil-of-pious-protection
+      relationship: alternative
+      description: "Tier 3 defensive sigil alternative"
+    - item_name: Sigil of binding
+      slug: sigil-of-binding
+      relationship: alternative
+      description: "Tier 2 combat sigil from Deadman Mode"
+  about: "Sigil of aggression is a tier 3 Deadman Mode combat sigil that boosts all attack damage by 10-20% depending on the active Deadman event, at the cost of incoming damage in higher tiers. Only available during temporary Deadman events, it becomes account-bound after attuning and does not stack with the Sigil of Rampage."
+  market_strategy:
+    notes:
+      - "Availability collapses outside of active Deadman events; supply is event-gated"
+      - "Attuning permanently removes units from circulation, slowly tightening the float"
+      - "Strongest pricing window opens just before a Deadman Mode tournament announcement"
+  trading_tips:
+    - "Stockpile un-attuned sigils ahead of announced Deadman seasons"
+    - "Avoid attuning copies you intend to flip; once attuned they are worthless on the GE"
+  history:
+    - date: "2021-08-25"
+      description: "Released as a tier 3 combat sigil with the Deadman: Reborn update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

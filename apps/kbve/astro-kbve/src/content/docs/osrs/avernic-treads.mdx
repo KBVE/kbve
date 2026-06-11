@@ -1,6 +1,6 @@
 ---
 title: Avernic treads | OSRS Price Data
-description: "Avernic treads: A finely crafted pair of boots.. High alch: 115,200 GP, GE limit: 8."
+description: "Avernic treads: A finely crafted pair of boots. Best-in-slot melee strength boots from Theatre of Blood: Hard Mode. High alch: 115,200 GP, GE limit: 8."
 osrs:
   id: 31088
   name: Avernic treads
@@ -12,9 +12,100 @@ osrs:
   lowalch: 76800
   highalch: 115200
   limit: 8
-  about: "Avernic treads is a members-only item in Old School RuneScape. High alchemy value: 115,200 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: armour
+    tier: high
+  properties:
+    release_date: "2024-08-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.5
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weight: 0.5
+    requirements:
+      attack: 75
+      defence: 75
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 8
+      slash: 9
+      crush: 7
+      magic: 0
+      ranged: 5
+    other_bonus:
+      melee_strength: 5
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: "Theatre of Blood: Hard Mode"
+        quantity: "1"
+        rarity: "1/200"
+  recipes:
+    - skill: smithing
+      level: 60
+      xp: 0
+      materials:
+        - item_name: Primordial boots
+          quantity: 1
+        - item_name: Avernic treads
+          quantity: 1
+      tools: []
+      facility: Anvil
+      output_quantity: 1
+      product: Primordial boots (or)
+  related_items:
+    - item_name: Primordial boots
+      slug: primordial-boots
+      relationship: component
+      description: "Base BiS melee strength boots combined with the treads for the Avernic ornament kit."
+    - item_name: Primordial boots (or)
+      slug: primordial-boots-or
+      relationship: upgrade
+      description: "Ornamented primordial boots produced by attaching Avernic treads."
+    - item_name: Pegasian boots
+      slug: pegasian-boots
+      relationship: alternative
+      description: "Best-in-slot ranged boots from the same base-boots family."
+    - item_name: Eternal boots
+      slug: eternal-boots
+      relationship: alternative
+      description: "Best-in-slot magic boots from the same base-boots family."
+  about: |-
+    > _"A finely crafted pair of boots."_
+
+    Avernic treads are a cosmetic upgrade kit used on Primordial boots to create Primordial boots (or). They are a 1/200 unique drop from Theatre of Blood Hard Mode and require 75 Attack and 75 Defence to wear after the kit is applied. The combined boots keep the Primordial stats and gain a Theatre-themed appearance.
+  market_strategy:
+    notes:
+      - "Pure cosmetic premium item — price tracks endgame PvM prestige rather than raw stats."
+      - "Supply scales with active Theatre of Blood Hard Mode teams; thin pool keeps prices volatile."
+      - "Once attached to Primordial boots the kit is consumed; long-term floor is high because Ornamented boots cannot be reverted directly."
+  trading_tips:
+    - "Buy limit is 8 per 4 hours — flippers should size positions to that cap."
+    - "Watch BiS gear meta shifts; new tank-boots options would soften ornament demand."
+  history:
+    - date: "2024-08-21"
+      description: "Added as a Theatre of Blood Hard Mode unique cosmetic upgrade for the Primordial boots."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

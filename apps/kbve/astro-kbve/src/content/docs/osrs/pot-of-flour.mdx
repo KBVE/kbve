@@ -1,6 +1,6 @@
 ---
 title: Pot of flour | OSRS Price Data
-description: "Pot of flour: There is flour in this pot.. High alch: 6 GP, GE limit: 13,000."
+description: "Pot of flour: There is flour in this pot. High alch: 6 GP, GE limit: 13,000."
 osrs:
   id: 1933
   name: Pot of flour
@@ -12,9 +12,90 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 13000
-  about: "Pot of flour is a free-to-play item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: ingredient
+    tier: low
+  properties:
+    release_date: "2001-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.5
+    options:
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 0
+      materials:
+        - item_name: Pot
+          quantity: 1
+        - item_name: Grain
+          quantity: 1
+      tools: []
+      facility: Windmill
+      output_quantity: 1
+      members_only: false
+  shops:
+    - shop_name: "Aris Kitchen"
+      location: Varrock
+      price: 11
+      stock: 2
+      currency: coins
+      members_only: false
+    - shop_name: "Grand Tree Groceries"
+      location: Grand Tree
+      price: 11
+      stock: 2
+      currency: coins
+      members_only: true
+  related_items:
+    - item_id: 1931
+      item_name: Pot
+      slug: pot
+      relationship: component
+      description: "Empty pot used to collect flour at the windmill"
+    - item_id: 1947
+      item_name: Grain
+      slug: grain
+      relationship: component
+      description: "Wheat input ground into flour at the windmill"
+    - item_id: 2138
+      item_name: Bread dough
+      slug: bread-dough
+      relationship: product
+      description: "Combine flour with a bucket of water for bread dough"
+    - item_id: 1953
+      item_name: Pizza base
+      slug: pizza-base
+      relationship: product
+      description: "Used in the pizza base recipe"
+  about: |-
+    Pot of flour is the standard flour container in Old School RuneScape, made by ascending the windmill in Lumbridge (or any windmill on Gielinor), depositing grain in the hopper, then collecting the ground flour with an empty pot. Required for every bread-tier Cooking recipe.
+
+    It is one of the oldest free-to-play recipes in the game and a staple of low-level Cooking guides for bread, pies, pizzas, and cakes.
+  market_strategy:
+    notes:
+      - "High buy limit (13,000) and steady demand make this a bulk-flip candidate"
+      - "Profit comes from making flour at the windmill vs the GE spread"
+      - "Pot deposit value (10gp) offsets the cost of the empty pot input"
+  trading_tips:
+    - "Use the Lumbridge windmill grain hopper for quick mass production"
+    - "Pair flour flipping with pot flipping when supplying baked goods skillers"
+    - "Buy limit 13,000 per 4 hours"
+  history:
+    - date: "2001-02-27"
+      description: "Released as part of the original Cooking skill bread recipes."
+    - date: "2018-02-15"
+      description: "Examine text and pot interactions standardised across the windmill flour workflow."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

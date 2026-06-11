@@ -1,6 +1,6 @@
 ---
 title: Blood tiara | OSRS Price Data
-description: "Blood tiara: A tiara infused with the properties of blood.. High alch: 300 GP."
+description: "Blood tiara is a head slot Runecraft tiara that lets the wearer enter the Blood altar without holding a talisman. High alch: 300 GP."
 osrs:
   id: 5549
   name: Blood tiara
@@ -12,9 +12,99 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: null
-  about: "Blood tiara is a members-only item in Old School RuneScape. High alchemy value: 300 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: runecraft
+    tier: mid
+  properties:
+    release_date: "2019-09-12"
+    update: "Arceuus rework"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.011
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weight: 0.011
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: runecraft
+      level: 95
+      xp: 110
+      facility: Blood Altar
+      materials:
+        - item_id: 5527
+          item_name: Tiara
+          quantity: 1
+        - item_id: 1454
+          item_name: Blood talisman
+          quantity: 1
+      output_quantity: 1
+      members_only: true
+      notes: "Use a tiara on the Blood Altar in the Arceuus essence mine while holding a blood talisman"
+  related_items:
+    - item_id: 1454
+      item_name: Blood talisman
+      slug: blood-talisman
+      relationship: component
+      description: Required to bind the tiara at the Blood altar
+    - item_id: 5527
+      item_name: Tiara
+      slug: tiara
+      relationship: component
+      description: Blank tiara crafted from silver into a Runecraft head slot
+    - item_id: 565
+      item_name: Blood rune
+      slug: blood-rune
+      relationship: product
+      description: Rune crafted at the Blood altar using the bound tiara
+    - item_id: 5547
+      item_name: Soul tiara
+      slug: soul-tiara
+      relationship: alternative
+      description: Equivalent tiara unlocking the Soul altar
+  about: "Blood tiara is a Runecraft head slot item that grants free passage into the Blood altar inside the Arceuus essence mine, freeing the talisman slot in the inventory. It is created by using a tiara on the Blood altar while carrying a blood talisman, requiring 95 Runecraft and yielding 110 Runecraft XP. Untradeable on the Grand Exchange, the blood tiara is a quality-of-life unlock for ironmen and dedicated blood rune crafters."
+  market_strategy:
+    notes:
+      - "Investment Notes"
+      - "Untradeable — must be made via the Blood altar binding process"
+      - "Saves one inventory slot per blood rune trip, multiplying long-term Runecraft yield"
+      - "High alch value of 300 gp is far below the effort to recreate; alching is never worth it"
+      - "Pair with blood essence and Raiments of the Eye for max blood rune output"
+  trading_tips:
+    - "Bind once at 95 Runecraft and keep in bank or POH costume room"
+    - "Always equip before blood runs to free a talisman/pouch slot"
+    - "Use Arceuus library teleports to shorten the trip to the altar"
+  history:
+    - date: "2019-09-12"
+      description: "Released with the Arceuus rework alongside the dark altar Runecraft method."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

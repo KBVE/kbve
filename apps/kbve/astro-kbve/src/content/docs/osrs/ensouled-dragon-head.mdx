@@ -1,6 +1,6 @@
 ---
 title: Ensouled dragon head | OSRS Price Data
-description: "Ensouled dragon head: The creature's soul is still in here.. High alch: 390 GP, GE limit: 7,500."
+description: "Ensouled dragon head is the dragon-tier Arceuus reanimation reagent dropped by every dragon in OSRS, requiring 93 Magic to cast Master Reanimation for 1,560 Magic XP and 1,300 Prayer XP."
 osrs:
   id: 13511
   name: Ensouled dragon head
@@ -12,74 +12,115 @@ osrs:
   lowalch: 260
   highalch: 390
   limit: 7500
-  prayer:
-    type: ensouled_head
-    tier: dragon
-    xp_reanimate: 1560
-    magic_level: 93
-    spell: Master Reanimation
-    arceuus_favour: 100
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: ensouled-head
+    tier: high
+  properties:
+    release_date: "2018-11-15"
+    update: "Arceuus House Improvements"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
       - source: Black dragon
         source_id: 252
         combat_level: 227
         quantity: "1"
-        rarity: Varies
+        rarity: always
         members_only: true
       - source: Blue dragon
         source_id: 264
         combat_level: 111
         quantity: "1"
-        rarity: Varies
+        rarity: always
         members_only: true
       - source: Red dragon
         source_id: 247
         combat_level: 152
         quantity: "1"
-        rarity: Varies
+        rarity: always
         members_only: true
       - source: King Black Dragon
         source_id: 239
         combat_level: 276
         quantity: "1"
-        rarity: Varies
+        rarity: always
         members_only: true
       - source: Vorkath
         source_id: 8061
         combat_level: 732
         quantity: "1"
-        rarity: Varies
+        rarity: always
         members_only: true
+      - source: Brutal black dragon
+        combat_level: 318
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Brutal red dragon
+        combat_level: 289
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Brutal blue dragon
+        combat_level: 271
+        quantity: "1"
+        rarity: always
+        members_only: true
+  passive_effects:
+    - name: Master Reanimation
+      description: "Cast on the head at the Dark Altar to reanimate a Dragon Ensouled Shade (combat level 252) that grants 1,300 Prayer XP when killed."
+      trigger: while_worn
+      affected_skill: prayer
+      boost_value: 1300
   related_items:
     - item_id: 13509
       item_name: Ensouled giant head
       slug: ensouled-giant-head
       relationship: alternative
-      description: Lower tier head
+      description: "Lower-tier giant ensouled head used with Greater Reanimation."
     - item_id: 566
       item_name: Soul rune
       slug: soul-rune
       relationship: component
-      description: Spell component
+      description: "Four soul runes required to cast Master Reanimation."
     - item_id: 561
       item_name: Nature rune
       slug: nature-rune
       relationship: component
-      description: Spell component
+      description: "Two nature runes required to cast Master Reanimation."
     - item_id: 565
       item_name: Blood rune
       slug: blood-rune
       relationship: component
-      description: Spell component
+      description: "Four blood runes required to cast Master Reanimation."
+  about: "Ensouled dragon head is the dragon-tier reagent in the Arceuus Reanimation spell chain. At the Dark Altar in Arceuus, casting Master Reanimation on the head requires 93 Magic plus 4 soul runes, 2 nature runes, and 4 blood runes, granting 1,560 Magic XP. The reanimated Dragon Ensouled Shade is a combat level 252 NPC that drops 1,300 Prayer XP when killed, making it one of the most efficient daily Prayer methods in the game."
   market_strategy:
     notes:
-      - Best ensouled head XP
-      - 93 Magic required
-      - Dark Altar location
-      - Combat XP alongside Prayer
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Best ensouled head XP per cast: 1,300 Prayer XP from the reanimated shade."
+      - "Steady demand from 93+ Magic Prayer trainers on the Arceuus spellbook."
+      - "Supply ties to dragon slayer task assignments and Vorkath farming."
+      - "Sell-side spikes whenever Vorkath drop rates trend on Reddit or Twitch."
+  trading_tips:
+    - "Stockpile during Slayer task droughts; price drifts down when blue dragon tasks are common."
+    - "Pair purchases with soul, nature, and blood rune batches to lock in cast cost."
+    - "Watch DMM and Leagues - Reanimation XP often spikes during high-pressure Prayer rushes."
+  history:
+    - date: "2018-11-15"
+      description: "Introduced with the Arceuus House Improvements update that replaced the original Arceuus spellbook curses and added the full Reanimation spell line."
+    - date: "2019-07-25"
+      description: "Brutal black, red, and blue dragons added as Konar slayer assignments, expanding the supply of ensouled dragon heads."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

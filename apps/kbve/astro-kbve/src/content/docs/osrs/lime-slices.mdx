@@ -12,9 +12,66 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Lime slices is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cocktail_ingredient
+    tier: low
+  recipes:
+    - skill: cooking
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Lime
+          item_id: 2120
+          quantity: 1
+      tools:
+        - Knife
+      facility: Inventory
+      product: Lime slices
+      product_id: 2124
+      output_quantity: 1
+  related_items:
+    - item_id: 2120
+      item_name: Lime
+      slug: lime
+      relationship: component
+      description: "Sliced with a knife to produce lime slices"
+    - item_id: 2122
+      item_name: Lemon slices
+      slug: lemon-slices
+      relationship: alternative
+      description: "Alternative citrus cocktail slices"
+    - item_id: 2126
+      item_name: Orange slices
+      slug: orange-slices
+      relationship: alternative
+      description: "Alternative citrus cocktail slices"
+  about: "Lime slices are a Cocktail Shaker ingredient produced by using a knife on a lime; primarily used in the Gnome Cocktail and Blurberry Special drinks from the Gnome Stronghold cocktail-mixing minigame."
+  market_strategy:
+    notes:
+      - "Niche cocktail ingredient with thin daily volume"
+      - "Buy limit 13,000 supports stocking Gnome Restaurant runners"
+      - "High alch only 1 GP, alching is unprofitable"
+  trading_tips:
+    - "Match price drift with raw lime stock to find arbitrage"
+    - "Bulk-buy for Gnome Restaurant minigame XP grinders"
+  history:
+    - date: "2002-12-09"
+      description: "Released with the Gnome Cooking update for the Tree Gnome Stronghold."
+  properties:
+    release_date: "2002-12-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

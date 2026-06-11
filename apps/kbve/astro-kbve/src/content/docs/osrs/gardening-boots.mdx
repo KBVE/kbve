@@ -1,6 +1,6 @@
 ---
 title: Gardening boots | OSRS Price Data
-description: "Gardening boots: A pair of gardening boots.. High alch: 15 GP, GE limit: 150."
+description: "Gardening boots is a members feet slot item from the Farming Guild. High alch: 15 GP, GE limit: 150."
 osrs:
   id: 5345
   name: Gardening boots
@@ -12,9 +12,77 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 150
-  about: "Gardening boots is a members-only item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: leather
+    tier: low
+  properties:
+    release_date: "2005-08-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weapon_type: none
+    weight: 0.453
+    requirements:
+      farming: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Olivia's Gardening Supplies"
+      location: Falador
+      price: 25
+      stock: 5
+      currency: coins
+      members_only: true
+  related_items:
+    - item_name: Farmer's boots
+      slug: farmers-boots
+      relationship: variant
+      description: "Tegid-tier farmer's boots from the Tithe Farm"
+  about: |-
+    > _"A pair of gardening boots."_
+
+    Gardening boots are a cheap members-only foot item primarily used as cosmetic farming attire. They can be purchased from Olivia's Gardening Supplies in Falador for a handful of coins and worn with the rest of the gardening outfit (gloves, hat, top, trousers) to round out the farmer's look. They provide no combat bonuses, so their value is purely aesthetic.
+  market_strategy:
+    notes:
+      - "Cosmetic only — flat demand from outfit completionists"
+      - "Olivia's shop sells unlimited stock, capping price ceiling"
+      - "GE limit (150) and low margin make this a niche flip"
+  trading_tips:
+    - "Buy from Olivia's Gardening Supplies for guaranteed margin vs GE"
+    - "Demand bumps around Farming Guild releases and pet milestones"
+  history:
+    - date: "2005-08-08"
+      description: "Released alongside the original Farming skill update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

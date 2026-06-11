@@ -12,9 +12,74 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Carved oak table (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: flatpack
+    tier: low
+  recipes:
+    - skill: construction
+      level: 31
+      xp: 120
+      materials:
+        - item_name: Oak plank
+          item_id: 8778
+          quantity: 4
+      facility: Workbench (player-owned house workshop)
+      product: Carved oak table (flatpack)
+      product_id: 8552
+      output_quantity: 1
+  construction:
+    construction_level: 31
+    construction_xp: 120
+    room: Dining Room
+    hotspot: Dining Table
+    flatpack: true
+  related_items:
+    - item_id: 8778
+      item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: "Material (x4) for the flatpack"
+    - item_id: 8550
+      item_name: Oak table (flatpack)
+      slug: oak-table-flatpack
+      relationship: downgrade
+      description: "Lower tier oak dining table flatpack"
+    - item_id: 8554
+      item_name: Teak table (flatpack)
+      slug: teak-table-flatpack
+      relationship: upgrade
+      description: "Higher tier teak dining table flatpack"
+  about: "Carved oak table (flatpack) is a Construction 31 workbench product crafted from 4 oak planks for the Dining Room dining-table hotspot in the player-owned house."
+  market_strategy:
+    notes:
+      - "Construction 31 + 4 oak planks per flatpack"
+      - "120 XP per build, useful for Ironman early-Construction routes"
+      - "GE buy limit 500 per 4 hours"
+      - "High alch only 6 GP, alching is unprofitable"
+  trading_tips:
+    - "Track oak plank price; flatpack value tracks raw plank cost"
+    - "Bulk-buy on dips before Dining Room training waves"
+  history:
+    - date: "2006-05-31"
+      description: "Carved oak table flatpack added with the Construction skill release."
+    - date: "2015-02-26"
+      description: "Renamed to full name with the Grand Exchange flatpack rename pass."
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.0
+    options:
+      - Build
+      - Drop
+    alchable: true
+    destroy: "Drop"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

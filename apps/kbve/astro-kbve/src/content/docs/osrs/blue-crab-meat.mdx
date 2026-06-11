@@ -1,6 +1,6 @@
 ---
 title: Blue crab meat | OSRS Price Data
-description: "Blue crab meat: This looks tricky to eat.. High alch: 90 GP."
+description: "Blue crab meat is a members raw food from the Varlamore Hunter content. High alch: 90 GP."
 osrs:
   id: 31695
   name: Blue crab meat
@@ -12,9 +12,66 @@ osrs:
   lowalch: 60
   highalch: 90
   limit: null
-  about: "Blue crab meat is a members-only item in Old School RuneScape. High alchemy value: 90 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: meat
+    tier: low
+  properties:
+    release_date: "2024-05-15"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.226
+    options:
+      - Eat
+      - Cook
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  food:
+    heals: 3
+    bites: 1
+  recipes:
+    - skill: cooking
+      level: 30
+      xp: 100
+      materials:
+        - item_name: Blue crab meat
+          quantity: 1
+      tools:
+        - Fire
+      output_quantity: 1
+  related_items:
+    - item_name: Cooked blue crab meat
+      slug: cooked-blue-crab-meat
+      relationship: product
+      description: Cooked form of blue crab meat.
+    - item_name: Blue crab
+      slug: blue-crab
+      relationship: component
+      description: Hunter source of blue crab meat in Varlamore.
+    - item_name: Red crab meat
+      slug: red-crab-meat
+      relationship: alternative
+      description: Higher-tier Varlamore crab meat variant.
+  about: Blue crab meat is a raw food item dropped from blue crabs in the Varlamore Hunter rumour rotation. It can be eaten raw for a small heal, dropped, or cooked at 30 Cooking for a better Hitpoints restore.
+  market_strategy:
+    notes:
+      - "Trading Notes"
+      - "Untradeable on the Grand Exchange — value is purely in-content"
+      - "Generated as a Hunter rumour by-product, not farmed for profit"
+      - "Drop-rate spikes drag XP-per-hour for Hunter and Cooking"
+  trading_tips:
+    - "Cook on-site to save inventory slots before banking"
+    - "Treat as low-tier emergency food on Varlamore Hunter trips"
+  history:
+    - date: "2024-05-15"
+      description: "Added with the Varlamore Hunter rumours expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

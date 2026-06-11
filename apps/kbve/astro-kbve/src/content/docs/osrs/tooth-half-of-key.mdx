@@ -1,6 +1,6 @@
 ---
 title: Tooth half of key | OSRS Price Data
-description: "Tooth half of key: The tooth end of the mysterious Crystal Key. Can you find the other half?. High alch: 60 GP, GE limit: 11,000."
+description: "Tooth half of key is one of two halves combined to make a crystal key, which unlocks the crystal chest in Taverley. Dropped by many high-level monsters as well as Loop half of key. High alch: 60 GP, GE limit: 11,000."
 osrs:
   id: 985
   name: Tooth half of key
@@ -12,32 +12,104 @@ osrs:
   lowalch: 40
   highalch: 60
   limit: 11000
-  item:
-    type: material
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: key
+    tier: mid
+  properties:
+    release_date: "2002-09-23"
+    update: "Magic Shop & Crystal Chest"
     tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Use
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: King Black Dragon
+        source_id: 239
+        combat_level: 276
+        quantity: "1"
+        rarity: "1/128"
+        members_only: true
+      - source: Chaos Elemental
+        combat_level: 305
+        quantity: "1"
+        rarity: "1/128"
+        members_only: true
+        wilderness: true
+      - source: Black dragon
+        source_id: 252
+        combat_level: 227
+        quantity: "1"
+        rarity: "1/256"
+        members_only: true
+      - source: Greater demon
+        combat_level: 92
+        quantity: "1"
+        rarity: "1/512"
+        members_only: true
+      - source: Iron dragon
+        combat_level: 215
+        quantity: "1"
+        rarity: "1/300"
+        members_only: true
+      - source: Steel dragon
+        combat_level: 246
+        quantity: "1"
+        rarity: "1/300"
+        members_only: true
+      - source: Lava dragon
+        combat_level: 252
+        quantity: "1"
+        rarity: "1/300"
+        members_only: true
+        wilderness: true
+  recipes:
+    - skill: crafting
+      level: 0
+      materials:
+        - item_name: Tooth half of key
+          quantity: 1
+        - item_name: Loop half of key
+          quantity: 1
+      product: Crystal key
+      output_quantity: 1
   related_items:
     - item_id: 987
       item_name: Loop half of key
       slug: loop-half-of-key
-      relationship: alternative
-      description: Other half of crystal key
+      relationship: component
+      description: "Other half of the crystal key - combine to create the Crystal key."
     - item_id: 989
       item_name: Crystal key
       slug: crystal-key
       relationship: product
-      description: Combined form
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Key Part |
-    | Tradeable | Yes |
-    | Weight | 0.005 kg |
-    | Requirements | None |
-
-    Combine with loop half of key to create crystal key.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Combined key that unlocks the crystal chest in Taverley."
+  about: "Tooth half of key is one of the two halves that combine to make a Crystal key, which is used to unlock the Crystal chest in Taverley. It is dropped by many high-level monsters including the King Black Dragon, lava dragons, and various metal dragons. The two halves are tradeable independently on the Grand Exchange, but the combined Crystal key is not."
+  market_strategy:
+    notes:
+      - "Demand is driven by Crystal chest looters chasing the dragonstone-tier rewards."
+      - "Supply skews from KBD farming, Wilderness Slayer tasks, and metal dragon trips."
+      - "Tooth half typically trades within a few percent of Loop half - arbitrage is thin."
+      - "Stable, low-volatility flip ideal for low-capital margin trading."
+  trading_tips:
+    - "Buy half pairs in equal quantity to avoid getting stuck on the unpaired half."
+    - "Combine and sell loot rather than relisting if Crystal chest loot value exceeds key pair cost."
+    - "Watch for KBD seasonal challenge content - drop floods soften prices."
+  history:
+    - date: "2002-09-23"
+      description: "Released with the Magic Shop and Crystal Chest update that added the Taverley reward chest."
+    - date: "2007-12-10"
+      description: "Loot table of the Crystal chest reworked, indirectly affecting key half demand."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
