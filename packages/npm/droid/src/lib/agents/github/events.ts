@@ -1,5 +1,10 @@
 import type { AgentsCtx } from '../ctx';
 import type { AgentsApi } from '../api-types';
+import {
+	EventQueueStatsSchema,
+	FailedEventSchema,
+	PendingEventSchema,
+} from '../generated/discordsh-agents-schema';
 import type {
 	EventQueueStats,
 	FailedEvent,
@@ -23,9 +28,11 @@ export function makeEvents(ctx: AgentsCtx, api: AgentsApi) {
 		delete loading[guildId];
 		store.$eventStatsLoading.set(loading);
 		if (!r.ok) return;
+		const parsed = EventQueueStatsSchema.safeParse(r.data);
+		if (!parsed.success) return;
 		store.$eventStats.set({
 			...store.$eventStats.get(),
-			[guildId]: r.data,
+			[guildId]: parsed.data,
 		});
 	}
 
@@ -45,9 +52,11 @@ export function makeEvents(ctx: AgentsCtx, api: AgentsApi) {
 		delete loading[guildId];
 		store.$failedEventsLoading.set(loading);
 		if (!r.ok) return;
+		const parsed = FailedEventSchema.array().safeParse(r.data.events ?? []);
+		if (!parsed.success) return;
 		store.$failedEvents.set({
 			...store.$failedEvents.get(),
-			[guildId]: r.data.events ?? [],
+			[guildId]: parsed.data,
 		});
 	}
 
@@ -67,9 +76,13 @@ export function makeEvents(ctx: AgentsCtx, api: AgentsApi) {
 		delete loading[guildId];
 		store.$pendingEventsLoading.set(loading);
 		if (!r.ok) return;
+		const parsed = PendingEventSchema.array().safeParse(
+			r.data.events ?? [],
+		);
+		if (!parsed.success) return;
 		store.$pendingEvents.set({
 			...store.$pendingEvents.get(),
-			[guildId]: r.data.events ?? [],
+			[guildId]: parsed.data,
 		});
 	}
 

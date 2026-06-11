@@ -25,6 +25,7 @@
 #include "chuckItemDB.h"
 #include "KBVEMovementState.h"
 #include "KBVEStatFragment.h"
+#include "KBVEStatIds.h"
 #include "KBVEEffectComponent.h"
 #include "KBVEGameplayTypes.h"
 #include "chuckUIEvents.h"
@@ -212,6 +213,9 @@ void AchuckCoreCharacter::CreateStatEntity()
 		Frag->Mana                      = Stats.Mana;
 		Frag->MaxMana                   = Stats.MaxMana;
 		Frag->ManaRegenPerSec           = Stats.ManaRegenPerSec;
+		Frag->Energy                    = Stats.Energy;
+		Frag->MaxEnergy                 = Stats.MaxEnergy;
+		Frag->EnergyRegenPerSec         = Stats.EnergyRegenPerSec;
 		Frag->Stamina                   = Stats.Stamina;
 		Frag->MaxStamina                = Stats.MaxStamina;
 		Frag->StaminaRegenPerSec        = Stats.StaminaRegenPerSec;
@@ -281,6 +285,7 @@ void AchuckCoreCharacter::SyncStatsFragment(float DeltaSeconds)
 
 	Stats.Health           = Frag->Health;
 	Stats.Mana             = Frag->Mana;
+	Stats.Energy           = Frag->Energy;
 	Stats.Stamina          = Frag->Stamina;
 	Stats.StaminaRegenDelay = Frag->StaminaRegenDelay;
 
@@ -621,17 +626,19 @@ bool AchuckCoreCharacter::ServerConsumeSlot(int32 SlotIndex, bool bHotbar)
 
 float AchuckCoreCharacter::GetStatValue(FName StatId) const
 {
-	if (StatId == TEXT("Health"))  return Stats.Health;
-	if (StatId == TEXT("Mana"))    return Stats.Mana;
-	if (StatId == TEXT("Stamina")) return Stats.Stamina;
+	if (StatId == KBVEStats::Health)  return Stats.Health;
+	if (StatId == KBVEStats::Mana)    return Stats.Mana;
+	if (StatId == KBVEStats::Energy)  return Stats.Energy;
+	if (StatId == KBVEStats::Stamina) return Stats.Stamina;
 	return 0.f;
 }
 
 float AchuckCoreCharacter::GetStatMax(FName StatId) const
 {
-	if (StatId == TEXT("Health"))  return Stats.MaxHealth;
-	if (StatId == TEXT("Mana"))    return Stats.MaxMana;
-	if (StatId == TEXT("Stamina")) return Stats.MaxStamina;
+	if (StatId == KBVEStats::Health)  return Stats.MaxHealth;
+	if (StatId == KBVEStats::Mana)    return Stats.MaxMana;
+	if (StatId == KBVEStats::Energy)  return Stats.MaxEnergy;
+	if (StatId == KBVEStats::Stamina) return Stats.MaxStamina;
 	return 0.f;
 }
 
@@ -639,9 +646,10 @@ void AchuckCoreCharacter::ApplyStatDelta(FName StatId, float Delta)
 {
 	if (!HasAuthority() || Delta == 0.f) return;
 
-	if (StatId == TEXT("Health"))       Stats.Health  = FMath::Clamp(Stats.Health  + Delta, 0.f, Stats.MaxHealth);
-	else if (StatId == TEXT("Mana"))    Stats.Mana    = FMath::Clamp(Stats.Mana    + Delta, 0.f, Stats.MaxMana);
-	else if (StatId == TEXT("Stamina")) Stats.Stamina = FMath::Clamp(Stats.Stamina + Delta, 0.f, Stats.MaxStamina);
+	if (StatId == KBVEStats::Health)       Stats.Health  = FMath::Clamp(Stats.Health  + Delta, 0.f, Stats.MaxHealth);
+	else if (StatId == KBVEStats::Mana)    Stats.Mana    = FMath::Clamp(Stats.Mana    + Delta, 0.f, Stats.MaxMana);
+	else if (StatId == KBVEStats::Energy)  Stats.Energy  = FMath::Clamp(Stats.Energy  + Delta, 0.f, Stats.MaxEnergy);
+	else if (StatId == KBVEStats::Stamina) Stats.Stamina = FMath::Clamp(Stats.Stamina + Delta, 0.f, Stats.MaxStamina);
 	else return;
 
 	UWorld* World = GetWorld();
@@ -652,6 +660,7 @@ void AchuckCoreCharacter::ApplyStatDelta(FName StatId, float Delta)
 		{
 			Frag->Health  = Stats.Health;
 			Frag->Mana    = Stats.Mana;
+			Frag->Energy  = Stats.Energy;
 			Frag->Stamina = Stats.Stamina;
 		}
 	}
@@ -678,6 +687,11 @@ void AchuckCoreCharacter::PublishStatChanges()
 		!FMath::IsNearlyEqual(Stats.MaxMana, LastPublishedStats.MaxMana))
 	{
 		Bus->Mana.Publish({ Stats.Mana, Stats.MaxMana });
+	}
+	if (!FMath::IsNearlyEqual(Stats.Energy, LastPublishedStats.Energy) ||
+		!FMath::IsNearlyEqual(Stats.MaxEnergy, LastPublishedStats.MaxEnergy))
+	{
+		Bus->Energy.Publish({ Stats.Energy, Stats.MaxEnergy });
 	}
 	if (!FMath::IsNearlyEqual(Stats.Stamina, LastPublishedStats.Stamina) ||
 		!FMath::IsNearlyEqual(Stats.MaxStamina, LastPublishedStats.MaxStamina) ||

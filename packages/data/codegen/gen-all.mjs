@@ -80,6 +80,16 @@ const protos = [
 		package: 'kbve.discordsh',
 	},
 	{
+		name: 'discordsh_agents',
+		protoFile: 'kbve/discordsh.proto',
+		package: 'kbve.discordsh',
+		vendorTo: [
+			{
+				path: '../../npm/droid/src/lib/agents/generated/discordsh-agents-schema.ts',
+			},
+		],
+	},
+	{
 		name: 'ci_registry',
 		protoFile: 'kbve/ci_registry.proto',
 		package: 'kbve.ci',

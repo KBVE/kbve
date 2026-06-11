@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 
 const GameWindow = lazy(() => import('./GameWindow'));
 
-export default function GameWindowLoader() {
+export default function GameWindowLoader({ username }: { username?: string }) {
 	return (
 		<Suspense
 			fallback={
@@ -12,7 +12,7 @@ export default function GameWindowLoader() {
 					Loading game…
 				</div>
 			}>
-			<GameWindow />
+			<GameWindow username={username} />
 		</Suspense>
 	);
 }

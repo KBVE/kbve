@@ -42,7 +42,7 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: cryptothrone-server
-                          image: ghcr.io/kbve/cryptothrone-server:0.0.1
+                          image: ghcr.io/kbve/cryptothrone-server:0.0.2
                           imagePullPolicy: IfNotPresent
                           env:
                               - name: CT_SERVER_ADDR
