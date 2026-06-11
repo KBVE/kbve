@@ -53,8 +53,24 @@ impl RowsError {
             Self::Forbidden(m) => tonic::Status::permission_denied(m),
             Self::BadRequest(m) => tonic::Status::invalid_argument(m),
             Self::Conflict(m) => tonic::Status::already_exists(m),
-            Self::Database(e) => tonic::Status::internal(e.to_string()),
+            Self::Database(e) => {
+                tracing::error!(error = %e, "database error");
+                tonic::Status::internal("database error")
+            }
             Self::Internal(m) => tonic::Status::internal(m),
+        }
+    }
+
+    /// Client-safe message. `sqlx::Error` strings carry SQL + schema detail (table and constraint
+    /// names, connection targets), so DB errors are logged server-side and collapsed to a generic
+    /// string before leaving the process. The other variants are application-authored.
+    fn client_message(&self) -> Cow<'static, str> {
+        match self {
+            Self::Database(e) => {
+                tracing::error!(error = %e, "database error");
+                Cow::Borrowed("database error")
+            }
+            other => Cow::Owned(other.to_string()),
         }
     }
 }
@@ -70,10 +86,11 @@ struct ApiErrorBody<'a> {
 impl IntoResponse for RowsError {
     fn into_response(self) -> Response {
         let status = self.status();
+        let code = self.code();
         let body = ApiErrorBody {
             success: false,
-            code: self.code(),
-            error_message: Cow::Owned(self.to_string()),
+            code,
+            error_message: self.client_message(),
         };
         (status, axum::Json(body)).into_response()
     }
