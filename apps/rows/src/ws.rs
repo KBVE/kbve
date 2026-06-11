@@ -117,6 +117,19 @@ async fn handle_ws(mut socket: WebSocket, svc: Arc<OWSService>) {
     info!("WebSocket client disconnected");
 }
 
+/// Validates a `service_key` param for trusted server-to-server WS methods — the WS equivalent of
+/// the REST `require_service_key` gate. Player reads stay gated by their session GUID.
+fn ws_service_key_ok(svc: &OWSService, req: &WsRequest) -> bool {
+    let cfg = &svc.state().supabase;
+    if !cfg.service_key_enabled() {
+        return false;
+    }
+    match req.params.get("service_key").and_then(|v| v.as_str()) {
+        Some(k) if !k.is_empty() => crate::supabase::validate_service_key(k, cfg).is_ok(),
+        _ => false,
+    }
+}
+
 async fn dispatch(svc: &OWSService, req: &WsRequest) -> WsResponse {
     let id = req.id;
     let guid = svc.state().config.customer_guid;
@@ -184,6 +197,9 @@ async fn dispatch(svc: &OWSService, req: &WsRequest) -> WsResponse {
         }
 
         "update_position" => {
+            if !ws_service_key_ok(svc, req) {
+                return WsResponse::err(id, "UNAUTHENTICATED", "service key required");
+            }
             let name = req
                 .params
                 .get("name")
@@ -210,6 +226,9 @@ async fn dispatch(svc: &OWSService, req: &WsRequest) -> WsResponse {
         }
 
         "set_global_data" => {
+            if !ws_service_key_ok(svc, req) {
+                return WsResponse::err(id, "UNAUTHENTICATED", "service key required");
+            }
             let key = req.params.get("key").and_then(|v| v.as_str()).unwrap_or("");
             let value = req
                 .params

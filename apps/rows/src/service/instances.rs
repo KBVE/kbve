@@ -120,10 +120,14 @@ impl OWSService {
         if let Some(ref agones) = self.state.agones {
             let mq_ref = self.state.mq.as_ref();
             let instance_log = &self.state.instance_log;
+            let mut created_instance_id: Option<i32> = None;
+            let mut allocated_gs: Option<String> = None;
             let result = async {
                 let p = pipeline.allocate_via_agones(agones).await?;
+                allocated_gs = p.game_server_name().map(|s| s.to_string());
                 let p = p.register_world_server().await?;
                 let p = p.create_instance().await?;
+                created_instance_id = Some(p.instance_id());
                 let p = p.tag_gameserver(agones).await?;
 
                 if let Some(mq) = mq_ref {
@@ -159,25 +163,32 @@ impl OWSService {
             .await;
 
             if let Err(ref e) = result {
-                tracing::error!(error = %e, zone, "Agones pipeline failed — cleaning up");
+                tracing::error!(error = %e, zone, "Agones pipeline failed — cleaning up this allocation");
 
                 let lock_key = format!("{customer_guid}:{zone}");
                 self.state.zone_spinup_locks.remove(&lock_key);
 
-                let repo = crate::repo::InstanceRepo(&self.state.db);
-                if let Err(cleanup_err) = repo.delete_all_map_instances(customer_guid).await {
-                    tracing::warn!(error = %cleanup_err, "Failed to clean up stale mapinstances after pipeline failure");
+                if let Some(instance_id) = created_instance_id {
+                    self.state.zone_servers.remove(&instance_id);
+                    let repo = crate::repo::InstanceRepo(&self.state.db);
+                    if let Err(cleanup_err) =
+                        repo.delete_map_instance(customer_guid, instance_id).await
+                    {
+                        tracing::warn!(error = %cleanup_err, instance_id, "Failed to delete failed mapinstance");
+                    }
                 }
-                if let Err(cleanup_err) = repo.deactivate_all_world_servers(customer_guid).await {
-                    tracing::warn!(error = %cleanup_err, "Failed to deactivate world servers after pipeline failure");
+                if let Some(ref gs) = allocated_gs {
+                    if let Err(dealloc_err) = agones.deallocate(gs).await {
+                        tracing::warn!(error = %dealloc_err, gs = %gs, "Failed to deallocate orphaned GameServer");
+                    }
                 }
 
                 instance_log.push(crate::rest::system::InstanceEvent {
                     timestamp: chrono::Utc::now(),
                     event: "allocation_failed".into(),
-                    zone_instance_id: 0,
+                    zone_instance_id: created_instance_id.unwrap_or(0),
                     map_name: zone.to_string(),
-                    game_server: "unknown".into(),
+                    game_server: allocated_gs.clone().unwrap_or_else(|| "unknown".into()),
                     trigger: format!("error: {e}"),
                 });
             }

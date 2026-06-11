@@ -129,17 +129,25 @@ impl<'a> AllocationPipeline<'a> {
         Ok(self)
     }
 
-    /// Errors with `Conflict` when another allocation is in progress for this zone.
+    /// Errors with `Conflict` when another allocation is in progress for this zone. The
+    /// check-and-insert is done through `entry()` so it is atomic per shard — a plain
+    /// `get()` then `insert()` let two concurrent allocations for the same zone both pass.
     pub fn acquire_lock(self, locks: &DashMap<String, Instant>) -> Result<Self, RowsError> {
-        if let Some(entry) = locks.get(&self.lock_key) {
-            let age = entry.value().elapsed();
-            if age < Duration::from_secs(spinup_timeout_secs() + 10) {
-                tracing::info!(zone = %self.zone, age_secs = age.as_secs(), "Spin-up already in progress, skipping");
-                return Err(RowsError::Conflict("Allocation already in progress".into()));
+        use dashmap::mapref::entry::Entry;
+        match locks.entry(self.lock_key.clone()) {
+            Entry::Occupied(mut e) => {
+                let age = e.get().elapsed();
+                if age < Duration::from_secs(spinup_timeout_secs() + 10) {
+                    tracing::info!(zone = %self.zone, age_secs = age.as_secs(), "Spin-up already in progress, skipping");
+                    return Err(RowsError::Conflict("Allocation already in progress".into()));
+                }
+                tracing::warn!(zone = %self.zone, age_secs = age.as_secs(), "Expired stale spin-up lock");
+                e.insert(Instant::now());
             }
-            tracing::warn!(zone = %self.zone, age_secs = age.as_secs(), "Expired stale spin-up lock");
+            Entry::Vacant(e) => {
+                e.insert(Instant::now());
+            }
         }
-        locks.insert(self.lock_key.clone(), Instant::now());
         Ok(self)
     }
 
