@@ -962,7 +962,6 @@ void AchuckCorePlayerController::ApplyUiFlagsVisibility()
 	Apply(PauseWidget,     HasUiFlag(EUiFlag::Pause),     EVisibility::Visible);
 	Apply(SettingsWidget,  HasUiFlag(EUiFlag::Settings),  EVisibility::Visible);
 	Apply(DevOverlayWidget,HasUiFlag(EUiFlag::DevOverlay),EVisibility::SelfHitTestInvisible);
-	Apply(ChatWidget,      HasUiFlag(EUiFlag::Chat),      EVisibility::SelfHitTestInvisible);
 	Apply(AccountWidget,   HasUiFlag(EUiFlag::Account),   EVisibility::SelfHitTestInvisible);
 }
 
@@ -996,6 +995,7 @@ void AchuckCorePlayerController::RefreshAuthOverlayVisibility(bool bSignedIn)
 	if (!bSignedIn)
 	{
 		SetUiFlag(EUiFlag::Chat, false);
+		if (ChatWidget.IsValid()) ChatWidget->Dock();
 	}
 }
 

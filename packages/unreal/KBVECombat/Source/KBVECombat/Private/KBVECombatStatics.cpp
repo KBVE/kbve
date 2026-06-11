@@ -161,7 +161,7 @@ int32 UKBVECombatStatics::DamageMassStatTargetsInSphere(const UObject* WorldCont
 	FMassEntityManager& EM = MassSys->GetMutableEntityManager();
 	const double RadiusSq = static_cast<double>(Radius) * static_cast<double>(Radius);
 
-	FMassEntityQuery Query;
+	FMassEntityQuery Query(EM.AsShared());
 	Query.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
 	Query.AddRequirement<FKBVEStatFragment>(EMassFragmentAccess::ReadWrite);
 

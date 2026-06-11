@@ -13,6 +13,7 @@ public class KBVECombat : ModuleRules
 			"Engine",
 			"NetCore",
 			"MassEntity",
+			"MassCommon",
 			"KBVEGameplay"
 		});
 	}

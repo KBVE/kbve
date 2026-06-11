@@ -335,7 +335,18 @@ void AchuckCoreCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInput
 		{
 			EIC->BindAction(ToggleCameraAction, ETriggerEvent::Started, this, &AchuckCoreCharacter::OnToggleCameraPressed);
 		}
+		if (AttackAction)
+		{
+			EIC->BindAction(AttackAction, ETriggerEvent::Started, this, &AchuckCoreCharacter::OnAttackPressed);
+		}
 	}
+}
+
+void AchuckCoreCharacter::OnAttackPressed(const FInputActionValue& Value)
+{
+	const bool bOk = AbilityComp ? AbilityComp->TryActivate(FName(TEXT("melee"))) : false;
+	UE_LOG(LogTemp, Warning, TEXT("[chuck] Attack pressed: comp=%d activated=%d auth=%d energy=%.0f"),
+		AbilityComp != nullptr, bOk, HasAuthority(), Stats.Energy);
 }
 
 void AchuckCoreCharacter::OnSprintPressed(const FInputActionValue& Value)

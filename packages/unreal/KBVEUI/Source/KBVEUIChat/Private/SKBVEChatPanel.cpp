@@ -110,7 +110,7 @@ void SKBVEChatPanel::Construct(const FArguments& InArgs)
 		[
 			SNew(SBorder)
 			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-			.BorderBackgroundColor(FSlateColor(FLinearColor(0.04f, 0.06f, 0.09f, 0.55f)))
+			.BorderBackgroundColor_Lambda([this]() { return IsDocked() ? FSlateColor(FLinearColor::Transparent) : FSlateColor(FLinearColor(0.04f, 0.06f, 0.09f, 0.55f)); })
 			.Padding(FMargin(2.f))
 			[
 				SNew(SVerticalBox)
@@ -119,6 +119,7 @@ void SKBVEChatPanel::Construct(const FArguments& InArgs)
 					SAssignNew(HeaderText, STextBlock)
 					.Text(FText::GetEmpty())
 					.Font(HeaderFont)
+					.Visibility_Lambda([this]() { return IsDocked() ? EVisibility::Collapsed : EVisibility::Visible; })
 				]
 			+ SVerticalBox::Slot().AutoHeight().Padding(2.f, 0.f, 2.f, 4.f)
 			[
@@ -131,6 +132,7 @@ void SKBVEChatPanel::Construct(const FArguments& InArgs)
 			+ SVerticalBox::Slot().AutoHeight().Padding(2.f)
 			[
 				SNew(SHorizontalBox)
+				.Visibility_Lambda([this]() { return IsDocked() ? EVisibility::Collapsed : EVisibility::Visible; })
 				+ SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 4.f, 0.f)
 				[
 					SAssignNew(InputBox, SEditableTextBox)
@@ -542,7 +544,7 @@ FReply SKBVEChatPanel::OnPreviewKeyDown(const FGeometry& MyGeometry, const FKeyE
 {
 	if (InKeyEvent.GetKey() == EKeys::Slash)
 	{
-		ToggleVisible();
+		Dock();
 		OnCloseClicked.ExecuteIfBound();
 		return FReply::Handled();
 	}
