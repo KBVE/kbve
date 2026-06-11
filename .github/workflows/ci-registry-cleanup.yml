@@ -1,0 +1,52 @@
+name: CI - Registry Cleanup (GHCR)
+
+on:
+    schedule:
+        - cron: '0 4 * * 0'
+    workflow_dispatch:
+        inputs:
+            dry_run:
+                description: Preview deletions without executing them
+                type: boolean
+                default: true
+
+permissions:
+    packages: write
+
+concurrency:
+    group: registry-cleanup-ghcr
+    cancel-in-progress: false
+
+jobs:
+    collect:
+        if: github.repository == 'KBVE/kbve'
+        runs-on: ubuntu-latest
+        outputs:
+            image_names: ${{ steps.list.outputs.image_names }}
+        steps:
+            - uses: actions/checkout@v6
+
+            - id: list
+              run: |
+                  NAMES=$(jq -r '[.docker[].image | sub("^kbve/"; "")] | unique | join(" ")' .github/ci-dispatch-manifest.json)
+                  if [ -z "${NAMES}" ]; then
+                    echo "::error::No images resolved from ci-dispatch-manifest.json"
+                    exit 1
+                  fi
+                  echo "Resolved images: ${NAMES}"
+                  echo "image_names=${NAMES}" >> "$GITHUB_OUTPUT"
+
+    prune:
+        needs: collect
+        runs-on: ubuntu-latest
+        steps:
+            - uses: snok/container-retention-policy@v3.1.0
+              with:
+                  account: kbve
+                  token: ${{ secrets.UNITY_PAT }}
+                  image-names: ${{ needs.collect.outputs.image_names }}
+                  image-tags: '!latest !*.*.*'
+                  tag-selection: both
+                  cut-off: 1w
+                  keep-n-most-recent: 20
+                  dry-run: ${{ (github.event_name == 'workflow_dispatch' && inputs.dry_run) && 'true' || 'false' }}
