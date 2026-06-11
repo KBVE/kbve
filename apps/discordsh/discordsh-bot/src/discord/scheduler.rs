@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use jedi::entity::github::GitHubClient;
 use poise::serenity_prelude::{ChannelId, CreateMessage};
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 use super::embeds::notice_board_embed::{build_notice_board_summary, notices_from_stale};
 use super::embeds::task_board_embed::{build_task_board_embed, tasks_from_issues};
@@ -83,6 +83,20 @@ pub fn spawn_github_board_scheduler(app: Arc<AppState>) {
             return;
         }
     };
+
+    if app
+        .github_board_scheduler_started
+        .compare_exchange(
+            false,
+            true,
+            std::sync::atomic::Ordering::AcqRel,
+            std::sync::atomic::Ordering::Acquire,
+        )
+        .is_err()
+    {
+        debug!("GitHub board scheduler already running; skipping duplicate spawn");
+        return;
+    }
 
     info!(
         thread_id = %config.thread_id,

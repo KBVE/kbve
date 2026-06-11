@@ -129,6 +129,19 @@ pub fn spawn_gh_sync_worker(
         warn!("gh sync: SUPABASE_URL/SERVICE_ROLE_KEY missing, multi-guild routing disabled");
         return;
     };
+    if app
+        .gh_sync_worker_started
+        .compare_exchange(
+            false,
+            true,
+            std::sync::atomic::Ordering::AcqRel,
+            std::sync::atomic::Ordering::Acquire,
+        )
+        .is_err()
+    {
+        debug!("gh sync worker already running; skipping duplicate spawn");
+        return;
+    }
     let cfg = GhSyncConfig::from_env();
     info!(
         poll_secs = cfg.poll.as_secs(),

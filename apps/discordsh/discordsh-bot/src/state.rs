@@ -107,6 +107,13 @@ pub struct AppState {
 
     pub relay: Option<RelayConfig>,
 
+    /// Guards against spawning per-`Ready` background workers more than once.
+    /// The `Ready` event fires once per shard, so these ensure a single
+    /// instance regardless of shard count (otherwise work duplicates N times).
+    pub irc_forwarder_started: AtomicBool,
+    pub github_board_scheduler_started: AtomicBool,
+    pub gh_sync_worker_started: AtomicBool,
+
     /// Optional n8n webhook forwarder. `None` when `N8N_BASE_URL`,
     /// `N8N_HMAC_SECRET`, or `N8N_ALLOWED_PATHS` are missing — in which case
     /// `/n8n` is not registered as a usable command.
@@ -251,6 +258,9 @@ impl AppState {
             github_store: Arc::new(GithubStore::from_env()),
             irc,
             relay,
+            irc_forwarder_started: AtomicBool::new(false),
+            github_board_scheduler_started: AtomicBool::new(false),
+            gh_sync_worker_started: AtomicBool::new(false),
             n8n,
             local_db,
         }

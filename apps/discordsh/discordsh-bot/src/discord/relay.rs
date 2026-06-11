@@ -48,6 +48,19 @@ pub fn spawn_irc_forwarder(app: Arc<AppState>, http: Arc<serenity::Http>) {
     let Some(irc) = app.irc.as_ref() else {
         return;
     };
+    if app
+        .irc_forwarder_started
+        .compare_exchange(
+            false,
+            true,
+            std::sync::atomic::Ordering::AcqRel,
+            std::sync::atomic::Ordering::Acquire,
+        )
+        .is_err()
+    {
+        debug!("IRC -> Discord forwarder already running; skipping duplicate spawn");
+        return;
+    }
     let mut rx = irc.subscribe();
     info!(
         irc_channel = %relay.irc_channel,
