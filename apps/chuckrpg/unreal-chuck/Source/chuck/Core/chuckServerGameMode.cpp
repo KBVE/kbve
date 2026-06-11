@@ -15,9 +15,9 @@ AchuckServerGameMode::AchuckServerGameMode()
 	PlayerStateClass = AchuckPlayerState::StaticClass();
 }
 
-void AchuckServerGameMode::InitNewPlayer(AController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal)
+FString AchuckServerGameMode::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId, const FString& Options, const FString& Portal)
 {
-	Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+	const FString Result = Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
 
 	const FString Character = UGameplayStatics::ParseOption(Options, TEXT("character"));
 	if (!Character.IsEmpty() && NewPlayerController)
@@ -27,6 +27,8 @@ void AchuckServerGameMode::InitNewPlayer(AController* NewPlayerController, const
 			State->CharacterName = Character;
 		}
 	}
+
+	return Result;
 }
 
 void AchuckServerGameMode::Logout(AController* Exiting)
