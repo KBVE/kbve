@@ -60,9 +60,15 @@ const PhaserCanvas = memo(function PhaserCanvas() {
  * Uses dispatch-only hook so this wrapper never re-renders on state changes.
  * Each child subscribes to its own state slice independently.
  */
-function GameUI() {
+function GameUI({ username }: { username?: string }) {
 	const dispatch = useGameDispatch();
 	useEventBridge(dispatch);
+
+	useEffect(() => {
+		if (username) {
+			dispatch({ type: 'SET_PLAYER_STATS', payload: { username } });
+		}
+	}, [dispatch, username]);
 
 	useEffect(() => {
 		if (import.meta.env.DEV) {
@@ -87,12 +93,12 @@ function GameUI() {
 	);
 }
 
-export default function GameWindow() {
+export default function GameWindow({ username }: { username?: string }) {
 	return (
 		<GameStoreProvider>
 			<div className="relative flex justify-center items-center w-full h-full">
 				<PhaserCanvas />
-				<GameUI />
+				<GameUI username={username} />
 			</div>
 		</GameStoreProvider>
 	);
