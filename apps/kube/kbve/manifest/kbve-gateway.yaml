@@ -129,34 +129,6 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
-        - name: https-rows-chuckrpg-beta
-          protocol: HTTPS
-          port: 443
-          hostname: api-beta.chuckrpg.com
-          tls:
-              mode: Terminate
-              certificateRefs:
-                  - kind: Secret
-                    group: ''
-                    name: rows-chuckrpg-beta-api-tls
-                    namespace: rows-chuckrpg-beta
-          allowedRoutes:
-              namespaces:
-                  from: All
-        - name: https-rows-rentearth-release
-          protocol: HTTPS
-          port: 443
-          hostname: api.rentearth.com
-          tls:
-              mode: Terminate
-              certificateRefs:
-                  - kind: Secret
-                    group: ''
-                    name: rows-rentearth-release-api-tls
-                    namespace: rows-rentearth-release
-          allowedRoutes:
-              namespaces:
-                  from: All
         - name: https-cityvote
           protocol: HTTPS
           port: 443

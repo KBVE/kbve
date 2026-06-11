@@ -33,6 +33,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Chuck|Session")
 	void CreateCharacter(const FString& CharacterName, const FString& ClassName);
 
+	/** Placeholder: adds a local character (no ROWS) so offline play works until char creation is wired. */
+	UFUNCTION(BlueprintCallable, Category = "Chuck|Session")
+	void CreatePlaceholderCharacter(const FString& CharacterName);
+
 	UFUNCTION(BlueprintCallable, Category = "Chuck|Session")
 	void RemoveCharacter(const FString& CharacterName);
 

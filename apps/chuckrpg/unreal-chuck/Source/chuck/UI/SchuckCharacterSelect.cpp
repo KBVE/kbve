@@ -104,7 +104,7 @@ FReply SchuckCharacterSelect::HandleCreate()
 		const FString Name = NameBox->GetText().ToString().TrimStartAndEnd();
 		if (!Name.IsEmpty())
 		{
-			Session->CreateCharacter(Name, TEXT("Adventurer"));
+			Session->CreatePlaceholderCharacter(Name);
 			NameBox->SetText(FText::GetEmpty());
 		}
 	}
