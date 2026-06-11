@@ -314,7 +314,9 @@ impl<'a> InstanceRepo<'a> {
                     m.minutestoshutdownafterempty AS minutes_to_shutdown_after_empty
              FROM mapinstances mi
              JOIN maps m ON m.mapid = mi.mapid AND m.customerguid = mi.customerguid
-             WHERE mi.customerguid = $1 AND mi.status = 0",
+             WHERE mi.customerguid = $1 AND mi.status = 0
+             ORDER BY mi.mapinstanceid
+             LIMIT 500",
         )
         .bind(customer_guid)
         .fetch_all(self.0)
