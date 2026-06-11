@@ -8,6 +8,9 @@
 #include "Engine/Engine.h"
 #include "MassEntitySubsystem.h"
 #include "MassEntityManager.h"
+#include "MassExecutionContext.h"
+#include "MassCommonFragments.h"
+#include "KBVEStatFragment.h"
 
 namespace
 {
@@ -136,4 +139,51 @@ bool UKBVECombatStatics::ApplyDotToEntity(const UObject* WorldContext, FMassEnti
 	Dot.Interval = FMath::Max(0.05f, Interval);
 	DotFragment->Dots.Add(Dot);
 	return true;
+}
+
+int32 UKBVECombatStatics::DamageMassStatTargetsInSphere(const UObject* WorldContext, const FVector& Center, float Radius, float Amount)
+{
+	if (Amount <= 0.0f || Radius <= 0.0f)
+	{
+		return 0;
+	}
+	UWorld* World = GEngine ? GEngine->GetWorldFromContextObject(WorldContext, EGetWorldErrorMode::ReturnNull) : nullptr;
+	if (!World)
+	{
+		return 0;
+	}
+	UMassEntitySubsystem* MassSys = World->GetSubsystem<UMassEntitySubsystem>();
+	if (!MassSys)
+	{
+		return 0;
+	}
+
+	FMassEntityManager& EM = MassSys->GetMutableEntityManager();
+	const double RadiusSq = static_cast<double>(Radius) * static_cast<double>(Radius);
+
+	FMassEntityQuery Query;
+	Query.AddRequirement<FTransformFragment>(EMassFragmentAccess::ReadOnly);
+	Query.AddRequirement<FKBVEStatFragment>(EMassFragmentAccess::ReadWrite);
+
+	int32 Hits = 0;
+	FMassExecutionContext Context(EM);
+	Query.ForEachEntityChunk(EM, Context, [&Hits, Center, RadiusSq, Amount](FMassExecutionContext& Chunk)
+	{
+		const TConstArrayView<FTransformFragment> Xforms = Chunk.GetFragmentView<FTransformFragment>();
+		const TArrayView<FKBVEStatFragment> Stats = Chunk.GetMutableFragmentView<FKBVEStatFragment>();
+		const int32 Num = Chunk.GetNumEntities();
+		for (int32 i = 0; i < Num; ++i)
+		{
+			if (Stats[i].Health <= 0.0f)
+			{
+				continue;
+			}
+			if (FVector::DistSquared(Xforms[i].GetTransform().GetLocation(), Center) <= RadiusSq)
+			{
+				Stats[i].Health = FMath::Max(0.0f, Stats[i].Health - Amount);
+				++Hits;
+			}
+		}
+	});
+	return Hits;
 }

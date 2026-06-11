@@ -62,6 +62,7 @@ void SKBVEChatPanel::Construct(const FArguments& InArgs)
 	OnCloseClicked = InArgs._OnCloseClicked;
 	OnSaveGeometry = InArgs._OnSaveGeometry;
 	OnLoadGeometry = InArgs._OnLoadGeometry;
+	const FMargin DockPad = InArgs._DockPadding;
 
 	if (!ActiveChannel.IsEmpty())
 	{
@@ -97,9 +98,11 @@ void SKBVEChatPanel::Construct(const FArguments& InArgs)
 		.InitialPosition(StartPos)
 		.FrameSize(StartSize)
 		.MinFrameSize(FVector2D(320.f, 180.f))
+		.bStartDocked(true)
+		.DockPadding(DockPad)
 		.OnCloseClicked_Lambda([this]()
 		{
-			SetVisibility(EVisibility::Collapsed);
+			Dock();
 			OnCloseClicked.ExecuteIfBound();
 		})
 		.OnGeometryChanged_Lambda([this]() { PersistGeometry(); })
@@ -630,9 +633,32 @@ void SKBVEChatPanel::ShowAndFocusInput()
 	}
 }
 
+void SKBVEChatPanel::Dock()
+{
+	if (MovableFrame.IsValid())
+	{
+		MovableFrame->SetDocked(true);
+	}
+	SetVisibility(EVisibility::SelfHitTestInvisible);
+}
+
+void SKBVEChatPanel::Undock()
+{
+	if (MovableFrame.IsValid())
+	{
+		MovableFrame->SetDocked(false);
+	}
+	ShowAndFocusInput();
+}
+
+bool SKBVEChatPanel::IsDocked() const
+{
+	return MovableFrame.IsValid() && MovableFrame->IsDocked();
+}
+
 void SKBVEChatPanel::PersistGeometry()
 {
-	if (!MovableFrame.IsValid()) return;
+	if (!MovableFrame.IsValid() || MovableFrame->IsDocked()) return;
 	OnSaveGeometry.ExecuteIfBound(MovableFrame->GetCurrentPosition(), MovableFrame->GetCurrentSize());
 }
 

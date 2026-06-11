@@ -39,6 +39,7 @@ protected:
 	virtual void OnUnPossess() override;
 
 	void OnPausePressed(const FInputActionValue& Value);
+	void OnToggleSettingsPressed(const FInputActionValue& Value);
 	void OnToggleDevOverlayPressed(const FInputActionValue& Value);
 	void OnInventoryPressed(const FInputActionValue& Value);
 	void OnToggleChatPressed(const FInputActionValue& Value);
@@ -52,6 +53,8 @@ protected:
 	void ResumeGame();
 	void OpenSettings();
 	void CloseSettings();
+	void ToggleSettings();
+	void ResetSettingsToDefaults();
 	void QuitToMainMenu();
 	void QuitGame();
 

@@ -24,6 +24,7 @@
 #include "MassEntityManager.h"
 #include "SchuckHotbar.h"
 #include "SchuckHUD.h"
+#include "ChuckUIStyle.h"
 #include "SchuckInventoryWindow.h"
 #include "SKBVELoginWidget.h"
 #include "SKBVEAccountPanel.h"
@@ -39,6 +40,7 @@
 #include "SKBVESettingsFrame.h"
 #include "SKBVESettingsToggleRow.h"
 #include "SKBVESettingsSliderRow.h"
+#include "SKBVESettingsComboRow.h"
 #include "SchuckToastHost.h"
 #include "Engine/Engine.h"
 #include "GameFramework/GameUserSettings.h"
@@ -88,6 +90,10 @@ void AchuckCorePlayerController::SetupInputComponent()
 			if (Inputs->Pause)
 			{
 				EIC->BindAction(Inputs->Pause, ETriggerEvent::Started, this, &AchuckCorePlayerController::OnPausePressed);
+			}
+			if (Inputs->ToggleSettings)
+			{
+				EIC->BindAction(Inputs->ToggleSettings, ETriggerEvent::Started, this, &AchuckCorePlayerController::OnToggleSettingsPressed);
 			}
 			if (Inputs->ToggleDevOverlay)
 			{
@@ -194,8 +200,19 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 	}
 
 	AccountWidget = SNew(SKBVEAccountPanel).Subsystem(SupabaseSubsystem);
+
+	const ISlateStyle& UIStyle = FChuckUIStyle::Get();
+	const float StatBarHeight  = UIStyle.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Height);
+	const float StatBarSpacing = UIStyle.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Spacing);
+	const FMargin StatPadding  = UIStyle.GetMargin(FChuckUIStyle::FKeys::HUD_Padding);
+	constexpr int32 StatBarCount = 3;
+	constexpr float ChatDockGap  = 16.f;
+	const float StatStackHeight  = StatBarHeight * StatBarCount + StatBarSpacing * (StatBarCount - 1);
+	const FMargin ChatDockPadding(StatPadding.Left, 0.f, 0.f, StatPadding.Bottom + StatStackHeight + ChatDockGap);
+
 	ChatWidget    = SNew(SKBVEChatPanel)
 		.Subsystem(SupabaseSubsystem)
+		.DockPadding(ChatDockPadding)
 		.OnCloseClicked(FSimpleDelegate::CreateLambda([this]()
 		{
 			SetUiFlag(EUiFlag::Chat, false);
@@ -362,6 +379,38 @@ void AchuckCorePlayerController::OnPausePressed(const FInputActionValue& Value)
 	}
 }
 
+void AchuckCorePlayerController::OnToggleSettingsPressed(const FInputActionValue& Value)
+{
+	ToggleSettings();
+}
+
+void AchuckCorePlayerController::ToggleSettings()
+{
+	if (HasUiFlag(EUiFlag::Settings))
+	{
+		CloseSettings();
+	}
+	else
+	{
+		OpenSettings();
+	}
+}
+
+void AchuckCorePlayerController::ResetSettingsToDefaults()
+{
+	if (UchuckSettings* Settings = UchuckSettings::Get(this))
+	{
+		Settings->ResetGraphicsToDefaults(true);
+	}
+	// Rebuild so combo/slider rows reflect the restored defaults.
+	const bool bWasOpen = HasUiFlag(EUiFlag::Settings);
+	CloseSettings();
+	if (bWasOpen)
+	{
+		OpenSettings();
+	}
+}
+
 void AchuckCorePlayerController::PauseGame()
 {
 	if (HasUiFlag(EUiFlag::Pause))
@@ -427,61 +476,131 @@ void AchuckCorePlayerController::OpenSettings()
 		return;
 	}
 
-	UGameUserSettings* GUS = GEngine ? GEngine->GetGameUserSettings() : nullptr;
-	const float ResScale = GUS ? GUS->GetResolutionScaleNormalized() * 100.f : 100.f;
+	UchuckSettings* Settings = UchuckSettings::Get(this);
+	if (!Settings)
+	{
+		return;
+	}
+	const FchuckGraphicsSettings G = Settings->GetGraphics();
+
+	// Toggle row bound to one bool field. Captures `Settings` (subsystem outlives
+	// the window) by value so the stored delegate stays valid after OpenSettings returns.
+	auto MakeToggle = [Settings](FText Label, bool bInitial, TFunction<void(FchuckGraphicsSettings&, bool)> Set)
+	{
+		return SNew(SKBVESettingsToggleRow)
+			.Label(Label)
+			.IsChecked(bInitial)
+			.OnToggled_Lambda([Settings, Set](bool bOn)
+			{
+				FchuckGraphicsSettings W = Settings->GetGraphics();
+				Set(W, bOn);
+				Settings->SetGraphics(W);
+			});
+	};
+
+	const int32 MsaaIndex = G.MSAASamples >= 8 ? 3 : (G.MSAASamples >= 4 ? 2 : (G.MSAASamples >= 2 ? 1 : 0));
+	const TArray<int32> MsaaByIndex = { 0, 2, 4, 8 };
+
+	const TArray<int32> FpsByIndex = { 0, 30, 60, 120, 144, 240 };
+	int32 FpsIndex = 0;
+	for (int32 i = 0; i < FpsByIndex.Num(); ++i) { if (FpsByIndex[i] == G.FpsCap) { FpsIndex = i; break; } }
 
 	SettingsWidget = SNew(SKBVESettingsFrame)
 		.Title(NSLOCTEXT("chuck", "SettingsTitle", "Settings"))
-		.bShowReset(false)
+		.bShowReset(true)
 		.OnCloseClicked (FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::CloseSettings))
 		.OnCancelClicked(FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::CloseSettings))
-		.OnApplyClicked (FSimpleDelegate::CreateLambda([]()
-		{
-			if (UGameUserSettings* S = GEngine ? GEngine->GetGameUserSettings() : nullptr)
-			{
-				S->ApplySettings(false);
-				S->SaveSettings();
-			}
-		}))
+		.OnResetClicked (FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::ResetSettingsToDefaults))
+		.OnApplyClicked (FSimpleDelegate::CreateLambda([Settings]() { Settings->ApplyGraphics(); }))
 		.Rows()
 		[
 			SNew(SVerticalBox)
 
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			.Padding(0.f, 0.f, 0.f, 8.f)
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+			[ MakeToggle(NSLOCTEXT("chuck", "Lumen", "Lumen Global Illumination"), G.bLumenGI,
+				[](FchuckGraphicsSettings& W, bool b) { W.bLumenGI = b; }) ]
+
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+			[ MakeToggle(NSLOCTEXT("chuck", "LumenRefl", "Lumen Reflections"), G.bLumenReflections,
+				[](FchuckGraphicsSettings& W, bool b) { W.bLumenReflections = b; }) ]
+
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+			[ MakeToggle(NSLOCTEXT("chuck", "VSM", "Virtual Shadow Maps"), G.bVirtualShadowMaps,
+				[](FchuckGraphicsSettings& W, bool b) { W.bVirtualShadowMaps = b; }) ]
+
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+			[ MakeToggle(NSLOCTEXT("chuck", "RayTracing", "Ray Tracing (restart)"), G.bRayTracing,
+				[](FchuckGraphicsSettings& W, bool b) { W.bRayTracing = b; }) ]
+
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+			[ MakeToggle(NSLOCTEXT("chuck", "MotionBlur", "Motion Blur"), G.bMotionBlur,
+				[](FchuckGraphicsSettings& W, bool b) { W.bMotionBlur = b; }) ]
+
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+			[ MakeToggle(NSLOCTEXT("chuck", "Bloom", "Bloom"), G.bBloom,
+				[](FchuckGraphicsSettings& W, bool b) { W.bBloom = b; }) ]
+
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
 			[
-				SNew(SKBVESettingsToggleRow)
-				.Label(NSLOCTEXT("chuck", "VSync", "V-Sync"))
-				.IsChecked_Lambda([]()
+				SNew(SKBVESettingsComboRow)
+				.Label(NSLOCTEXT("chuck", "AntiAliasing", "Anti-Aliasing"))
+				.Options(TArray<FString>{ TEXT("None"), TEXT("FXAA"), TEXT("TAA"), TEXT("TSR") })
+				.InitialSelection(FMath::Clamp(G.AntiAliasing, 0, 3))
+				.OnSelectionChanged_Lambda([Settings](FString, int32 Index)
 				{
-					UGameUserSettings* S = GEngine ? GEngine->GetGameUserSettings() : nullptr;
-					return S && S->IsVSyncEnabled();
-				})
-				.OnToggled_Lambda([](bool bOn)
-				{
-					if (UGameUserSettings* S = GEngine ? GEngine->GetGameUserSettings() : nullptr)
-					{
-						S->SetVSyncEnabled(bOn);
-					}
+					FchuckGraphicsSettings W = Settings->GetGraphics();
+					W.AntiAliasing = Index;
+					Settings->SetGraphics(W);
 				})
 			]
 
-			+ SVerticalBox::Slot()
-			.AutoHeight()
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+			[
+				SNew(SKBVESettingsComboRow)
+				.Label(NSLOCTEXT("chuck", "MSAA", "MSAA (forward)"))
+				.Options(TArray<FString>{ TEXT("Off"), TEXT("2x"), TEXT("4x"), TEXT("8x") })
+				.InitialSelection(MsaaIndex)
+				.OnSelectionChanged_Lambda([Settings, MsaaByIndex](FString, int32 Index)
+				{
+					const int32 Samples = MsaaByIndex.IsValidIndex(Index) ? MsaaByIndex[Index] : 0;
+					FchuckGraphicsSettings W = Settings->GetGraphics();
+					W.MSAASamples = Samples;
+					Settings->SetGraphics(W);
+				})
+			]
+
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+			[
+				SNew(SKBVESettingsComboRow)
+				.Label(NSLOCTEXT("chuck", "FpsCap", "FPS Limit"))
+				.Options(TArray<FString>{ TEXT("Uncapped"), TEXT("30"), TEXT("60"), TEXT("120"), TEXT("144"), TEXT("240") })
+				.InitialSelection(FpsIndex)
+				.OnSelectionChanged_Lambda([Settings, FpsByIndex](FString, int32 Index)
+				{
+					const int32 Cap = FpsByIndex.IsValidIndex(Index) ? FpsByIndex[Index] : 0;
+					FchuckGraphicsSettings W = Settings->GetGraphics();
+					W.FpsCap = Cap;
+					Settings->SetGraphics(W);
+				})
+			]
+
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)
+			[ MakeToggle(NSLOCTEXT("chuck", "VSync", "V-Sync"), G.bVSync,
+				[](FchuckGraphicsSettings& W, bool b) { W.bVSync = b; }) ]
+
+			+ SVerticalBox::Slot().AutoHeight()
 			[
 				SNew(SKBVESettingsSliderRow)
 				.Label(NSLOCTEXT("chuck", "ResScale", "Resolution Scale"))
 				.MinValue(50.f)
 				.MaxValue(100.f)
 				.StepSize(5.f)
-				.Value(ResScale)
-				.OnValueChanged_Lambda([](float Pct)
+				.Value(G.ResolutionScale)
+				.OnValueChanged_Lambda([Settings](float Pct)
 				{
-					if (UGameUserSettings* S = GEngine ? GEngine->GetGameUserSettings() : nullptr)
-					{
-						S->SetResolutionScaleNormalized(Pct / 100.f);
-					}
+					FchuckGraphicsSettings W = Settings->GetGraphics();
+					W.ResolutionScale = Pct;
+					Settings->SetGraphics(W);
 				})
 			]
 		];
@@ -744,16 +863,23 @@ void AchuckCorePlayerController::HandleChatChannelLeft(const FString& Channel)
 void AchuckCorePlayerController::OnToggleChatPressed(const FInputActionValue& /*Value*/)
 {
 	if (!ChatWidget.IsValid()) return;
-	const bool bNowShown = ChatWidget->ToggleVisible();
-	SetUiFlag(EUiFlag::Chat, bNowShown);
-	if (bNowShown) ChatWidget->ShowAndFocusInput();
+	if (ChatWidget->IsDocked())
+	{
+		ChatWidget->Undock();
+		SetUiFlag(EUiFlag::Chat, true);
+	}
+	else
+	{
+		ChatWidget->Dock();
+		SetUiFlag(EUiFlag::Chat, false);
+	}
 	RefreshUiMouseMode();
 }
 
 void AchuckCorePlayerController::OnFocusChatPressed(const FInputActionValue& /*Value*/)
 {
 	if (!ChatWidget.IsValid()) return;
-	ChatWidget->ShowAndFocusInput();
+	ChatWidget->Undock();
 	SetUiFlag(EUiFlag::Chat, true);
 	RefreshUiMouseMode();
 }

@@ -17,6 +17,7 @@
 #include "UObject/ConstructorHelpers.h"
 
 #include "chuckCharacterMovementComponent.h"
+#include "KBVEAbilityComponent.h"
 #include "KBVEDroppedItemPool.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "chuckEventPayloads.h"
@@ -40,6 +41,20 @@ AchuckCoreCharacter::AchuckCoreCharacter(const FObjectInitializer& ObjectInitial
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
 	EffectComp = CreateDefaultSubobject<UKBVEEffectComponent>(TEXT("EffectComp"));
+
+	AbilityComp = CreateDefaultSubobject<UKBVEAbilityComponent>(TEXT("AbilityComp"));
+	{
+		FKBVEAbilityDef Melee;
+		Melee.AbilityId = FName(TEXT("melee"));
+		Melee.Damage = 25.f;
+		Melee.Element = EKBVEDamageElement::Physical;
+		Melee.Range = 180.f;
+		Melee.Radius = 180.f;
+		Melee.WindupSeconds = 0.1f;
+		Melee.CooldownSeconds = 0.45f;
+		Melee.EnergyCost = 10.f;
+		AbilityComp->Abilities.Add(Melee);
+	}
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SKM(
 		TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
@@ -123,6 +138,7 @@ void AchuckCoreCharacter::PostInitializeComponents()
 		CrouchAction        = Inputs->Crouch;
 		ToggleCameraAction  = Inputs->ToggleCamera;
 		InventoryAction     = Inputs->Inventory;
+		AttackAction        = Inputs->Attack;
 	}
 
 	Inventory.InitDefaults();

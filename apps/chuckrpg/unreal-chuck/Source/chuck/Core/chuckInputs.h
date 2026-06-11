@@ -22,11 +22,13 @@ public:
 	UPROPERTY() TObjectPtr<UInputAction>          Crouch;
 	UPROPERTY() TObjectPtr<UInputAction>          ToggleCamera;
 	UPROPERTY() TObjectPtr<UInputAction>          Pause;
+	UPROPERTY() TObjectPtr<UInputAction>          ToggleSettings;
 	UPROPERTY() TObjectPtr<UInputAction>          ToggleDevOverlay;
 	UPROPERTY() TObjectPtr<UInputAction>          Inventory;
 	UPROPERTY() TObjectPtr<UInputAction>          ToggleChat;
 	UPROPERTY() TObjectPtr<UInputAction>          FocusChat;
 	UPROPERTY() TObjectPtr<UInputAction>          Interact;
+	UPROPERTY() TObjectPtr<UInputAction>          Attack;
 	UPROPERTY() TObjectPtr<UInputMappingContext>  DefaultIMC;
 
 protected:

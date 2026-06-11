@@ -34,4 +34,7 @@ public:
 	static bool IsEntityAlive(const UObject* WorldContext, FMassEntityHandle Target);
 
 	static bool ApplyDotToEntity(const UObject* WorldContext, FMassEntityHandle Target, EKBVEDamageElement Element, float DamagePerSecond, float Duration, float Interval = 1.0f);
+
+	/** Reduces Health on every FKBVEStatFragment Mass entity within Radius of Center. Returns entities hit. Authority-only. */
+	static int32 DamageMassStatTargetsInSphere(const UObject* WorldContext, const FVector& Center, float Radius, float Amount);
 };
