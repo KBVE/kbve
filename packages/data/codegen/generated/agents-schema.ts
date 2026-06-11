@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/agents.binpb
  * Config: ../agents-zod-config.json
- * Generated: 2026-06-09T08:07:26.008Z
+ * Generated: 2026-06-10T23:51:25.025Z
  */
 
 import { z } from 'zod';
@@ -34,7 +34,12 @@ export const PeekTokenRequestSchema = z.object({
 			/^\d{17,20}$/,
 			'Must be a valid Discord snowflake (17-20 digits)',
 		),
-	service: z.string(),
+	service: z
+		.string()
+		.regex(
+			/^[a-z0-9_]{2,32}$/,
+			'Service must be 2-32 chars: lowercase a-z, 0-9, underscore',
+		),
 });
 
 export type PeekTokenRequest = z.infer<typeof PeekTokenRequestSchema>;
@@ -47,7 +52,12 @@ export const ToggleTokenRequestSchema = z.object({
 			/^\d{17,20}$/,
 			'Must be a valid Discord snowflake (17-20 digits)',
 		),
-	token_id: z.string(),
+	token_id: z
+		.string()
+		.regex(
+			/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+			'token_id must be a UUID',
+		),
 	is_active: z.boolean(),
 });
 
@@ -61,7 +71,12 @@ export const DeleteTokenRequestSchema = z.object({
 			/^\d{17,20}$/,
 			'Must be a valid Discord snowflake (17-20 digits)',
 		),
-	token_id: z.string(),
+	token_id: z
+		.string()
+		.regex(
+			/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+			'token_id must be a UUID',
+		),
 });
 
 export type DeleteTokenRequest = z.infer<typeof DeleteTokenRequestSchema>;
@@ -71,10 +86,10 @@ export const AgentTokenRowSchema = z.object({
 	token_id: z.string(),
 	token_name: z.string(),
 	service: z.string(),
-	description: z.string().optional(),
+	description: z.string().nullish(),
 	is_active: z.boolean(),
 	created_at: z.string(),
-	updated_at: z.string().optional(),
+	updated_at: z.string().nullish(),
 });
 
 export type AgentTokenRow = z.infer<typeof AgentTokenRowSchema>;

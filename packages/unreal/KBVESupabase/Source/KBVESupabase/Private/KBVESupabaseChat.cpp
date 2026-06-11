@@ -4,6 +4,7 @@
 #include "KBVESupabaseModule.h"
 #include "WebSocketsModule.h"
 #include "IWebSocket.h"
+#include "Async/Async.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
@@ -406,16 +407,47 @@ void UKBVESupabaseChat::DoAutoJoin()
 
 bool UKBVESupabaseChat::SendRawLine(const FString& Line)
 {
-	if (!Socket.IsValid() || !Socket->IsConnected())
-	{
-		UE_LOG(LogKBVESupabase, Warning, TEXT("Chat TX dropped (socket not connected) line=[%s]"), *Line);
-		return false;
-	}
 	const FString Clean = SanitizeLine(Line);
 	if (Clean.IsEmpty()) return false;
-	UE_LOG(LogKBVESupabase, Log, TEXT("Chat TX [%s]"), *Clean);
-	Socket->Send(Clean + TEXT("\r\n"));
+	EnqueueTx(Clean);
 	return true;
+}
+
+void UKBVESupabaseChat::EnqueueTx(const FString& Clean)
+{
+	TxQueue.Enqueue(Clean);
+
+	if (IsInGameThread())
+	{
+		DrainTxQueue();
+		return;
+	}
+
+	TWeakObjectPtr<UKBVESupabaseChat> WeakThis(this);
+	AsyncTask(ENamedThreads::GameThread, [WeakThis]()
+	{
+		if (UKBVESupabaseChat* Self = WeakThis.Get())
+		{
+			Self->DrainTxQueue();
+		}
+	});
+}
+
+void UKBVESupabaseChat::DrainTxQueue()
+{
+	FString L;
+	while (TxQueue.Dequeue(L))
+	{
+		if (Socket.IsValid() && Socket->IsConnected())
+		{
+			UE_LOG(LogKBVESupabase, Log, TEXT("Chat TX [%s]"), *L);
+			Socket->Send(L + TEXT("\r\n"));
+		}
+		else
+		{
+			UE_LOG(LogKBVESupabase, Warning, TEXT("Chat TX dropped (socket not connected) line=[%s]"), *L);
+		}
+	}
 }
 
 bool UKBVESupabaseChat::SendPrivMsg(const FString& Channel, const FString& Body)

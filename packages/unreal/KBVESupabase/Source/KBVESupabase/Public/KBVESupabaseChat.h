@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "Containers/Queue.h"
 #include "KBVESupabaseTypes.h"
 #include "KBVESupabaseChat.generated.h"
 
@@ -120,4 +121,8 @@ protected:
 	void StartKeepAlive();
 	void StopKeepAlive();
 	void SendKeepAlivePing();
+
+	TQueue<FString, EQueueMode::Mpsc> TxQueue;
+	void EnqueueTx(const FString& Clean);
+	void DrainTxQueue();
 };
