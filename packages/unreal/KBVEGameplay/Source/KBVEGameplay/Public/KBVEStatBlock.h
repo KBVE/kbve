@@ -27,6 +27,15 @@ struct FKBVEStatBlock
 	float ManaRegenPerSec = 3.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "KBVE|Stats")
+	float MaxEnergy = 100.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "KBVE|Stats")
+	float Energy = 100.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "KBVE|Stats")
+	float EnergyRegenPerSec = 4.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "KBVE|Stats")
 	float MaxStamina = 100.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "KBVE|Stats")
@@ -54,5 +63,6 @@ struct FKBVEStatBlock
 
 	float HealthFraction()  const { return MaxHealth  > 0.f ? FMath::Clamp(Health  / MaxHealth,  0.f, 1.f) : 0.f; }
 	float ManaFraction()    const { return MaxMana    > 0.f ? FMath::Clamp(Mana    / MaxMana,    0.f, 1.f) : 0.f; }
+	float EnergyFraction()  const { return MaxEnergy  > 0.f ? FMath::Clamp(Energy  / MaxEnergy,  0.f, 1.f) : 0.f; }
 	float StaminaFraction() const { return MaxStamina > 0.f ? FMath::Clamp(Stamina / MaxStamina, 0.f, 1.f) : 0.f; }
 };
