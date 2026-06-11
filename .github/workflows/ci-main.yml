@@ -173,6 +173,20 @@ jobs:
                     is_newer "$local_v" "$pub_v"
                   }
 
+                  read_source_version() {
+                    local source_file="$1" v="0.0.0"
+                    if [ -f "$source_file" ]; then
+                      case "$source_file" in
+                        *.json)    v=$(jq -r '.version // "0.0.0"' "$source_file" 2>/dev/null || echo "0.0.0") ;;
+                        *.uplugin) v=$(jq -r '.VersionName // "0.0.0"' "$source_file" 2>/dev/null || echo "0.0.0") ;;
+                        *.mdx)     v=$(sed -n 's/^version: *"\([^"]*\)"/\1/p' "$source_file" | head -1); [ -z "$v" ] && v="0.0.0" ;;
+                        *.csproj)  v=$(sed -n 's/.*<Version>\([^<]*\)<\/Version>.*/\1/p' "$source_file" | head -1); [ -z "$v" ] && v="0.0.0" ;;
+                        *)         v=$(grep -m1 '^version' "$source_file" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0") ;;
+                      esac
+                    fi
+                    echo "$v"
+                  }
+
                   # --- Check if alteration key is true ---
                   is_altered() {
                     local key="$1"
@@ -489,7 +503,7 @@ jobs:
                   # =================================================================
                   dispatch_game_engine() {
                     local pipeline="$1"; local workflow="$2"; local entry="$3"
-                    local key app src vtoml ver vtgt run has_test
+                    local key app src vtoml ver sv vtgt run has_test
                     local engine_version proj_path build_targets features dotnet ext_repo lic
                     local itch_user itch_game itch_chan deploy_itch
                     key=$(echo "$entry" | jq -r '.key')
@@ -497,6 +511,10 @@ jobs:
                     src=$(echo "$entry" | jq -r '.version_source // empty')
                     vtoml=$(echo "$entry" | jq -r '.version_toml // empty')
                     ver=$(echo "$entry" | jq -r '.version // empty')
+                    if [ -n "$src" ]; then
+                      sv=$(read_source_version "$src")
+                      [ -n "$sv" ] && [ "$sv" != "0.0.0" ] && ver="$sv"
+                    fi
                     vtgt=$(echo "$entry" | jq -r '.version_target // empty')
                     run=$(echo "$entry" | jq -r '.runner // empty')
                     has_test=$(echo "$entry" | jq -r '.has_test // empty')
