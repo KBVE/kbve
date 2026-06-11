@@ -70,20 +70,19 @@
 				"engine": "docker",
 				"context": ".",
 				"file": "apps/agones/cryptothrone/server/Dockerfile",
-				"metadata": {
-					"images": ["kbve/cryptothrone-server"],
-					"load": true,
-					"tags": ["latest"]
-				}
+				"load": true,
+				"tags": ["kbve/cryptothrone-server:latest"]
 			},
 			"configurations": {
 				"local": {
-					"tags": ["latest"],
-					"push": false
+					"load": true,
+					"push": false,
+					"tags": ["kbve/cryptothrone-server:latest"]
 				},
 				"production": {
-					"tags": ["latest"],
+					"load": true,
 					"push": false,
+					"tags": ["kbve/cryptothrone-server:latest"],
 					"cache-from": [
 						"type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache"
 					],

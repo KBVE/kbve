@@ -44,20 +44,19 @@
 				"engine": "docker",
 				"context": ".",
 				"file": "apps/godot/nexus-defense/server/Dockerfile",
-				"metadata": {
-					"images": ["kbve/nd-server"],
-					"load": true,
-					"tags": ["latest"]
-				}
+				"load": true,
+				"tags": ["kbve/nd-server:latest"]
 			},
 			"configurations": {
 				"local": {
-					"tags": ["latest"],
-					"push": false
+					"load": true,
+					"push": false,
+					"tags": ["kbve/nd-server:latest"]
 				},
 				"production": {
-					"tags": ["latest"],
+					"load": true,
 					"push": false,
+					"tags": ["kbve/nd-server:latest"],
 					"cache-from": [
 						"type=registry,ref=ghcr.io/kbve/nd-server:buildcache"
 					],
