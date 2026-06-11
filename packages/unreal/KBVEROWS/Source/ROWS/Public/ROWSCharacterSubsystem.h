@@ -45,6 +45,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ROWS|Characters")
 	void GetCustomCharacterData(const FString& CharacterName);
 
+	// --- Persistence (server-authoritative; requires the x-service-key) ---
+
+	UFUNCTION(BlueprintCallable, Category = "ROWS|Characters")
+	void UpdatePosition(const FString& CharacterName, const FString& MapName, double X, double Y, double Z, double RX, double RY, double RZ);
+
+	UFUNCTION(BlueprintCallable, Category = "ROWS|Characters")
+	void UpdateStats(const FString& CharacterName, const FString& StatsJson);
+
+	UFUNCTION(BlueprintCallable, Category = "ROWS|Characters")
+	void PlayerLogout(const FString& CharacterName);
+
 	// --- Delegates ---
 
 	UPROPERTY(BlueprintAssignable, Category = "ROWS|Characters")
@@ -85,4 +96,5 @@ protected:
 	void OnRemoveCharacterResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void OnAddOrUpdateCustomDataResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 	void OnGetCustomDataResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	void OnPersistenceResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
 };

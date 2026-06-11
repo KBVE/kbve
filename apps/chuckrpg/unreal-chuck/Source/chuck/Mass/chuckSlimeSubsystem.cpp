@@ -336,15 +336,25 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 		}
 
 		FVector Pos = T->GetTransform().GetLocation();
+		const bool bRelevant = !bHavePlayer || FVector::DistSquaredXY(Pos, PlayerLoc) <= RelevanceRadiusSq;
 
 		S->RepathTimer -= DeltaTime;
 		TArray<FVector>& P = Paths[i];
-		if ((P.Num() == 0 || S->PathIndex >= P.Num() || S->RepathTimer <= 0.f) && RepathBudget > 0)
+		if (P.Num() == 0 || S->PathIndex >= P.Num() || S->RepathTimer <= 0.f)
 		{
-			--RepathBudget;
-			Repath(i, Pos);
-			S->PathIndex = (P.Num() > 1) ? 1 : 0;
+			const float WA = FMath::FRandRange(0.f, 2.f * PI);
+			const float WD = FMath::FRandRange(300.f, 700.f);
+			P.Reset();
+			P.Add(Pos + FVector(FMath::Cos(WA) * WD, FMath::Sin(WA) * WD, 0.f));
+			S->PathIndex = 0;
 			S->RepathTimer = FMath::FRandRange(3.f, 6.f);
+
+			if (bRelevant && RepathBudget > 0)
+			{
+				--RepathBudget;
+				Repath(i, Pos);
+				S->PathIndex = (P.Num() > 1) ? 1 : 0;
+			}
 		}
 
 		FVector Waypoint = P.IsValidIndex(S->PathIndex) ? P[S->PathIndex] : Pos;
@@ -361,11 +371,12 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 		}
 		const bool bMoving = Flat > 20.0 && S->PathIndex < P.Num();
 
-		float MoveYaw = 0.f;
+		float MoveYaw = S->LastYaw;
 		if (bMoving)
 		{
 			Dir /= Flat;
 			MoveYaw = FMath::RadiansToDegrees(FMath::Atan2(Dir.Y, Dir.X));
+			S->LastYaw = MoveYaw;
 			S->HopPhase += DeltaTime * HopRate;
 			const float HopUp = FMath::Max(0.f, FMath::Sin(S->HopPhase));
 
@@ -385,8 +396,6 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 			Pos.Z = S->GroundZ;
 			T->GetMutableTransform().SetLocation(Pos);
 		}
-
-		const bool bRelevant = !bHavePlayer || FVector::DistSquaredXY(Pos, PlayerLoc) <= RelevanceRadiusSq;
 
 		if (Renderer && SlimeSprites.IsValidIndex(i) && bRelevant)
 		{

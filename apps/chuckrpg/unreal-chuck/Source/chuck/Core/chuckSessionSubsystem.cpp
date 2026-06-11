@@ -188,7 +188,11 @@ void UchuckSessionSubsystem::HandleZoneInstanceSuccess(const FROWSZoneInstance& 
 	{
 		if (APlayerController* PC = GI->GetFirstLocalPlayerController())
 		{
-			const FString Address = FString::Printf(TEXT("%s:%d"), *ZoneInstance.ServerIP, ZoneInstance.Port);
+			FString Address = FString::Printf(TEXT("%s:%d"), *ZoneInstance.ServerIP, ZoneInstance.Port);
+			if (!SelectedCharacter.IsEmpty())
+			{
+				Address += FString::Printf(TEXT("?character=%s"), *SelectedCharacter);
+			}
 			PC->ClientTravel(Address, TRAVEL_Absolute);
 		}
 	}

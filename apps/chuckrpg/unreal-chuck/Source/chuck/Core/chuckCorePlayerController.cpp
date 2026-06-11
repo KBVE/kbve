@@ -1044,7 +1044,21 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 
 			const FVector ArcadePawnLoc = ControlledPawn->GetActorLocation();
 			const FVector PawnFwd       = ControlledPawn->GetActorForwardVector();
-			const FVector ArcadeLoc     = ArcadePawnLoc + PawnFwd * 400.f + FVector(0.f, 0.f, -90.f);
+			const FVector ArcadeXY      = ArcadePawnLoc + PawnFwd * 400.f;
+
+			float ArcadeZ = ArcadePawnLoc.Z - 90.f;
+			FHitResult ArcadeHit;
+			FCollisionQueryParams ArcadeParams(SCENE_QUERY_STAT(chuckArcadeSnap), false, ControlledPawn);
+			if (W->LineTraceSingleByChannel(ArcadeHit,
+					FVector(ArcadeXY.X, ArcadeXY.Y, ArcadePawnLoc.Z + 500.f),
+					FVector(ArcadeXY.X, ArcadeXY.Y, ArcadePawnLoc.Z - 10000.f),
+					ECC_WorldStatic, ArcadeParams)
+				&& ArcadeHit.GetActor() && ArcadeHit.GetActor() != ControlledPawn)
+			{
+				ArcadeZ = ArcadeHit.ImpactPoint.Z;
+			}
+
+			const FVector ArcadeLoc(ArcadeXY.X, ArcadeXY.Y, ArcadeZ);
 			const FRotator ArcadeRot(0.f, ControlledPawn->GetActorRotation().Yaw + 180.f, 0.f);
 
 			UClass* ArcadeClass = CachedArcadeClass ? CachedArcadeClass.Get() : AchuckArcadeCabinet::StaticClass();
@@ -1071,7 +1085,7 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 			}
 			if (UchuckNpcSpawner* NpcSpawner = GetWorld()->GetSubsystem<UchuckNpcSpawner>())
 			{
-				NpcSpawner->SpawnCreature(FName(TEXT("glass-slime")), ControlledPawn->GetActorLocation(), 1000, 9000.f);
+				NpcSpawner->SpawnCreature(FName(TEXT("glass-slime")), ControlledPawn->GetActorLocation(), 10000, 18000.f);
 			}
 		}
 
@@ -1079,18 +1093,4 @@ void AchuckCorePlayerController::TickSpawnSnap(float DeltaSeconds)
 		return;
 	}
 
-	if (SpawnSnapElapsed > 8.f)
-	{
-		if (ACharacter* Char = Cast<ACharacter>(ControlledPawn))
-		{
-			if (UCharacterMovementComponent* CM = Char->GetCharacterMovement())
-			{
-				CM->GravityScale = 1.f;
-			}
-		}
-		UE_LOG(LogTemp, Warning,
-			TEXT("[chuck] CorePC spawn-snap timeout — no collision under anchor (%.0f,%.0f). Releasing gravity."),
-			SpawnSnapAnchor.X, SpawnSnapAnchor.Y);
-		bSpawnSnapPending = false;
-	}
 }

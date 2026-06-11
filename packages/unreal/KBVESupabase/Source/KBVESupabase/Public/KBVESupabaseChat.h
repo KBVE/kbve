@@ -122,6 +122,12 @@ protected:
 	void StopKeepAlive();
 	void SendKeepAlivePing();
 
+	double RlTokens = 0.0;
+	double RlLastRefill = 0.0;
+	FString RlLastBody;
+	double RlLastBodyTime = 0.0;
+	bool AllowUserSend(const FString& Body);
+
 	TQueue<FString, EQueueMode::Mpsc> TxQueue;
 	void EnqueueTx(const FString& Clean);
 	void DrainTxQueue();

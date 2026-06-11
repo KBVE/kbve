@@ -226,3 +226,72 @@ void UROWSCharacterSubsystem::OnGetCustomDataResponse(FHttpRequestPtr Request, F
 
 	OnCustomDataReceived.Broadcast(JsonString);
 }
+
+void UROWSCharacterSubsystem::UpdatePosition(const FString& CharacterName, const FString& MapName, double X, double Y, double Z, double RX, double RY, double RZ)
+{
+	if (!Core)
+	{
+		return;
+	}
+	const FString Wire = FString::Printf(TEXT("%s:%f:%f:%f:%f:%f:%f"), *CharacterName, X, Y, Z, RX, RY, RZ);
+
+	TSharedPtr<FJsonObject> Json = MakeShareable(new FJsonObject);
+	Json->SetStringField(TEXT("serializedPlayerLocationData"), Wire);
+	Json->SetStringField(TEXT("mapName"), MapName);
+
+	FString Body;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Body);
+	FJsonSerializer::Serialize(Json.ToSharedRef(), Writer);
+
+	Core->PostRequest(Core->GetCharacterPersistencePath(), TEXT("api/Characters/UpdateAllPlayerPositions"), Body,
+		FHttpRequestCompleteDelegate::CreateUObject(this, &UROWSCharacterSubsystem::OnPersistenceResponse));
+}
+
+void UROWSCharacterSubsystem::UpdateStats(const FString& CharacterName, const FString& StatsJson)
+{
+	if (!Core)
+	{
+		return;
+	}
+	TSharedPtr<FJsonObject> Json;
+	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(StatsJson);
+	if (!FJsonSerializer::Deserialize(Reader, Json) || !Json.IsValid())
+	{
+		Json = MakeShareable(new FJsonObject);
+	}
+	Json->SetStringField(TEXT("characterName"), CharacterName);
+
+	FString Body;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Body);
+	FJsonSerializer::Serialize(Json.ToSharedRef(), Writer);
+
+	Core->PostRequest(Core->GetCharacterPersistencePath(), TEXT("api/Characters/UpdateCharacterStats"), Body,
+		FHttpRequestCompleteDelegate::CreateUObject(this, &UROWSCharacterSubsystem::OnPersistenceResponse));
+}
+
+void UROWSCharacterSubsystem::PlayerLogout(const FString& CharacterName)
+{
+	if (!Core)
+	{
+		return;
+	}
+	TSharedPtr<FJsonObject> Json = MakeShareable(new FJsonObject);
+	Json->SetStringField(TEXT("characterName"), CharacterName);
+
+	FString Body;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Body);
+	FJsonSerializer::Serialize(Json.ToSharedRef(), Writer);
+
+	Core->PostRequest(Core->GetCharacterPersistencePath(), TEXT("api/Characters/PlayerLogout"), Body,
+		FHttpRequestCompleteDelegate::CreateUObject(this, &UROWSCharacterSubsystem::OnPersistenceResponse));
+}
+
+void UROWSCharacterSubsystem::OnPersistenceResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+{
+	if (!bWasSuccessful || !Response.IsValid())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[ROWS] Persistence request failed"));
+		return;
+	}
+	UE_LOG(LogTemp, Verbose, TEXT("[ROWS] Persistence ok: %d"), Response->GetResponseCode());
+}
