@@ -30,6 +30,7 @@ void UKBVEStatRegenProcessor::Execute(FMassEntityManager& EntityManager, FMassEx
 			{
 				S.Health = FMath::Min(S.Health + S.HealthRegenPerSec * DeltaSeconds, S.MaxHealth);
 				S.Mana   = FMath::Min(S.Mana   + S.ManaRegenPerSec   * DeltaSeconds, S.MaxMana);
+				S.Energy = FMath::Min(S.Energy + S.EnergyRegenPerSec * DeltaSeconds, S.MaxEnergy);
 
 				const bool bDraining =
 					KBVEMove::Has(S.MoveState, EKBVEMovementState::Sprinting) &&
