@@ -12,17 +12,6 @@ export interface DiscordGuild {
 	permissions: string;
 }
 
-export interface DiscordshConfig {
-	default_repo?: string;
-	claim_channel_id?: string;
-	forum_channel_id?: string;
-	noticeboard_channel_id?: string;
-	taskboard_channel_id?: string;
-	max_assignees?: number;
-	mirror_pr_events?: boolean;
-	active?: boolean;
-}
-
 export interface BotConfigFormDraft {
 	default_repo: string;
 	claim_channel_id: string;
@@ -35,6 +24,14 @@ export interface BotConfigFormDraft {
 }
 
 export type { AgentTokenRow, AgentError } from './generated/agents-schema';
+export type {
+	DiscordshConfig,
+	GithubRepoHook,
+	WebhookDelivery,
+	EventQueueStats,
+	FailedEvent,
+	PendingEvent,
+} from './generated/discordsh-agents-schema';
 
 export interface DiscordForumChannel {
 	id: string;
@@ -53,64 +50,6 @@ export interface DiscordChannel {
 export interface GuildChannels {
 	forums: DiscordChannel[];
 	texts: DiscordChannel[];
-}
-
-export interface WebhookDelivery {
-	id: number;
-	guid: string;
-	delivered_at: string;
-	redelivery: boolean;
-	duration: number;
-	status: string;
-	status_code: number;
-	event: string;
-	action: string | null;
-}
-
-export interface EventQueueStats {
-	last_delivered_at: string | null;
-	last_recorded_at: string | null;
-	pending_count: number;
-	in_flight_count: number;
-	delivered_count: number;
-	failed_count: number;
-	oldest_pending_at: string | null;
-}
-
-export interface FailedEvent {
-	id: number;
-	owner: string;
-	repo: string;
-	number: number;
-	event_type: string;
-	actor: string | null;
-	delivery_attempts: number;
-	last_error: string | null;
-	created_at: string;
-	updated_at: string;
-}
-
-export interface PendingEvent {
-	id: number;
-	owner: string;
-	repo: string;
-	number: number;
-	event_type: string;
-	actor: string | null;
-	delivery_state: number;
-	delivery_attempts: number;
-	created_at: string;
-	claimed_at: string | null;
-}
-
-export interface GithubRepoHook {
-	id: number;
-	name: string;
-	active: boolean;
-	events: string[];
-	url: string | null;
-	is_kbve: boolean;
-	updated_at: string;
 }
 
 export interface PatValidation {
