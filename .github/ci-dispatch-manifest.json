@@ -106,7 +106,7 @@
 		{
 			"key": "cryptothrone",
 			"app_name": "cryptothrone",
-			"version": "0.1.9",
+			"version": "0.1.10",
 			"version_toml": "apps/cryptothrone/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone.mdx",
 			"version_target": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",
@@ -127,6 +127,7 @@
 			"source_path": "apps/agones/cryptothrone/server",
 			"runner": "arc-runner-set",
 			"image": "kbve/cryptothrone-server",
+			"deployment_yaml": "apps/kube/agones/cryptothrone/manifests/fleet.yaml",
 			"has_test": false
 		},
 		{
