@@ -127,6 +127,27 @@ void UchuckSessionSubsystem::CreateCharacter(const FString& CharacterName, const
 	}
 }
 
+void UchuckSessionSubsystem::CreatePlaceholderCharacter(const FString& CharacterName)
+{
+	if (CharacterName.IsEmpty())
+	{
+		return;
+	}
+	const bool bExists = Characters.ContainsByPredicate(
+		[&CharacterName](const FROWSUserCharacter& C) { return C.CharacterName == CharacterName; });
+	if (!bExists)
+	{
+		FROWSUserCharacter Char;
+		Char.CharacterName = CharacterName;
+		Char.ClassName = TEXT("Adventurer");
+		Char.Level = 1;
+		Char.ZoneName = TEXT("HubWorld");
+		Characters.Add(Char);
+	}
+	SelectedCharacter = CharacterName;
+	OnCharactersUpdated.Broadcast(Characters);
+}
+
 void UchuckSessionSubsystem::RemoveCharacter(const FString& CharacterName)
 {
 	if (UserSessionGUID.IsEmpty() || CharacterName.IsEmpty())
