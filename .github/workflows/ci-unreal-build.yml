@@ -931,6 +931,32 @@ jobs:
                   echo "::warning::Mac client build is a STUB - macos-builder VM not yet provisioned (UE5-Mac runner offline). No-op."
                   echo "Requested target Mac for ${{ inputs.app_name }} v${{ needs.game_gate.outputs.version }} - skipped."
 
+    game_post_publish:
+        name: Game Post-publish version sync
+        needs: [game_gate, game_build_linux, game_build_windows, game_build_mac]
+        if: |
+            inputs.mode == 'game' &&
+            always() &&
+            needs.game_gate.outputs.should_build == 'true' &&
+            inputs.version_toml != '' &&
+            (needs.game_build_linux.result == 'success' || needs.game_build_linux.result == 'skipped') &&
+            (needs.game_build_windows.result == 'success' || needs.game_build_windows.result == 'skipped') &&
+            (needs.game_build_mac.result == 'success' || needs.game_build_mac.result == 'skipped') &&
+            !(needs.game_build_linux.result == 'skipped' &&
+              needs.game_build_windows.result == 'skipped' &&
+              needs.game_build_mac.result == 'skipped')
+        permissions:
+            contents: write
+            pull-requests: write
+            actions: write
+        uses: KBVE/kbve/.github/workflows/utils-post-publish.yml@dev
+        with:
+            app_name: ${{ inputs.app_name }}
+            version: ${{ needs.game_gate.outputs.version }}
+            version_toml_path: ${{ inputs.version_toml }}
+        secrets:
+            TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
+
     # ════════════════ ENGINE (AngelScript UE) ════════════════
     engine_gate:
         name: Engine Version Gate
@@ -1904,3 +1930,41 @@ jobs:
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: 'failure'
+
+    track_success:
+        name: Track Success (close resolved)
+        if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
+        needs:
+            [
+                guard,
+                server_config,
+                server_gate,
+                server_build,
+                game_gate,
+                game_build_linux,
+                game_build_windows,
+                game_build_mac,
+                game_post_publish,
+                engine_gate,
+                engine_build_windows,
+                engine_build_mac,
+                engine_build_linux,
+                engine_release,
+                engine_update_version,
+                plugin_check,
+                plugin_build_linux,
+                plugin_build_win,
+                plugin_release,
+                win_setup,
+                mac_setup,
+            ]
+        permissions:
+            issues: write
+            contents: read
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Unreal Build (${{ inputs.mode }})'
+            job_name: '${{ inputs.app_name }}${{ inputs.plugin_name }}${{ inputs.shell_path }}${{ inputs.mode }}'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: 'success'
