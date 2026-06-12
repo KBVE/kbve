@@ -35,11 +35,12 @@ external_publish:
 
 ## Overview
 
-Chuck RPG UE5 standalone game client. The playable build (distinct from the
-[Unreal Chuck](/project/unreal-chuck) dedicated server) is compiled from the
-external game repo [`KBVE/chuck`](https://github.com/kbve/chuck) (default branch,
+Chuck RPG UE5 standalone game client — the **cooked, non-editor Shipping** release
+(`-clientconfig=Shipping`, `-cook -pak`) of the `main` branch. Compiled from the external
+game repo [`KBVE/chuck`](https://github.com/kbve/chuck) (default branch = `main`,
 `.uproject` under `engine.project_path`, Content pulled from the chuck Forgejo LFS
-endpoint) and shipped to itch.io under `kbve/chuckrpg`.
+endpoint) and shipped to itch.io under `kbve/chuckrpg`. The editor/Development counterpart
+is [Unreal Chuck Dev](/project/unreal-chuck-dev).
 
 ## Pipeline
 
