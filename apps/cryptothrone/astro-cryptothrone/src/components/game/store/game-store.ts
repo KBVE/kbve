@@ -23,12 +23,18 @@ export interface ConnectionState {
 	detail?: string;
 }
 
+export interface OnlinePlayer {
+	slot: number;
+	username: string;
+}
+
 export interface GameState {
 	player: {
 		stats: PlayerStats;
 		inventory: PlayerInventory;
 	};
 	connection: ConnectionState;
+	players: OnlinePlayer[];
 	settings: {
 		isStatsCollapsed: boolean;
 		isSettingsCollapsed: boolean;
@@ -68,7 +74,8 @@ export type GameAction =
 			payload: { diceValues: number[]; totalRoll: number };
 	  }
 	| { type: 'SET_MODAL'; payload: ModalState | null }
-	| { type: 'SET_CONNECTION'; payload: ConnectionState };
+	| { type: 'SET_CONNECTION'; payload: ConnectionState }
+	| { type: 'SET_PLAYERS'; payload: OnlinePlayer[] };
 
 const DEFAULT_EQUIPMENT: Record<EquipmentSlot, string | null> = {
 	head: null,
@@ -83,6 +90,7 @@ const DEFAULT_EQUIPMENT: Record<EquipmentSlot, string | null> = {
 
 export const initialGameState: GameState = {
 	connection: { status: 'connecting' },
+	players: [],
 	player: {
 		stats: {
 			hp: 100,
@@ -245,6 +253,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
 		case 'SET_CONNECTION':
 			return { ...state, connection: action.payload };
+
+		case 'SET_PLAYERS':
+			return { ...state, players: action.payload };
 
 		case 'SET_MODAL':
 			return { ...state, activeModal: action.payload };

@@ -27,6 +27,15 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 		);
 
 		unsubs.push(
+			laserEvents.on('players:sync', (data) => {
+				const payload = data as {
+					players: { slot: number; username: string }[];
+				};
+				dispatch({ type: 'SET_PLAYERS', payload: payload.players });
+			}),
+		);
+
+		unsubs.push(
 			laserEvents.on('char:event', (data: CharacterEventData) => {
 				dispatch({
 					type: 'SET_MODAL',

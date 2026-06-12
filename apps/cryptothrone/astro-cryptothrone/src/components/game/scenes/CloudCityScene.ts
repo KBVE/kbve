@@ -63,6 +63,7 @@ export class CloudCityScene extends Scene {
 	private nearbyHostiles = 0;
 	private slowTimer = 0;
 	private netReady = false;
+	private rosterKey = '';
 	private laserUnsubs: (() => void)[] = [];
 
 	constructor() {
@@ -372,6 +373,18 @@ export class CloudCityScene extends Scene {
 
 		this.checkRanges();
 		this.checkHostileProximity();
+		this.syncRoster(snap);
+	}
+
+	private syncRoster(snap: Snapshot) {
+		const players = snap.players
+			.filter((p) => p.connected)
+			.map((p) => ({ slot: p.slot, username: p.kbve_username }))
+			.sort((a, b) => a.slot - b.slot);
+		const key = players.map((p) => `${p.slot}:${p.username}`).join('|');
+		if (key === this.rosterKey) return;
+		this.rosterKey = key;
+		laserEvents.emit('players:sync', { players });
 	}
 
 	private checkHostileProximity() {

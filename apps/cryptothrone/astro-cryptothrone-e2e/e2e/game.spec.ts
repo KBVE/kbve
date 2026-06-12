@@ -12,10 +12,8 @@ test.describe('game page layout', () => {
 		await expect(page.locator('.game-fullscreen')).toBeAttached();
 	});
 
-	test('Starlight header is hidden while the game is active', async ({
-		page,
-	}) => {
-		await expect(page.locator('header').first()).toBeHidden();
+	test('nav bar stays visible while the game is active', async ({ page }) => {
+		await expect(page.locator('header').first()).toBeVisible();
 	});
 
 	test('body scroll is locked on the game page', async ({ page }) => {
