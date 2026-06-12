@@ -1,6 +1,6 @@
 ---
 title: Cheese+tom batta | OSRS Price Data
-description: "Cheese+tom batta: This smells really good.. High alch: 1 GP, GE limit: 6,000."
+description: "Cheese+tom batta is a members Gnome food cooked at 29 Cooking from cheese, tomato, and a Gianne batta tin; heals 11 Hitpoints and grants 158 Cooking XP. High alch: 1 GP, GE limit: 6,000."
 osrs:
   id: 2259
   name: Cheese+tom batta
@@ -12,9 +12,89 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 6000
-  about: "Cheese+tom batta is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: food
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    update: "Agility skill online"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  effects:
+    - description: Heals 11 Hitpoints on consumption.
+  recipes:
+    - skill: cooking
+      level: 29
+      xp: 158
+      materials:
+        - item_name: Cheese batta
+          item_id: 2253
+          quantity: 1
+        - item_name: Tomato
+          item_id: 1982
+          quantity: 1
+        - item_name: Equa leaves
+          item_id: 2128
+          quantity: 1
+      product: Cheese+tom batta
+      output_quantity: 1
+      facility: Range (Gnome Stronghold or any range)
+      members_only: true
+  shop:
+    - location: Grand Tree
+      npc: Gnome waiter
+      shop_name: Gnome Stronghold restaurants
+      base_price: 120 coins
+      stock: 3
+  related_items:
+    - item_id: 2253
+      item_name: Cheese batta
+      slug: cheese-batta
+      relationship: component
+      description: Intermediate batta used as the base before adding tomato.
+    - item_id: 2261
+      item_name: Toad batta
+      slug: toad-batta
+      relationship: alternative
+      description: Alternate Gnome batta recipe used in Gnome Restaurant orders.
+    - item_id: 2249
+      item_name: Gianne dough
+      slug: gianne-dough
+      relationship: component
+      description: Base dough required to make any batta tin.
+    - item_id: 2255
+      item_name: Cheese+tom batta (raw)
+      slug: raw-cheese-tom-batta
+      relationship: component
+      description: Uncooked variant baked on a range into the finished batta.
+  about: "Cheese+tom batta is a members-only Gnome food released alongside the original Gnome Cuisine cooking line. It is cooked at 29 Cooking from a cheese batta plus a tomato and equa leaves for 158 Cooking XP, stops burning at 38 Cooking, and heals 11 Hitpoints per bite. It is one of the most XP-efficient low-level Cooking targets per inventory and is also required for Gnome Restaurant minigame deliveries; the Grand Tree waiters sell pre-made battas for 120 coins."
+  market_strategy:
+    notes:
+      - "Demand is dominated by Cooking trainers chasing 158 XP per cook and Gnome Restaurant runners."
+      - "GE buy limit of 6,000 per 4 hours leaves plenty of headroom for bulk."
+      - "High alch return of 1 gp - never an alch target."
+      - "Supply is fed by player Cooking sessions; cheese and tomato spot prices drive cost."
+  trading_tips:
+    - "Cross-check Cheese batta plus Tomato spot prices to track Cooking-trainer arbitrage windows."
+    - "Watch Cooking XP rate guides - shifts in meta food choice move batta demand."
+    - "Bulk-low-margin item - flip in volume or skip."
+  history:
+    - date: "2002-12-12"
+      description: "Released with the Agility skill update that brought Gnome Stronghold content online."
+    - date: "2006-08-07"
+      description: "Graphical rework alongside the Gnome Cuisine update that overhauled the Gnome Restaurant minigame."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

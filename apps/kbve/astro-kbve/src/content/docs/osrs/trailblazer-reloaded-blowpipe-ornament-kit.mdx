@@ -11,10 +11,54 @@ osrs:
   value: 5000
   lowalch: 2000
   highalch: 3000
-  limit: null
-  about: "Trailblazer reloaded blowpipe ornament kit is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2023-11-15"
+    update: "Leagues IV: Trailblazer Reloaded"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Use
+      - Drop
+    alchable: false
+    destroy: "Drop"
+  related_items:
+    - item_name: Toxic blowpipe
+      slug: toxic-blowpipe
+      relationship: component
+      description: Base weapon the ornament kit is applied to.
+    - item_name: Blazing blowpipe
+      slug: blazing-blowpipe
+      relationship: product
+      description: Result of applying the ornament kit to an uncharged Toxic blowpipe.
+  about: |-
+    Trailblazer reloaded blowpipe ornament kit is a cosmetic upgrade earned from the Leagues IV: Trailblazer Reloaded reward shop for 6,000 League Points. When applied to an uncharged Toxic blowpipe, it transforms the weapon into a Blazing blowpipe, swapping the green-and-purple palette for the fiery Leagues IV theme.
+
+    The kit is fully reversible — players can revert the Blazing blowpipe back into the original Toxic blowpipe and the ornament kit at any time, preserving long-term flexibility for fashionscape and resale.
+  market_strategy:
+    notes:
+      - "Supply fixed at Leagues IV completion volume; price floor grows over time."
+      - "No GE buy limit listed — large flips are possible but volume is thin."
+      - "Demand spikes around new Leagues seasons and PvM streamer attention."
+  trading_tips:
+    - "Reversible ornament kit retains optionality — buyers pay for the swap-back guarantee."
+    - "List during high-value PvM meta when Toxic blowpipe demand rises."
+    - "Track Leagues-themed cosmetic prices as a basket; they move together."
+  history:
+    - date: "2023-11-15"
+      description: "Added to the game during Leagues IV: Trailblazer Reloaded."
+    - date: "2023-11-29"
+      description: "Made obtainable from the Leagues Reward Shop for 6,000 League Points."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

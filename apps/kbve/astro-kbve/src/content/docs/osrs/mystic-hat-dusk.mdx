@@ -1,6 +1,6 @@
 ---
 title: Mystic hat (dusk) | OSRS Price Data
-description: "Mystic hat (dusk): A dusky magical hat.. High alch: 9,000 GP, GE limit: 70."
+description: "Mystic hat (dusk): A dusky magical hat. High alch: 9,000 GP, GE limit: 70."
 osrs:
   id: 23047
   name: Mystic hat (dusk)
@@ -12,9 +12,100 @@ osrs:
   lowalch: 6000
   highalch: 9000
   limit: 70
-  about: "Mystic hat (dusk) is a members-only item in Old School RuneScape. High alchemy value: 9,000 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: enchanted-cloth
+    tier: high
+  properties:
+    release_date: "2018-04-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    weapon_type: unarmed
+    attack_speed: 4
+    weight: 0.453
+    requirements:
+      magic: 40
+      defence: 20
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    other_bonus:
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Master Treasure Trails reward casket
+        quantity: "1"
+        rarity: 1/14336
+  treasure_trail:
+    tier: master
+    is_reward: true
+    reward_tiers:
+      - master
+  related_items:
+    - item_id: 3385
+      item_name: Mystic hat
+      slug: mystic-hat
+      relationship: variant
+      description: Standard blue colour variant with identical bonuses
+    - item_id: 4099
+      item_name: Mystic hat (dark)
+      slug: mystic-hat-dark
+      relationship: variant
+      description: Dark colour variant
+    - item_id: 4109
+      item_name: Mystic hat (light)
+      slug: mystic-hat-light
+      relationship: variant
+      description: Light colour variant
+    - item_id: 23051
+      item_name: Mystic robe top (dusk)
+      slug: mystic-robe-top-dusk
+      relationship: set-piece
+      description: Body piece of the dusk mystic robes set
+    - item_id: 23055
+      item_name: Mystic robe bottom (dusk)
+      slug: mystic-robe-bottom-dusk
+      relationship: set-piece
+      description: Legs piece of the dusk mystic robes set
+  about: "Mystic hat (dusk) is a master clue scroll cosmetic recolour of the standard mystic hat with identical bonuses (+4 magic attack and defence). Released with the Treasure Trails master tier update, it shares the mystic 40 Magic / 20 Defence requirement and serves as a fashionscape collectible piece."
+  market_strategy:
+    notes:
+      - "Pure cosmetic recolour with identical stats to base mystic hat"
+      - "Drop-only supply from master clues keeps stock thin"
+      - "Buy limit of 70 supports occasional bulk flips"
+  trading_tips:
+    - Compare against the standard mystic hat for mispriced cosmetic premium
+    - Watch master clue completion rate trends for supply pulses
+  history:
+    - date: "2018-04-12"
+      description: "Released with the master tier Treasure Trails expansion as a cosmetic recolour."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

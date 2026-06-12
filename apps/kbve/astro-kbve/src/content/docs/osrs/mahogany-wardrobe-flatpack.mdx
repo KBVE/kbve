@@ -1,6 +1,6 @@
 ---
 title: Mahogany wardrobe (flatpack) | OSRS Price Data
-description: "Mahogany wardrobe (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Mahogany wardrobe (flatpack): How does it all fit in there? High alch: 6 GP, GE limit: 500."
 osrs:
   id: 8620
   name: Mahogany wardrobe (flatpack)
@@ -12,9 +12,75 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Mahogany wardrobe (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: flatpack
+    tier: high
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.0
+    options:
+      - Build
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 75
+      xp: 420
+      materials:
+        - item_name: Mahogany plank
+          item_id: 8782
+          quantity: 3
+      facility: Workbench (player-owned house workshop)
+      product: Mahogany wardrobe (flatpack)
+      product_id: 8620
+      output_quantity: 1
+  construction:
+    construction_level: 75
+    construction_xp: 420
+    room: Bedroom
+    hotspot: Wardrobe
+    flatpack: true
+  related_items:
+    - item_id: 8782
+      item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: component
+      description: "Material (x3) for the flatpack."
+    - item_id: 8618
+      item_name: Teak wardrobe (flatpack)
+      slug: teak-wardrobe-flatpack
+      relationship: downgrade
+      description: "Lower tier wardrobe flatpack."
+    - item_id: 8622
+      item_name: Gilded wardrobe (flatpack)
+      slug: gilded-wardrobe-flatpack
+      relationship: upgrade
+      description: "Higher tier wardrobe flatpack."
+  about: "Mahogany wardrobe (flatpack) is a Construction 75 workbench product crafted from 3 mahogany planks for the Bedroom wardrobe hotspot in the player-owned house. Each build awards 420 Construction XP and is a common Ironman supply route for filling out a POH bedroom without hauling planks to the build hotspot directly."
+  market_strategy:
+    notes:
+      - "Construction 75 + 3 mahogany planks per flatpack."
+      - "420 XP per build; useful for Ironman Bedroom routes and incidental Construction XP."
+      - "GE buy limit 500 per 4 hours, more than enough for typical use."
+      - "High alch only 6 gp, alching is unprofitable."
+  trading_tips:
+    - "Watch mahogany plank price; flatpack value tracks raw plank cost closely."
+    - "Bulk-buy for Bedroom loadouts on Ironman accounts that want to skip plank-hauling."
+    - "Margins are thin; avoid heavy positions, treat as supply-line item."
+  history:
+    - date: "2006-05-31"
+      description: "Mahogany wardrobe flatpack added with the Construction skill release."
+    - date: "2014-12-10"
+      description: "Renamed from Mahogany 'drobe to Mahogany wardrobe with the Trading Post rename pass."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Combat potion(3) | OSRS Price Data
-description: "Combat potion(3): 3 doses of combat potion.. High alch: 96 GP, GE limit: 2,000."
+description: "Combat potion(3): 3 doses of combat potion. High alch: 96 GP, GE limit: 2,000."
 osrs:
   id: 9741
   name: Combat potion(3)
@@ -12,9 +12,82 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 2000
-  about: "Combat potion(3) is a members-only item in Old School RuneScape. High alchemy value: 96 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2002-04-11"
+    update: "Member Skills"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - name: Attack boost
+        description: "Temporarily raises Attack by 3 plus 10% of the player's current Attack level."
+        duration: 300
+      - name: Strength boost
+        description: "Temporarily raises Strength by 3 plus 10% of the player's current Strength level."
+        duration: 300
+  recipes:
+    - skill: herblore
+      level: 36
+      xp: 84
+      materials:
+        - item_name: Harralander potion (unf)
+          quantity: 1
+        - item_name: Goat horn dust
+          quantity: 1
+      output_quantity: 1
+      notes: "Native brewing output is a 3-dose Combat potion(3)."
+  related_items:
+    - item_name: Combat potion(1)
+      slug: combat-potion-1
+      relationship: variant
+      description: 1-dose form created by decanting.
+    - item_name: Combat potion(2)
+      slug: combat-potion-2
+      relationship: variant
+      description: 2-dose form created by decanting.
+    - item_name: Combat potion(4)
+      slug: combat-potion-4
+      relationship: variant
+      description: 4-dose form created by decanting.
+    - item_name: Harralander potion (unf)
+      slug: harralander-potion-unf
+      relationship: component
+      description: Unfinished base used in the brewing recipe.
+    - item_name: Goat horn dust
+      slug: goat-horn-dust
+      relationship: component
+      description: Secondary required to finish the combat potion.
+  about: |-
+    Combat potion(3) is the standard 3-dose brew of the Herblore combat potion. Each dose raises both Attack and Strength by 3 plus 10% of the corresponding base level (rounded down).
+
+    The potion is brewed at 36 Herblore from a Harralander potion (unf) and goat horn dust, granting 84 Herblore experience per finish.
+  market_strategy:
+    notes:
+      - "Low-cost combat boost for early melee training and quest stat unlocks."
+      - "Demand is steady but supply is large from Herblore training."
+      - "Decant arbitrage with 4-dose form is the main source of price movement."
+  trading_tips:
+    - "Compare per-dose price against Combat potion(4) before flipping."
+    - "Watch for Herblore weekend events that flood supply."
+  history:
+    - date: "2002-04-11"
+      description: "Combat potions introduced with the Herblore expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

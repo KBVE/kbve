@@ -1,6 +1,6 @@
 ---
 title: Menaphite red kilt | OSRS Price Data
-description: "Menaphite red kilt: Look at those nobbily knees.. High alch: 12 GP, GE limit: 150."
+description: "Menaphite red kilt is a members cosmetic legs piece from the Rogue Trader miniquest; delays desert heat onset by 12 seconds when worn. High alch: 12 GP, GE limit: 150."
 osrs:
   id: 6406
   name: Menaphite red kilt
@@ -12,9 +12,92 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 150
-  about: "Menaphite red kilt is a members-only item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cosmetic
+    tier: low
+  properties:
+    release_date: "2005-08-15"
+    update: "Rogue Trader"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.005
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weight: 0.005
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Desert heat protection
+      description: "Delays the onset of desert heat damage by 20 ticks (12 seconds) while worn."
+  related_items:
+    - item_id: 6402
+      item_name: Menaphite red hat
+      slug: menaphite-red-hat
+      relationship: alternative
+      description: Matching head slot piece for the red Menaphite outfit.
+    - item_id: 6404
+      item_name: Menaphite red robe
+      slug: menaphite-red-robe
+      relationship: alternative
+      description: Matching body slot piece for the red Menaphite outfit.
+    - item_id: 6408
+      item_name: Menaphite purple kilt
+      slug: menaphite-purple-kilt
+      relationship: variant
+      description: Purple colour variant from the same Rogue Trader reward set.
+  shop:
+    - location: Pollnivneach
+      npc: Ali Morrisane
+      shop_name: Rogue Trader reward
+      base_price: Three dyes (any colour) traded to Siamun
+  about: "Menaphite red kilt is a members-only cosmetic legs piece earned by completing the Rogue Trader miniquest in Pollnivneach. Players hand three dyes of any colour to Siamun, then trade with Ali Morrisane to receive the kilt. Originally a pure-cosmetic item, it received a desert heat protection bonus on 22 March 2023 that delays heat damage onset by 12 seconds while worn, making it useful for early desert exploration before Akhthanakos's blessing or a waterskin loadout."
+  market_strategy:
+    notes:
+      - "Demand is mostly fashionscape - some uplift after 2023 from new desert-heat players."
+      - "GE buy limit of 150 per 4 hours caps merchant volume."
+      - "High alch of 12 gp is below GE price - never an alch target."
+      - "Supply is driven by Rogue Trader completions, mostly ironmen and collection log hunters."
+  trading_tips:
+    - "Watch Menaphos / desert content updates - heat protection demand spikes briefly."
+    - "Compare with the purple variant - red is generally the more popular colour."
+    - "Low-volume cosmetic - prefer single-set flips over bulk holdings."
+  history:
+    - date: "2005-08-15"
+      description: "Released with the Rogue Trader miniquest update."
+    - date: "2014-12-10"
+      description: "Renamed from 'Menap action kilt' to 'Menaphite red kilt'."
+    - date: "2023-03-22"
+      description: "Added desert heat protection of 20 ticks (12 seconds) while worn."
+    - date: "2024-10-23"
+      description: "Model recoloured to its originally intended colours after config fixes."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

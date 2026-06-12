@@ -1,6 +1,6 @@
 ---
 title: Sigil of the craftsman | OSRS Price Data
-description: "Sigil of the craftsman: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP, GE limit: 10."
+description: "Sigil of the craftsman is a Sanguine Sands-tier passive sigil that lets Smithing produce extra bars and items while attuned. High alch: 6,000 GP, GE limit: 10."
 osrs:
   id: 26036
   name: Sigil of the craftsman
@@ -12,9 +12,65 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  about: "Sigil of the craftsman is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: sigil
+    tier: high
+  properties:
+    release_date: "2022-03-30"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Attune
+      - Drop
+    destroy: "Once attuned the sigil's power becomes part of you."
+  drop_table:
+    sources:
+      - source: Tombs of Amascut chest reward
+        combat_level: 0
+        quantity: "1"
+        rarity: very-rare
+        notes: "Rolled from the unique table after a Tombs of Amascut raid completion"
+  passive_effects:
+    - name: Craftsman
+      description: "Grants a chance for extra output bars when smelting and extra items when smithing while the sigil is attuned."
+      trigger: while_worn
+      affected_skill: smithing
+      chance: 0.1
+  related_items:
+    - item_name: Sigil of the gunslinger
+      slug: sigil-of-the-gunslinger
+      relationship: variant
+      description: Ranged-DPS sigil from the Hueycoatl reward table
+    - item_name: Sigil of devotion
+      slug: sigil-of-devotion
+      relationship: alternative
+      description: Prayer-focused sigil from the same reward pool
+    - item_name: Sigil of the formidable fighter
+      slug: sigil-of-the-formidable-fighter
+      relationship: alternative
+      description: Melee combat sigil rolled on the same Tombs of Amascut table
+  market_strategy:
+    notes:
+      - "Buy limit only 10 per 4 hours — extreme thin liquidity"
+      - "Drop rate gated by Tombs of Amascut completions per hour"
+      - "Demand from Smithing XP racers stacking craftsman procs"
+      - "Attuning consumes the sigil; resale only viable on the unattuned item"
+      - "High alch barely above cost — never alch a tradeable copy"
+  trading_tips:
+    - Verify untradeable vs tradeable state before listing; attuned sigils cannot be sold
+    - Stack craftsman sigils across alts to maximise Smithing XP/hr
+    - Watch for spikes during Smithing rework patches and Blast Furnace bonus weekends
+  about: Sigil of the craftsman is a tradeable Tombs of Amascut sigil that, once attuned, gives a chance for extra output when smelting bars and smithing items, accelerating Smithing XP/hr.
+  history:
+    - date: "2022-03-30"
+      description: "Sigil pool introduced as a chase reward layer for Tombs of Amascut raid scaling."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Guthix cloak | OSRS Price Data
-description: "Guthix cloak is a members cape slot item. High alch: 1,200 GP, GE limit: 8."
+description: "Guthix cloak is the cape piece of the Guthix vestment set requiring 40 Prayer, giving +3 prayer bonus. High alch: 1,200 GP, GE limit: 8."
 osrs:
   id: 10448
   name: Guthix cloak
@@ -12,27 +12,107 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: mid
+  properties:
+    release_date: "2007-08-06"
+    update: "Treasure Trail Tweaks"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: cape
+    weight: 0.453
     requirements:
       prayer: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
     other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 3
+  passive_effects:
+    - name: Guthixian alignment
+      description: "Counts as a Guthixian item in the God Wars Dungeon, letting the wearer bypass the Guthix faction door without being attacked by Guthixian followers."
+      trigger: while_worn
+  drop_table:
+    sources:
+      - source: Hard clue scroll casket
+        quantity: "1"
+        rarity: Rare
+        notes: "Reward casket from a Hard Treasure Trail."
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
   related_items:
-    - item_id: 10462
-      item_name: Guthix robe top
+    - item_name: Guthix robe top
       slug: guthix-robe-top
       relationship: set-piece
-      description: Guthix vestment body
-  about: |-
-    > *"A Guthix cloak."*
-
-    The Guthix cloak is the cape piece of the Guthix vestment set. It provides a +3 Prayer bonus and requires 40 Prayer to equip. Counts as a Guthixian item in the God Wars Dungeon.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Body slot piece of the Guthix vestment set"
+    - item_name: Guthix robe legs
+      slug: guthix-robe-legs
+      relationship: set-piece
+      description: "Legs slot piece of the Guthix vestment set"
+    - item_name: Guthix mitre
+      slug: guthix-mitre
+      relationship: set-piece
+      description: "Head slot piece of the Guthix vestment set"
+    - item_name: Guthix stole
+      slug: guthix-stole
+      relationship: set-piece
+      description: "Neck slot piece of the Guthix vestment set"
+    - item_name: Saradomin cloak
+      slug: saradomin-cloak
+      relationship: variant
+      description: "Saradomin vestment cape variant with identical stats"
+    - item_name: Zamorak cloak
+      slug: zamorak-cloak
+      relationship: variant
+      description: "Zamorak vestment cape variant with identical stats"
+  about: "Guthix cloak is the cape piece of the Guthix vestment set, rewarded from Hard Treasure Trails. It requires 40 Prayer to wear, grants +3 prayer bonus, and counts as a Guthixian item in the God Wars Dungeon - letting the wearer bypass the Guthix faction door without aggro from Guthixian followers. The cloak is functionally identical to the other god vestment cloaks at the same prayer bonus tier."
+  market_strategy:
+    notes:
+      - "Hard clue casket exclusive; supply tied to clue completion rate"
+      - "Buy limit 8 per 4 hours throttles bulk flipping"
+      - "Demand is split across all three god vestment cloak variants"
+      - "Used by GWD setups for door bypass and by ironmen for prayer cape upgrades"
+  trading_tips:
+    - "Compare Guthix, Saradomin, and Zamorak cloak prices and list the cheapest one"
+    - "Stockpile ahead of Hard clue events when supply temporarily inflates"
+  history:
+    - date: "2007-08-06"
+      description: "Released with the Treasure Trail Tweaks god vestment set expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

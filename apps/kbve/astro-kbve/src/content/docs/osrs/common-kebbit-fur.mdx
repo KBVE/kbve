@@ -1,6 +1,6 @@
 ---
 title: Common kebbit fur | OSRS Price Data
-description: "Common kebbit fur: Common fur from a common kebbit.. High alch: 7 GP, GE limit: 10,000."
+description: "Common kebbit fur is a members Hunter resource from Common kebbits. High alch: 7 GP, GE limit: 10,000."
 osrs:
   id: 10121
   name: Common kebbit fur
@@ -12,9 +12,85 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 10000
-  about: "Common kebbit fur is a members-only item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: fur
+    tier: low
+  properties:
+    release_date: "2006-11-27"
+    update: "Hunter skill release"
+    quest_item: false
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    weight: 0.4
+    destroy: "Drop"
+    options:
+      - Drop
+    examine_options:
+      - Examine
+    alchable: true
+  obtaining:
+    - method: Hunter
+      level: 1
+      xp: 30
+      source: Common kebbit
+      location: Piscatoris Hunter area
+      tools:
+        - Noose wand
+      notes: "Caught via Tracking using a noose wand"
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 0
+      tools:
+        - Fancy Dress Shop
+      materials:
+        - item_id: 10121
+          item_name: Common kebbit fur
+          quantity: 1
+        - item_id: 995
+          item_name: Coins
+          quantity: 500
+      output:
+        item_id: 10063
+        item_name: Spotted cape
+        output_quantity: 1
+      members: true
+      notes: "Trade to the Varrock Fancy Dress Shop for spotted cape"
+  related_items:
+    - item_id: 10095
+      item_name: Dark kebbit fur
+      slug: dark-kebbit-fur
+      relationship: upgrade
+      description: Higher tier kebbit fur from Dark kebbits
+    - item_id: 10117
+      item_name: Polar kebbit fur
+      slug: polar-kebbit-fur
+      relationship: alternative
+      description: Polar variant from Polar kebbits
+    - item_id: 10119
+      item_name: Feldip weasel fur
+      slug: feldip-weasel-fur
+      relationship: alternative
+      description: Feldip Hills kebbit fur variant
+    - item_id: 10063
+      item_name: Spotted cape
+      slug: spotted-cape
+      relationship: product
+      description: Crafted cape from common kebbit fur
+  market_strategy:
+    notes:
+      - "Low-tier Hunter byproduct, abundant supply"
+      - "Mainly used for spotted cape unlock"
+      - "Floor-priced; bulk supply from Hunter trainers"
+      - "Buy off GE rather than train Hunter for it"
+  history:
+    - date: "2006-11-27"
+      description: "Released with the Hunter skill"
+  about: "Common kebbit fur is a Hunter byproduct obtained by tracking and snaring common kebbits in the Piscatoris Hunter area. The fur can be exchanged at the Varrock Fancy Dress Shop to craft a spotted cape."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

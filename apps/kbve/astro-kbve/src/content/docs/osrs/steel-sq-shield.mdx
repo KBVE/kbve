@@ -1,6 +1,6 @@
 ---
 title: Steel sq shield | OSRS Price Data
-description: "Steel sq shield: A medium square shield.. High alch: 360 GP, GE limit: 125."
+description: "Steel sq shield: A medium square shield. High alch: 360 GP, GE limit: 125."
 osrs:
   id: 1177
   name: Steel sq shield
@@ -12,25 +12,103 @@ osrs:
   lowalch: 240
   highalch: 360
   limit: 125
-  item_id: 1177
-  item_type: armor
-  slot: shield
-  type: square_shield
-  tradeable: true
-  weight: 3.628
-  requirements:
-    defence: 5
-  stats:
-    stab_defence: 12
-    slash_defence: 13
-    crush_defence: 11
-    magic_defence: 0
-    ranged_defence: 12
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: steel
+    tier: mid
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type:
+    weight: 3.628
+    requirements:
+      defence: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: 0
+    defence_bonus:
+      stab: 12
+      slash: 13
+      crush: 11
+      magic: 0
+      ranged: 12
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 38
+      xp: 75
+      materials:
+        - item_name: Steel bar
+          item_id: 2353
+          quantity: 2
+      tools:
+        - Hammer
+      facility: Anvil
+      product: Steel sq shield
+      product_id: 1177
+      output_quantity: 1
+      notes: "Smith 2 steel bars at an anvil with a hammer."
+  shops:
+    - shop_name: "Cassie's Shield Shop"
+      location: Falador
+      price: 600
+      currency: Coins
+      stock: 5
+    - shop_name: "Quality Armour Shop"
+      location: Keldagrim
+      price: 600
+      currency: Coins
+      stock: 0
   related_items:
-    - slug: black-sq-shield
-    - slug: steel-kiteshield
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Black sq shield
+      slug: black-sq-shield
+      relationship: downgrade
+      description: "Lower-tier square shield."
+    - item_name: Mithril sq shield
+      slug: mithril-sq-shield
+      relationship: upgrade
+      description: "Higher-tier square shield."
+    - item_name: Steel kiteshield
+      slug: steel-kiteshield
+      relationship: variant
+      description: "Same tier but kiteshield form factor with stronger stats."
+  about: "Steel sq shield is a free-to-play melee shield requiring 5 Defence to wear. It is smithed from 2 steel bars at 38 Smithing for 75 XP, and sold by Cassie's Shield Shop in Falador. While its stats are below the kiteshield of the same tier, it remains a common low-level F2P training shield and a steady Smithing-XP supply line."
+  market_strategy:
+    notes:
+      - "Entry-level F2P shield; demand from new accounts and Defence trainers."
+      - "Smithing supply is steady; shop-flip arbitrage off Cassie's 600 gp price is the main angle."
+      - "Buy limit 125 per 4 hours caps daily flip volume."
+      - "High alch 360 gp leaves modest headroom for nature rune alch routes."
+  trading_tips:
+    - "Buy near alch value to cap downside on flips."
+    - "Compare to steel kiteshield price; kite stats dominate, so sq shield is fashionscape-only above price parity."
+    - "Track steel bar pricing for Smithing supply-side moves."
+  history:
+    - date: "2001-01-04"
+      description: "Released as part of the early F2P melee armour rollout."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

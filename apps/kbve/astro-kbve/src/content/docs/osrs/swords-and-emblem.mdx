@@ -1,20 +1,87 @@
 ---
 title: Swords and emblem | OSRS Price Data
-description: "Swords and emblem: Sadly, the blades are only decorative."
+description: "Swords and emblem is a decorative Grid Master event reward worn in the weapon slot. High alch: 60,000 GP."
 osrs:
   id: 31193
   name: Swords and emblem
   slug: swords-and-emblem
-  examine: Sadly, the blades are only decorative
+  examine: Sadly, the blades are only decorative.
   members: true
   icon: Swords and emblem.png
   value: 100000
-  lowalch: null
-  highalch: null
-  limit: null
-  about: Swords and emblem is a members-only item in Old School RuneScape.
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  lowalch: 40000
+  highalch: 60000
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2025-10-15"
+    update: "Grid Master event"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: cosmetic
+    weight: 0.3
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Events Reward Shop
+        location: Varrock Square
+        cost: 1100 event points
+        rarity: shop
+        members_only: true
+  related_items:
+    - item_name: Grid master tabard
+      slug: grid-master-tabard
+      relationship: variant
+      description: "Matching tabard from the same Grid Master event reward shop."
+  about: "Swords and emblem is a decorative weapon-slot cosmetic sold by the Events Reward Shop in Varrock Square during the 2025 Grid Master community event. It carries no combat bonuses, exists purely as showpiece flair, and can be stored in the costume room armour case alongside its matching grid master tabard color variants."
+  market_strategy:
+    notes:
+      - "Pure cosmetic - demand driven by collectors and event nostalgia, not utility."
+      - "No GE buy limit reported, so flips are uncapped but volume is thin."
+      - "High alch of 60,000 gp keeps a floor under the GE price."
+      - "Supply only grows when event shop points are spent, then permanently shrinks."
+  trading_tips:
+    - "Watch alt-event hype cycles - cosmetic prices spike around announcements."
+    - "Compare against grid master tabard pricing for set arbitrage."
+    - "High-alch floor protects downside if you flip into a dip."
+  history:
+    - date: "2025-10-15"
+      description: "Released to the Events Reward Shop during the Grid Master community event."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

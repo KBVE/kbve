@@ -1,6 +1,6 @@
 ---
 title: Black mace | OSRS Price Data
-description: "Black mace is a F2P weapon slot item requiring 10 Attack. High alch: 259 GP, GE limit: 125."
+description: "Black mace is a F2P one-handed crush weapon with +2 prayer bonus requiring 10 Attack. High alch: 259 GP, GE limit: 125."
 osrs:
   id: 1426
   name: Black mace
@@ -12,44 +12,96 @@ osrs:
   lowalch: 172
   highalch: 259
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: black
+    tier: low
+  properties:
+    release_date: "2001-09-11"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: mace
-    tradeable: true
+    weapon_type: mace
+    attack_speed: 5
+    attack_range: 1
     weight: 1.814
     requirements:
       attack: 10
-    stats:
-      attack_stab: 8
-      attack_slash: -2
-      attack_crush: 16
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 13
+    attack_bonus:
+      stab: 8
+      slash: -2
+      crush: 16
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 13
       ranged_strength: 0
       magic_damage: 0
       prayer: 2
+  drop_table:
+    sources:
+      - source: Skeleton
+        quantity: "1"
+        rarity: Uncommon
+      - source: Hobgoblin
+        quantity: "1"
+        rarity: Uncommon
+      - source: Ice warrior
+        quantity: "1"
+        rarity: Uncommon
   related_items:
-    - item_id: 1428
-      item_name: Mithril mace
+    - item_name: Steel mace
+      slug: steel-mace
+      relationship: downgrade
+      description: "Lower-tier steel variant with weaker crush bonus"
+    - item_name: Mithril mace
       slug: mithril-mace
       relationship: upgrade
-      description: Higher tier mace
-    - item_id: 1341
-      item_name: Black warhammer
+      description: "Higher-tier mithril variant requiring 20 Attack"
+    - item_name: Black warhammer
       slug: black-warhammer
       relationship: alternative
-      description: Higher strength alternative
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Two-handed crush alternative at the same tier with no prayer bonus"
+    - item_name: Black scimitar
+      slug: black-scimitar
+      relationship: alternative
+      description: "One-handed slash alternative at the same tier"
+  about: "Black mace is a free-to-play one-handed crush weapon requiring 10 Attack. It cannot be smithed and is only obtained from monster drops, shops, or trade. The +2 prayer bonus makes it a popular budget weapon for low-level prayer-flicking in F2P training spots like Stronghold of Security and the Lumbridge graveyard."
+  market_strategy:
+    notes:
+      - "F2P prayer bonus weapon - niche but consistent demand"
+      - "Shop stock keeps the floor close to the 432 gp value"
+      - "Low volume per 4 hours caps bulk flipping upside"
+  trading_tips:
+    - "Watch for spikes around F2P Combat events and ironman PvP weekends"
+    - "Compare against the smithable mithril mace - players may switch tiers based on spread"
+  history:
+    - date: "2001-09-11"
+      description: "Released alongside the rest of the black weapon tier."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

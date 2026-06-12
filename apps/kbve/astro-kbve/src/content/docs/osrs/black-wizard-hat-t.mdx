@@ -1,6 +1,6 @@
 ---
 title: Black wizard hat (t) | OSRS Price Data
-description: "Black wizard hat (t) is a F2P head slot item. High alch: 1 GP, GE limit: 4."
+description: "Black wizard hat (t) is a F2P trimmed wizard hat reward from easy Treasure Trails, +2 magic attack and defence with no requirements. High alch: 1 GP, GE limit: 4."
 osrs:
   id: 12455
   name: Black wizard hat (t)
@@ -12,25 +12,86 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2014-06-12"
+    update: "Treasure Trail Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
+    weight: 0.453
     requirements: {}
     attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
       magic: 2
+      ranged: 0
     defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
       magic: 2
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        quantity: "1"
+        rarity: "1/1,404"
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
   related_items:
-    - item_id: 12451
+    - item_id: 12453
       item_name: Black wizard robe (t)
       slug: black-wizard-robe-t
       relationship: set-piece
-      description: Matching trimmed wizard robe
-  about: |-
-    > *"A silly pointed hat, with colourful trim."*
-
-    The black wizard hat (t) is a trimmed cosmetic variant of the wizard hat. It provides +2 magic attack and defence with no requirements. F2P item.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Matching trimmed black wizard robe."
+    - item_id: 1015
+      item_name: Black wizard hat
+      slug: black-wizard-hat
+      relationship: alternative
+      description: "Untrimmed black wizard hat variant."
+    - item_id: 2635
+      item_name: Wizard hat (t)
+      slug: wizard-hat-t
+      relationship: alternative
+      description: "Blue trimmed wizard hat counterpart from the same clue tier."
+  about: "Black wizard hat (t) is a free-to-play trimmed cosmetic variant of the black wizard hat distributed as a 1/1,404 reward from easy reward caskets. It provides the same +2 magic attack and defence as the regular wizard hat with no requirements, and serves primarily as a wealth-signalling cosmetic for low-level mages and rare-item collectors."
+  market_strategy:
+    notes:
+      - "Supply is entirely easy clue casket pulls - thin and inconsistent."
+      - "GE buy limit of 4 per 4 hours throttles accumulation."
+      - "High alch of 1 gp is irrelevant; never alch trim-tier rares."
+      - "Demand is collector-driven; F2P access broadens the buyer pool slightly vs members-only trims."
+  trading_tips:
+    - "Watch easy clue meta shifts (Hill Giants, Implings) that bump casket throughput."
+    - "Cross-reference Black wizard robe (t) - set buyers move both together."
+    - "Treat as a slow flip - thin volume rewards patience, not active merchant churn."
+  history:
+    - date: "2014-06-12"
+      description: "Added as part of the Treasure Trail Expansion update, distributed via easy reward caskets."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

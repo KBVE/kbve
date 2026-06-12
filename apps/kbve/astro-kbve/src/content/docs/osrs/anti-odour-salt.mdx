@@ -1,6 +1,6 @@
 ---
 title: Anti-odour salt | OSRS Price Data
-description: "Anti-odour salt: A special salt used by experienced hunters to remove their sent from traps.. High alch: 6 GP."
+description: "Anti-odour salt is a members Herblore-made hunter consumable used to mask scent on traps. High alch: 6 GP."
 osrs:
   id: 31712
   name: Anti-odour salt
@@ -11,10 +11,72 @@ osrs:
   value: 11
   lowalch: 4
   highalch: 6
-  limit: null
-  about: "Anti-odour salt is a members-only item in Old School RuneScape. High alchemy value: 6 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit:
+  material:
+    type: consumable
+    tier: mid
+  recipes:
+    - skill: herblore
+      level: 49
+      xp: 11
+      materials:
+        - item_name: Elkhorn coral
+          quantity: 1
+        - item_name: Crab paste
+          quantity: 5
+      tools:
+        - Pestle and mortar
+      product: Anti-odour salt
+      product_id: 31712
+      output_quantity: 15
+      members_only: true
+  related_items:
+    - item_name: Elkhorn coral
+      slug: elkhorn-coral
+      relationship: component
+      description: Coral ingredient ground with crab paste to make the salt.
+    - item_name: Crab paste
+      slug: crab-paste
+      relationship: component
+      description: Paste consumed alongside elkhorn coral in the recipe.
+    - item_name: Huntsman's kit
+      slug: huntsmans-kit
+      relationship: alternative
+      description: Hunter storage kit; anti-odour salt cannot be stored inside it.
+  about: |-
+    Anti-odour salt is a Sailing-era Herblore product that members rub onto hunter traps to mask player scent.
+    Each salt is consumed automatically when a trap is laid and gives a small uplift to catch rate, making it
+    a routine consumable for high-volume hunter trips rather than a one-off luxury item.
+  market_strategy:
+    title: Salt Margins
+    notes:
+      - Tracks the spread between elkhorn coral, crab paste, and the 15-yield batch output
+      - Herblore margin tightens with coral price spikes; check both ingredients before bulk crafting
+      - Demand spikes when Sailing/Hunter content is featured in seasonal events
+      - Buy limit is uncapped so suppliers can flood the GE during community goals
+  trading_tips:
+    - Sample a single batch before committing 1,000+ corals to confirm margin after GE tax
+    - Stockpile during Sailing content droughts when coral suppliers undercut
+    - List finished salt slightly below instant-buy to clear before the next hunter event
+  history:
+    - date: "2025-11-19"
+      description: Introduced with the Sailing skill launch as a Hunter consumable.
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: true
+    noteable: true
+    equipable: false
+    members: true
+    weight: 0
+    options:
+      - Use
+      - Drop
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

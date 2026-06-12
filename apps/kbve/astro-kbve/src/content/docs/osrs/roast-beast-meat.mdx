@@ -1,6 +1,6 @@
 ---
 title: Roast beast meat | OSRS Price Data
-description: "Roast beast meat: A delicious looking slab of roast beast.. High alch: 15 GP, GE limit: 6,000."
+description: "Roast beast meat is a members 21 Cooking food cooked from skewered beast on a fire, healing 8 Hitpoints. High alch: 15 GP, GE limit: 6,000."
 osrs:
   id: 9988
   name: Roast beast meat
@@ -12,9 +12,72 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 6000
-  about: "Roast beast meat is a members-only item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: meat
+    tier: low
+  properties:
+    release_date: "2006-11-21"
+    update: "Hunter skill release"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.0
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  food:
+    heals: 8
+    bites: 1
+  recipes:
+    - skill: cooking
+      level: 21
+      xp: 82.5
+      materials:
+        - item_name: Skewered beast
+          item_id: 9992
+          quantity: 1
+      tools:
+        - Fire
+      product: Roast beast meat
+      product_id: 9988
+      output_quantity: 1
+  related_items:
+    - item_id: 9992
+      item_name: Skewered beast
+      slug: skewered-beast
+      relationship: component
+      description: "Raw beast meat threaded on an iron spit, ready to roast over a fire."
+    - item_id: 9986
+      item_name: Raw beast meat
+      slug: raw-beast-meat
+      relationship: component
+      description: "Raw drop from various Hunter creatures; combined with an iron spit before cooking."
+    - item_id: 9990
+      item_name: Burnt beast meat
+      slug: burnt-beast-meat
+      relationship: alternative
+      description: "Failure outcome when cooking the skewered beast at low levels."
+  about: "Roast beast meat is a members food cooked from a skewered beast over any fire at 21 Cooking for 82.5 XP. It restores 8 Hitpoints per bite and is most commonly produced as a by-product of Hunter rumours and survival training. Cooking fails at low levels produce burnt beast meat; success rate reaches 100% at 99 Cooking."
+  market_strategy:
+    notes:
+      - "Demand is thin - mostly Hunter rumour completers and survivalists, not mainline PvM food."
+      - "Buy limit of 6,000 per 4 hours allows for bulk plays when Hunter rumours surge."
+      - "High alch 15 gp keeps the alch floor effectively below market value."
+      - "Supply tracks raw beast meat / skewered beast availability from Hunter content."
+  trading_tips:
+    - "Bulk-buy on patch days that boost Hunter XP - rumour spam dumps raw beast meat onto the GE."
+    - "Use as cheap throw-away food for low-effort Hunter trips before pivoting to higher-heal options."
+  history:
+    - date: "2006-11-21"
+      description: "Released alongside the Hunter skill as a campfire-roasted food option."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

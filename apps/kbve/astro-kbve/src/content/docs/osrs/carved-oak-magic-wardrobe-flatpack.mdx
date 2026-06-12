@@ -1,6 +1,6 @@
 ---
 title: Carved oak magic wardrobe (flatpack) | OSRS Price Data
-description: "Carved oak magic wardrobe (flatpack): Carved oak magic wardrobe.. High alch: 6 GP, GE limit: 500."
+description: "Carved oak magic wardrobe (flatpack): Carved oak magic wardrobe. High alch: 6 GP, GE limit: 500."
 osrs:
   id: 9853
   name: Carved oak magic wardrobe (flatpack)
@@ -12,9 +12,61 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Carved oak magic wardrobe (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: oak
+    tier: low
+  properties:
+    release_date: "2006-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 51
+      xp: 360
+      materials:
+        - item_name: Oak plank
+          quantity: 6
+      tools:
+        - Hammer
+        - Saw
+      facility: "Steel framed workbench"
+      output_quantity: 1
+  related_items:
+    - item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: "Construction material used to make the flatpack"
+    - item_name: Oak magic wardrobe (flatpack)
+      slug: oak-magic-wardrobe-flatpack
+      relationship: downgrade
+      description: "Lower-tier flatpack version with reduced costume room storage"
+    - item_name: Teak magic wardrobe (flatpack)
+      slug: teak-magic-wardrobe-flatpack
+      relationship: upgrade
+      description: "Higher-tier teak flatpack with more capacity"
+  about: "The carved oak magic wardrobe flatpack is a Construction storage upgrade for the costume room in a player-owned house. Players craft it at 51 Construction on a steel framed workbench using six oak planks for 360 xp, then use it on a magic wardrobe space to deploy without needing a hotspot built first."
+  market_strategy:
+    notes:
+      - "Construction xp methods rely on planks, not flatpacks, so demand is thin"
+      - "Net Construction profit per flatpack is negative once GE oak plank cost is factored"
+      - "Stable low-margin item, used mostly by costume room finishers"
+  trading_tips:
+    - "Restock against players outfitting POH costume rooms in bulk"
+    - "Keep buy price under high-alch value to avoid loss flips"
+  history:
+    - date: "2006-10-18"
+      description: "Released with the costume room update to the player-owned house."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

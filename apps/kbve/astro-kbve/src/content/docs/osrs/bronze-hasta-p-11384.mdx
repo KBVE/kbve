@@ -1,6 +1,6 @@
 ---
 title: Bronze hasta(p++) | OSRS Price Data
-description: "Bronze hasta(p++): A poison-tipped, one-handed bronze hasta.. High alch: 15 GP, GE limit: 125."
+description: "Bronze hasta(p++): A poison-tipped, one-handed bronze hasta. High alch: 15 GP, GE limit: 125."
 osrs:
   id: 11384
   name: Bronze hasta(p++)
@@ -12,9 +12,108 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 125
-  about: "Bronze hasta(p++) is a members-only item in Old School RuneScape. High alchemy value: 15 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: metal
+    tier: low
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: spear
+    attack_speed: 4
+    attack_range: 1
+    weight: 2.267
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 5
+      slash: 5
+      crush: 5
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: -1
+      slash: -1
+      crush: -1
+      magic: 0
+      ranged: -1
+    other_bonus:
+      melee_strength: 6
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Poison++
+      description: "Has a chance on hit to apply the enhanced poison (++) damage-over-time effect for 6 damage per tick."
+      trigger: on_hit
+  recipes:
+    - skill: fletching
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Bronze hasta
+          item_id: 11367
+          quantity: 1
+        - item_name: Weapon poison++
+          item_id: 5940
+          quantity: 1
+      product: Bronze hasta(p++)
+      product_id: 11384
+      output_quantity: 1
+      notes: "Use Weapon poison++ on a bronze hasta to upgrade to the (p++) variant."
+  related_items:
+    - item_id: 11367
+      item_name: Bronze hasta
+      slug: bronze-hasta
+      relationship: variant
+      description: "Base unpoisoned bronze hasta."
+    - item_id: 11380
+      item_name: Bronze hasta(p)
+      slug: bronze-hasta-p-11380
+      relationship: variant
+      description: "Standard poisoned variant."
+    - item_id: 11382
+      item_name: Bronze hasta(p+)
+      slug: bronze-hasta-p-11382
+      relationship: variant
+      description: "Stronger poisoned variant."
+    - item_id: 11386
+      item_name: Iron hasta(p++)
+      slug: iron-hasta-p-11386
+      relationship: upgrade
+      description: "Next-tier poisoned hasta."
+  about: "Bronze hasta(p++) is the enhanced-poison variant of the bronze hasta, a one-handed spear-type weapon created via the Barbarian Training miniquest Smithing path. The (p++) tier inflicts the strongest poison damage-over-time on hit and is most often used as a niche PvP or specific PvM ammunition for spear loadouts."
+  market_strategy:
+    notes:
+      - "Niche poison-stack spear variant; demand limited to spear-PvP and specific Slayer setups."
+      - "Input cost dominated by Weapon poison++ price, not the base hasta."
+      - "Low GE buy limit of 125 caps daily flip volume."
+      - "High alch of 15 gp leaves no alch headroom; profits come from spreads only."
+  trading_tips:
+    - "Track Weapon poison++ price as the dominant input cost when valuing the (p++) variant."
+    - "Buy base bronze hastas in bulk and apply poison++ if the spread justifies the conversion."
+    - "Watch Barbarian Training miniquest popularity for downstream demand on hasta variants."
+  history:
+    - date: "2007-07-03"
+      description: "Bronze hasta(p++) released with the Barbarian Training miniquest and the hasta weapon line."
+    - date: "2021-04-21"
+      description: "Hasta attack speed decreased from 5 ticks (3.0s) to 4 ticks (2.4s), improving the weapon class significantly."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

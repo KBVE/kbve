@@ -1,20 +1,91 @@
 ---
 title: Iron gold-trimmed set (sk) | OSRS Price Data
-description: "Iron gold-trimmed set (sk): A set containing a full helm, platebody, skirt and kiteshield.. High alch: 540 GP, GE limit: 8."
+description: "Iron gold-trimmed set (sk) is a F2P Grand Exchange set bundling iron full helm (g), platebody (g), skirt (g) and kiteshield (g). High alch: 540 GP, GE limit: 8."
 osrs:
   id: 12982
   name: Iron gold-trimmed set (sk)
   slug: iron-gold-trimmed-set-sk
-  examine: A set containing a full helm, platebody, skirt and kiteshield.
+  examine: "A set containing a full helm, platebody, skirt and kiteshield."
   members: false
   icon: Iron gold-trimmed set (sk).png
   value: 900
   lowalch: 360
   highalch: 540
   limit: 8
-  about: "Iron gold-trimmed set (sk) is a free-to-play item in Old School RuneScape. High alchemy value: 540 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2007-11-15"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 6.0
+    options:
+      - Exchange
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  set_bonus:
+    set_name: "Iron gold-trimmed armour set (skirt)"
+    pieces_required: 4
+    description: "Grand Exchange convenience bundle that exchanges into one each of Iron full helm (g), Iron platebody (g), Iron plateskirt (g), and Iron kiteshield (g)."
+    pieces:
+      - 2782
+      - 2778
+      - 2780
+      - 2776
+  related_items:
+    - item_id: 12980
+      item_name: Iron gold-trimmed set (lg)
+      slug: iron-gold-trimmed-set-lg
+      relationship: variant
+      description: "Legs variant of the iron gold-trimmed armour set."
+    - item_id: 2782
+      item_name: Iron full helm (g)
+      slug: iron-full-helm-g
+      relationship: component
+      description: "Component piece in the set."
+    - item_id: 2778
+      item_name: Iron platebody (g)
+      slug: iron-platebody-g
+      relationship: component
+      description: "Component piece in the set."
+    - item_id: 2780
+      item_name: Iron plateskirt (g)
+      slug: iron-plateskirt-g
+      relationship: component
+      description: "Component piece in the set."
+    - item_id: 2776
+      item_name: Iron kiteshield (g)
+      slug: iron-kiteshield-g
+      relationship: component
+      description: "Component piece in the set."
+    - item_id: 12978
+      item_name: Iron trimmed set (sk)
+      slug: iron-trimmed-set-sk
+      relationship: variant
+      description: "Standard (white) trimmed variant of the iron armour set."
+  about: "Iron gold-trimmed set (sk) is a Free-to-Play Grand Exchange armour bundle that packages an Iron full helm (g), Iron platebody (g), Iron plateskirt (g) and Iron kiteshield (g) into a single tradeable item. It exists to speed up bulk transfers between players for the gold-trimmed clue-reward iron armour cosmetic. Exchanging the set at any Grand Exchange clerk converts it into the individual pieces."
+  market_strategy:
+    notes:
+      - "Arbitrage between set price and the sum of its 4 gold-trimmed components."
+      - "Low GE buy limit (8) caps daily flip volume."
+      - "Supply ties to Easy Treasure Trail clue completions that drop the trimmed pieces."
+      - "F2P-tradeable, so liquidity is consistent on flipping worlds."
+  trading_tips:
+    - "Buy the set when sum of pieces exceeds the set price, exchange at a clerk, and resell components."
+    - "Track Easy clue scroll completion rates and trimmed iron piece supply trends."
+    - "Cosmetic value dominates over combat utility; price is fashionscape-driven."
+  history:
+    - date: "2007-11-15"
+      description: "Released with the Grand Exchange armour set update that introduced trimmed and gold-trimmed iron set bundles."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

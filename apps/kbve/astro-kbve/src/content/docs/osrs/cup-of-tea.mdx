@@ -1,6 +1,6 @@
 ---
 title: Cup of tea | OSRS Price Data
-description: "Cup of tea: A nice cup of tea.. High alch: 6 GP, GE limit: 2,000."
+description: "Cup of tea is a members food that restores 3 HP and boosts Attack by 2 + 2 percent. High alch: 6 GP, GE limit: 2,000."
 osrs:
   id: 1978
   name: Cup of tea
@@ -12,12 +12,70 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 2000
-  about: "Cup of tea is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: food
+    tier: mid
+  properties:
+    release_date: "2002-07-23"
+    update: "Members' quests"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0.15
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  consumable:
+    heals: 3
+    effects:
+      - description: "Restores 3 Hitpoints when drunk."
+        duration: 0
+      - description: "Boosts Attack level by 2 + 2 percent of base Attack (rounded down)."
+        duration: 0
+      - description: "Cancels Goading potion stat drain effect."
+        duration: 0
+  related_items:
+    - item_id: 4242
+      item_name: Tea flask
+      slug: tea-flask
+      relationship: variant
+      description: "Multi-dose flask holding up to 5 cups of tea, used in Temple Trekking."
+    - item_id: 1980
+      item_name: Empty cup
+      slug: empty-cup
+      relationship: alternative
+      description: "Left in inventory after drinking the tea."
+    - item_id: 4239
+      item_name: Nettle tea
+      slug: nettle-tea
+      relationship: alternative
+      description: "Self-brewed Attack-boost tea variant."
+  about: "Cup of tea is a utility consumable that restores 3 Hitpoints and provides a small Attack level boost when drunk, leaving an empty cup behind. It is sold at Ye olde Tea Shoppe in Varrock, stolen from tea stalls at level 5 Thieving, and spawns at fixed locations across Gielinor. Primarily a quest item for The Dig Site Panning Guide bribe and a flavor-boost niche for low-level Attack training, it remains one of the oldest items in the game."
+  market_strategy:
+    notes:
+      - "Demand is driven by The Dig Site questing and Temple Trekking flask supply, not combat."
+      - "Supply is steady via the tea stall thieving meta plus NPC shop spawns."
+      - "GE buy limit of 2,000 keeps flips small but consistent."
+      - "High alch return of 6 gp - not viable as an alching target."
+  trading_tips:
+    - "Spike alerts on quest guide spikes - new players running The Dig Site demand small clusters."
+    - "Cross-monitor tea stall thieving meta - heavier stall activity floods supply."
+    - "Low-margin item; volume is rarely high enough for serious flips."
+  history:
+    - date: "2002-07-23"
+      description: "Added in the Members' quests update as part of early Varrock content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

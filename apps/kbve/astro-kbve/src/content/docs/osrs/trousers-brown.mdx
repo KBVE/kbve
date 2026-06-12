@@ -1,6 +1,6 @@
 ---
 title: Trousers (brown) | OSRS Price Data
-description: "Trousers (brown): A pair of long dwarven trousers... long for dwarves, of course.. High alch: 330 GP, GE limit: 150."
+description: "Trousers (brown): A pair of long dwarven trousers, long for dwarves, of course. High alch: 330 GP, GE limit: 150."
 osrs:
   id: 5036
   name: Trousers (brown)
@@ -12,9 +12,78 @@ osrs:
   lowalch: 220
   highalch: 330
   limit: 150
-  about: "Trousers (brown) is a members-only item in Old School RuneScape. High alchemy value: 330 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2005-08-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Thessalia's Fine Clothes"
+      location: Varrock
+      price: 650
+      currency: coins
+      stock: 0
+      members_only: false
+  related_items:
+    - item_id: 5034
+      item_name: Shirt (brown)
+      slug: shirt-brown
+      relationship: set-piece
+      description: "Matching brown shirt for the dwarven outfit."
+    - item_id: 5038
+      item_name: Trousers (red)
+      slug: trousers-red
+      relationship: variant
+      description: "Alternate colour variant of the dwarven trousers."
+  about: "Trousers (brown) is a members cosmetic legwear sold by Thessalia's Fine Clothes in Varrock as part of the dwarven outfit set, offering no combat stats and existing purely for fashionscape."
+  market_strategy:
+    notes:
+      - "Pure cosmetic with zero combat bonus; demand is fashionscape-only."
+      - "Thessalia restocks keep the GE ceiling near shop price."
+      - "Limit 150 per 4 hours throttles bulk arbitrage."
+  trading_tips:
+    - "Stock during fashionscape competitions and outfit hype cycles."
+    - "Compare brown vs red variant for cheapest stock to bulk-flip."
+  history:
+    - date: "2005-08-22"
+      description: "Added to Thessalia's Fine Clothes wardrobe expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

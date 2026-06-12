@@ -1,6 +1,6 @@
 ---
 title: Menaphite remedy(1) | OSRS Price Data
-description: "Menaphite remedy(1): 1 dose of Menaphite remedy.. High alch: 66 GP."
+description: "Menaphite remedy(1) is the 1-dose stat renewal potion restoring 6 + 16 percent combat stats every 15 seconds for 5 minutes and countering Saradomin brew drain. High alch: 66 GP."
 osrs:
   id: 27211
   name: Menaphite remedy(1)
@@ -11,21 +11,37 @@ osrs:
   value: 110
   lowalch: 44
   highalch: 66
-  limit: null
-  item:
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
     type: potion
+    tier: high
+  properties:
+    release_date: "2022-08-24"
+    update: "Tombs of Amascut"
     tradeable: true
-    doses: 4
-  effect:
-    boost:
-      - skill: combat stats
-        amount: 6 + 16%
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.035
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Restores 6 + 16 percent of combat stats (Attack, Strength, Defence, Magic, Ranged) every 15 seconds for 5 minutes."
         duration: 300
-        interval: 15
-    special:
-      - Negates Saradomin brew stat drain
-      - Removes divine potion effects
-      - Stats decrease at normal rates
+      - description: "Negates Saradomin brew stat drain, allowing stacked brew sips without combat stat loss."
+        duration: 300
+      - description: "Removes divine potion lock-in, letting boosted stats decay normally instead of resetting to base."
+        duration: 0
   recipes:
     - skill: herblore
       level: 88
@@ -38,50 +54,55 @@ osrs:
           item_name: Lily of the sands
           quantity: 1
       product: Menaphite remedy(4)
-      product_id: 27211
+      product_id: 27205
+      output_quantity: 1
+      notes: "Produces a 4-dose; decant at GE for (1) doses."
   related_items:
+    - item_id: 27205
+      item_name: Menaphite remedy(4)
+      slug: menaphite-remedy-4
+      relationship: variant
+      description: "Full 4-dose variant - most efficient inventory form."
+    - item_id: 27207
+      item_name: Menaphite remedy(3)
+      slug: menaphite-remedy-3
+      relationship: variant
+      description: "3-dose variant for partial decants."
+    - item_id: 27209
+      item_name: Menaphite remedy(2)
+      slug: menaphite-remedy-2
+      relationship: variant
+      description: "2-dose variant for mid-tier flips."
     - item_id: 27226
       item_name: Lily of the sands
       slug: lily-of-the-sands
       relationship: component
-      description: Herblore ingredient from ToA
+      description: "ToA-exclusive Herblore ingredient gating supply."
     - item_id: 6685
       item_name: Saradomin brew(4)
-      slug: saradomin-brew
+      slug: saradomin-brew-4
       relationship: alternative
-      description: Pairs well - negates stat drain
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Potion |
-    | Tradeable | Yes |
-    | Stackable | No |
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore | 88 (boostable) |
-    | XP | 200 |
-
-    Ingredients:
-    - Dwarf weed potion (unf)
-    - Lily of the sands
-
-    Stat Renewal: Restores 6 + 16% of combat stats (excluding prayer) every 15 seconds for 5 minutes.
-
-    Special Properties:
-    - Negates Saradomin brew stat drain
-    - Removes divine potion effects
-    - Stats decrease at normal rates
+      description: "Pairs in inventory - remedy negates brew's combat-stat drain."
+  about: "Menaphite remedy(1) is the 1-dose form of the Tombs of Amascut stat renewal potion, brewed at 88 Herblore by combining a dwarf weed potion (unf) with a Lily of the Sands for 200 XP. It restores 6 + 16 percent of all combat stats every 15 seconds for 5 minutes, counters Saradomin brew stat drain in extended bossing, and overrides divine potion lock-in so boosts decay normally. The single-dose form is mostly the residue of GE decant arbitrage."
   market_strategy:
     notes:
-      - Made with ToA ingredient
-      - Useful for extended fights
-      - Counters brew drain
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Decant arbitrage candidate - (4) splits into 4x (1) at GE decanters."
+      - "Demand follows ToA, CoX, and brew-stack-heavy boss meta."
+      - "Supply is gated by Lily of the Sands drop rates inside ToA."
+      - "No GE limit on this dose - flips scale freely with capital."
+  trading_tips:
+    - "Watch (4) vs (1) spread - decant when the 4x price exceeds (4)."
+    - "Track ToA team-size meta - solo runners burn more remedies per hour."
+    - "Stockpile ahead of new Herblore content that consumes Lily of the Sands."
+  history:
+    - date: "2022-08-24"
+      description: "Released with Tombs of Amascut as the headline Herblore reward."
+    - date: "2025-04-30"
+      description: "Lily of the Sands now correctly draws from the reagent pouch during creation."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

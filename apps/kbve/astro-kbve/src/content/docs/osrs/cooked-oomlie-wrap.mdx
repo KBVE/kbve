@@ -1,6 +1,6 @@
 ---
 title: Cooked oomlie wrap | OSRS Price Data
-description: "Cooked oomlie wrap: Deliciously cooked oomlie meat in a palm leaf pouch.. High alch: 21 GP, GE limit: 15."
+description: "Cooked oomlie wrap is a 50 Cooking Karamja dish that heals 14 HP, cooked from raw oomlie meat wrapped in a palm leaf. High alch: 21 GP, GE limit: 15."
 osrs:
   id: 2343
   name: Cooked oomlie wrap
@@ -12,9 +12,71 @@ osrs:
   lowalch: 14
   highalch: 21
   limit: 15
-  about: "Cooked oomlie wrap is a members-only item in Old School RuneScape. High alchemy value: 21 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: food
+    tier: mid
+  properties:
+    release_date: "2003-08-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.3
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 50
+      xp: 30
+      materials:
+        - item_name: Oomlie meat parcel
+          quantity: 1
+      tools:
+        - Range
+      product: Cooked oomlie wrap
+      output_quantity: 1
+  passive_effects:
+    - name: Healing food
+      description: "Restores 14 Hitpoints when consumed; counts toward the Hard Karamja Diary 'eat an oomlie wrap' task."
+  related_items:
+    - item_name: Raw oomlie meat
+      slug: raw-oomlie-meat
+      relationship: component
+      description: Raw oomlie meat hunted from Jungle birds in the Kharazi Jungle
+    - item_name: Palm leaf
+      slug: palm-leaf
+      relationship: component
+      description: Combined with raw oomlie meat to make an Oomlie meat parcel before cooking
+    - item_name: Oomlie meat parcel
+      slug: oomlie-meat-parcel
+      relationship: component
+      description: Wrapped raw oomlie cooked on a range at 50 Cooking for 30 XP
+    - item_name: Burnt oomlie wrap
+      slug: burnt-oomlie-wrap
+      relationship: variant
+      description: Failure result when cooking an Oomlie meat parcel below mastery level
+  about: "Cooked oomlie wrap is a Karamja-themed Cooking dish made by wrapping raw oomlie meat in a palm leaf to create an Oomlie meat parcel, then cooking it on a range at 50 Cooking for 30 XP; the finished wrap heals 14 Hitpoints and is required for a Hard Karamja Diary task."
+  market_strategy:
+    notes:
+      - "Heals 14 HP - matches Swordfish at a higher Cooking requirement, so not a meta food"
+      - "Most demand comes from Hard Karamja Diary completionists, not regular PvM consumers"
+      - "GE buy limit of 15 per 4 hours throttles bulk flips and is the main supply story"
+      - "Raw oomlie + palm leaf supply chain runs through Kharazi Jungle hunters"
+  trading_tips:
+    - "Watch Karamja Diary content updates - any reward changes spike completionist demand"
+    - "Low GE limit makes this a thin-volume slow-burn flip, not a margin play"
+    - "Cross-check Raw oomlie meat and Palm leaf spot prices to gauge cooker margin"
+  history:
+    - date: "2003-08-20"
+      description: "Released with the Legends' Quest update introducing Karamja jungle resources and the oomlie cooking chain."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

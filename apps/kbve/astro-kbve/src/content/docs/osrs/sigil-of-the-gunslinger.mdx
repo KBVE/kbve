@@ -1,6 +1,6 @@
 ---
 title: Sigil of the gunslinger | OSRS Price Data
-description: "Sigil of the gunslinger: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP."
+description: "Sigil of the gunslinger is a Leagues-style passive sigil dropped at Hueycoatl that boosts ranged weapon attack speed. High alch: 6,000 GP."
 osrs:
   id: 29676
   name: Sigil of the gunslinger
@@ -11,10 +11,66 @@ osrs:
   value: 10000
   lowalch: 4000
   highalch: 6000
-  limit: null
-  about: "Sigil of the gunslinger is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: sigil
+    tier: high
+  properties:
+    release_date: "2024-09-25"
+    tradeable: false
+    equipable: false
+    stackable: false
+    noteable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Attune
+      - Drop
+    destroy: "Once attuned the sigil's power becomes part of you."
+  drop_table:
+    sources:
+      - source: The Hueycoatl
+        combat_level: 695
+        quantity: "1"
+        rarity: rare
+        drop_rate: "1/300"
+        notes: "Rolled on the unique table after a successful Hueycoatl kill"
+  passive_effects:
+    - name: Gunslinger
+      description: "Reduces the attack speed of two-handed ranged weapons by 1 tick (faster shots) while attuned."
+      trigger: while_worn
+      affected_skill: ranged
+      boost_formula: "attack_speed - 1 tick"
+  related_items:
+    - item_name: Sigil of the craftsman
+      slug: sigil-of-the-craftsman
+      relationship: variant
+      description: Another sigil that boosts a non-combat workflow
+    - item_name: Sigil of slaughter
+      slug: sigil-of-slaughter
+      relationship: alternative
+      description: Melee-focused passive sigil from the same Hueycoatl drop table
+    - item_name: Sigil of the smith
+      slug: sigil-of-the-smith
+      relationship: alternative
+      description: Smithing-focused sigil from a comparable boss drop pool
+  market_strategy:
+    notes:
+      - "Untradeable; value is purely utility for ranged DPS attuning"
+      - "Hueycoatl is the only drop source — supply gated by boss popularity"
+      - "Best-in-slot QoL for ranged 2h DPS races (Bowfa, tbow, Zaryte cbow)"
+      - "High alch only meaningful if you intentionally vendor an attuned sigil"
+  trading_tips:
+    - Attuning consumes the sigil permanently — confirm DPS gain before binding
+    - Use a sigil swap setup with the slaughter sigil to cover melee + ranged
+    - Verify Hueycoatl encounter mechanics before grinding for repeat sigils
+  about: Sigil of the gunslinger is a Hueycoatl-exclusive passive sigil that, once attuned, reduces the attack speed of two-handed ranged weapons by one tick. The sigil is untradeable and consumed on attunement.
+  history:
+    - date: "2024-09-25"
+      description: "Released as part of The Hueycoatl boss launch and Varlamore: The Final Dawn content drop."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Red d'hide vambraces | OSRS Price Data
-description: "Red d'hide vambraces is a members hands slot item. High alch: 2,160 GP, GE limit: 70."
+description: "Red d'hide vambraces is a members-only ranged hands slot armour requiring 60 Ranged, crafted at 73 Crafting from 1 Red dragon leather. High alch: 2,160 GP, GE limit: 70."
 osrs:
   id: 2489
   name: Red d'hide vambraces
@@ -12,19 +12,50 @@ osrs:
   lowalch: 1440
   highalch: 2160
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: dragonhide
+    tier: mid
+  properties:
+    release_date: "2004-03-29"
+    update: "RuneScape 2 launch"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.283
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: hands
-    type: ranged_armour
-    ranged_requirement: 60
-    defence_requirement: 40
-  attack_bonuses:
-    ranged: 10
-  defence_bonuses:
-    ranged: 9
-    magic: 6
-  crafting:
-    level: 73
-    xp: 78
+    weight: 0.283
+    requirements:
+      ranged: 60
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: 10
+    defence_bonus:
+      stab: 3
+      slash: 4
+      crush: 4
+      magic: 6
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   recipes:
     - skill: crafting
       level: 73
@@ -37,67 +68,68 @@ osrs:
           item_id: 1734
           quantity: 1
       product: Red d'hide vambraces
-      product_id: 2489
-      product_quantity: 1
-      facility: Needle and thread
-      members_only: true
+      output_quantity: 1
+  drop_table:
+    sources:
+      - source: Dust devil
+        rarity: "2/128"
+        members_only: true
+      - source: Dagannoth Supreme
+        rarity: "7/128"
+        members_only: true
+      - source: Lizardman shaman
+        rarity: "10/500"
+        members_only: true
+      - source: Brutal red dragon
+        rarity: "1/128"
+        members_only: true
   related_items:
     - item_id: 1749
       item_name: Red dragonhide
       slug: red-dragonhide
       relationship: component
-      description: Raw material
+      description: Raw hide tanned into Red dragon leather before crafting.
     - item_id: 2507
       item_name: Red dragon leather
       slug: red-dragon-leather
       relationship: component
-      description: Tanned hide
+      description: Tanned leather used as the direct crafting material.
     - item_id: 2501
       item_name: Red d'hide body
       slug: red-dhide-body
       relationship: alternative
-      description: Matching body
+      description: Matching dragonhide body for the red set.
     - item_id: 2495
       item_name: Red d'hide chaps
       slug: red-dhide-chaps
       relationship: alternative
-      description: Matching legs
+      description: Matching dragonhide legs for the red set.
     - item_id: 2487
       item_name: Blue d'hide vambraces
       slug: blue-dhide-vambraces
-      relationship: alternative
-      description: Lower tier vambraces
+      relationship: downgrade
+      description: Previous-tier vambraces requiring 50 Ranged.
     - item_id: 2491
       item_name: Black d'hide vambraces
       slug: black-dhide-vambraces
-      relationship: alternative
-      description: Higher tier vambraces
-  about: |-
-    | Method | Level | Materials |
-    |--------|-------|-----------|
-    | Crafting | 73 | 1 Red dragon leather |
-    | XP | 78 | - |
-
-    | Stat | Value |
-    |------|-------|
-    | Ranged requirement | 60 |
-    | Defence requirement | 40 |
-    | Ranged attack | +10 |
-    | Ranged defence | +9 |
-    | Magic defence | +6 |
+      relationship: upgrade
+      description: Next-tier vambraces requiring 70 Ranged.
+  about: "Red d'hide vambraces are the third-tier dragonhide vambraces in OSRS, requiring 60 Ranged to wear and 73 Crafting to make from a Red dragon leather plus thread for 78 Crafting XP. They sit between blue and black d'hide vambraces in the standard dragonhide progression, offering +10 ranged attack and balanced defensive bonuses, and are a staple Crafting training target for members."
   market_strategy:
     notes:
-      - Third dragonhide glove tier
-      - Members only
-      - Popular crafting item
-      - Crafting training (78 XP)
-      - High-level ranged armor
-      - Budget gear
-      - 1 leather per vambraces
-      - Fast crafting method
-      - Lowest level in red set
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand comes from mid-level rangers, ironmen scaling Crafting, and clue-step gear loadouts."
+      - "GE buy limit of 70 per 4 hours caps merchant volume."
+      - "High alch return of 2,160 gp typically sits below GE price - not a profitable alch target."
+      - "Supply is driven by Red dragon leather crafters plus drops from Dust devils, Dagannoth Supreme, and Lizardman shamans."
+  trading_tips:
+    - "Cross-check Red dragon leather + Thread spot prices to detect crafter arbitrage windows."
+    - "Watch dragonhide leather price swings - vambraces follow leather supply tightly."
+    - "Low-volatility flip - stable margin item, rarely a profit driver."
+  history:
+    - date: "2004-03-29"
+      description: "Released alongside the dragonhide armour line at the launch of RuneScape 2."
+    - date: "2021-09-22"
+      description: "Defence bonuses adjusted as part of the ranged armour rebalance (stab 5 to 3, crush 6 to 4)."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

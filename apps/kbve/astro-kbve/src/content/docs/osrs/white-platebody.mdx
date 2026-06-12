@@ -12,69 +12,94 @@ osrs:
   lowalch: 1536
   highalch: 2304
   limit: 125
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: white
+    tier: mid
+  properties:
+    release_date: "2005-10-17"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 9.979
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
-    type: armour
-    prayer_bonus: 1
+    weapon_type:
+    weight: 9.979
     requirements:
       defence: 25
-      quest: Wanted!
-    combat_stats:
-      stab_defence: 46
-      slash_defence: 44
-      crush_defence: 39
-      magic_defence: -6
-      ranged_defence: 44
+      quest: "Wanted!"
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: -10
+    defence_bonus:
+      stab: 46
+      slash: 44
+      crush: 39
+      magic: -6
+      ranged: 44
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  shops:
+    - shop_name: "Sir Vyvin's Armour Shop"
+      location: Falador Castle
+      price: 3840
+      currency: coins
+      stock: 0
   related_items:
     - item_id: 6625
       item_name: White platelegs
       slug: white-platelegs
       relationship: set-piece
-      description: Legs (+1 Prayer)
+      description: Matching leg piece with +1 Prayer
     - item_id: 6623
       item_name: White full helm
       slug: white-full-helm
       relationship: set-piece
-      description: Helm (+1 Prayer)
+      description: Matching head piece with +1 Prayer
     - item_id: 6633
       item_name: White kiteshield
       slug: white-kiteshield
       relationship: set-piece
-      description: Shield (+1 Prayer)
+      description: Matching shield with +1 Prayer
     - item_id: 9674
       item_name: Proselyte hauberk
       slug: proselyte-hauberk
       relationship: upgrade
-      description: Better prayer bonus (+8)
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | Body |
-    | Prayer Bonus | +1 |
-    | Defence Req | 25 |
-    | Quest Req | Wanted! |
-
-    - Low prayer bonus platebody
-    - White Knight themed gear
-    - Stepping stone to Proselyte
-
-    | Piece | Prayer Bonus |
-    |-------|--------------|
-    | White full helm | +1 |
-    | White platebody | +1 |
-    | White platelegs | +1 |
-    | White kiteshield | +1 |
-    | Total | +4 |
+      description: Higher tier prayer body with stronger bonus
+  about: "White platebody is a members body slot armour purchased from Sir Vyvin in Falador after reaching Knight rank with the White Knights and completing Wanted!. Defensive stats sit between mithril and adamant while granting a small +1 prayer bonus, making the full white armour set a budget +4 prayer loadout for low-level prayer training before Proselyte becomes available."
   market_strategy:
     notes:
-      - Requires Wanted! quest
-      - Shop purchase only
-      - Not tradeable on GE
-      - Inferior to Proselyte
-      - Cosmetic/collection value
-      - Low practical use
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Requires Wanted! quest and high White Knight rank, capping organic supply"
+      - "Outclassed by Proselyte hauberk for serious prayer setups"
+      - "Steady cosmetic and collector demand from White Knight themed builds"
+      - "Buy limit of 125 supports moderate flipping volume"
+  trading_tips:
+    - "Buy when Wanted! quest completion grinds spike supply"
+    - "Stock during fashionscape contests for themed loadouts"
+    - "Hold through prayer training meta shifts for slow appreciation"
+  history:
+    - date: "2005-10-17"
+      description: "Released with the Wanted! quest update."
+    - date: "2021-04-21"
+      description: "Stat block refreshed alongside the rest of the white armour line."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Blue boots | OSRS Price Data
-description: "Blue boots is a members feet slot item. High alch: 120 GP, GE limit: 150."
+description: "Blue boots is a members feet slot cosmetic item from the gnome clothing line. High alch: 120 GP, GE limit: 150."
 osrs:
   id: 630
   name: Blue boots
@@ -12,20 +12,84 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 150
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2003-04-29"
+    update: "Gnome Stronghold"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: feet
+    weight: 0.4
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Gnome Stronghold Clothes Shop"
+      location: Tree Gnome Stronghold
+      price: 200
+      currency: coins
+      notes: "Sold by Heckel Funch alongside the rest of the gnome cosmetic line."
   related_items:
     - item_id: 640
       item_name: Blue robe top
       slug: blue-robe-top
       relationship: set-piece
-      description: Matching top
+      description: Matching gnome top in the blue colour scheme.
+    - item_id: 636
+      item_name: Blue hat
+      slug: blue-hat
+      relationship: set-piece
+      description: Headwear option from the gnome cosmetic line.
+    - item_name: Red boots
+      slug: red-boots
+      relationship: alternative
+      description: Red colour variant of the gnome boots.
   about: |-
-    > _"A pair of blue boots."_
+    Blue boots are a cosmetic feet-slot item sold by Heckel Funch in the Tree Gnome Stronghold Clothes Shop. They provide no combat bonuses and are worn purely for fashion alongside other gnome clothing pieces.
 
-    Blue boots are part of the gnome clothing set. Purely cosmetic with no stat bonuses.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Blue boots are part of the wider gnome cosmetic line that includes robe tops, hats, and skirts in several colours.
+  market_strategy:
+    notes:
+      - "Demand is purely cosmetic and from fashionscape collectors."
+      - "Shop supply at the Tree Gnome Stronghold keeps prices near alch value."
+      - "GE limit of 150 enables modest bulk flips during fashionscape events."
+  trading_tips:
+    - "Restock from Heckel Funch when GE prices spike above 200 coins."
+    - "Bundle with matching gnome tops and hats for resale to fashionscape players."
+  history:
+    - date: "2003-04-29"
+      description: "Released with the Tree Gnome Stronghold and gnome cosmetic line."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

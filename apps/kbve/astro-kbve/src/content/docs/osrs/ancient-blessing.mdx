@@ -1,6 +1,6 @@
 ---
 title: Ancient blessing | OSRS Price Data
-description: "Ancient blessing is a members ammo slot item. High alch: 48 GP, GE limit: 5."
+description: "Ancient blessing is the Zaros-aligned ammo-slot blessing dropped from clue caskets, granting +1 Prayer and Nex-prison protection. High alch: 48 GP, GE limit: 5."
 osrs:
   id: 20235
   name: Ancient blessing
@@ -12,69 +12,108 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 5
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: blessing
+    tier: mid
+  properties:
+    release_date: "2016-07-06"
+    update: "Treasure Trail Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.51
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ammo
-    type: blessing
-    attack_style: none
-    stats:
-      prayer_bonus: 1
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
   obtaining:
     methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Master
-        rarity: Rare
-        description: Reward from master clue scrolls
-      - source: Treasure Trails
-        requirements:
-          clue_type: Elite
-        rarity: Rare
-        description: Reward from elite clue scrolls
+      - source: Reward casket (master)
+        rarity: 1/606.4
+        description: "Random blessing roll from master clue caskets."
+      - source: Reward casket (elite)
+        rarity: 1/645.8
+        description: "Random blessing roll from elite clue caskets."
+      - source: Reward casket (hard)
+        rarity: 1/541.7
+        description: "Random blessing roll from hard clue caskets."
+      - source: Reward casket (medium)
+        rarity: Uncommon
+        description: "Lower-rate blessing roll from medium clue caskets."
+      - source: Reward casket (easy)
+        rarity: Uncommon
+        description: "Lower-rate blessing roll from easy clue caskets."
+  passive_effects:
+    - name: Zaros protection
+      description: "Counts as a Zarosian item in the God Wars Dungeon; Zaros followers in Nex's prison stay non-aggressive while worn."
   related_items:
     - item_id: 20220
       item_name: Holy blessing
       slug: holy-blessing
       relationship: alternative
-      description: Saradomin blessing
+      description: "Saradomin variant of the +1 Prayer ammo-slot blessing."
     - item_id: 20223
       item_name: Unholy blessing
       slug: unholy-blessing
       relationship: alternative
-      description: Zamorak blessing
+      description: "Zamorak variant of the +1 Prayer ammo-slot blessing."
     - item_id: 20226
       item_name: Peaceful blessing
       slug: peaceful-blessing
       relationship: alternative
-      description: Guthix blessing
+      description: "Guthix variant of the +1 Prayer ammo-slot blessing."
     - item_id: 20229
       item_name: Honourable blessing
       slug: honourable-blessing
       relationship: alternative
-      description: Armadyl blessing
+      description: "Armadyl variant of the +1 Prayer ammo-slot blessing."
     - item_id: 20232
       item_name: War blessing
       slug: war-blessing
       relationship: alternative
-      description: Bandos blessing
-  about: |-
-    The ancient blessing is a Zaros-aligned item worn in the ammunition slot, providing +1 prayer bonus. It is the Zaros equivalent of other god blessings.
-
-    Blessings are valuable because they provide prayer bonus in the ammunition slot, which normally has no prayer-boosting options. This makes them useful for any build that wants to maximize prayer bonus without sacrificing ranging capability.
-
-    God Wars Protection:
-    - Counts as a Zaros item in the God Wars Dungeon
-    - Zaros followers (in Nex's prison) will not be aggressive when worn
+      description: "Bandos variant of the +1 Prayer ammo-slot blessing."
+  about: "Ancient blessing is the Zaros-aligned member of the six god blessings, released 6 July 2016 with the Treasure Trail Expansion. Worn in the ammunition slot for +1 Prayer bonus - normally the only Prayer source available in that slot - and dropped from hard, elite, and master clue caskets at single-roll rates around 1/540-1/650. The Zarosian alignment grants non-aggressive passage through Nex's prison in the God Wars Dungeon."
   market_strategy:
-    title: Investment Notes
     notes:
-      - Prices vary between different god blessings
-      - Zaros version useful for Nex
-      - Good investment for high-level PvM accounts
-      - Compare prices between all six blessings
-      - Consider God Wars Dungeon utility when pricing
-      - Popular with players wanting prayer bonus in ammo slot
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Buy limit of only 5 per 4 hours keeps liquidity tight"
+      - "Supply is entirely clue-casket driven - clue activity sets price"
+      - "Prayer +1 in the ammo slot makes it core to Prayer-bonus stacks"
+      - "Cross-blessing spread is driven by god-faction PvM demand"
+  trading_tips:
+    - "Compare ancient blessing price against the other five god blessings to spot Zaros-specific demand"
+    - "Stockpile around Nex re-releases and Wilderness Boss reworks"
+    - "Spreads tighten after master clue droprate buffs"
+  history:
+    - date: "2016-07-06"
+      description: "Released with the Treasure Trail Expansion update, adding all six god blessings to the clue reward pool."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

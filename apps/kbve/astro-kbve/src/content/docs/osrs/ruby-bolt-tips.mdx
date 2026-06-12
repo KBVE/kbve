@@ -12,11 +12,9 @@ osrs:
   lowalch: 26
   highalch: 40
   limit: 11000
-  item:
-    type: ammunition_component
-    tradeable: true
-    stackable: true
-    weight: 0
+  material:
+    type: ammunition-component
+    tier: mid-high
   recipes:
     - skill: fletching
       level: 63
@@ -25,7 +23,7 @@ osrs:
         - item_name: Ruby
           quantity: 1
       product: Ruby bolt tips
-      product_quantity: 12
+      output_quantity: 12
   related_items:
     - item_id: 9339
       item_name: Ruby bolts
@@ -35,7 +33,7 @@ osrs:
     - item_id: 9242
       item_name: Ruby bolts (e)
       slug: ruby-bolts-e
-      relationship: alternative
+      relationship: upgrade
       description: Enchanted version
     - item_id: 21944
       item_name: Ruby dragon bolts
@@ -43,9 +41,11 @@ osrs:
       relationship: alternative
       description: Dragon variant
   about: |-
+    Ruby bolt tips are crafted by cutting a ruby at Fletching level 63 (6.3 XP, 12 tips per gem). Attaching them to adamant bolts at the same level creates ruby bolts, which can be enchanted into the popular Enchant Crossbow Bolt (Ruby) ammunition with the Blood Forfeit effect.
+
     | Property | Value |
     |----------|-------|
-    | Type | Ammunition Component |
+    | Type | Ammunition component |
     | Tradeable | Yes |
     | Stackable | Yes |
     | Weight | 0 kg |
@@ -55,9 +55,23 @@ osrs:
     | Ruby bolts | Adamant bolts + Ruby bolt tips | 63 |
     | Ruby dragon bolts | Dragon bolts + Ruby bolt tips | 84 |
 
-    Can be enchanted after attachment.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Can be enchanted after attachment for the iconic Blood Forfeit special effect.
+  market_strategy:
+    notes:
+      - Driven by ruby bolt (e) demand for boss content
+      - 12 tips per gem keeps margin tight versus raw rubies
+      - Buy limit 11,000 supports bulk fletcher flips
+      - Dragon bolt variant adds upstream demand at level 84
+      - Compare to enchanted bolt GE prices daily
+  trading_tips:
+    - Watch Ruby bolts (e) demand for short-term price moves
+    - Bulk-fletch from rubies when GE margin exceeds 12 gp per gem
+    - Pair with adamant bolts cost-tracking for full assembly margins
+  history:
+    - date: "2005-09-26"
+      description: Released with the introduction of crossbow gems and bolts.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

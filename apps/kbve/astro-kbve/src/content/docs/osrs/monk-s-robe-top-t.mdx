@@ -1,6 +1,6 @@
 ---
 title: Monk's robe top (t) | OSRS Price Data
-description: "Monk's robe top (t) is a F2P body slot item. High alch: 300 GP, GE limit: 4."
+description: "Monk's robe top (t) is a F2P trimmed beginner clue cosmetic body piece granting +6 Prayer with no level requirements. High alch: 300 GP, GE limit: 4."
 osrs:
   id: 23303
   name: Monk's robe top (t)
@@ -12,28 +12,87 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2019-04-11"
+    update: "Treasure Trails Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
+    weapon_type:
+    weight: 0.907
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
     other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
       prayer: 6
+  passive_effects:
+    - name: Saradomin-aligned cosmetic
+      description: "Counts as a Saradomin item in the God Wars Dungeon and grants a +6 prayer bonus with zero stat requirements."
+  drop_table:
+    sources:
+      - source: Reward casket (beginner)
+        quantity: "1"
+        rarity: 1/360
   related_items:
     - item_id: 23306
       item_name: Monk's robe (t)
       slug: monks-robe-t
       relationship: set-piece
-      description: Matching trimmed monk's robe legs
+      description: "Matching trimmed monk's robe legs."
+    - item_id: 542
+      item_name: Monk's robe top
+      slug: monks-robe-top
+      relationship: variant
+      description: "Untrimmed base version of the monk's robe top."
     - item_id: 20199
       item_name: Monk's robe top (g)
       slug: monks-robe-top-g
       relationship: variant
-      description: Gold-trimmed variant
-  about: |-
-    > *"A\"holy\" robe top, now with a \"fashionable\" trim."*
-
-    The monk's robe top (t) is a trimmed cosmetic variant of the monk's robe top. Provides +6 Prayer bonus with no requirements. F2P item.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Gold-trimmed beginner clue cosmetic variant."
+  about: "Monk's robe top (t) is the trimmed cosmetic variant of the monk's robe top, added with the 2019 Treasure Trails expansion. It is exclusively obtained from beginner reward caskets at roughly 1/360 and grants a +6 prayer bonus with no level requirements, identical in stats to the plain monk's robe top. It is Saradomin-aligned for God Wars Dungeon access and can be stored in costume room treasure chests."
+  market_strategy:
+    notes:
+      - "Buy limit of 4 per 4 hours keeps it a thin, fashionscape-driven listing."
+      - "Supply tied directly to beginner clue completion volume; spikes after clue-friendly events."
+      - "Prayer-bonus utility is fully covered by the untrimmed top, so demand is mostly cosmetic."
+      - "High alch 300 gp is far below GE price - alching is not a strategy."
+  trading_tips:
+    - "Stack listings into long-running offers; the tiny buy limit prevents fast flips."
+    - "Watch beginner clue meta shifts (drop boosts, scroll changes) before adjusting bid stacks."
+  history:
+    - date: "2019-04-11"
+      description: "Released as part of the Treasure Trails Expansion as a beginner reward casket cosmetic."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

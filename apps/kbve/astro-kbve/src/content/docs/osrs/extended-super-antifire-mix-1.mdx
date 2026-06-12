@@ -1,6 +1,6 @@
 ---
 title: Extended super antifire mix(1) | OSRS Price Data
-description: "Extended super antifire mix(1): One dose of fishy extended super anti-firebreath potion.. High alch: 96 GP, GE limit: 2,000."
+description: "Extended super antifire mix(1) is a 1-dose Barbarian Herblore mix granting 6 minutes of full dragonfire protection plus a small Hitpoints heal. High alch: 96 GP, GE limit: 2,000."
 osrs:
   id: 22224
   name: Extended super antifire mix(1)
@@ -12,12 +12,85 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 2000
-  about: "Extended super antifire mix(1) is a members-only item in Old School RuneScape. High alchemy value: 96 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: potion
+    tier: high
+  properties:
+    release_date: "2018-01-25"
+    update: "Barbarian Training"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.05
+    options:
+      - Drink
+      - Empty
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - description: "Grants 6 minutes of complete immunity to dragonfire and Wyvern icy breath."
+        duration: 360
+      - description: "Restores 6 Hitpoints per dose on top of the antifire effect (Barbarian mix bonus)."
+        duration: 0
+    requirements:
+      quest: "Dragon Slayer I"
+  recipes:
+    - skill: herblore
+      level: 99
+      xp: 78
+      materials:
+        - item_name: Extended super antifire(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      notes: "Combine caviar with an Extended super antifire(2) to make Extended super antifire mix(2); decant for the (1) dose. Requires 99 Herblore and completion of Barbarian Herblore training."
+  related_items:
+    - item_id: 22222
+      item_name: Extended super antifire mix(2)
+      slug: extended-super-antifire-mix-2
+      relationship: variant
+      description: "2-dose Barbarian mix variant produced directly by the recipe."
+    - item_id: 22209
+      item_name: Extended super antifire(4)
+      slug: extended-super-antifire-4
+      relationship: alternative
+      description: "Full 4-dose extended super antifire potion without the Barbarian heal bonus."
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: "Barbarian Herblore secondary that converts the potion into a mix."
+    - item_name: Lava scale shard
+      slug: lava-scale-shard
+      relationship: component
+      description: "Secondary used earlier in the extended super antifire chain."
+  about: "Extended super antifire mix(1) is the 1-dose Barbarian Herblore variant of extended super antifire, providing 6 minutes of complete dragonfire and icy breath immunity plus a 6 Hitpoints heal per dose. It is made at 99 Herblore by combining caviar with an Extended super antifire(2) (after Barbarian Herblore training and Dragon Slayer I), then decanting to the 1-dose form, and is mainly used as a single-sip inventory filler for Vorkath, Galvek, the Wilderness Wyrm and other dragonfire-heavy PvM where the extra heal pays for inventory pressure."
+  market_strategy:
+    notes:
+      - "Supply gated behind 99 Herblore + Barbarian training + Dragon Slayer I, capping crafters"
+      - "Demand tracks Vorkath/Wyrm meta and Wilderness dragonfire training popularity"
+      - "Decant arbitrage versus (2) is the cleanest flip; (1) doses are usually discounted"
+      - "Buy limit 2,000 per 4 hours keeps it a small-volume flip"
+  trading_tips:
+    - "Decant (2) into (1) only when single-dose discount inverts - check both prices before each batch"
+    - "Stockpile ahead of bounty / Wilderness rework updates that push more players onto dragonfire content"
+    - "Track caviar price as the upstream secondary - cheap caviar widens craft margin"
+  history:
+    - date: "2018-01-25"
+      description: "Released alongside extended super antifire potions and the Barbarian Herblore mix variants."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
