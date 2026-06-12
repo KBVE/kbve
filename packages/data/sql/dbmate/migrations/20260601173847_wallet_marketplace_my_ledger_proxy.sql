@@ -4,7 +4,7 @@
 -- proxy. Mirrors the read-only contract of proxy_market_my_listings_readonly
 -- / proxy_market_my_bids_readonly. Lets an authenticated client paginate
 -- their own wallet.ledger rows so the UI can render a "market history"
--- view without leaking ref columns from other accounts.
+-- view.
 --
 -- Auth model:
 --   - authenticated only. Resolves auth.uid() → wallet account via
@@ -12,20 +12,36 @@
 --     caller has no wallet account so the Rust client can fall back
 --     to the rw pool's lazy-provisioning proxy (same contract as the
 --     existing readonly market proxies).
+--   - account_id is omitted from the returned shape — every row is
+--     guaranteed to be the caller's. ref_type / ref_id ARE returned:
+--     for market_* rows they point to the caller's own bid / listing
+--     (already publicly browseable via proxy_market_list_active_readonly
+--     / proxy_market_listing_detail_readonly), so there is no cross-
+--     account exposure. reason is a stable enum-like string emitted
+--     by wallet.service_credit / service_debit / settle / cancel call
+--     sites (`'buy_now'`, `'listing_cancelled'`, `'expired_with_bid'`,
+--     etc.) — no admin notes, no internal payloads.
 --
 -- Filters:
 --   - p_source_kinds wallet.source_kind[] — IN-list. Defaults to the
 --     three marketplace source kinds (market_buy / market_sell /
---     market_fee). Pass NULL to disable the filter (returns the full
---     ledger for the caller). Pass an explicit array to narrow to a
---     custom set (e.g. just market_sell).
+--     market_fee). Pass NULL to widen to the caller's full ledger
+--     (still caller-scoped — no cross-user leak, just a broader read
+--     surface on this proxy). Pass an explicit array to narrow to a
+--     custom set (e.g. ARRAY['market_sell']). Empty array '{}' is
+--     rejected with 22023 (treated as a client bug, not "match
+--     nothing").
 --   - p_currency wallet.currency_kind — optional. NULL = both
 --     currencies.
 --
 -- Cursor:
 --   (p_before_created_at, p_before_id) — both required together,
---   matching the my_listings / my_bids pattern. Sorted by created_at
---   DESC, id DESC. Backed by wallet_ledger_account_currency_idx.
+--   matching the my_listings / my_bids pattern. p_before_id must be
+--   positive when supplied. Sorted by created_at DESC, id DESC.
+--   Backed by wallet_ledger_account_currency_idx. A follow-up index
+--   migration (separate PR) will add a partial covering index for
+--   the marketplace-only hot path; planner currently uses the
+--   composite index plus a filter — acceptable until measured.
 --
 -- Owner / grants:
 --   OWNER service_role, SECURITY DEFINER, STABLE, search_path = ''.
@@ -56,13 +72,25 @@ RETURNS TABLE (
 )
 LANGUAGE plpgsql SECURITY DEFINER STABLE SET search_path = '' AS $$
 DECLARE
-    v_account UUID    := private.proxy_market_caller_account();
+    v_account UUID;
     v_limit   INTEGER := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
 BEGIN
     IF (p_before_created_at IS NULL) <> (p_before_id IS NULL) THEN
         RAISE EXCEPTION 'cursor requires both before_created_at and before_id'
             USING ERRCODE = '22023';
     END IF;
+
+    IF p_before_id IS NOT NULL AND p_before_id <= 0 THEN
+        RAISE EXCEPTION 'before_id must be positive'
+            USING ERRCODE = '22023';
+    END IF;
+
+    IF p_source_kinds IS NOT NULL AND cardinality(p_source_kinds) = 0 THEN
+        RAISE EXCEPTION 'source_kinds cannot be empty; pass NULL to widen to the full ledger'
+            USING ERRCODE = '22023';
+    END IF;
+
+    v_account := private.proxy_market_caller_account();
 
     RETURN QUERY
     SELECT
