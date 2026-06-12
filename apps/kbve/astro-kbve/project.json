@@ -296,6 +296,22 @@
 			},
 			"cache": true
 		},
+		"sync:hextile-atlas": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Textures/Environment/**/*.png",
+				"{workspaceRoot}/packages/data/codegen/gen-hextile-atlas.mjs"
+			],
+			"outputs": [
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/hextile-atlas.png",
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/Hex/HexTileAtlas.Generated.cs"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-hextile-atlas.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"solitaire:snapshot-npcdb": {
 			"dependsOn": ["build"],
 			"executor": "nx:run-commands",
