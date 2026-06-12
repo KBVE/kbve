@@ -15,6 +15,7 @@ import {
 	useForm,
 	useTabActive,
 	uiTokens,
+	LoadMoreButton,
 } from './forgejoUi';
 import {
 	Plus,
@@ -511,6 +512,7 @@ function OrgCard({ org }: { org: ForgejoOrg }) {
 export default function ReactForgejoOrgPanel() {
 	const active = useTabActive('orgs');
 	const orgs = useStore(forgejoService.$orgs);
+	const hasMore = useStore(forgejoService.$orgsHasMore);
 	const [createOpen, setCreateOpen] = useState(false);
 
 	if (!active) return null;
@@ -539,6 +541,10 @@ export default function ReactForgejoOrgPanel() {
 					</span>
 				)}
 			</div>
+			<LoadMoreButton
+				hasMore={hasMore}
+				onClick={() => forgejoService.loadMoreOrgs()}
+			/>
 			{createOpen && (
 				<CreateOrgModal onClose={() => setCreateOpen(false)} />
 			)}

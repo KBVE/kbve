@@ -16,7 +16,7 @@ const TABS: { id: ForgejoTab; label: string; icon: React.ReactNode }[] = [
 	{ id: 'orgs', label: 'Orgs & Teams', icon: <Building2 size={14} /> },
 	{
 		id: 'webhooks',
-		label: 'Webhooks & Releases',
+		label: 'Repo Admin',
 		icon: <Webhook size={14} />,
 	},
 	{ id: 'system', label: 'System', icon: <ServerCog size={14} /> },
