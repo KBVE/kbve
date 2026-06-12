@@ -271,10 +271,10 @@ function Step1Webhook({
 					<code>
 						{WEBHOOK_SERVICE}:{guild.id}
 					</code>{' '}
-					(token <code>{existing!.token_name}</code>). To rotate,
-					delete the existing row from the per-guild{' '}
-					<a href="/dashboard/agents/discordsh/">token list</a> and
-					run this wizard again.
+					(token <code>{existing!.token_name}</code>). To rotate, use
+					the <strong>Rotate HMAC secret</strong> control in Step 2 —
+					it regenerates the secret and updates GitHub + the vault in
+					one step.
 				</p>
 			) : (
 				<>
@@ -870,7 +870,7 @@ function Step2WebhookConfig({
 						)}
 					</div>
 				)}
-				{installResult && installResult.ok && hasWebhook && (
+				{hasWebhook && selectedRepo && (
 					<div
 						style={{
 							marginTop: '0.85rem',
