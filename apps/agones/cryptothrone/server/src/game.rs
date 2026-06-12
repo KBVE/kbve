@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use bevy::prelude::{Commands, Local, Res};
 use simgrid::proto::Tile;
 use simgrid::{
-    AggroSpec, ConsumableEffects, KindRegistry, NpcDb, NpcSpec, SIM_TICK_HZ, SimConfig,
-    WalkableMap, ground_item_bundle, spawn_npc_from_spec,
+    AggroSpec, ConsumableEffects, EquipmentEffects, KindRegistry, NpcDb, NpcSpec, SIM_TICK_HZ,
+    SimConfig, WalkableMap, ground_item_bundle, spawn_npc_from_spec,
 };
 
 pub const MAP_WIDTH: i32 = 50;
@@ -34,7 +34,9 @@ pub const GOBLIN_REF: &str = "goblin";
 pub const GOBLIN_COUNT: i32 = 4;
 pub const GOBLIN_ORIGIN: Tile = Tile::new(20, 20);
 pub const GOBLIN_LOOT_REF: &str = "coin";
-pub const GOBLIN_AGGRO_RANGE: i32 = 6;
+
+pub const HOSTILE_AGGRO_RANGE: i32 = 6;
+pub const IRON_SWORD_ATTACK: i32 = 5;
 
 pub const POTION_HEAL: i32 = 25;
 
@@ -75,6 +77,13 @@ pub fn consumables() -> ConsumableEffects {
     ConsumableEffects(HashMap::from([("potion".to_string(), POTION_HEAL)]))
 }
 
+pub fn equipment() -> EquipmentEffects {
+    EquipmentEffects(HashMap::from([(
+        "iron-sword".to_string(),
+        IRON_SWORD_ATTACK,
+    )]))
+}
+
 pub fn walkable_map() -> WalkableMap {
     WalkableMap::from_tiled_json(CLOUD_CITY_MAP)
         .unwrap_or_else(|_| WalkableMap::open(MAP_WIDTH, MAP_HEIGHT))
@@ -91,7 +100,6 @@ fn npc_spec(
     origin: Tile,
     wander: Option<(i32, u32)>,
     loot: Option<&str>,
-    aggro_range: Option<i32>,
 ) -> Option<NpcSpec> {
     let def = db.get(ref_id)?;
     let kind = registry.kind_of(ref_id)?;
@@ -102,8 +110,8 @@ fn npc_spec(
         ticks_per_tile: ticks_per_tile_for_speed(def.stats.speed),
         max_hp,
         wander,
-        aggro: aggro_range.map(|range| AggroSpec {
-            range,
+        aggro: def.is_hostile().then(|| AggroSpec {
+            range: HOSTILE_AGGRO_RANGE,
             damage: def.stats.attack.max(1),
             period_ticks: SIM_TICK_HZ,
         }),
@@ -127,7 +135,6 @@ pub fn spawn_world(mut done: Local<bool>, registry: Res<KindRegistry>, mut comma
         CLERIC_SPAWN,
         Some((3, 30)),
         None,
-        None,
     ) {
         spawn_npc_from_spec(&mut commands, &spec);
     }
@@ -141,7 +148,6 @@ pub fn spawn_world(mut done: Local<bool>, registry: Res<KindRegistry>, mut comma
             origin,
             Some((20, 20)),
             Some(BAT_LOOT_REF),
-            None,
         ) {
             spawn_npc_from_spec(&mut commands, &spec);
         }
@@ -156,7 +162,6 @@ pub fn spawn_world(mut done: Local<bool>, registry: Res<KindRegistry>, mut comma
             origin,
             Some((8, 25)),
             Some(GOBLIN_LOOT_REF),
-            Some(GOBLIN_AGGRO_RANGE),
         ) {
             spawn_npc_from_spec(&mut commands, &spec);
         }

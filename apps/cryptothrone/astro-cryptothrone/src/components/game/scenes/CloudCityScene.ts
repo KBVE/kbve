@@ -132,6 +132,11 @@ export class CloudCityScene extends Scene {
 		});
 		client.on('combat', (c) => {
 			laserEvents.emit('combat:event', c);
+			this.showFloatingText(
+				c.target,
+				`-${c.dmg}`,
+				c.target === this.myEid ? '#f87171' : '#fbbf24',
+			);
 			if (c.died && c.target === this.myEid) {
 				laserEvents.emit('char:event', {
 					message:
@@ -144,6 +149,12 @@ export class CloudCityScene extends Scene {
 		});
 		client.on('itemUsed', (u) => {
 			laserEvents.emit('item:used', u);
+			if (u.heal > 0) {
+				this.showFloatingText(this.myEid, `+${u.heal}`, '#4ade80');
+			}
+		});
+		client.on('equipped', (e) => {
+			laserEvents.emit('item:equipped', e);
 		});
 		client.on('reject', (reason) => {
 			laserEvents.emit('char:event', {
@@ -165,6 +176,10 @@ export class CloudCityScene extends Scene {
 			laserEvents.on('item:use', (data) => {
 				const d = data as { ref: string };
 				if (d?.ref) this.client?.useItem(d.ref);
+			}),
+			laserEvents.on('item:equip', (data) => {
+				const d = data as { ref: string };
+				if (d?.ref) this.client?.equipItem(d.ref);
 			}),
 			laserEvents.on('chat:send', (data) => {
 				const d = data as { text: string };
@@ -222,6 +237,29 @@ export class CloudCityScene extends Scene {
 		sprite.setDepth(this.entityDepth);
 		if (conf.anim) sprite.play(conf.anim);
 		return { sprite, mapping: conf.mapping };
+	}
+
+	private showFloatingText(eid: number, text: string, color: string) {
+		const target = this.tracked.get(eid);
+		if (!target) return;
+		const label = this.add
+			.text(target.sprite.x, target.sprite.y - 14, text, {
+				fontFamily: 'monospace',
+				fontSize: '14px',
+				color,
+				stroke: '#000000',
+				strokeThickness: 3,
+			})
+			.setOrigin(0.5, 1)
+			.setDepth(this.entityDepth + 1);
+		this.tweens.add({
+			targets: label,
+			y: label.y - 28,
+			alpha: 0,
+			duration: 900,
+			ease: 'Cubic.easeOut',
+			onComplete: () => label.destroy(),
+		});
 	}
 
 	private applySnapshot(snap: Snapshot) {

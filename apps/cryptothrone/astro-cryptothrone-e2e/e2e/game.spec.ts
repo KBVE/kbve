@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures';
 import { supportsWebGL } from './helpers/env';
+import { seedFakeSession } from './helpers/auth';
 
 test.describe('game page layout', () => {
 	test.beforeEach(async ({ page }) => {
@@ -25,18 +26,31 @@ test.describe('game page layout', () => {
 	});
 });
 
+test.describe('auth gate', () => {
+	test('unauthenticated visit shows the sign-in panel', async ({ page }) => {
+		await page.goto('/game/play/');
+		await expect(
+			page.getByText('Sign in to play CryptoThrone'),
+		).toBeVisible({ timeout: 20_000 });
+	});
+});
+
 test.describe('game UI hydration', () => {
+	test.beforeEach(async ({ page }) => {
+		await seedFakeSession(page);
+	});
+
 	test('React HUD island mounts with the settings panel', async ({
 		page,
 	}) => {
-		await page.goto('/game/play/');
+		await page.goto('/game/play/', { waitUntil: 'domcontentloaded' });
 		await expect(
 			page.getByText('Debug Mode', { exact: false }),
 		).toBeVisible({ timeout: 20_000 });
 	});
 
 	test('debug-mode toggle is interactive', async ({ page }) => {
-		await page.goto('/game/play/');
+		await page.goto('/game/play/', { waitUntil: 'domcontentloaded' });
 		const label = page.locator('label', { hasText: 'Debug Mode' });
 		const toggle = label.locator('input[type="checkbox"]');
 		await expect(toggle).toBeAttached({ timeout: 20_000 });
@@ -52,7 +66,8 @@ test.describe('Phaser runtime (WebGL)', () => {
 			!supportsWebGL(browserName),
 			'headless WebGL only reliable on chromium',
 		);
-		await page.goto('/game/play/');
+		await seedFakeSession(page);
+		await page.goto('/game/play/', { waitUntil: 'domcontentloaded' });
 		const canvas = page.locator('.game-fullscreen canvas');
 		await expect(canvas).toBeAttached({ timeout: 30_000 });
 		const box = await canvas.boundingBox();

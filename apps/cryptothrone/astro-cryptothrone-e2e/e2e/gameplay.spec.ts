@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures';
+import { seedFakeSession } from './helpers/auth';
 import type { Page } from '@playwright/test';
 import { isMobileViewport, supportsWebGL } from './helpers/env';
 
@@ -18,6 +19,7 @@ async function waitForGame(page: Page): Promise<boolean> {
 						__ctGame?: { gridEngine: { getPosition: unknown } };
 					}
 				).__ctGame?.gridEngine,
+			undefined,
 			{ timeout: 15_000 },
 		)
 		.then(() => true)
@@ -77,7 +79,8 @@ test.describe('gameplay: scene range interactions', () => {
 	test.beforeEach(async ({ page, browserName }) => {
 		test.skip(await isMobileViewport(page), 'desktop-only gameplay');
 		test.skip(!supportsWebGL(browserName), 'needs headless WebGL');
-		await page.goto('/game/play/');
+		await seedFakeSession(page);
+		await page.goto('/game/play/', { waitUntil: 'domcontentloaded' });
 		const ready = await waitForGame(page);
 		test.skip(
 			!ready,
