@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 
 use bevy::ecs::entity::Entity;
 use bevy::prelude::{Component, Resource};
@@ -136,6 +136,50 @@ impl WalkableMap {
     pub fn is_walkable(&self, tile: Tile) -> bool {
         self.index(tile).map(|i| !self.blocked[i]).unwrap_or(false)
     }
+
+    pub fn find_path(&self, from: Tile, to: Tile, max_len: usize) -> Option<Vec<Tile>> {
+        if from == to || !self.is_walkable(to) || !self.in_bounds(from) {
+            return None;
+        }
+        let start = self.index(from)?;
+        let goal = self.index(to)?;
+
+        let mut prev: Vec<i32> = vec![-1; (self.width * self.height) as usize];
+        prev[start] = start as i32;
+        let mut queue = VecDeque::from([start]);
+
+        'search: while let Some(cur) = queue.pop_front() {
+            let cx = cur as i32 % self.width;
+            let cy = cur as i32 / self.width;
+            for (dx, dy) in [(0, -1), (0, 1), (-1, 0), (1, 0)] {
+                let next = Tile::new(cx + dx, cy + dy);
+                let Some(ni) = self.index(next) else { continue };
+                if prev[ni] >= 0 || self.blocked[ni] {
+                    continue;
+                }
+                prev[ni] = cur as i32;
+                if ni == goal {
+                    break 'search;
+                }
+                queue.push_back(ni);
+            }
+        }
+
+        if prev[goal] < 0 {
+            return None;
+        }
+        let mut path = Vec::new();
+        let mut cur = goal;
+        while cur != start {
+            path.push(Tile::new(cur as i32 % self.width, cur as i32 / self.width));
+            cur = prev[cur] as usize;
+            if path.len() > max_len {
+                return None;
+            }
+        }
+        path.reverse();
+        Some(path)
+    }
 }
 
 #[derive(Resource, Default)]
@@ -212,6 +256,33 @@ mod tests {
         assert_eq!((m.width, m.height), (2, 1));
         assert!(!m.is_walkable(Tile::new(0, 0)));
         assert!(m.is_walkable(Tile::new(1, 0)));
+    }
+
+    #[test]
+    fn find_path_routes_around_walls() {
+        let mut m = WalkableMap::open(5, 5);
+        m.set_blocked(Tile::new(2, 0), true);
+        m.set_blocked(Tile::new(2, 1), true);
+        m.set_blocked(Tile::new(2, 2), true);
+        m.set_blocked(Tile::new(2, 3), true);
+        let path = m
+            .find_path(Tile::new(0, 0), Tile::new(4, 0), 64)
+            .expect("path exists");
+        assert_eq!(path.last(), Some(&Tile::new(4, 0)));
+        assert!(path.iter().all(|t| m.is_walkable(*t)));
+        assert!(path.len() >= 8, "must route around the wall");
+        for pair in path.windows(2) {
+            assert_eq!(pair[0].manhattan(pair[1]), 1, "path must be contiguous");
+        }
+    }
+
+    #[test]
+    fn find_path_rejects_unreachable() {
+        let mut m = WalkableMap::open(3, 3);
+        for y in 0..3 {
+            m.set_blocked(Tile::new(1, y), true);
+        }
+        assert!(m.find_path(Tile::new(0, 0), Tile::new(2, 0), 64).is_none());
     }
 
     #[test]

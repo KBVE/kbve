@@ -1,4 +1,15 @@
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
+
+export const ACTION_ATTACK = 1;
+export const ACTION_PICKUP = 2;
+
+export const EPHEMERAL_INVENTORY = 1;
+export const EPHEMERAL_COMBAT = 2;
+export const EPHEMERAL_PICKUP = 3;
+
+export const KIND_CAT_PLAYER = 0;
+export const KIND_CAT_NPC = 1;
+export const KIND_CAT_ITEM = 2;
 
 export type Dir = 'Up' | 'Down' | 'Left' | 'Right';
 export type Facing = 'Up' | 'Down' | 'Left' | 'Right';
@@ -56,19 +67,64 @@ export interface Snapshot {
 	keyframe: boolean;
 }
 
+export interface KindEntry {
+	kind: number;
+	ref: string;
+	cat: number;
+}
+
 export interface Welcome {
 	protocol: number;
 	your_slot: number;
 	seed: number;
+	registry: KindEntry[];
+}
+
+export interface Ephemeral {
+	kind: number;
+	to: number;
+	payload: number[];
+}
+
+export interface InventoryItem {
+	ref: string;
+	count: number;
+}
+
+export interface InventorySync {
+	items: InventoryItem[];
+}
+
+export interface CombatEvent {
+	attacker: number;
+	target: number;
+	target_ref: string | null;
+	dmg: number;
+	died: boolean;
+}
+
+export interface PickupEvent {
+	item_ref: string;
+	count: number;
 }
 
 export type ServerEvent =
 	| { Welcome: Welcome }
 	| { Snapshot: Snapshot }
-	| { Ephemeral: { kind: number; payload: number[] } }
+	| { Ephemeral: Ephemeral }
 	| { Reject: { reason: string } };
 
 export const OWNER_NONE = 0xffff;
+
+export function decodeEphemeralPayload<T>(payload: number[]): T | null {
+	try {
+		return JSON.parse(
+			new TextDecoder().decode(Uint8Array.from(payload)),
+		) as T;
+	} catch {
+		return null;
+	}
+}
 
 export function joinFrame(jwt: string, kbveUsername: string): ClientMessage {
 	return {

@@ -29,6 +29,7 @@ export interface GameState {
 export type GameAction =
 	| { type: 'SET_PLAYER_STATS'; payload: Partial<PlayerStats> }
 	| { type: 'ADD_ITEM'; payload: { itemId: string } }
+	| { type: 'SET_BACKPACK'; payload: { itemIds: string[] } }
 	| { type: 'REMOVE_ITEM'; payload: { itemId: string } }
 	| {
 			type: 'EQUIP_ITEM';
@@ -130,6 +131,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 							...state.player.inventory.backpack,
 							action.payload.itemId,
 						],
+					},
+				},
+			};
+
+		case 'SET_BACKPACK':
+			return {
+				...state,
+				player: {
+					...state.player,
+					inventory: {
+						...state.player.inventory,
+						backpack: action.payload.itemIds,
 					},
 				},
 			};
