@@ -213,7 +213,21 @@ export type ForgejoTab =
 	| 'users'
 	| 'orgs'
 	| 'webhooks'
+	| 'issues'
 	| 'system';
+
+export interface ForgejoIssue {
+	id: number;
+	number: number;
+	title: string;
+	state: 'open' | 'closed';
+	is_locked: boolean;
+	comments: number;
+	created_at: string;
+	html_url: string;
+	user: { login: string; avatar_url: string };
+	pull_request?: { merged: boolean } | null;
+}
 
 export interface CreateRepoInput {
 	owner: string;
@@ -705,6 +719,12 @@ class ForgejoService {
 	public readonly $version = atom<string | null>(null);
 	public readonly $cronTasks = atom<ForgejoCronTask[]>([]);
 	public readonly $unadopted = atom<string[]>([]);
+
+	public readonly $issueRepo = atom<string | null>(null);
+	public readonly $issueState = atom<'open' | 'closed'>('open');
+	public readonly $issueType = atom<'issues' | 'pulls'>('issues');
+	public readonly $issues = atom<ForgejoIssue[]>([]);
+	public readonly $issuesLoading = atom<boolean>(false);
 
 	// Pagination + search
 	public readonly $repoQuery = atom<string>('');
@@ -1690,6 +1710,87 @@ class ForgejoService {
 		this.loadRepoProtections(fullName);
 		this.loadRepoSecrets(fullName);
 		this.loadRepoVariables(fullName);
+	}
+
+	// --- Issue & PR moderation actions ---
+
+	public selectIssueRepo(fullName: string): void {
+		this.$issueRepo.set(fullName);
+		this.loadIssues();
+	}
+
+	public setIssueState(state: 'open' | 'closed'): void {
+		this.$issueState.set(state);
+		this.loadIssues();
+	}
+
+	public setIssueType(type: 'issues' | 'pulls'): void {
+		this.$issueType.set(type);
+		this.loadIssues();
+	}
+
+	public async loadIssues(): Promise<void> {
+		const token = this.$accessToken.get();
+		const repo = this.$issueRepo.get();
+		if (!token || !repo) return;
+		this.$issuesLoading.set(true);
+		try {
+			const issues = await apiFetch<ForgejoIssue[]>(
+				token,
+				`/api/v1/repos/${repo}/issues?state=${this.$issueState.get()}&type=${this.$issueType.get()}&limit=${PAGE_SIZE}`,
+				[] as ForgejoIssue[],
+			);
+			this.$issues.set(Array.isArray(issues) ? issues : []);
+		} finally {
+			this.$issuesLoading.set(false);
+		}
+	}
+
+	public setIssueOpenState(
+		index: number,
+		state: 'open' | 'closed',
+	): Promise<boolean> {
+		const repo = this.$issueRepo.get();
+		return this._run(
+			`issue-state-${index}`,
+			async (t) => {
+				if (!repo) return;
+				await apiMutate(
+					t,
+					'PATCH',
+					`/api/v1/repos/${repo}/issues/${index}`,
+					{ state },
+				);
+				await this.loadIssues();
+			},
+			state === 'closed' ? `#${index} closed` : `#${index} reopened`,
+		);
+	}
+
+	public setIssueLock(index: number, lock: boolean): Promise<boolean> {
+		const repo = this.$issueRepo.get();
+		return this._run(
+			`issue-lock-${index}`,
+			async (t) => {
+				if (!repo) return;
+				if (lock) {
+					await apiMutate(
+						t,
+						'PUT',
+						`/api/v1/repos/${repo}/issues/${index}/lock`,
+						{ lock_reason: 'too heated' },
+					);
+				} else {
+					await apiMutate(
+						t,
+						'DELETE',
+						`/api/v1/repos/${repo}/issues/${index}/lock`,
+					);
+				}
+				await this.loadIssues();
+			},
+			lock ? `#${index} locked` : `#${index} unlocked`,
+		);
 	}
 
 	// --- System actions ---

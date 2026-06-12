@@ -11,33 +11,18 @@ export default function ReactForgejoHeader() {
 			className="not-content"
 			style={{
 				display: 'flex',
-				justifyContent: 'space-between',
 				alignItems: 'center',
-				marginBottom: '1.5rem',
-				flexWrap: 'wrap',
-				gap: '0.5rem',
+				gap: '0.75rem',
 			}}>
-			<div>
-				<h2
+			{lastUpdated && (
+				<span
 					style={{
-						color: 'var(--sl-color-text, #e6edf3)',
-						margin: 0,
-						fontSize: '1.5rem',
-						fontWeight: 700,
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						fontSize: '0.75rem',
 					}}>
-					Forgejo
-				</h2>
-				{lastUpdated && (
-					<p
-						style={{
-							color: 'var(--sl-color-gray-3, #8b949e)',
-							margin: '0.25rem 0 0',
-							fontSize: '0.75rem',
-						}}>
-						Last updated: {lastUpdated.toLocaleTimeString()}
-					</p>
-				)}
-			</div>
+					Updated {lastUpdated.toLocaleTimeString()}
+				</span>
+			)}
 			<button
 				onClick={() => forgejoService.refresh()}
 				disabled={loading}
