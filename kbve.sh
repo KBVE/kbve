@@ -846,6 +846,7 @@ Usage: ./kbve.sh -lfs <game> <lfs-subcommand> [args...]
 Games:
   chuck      → https://git.kbve.com/KBVE/chuck.git/info/lfs
   rareicon   → https://git.kbve.com/KBVE/rareicon.git/info/lfs
+  rentearth  → https://git.kbve.com/KBVE/rentearth.git/info/lfs
 
 Standard subcommands forwarded to `git lfs`:
   push|pull|fetch|ls-files|env|...
@@ -878,8 +879,12 @@ EOF
             url="https://git.kbve.com/KBVE/rareicon.git/info/lfs"
             path_prefix="apps/rareicon"
             ;;
+        rentearth)
+            url="https://git.kbve.com/KBVE/rentearth.git/info/lfs"
+            path_prefix="apps/rentearth/unreal-rentearth"
+            ;;
         *)
-            echo "Unknown game '$game'. Known: chuck, rareicon" >&2
+            echo "Unknown game '$game'. Known: chuck, rareicon, rentearth" >&2
             return 1
             ;;
     esac
