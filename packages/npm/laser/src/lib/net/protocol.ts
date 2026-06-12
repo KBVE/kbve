@@ -9,6 +9,7 @@ export const EPHEMERAL_PICKUP = 3;
 export const EPHEMERAL_CHAT = 4;
 export const EPHEMERAL_ITEM_USED = 5;
 export const EPHEMERAL_EQUIPPED = 6;
+export const EPHEMERAL_STATS = 7;
 
 export const KIND_CAT_PLAYER = 0;
 export const KIND_CAT_NPC = 1;
@@ -126,6 +127,16 @@ export interface ItemUsedEvent {
 
 export interface EquippedEvent {
 	item_ref: string | null;
+	slot: 'weapon' | 'armor';
+	attack: number;
+	defense: number;
+}
+
+export interface StatsEvent {
+	level: number;
+	xp: number;
+	xp_next: number;
+	max_hp: number;
 	attack: number;
 }
 

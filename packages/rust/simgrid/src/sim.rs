@@ -92,11 +92,27 @@ pub struct EidIndex {
 #[derive(Resource, Default)]
 pub struct PendingActions(Vec<(proto::PlayerSlot, u16, Option<proto::EntityId>)>);
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct SavedPlayer {
     pub slots: Vec<(String, u32)>,
     pub hp: i32,
     pub weapon: Option<String>,
+    pub armor: Option<String>,
+    pub level: i32,
+    pub xp: i32,
+}
+
+impl Default for SavedPlayer {
+    fn default() -> Self {
+        Self {
+            slots: Vec::new(),
+            hp: 0,
+            weapon: None,
+            armor: None,
+            level: 1,
+            xp: 0,
+        }
+    }
 }
 
 #[derive(Resource, Default)]
@@ -107,12 +123,50 @@ pub struct PlayerStore {
 #[derive(Resource, Default, Clone)]
 pub struct ConsumableEffects(pub HashMap<String, i32>);
 
+#[derive(Clone, Copy, Default)]
+pub struct EquipBonus {
+    pub attack: i32,
+    pub defense: i32,
+}
+
 #[derive(Resource, Default, Clone)]
-pub struct EquipmentEffects(pub HashMap<String, i32>);
+pub struct EquipmentEffects(pub HashMap<String, EquipBonus>);
 
 #[derive(Component, Clone, Default)]
 pub struct Equipped {
     pub weapon: Option<String>,
+    pub armor: Option<String>,
+}
+
+#[derive(Component, Clone, Copy, Default)]
+pub struct Defense(pub i32);
+
+#[derive(Component, Clone, Copy)]
+pub struct XpState {
+    pub level: i32,
+    pub xp: i32,
+}
+
+impl Default for XpState {
+    fn default() -> Self {
+        Self { level: 1, xp: 0 }
+    }
+}
+
+pub const XP_PER_NPC_LEVEL: i32 = 10;
+pub const HP_PER_LEVEL: i32 = 10;
+pub const ATTACK_PER_LEVEL: i32 = 1;
+
+pub fn xp_to_next(level: i32) -> i32 {
+    level.max(1) * 50
+}
+
+pub fn level_max_hp(base_hp: i32, level: i32) -> i32 {
+    base_hp + (level.max(1) - 1) * HP_PER_LEVEL
+}
+
+pub fn level_attack(base_attack: i32, level: i32) -> i32 {
+    base_attack + (level.max(1) - 1) * ATTACK_PER_LEVEL
 }
 
 #[derive(Resource, Default)]
@@ -131,6 +185,8 @@ pub struct NpcSpec {
     pub origin: Tile,
     pub ticks_per_tile: u8,
     pub max_hp: i32,
+    pub level: i32,
+    pub defense: i32,
     pub wander: Option<(i32, u32)>,
     pub aggro: Option<AggroSpec>,
     pub loot: Option<String>,
@@ -149,6 +205,9 @@ pub struct Aggro {
 pub struct RespawnOnDeath {
     pub spec: NpcSpec,
 }
+
+#[derive(Component, Clone, Copy)]
+pub struct NpcLevel(pub i32);
 
 #[derive(Component, Clone, Copy)]
 pub struct PlayerSlotTag(pub proto::PlayerSlot);
@@ -252,6 +311,8 @@ pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
             hp: spec.max_hp,
             max_hp: spec.max_hp,
         },
+        Defense(spec.defense.max(0)),
+        NpcLevel(spec.level.max(1)),
         Loot {
             item_ref: spec.loot.clone(),
         },
@@ -352,7 +413,7 @@ fn sync_roster(
     mut spawned: ResMut<SpawnedSlots>,
     mut store: ResMut<PlayerStore>,
     equipment: Res<EquipmentEffects>,
-    q_saved: Query<(&Inventory, &Health, &Equipped)>,
+    q_saved: Query<(&Inventory, &Health, &Equipped, &XpState)>,
     mut commands: Commands,
 ) {
     let active: Vec<(proto::PlayerSlot, String)> = {
@@ -373,30 +434,40 @@ fn sync_roster(
             continue;
         }
         let saved = store.by_username.get(username).cloned();
+        let level = saved.as_ref().map(|s| s.level.max(1)).unwrap_or(1);
+        let xp = saved.as_ref().map(|s| s.xp).unwrap_or(0);
+        let max_hp = level_max_hp(config.player_hp, level);
         let hp = saved
             .as_ref()
             .map(|s| s.hp)
             .filter(|hp| *hp > 0)
-            .unwrap_or(config.player_hp);
+            .unwrap_or(max_hp)
+            .min(max_hp);
         let weapon = saved.as_ref().and_then(|s| s.weapon.clone());
+        let armor = saved.as_ref().and_then(|s| s.armor.clone());
         let inventory = Inventory {
             slots: saved.map(|s| s.slots).unwrap_or_default(),
         };
         if !inventory.slots.is_empty() {
             send_inventory(&bcast, *slot, &inventory);
         }
-        let attack_bonus = weapon
+        let weapon_bonus = weapon
             .as_deref()
             .and_then(|w| equipment.0.get(w).copied())
-            .unwrap_or(0);
+            .unwrap_or_default();
+        let armor_bonus = armor
+            .as_deref()
+            .and_then(|a| equipment.0.get(a).copied())
+            .unwrap_or_default();
+        let attack = level_attack(config.player_attack, level) + weapon_bonus.attack;
+        let defense = weapon_bonus.defense + armor_bonus.defense;
         if weapon.is_some() {
-            send_equipped(
-                &bcast,
-                *slot,
-                weapon.as_deref(),
-                config.player_attack + attack_bonus,
-            );
+            send_equipped(&bcast, *slot, "weapon", weapon.as_deref(), attack, defense);
         }
+        if armor.is_some() {
+            send_equipped(&bcast, *slot, "armor", armor.as_deref(), attack, defense);
+        }
+        send_stats(&bcast, *slot, level, xp, max_hp, attack);
         let entity = commands
             .spawn((
                 PlayerSlotTag(*slot),
@@ -406,15 +477,12 @@ fn sync_roster(
                 MoveSpeed {
                     ticks_per_tile: config.ticks_per_tile,
                 },
-                Health {
-                    hp,
-                    max_hp: config.player_hp,
-                },
-                CombatStats {
-                    attack: config.player_attack + attack_bonus,
-                },
+                Health { hp, max_hp },
+                CombatStats { attack },
+                Defense(defense),
+                XpState { level, xp },
                 inventory,
-                Equipped { weapon },
+                Equipped { weapon, armor },
                 Path::default(),
                 StepBuffer::default(),
             ))
@@ -431,7 +499,7 @@ fn sync_roster(
     for k in gone {
         if let Some((entity, username)) = spawned.by_slot.remove(&k) {
             if !username.is_empty()
-                && let Ok((inv, hp, equipped)) = q_saved.get(entity)
+                && let Ok((inv, hp, equipped, xp)) = q_saved.get(entity)
             {
                 store.by_username.insert(
                     username,
@@ -439,6 +507,9 @@ fn sync_roster(
                         slots: inv.slots.clone(),
                         hp: hp.hp,
                         weapon: equipped.weapon.clone(),
+                        armor: equipped.armor.clone(),
+                        level: xp.level,
+                        xp: xp.xp,
                     },
                 );
             }
@@ -488,6 +559,8 @@ fn drain_inputs(
         &mut Inventory,
         &mut Equipped,
         &mut CombatStats,
+        &mut Defense,
+        &XpState,
     )>,
 ) {
     let mut pending: HashMap<u16, Vec<Input>> = HashMap::new();
@@ -519,6 +592,8 @@ fn drain_inputs(
         mut inv,
         mut equipped,
         mut stats,
+        mut defense,
+        xp,
     ) in q.iter_mut()
     {
         let Some(inputs) = pending.get(&slot.0.0) else {
@@ -550,24 +625,49 @@ fn drain_inputs(
                     use_item(&effects, &bcast, slot.0, item_ref, &mut hp, &mut inv);
                 }
                 Input::EquipItem { item_ref } => {
-                    if equipped.weapon.as_deref() == Some(item_ref.as_str()) {
-                        equipped.weapon = None;
+                    let Some(&bonus) = equipment.0.get(item_ref.as_str()) else {
+                        continue;
+                    };
+                    let is_weapon = bonus.attack > 0;
+                    let slot_ref = if is_weapon {
+                        &mut equipped.weapon
+                    } else {
+                        &mut equipped.armor
+                    };
+                    if slot_ref.as_deref() == Some(item_ref.as_str()) {
+                        *slot_ref = None;
                     } else {
                         if !inv.slots.iter().any(|(r, c)| r == item_ref && *c > 0) {
                             continue;
                         }
-                        if !equipment.0.contains_key(item_ref.as_str()) {
-                            continue;
-                        }
-                        equipped.weapon = Some(item_ref.clone());
+                        *slot_ref = Some(item_ref.clone());
                     }
-                    let bonus = equipped
+                    let weapon_bonus = equipped
                         .weapon
                         .as_deref()
                         .and_then(|w| equipment.0.get(w).copied())
-                        .unwrap_or(0);
-                    stats.attack = config.player_attack + bonus;
-                    send_equipped(&bcast, slot.0, equipped.weapon.as_deref(), stats.attack);
+                        .unwrap_or_default();
+                    let armor_bonus = equipped
+                        .armor
+                        .as_deref()
+                        .and_then(|a| equipment.0.get(a).copied())
+                        .unwrap_or_default();
+                    stats.attack =
+                        level_attack(config.player_attack, xp.level) + weapon_bonus.attack;
+                    defense.0 = weapon_bonus.defense + armor_bonus.defense;
+                    let changed = if is_weapon {
+                        equipped.weapon.as_deref()
+                    } else {
+                        equipped.armor.as_deref()
+                    };
+                    send_equipped(
+                        &bcast,
+                        slot.0,
+                        if is_weapon { "weapon" } else { "armor" },
+                        changed,
+                        stats.attack,
+                        defense.0,
+                    );
                 }
                 Input::Say { text } => {
                     let trimmed = text.trim();
@@ -631,14 +731,19 @@ fn apply_actions(
     registry: Res<KindRegistry>,
     bcast: Res<SnapshotBroadcast>,
     clock: Res<SimClock>,
+    config: Res<SimConfig>,
+    equipment: Res<EquipmentEffects>,
     mut respawns: ResMut<RespawnQueue>,
     mut commands: Commands,
     mut q_players: Query<(
         Entity,
         &PlayerSlotTag,
         &GridPos,
-        &CombatStats,
+        &mut CombatStats,
         &mut Inventory,
+        &mut Health,
+        &mut XpState,
+        &Equipped,
     )>,
     mut q_mobs: Query<
         (
@@ -646,6 +751,8 @@ fn apply_actions(
             &mut Health,
             Option<&Loot>,
             Option<&RespawnOnDeath>,
+            Option<&Defense>,
+            Option<&NpcLevel>,
             &EntityKind,
         ),
         (Without<PlayerSlotTag>, Without<GroundItem>),
@@ -672,17 +779,20 @@ fn apply_actions(
 
         match action_id {
             proto::ACTION_ATTACK => {
-                let Ok((_, _, pos, stats, _)) = q_players.get(player_entity) else {
+                let Ok((_, _, pos, stats, ..)) = q_players.get(player_entity) else {
                     continue;
                 };
-                let (attacker_tile, damage) = (pos.tile, stats.attack.max(1));
-                let Ok((mob_pos, mut hp, loot, respawn, kind)) = q_mobs.get_mut(target_entity)
+                let (attacker_tile, attack) = (pos.tile, stats.attack);
+                let Ok((mob_pos, mut hp, loot, respawn, mob_defense, mob_level, kind)) =
+                    q_mobs.get_mut(target_entity)
                 else {
                     continue;
                 };
                 if attacker_tile.chebyshev(mob_pos.tile) > 1 {
                     continue;
                 }
+                let damage = (attack - mob_defense.map(|d| d.0).unwrap_or(0)).max(1);
+                let kill_xp = mob_level.map(|l| l.0).unwrap_or(1).max(1) * XP_PER_NPC_LEVEL;
                 hp.hp -= damage;
                 let died = hp.hp <= 0;
                 let payload = json!({
@@ -714,6 +824,14 @@ fn apply_actions(
                     {
                         commands.spawn(bundle);
                     }
+                    if let Ok((_, _, _, mut stats, _, mut php, mut xp, equipped)) =
+                        q_players.get_mut(player_entity)
+                    {
+                        award_xp(
+                            &bcast, slot, &config, &equipment, kill_xp, &mut xp, &mut php,
+                            &mut stats, equipped,
+                        );
+                    }
                 }
             }
             proto::ACTION_PICKUP => {
@@ -722,7 +840,7 @@ fn apply_actions(
                 };
                 let (item_ref, count, item_tile) =
                     (item.item_ref.clone(), item.count, item_pos.tile);
-                let Ok((_, _, pos, _, mut inv)) = q_players.get_mut(player_entity) else {
+                let Ok((_, _, pos, _, mut inv, ..)) = q_players.get_mut(player_entity) else {
                     continue;
                 };
                 if pos.tile.chebyshev(item_tile) > 1 {
@@ -748,17 +866,80 @@ fn apply_actions(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
+fn award_xp(
+    bcast: &SnapshotBroadcast,
+    slot: proto::PlayerSlot,
+    config: &SimConfig,
+    equipment: &EquipmentEffects,
+    gained: i32,
+    xp: &mut XpState,
+    hp: &mut Health,
+    stats: &mut CombatStats,
+    equipped: &Equipped,
+) {
+    xp.xp += gained.max(0);
+    let mut leveled = false;
+    while xp.xp >= xp_to_next(xp.level) {
+        xp.xp -= xp_to_next(xp.level);
+        xp.level += 1;
+        leveled = true;
+    }
+    if leveled {
+        let weapon_bonus = equipped
+            .weapon
+            .as_deref()
+            .and_then(|w| equipment.0.get(w).copied())
+            .unwrap_or_default();
+        hp.max_hp = level_max_hp(config.player_hp, xp.level);
+        hp.hp = hp.max_hp;
+        stats.attack = level_attack(config.player_attack, xp.level) + weapon_bonus.attack;
+    }
+    send_stats(bcast, slot, xp.level, xp.xp, hp.max_hp, stats.attack);
+}
+
 fn send_equipped(
     bcast: &SnapshotBroadcast,
     slot: proto::PlayerSlot,
-    weapon: Option<&str>,
+    equip_slot: &str,
+    item_ref: Option<&str>,
     attack: i32,
+    defense: i32,
 ) {
-    let payload = json!({ "item_ref": weapon, "attack": attack })
-        .to_string()
-        .into_bytes();
+    let payload = json!({
+        "item_ref": item_ref,
+        "slot": equip_slot,
+        "attack": attack,
+        "defense": defense,
+    })
+    .to_string()
+    .into_bytes();
     let _ = bcast.tx.send(ServerEvent::Ephemeral {
         kind: proto::EPHEMERAL_EQUIPPED,
+        to: slot,
+        payload,
+    });
+}
+
+fn send_stats(
+    bcast: &SnapshotBroadcast,
+    slot: proto::PlayerSlot,
+    level: i32,
+    xp: i32,
+    max_hp: i32,
+    attack: i32,
+) {
+    let payload = json!({
+        "level": level,
+        "xp": xp,
+        "xp_next": xp_to_next(level),
+        "max_hp": max_hp,
+        "attack": attack,
+    })
+    .to_string()
+    .into_bytes();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_STATS,
         to: slot,
         payload,
     });
@@ -829,11 +1010,11 @@ fn hostile_ai(
     bcast: Res<SnapshotBroadcast>,
     mut occ: ResMut<Occupancy>,
     mut q_mobs: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut Aggro), Without<PlayerSlotTag>>,
-    mut q_players: Query<(Entity, &GridPos, &mut Health), With<PlayerSlotTag>>,
+    mut q_players: Query<(Entity, &GridPos, &mut Health, &Defense), With<PlayerSlotTag>>,
 ) {
     for (mob, mut pos, mut mv, mut aggro) in q_mobs.iter_mut() {
         let mut nearest: Option<(Entity, Tile, i32)> = None;
-        for (pe, ppos, hp) in q_players.iter() {
+        for (pe, ppos, hp, _) in q_players.iter() {
             if hp.hp <= 0 {
                 continue;
             }
@@ -854,16 +1035,17 @@ fn hostile_ai(
                 continue;
             }
             aggro.next_tick = clock.tick.saturating_add(aggro.period_ticks);
-            let Ok((_, _, mut hp)) = q_players.get_mut(player_entity) else {
+            let Ok((_, _, mut hp, defense)) = q_players.get_mut(player_entity) else {
                 continue;
             };
-            hp.hp -= aggro.damage.max(1);
+            let dmg = (aggro.damage - defense.0).max(1);
+            hp.hp -= dmg;
             let died = hp.hp <= 0;
             let payload = json!({
                 "attacker": mob.index_u32(),
                 "target": player_entity.index_u32(),
                 "target_ref": "player",
-                "dmg": aggro.damage.max(1),
+                "dmg": dmg,
                 "died": died,
             })
             .to_string()
@@ -1353,6 +1535,8 @@ mod tests {
             origin,
             ticks_per_tile: 1,
             max_hp: 30,
+            level: 1,
+            defense: 0,
             wander: None,
             aggro: Some(AggroSpec {
                 range: 8,
@@ -1489,7 +1673,10 @@ mod tests {
         app.world_mut()
             .insert_resource(EquipmentEffects(HashMap::from([(
                 "iron-sword".to_string(),
-                7,
+                EquipBonus {
+                    attack: 7,
+                    defense: 0,
+                },
             )])));
 
         let player = player_entity(&mut app);
@@ -1547,6 +1734,162 @@ mod tests {
         }
         let stats3 = app.world().get::<CombatStats>(player2).unwrap();
         assert_eq!(stats3.attack, 5, "re-equip did not toggle off");
+    }
+
+    #[test]
+    fn armor_equip_reduces_incoming_damage() {
+        let (mut app, _rx, input_tx, roster) = harness(41);
+        let slot = join(&roster, "tank");
+        app.update();
+
+        app.world_mut()
+            .insert_resource(EquipmentEffects(HashMap::from([(
+                "iron-shield".to_string(),
+                EquipBonus {
+                    attack: 0,
+                    defense: 3,
+                },
+            )])));
+
+        let player = player_entity(&mut app);
+        {
+            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
+            inv.add("iron-shield", 1);
+        }
+        input_tx
+            .send((
+                slot,
+                Input::EquipItem {
+                    item_ref: "iron-shield".into(),
+                },
+            ))
+            .unwrap();
+        app.update();
+
+        let defense = app.world().get::<Defense>(player).unwrap();
+        assert_eq!(defense.0, 3, "shield defense not applied");
+        let equipped = app.world().get::<Equipped>(player).unwrap();
+        assert_eq!(equipped.armor.as_deref(), Some("iron-shield"));
+        assert!(equipped.weapon.is_none(), "shield must not occupy weapon");
+
+        let registry = app.world().resource::<KindRegistry>().clone();
+        let kind = registry.kind_of("training-dummy").unwrap();
+        let mut spec = hostile_spec(kind, Tile::new(9, 8));
+        spec.aggro = Some(AggroSpec {
+            range: 8,
+            damage: 5,
+            period_ticks: 1,
+        });
+        {
+            let mut commands_queue = bevy::ecs::world::CommandQueue::default();
+            let mut commands = Commands::new(&mut commands_queue, app.world());
+            spawn_npc_from_spec(&mut commands, &spec);
+            commands_queue.apply(app.world_mut());
+        }
+        let hp_before = app.world().get::<Health>(player).unwrap().hp;
+        for _ in 0..40 {
+            app.update();
+        }
+        let hp_after = app.world().get::<Health>(player).unwrap().hp;
+        let lost = hp_before - hp_after;
+        assert!(lost > 0, "mob never hit");
+        let hits = lost / 2;
+        assert_eq!(lost % 2, 0, "damage should be (5-3)=2 per hit, lost {lost}");
+        assert!(hits > 0);
+    }
+
+    #[test]
+    fn kills_award_xp_and_level_up_grows_stats() {
+        let (mut app, mut rx, input_tx, roster) = harness(43);
+        let slot = join(&roster, "grinder");
+        app.update();
+
+        let registry = app.world().resource::<KindRegistry>().clone();
+        let kind = registry.kind_of("training-dummy").unwrap();
+        let player = player_entity(&mut app);
+
+        for _ in 0..5 {
+            let mut spec = hostile_spec(kind, Tile::new(9, 8));
+            spec.aggro = None;
+            spec.max_hp = 1;
+            spec.level = 1;
+            spec.respawn_ticks = 0;
+            let mob = {
+                let mut commands_queue = bevy::ecs::world::CommandQueue::default();
+                let mut commands = Commands::new(&mut commands_queue, app.world());
+                spawn_npc_from_spec(&mut commands, &spec);
+                commands_queue.apply(app.world_mut());
+                let mut q = app
+                    .world_mut()
+                    .query_filtered::<(Entity, &EntityKind), Without<PlayerSlotTag>>();
+                q.iter(app.world())
+                    .find(|(_, k)| k.0 == kind)
+                    .map(|(e, _)| e)
+                    .expect("mob spawned")
+            };
+            app.update();
+            input_tx
+                .send((
+                    slot,
+                    Input::Action {
+                        id: proto::ACTION_ATTACK,
+                        target: Some(proto::EntityId(mob.index_u32())),
+                    },
+                ))
+                .unwrap();
+            for _ in 0..3 {
+                app.update();
+            }
+        }
+
+        let xp = app.world().get::<XpState>(player).unwrap();
+        assert_eq!(xp.level, 2, "5 level-1 kills (50xp) should reach level 2");
+        assert_eq!(xp.xp, 0);
+        let hp = app.world().get::<Health>(player).unwrap();
+        assert_eq!(hp.max_hp, 110, "level 2 max hp");
+        assert_eq!(hp.hp, 110, "level-up heals to full");
+        let stats = app.world().get::<CombatStats>(player).unwrap();
+        assert_eq!(stats.attack, 6, "level 2 attack");
+
+        let mut saw_stats = false;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, to, payload } = evt
+                && kind == proto::EPHEMERAL_STATS
+            {
+                assert_eq!(to, slot);
+                let text = String::from_utf8(payload).unwrap();
+                if text.contains("\"level\":2") {
+                    saw_stats = true;
+                }
+            }
+        }
+        assert!(saw_stats, "no level-2 stats ephemeral");
+    }
+
+    #[test]
+    fn level_persists_across_rejoin() {
+        let (mut app, _rx, _tx, roster) = harness(45);
+        let slot = join(&roster, "veteran");
+        app.update();
+        let player = player_entity(&mut app);
+        {
+            let mut xp = app.world_mut().get_mut::<XpState>(player).unwrap();
+            xp.level = 3;
+            xp.xp = 20;
+        }
+        roster.write().unwrap().release(slot);
+        app.update();
+        let _slot2 = join(&roster, "veteran");
+        for _ in 0..2 {
+            app.update();
+        }
+        let player2 = player_entity(&mut app);
+        let xp = app.world().get::<XpState>(player2).unwrap();
+        assert_eq!((xp.level, xp.xp), (3, 20), "level/xp not restored");
+        let hp = app.world().get::<Health>(player2).unwrap();
+        assert_eq!(hp.max_hp, 120, "level 3 max hp not derived on restore");
+        let stats = app.world().get::<CombatStats>(player2).unwrap();
+        assert_eq!(stats.attack, 7, "level 3 attack not derived on restore");
     }
 
     #[test]

@@ -31,9 +31,32 @@ export function StatsSection({ stats }: StatsSectionProps) {
 		},
 	];
 
+	const xpPct =
+		stats.xp !== undefined && stats.xpNext
+			? pct(stats.xp, stats.xpNext)
+			: null;
+
 	return (
 		<div className="mb-4">
-			<h2 className="text-lg font-semibold mb-2">Stats</h2>
+			<h2 className="text-lg font-semibold mb-2">
+				Stats
+				{stats.level !== undefined && (
+					<span className="ml-2 text-sm text-purple-300">
+						Lv {stats.level}
+					</span>
+				)}
+			</h2>
+			{xpPct !== null && (
+				<div className="mb-2">
+					<p className="text-sm text-purple-300">{`XP: ${stats.xp} / ${stats.xpNext}`}</p>
+					<div className="w-full bg-gray-600 h-2 rounded">
+						<div
+							className="bg-purple-400 h-full rounded transition-all duration-300"
+							style={{ width: `${xpPct}%` }}
+						/>
+					</div>
+				</div>
+			)}
 			{bars.map((b) => (
 				<div key={b.label} className="mb-2">
 					<p

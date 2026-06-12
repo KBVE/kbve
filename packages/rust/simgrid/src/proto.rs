@@ -12,6 +12,7 @@ pub const EPHEMERAL_PICKUP: u16 = 3;
 pub const EPHEMERAL_CHAT: u16 = 4;
 pub const EPHEMERAL_ITEM_USED: u16 = 5;
 pub const EPHEMERAL_EQUIPPED: u16 = 6;
+pub const EPHEMERAL_STATS: u16 = 7;
 
 pub const MAX_CHAT_LEN: usize = 200;
 

@@ -18,6 +18,8 @@ pub struct NpcDef {
     pub ref_id: String,
     pub name: String,
     #[serde(default)]
+    pub level: i32,
+    #[serde(default)]
     pub stats: NpcStats,
     #[serde(default)]
     pub equipment: Option<NpcEquipment>,

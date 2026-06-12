@@ -68,6 +68,7 @@ export {
 	EPHEMERAL_CHAT,
 	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_EQUIPPED,
+	EPHEMERAL_STATS,
 	KIND_CAT_PLAYER,
 	KIND_CAT_NPC,
 	KIND_CAT_ITEM,
@@ -97,4 +98,5 @@ export type {
 	ChatEvent,
 	ItemUsedEvent,
 	EquippedEvent,
+	StatsEvent,
 } from './lib/net/protocol';

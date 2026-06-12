@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use bevy::prelude::{Commands, Local, Res};
 use simgrid::proto::Tile;
 use simgrid::{
-    AggroSpec, ConsumableEffects, EquipmentEffects, KindRegistry, NpcDb, NpcSpec, SIM_TICK_HZ,
-    SimConfig, WalkableMap, ground_item_bundle, spawn_npc_from_spec,
+    AggroSpec, ConsumableEffects, EquipBonus, EquipmentEffects, KindRegistry, NpcDb, NpcSpec,
+    SIM_TICK_HZ, SimConfig, WalkableMap, ground_item_bundle, spawn_npc_from_spec,
 };
 
 pub const MAP_WIDTH: i32 = 50;
@@ -37,6 +37,7 @@ pub const GOBLIN_LOOT_REF: &str = "coin";
 
 pub const HOSTILE_AGGRO_RANGE: i32 = 6;
 pub const IRON_SWORD_ATTACK: i32 = 5;
+pub const IRON_SHIELD_DEFENSE: i32 = 3;
 
 pub const POTION_HEAL: i32 = 25;
 
@@ -44,6 +45,7 @@ pub const GROUND_ITEMS: &[(&str, u32, Tile)] = &[
     ("potion", 1, Tile::new(8, 12)),
     ("coin", 5, Tile::new(12, 9)),
     ("iron-sword", 1, Tile::new(6, 15)),
+    ("iron-shield", 1, Tile::new(10, 16)),
 ];
 
 pub fn npc_db() -> NpcDb {
@@ -78,10 +80,22 @@ pub fn consumables() -> ConsumableEffects {
 }
 
 pub fn equipment() -> EquipmentEffects {
-    EquipmentEffects(HashMap::from([(
-        "iron-sword".to_string(),
-        IRON_SWORD_ATTACK,
-    )]))
+    EquipmentEffects(HashMap::from([
+        (
+            "iron-sword".to_string(),
+            EquipBonus {
+                attack: IRON_SWORD_ATTACK,
+                defense: 0,
+            },
+        ),
+        (
+            "iron-shield".to_string(),
+            EquipBonus {
+                attack: 0,
+                defense: IRON_SHIELD_DEFENSE,
+            },
+        ),
+    ]))
 }
 
 pub fn walkable_map() -> WalkableMap {
@@ -109,6 +123,8 @@ fn npc_spec(
         origin,
         ticks_per_tile: ticks_per_tile_for_speed(def.stats.speed),
         max_hp,
+        level: def.level.max(1),
+        defense: def.stats.defense.max(0),
         wander,
         aggro: def.is_hostile().then(|| AggroSpec {
             range: HOSTILE_AGGRO_RANGE,
