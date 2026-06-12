@@ -280,7 +280,8 @@ namespace RareIcon
                 typeof(TerritoryVisual),
                 typeof(FogVisibility),
                 typeof(FogExplored),
-                typeof(AuraHighlightVisual)
+                typeof(AuraHighlightVisual),
+                typeof(HexTileId)
             );
 
             var batchEntities = em.CreateEntity(archetype, landCount, Allocator.Temp);
@@ -306,6 +307,7 @@ namespace RareIcon
                     em.SetComponentData(entity, new HexCoord { Q = gx, R = gy });
                     em.SetComponentData(entity, new BiomeType { Value = biome });
                     em.SetComponentData(entity, new ChunkCoord { Value = chunkCoord });
+                    em.SetComponentData(entity, new HexTileId { Value = HexBiomeAtlas.TileIdForBiome(biome) });
 
                     var (res, mask) = HexResourceTable.Roll(biome, gx, gy);
 

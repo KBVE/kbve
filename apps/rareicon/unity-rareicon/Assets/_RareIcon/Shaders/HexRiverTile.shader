@@ -16,6 +16,7 @@ Shader "RareIcon/HexRiverTile"
         _DistortionSpeed ("Distortion Speed", Float)             = 0.35
         _FBMStrength ("FBM Distortion", Float)                   = 0.0
         _FoamAmount ("Foam Amount", Range(0,1))                  = 0.0
+        _TileId ("Atlas Tile Id (per-instance, -1=procedural)", Float) = -1
     }
 
     SubShader
@@ -64,6 +65,7 @@ Shader "RareIcon/HexRiverTile"
                 float _DistortionSpeed;
                 float _FBMStrength;
                 float _FoamAmount;
+                float _TileId;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -71,11 +73,13 @@ Shader "RareIcon/HexRiverTile"
                 UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor)
                 UNITY_DOTS_INSTANCED_PROP(float4, _BorderColor)
                 UNITY_DOTS_INSTANCED_PROP(float, _BorderWidth)
+                UNITY_DOTS_INSTANCED_PROP(float, _TileId)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
             #define _BaseColor    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BaseColor)
             #define _BorderColor  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BorderColor)
             #define _BorderWidth  UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _BorderWidth)
+            #define _TileId       UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _TileId)
             #endif
 
             float hexSDF(float2 p, float size)
