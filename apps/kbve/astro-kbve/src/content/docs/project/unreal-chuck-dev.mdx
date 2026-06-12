@@ -28,10 +28,18 @@ engine:
     build_targets:
         - Win64
         - Linux
+    external_repo_ref: dev
+    client_config: Development
+    server_target: chuckServerDev
+    server_config: Development
+    game_mode: /Script/Chuck.ChuckGameMode
+    maps:
+        - /Game/Menus/L_MainMenu
+        - /Game/Map/L_ChuckWorld
 external_publish:
     itch_user: kbve
     itch_game: chuckrpg
-    itch_channel: demo
+    itch_channel: dev
 shell_path: apps/chuckrpg/unreal-chuck
 ---
 

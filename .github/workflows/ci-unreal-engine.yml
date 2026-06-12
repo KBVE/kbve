@@ -1,0 +1,49 @@
+name: CI - Unreal Engine (AngelScript)
+
+run-name: 'CI - Unreal Engine / ${{ inputs.platforms }}'
+
+on:
+    workflow_dispatch:
+        inputs:
+            platforms:
+                description: 'Comma-separated: windows,mac,linux'
+                required: false
+                type: string
+                default: 'linux'
+            engine_ref:
+                description: 'Branch/tag of UnrealEngine-Angelscript'
+                required: false
+                type: string
+                default: 'angelscript-master'
+            skip_version_gate:
+                description: 'Force rebuild'
+                required: false
+                type: boolean
+                default: false
+            build_dedicated_server:
+                description: 'Build + push Linux dedicated-server image'
+                required: false
+                type: boolean
+                default: true
+
+permissions:
+    contents: write
+    packages: write
+    issues: write
+    pull-requests: write
+
+jobs:
+    engine:
+        name: Engine Build
+        uses: KBVE/kbve/.github/workflows/ci-unreal-build.yml@dev
+        with:
+            mode: engine
+            platforms: ${{ inputs.platforms }}
+            engine_ref: ${{ inputs.engine_ref }}
+            skip_version_gate: ${{ inputs.skip_version_gate }}
+            build_dedicated_server: ${{ inputs.build_dedicated_server }}
+        secrets:
+            UNITY_PAT: ${{ secrets.UNITY_PAT }}
+            butler_api: ${{ secrets.ITCH_API }}
+            FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+            FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}

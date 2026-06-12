@@ -1,5 +1,6 @@
 import { useStore } from '@nanostores/react';
 import { forgejoService, formatSize, langColor } from './forgejoService';
+import { useTabActive } from './forgejoUi';
 import {
 	Loader2,
 	AlertTriangle,
@@ -240,6 +241,7 @@ function LanguageBar() {
 }
 
 export default function ReactForgejoSummary() {
+	const active = useTabActive('overview');
 	const loading = useStore(forgejoService.$loading);
 	const error = useStore(forgejoService.$error);
 	const totalRepos = useStore(forgejoService.$totalRepos);
@@ -249,6 +251,8 @@ export default function ReactForgejoSummary() {
 	const totalUsers = useStore(forgejoService.$totalUsers);
 	const totalSize = useStore(forgejoService.$totalSize);
 	const totalReleases = useStore(forgejoService.$totalReleases);
+
+	if (!active) return null;
 
 	if (loading && totalRepos === 0) {
 		return (

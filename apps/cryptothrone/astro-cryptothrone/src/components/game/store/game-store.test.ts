@@ -147,3 +147,17 @@ describe('gameReducer', () => {
 		expect(s).toBe(start);
 	});
 });
+
+describe('SET_CONNECTION', () => {
+	it('replaces the connection state', () => {
+		const next = gameReducer(initialGameState, {
+			type: 'SET_CONNECTION',
+			payload: { status: 'rejected', detail: 'match full' },
+		});
+		expect(next.connection).toEqual({
+			status: 'rejected',
+			detail: 'match full',
+		});
+		expect(initialGameState.connection.status).toBe('connecting');
+	});
+});

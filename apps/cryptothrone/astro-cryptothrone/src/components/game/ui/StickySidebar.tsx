@@ -2,6 +2,7 @@ import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
 import { StatsSection } from './StatsSection';
 import { ToggleButton } from './ToggleButton';
 import { InventoryGrid } from './InventoryGrid';
+import { OnlinePlayers } from './OnlinePlayers';
 import { getItemById } from '../data/items';
 
 export function StickySidebar() {
@@ -70,6 +71,8 @@ export function StickySidebar() {
 						{player.stats.username || 'Guest'}
 					</p>
 				</div>
+
+				<OnlinePlayers />
 
 				<div className="mb-4">
 					<h2 className="text-lg font-semibold mb-2">Inventory</h2>

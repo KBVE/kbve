@@ -84,6 +84,25 @@ message GameEngineConfig {
   // (e.g. Azure DevOps repo for a private Unity project that ships
   // public artifacts).
   optional string external_repo_url = 8;
+
+  // Branch / ref of external_repo_url to clone. Empty = repo default branch.
+  optional string external_repo_ref = 9;
+
+  // UE Server target name (e.g. chuckServerDev, chuckServerBeta). Drives -target and
+  // the PVC artifact dir /ows-server/<server_target>/<version>. Empty = build.toml.
+  optional string server_target = 10;
+
+  // UE dedicated-server build config: Development | Shipping | Test | DebugGame | Debug.
+  optional string server_config = 11;
+
+  // UE game-client build config: Development | Shipping | Test | DebugGame | Debug.
+  optional string client_config = 12;
+
+  // Maps to cook. Empty = -allmaps.
+  repeated string maps = 13;
+
+  // Server launch game mode (e.g. /Script/Chuck.ChuckGameMode) for the Agones fleet.
+  optional string game_mode = 14;
 }
 
 // One Steam application entry for [`ExternalPublish`]. Demos, the main

@@ -14,6 +14,7 @@ import { ActionMenu } from './ui/ActionMenu';
 import { DialogueModal } from './ui/DialogueModal';
 import { DiceRollModal } from './ui/DiceRollModal';
 import { ChatBar } from './ui/ChatBar';
+import { ConnectionOverlay } from './ui/ConnectionOverlay';
 
 /**
  * Isolated Phaser canvas — never re-renders when game store changes.
@@ -91,6 +92,7 @@ function GameUI({ username }: { username?: string }) {
 			<CharacterDialog />
 			<NotificationToast />
 			<ChatBar />
+			<ConnectionOverlay />
 		</>
 	);
 }

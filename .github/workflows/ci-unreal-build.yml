@@ -44,6 +44,36 @@ on:
                 required: false
                 type: string
                 default: ''
+            external_repo_ref:
+                description: '[game] Branch/ref of external_repo_url (empty = default branch)'
+                required: false
+                type: string
+                default: ''
+            server_target:
+                description: '[game] UE server target (overrides build.toml)'
+                required: false
+                type: string
+                default: ''
+            server_config:
+                description: '[game] UE -serverconfig (overrides build.toml)'
+                required: false
+                type: string
+                default: ''
+            client_config:
+                description: '[game] UE -clientconfig (default Shipping)'
+                required: false
+                type: string
+                default: ''
+            game_mode:
+                description: '[game] Server launch game mode (fleet metadata)'
+                required: false
+                type: string
+                default: ''
+            maps:
+                description: '[game] JSON array of maps to cook (empty = -allmaps)'
+                required: false
+                type: string
+                default: ''
             version_source:
                 description: '[game] Path to version source (mdx)'
                 required: false
@@ -267,6 +297,11 @@ jobs:
                   SERVER_TARGET=$(get_val "server_target")
                   UE_IMAGE_TAG=$(get_val "ue_image_tag")
                   SERVER_CONFIG=$(get_val "server_config")
+
+                  # Manifest entry (MDX engine.*) wins over build.toml so per-game config
+                  # lives in the registry and the workflow stays game-agnostic.
+                  [ -n "${{ inputs.server_target }}" ] && SERVER_TARGET="${{ inputs.server_target }}"
+                  [ -n "${{ inputs.server_config }}" ] && SERVER_CONFIG="${{ inputs.server_config }}"
 
                   UE_IMAGE_TAG="${UE_IMAGE_TAG:-dev-5.7.4}"
                   SERVER_CONFIG="${SERVER_CONFIG:-Development}"
@@ -638,10 +673,11 @@ jobs:
                   SLUG="${SLUG#git@github.com:}"
                   SLUG="${SLUG%.git}"
                   SUBDIR="${{ inputs.project_path }}"
-                  echo "::notice::Cloning external game repo ${SLUG} (default branch), subdir '${SUBDIR}'"
+                  REF="${{ inputs.external_repo_ref }}"
+                  echo "::notice::Cloning external game repo ${SLUG} (${REF:-default branch}), subdir '${SUBDIR}'"
                   rm -rf /tmp/game-clone /tmp/game-project
 
-                  GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 \
+                  GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 ${REF:+--branch "${REF}"} \
                     "https://x-access-token:${GH_TOKEN}@github.com/${SLUG}.git" /tmp/game-clone
 
                   cd /tmp/game-clone
@@ -703,7 +739,14 @@ jobs:
                     exit 1
                   fi
                   UPROJECT_NAME=$(basename "${UPROJECT_FILE}")
-                  echo "::notice::Building ${UPROJECT_NAME} (Linux client)"
+                  CLIENT_CONFIG='${{ inputs.client_config }}'; CLIENT_CONFIG="${CLIENT_CONFIG:-Shipping}"
+                  MAPS_JSON='${{ inputs.maps }}'
+                  if [ -n "${MAPS_JSON}" ] && [ "${MAPS_JSON}" != "[]" ]; then
+                    MAP_ARG="-map=$(echo "${MAPS_JSON}" | jq -r 'join("+")')"
+                  else
+                    MAP_ARG="-allmaps"
+                  fi
+                  echo "::notice::Building ${UPROJECT_NAME} (Linux client, ${CLIENT_CONFIG}, ${MAP_ARG})"
 
                   docker run --rm \
                     -v /tmp/game-project:/project \
@@ -722,7 +765,8 @@ jobs:
                       "$RUNUAT" BuildCookRun \
                         -project=/project/'"${UPROJECT_NAME}"' \
                         -targetplatform=Linux \
-                        -cook -allmaps -build -stage -pak -archive \
+                        -clientconfig='"${CLIENT_CONFIG}"' \
+                        -cook '"${MAP_ARG}"' -build -stage -pak -archive \
                         -archivedirectory=/output \
                         -unattended -utf8output -NoP4
                     '
@@ -824,12 +868,18 @@ jobs:
                   $slug = '${{ inputs.external_repo_url }}'
                   $slug = $slug -replace '^https://github.com/', '' -replace '^git@github.com:', '' -replace '\.git$', ''
                   $subdir = '${{ inputs.project_path }}'
+                  $ref = '${{ inputs.external_repo_ref }}'
                   $clone = 'C:\game-clone'
                   if (Test-Path $clone) { Remove-Item -Recurse -Force $clone -ErrorAction SilentlyContinue }
-                  Write-Host "::notice::Cloning external game repo $slug (default branch), subdir '$subdir'"
+                  $refLabel = if ($ref) { $ref } else { 'default branch' }
+                  Write-Host "::notice::Cloning external game repo $slug ($refLabel), subdir '$subdir'"
 
                   $env:GIT_LFS_SKIP_SMUDGE = '1'
-                  git clone --depth 1 "https://x-access-token:$token@github.com/$slug.git" $clone
+                  if ($ref) {
+                    git clone --depth 1 --branch $ref "https://x-access-token:$token@github.com/$slug.git" $clone
+                  } else {
+                    git clone --depth 1 "https://x-access-token:$token@github.com/$slug.git" $clone
+                  }
                   if ($LASTEXITCODE -ne 0) { Write-Host "::error::clone failed"; exit $LASTEXITCODE }
                   Remove-Item Env:\GIT_LFS_SKIP_SMUDGE
 
@@ -868,12 +918,19 @@ jobs:
                   if (-not $uproject) { Write-Host "::error::No .uproject found in $projRoot"; exit 1 }
                   $out = "C:\ue5-game-output"
                   New-Item -ItemType Directory -Force -Path $out | Out-Null
-                  Write-Host "::notice::Building $($uproject.FullName) (Win64 client)"
+                  $clientConfig = if ('${{ inputs.client_config }}') { '${{ inputs.client_config }}' } else { 'Shipping' }
+                  $mapsJson = '${{ inputs.maps }}'
+                  if ($mapsJson -and $mapsJson -ne '[]') {
+                      $mapArg = '-map=' + (($mapsJson | ConvertFrom-Json) -join '+')
+                  } else {
+                      $mapArg = '-allmaps'
+                  }
+                  Write-Host "::notice::Building $($uproject.FullName) (Win64 client, $clientConfig, $mapArg)"
                   & '${{ steps.engine.outputs.runuat }}' BuildCookRun `
                       -project="$($uproject.FullName)" `
                       -targetplatform=Win64 `
-                      -clientconfig=Shipping `
-                      -cook -map=/Game/Menus/L_MainMenu+/Game/Map/L_ChuckWorld `
+                      -clientconfig=$clientConfig `
+                      -cook $mapArg `
                       -build -stage -pak -archive `
                       -archivedirectory="$out" `
                       -nodebuginfo `

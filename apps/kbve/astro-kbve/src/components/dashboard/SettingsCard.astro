@@ -1,0 +1,49 @@
+---
+interface Props {
+	title: string;
+}
+const { title } = Astro.props;
+---
+
+<section class="set-card" data-settingscard-root>
+	<header class="set-card__header">
+		<span class="set-card__icon"><slot name="icon" /></span>
+		<h3 class="set-card__title">{title}</h3>
+		<span class="set-card__badge" data-slot="badge" hidden></span>
+	</header>
+	<div class="set-card__body"><slot /></div>
+</section>
+
+<style>
+	.set-card {
+		background: var(--sl-color-bg-nav);
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.75rem;
+		padding: 1.25rem;
+	}
+	.set-card__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 1rem;
+		color: var(--sl-color-white);
+	}
+	.set-card__icon {
+		display: inline-flex;
+		color: var(--sl-color-white);
+	}
+	.set-card__title {
+		margin: 0;
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		flex: 1;
+	}
+	.set-card__badge {
+		font-size: 0.7rem;
+		padding: 0.15rem 0.5rem;
+		border-radius: 9999px;
+		background: var(--sl-color-gray-5);
+		color: var(--sl-color-gray-2);
+	}
+</style>

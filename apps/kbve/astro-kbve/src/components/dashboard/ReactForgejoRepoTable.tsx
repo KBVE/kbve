@@ -7,6 +7,7 @@ import {
 	type ForgejoRepo,
 	type RepoDetail,
 } from './forgejoService';
+import { useTabActive } from './forgejoUi';
 import {
 	Lock,
 	GitFork,
@@ -582,10 +583,12 @@ function RepoRow({
 // ---------------------------------------------------------------------------
 
 export default function ReactForgejoRepoTable() {
+	const active = useTabActive('overview');
 	const repos = useStore(forgejoService.$repos);
 	const expandedRepo = useStore(forgejoService.$expandedRepo);
 	const repoDetails = useStore(forgejoService.$repoDetails);
 
+	if (!active) return null;
 	if (repos.length === 0) return null;
 
 	return (

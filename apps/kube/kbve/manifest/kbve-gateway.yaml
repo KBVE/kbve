@@ -97,6 +97,20 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
+        - name: https-cryptothrone-game
+          protocol: HTTPS
+          port: 443
+          hostname: game.cryptothrone.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: cryptothrone-game-tls
+                    namespace: cryptothrone
+          allowedRoutes:
+              namespaces:
+                  from: All
         - name: https-chuckrpg
           protocol: HTTPS
           port: 443

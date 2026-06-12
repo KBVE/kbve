@@ -1,11 +1,76 @@
 ---
-import ReactSettingsPanel from './ReactSettingsPanel';
+import SettingsCard from './SettingsCard.astro';
+import ReactSettingsStorage from './ReactSettingsStorage';
+import ReactSettingsHealth from './ReactSettingsHealth';
+import ReactSettingsDevice from './ReactSettingsDevice';
 ---
 
 <section id="settings-wrapper" class="settings-wrapper" aria-label="Settings">
 	<div id="settings-content" class="settings-content">
 		<div class="not-content settings-panel">
-			<ReactSettingsPanel client:only="react" />
+			<SettingsCard title="Storage Management">
+				<svg
+					slot="icon"
+					xmlns="http://www.w3.org/2000/svg"
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round">
+					<ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+					<path d="M3 5V19A9 3 0 0 0 21 19V5"></path>
+					<path d="M3 12A9 3 0 0 0 21 12"></path>
+				</svg>
+				<ReactSettingsStorage client:only="react" />
+			</SettingsCard>
+
+			<SettingsCard title="System Health">
+				<svg
+					slot="icon"
+					xmlns="http://www.w3.org/2000/svg"
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round">
+					<rect width="16" height="16" x="4" y="4" rx="2"></rect>
+					<rect width="6" height="6" x="9" y="9" rx="1"></rect>
+					<path d="M15 2v2"></path>
+					<path d="M15 20v2"></path>
+					<path d="M2 15h2"></path>
+					<path d="M2 9h2"></path>
+					<path d="M20 15h2"></path>
+					<path d="M20 9h2"></path>
+					<path d="M9 2v2"></path>
+					<path d="M9 20v2"></path>
+				</svg>
+				<ReactSettingsHealth client:only="react" />
+			</SettingsCard>
+
+			<SettingsCard title="Device Info">
+				<svg
+					slot="icon"
+					xmlns="http://www.w3.org/2000/svg"
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round">
+					<path
+						d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z">
+					</path>
+				</svg>
+				<ReactSettingsDevice client:only="react" />
+			</SettingsCard>
 		</div>
 	</div>
 </section>

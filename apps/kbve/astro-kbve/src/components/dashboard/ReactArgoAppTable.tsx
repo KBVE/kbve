@@ -28,25 +28,6 @@ import {
 	Clock,
 } from 'lucide-react';
 
-const ARGO_TABLE_CSS = `
-.kbve-argo-row {
-	display: grid;
-	grid-template-columns: 24px 1fr 100px 120px 120px 180px;
-}
-.kbve-argo-header {
-	display: grid;
-}
-@media (max-width: 768px) {
-	.kbve-argo-row {
-		grid-template-columns: 24px 1fr auto auto;
-	}
-	.kbve-argo-col-project,
-	.kbve-argo-col-last {
-		display: none;
-	}
-}
-`;
-
 function StallBadge({
 	reason,
 	ageMs,
@@ -993,8 +974,6 @@ export default function ReactArgoAppTable() {
 
 	return (
 		<>
-			<style>{ARGO_TABLE_CSS}</style>
-			{/* Table header */}
 			<div
 				className="kbve-argo-row kbve-argo-header"
 				style={{
