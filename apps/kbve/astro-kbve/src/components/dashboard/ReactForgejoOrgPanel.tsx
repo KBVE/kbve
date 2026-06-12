@@ -16,6 +16,7 @@ import {
 	useTabActive,
 	uiTokens,
 	LoadMoreButton,
+	ForgejoNotice,
 } from './forgejoUi';
 import {
 	Plus,
@@ -519,6 +520,7 @@ export default function ReactForgejoOrgPanel() {
 
 	return (
 		<div className="not-content">
+			<ForgejoNotice ctx="orgs" />
 			<div
 				style={{
 					display: 'flex',

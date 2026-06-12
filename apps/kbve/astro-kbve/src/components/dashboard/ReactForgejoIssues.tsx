@@ -1,6 +1,12 @@
 import { useStore } from '@nanostores/react';
 import { forgejoService, timeAgo } from './forgejoService';
-import { ActionButton, SelectField, useTabActive, uiTokens } from './forgejoUi';
+import {
+	ActionButton,
+	SelectField,
+	useTabActive,
+	uiTokens,
+	ForgejoNotice,
+} from './forgejoUi';
 import {
 	CircleDot,
 	GitPullRequest,
@@ -74,6 +80,10 @@ export default function ReactForgejoIssues() {
 
 	return (
 		<div className="not-content">
+			<ForgejoNotice
+				ctx="issues"
+				onRetry={() => forgejoService.loadIssues()}
+			/>
 			<div
 				style={{
 					display: 'flex',

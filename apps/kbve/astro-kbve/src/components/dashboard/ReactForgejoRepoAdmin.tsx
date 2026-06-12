@@ -11,6 +11,7 @@ import {
 	useForm,
 	useTabActive,
 	uiTokens,
+	ForgejoNotice,
 } from './forgejoUi';
 import {
 	Plus,
@@ -408,6 +409,14 @@ export default function ReactForgejoRepoAdmin() {
 
 	return (
 		<div className="not-content">
+			<ForgejoNotice
+				ctx="repoAdmin"
+				onRetry={
+					selected
+						? () => forgejoService.selectRepo(selected)
+						: undefined
+				}
+			/>
 			<div style={{ maxWidth: 420, marginBottom: '1.5rem' }}>
 				<SelectField
 					label="Repository"
