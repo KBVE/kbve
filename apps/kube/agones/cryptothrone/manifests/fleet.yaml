@@ -35,6 +35,10 @@ spec:
             sdkServer:
                 logLevel: Info
             template:
+                metadata:
+                    labels:
+                        app: cryptothrone-server
+                        app.kubernetes.io/part-of: cryptothrone
                 spec:
                     securityContext:
                         runAsNonRoot: true
