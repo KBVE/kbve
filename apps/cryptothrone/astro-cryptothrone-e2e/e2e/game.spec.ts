@@ -30,8 +30,11 @@ test.describe('auth gate', () => {
 	test('unauthenticated visit shows the sign-in panel', async ({ page }) => {
 		await page.goto('/game/play/');
 		await expect(
-			page.getByText('Sign in to play CryptoThrone'),
+			page.getByRole('button', { name: 'Sign in with GitHub' }),
 		).toBeVisible({ timeout: 20_000 });
+		await expect(
+			page.getByRole('button', { name: 'Sign in with Discord' }),
+		).toBeVisible();
 	});
 });
 
