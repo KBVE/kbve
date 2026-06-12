@@ -1,7 +1,12 @@
 import { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { forgejoService, timeAgo } from './forgejoService';
-import { ActionButton, useTabActive, uiTokens } from './forgejoUi';
+import {
+	ActionButton,
+	useTabActive,
+	uiTokens,
+	ForgejoNotice,
+} from './forgejoUi';
 import {
 	ServerCog,
 	Play,
@@ -51,6 +56,10 @@ export default function ReactForgejoSystemPanel() {
 				flexDirection: 'column',
 				gap: '1.25rem',
 			}}>
+			<ForgejoNotice
+				ctx="system"
+				onRetry={() => forgejoService.loadSystem()}
+			/>
 			<div style={cardStyle}>
 				<h3 style={cardTitle}>
 					<ServerCog size={14} /> Server

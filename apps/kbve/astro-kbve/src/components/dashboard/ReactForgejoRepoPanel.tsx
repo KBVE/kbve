@@ -18,6 +18,7 @@ import {
 	useTabActive,
 	uiTokens,
 	LoadMoreButton,
+	ForgejoNotice,
 } from './forgejoUi';
 import {
 	Plus,
@@ -361,6 +362,10 @@ function CollaboratorsModal({
 			title={`Collaborators · ${repo.full_name}`}
 			onClose={onClose}
 			width={520}>
+			<ForgejoNotice
+				ctx="collaborators"
+				onRetry={() => forgejoService.loadCollaborators(repo.full_name)}
+			/>
 			<div
 				style={{
 					display: 'flex',

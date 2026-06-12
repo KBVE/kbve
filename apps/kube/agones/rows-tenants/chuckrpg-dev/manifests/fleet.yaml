@@ -67,11 +67,13 @@ spec:
                                     -nosteam \
                                     -unattended \
                                     -port=${GAME_PORT:-7777} \
-                                    -GameMode=/Script/Chuck.ChuckGameMode \
+                                    -GameMode=${OWS_GAME_MODE} \
                                     ${OWS_EXTRA_ARGS:-}
                           env:
                               - name: GAME_PORT
                                 value: '7777'
+                              - name: OWS_GAME_MODE
+                                value: /Script/Chuck.ChuckGameMode
                               - name: OWS_API_PATH
                                 value: http://rows.rows-chuckrpg-dev.svc.cluster.local:4322/
                               - name: OWS_INSTANCE_MANAGEMENT_PATH

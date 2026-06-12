@@ -1,14 +1,142 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useStore } from '@nanostores/react';
-import { X, Loader2, AlertTriangle, CheckCircle2, Info } from 'lucide-react';
+import {
+	X,
+	Loader2,
+	AlertTriangle,
+	CheckCircle2,
+	Info,
+	XCircle,
+	RotateCcw,
+} from 'lucide-react';
 import {
 	forgejoService,
 	type ForgejoTab,
 	type ToastMsg,
+	type Notice,
+	type NoticeKind,
 } from './forgejoService';
 
 export function useTabActive(tab: ForgejoTab): boolean {
 	return useStore(forgejoService.$activeTab) === tab;
+}
+
+const NOTICE_PALETTE: Record<
+	NoticeKind,
+	{ color: string; bg: string; Icon: typeof Info }
+> = {
+	info: { color: '#06b6d4', bg: 'rgba(6,182,212,0.1)', Icon: Info },
+	warn: { color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', Icon: AlertTriangle },
+	error: { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', Icon: XCircle },
+};
+
+export function InfoBox({
+	notice,
+	onDismiss,
+	onRetry,
+}: {
+	notice: Notice;
+	onDismiss?: () => void;
+	onRetry?: () => void;
+}) {
+	const p = NOTICE_PALETTE[notice.kind];
+	return (
+		<div
+			className="not-content"
+			style={{
+				display: 'flex',
+				alignItems: 'flex-start',
+				gap: 10,
+				padding: '0.7rem 0.9rem',
+				borderRadius: 10,
+				background: p.bg,
+				border: `1px solid ${p.color}40`,
+				marginBottom: '1rem',
+			}}>
+			<p.Icon
+				size={16}
+				style={{ color: p.color, flexShrink: 0, marginTop: 1 }}
+			/>
+			<div style={{ flex: 1, minWidth: 0 }}>
+				<div
+					style={{
+						color: 'var(--sl-color-text, #e6edf3)',
+						fontSize: '0.82rem',
+						fontWeight: 600,
+					}}>
+					{notice.msg}
+				</div>
+				{notice.detail && (
+					<div
+						style={{
+							color: 'var(--sl-color-gray-3, #8b949e)',
+							fontSize: '0.74rem',
+							marginTop: 2,
+							wordBreak: 'break-word',
+						}}>
+						{notice.detail}
+					</div>
+				)}
+			</div>
+			{onRetry && (
+				<button
+					type="button"
+					onClick={onRetry}
+					title="Retry"
+					style={{
+						display: 'inline-flex',
+						alignItems: 'center',
+						gap: 4,
+						padding: '0.2rem 0.5rem',
+						borderRadius: 6,
+						border: `1px solid ${p.color}55`,
+						background: 'transparent',
+						color: p.color,
+						fontSize: '0.72rem',
+						fontWeight: 600,
+						cursor: 'pointer',
+						flexShrink: 0,
+					}}>
+					<RotateCcw size={11} /> Retry
+				</button>
+			)}
+			{onDismiss && (
+				<button
+					type="button"
+					onClick={onDismiss}
+					title="Dismiss"
+					style={{
+						background: 'transparent',
+						border: 'none',
+						color: 'var(--sl-color-gray-3, #8b949e)',
+						cursor: 'pointer',
+						display: 'flex',
+						flexShrink: 0,
+					}}>
+					<X size={14} />
+				</button>
+			)}
+		</div>
+	);
+}
+
+export function ForgejoNotice({
+	ctx,
+	onRetry,
+}: {
+	ctx: string;
+	onRetry?: () => void;
+}) {
+	const notices = useStore(forgejoService.$notices);
+	const notice = notices[ctx];
+	if (!notice) return null;
+	return (
+		<InfoBox
+			notice={notice}
+			onDismiss={() => forgejoService.clearNotice(ctx)}
+			onRetry={onRetry}
+		/>
+	);
 }
 
 export function LoadMoreButton({
