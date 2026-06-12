@@ -156,6 +156,36 @@ export interface ForgejoHook {
 	updated_at: string;
 }
 
+export interface ForgejoBranchProtection {
+	branch_name: string;
+	rule_name: string;
+	enable_push: boolean;
+	required_approvals: number;
+	enable_status_check: boolean;
+	require_signed_commits: boolean;
+	block_on_outdated_branch: boolean;
+	created_at: string;
+}
+
+export interface CreateBranchProtectionInput {
+	rule_name: string;
+	required_approvals: number;
+	enable_push: boolean;
+	require_signed_commits: boolean;
+	enable_status_check: boolean;
+	block_on_outdated_branch: boolean;
+}
+
+export interface ForgejoSecret {
+	name: string;
+	created_at: string;
+}
+
+export interface ForgejoVariable {
+	name: string;
+	data: string;
+}
+
 export interface ForgejoCronTask {
 	name: string;
 	schedule: string;
@@ -671,6 +701,13 @@ class ForgejoService {
 	public readonly $selectedRepo = atom<string | null>(null);
 	public readonly $repoHooks = atom<Record<string, ForgejoHook[]>>({});
 	public readonly $repoReleases = atom<Record<string, ForgejoRelease[]>>({});
+	public readonly $repoProtections = atom<
+		Record<string, ForgejoBranchProtection[]>
+	>({});
+	public readonly $repoSecrets = atom<Record<string, ForgejoSecret[]>>({});
+	public readonly $repoVariables = atom<Record<string, ForgejoVariable[]>>(
+		{},
+	);
 
 	public readonly $version = atom<string | null>(null);
 	public readonly $cronTasks = atom<ForgejoCronTask[]>([]);
@@ -1500,10 +1537,166 @@ class ForgejoService {
 		);
 	}
 
+	// --- Branch protection actions ---
+
+	public async loadRepoProtections(fullName: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		const rules = await apiFetch<ForgejoBranchProtection[]>(
+			token,
+			`/api/v1/repos/${fullName}/branch_protections`,
+			[] as ForgejoBranchProtection[],
+		);
+		this.$repoProtections.set({
+			...this.$repoProtections.get(),
+			[fullName]: rules,
+		});
+	}
+
+	public createProtection(
+		fullName: string,
+		input: CreateBranchProtectionInput,
+	): Promise<boolean> {
+		return this._run(
+			`protection-create-${fullName}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'POST',
+					`/api/v1/repos/${fullName}/branch_protections`,
+					input,
+				);
+				await this.loadRepoProtections(fullName);
+			},
+			`Protection rule ${input.rule_name} created`,
+		);
+	}
+
+	public deleteProtection(
+		fullName: string,
+		ruleName: string,
+	): Promise<boolean> {
+		return this._run(
+			`protection-delete-${fullName}-${ruleName}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/repos/${fullName}/branch_protections/${encodeURIComponent(ruleName)}`,
+				);
+				await this.loadRepoProtections(fullName);
+			},
+			`Protection rule deleted`,
+		);
+	}
+
+	// --- Secrets & variables actions ---
+
+	public async loadRepoSecrets(fullName: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		const secrets = await apiFetch<ForgejoSecret[]>(
+			token,
+			`/api/v1/repos/${fullName}/actions/secrets?limit=${PAGE_SIZE}`,
+			[] as ForgejoSecret[],
+		);
+		this.$repoSecrets.set({
+			...this.$repoSecrets.get(),
+			[fullName]: secrets,
+		});
+	}
+
+	public async loadRepoVariables(fullName: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		const variables = await apiFetch<ForgejoVariable[]>(
+			token,
+			`/api/v1/repos/${fullName}/actions/variables?limit=${PAGE_SIZE}`,
+			[] as ForgejoVariable[],
+		);
+		this.$repoVariables.set({
+			...this.$repoVariables.get(),
+			[fullName]: variables,
+		});
+	}
+
+	public setSecret(
+		fullName: string,
+		name: string,
+		data: string,
+	): Promise<boolean> {
+		return this._run(
+			`secret-set-${fullName}-${name}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'PUT',
+					`/api/v1/repos/${fullName}/actions/secrets/${name}`,
+					{ data },
+				);
+				await this.loadRepoSecrets(fullName);
+			},
+			`Secret ${name} saved`,
+		);
+	}
+
+	public deleteSecret(fullName: string, name: string): Promise<boolean> {
+		return this._run(
+			`secret-delete-${fullName}-${name}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/repos/${fullName}/actions/secrets/${name}`,
+				);
+				await this.loadRepoSecrets(fullName);
+			},
+			`Secret deleted`,
+		);
+	}
+
+	public createVariable(
+		fullName: string,
+		name: string,
+		value: string,
+	): Promise<boolean> {
+		return this._run(
+			`variable-set-${fullName}-${name}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'POST',
+					`/api/v1/repos/${fullName}/actions/variables/${name}`,
+					{ value },
+				);
+				await this.loadRepoVariables(fullName);
+			},
+			`Variable ${name} created`,
+		);
+	}
+
+	public deleteVariable(fullName: string, name: string): Promise<boolean> {
+		return this._run(
+			`variable-delete-${fullName}-${name}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/repos/${fullName}/actions/variables/${name}`,
+				);
+				await this.loadRepoVariables(fullName);
+			},
+			`Variable deleted`,
+		);
+	}
+
 	public selectRepo(fullName: string): void {
 		this.$selectedRepo.set(fullName);
 		this.loadRepoHooks(fullName);
 		this.loadRepoReleases(fullName);
+		this.loadRepoProtections(fullName);
+		this.loadRepoSecrets(fullName);
+		this.loadRepoVariables(fullName);
 	}
 
 	// --- System actions ---
