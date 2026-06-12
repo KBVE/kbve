@@ -22,7 +22,7 @@ vDOM tree for the static structure.
 
 ```astro
 ---
-import { StepCard } from '@kbve/astro/components/StepCard.astro';
+import StepCard from '@kbve/astro/components/StepCard.astro';
 import ReactStep1 from './ReactStep1';
 ---
 
