@@ -54,8 +54,8 @@ AchuckCoreCharacter::AchuckCoreCharacter(const FObjectInitializer& ObjectInitial
 		Melee.Element = EKBVEDamageElement::Physical;
 		Melee.Range = 180.f;
 		Melee.Radius = 180.f;
-		Melee.WindupSeconds = 0.1f;
-		Melee.CooldownSeconds = 0.45f;
+		Melee.WindupSeconds = 0.32f;
+		Melee.CooldownSeconds = 0.5f;
 		Melee.EnergyCost = 10.f;
 		AbilityComp->Abilities.Add(Melee);
 	}
@@ -104,7 +104,7 @@ AchuckCoreCharacter::AchuckCoreCharacter(const FObjectInitializer& ObjectInitial
 		Move->JumpZVelocity                 = 500.f;
 		Move->AirControl                    = 0.2f;
 		Move->bOrientRotationToMovement     = true;
-		Move->RotationRate                  = FRotator(0.f, 540.f, 0.f);
+		Move->RotationRate                  = FRotator(0.f, 250.f, 0.f);
 		Move->bUseControllerDesiredRotation = false;
 		Move->NavAgentProps.bCanCrouch      = true;
 	}
@@ -205,6 +205,17 @@ void AchuckCoreCharacter::Tick(float DeltaSeconds)
 					}
 				}
 			}
+		}
+	}
+
+	if (bAttackTurning)
+	{
+		const float CurYaw = GetActorRotation().Yaw;
+		const float NewYaw = FMath::FixedTurn(CurYaw, AttackTargetYaw, 540.f * DeltaSeconds);
+		SetActorRotation(FRotator(0.f, NewYaw, 0.f));
+		if (FMath::Abs(FRotator::NormalizeAxis(AttackTargetYaw - NewYaw)) < 2.f)
+		{
+			bAttackTurning = false;
 		}
 	}
 }
@@ -397,9 +408,8 @@ void AchuckCoreCharacter::OnAttackPressed(const FInputActionValue& Value)
 	{
 		if (PC->PlayerCameraManager)
 		{
-			FRotator R = GetActorRotation();
-			R.Yaw = PC->PlayerCameraManager->GetCameraRotation().Yaw;
-			SetActorRotation(R);
+			AttackTargetYaw = PC->PlayerCameraManager->GetCameraRotation().Yaw;
+			bAttackTurning = true;
 		}
 	}
 

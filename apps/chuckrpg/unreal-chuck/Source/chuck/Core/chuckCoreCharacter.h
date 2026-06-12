@@ -110,6 +110,8 @@ protected:
 
 	int32 MeleeMontageIndex = 0;
 	bool bCrosshairOnTarget = false;
+	bool bAttackTurning = false;
+	float AttackTargetYaw = 0.f;
 
 	void OnSprintPressed(const FInputActionValue& Value);
 	void OnSprintReleased(const FInputActionValue& Value);
