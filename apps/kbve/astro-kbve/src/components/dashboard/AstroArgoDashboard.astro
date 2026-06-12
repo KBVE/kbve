@@ -58,6 +58,25 @@ import ReactArgoAppTable from './ReactArgoAppTable';
 		min-height: 60vh;
 	}
 
+	:global(.kbve-argo-row) {
+		display: grid;
+		grid-template-columns: 24px 1fr 100px 120px 120px 180px;
+	}
+
+	:global(.kbve-argo-header) {
+		display: grid;
+	}
+
+	@media (max-width: 768px) {
+		:global(.kbve-argo-row) {
+			grid-template-columns: 24px 1fr auto auto;
+		}
+		:global(.kbve-argo-col-project),
+		:global(.kbve-argo-col-last) {
+			display: none;
+		}
+	}
+
 	:global(@keyframes spin) {
 		to {
 			transform: rotate(360deg);
