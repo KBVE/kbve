@@ -124,6 +124,13 @@ namespace RareIcon
         public float Value;
     }
 
+    /// <summary>Atlas tile id for the 2.5D hex tilemap; -1 = no atlas art, shader falls back to procedural. Baked from BiomeType at spawn via HexBiomeAtlas.</summary>
+    [MaterialProperty("_TileId")]
+    public struct HexTileId : IComponentData
+    {
+        public float Value;
+    }
+
     /// <summary>Singleton describing the inspected aura source. <see cref="UIBuildingInspector"/> writes Center + Radius when the player clicks a building carrying <see cref="BuildingSpeedAura"/> (or future aura kinds), bumps <see cref="Generation"/> so the bake fires; clears <see cref="Active"/> when the panel closes or moves to a non-aura target.</summary>
     public struct AuraHighlightTarget : IComponentData
     {

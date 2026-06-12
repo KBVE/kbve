@@ -56,6 +56,7 @@ Shader "RareIcon/HexTile"
         _FogColor          ("Fog Color (Unexplored)",   Color) = (0.05, 0.06, 0.10, 1)
         _AuraHighlight     ("Aura Highlight (per-instance)", Float) = 0
         _AuraHighlightColor ("Aura Highlight Color",         Color) = (0.40, 0.95, 1.00, 1)
+        _TileId            ("Atlas Tile Id (per-instance, -1=procedural)", Float) = -1
         _FogExploredColor  ("Fog Color (Explored)",     Color) = (0.20, 0.22, 0.28, 1)
         _FogNoiseDensity   ("Fog Noise Density",        Float) = 6.0
         _FogNoiseSpeed     ("Fog Noise Speed",          Float) = 0.05
@@ -141,6 +142,7 @@ Shader "RareIcon/HexTile"
                 float  _FogNoiseSpeed;
                 float  _AuraHighlight;
                 float4 _AuraHighlightColor;
+                float  _TileId;
             CBUFFER_END
 
             #ifdef DOTS_INSTANCING_ON
@@ -155,6 +157,7 @@ Shader "RareIcon/HexTile"
                 UNITY_DOTS_INSTANCED_PROP(float, _Territory)
                 UNITY_DOTS_INSTANCED_PROP(float, _Fog)
                 UNITY_DOTS_INSTANCED_PROP(float, _AuraHighlight)
+                UNITY_DOTS_INSTANCED_PROP(float, _TileId)
             UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
             #define _BaseColor    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float4, _BaseColor)
@@ -167,6 +170,7 @@ Shader "RareIcon/HexTile"
             #define _Territory    UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _Territory)
             #define _Fog          UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _Fog)
             #define _AuraHighlight UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _AuraHighlight)
+            #define _TileId       UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _TileId)
             #endif
 
             // Bit flags for floor decorations — must match ResourceMask in
