@@ -52,7 +52,7 @@ patches:
             path: /spec/template/spec/containers/0/env/-
             value:
                 name: MAP_NAME
-                value: Lvl_ThirdPerson
+                value: greenshire
           - op: add
             path: /spec/template/spec/containers/0/env/-
             value:

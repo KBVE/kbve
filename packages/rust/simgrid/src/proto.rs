@@ -1,7 +1,22 @@
 use serde::{Deserialize, Serialize};
 
-pub const PROTOCOL_VERSION: u32 = 1;
+pub const PROTOCOL_VERSION: u32 = 3;
 pub const DEFAULT_MAX_PLAYERS: usize = 64;
+
+pub const ACTION_ATTACK: u16 = 1;
+pub const ACTION_PICKUP: u16 = 2;
+
+pub const EPHEMERAL_INVENTORY: u16 = 1;
+pub const EPHEMERAL_COMBAT: u16 = 2;
+pub const EPHEMERAL_PICKUP: u16 = 3;
+pub const EPHEMERAL_CHAT: u16 = 4;
+pub const EPHEMERAL_ITEM_USED: u16 = 5;
+
+pub const MAX_CHAT_LEN: usize = 200;
+
+pub const KIND_CAT_PLAYER: u8 = 0;
+pub const KIND_CAT_NPC: u8 = 1;
+pub const KIND_CAT_ITEM: u8 = 2;
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct EntityId(pub u32);
@@ -89,6 +104,8 @@ pub enum Input {
     MoveTo { tile: Tile },
     Face { facing: Facing },
     Action { id: u16, target: Option<EntityId> },
+    UseItem { item_ref: String },
+    Say { text: String },
     Heartbeat { client_tick: u32 },
     Leave,
 }
@@ -130,15 +147,25 @@ pub struct Snapshot {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct KindEntry {
+    pub kind: u16,
+    #[serde(rename = "ref")]
+    pub ref_id: String,
+    pub cat: u8,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ServerEvent {
     Welcome {
         protocol: u32,
         your_slot: PlayerSlot,
         seed: u64,
+        registry: Vec<KindEntry>,
     },
     Snapshot(Snapshot),
     Ephemeral {
         kind: u16,
+        to: PlayerSlot,
         payload: Vec<u8>,
     },
     Reject {
@@ -189,6 +216,11 @@ mod tests {
             protocol: PROTOCOL_VERSION,
             your_slot: PlayerSlot(3),
             seed: 0xC0FFEE,
+            registry: vec![KindEntry {
+                kind: 1,
+                ref_id: "cleric".into(),
+                cat: KIND_CAT_NPC,
+            }],
         };
         let mut buf = encode(&evt).expect("encode");
         let back: ServerEvent = decode(&mut buf).expect("decode");

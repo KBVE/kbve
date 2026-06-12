@@ -1,0 +1,71 @@
+---
+interface Props {
+	heading?: string;
+	tagline?: string;
+	id?: string;
+	xData?: string;
+}
+
+const { heading, tagline, id, xData } = Astro.props;
+
+const headingId = id && heading ? `${id}-heading` : undefined;
+---
+
+<section
+	class="abg not-content"
+	id={id}
+	aria-labelledby={headingId}
+	{...xData ? { 'x-data': xData } : {}}>
+	{
+		heading && (
+			<h2 class="abg__heading" id={headingId}>
+				{heading}
+			</h2>
+		)
+	}
+	{tagline && <p class="abg__tagline">{tagline}</p>}
+	<div class="abg__grid">
+		<slot />
+	</div>
+</section>
+
+<style>
+	.abg {
+		margin: 3rem 0;
+	}
+
+	.abg__heading {
+		margin: 0 0 0.5rem;
+		font-size: clamp(1.5rem, 3vw, 2rem);
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white, #fff);
+	}
+
+	.abg__tagline {
+		margin: 0 0 1.5rem;
+		font-size: 0.95rem;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+
+	.abg__grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		grid-auto-rows: minmax(9rem, auto);
+		grid-auto-flow: dense;
+		gap: 1rem;
+	}
+
+	@media (max-width: 64rem) {
+		.abg__grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 36rem) {
+		.abg__grid {
+			grid-template-columns: 1fr;
+			grid-auto-rows: auto;
+		}
+	}
+</style>

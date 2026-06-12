@@ -1,0 +1,62 @@
+---
+title: Unreal RentEarth
+description: |
+    RentEarth UE5 game client built from the monorepo shell at apps/rentearth/unreal-rentearth via the unreal_game pipeline. Separate Unreal project from Chuck.
+sidebar:
+    label: Unreal RentEarth
+    order: 98
+tags:
+    - ue5
+    - game
+    - rentearth
+key: unreal_rentearth
+pipeline: unreal_game
+app_name: rentearth
+source_path: apps/rentearth/unreal-rentearth
+version_toml: apps/rentearth/unreal-rentearth/version.toml
+version: "0.0.1"
+runner: arc-runner-ue
+author: h0lybyte
+license: KBVE
+status: beta
+engine:
+    version: "5.7.4"
+    project_path: apps/rentearth/unreal-rentearth
+    build_targets:
+        - Win64
+        - Linux
+external_publish:
+    itch_user: kbve
+    itch_game: rentearth
+---
+
+## Overview
+
+RentEarth UE5 game client — a separate Unreal project from [Chuck](/project/unreal-chuck-game).
+It compiles the monorepo shell at `apps/rentearth/unreal-rentearth` directly (no external game
+repo), the same way the early Chuck demo did, and is wired to the shared `unreal_game` pipeline.
+
+## Pipeline
+
+`pipeline: unreal_game` → `ci-main.yml` dispatches `ci-unreal.yml` (`task: game`) when the MDX
+`version:` here outpaces `version.toml`, or `source_path` files change. With no
+`engine.external_repo_url`, the builder checks out the monorepo and builds the `.uproject` under
+`engine.project_path` against the prebuilt UE5.7 on the `UE5-Win` KubeVirt VM
+(`C:\Program Files\Epic Games\UE_5.7`); the Linux client builds in the cached
+`ghcr.io/epicgames/unreal-engine:dev-5.7.4` image on `arc-runner-ue`.
+
+## Build Matrix
+
+`engine.build_targets`:
+
+- `Win64` — native build on the `UE5-Win` KubeVirt VM (RunUAT.bat, prebuilt UE5.7)
+- `Linux` — `arc-runner-ue` in the Epic UE5.7 Docker image
+
+The dedicated server is not wired yet — add `shell_path` + a `build.toml` (`server_target`,
+`repo`, UE image) under `apps/rentearth/unreal-rentearth` to fan the server build off this same
+version gate, matching the Chuck setup, once the server target exists.
+
+## Distribution
+
+Client shipped to itch.io as `kbve/rentearth` when `deploy_to_itch` is set. Client and the
+shared `version.toml` advance together.

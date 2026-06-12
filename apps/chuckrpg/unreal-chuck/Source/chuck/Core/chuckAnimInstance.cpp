@@ -50,6 +50,34 @@ void UchuckAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 	bIsFalling = MoveComp ? MoveComp->IsFalling() : false;
 
+	const FRotator Control = OwnerCharacter->GetControlRotation();
+	const FRotator ActorRot = OwnerCharacter->GetActorRotation();
+	AimYaw = FRotator::NormalizeAxis(Control.Yaw - ActorRot.Yaw);
+	AimPitch = FMath::ClampAngle(FRotator::NormalizeAxis(Control.Pitch), -90.f, 90.f);
+
+	const float CapsuleYaw = ActorRot.Yaw;
+	if (!bHasLastCapsuleYaw)
+	{
+		LastCapsuleYaw = CapsuleYaw;
+		bHasLastCapsuleYaw = true;
+	}
+	if (bIsMoving)
+	{
+		RootYawOffset = FMath::FInterpTo(RootYawOffset, 0.f, DeltaSeconds, 12.f);
+	}
+	else
+	{
+		const float CapsuleYawDelta = FRotator::NormalizeAxis(CapsuleYaw - LastCapsuleYaw);
+		RootYawOffset = FRotator::NormalizeAxis(RootYawOffset - CapsuleYawDelta);
+		if (FMath::Abs(RootYawOffset) > 22.f)
+		{
+			RootYawOffset = FMath::FInterpConstantTo(RootYawOffset, 0.f, DeltaSeconds, 200.f);
+		}
+	}
+	LastCapsuleYaw = CapsuleYaw;
+	bIsTurningInPlace = FMath::Abs(RootYawOffset) > 22.f;
+	TurnDirection = RootYawOffset < 0.f ? 1.f : -1.f;
+
 	if (AttackRecoverTime > 0.f)
 	{
 		AttackRecoverTime = FMath::Max(0.f, AttackRecoverTime - DeltaSeconds);

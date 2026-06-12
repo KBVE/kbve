@@ -35,6 +35,25 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Chuck|Anim|Movement")
 	bool bIsFalling = false;
 
+	/** Control(camera) yaw relative to the actor facing, [-180,180]. Drive an aim-offset blendspace. */
+	UPROPERTY(BlueprintReadOnly, Category = "Chuck|Anim|Aim")
+	float AimYaw = 0.f;
+
+	/** Control(camera) pitch, [-90,90]. Drive an aim-offset blendspace. */
+	UPROPERTY(BlueprintReadOnly, Category = "Chuck|Anim|Aim")
+	float AimPitch = 0.f;
+
+	/** Turn-in-place: yaw to counter-rotate the mesh root so the body holds while the capsule turns, then decays as it catches up. Feed a Rotate Root Bone node. */
+	UPROPERTY(BlueprintReadOnly, Category = "Chuck|Anim|Turn")
+	float RootYawOffset = 0.f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Chuck|Anim|Turn")
+	bool bIsTurningInPlace = false;
+
+	/** +1 turning right, -1 turning left. Pick the turn animation. */
+	UPROPERTY(BlueprintReadOnly, Category = "Chuck|Anim|Turn")
+	float TurnDirection = 0.f;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Chuck|Anim|Combat")
 	bool bIsAttacking = false;
 
@@ -60,4 +79,6 @@ private:
 
 	float AttackRecoverTime = 0.f;
 	float AttackRecoverDuration = 0.8f;
+	float LastCapsuleYaw = 0.f;
+	bool bHasLastCapsuleYaw = false;
 };

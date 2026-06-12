@@ -32,7 +32,7 @@ impl Roster {
         self.slots.len()
     }
 
-    fn claim(&mut self, kbve_username: String) -> Option<proto::PlayerSlot> {
+    pub(crate) fn claim(&mut self, kbve_username: String) -> Option<proto::PlayerSlot> {
         for (i, s) in self.slots.iter_mut().enumerate() {
             if s.is_none() {
                 *s = Some(RosterEntry { kbve_username });
@@ -42,7 +42,7 @@ impl Roster {
         None
     }
 
-    fn release(&mut self, slot: proto::PlayerSlot) {
+    pub(crate) fn release(&mut self, slot: proto::PlayerSlot) {
         if let Some(s) = self.slots.get_mut(slot.0 as usize) {
             *s = None;
         }
@@ -86,6 +86,7 @@ pub struct ServerState {
     pub jwt_secret: Vec<u8>,
     pub require_username: bool,
     pub roster: Arc<RwLock<Roster>>,
+    pub registry: Vec<proto::KindEntry>,
 }
 
 impl ServerState {
@@ -104,7 +105,13 @@ impl ServerState {
             jwt_secret,
             require_username,
             roster: Arc::new(RwLock::new(Roster::new(capacity))),
+            registry: Vec::new(),
         }
+    }
+
+    pub fn with_registry(mut self, registry: Vec<proto::KindEntry>) -> Self {
+        self.registry = registry;
+        self
     }
 }
 
@@ -168,6 +175,7 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
         protocol: proto::PROTOCOL_VERSION,
         your_slot: slot,
         seed: state.seed,
+        registry: state.registry.clone(),
     };
     if let Some(msg) = encode_event(&welcome, format)
         && socket.send(msg).await.is_err()
@@ -188,6 +196,12 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
                 }
             } => {
                 let Some(evt) = evt else { break };
+                if let ServerEvent::Ephemeral { to, .. } = &evt
+                    && *to != proto::PLAYER_SLOT_NONE
+                    && *to != slot
+                {
+                    continue;
+                }
                 let evt = inject_roster(evt, &state.roster);
                 let Some(msg) = encode_event(&evt, format) else { continue };
                 if socket.send(msg).await.is_err() {

@@ -1,0 +1,168 @@
+---
+interface Props {
+	title?: string;
+	description?: string;
+	href?: string;
+	accent?: string;
+	id?: string;
+	ariaLabel?: string;
+	xData?: string;
+}
+
+const {
+	title,
+	description,
+	href,
+	accent = 'var(--sl-color-accent, #6366f1)',
+	id,
+	ariaLabel,
+	xData,
+} = Astro.props;
+
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag
+	class="asc"
+	href={href}
+	id={id}
+	aria-label={ariaLabel}
+	style={`--asc-accent: ${accent};`}
+	{...href ? { 'data-astro-prefetch': true } : {}}
+	{...xData ? { 'x-data': xData } : {}}>
+	<span class="asc__spot" aria-hidden="true"></span>
+	<span class="asc__edge" aria-hidden="true"></span>
+	<div class="asc__body">
+		{title && <h3 class="asc__title">{title}</h3>}
+		{description && <p class="asc__desc">{description}</p>}
+		<slot />
+	</div>
+</Tag>
+
+<script>
+	import { onMount, claimOnce } from '../../../utils/clientRouter';
+
+	onMount(() => {
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+			return;
+		if (!window.matchMedia('(pointer: fine)').matches) return;
+
+		const cards = Array.from(
+			document.querySelectorAll<HTMLElement>('.asc'),
+		).filter((el) => claimOnce(el, 'data-asc-init'));
+		if (!cards.length) return;
+
+		const handlers = cards.map((card) => {
+			const move = (e: PointerEvent) => {
+				const rect = card.getBoundingClientRect();
+				card.style.setProperty('--asc-x', `${e.clientX - rect.left}px`);
+				card.style.setProperty('--asc-y', `${e.clientY - rect.top}px`);
+			};
+			card.addEventListener('pointermove', move, { passive: true });
+			return { card, move };
+		});
+
+		return () => {
+			for (const { card, move } of handlers) {
+				card.removeEventListener('pointermove', move);
+				card.removeAttribute('data-asc-init');
+			}
+		};
+	});
+</script>
+
+<style>
+	.asc {
+		--asc-x: 50%;
+		--asc-y: 50%;
+		position: relative;
+		display: block;
+		border-radius: 1.25rem;
+		padding: 1.5rem;
+		overflow: hidden;
+		isolation: isolate;
+		text-decoration: none;
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-gray-5, #262626) 80%, transparent);
+		background: color-mix(
+			in srgb,
+			var(--sl-color-bg, #0b0c10) 80%,
+			transparent
+		);
+		backdrop-filter: blur(14px);
+		transition: border-color 0.3s ease;
+	}
+
+	.asc:hover,
+	.asc:focus-visible {
+		border-color: color-mix(in srgb, var(--asc-accent) 35%, transparent);
+	}
+
+	.asc__spot {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		opacity: 0;
+		background: radial-gradient(
+			22rem circle at var(--asc-x) var(--asc-y),
+			color-mix(in srgb, var(--asc-accent) 18%, transparent),
+			transparent 60%
+		);
+		transition: opacity 0.3s ease;
+	}
+
+	.asc__edge {
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		pointer-events: none;
+		opacity: 0;
+		border: 1px solid transparent;
+		background: radial-gradient(
+				16rem circle at var(--asc-x) var(--asc-y),
+				color-mix(in srgb, var(--asc-accent) 70%, transparent),
+				transparent 60%
+			)
+			border-box;
+		mask:
+			linear-gradient(#fff 0 0) padding-box,
+			linear-gradient(#fff 0 0);
+		mask-composite: exclude;
+		transition: opacity 0.3s ease;
+	}
+
+	.asc:hover .asc__spot,
+	.asc:focus-visible .asc__spot,
+	.asc:hover .asc__edge,
+	.asc:focus-visible .asc__edge {
+		opacity: 1;
+	}
+
+	.asc__body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.asc__title {
+		margin: 0;
+		font-size: 1.1rem;
+		font-weight: 700;
+		color: var(--sl-color-white, #fff);
+	}
+
+	.asc__desc {
+		margin: 0;
+		font-size: 0.92rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2, #c2c2c2);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.asc,
+		.asc__spot,
+		.asc__edge {
+			transition: none;
+		}
+	}
+</style>

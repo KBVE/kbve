@@ -1,0 +1,78 @@
+---
+title: Unreal Chuck Dev
+description: |
+    Chuck RPG UE5 dev client built from the external KBVE/chuck repo (default branch) and shipped to itch.io as kbve/chuckrpg on the demo channel, alongside the Unreal Chuck Beta.
+sidebar:
+    label: Unreal Chuck Dev
+    order: 96
+tags:
+    - ue5
+    - game
+    - chuck
+    - dev
+key: unreal_chuck_dev
+pipeline: unreal_game
+app_name: chuck-demo
+source_path: apps/chuckrpg/unreal-chuck
+version_toml: apps/chuckrpg/unreal-chuck/version.toml
+version: "0.3.20"
+runner: arc-runner-ue
+author: h0lybyte
+license: KBVE
+status: beta
+homepage_url: https://kbve.itch.io/chuckrpg
+engine:
+    version: "5.7.4"
+    project_path: chuck
+    external_repo_url: https://github.com/kbve/chuck
+    build_targets:
+        - Win64
+        - Linux
+external_publish:
+    itch_user: kbve
+    itch_game: chuckrpg
+    itch_channel: demo
+shell_path: apps/chuckrpg/unreal-chuck
+---
+
+## Overview
+
+Chuck RPG UE5 dev client. Like the [Unreal Chuck Beta](/project/unreal-chuck-beta), it
+builds from the external [`KBVE/chuck`](https://github.com/kbve/chuck) repo (default branch,
+`.uproject` under `engine.project_path` = `chuck`), with Content pulled from the chuck Forgejo
+LFS endpoint (`git.kbve.com/KBVE/chuck`, HTTPS) declared in the repo's own `.lfsconfig`. It
+differs only in distribution: the build ships to itch.io under `kbve/chuckrpg` on the `demo`
+channel.
+
+## Pipeline
+
+`pipeline: unreal_game` → `ci-main.yml` dispatches `ci-unreal.yml` whenever the MDX
+`version:` here outpaces `version.toml`, or `source_path` files change. This entry is
+the single version lever for the whole chuck demo bundle — one bump fans out, off the
+same gate, to:
+
+- `task: game` (`mode: game`) — Win64 + Linux clients.
+- `task: server` (`mode: server`) — the Linux dedicated server, triggered because this
+  entry carries a `shell_path`. The server reads `apps/chuckrpg/unreal-chuck/build.toml`
+  for repo / `server_target` / UE image and archives to the OWS PVC at
+  `/mnt/longhorn/ows-server/<server_target>/<version>`.
+
+With `engine.external_repo_url` set, the builder clones `KBVE/chuck` (default branch) and
+builds the `.uproject` under `engine.project_path` = `chuck` against the prebuilt UE5.7 on the
+`UE5-Win` KubeVirt VM (`C:\Program Files\Epic Games\UE_5.7`); the Linux client + server build
+in the cached `ghcr.io/epicgames/unreal-engine:dev-5.7.4` image on `arc-runner-ue`.
+
+## Build Matrix
+
+`engine.build_targets`:
+
+- `Win64` — native build on the `UE5-Win` KubeVirt VM (RunUAT.bat, prebuilt UE5.7)
+- `Linux` — `arc-runner-ue` in the Epic UE5.7 Docker image
+
+Plus the bundled Linux dedicated server (`shell_path`, same version).
+
+## Distribution
+
+Client shipped to itch.io as `kbve/chuckrpg` (channel `demo`) when `deploy_to_itch` is set.
+Dedicated server staged to the OWS InstanceLauncher PVC for rows integration. Client,
+server, and the shared `version.toml` all advance together (1:1).

@@ -29,6 +29,7 @@ public:
 	TKBVEChannel<FKBVEStaminaChangedPayload>  Stamina;
 	TKBVEChannel<FchuckInventoryDirtyPayload>  InventoryDirty;
 	TKBVEChannel<FKBVEDamageReceivedPayload>  DamageReceived;
+	TKBVEChannel<FchuckCrosshairPayload>       Crosshair;
 	TKBVEChannel<FchuckTooltipPayload>         Tooltip;
 	TKBVEChannel<FchuckItemConsumedPayload>    ItemConsumed;
 

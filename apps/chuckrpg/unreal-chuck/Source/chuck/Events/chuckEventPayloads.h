@@ -13,6 +13,11 @@ struct FchuckInventoryDirtyPayload
 	int32 BagIndex = 0;
 };
 
+struct FchuckCrosshairPayload
+{
+	bool bOnTarget = false;
+};
+
 struct FchuckTooltipPayload
 {
 	bool         bShow = false;

@@ -9,6 +9,9 @@
 #include "Rendering/DrawElements.h"
 #include "SKBVEStatBarStack.h"
 #include "Styling/CoreStyle.h"
+#include "Widgets/SOverlay.h"
+#include "Widgets/Images/SImage.h"
+#include "Widgets/Layout/SBox.h"
 
 void SchuckHUD::Construct(const FArguments& InArgs)
 {
@@ -95,15 +98,41 @@ void SchuckHUD::Construct(const FArguments& InArgs)
 	Specs[2].BackgroundColor = TAttribute<FLinearColor>::CreateLambda(EPBgColor);
 	Specs[2].RowAlpha        = TAttribute<float>::CreateLambda(EPRowAlpha);
 
+	const FSlateBrush* WhiteBrush = FCoreStyle::Get().GetBrush(TEXT("GenericWhiteBox"));
+	auto CrosshairColor = [this]() -> FSlateColor { return FSlateColor(CrosshairTint); };
+
 	ChildSlot
 	[
-		SNew(SKBVEStatBarStack)
-		.BarWidth(Style.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Width))
-		.BarHeight(Style.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Height))
-		.Spacing(Style.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Spacing))
-		.Padding(Style.GetMargin(FChuckUIStyle::FKeys::HUD_Padding))
-		.LabelFont(Style.GetFontStyle(FChuckUIStyle::FKeys::HUD_Label_Font))
-		.Bars(Specs)
+		SNew(SOverlay)
+		+ SOverlay::Slot()
+		[
+			SNew(SKBVEStatBarStack)
+			.BarWidth(Style.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Width))
+			.BarHeight(Style.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Height))
+			.Spacing(Style.GetFloat(FChuckUIStyle::FKeys::HUD_Bar_Spacing))
+			.Padding(Style.GetMargin(FChuckUIStyle::FKeys::HUD_Padding))
+			.LabelFont(Style.GetFontStyle(FChuckUIStyle::FKeys::HUD_Label_Font))
+			.Bars(Specs)
+		]
+		+ SOverlay::Slot()
+		.HAlign(HAlign_Center)
+		.VAlign(VAlign_Center)
+		[
+			SNew(SBox).WidthOverride(20.f).HeightOverride(20.f)
+			[
+				SNew(SOverlay)
+				+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
+				[
+					SNew(SBox).WidthOverride(18.f).HeightOverride(2.f)
+					[ SNew(SImage).Image(WhiteBrush).ColorAndOpacity_Lambda(CrosshairColor) ]
+				]
+				+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
+				[
+					SNew(SBox).WidthOverride(2.f).HeightOverride(18.f)
+					[ SNew(SImage).Image(WhiteBrush).ColorAndOpacity_Lambda(CrosshairColor) ]
+				]
+			]
+		]
 	];
 
 	SetCanTick(false);
@@ -120,6 +149,7 @@ SchuckHUD::~SchuckHUD()
 		Bus->Mana.Unsubscribe(ManaHandle);
 		Bus->Stamina.Unsubscribe(StaminaHandle);
 		Bus->DamageReceived.Unsubscribe(DamageHandle);
+		Bus->Crosshair.Unsubscribe(CrosshairHandle);
 	}
 }
 
@@ -157,6 +187,13 @@ void SchuckHUD::BindToEventBus()
 		FchuckHUDState S = Target;
 		S.DamageFlash = 1.f;
 		SetState(S);
+	});
+
+	CrosshairHandle = Bus->Crosshair.Subscribe(C, [this](const FchuckCrosshairPayload& P)
+	{
+		CrosshairTint = P.bOnTarget
+			? FLinearColor(1.f, 0.25f, 0.2f, 0.9f)
+			: FLinearColor(1.f, 1.f, 1.f, 0.65f);
 	});
 }
 

@@ -10,6 +10,8 @@
 class UKBVENetEntityReplicator;
 class AchuckSlimeNetActor;
 class UKBVENpcSpriteDef;
+class USphereComponent;
+class AActor;
 
 UCLASS()
 class CHUCK_API UchuckSlimeSubsystem : public UTickableWorldSubsystem
@@ -41,6 +43,20 @@ private:
 	UKBVENpcSpriteRenderSubsystem* GetSpriteRenderer() const;
 	UKBVENetEntityReplicator* EnsureReplicator(bool bAuthority);
 	void TickServer(float DeltaTime);
+	void UpdateHitProxies(const FVector& PlayerLoc);
+
+	UPROPERTY(Transient)
+	TObjectPtr<AActor> HitProxyHost;
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<USphereComponent>> HitProxies;
+
+	TArray<int32> HitProxySlime;
+
+	static constexpr int32 MaxHitProxies = 96;
+	static constexpr float HitProxyRange = 2600.f;
+	static constexpr float HitProxyRadius = 62.f;
+	static constexpr float HitProxyCenterZ = 58.f;
 	void TickClientRender();
 	float GroundTraceZ(double X, double Y, float Fallback) const;
 	float GroundFootprintMinZ(double X, double Y, float Radius, float Fallback) const;

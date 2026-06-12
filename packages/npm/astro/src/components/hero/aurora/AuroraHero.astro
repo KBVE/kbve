@@ -1,0 +1,302 @@
+---
+interface Props {
+	title: string;
+	eyebrow?: string;
+	tagline?: string;
+	align?: 'center' | 'start';
+	accent?: string;
+	accentAlt?: string;
+	minHeight?: string;
+	id?: string;
+	xData?: string;
+}
+
+const {
+	title,
+	eyebrow,
+	tagline,
+	align = 'center',
+	accent = 'var(--sl-color-accent, #6366f1)',
+	accentAlt = 'var(--sl-color-accent-high, #a5b4fc)',
+	minHeight = 'min(80vh, 52rem)',
+	id = 'aurora-hero',
+	xData,
+} = Astro.props;
+
+const titleId = `${id}-title`;
+
+const grain = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`;
+---
+
+<section
+	class:list={['ah', 'not-content', `ah--${align}`]}
+	id={id}
+	aria-labelledby={titleId}
+	style={`--ah-accent: ${accent}; --ah-accent-alt: ${accentAlt}; --ah-min-h: ${minHeight}; --ah-grain: ${grain};`}
+	{...xData ? { 'x-data': xData } : {}}>
+	<div class="ah__aurora" aria-hidden="true">
+		<span class="ah__blob ah__blob--a"></span>
+		<span class="ah__blob ah__blob--b"></span>
+		<span class="ah__blob ah__blob--c"></span>
+	</div>
+	<div class="ah__grid" aria-hidden="true"></div>
+	<div class="ah__grain" aria-hidden="true"></div>
+	<div class="ah__veil" aria-hidden="true"></div>
+	<div class="ah__inner">
+		{
+			eyebrow && (
+				<p class="ah__eyebrow">
+					<span class="ah__eyebrow-dot" aria-hidden="true" />
+					{eyebrow}
+				</p>
+			)
+		}
+		<h1 class="ah__title" id={titleId}>{title}</h1>
+		{tagline && <p class="ah__tagline">{tagline}</p>}
+		<div class="ah__actions">
+			<slot />
+		</div>
+	</div>
+</section>
+
+<style>
+	.ah {
+		position: relative;
+		display: grid;
+		place-items: center;
+		min-height: var(--ah-min-h);
+		margin: 0 0 2rem;
+		border-radius: 1.5rem;
+		overflow: hidden;
+		isolation: isolate;
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-gray-5, #262626) 70%, transparent);
+		background: color-mix(
+			in srgb,
+			var(--sl-color-bg, #0b0c10) 92%,
+			var(--ah-accent)
+		);
+	}
+
+	.ah__aurora {
+		position: absolute;
+		inset: 0;
+		z-index: -4;
+		filter: blur(60px) saturate(1.4);
+	}
+
+	.ah__blob {
+		position: absolute;
+		border-radius: 50%;
+		opacity: 0.5;
+		mix-blend-mode: screen;
+		will-change: transform;
+	}
+
+	.ah__blob--a {
+		width: 55%;
+		aspect-ratio: 1;
+		left: -10%;
+		top: -25%;
+		background: radial-gradient(
+			circle at 30% 30%,
+			var(--ah-accent),
+			transparent 70%
+		);
+		animation: ah-drift-a 18s ease-in-out infinite alternate;
+	}
+
+	.ah__blob--b {
+		width: 50%;
+		aspect-ratio: 1;
+		right: -12%;
+		top: -10%;
+		background: radial-gradient(
+			circle at 70% 40%,
+			var(--ah-accent-alt),
+			transparent 70%
+		);
+		animation: ah-drift-b 22s ease-in-out infinite alternate;
+	}
+
+	.ah__blob--c {
+		width: 65%;
+		aspect-ratio: 1;
+		left: 25%;
+		bottom: -45%;
+		background: radial-gradient(
+			circle at 50% 50%,
+			color-mix(in srgb, var(--ah-accent) 60%, var(--ah-accent-alt)),
+			transparent 70%
+		);
+		animation: ah-drift-c 26s ease-in-out infinite alternate;
+	}
+
+	.ah__grid {
+		position: absolute;
+		inset: 0;
+		z-index: -3;
+		--ah-line: color-mix(
+			in srgb,
+			var(--sl-color-gray-4, #595959) 18%,
+			transparent
+		);
+		background-image:
+			linear-gradient(var(--ah-line) 1px, transparent 1px),
+			linear-gradient(90deg, var(--ah-line) 1px, transparent 1px);
+		background-size: 3rem 3rem;
+		mask-image: radial-gradient(
+			ellipse 80% 70% at 50% 40%,
+			#000 0%,
+			transparent 75%
+		);
+	}
+
+	.ah__grain {
+		position: absolute;
+		inset: 0;
+		z-index: -2;
+		background-image: var(--ah-grain);
+		background-repeat: repeat;
+		opacity: 0.05;
+		mix-blend-mode: overlay;
+	}
+
+	.ah__veil {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: linear-gradient(
+			180deg,
+			transparent 0%,
+			color-mix(in srgb, var(--sl-color-bg, #0b0c10) 65%, transparent)
+				100%
+		);
+	}
+
+	@keyframes ah-drift-a {
+		from {
+			transform: translate3d(0, 0, 0) scale(1);
+		}
+		to {
+			transform: translate3d(12%, 10%, 0) scale(1.15);
+		}
+	}
+
+	@keyframes ah-drift-b {
+		from {
+			transform: translate3d(0, 0, 0) scale(1.1);
+		}
+		to {
+			transform: translate3d(-10%, 14%, 0) scale(0.95);
+		}
+	}
+
+	@keyframes ah-drift-c {
+		from {
+			transform: translate3d(0, 0, 0) rotate(0deg);
+		}
+		to {
+			transform: translate3d(-8%, -12%, 0) rotate(20deg);
+		}
+	}
+
+	.ah__inner {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		padding: clamp(2.5rem, 7vw, 5rem) clamp(1.25rem, 5vw, 4rem);
+		max-width: 56rem;
+	}
+
+	.ah--center .ah__inner {
+		align-items: center;
+		text-align: center;
+	}
+
+	.ah--start .ah__inner {
+		align-items: flex-start;
+		text-align: left;
+		margin-right: auto;
+	}
+
+	.ah__eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0.3rem 0.9rem;
+		border-radius: 999px;
+		font-size: 0.8rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--sl-color-white, #fff);
+		border: 1px solid color-mix(in srgb, var(--ah-accent) 45%, transparent);
+		background: color-mix(in srgb, var(--ah-accent) 14%, transparent);
+		backdrop-filter: blur(8px);
+	}
+
+	.ah__eyebrow-dot {
+		width: 0.45rem;
+		height: 0.45rem;
+		border-radius: 50%;
+		background: var(--ah-accent-alt);
+		box-shadow: 0 0 8px var(--ah-accent-alt);
+		animation: ah-pulse 2.4s ease-in-out infinite;
+	}
+
+	@keyframes ah-pulse {
+		0%,
+		100% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.45;
+			transform: scale(0.8);
+		}
+	}
+
+	.ah__title {
+		margin: 0;
+		font-size: clamp(2.5rem, 7vw, 4.75rem);
+		font-weight: 800;
+		line-height: 1.05;
+		letter-spacing: -0.02em;
+		background: linear-gradient(
+			92deg,
+			var(--sl-color-white, #fff) 30%,
+			var(--ah-accent-alt) 100%
+		);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+
+	.ah__tagline {
+		margin: 0;
+		max-width: 38rem;
+		font-size: clamp(1rem, 2vw, 1.25rem);
+		line-height: 1.6;
+		color: var(--sl-color-gray-2, #c2c2c2);
+	}
+
+	.ah__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-top: 0.5rem;
+	}
+
+	.ah__actions:empty {
+		display: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.ah__blob,
+		.ah__eyebrow-dot {
+			animation: none;
+		}
+	}
+</style>

@@ -1,0 +1,121 @@
+{
+	"name": "unreal-rentearth",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/rentearth/unreal-rentearth/Source",
+	"tags": ["scope:rentearth", "type:unreal-app"],
+	"targets": {
+		"lfs-push": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs rentearth push"
+			},
+			"forwardAllArgs": true
+		},
+		"lfs-pull": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs rentearth pull"
+			},
+			"forwardAllArgs": true
+		},
+		"lfs-fetch": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs rentearth fetch --all"
+			},
+			"forwardAllArgs": true
+		},
+		"lfs-ls": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs rentearth ls-files"
+			}
+		},
+		"lfs-register": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./kbve.sh -lfs rentearth register"
+			}
+		},
+		"sync-data": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./apps/rentearth/unreal-rentearth/scripts/sync-data.sh"
+			}
+		},
+		"sync": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"commands": [
+					"./kbve.sh -lfs rentearth fetch --all",
+					"./kbve.sh -lfs rentearth pull",
+					"./kbve.sh -lfs rentearth register",
+					"./apps/rentearth/unreal-rentearth/scripts/sync-data.sh"
+				],
+				"parallel": false
+			}
+		},
+		"build-editor": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rentearth/unreal-rentearth",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearthEditor Mac Development \"$PWD/rentearth.uproject\""
+			}
+		},
+		"build-game": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rentearth/unreal-rentearth",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearth Mac Development \"$PWD/rentearth.uproject\""
+			}
+		},
+		"build-server": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rentearth/unreal-rentearth",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearthServer Mac Development \"$PWD/rentearth.uproject\""
+			}
+		},
+		"compile": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rentearth/unreal-rentearth",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearthEditor Mac Development \"$PWD/rentearth.uproject\""
+			}
+		},
+		"regen-project-files": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/rentearth/unreal-rentearth",
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh\" -project=\"$PWD/rentearth.uproject\" -game -engine"
+			}
+		},
+		"launch-editor": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"command": "./apps/rentearth/unreal-rentearth/scripts/launch-editor.sh"
+			},
+			"forwardAllArgs": true
+		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"commands": [
+					"\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearthEditor Mac Development \"$PWD/apps/rentearth/unreal-rentearth/rentearth.uproject\"",
+					"./apps/rentearth/unreal-rentearth/scripts/launch-editor.sh"
+				],
+				"parallel": false
+			}
+		}
+	}
+}

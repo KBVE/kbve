@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::Duration;
 
@@ -6,11 +6,13 @@ use bevy::app::App;
 use bevy::ecs::entity::Entity;
 use bevy::ecs::schedule::SystemSet;
 use bevy::prelude::{
-    Commands, Component, IntoScheduleConfigs, Query, Res, ResMut, Resource, Update,
+    Commands, Component, IntoScheduleConfigs, Query, Res, ResMut, Resource, Update, With, Without,
 };
+use serde_json::json;
 use tokio::sync::{broadcast, mpsc};
 use tokio::time;
 
+use crate::data::KindRegistry;
 use crate::grid::{GridPos, MoveSpeed, MoveTarget, Occupancy, WalkableMap};
 use crate::net::Roster;
 use crate::proto::{self, Dir, Input, ServerEvent, Tile};
@@ -21,6 +23,7 @@ pub const SNAPSHOT_BROADCAST_CAPACITY: usize = 256;
 pub const KEYFRAME_EVERY_N_TICKS: u32 = SIM_TICK_HZ * 5;
 
 pub const PLAYER_KIND: u16 = 0;
+pub const MAX_PATH_LEN: usize = 64;
 
 #[derive(SystemSet, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum SimSet {
@@ -37,6 +40,7 @@ pub enum SimSet {
 pub struct SimConfig {
     pub player_kind: u16,
     pub player_hp: i32,
+    pub player_attack: i32,
     pub spawn: Tile,
     pub ticks_per_tile: u8,
 }
@@ -46,6 +50,7 @@ impl Default for SimConfig {
         Self {
             player_kind: PLAYER_KIND,
             player_hp: 100,
+            player_attack: 5,
             spawn: Tile::new(0, 0),
             ticks_per_tile: 4,
         }
@@ -76,7 +81,64 @@ pub struct RosterHandle(pub Arc<RwLock<Roster>>);
 
 #[derive(Resource, Default)]
 pub struct SpawnedSlots {
-    by_slot: HashMap<u16, Entity>,
+    by_slot: HashMap<u16, (Entity, String)>,
+}
+
+#[derive(Resource, Default)]
+pub struct EidIndex {
+    by_eid: HashMap<u32, Entity>,
+}
+
+#[derive(Resource, Default)]
+pub struct PendingActions(Vec<(proto::PlayerSlot, u16, Option<proto::EntityId>)>);
+
+#[derive(Clone, Default)]
+pub struct SavedPlayer {
+    pub slots: Vec<(String, u32)>,
+    pub hp: i32,
+}
+
+#[derive(Resource, Default)]
+pub struct PlayerStore {
+    by_username: HashMap<String, SavedPlayer>,
+}
+
+#[derive(Resource, Default, Clone)]
+pub struct ConsumableEffects(pub HashMap<String, i32>);
+
+#[derive(Resource, Default)]
+pub struct RespawnQueue(Vec<(u32, NpcSpec)>);
+
+#[derive(Clone, Copy)]
+pub struct AggroSpec {
+    pub range: i32,
+    pub damage: i32,
+    pub period_ticks: u32,
+}
+
+#[derive(Clone)]
+pub struct NpcSpec {
+    pub kind: u16,
+    pub origin: Tile,
+    pub ticks_per_tile: u8,
+    pub max_hp: i32,
+    pub wander: Option<(i32, u32)>,
+    pub aggro: Option<AggroSpec>,
+    pub loot: Option<String>,
+    pub respawn_ticks: u32,
+}
+
+#[derive(Component, Clone, Copy)]
+pub struct Aggro {
+    pub range: i32,
+    pub damage: i32,
+    pub period_ticks: u32,
+    pub next_tick: u32,
+}
+
+#[derive(Component, Clone)]
+pub struct RespawnOnDeath {
+    pub spec: NpcSpec,
 }
 
 #[derive(Component, Clone, Copy)]
@@ -89,6 +151,47 @@ pub struct EntityKind(pub u16);
 pub struct Health {
     pub hp: i32,
     pub max_hp: i32,
+}
+
+#[derive(Component, Clone, Copy)]
+pub struct CombatStats {
+    pub attack: i32,
+}
+
+#[derive(Component, Clone, Default)]
+pub struct Inventory {
+    pub slots: Vec<(String, u32)>,
+}
+
+impl Inventory {
+    pub fn add(&mut self, item_ref: &str, count: u32) {
+        if let Some(slot) = self.slots.iter_mut().find(|(r, _)| r == item_ref) {
+            slot.1 = slot.1.saturating_add(count);
+        } else {
+            self.slots.push((item_ref.to_string(), count));
+        }
+    }
+}
+
+#[derive(Component, Clone)]
+pub struct GroundItem {
+    pub item_ref: String,
+    pub count: u32,
+}
+
+#[derive(Component, Clone, Default)]
+pub struct Loot {
+    pub item_ref: Option<String>,
+}
+
+#[derive(Component, Clone, Default)]
+pub struct Path {
+    pub steps: VecDeque<Tile>,
+}
+
+#[derive(Component, Clone, Copy, Default)]
+pub struct StepBuffer {
+    pub dir: Option<Dir>,
 }
 
 #[derive(Component, Clone, Copy)]
@@ -110,6 +213,56 @@ impl Wander {
     }
 }
 
+pub fn ground_item_bundle(
+    registry: &KindRegistry,
+    item_ref: &str,
+    count: u32,
+    tile: Tile,
+) -> Option<(EntityKind, GridPos, MoveTarget, GroundItem)> {
+    let kind = registry.kind_of(item_ref)?;
+    Some((
+        EntityKind(kind),
+        GridPos::at(tile),
+        MoveTarget::default(),
+        GroundItem {
+            item_ref: item_ref.to_string(),
+            count,
+        },
+    ))
+}
+
+pub fn spawn_npc_from_spec(commands: &mut Commands, spec: &NpcSpec) {
+    let mut e = commands.spawn((
+        EntityKind(spec.kind),
+        GridPos::at(spec.origin),
+        MoveTarget::default(),
+        MoveSpeed {
+            ticks_per_tile: spec.ticks_per_tile,
+        },
+        Health {
+            hp: spec.max_hp,
+            max_hp: spec.max_hp,
+        },
+        Loot {
+            item_ref: spec.loot.clone(),
+        },
+    ));
+    if let Some((radius, period)) = spec.wander {
+        e.insert(Wander::new(spec.origin, radius, period));
+    }
+    if let Some(a) = spec.aggro {
+        e.insert(Aggro {
+            range: a.range,
+            damage: a.damage,
+            period_ticks: a.period_ticks,
+            next_tick: 0,
+        });
+    }
+    if spec.respawn_ticks > 0 {
+        e.insert(RespawnOnDeath { spec: spec.clone() });
+    }
+}
+
 pub fn build_app(
     tx: broadcast::Sender<ServerEvent>,
     input_rx: mpsc::UnboundedReceiver<(proto::PlayerSlot, Input)>,
@@ -117,6 +270,7 @@ pub fn build_app(
     seed: u64,
     config: SimConfig,
     map: WalkableMap,
+    registry: KindRegistry,
 ) -> App {
     let mut app = App::new();
     app.insert_resource(SimClock::default())
@@ -127,9 +281,15 @@ pub fn build_app(
         })
         .insert_resource(RosterHandle(roster))
         .insert_resource(SpawnedSlots::default())
+        .insert_resource(EidIndex::default())
+        .insert_resource(PendingActions::default())
+        .insert_resource(PlayerStore::default())
+        .insert_resource(ConsumableEffects::default())
+        .insert_resource(RespawnQueue::default())
         .insert_resource(Occupancy::default())
         .insert_resource(map)
         .insert_resource(config)
+        .insert_resource(registry)
         .configure_sets(
             Update,
             (
@@ -144,11 +304,27 @@ pub fn build_app(
                 .chain(),
         )
         .add_systems(Update, tick_sim.in_set(SimSet::Tick))
-        .add_systems(Update, sync_roster.in_set(SimSet::Spawn))
+        .add_systems(
+            Update,
+            (sync_roster, respawn_npcs).chain().in_set(SimSet::Spawn),
+        )
         .add_systems(Update, rebuild_occupancy.in_set(SimSet::Occupancy))
-        .add_systems(Update, drain_inputs.in_set(SimSet::Input))
-        .add_systems(Update, wander_system.in_set(SimSet::Ai))
-        .add_systems(Update, advance_movement.in_set(SimSet::Movement))
+        .add_systems(
+            Update,
+            (drain_inputs, apply_actions).chain().in_set(SimSet::Input),
+        )
+        .add_systems(
+            Update,
+            (follow_path, hostile_ai, wander_system)
+                .chain()
+                .in_set(SimSet::Ai),
+        )
+        .add_systems(
+            Update,
+            (advance_movement, chain_steps, respawn_players)
+                .chain()
+                .in_set(SimSet::Movement),
+        )
         .add_systems(Update, emit_snapshot.in_set(SimSet::Snapshot));
     app
 }
@@ -158,21 +334,44 @@ fn tick_sim(mut clock: ResMut<SimClock>) {
     clock.elapsed_ms = clock.elapsed_ms.wrapping_add(1000 / SIM_TICK_HZ);
 }
 
+#[allow(clippy::too_many_arguments)]
 fn sync_roster(
     roster: Res<RosterHandle>,
     config: Res<SimConfig>,
+    bcast: Res<SnapshotBroadcast>,
     mut spawned: ResMut<SpawnedSlots>,
+    mut store: ResMut<PlayerStore>,
+    q_saved: Query<(&Inventory, &Health)>,
     mut commands: Commands,
 ) {
-    let active = match roster.0.read() {
-        Ok(r) => r.active_slots(),
-        Err(p) => p.into_inner().active_slots(),
+    let active: Vec<(proto::PlayerSlot, String)> = {
+        let guard = match roster.0.read() {
+            Ok(r) => r,
+            Err(p) => p.into_inner(),
+        };
+        guard
+            .active_slots()
+            .into_iter()
+            .map(|s| (s, guard.username(s).unwrap_or_default()))
+            .collect()
     };
-    let active_keys: Vec<u16> = active.iter().map(|s| s.0).collect();
+    let active_keys: Vec<u16> = active.iter().map(|(s, _)| s.0).collect();
 
-    for slot in &active {
+    for (slot, username) in &active {
         if spawned.by_slot.contains_key(&slot.0) {
             continue;
+        }
+        let saved = store.by_username.get(username).cloned();
+        let hp = saved
+            .as_ref()
+            .map(|s| s.hp)
+            .filter(|hp| *hp > 0)
+            .unwrap_or(config.player_hp);
+        let inventory = Inventory {
+            slots: saved.map(|s| s.slots).unwrap_or_default(),
+        };
+        if !inventory.slots.is_empty() {
+            send_inventory(&bcast, *slot, &inventory);
         }
         let entity = commands
             .spawn((
@@ -184,12 +383,18 @@ fn sync_roster(
                     ticks_per_tile: config.ticks_per_tile,
                 },
                 Health {
-                    hp: config.player_hp,
+                    hp,
                     max_hp: config.player_hp,
                 },
+                CombatStats {
+                    attack: config.player_attack,
+                },
+                inventory,
+                Path::default(),
+                StepBuffer::default(),
             ))
             .id();
-        spawned.by_slot.insert(slot.0, entity);
+        spawned.by_slot.insert(slot.0, (entity, username.clone()));
     }
 
     let gone: Vec<u16> = spawned
@@ -199,27 +404,61 @@ fn sync_roster(
         .filter(|k| !active_keys.contains(k))
         .collect();
     for k in gone {
-        if let Some(entity) = spawned.by_slot.remove(&k) {
+        if let Some((entity, username)) = spawned.by_slot.remove(&k) {
+            if !username.is_empty()
+                && let Ok((inv, hp)) = q_saved.get(entity)
+            {
+                store.by_username.insert(
+                    username,
+                    SavedPlayer {
+                        slots: inv.slots.clone(),
+                        hp: hp.hp,
+                    },
+                );
+            }
             commands.entity(entity).despawn();
         }
     }
 }
 
-fn rebuild_occupancy(mut occ: ResMut<Occupancy>, q: Query<(Entity, &GridPos, &MoveTarget)>) {
+fn rebuild_occupancy(
+    mut occ: ResMut<Occupancy>,
+    mut index: ResMut<EidIndex>,
+    q: Query<(Entity, &GridPos, Option<&MoveTarget>, Option<&GroundItem>)>,
+) {
     occ.clear();
-    for (entity, pos, mv) in q.iter() {
+    index.by_eid.clear();
+    for (entity, pos, mv, item) in q.iter() {
+        index.by_eid.insert(entity.index_u32(), entity);
+        if item.is_some() {
+            continue;
+        }
         occ.set(pos.tile, entity);
-        if let Some(t) = mv.target {
+        if let Some(t) = mv.and_then(|m| m.target) {
             occ.set(t, entity);
         }
     }
 }
 
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 fn drain_inputs(
     queue: Res<InputQueue>,
     map: Res<WalkableMap>,
+    roster: Res<RosterHandle>,
+    effects: Res<ConsumableEffects>,
+    bcast: Res<SnapshotBroadcast>,
     mut occ: ResMut<Occupancy>,
-    mut q: Query<(Entity, &PlayerSlotTag, &mut GridPos, &mut MoveTarget)>,
+    mut actions: ResMut<PendingActions>,
+    mut q: Query<(
+        Entity,
+        &PlayerSlotTag,
+        &mut GridPos,
+        &mut MoveTarget,
+        &mut Path,
+        &mut StepBuffer,
+        &mut Health,
+        &mut Inventory,
+    )>,
 ) {
     let mut pending: HashMap<u16, Vec<Input>> = HashMap::new();
     {
@@ -228,40 +467,399 @@ fn drain_inputs(
             Err(p) => p.into_inner(),
         };
         while let Ok((slot, input)) = guard.try_recv() {
-            pending.entry(slot.0).or_default().push(input);
+            if let Input::Action { id, target } = input {
+                actions.0.push((slot, id, target));
+            } else {
+                pending.entry(slot.0).or_default().push(input);
+            }
         }
     }
     if pending.is_empty() {
         return;
     }
 
-    for (entity, slot, mut pos, mut mv) in q.iter_mut() {
+    for (entity, slot, mut pos, mut mv, mut path, mut buffer, mut hp, mut inv) in q.iter_mut() {
         let Some(inputs) = pending.get(&slot.0.0) else {
             continue;
         };
         for input in inputs {
-            apply_step(entity, input, &map, &mut occ, &mut pos, &mut mv);
+            match input {
+                Input::Step { dir } => {
+                    path.steps.clear();
+                    pos.facing = dir.facing();
+                    if mv.target.is_some() {
+                        buffer.dir = Some(*dir);
+                    } else if try_move(entity, *dir, &map, &mut occ, &pos, &mut mv, None) {
+                        buffer.dir = None;
+                    }
+                }
+                Input::MoveTo { tile } => {
+                    buffer.dir = None;
+                    let from = mv.target.unwrap_or(pos.tile);
+                    match map.find_path(from, *tile, MAX_PATH_LEN) {
+                        Some(steps) => path.steps = steps.into(),
+                        None => path.steps.clear(),
+                    }
+                }
+                Input::Face { facing } => {
+                    pos.facing = *facing;
+                }
+                Input::UseItem { item_ref } => {
+                    use_item(&effects, &bcast, slot.0, item_ref, &mut hp, &mut inv);
+                }
+                Input::Say { text } => {
+                    let trimmed = text.trim();
+                    if trimmed.is_empty() {
+                        continue;
+                    }
+                    let msg: String = trimmed.chars().take(proto::MAX_CHAT_LEN).collect();
+                    let from = match roster.0.read() {
+                        Ok(r) => r.username(slot.0).unwrap_or_default(),
+                        Err(p) => p.into_inner().username(slot.0).unwrap_or_default(),
+                    };
+                    let payload = json!({ "from": from, "text": msg })
+                        .to_string()
+                        .into_bytes();
+                    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+                        kind: proto::EPHEMERAL_CHAT,
+                        to: proto::PLAYER_SLOT_NONE,
+                        payload,
+                    });
+                }
+                Input::Action { .. } | Input::Heartbeat { .. } | Input::Leave => {}
+            }
         }
     }
 }
 
-fn apply_step(
-    entity: Entity,
-    input: &Input,
-    map: &WalkableMap,
-    occ: &mut Occupancy,
-    pos: &mut GridPos,
-    mv: &mut MoveTarget,
+fn use_item(
+    effects: &ConsumableEffects,
+    bcast: &SnapshotBroadcast,
+    slot: proto::PlayerSlot,
+    item_ref: &str,
+    hp: &mut Health,
+    inv: &mut Inventory,
 ) {
-    match input {
-        Input::Step { dir } => {
+    let Some(&heal) = effects.0.get(item_ref) else {
+        return;
+    };
+    let Some(idx) = inv.slots.iter().position(|(r, c)| r == item_ref && *c > 0) else {
+        return;
+    };
+    inv.slots[idx].1 -= 1;
+    if inv.slots[idx].1 == 0 {
+        inv.slots.remove(idx);
+    }
+    hp.hp = (hp.hp + heal).min(hp.max_hp);
+    let payload = json!({ "item_ref": item_ref, "heal": heal })
+        .to_string()
+        .into_bytes();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_ITEM_USED,
+        to: slot,
+        payload,
+    });
+    send_inventory(bcast, slot, inv);
+}
+
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
+fn apply_actions(
+    mut actions: ResMut<PendingActions>,
+    index: Res<EidIndex>,
+    registry: Res<KindRegistry>,
+    bcast: Res<SnapshotBroadcast>,
+    clock: Res<SimClock>,
+    mut respawns: ResMut<RespawnQueue>,
+    mut commands: Commands,
+    mut q_players: Query<(
+        Entity,
+        &PlayerSlotTag,
+        &GridPos,
+        &CombatStats,
+        &mut Inventory,
+    )>,
+    mut q_mobs: Query<
+        (
+            &GridPos,
+            &mut Health,
+            Option<&Loot>,
+            Option<&RespawnOnDeath>,
+            &EntityKind,
+        ),
+        (Without<PlayerSlotTag>, Without<GroundItem>),
+    >,
+    q_items: Query<(&GridPos, &GroundItem)>,
+) {
+    if actions.0.is_empty() {
+        return;
+    }
+    let drained: Vec<_> = actions.0.drain(..).collect();
+
+    let mut by_slot: HashMap<u16, Entity> = HashMap::new();
+    for (entity, slot, ..) in q_players.iter() {
+        by_slot.insert(slot.0.0, entity);
+    }
+
+    for (slot, action_id, target) in drained {
+        let Some(&player_entity) = by_slot.get(&slot.0) else {
+            continue;
+        };
+        let Some(target_entity) = target.and_then(|t| index.by_eid.get(&t.0).copied()) else {
+            continue;
+        };
+
+        match action_id {
+            proto::ACTION_ATTACK => {
+                let Ok((_, _, pos, stats, _)) = q_players.get(player_entity) else {
+                    continue;
+                };
+                let (attacker_tile, damage) = (pos.tile, stats.attack.max(1));
+                let Ok((mob_pos, mut hp, loot, respawn, kind)) = q_mobs.get_mut(target_entity)
+                else {
+                    continue;
+                };
+                if attacker_tile.chebyshev(mob_pos.tile) > 1 {
+                    continue;
+                }
+                hp.hp -= damage;
+                let died = hp.hp <= 0;
+                let payload = json!({
+                    "attacker": player_entity.index_u32(),
+                    "target": target_entity.index_u32(),
+                    "target_ref": registry.ref_of(kind.0),
+                    "dmg": damage,
+                    "died": died,
+                })
+                .to_string()
+                .into_bytes();
+                let _ = bcast.tx.send(ServerEvent::Ephemeral {
+                    kind: proto::EPHEMERAL_COMBAT,
+                    to: proto::PLAYER_SLOT_NONE,
+                    payload,
+                });
+                if died {
+                    let drop_tile = mob_pos.tile;
+                    let drop_ref = loot.and_then(|l| l.item_ref.clone());
+                    if let Some(r) = respawn {
+                        respawns.0.push((
+                            clock.tick.saturating_add(r.spec.respawn_ticks),
+                            r.spec.clone(),
+                        ));
+                    }
+                    commands.entity(target_entity).despawn();
+                    if let Some(item_ref) = drop_ref
+                        && let Some(bundle) = ground_item_bundle(&registry, &item_ref, 1, drop_tile)
+                    {
+                        commands.spawn(bundle);
+                    }
+                }
+            }
+            proto::ACTION_PICKUP => {
+                let Ok((item_pos, item)) = q_items.get(target_entity) else {
+                    continue;
+                };
+                let (item_ref, count, item_tile) =
+                    (item.item_ref.clone(), item.count, item_pos.tile);
+                let Ok((_, _, pos, _, mut inv)) = q_players.get_mut(player_entity) else {
+                    continue;
+                };
+                if pos.tile.chebyshev(item_tile) > 1 {
+                    continue;
+                }
+                inv.add(&item_ref, count);
+                commands.entity(target_entity).despawn();
+                let pickup = json!({
+                    "item_ref": item_ref,
+                    "count": count,
+                })
+                .to_string()
+                .into_bytes();
+                let _ = bcast.tx.send(ServerEvent::Ephemeral {
+                    kind: proto::EPHEMERAL_PICKUP,
+                    to: proto::PlayerSlot(slot.0),
+                    payload: pickup,
+                });
+                send_inventory(&bcast, slot, &inv);
+            }
+            _ => {}
+        }
+    }
+}
+
+fn send_inventory(bcast: &SnapshotBroadcast, slot: proto::PlayerSlot, inv: &Inventory) {
+    let items: Vec<_> = inv
+        .slots
+        .iter()
+        .map(|(r, c)| json!({ "ref": r, "count": c }))
+        .collect();
+    let payload = json!({ "items": items }).to_string().into_bytes();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_INVENTORY,
+        to: slot,
+        payload,
+    });
+}
+
+fn follow_path(
+    map: Res<WalkableMap>,
+    mut occ: ResMut<Occupancy>,
+    mut q: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut Path)>,
+) {
+    for (entity, mut pos, mut mv, mut path) in q.iter_mut() {
+        if mv.target.is_some() {
+            continue;
+        }
+        let Some(&next) = path.steps.front() else {
+            continue;
+        };
+        if pos.tile.manhattan(next) != 1 {
+            path.steps.clear();
+            continue;
+        }
+        if !map.is_walkable(next) {
+            path.steps.clear();
+            continue;
+        }
+        if !occ.is_free(next) && occ.occupant(next) != Some(entity) {
+            continue;
+        }
+        let dir = dir_between(pos.tile, next);
+        if let Some(dir) = dir {
             pos.facing = dir.facing();
-            try_move(entity, *dir, map, occ, pos, mv, None);
         }
-        Input::Face { facing } => {
-            pos.facing = *facing;
+        path.steps.pop_front();
+        mv.target = Some(next);
+        mv.progress = 0;
+        occ.set(next, entity);
+    }
+}
+
+fn dir_between(from: Tile, to: Tile) -> Option<Dir> {
+    match (to.x - from.x, to.y - from.y) {
+        (0, -1) => Some(Dir::Up),
+        (0, 1) => Some(Dir::Down),
+        (-1, 0) => Some(Dir::Left),
+        (1, 0) => Some(Dir::Right),
+        _ => None,
+    }
+}
+
+#[allow(clippy::type_complexity)]
+fn hostile_ai(
+    clock: Res<SimClock>,
+    map: Res<WalkableMap>,
+    bcast: Res<SnapshotBroadcast>,
+    mut occ: ResMut<Occupancy>,
+    mut q_mobs: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut Aggro), Without<PlayerSlotTag>>,
+    mut q_players: Query<(Entity, &GridPos, &mut Health), With<PlayerSlotTag>>,
+) {
+    for (mob, mut pos, mut mv, mut aggro) in q_mobs.iter_mut() {
+        let mut nearest: Option<(Entity, Tile, i32)> = None;
+        for (pe, ppos, hp) in q_players.iter() {
+            if hp.hp <= 0 {
+                continue;
+            }
+            let d = pos.tile.chebyshev(ppos.tile);
+            if d <= aggro.range && nearest.is_none_or(|(_, _, nd)| d < nd) {
+                nearest = Some((pe, ppos.tile, d));
+            }
         }
-        Input::MoveTo { .. } | Input::Action { .. } | Input::Heartbeat { .. } | Input::Leave => {}
+        let Some((player_entity, player_tile, dist)) = nearest else {
+            continue;
+        };
+
+        if dist <= 1 {
+            if let Some(d) = dir_between(pos.tile, player_tile) {
+                pos.facing = d.facing();
+            }
+            if clock.tick < aggro.next_tick {
+                continue;
+            }
+            aggro.next_tick = clock.tick.saturating_add(aggro.period_ticks);
+            let Ok((_, _, mut hp)) = q_players.get_mut(player_entity) else {
+                continue;
+            };
+            hp.hp -= aggro.damage.max(1);
+            let died = hp.hp <= 0;
+            let payload = json!({
+                "attacker": mob.index_u32(),
+                "target": player_entity.index_u32(),
+                "target_ref": "player",
+                "dmg": aggro.damage.max(1),
+                "died": died,
+            })
+            .to_string()
+            .into_bytes();
+            let _ = bcast.tx.send(ServerEvent::Ephemeral {
+                kind: proto::EPHEMERAL_COMBAT,
+                to: proto::PLAYER_SLOT_NONE,
+                payload,
+            });
+            continue;
+        }
+
+        if mv.target.is_some() {
+            continue;
+        }
+        let dx = player_tile.x - pos.tile.x;
+        let dy = player_tile.y - pos.tile.y;
+        let horizontal = if dx > 0 { Dir::Right } else { Dir::Left };
+        let vertical = if dy > 0 { Dir::Down } else { Dir::Up };
+        let (primary, secondary) = if dx.abs() >= dy.abs() {
+            (horizontal, if dy != 0 { vertical } else { horizontal })
+        } else {
+            (vertical, if dx != 0 { horizontal } else { vertical })
+        };
+        pos.facing = primary.facing();
+        if !try_move(mob, primary, &map, &mut occ, &pos, &mut mv, None) && secondary != primary {
+            try_move(mob, secondary, &map, &mut occ, &pos, &mut mv, None);
+        }
+    }
+}
+
+#[allow(clippy::type_complexity)]
+fn respawn_players(
+    config: Res<SimConfig>,
+    mut q: Query<
+        (
+            &mut GridPos,
+            &mut MoveTarget,
+            &mut Path,
+            &mut StepBuffer,
+            &mut Health,
+        ),
+        With<PlayerSlotTag>,
+    >,
+) {
+    for (mut pos, mut mv, mut path, mut buffer, mut hp) in q.iter_mut() {
+        if hp.hp > 0 {
+            continue;
+        }
+        pos.tile = config.spawn;
+        mv.target = None;
+        mv.progress = 0;
+        path.steps.clear();
+        buffer.dir = None;
+        hp.hp = hp.max_hp;
+    }
+}
+
+fn respawn_npcs(clock: Res<SimClock>, mut queue: ResMut<RespawnQueue>, mut commands: Commands) {
+    if queue.0.is_empty() {
+        return;
+    }
+    let now = clock.tick;
+    let mut due = Vec::new();
+    queue.0.retain(|(t, spec)| {
+        if *t <= now {
+            due.push(spec.clone());
+            false
+        } else {
+            true
+        }
+    });
+    for spec in due {
+        spawn_npc_from_spec(&mut commands, &spec);
     }
 }
 
@@ -357,16 +955,35 @@ fn advance_movement(mut q: Query<(&mut GridPos, &mut MoveTarget, &MoveSpeed)>) {
 }
 
 #[allow(clippy::type_complexity)]
+fn chain_steps(
+    map: Res<WalkableMap>,
+    mut occ: ResMut<Occupancy>,
+    mut q: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut StepBuffer), With<PlayerSlotTag>>,
+) {
+    for (entity, mut pos, mut mv, mut buffer) in q.iter_mut() {
+        let Some(dir) = buffer.dir else {
+            continue;
+        };
+        if mv.target.is_some() {
+            continue;
+        }
+        buffer.dir = None;
+        pos.facing = dir.facing();
+        try_move(entity, dir, &map, &mut occ, &pos, &mut mv, None);
+    }
+}
+
+#[allow(clippy::type_complexity)]
 fn emit_snapshot(
     clock: Res<SimClock>,
     bcast: Res<SnapshotBroadcast>,
-    config: Res<SimConfig>,
     q: Query<(
         Entity,
         &EntityKind,
         Option<&PlayerSlotTag>,
         &GridPos,
         &MoveTarget,
+        Option<&MoveSpeed>,
         Option<&Health>,
     )>,
 ) {
@@ -376,11 +993,11 @@ fn emit_snapshot(
 
     let entities: Vec<proto::EntityDelta> = q
         .iter()
-        .map(|(entity, kind, slot, pos, mv, hp)| {
+        .map(|(entity, kind, slot, pos, mv, speed, hp)| {
             let sub = mv
                 .target
                 .map(|_| {
-                    let span = config.ticks_per_tile.max(1) as u32;
+                    let span = speed.map(|s| s.ticks_per_tile).unwrap_or(1).max(1) as u32;
                     ((mv.progress as u32 * 255) / span).min(255) as u8
                 })
                 .unwrap_or(0);
@@ -423,18 +1040,47 @@ mod tests {
     use super::*;
     use std::collections::HashSet;
 
-    fn harness(seed: u64) -> (App, broadcast::Receiver<ServerEvent>) {
+    type Harness = (
+        App,
+        broadcast::Receiver<ServerEvent>,
+        mpsc::UnboundedSender<(proto::PlayerSlot, Input)>,
+        Arc<RwLock<Roster>>,
+    );
+
+    fn harness(seed: u64) -> Harness {
         let (tx, rx) = broadcast::channel(SNAPSHOT_BROADCAST_CAPACITY);
-        let (_input_tx, input_rx) = mpsc::unbounded_channel();
+        let (input_tx, input_rx) = mpsc::unbounded_channel();
         let roster = Arc::new(RwLock::new(Roster::new(4)));
         let map = WalkableMap::open(32, 32);
-        let app = build_app(tx, input_rx, roster, seed, SimConfig::default(), map);
-        (app, rx)
+        let mut registry = KindRegistry::new();
+        registry.register_npc("training-dummy");
+        registry.register_item("potion");
+        let app = build_app(
+            tx,
+            input_rx,
+            roster.clone(),
+            seed,
+            SimConfig {
+                spawn: Tile::new(8, 8),
+                ..SimConfig::default()
+            },
+            map,
+            registry,
+        );
+        (app, rx, input_tx, roster)
+    }
+
+    fn join(roster: &Arc<RwLock<Roster>>, name: &str) -> proto::PlayerSlot {
+        roster
+            .write()
+            .unwrap()
+            .claim(name.to_string())
+            .expect("slot available")
     }
 
     #[test]
     fn wanderer_relocates_and_emits_snapshots() {
-        let (mut app, mut rx) = harness(0xABCDEF);
+        let (mut app, mut rx, _tx, _roster) = harness(0xABCDEF);
         let origin = Tile::new(16, 16);
         app.world_mut().spawn((
             EntityKind(2),
@@ -477,7 +1123,7 @@ mod tests {
 
     #[test]
     fn non_player_entity_snapshots_without_slot() {
-        let (mut app, mut rx) = harness(1);
+        let (mut app, mut rx, _tx, _roster) = harness(1);
         app.world_mut().spawn((
             EntityKind(7),
             GridPos::at(Tile::new(3, 3)),
@@ -499,5 +1145,412 @@ mod tests {
             }
         }
         assert!(saw, "non-player entity missing from snapshot");
+    }
+
+    #[test]
+    fn move_to_walks_full_path() {
+        let (mut app, mut rx, input_tx, roster) = harness(7);
+        let slot = join(&roster, "walker");
+        app.update();
+
+        input_tx
+            .send((
+                slot,
+                Input::MoveTo {
+                    tile: Tile::new(12, 8),
+                },
+            ))
+            .unwrap();
+
+        for _ in 0..80 {
+            app.update();
+        }
+
+        let mut last_tile = None;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Snapshot(snap) = evt {
+                for e in snap.entities {
+                    if e.kind == PLAYER_KIND {
+                        last_tile = Some(e.tile);
+                    }
+                }
+            }
+        }
+        assert_eq!(last_tile, Some(Tile::new(12, 8)), "player did not arrive");
+    }
+
+    #[test]
+    fn buffered_step_chains_after_move() {
+        let (mut app, mut rx, input_tx, roster) = harness(9);
+        let slot = join(&roster, "chainer");
+        app.update();
+
+        input_tx
+            .send((slot, Input::Step { dir: Dir::Right }))
+            .unwrap();
+        app.update();
+        input_tx
+            .send((slot, Input::Step { dir: Dir::Right }))
+            .unwrap();
+
+        for _ in 0..20 {
+            app.update();
+        }
+
+        let mut last_tile = None;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Snapshot(snap) = evt {
+                for e in snap.entities {
+                    if e.kind == PLAYER_KIND {
+                        last_tile = Some(e.tile);
+                    }
+                }
+            }
+        }
+        assert_eq!(
+            last_tile,
+            Some(Tile::new(10, 8)),
+            "second step was not buffered"
+        );
+    }
+
+    #[test]
+    fn attack_kills_mob_and_drops_loot() {
+        let (mut app, mut rx, input_tx, roster) = harness(11);
+        let slot = join(&roster, "fighter");
+        let registry = app.world().resource::<KindRegistry>().clone();
+        let dummy_kind = registry.kind_of("training-dummy").unwrap();
+        let potion_kind = registry.kind_of("potion").unwrap();
+
+        let mob = app
+            .world_mut()
+            .spawn((
+                EntityKind(dummy_kind),
+                GridPos::at(Tile::new(9, 8)),
+                MoveTarget::default(),
+                MoveSpeed::default(),
+                Health { hp: 5, max_hp: 5 },
+                Loot {
+                    item_ref: Some("potion".into()),
+                },
+            ))
+            .id();
+        app.update();
+
+        input_tx
+            .send((
+                slot,
+                Input::Action {
+                    id: proto::ACTION_ATTACK,
+                    target: Some(proto::EntityId(mob.index_u32())),
+                },
+            ))
+            .unwrap();
+        for _ in 0..6 {
+            app.update();
+        }
+
+        let mut saw_combat = false;
+        let mut saw_potion_drop = false;
+        while let Ok(evt) = rx.try_recv() {
+            match evt {
+                ServerEvent::Ephemeral { kind, .. } if kind == proto::EPHEMERAL_COMBAT => {
+                    saw_combat = true;
+                }
+                ServerEvent::Snapshot(snap) => {
+                    if snap.entities.iter().any(|e| e.kind == potion_kind) {
+                        saw_potion_drop = true;
+                    }
+                }
+                _ => {}
+            }
+        }
+        assert!(saw_combat, "no combat ephemeral emitted");
+        assert!(saw_potion_drop, "loot did not drop");
+    }
+
+    fn hostile_spec(kind: u16, origin: Tile) -> NpcSpec {
+        NpcSpec {
+            kind,
+            origin,
+            ticks_per_tile: 1,
+            max_hp: 30,
+            wander: None,
+            aggro: Some(AggroSpec {
+                range: 8,
+                damage: 60,
+                period_ticks: 1,
+            }),
+            loot: None,
+            respawn_ticks: 4,
+        }
+    }
+
+    fn player_entity(app: &mut App) -> Entity {
+        let mut q = app
+            .world_mut()
+            .query_filtered::<Entity, With<PlayerSlotTag>>();
+        q.iter(app.world()).next().expect("player spawned")
+    }
+
+    #[test]
+    fn hostile_chases_and_damages_player() {
+        let (mut app, mut rx, _tx, roster) = harness(21);
+        let _slot = join(&roster, "victim");
+        app.update();
+
+        let registry = app.world().resource::<KindRegistry>().clone();
+        let kind = registry.kind_of("training-dummy").unwrap();
+        let spec = hostile_spec(kind, Tile::new(13, 8));
+        {
+            let mut commands_queue = bevy::ecs::world::CommandQueue::default();
+            let mut commands = Commands::new(&mut commands_queue, app.world());
+            spawn_npc_from_spec(&mut commands, &spec);
+            commands_queue.apply(app.world_mut());
+        }
+
+        for _ in 0..120 {
+            app.update();
+        }
+
+        let mut saw_player_hit = false;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, payload, .. } = evt
+                && kind == proto::EPHEMERAL_COMBAT
+            {
+                let text = String::from_utf8(payload).unwrap();
+                if text.contains("\"target_ref\":\"player\"") {
+                    saw_player_hit = true;
+                }
+            }
+        }
+        assert!(saw_player_hit, "hostile never reached/attacked the player");
+    }
+
+    #[test]
+    fn dead_player_respawns_at_spawn_with_full_hp() {
+        let (mut app, _rx, _tx, roster) = harness(23);
+        let _slot = join(&roster, "phoenix");
+        app.update();
+
+        let player = player_entity(&mut app);
+        {
+            let mut pos = app.world_mut().get_mut::<GridPos>(player).unwrap();
+            pos.tile = Tile::new(20, 20);
+        }
+        {
+            let mut hp = app.world_mut().get_mut::<Health>(player).unwrap();
+            hp.hp = 0;
+        }
+        for _ in 0..3 {
+            app.update();
+        }
+
+        let hp = app.world().get::<Health>(player).unwrap();
+        let pos = app.world().get::<GridPos>(player).unwrap();
+        assert_eq!(hp.hp, hp.max_hp, "hp not restored");
+        assert_eq!(pos.tile, Tile::new(8, 8), "not back at spawn");
+    }
+
+    #[test]
+    fn use_item_heals_and_consumes() {
+        let (mut app, mut rx, input_tx, roster) = harness(25);
+        let slot = join(&roster, "drinker");
+        app.update();
+
+        app.world_mut()
+            .insert_resource(ConsumableEffects(HashMap::from([(
+                "potion".to_string(),
+                25,
+            )])));
+
+        let player = player_entity(&mut app);
+        {
+            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
+            inv.add("potion", 2);
+        }
+        {
+            let mut hp = app.world_mut().get_mut::<Health>(player).unwrap();
+            hp.hp = 50;
+        }
+
+        input_tx
+            .send((
+                slot,
+                Input::UseItem {
+                    item_ref: "potion".into(),
+                },
+            ))
+            .unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+
+        let hp = app.world().get::<Health>(player).unwrap();
+        let inv = app.world().get::<Inventory>(player).unwrap();
+        assert_eq!(hp.hp, 75, "potion did not heal");
+        assert_eq!(inv.slots, vec![("potion".to_string(), 1)]);
+
+        let mut saw_used = false;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, .. } = evt
+                && kind == proto::EPHEMERAL_ITEM_USED
+            {
+                saw_used = true;
+            }
+        }
+        assert!(saw_used, "no item-used ephemeral");
+    }
+
+    #[test]
+    fn inventory_persists_across_rejoin() {
+        let (mut app, mut rx, _tx, roster) = harness(27);
+        let slot = join(&roster, "returning");
+        app.update();
+
+        let player = player_entity(&mut app);
+        {
+            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
+            inv.add("potion", 3);
+        }
+
+        roster.write().unwrap().release(slot);
+        app.update();
+        while rx.try_recv().is_ok() {}
+
+        let slot2 = join(&roster, "returning");
+        for _ in 0..3 {
+            app.update();
+        }
+
+        let mut restored = None;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, to, payload } = evt
+                && kind == proto::EPHEMERAL_INVENTORY
+            {
+                assert_eq!(to, slot2);
+                restored = Some(String::from_utf8(payload).unwrap());
+            }
+        }
+        let payload = restored.expect("no inventory restore on rejoin");
+        assert!(payload.contains("potion"), "payload: {payload}");
+        assert!(payload.contains("3"), "payload: {payload}");
+    }
+
+    #[test]
+    fn say_broadcasts_chat() {
+        let (mut app, mut rx, input_tx, roster) = harness(29);
+        let slot = join(&roster, "talker");
+        app.update();
+
+        input_tx
+            .send((
+                slot,
+                Input::Say {
+                    text: "  hello world  ".into(),
+                },
+            ))
+            .unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+
+        let mut chat = None;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, to, payload } = evt
+                && kind == proto::EPHEMERAL_CHAT
+            {
+                assert_eq!(to, proto::PLAYER_SLOT_NONE);
+                chat = Some(String::from_utf8(payload).unwrap());
+            }
+        }
+        let payload = chat.expect("no chat broadcast");
+        assert!(payload.contains("hello world"), "payload: {payload}");
+        assert!(payload.contains("talker"), "payload: {payload}");
+    }
+
+    #[test]
+    fn slain_npc_respawns_after_delay() {
+        let (mut app, mut rx, input_tx, roster) = harness(31);
+        let slot = join(&roster, "slayer");
+        app.update();
+
+        let registry = app.world().resource::<KindRegistry>().clone();
+        let kind = registry.kind_of("training-dummy").unwrap();
+        let mut spec = hostile_spec(kind, Tile::new(9, 8));
+        spec.aggro = None;
+        spec.max_hp = 1;
+        spec.respawn_ticks = 4;
+        let mob = {
+            let mut commands_queue = bevy::ecs::world::CommandQueue::default();
+            let mut commands = Commands::new(&mut commands_queue, app.world());
+            spawn_npc_from_spec(&mut commands, &spec);
+            commands_queue.apply(app.world_mut());
+            let mut q = app
+                .world_mut()
+                .query_filtered::<(Entity, &EntityKind), Without<PlayerSlotTag>>();
+            q.iter(app.world())
+                .find(|(_, k)| k.0 == kind)
+                .map(|(e, _)| e)
+                .expect("mob spawned")
+        };
+        app.update();
+
+        input_tx
+            .send((
+                slot,
+                Input::Action {
+                    id: proto::ACTION_ATTACK,
+                    target: Some(proto::EntityId(mob.index_u32())),
+                },
+            ))
+            .unwrap();
+        for _ in 0..12 {
+            app.update();
+        }
+        while rx.try_recv().is_ok() {}
+
+        let mut q = app
+            .world_mut()
+            .query_filtered::<&EntityKind, Without<PlayerSlotTag>>();
+        let alive = q.iter(app.world()).filter(|k| k.0 == kind).count();
+        assert_eq!(alive, 1, "npc did not respawn");
+    }
+
+    #[test]
+    fn pickup_adds_to_inventory_and_syncs() {
+        let (mut app, mut rx, input_tx, roster) = harness(13);
+        let slot = join(&roster, "collector");
+        let registry = app.world().resource::<KindRegistry>().clone();
+
+        let bundle = ground_item_bundle(&registry, "potion", 2, Tile::new(9, 8)).unwrap();
+        let item = app.world_mut().spawn(bundle).id();
+        app.update();
+
+        input_tx
+            .send((
+                slot,
+                Input::Action {
+                    id: proto::ACTION_PICKUP,
+                    target: Some(proto::EntityId(item.index_u32())),
+                },
+            ))
+            .unwrap();
+        for _ in 0..6 {
+            app.update();
+        }
+
+        let mut inventory_payload = None;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, to, payload } = evt
+                && kind == proto::EPHEMERAL_INVENTORY
+            {
+                assert_eq!(to, slot);
+                inventory_payload = Some(String::from_utf8(payload).unwrap());
+            }
+        }
+        let payload = inventory_payload.expect("no inventory sync");
+        assert!(payload.contains("potion"), "payload: {payload}");
+        assert!(payload.contains("2"), "payload: {payload}");
     }
 }

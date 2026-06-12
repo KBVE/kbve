@@ -40,6 +40,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "supabase HS256"
     };
 
+    let registry = game::registry();
+
     let state = ServerState::new(
         snap_tx.clone(),
         input_tx,
@@ -47,7 +49,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         jwt_secret,
         true,
         game::MAX_PLAYERS,
-    );
+    )
+    .with_registry(registry.entries());
     let roster = state.roster.clone();
 
     let config = game::config();
@@ -58,7 +61,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .enable_time()
             .build()
             .expect("sim runtime");
-        let mut app = build_app(snap_tx, input_rx, roster, seed, config, map);
+        let mut app = build_app(snap_tx, input_rx, roster, seed, config, map, registry);
+        app.insert_resource(game::consumables());
         app.add_systems(
             bevy::prelude::Update,
             game::spawn_world.in_set(simgrid::SimSet::Spawn),
