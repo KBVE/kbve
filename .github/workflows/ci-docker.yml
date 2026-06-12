@@ -244,8 +244,6 @@ jobs:
             version_source: ${{ needs.config.outputs.version_source }}
             version_target: ${{ needs.config.outputs.version_target }}
         secrets:
-            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-            DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
             MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # ---------------------------------------------------------------------------
