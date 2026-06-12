@@ -295,6 +295,7 @@ const TAB_KEY = 'forgejo:activeTab';
 const CACHE_TTL_MS = 60 * 1000;
 const PROXY_BASE = '/dashboard/forgejo/proxy';
 const REFRESH_INTERVAL_MS = 30 * 1000;
+const PAGE_SIZE = 50;
 
 // ---------------------------------------------------------------------------
 // Errors
@@ -410,21 +411,37 @@ async function apiMutate<T>(
 	}
 }
 
-async function fetchRepos(token: string): Promise<ForgejoRepo[]> {
+async function fetchReposPage(
+	token: string,
+	page: number,
+	query: string,
+): Promise<ForgejoRepo[]> {
+	const q = query ? `&q=${encodeURIComponent(query)}` : '';
 	const data = await apiFetch<{ data?: ForgejoRepo[] } | ForgejoRepo[]>(
 		token,
-		'/api/v1/repos/search?limit=50&sort=updated',
+		`/api/v1/repos/search?limit=${PAGE_SIZE}&page=${page}&sort=updated${q}`,
 	);
 	if (Array.isArray(data)) return data;
 	return data.data ?? [];
 }
 
-async function fetchUsers(token: string): Promise<ForgejoUser[]> {
-	const admin = await apiFetch<ForgejoUser[] | null>(
+async function fetchRepos(token: string): Promise<ForgejoRepo[]> {
+	return fetchReposPage(token, 1, '');
+}
+
+async function fetchUsersPage(
+	token: string,
+	page: number,
+): Promise<ForgejoUser[] | null> {
+	return apiFetch<ForgejoUser[] | null>(
 		token,
-		'/api/v1/admin/users?limit=50',
+		`/api/v1/admin/users?limit=${PAGE_SIZE}&page=${page}`,
 		null,
 	);
+}
+
+async function fetchUsers(token: string): Promise<ForgejoUser[]> {
+	const admin = await fetchUsersPage(token, 1);
 	if (Array.isArray(admin) && admin.length > 0) return admin;
 	return fetchUsersFromCollaborators(token);
 }
@@ -457,8 +474,19 @@ async function fetchUsersFromCollaborators(
 	return users;
 }
 
+async function fetchOrgsPage(
+	token: string,
+	page: number,
+): Promise<ForgejoOrg[]> {
+	return apiFetch(
+		token,
+		`/api/v1/orgs?limit=${PAGE_SIZE}&page=${page}`,
+		[] as ForgejoOrg[],
+	);
+}
+
 async function fetchOrgs(token: string): Promise<ForgejoOrg[]> {
-	return apiFetch(token, '/api/v1/orgs?limit=50', [] as ForgejoOrg[]);
+	return fetchOrgsPage(token, 1);
 }
 
 // ---------------------------------------------------------------------------
@@ -648,6 +676,16 @@ class ForgejoService {
 	public readonly $cronTasks = atom<ForgejoCronTask[]>([]);
 	public readonly $unadopted = atom<string[]>([]);
 
+	// Pagination + search
+	public readonly $repoQuery = atom<string>('');
+	public readonly $reposPage = atom<number>(1);
+	public readonly $usersPage = atom<number>(1);
+	public readonly $orgsPage = atom<number>(1);
+	public readonly $reposHasMore = atom<boolean>(false);
+	public readonly $usersHasMore = atom<boolean>(false);
+	public readonly $orgsHasMore = atom<boolean>(false);
+	public readonly $loadingMore = atom<boolean>(false);
+
 	// Computed
 	public readonly $totalRepos = computed(
 		[this.$repos],
@@ -746,6 +784,59 @@ class ForgejoService {
 
 	// --- Data fetching ---
 
+	private async _fetchReposRange(
+		token: string,
+	): Promise<{ items: ForgejoRepo[]; hasMore: boolean }> {
+		const pages = this.$reposPage.get();
+		const query = this.$repoQuery.get();
+		const items: ForgejoRepo[] = [];
+		let last = 0;
+		for (let p = 1; p <= pages; p++) {
+			const batch = await fetchReposPage(token, p, query);
+			items.push(...batch);
+			last = batch.length;
+			if (batch.length < PAGE_SIZE) break;
+		}
+		return { items, hasMore: last === PAGE_SIZE };
+	}
+
+	private async _fetchUsersRange(
+		token: string,
+	): Promise<{ items: ForgejoUser[]; hasMore: boolean }> {
+		const pages = this.$usersPage.get();
+		const items: ForgejoUser[] = [];
+		let last = 0;
+		let adminWorked = false;
+		for (let p = 1; p <= pages; p++) {
+			const batch = await fetchUsersPage(token, p);
+			if (!Array.isArray(batch)) break;
+			if (p === 1 && batch.length > 0) adminWorked = true;
+			items.push(...batch);
+			last = batch.length;
+			if (batch.length < PAGE_SIZE) break;
+		}
+		if (!adminWorked && items.length === 0) {
+			const fallback = await fetchUsersFromCollaborators(token);
+			return { items: fallback, hasMore: false };
+		}
+		return { items, hasMore: last === PAGE_SIZE };
+	}
+
+	private async _fetchOrgsRange(
+		token: string,
+	): Promise<{ items: ForgejoOrg[]; hasMore: boolean }> {
+		const pages = this.$orgsPage.get();
+		const items: ForgejoOrg[] = [];
+		let last = 0;
+		for (let p = 1; p <= pages; p++) {
+			const batch = await fetchOrgsPage(token, p);
+			items.push(...batch);
+			last = batch.length;
+			if (batch.length < PAGE_SIZE) break;
+		}
+		return { items, hasMore: last === PAGE_SIZE };
+	}
+
 	public async fetchData(): Promise<void> {
 		const token = this.$accessToken.get();
 		if (!token) return;
@@ -754,15 +845,18 @@ class ForgejoService {
 			this.$error.set(null);
 			this.$errorReason.set(null);
 			const [repos, users, orgs] = await Promise.all([
-				fetchRepos(token),
-				fetchUsers(token),
-				fetchOrgs(token),
+				this._fetchReposRange(token),
+				this._fetchUsersRange(token),
+				this._fetchOrgsRange(token),
 			]);
-			this.$repos.set(repos);
-			this.$users.set(users);
-			this.$orgs.set(orgs);
+			this.$repos.set(repos.items);
+			this.$reposHasMore.set(repos.hasMore);
+			this.$users.set(users.items);
+			this.$usersHasMore.set(users.hasMore);
+			this.$orgs.set(orgs.items);
+			this.$orgsHasMore.set(orgs.hasMore);
 			this.$lastUpdated.set(new Date());
-			saveCache(repos, users, orgs);
+			saveCache(repos.items, users.items, orgs.items);
 		} catch (e: unknown) {
 			if (e instanceof AccessRestrictedError) {
 				this.$authState.set('forbidden');
@@ -813,6 +907,73 @@ class ForgejoService {
 		if (token) {
 			this.$loading.set(true);
 			this.fetchData();
+		}
+	}
+
+	public setRepoSearch(query: string): void {
+		this.$repoQuery.set(query);
+		this.$reposPage.set(1);
+		const token = this.$accessToken.get();
+		if (!token) return;
+		this.$loadingMore.set(true);
+		this._fetchReposRange(token)
+			.then((r) => {
+				this.$repos.set(r.items);
+				this.$reposHasMore.set(r.hasMore);
+			})
+			.finally(() => this.$loadingMore.set(false));
+	}
+
+	public async loadMoreRepos(): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token || this.$loadingMore.get()) return;
+		this.$loadingMore.set(true);
+		try {
+			const next = this.$reposPage.get() + 1;
+			const batch = await fetchReposPage(
+				token,
+				next,
+				this.$repoQuery.get(),
+			);
+			this.$repos.set([...this.$repos.get(), ...batch]);
+			this.$reposPage.set(next);
+			this.$reposHasMore.set(batch.length === PAGE_SIZE);
+		} finally {
+			this.$loadingMore.set(false);
+		}
+	}
+
+	public async loadMoreUsers(): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token || this.$loadingMore.get()) return;
+		this.$loadingMore.set(true);
+		try {
+			const next = this.$usersPage.get() + 1;
+			const batch = await fetchUsersPage(token, next);
+			if (Array.isArray(batch)) {
+				this.$users.set([...this.$users.get(), ...batch]);
+				this.$usersPage.set(next);
+				this.$usersHasMore.set(batch.length === PAGE_SIZE);
+			} else {
+				this.$usersHasMore.set(false);
+			}
+		} finally {
+			this.$loadingMore.set(false);
+		}
+	}
+
+	public async loadMoreOrgs(): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token || this.$loadingMore.get()) return;
+		this.$loadingMore.set(true);
+		try {
+			const next = this.$orgsPage.get() + 1;
+			const batch = await fetchOrgsPage(token, next);
+			this.$orgs.set([...this.$orgs.get(), ...batch]);
+			this.$orgsPage.set(next);
+			this.$orgsHasMore.set(batch.length === PAGE_SIZE);
+		} finally {
+			this.$loadingMore.set(false);
 		}
 	}
 

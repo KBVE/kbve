@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	forgejoService,
@@ -17,6 +17,7 @@ import {
 	useForm,
 	useTabActive,
 	uiTokens,
+	LoadMoreButton,
 } from './forgejoUi';
 import {
 	Plus,
@@ -466,15 +467,22 @@ function CollaboratorsModal({
 export default function ReactForgejoRepoPanel() {
 	const active = useTabActive('repos');
 	const repos = useStore(forgejoService.$repos);
+	const hasMore = useStore(forgejoService.$reposHasMore);
 	const busy = useStore(forgejoService.$busy);
 	const [modal, setModal] = useState<ModalKind>(null);
-	const [query, setQuery] = useState('');
+	const [query, setQuery] = useState(() => forgejoService.$repoQuery.get());
+	const firstRun = useRef(true);
+
+	useEffect(() => {
+		if (firstRun.current) {
+			firstRun.current = false;
+			return;
+		}
+		const t = setTimeout(() => forgejoService.setRepoSearch(query), 300);
+		return () => clearTimeout(t);
+	}, [query]);
 
 	if (!active) return null;
-
-	const filtered = repos.filter((r) =>
-		r.full_name.toLowerCase().includes(query.toLowerCase()),
-	);
 
 	return (
 		<div className="not-content">
@@ -501,7 +509,7 @@ export default function ReactForgejoRepoPanel() {
 					<input
 						value={query}
 						onChange={(e) => setQuery(e.target.value)}
-						placeholder="Filter repositories"
+						placeholder="Search repositories"
 						style={{
 							border: 'none',
 							background: 'transparent',
@@ -535,7 +543,7 @@ export default function ReactForgejoRepoPanel() {
 						</tr>
 					</thead>
 					<tbody>
-						{filtered.map((repo) => (
+						{repos.map((repo) => (
 							<tr key={repo.id}>
 								<td style={td}>
 									<div
@@ -673,6 +681,11 @@ export default function ReactForgejoRepoPanel() {
 					</tbody>
 				</table>
 			</div>
+
+			<LoadMoreButton
+				hasMore={hasMore}
+				onClick={() => forgejoService.loadMoreRepos()}
+			/>
 
 			{modal?.type === 'create' && (
 				<CreateRepoModal onClose={() => setModal(null)} />

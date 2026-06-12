@@ -11,6 +11,52 @@ export function useTabActive(tab: ForgejoTab): boolean {
 	return useStore(forgejoService.$activeTab) === tab;
 }
 
+export function LoadMoreButton({
+	hasMore,
+	onClick,
+}: {
+	hasMore: boolean;
+	onClick: () => void;
+}) {
+	const loading = useStore(forgejoService.$loadingMore);
+	if (!hasMore) return null;
+	return (
+		<div
+			style={{
+				display: 'flex',
+				justifyContent: 'center',
+				marginTop: 12,
+			}}>
+			<button
+				type="button"
+				onClick={onClick}
+				disabled={loading}
+				style={{
+					display: 'inline-flex',
+					alignItems: 'center',
+					gap: 6,
+					padding: '0.45rem 1rem',
+					borderRadius: 8,
+					border: '1px solid var(--sl-color-gray-5, #30363d)',
+					background: 'var(--sl-color-gray-6, #161b22)',
+					color: 'var(--sl-color-text, #e6edf3)',
+					cursor: loading ? 'not-allowed' : 'pointer',
+					opacity: loading ? 0.6 : 1,
+					fontSize: '0.8rem',
+					fontWeight: 600,
+				}}>
+				{loading && (
+					<Loader2
+						size={13}
+						style={{ animation: 'spin 1s linear infinite' }}
+					/>
+				)}
+				Load more
+			</button>
+		</div>
+	);
+}
+
 const accent = 'var(--sl-color-accent, #06b6d4)';
 const textColor = 'var(--sl-color-text, #e6edf3)';
 const subText = 'var(--sl-color-gray-3, #8b949e)';

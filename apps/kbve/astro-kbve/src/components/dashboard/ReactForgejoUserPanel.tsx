@@ -11,6 +11,7 @@ import {
 	useForm,
 	useTabActive,
 	uiTokens,
+	LoadMoreButton,
 } from './forgejoUi';
 import { Plus, Pencil, Trash2, ShieldCheck, Search } from 'lucide-react';
 
@@ -189,6 +190,7 @@ function EditUserModal({
 export default function ReactForgejoUserPanel() {
 	const active = useTabActive('users');
 	const users = useStore(forgejoService.$users);
+	const hasMore = useStore(forgejoService.$usersHasMore);
 	const busy = useStore(forgejoService.$busy);
 	const [modal, setModal] = useState<ModalKind>(null);
 	const [purge, setPurge] = useState(false);
@@ -349,6 +351,11 @@ export default function ReactForgejoUserPanel() {
 					</tbody>
 				</table>
 			</div>
+
+			<LoadMoreButton
+				hasMore={hasMore}
+				onClick={() => forgejoService.loadMoreUsers()}
+			/>
 
 			{modal?.type === 'create' && (
 				<CreateUserModal onClose={() => setModal(null)} />
