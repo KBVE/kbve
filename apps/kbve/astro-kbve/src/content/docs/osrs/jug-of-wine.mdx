@@ -1,6 +1,6 @@
 ---
 title: Jug of wine | OSRS Price Data
-description: "Jug of wine: It's full of wine.. High alch: 1 GP, GE limit: 6,000."
+description: "Jug of wine is a free-to-play drink made by adding grapes to a jug of water. High alch: 1 GP, GE limit: 6,000."
 osrs:
   id: 1993
   name: Jug of wine
@@ -12,9 +12,62 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 6000
-  about: "Jug of wine is a free-to-play item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: drink
+    tier: low
+  recipes:
+    - skill: cooking
+      level: 35
+      xp: 200
+      materials:
+        - item_name: Jug of water
+          item_id: 1937
+          quantity: 1
+        - item_name: Grapes
+          item_id: 1987
+          quantity: 1
+      product: Jug of wine
+      product_id: 1993
+      output_quantity: 1
+  related_items:
+    - item_id: 1991
+      item_name: Jug of bad wine
+      slug: jug-of-bad-wine
+      relationship: alternative
+      description: Failed Cooking output below level 68
+    - item_id: 1937
+      item_name: Jug of water
+      slug: jug-of-water
+      relationship: component
+      description: Base liquid required for wine
+    - item_id: 1987
+      item_name: Grapes
+      slug: grapes
+      relationship: component
+      description: Required ingredient for fermenting wine
+  market_strategy:
+    notes:
+      - "F2P Cooking output: healing food and Cooking experience source"
+      - "Price floor near jug + grapes cost; check GE for arbitrage"
+      - Demand bumps during DMM-style F2P combat events
+  trading_tips:
+    - Buy grapes + jugs of water if wine is overpriced relative to inputs
+    - Sell in bulk during F2P combat events for better margins
+    - "Note: failing cook produces jug of bad wine until 68 Cooking"
+  about: "Jug of wine is a free-to-play drink made by combining a jug of water with grapes, granting Cooking experience and minor healing. High alchemy value: 1 coin. Grand Exchange buy limit: 6,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    alchable: true
+  history:
+    - date: "2001-01-04"
+      description: Jug of wine added with the original Cooking skill.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

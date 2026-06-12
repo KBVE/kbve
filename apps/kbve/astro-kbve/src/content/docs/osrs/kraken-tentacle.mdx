@@ -12,19 +12,24 @@ osrs:
   lowalch: 33336
   highalch: 50004
   limit: 70
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: kraken
+    tier: high
   item:
     type: crafting_material
     tradeable: true
-  obtaining:
-    methods:
+  drop_table:
+    sources:
       - source: Kraken (boss)
-        drop_rate: 1/400
-        requirements:
-          slayer: 87
+        quantity: "1"
+        rarity: 1/400
+        notes: "Requires 87 Slayer"
       - source: Cave kraken
-        drop_rate: 1/1,200
-        requirements:
-          slayer: 87
+        quantity: "1"
+        rarity: 1/1200
+        notes: "Requires 87 Slayer"
   creation:
     uses:
       - item_id: 12006
@@ -72,8 +77,10 @@ osrs:
       - Farm Kraken boss for best rates
       - Creates abyssal tentacle
       - Used for enhanced tridents
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  trading_tips:
+    - Farm Kraken boss for best rates
+    - Creates abyssal tentacle
+    - Used for enhanced tridents
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Sanfew serum(4) | OSRS Price Data
-description: "Sanfew serum(4) is a 4-dose members potion that sanfew_serum. High alch: 180 GP, GE limit: 2,000."
+description: "Sanfew serum(4) is a 4-dose members potion that restores stats and prayer while curing poison and disease. High alch: 180 GP, GE limit: 2,000."
 osrs:
   id: 10925
   name: Sanfew serum(4)
@@ -12,10 +12,25 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 2000
+  material:
+    type: potion
+    tier: mid-high
   potion:
     doses: 4
     type: restoration
-    effect: sanfew_serum
+    effects:
+      - name: Stat restore
+        description: "Restores reduced stats by floor(level x 0.30) + 4."
+        duration: 0
+      - name: Prayer restore
+        description: "Restores prayer by floor(Prayer x 0.30) + 4."
+        duration: 0
+      - name: Disease immunity
+        description: Grants 15 minutes of disease immunity.
+        duration: 900
+      - name: Antipoison
+        description: Cures poison and grants 6 minutes of poison immunity.
+        duration: 360
   herblore:
     level: 65
     xp: 192
@@ -27,19 +42,19 @@ osrs:
       materials:
         - item_name: Super restore(4)
           item_id: 3024
-          quantity: 1
+          quantity: "1"
         - item_name: Unicorn horn dust
           item_id: 235
-          quantity: 1
+          quantity: "1"
         - item_name: Snake weed
           item_id: 1526
-          quantity: 1
+          quantity: "1"
         - item_name: Nail beast nails
           item_id: 10937
-          quantity: 1
+          quantity: "1"
       product: Sanfew serum(4)
       product_id: 10925
-      product_quantity: 1
+      output_quantity: 1
       facility: None
       members_only: true
   related_items:
@@ -47,51 +62,37 @@ osrs:
       item_name: Super restore(4)
       slug: super-restore-4
       relationship: component
-      description: Base potion
+      description: Base potion used in the recipe
     - item_id: 235
       item_name: Unicorn horn dust
       slug: unicorn-horn-dust
       relationship: component
-      description: Secondary
+      description: Secondary ingredient
     - item_id: 1526
       item_name: Snake weed
       slug: snake-weed
       relationship: component
-      description: Secondary
+      description: Secondary ingredient
     - item_id: 2434
       item_name: Prayer potion(4)
       slug: prayer-potion-4
       relationship: alternative
-      description: Budget alternative
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 65 |
-    | XP | 192 (4-dose) |
-    | Quest | Zogre Flesh Eaters (partial) |
-    | Ingredients | Super restore + Unicorn horn dust + Snake weed + Nail beast nails |
-
-    | Effect | Value |
-    |--------|-------|
-    | Stat restore | Floor(Level × 0.30) + 4 |
-    | Prayer restore | Floor(Prayer × 0.30) + 4 |
-    | Disease immunity | 15 minutes |
-    | Antipoison | 6 minutes |
+      description: Budget alternative for prayer only
   market_strategy:
     notes:
-      - Combines super restore + antipoison + disease cure
-      - Single inventory slot efficiency
-      - High-end PvM demand
-      - Theatre of Blood
-      - Nightmare boss
-      - General PvM
-      - Inventory optimization
-      - Low buy limit (2,000)
-      - Complex to make
-      - Higher restore than super restore
-      - Quest requirement limits supply
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Combines super restore + antipoison + disease cure into one slot
+      - "Bossing demand: Theatre of Blood, Nightmare, general PvM"
+      - Low buy limit (2,000) and quest gate keep supply thin
+      - Higher restore than super restore for stat-drain content
+  trading_tips:
+    - Decant from 4-dose to lower doses when spreads invert
+    - Track ingredient prices to spot crafting margin windows
+  about: Sanfew serum(4) is a 4-dose members restoration potion that combines super restore, antipoison, and disease cure effects into a single inventory slot.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  history:
+    - date: "2005-09-13"
+      description: Sanfew serum introduced with the Zogre Flesh Eaters quest.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

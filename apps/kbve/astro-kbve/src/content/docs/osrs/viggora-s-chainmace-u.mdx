@@ -12,12 +12,13 @@ osrs:
   lowalch: 48000
   highalch: 72000
   limit: 8
+  material:
+    type: ancient
+    tier: high
   equipment:
     slot: 2h
     type: scythe
     attack_style: slash
-    attack_speed: 5
-    attack_range: 1
     tradeable: true
     weight: 3.628
     requirements:
@@ -40,13 +41,13 @@ osrs:
   special_attack:
     none: true
     notes: No special attack
-  passive_effect:
-    name: Multi-hit
-    description: Hits up to 3 times per attack on large targets
-    hit_1_damage: 100
-    hit_2_damage: 50
-    hit_3_damage: 25
-    large_target_requirement: 3x3 or larger
+  passive_effects:
+    - name: Multi-hit
+      description: Hits up to 3 times per attack on large targets
+      hit_1_damage: 100
+      hit_2_damage: 50
+      hit_3_damage: 25
+      large_target_requirement: 3x3 or larger
   drop_table:
     sources:
       - source: Theatre of Blood
@@ -120,8 +121,8 @@ osrs:
       - BiS for 3x3+ targets
       - ToB is primary source
       - Consider charge cost in DPS calculations
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Yew sapling | OSRS Price Data
-description: "Yew sapling: This sapling is ready to be replanted in a tree patch.. High alch: 1 GP, GE limit: 200."
+description: "Yew sapling is a Farming sapling planted in tree patches. High alch: 1 GP, GE limit: 200."
 osrs:
   id: 5373
   name: Yew sapling
@@ -12,9 +12,47 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 200
-  about: "Yew sapling is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 200 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: farming
+    tier: mid-high
+  recipes:
+    - skill: farming
+      level: 60
+      xp: 81
+      output_quantity: 1
+      materials:
+        - item_name: Yew seed
+          quantity: "1"
+        - item_name: Plant pot
+          quantity: "1"
+      product: Yew sapling
+  related_items:
+    - item_id: 5315
+      item_name: Yew seed
+      slug: yew-seed
+      relationship: component
+      description: Seed planted in plant pot to grow this sapling
+    - item_id: 5375
+      item_name: Magic sapling
+      slug: magic-sapling
+      relationship: alternative
+      description: Higher tier tree sapling
+    - item_id: 5371
+      item_name: Maple sapling
+      slug: maple-sapling
+      relationship: alternative
+      description: Lower tier tree sapling
+  market_strategy:
+    notes:
+      - Used by Farming players growing yew trees
+      - Supply depends on yew seed availability
+      - Profit margin tied to yew seed price
+  trading_tips:
+    - Plant immediately to avoid stockpiling
+    - Buy in bulk from skillers
+  about: "Yew sapling is grown from a yew seed in a plant pot and planted in a tree patch at 60 Farming. Matures into a yew tree after roughly 16 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

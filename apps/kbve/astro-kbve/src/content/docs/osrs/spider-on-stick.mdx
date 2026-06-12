@@ -1,6 +1,6 @@
 ---
 title: Spider on stick | OSRS Price Data
-description: "Spider on stick: A nicely roasted spider threaded onto a skewer stick.. High alch: 30 GP, GE limit: 6,000."
+description: "Spider on stick is a Cooking-made food roasted from a raw spider on a skewer stick. High alch: 30 GP, GE limit: 6,000."
 osrs:
   id: 6297
   name: Spider on stick
@@ -12,9 +12,54 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 6000
-  about: "Spider on stick is a members-only item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: food
+    tier: low
+  recipes:
+    - skill: cooking
+      level: 16
+      xp: 60
+      materials:
+        - item_name: Raw spider on stick
+          item_id: 6293
+          quantity: 1
+      product: Spider on stick
+      product_id: 6297
+      output_quantity: 1
+  related_items:
+    - item_id: 6293
+      item_name: Raw spider on stick
+      slug: raw-spider-on-stick
+      relationship: component
+      description: Raw form cooked into this food
+    - item_id: 6299
+      item_name: Spider on shaft
+      slug: spider-on-shaft
+      relationship: alternative
+      description: Arrow-shaft variant of the same dish
+  market_strategy:
+    notes:
+      - Low-tier healing food bought mostly by Karamja-cooking trainers
+      - Volume is thin; prices drift with the raw spider supply
+      - GE turnover is slow vs mainstream foods like swordfish
+  trading_tips:
+    - Compare against raw spider on stick to spot cooking arbitrage
+    - Avoid stockpiling - low demand makes flipping slow
+    - "List near GE midprice: undercutting wastes buy limit on a thin market"
+  about: "Spider on stick is a members-only cooked food obtained by roasting a raw spider on stick on Karamja. High alchemy value: 30 coins. Grand Exchange buy limit: 6,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    alchable: true
+  history:
+    - date: "2004-12-13"
+      description: Added to the game with Tai Bwo Wannai Trio.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

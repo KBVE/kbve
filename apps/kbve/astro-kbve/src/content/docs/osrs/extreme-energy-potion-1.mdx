@@ -1,6 +1,6 @@
 ---
 title: Extreme energy potion(1) | OSRS Price Data
-description: "Extreme energy potion(1): 1 dose of extreme energy potion.. High alch: 24 GP."
+description: "Extreme energy potion(1) is a 1-dose run energy restorative for members. High alch: 24 GP."
 osrs:
   id: 31623
   name: Extreme energy potion(1)
@@ -11,10 +11,81 @@ osrs:
   value: 40
   lowalch: 16
   highalch: 24
-  limit: null
-  about: "Extreme energy potion(1) is a members-only item in Old School RuneScape. High alchemy value: 24 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit:
+  material:
+    type: consumable
+    tier: mid-high
+  potion:
+    doses: 1
+    effects:
+      - skill: run_energy
+        boost: 50
+        duration: 0
+  recipes:
+    - skill: herblore
+      level: 88
+      xp: 110
+      materials:
+        - item_name: Super energy potion(1)
+          item_id: 3020
+          quantity: 1
+        - item_name: Ground mud rune
+          item_id: 23733
+          quantity: 1
+      product: Extreme energy potion(1)
+      product_id: 31623
+      output_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 31621
+      item_name: Extreme energy potion(2)
+      slug: extreme-energy-potion-2
+      relationship: variant
+      description: 2-dose variant of the same brew
+    - item_id: 31619
+      item_name: Extreme energy potion(3)
+      slug: extreme-energy-potion-3
+      relationship: variant
+      description: 3-dose variant of the same brew
+    - item_id: 31617
+      item_name: Extreme energy potion(4)
+      slug: extreme-energy-potion-4
+      relationship: variant
+      description: 4-dose variant of the same brew
+    - item_id: 3020
+      item_name: Super energy potion
+      slug: super-energy-potion
+      relationship: downgrade
+      description: Weaker run energy restore alternative
+  market_strategy:
+    title: Market Notes
+    notes:
+      - "No GE buy limit listed; supply tied to high-level Herblore brewers"
+      - "1-dose tends to trade at a discount per dose vs 4-dose"
+      - "Demand spikes with new agility content and long PvM travel routes"
+  trading_tips:
+    - Use Grand Exchange for secure trades
+    - Decant from 4-dose when 1-dose is overpriced
+    - Buy small lots for hot-spot agility training
+  about: "Extreme energy potion(1) is a members-only 1-dose run energy restorative brewed at Herblore 88; it restores significantly more run energy than super energy potion and is decanted from the 4-dose form."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    options:
+      - Drink
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2024-08-14"
+      description: "Extreme energy potion added to OSRS as part of the extreme potion family update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

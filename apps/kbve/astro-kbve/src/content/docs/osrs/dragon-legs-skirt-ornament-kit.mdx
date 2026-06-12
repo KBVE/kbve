@@ -1,6 +1,6 @@
 ---
 title: Dragon legs/skirt ornament kit | OSRS Price Data
-description: "Dragon legs/skirt ornament kit: Use on dragon platelegs or plateskirt to make them look fancier!. High alch: 3,000 GP, GE limit: 4."
+description: "Dragon legs/skirt ornament kit recolours dragon platelegs or plateskirt for cosmetic flair. High alch: 3,000 GP, GE limit: 4."
 osrs:
   id: 12536
   name: Dragon legs/skirt ornament kit
@@ -12,9 +12,64 @@ osrs:
   lowalch: 2000
   highalch: 3000
   limit: 4
-  about: "Dragon legs/skirt ornament kit is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cosmetic
+    tier: high
+  treasure_trail:
+    tier: hard
+    is_reward: true
+    reward_tiers:
+      - hard
+  related_items:
+    - item_id: 1187
+      item_name: Dragon platelegs
+      slug: dragon-platelegs
+      relationship: component
+      description: Recolour target for the kit
+    - item_id: 4087
+      item_name: Dragon plateskirt
+      slug: dragon-plateskirt
+      relationship: component
+      description: Recolour target for the kit
+    - item_id: 12537
+      item_name: Dragon platelegs (or)
+      slug: dragon-platelegs-or
+      relationship: product
+      description: Result of applying kit to platelegs
+    - item_id: 12538
+      item_name: Dragon plateskirt (or)
+      slug: dragon-plateskirt-or
+      relationship: product
+      description: Result of applying kit to plateskirt
+  market_strategy:
+    title: Market Notes
+    notes:
+      - "GE buy limit of 4 keeps supply tight and prices volatile"
+      - "Cosmetic only; kit is reversible so resale demand persists"
+      - "Pricing closely tracks Hard clue scroll completion rates"
+  trading_tips:
+    - Verify authenticity when trading high-value items
+    - Use Grand Exchange for secure trades
+    - Track Hard clue casket loot drop rates for supply trends
+  about: "Dragon legs/skirt ornament kit is a members-only Hard clue scroll reward that cosmetically recolours dragon platelegs or dragon plateskirt without changing combat stats."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    options:
+      - Use
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2014-12-04"
+      description: "Dragon legs/skirt ornament kit added as a Hard clue scroll reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

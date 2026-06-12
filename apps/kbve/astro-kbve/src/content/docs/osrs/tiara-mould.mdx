@@ -1,6 +1,6 @@
 ---
 title: Tiara mould | OSRS Price Data
-description: "Tiara mould: A mould for tiaras.. High alch: 60 GP, GE limit: 40."
+description: "Tiara mould: A mould for tiaras. High alch: 60 GP, GE limit: 40."
 osrs:
   id: 5523
   name: Tiara mould
@@ -14,68 +14,70 @@ osrs:
   limit: 40
   material:
     type: mould
-    tier: crafting_tool
-  crafting:
-    use: tiara
+    tier: low
   shops:
-    - shop_name: Crafting shops
+    - shop_name: "Aubury's Rune Shop"
+      location: Varrock
       price: 100
+      stock: 5
       currency: Coins
-  uses:
-    - product: Tiara
-      product_id: 5525
-      bar: Silver bar
-      bar_id: 2355
-      crafting_level: 23
-      crafting_xp: 52.5
+    - shop_name: "Betty's Magic Emporium"
+      location: Port Sarim
+      price: 100
+      stock: 5
+      currency: Coins
+  recipes:
+    - skill: crafting
+      level: 23
+      xp: 52.5
+      output_quantity: 1
+      materials:
+        - item_name: Silver bar
+          quantity: 1
   related_items:
-    - item_id: 2355
-      item_name: Silver bar
+    - item_name: Silver bar
       slug: silver-bar
       relationship: component
-      description: Material used
-    - item_id: 5525
-      item_name: Tiara
+      description: Material melted in the mould to produce a tiara.
+    - item_name: Tiara
       slug: tiara
       relationship: product
-      description: Crafted product
-    - item_id: 5527
-      item_name: Air tiara
+      description: Item crafted using the mould.
+    - item_name: Air tiara
       slug: air-tiara
       relationship: product
-      description: Imbued version
-  about: |-
-    Make tiaras at a furnace:
-
-    | Product | Level | XP | Materials |
-    |---------|-------|-----|-----------|
-    | Tiara | 23 | 52.5 | 1 Silver bar |
-
-    Imbue at Runecraft altars:
-
-    | Tiara | Altar | XP |
-    |-------|-------|-----|
-    | Air tiara | Air altar | 25 |
-    | Mind tiara | Mind altar | 27.5 |
-    | Water tiara | Water altar | 30 |
-    | Earth tiara | Earth altar | 32.5 |
-    | Fire tiara | Fire altar | 35 |
-    | Body tiara | Body altar | 37.5 |
-    | Cosmic tiara | Cosmic altar | 40 |
-    | Chaos tiara | Chaos altar | 42.5 |
-    | Nature tiara | Nature altar | 45 |
-    | Law tiara | Law altar | 47.5 |
-    | Death tiara | Death altar | 50 |
+      description: Imbued tiara made from the base tiara at an altar.
   market_strategy:
     notes:
-      - Tiara crafting
-      - Runecraft training
-      - One-time purchase
-      - Not consumed on use
-      - Essential for RC tiaras
-      - Buy from shop
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - One-time tool purchase that is not consumed on use.
+      - Cheaper to buy from a rune or magic shop than from the Grand Exchange in most cases.
+      - Used by Crafting and Runecraft trainers making tiaras for tiara runecrafting.
+      - Buy limit of 40 per 4 hours keeps flips low-volume.
+  trading_tips:
+    - Compare shop price (100 gp) to the GE price before buying off the Grand Exchange.
+    - Bulk demand spikes when new Runecraft tiara methods get attention.
+  about: |-
+    > _"A mould for tiaras."_
+
+    Crafting mould used at a furnace with a silver bar to make a plain tiara at Crafting level 23 for 52.5 XP. The resulting tiara can then be bound to a Runecraft altar (Air, Mind, Water, etc.) to create a tiara variant that acts as a head-slot talisman.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2004-03-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    options:
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2004-03-25"
+      description: Tiara mould released alongside the introduction of the Tiara crafting method.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
