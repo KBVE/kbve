@@ -4,6 +4,9 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import Dexie, { type Table } from 'dexie';
 import { getWorkerCommunication } from '../lib/worker-comm';
+import { CacheDB } from '../lib/cache-db';
+
+const cacheDb = new CacheDB();
 
 type Req =
 	| {
@@ -72,7 +75,14 @@ type Req =
 	| { id: string; type: 'ws.connect'; payload?: { wsUrl?: string } }
 	| { id: string; type: 'ws.disconnect' }
 	| { id: string; type: 'ws.send'; payload: { data: any } }
-	| { id: string; type: 'ws.status' };
+	| { id: string; type: 'ws.status' }
+	| { id: string; type: 'cache.get'; payload: { key: string } }
+	| {
+			id: string;
+			type: 'cache.set';
+			payload: { key: string; value: string; ts: number };
+	  }
+	| { id: string; type: 'cache.del'; payload: { key: string } };
 
 type Res =
 	| { id: string; ok: true; data?: any }
@@ -500,6 +510,28 @@ function reply(port: MessagePort, msg: Res) {
 		const m = e.data;
 		try {
 			switch (m.type) {
+				case 'cache.get': {
+					const rec = await cacheDb.cache.get(m.payload.key);
+					reply(port, { id: m.id, ok: true, data: rec ?? null });
+					break;
+				}
+
+				case 'cache.set': {
+					await cacheDb.cache.put({
+						key: m.payload.key,
+						value: m.payload.value,
+						ts: m.payload.ts,
+					});
+					reply(port, { id: m.id, ok: true });
+					break;
+				}
+
+				case 'cache.del': {
+					await cacheDb.cache.delete(m.payload.key);
+					reply(port, { id: m.id, ok: true });
+					break;
+				}
+
 				case 'init': {
 					const c = await ensureClient(
 						m.payload.url,

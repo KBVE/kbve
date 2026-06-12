@@ -1,6 +1,7 @@
 import { atom, computed } from 'nanostores';
 import { persistentAtom } from '@nanostores/persistent';
 import { initSupa, getSupa } from '@/lib/supa';
+import { cacheGet, cacheSet } from '@/lib/idb-cache';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -212,7 +213,21 @@ export type ForgejoTab =
 	| 'users'
 	| 'orgs'
 	| 'webhooks'
+	| 'issues'
 	| 'system';
+
+export interface ForgejoIssue {
+	id: number;
+	number: number;
+	title: string;
+	state: 'open' | 'closed';
+	is_locked: boolean;
+	comments: number;
+	created_at: string;
+	html_url: string;
+	user: { login: string; avatar_url: string };
+	pull_request?: { merged: boolean } | null;
+}
 
 export interface CreateRepoInput {
 	owner: string;
@@ -308,6 +323,14 @@ export interface ToastMsg {
 	msg: string;
 }
 
+export type NoticeKind = 'info' | 'warn' | 'error';
+
+export interface Notice {
+	kind: NoticeKind;
+	msg: string;
+	detail?: string;
+}
+
 interface CachedData {
 	ts: number;
 	repos: ForgejoRepo[];
@@ -326,6 +349,7 @@ const CACHE_TTL_MS = 60 * 1000;
 const PROXY_BASE = '/dashboard/forgejo/proxy';
 const REFRESH_INTERVAL_MS = 30 * 1000;
 const PAGE_SIZE = 50;
+const RESOURCE_TTL_MS = 60 * 1000;
 
 // ---------------------------------------------------------------------------
 // Errors
@@ -571,29 +595,21 @@ async function fetchRepoLanguages(
 // Cache helpers
 // ---------------------------------------------------------------------------
 
-function loadCache(): CachedData | null {
-	try {
-		const raw = localStorage.getItem(CACHE_KEY);
-		if (!raw) return null;
-		const parsed: CachedData = JSON.parse(raw);
-		if (Date.now() - parsed.ts > CACHE_TTL_MS) return null;
-		return parsed;
-	} catch {
-		return null;
-	}
+function loadCache(): Promise<CachedData | null> {
+	return cacheGet<CachedData>(CACHE_KEY, CACHE_TTL_MS);
 }
 
 function saveCache(
 	repos: ForgejoRepo[],
 	users: ForgejoUser[],
 	orgs: ForgejoOrg[],
-): void {
-	try {
-		const data: CachedData = { ts: Date.now(), repos, users, orgs };
-		localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-	} catch {
-		// ignore quota errors
-	}
+): Promise<void> {
+	return cacheSet<CachedData>(CACHE_KEY, {
+		ts: Date.now(),
+		repos,
+		users,
+		orgs,
+	});
 }
 
 // ---------------------------------------------------------------------------
@@ -690,6 +706,7 @@ class ForgejoService {
 	);
 	public readonly $toast = atom<ToastMsg | null>(null);
 	public readonly $busy = atom<string | null>(null);
+	public readonly $notices = atom<Record<string, Notice>>({});
 
 	public readonly $teams = atom<Record<string, ForgejoTeam[]>>({});
 	public readonly $orgMembers = atom<Record<string, ForgejoUser[]>>({});
@@ -712,6 +729,12 @@ class ForgejoService {
 	public readonly $version = atom<string | null>(null);
 	public readonly $cronTasks = atom<ForgejoCronTask[]>([]);
 	public readonly $unadopted = atom<string[]>([]);
+
+	public readonly $issueRepo = atom<string | null>(null);
+	public readonly $issueState = atom<'open' | 'closed'>('open');
+	public readonly $issueType = atom<'issues' | 'pulls'>('issues');
+	public readonly $issues = atom<ForgejoIssue[]>([]);
+	public readonly $issuesLoading = atom<boolean>(false);
 
 	// Pagination + search
 	public readonly $repoQuery = atom<string>('');
@@ -893,7 +916,7 @@ class ForgejoService {
 			this.$orgs.set(orgs.items);
 			this.$orgsHasMore.set(orgs.hasMore);
 			this.$lastUpdated.set(new Date());
-			saveCache(repos.items, users.items, orgs.items);
+			void saveCache(repos.items, users.items, orgs.items);
 		} catch (e: unknown) {
 			if (e instanceof AccessRestrictedError) {
 				this.$authState.set('forbidden');
@@ -910,11 +933,11 @@ class ForgejoService {
 		}
 	}
 
-	public loadCacheAndFetch(): void {
+	public async loadCacheAndFetch(): Promise<void> {
 		const token = this.$accessToken.get();
 		if (!token) return;
 
-		const cached = loadCache();
+		const cached = await loadCache();
 		if (cached) {
 			this.$repos.set(cached.repos);
 			this.$users.set(cached.users);
@@ -1081,6 +1104,61 @@ class ForgejoService {
 		this.$toast.set(null);
 	}
 
+	public setNotice(ctx: string, notice: Notice): void {
+		this.$notices.set({ ...this.$notices.get(), [ctx]: notice });
+	}
+
+	public clearNotice(ctx: string): void {
+		const next = { ...this.$notices.get() };
+		if (ctx in next) {
+			delete next[ctx];
+			this.$notices.set(next);
+		}
+	}
+
+	private _noticeFor(e: unknown): Notice {
+		if (e instanceof AccessRestrictedError) {
+			return {
+				kind: 'warn',
+				msg: 'Access restricted',
+				detail: 'The Forgejo token lacks permission for this resource.',
+			};
+		}
+		if (e instanceof UpstreamUnavailableError) {
+			return {
+				kind: 'error',
+				msg: 'Forgejo upstream unreachable',
+				detail: e.reason,
+			};
+		}
+		return {
+			kind: 'error',
+			msg: 'Could not load data',
+			detail: e instanceof Error ? e.message : 'Unknown error',
+		};
+	}
+
+	private async _loadResource<T>(
+		ctx: string,
+		cacheKey: string,
+		path: string,
+		apply: (data: T) => void,
+		ttl = RESOURCE_TTL_MS,
+	): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		const cached = await cacheGet<T>(cacheKey, ttl);
+		if (cached !== null) apply(cached);
+		try {
+			const data = await apiFetch<T>(token, path);
+			apply(data);
+			void cacheSet(cacheKey, data);
+			this.clearNotice(ctx);
+		} catch (e) {
+			if (cached === null) this.setNotice(ctx, this._noticeFor(e));
+		}
+	}
+
 	private async _run(
 		id: string,
 		fn: (token: string) => Promise<void>,
@@ -1191,17 +1269,16 @@ class ForgejoService {
 	}
 
 	public async loadCollaborators(fullName: string): Promise<void> {
-		const token = this.$accessToken.get();
-		if (!token) return;
-		const collabs = await apiFetch<ForgejoCollaborator[]>(
-			token,
-			`/api/v1/repos/${fullName}/collaborators?limit=50`,
-			[] as ForgejoCollaborator[],
+		await this._loadResource<ForgejoCollaborator[]>(
+			'collaborators',
+			`forgejo:collab:${fullName}`,
+			`/api/v1/repos/${fullName}/collaborators?limit=${PAGE_SIZE}`,
+			(d) =>
+				this.$collaborators.set({
+					...this.$collaborators.get(),
+					[fullName]: d,
+				}),
 		);
-		this.$collaborators.set({
-			...this.$collaborators.get(),
-			[fullName]: collabs,
-		});
 	}
 
 	public addCollaborator(
@@ -1320,14 +1397,13 @@ class ForgejoService {
 	}
 
 	public async loadOrgMembers(org: string): Promise<void> {
-		const token = this.$accessToken.get();
-		if (!token) return;
-		const members = await apiFetch<ForgejoUser[]>(
-			token,
-			`/api/v1/orgs/${org}/members?limit=50`,
-			[] as ForgejoUser[],
+		await this._loadResource<ForgejoUser[]>(
+			'orgs',
+			`forgejo:orgmembers:${org}`,
+			`/api/v1/orgs/${org}/members?limit=${PAGE_SIZE}`,
+			(d) =>
+				this.$orgMembers.set({ ...this.$orgMembers.get(), [org]: d }),
 		);
-		this.$orgMembers.set({ ...this.$orgMembers.get(), [org]: members });
 	}
 
 	public removeOrgMember(org: string, user: string): Promise<boolean> {
@@ -1346,14 +1422,12 @@ class ForgejoService {
 	}
 
 	public async loadTeams(org: string): Promise<void> {
-		const token = this.$accessToken.get();
-		if (!token) return;
-		const teams = await apiFetch<ForgejoTeam[]>(
-			token,
-			`/api/v1/orgs/${org}/teams?limit=50`,
-			[] as ForgejoTeam[],
+		await this._loadResource<ForgejoTeam[]>(
+			'orgs',
+			`forgejo:teams:${org}`,
+			`/api/v1/orgs/${org}/teams?limit=${PAGE_SIZE}`,
+			(d) => this.$teams.set({ ...this.$teams.get(), [org]: d }),
 		);
-		this.$teams.set({ ...this.$teams.get(), [org]: teams });
 	}
 
 	public createTeam(org: string, input: CreateTeamInput): Promise<boolean> {
@@ -1379,17 +1453,16 @@ class ForgejoService {
 	}
 
 	public async loadTeamMembers(teamId: number): Promise<void> {
-		const token = this.$accessToken.get();
-		if (!token) return;
-		const members = await apiFetch<ForgejoUser[]>(
-			token,
-			`/api/v1/teams/${teamId}/members?limit=50`,
-			[] as ForgejoUser[],
+		await this._loadResource<ForgejoUser[]>(
+			'orgs',
+			`forgejo:teammembers:${teamId}`,
+			`/api/v1/teams/${teamId}/members?limit=${PAGE_SIZE}`,
+			(d) =>
+				this.$teamMembers.set({
+					...this.$teamMembers.get(),
+					[teamId]: d,
+				}),
 		);
-		this.$teamMembers.set({
-			...this.$teamMembers.get(),
-			[teamId]: members,
-		});
 	}
 
 	public addTeamMember(teamId: number, user: string): Promise<boolean> {
@@ -1425,14 +1498,16 @@ class ForgejoService {
 	// --- Webhook actions ---
 
 	public async loadRepoHooks(fullName: string): Promise<void> {
-		const token = this.$accessToken.get();
-		if (!token) return;
-		const hooks = await apiFetch<ForgejoHook[]>(
-			token,
-			`/api/v1/repos/${fullName}/hooks?limit=50`,
-			[] as ForgejoHook[],
+		await this._loadResource<ForgejoHook[]>(
+			'repoAdmin',
+			`forgejo:hooks:${fullName}`,
+			`/api/v1/repos/${fullName}/hooks?limit=${PAGE_SIZE}`,
+			(d) =>
+				this.$repoHooks.set({
+					...this.$repoHooks.get(),
+					[fullName]: d,
+				}),
 		);
-		this.$repoHooks.set({ ...this.$repoHooks.get(), [fullName]: hooks });
 	}
 
 	public createHook(
@@ -1490,17 +1565,16 @@ class ForgejoService {
 	// --- Release actions ---
 
 	public async loadRepoReleases(fullName: string): Promise<void> {
-		const token = this.$accessToken.get();
-		if (!token) return;
-		const releases = await apiFetch<ForgejoRelease[]>(
-			token,
+		await this._loadResource<ForgejoRelease[]>(
+			'repoAdmin',
+			`forgejo:releases:${fullName}`,
 			`/api/v1/repos/${fullName}/releases?limit=20`,
-			[] as ForgejoRelease[],
+			(d) =>
+				this.$repoReleases.set({
+					...this.$repoReleases.get(),
+					[fullName]: d,
+				}),
 		);
-		this.$repoReleases.set({
-			...this.$repoReleases.get(),
-			[fullName]: releases,
-		});
 	}
 
 	public createRelease(
@@ -1540,17 +1614,16 @@ class ForgejoService {
 	// --- Branch protection actions ---
 
 	public async loadRepoProtections(fullName: string): Promise<void> {
-		const token = this.$accessToken.get();
-		if (!token) return;
-		const rules = await apiFetch<ForgejoBranchProtection[]>(
-			token,
+		await this._loadResource<ForgejoBranchProtection[]>(
+			'repoAdmin',
+			`forgejo:protections:${fullName}`,
 			`/api/v1/repos/${fullName}/branch_protections`,
-			[] as ForgejoBranchProtection[],
+			(d) =>
+				this.$repoProtections.set({
+					...this.$repoProtections.get(),
+					[fullName]: d,
+				}),
 		);
-		this.$repoProtections.set({
-			...this.$repoProtections.get(),
-			[fullName]: rules,
-		});
 	}
 
 	public createProtection(
@@ -1593,31 +1666,29 @@ class ForgejoService {
 	// --- Secrets & variables actions ---
 
 	public async loadRepoSecrets(fullName: string): Promise<void> {
-		const token = this.$accessToken.get();
-		if (!token) return;
-		const secrets = await apiFetch<ForgejoSecret[]>(
-			token,
+		await this._loadResource<ForgejoSecret[]>(
+			'repoAdmin',
+			`forgejo:secrets:${fullName}`,
 			`/api/v1/repos/${fullName}/actions/secrets?limit=${PAGE_SIZE}`,
-			[] as ForgejoSecret[],
+			(d) =>
+				this.$repoSecrets.set({
+					...this.$repoSecrets.get(),
+					[fullName]: d,
+				}),
 		);
-		this.$repoSecrets.set({
-			...this.$repoSecrets.get(),
-			[fullName]: secrets,
-		});
 	}
 
 	public async loadRepoVariables(fullName: string): Promise<void> {
-		const token = this.$accessToken.get();
-		if (!token) return;
-		const variables = await apiFetch<ForgejoVariable[]>(
-			token,
+		await this._loadResource<ForgejoVariable[]>(
+			'repoAdmin',
+			`forgejo:variables:${fullName}`,
 			`/api/v1/repos/${fullName}/actions/variables?limit=${PAGE_SIZE}`,
-			[] as ForgejoVariable[],
+			(d) =>
+				this.$repoVariables.set({
+					...this.$repoVariables.get(),
+					[fullName]: d,
+				}),
 		);
-		this.$repoVariables.set({
-			...this.$repoVariables.get(),
-			[fullName]: variables,
-		});
 	}
 
 	public setSecret(
@@ -1699,29 +1770,129 @@ class ForgejoService {
 		this.loadRepoVariables(fullName);
 	}
 
+	// --- Issue & PR moderation actions ---
+
+	public selectIssueRepo(fullName: string): void {
+		this.$issueRepo.set(fullName);
+		this.loadIssues();
+	}
+
+	public setIssueState(state: 'open' | 'closed'): void {
+		this.$issueState.set(state);
+		this.loadIssues();
+	}
+
+	public setIssueType(type: 'issues' | 'pulls'): void {
+		this.$issueType.set(type);
+		this.loadIssues();
+	}
+
+	public async loadIssues(): Promise<void> {
+		const token = this.$accessToken.get();
+		const repo = this.$issueRepo.get();
+		if (!token || !repo) return;
+		this.$issuesLoading.set(true);
+		try {
+			const issues = await apiFetch<ForgejoIssue[]>(
+				token,
+				`/api/v1/repos/${repo}/issues?state=${this.$issueState.get()}&type=${this.$issueType.get()}&limit=${PAGE_SIZE}`,
+			);
+			this.$issues.set(Array.isArray(issues) ? issues : []);
+			this.clearNotice('issues');
+		} catch (e) {
+			this.$issues.set([]);
+			this.setNotice('issues', this._noticeFor(e));
+		} finally {
+			this.$issuesLoading.set(false);
+		}
+	}
+
+	public setIssueOpenState(
+		index: number,
+		state: 'open' | 'closed',
+	): Promise<boolean> {
+		const repo = this.$issueRepo.get();
+		return this._run(
+			`issue-state-${index}`,
+			async (t) => {
+				if (!repo) return;
+				await apiMutate(
+					t,
+					'PATCH',
+					`/api/v1/repos/${repo}/issues/${index}`,
+					{ state },
+				);
+				await this.loadIssues();
+			},
+			state === 'closed' ? `#${index} closed` : `#${index} reopened`,
+		);
+	}
+
+	public setIssueLock(index: number, lock: boolean): Promise<boolean> {
+		const repo = this.$issueRepo.get();
+		return this._run(
+			`issue-lock-${index}`,
+			async (t) => {
+				if (!repo) return;
+				if (lock) {
+					await apiMutate(
+						t,
+						'PUT',
+						`/api/v1/repos/${repo}/issues/${index}/lock`,
+						{ lock_reason: 'too heated' },
+					);
+				} else {
+					await apiMutate(
+						t,
+						'DELETE',
+						`/api/v1/repos/${repo}/issues/${index}/lock`,
+					);
+				}
+				await this.loadIssues();
+			},
+			lock ? `#${index} locked` : `#${index} unlocked`,
+		);
+	}
+
 	// --- System actions ---
 
 	public async loadSystem(): Promise<void> {
 		const token = this.$accessToken.get();
 		if (!token) return;
-		const [version, cron, unadopted] = await Promise.all([
-			apiFetch<ForgejoVersion>(token, '/api/v1/version', {
-				version: 'unknown',
-			}),
+		const [version, cron, unadopted] = await Promise.allSettled([
+			apiFetch<ForgejoVersion>(token, '/api/v1/version'),
 			apiFetch<ForgejoCronTask[]>(
 				token,
-				'/api/v1/admin/cron?limit=50',
-				[] as ForgejoCronTask[],
+				`/api/v1/admin/cron?limit=${PAGE_SIZE}`,
 			),
 			apiFetch<string[]>(
 				token,
-				'/api/v1/admin/unadopted?limit=50',
-				[] as string[],
+				`/api/v1/admin/unadopted?limit=${PAGE_SIZE}`,
 			),
 		]);
-		this.$version.set(version.version ?? 'unknown');
-		this.$cronTasks.set(Array.isArray(cron) ? cron : []);
-		this.$unadopted.set(Array.isArray(unadopted) ? unadopted : []);
+		this.$version.set(
+			version.status === 'fulfilled'
+				? (version.value.version ?? 'unknown')
+				: 'unknown',
+		);
+		this.$cronTasks.set(
+			cron.status === 'fulfilled' && Array.isArray(cron.value)
+				? cron.value
+				: [],
+		);
+		this.$unadopted.set(
+			unadopted.status === 'fulfilled' && Array.isArray(unadopted.value)
+				? unadopted.value
+				: [],
+		);
+		const failed = [version, cron, unadopted].find(
+			(r) => r.status === 'rejected',
+		);
+		if (failed && failed.status === 'rejected') {
+			this.setNotice('system', this._noticeFor(failed.reason));
+		} else {
+			this.clearNotice('system');
+		}
 	}
 
 	public runCron(task: string): Promise<boolean> {
