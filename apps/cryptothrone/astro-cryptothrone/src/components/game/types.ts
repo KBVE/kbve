@@ -1,6 +1,10 @@
 export interface PlayerStats {
 	hp: number;
 	maxHp: number;
+	level?: number;
+	xp?: number;
+	xpNext?: number;
+	attack?: number;
 	mp: number;
 	maxMp: number;
 	ep: number;

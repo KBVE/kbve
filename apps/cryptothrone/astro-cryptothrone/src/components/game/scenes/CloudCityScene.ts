@@ -17,7 +17,7 @@ import type {
 	KindEntry,
 } from '@kbve/laser';
 import { getCtNetConfig } from '@/lib/net-config';
-import { getNPCByRef, npcIdForRef } from '../data/npcs';
+import { getNPCByRef, npcIdForRef, isHostileRef } from '../data/npcs';
 
 const MAP_SCALE = 3;
 const STEP_THROTTLE_MS = 90;
@@ -60,6 +60,7 @@ export class CloudCityScene extends Scene {
 	private rangeTile = { x: -1, y: -1 };
 	private myHp = -1;
 	private myMaxHp = -1;
+	private nearbyHostiles = 0;
 	private laserUnsubs: (() => void)[] = [];
 
 	constructor() {
@@ -155,6 +156,17 @@ export class CloudCityScene extends Scene {
 		});
 		client.on('equipped', (e) => {
 			laserEvents.emit('item:equipped', e);
+		});
+		client.on('stats', (st) => {
+			laserEvents.emit('player:stats', {
+				stats: {
+					level: st.level,
+					xp: st.xp,
+					xpNext: st.xp_next,
+					maxHp: st.max_hp,
+					attack: st.attack,
+				},
+			});
 		});
 		client.on('reject', (reason) => {
 			laserEvents.emit('char:event', {
@@ -329,6 +341,23 @@ export class CloudCityScene extends Scene {
 		}
 
 		this.checkRanges();
+		this.checkHostileProximity();
+	}
+
+	private checkHostileProximity() {
+		const me = this.myTile();
+		if (!me) return;
+		let count = 0;
+		for (const [eid, t] of this.tracked) {
+			if (eid === this.myEid) continue;
+			const ref = this.kindRef(t.kind);
+			if (!ref || !isHostileRef(ref)) continue;
+			if (this.chebyshev(me, t.tile) <= 3) count += 1;
+		}
+		if (count > 0 && this.nearbyHostiles === 0) {
+			laserEvents.emit('monster:nearby', { count });
+		}
+		this.nearbyHostiles = count;
 	}
 
 	private myTile(): { x: number; y: number } | null {
