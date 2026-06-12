@@ -158,6 +158,26 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 		);
 
 		unsubs.push(
+			laserEvents.on('item:equipped', (data) => {
+				const eq = data as { item_ref: string | null; attack: number };
+				dispatch({
+					type: 'EQUIP_ITEM',
+					payload: { slot: 'mainHand', itemId: eq.item_ref },
+				});
+				dispatch({
+					type: 'ADD_NOTIFICATION',
+					payload: {
+						title: eq.item_ref ? 'Equipped' : 'Unequipped',
+						message: eq.item_ref
+							? `${eq.item_ref} (attack ${eq.attack})`
+							: `attack ${eq.attack}`,
+						type: 'info',
+					},
+				});
+			}),
+		);
+
+		unsubs.push(
 			laserEvents.on('dice:roll', (data) => {
 				dispatch({
 					type: 'SET_DICE_ROLL',

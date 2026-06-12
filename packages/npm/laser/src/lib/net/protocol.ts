@@ -1,4 +1,4 @@
-export const PROTOCOL_VERSION = 3;
+export const PROTOCOL_VERSION = 4;
 
 export const ACTION_ATTACK = 1;
 export const ACTION_PICKUP = 2;
@@ -8,6 +8,7 @@ export const EPHEMERAL_COMBAT = 2;
 export const EPHEMERAL_PICKUP = 3;
 export const EPHEMERAL_CHAT = 4;
 export const EPHEMERAL_ITEM_USED = 5;
+export const EPHEMERAL_EQUIPPED = 6;
 
 export const KIND_CAT_PLAYER = 0;
 export const KIND_CAT_NPC = 1;
@@ -27,6 +28,7 @@ export type Input =
 	| { Face: { facing: Facing } }
 	| { Action: { id: number; target: number | null } }
 	| { UseItem: { item_ref: string } }
+	| { EquipItem: { item_ref: string } }
 	| { Say: { text: string } }
 	| { Heartbeat: { client_tick: number } }
 	| 'Leave';
@@ -120,6 +122,11 @@ export interface ChatEvent {
 export interface ItemUsedEvent {
 	item_ref: string;
 	heal: number;
+}
+
+export interface EquippedEvent {
+	item_ref: string | null;
+	attack: number;
 }
 
 export type ServerEvent =

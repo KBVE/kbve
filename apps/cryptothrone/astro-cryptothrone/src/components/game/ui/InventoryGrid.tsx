@@ -44,16 +44,28 @@ export function InventoryGrid({ backpack }: InventoryGridProps) {
 								aria-label={
 									item.type === 'consumable'
 										? `Use ${item.name}`
-										: item.name
+										: item.type === 'weapon' ||
+											  item.type === 'armor'
+											? `Equip ${item.name}`
+											: item.name
 								}
 								className={
-									item.type === 'consumable'
+									item.type === 'consumable' ||
+									item.type === 'weapon' ||
+									item.type === 'armor'
 										? 'cursor-pointer'
 										: 'cursor-default'
 								}
 								onClick={() => {
 									if (item.type === 'consumable') {
 										laserEvents.emit('item:use', {
+											ref: item.id,
+										});
+									} else if (
+										item.type === 'weapon' ||
+										item.type === 'armor'
+									) {
+										laserEvents.emit('item:equip', {
 											ref: item.id,
 										});
 									}

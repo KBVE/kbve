@@ -21,6 +21,15 @@ pub struct NpcDef {
     pub stats: NpcStats,
     #[serde(default)]
     pub equipment: Option<NpcEquipment>,
+    #[serde(default)]
+    pub faction: Option<NpcFaction>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcFaction {
+    #[serde(default)]
+    pub faction_id: String,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
@@ -49,6 +58,14 @@ pub struct NpcEquipment {
 pub struct NpcEquipSlot {
     #[serde(default)]
     pub item_ref: String,
+}
+
+impl NpcDef {
+    pub fn is_hostile(&self) -> bool {
+        self.faction
+            .as_ref()
+            .is_some_and(|f| f.faction_id == "hostile")
+    }
 }
 
 impl NpcDb {
