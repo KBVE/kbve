@@ -159,18 +159,26 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 
 		unsubs.push(
 			laserEvents.on('item:equipped', (data) => {
-				const eq = data as { item_ref: string | null; attack: number };
+				const eq = data as {
+					item_ref: string | null;
+					slot?: 'weapon' | 'armor';
+					attack: number;
+					defense?: number;
+				};
 				dispatch({
 					type: 'EQUIP_ITEM',
-					payload: { slot: 'mainHand', itemId: eq.item_ref },
+					payload: {
+						slot: eq.slot === 'armor' ? 'offHand' : 'mainHand',
+						itemId: eq.item_ref,
+					},
 				});
 				dispatch({
 					type: 'ADD_NOTIFICATION',
 					payload: {
 						title: eq.item_ref ? 'Equipped' : 'Unequipped',
 						message: eq.item_ref
-							? `${eq.item_ref} (attack ${eq.attack})`
-							: `attack ${eq.attack}`,
+							? `${eq.item_ref} (atk ${eq.attack}, def ${eq.defense ?? 0})`
+							: `atk ${eq.attack}, def ${eq.defense ?? 0}`,
 						type: 'info',
 					},
 				});

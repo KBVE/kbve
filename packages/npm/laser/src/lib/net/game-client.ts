@@ -6,6 +6,7 @@ import {
 	EPHEMERAL_INVENTORY,
 	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_PICKUP,
+	EPHEMERAL_STATS,
 	type ChatEvent,
 	type ClientMessage,
 	type CombatEvent,
@@ -19,6 +20,7 @@ import {
 	type PickupEvent,
 	type ServerEvent,
 	type Snapshot,
+	type StatsEvent,
 	type Tile,
 	type Welcome,
 	decodeEphemeralPayload,
@@ -37,6 +39,7 @@ export type GameClientEventMap = {
 	chat: ChatEvent;
 	itemUsed: ItemUsedEvent;
 	equipped: EquippedEvent;
+	stats: StatsEvent;
 	reject: string;
 	close: void;
 	error: string;
@@ -118,6 +121,9 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_EQUIPPED) {
 			const data = decodeEphemeralPayload<EquippedEvent>(evt.payload);
 			if (data) this.bus.emit('equipped', data);
+		} else if (evt.kind === EPHEMERAL_STATS) {
+			const data = decodeEphemeralPayload<StatsEvent>(evt.payload);
+			if (data) this.bus.emit('stats', data);
 		}
 	}
 
