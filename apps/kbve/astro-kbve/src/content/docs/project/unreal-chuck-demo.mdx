@@ -1,7 +1,7 @@
 ---
 title: Unreal Chuck Demo
 description: |
-    Chuck RPG UE5 demo client built straight from the monorepo apps/chuckrpg/unreal-chuck shell (no external repo) and shipped to itch.io as kbve/chuckrpg, alongside the full Unreal Chuck Game.
+    Chuck RPG UE5 demo client built from the external KBVE/chuck repo (default branch) and shipped to itch.io as kbve/chuckrpg on the demo channel, alongside the full Unreal Chuck Game.
 sidebar:
     label: Unreal Chuck Demo
     order: 96
@@ -23,7 +23,8 @@ status: beta
 homepage_url: https://kbve.itch.io/chuckrpg
 engine:
     version: "5.7.4"
-    project_path: apps/chuckrpg/unreal-chuck
+    project_path: chuck
+    external_repo_url: https://github.com/kbve/chuck
     build_targets:
         - Win64
         - Linux
@@ -36,12 +37,12 @@ shell_path: apps/chuckrpg/unreal-chuck
 
 ## Overview
 
-Chuck RPG UE5 demo client. Unlike the [Unreal Chuck Game](/project/unreal-chuck-game),
-which clones the external `KBVE/chuck` repo, this demo compiles the monorepo shell at
-`apps/chuckrpg/unreal-chuck` directly (the working copy with the KBVE plugins). Content is
-pulled from the same chuck Forgejo LFS endpoint (`git.kbve.com/KBVE/chuck`, HTTPS) declared
-in `apps/chuckrpg/unreal-chuck/.lfsconfig`, and the build ships to itch.io under
-`kbve/chuckrpg` on the `demo` channel.
+Chuck RPG UE5 demo client. Like the [Unreal Chuck Game](/project/unreal-chuck-game), it
+builds from the external [`KBVE/chuck`](https://github.com/kbve/chuck) repo (default branch,
+`.uproject` under `engine.project_path` = `chuck`), with Content pulled from the chuck Forgejo
+LFS endpoint (`git.kbve.com/KBVE/chuck`, HTTPS) declared in the repo's own `.lfsconfig`. It
+differs only in distribution: the build ships to itch.io under `kbve/chuckrpg` on the `demo`
+channel.
 
 ## Pipeline
 
@@ -56,10 +57,10 @@ same gate, to:
   for repo / `server_target` / UE image and archives to the OWS PVC at
   `/mnt/longhorn/ows-server/<server_target>/<version>`.
 
-With no `engine.external_repo_url`, the builder checks out the monorepo and builds under
-`engine.project_path` against the prebuilt UE5.7 on the `UE5-Win` KubeVirt VM
-(`C:\Program Files\Epic Games\UE_5.7`); the Linux client + server build in the cached
-`ghcr.io/epicgames/unreal-engine:dev-5.7.4` image on `arc-runner-ue`.
+With `engine.external_repo_url` set, the builder clones `KBVE/chuck` (default branch) and
+builds the `.uproject` under `engine.project_path` = `chuck` against the prebuilt UE5.7 on the
+`UE5-Win` KubeVirt VM (`C:\Program Files\Epic Games\UE_5.7`); the Linux client + server build
+in the cached `ghcr.io/epicgames/unreal-engine:dev-5.7.4` image on `arc-runner-ue`.
 
 ## Build Matrix
 
