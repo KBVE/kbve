@@ -136,6 +136,148 @@ export interface RepoDetail {
 	loading: boolean;
 }
 
+export interface ForgejoTeam {
+	id: number;
+	name: string;
+	description: string;
+	permission: string;
+	units: string[];
+	includes_all_repositories: boolean;
+	can_create_org_repo: boolean;
+}
+
+export interface ForgejoHook {
+	id: number;
+	type: string;
+	active: boolean;
+	events: string[];
+	config: Record<string, string>;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface ForgejoCronTask {
+	name: string;
+	schedule: string;
+	next: string;
+	prev: string;
+	exec_times: number;
+}
+
+export interface ForgejoVersion {
+	version: string;
+}
+
+export interface ForgejoCollaborator extends ForgejoUser {
+	permissions?: {
+		admin: boolean;
+		push: boolean;
+		pull: boolean;
+	};
+}
+
+export type ForgejoTab =
+	| 'overview'
+	| 'repos'
+	| 'users'
+	| 'orgs'
+	| 'webhooks'
+	| 'system';
+
+export interface CreateRepoInput {
+	owner: string;
+	ownerIsOrg: boolean;
+	name: string;
+	description: string;
+	private: boolean;
+	auto_init: boolean;
+	default_branch: string;
+}
+
+export interface MigrateRepoInput {
+	clone_addr: string;
+	repo_name: string;
+	repo_owner: string;
+	mirror: boolean;
+	private: boolean;
+	description: string;
+	auth_token?: string;
+}
+
+export interface EditRepoInput {
+	description?: string;
+	private?: boolean;
+	archived?: boolean;
+	default_branch?: string;
+	has_issues?: boolean;
+	has_wiki?: boolean;
+	has_pull_requests?: boolean;
+}
+
+export interface CreateUserInput {
+	username: string;
+	email: string;
+	password: string;
+	must_change_password: boolean;
+	visibility: string;
+}
+
+export interface EditUserInput {
+	email?: string;
+	admin?: boolean;
+	active?: boolean;
+	prohibit_login?: boolean;
+	restricted?: boolean;
+	max_repo_creation?: number;
+}
+
+export interface CreateOrgInput {
+	username: string;
+	full_name: string;
+	description: string;
+	visibility: string;
+}
+
+export interface EditOrgInput {
+	full_name?: string;
+	description?: string;
+	visibility?: string;
+	website?: string;
+	location?: string;
+}
+
+export interface CreateTeamInput {
+	name: string;
+	description: string;
+	permission: string;
+	includes_all_repositories: boolean;
+	can_create_org_repo: boolean;
+	units: string[];
+}
+
+export interface CreateHookInput {
+	type: string;
+	url: string;
+	content_type: string;
+	secret: string;
+	events: string[];
+	active: boolean;
+}
+
+export interface CreateReleaseInput {
+	tag_name: string;
+	target_commitish: string;
+	name: string;
+	body: string;
+	draft: boolean;
+	prerelease: boolean;
+}
+
+export interface ToastMsg {
+	kind: 'success' | 'error' | 'info';
+	msg: string;
+}
+
 interface CachedData {
 	ts: number;
 	repos: ForgejoRepo[];
@@ -149,6 +291,7 @@ interface CachedData {
 
 const CACHE_KEY = 'cache:forgejo:data';
 const EXPANDED_KEY = 'forgejo:expandedRepo';
+const TAB_KEY = 'forgejo:activeTab';
 const CACHE_TTL_MS = 60 * 1000;
 const PROXY_BASE = '/dashboard/forgejo/proxy';
 const REFRESH_INTERVAL_MS = 30 * 1000;
@@ -214,6 +357,59 @@ async function apiFetch<T>(
 	return await resp.json();
 }
 
+export class ForgejoMutationError extends Error {
+	status: number;
+	constructor(status: number, message: string) {
+		super(message);
+		this.name = 'ForgejoMutationError';
+		this.status = status;
+	}
+}
+
+async function apiMutate<T>(
+	token: string,
+	method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+	path: string,
+	body?: unknown,
+): Promise<T> {
+	const headers: Record<string, string> = {
+		Authorization: `Bearer ${token}`,
+	};
+	const opts: RequestInit = {
+		method,
+		headers,
+		signal: AbortSignal.timeout(15000),
+	};
+	if (body !== undefined) {
+		headers['Content-Type'] = 'application/json';
+		opts.body = JSON.stringify(body);
+	}
+
+	const resp = await fetch(`${PROXY_BASE}${path}`, opts);
+	if (!resp.ok) {
+		const text = await resp.text().catch(() => '');
+		let detail = text.slice(0, 300);
+		try {
+			const parsed = JSON.parse(text);
+			detail = parsed.message ?? parsed.error ?? detail;
+		} catch {
+			detail = text.slice(0, 300);
+		}
+		throw new ForgejoMutationError(
+			resp.status,
+			detail || `Request failed (${resp.status})`,
+		);
+	}
+
+	const text = await resp.text();
+	if (!text || text.trim().length === 0) return {} as T;
+	try {
+		return JSON.parse(text) as T;
+	} catch {
+		return {} as T;
+	}
+}
+
 async function fetchRepos(token: string): Promise<ForgejoRepo[]> {
 	const data = await apiFetch<{ data?: ForgejoRepo[] } | ForgejoRepo[]>(
 		token,
@@ -224,8 +420,18 @@ async function fetchRepos(token: string): Promise<ForgejoRepo[]> {
 }
 
 async function fetchUsers(token: string): Promise<ForgejoUser[]> {
-	// Try repo collaborators — the deploy token has repo scope.
-	// Extract unique users from all accessible repos' collaborators.
+	const admin = await apiFetch<ForgejoUser[] | null>(
+		token,
+		'/api/v1/admin/users?limit=50',
+		null,
+	);
+	if (Array.isArray(admin) && admin.length > 0) return admin;
+	return fetchUsersFromCollaborators(token);
+}
+
+async function fetchUsersFromCollaborators(
+	token: string,
+): Promise<ForgejoUser[]> {
 	const repos = await fetchRepos(token);
 	const users: ForgejoUser[] = [];
 	const seen = new Set<number>();
@@ -242,7 +448,6 @@ async function fetchUsers(token: string): Promise<ForgejoUser[]> {
 			}
 		}
 	}
-	// Also include repo owners
 	for (const repo of repos) {
 		if (repo.owner && !seen.has(repo.owner.id)) {
 			seen.add(repo.owner.id);
@@ -415,6 +620,33 @@ class ForgejoService {
 		},
 	);
 	public readonly $repoDetails = atom<Record<string, RepoDetail>>({});
+
+	// Admin panel state
+	public readonly $activeTab = persistentAtom<ForgejoTab>(
+		TAB_KEY,
+		'overview',
+		{
+			encode: (v) => v,
+			decode: (raw) => (raw as ForgejoTab) || 'overview',
+		},
+	);
+	public readonly $toast = atom<ToastMsg | null>(null);
+	public readonly $busy = atom<string | null>(null);
+
+	public readonly $teams = atom<Record<string, ForgejoTeam[]>>({});
+	public readonly $orgMembers = atom<Record<string, ForgejoUser[]>>({});
+	public readonly $teamMembers = atom<Record<number, ForgejoUser[]>>({});
+	public readonly $collaborators = atom<
+		Record<string, ForgejoCollaborator[]>
+	>({});
+
+	public readonly $selectedRepo = atom<string | null>(null);
+	public readonly $repoHooks = atom<Record<string, ForgejoHook[]>>({});
+	public readonly $repoReleases = atom<Record<string, ForgejoRelease[]>>({});
+
+	public readonly $version = atom<string | null>(null);
+	public readonly $cronTasks = atom<ForgejoCronTask[]>([]);
+	public readonly $unadopted = atom<string[]>([]);
 
 	// Computed
 	public readonly $totalRepos = computed(
@@ -633,6 +865,550 @@ class ForgejoService {
 		this._refreshInterval = setInterval(
 			() => this.fetchData(),
 			REFRESH_INTERVAL_MS,
+		);
+	}
+
+	public setTab(tab: ForgejoTab): void {
+		this.$activeTab.set(tab);
+	}
+
+	public showToast(kind: ToastMsg['kind'], msg: string): void {
+		this.$toast.set({ kind, msg });
+		setTimeout(() => {
+			if (this.$toast.get()?.msg === msg) this.$toast.set(null);
+		}, 4000);
+	}
+
+	public dismissToast(): void {
+		this.$toast.set(null);
+	}
+
+	private async _run(
+		id: string,
+		fn: (token: string) => Promise<void>,
+		successMsg: string,
+	): Promise<boolean> {
+		const token = this.$accessToken.get();
+		if (!token) return false;
+		this.$busy.set(id);
+		try {
+			await fn(token);
+			this.showToast('success', successMsg);
+			return true;
+		} catch (e: unknown) {
+			const msg =
+				e instanceof ForgejoMutationError
+					? `${e.message} (${e.status})`
+					: e instanceof Error
+						? e.message
+						: 'Action failed';
+			this.showToast('error', msg);
+			return false;
+		} finally {
+			this.$busy.set(null);
+		}
+	}
+
+	// --- Repo actions ---
+
+	public createRepo(input: CreateRepoInput): Promise<boolean> {
+		const body = {
+			name: input.name,
+			description: input.description,
+			private: input.private,
+			auto_init: input.auto_init,
+			default_branch: input.default_branch || 'main',
+		};
+		const path = input.ownerIsOrg
+			? `/api/v1/orgs/${input.owner}/repos`
+			: `/api/v1/admin/users/${input.owner}/repos`;
+		return this._run(
+			'repo-create',
+			async (t) => {
+				await apiMutate(t, 'POST', path, body);
+				await this.fetchData();
+			},
+			`Repository ${input.owner}/${input.name} created`,
+		);
+	}
+
+	public migrateRepo(input: MigrateRepoInput): Promise<boolean> {
+		return this._run(
+			'repo-migrate',
+			async (t) => {
+				await apiMutate(t, 'POST', '/api/v1/repos/migrate', {
+					clone_addr: input.clone_addr,
+					repo_name: input.repo_name,
+					repo_owner: input.repo_owner,
+					mirror: input.mirror,
+					private: input.private,
+					description: input.description,
+					service: 'git',
+					...(input.auth_token
+						? { auth_token: input.auth_token }
+						: {}),
+				});
+				await this.fetchData();
+			},
+			`Migration of ${input.repo_name} started`,
+		);
+	}
+
+	public editRepo(fullName: string, input: EditRepoInput): Promise<boolean> {
+		return this._run(
+			`repo-edit-${fullName}`,
+			async (t) => {
+				await apiMutate(t, 'PATCH', `/api/v1/repos/${fullName}`, input);
+				await this.fetchData();
+			},
+			`Repository ${fullName} updated`,
+		);
+	}
+
+	public deleteRepo(fullName: string): Promise<boolean> {
+		return this._run(
+			`repo-delete-${fullName}`,
+			async (t) => {
+				await apiMutate(t, 'DELETE', `/api/v1/repos/${fullName}`);
+				await this.fetchData();
+			},
+			`Repository ${fullName} deleted`,
+		);
+	}
+
+	public transferRepo(fullName: string, newOwner: string): Promise<boolean> {
+		return this._run(
+			`repo-transfer-${fullName}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'POST',
+					`/api/v1/repos/${fullName}/transfer`,
+					{ new_owner: newOwner },
+				);
+				await this.fetchData();
+			},
+			`Repository ${fullName} transferred to ${newOwner}`,
+		);
+	}
+
+	public async loadCollaborators(fullName: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		const collabs = await apiFetch<ForgejoCollaborator[]>(
+			token,
+			`/api/v1/repos/${fullName}/collaborators?limit=50`,
+			[] as ForgejoCollaborator[],
+		);
+		this.$collaborators.set({
+			...this.$collaborators.get(),
+			[fullName]: collabs,
+		});
+	}
+
+	public addCollaborator(
+		fullName: string,
+		user: string,
+		permission: string,
+	): Promise<boolean> {
+		return this._run(
+			`collab-add-${fullName}-${user}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'PUT',
+					`/api/v1/repos/${fullName}/collaborators/${user}`,
+					{ permission },
+				);
+				await this.loadCollaborators(fullName);
+			},
+			`${user} added to ${fullName}`,
+		);
+	}
+
+	public removeCollaborator(
+		fullName: string,
+		user: string,
+	): Promise<boolean> {
+		return this._run(
+			`collab-remove-${fullName}-${user}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/repos/${fullName}/collaborators/${user}`,
+				);
+				await this.loadCollaborators(fullName);
+			},
+			`${user} removed from ${fullName}`,
+		);
+	}
+
+	// --- User actions ---
+
+	public createUser(input: CreateUserInput): Promise<boolean> {
+		return this._run(
+			'user-create',
+			async (t) => {
+				await apiMutate(t, 'POST', '/api/v1/admin/users', input);
+				await this.fetchData();
+			},
+			`User ${input.username} created`,
+		);
+	}
+
+	public editUser(login: string, input: EditUserInput): Promise<boolean> {
+		return this._run(
+			`user-edit-${login}`,
+			async (t) => {
+				await apiMutate(t, 'PATCH', `/api/v1/admin/users/${login}`, {
+					login_name: login,
+					...input,
+				});
+				await this.fetchData();
+			},
+			`User ${login} updated`,
+		);
+	}
+
+	public deleteUser(login: string, purge: boolean): Promise<boolean> {
+		return this._run(
+			`user-delete-${login}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/admin/users/${login}?purge=${purge}`,
+				);
+				await this.fetchData();
+			},
+			`User ${login} deleted`,
+		);
+	}
+
+	// --- Org & team actions ---
+
+	public createOrg(input: CreateOrgInput): Promise<boolean> {
+		return this._run(
+			'org-create',
+			async (t) => {
+				await apiMutate(t, 'POST', '/api/v1/orgs', input);
+				await this.fetchData();
+			},
+			`Organization ${input.username} created`,
+		);
+	}
+
+	public editOrg(org: string, input: EditOrgInput): Promise<boolean> {
+		return this._run(
+			`org-edit-${org}`,
+			async (t) => {
+				await apiMutate(t, 'PATCH', `/api/v1/orgs/${org}`, input);
+				await this.fetchData();
+			},
+			`Organization ${org} updated`,
+		);
+	}
+
+	public deleteOrg(org: string): Promise<boolean> {
+		return this._run(
+			`org-delete-${org}`,
+			async (t) => {
+				await apiMutate(t, 'DELETE', `/api/v1/orgs/${org}`);
+				await this.fetchData();
+			},
+			`Organization ${org} deleted`,
+		);
+	}
+
+	public async loadOrgMembers(org: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		const members = await apiFetch<ForgejoUser[]>(
+			token,
+			`/api/v1/orgs/${org}/members?limit=50`,
+			[] as ForgejoUser[],
+		);
+		this.$orgMembers.set({ ...this.$orgMembers.get(), [org]: members });
+	}
+
+	public removeOrgMember(org: string, user: string): Promise<boolean> {
+		return this._run(
+			`org-member-remove-${org}-${user}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/orgs/${org}/members/${user}`,
+				);
+				await this.loadOrgMembers(org);
+			},
+			`${user} removed from ${org}`,
+		);
+	}
+
+	public async loadTeams(org: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		const teams = await apiFetch<ForgejoTeam[]>(
+			token,
+			`/api/v1/orgs/${org}/teams?limit=50`,
+			[] as ForgejoTeam[],
+		);
+		this.$teams.set({ ...this.$teams.get(), [org]: teams });
+	}
+
+	public createTeam(org: string, input: CreateTeamInput): Promise<boolean> {
+		return this._run(
+			`team-create-${org}`,
+			async (t) => {
+				await apiMutate(t, 'POST', `/api/v1/orgs/${org}/teams`, input);
+				await this.loadTeams(org);
+			},
+			`Team ${input.name} created in ${org}`,
+		);
+	}
+
+	public deleteTeam(org: string, teamId: number): Promise<boolean> {
+		return this._run(
+			`team-delete-${teamId}`,
+			async (t) => {
+				await apiMutate(t, 'DELETE', `/api/v1/teams/${teamId}`);
+				await this.loadTeams(org);
+			},
+			`Team deleted`,
+		);
+	}
+
+	public async loadTeamMembers(teamId: number): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		const members = await apiFetch<ForgejoUser[]>(
+			token,
+			`/api/v1/teams/${teamId}/members?limit=50`,
+			[] as ForgejoUser[],
+		);
+		this.$teamMembers.set({
+			...this.$teamMembers.get(),
+			[teamId]: members,
+		});
+	}
+
+	public addTeamMember(teamId: number, user: string): Promise<boolean> {
+		return this._run(
+			`team-member-add-${teamId}-${user}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'PUT',
+					`/api/v1/teams/${teamId}/members/${user}`,
+				);
+				await this.loadTeamMembers(teamId);
+			},
+			`${user} added to team`,
+		);
+	}
+
+	public removeTeamMember(teamId: number, user: string): Promise<boolean> {
+		return this._run(
+			`team-member-remove-${teamId}-${user}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/teams/${teamId}/members/${user}`,
+				);
+				await this.loadTeamMembers(teamId);
+			},
+			`${user} removed from team`,
+		);
+	}
+
+	// --- Webhook actions ---
+
+	public async loadRepoHooks(fullName: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		const hooks = await apiFetch<ForgejoHook[]>(
+			token,
+			`/api/v1/repos/${fullName}/hooks?limit=50`,
+			[] as ForgejoHook[],
+		);
+		this.$repoHooks.set({ ...this.$repoHooks.get(), [fullName]: hooks });
+	}
+
+	public createHook(
+		fullName: string,
+		input: CreateHookInput,
+	): Promise<boolean> {
+		return this._run(
+			`hook-create-${fullName}`,
+			async (t) => {
+				await apiMutate(t, 'POST', `/api/v1/repos/${fullName}/hooks`, {
+					type: input.type,
+					active: input.active,
+					events: input.events,
+					config: {
+						url: input.url,
+						content_type: input.content_type,
+						...(input.secret ? { secret: input.secret } : {}),
+					},
+				});
+				await this.loadRepoHooks(fullName);
+			},
+			`Webhook created on ${fullName}`,
+		);
+	}
+
+	public deleteHook(fullName: string, id: number): Promise<boolean> {
+		return this._run(
+			`hook-delete-${fullName}-${id}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/repos/${fullName}/hooks/${id}`,
+				);
+				await this.loadRepoHooks(fullName);
+			},
+			`Webhook deleted`,
+		);
+	}
+
+	public testHook(fullName: string, id: number): Promise<boolean> {
+		return this._run(
+			`hook-test-${fullName}-${id}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'POST',
+					`/api/v1/repos/${fullName}/hooks/${id}/tests`,
+				);
+			},
+			`Test delivery sent`,
+		);
+	}
+
+	// --- Release actions ---
+
+	public async loadRepoReleases(fullName: string): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		const releases = await apiFetch<ForgejoRelease[]>(
+			token,
+			`/api/v1/repos/${fullName}/releases?limit=20`,
+			[] as ForgejoRelease[],
+		);
+		this.$repoReleases.set({
+			...this.$repoReleases.get(),
+			[fullName]: releases,
+		});
+	}
+
+	public createRelease(
+		fullName: string,
+		input: CreateReleaseInput,
+	): Promise<boolean> {
+		return this._run(
+			`release-create-${fullName}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'POST',
+					`/api/v1/repos/${fullName}/releases`,
+					input,
+				);
+				await this.loadRepoReleases(fullName);
+			},
+			`Release ${input.tag_name} created`,
+		);
+	}
+
+	public deleteRelease(fullName: string, id: number): Promise<boolean> {
+		return this._run(
+			`release-delete-${fullName}-${id}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/repos/${fullName}/releases/${id}`,
+				);
+				await this.loadRepoReleases(fullName);
+			},
+			`Release deleted`,
+		);
+	}
+
+	public selectRepo(fullName: string): void {
+		this.$selectedRepo.set(fullName);
+		this.loadRepoHooks(fullName);
+		this.loadRepoReleases(fullName);
+	}
+
+	// --- System actions ---
+
+	public async loadSystem(): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		const [version, cron, unadopted] = await Promise.all([
+			apiFetch<ForgejoVersion>(token, '/api/v1/version', {
+				version: 'unknown',
+			}),
+			apiFetch<ForgejoCronTask[]>(
+				token,
+				'/api/v1/admin/cron?limit=50',
+				[] as ForgejoCronTask[],
+			),
+			apiFetch<string[]>(
+				token,
+				'/api/v1/admin/unadopted?limit=50',
+				[] as string[],
+			),
+		]);
+		this.$version.set(version.version ?? 'unknown');
+		this.$cronTasks.set(Array.isArray(cron) ? cron : []);
+		this.$unadopted.set(Array.isArray(unadopted) ? unadopted : []);
+	}
+
+	public runCron(task: string): Promise<boolean> {
+		return this._run(
+			`cron-run-${task}`,
+			async (t) => {
+				await apiMutate(t, 'POST', `/api/v1/admin/cron/${task}`);
+				await this.loadSystem();
+			},
+			`Cron task ${task} triggered`,
+		);
+	}
+
+	public adoptUnadopted(fullName: string): Promise<boolean> {
+		return this._run(
+			`unadopted-adopt-${fullName}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'POST',
+					`/api/v1/admin/unadopted/${fullName}`,
+				);
+				await this.loadSystem();
+				await this.fetchData();
+			},
+			`Adopted ${fullName}`,
+		);
+	}
+
+	public deleteUnadopted(fullName: string): Promise<boolean> {
+		return this._run(
+			`unadopted-delete-${fullName}`,
+			async (t) => {
+				await apiMutate(
+					t,
+					'DELETE',
+					`/api/v1/admin/unadopted/${fullName}`,
+				);
+				await this.loadSystem();
+			},
+			`Deleted unadopted ${fullName}`,
 		);
 	}
 }
