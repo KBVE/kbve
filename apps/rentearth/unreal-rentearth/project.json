@@ -67,28 +67,28 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "apps/rentearth/unreal-rentearth",
-				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearthEditor Mac Development \"$PWD/rentearth.uproject\""
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/rentearth.uproject\""
 			}
 		},
 		"build-game": {
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "apps/rentearth/unreal-rentearth",
-				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearth Mac Development \"$PWD/rentearth.uproject\""
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuck Mac Development \"$PWD/rentearth.uproject\""
 			}
 		},
 		"build-server": {
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "apps/rentearth/unreal-rentearth",
-				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearthServer Mac Development \"$PWD/rentearth.uproject\""
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckServer Mac Development \"$PWD/rentearth.uproject\""
 			}
 		},
 		"compile": {
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "apps/rentearth/unreal-rentearth",
-				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearthEditor Mac Development \"$PWD/rentearth.uproject\""
+				"command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/rentearth.uproject\""
 			}
 		},
 		"regen-project-files": {
@@ -111,7 +111,7 @@
 			"options": {
 				"cwd": "{workspaceRoot}",
 				"commands": [
-					"\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearthEditor Mac Development \"$PWD/apps/rentearth/unreal-rentearth/rentearth.uproject\"",
+					"\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/apps/rentearth/unreal-rentearth/rentearth.uproject\"",
 					"./apps/rentearth/unreal-rentearth/scripts/launch-editor.sh"
 				],
 				"parallel": false

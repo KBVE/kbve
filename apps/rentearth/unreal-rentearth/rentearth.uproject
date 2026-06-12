@@ -5,7 +5,7 @@
 	"Description": "",
 	"Modules": [
 		{
-			"Name": "rentearth",
+			"Name": "chuck",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
@@ -23,6 +23,10 @@
 	],
 	"Plugins": [
 		{
+			"Name": "ChaosSolverPlugin",
+			"Enabled": true
+		},
+		{
 			"Name": "ModelingToolsEditorMode",
 			"Enabled": true,
 			"TargetAllowList": [
@@ -38,7 +42,114 @@
 			"Enabled": true
 		},
 		{
-			"Name": "ChaosSolverPlugin",
+			"Name": "MassGameplay",
+			"Enabled": true
+		},
+		{
+			"Name": "MassCrowd",
+			"Enabled": true
+		},
+		{
+			"Name": "MassAI",
+			"Enabled": true
+		},
+		{
+			"Name": "AnimationBudgetAllocator",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEYYJson",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEXXHash",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVESQLite",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEULID",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEUI",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEEvents",
+			"Enabled": true
+		},
+		{
+			"Name": "AsyncMessageSystem",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEROWS",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVESupabase",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEWorld",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEGameplay",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEItemDB",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVENPCDB",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEWebSurface",
+			"Enabled": true
+		},
+		{
+			"Name": "WebBrowserWidget",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVELibGit",
+			"Enabled": false
+		},
+		{
+			"Name": "UEDevOps",
+			"Enabled": true
+		},
+		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true
+		},
+		{
+			"Name": "PythonScriptPlugin",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		},
+		{
+			"Name": "KBVEPostShader",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVENet",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEMover",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVECombat",
 			"Enabled": true
 		}
 	]
