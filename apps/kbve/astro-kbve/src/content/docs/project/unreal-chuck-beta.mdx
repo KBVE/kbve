@@ -29,12 +29,16 @@ engine:
         - Win64
         - Linux
     client_config: Shipping
+    server_target: chuckServerBeta
+    server_config: Shipping
+    game_mode: /Script/Chuck.ChuckGameMode
     maps:
         - /Game/Menus/L_MainMenu
         - /Game/Map/L_ChuckWorld
 external_publish:
     itch_user: kbve
     itch_game: chuckrpg
+shell_path: apps/chuckrpg/unreal-chuck
 ---
 
 ## Overview
@@ -62,6 +66,12 @@ version gate / `version_toml` tracker still lives in this monorepo.
 - `Linux` — `BuildCookRun` in the cached Epic UE Docker image on `arc-runner-ue`
 
 Mac is stubbed until the `macos-builder` VM is provisioned.
+
+Plus the bundled Linux **dedicated server** (`shell_path` → `task: server`): the
+`chuckServerBeta` target (`server_config: Shipping`) is cooked from the monorepo shell
+and archived to the OWS PVC at `/ows-server/chuckServerBeta/<version>`, where the
+chuckrpg-beta Agones fleet reads it (`subPath: chuckServerBeta`). Same version gate as the
+client (1:1).
 
 ## Distribution
 
