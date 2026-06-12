@@ -12,27 +12,62 @@ osrs:
   lowalch: 400002
   highalch: 600003
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: toxic
+    tier: high
+  properties:
+    release_date: "2015-01-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: staff
-    attack_style: magic
+    weapon_type: staff
     attack_speed: 4
+    attack_range: 1
+    weight: 2.267
     requirements:
-      magic: 75
       attack: 75
-    stats:
-      attack_magic: 25
-      attack_stab: 55
-      attack_slash: 70
-      strength: 72
-      magic_damage_percent: 15
-    degradeable: true
-  effect:
-    venom_infliction: 25
+      magic: 75
+    attack_bonus:
+      stab: 55
+      slash: 70
+      crush: 0
+      magic: 25
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 3
+      crush: 1
+      magic: 15
+      ranged: 0
+    other_bonus:
+      melee_strength: 72
+      ranged_strength: 0
+      magic_damage: 15
+      prayer: 0
   special_attack:
     name: Power of Death
     energy: 100
-    effect: Halves melee damage received for 1 minute
+    description: "Halves melee damage received for 1 minute."
+  passive_effects:
+    - name: Venom Infliction
+      description: "25% chance to inflict venom on magic and melee attacks."
+    - name: Magic Defence
+      description: "Provides notable magic defence in melee distance fights."
   charging:
     material_id: 12934
     material_name: Zulrah's scales
@@ -42,68 +77,53 @@ osrs:
       level: 59
       xp: 0
       materials:
-        - item_name: Staff of the dead
-          item_id: 11791
+        - item_id: 11791
+          item_name: Staff of the dead
           quantity: 1
-        - item_name: Magic fang
-          item_id: 12932
+        - item_id: 12932
+          item_name: Magic fang
           quantity: 1
-      product: Toxic staff of the dead
-      product_id: 12902
-      product_quantity: 1
+      output:
+        item_id: 12902
+        item_name: Toxic staff (uncharged)
+        output_quantity: 1
+      tools: []
       facility: None
-      members_only: true
+      members: true
+      notes: "Attach Magic fang to Staff of the dead at 59 Crafting."
   related_items:
     - item_id: 11791
       item_name: Staff of the dead
       slug: staff-of-the-dead
       relationship: component
-      description: Base staff
+      description: "Base staff used in the combination."
     - item_id: 12932
       item_name: Magic fang
       slug: magic-fang
       relationship: component
-      description: From Zulrah
+      description: "Zulrah drop attached to grant venom procs."
+    - item_id: 12904
+      item_name: Toxic staff of the dead
+      slug: toxic-staff-of-the-dead
+      relationship: upgrade
+      description: "Charged variant once Zulrah's scales are loaded."
     - item_id: 21006
       item_name: Kodai wand
       slug: kodai-wand
       relationship: alternative
-      description: Higher magic attack
-  about: |-
-    Attach Magic fang to Staff of the dead (59 Crafting).
-
-    | Component | Source | Price |
-    |-----------|--------|-------|
-    | Staff of the dead | K'ril Tsutsaroth | ~8M gp |
-    | Magic fang | Zulrah | ~3M gp |
-
-    | Stat | Value |
-    |------|-------|
-    | Magic attack | +25 |
-    | Magic damage | +15% |
-    | Stab attack | +55 |
-    | Slash attack | +70 |
-    | Strength bonus | +72 |
-    | Requirements | 75 Magic, 75 Attack |
-
-    Venom Infliction:
-    - 25% chance to inflict venom
-    - Works on magic and melee attacks
-
-    Power of Death (100% energy):
-    - Halves melee damage received
-    - Lasts 1 minute
-
-    | Resource | Amount |
-    |----------|--------|
-    | Zulrah's scales | 11,000 |
+      description: "Higher magic attack one-handed alternative."
+  about: "Toxic staff (uncharged) is the unfueled member staff produced by combining a Staff of the dead with a Magic fang at 59 Crafting, ready to be charged with Zulrah's scales into the Toxic staff of the dead for venom procs and +15% magic damage."
   market_strategy:
     notes:
-      - Higher magic bonus than base
-      - Venom is useful for Slayer
-      - Degrades over time
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Price tracks Staff of the dead + Magic fang component spread."
+      - "Buy limit of 8 per 4 hours throttles bulk flipping."
+      - "Demand pulses with Zulrah meta and venom Slayer tasks."
+  trading_tips:
+    - "Watch Staff of the dead and Magic fang prices for combination arbitrage."
+    - "Bulk-stock uncharged variant ahead of charged Toxic SOTD price spikes."
+  history:
+    - date: "2015-01-08"
+      description: "Released as part of the Zulrah update; combination craft with Magic fang and Staff of the dead."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

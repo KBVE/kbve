@@ -1,6 +1,6 @@
 ---
 title: Nihil horn | OSRS Price Data
-description: "Nihil horn: The horn of a proud nihil.. High alch: 1,200,000 GP."
+description: "Nihil horn is a members unique drop from Nex used to craft the Zaryte crossbow. High alch: 1,200,000 GP."
 osrs:
   id: 26372
   name: Nihil horn
@@ -11,60 +11,86 @@ osrs:
   value: 2000000
   lowalch: 800000
   highalch: 1200000
-  limit: null
-  item:
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
     type: upgrade material
+    tier: high
+  properties:
+    release_date: "2022-01-19"
+    update: "Nex - The Mage of Saradomin"
+    quest_item: false
     tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
     weight: 0.006
-  obtaining:
-    - source: Nex
-      drop_rate: 1/258
+    destroy: "Drop"
+    options:
+      - Drop
+    examine_options:
+      - Examine
+    alchable: true
+  drop_table:
+    sources:
+      - source: Nex
+        source_id: 11278
+        combat_level: 1001
+        quantity: "1"
+        rarity: 1/258
+        notes: "Unique drop split among the team based on damage contribution"
   recipes:
-    - materials:
-        - item_id: 26372
-          item_name: Nihil horn
-          quantity: 1
+    - skill: none
+      level: 0
+      xp: 0
+      materials:
         - item_id: 11785
           item_name: Armadyl crossbow
+          quantity: 1
+        - item_id: 26372
+          item_name: Nihil horn
           quantity: 1
         - item_id: 26231
           item_name: Nihil shard
           quantity: 250
-      product: Zaryte crossbow
-      product_id: 26374
+      output:
+        item_id: 26374
+        item_name: Zaryte crossbow
+        output_quantity: 1
+      members: true
+      notes: "Combine at Nex's altar to upgrade Armadyl crossbow into Zaryte crossbow"
   related_items:
     - item_id: 11785
       item_name: Armadyl crossbow
       slug: armadyl-crossbow
       relationship: component
-      description: Base weapon for upgrade
+      description: Base crossbow consumed by the Zaryte crossbow upgrade
     - item_id: 26374
       item_name: Zaryte crossbow
       slug: zaryte-crossbow
       relationship: product
-      description: BiS crossbow created
+      description: BiS general-purpose crossbow produced by the upgrade
     - item_id: 26231
       item_name: Nihil shard
       slug: nihil-shard
       relationship: component
-      description: Required crafting material
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Type | Upgrade Material |
-    | Tradeable | Yes |
-    | Weight | 0.006 kg |
-
-    | Item Created | Materials |
-    |--------------|-----------|
-    | Zaryte crossbow | Armadyl crossbow + Nihil horn + 250 Nihil shards |
+      description: 250 shards required alongside the nihil horn
+    - item_id: 26382
+      item_name: Ancient hilt
+      slug: ancient-hilt
+      relationship: alternative
+      description: Another Nex unique drop tier
   market_strategy:
     notes:
-      - Nex exclusive drop
-      - Creates BiS crossbow
-      - High value unique
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Nex unique with thin supply; price tracks Zaryte crossbow demand"
+      - "Consumed permanently on Zaryte upgrade, creating a steady sink"
+      - "Single-supply choke: only Nex drops them"
+      - "Speculate around metas that buff bolt-DPS BiS"
+  history:
+    - date: "2022-01-19"
+      description: "Released with the Nex boss update"
+  about: "The nihil horn is a members rare drop from Nex used as the central component for upgrading the Armadyl crossbow into the Zaryte crossbow. Combined with 250 nihil shards and an Armadyl crossbow at Nex's altar, it produces the best-in-slot general crossbow."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

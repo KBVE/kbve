@@ -1,6 +1,6 @@
 ---
 title: Grimy cadantine | OSRS Price Data
-description: "Grimy cadantine: It needs cleaning.. High alch: 13 GP, GE limit: 11,000."
+description: "Grimy cadantine: It needs cleaning. High alch: 13 GP, GE limit: 11,000."
 osrs:
   id: 215
   name: Grimy cadantine
@@ -12,18 +12,36 @@ osrs:
   lowalch: 8
   highalch: 13
   limit: 11000
-  herb:
-    type: grimy
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: herb
     tier: high
-  herblore:
-    cleaning_level: 65
-    cleaning_xp: 12.5
-    clean_id: 265
-    clean_name: Cadantine
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Clean
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  potion:
+    skill: herblore
+    level: 65
+    xp: 12.5
+    effects:
+      - description: "Cleans into Cadantine, the secondary herb for Super defence potions."
   farming:
-    level: 67
-    seed_id: 5301
+    farming_level: 67
     seed_name: Cadantine seed
+    seed_id: 5301
+    patch_type: herb
   drop_table:
     sources:
       - source: Nechryael
@@ -38,6 +56,32 @@ osrs:
         quantity: "1"
         rarity: common
         members_only: true
+  recipes:
+    - skill: herblore
+      level: 65
+      xp: 12.5
+      materials:
+        - item_name: Grimy cadantine
+          item_id: 215
+          quantity: 1
+      product: Cadantine
+      product_id: 265
+      output_quantity: 1
+      members_only: true
+    - skill: herblore
+      level: 66
+      xp: 150
+      materials:
+        - item_name: Cadantine potion (unf)
+          item_id: 107
+          quantity: 1
+        - item_name: White berries
+          item_id: 239
+          quantity: 1
+      product: Super defence(3)
+      product_id: 163
+      output_quantity: 1
+      members_only: true
   related_items:
     - item_id: 265
       item_name: Cadantine
@@ -59,21 +103,18 @@ osrs:
       slug: cadantine-seed
       relationship: component
       description: Farming seed
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Grimy Herb |
-    | Tradeable | Yes |
-    | Weight | 0.007 kg |
-    | Herblore Level | 65 (to clean) |
-
-    Clean to produce cadantine for Herblore.
-
-    Cadantine used for:
-    - Super defence
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  about: "Grimy cadantine is the uncleaned form of Cadantine, requiring level 65 Herblore to clean for 12.5 XP. Cleaned Cadantine is the secondary used in Super defence potions, making this a steady Slayer-task drop with reliable demand from Herblore trainers."
+  market_strategy:
+    notes:
+      - "Steady Slayer drop supply from Nechryael and Gargoyles"
+      - "Super defence demand keeps a consistent buyer base"
+      - "Farming at level 67 alternative supply with seed loop"
+  trading_tips:
+    - Compare grimy vs clean cadantine to spot cleaning profit windows
+    - Bulk during Slayer events that flood mid-tier herb supply
+  history:
+    - date: "2002-02-27"
+      description: "Released alongside the Herblore skill."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

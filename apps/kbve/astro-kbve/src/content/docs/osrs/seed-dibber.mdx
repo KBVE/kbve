@@ -1,6 +1,6 @@
 ---
 title: Seed dibber | OSRS Price Data
-description: "Seed dibber: Use this to plant seeds with.. High alch: 3 GP, GE limit: 40."
+description: "Seed dibber: Use this to plant seeds with. High alch: 3 GP, GE limit: 40."
 osrs:
   id: 5343
   name: Seed dibber
@@ -12,9 +12,65 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 40
-  about: "Seed dibber is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: farming-tool
+    tier: low
+  properties:
+    release_date: "2005-06-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.002
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  shops:
+    - shop_name: "Head Farmer Jones's Farming Shop"
+      location: "Farming Guild"
+      price: 6
+      currency: Coins
+      stock: 5
+    - shop_name: "Olivia's Tool Store"
+      location: "Draynor Village"
+      price: 6
+      currency: Coins
+      stock: 5
+    - shop_name: "Heskel's Farming Shop"
+      location: "Falador"
+      price: 6
+      currency: Coins
+      stock: 5
+  related_items:
+    - item_name: Rake
+      slug: rake
+      relationship: alternative
+      description: "Companion farming tool for clearing weeds before planting"
+    - item_name: Spade
+      slug: spade
+      relationship: alternative
+      description: "Companion farming tool for digging up crops"
+    - item_name: Watering can
+      slug: watering-can
+      relationship: alternative
+      description: "Companion farming tool used to water flower and allotment seeds"
+  about: "The seed dibber is a baseline members-only Farming tool used to plant seeds in allotments, flower patches, and most herb patches across Gielinor. It costs 6 gp from farming shops, weighs effectively nothing, and stores in tool leprechauns near patches; completing the Barbarian Training Farming subquest removes the need to carry one entirely."
+  market_strategy:
+    notes:
+      - "Shop stock at 6 gp keeps GE price pinned near vendor value"
+      - "Demand is one-per-account at most, so flip upside is negligible"
+      - "Bulk buying is gated by the 40-per-4-hour GE limit"
+  trading_tips:
+    - "Skip GE flips, simply restock from Olivia or Head Farmer Jones"
+    - "Useful as a cheap stocking line for ironman alts setting up Farming runs"
+  history:
+    - date: "2005-06-06"
+      description: "Released with the Farming skill in the 2005 farming update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

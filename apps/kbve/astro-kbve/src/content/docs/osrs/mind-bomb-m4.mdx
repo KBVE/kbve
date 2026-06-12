@@ -1,6 +1,6 @@
 ---
 title: Mind bomb(m4) | OSRS Price Data
-description: "Mind bomb(m4): This keg contains 4 pints of mature Wizards Mind Bomb.. High alch: 1 GP, GE limit: 2,000."
+description: "Mind bomb(m4) is a full 4-pint keg of mature Wizard's Mind Bomb brewed at 34 Cooking; +3 Magic boost with combat-stat drain. High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 5881
   name: Mind bomb(m4)
@@ -12,9 +12,103 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Mind bomb(m4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: ale keg
+    tier: low
+  properties:
+    release_date: "2005-07-11"
+    update: "Farming"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.028
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      level: 34
+      xp: 0
+      materials:
+        - item_name: Bucket of water
+          quantity: 2
+        - item_name: Barley malt
+          quantity: 2
+        - item_name: Yanillian hops
+          quantity: 4
+        - item_name: Ale yeast
+          quantity: 1
+        - item_name: Calquat keg
+          quantity: 2
+      tools:
+        - Brewery vat (Keldagrim or Phasmatys)
+      output_quantity: 2
+      notes: "Brew 8 pints of mature Wizard's Mind Bomb, then fit them into 2 calquat kegs to yield two m4 kegs."
+  potion:
+    effects:
+      - description: "Boosts Magic by 2 + 2% of base level (3 at level 99)"
+        duration: 0
+      - description: "Drains Attack by 4 levels"
+        duration: 0
+      - description: "Drains Defence, Ranged, Strength, and Prayer by 3 levels each"
+        duration: 0
+      - description: "Restores 1 Hitpoint per pint"
+        duration: 0
+  related_items:
+    - item_id: 5875
+      item_name: Mind bomb(m1)
+      slug: mind-bomb-m1
+      relationship: variant
+      description: "Keg variant containing 1 pint of mature Wizard's Mind Bomb."
+    - item_id: 5877
+      item_name: Mind bomb(m2)
+      slug: mind-bomb-m2
+      relationship: variant
+      description: "Keg variant containing 2 pints of mature Wizard's Mind Bomb."
+    - item_id: 5879
+      item_name: Mind bomb(m3)
+      slug: mind-bomb-m3
+      relationship: variant
+      description: "Keg variant containing 3 pints of mature Wizard's Mind Bomb."
+    - item_name: Mature Wizard's Mind Bomb
+      slug: mature-wizards-mind-bomb
+      relationship: alternative
+      description: "Glass-pint variant of the same brewed drink."
+    - item_name: Calquat keg
+      slug: calquat-keg
+      relationship: component
+      description: "Empty keg used to package brewed pints into m1-m4 variants."
+  about: "Mind bomb(m4) is a full 4-pint keg of mature Wizard's Mind Bomb, brewed at 34 Cooking at Keldagrim or Port Phasmatys breweries (2 buckets of water, 2 barley malt, 4 yanillian hops, 1 ale yeast, 2 calquat kegs - 8 pints yields 2 m4 kegs). Each pint grants a +3 Magic boost (at 99) plus a 1 HP heal, at the cost of small Attack/Defence/Ranged/Strength/Prayer drains - a niche pre-Saradomin-brew Magic booster."
+  passive_effects:
+    - name: Magic boost
+      description: "Each pint temporarily raises Magic by 2 + 2% of the base level, useful for boost-locked content like the Mage Arena."
+    - name: Combat-stat drain
+      description: "Drains Attack by 4 and Defence, Ranged, Strength, and Prayer by 3 levels each per pint, limiting use to pure-mage strategies."
+  market_strategy:
+    notes:
+      - "Supply is fully player-brewed at Keldagrim/Phasmatys breweries"
+      - "Buy limit of 2,000 keeps merch volume modest"
+      - "Niche Magic-boost demand from Mage Arena and Wilderness mages"
+      - "Untradeable once partially drunk - keg integrity matters for resale"
+  trading_tips:
+    - "Compare m4 keg price to 4x Mature Wizard's Mind Bomb glass pints to spot brewer arbitrage"
+    - "Demand spikes around Mage Arena training cycles and boost-locked Wilderness content"
+    - "Brew during Cooking double XP weeks to flood supply"
+  history:
+    - date: "2005-07-11"
+      description: "Released with the Farming and Brewing rework that introduced calquat kegs and the mature ale variants."
+    - date: "2005-10-04"
+      description: "Renamed from Mind bomb(n) variants to the current Mind bomb(mn) naming."
+    - date: "2015-02-26"
+      description: "Partially-drunk variants made untradeable to clean up the Grand Exchange listings."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

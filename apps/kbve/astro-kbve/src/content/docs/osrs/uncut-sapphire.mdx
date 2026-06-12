@@ -1,6 +1,6 @@
 ---
 title: Uncut sapphire | OSRS Price Data
-description: "Uncut sapphire: This would be worth more cut.. High alch: 15 GP, GE limit: 10,000."
+description: "Uncut sapphire is the base form of a sapphire gem; cut with a chisel at 20 Crafting for 50 XP to produce a Sapphire. High alch: 15 GP, GE limit: 10,000."
 osrs:
   id: 1623
   name: Uncut sapphire
@@ -12,19 +12,41 @@ osrs:
   lowalch: 10
   highalch: 15
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
   material:
     type: gem
     tier: low
-  crafting:
-    cutting_level: 20
-    cutting_xp: 50
-    uncut: true
+  properties:
+    release_date: "2001-03-17"
+    update: "RuneScape Classic - gem mining"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0.003
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
   drop_table:
     sources:
       - source: Gem rocks
-        source_id: 0
-        quantity: "1"
+        rarity: "1/29 (with Charged dragonstone amulet)"
+        members_only: true
+      - source: Rare drop table
         rarity: common
+      - source: TzHaar-Xil
+        members_only: true
+      - source: TzHaar-Ket
+        members_only: true
+      - source: Waterfiend
+        members_only: true
+      - source: Gem stall (Thieving 75)
+        members_only: true
+      - source: Wall safe (Thieving 50)
         members_only: true
   recipes:
     - skill: crafting
@@ -34,9 +56,11 @@ osrs:
         - item_name: Uncut sapphire
           item_id: 1623
           quantity: 1
+        - item_name: Chisel
+          item_id: 1755
+          quantity: 1
       product: Sapphire
-      product_id: 1607
-      product_quantity: 1
+      output_quantity: 1
     - skill: fletching
       level: 56
       xp: 4
@@ -44,58 +68,54 @@ osrs:
         - item_name: Sapphire
           item_id: 1607
           quantity: 1
+        - item_name: Chisel
+          item_id: 1755
+          quantity: 1
       product: Sapphire bolt tips
-      product_id: 9189
-      product_quantity: 12
+      output_quantity: 12
       members_only: true
   related_items:
-    - item_id: 1621
-      item_name: Uncut emerald
-      slug: uncut-emerald
-      relationship: alternative
-      description: Higher tier gem
     - item_id: 1607
       item_name: Sapphire
       slug: sapphire
       relationship: product
-      description: Cut version
-    - item_id: 2550
-      item_name: Ring of recoil
-      slug: ring-of-recoil
-      relationship: product
-      description: Combat use
-    - item_id: 3853
-      item_name: Games necklace
-      slug: games-necklace
-      relationship: product
-      description: Teleportation
+      description: Cut sapphire used for jewellery and bolt tips.
     - item_id: 1755
       item_name: Chisel
       slug: chisel
       relationship: component
-      description: For cutting
-  about: |-
-    | Item | Enchantment | Effect |
-    |------|-------------|--------|
-    | Sapphire ring | Ring of recoil | Reflect 10% damage |
-    | Sapphire necklace | Games necklace | Minigame teleports |
-    | Sapphire amulet | Amulet of magic | +10 Magic |
-    | Sapphire bolts | Sapphire bolts (e) | Mana drain |
+      description: Required tool to cut the gem.
+    - item_id: 1621
+      item_name: Uncut emerald
+      slug: uncut-emerald
+      relationship: upgrade
+      description: Next-tier uncut gem at 27 Crafting.
+    - item_id: 2550
+      item_name: Ring of recoil
+      slug: ring-of-recoil
+      relationship: product
+      description: Sapphire-derived combat utility ring.
+    - item_id: 3853
+      item_name: Games necklace
+      slug: games-necklace
+      relationship: product
+      description: Sapphire-derived teleport jewellery.
+  about: "Uncut sapphire is the lowest-tier coloured gem in OSRS, available in both free-to-play and members areas. It is cut with a chisel at 20 Crafting for 50 XP to produce a Sapphire, the base gem used for sapphire jewellery (ring of recoil, games necklace, amulet of magic) and members-only sapphire bolt tips. Drop sources include gem rocks, the rare drop table, TzHaar creatures, Waterfiends, gem stalls, and wall safes - making it one of the highest-volume Crafting training feedstocks in the game."
   market_strategy:
     notes:
-      - Most common uncut gem
-      - Buy uncut → Cut → Sell
-      - Good for Crafting training
-      - Games necklace (teleports)
-      - Ring of recoil (PvM)
-      - Crafting training
-      - Sapphire bolt tips
-      - Cheapest gem to process
-      - High volume trading
-      - Ring of recoil always needed
-      - Games necklace for minigames
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand comes from Crafting trainers, fletchers cutting bolt tips, and jewellery producers."
+      - "GE buy limit of 10,000 per 4 hours supports heavy bulk movement."
+      - "High alch return of 15 gp is below GE price - never an alch target."
+      - "Supply is fed by gem rock miners, TzHaar drops, and the rare drop table - very deep liquidity."
+  trading_tips:
+    - "Watch the uncut-vs-cut sapphire spread - tight margins mean bulk buys pay off."
+    - "Track gem-rock mining update notes - changes to rates move uncut supply quickly."
+    - "Pair with sapphire bolt tips arbitrage for fletcher resale loops."
+  history:
+    - date: "2001-03-17"
+      description: "Released as part of the original RuneScape Classic gem-cutting and jewellery chain."
+    - date: "2007-08-06"
+      description: "Graphical update to the gem inventory icon."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

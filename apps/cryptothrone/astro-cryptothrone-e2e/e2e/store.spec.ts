@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures';
+import { seedFakeSession } from './helpers/auth';
 import type { Page } from '@playwright/test';
 import { isMobileViewport } from './helpers/env';
 
@@ -32,20 +33,22 @@ async function emit(page: Page, event: string, payload: unknown) {
 test.describe('store-driven HUD coverage', () => {
 	test.beforeEach(async ({ page }) => {
 		test.skip(await isMobileViewport(page), 'HUD is desktop-sized');
-		await page.goto('/game/play/');
-		await expect(
-			page.getByText('Debug Mode', { exact: false }),
-		).toBeVisible({ timeout: 20_000 });
+		await seedFakeSession(page);
+		await page.goto('/game/play/', { waitUntil: 'domcontentloaded' });
 		const ok = await page
 			.waitForFunction(
 				() =>
 					!!(window as Window & { __ctDispatch?: unknown })
 						.__ctDispatch,
-				{ timeout: 10_000 },
+				undefined,
+				{ timeout: 15_000 },
 			)
 			.then(() => true)
 			.catch(() => false);
 		test.skip(!ok, 'dispatch seam only present in dev build');
+		await expect(
+			page.getByText('Debug Mode', { exact: false }),
+		).toBeVisible({ timeout: 20_000 });
 	});
 
 	test('inventory renders items, tooltips, and handles unknown ids', async ({

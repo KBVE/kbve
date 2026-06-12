@@ -1,6 +1,6 @@
 ---
 title: Rune dagger | OSRS Price Data
-description: "Rune dagger: A powerful dagger.. High alch: 4,800 GP, GE limit: 70."
+description: "Rune dagger is a F2P rune-tier stab dagger forged at 85 Smithing from a runite bar. High alch: 4,800 GP, GE limit: 70."
 osrs:
   id: 1213
   name: Rune dagger
@@ -12,33 +12,105 @@ osrs:
   lowalch: 3200
   highalch: 4800
   limit: 70
-  item_id: 1213
-  item_type: equipment
-  slot: weapon
-  type: dagger
-  tradeable: true
-  weight: 0.453
-  requirements:
-    attack: 40
-  stats:
-    stab_attack: 25
-    slash_attack: 12
-    crush_attack: -4
-    magic_attack: 1
-    magic_defence: 1
-    melee_strength: 24
-  attack_speed: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: rune
+    tier: mid
+  properties:
+    release_date: "2001-08-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: dagger
+    attack_speed: 4
+    attack_range: 1
+    weight: 0.453
+    requirements:
+      attack: 40
+    attack_bonus:
+      stab: 25
+      slash: 12
+      crush: -4
+      magic: 1
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 1
+      ranged: 0
+    other_bonus:
+      melee_strength: 24
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 85
+      xp: 75
+      materials:
+        - item_name: Runite bar
+          item_id: 2363
+          quantity: 1
+      tools:
+        - Hammer
+        - Anvil
+      product: Rune dagger
+      product_id: 1213
+      output_quantity: 1
   related_items:
-    - slug: rune-scimitar
-    - slug: dragon-dagger
-    - slug: rune-sword
-    - slug: runite-bar
-  about: |-
-    *A powerful dagger.*
-
-    The rune dagger is fast (4 tick) but has significantly lower strength (+24) and accuracy (+25 stab) compared to the Rune scimitar. The small +1 magic attack bonus is unique among rune melee weapons. In F2P, the Rune sword is a better stab weapon with the same speed but higher bonuses. The Dragon dagger is the direct members upgrade with a powerful special attack.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 2363
+      item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: "Smithed on any anvil at 85 Smithing for the rune dagger."
+    - item_id: 1333
+      item_name: Rune scimitar
+      slug: rune-scimitar
+      relationship: alternative
+      description: "Slash-focused rune weapon with higher accuracy and strength bonuses."
+    - item_id: 1289
+      item_name: Rune sword
+      slug: rune-sword
+      relationship: alternative
+      description: "F2P stab alternative with the same speed but better bonuses."
+    - item_id: 1215
+      item_name: Dragon dagger
+      slug: dragon-dagger
+      relationship: upgrade
+      description: "Members upgrade with a powerful special attack."
+    - item_id: 5680
+      item_name: Rune dagger(p)
+      slug: rune-dagger-p
+      relationship: variant
+      description: "Poisoned variant for a small DPS uplift in PvM/PvP."
+  about: "Rune dagger is the rune-tier stab dagger in OSRS, requiring 40 Attack to wield and 85 Smithing to forge from a single runite bar for 75 Smithing XP. It is fast (4-tick) with +25 stab and +24 strength, plus a unique +1 magic attack bonus that no other rune melee weapon offers. It ranks third among daggers behind the dragon and abyssal variants and is generally outclassed by the rune scimitar for general training; the F2P rune sword is the better stab option."
+  market_strategy:
+    notes:
+      - "Cheapest rune-tier stab weapon; demand is mostly mid-game F2P stab setups and ironman supply."
+      - "85 Smithing is a high gate, so supply leans on monster drops and bulk smithers."
+      - "GE buy limit 70 per 4 hours keeps it a low-volume flip."
+      - "High alch 4,800 gp regularly sits above GE price, making it a viable nature-rune alch target when stock is cheap."
+  trading_tips:
+    - "Watch the rune dagger vs nature rune spread - it occasionally beats steel platebodies for F2P alch gp/hr."
+    - "Stack offers across multiple buy-limit windows; the small limit blocks instant arbitrage."
+  history:
+    - date: "2001-08-13"
+      description: "Released with the original rune metal weapon set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

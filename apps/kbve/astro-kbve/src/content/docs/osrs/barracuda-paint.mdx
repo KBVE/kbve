@@ -1,6 +1,6 @@
 ---
 title: Barracuda paint | OSRS Price Data
-description: "Barracuda paint: A light blue paint. This might look good on a boat.. High alch: 1 GP."
+description: "Barracuda paint is a Sailing cosmetic boat-trim paint earned from Marlin-rank Barracuda Trials; applied at 25 Sailing and 20 Construction. High alch: 1 GP."
 osrs:
   id: 32087
   name: Barracuda paint
@@ -11,10 +11,66 @@ osrs:
   value: 1
   lowalch: 1
   highalch: 1
-  limit: null
-  about: "Barracuda paint is a members-only item in Old School RuneScape. High alchemy value: 1 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cosmetic
+    tier: high
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing"
+    tradeable: false
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Use
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  effects:
+    - skill: Construction
+      boost: 10
+      type: xp
+      description: Grants 10 Construction XP per application to a boat.
+  passive_effects:
+    - name: Boat trim recolour
+      description: "Applied at the Shipyard schematics board to recolour the trim of a player-owned skiff (1 paint) or sloop (2 paints) light blue."
+  drop_table:
+    sources:
+      - source: The Tempor Tantrum (Marlin-rank target time)
+        rarity: "1/240"
+        members_only: true
+      - source: The Jubbly Jive (Marlin-rank target time)
+        rarity: "1/220"
+        members_only: true
+      - source: The Gwenith Glide (Marlin-rank target time)
+        rarity: "1/400"
+        members_only: true
+  related_items:
+    - item_id: 32088
+      item_name: Merchant's paint
+      slug: merchants-paint
+      relationship: alternative
+      description: Tradeable paint received by handing Trader Stan a set of paint variants including Barracuda paint.
+  about: "Barracuda paint is a Sailing-skill cosmetic paint released with the Sailing update on 19 November 2025. It is a rare reward from Marlin-rank Barracuda Trials (Tempor Tantrum 1/240, Jubbly Jive 1/220, Gwenith Glide 1/400) and is applied at the Shipyard schematics board to recolour a player skiff or sloop trim light blue. Application requires 25 Sailing and 20 Construction and grants 10 Construction XP per use; alternatively it can be traded to Trader Stan with four other paint variants to obtain merchant's paint."
+  market_strategy:
+    notes:
+      - "Item is untradeable - no GE market and no buy limit applies."
+      - "High alch return of 1 gp - never an alch target."
+      - "Effective acquisition cost is hours of Marlin-rank Trial runs, not coins."
+      - "Demand sits with cosmetic boat builders and Trader Stan paint-set completionists."
+  trading_tips:
+    - "Untradeable - cannot be bought or sold on the GE; obtain via Trials directly."
+    - "Track Sailing balance patches - Trial drop rates have historically moved post-launch."
+    - "Hold one copy if you plan to chase merchant's paint via Trader Stan exchange."
+  history:
+    - date: "2025-11-19"
+      description: "Released alongside the Sailing skill launch as a Marlin-rank Barracuda Trial reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

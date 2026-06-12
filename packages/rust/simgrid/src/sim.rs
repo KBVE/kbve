@@ -96,6 +96,7 @@ pub struct PendingActions(Vec<(proto::PlayerSlot, u16, Option<proto::EntityId>)>
 pub struct SavedPlayer {
     pub slots: Vec<(String, u32)>,
     pub hp: i32,
+    pub weapon: Option<String>,
 }
 
 #[derive(Resource, Default)]
@@ -105,6 +106,14 @@ pub struct PlayerStore {
 
 #[derive(Resource, Default, Clone)]
 pub struct ConsumableEffects(pub HashMap<String, i32>);
+
+#[derive(Resource, Default, Clone)]
+pub struct EquipmentEffects(pub HashMap<String, i32>);
+
+#[derive(Component, Clone, Default)]
+pub struct Equipped {
+    pub weapon: Option<String>,
+}
 
 #[derive(Resource, Default)]
 pub struct RespawnQueue(Vec<(u32, NpcSpec)>);
@@ -285,6 +294,7 @@ pub fn build_app(
         .insert_resource(PendingActions::default())
         .insert_resource(PlayerStore::default())
         .insert_resource(ConsumableEffects::default())
+        .insert_resource(EquipmentEffects::default())
         .insert_resource(RespawnQueue::default())
         .insert_resource(Occupancy::default())
         .insert_resource(map)
@@ -341,7 +351,8 @@ fn sync_roster(
     bcast: Res<SnapshotBroadcast>,
     mut spawned: ResMut<SpawnedSlots>,
     mut store: ResMut<PlayerStore>,
-    q_saved: Query<(&Inventory, &Health)>,
+    equipment: Res<EquipmentEffects>,
+    q_saved: Query<(&Inventory, &Health, &Equipped)>,
     mut commands: Commands,
 ) {
     let active: Vec<(proto::PlayerSlot, String)> = {
@@ -367,11 +378,24 @@ fn sync_roster(
             .map(|s| s.hp)
             .filter(|hp| *hp > 0)
             .unwrap_or(config.player_hp);
+        let weapon = saved.as_ref().and_then(|s| s.weapon.clone());
         let inventory = Inventory {
             slots: saved.map(|s| s.slots).unwrap_or_default(),
         };
         if !inventory.slots.is_empty() {
             send_inventory(&bcast, *slot, &inventory);
+        }
+        let attack_bonus = weapon
+            .as_deref()
+            .and_then(|w| equipment.0.get(w).copied())
+            .unwrap_or(0);
+        if weapon.is_some() {
+            send_equipped(
+                &bcast,
+                *slot,
+                weapon.as_deref(),
+                config.player_attack + attack_bonus,
+            );
         }
         let entity = commands
             .spawn((
@@ -387,9 +411,10 @@ fn sync_roster(
                     max_hp: config.player_hp,
                 },
                 CombatStats {
-                    attack: config.player_attack,
+                    attack: config.player_attack + attack_bonus,
                 },
                 inventory,
+                Equipped { weapon },
                 Path::default(),
                 StepBuffer::default(),
             ))
@@ -406,13 +431,14 @@ fn sync_roster(
     for k in gone {
         if let Some((entity, username)) = spawned.by_slot.remove(&k) {
             if !username.is_empty()
-                && let Ok((inv, hp)) = q_saved.get(entity)
+                && let Ok((inv, hp, equipped)) = q_saved.get(entity)
             {
                 store.by_username.insert(
                     username,
                     SavedPlayer {
                         slots: inv.slots.clone(),
                         hp: hp.hp,
+                        weapon: equipped.weapon.clone(),
                     },
                 );
             }
@@ -446,6 +472,8 @@ fn drain_inputs(
     map: Res<WalkableMap>,
     roster: Res<RosterHandle>,
     effects: Res<ConsumableEffects>,
+    equipment: Res<EquipmentEffects>,
+    config: Res<SimConfig>,
     bcast: Res<SnapshotBroadcast>,
     mut occ: ResMut<Occupancy>,
     mut actions: ResMut<PendingActions>,
@@ -458,6 +486,8 @@ fn drain_inputs(
         &mut StepBuffer,
         &mut Health,
         &mut Inventory,
+        &mut Equipped,
+        &mut CombatStats,
     )>,
 ) {
     let mut pending: HashMap<u16, Vec<Input>> = HashMap::new();
@@ -478,7 +508,19 @@ fn drain_inputs(
         return;
     }
 
-    for (entity, slot, mut pos, mut mv, mut path, mut buffer, mut hp, mut inv) in q.iter_mut() {
+    for (
+        entity,
+        slot,
+        mut pos,
+        mut mv,
+        mut path,
+        mut buffer,
+        mut hp,
+        mut inv,
+        mut equipped,
+        mut stats,
+    ) in q.iter_mut()
+    {
         let Some(inputs) = pending.get(&slot.0.0) else {
             continue;
         };
@@ -506,6 +548,26 @@ fn drain_inputs(
                 }
                 Input::UseItem { item_ref } => {
                     use_item(&effects, &bcast, slot.0, item_ref, &mut hp, &mut inv);
+                }
+                Input::EquipItem { item_ref } => {
+                    if equipped.weapon.as_deref() == Some(item_ref.as_str()) {
+                        equipped.weapon = None;
+                    } else {
+                        if !inv.slots.iter().any(|(r, c)| r == item_ref && *c > 0) {
+                            continue;
+                        }
+                        if !equipment.0.contains_key(item_ref.as_str()) {
+                            continue;
+                        }
+                        equipped.weapon = Some(item_ref.clone());
+                    }
+                    let bonus = equipped
+                        .weapon
+                        .as_deref()
+                        .and_then(|w| equipment.0.get(w).copied())
+                        .unwrap_or(0);
+                    stats.attack = config.player_attack + bonus;
+                    send_equipped(&bcast, slot.0, equipped.weapon.as_deref(), stats.attack);
                 }
                 Input::Say { text } => {
                     let trimmed = text.trim();
@@ -684,6 +746,22 @@ fn apply_actions(
             _ => {}
         }
     }
+}
+
+fn send_equipped(
+    bcast: &SnapshotBroadcast,
+    slot: proto::PlayerSlot,
+    weapon: Option<&str>,
+    attack: i32,
+) {
+    let payload = json!({ "item_ref": weapon, "attack": attack })
+        .to_string()
+        .into_bytes();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_EQUIPPED,
+        to: slot,
+        payload,
+    });
 }
 
 fn send_inventory(bcast: &SnapshotBroadcast, slot: proto::PlayerSlot, inv: &Inventory) {
@@ -1400,6 +1478,75 @@ mod tests {
             }
         }
         assert!(saw_used, "no item-used ephemeral");
+    }
+
+    #[test]
+    fn equip_weapon_boosts_attack_and_persists() {
+        let (mut app, mut rx, input_tx, roster) = harness(33);
+        let slot = join(&roster, "knight");
+        app.update();
+
+        app.world_mut()
+            .insert_resource(EquipmentEffects(HashMap::from([(
+                "iron-sword".to_string(),
+                7,
+            )])));
+
+        let player = player_entity(&mut app);
+        {
+            let mut inv = app.world_mut().get_mut::<Inventory>(player).unwrap();
+            inv.add("iron-sword", 1);
+        }
+
+        input_tx
+            .send((
+                slot,
+                Input::EquipItem {
+                    item_ref: "iron-sword".into(),
+                },
+            ))
+            .unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+
+        let stats = app.world().get::<CombatStats>(player).unwrap();
+        assert_eq!(stats.attack, 5 + 7, "bonus not applied");
+
+        let mut saw_equipped = false;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, to, .. } = evt
+                && kind == proto::EPHEMERAL_EQUIPPED
+            {
+                assert_eq!(to, slot);
+                saw_equipped = true;
+            }
+        }
+        assert!(saw_equipped, "no equipped ephemeral");
+
+        roster.write().unwrap().release(slot);
+        app.update();
+        let slot2 = join(&roster, "knight");
+        for _ in 0..3 {
+            app.update();
+        }
+        let player2 = player_entity(&mut app);
+        let stats2 = app.world().get::<CombatStats>(player2).unwrap();
+        assert_eq!(stats2.attack, 5 + 7, "weapon not restored on rejoin");
+
+        input_tx
+            .send((
+                slot2,
+                Input::EquipItem {
+                    item_ref: "iron-sword".into(),
+                },
+            ))
+            .unwrap();
+        for _ in 0..3 {
+            app.update();
+        }
+        let stats3 = app.world().get::<CombatStats>(player2).unwrap();
+        assert_eq!(stats3.attack, 5, "re-equip did not toggle off");
     }
 
     #[test]

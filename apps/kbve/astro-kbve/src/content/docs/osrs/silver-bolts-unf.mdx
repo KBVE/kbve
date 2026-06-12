@@ -1,6 +1,6 @@
 ---
 title: Silver bolts (unf) | OSRS Price Data
-description: "Silver bolts (unf): Unfeathered silver crossbow bolts.. High alch: 1 GP, GE limit: 13,000."
+description: "Silver bolts (unf) are unfeathered silver crossbow bolts cast at 21 Crafting from a Silver bar and fletched into Silver bolts with feathers. High alch: 0 GP, GE limit: 13,000."
 osrs:
   id: 9382
   name: Silver bolts (unf)
@@ -12,9 +12,68 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Silver bolts (unf) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: silver
+    tier: low
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 21
+      xp: 50
+      materials:
+        - item_name: Silver bar
+          quantity: 1
+      tools:
+        - Bolt mould
+        - Furnace
+      product: Silver bolts (unf)
+      output_quantity: 10
+  related_items:
+    - item_name: Silver bar
+      slug: silver-bar
+      relationship: component
+      description: Smelted at the furnace and cast through a bolt mould to produce 10 unfeathered silver bolts
+    - item_name: Feather
+      slug: feather
+      relationship: component
+      description: Added at 43 Fletching to finish Silver bolts (unf) into Silver bolts
+    - item_name: Silver bolts
+      slug: silver-bolts
+      relationship: product
+      description: Finished crossbow bolt fletched from Silver bolts (unf) and feathers
+    - item_name: Steel bolts (unf)
+      slug: steel-bolts-unf
+      relationship: upgrade
+      description: Next-tier unfeathered bolt cast from a Steel bar
+  about: "Silver bolts (unf) are unfeathered silver crossbow bolt blanks cast from a Silver bar at 21 Crafting using a bolt mould at a furnace, producing 10 bolts for 50 Crafting XP; players later add feathers at 43 Fletching to finish them into Silver bolts used in Vampyre Slayer or against pyrefiend-style enemies."
+  market_strategy:
+    notes:
+      - "Not alchable - pure crafting/fletching intermediate, no NPC value floor"
+      - "Niche demand - the finished Silver bolts are mostly used against Vampyres in Theatre of Blood"
+      - "GE buy limit of 13,000 per 4 hours easily covers fletcher restocks"
+      - "Supply ties to Silver bar prices and bolt mould throughput"
+  trading_tips:
+    - "Track Silver bar spot price - feathering margin sets the GE floor"
+    - "Demand spikes around Vampyric Slayer task/Theatre of Blood meta shifts"
+    - "Low-volume item - lean on small consistent margins, not big swings"
+  history:
+    - date: "2006-07-31"
+      description: "Released alongside the Fletching Crossbows update introducing castable metal bolt blanks."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

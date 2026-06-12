@@ -1,6 +1,6 @@
 ---
 title: Sigil of the alchemist | OSRS Price Data
-description: "Sigil of the alchemist: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP, GE limit: 10."
+description: "Sigil of the alchemist is a Deadman Mode sigil drop that, once attuned, lets the wearer batch-process herbs and potions in a single click. High alch: 6,000 GP, GE limit: 10."
 osrs:
   id: 26027
   name: Sigil of the alchemist
@@ -12,9 +12,67 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  about: "Sigil of the alchemist is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: sigil
+    tier: high
+  properties:
+    release_date: "2021-08-25"
+    update: "Deadman: Reborn"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Attune
+      - Drop
+    alchable: true
+    destroy: "Drop"
+    seasonal: true
+  passive_effects:
+    - name: Batch herblore processing
+      description: "Once attuned, allows the player to clean herbs or craft potions in a single batched action instead of one at a time."
+    - name: Attuned, untradeable
+      description: "After attunement the sigil becomes character-bound and must be un-attuned before destruction."
+  drop_table:
+    sources:
+      - source: Deadman Mode rare drop table
+        rarity: very rare
+        members_only: true
+  related_items:
+    - item_id: 26025
+      item_name: Sigil of the menacing mage
+      slug: sigil-of-the-menacing-mage
+      relationship: alternative
+      description: Deadman sigil that boosts magic combat utility.
+    - item_id: 26019
+      item_name: Sigil of the smith
+      slug: sigil-of-the-smith
+      relationship: alternative
+      description: Deadman sigil that batches Smithing operations.
+    - item_id: 26033
+      item_name: Sigil of the formidable fighter
+      slug: sigil-of-the-formidable-fighter
+      relationship: alternative
+      description: Deadman sigil that boosts melee combat utility.
+  about: "Sigil of the alchemist is a Deadman Mode reward sigil released with the Deadman: Reborn season on 25 August 2021. The un-attuned version drops from most monsters via the Deadman rare drop table and is tradeable; once activated through the Attune option it becomes character-bound and unlocks single-click batch herbal processing - cleaning grimy herbs or making potions in one batched action. The sigil exists only inside Deadman Mode seasons and is unobtainable in the main game outside event windows."
+  market_strategy:
+    notes:
+      - "Demand spikes inside each Deadman season as alchers race to clear potion inventories."
+      - "GE buy limit of 10 per 4 hours severely throttles flips."
+      - "High alch of 6,000 gp is below GE price - not an alch target."
+      - "Supply is seasonal - the un-attuned sigil only enters circulation during active Deadman events."
+  trading_tips:
+    - "Trade only during active Deadman seasons - off-season liquidity is effectively zero."
+    - "Watch sigil rebalances - prior seasons have moved Alchemist value sharply when the herblore meta shifted."
+    - "Track other batch sigils as comparables - Smith and Tools sigils move with similar demand drivers."
+  history:
+    - date: "2021-08-25"
+      description: "Released with the Deadman: Reborn season as part of the new sigil reward family."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

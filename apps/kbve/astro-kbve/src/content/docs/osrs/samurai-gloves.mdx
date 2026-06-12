@@ -1,6 +1,6 @@
 ---
 title: Samurai gloves | OSRS Price Data
-description: "Samurai gloves: Armoured gloves of the Samurai.. High alch: 1,920 GP, GE limit: 70."
+description: "Samurai gloves are members hand slot armour from the Colosseum's samurai set, rewarded for using sunfire fanatic kits. High alch: 1,920 GP, GE limit: 70."
 osrs:
   id: 20041
   name: Samurai gloves
@@ -12,9 +12,81 @@ osrs:
   lowalch: 1280
   highalch: 1920
   limit: 70
-  about: "Samurai gloves is a members-only item in Old School RuneScape. High alchemy value: 1,920 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2018-08-30"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    destroy: "Drop"
+  equipment:
+    slot: hands
+    weight: 0.453
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 20029
+      item_name: Samurai helmet
+      slug: samurai-helmet
+      relationship: set-piece
+      description: Head slot of the samurai cosmetic set
+    - item_id: 20035
+      item_name: Samurai shirt
+      slug: samurai-shirt
+      relationship: set-piece
+      description: Body slot of the samurai cosmetic set
+    - item_id: 20038
+      item_name: Samurai greaves
+      slug: samurai-greaves
+      relationship: set-piece
+      description: Legs slot of the samurai cosmetic set
+    - item_id: 20032
+      item_name: Samurai boots
+      slug: samurai-boots
+      relationship: set-piece
+      description: Feet slot of the samurai cosmetic set
+  market_strategy:
+    notes:
+      - "Pure cosmetic — no combat stats, fashionscape demand only"
+      - "Supply gated by Last Man Standing samurai kit conversions"
+      - "Buy limit 70 per 4 hours; thin order books on the GE"
+      - "High alch margin only meaningful with bulk LMS unlocks"
+  trading_tips:
+    - Bundle the full samurai set for collectors instead of trickling pieces
+    - Track price spikes during fashionscape events and LMS double-points weekends
+    - Avoid alching new buys; market value typically beats nature-rune profit
+  about: Samurai gloves are a hand slot cosmetic piece of the samurai set, released as a Last Man Standing reward and tradeable on the Grand Exchange. They have no combat stats.
+  history:
+    - date: "2018-08-30"
+      description: "Released alongside the samurai cosmetic set as a Last Man Standing reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

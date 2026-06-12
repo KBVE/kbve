@@ -12,12 +12,36 @@ osrs:
   lowalch: 400002
   highalch: 600003
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: composite-staff
+    tier: high
+  properties:
+    release_date: "2018-02-08"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1.5
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Wield
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
     weapon_type: staff
-    weight: 1.5
     attack_speed: 4
     attack_range: 1
+    weight: 1.5
+    requirements:
+      attack: 75
+      magic: 75
     attack_bonus:
       stab: 55
       slash: 70
@@ -35,74 +59,56 @@ osrs:
       ranged_strength: 0
       magic_damage: 15
       prayer: 0
-    requirements:
-      attack: 75
-      magic: 75
-  special_attack:
-    name: Power of Death
-    energy: 100
-    description: Halves all melee damage taken for one minute
-    damage_reduction: 0.5
-    duration: 60
-  drop_table:
-    primary_source: Created item
-    best_drop_rate: N/A
-    sources:
-      - source: Combine Staff of the dead + Saradomin's light
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
-        rarity: created
-        drop_rate: N/A
-        members_only: true
+  recipes:
+    - skill: combination
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Staff of the dead
+          quantity: 1
+        - item_name: Saradomin's light
+          quantity: 1
+      output_quantity: 1
+  special_attacks:
+    - name: Power of Death
+      energy: 100
+      description: "Halves all melee damage taken for one minute"
+  passive_effects:
+    - name: Saradomin Strike autocast
+      description: "Autocasts Saradomin Strike instead of Flames of Zamorak"
+    - name: 1/7 rune save
+      description: "1/7 chance to negate rune cost on standard spell casts"
+    - name: GWD dual faction
+      description: "Counts as both a Saradomin and Zamorak item in the God Wars Dungeon"
   related_items:
-    - item_id: 11791
-      item_name: Staff of the dead
+    - item_name: Staff of the dead
       slug: staff-of-the-dead
       relationship: component
-      description: Required base staff
-    - item_id: 13256
-      item_name: Saradomin's light
+      description: "Base staff required for the combination"
+    - item_name: Saradomin's light
       slug: saradomins-light
       relationship: component
-      description: Required upgrade material
-    - item_id: 22647
-      item_name: Staff of balance
+      description: "Upgrade item attached to the Staff of the dead"
+    - item_name: Staff of balance
       slug: staff-of-balance
       relationship: variant
-      description: Guthix variant of the staff
-    - item_id: 12002
-      item_name: Occult necklace
+      description: "Guthix-aligned variant produced from a Guthixian icon"
+    - item_name: Occult necklace
       slug: occult-necklace
       relationship: alternative
-      description: Stacks magic damage bonus
-  about: |-
-    Identical to Staff of the dead:
-    - +17 Magic attack
-    - +15% Magic damage
-    - 1/7 chance to negate rune cost
-
-    Autocasts:
-    - Saradomin Strike
-    - All standard spells
-    - Crumble Undead
-
-    Special attack - Power of Death:
-    - 100% special energy
-    - Halves melee damage for 60 seconds
-    - Stacks with Protect from Melee
-
-    GWD protection:
-    - Counts as Saradomin item
-    - Also counts as Zamorak item
+      description: "Pairs with the staff for stacking magic damage"
+  about: "Staff of light is a top-tier members staff produced by combining a Staff of the dead with Saradomin's light. It carries +17 magic attack, +15% magic damage, +72 melee strength, autocasts Saradomin Strike, retains the 1/7 rune-save passive, and counts as both Saradomin and Zamorak in the God Wars Dungeon. Its Power of Death special attack halves incoming melee damage for one minute, making it a premier defensive PvM utility staff."
   market_strategy:
     notes:
-      - Cosmetic upgrade from Staff of the dead
-      - Same stats, different appearance
-      - Popular for fashionscape
-      - Useful for GWD protection
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Component cost of Staff of the dead plus Saradomin's light anchors GE price closely"
+      - "Cosmetic-plus-utility premium over Staff of the dead is paid for GWD dual factioning"
+      - "Volume is low because combination is irreversible, so flips need patient bids"
+  trading_tips:
+    - "Watch Saradomin's light supply spikes from GWD trips before bidding"
+    - "Avoid bulk holds, GE limit of 8 caps any blow-out flip"
+  history:
+    - date: "2018-02-08"
+      description: "Released alongside the rework of God Wars Dungeon items and Saradomin's light."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

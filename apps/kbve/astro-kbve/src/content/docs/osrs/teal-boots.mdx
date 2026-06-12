@@ -1,6 +1,6 @@
 ---
 title: Teal boots | OSRS Price Data
-description: "Teal boots: Very stylish!. High alch: 300 GP, GE limit: 150."
+description: "Teal boots are F2P cosmetic foot slot fashion sold by Thessalia in Varrock. High alch: 300 GP, GE limit: 150."
 osrs:
   id: 2924
   name: Teal boots
@@ -12,12 +12,83 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 150
-  about: "Teal boots is a free-to-play item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2002-07-29"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: feet
+    weight: 0.453
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Thessalia's Fine Clothes"
+      location: Varrock
+      price: 500
+      currency: Coins
+      stock: 0
+  related_items:
+    - item_name: Pink boots
+      slug: pink-boots
+      relationship: variant
+      description: "Pink colour variant from Thessalia's clothes shop"
+    - item_name: Turquoise boots
+      slug: turquoise-boots
+      relationship: variant
+      description: "Turquoise colour variant of the same fashion line"
+    - item_name: Cream boots
+      slug: cream-boots
+      relationship: variant
+      description: "Cream colour variant of the same fashion line"
+  about: "Teal boots are free-to-play cosmetic foot slot boots sold by Thessalia's Fine Clothes in Varrock as part of her recolour fashion line. They give no combat bonuses and exist purely for fashionscape and the costume room."
+  market_strategy:
+    notes:
+      - "Pure cosmetic; value floats on fashionscape demand only"
+      - "Thessalia restock at 500 gp caps the upside hard"
+      - "All Thessalia colour variants compete for the same buyer pool"
+  trading_tips:
+    - "Restock-flip from Thessalia when GE bid clears the 500 gp wall"
+    - "Compare against pink/turquoise/cream variants and list the cheapest one"
+  history:
+    - date: "2002-07-29"
+      description: "Released as part of Thessalia's coloured boots fashion line."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

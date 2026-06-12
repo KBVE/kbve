@@ -1,10 +1,10 @@
 ---
 title: Steel dagger(p+) | OSRS Price Data
-description: "Steel dagger(p+): The blade has been poisoned.. High alch: 75 GP, GE limit: 125."
+description: "Steel dagger(p+) is the extra-strong-poisoned variant of the steel dagger, applying P+ poison on hit. High alch: 75 GP, GE limit: 125."
 osrs:
   id: 5672
   name: Steel dagger(p+)
-  slug: steel-dagger-p
+  slug: steel-dagger-p-5672
   examine: The blade has been poisoned.
   members: true
   icon: Steel dagger(p+).png
@@ -12,12 +12,101 @@ osrs:
   lowalch: 50
   highalch: 75
   limit: 125
-  about: "Steel dagger(p+) is a members-only item in Old School RuneScape. High alchemy value: 75 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: steel
+    tier: low
+  properties:
+    release_date: "2004-08-23"
+    update: "Poisoned Weapons"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: dagger
+    attack_speed: 4
+    attack_range: 1
+    weight: 0.453
+    requirements:
+      attack: 5
+    attack_bonus:
+      stab: 8
+      slash: 7
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 7
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Extra-strong poison
+      description: "Successful hits have a chance to inflict extra-strong poison (P+), dealing 6 damage initially and decaying over time."
+      trigger: on_hit
+  recipes:
+    - skill: herblore
+      level: 73
+      xp: 0
+      materials:
+        - item_name: Steel dagger
+          quantity: 1
+        - item_name: Weapon poison(+)
+          quantity: 1
+      output_quantity: 1
+      notes: "Apply weapon poison(+) to an unpoisoned steel dagger at 73 Herblore."
+  related_items:
+    - item_name: Steel dagger
+      slug: steel-dagger
+      relationship: variant
+      description: "Unpoisoned steel dagger with identical stats"
+    - item_name: Steel dagger(p)
+      slug: steel-dagger-p
+      relationship: variant
+      description: "Standard poisoned variant using weapon poison"
+    - item_name: Mithril dagger(p+)
+      slug: mithril-dagger-p-5677
+      relationship: upgrade
+      description: "Higher-tier mithril dagger with extra-strong poison"
+    - item_name: Iron dagger(p+)
+      slug: iron-dagger-p-5670
+      relationship: downgrade
+      description: "Lower-tier iron dagger with extra-strong poison"
+  about: "Steel dagger(p+) is the extra-strong-poisoned variant of the steel dagger, created by applying weapon poison(+) at 73 Herblore. It requires 5 Attack and carries the same combat stats as the base dagger but has a chance to inflict P+ poison on successful hits, useful for early Slayer tasks and low-level PvP where stacked poison ticks add meaningful damage."
+  market_strategy:
+    notes:
+      - "Niche budget poisoned weapon; volume sits in lower-tier daggers"
+      - "Bound to weapon poison(+) market and herb supply"
+      - "Limit 125 per 4 hours throttles bulk flipping"
+  trading_tips:
+    - "Craft from steel dagger + weapon poison(+) when crafted spread beats GE bid"
+    - "Compare (p), (p+), (p++) variants; the cheapest tier per poison damage usually wins"
+  history:
+    - date: "2004-08-23"
+      description: "Released with the Poisoned Weapons update introducing weapon poison(+) variants."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

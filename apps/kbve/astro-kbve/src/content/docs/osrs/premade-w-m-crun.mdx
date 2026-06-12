@@ -1,6 +1,6 @@
 ---
 title: Premade w'm crun' | OSRS Price Data
-description: "Premade w'm crun': Some Premade Worm Crunchies.. High alch: 51 GP, GE limit: 6,000."
+description: "Premade w'm crun': Some Premade Worm Crunchies. High alch: 51 GP, GE limit: 6,000."
 osrs:
   id: 2237
   name: Premade w'm crun'
@@ -12,9 +12,59 @@ osrs:
   lowalch: 34
   highalch: 51
   limit: 6000
-  about: "Premade w'm crun' is a members-only item in Old School RuneScape. High alchemy value: 51 coins. Grand Exchange buy limit: 6,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: gnome-food
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.25
+    options:
+      - Eat
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  consumable:
+    heals: 8
+    action: Eat
+  shops:
+    - shop_name: "Gianne's Restaurant"
+      location: "Grand Tree, Tree Gnome Stronghold"
+      price: 85
+      currency: Coins
+      stock: 10
+  related_items:
+    - item_name: Worm crunchies
+      slug: worm-crunchies
+      relationship: alternative
+      description: "Player-crafted version usable in the Gnome Restaurant minigame"
+    - item_name: Premade choc crunch
+      slug: premade-choc-crunch
+      relationship: alternative
+      description: "Sibling premade gnome crunchy with different flavour"
+    - item_name: Premade veg ball
+      slug: premade-veg-ball
+      relationship: alternative
+      description: "Another premade gnome food sold by the same waiter"
+  about: "Premade worm crunchies are a members-only gnome food sold by the gnome waiter at Gianne's Restaurant in the Grand Tree. Each one heals 8 hitpoints when eaten, sits at a base value of 85 gp, and is purchased rather than cooked. Unlike player-crafted worm crunchies, the premade version cannot be used in the Gnome Restaurant minigame."
+  market_strategy:
+    notes:
+      - "Shop floor stock at 85 gp anchors the price near base value"
+      - "Healing efficiency is poor versus modern food, so demand stays niche"
+      - "Useful mostly for gnome cooking turn-ins and ironman gnome cuisine progression"
+  trading_tips:
+    - "Restock-flip when the shop respawns and GE bid lifts above 85 gp"
+    - "Avoid bulk holds, daily volume is thin and price barely moves"
+  history:
+    - date: "2002-12-12"
+      description: "Added with the Tree Gnome Stronghold and gnome cooking content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

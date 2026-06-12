@@ -1,6 +1,6 @@
 ---
 title: Serpentine helm (uncharged) | OSRS Price Data
-description: "Serpentine helm (uncharged) is a members head slot item requiring 75 Defence. High alch: 66,000 GP, GE limit: 8."
+description: "Serpentine helm (uncharged) is the tradeable, uncharged form of the venom-immune serpentine helm, requiring 75 Defence and Zulrah's scales to activate. High alch: 66,000 GP, GE limit: 8."
 osrs:
   id: 12929
   name: Serpentine helm (uncharged)
@@ -12,95 +12,118 @@ osrs:
   lowalch: 44000
   highalch: 66000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: serpentine
+    tier: high
+  properties:
+    release_date: "2015-01-08"
+    update: "Zulrah"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.9
+    options:
+      - Charge
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
-    type: helm
-    attack_style: melee
+    weapon_type: helm
+    weight: 0.9
     requirements:
       defence: 75
-    stats:
-      defence_stab: 52
-      defence_slash: 55
-      defence_crush: 58
-      defence_ranged: 50
-      strength: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 52
+      slash: 55
+      crush: 58
       magic: -5
-      ranged: -5
+      ranged: 50
+    other_bonus:
+      melee_strength: 5
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    notes: "Uncharged form cannot actually be equipped; defence stats listed reflect the charged serpentine helm and apply once activated with Zulrah's scales."
   charging:
     material_id: 12934
     material_name: Zulrah's scales
     max_charges: 11000
-    duration: 16.5 hours of combat
+    rate: "1 scale per 10 minutes of combat"
+    duration: "16.5 hours of combat at full charge"
+    notes: "Helm becomes equipable only while it has scales loaded. Uncharging is irreversible and refunds 20,000 scales when the helm is dismantled."
   passive_effects:
     - name: Venom Immunity
-      description: Immune to venom and poison
+      description: "Grants immunity to venom and poison while equipped in charged form."
     - name: Melee Venom
-      description: 16.7% chance to envenom on melee hit
+      description: "1/6 (16.7%) chance to envenom non-poisoned weapons on melee hits; ~50% with poisoned weapons; 100% with the toxic blowpipe and toxic staff of the dead. Does not work against players."
+  recipes:
+    - skill: crafting
+      level: 52
+      xp: 120
+      materials:
+        - item_name: Serpentine visage
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+      notes: "Use a chisel on a Serpentine visage to craft the uncharged helm."
   related_items:
-    - item_id: 12934
-      item_name: Zulrah's scales
-      slug: zulrahs-scales
-      relationship: component
-      description: Charges
     - item_id: 12927
       item_name: Serpentine visage
       slug: serpentine-visage
       relationship: component
-      description: From Zulrah
+      description: "Rare Zulrah drop chiselled into the uncharged helm at 52 Crafting."
+    - item_id: 12934
+      item_name: Zulrah's scales
+      slug: zulrahs-scales
+      relationship: component
+      description: "Charges the helm; 11,000 scales for a full 16.5-hour charge."
+    - item_id: 12931
+      item_name: Magma helm (uncharged)
+      slug: magma-helm-uncharged
+      relationship: variant
+      description: "Cosmetic recolour via magma mutagen."
+    - item_id: 13197
+      item_name: Tanzanite helm (uncharged)
+      slug: tanzanite-helm-uncharged
+      relationship: variant
+      description: "Cosmetic recolour via tanzanite mutagen."
     - item_id: 12924
       item_name: Toxic blowpipe
       slug: toxic-blowpipe
       relationship: alternative
-      description: Also uses scales
-  about: |-
-    Use chisel on Serpentine visage.
-
-    | Requirement | Value |
-    |-------------|-------|
-    | Crafting | 52 |
-    | XP | 120 |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +52 |
-    | Slash | +55 |
-    | Crush | +58 |
-    | Ranged | +50 |
-
-    | Offense | Value |
-    |---------|-------|
-    | Strength | +5 |
-    | Magic | -5 |
-    | Ranged | -5 |
-
-    Requirements: 75 Defence
-
-    Venom Immunity:
-    - Immune to venom and poison
-
-    Melee Venom:
-    - 16.7% chance to envenom on melee hit
-
-    - 11,000 scales for full charge
-    - 16.5 hours of combat
-    - ~2.4M per full charge
-
-    BiS for:
-    - Zulrah (venom immunity)
-    - Any venom content
-    - AFK melee training
-
-    Only helm with venom immunity.
+      description: "Other Zulrah-themed gear that also consumes Zulrah's scales."
+  about: "Serpentine helm (uncharged) is the tradeable form of the only venom-immune helm in OSRS, crafted at 52 Crafting from a serpentine visage and chisel for 120 Crafting XP. It must be charged with Zulrah's scales (11,000 for a full 16.5 hours of combat) before it can be equipped; once active it grants permanent venom and poison immunity while worn, plus a 1/6 chance to envenom enemies on melee hits - making it BiS for Zulrah, any venom-heavy content, and a popular AFK melee training helm."
   market_strategy:
     notes:
-      - Scales from Zulrah
-      - Recolors available
-      - High upkeep cost
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Supply pegged to serpentine visage drops from Zulrah; demand spikes follow toxic blowpipe and Zulrah meta cycles"
+      - "Buy limit of 8 per 4 hours keeps the uncharged form thinly traded and price-sensitive"
+      - "Scale upkeep (~118k/hour) is the real cost driver - track Zulrah's scales GE for downstream pricing"
+      - "Recolour mutagens (magma/tanzanite) divert supply into cosmetic variants when fashionscape demand spikes"
+  trading_tips:
+    - "Watch Zulrah drop rate or table reworks - any change directly resets visage supply"
+    - "Pair uncharged serpentine helm orders with Zulrah's scales to dollar-cost the full-charge cost"
+    - "Toxic blowpipe demand drains scales; rising blowpipe prices typically pull helm prices with them"
+  history:
+    - date: "2015-01-08"
+      description: "Released with the Zulrah update as the first venom-immune headgear."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

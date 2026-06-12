@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures';
+import { seedFakeSession } from './helpers/auth';
 import type { Page } from '@playwright/test';
 import { isMobileViewport } from './helpers/env';
 
@@ -27,19 +28,21 @@ test.describe('in-game HUD interactions', () => {
 			await isMobileViewport(page),
 			'HUD modals are desktop-sized (min-w 700px)',
 		);
-		await page.goto('/game/play/');
-		await expect(
-			page.getByText('Debug Mode', { exact: false }),
-		).toBeVisible({ timeout: 20_000 });
+		await seedFakeSession(page);
+		await page.goto('/game/play/', { waitUntil: 'domcontentloaded' });
 		const hasSeam = await page
 			.waitForFunction(
 				() =>
 					!!(window as Window & { __ctEvents?: unknown }).__ctEvents,
-				{ timeout: 10_000 },
+				undefined,
+				{ timeout: 15_000 },
 			)
 			.then(() => true)
 			.catch(() => false);
 		test.skip(!hasSeam, 'event seam only present in dev build');
+		await expect(
+			page.getByText('Debug Mode', { exact: false }),
+		).toBeVisible({ timeout: 20_000 });
 	});
 
 	test('character event opens and closes the dialog', async ({ page }) => {

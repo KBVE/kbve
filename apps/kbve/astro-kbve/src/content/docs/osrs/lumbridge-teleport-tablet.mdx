@@ -1,6 +1,6 @@
 ---
 title: Lumbridge teleport (tablet) | OSRS Price Data
-description: "Lumbridge teleport (tablet): A teleport to Lumbridge.. High alch: 1 GP, GE limit: 10,000."
+description: "Lumbridge teleport (tablet) is a stackable standard-spellbook Magic tablet teleporting the user to Lumbridge Castle courtyard, crafted at 31 Magic on a lectern. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 8008
   name: Lumbridge teleport (tablet)
@@ -12,9 +12,89 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Lumbridge teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2006-05-31"
+    update: "POH eagle lectern teleport tablets"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  teleport:
+    type: tablet
+    spellbook: standard
+    destinations:
+      - name: Lumbridge
+        location: Lumbridge Castle courtyard
+    charges: 1
+    magic_level: 31
+    magic_xp: 41
+    runes:
+      - "1 Law rune"
+      - "3 Air rune"
+      - "1 Earth rune"
+  recipes:
+    - skill: magic
+      level: 31
+      xp: 41
+      materials:
+        - item_name: Soft clay
+          item_id: 1761
+          quantity: 1
+        - item_name: Law rune
+          item_id: 563
+          quantity: 1
+        - item_name: Air rune
+          item_id: 556
+          quantity: 3
+        - item_name: Earth rune
+          item_id: 557
+          quantity: 1
+      facility: Eagle lectern (player-owned house)
+      product: Lumbridge teleport (tablet)
+      product_id: 8008
+      output_quantity: 1
+  related_items:
+    - item_id: 8007
+      item_name: Varrock teleport (tablet)
+      slug: varrock-teleport-tablet
+      relationship: alternative
+      description: "Lower-level standard spellbook teleport tablet to Varrock."
+    - item_id: 8009
+      item_name: Falador teleport (tablet)
+      slug: falador-teleport-tablet
+      relationship: alternative
+      description: "Another standard spellbook teleport tablet."
+    - item_id: 8010
+      item_name: Camelot teleport (tablet)
+      slug: camelot-teleport-tablet
+      relationship: alternative
+      description: "Higher-level standard spellbook teleport tablet."
+  about: "Lumbridge teleport (tablet) is a stackable Magic tablet that instantly teleports the user to the Lumbridge Castle courtyard regardless of their own Magic level. Tablets are crafted on a player-owned house eagle lectern at 31 Magic from one soft clay, one law rune, three air runes, and one earth rune for 41 Magic XP each, and are widely used as a death-respawn point or quick capital-region hop."
+  market_strategy:
+    notes:
+      - "High daily volume - the lowest barrier of the city tablet trio."
+      - "Crafting profit floats with law rune and soft clay prices."
+      - "Buy limit of 10,000 per 4 hours allows true bulk flipping."
+      - "High alch of 1 gp - alching is impossible; the tablet is consumed not melted."
+  trading_tips:
+    - "Watch law rune and soft clay supply pressure to time tablet crafts."
+    - "Demand spikes near Inferno/Fight Cave death-pile recovery and clue meta shifts."
+    - "Stable margins; volume-flip rather than spread-flip."
+  history:
+    - date: "2006-05-31"
+      description: "Released alongside the eagle lectern POH teleport tablet system."
+    - date: "2007-12-10"
+      description: "Tablet examine text reworked to standardise teleport descriptions."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

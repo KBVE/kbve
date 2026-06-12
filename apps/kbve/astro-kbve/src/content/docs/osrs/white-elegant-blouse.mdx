@@ -1,6 +1,6 @@
 ---
 title: White elegant blouse | OSRS Price Data
-description: "White elegant blouse is a members body slot item. High alch: 1,200 GP, GE limit: 4."
+description: "White elegant blouse is a cosmetic body-slot ladies' blouse from medium Treasure Trail caskets. High alch: 1,200 GP, GE limit: 4."
 osrs:
   id: 10420
   name: White elegant blouse
@@ -12,21 +12,85 @@ osrs:
   lowalch: 800
   highalch: 1200
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: elegant cloth
+    tier: mid
+  properties:
+    release_date: "2006-12-05"
+    update: "Treasure Trails, spiders and sheep"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: body
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  obtaining:
+    methods:
+      - source: Reward casket (medium)
+        rarity: 8/18128
+        description: "Random elegant clothing roll from standard medium clue caskets."
   related_items:
     - item_id: 10422
       item_name: White elegant skirt
       slug: white-elegant-skirt
       relationship: set-piece
-      description: Matching elegant skirt
-  about: |-
-    > *"A well made elegant ladies' white blouse."*
-
-    Purely cosmetic treasure trail reward with no combat stats. Part of the white elegant clothing set.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Matching cosmetic elegant skirt from medium clue caskets."
+    - item_name: Pink elegant blouse
+      slug: pink-elegant-blouse
+      relationship: alternative
+      description: "Pink colour variant of the elegant blouse outfit."
+    - item_name: Gold elegant blouse
+      slug: gold-elegant-blouse
+      relationship: alternative
+      description: "Gold colour variant of the elegant blouse outfit."
+  about: "White elegant blouse is a cosmetic ladies' body piece dropped from medium Treasure Trail caskets (drop rate 8/18,128). Originally released 5 December 2006 with the Treasure Trails, spiders and sheep update, it has zero combat bonuses and exists purely for fashionscape. Forms part of the broader white elegant clothing set paired with the matching elegant skirt."
+  market_strategy:
+    notes:
+      - "Supply is entirely medium clue casket driven"
+      - "Buy limit of only 4 per 4 hours keeps liquidity razor thin"
+      - "Fashionscape demand from the white elegant set drives most volume"
+      - "High alch of 1,200 gp acts as a soft floor under bulk dumps"
+  trading_tips:
+    - "Compare blouse + skirt set prices when sizing a flip"
+    - "Watch for medium clue droprate or content updates that shift casket supply"
+    - "Stock during low-traffic weeks ahead of fashionscape events"
+  history:
+    - date: "2006-12-05"
+      description: "Released as Elegant blouse with the Treasure Trails, spiders and sheep update."
+    - date: "2014-01-09"
+      description: "Renamed to White ele' blouse to disambiguate colour variants."
+    - date: "2017-12-14"
+      description: "Renamed to its current White elegant blouse designation."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

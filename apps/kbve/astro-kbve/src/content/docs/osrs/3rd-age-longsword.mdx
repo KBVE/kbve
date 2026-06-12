@@ -12,69 +12,105 @@ osrs:
   lowalch: 60000
   highalch: 90000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: 3rd age
+    tier: high
+  properties:
+    release_date: "2010-08-13"
+    update: "3rd Age Weapons"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 1.814
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
     type: longsword
-    attack_style: melee
+    attack_style: slash
     attack_speed: 5
+    attack_range: 1
+    weight: 1.814
     requirements:
       attack: 65
-    stats:
-      attack_stab: 58
-      attack_slash: 72
-      attack_crush: -2
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 3
-      defence_crush: 2
-      defence_magic: 0
-      defence_ranged: 0
+    attack_bonus:
+      stab: 58
+      slash: 72
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 3
+      crush: 2
+      magic: 0
+      ranged: 0
+    other_bonus:
       melee_strength: 75
-      prayer_bonus: 0
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Master
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  drop_table:
+    sources:
+      - source: Master clue scroll casket
+        quantity: "1"
         rarity: Very Rare
-        description: Extremely rare reward from master clue scrolls
+        notes: "Extremely rare reward from master clue scrolls; the only obtain source."
+  treasure_trail:
+    tier: master
+    notes: "Drops from rewards casket (master); part of the 3rd age weapon rare reward pool."
   related_items:
     - item_id: 12424
       item_name: 3rd age bow
       slug: 3rd-age-bow
       relationship: alternative
-      description: 3rd age ranged weapon
+      description: 3rd age ranged weapon counterpart.
     - item_id: 12422
       item_name: 3rd age wand
       slug: 3rd-age-wand
       relationship: alternative
-      description: 3rd age magic weapon
+      description: 3rd age magic weapon counterpart.
     - item_id: 20014
       item_name: 3rd age pickaxe
       slug: 3rd-age-pickaxe
       relationship: alternative
-      description: 3rd age skilling tool
+      description: 3rd age skilling tool variant.
     - item_id: 20011
       item_name: 3rd age axe
       slug: 3rd-age-axe
       relationship: alternative
-      description: 3rd age skilling tool
+      description: 3rd age skilling tool variant.
   about: |-
-    The 3rd age longsword is a rare weapon obtained from Treasure Trails. It requires 65 Attack to wield and has stats comparable to a dragon longsword but with the prestigious 3rd age appearance.
+    The 3rd age longsword is a rare melee weapon obtained from master Treasure Trails. It requires 65 Attack to wield and shares stats comparable to a dragon longsword while carrying the prestigious 3rd age appearance.
 
-    3rd age weapons are highly sought after due to their extreme rarity and status symbol value. The longsword was added as part of the 3rd age weapon expansion.
+    3rd age weapons are highly sought after due to their extreme rarity and status symbol value. The longsword was introduced as part of the 3rd age weapon expansion in 2010.
   market_strategy:
-    title: Investment Notes
     notes:
-      - Extremely valuable due to rarity
-      - Price fluctuates based on collector demand
-      - More common than druidic but still very rare
-      - Verify authenticity when trading high-value items
-      - Use Grand Exchange for secure trades
-      - Monitor price trends before purchasing
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Investment Notes"
+      - "Extremely valuable due to rarity"
+      - "Price fluctuates based on collector demand"
+      - "More common than druidic but still very rare"
+      - "Verify authenticity when trading high-value items"
+      - "Use Grand Exchange for secure trades"
+      - "Monitor price trends before purchasing"
+  trading_tips:
+    - "Watch master clue release events for short-term supply spikes."
+    - "Confirm with multiple price sources before committing to GE max-cash flips."
+  history:
+    - date: "2010-08-13"
+      description: "Released as part of the 3rd age weapon expansion."
+    - date: "2013-02-22"
+      description: "Carried into OSRS at the game's release."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

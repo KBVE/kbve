@@ -1,6 +1,6 @@
 ---
 title: Rune keel parts | OSRS Price Data
-description: "Rune keel parts: Parts for creating a runite keel for a boat.. High alch: 12,000 GP, GE limit: 100."
+description: "Rune keel parts are a Sailing component smithed from 5 runite bars at 86 Smithing post-Pandemonium, combined into Large rune keel parts. High alch: 12,000 GP, GE limit: 100."
 osrs:
   id: 32014
   name: Rune keel parts
@@ -12,12 +12,73 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 100
-  about: "Rune keel parts is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 100 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: rune
+    tier: high
+  properties:
+    release_date: "2025-11-19"
+    update: "Sailing"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 4
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 86
+      xp: 375
+      materials:
+        - item_id: 2363
+          item_name: Runite bar
+          quantity: 5
+      tools:
+        - Hammer
+      product: Rune keel parts
+      product_id: 32014
+      output_quantity: 1
+      notes: "Requires Pandemonium quest completion. Smithed at an anvil."
+  related_items:
+    - item_id: 32015
+      item_name: Large rune keel parts
+      slug: large-rune-keel-parts
+      relationship: product
+      description: "Combined keel section smithed from 5x Rune keel parts."
+    - item_name: Rune keel
+      slug: rune-keel
+      relationship: product
+      description: "Final boat keel assembled from 10x Rune keel parts + 5x Cupronickel bars."
+    - item_id: 2363
+      item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: "Smithing input - 5 bars per Rune keel part."
+  about: "Rune keel parts are a Smithing-crafted boat-keel component released with the Sailing skill, smithed from 5 runite bars per part at 86 Smithing for 375 XP after completing Pandemonium. Five Rune keel parts combine into Large rune keel parts, with the full Rune keel requiring 10 parts plus 5 cupronickel bars. They sit on the standard rune-bar supply chain, so price tracks runite ore farm output and bar smithing meta."
+  market_strategy:
+    notes:
+      - "Per-part recipe is currently -6,219 gp after GE tax - producers are loss-making at spot, expect upward drift."
+      - "GE buy limit of 100 per 4 hours throttles serious flips."
+      - "Supply gated by 86 Smithing + Pandemonium completion - genuine bottleneck."
+      - "Demand follows Sailing progression curve and large-keel construction throughput."
+  trading_tips:
+    - "Track runite bar spread - keel-part profitability flips with bar dips."
+    - "Stockpile during Sailing skill release lulls when crafters pause."
+    - "Cross-check Large rune keel parts spot - if (large) > 5x (parts) + GE tax, smith and combine."
+  history:
+    - date: "2025-11-19"
+      description: "Released alongside the Sailing skill as the runite-tier keel-construction Smithing intermediate."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

@@ -12,87 +12,90 @@ osrs:
   lowalch: 18800
   highalch: 28200
   limit: 15
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: barrows-robe
+    tier: high
+  properties:
+    release_date: "2005-05-09"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 11.339
+    degradeable: true
+    options:
+      - Wear
+      - Check
+      - Drop
+    worn_options:
+      - Remove
+      - Check
+    alchable: true
+    destroy: "If you drop this item it will break. Are you sure you want to drop it?"
   equipment:
     slot: legs
-    type: barrows
-    set: Ahrim
-    tradeable: true
-    degradeable: true
-    weight: 11.3
     requirements:
       defence: 70
       magic: 70
-    stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
-      attack_magic: 22
-      attack_ranged: -7
-      defence_stab: 33
-      defence_slash: 30
-      defence_crush: 36
-      defence_magic: 22
-      defence_ranged: 0
-      strength: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 22
+      ranged: -7
+    defence_bonus:
+      stab: 33
+      slash: 30
+      crush: 36
+      magic: 22
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
       ranged_strength: 0
       magic_damage: 1
       prayer: 0
   set_effect:
     name: Blighted Aura
     pieces_required: 4
-    description: 25% chance to lower opponent's Strength by 5 levels
-    amulet_of_damned: 25% chance for +30% damage on hits; can autocast Ancient Magicks
+    description: "25% chance per Ahrim's staff magic hit to lower opponent's Strength by 5 levels; with Amulet of the Damned, 25% chance for +30% damage and Ancient Magicks autocast"
+  drop_table:
+    sources:
+      - source: Ahrim the Blighted
+        quantity: "1"
+        rarity: "1/392 per Barrows reward roll"
   related_items:
-    - item_id: 4708
-      item_name: Ahrim's hood
+    - item_name: Ahrim's hood
       slug: ahrims-hood
       relationship: set-piece
-      description: Head slot set piece
-    - item_id: 4712
-      item_name: Ahrim's robetop
+      description: "Head slot set piece"
+    - item_name: Ahrim's robetop
       slug: ahrims-robetop
       relationship: set-piece
-      description: Body slot set piece
-    - item_id: 4710
-      item_name: Ahrim's staff
+      description: "Body slot set piece"
+    - item_name: Ahrim's staff
       slug: ahrims-staff
       relationship: set-piece
-      description: Weapon set piece
-    - item_id: 21024
-      item_name: Ancestral robe bottom
+      description: "Weapon set piece"
+    - item_name: Ancestral robe bottom
       slug: ancestral-robe-bottom
       relationship: upgrade
-      description: Upgrade path
-  about: |-
-    | Bonus | Value |
-    |-------|-------|
-    | Magic attack | +22 |
-    | Magic defence | +22 |
-    | Stab defence | +33 |
-    | Slash defence | +30 |
-    | Crush defence | +36 |
-    | Magic damage | +1% |
-    | Ranged attack | -7 |
-
-    Blighted Aura:
-    When wearing full Ahrim's (hood, robetop, robeskirt, staff):
-    - 25% chance to lower opponent's Strength by 5 levels
-    - Stacks with Enfeeble spell
-
-    With Amulet of the Damned:
-    - 25% chance for +30% damage on hits
-    - Can autocast Ancient Magicks
-
-    - 15 hours of combat use
-    - Repair at Bob in Lumbridge or POH armor stand
-    - Repair cost: ~90k for full set at Bob
+      description: "Non-degrading upgrade path with stronger magic stats"
+  about: "Ahrim's robeskirt is the legs piece of Ahrim's Barrows magic set, dropped from Ahrim the Blighted with a 70 Defence and 70 Magic requirement. It contributes +22 magic attack and defence, +1% magic damage, and degrades over 15 combat hours through 100/75/50/25/0 stages, repaired for ~80,000 gp at Bob in Lumbridge or cheaper at a POH armour stand with Smithing."
   market_strategy:
     notes:
-      - Best magic legs before Ancestral
-      - Magic damage bonus rare on legs
-      - Often used with Slayer helm
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Best pre-Ancestral magic legs, with a rare +1% magic damage on the slot"
+      - "Common Slayer-helm-on-task pairing for mid-game magic DPS"
+      - "Repair cost scales with use, factor when comparing to Virtus or Ancestral upgrades"
+  trading_tips:
+    - "Pick up Barrows-event spikes when supply lifts and price dips"
+    - "Hold a charged backup for ironman switches to avoid downtime mid-trip"
+  history:
+    - date: "2005-05-09"
+      description: "Released as part of the Barrows minigame update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

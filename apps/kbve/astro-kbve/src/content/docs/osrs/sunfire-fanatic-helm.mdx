@@ -1,6 +1,6 @@
 ---
 title: Sunfire fanatic helm | OSRS Price Data
-description: "Sunfire fanatic helm is a members head slot item requiring 40 Defence. High alch: 225,000 GP."
+description: "Sunfire fanatic helm is a members prayer-bonus head slot helm dropped from the Fortis Colosseum, requiring 60 Prayer and 40 Defence. High alch: 225,000 GP."
 osrs:
   id: 28933
   name: Sunfire fanatic helm
@@ -11,12 +11,36 @@ osrs:
   value: 375000
   lowalch: 150000
   highalch: 225000
-  limit: null
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: sunfire
+    tier: high
+  properties:
+    release_date: "2024-03-20"
+    update: "Varlamore: The Final Dawn"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: head
-    type: melee_prayer
-    tradeable: true
+    weapon_type:
     weight: 2.267
+    requirements:
+      prayer: 60
+      defence: 40
     attack_bonus:
       stab: 0
       slash: 0
@@ -34,83 +58,50 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 6
-    requirements:
-      prayer: 60
-      defence: 40
+  passive_effects:
+    - name: Best-in-slot prayer head
+      description: "Provides the highest +6 prayer bonus available in the head slot while keeping melee-grade defensive stats."
   set_effect:
     name: Sunfire Fanatic
     pieces:
       - Sunfire fanatic helm
       - Sunfire fanatic cuirass
       - Sunfire fanatic chausses
-    description: Best-in-slot prayer bonus armor set
+    description: "Full set delivers a combined +24 prayer bonus, the highest stackable prayer total for a melee-style outfit."
   drop_table:
-    primary_source: Fortis Colosseum
-    best_drop_rate: 1/24.47
     sources:
-      - source: Fortis Colosseum
+      - source: Fortis Colosseum (reward chest)
         quantity: "1"
-        rarity: uncommon
-        drop_rate: 1/24.47 (full completion)
-        members_only: true
-  market:
-    buy_limit: 8
-    price_estimate: 1216061
+        rarity: 1/24.47
   related_items:
     - item_id: 28936
       item_name: Sunfire fanatic cuirass
       slug: sunfire-fanatic-cuirass
       relationship: set-piece
-      description: Body piece
+      description: "Body piece of the Sunfire fanatic set (+10 prayer)."
     - item_id: 28939
       item_name: Sunfire fanatic chausses
       slug: sunfire-fanatic-chausses
       relationship: set-piece
-      description: Leg piece
-  about: |-
-    ### Defensive Bonuses
-    | Defence Type | Bonus |
-    |--------------|-------|
-    | Stab | +30 |
-    | Slash | +32 |
-    | Crush | +27 |
-    | Magic | -1 |
-    | Ranged | +30 |
-
-    ### Other Bonuses
-    | Stat | Bonus |
-    |------|-------|
-    | Magic Attack | -6 |
-    | Ranged Attack | -3 |
-    | Prayer | +6 |
-
-    The Sunfire Fanatic set provides the best-in-slot prayer bonus when worn together:
-
-    Full Set Pieces:
-    - Sunfire fanatic helm (+6 Prayer)
-    - Sunfire fanatic cuirass (+10 Prayer)
-    - Sunfire fanatic chausses (+8 Prayer)
-
-    Total Set Prayer Bonus: +24
-
-    This makes the complete set invaluable for extended boss fights and activities where prayer drain is a concern.
-
-    Best uses for the Sunfire fanatic helm:
-
-    - Prayer-heavy bossing: Reduces prayer potion consumption
-    - Inferno: Excellent for prayer preservation
-    - Fight Caves: Extends trip duration
-    - GWD trips: Longer stays with fewer supplies
-    - Slayer: Extended prayer-protected tasks
+      description: "Leg piece of the Sunfire fanatic set (+8 prayer)."
+    - item_id: 9472
+      item_name: Proselyte sallet
+      slug: proselyte-sallet
+      relationship: downgrade
+      description: "Cheaper prayer-bonus helm for budget setups."
+  about: "Sunfire fanatic helm is the head slot piece of the Sunfire fanatic armour set introduced with Varlamore: The Final Dawn. It is dropped from the Fortis Colosseum reward chest at roughly 1/24.47 per full completion (waves 4-12) and requires 60 Prayer and 40 Defence to wear. The helm delivers the highest +6 prayer bonus in the head slot while retaining melee-grade defensive stats, making it core gear for prayer-heavy PvM such as the Inferno, Fight Caves, GWD trips and prolonged Slayer tasks."
   market_strategy:
     notes:
-      - Most affordable piece of the set
-      - Good entry point for Colosseum gear
-      - Price stable due to consistent demand
-      - Consider buying full set for maximum benefit
-      - Compare to Proselyte for cost-efficiency
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Cheapest of the three Sunfire fanatic pieces, the helm is the usual entry point into the set."
+      - "Demand is steady from Colosseum/Inferno/GWD prep buyers; price tracks the broader prayer-bonus meta."
+      - "No GE buy limit; restocking is supply-side bound by Colosseum completions."
+      - "High alch 225,000 gp sits well under GE price, so alching is not viable."
+  trading_tips:
+    - "Watch Fortis Colosseum content patches and prayer-bonus meta shifts - drop-rate or BIS changes move the price the fastest."
+    - "Cross-reference cuirass and chausses prices; full-set buyers create temporary demand spikes after big PvM updates."
+  history:
+    - date: "2024-03-20"
+      description: "Released as part of Varlamore: The Final Dawn alongside the Fortis Colosseum and the rest of the Sunfire fanatic set."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

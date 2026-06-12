@@ -14,10 +14,7 @@ osrs:
   limit: 13000
   material:
     type: pottery
-    tier: fired
-  crafting:
-    level: 1
-    xp: 6.3
+    tier: low
   recipes:
     - skill: crafting
       level: 1
@@ -28,8 +25,25 @@ osrs:
           quantity: 1
       product: Pot
       product_id: 1931
-      product_quantity: 1
+      output_quantity: 1
       facility: Pottery oven
+  shops:
+    - shop_name: "Toothy's Pickaxes"
+      location: Lumbridge
+      price: 1
+      stock: 50000
+      restock_seconds: 0.6
+    - shop_name: Little Shop of Horace
+      location: Draynor Village
+      price: 1
+      stock: 30
+      restock_seconds: 60
+    - shop_name: Port Phasmatys General Store
+      location: Port Phasmatys
+      price: 1
+      stock: 100
+      restock_seconds: 60
+      members_only: true
   related_items:
     - item_id: 1787
       item_name: Unfired pot
@@ -47,6 +61,8 @@ osrs:
       relationship: product
       description: Filled version
   about: |-
+    The pot is one of the oldest items in RuneScape, used as a generic container for flour, vinegar, weeds, and many other substances. It is free-to-play, weighs almost nothing, and can be crafted from soft clay at any pottery oven from level 1 Crafting (6.3 XP).
+
     | Method | Level | Materials |
     |--------|-------|-----------|
     | Pottery oven | 1 | 1 Unfired pot |
@@ -57,17 +73,24 @@ osrs:
     | Mill grain | Pot of flour |
     | Cooking | Various recipes |
     | Storage | Hold items |
+
+    At Crafting level 13 and above, pottery is guaranteed to succeed. Pots also spawn freely on counters and tables across Gielinor, including the ground-floor kitchen in Lumbridge Castle.
   market_strategy:
     notes:
-      - Flour grinding
-      - Cooking skill
-      - F2P crafting
-      - Basic pottery item
-      - Used for flour
-      - F2P accessible
-      - Low value item
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Sold at 1 gp from multiple general stores
+      - Used in cooking and bonemeal recipes
+      - F2P accessible — crafting from soft clay
+      - Buy limit of 13,000 supports bulk skilling
+      - Margin flips are negligible — value comes from convenience
+  trading_tips:
+    - Buy from Toothy's Pickaxes (50k stock) for bulk skilling supply
+    - GE price tends to track 15 gp; arbitrage versus 1 gp shops is steady
+    - Useful for completing low-level cooking and crafting tasks
+  history:
+    - date: "2001-01-04"
+      description: One of the original RuneScape items released at beta launch.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

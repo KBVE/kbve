@@ -12,9 +12,78 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 10000
-  about: "Urt salt is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: salt
+    tier: low
+  properties:
+    release_date: "2018-09-06"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  skilling_sources:
+    - skill: mining
+      level: 72
+      xp: 17
+      location: Salt mine beneath Weiss
+      method: "Mine green salt rocks in the Weiss salt mine after completing Making Friends with My Arm"
+      members_only: true
+  recipes:
+    - skill: magic
+      level: 82
+      xp: 32
+      facility: Weiss fire pit
+      materials:
+        - item_name: Urt salt
+          quantity: 3
+        - item_name: Te salt
+          quantity: 1
+        - item_name: Basalt
+          quantity: 1
+      output_quantity: 1
+      product: Stony basalt
+      members_only: true
+      notes: "Combined with Te salt and basalt at a Weiss fire pit to produce stony basalt for Lunar teleports."
+  related_items:
+    - item_id: 22593
+      item_name: Te salt
+      slug: te-salt
+      relationship: alternative
+      description: Red Weiss salt mined alongside urt salt
+    - item_id: 22595
+      item_name: Efh salt
+      slug: efh-salt
+      relationship: alternative
+      description: Blue Weiss salt mined alongside urt salt
+    - item_id: 22591
+      item_name: Basalt
+      slug: basalt
+      relationship: component
+      description: Combined with salts to make icy and stony basalt
+  about: "Urt salt is a green mineable salt obtained from the Weiss salt mine after Making Friends with My Arm. Combined with other Weiss salts and basalt at fire pits to produce stony basalt for Lunar teleport spells and used in Portal Nexus room attunements. High alchemy value: 6 coins. Grand Exchange buy limit: 10,000 per 4 hours."
+  market_strategy:
+    notes:
+      - "Supply tied to dedicated Weiss salt miners with 72 Mining"
+      - "Construction Portal Nexus rooms consume salts in bulk"
+      - "Demand spikes when Lunar teleport optimisations trend"
+      - "Buy limit of 10,000 supports large bulk flips"
+  trading_tips:
+    - "Pair flips with Te and Efh salts since the trio is bought together"
+    - "Stock up before Construction-themed Twisted League events"
+    - "Avoid high alching; the 6 gp return rarely covers nature rune cost"
+  history:
+    - date: "2018-09-06"
+      description: "Released alongside the Making Friends with My Arm quest and the Weiss Salt Mine."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Ardougne teleport (tablet) | OSRS Price Data
-description: "Ardougne teleport (tablet): A teleport to East Ardougne.. High alch: 1 GP, GE limit: 10,000."
+description: "Ardougne teleport (tablet) is a members Magic tablet that breaks to teleport the user to East Ardougne. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 8011
   name: Ardougne teleport (tablet)
@@ -12,9 +12,80 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
-  about: "Ardougne teleport (tablet) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: tablet
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    update: "Player-Owned Houses"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Break
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  teleport:
+    destinations:
+      - name: East Ardougne
+        type: tablet
+        members: true
+  recipes:
+    - skill: magic
+      level: 51
+      xp: 61
+      materials:
+        - item_name: Soft clay
+          quantity: 1
+        - item_name: Law rune
+          quantity: 2
+        - item_name: Water rune
+          quantity: 2
+      tools:
+        - Teak eagle lectern
+      output_quantity: 1
+      notes: "Requires Plague City completion to use the resulting teleport."
+  related_items:
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: "Tablet base material made at the lectern."
+    - item_name: Law rune
+      slug: law-rune
+      relationship: component
+      description: "Runecrafting component for the tablet."
+    - item_name: Water rune
+      slug: water-rune
+      relationship: component
+      description: "Runecrafting component for the tablet."
+    - item_name: Ardougne teleport
+      slug: ardougne-teleport
+      relationship: alternative
+      description: "Standard spellbook cast that delivers the same East Ardougne teleport."
+  about: "Ardougne teleport (tablet) is a stackable Magic tablet crafted at a teak eagle lectern or better at 51 Magic for 61 Magic XP using soft clay, 2 law runes, and 2 water runes. Breaking the tablet teleports the user to East Ardougne without requiring runes, making it a popular convenience teleport for Plague City completers running PvM, Slayer, Fight Caves prep, or Ardougne diary tasks."
+  market_strategy:
+    notes:
+      - "Steady POH crafter supply versus questing/Slayer demand keeps prices range-bound"
+      - "GE buy limit of 10,000 supports bulk merching"
+      - "High alch backstop is only 1 GP - price is purely market-driven"
+      - "Convenience-fee exemption since 29 May 2025 removed GE tax friction"
+  trading_tips:
+    - "Cross-check raw cast cost (2 law + 2 water + soft clay) versus tablet price for crafting arbitrage"
+    - "Watch Ardougne diary and Fight Caves training cycles for demand spikes"
+    - "Bulk buy when soft clay or law rune prices crash to flip tablets after restock"
+  history:
+    - date: "2006-05-31"
+      description: "Released with the Player-Owned Houses update as a craftable Magic tablet at the eagle lectern."
+    - date: "2025-05-29"
+      description: "Exempted from Grand Exchange convenience fees alongside other standard teleport tablets."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

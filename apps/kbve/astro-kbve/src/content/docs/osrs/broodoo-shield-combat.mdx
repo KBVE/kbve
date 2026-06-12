@@ -1,6 +1,6 @@
 ---
 title: Broodoo shield (combat) | OSRS Price Data
-description: "Broodoo shield (combat): A scary broodoo shield.. High alch: 1,800 GP, GE limit: 125."
+description: "Broodoo shield (combat) is a members tribal shield requiring 25 Defence and 25 Magic, +5 prayer and 10 charges that proc Attack drains on hit. High alch: 1,800 GP, GE limit: 125."
 osrs:
   id: 6279
   name: Broodoo shield (combat)
@@ -12,9 +12,99 @@ osrs:
   lowalch: 1200
   highalch: 1800
   limit: 125
-  about: "Broodoo shield (combat) is a members-only item in Old School RuneScape. High alchemy value: 1,800 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2005-08-09"
+    update: "Tai Bwo Wannai Clean-Up"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 5.443
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weight: 5.443
+    requirements:
+      defence: 25
+      magic: 25
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 10
+      slash: 10
+      crush: 15
+      magic: 5
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 5
+  passive_effects:
+    - name: "Attack drain charge"
+      description: "Starts with 10 charges. When the wearer takes damage, there is a 10% chance to drain 1 point of the attacker's Attack stat plus 5% of their remaining total. Each proc consumes one charge; defensive stats remain after charges deplete."
+  recipes:
+    - skill: crafting
+      level: 35
+      xp: 100
+      materials:
+        - item_name: Snakeskin
+          item_id: 6287
+          quantity: 5
+        - item_name: Combat tribal mask
+          item_id: 6335
+          quantity: 1
+        - item_name: Nails
+          item_id: 1539
+          quantity: 15
+      facility: Tai Bwo Wannai
+      product: Broodoo shield (combat)
+      product_id: 6279
+      output_quantity: 1
+  related_items:
+    - item_id: 6235
+      item_name: Broodoo shield (magic)
+      slug: broodoo-shield-magic
+      relationship: alternative
+      description: "Magic-themed broodoo shield variant draining the attacker's Magic stat instead of Attack."
+    - item_id: 6237
+      item_name: Broodoo shield (ranged)
+      slug: broodoo-shield-ranged
+      relationship: alternative
+      description: "Ranged-themed broodoo shield variant draining the attacker's Ranged stat instead of Attack."
+    - item_id: 6335
+      item_name: Combat tribal mask
+      slug: combat-tribal-mask
+      relationship: component
+      description: "Tribal mask required as the central component when crafting the combat variant."
+  about: "Broodoo shield (combat) is the combat-themed tribal shield from Tai Bwo Wannai, crafted at 35 Crafting from a combat tribal mask, snakeskin and nails. It requires 25 Defence and 25 Magic to wield, carries a +5 prayer bonus and 10 charges. Each charge has a 10% chance on damage taken to drain the attacker's Attack stat by 1 plus 5% of the remaining total - a niche debuff option for low-Defence Magic content."
+  market_strategy:
+    notes:
+      - "Supply is fully crafter-side - snakeskin, combat tribal mask, and nail costs are the floor."
+      - "GE buy limit of 125 per 4 hours caps single flips."
+      - "High alch of 1,800 gp can sit close to GE price - alching is sometimes break-even."
+      - "Demand is niche - mostly collectors and the occasional themed Slayer or Magic build."
+  trading_tips:
+    - "Watch snakeskin and combat tribal mask supply to detect crafter arbitrage windows."
+    - "Cross-reference the magic and ranged variants - all three move together as a tribal set."
+    - "Low volume and slow turnover - treat as a long-tail flip, not active merchanting."
+  history:
+    - date: "2005-08-09"
+      description: "Released as part of the Tai Bwo Wannai Clean-Up minigame update alongside the broodoo shield variants."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -11,10 +11,65 @@ osrs:
   value: 100
   lowalch: 40
   highalch: 60
-  limit: null
-  about: "Red crab meat is a members-only item in Old School RuneScape. High alchemy value: 60 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit:
+  material:
+    type: food
+    tier: mid
+  food:
+    heals: 8
+    cooking_level: 21
+    cooking_xp: 85
+    stop_burn_fire: 56
+    stop_burn_range: 51
+  recipes:
+    - skill: cooking
+      level: 21
+      xp: 85
+      materials:
+        - item_name: Raw red crab meat
+          quantity: 1
+      product: Red crab meat
+      output_quantity: 1
+      facility: Fire or cooking range
+  related_items:
+    - item_id: 31687
+      item_name: Raw red crab meat
+      slug: raw-red-crab-meat
+      relationship: component
+      description: Uncooked ingredient
+    - item_id: 31685
+      item_name: Red crab
+      slug: red-crab
+      relationship: component
+      description: Source NPC harvested via Sailing
+  about: |-
+    Red crab meat is the cooked product of raw red crab meat. It heals 8 Hitpoints per dose and grants 85 Cooking XP. Burn rate drops off completely at level 56 on a fire and 51 on a cooking range, with Hosidius bonuses lowering the threshold further.
+
+    | Property | Value |
+    |----------|-------|
+    | Heals | 8 HP |
+    | Cooking level | 21 |
+    | Cooking XP | 85 |
+    | Stop-burn (fire) | 56 |
+    | Stop-burn (range) | 51 |
+
+    Introduced as part of the Sailing skill update, red crab meat sits in the mid-tier seafood band — a step above shrimp and trout but below shark/anglerfish for serious combat content.
+  market_strategy:
+    notes:
+      - Sailing-era release — fresh supply curve
+      - Mid-tier cooking XP at level 21 (85 XP)
+      - Untradeable buy limit (null GE limit field)
+      - Often consumed for early Sailing/Cooking grinds
+      - Watch Hosidius bonus interactions for XP/hour optimization
+  trading_tips:
+    - Track raw red crab meat costs to gauge cook-flip margins
+    - Hosidius house bonuses cut burn rate further
+    - Useful filler food for mid-level Slayer tasks
+  history:
+    - date: "2025-11-19"
+      description: Introduced with the Sailing skill update.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Topaz amulet (u) | OSRS Price Data
-description: "Topaz amulet (u): It needs a string so I can wear it.. High alch: 765 GP, GE limit: 10,000."
+description: "Topaz amulet (u) is the unstrung red topaz amulet crafted at level 45 Crafting for 80 xp, strung with wool to make a Topaz amulet. High alch: 765 GP, GE limit: 10,000."
 osrs:
   id: 21105
   name: Topaz amulet (u)
@@ -12,9 +12,78 @@ osrs:
   lowalch: 510
   highalch: 765
   limit: 10000
-  about: "Topaz amulet (u) is a members-only item in Old School RuneScape. High alchemy value: 765 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: gold
+    tier: mid
+  properties:
+    release_date: "2017-02-02"
+    update: "Jewellery rework"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.004
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: crafting
+      level: 45
+      xp: 80
+      materials:
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+        - item_name: Red topaz
+          item_id: 1639
+          quantity: 1
+        - item_name: Amulet mould
+          item_id: 1595
+          quantity: 1
+      facility: Furnace
+      product: Topaz amulet (u)
+      product_id: 21105
+      output_quantity: 1
+  related_items:
+    - item_id: 1639
+      item_name: Red topaz
+      slug: red-topaz
+      relationship: component
+      description: "Cut red topaz gem used to craft the unstrung amulet."
+    - item_id: 1673
+      item_name: Topaz amulet
+      slug: topaz-amulet
+      relationship: upgrade
+      description: "Strung wearable amulet made by adding a ball of wool."
+    - item_id: 1725
+      item_name: Burning amulet
+      slug: burning-amulet
+      relationship: upgrade
+      description: "Enchanted topaz amulet that teleports near lava sources; created via Lvl-3 Enchant at 49 Magic."
+    - item_id: 1675
+      item_name: Topaz necklace
+      slug: topaz-necklace
+      relationship: alternative
+      description: "Necklace-slot counterpart crafted from the same red topaz and silver."
+  about: "Topaz amulet (u) is the unstrung red topaz amulet, crafted at 45 Crafting at a furnace from a gold bar, red topaz, and an amulet mould for 80 Crafting XP. The unstrung amulet is non-wearable until combined with a ball of wool to produce the standard Topaz amulet, which can then be enchanted at 49 Magic into a Burning amulet for lava-area teleports."
+  market_strategy:
+    notes:
+      - "Supply is entirely Crafting-side - gold bar plus red topaz cost is the floor."
+      - "GE buy limit of 10,000 per 4 hours supports bulk crafter flips."
+      - "High alch of 765 gp sits near or below GE price - alching is rarely profitable."
+      - "Demand spikes follow Burning amulet usage in lava-area Slayer or Wilderness content."
+  trading_tips:
+    - "Cross-check red topaz and gold bar prices - the spread tells you crafter break-even."
+    - "Watch for Burning amulet demand bursts to drive intermediate Topaz amulet (u) supply pressure."
+    - "Stable, high-volume jewellery item - good practice flip with thin margins."
+  history:
+    - date: "2017-02-02"
+      description: "Added with the jewellery rework that introduced the topaz amulet line alongside other crafted gem amulets."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Blue crab | OSRS Price Data
-description: "Blue crab: You'll need something to break through that shell.. High alch: 75 GP."
+description: "Blue crab is an untradeable raw catch from Varlamore's Sunset Coast fishing spots, cracked open for blue crab meat. High alch: 75 GP."
 osrs:
   id: 31674
   name: Blue crab
@@ -11,10 +11,74 @@ osrs:
   value: 125
   lowalch: 50
   highalch: 75
-  limit: null
-  about: "Blue crab is a members-only item in Old School RuneScape. High alchemy value: 75 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: raw-food
+    tier: mid
+  properties:
+    release_date: "2024-09-25"
+    tradeable: false
+    equipable: false
+    stackable: false
+    noteable: false
+    members: true
+    quest_item: false
+    weight: 0.4
+    options:
+      - Crack
+      - Drop
+    destroy: "Drop"
+  skilling_sources:
+    - skill: fishing
+      level: 79
+      xp: 100
+      tool: Crab claw
+      location: Sunset Coast (Varlamore)
+      method: "Crab pot - catches Varlamore blue crabs"
+      members_only: true
+  recipes:
+    - skill: cooking
+      level: 84
+      xp: 215
+      tools:
+        - Hammer
+      materials:
+        - item_id: 31674
+          item_name: Blue crab
+          quantity: 1
+      product: Blue crab meat
+      output_quantity: 1
+      notes: "Crack the shell open with a hammer to extract raw blue crab meat for cooking"
+  related_items:
+    - item_name: Blue crab meat
+      slug: blue-crab-meat
+      relationship: product
+      description: Raw meat extracted by cracking the blue crab shell
+    - item_name: Cooked blue crab meat
+      slug: cooked-blue-crab-meat
+      relationship: product
+      description: Cooked blue crab meat, a Varlamore food healing roughly 16 HP
+    - item_id: 7944
+      item_name: Monkfish
+      slug: monkfish
+      relationship: alternative
+      description: Comparable mid-tier fishing target for XP/hr
+  market_strategy:
+    notes:
+      - "Untradeable; market only meaningful via meat/cooked outputs"
+      - "Sunset Coast spots are an XP/hr Fishing meta in Varlamore"
+      - "Crack with a hammer immediately to extract meat for cooking XP"
+      - "Stockpile cooked blue crab meat for combat food on alt accounts"
+  trading_tips:
+    - Always carry a hammer at Sunset Coast to convert crabs into meat in-place
+    - Pair Fishing trips with Cooking turn-ins for double XP value
+    - Compare cooked blue crab healing vs sharks before substituting in combat
+  about: Blue crab is a Varlamore raw fishing catch from the Sunset Coast crab pots, requiring 79 Fishing. It must be cracked open with a hammer to yield blue crab meat, which is then cooked at 84 Cooking.
+  history:
+    - date: "2024-09-25"
+      description: "Released as part of the Varlamore - The Final Dawn expansion with new Sunset Coast Fishing content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

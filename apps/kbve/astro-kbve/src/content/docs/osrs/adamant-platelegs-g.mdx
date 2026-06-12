@@ -1,6 +1,6 @@
 ---
 title: Adamant platelegs (g) | OSRS Price Data
-description: "Adamant platelegs (g) is a F2P legs slot item requiring 30 Defence. High alch: 3,840 GP, GE limit: 8."
+description: "Adamant platelegs (g) is a F2P gold-trimmed cosmetic variant of standard adamant platelegs requiring 30 Defence, from medium clue caskets. High alch: 3,840 GP, GE limit: 8."
 osrs:
   id: 2609
   name: Adamant platelegs (g)
@@ -12,30 +12,89 @@ osrs:
   lowalch: 2560
   highalch: 3840
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: adamant
+    tier: mid
+  properties:
+    release_date: "2004-05-05"
+    update: "Bigger Banks & Treasure Trails"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 10.432
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: legs
+    weapon_type: legs
+    weight: 10.432
     requirements:
       defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -11
+      ranged: -11
+    defence_bonus:
+      stab: 33
+      slash: 31
+      crush: 29
+      magic: -4
+      ranged: 31
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
   related_items:
     - item_id: 2607
       item_name: Adamant platebody (g)
       slug: adamant-platebody-g
       relationship: set-piece
-      description: Matching gold-trimmed platebody
+      description: "Matching gold-trimmed platebody from the same clue tier."
     - item_id: 2601
       item_name: Adamant platelegs (t)
       slug: adamant-platelegs-t
       relationship: variant
-      description: Trimmed variant
-  about: |-
-    > *"Adamant platelegs with gold trim."*
-
-    The adamant platelegs (g) are a gold-trimmed cosmetic variant of standard adamant platelegs. Identical stats, requiring 30 Defence. Clue scroll exclusive.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Trimmed cosmetic variant with identical stats."
+    - item_id: 1123
+      item_name: Adamant platelegs
+      slug: adamant-platelegs
+      relationship: variant
+      description: "Standard untrimmed adamant platelegs - same combat stats."
+  about: "Adamant platelegs (g) are the gold-trimmed cosmetic variant of standard adamant platelegs, awarded from medium Treasure Trails reward caskets at roughly 1/1,133. They carry identical combat stats to the base platelegs and require 30 Defence to wear, making them a popular F2P cosmetic flex on free worlds where high-tier gear is unavailable. They cannot be smithed."
+  market_strategy:
+    notes:
+      - "GE buy limit of 8 per 4 hours caps daily flips."
+      - "Supply tied to medium clue completion rates - heavier in Leagues lulls."
+      - "Demand spikes during F2P PK and BH events where gold trim cosmetics signal status."
+      - "High alch of 3,840 gp is well below GE - never alch."
+  trading_tips:
+    - "Pair with Adamant platebody (g) for full-set arbitrage."
+    - "Buy after Leagues launches - clue activity drops, prices stiffen."
+    - "Cross-monitor easy clue ranges (Black (g)) - mid-clue economic shifts trickle up."
+  history:
+    - date: "2004-05-05"
+      description: "Released with the Bigger Banks & Treasure Trails update as a medium clue casket reward."
+    - date: "2014-06-12"
+      description: "Renamed from 'Adam platelegs (g)' to 'Adamant platelegs (g)' for naming consistency."
+    - date: "2021-04-21"
+      description: "Ranged attack bonus reduced from -7 to -11 in a wide armor rebalance pass."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />
