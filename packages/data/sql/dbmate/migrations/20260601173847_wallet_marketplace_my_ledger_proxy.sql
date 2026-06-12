@@ -48,6 +48,14 @@
 --   GRANT EXECUTE TO authenticated, service_role. PUBLIC + anon
 --   REVOKEd.
 
+-- Drop any prior shape before recreating so a future signature change
+-- (return-column rename / add / drop) does not error out on the
+-- PostgreSQL "cannot change return type of existing function" check.
+-- This is a no-op on first apply.
+DROP FUNCTION IF EXISTS public.proxy_market_my_ledger_readonly(
+    INTEGER, TIMESTAMPTZ, BIGINT, wallet.source_kind[], wallet.currency_kind
+);
+
 CREATE OR REPLACE FUNCTION public.proxy_market_my_ledger_readonly(
     p_limit             INTEGER                 DEFAULT 50,
     p_before_created_at TIMESTAMPTZ             DEFAULT NULL,
@@ -123,7 +131,7 @@ ALTER FUNCTION public.proxy_market_my_ledger_readonly(
 
 ALTER FUNCTION public.proxy_market_my_ledger_readonly(
     INTEGER, TIMESTAMPTZ, BIGINT, wallet.source_kind[], wallet.currency_kind
-) COST 100 ROWS 50;
+) COST 100 ROWS 100;
 
 REVOKE ALL ON FUNCTION public.proxy_market_my_ledger_readonly(
     INTEGER, TIMESTAMPTZ, BIGINT, wallet.source_kind[], wallet.currency_kind
