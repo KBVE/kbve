@@ -13,6 +13,7 @@ import { StickySidebar } from './ui/StickySidebar';
 import { ActionMenu } from './ui/ActionMenu';
 import { DialogueModal } from './ui/DialogueModal';
 import { DiceRollModal } from './ui/DiceRollModal';
+import { ChatBar } from './ui/ChatBar';
 
 /**
  * Isolated Phaser canvas — never re-renders when game store changes.
@@ -89,6 +90,7 @@ function GameUI({ username }: { username?: string }) {
 			<DiceRollModal />
 			<CharacterDialog />
 			<NotificationToast />
+			<ChatBar />
 		</>
 	);
 }

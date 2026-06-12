@@ -65,6 +65,8 @@ export {
 	EPHEMERAL_INVENTORY,
 	EPHEMERAL_COMBAT,
 	EPHEMERAL_PICKUP,
+	EPHEMERAL_CHAT,
+	EPHEMERAL_ITEM_USED,
 	KIND_CAT_PLAYER,
 	KIND_CAT_NPC,
 	KIND_CAT_ITEM,
@@ -91,4 +93,6 @@ export type {
 	InventorySync,
 	CombatEvent,
 	PickupEvent,
+	ChatEvent,
+	ItemUsedEvent,
 } from './lib/net/protocol';

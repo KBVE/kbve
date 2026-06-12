@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { laserEvents } from '@kbve/laser';
 import { getItemById } from '../data/items';
 
 interface InventoryGridProps {
@@ -38,11 +39,31 @@ export function InventoryGrid({ backpack }: InventoryGridProps) {
 							className="relative hover:scale-[1.3] transition ease-in-out duration-100"
 							onMouseEnter={(e) => showTooltip(item.id, e)}
 							onMouseLeave={hideTooltip}>
-							<img
-								src={item.img}
-								alt={item.name}
-								className="w-8 h-8 border border-yellow-400/50"
-							/>
+							<button
+								type="button"
+								aria-label={
+									item.type === 'consumable'
+										? `Use ${item.name}`
+										: item.name
+								}
+								className={
+									item.type === 'consumable'
+										? 'cursor-pointer'
+										: 'cursor-default'
+								}
+								onClick={() => {
+									if (item.type === 'consumable') {
+										laserEvents.emit('item:use', {
+											ref: item.id,
+										});
+									}
+								}}>
+								<img
+									src={item.img}
+									alt={item.name}
+									className="w-8 h-8 border border-yellow-400/50"
+								/>
+							</button>
 						</li>
 					);
 				})}

@@ -58,6 +58,9 @@ export class CloudCityScene extends Scene {
 	private tilePixels = 16;
 	private ranges: Range[] = [];
 	private rangeTile = { x: -1, y: -1 };
+	private myHp = -1;
+	private myMaxHp = -1;
+	private laserUnsubs: (() => void)[] = [];
 
 	constructor() {
 		super({ key: 'CloudCity' });
@@ -129,6 +132,18 @@ export class CloudCityScene extends Scene {
 		});
 		client.on('combat', (c) => {
 			laserEvents.emit('combat:event', c);
+			if (c.died && c.target === this.myEid) {
+				laserEvents.emit('char:event', {
+					message:
+						'You died! The well pulls you back to the plaza, body intact, pride bruised.',
+				});
+			}
+		});
+		client.on('chat', (c) => {
+			laserEvents.emit('chat:message', c);
+		});
+		client.on('itemUsed', (u) => {
+			laserEvents.emit('item:used', u);
 		});
 		client.on('reject', (reason) => {
 			laserEvents.emit('char:event', {
@@ -146,7 +161,22 @@ export class CloudCityScene extends Scene {
 			this.onPointerDown(pointer),
 		);
 
-		this.events.once('shutdown', () => this.client?.close());
+		this.laserUnsubs.push(
+			laserEvents.on('item:use', (data) => {
+				const d = data as { ref: string };
+				if (d?.ref) this.client?.useItem(d.ref);
+			}),
+			laserEvents.on('chat:send', (data) => {
+				const d = data as { text: string };
+				if (d?.text) this.client?.say(d.text);
+			}),
+		);
+
+		this.events.once('shutdown', () => {
+			this.laserUnsubs.forEach((off) => off());
+			this.laserUnsubs = [];
+			this.client?.close();
+		});
 	}
 
 	private makeGroundItemTexture() {
@@ -198,6 +228,16 @@ export class CloudCityScene extends Scene {
 		const seen = new Set<number>();
 
 		for (const e of snap.entities) {
+			if (
+				e.eid === this.myEid &&
+				(e.hp !== this.myHp || e.max_hp !== this.myMaxHp)
+			) {
+				this.myHp = e.hp;
+				this.myMaxHp = e.max_hp;
+				laserEvents.emit('player:stats', {
+					stats: { hp: e.hp, maxHp: e.max_hp },
+				});
+			}
 			seen.add(e.eid);
 			const existing = this.tracked.get(e.eid);
 			if (!existing) {

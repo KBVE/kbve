@@ -42,7 +42,7 @@ impl Roster {
         None
     }
 
-    fn release(&mut self, slot: proto::PlayerSlot) {
+    pub(crate) fn release(&mut self, slot: proto::PlayerSlot) {
         if let Some(s) = self.slots.get_mut(slot.0 as usize) {
             *s = None;
         }

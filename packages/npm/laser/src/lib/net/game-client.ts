@@ -1,8 +1,11 @@
 import { LaserEventBus } from '../core/events';
 import {
+	EPHEMERAL_CHAT,
 	EPHEMERAL_COMBAT,
 	EPHEMERAL_INVENTORY,
+	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_PICKUP,
+	type ChatEvent,
 	type ClientMessage,
 	type CombatEvent,
 	type Dir,
@@ -10,6 +13,7 @@ import {
 	type Facing,
 	type Input,
 	type InventorySync,
+	type ItemUsedEvent,
 	type PickupEvent,
 	type ServerEvent,
 	type Snapshot,
@@ -28,6 +32,8 @@ export type GameClientEventMap = {
 	inventory: InventorySync;
 	combat: CombatEvent;
 	pickup: PickupEvent;
+	chat: ChatEvent;
+	itemUsed: ItemUsedEvent;
 	reject: string;
 	close: void;
 	error: string;
@@ -100,6 +106,12 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_PICKUP) {
 			const data = decodeEphemeralPayload<PickupEvent>(evt.payload);
 			if (data) this.bus.emit('pickup', data);
+		} else if (evt.kind === EPHEMERAL_CHAT) {
+			const data = decodeEphemeralPayload<ChatEvent>(evt.payload);
+			if (data) this.bus.emit('chat', data);
+		} else if (evt.kind === EPHEMERAL_ITEM_USED) {
+			const data = decodeEphemeralPayload<ItemUsedEvent>(evt.payload);
+			if (data) this.bus.emit('itemUsed', data);
 		}
 	}
 
@@ -128,6 +140,14 @@ export class GameClient {
 
 	action(id: number, target: number | null): void {
 		this.sendInputs([{ Action: { id, target } }]);
+	}
+
+	useItem(itemRef: string): void {
+		this.sendInputs([{ UseItem: { item_ref: itemRef } }]);
+	}
+
+	say(text: string): void {
+		this.sendInputs([{ Say: { text } }]);
 	}
 
 	face(facing: Facing): void {
