@@ -1,0 +1,87 @@
+---
+title: Aurora Lab
+description: Playground for the @kbve/astro aurora hero family.
+tableOfContents: false
+graph:
+    visible: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+---
+
+import AuroraHero from '@kbve/astro/components/hero/aurora/AuroraHero.astro';
+import AuroraButton from '@kbve/astro/components/hero/aurora/AuroraButton.astro';
+import BentoGrid from '@kbve/astro/components/hero/aurora/BentoGrid.astro';
+import BentoCard from '@kbve/astro/components/hero/aurora/BentoCard.astro';
+import SpotlightCard from '@kbve/astro/components/hero/aurora/SpotlightCard.astro';
+import StatRibbon from '@kbve/astro/components/hero/aurora/StatRibbon.astro';
+
+<AuroraHero
+    eyebrow="KBVE"
+    title="Build, ship, play."
+    tagline="A kilobyte-scale virtual enterprise — a studio, an open-source collective, and a hosting platform for community projects.">
+    <AuroraButton href="/projects/">Explore projects</AuroraButton>
+    <AuroraButton href="/github/" variant="ghost">Star on GitHub</AuroraButton>
+</AuroraHero>
+
+<StatRibbon
+    stats={[
+        { value: '500+', label: 'Community members' },
+        { value: '100+', label: 'Open-source repos' },
+        { value: '3', label: 'Live game servers' },
+        { value: '24/7', label: 'Discord + dev streams' },
+    ]}
+/>
+
+<BentoGrid heading="What we ship" tagline="Four lanes that loop forever.">
+    <BentoCard
+        title="Services"
+        eyebrow="For teams"
+        description="Custom software, automation, managed game-server hosting."
+        href="/service/"
+        span="big"
+        accent="#06b6d4"
+    />
+    <BentoCard
+        title="Features"
+        description="Live platform features powering the community."
+        href="/feature/"
+        accent="#a855f7"
+    />
+    <BentoCard
+        title="GitHub"
+        description="Open-source repos and top contributors."
+        href="/github/"
+        accent="#c9a56a"
+    />
+    <BentoCard
+        title="Projects"
+        eyebrow="Studio"
+        description="Games, tools, libraries — built in the open."
+        href="/projects/"
+        span="wide"
+        accent="#22c55e"
+    />
+</BentoGrid>
+
+<BentoGrid heading="Spotlight" tagline="Cursor-follow glow, pointer-fine only.">
+    <SpotlightCard
+        title="Rareicon"
+        description="2D sci-fi action-RPG bullet-hell roguelite. Chip vs DaemonCorps."
+        href="/projects/"
+        accent="#06b6d4"
+    />
+    <SpotlightCard
+        title="ChuckRPG"
+        description="UE5 open-world experiment with Mass ECS slimes."
+        href="/projects/"
+        accent="#a855f7"
+    />
+    <SpotlightCard
+        title="Discord.sh"
+        description="Community tooling and bot infrastructure."
+        href="/feature/"
+        accent="#22c55e"
+    />
+</BentoGrid>
