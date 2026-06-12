@@ -247,12 +247,12 @@ void AchuckCorePlayerController::OnPossess(APawn* InPawn)
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 	{
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HUDWidget.ToSharedRef(),       5);
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), HotbarWidget.ToSharedRef(),    20);
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), DragArrowLayer.ToSharedRef(), 29);
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), TooltipWidget.ToSharedRef(),  30);
+		Viewport->AddViewportWidgetContent(HotbarWidget.ToSharedRef(),    20);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), ToastHostWidget.ToSharedRef(),32);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), ChatWidget.ToSharedRef(),     35);
 		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), AccountWidget.ToSharedRef(),  40);
+		Viewport->AddViewportWidgetContent(DragArrowLayer.ToSharedRef(), 29);
+		Viewport->AddViewportWidgetContent(TooltipWidget.ToSharedRef(),  30);
 	}
 
 	ApplyUiFlagsVisibility();
@@ -329,23 +329,23 @@ void AchuckCorePlayerController::OnUnPossess()
 	}
 	if (TooltipWidget.IsValid())
 	{
-		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), TooltipWidget.ToSharedRef());
+		if (Viewport) Viewport->RemoveViewportWidgetContent(TooltipWidget.ToSharedRef());
 		TooltipWidget.Reset();
 	}
 	if (DragArrowLayer.IsValid())
 	{
-		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), DragArrowLayer.ToSharedRef());
+		if (Viewport) Viewport->RemoveViewportWidgetContent(DragArrowLayer.ToSharedRef());
 		DragArrowLayer.Reset();
 	}
 	if (InventoryWidget.IsValid())
 	{
-		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), InventoryWidget.ToSharedRef());
+		if (Viewport) Viewport->RemoveViewportWidgetContent(InventoryWidget.ToSharedRef());
 		InventoryWidget.Reset();
 		SetUiFlag(EUiFlag::Inventory, false);
 	}
 	if (HotbarWidget.IsValid())
 	{
-		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), HotbarWidget.ToSharedRef());
+		if (Viewport) Viewport->RemoveViewportWidgetContent(HotbarWidget.ToSharedRef());
 		HotbarWidget.Reset();
 	}
 	if (HUDWidget.IsValid())
@@ -360,7 +360,7 @@ void AchuckCorePlayerController::OnUnPossess()
 	}
 	if (SettingsWidget.IsValid())
 	{
-		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), SettingsWidget.ToSharedRef());
+		if (Viewport) Viewport->RemoveViewportWidgetContent(SettingsWidget.ToSharedRef());
 		SettingsWidget.Reset();
 		SetUiFlag(EUiFlag::Settings, false);
 	}
@@ -431,7 +431,7 @@ void AchuckCorePlayerController::PauseGame()
 		.OnQuitToMenuClicked(FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::QuitToMainMenu))
 		.OnQuitClicked      (FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::QuitGame));
 
-	Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), PauseWidget.ToSharedRef(), 20);
+	Viewport->AddViewportWidgetContent(PauseWidget.ToSharedRef(), 20);
 
 	FInputModeUIOnly Mode;
 	Mode.SetWidgetToFocus(PauseWidget);
@@ -454,7 +454,7 @@ void AchuckCorePlayerController::ResumeGame()
 	{
 		if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 		{
-			Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), PauseWidget.ToSharedRef());
+			Viewport->RemoveViewportWidgetContent(PauseWidget.ToSharedRef());
 		}
 		PauseWidget.Reset();
 	}
@@ -605,7 +605,7 @@ void AchuckCorePlayerController::OpenSettings()
 			]
 		];
 
-	Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), SettingsWidget.ToSharedRef(), 22);
+	Viewport->AddViewportWidgetContent(SettingsWidget.ToSharedRef(), 22);
 	SetUiFlag(EUiFlag::Settings, true);
 
 	FInputModeUIOnly Mode;
@@ -621,7 +621,7 @@ void AchuckCorePlayerController::CloseSettings()
 	{
 		if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 		{
-			Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), SettingsWidget.ToSharedRef());
+			Viewport->RemoveViewportWidgetContent(SettingsWidget.ToSharedRef());
 		}
 		SettingsWidget.Reset();
 	}
@@ -682,11 +682,11 @@ void AchuckCorePlayerController::OnToggleDevOverlayPressed(const FInputActionVal
 			{
 				return PlayerState ? (int32)PlayerState->GetPingInMilliseconds() : 0;
 			}));
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), DevOverlayWidget.ToSharedRef(), 15);
+		Viewport->AddViewportWidgetContent(DevOverlayWidget.ToSharedRef(), 15);
 	}
 	else if (DevOverlayWidget.IsValid())
 	{
-		Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), DevOverlayWidget.ToSharedRef());
+		Viewport->RemoveViewportWidgetContent(DevOverlayWidget.ToSharedRef());
 		DevOverlayWidget.Reset();
 	}
 }
@@ -740,7 +740,7 @@ void AchuckCorePlayerController::OpenInventory()
 	InventoryWidget = SNew(SchuckInventoryWindow)
 		.OwningCharacter(Char)
 		.OnCloseClicked(FSimpleDelegate::CreateUObject(this, &AchuckCorePlayerController::CloseInventory));
-	Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), InventoryWidget.ToSharedRef(), 12);
+	Viewport->AddViewportWidgetContent(InventoryWidget.ToSharedRef(), 12);
 
 	SetUiFlag(EUiFlag::Inventory, true);
 	RefreshUiMouseMode();
@@ -763,7 +763,7 @@ void AchuckCorePlayerController::CloseInventory()
 	{
 		if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 		{
-			Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), InventoryWidget.ToSharedRef());
+			Viewport->RemoveViewportWidgetContent(InventoryWidget.ToSharedRef());
 		}
 		InventoryWidget.Reset();
 	}
@@ -967,15 +967,18 @@ void AchuckCorePlayerController::ApplyUiFlagsVisibility()
 
 void AchuckCorePlayerController::RefreshUiMouseMode()
 {
-	const bool bUi = IsAnyUiPanelOpen();
-	bShowMouseCursor = bUi;
-	if (bUi)
+	const bool bCursor = HasAnyUiFlags(NeedsCursorMask);
+	bShowMouseCursor = bCursor;
+
+	UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
+
+	if (bCursor)
 	{
 		FInputModeGameAndUI Mode;
 		Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 		Mode.SetHideCursorDuringCapture(false);
 		SetInputMode(Mode);
-		if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
+		if (Viewport)
 		{
 			Viewport->SetMouseCaptureMode(EMouseCaptureMode::NoCapture);
 			Viewport->SetMouseLockMode(EMouseLockMode::DoNotLock);
@@ -985,7 +988,7 @@ void AchuckCorePlayerController::RefreshUiMouseMode()
 	{
 		SetInputMode(FInputModeGameOnly());
 		ResetIgnoreInputFlags();
-		if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
+		if (Viewport)
 		{
 			Viewport->SetMouseCaptureMode(EMouseCaptureMode::CapturePermanently_IncludingInitialMouseDown);
 			Viewport->SetMouseLockMode(EMouseLockMode::LockOnCapture);

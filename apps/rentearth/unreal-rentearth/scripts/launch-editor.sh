@@ -93,6 +93,11 @@ echo "==> friendly   : $FRIENDLY_LOG"
 echo "==> filtered console (only [chuck], supabase, errors, warnings) below:"
 echo ""
 
+( for _ in $(seq 1 15); do
+	sleep 2
+	osascript -e 'tell application "System Events" to set frontmost of (first process whose name contains "UnrealEditor") to true' 2>/dev/null && break
+done ) &
+
 "$EDITOR" \
 	"$ABS_UPROJECT" \
 	-stdout \

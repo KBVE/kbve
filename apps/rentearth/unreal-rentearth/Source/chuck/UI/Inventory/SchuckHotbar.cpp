@@ -2,6 +2,7 @@
 
 #include "SchuckInventorySlot.h"
 #include "SKBVEHotbar.h"
+#include "Widgets/SOverlay.h"
 
 namespace
 {
@@ -69,30 +70,43 @@ void SchuckHotbar::Build()
 		return BaseSlotSize;
 	});
 
+	auto BuildRow = [this, SizeAttr, BgFilled, BgEmpty, WeakSelf](int32 BaseIndex, bool bShift, float BottomPad) -> TSharedRef<SWidget>
+	{
+		return SNew(SKBVEHotbar)
+			.SlotCount(12)
+			.SlotSize(BaseSlotSize * ExpandedScale)
+			.SlotGap(1.f)
+			.BottomPadding(BottomPad)
+			.OnBuildSlot_Lambda([this, SizeAttr, BgFilled, BgEmpty, WeakSelf, BaseIndex, bShift](int32 Idx) -> TSharedRef<SWidget>
+			{
+				TAttribute<FString> KeyAttr = TAttribute<FString>::CreateLambda([WeakSelf, Idx, bShift]() -> FString
+				{
+					TSharedPtr<SchuckHotbar> Self = WeakSelf.Pin();
+					if (!Self.IsValid() || !Self->bExpanded) return FString();
+					const FString Base = FString(HotbarKeyLabel(Idx));
+					return bShift ? FString(TEXT("⇧")) + Base : Base;
+				});
+
+				return SNew(SchuckInventorySlot)
+					.OwningCharacter(Character)
+					.SlotIndex(BaseIndex + Idx)
+					.SlotSize(SizeAttr)
+					.bIsHotbar(true)
+					.KeyLabelAttr(KeyAttr)
+					.BgFilledOverride(BgFilled)
+					.BgEmptyOverride(BgEmpty);
+			});
+	};
+
+	const float RowHeight  = BaseSlotSize * ExpandedScale;
+	const float Row1Bottom = 24.f;
+	const float Row2Bottom = Row1Bottom + RowHeight + 10.f;
+
 	ChildSlot
 	[
-		SNew(SKBVEHotbar)
-		.SlotCount(12)
-		.SlotSize(BaseSlotSize * ExpandedScale)
-		.SlotGap(1.f)
-		.BottomPadding(24.f)
-		.OnBuildSlot_Lambda([this, SizeAttr, BgFilled, BgEmpty, WeakSelf](int32 Idx) -> TSharedRef<SWidget>
-		{
-			TAttribute<FString> KeyAttr = TAttribute<FString>::CreateLambda([WeakSelf, Idx]() -> FString
-			{
-				TSharedPtr<SchuckHotbar> Self = WeakSelf.Pin();
-				if (!Self.IsValid() || !Self->bExpanded) return FString();
-				return FString(HotbarKeyLabel(Idx));
-			});
-
-			return SNew(SchuckInventorySlot)
-				.OwningCharacter(Character)
-				.SlotIndex(Idx)
-				.SlotSize(SizeAttr)
-				.bIsHotbar(true)
-				.KeyLabelAttr(KeyAttr)
-				.BgFilledOverride(BgFilled)
-				.BgEmptyOverride(BgEmpty);
-		})
+		SNew(SOverlay)
+		.Visibility(EVisibility::SelfHitTestInvisible)
+		+ SOverlay::Slot()[ BuildRow(0,  false, Row1Bottom) ]
+		+ SOverlay::Slot()[ BuildRow(12, true,  Row2Bottom) ]
 	];
 }
