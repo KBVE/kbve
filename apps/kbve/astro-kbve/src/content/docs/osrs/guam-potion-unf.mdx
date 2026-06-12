@@ -1,6 +1,6 @@
 ---
 title: Guam potion (unf) | OSRS Price Data
-description: "Guam potion (unf) is a 4-dose members potion. High alch: 1 GP, GE limit: 10,000."
+description: "Guam potion (unf) is a 1-dose unfinished potion used as a Herblore intermediate. High alch: 1 GP, GE limit: 10,000."
 osrs:
   id: 91
   name: Guam potion (unf)
@@ -12,13 +12,13 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 10000
+  material:
+    type: potion
+    tier: low
   potion:
     type: unfinished
-    tier: basic
-  herblore:
-    level: 3
-    xp: 0
-    method: Add guam leaf to vial of water
+    tier: standard
+    doses: 1
   recipes:
     - skill: herblore
       level: 3
@@ -32,7 +32,7 @@ osrs:
           quantity: 1
       product: Guam potion (unf)
       product_id: 91
-      product_quantity: 1
+      output_quantity: 1
   related_items:
     - item_id: 249
       item_name: Guam leaf
@@ -54,21 +54,29 @@ osrs:
       slug: attack-potion-3
       relationship: product
       description: Basic combat potion
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Unfinished Potion |
-    | Tradeable | Yes |
-    | Weight | 0.056 kg |
-    | Requirements | 3 Herblore |
-
-    Add secondary ingredient to create:
-    - Attack potion (+ eye of newt)
-
-    The most basic unfinished potion for herblore training.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - High volume Herblore intermediate; prices are tightly linked to Guam leaf
+      - Useful for low-level Herblore training and Attack potion supply
+      - "Margin watch: track vial of water + guam leaf vs unf price for arbitrage"
+  trading_tips:
+    - Bulk purchase Guam leaves separately when cheaper than unfinished
+    - Combine with eye of newt to create Attack potion
+    - Decant only when GE has shortage of finished potions
+  about: "Guam potion (unf) is a members-only unfinished Herblore potion created by adding a Guam leaf to a vial of water. High alchemy value: 1 coin. Grand Exchange buy limit: 10,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    alchable: true
+  history:
+    - date: "2002-01-04"
+      description: Added to the game with the Herblore skill release.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

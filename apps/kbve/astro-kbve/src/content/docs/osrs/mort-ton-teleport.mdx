@@ -1,6 +1,6 @@
 ---
 title: Mort'ton teleport | OSRS Price Data
-description: "Mort'ton teleport: Teleports you to Mort'ton.. High alch: 6 GP, GE limit: 10,000."
+description: "Mort'ton teleport is a members teleport tablet to Mort'ton. High alch: 6 GP, GE limit: 10,000."
 osrs:
   id: 12406
   name: Mort'ton teleport
@@ -12,9 +12,46 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 10000
-  about: "Mort'ton teleport is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: teleport_tablet
+    tier: low
+  recipes:
+    - skill: magic
+      level: 65
+      xp: 71
+      output_quantity: 1
+      materials:
+        - item_name: Soft clay
+          quantity: "1"
+        - item_name: Law rune
+          quantity: "2"
+        - item_name: Soul rune
+          quantity: "1"
+      product: Mort'ton teleport
+  related_items:
+    - item_name: Law rune
+      slug: law-rune
+      relationship: component
+      description: Crafting reagent
+    - item_name: Soul rune
+      slug: soul-rune
+      relationship: component
+      description: Crafting reagent
+    - item_name: Soft clay
+      slug: soft-clay
+      relationship: component
+      description: Tablet base material
+  market_strategy:
+    notes:
+      - Crafted at lectern in Player-Owned House
+      - Used by Shades of Mort'ton hunters
+      - Low margin per cast — volume play only
+  trading_tips:
+    - Buy in bulk for Shades trips
+    - Sell to skillers crafting tablets
+  about: "Mort'ton teleport is a one-click teleport tablet that sends the player to Mort'ton in Morytania. Created at a House lectern with 65 Magic."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

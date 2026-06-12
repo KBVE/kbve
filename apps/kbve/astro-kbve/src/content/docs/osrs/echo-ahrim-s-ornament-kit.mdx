@@ -1,6 +1,6 @@
 ---
 title: Echo ahrim's ornament kit | OSRS Price Data
-description: "Echo ahrim's ornament kit is a members-only OSRS item. High alch: 3,000 GP."
+description: "Echo ahrim's ornament kit is a members-only Leagues V cosmetic for Ahrim's robes. High alch: 3,000 GP."
 osrs:
   id: 30451
   name: Echo ahrim's ornament kit
@@ -11,10 +11,56 @@ osrs:
   value: 5000
   lowalch: 2000
   highalch: 3000
-  limit: null
-  about: "Echo ahrim's ornament kit is a members-only item in Old School RuneScape. High alchemy value: 3,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit:
+  material:
+    type: cosmetic
+    tier: high
+  related_items:
+    - item_name: Ahrim's hood
+      slug: ahrims-hood
+      relationship: component
+      description: Recolour target for the Echo-style ornament kit
+    - item_name: Ahrim's robetop
+      slug: ahrims-robetop
+      relationship: component
+      description: Recolour target for the Echo-style ornament kit
+    - item_name: Ahrim's robeskirt
+      slug: ahrims-robeskirt
+      relationship: component
+      description: Recolour target for the Echo-style ornament kit
+    - item_name: Ahrim's staff
+      slug: ahrims-staff
+      relationship: component
+      description: Recolour target for the Echo-style ornament kit
+  market_strategy:
+    title: Market Notes
+    notes:
+      - "Cosmetic-only kit with no combat impact on Ahrim's pieces"
+      - "Demand driven by Leagues V Raging Echoes nostalgia"
+      - "Reversible recolour, so resale supply is healthier than untradeables"
+  trading_tips:
+    - Verify authenticity when trading high-value items
+    - Use Grand Exchange for secure trades
+    - Watch for Leagues-anniversary demand spikes
+  about: "Echo ahrim's ornament kit is a members-only cosmetic kit used on Ahrim's robes to recolour the set in the Leagues V Raging Echoes style."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    options:
+      - Use
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2024-11-13"
+      description: "Echo ahrim's ornament kit added with Leagues V: Raging Echoes."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

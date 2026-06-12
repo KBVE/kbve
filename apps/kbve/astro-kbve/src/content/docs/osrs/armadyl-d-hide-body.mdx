@@ -12,6 +12,9 @@ osrs:
   lowalch: 5200
   highalch: 7800
   limit: 8
+  material:
+    type: ranged-armour
+    tier: high
   equipment:
     slot: body
     type: ranged armour
@@ -20,9 +23,6 @@ osrs:
       ranged: 70
       defence: 40
     stats:
-      attack_stab: 0
-      attack_slash: 0
-      attack_crush: 0
       attack_magic: -15
       attack_ranged: 30
       defence_stab: 55
@@ -30,17 +30,11 @@ osrs:
       defence_crush: 60
       defence_magic: 50
       defence_ranged: 55
-      melee_strength: 0
-      ranged_strength: 0
-      magic_damage: 0
       prayer_bonus: 1
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        requirements:
-          clue_type: Hard
-        rarity: 1/1,625
-        description: Reward from hard clue scroll caskets
+  treasure_trail:
+    tier: hard
+    rarity: 1/1,625
+    description: Reward from hard clue scroll caskets
   related_items:
     - item_id: 10378
       item_name: Guthix d'hide body
@@ -89,7 +83,6 @@ osrs:
 
     The blessed variants provide substantially better defensive bonuses across the board, with the largest improvements in stab defence (+25), crush defence (+15), and ranged defence (+5). The +1 prayer bonus is a further advantage that no standard dragonhide body offers. Since the requirements are identical, blessed d'hide bodies are a strict upgrade over the black d'hide body.
   market_strategy:
-    title: Investment Notes
     notes:
       - Armadyl d'hide tends to command a premium among blessed variants due to its association with the popular Armadyl god items
       - All six blessed d'hide bodies are functionally identical, so the premium is purely cosmetic
@@ -97,8 +90,8 @@ osrs:
       - If you want best-in-slot stats without paying the Armadyl premium, any cheaper blessed variant offers the same bonuses
       - Armadyl-themed fashionscape is popular, which supports the price floor
       - Hard clue scroll farming events or updates can temporarily increase supply and lower prices
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

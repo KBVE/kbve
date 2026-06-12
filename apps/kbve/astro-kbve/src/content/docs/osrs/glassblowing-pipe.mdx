@@ -1,6 +1,6 @@
 ---
 title: Glassblowing pipe | OSRS Price Data
-description: "Glassblowing pipe: Used to form molten glass into useful items.. High alch: 1 GP, GE limit: 40."
+description: "Glassblowing pipe is the members crafting tool used to shape molten glass into finished glass items. High alch: 1 GP, GE limit: 40."
 osrs:
   id: 1785
   name: Glassblowing pipe
@@ -12,9 +12,55 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 40
-  about: "Glassblowing pipe is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 40 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: tool
+    tier: low
+  shops:
+    - shop_name: "Aaron's Archery Appendages"
+      location: Catherby
+      price: 2
+      stock: 5
+      currency: coins
+    - shop_name: "Razmire General Store"
+      location: Mort'ton
+      price: 2
+      stock: 5
+      currency: coins
+  related_items:
+    - item_id: 1775
+      item_name: Molten glass
+      slug: molten-glass
+      relationship: component
+      description: Material processed with this tool
+    - item_id: 1777
+      item_name: Bucket of sand
+      slug: bucket-of-sand
+      relationship: component
+      description: Input for molten glass
+    - item_id: 1781
+      item_name: Soda ash
+      slug: soda-ash
+      relationship: component
+      description: Input for molten glass
+    - item_id: 1787
+      item_name: Glass bottle
+      slug: glass-bottle
+      relationship: product
+      description: Common glassblowing pipe output
+  market_strategy:
+    notes:
+      - Required for all glassblowing crafting actions
+      - One-time purchase per account, very low demand
+      - Cheap from general store, GE rarely needed
+  trading_tips:
+    - Buy from a general store rather than wait for GE order
+    - Keep one in bank for crafting training
+  about: Glassblowing pipe is a members crafting tool that allows turning molten glass into items such as beer glasses, vials, orbs, and lantern lenses.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  history:
+    - date: "2002-12-11"
+      description: Glassblowing pipe added with the Crafting expansion that introduced glass items.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

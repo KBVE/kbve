@@ -12,6 +12,11 @@ osrs:
   lowalch: 240000
   highalch: 360000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: torva
+    tier: high
   equipment:
     slot: body
     type: melee_armour
@@ -29,6 +34,8 @@ osrs:
     - skill: smithing
       level: 90
       xp: 500
+      output_quantity: 1
+      facility: Anvil
       materials:
         - item_name: Torva platebody (damaged)
           item_id: 26378
@@ -38,8 +45,6 @@ osrs:
           quantity: 1
       product: Torva platebody
       product_id: 26384
-      product_quantity: 1
-      facility: Anvil
       members_only: true
   related_items:
     - item_id: 26382
@@ -90,8 +95,10 @@ osrs:
       - Most expensive Torva piece
       - Nex kills affect supply
       - BiS melee body
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  trading_tips:
+    - Most expensive Torva piece
+    - Nex kills affect supply
+    - BiS melee body
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

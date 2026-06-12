@@ -1,6 +1,6 @@
 ---
 title: Black gold-trimmed set (lg) | OSRS Price Data
-description: "Black gold-trimmed set (lg): A set containing a full helm, platebody, legs and kiteshield.. High alch: 2,700 GP, GE limit: 8."
+description: "Black gold-trimmed set (lg): A set containing a full helm, platebody, legs and kiteshield. High alch: 2,700 GP, GE limit: 8."
 osrs:
   id: 12996
   name: Black gold-trimmed set (lg)
@@ -12,9 +12,61 @@ osrs:
   lowalch: 1800
   highalch: 2700
   limit: 8
-  about: "Black gold-trimmed set (lg) is a free-to-play item in Old School RuneScape. High alchemy value: 2,700 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: armour-set
+    tier: mid
+  related_items:
+    - item_name: Black full helm (g)
+      slug: black-full-helm-g
+      relationship: set-piece
+      description: Gold-trimmed black full helm contained in the set.
+    - item_name: Black platebody (g)
+      slug: black-platebody-g
+      relationship: set-piece
+      description: Gold-trimmed black platebody contained in the set.
+    - item_name: Black platelegs (g)
+      slug: black-platelegs-g
+      relationship: set-piece
+      description: Gold-trimmed black platelegs contained in the set.
+    - item_name: Black kiteshield (g)
+      slug: black-kiteshield-g
+      relationship: set-piece
+      description: Gold-trimmed black kiteshield contained in the set.
+    - item_name: Black gold-trimmed set (sk)
+      slug: black-gold-trimmed-set-sk
+      relationship: alternative
+      description: Skirt variant of the same gold-trimmed black armour set.
+  market_strategy:
+    notes:
+      - Grand Exchange set object that exchanges for the four individual gold-trimmed pieces.
+      - Used by collectors and as a fashionscape staple in F2P worlds.
+      - Buy limit of 8 per 4 hours throttles arbitrage between set and pieces.
+      - Underlying pieces are hard clue rewards, so set price tracks hard clue completions.
+  trading_tips:
+    - Compare set price to the sum of the four individual gold-trimmed pieces before exchanging.
+    - Exchange at a Grand Exchange clerk only when the spread closes in your favour.
+  about: |-
+    > _"A set containing a full helm, platebody, legs and kiteshield."_
+
+    Grand Exchange convenience bundle that holds the gold-trimmed black full helm, platebody, platelegs and kiteshield. Used to buy or sell the full legs-variant gold-trimmed black armour in a single transaction; exchange with a Grand Exchange clerk to split into the individual pieces.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2007-11-26"
+    tradeable: true
+    stackable: false
+    noteable: false
+    equipable: false
+    members: false
+    quest_item: false
+    options:
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2007-11-26"
+      description: Black gold-trimmed set (lg) released as a Grand Exchange bundle for the gold-trimmed armour pieces.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

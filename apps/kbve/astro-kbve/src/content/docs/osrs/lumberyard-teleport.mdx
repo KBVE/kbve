@@ -1,6 +1,6 @@
 ---
 title: Lumberyard teleport | OSRS Price Data
-description: "Lumberyard teleport: Teleports you to the Lumberyard.. High alch: 6 GP, GE limit: 15,000."
+description: "Lumberyard teleport: Teleports you to the Lumberyard. High alch: 6 GP, GE limit: 15,000."
 osrs:
   id: 12642
   name: Lumberyard teleport
@@ -12,16 +12,11 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 15000
-  item:
+  material:
     type: teleport_scroll
-    destination: Lumberyard
-    tradeable: true
-    stackable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Medium/Hard/Elite
-        drop_rate: Varies by tier
+    tier: low
+  treasure_trail:
+    tier: medium
   related_items:
     - item_id: 12411
       item_name: Mos le'harmless teleport
@@ -52,8 +47,8 @@ osrs:
       - Useful for Construction
       - Plank making runs
       - Popular utility teleport
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

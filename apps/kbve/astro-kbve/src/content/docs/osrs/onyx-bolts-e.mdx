@@ -19,17 +19,17 @@ osrs:
     weight: 0
     requirements:
       ranged: 61
-  effect:
-    name: Life Leech
-    damage_bonus: 20
-    zaryte_bonus: 32
-    healing: 25
-    note: Does not work on undead
-    activation_rate:
-      pvp: 10
-      pvm: 11
-      pvp_kandarin: 11
-      pvm_kandarin: 12.1
+  passive_effects:
+    - name: Life Leech
+      damage_bonus: 20
+      zaryte_bonus: 32
+      healing: 25
+      description: "Does not work on undead"
+      activation_rate:
+        pvp: 10
+        pvm: 11
+        pvp_kandarin: 11
+        pvm_kandarin: 12.1
   enchanting:
     spell: Enchant Crossbow Bolt (Onyx)
     magic_level: 87
@@ -82,8 +82,8 @@ osrs:
     |-----------------|-----|-----|
     | Base | 10% | 11% |
     | Hard Kandarin Diary | 11% | 12.1% |
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

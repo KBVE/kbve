@@ -1,6 +1,6 @@
 ---
 title: Mature wmb | OSRS Price Data
-description: "Mature wmb: This looks a good deal stronger than normal Wizards Mind Bomb.. High alch: 1 GP, GE limit: 2,000."
+description: "Mature wmb is a members-only matured Wizard's Mind Bomb that boosts Magic. High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 5741
   name: Mature wmb
@@ -12,9 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Mature wmb is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: consumable
+    tier: low
+  potion:
+    doses: 1
+    effects:
+      - skill: magic
+        boost: 3
+        duration: 0
+      - skill: attack
+        boost: -4
+        duration: 0
+      - skill: strength
+        boost: -4
+        duration: 0
+  related_items:
+    - item_id: 463
+      item_name: Wizard's mind bomb
+      slug: wizards-mind-bomb
+      relationship: alternative
+      description: Standard Wizard's Mind Bomb base brew
+    - item_id: 1907
+      item_name: Asgarnian ale
+      slug: asgarnian-ale
+      relationship: alternative
+      description: Other Asgarnian brew family ale
+  market_strategy:
+    title: Market Notes
+    notes:
+      - "Sold to players brewing through the Asgarnian ale recipe line"
+      - "Low alch value limits high-volume flipping margins"
+      - "Demand tied to Magic-boost niche use cases"
+  trading_tips:
+    - Use Grand Exchange for secure trades
+    - Monitor price trends before purchasing
+    - Buy in bulk to amortize the small per-unit spread
+  about: "Mature wmb is a members-only matured ale variant of the Wizard's Mind Bomb obtained through brewing; it gives a stronger temporary Magic boost than the standard brew at the cost of Attack and Strength."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    options:
+      - Drink
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2005-08-01"
+      description: "Mature Wizard's Mind Bomb introduced as a brewing maturation outcome."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

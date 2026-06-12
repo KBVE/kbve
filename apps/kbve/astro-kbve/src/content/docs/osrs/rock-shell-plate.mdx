@@ -12,12 +12,12 @@ osrs:
   lowalch: 26000
   highalch: 39000
   limit: 70
+  material:
+    type: rock_shell
+    tier: mid-high
   equipment:
     slot: body
     attack_bonus:
-      stab: 0
-      slash: 0
-      crush: 0
       magic: -30
       ranged: -10
     defence_bonus:
@@ -26,11 +26,6 @@ osrs:
       crush: 72
       magic: -6
       ranged: 80
-    other_bonus:
-      melee_strength: 0
-      ranged_strength: 0
-      magic_damage: 0
-      prayer: 0
     requirements:
       defence: 40
     weight: 9.979
@@ -90,8 +85,8 @@ osrs:
       - Crafting via Skulgrimen is profitable (~8K profit)
       - Ava's compatibility drives niche PvP demand
       - Dagannoth Rex also drops it directly
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Antifire potion(1) | OSRS Price Data
-description: "Antifire potion(1): 1 dose of anti-firebreath potion.. High alch: 79 GP, GE limit: 2,000."
+description: "Antifire potion(1) is a 1-dose anti-firebreath potion that reduces dragonfire damage. High alch: 79 GP, GE limit: 2,000."
 osrs:
   id: 2458
   name: Antifire potion(1)
@@ -12,9 +12,61 @@ osrs:
   lowalch: 52
   highalch: 79
   limit: 2000
-  about: "Antifire potion(1) is a members-only item in Old School RuneScape. High alchemy value: 79 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: mid
+  potion:
+    type: combat
+    tier: standard
+    doses: 1
+    effects:
+      - name: Antifire
+        duration: 360
+        description: "Reduces dragonfire damage taken for 6 minutes."
+  related_items:
+    - item_id: 2456
+      item_name: Antifire potion(4)
+      slug: antifire-potion-4
+      relationship: variant
+      description: 4-dose version
+    - item_id: 2454
+      item_name: Antifire potion(3)
+      slug: antifire-potion-3
+      relationship: variant
+      description: 3-dose version
+    - item_id: 2452
+      item_name: Antifire potion(2)
+      slug: antifire-potion-2
+      relationship: variant
+      description: 2-dose version
+    - item_id: 2460
+      item_name: Extended antifire(4)
+      slug: extended-antifire-4
+      relationship: upgrade
+      description: Longer-lasting antifire variant
+  market_strategy:
+    notes:
+      - Single-dose antifires are commonly produced by decanting higher-dose flasks
+      - Demand spikes around dragon-slayer tasks and dragonfire encounters
+      - "Watch GE price relative to multi-dose variants: arbitrage by decanting"
+  trading_tips:
+    - Buy in bulk before Slayer tasks for cost savings
+    - "Compare per-dose price vs 4-dose to avoid overpaying"
+    - Decant via NPC services when supply of low-dose is short
+  about: "Antifire potion(1) is a members-only 1-dose potion that reduces dragonfire damage taken when fighting dragons. High alchemy value: 79 coins. Grand Exchange buy limit: 2,000 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    alchable: true
+  history:
+    - date: "2004-12-13"
+      description: Antifire potion was added to the game.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

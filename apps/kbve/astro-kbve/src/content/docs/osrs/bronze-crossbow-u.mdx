@@ -12,9 +12,49 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 10000
-  about: "Bronze crossbow (u) is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Bronze crossbow (u) is the unstrung intermediate step in crafting a Bronze crossbow. Created from a bronze crossbow stock and limbs at Fletching level 9."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2006-05-15"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 1.0
+  material:
+    type: crossbow
+    tier: low
+  recipes:
+    - item_name: Bronze crossbow (u)
+      tools: []
+      materials:
+        - item_name: Wooden stock
+          quantity: "1"
+        - item_name: Bronze limbs
+          quantity: "1"
+      output_quantity: 1
+      skill: fletching
+      level: 9
+      xp: 12
+      notes: "Combine bronze limbs onto a wooden stock to produce the unstrung crossbow."
+  related_items:
+    - item_name: Bronze crossbow
+      slug: bronze-crossbow
+      relationship: product
+      description: Strung result after adding a crossbow string.
+  market_strategy:
+    notes:
+      - "Used almost exclusively by low-level Fletchers training."
+      - "Tracks bronze limbs and wooden stock supply closely."
+  trading_tips:
+    - "Buy in bulk during Fletching XP events."
+    - "Margins thin so flip alongside limbs and stocks."
+  history:
+    - date: "2006-05-15"
+      description: "Bronze crossbow (u) released with the crossbow Fletching update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

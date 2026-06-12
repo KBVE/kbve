@@ -5,16 +5,50 @@ osrs:
   id: 4413
   name: Team-50 cape
   slug: team-50-cape
-  examine: Ooohhh look at the pretty colours...
+  examine: "Ooohhh look at the pretty colours..."
   members: false
   icon: Team-50 cape.png
   value: 50
   lowalch: 20
   highalch: 30
   limit: 150
-  about: "Team-50 cape is a free-to-play item in Old School RuneScape. High alchemy value: 30 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Team-50 cape is one of fifty team capes used by clans and friend groups to identify members during PvP and group events. Sold by Scarface Pete's apprentice in Port Sarim."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2004-06-14"
+    tradeable: true
+    equipable: true
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.45
+  material:
+    type: cape
+    tier: low
+  equipment:
+    slot: cape
+    weight: 0.45
+  related_items:
+    - item_name: Team-49 cape
+      slug: team-49-cape
+      relationship: variant
+      description: Sibling cape from the team cape family.
+    - item_name: Team-51 cape
+      slug: team-51-cape
+      relationship: variant
+      description: Sibling cape from the team cape family.
+  market_strategy:
+    notes:
+      - "Cosmetic free-to-play cape with a tight 150 buy limit."
+      - "Demand spikes during clan-led PvP events."
+  trading_tips:
+    - "Buy stock from Port Sarim NPC for guaranteed margin into the GE."
+    - "Sell ahead of large clan tournaments for premium prices."
+  history:
+    - date: "2004-06-14"
+      description: "Team-50 cape released alongside the team cape family for PvP identification."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
