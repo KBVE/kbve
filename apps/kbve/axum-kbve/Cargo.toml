@@ -90,7 +90,7 @@ tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
 webpki-roots = "0.26"
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi", features = ["clickhouse"] }
+jedi = { path = "../../../packages/rust/jedi", features = ["clickhouse", "forgejo"] }
 kbve = { path = "../../../packages/rust/kbve", features = ["wallet"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 
