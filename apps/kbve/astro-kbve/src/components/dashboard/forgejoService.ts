@@ -1,6 +1,7 @@
 import { atom, computed } from 'nanostores';
 import { persistentAtom } from '@nanostores/persistent';
 import { initSupa, getSupa } from '@/lib/supa';
+import { cacheGet, cacheSet } from '@/lib/idb-cache';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -571,29 +572,21 @@ async function fetchRepoLanguages(
 // Cache helpers
 // ---------------------------------------------------------------------------
 
-function loadCache(): CachedData | null {
-	try {
-		const raw = localStorage.getItem(CACHE_KEY);
-		if (!raw) return null;
-		const parsed: CachedData = JSON.parse(raw);
-		if (Date.now() - parsed.ts > CACHE_TTL_MS) return null;
-		return parsed;
-	} catch {
-		return null;
-	}
+function loadCache(): Promise<CachedData | null> {
+	return cacheGet<CachedData>(CACHE_KEY, CACHE_TTL_MS);
 }
 
 function saveCache(
 	repos: ForgejoRepo[],
 	users: ForgejoUser[],
 	orgs: ForgejoOrg[],
-): void {
-	try {
-		const data: CachedData = { ts: Date.now(), repos, users, orgs };
-		localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-	} catch {
-		// ignore quota errors
-	}
+): Promise<void> {
+	return cacheSet<CachedData>(CACHE_KEY, {
+		ts: Date.now(),
+		repos,
+		users,
+		orgs,
+	});
 }
 
 // ---------------------------------------------------------------------------
@@ -893,7 +886,7 @@ class ForgejoService {
 			this.$orgs.set(orgs.items);
 			this.$orgsHasMore.set(orgs.hasMore);
 			this.$lastUpdated.set(new Date());
-			saveCache(repos.items, users.items, orgs.items);
+			void saveCache(repos.items, users.items, orgs.items);
 		} catch (e: unknown) {
 			if (e instanceof AccessRestrictedError) {
 				this.$authState.set('forbidden');
@@ -910,11 +903,11 @@ class ForgejoService {
 		}
 	}
 
-	public loadCacheAndFetch(): void {
+	public async loadCacheAndFetch(): Promise<void> {
 		const token = this.$accessToken.get();
 		if (!token) return;
 
-		const cached = loadCache();
+		const cached = await loadCache();
 		if (cached) {
 			this.$repos.set(cached.repos);
 			this.$users.set(cached.users);
