@@ -1,6 +1,6 @@
 ---
 title: Staff of air | OSRS Price Data
-description: "Staff of air: A Magical staff.. High alch: 900 GP, GE limit: 125."
+description: "Staff of air is a F2P elemental staff with +10 magic attack and unlimited air runes when wielded. High alch: 900 GP, GE limit: 125."
 osrs:
   id: 1381
   name: Staff of air
@@ -12,25 +12,102 @@ osrs:
   lowalch: 600
   highalch: 900
   limit: 125
-  item_id: 1381
-  item_type: equipment
-  slot: weapon
-  type: staff
-  tradeable: true
-  weight: 2.267
-  requirements:
-    magic: 0
-  stats:
-    magic_attack: 10
-    magic_defence: 10
-  effect:
-    description: Provides unlimited air runes when equipped.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: staff
+    tier: mid
+  properties:
+    release_date: "2001-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: staff
+    weight: 2.267
+    attack_speed: 5
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: -1
+      crush: 7
+      magic: 10
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 10
+      ranged: 0
+    other_bonus:
+      melee_strength: 3
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Unlimited air runes
+      description: "Provides unlimited air runes for spellcasting while wielded."
+  shops:
+    - shop_name: Zaff's Superior Staffs!
+      location: Varrock
+      price: 1500
+      currency: Coins
+      stock: 5
+  drop_table:
+    sources:
+      - source: Beginner Treasure Trails reward casket
+        rarity: clue
+        members_only: false
+      - source: Easy Treasure Trails reward casket
+        rarity: clue
+        members_only: false
   related_items:
-    - slug: air-battlestaff
-    - slug: mystic-air-staff
-  about: Provides unlimited air runes when equipped.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Air battlestaff
+      slug: air-battlestaff
+      relationship: upgrade
+      description: "Next-tier air staff with stronger combat bonuses."
+    - item_name: Mystic air staff
+      slug: mystic-air-staff
+      relationship: upgrade
+      description: "Mystic-tier upgrade requiring 40 Magic and 40 Attack."
+    - item_name: Staff of water
+      slug: staff-of-water
+      relationship: alternative
+      description: "Same tier elemental staff providing unlimited water runes."
+    - item_name: Staff of earth
+      slug: staff-of-earth
+      relationship: alternative
+      description: "Same tier elemental staff providing unlimited earth runes."
+    - item_name: Staff of fire
+      slug: staff-of-fire
+      relationship: alternative
+      description: "Same tier elemental staff providing unlimited fire runes."
+  about: "Staff of air is the most basic elemental staff in OSRS, providing an unlimited supply of air runes when wielded. Sold by Zaff's Superior Staffs! in Varrock for 1,500 coins, it is also a common reward from beginner and easy clue caskets. The staff is the entry-level weapon for any low-level mage casting air spells like Wind Strike on the standard spellbook."
+  market_strategy:
+    notes:
+      - "Steady F2P demand from new mages and ironmen ramping Magic."
+      - "Shop restock at 1,500 gp caps the GE ceiling."
+      - "GE buy limit of 125 per 4 hours is generous for flipping."
+      - "High alch of 900 gp sits near the GE price - watch alch margins."
+  trading_tips:
+    - "Run Varrock shop loops when GE price drifts well above 1,500 gp."
+    - "Cross-check air battlestaff pricing to detect early-mage upgrade arbitrage."
+    - "Pair flipping with rune-saving builds during low-tier Magic xp events."
+  history:
+    - date: "2001-01-04"
+      description: "Released as part of the original RuneScape Magic skill toolkit."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Bronze platelegs (g) | OSRS Price Data
-description: "Bronze platelegs (g): Bronze platelegs with gold trim.. High alch: 48 GP, GE limit: 4."
+description: "Bronze platelegs (g): Bronze platelegs with gold trim. High alch: 48 GP, GE limit: 4."
 osrs:
   id: 12207
   name: Bronze platelegs (g)
@@ -12,9 +12,82 @@ osrs:
   lowalch: 32
   highalch: 48
   limit: 4
-  about: "Bronze platelegs (g) is a free-to-play item in Old School RuneScape. High alchemy value: 48 coins. Grand Exchange buy limit: 4 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: bronze
+    tier: low
+  properties:
+    release_date: "2009-12-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.072
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weight: 9.072
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: -7
+    defence_bonus:
+      stab: 4
+      slash: 5
+      crush: 3
+      magic: -4
+      ranged: 4
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  related_items:
+    - item_id: 1075
+      item_name: Bronze platelegs
+      slug: bronze-platelegs
+      relationship: alternative
+      description: "Untrimmed standard variant with identical stats."
+    - item_id: 12205
+      item_name: Bronze platebody (g)
+      slug: bronze-platebody-g
+      relationship: set-piece
+      description: "Body piece of the gold-trimmed bronze set."
+    - item_id: 12211
+      item_name: Bronze full helm (g)
+      slug: bronze-full-helm-g
+      relationship: set-piece
+      description: "Head piece of the gold-trimmed bronze set."
+  about: "Bronze platelegs (g) is a free-to-play gold-trimmed cosmetic variant of bronze platelegs with the same level 1 Defence requirement and stats, obtainable only as an easy clue scroll reward."
+  market_strategy:
+    notes:
+      - "Cosmetic-only clue reward; demand driven by fashionscape and full-set displays."
+      - "Buy limit of 4 per 4 hours throttles flips."
+      - "Pairs with platebody (g) and full helm (g) for the trimmed bronze set."
+  trading_tips:
+    - "Stock alongside other trimmed bronze pieces to sell as a set."
+    - "Watch easy clue scroll content launches for supply pulses."
+  history:
+    - date: "2009-12-14"
+      description: "Released as an easy treasure trail reward in the trimmed armour update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Feather | OSRS Price Data
-description: "Feather: Used for fly fishing.. High alch: 1 GP, GE limit: 30,000."
+description: "Feather is a stackable F2P material used in Fletching, Fishing, and Herblore. High alch: 1 GP, GE limit: 30,000."
 osrs:
   id: 314
   name: Feather
@@ -12,17 +12,26 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 30000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
   material:
     type: crafting
-    tier: basic
-  fletching:
-    uses:
-      - Arrow shafts → Headless arrows
-      - Dart tips → Darts
-  fishing:
-    skill: fishing
-    level: 20
-    tool: Fly fishing rod
+    tier: mid
+  properties:
+    release_date: "2001-06-11"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: false
+    quest_item: false
+    weight: 0
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   recipes:
     - skill: fletching
       level: 1
@@ -35,66 +44,74 @@ osrs:
           item_id: 314
           quantity: 15
       product: Headless arrow
-      product_id: 53
-      product_quantity: 15
+      output_quantity: 15
+  shops:
+    - shop_name: Gerrant's Fishy Business
+      location: Port Sarim
+      price: 2
+      currency: Coins
+      stock: 1000
+    - shop_name: Fernahei's Fishing Hut
+      location: Shilo Village
+      price: 2
+      currency: Coins
+      stock: 1000
+    - shop_name: Fishing Guild shop
+      location: Fishing Guild
+      price: 2
+      currency: Coins
+      stock: 1000
+  drop_table:
+    sources:
+      - source: Chicken
+        rarity: common
+        members_only: false
+      - source: Bird house trap
+        rarity: common
+        members_only: true
+      - source: Aviansie
+        rarity: common
+        members_only: true
+      - source: Kree'arra
+        rarity: common
+        members_only: true
   related_items:
     - item_id: 52
       item_name: Arrow shaft
       slug: arrow-shaft
       relationship: component
-      description: Combined with feathers
+      description: "Combined with a feather to make a headless arrow at level 1 Fletching."
     - item_id: 53
       item_name: Headless arrow
       slug: headless-arrow
       relationship: product
-      description: Product
+      description: "Direct product of the feather + arrow shaft recipe."
     - item_id: 309
       item_name: Fly fishing rod
       slug: fly-fishing-rod
       relationship: alternative
-      description: Uses feathers
+      description: "Tool that consumes feathers as bait for trout and salmon."
     - item_id: 335
       item_name: Raw trout
       slug: raw-trout
       relationship: alternative
-      description: Caught with feathers
-  about: |-
-    Feathers are used in multiple skills:
-
-    Fletching:
-    - Arrow shaft + Feather = Headless arrow
-    - 10 feathers per 10 arrow shafts
-
-    Fishing:
-    - Fly fishing for Raw trout and Raw salmon
-    - Barbarian fishing
-
-    Herblore:
-    - Some potion recipes require feathers
+      description: "Common fly fishing catch that uses feathers as bait."
+  about: "Feather is a stackable basic material used across Fletching (headless arrows, darts, bolts), Fishing (fly fishing rod bait for trout and salmon, barbarian rod bait), and a handful of Herblore recipes. F2P players gather them by killing chickens or buying from fishing shops, while members can farm bird house traps and Aviansie drops for bulk supply."
   market_strategy:
-    title: |-
-      - Fletching training
-      - Fly fishing
-      - Arrow production chains
-    steps:
-      - order: 1
-        action: Buy Arrow shaft + Feathers
-      - order: 2
-        action: Fletch into Headless arrow
-      - order: 3
-        action: Sell to arrow makers
     notes:
-      - Chicken killing (common bot activity)
-      - Shop purchases (limited stock)
-      - Fishing drops
-      - Fletching training
-      - Fly fishing
-      - Arrow production chains
-      - "Buy limit: 13,000 per 4 hours"
-      - Very stable price, high volume
-      - Cheap but essential item
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Extremely high volume - among the largest daily GE turnovers."
+      - "GE buy limit of 30,000 per 4 hours (raised from 13,000 in September 2020)."
+      - "Price floor near 1 gp high alch keeps downside limited."
+      - "Supply driven by chicken farms and Aviansie bots more than skiller output."
+  trading_tips:
+    - "Tiny per-unit margins - only worth flipping in the tens of thousands of units."
+    - "Watch Fletching xp events for short demand spikes on arrow chains."
+    - "Aviansie bot waves cause periodic short-term oversupply dips."
+  history:
+    - date: "2001-06-11"
+      description: "Released as part of the original Fletching and Fishing material set."
+    - date: "2020-09"
+      description: "Grand Exchange buy limit raised from 13,000 to 30,000 per 4 hours."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Fine cloth | OSRS Price Data
-description: "Fine cloth: Amazingly untouched by time.. High alch: 300 GP, GE limit: 11,000."
+description: "Fine cloth is a Shades of Mort'ton chest reward used to craft splitbark armour pieces. High alch: 300 GP, GE limit: 11,000."
 osrs:
   id: 3470
   name: Fine cloth
@@ -12,9 +12,121 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 11000
-  about: "Fine cloth is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: crafting-component
+    tier: mid
+  drop_table:
+    primary_source: Shades of Mort'ton chests
+    sources:
+      - source: Steel chest (Shades of Mort'ton)
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Black chest (Shades of Mort'ton)
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Silver chest (Shades of Mort'ton)
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Gold chest (Shades of Mort'ton)
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+  recipes:
+    - skill: crafting
+      level: 40
+      xp: 25
+      materials:
+        - item_name: Bark
+          quantity: 1
+        - item_name: Fine cloth
+          quantity: 4
+      product: Splitbark body
+      product_id: 3835
+      output_quantity: 1
+      facility: Loom
+      members_only: true
+    - skill: crafting
+      level: 40
+      xp: 22
+      materials:
+        - item_name: Bark
+          quantity: 1
+        - item_name: Fine cloth
+          quantity: 3
+      product: Splitbark legs
+      product_id: 3837
+      output_quantity: 1
+      facility: Loom
+      members_only: true
+    - skill: crafting
+      level: 40
+      xp: 16
+      materials:
+        - item_name: Bark
+          quantity: 1
+        - item_name: Fine cloth
+          quantity: 2
+      product: Splitbark helm
+      product_id: 3839
+      output_quantity: 1
+      facility: Loom
+      members_only: true
+  related_items:
+    - item_id: 3833
+      item_name: Bark
+      slug: bark
+      relationship: component
+      description: Paired material with fine cloth for splitbark armour crafting.
+    - item_id: 3835
+      item_name: Splitbark body
+      slug: splitbark-body
+      relationship: product
+      description: Largest fine cloth consumer (4 cloths per body).
+    - item_id: 3837
+      item_name: Splitbark legs
+      slug: splitbark-legs
+      relationship: product
+      description: 3 cloths per legs piece.
+    - item_name: Thread
+      slug: thread
+      relationship: alternative
+      description: Optional secondary crafting material used alongside cloth.
+  about: |-
+    Fine cloth drops exclusively from Shades of Mort'ton chests above the bronze tier, and forms the
+    main fabric input for the splitbark armour set (11 cloths for a full kit). Demand is anchored by
+    new players completing Lunar Diplomacy prerequisites and clue-stash splitbark requirements.
+  market_strategy:
+    title: Shade Chest Supply
+    notes:
+      - Supply tracks active Shades of Mort'ton minigame populations
+      - Demand is steady from clue stash splitbark requirements
+      - 11,000 GE buy limit means flippers can move large clips without saturation worry
+      - Watch silver/gold chest droprate buffs which sharply increase supply
+  trading_tips:
+    - Bulk-buy during seasonal events that boost Shades minigame popularity
+    - Use clue scroll meta as a demand signal — every splitbark stash needs cloth
+    - Don't hoard during double-XP weekends when crafters dump excess inventory
+  history:
+    - date: "2004-10-18"
+      description: Introduced with the Shades of Mort'ton minigame.
+  properties:
+    release_date: "2004-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 0.453
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

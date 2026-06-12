@@ -1,6 +1,6 @@
 ---
 title: Broken bark snelm | OSRS Price Data
-description: "Broken bark snelm: An orange and bark coloured snail shell helmet.. High alch: 180 GP, GE limit: 150."
+description: "Broken bark snelm: An orange and bark coloured snail shell helmet. High alch: 180 GP, GE limit: 150."
 osrs:
   id: 3335
   name: Broken bark snelm
@@ -12,9 +12,84 @@ osrs:
   lowalch: 120
   highalch: 180
   limit: 150
-  about: "Broken bark snelm is a members-only item in Old School RuneScape. High alchemy value: 180 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: snail-shell
+    tier: low
+  properties:
+    release_date: "2004-10-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: head
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -3
+      ranged: -1
+    defence_bonus:
+      stab: 7
+      slash: 8
+      crush: 6
+      magic: -1
+      ranged: 7
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: crafting
+      level: 15
+      xp: 32.5
+      materials:
+        - item_name: Blamish bark shell
+          quantity: 1
+        - item_name: Chisel
+          quantity: 1
+      tools:
+        - Chisel
+      output_quantity: 1
+  related_items:
+    - item_name: Blamish bark shell
+      slug: blamish-bark-shell
+      relationship: component
+      description: "Raw shell harvested from Bark Blamish snails before crafting"
+    - item_name: Broken myre snelm
+      slug: broken-myre-snelm
+      relationship: variant
+      description: "Alternative snelm variant crafted from a different snail shell"
+    - item_name: Broken bark helm
+      slug: broken-bark-helm
+      relationship: alternative
+      description: "Pointed snelm shape; broken bark variant lacks the pointed option"
+  about: "The broken bark snelm is a low-tier members-only helmet crafted at 15 Crafting from a Blamish bark shell. Worn for snail damage reduction in Mort Myre during Nature Spirit and related slayer activities, it offers modest melee and ranged defence with small magic and ranged attack penalties, sitting well below leather coif in mainstream ranged gear."
+  market_strategy:
+    notes:
+      - "Demand is niche, tied to Nature Spirit prep and Mort Myre snail tasks"
+      - "Crafting supply outpaces buys, keeping price close to high-alch value"
+      - "Unattractive for alch flipping due to thin spread above 180 gp"
+  trading_tips:
+    - "Buy on slayer-task spikes when snail blocks come up in rotation"
+    - "Keep restock volume low, GE limit of 150 caps any flip upside"
+  history:
+    - date: "2004-10-14"
+      description: "Released alongside the Nature Spirit quest and Mort Myre snail content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

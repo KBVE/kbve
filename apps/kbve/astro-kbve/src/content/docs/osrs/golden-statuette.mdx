@@ -1,6 +1,6 @@
 ---
 title: Golden statuette | OSRS Price Data
-description: "Golden statuette: A small golden statuette.. High alch: 18 GP, GE limit: 13,000."
+description: "Golden statuette is a Pyramid Plunder artefact sold to Simon Templeton for 1,250 GP and used in stacks of six to recharge the Pharaoh's sceptre. High alch: 18 GP, GE limit: 13,000."
 osrs:
   id: 9034
   name: Golden statuette
@@ -12,12 +12,77 @@ osrs:
   lowalch: 12
   highalch: 18
   limit: 13000
-  about: "Golden statuette is a members-only item in Old School RuneScape. High alchemy value: 18 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: artefact
+    tier: mid
+  properties:
+    release_date: "2006-07-17"
+    update: "Pyramid Plunder"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drops:
+    - source: Pyramid Plunder
+      activity: "Sophanem Pyramid Plunder minigame"
+      requirements: "81+ Thieving for high-level rooms"
+      notes: "Found in upper-room urns and chests during the Pyramid Plunder Thieving activity."
+  related_items:
+    - item_name: Pharaoh's sceptre
+      slug: pharaohs-sceptre
+      relationship: alternative
+      description: "Used six at a time to recharge the Pharaoh's sceptre teleport pool."
+    - item_name: Stone seal
+      slug: stone-seal
+      relationship: alternative
+      description: "Other Pyramid Plunder artefact sold to Simon Templeton."
+    - item_name: Pottery scarab
+      slug: pottery-scarab
+      relationship: alternative
+      description: "Other Pyramid Plunder artefact sold to Simon Templeton."
+    - item_name: Pottery statuette
+      slug: pottery-statuette
+      relationship: alternative
+      description: "Other Pyramid Plunder artefact sold to Simon Templeton."
+    - item_name: Stone statuette
+      slug: stone-statuette
+      relationship: alternative
+      description: "Other Pyramid Plunder artefact sold to Simon Templeton."
+  teleport:
+    destinations:
+      - name: Simon Templeton's shop
+        location: Agility Pyramid (Northern Desert)
+        method: "Trade-in NPC for Pyramid Plunder loot; sells each golden statuette for 1,250 coins."
+  about: "Golden statuette is a Pyramid Plunder loot artefact pulled from upper-room urns inside the Sophanem Pyramid Plunder minigame and one of the headline payouts for high-level Thieving sessions. It can be sold to Simon Templeton at the Agility Pyramid for 1,250 coins each and stacks of six can also be used to recharge the Pharaoh's sceptre teleport pool, making it a dual cash-and-utility drop for desert Thieving accounts."
+  market_strategy:
+    notes:
+      - "Simon Templeton's 1,250 gp offer is the firm price floor; GE rarely strays much above"
+      - "Supply driven by Pyramid Plunder XP/h metas - more thievers, more statuettes"
+      - "Pharaoh's sceptre rechargers create steady, low-margin demand"
+      - "Buy limit of 13,000 per 4 hours makes it a low-margin bulk flip"
+  trading_tips:
+    - "Treat 1,250 gp as the hard floor - never overpay above NPC value unless sceptre demand spikes"
+    - "Bulk-flip during Thieving double-XP weekends when supply floods the GE"
+    - "Spread orders across the day to avoid getting stuck at floor pricing"
+  history:
+    - date: "2006-07-17"
+      description: "Released with the Pyramid Plunder minigame in Sophanem."
+    - date: "2015-02-26"
+      description: "Made tradeable on the Grand Exchange."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

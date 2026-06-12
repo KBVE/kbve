@@ -1,6 +1,6 @@
 ---
 title: Guthix dragonhide set | OSRS Price Data
-description: "Guthix dragonhide set: A set containing a Guthix dragonhide coif, body, chaps and vambraces.. High alch: 5,400 GP, GE limit: 8."
+description: "Guthix dragonhide set bundles the coif, body, chaps, and vambraces into a single Grand Exchange item. High alch: 5,400 GP, GE limit: 8."
 osrs:
   id: 13165
   name: Guthix dragonhide set
@@ -12,9 +12,103 @@ osrs:
   lowalch: 3600
   highalch: 5400
   limit: 8
-  about: "Guthix dragonhide set is a members-only item in Old School RuneScape. High alchemy value: 5,400 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: armour-set
+    tier: mid
+  shops:
+    - shop_name: Grand Exchange Sets
+      location: Grand Exchange
+      price: 0
+      stock: 0
+      currency: coins
+      requirements: Use a Grand Exchange clerk's 'Sets' right-click option
+      members_only: true
+  recipes:
+    - skill: magic
+      level: 1
+      materials:
+        - item_id: 10380
+          item_name: Guthix coif
+          quantity: 1
+        - item_id: 10378
+          item_name: Guthix dragonhide body
+          quantity: 1
+        - item_id: 10376
+          item_name: Guthix chaps
+          quantity: 1
+        - item_id: 10374
+          item_name: Guthix bracers
+          quantity: 1
+      product: Guthix dragonhide set
+      product_id: 13165
+      output_quantity: 1
+      facility: Grand Exchange clerk (Sets)
+      members_only: true
+  related_items:
+    - item_id: 10380
+      item_name: Guthix coif
+      slug: guthix-coif
+      relationship: set-piece
+      description: Head slot piece of the Guthix dragonhide set.
+    - item_id: 10378
+      item_name: Guthix dragonhide body
+      slug: guthix-dragonhide-body
+      relationship: set-piece
+      description: Body slot piece of the Guthix dragonhide set.
+    - item_id: 10376
+      item_name: Guthix chaps
+      slug: guthix-chaps
+      relationship: set-piece
+      description: Legs slot piece of the Guthix dragonhide set.
+    - item_id: 10374
+      item_name: Guthix bracers
+      slug: guthix-bracers
+      relationship: set-piece
+      description: Hands slot piece of the Guthix dragonhide set.
+    - item_id: 13167
+      item_name: Saradomin dragonhide set
+      slug: saradomin-dragonhide-set
+      relationship: alternative
+      description: God dragonhide alternative for Saradomin worshippers.
+    - item_id: 13163
+      item_name: Zamorak dragonhide set
+      slug: zamorak-dragonhide-set
+      relationship: alternative
+      description: God dragonhide alternative for Zamorak worshippers.
+  about: |-
+    The Guthix dragonhide set is a Grand Exchange convenience bundle of the four equipable Guthix
+    dragonhide pieces — coif, body, chaps, and bracers. It exists purely to streamline trading: players
+    swap a full equipped set for a single tradeable item, and vice-versa, via the clerk's Sets menu.
+    Shield and boots are not included in the bundle.
+  market_strategy:
+    title: Set Arbitrage
+    notes:
+      - Compare set price to the sum of all four piece prices for arb opportunities
+      - Set premiums widen during god-themed events and trim demand spikes
+      - 8 buy limit per four hours caps individual exposure
+      - Cosmetic demand from Castle Wars and PvP loadouts drives long-term floor
+  trading_tips:
+    - Always cross-check the sum-of-parts before flipping the bundle
+    - Convert via the GE clerk when piece prices spike unevenly
+    - Watch all three god d'hide sets together; collectors often hold them as a trio
+  history:
+    - date: "2015-03-19"
+      description: Released alongside the Grand Exchange Sets tab update.
+  properties:
+    release_date: "2015-03-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 0.05
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

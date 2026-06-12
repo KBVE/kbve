@@ -1,6 +1,6 @@
 ---
 title: Cider(m4) | OSRS Price Data
-description: "Cider(m4): This keg contains 4 pints of mature Cider.. High alch: 1 GP, GE limit: 2,000."
+description: "Cider(m4) is a 4-pint mature cider keg used in the Keldagrim brewery, giving a +2 Farming boost when sipped. High alch: 1 GP, GE limit: 2,000."
 osrs:
   id: 5929
   name: Cider(m4)
@@ -12,12 +12,95 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 2000
-  about: "Cider(m4) is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: drink
+    tier: low
+  properties:
+    release_date: "2005-03-21"
+    update: "The Giant Dwarf"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2.0
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  potion:
+    doses: 4
+    effect: "Each sip boosts Farming by +2 and lowers Strength, Attack, and Defence by 3."
+    effects:
+      - stat: farming
+        boost_type: flat
+        boost_formula: "+2"
+        duration: 0
+        description: "Boosts Farming by 2 levels per pint."
+      - stat: strength
+        boost_type: flat
+        boost_formula: "-3"
+        duration: 0
+        description: "Lowers Strength by 3 levels per pint."
+      - stat: attack
+        boost_type: flat
+        boost_formula: "-3"
+        duration: 0
+        description: "Lowers Attack by 3 levels per pint."
+      - stat: defence
+        boost_type: flat
+        boost_formula: "-3"
+        duration: 0
+        description: "Lowers Defence by 3 levels per pint."
+  recipes:
+    - skill: cooking
+      level: 14
+      xp: 0
+      materials:
+        - item_name: Cider(4)
+          quantity: 1
+      tools:
+        - Keldagrim brewery
+      output_quantity: 1
+      notes: "Brew cider in the Keldagrim brewery and leave it to mature for one month for the m4 variant."
+  related_items:
+    - item_name: Cider(4)
+      slug: cider-4
+      relationship: variant
+      description: "Standard 4-pint cider keg before maturation"
+    - item_name: Cider(m1)
+      slug: cider-m1
+      relationship: variant
+      description: "1-pint mature cider keg"
+    - item_name: Cider(m2)
+      slug: cider-m2
+      relationship: variant
+      description: "2-pint mature cider keg"
+    - item_name: Cider(m3)
+      slug: cider-m3
+      relationship: variant
+      description: "3-pint mature cider keg"
+  about: "Cider(m4) is the full 4-pint keg of mature cider, brewed in the Keldagrim brewery and aged for a month before the m variant appears. Each pint sipped boosts the player's Farming level by 2 while lowering Attack, Strength, and Defence by 3, making it a niche temporary Farming booster for protect-from-disease checks and herb pulls."
+  market_strategy:
+    notes:
+      - "Niche Farming booster; volume is low and steady"
+      - "Brewing cycle takes a full month real time, locking supply tightly"
+      - "Stat-drain side effect rules out combat use, narrowing buyer pool"
+  trading_tips:
+    - "Brew in bulk during major Farming xp event weekends"
+    - "Decant into smaller m kegs if the per-pint premium opens up"
+  history:
+    - date: "2005-03-21"
+      description: "Released with The Giant Dwarf quest and the Keldagrim brewery system."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

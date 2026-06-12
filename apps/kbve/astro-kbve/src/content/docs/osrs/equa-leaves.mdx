@@ -1,6 +1,6 @@
 ---
 title: Equa leaves | OSRS Price Data
-description: "Equa leaves: Small sweet smelling leaves.. High alch: 1 GP, GE limit: 13,000."
+description: "Equa leaves are a members Gnome Cooking ingredient sold at Grand Tree groceries and used in nearly every gnome dish and cocktail. High alch: 1 GP, GE limit: 13,000."
 osrs:
   id: 2128
   name: Equa leaves
@@ -12,9 +12,69 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 13000
-  about: "Equa leaves is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: ingredient
+    tier: low
+  properties:
+    release_date: "2002-12-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.014
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  food:
+    heals: 1
+    bites: 1
+  shops:
+    - shop_name: "Funch's Fine Groceries"
+      location: Grand Tree
+      price: 2
+      currency: Coins
+      stock: 20
+    - shop_name: "Grand Tree Groceries"
+      location: Grand Tree
+      price: 2
+      currency: Coins
+      stock: 20
+  related_items:
+    - item_id: 2150
+      item_name: Gianne dough
+      slug: gianne-dough
+      relationship: alternative
+      description: "Companion Gnome Cooking ingredient used across the same recipe family."
+    - item_id: 2130
+      item_name: Pot of cream
+      slug: pot-of-cream
+      relationship: alternative
+      description: "Frequent partner ingredient in Blurberry cocktails alongside equa leaves."
+    - item_id: 2092
+      item_name: Lime chunks
+      slug: lime-chunks
+      relationship: alternative
+      description: "Tropical Gnome Cooking ingredient that often pairs with equa leaves in cocktails."
+  about: "Equa leaves are a members-only Gnome Cooking ingredient harvested southeast of Rantz in Feldip Hills or bought from Funch's Fine Groceries and the Grand Tree Groceries above ground. They appear in nearly every gnome dish and cocktail (Blurberry Special, Short Green Guy, gnomebatta crunchies, etc.) and can be eaten raw for a 1 Hitpoint heal."
+  market_strategy:
+    notes:
+      - "Restocked at 2 gp from two Grand Tree shops, capping reasonable GE offers near that floor."
+      - "Heavy buy limit (13,000) suits bulk Gnome Cooking suppliers but caps merchant inventory."
+      - "Alch value of 1 gp makes it useless as an alching target."
+      - "Demand spikes whenever a Gnome Restaurant or Cooking guide shifts the meta toward gnome dishes."
+  trading_tips:
+    - "Buy out the Funch's Fine Groceries and Grand Tree Groceries stacks for fast-flip margin when GE bids spike."
+    - "Stockpile before patch days that adjust Cooking XP routes - gnome food is a common content lever."
+  history:
+    - date: "2002-12-12"
+      description: "Released alongside Gnome Cooking and the Tree Gnome Stronghold groceries."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

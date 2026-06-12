@@ -12,30 +12,98 @@ osrs:
   lowalch: 15360
   highalch: 23040
   limit: 70
-  item_id: 1185
-  item_type: armor
-  slot: shield
-  type: sq_shield
-  tradeable: true
-  weight: 3.628
-  requirements:
-    defence: 40
-  stats:
-    stab_defence: 38
-    slash_defence: 40
-    crush_defence: 36
-    ranged_defence: 38
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: rune
+    tier: mid-high
+  properties:
+    release_date: "2001-08-13"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: shield
+    weapon_type:
+    weight: 3.628
+    requirements:
+      defence: 40
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 38
+      slash: 40
+      crush: 36
+      magic: -1
+      ranged: 38
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 96
+      xp: 150
+      materials:
+        - item_name: Runite bar
+          quantity: 2
+      tools:
+        - Hammer
+        - Anvil
+      output_quantity: 1
   related_items:
-    - slug: rune-kiteshield
-    - slug: rune-defender
-    - slug: dragon-sq-shield
-    - slug: runite-bar
-  about: |-
-    *A medium square shield.*
-
-    The rune sq shield has lower defensive bonuses than the Rune kiteshield across all categories (e.g. +40 slash vs +48 slash on the kiteshield), but is lighter at 3.628 kg vs 5.443 kg. In F2P, the kiteshield is strictly better for tanking. Members should aim for a Rune defender or higher for the offensive bonuses. The Dragon sq shield is the direct upgrade.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1201
+      item_name: Rune kiteshield
+      slug: rune-kiteshield
+      relationship: upgrade
+      description: Larger rune shield with stronger defence
+    - item_id: 1187
+      item_name: Dragon sq shield
+      slug: dragon-sq-shield
+      relationship: upgrade
+      description: Higher tier square shield
+    - item_id: 8850
+      item_name: Rune defender
+      slug: rune-defender
+      relationship: alternative
+      description: Members defender with offensive bonuses
+    - item_id: 2363
+      item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: Smithing material used to forge the shield
+  about: "Rune sq shield is the rune-tier medium square shield smithed from 2 runite bars at 96 Smithing, requiring 40 Defence to wield. Defensive stats are slightly below the Rune kiteshield across the board (e.g. +40 slash vs +48), but it weighs less at 3.628 kg vs 5.443 kg. Available in free-to-play; members usually skip it in favour of the Rune defender for offensive bonuses, while the Dragon sq shield is the direct upgrade."
+  market_strategy:
+    notes:
+      - "Supply driven by Smithing trainers at 96 levels"
+      - "Steady F2P demand from low-budget tanks hitting 40 Defence"
+      - "Buy limit of 70 supports moderate flipping volume"
+      - "Outclassed by kiteshield and Rune defender, capping ceiling demand"
+  trading_tips:
+    - "Track runite bar pricing; two bars set the production floor"
+    - "Buy after Smithing XP rebalance announcements when supply spikes"
+    - "Sell to F2P bond events when new accounts gear up"
+  history:
+    - date: "2001-08-13"
+      description: "Released alongside the rune armour line in Free-to-play."
+    - date: "2015-07-09"
+      description: "Defence requirement clarified as 40 in the wiki refresh."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

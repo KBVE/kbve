@@ -1,6 +1,6 @@
 ---
 title: Loar remains | OSRS Price Data
-description: "Loar remains: The remains of a deadly shade.. High alch: 1 GP, GE limit: 7,500."
+description: "Loar remains are the lowest-tier shade remains used at Shades of Mort'ton funeral pyres for Firemaking and Prayer XP. High alch: 0 GP, GE limit: 7,500."
 osrs:
   id: 3396
   name: Loar remains
@@ -12,9 +12,59 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 7500
-  about: "Loar remains is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 7,500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: shade-remains
+    tier: low
+  properties:
+    release_date: "2004-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.36
+    options:
+      - Drop
+    worn_options: []
+    alchable: false
+    destroy: "Drop"
+  passive_effects:
+    - name: Shades of Mort'ton pyre fuel
+      description: "Burned on a funeral pyre with pyre logs and a tinderbox during the Shades of Mort'ton minigame; cremation grants Firemaking and Prayer XP plus a 79% chance at a bronze shade key (red/brown/crimson) or a 21% chance at 200-300 coins. Morytania Diary boosts apply."
+  related_items:
+    - item_name: Pyre logs
+      slug: pyre-logs
+      relationship: component
+      description: Base pyre logs ignited with the remains for 50 Firemaking / 25 Prayer XP
+    - item_name: Bronze shade key
+      slug: bronze-shade-key
+      relationship: product
+      description: Primary reward roll from cremating Loar remains
+    - item_name: Phrin remains
+      slug: phrin-remains
+      relationship: upgrade
+      description: Next-tier shade remains dropped by Phrin Shades
+    - item_name: Riyl remains
+      slug: riyl-remains
+      relationship: upgrade
+      description: Higher-tier shade remains used at Mort'ton funeral pyres
+  about: "Loar remains are the lowest-tier shade remains dropped by Loar Shades around Mort'ton and burnt on funeral pyres during the Shades of Mort'ton minigame for Firemaking and Prayer experience, with each cremation rolling a bronze shade key or a small coin reward."
+  market_strategy:
+    notes:
+      - "Demand tied to Shades of Mort'ton minigame popularity and bronze key chasing"
+      - "Always-drop from a single, low-level monster keeps the supply elastic"
+      - "GE buy limit of 7,500 per 4 hours supports bulk pyre runs"
+      - "Not alchable - pure utility item, no NPC value floor"
+  trading_tips:
+    - "Stockpile before Firemaking double XP weekends when pyre throughput peaks"
+    - "Watch bronze key/loot table updates - reward shifts move the whole shade remains market"
+    - "Morytania Diary completions raise reward quality, lifting steady minigame demand"
+  history:
+    - date: "2004-10-18"
+      description: "Released with the Shades of Mort'ton minigame as the entry-tier shade remains."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

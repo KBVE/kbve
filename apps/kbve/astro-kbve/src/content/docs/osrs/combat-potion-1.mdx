@@ -1,6 +1,6 @@
 ---
 title: Combat potion(1) | OSRS Price Data
-description: "Combat potion(1): 1 dose of combat potion.. High alch: 31 GP, GE limit: 2,000."
+description: "Combat potion(1): 1 dose of combat potion. High alch: 31 GP, GE limit: 2,000."
 osrs:
   id: 9745
   name: Combat potion(1)
@@ -12,9 +12,82 @@ osrs:
   lowalch: 20
   highalch: 31
   limit: 2000
-  about: "Combat potion(1) is a members-only item in Old School RuneScape. High alchemy value: 31 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: potion
+    tier: low
+  properties:
+    release_date: "2002-04-11"
+    update: "Member Skills"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.025
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  potion:
+    effects:
+      - name: Attack boost
+        description: "Temporarily raises Attack by 3 plus 10% of the player's current Attack level."
+        duration: 300
+      - name: Strength boost
+        description: "Temporarily raises Strength by 3 plus 10% of the player's current Strength level."
+        duration: 300
+  recipes:
+    - skill: herblore
+      level: 36
+      xp: 84
+      materials:
+        - item_name: Harralander potion (unf)
+          quantity: 1
+        - item_name: Goat horn dust
+          quantity: 1
+      output_quantity: 1
+      notes: "1-dose result usually arrives from decanting; native Herblore output is 3-dose."
+  related_items:
+    - item_name: Combat potion(2)
+      slug: combat-potion-2
+      relationship: variant
+      description: 2-dose variant of the same potion.
+    - item_name: Combat potion(3)
+      slug: combat-potion-3
+      relationship: variant
+      description: 3-dose variant brewed natively at the Herblore skill.
+    - item_name: Combat potion(4)
+      slug: combat-potion-4
+      relationship: variant
+      description: 4-dose variant after decanting.
+    - item_name: Harralander potion (unf)
+      slug: harralander-potion-unf
+      relationship: component
+      description: Unfinished base used in the brewing recipe.
+    - item_name: Goat horn dust
+      slug: goat-horn-dust
+      relationship: component
+      description: Secondary required to finish the combat potion.
+  about: |-
+    Combat potion(1) is a one-dose Herblore potion that briefly boosts both Attack and Strength. Each dose raises Attack and Strength by 3 plus 10% of the corresponding stat (rounded down).
+
+    The 1-dose form usually originates from decanting 3- or 4-dose combat potions; native brewing at 36 Herblore yields a 3-dose Combat potion(3).
+  market_strategy:
+    notes:
+      - "Cheap melee boost for low/mid-level training and quest stat unlocks."
+      - "Demand sits below higher-dose alternatives but supports decant arbitrage."
+      - "Quest requirements (e.g. Heroes' Quest) provide a steady consumption floor."
+  trading_tips:
+    - "Compare per-dose value vs 3- and 4-dose combat potions before buying."
+    - "Stock during weekend events when boost demand spikes."
+  history:
+    - date: "2002-04-11"
+      description: "Combat potions introduced with the Herblore expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

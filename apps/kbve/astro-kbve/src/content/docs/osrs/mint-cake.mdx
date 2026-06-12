@@ -1,6 +1,6 @@
 ---
 title: Mint cake | OSRS Price Data
-description: "Mint cake: It looks very minty.. High alch: 150 GP, GE limit: 10,000."
+description: "Mint cake is a Gnome Restaurant reward that restores 50% run energy in a single bite. High alch: 150 GP, GE limit: 10,000."
 osrs:
   id: 9475
   name: Mint cake
@@ -12,9 +12,72 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 10000
-  about: "Mint cake is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 10,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: food
+    tier: mid
+  properties:
+    release_date: "2006-08-07"
+    update: "Gnome Cuisine"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.1
+    options:
+      - Eat
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: Brambickle
+        location: Gnome Restaurant
+        rarity: 23/512
+        members_only: true
+      - source: Wingstone
+        location: Gnome Restaurant
+        rarity: 23/512
+        members_only: true
+      - source: Penwie
+        location: Gnome Restaurant
+        rarity: 23/512
+        members_only: true
+      - source: Longramble
+        location: The Path of Glouphrie quest
+        rarity: one-off
+        members_only: true
+  related_items:
+    - item_name: Energy potion
+      slug: energy-potion
+      relationship: alternative
+      description: "Herblore-brewed potion that restores 10% run energy per dose."
+    - item_name: Stamina potion
+      slug: stamina-potion
+      relationship: alternative
+      description: "Premium energy restorer that also halves drain rate for two minutes."
+    - item_name: Strange fruit
+      slug: strange-fruit
+      relationship: alternative
+      description: "Cheaper energy snack that restores a smaller percentage of run energy."
+  about: "Mint cake is a Gnome Restaurant minigame reward that restores 50% run energy in a single click - the highest per-bite energy restoration of any item in OSRS. It is randomly tipped by the gnome customers Brambickle, Wingstone, and Penwie at a 23/512 rate, and a single one-off cake is also handed out by Longramble during The Path of Glouphrie."
+  market_strategy:
+    notes:
+      - "Demand driven by long-walk PvM and Slayer setups that want one-tile energy spikes."
+      - "Supply is bottlenecked behind Gnome Restaurant grinders and runs thin."
+      - "GE buy limit of 10,000 per 4 hours rarely binds at current volume."
+      - "High alch of 150 gp is far below GE - never an alch target."
+  trading_tips:
+    - "Watch GE price against stamina potion equivalents for substitution flips."
+    - "Stockpile around new Wilderness or sailing content drops that punish run energy."
+    - "Thin supply means single PvM streamers can move price - track meta swings."
+  history:
+    - date: "2006-08-07"
+      description: "Released with the Gnome Cuisine update and added to the Gnome Restaurant reward pool."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

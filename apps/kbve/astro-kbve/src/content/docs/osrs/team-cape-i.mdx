@@ -12,21 +12,85 @@ osrs:
   lowalch: 20
   highalch: 30
   limit: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cloth
+    tier: low
+  properties:
+    release_date: "2016-07-06"
+    update: "Treasure Trails Expansion"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: cape
+    weight: 0.453
     requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 1
+      magic: 0
+      ranged: 2
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: easy
+    is_reward: true
+    reward_tiers:
+      - easy
+  drop_table:
+    sources:
+      - source: Reward casket (easy)
+        combat_level: 0
+        quantity: "1"
+        rarity: "1/5616"
+        notes: "Rare cosmetic cape reward from easy clue caskets."
   related_items:
     - item_id: 20211
       item_name: Team cape zero
       slug: team-cape-zero
       relationship: variant
-      description: Team cape zero variant
+      description: Alternate Team cape clue reward variant.
   about: |-
     > *"Ooohhh look at the dirty colours..."*
 
-    Team cape i is a cosmetic cape from easy treasure trails. A rare variant that cannot be bought from NPC team cape sellers. No stats or requirements.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    Team cape i is a rare cosmetic cape rolled from easy clue scroll reward caskets at roughly 1 in 5,616. It cannot be purchased from NPC team cape shopkeepers and is one of the only F2P team capes available to free players.
+
+    The cape grants minor defensive bonuses (+1 slash, +1 crush, +2 ranged defence) but no attack or other bonuses, making it primarily a fashionscape and collection piece.
+  market_strategy:
+    notes:
+      - "Tiny GE buy limit (4) caps flipping volume; treat as a rare collection piece."
+      - "Supply driven entirely by easy clue completions; demand from collectors and fashionscape."
+      - "Price moves on streamer attention and clue scroll meta shifts."
+  trading_tips:
+    - "Stock 1-2 units when GE price dips below alch; rare clue items rarely stay cheap."
+    - "List for sale during DMM/Leagues hype when ironmen and mains chase rare cosmetics."
+    - "Watch the easy clue reward pool — new additions can dilute team cape i demand."
+  history:
+    - date: "2016-07-06"
+      description: "Added to easy clue scroll reward tables during the Treasure Trails expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

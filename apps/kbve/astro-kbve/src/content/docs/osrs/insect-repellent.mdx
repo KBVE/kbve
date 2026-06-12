@@ -1,6 +1,6 @@
 ---
 title: Insect repellent | OSRS Price Data
-description: "Insect repellent: Drives away all known 6 legged creatures.. High alch: 1 GP, GE limit: 15."
+description: "Insect repellent is a members quest item used on beehives in Catherby/Seers' and on mosquitoes at Tai Bwo Wannai. High alch: 1 GP, GE limit: 15."
 osrs:
   id: 28
   name: Insect repellent
@@ -12,18 +12,49 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: consumable
+    tier: low
+  properties:
+    release_date: "2002-02-27"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0.028
+    options:
+      - Use
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   related_items:
     - item_id: 30
       item_name: Bucket of wax
       slug: bucket-of-wax
+      relationship: product
+      description: "Obtained by using insect repellent on a beehive near Catherby."
+    - item_id: 1925
+      item_name: Bucket
+      slug: bucket
       relationship: component
-      description: Made by using repellent on beehive
-  about: |-
-    > _"Drives away all known 6 legged creatures."_
-
-    Insect repellent is a members-only quest item used in Merlin's Crystal and Troll Romance. Applied to beehives near Catherby to safely collect a bucket of wax. Also reduces combat stats of mosquitoes during Tai Bwo Wannai Cleanup.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Empty bucket required to collect the wax from a sprayed hive."
+  about: "Insect repellent is a members-only quest item required for Merlin's Crystal and Troll Romance. It is applied to beehives near Catherby and Seers' Village to safely harvest a bucket of wax, and used on mosquitoes during Tai Bwo Wannai Cleanup to suppress their attacks for six seconds."
+  market_strategy:
+    notes:
+      - "Quest-gated demand only - bought once per quester for Merlin's Crystal / Troll Romance."
+      - "GE buy limit of 15 per 4 hours keeps it a thin, low-volume listing."
+      - "High alch of 1 gp makes alching irrelevant."
+  trading_tips:
+    - "Stock 1-2 from the Apothecary or GE before starting Merlin's Crystal to avoid stalling on bucket-of-wax steps."
+    - "Bulk-buying offers minimal upside; the BTC chain is supply-light and demand-thin."
+  history:
+    - date: "2002-02-27"
+      description: "Released alongside the Merlin's Crystal quest as the beehive wax-collection consumable."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

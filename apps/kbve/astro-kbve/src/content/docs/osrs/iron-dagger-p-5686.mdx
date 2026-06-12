@@ -1,20 +1,119 @@
 ---
 title: Iron dagger(p++) | OSRS Price Data
-description: "Iron dagger(p++): Short but pointy.. High alch: 21 GP, GE limit: 125."
+description: "Iron dagger(p++) is an iron dagger coated in weapon poison++, applying stronger poison ticks on hit. High alch: 21 GP, GE limit: 125."
 osrs:
   id: 5686
   name: Iron dagger(p++)
   slug: iron-dagger-p
-  examine: Short but pointy.
+  examine: The blade is covered with poison.
   members: true
   icon: Iron dagger(p++).png
   value: 35
   lowalch: 14
   highalch: 21
   limit: 125
-  about: "Iron dagger(p++) is a members-only item in Old School RuneScape. High alchemy value: 21 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: weapon
+    tier: low
+  equipment:
+    slot: weapon
+    weapon_type: dagger
+    attack_speed: 4
+    weight: 0.4
+    requirements:
+      attack: 1
+    attack_bonus:
+      stab: 5
+      slash: 3
+      crush: -2
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 1
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 4
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Weapon poison++
+      description: Hits have a chance to apply weapon poison++, ticking 6 damage that decays over time.
+      trigger: on_hit
+      affected_skill: attack
+  recipes:
+    - skill: herblore
+      level: 82
+      materials:
+        - item_id: 1203
+          item_name: Iron dagger
+          quantity: 1
+        - item_name: Weapon poison++
+          quantity: 1
+      product: Iron dagger(p++)
+      product_id: 5686
+      output_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 1203
+      item_name: Iron dagger
+      slug: iron-dagger
+      relationship: variant
+      description: Unpoisoned base dagger.
+    - item_id: 1219
+      item_name: Iron dagger(p)
+      slug: iron-dagger-p-1219
+      relationship: variant
+      description: Standard weapon poison variant.
+    - item_id: 5684
+      item_name: Iron dagger(p+)
+      slug: iron-dagger-p-5684
+      relationship: variant
+      description: Weapon poison(+) variant; ticks 5 damage on hit.
+  about: |-
+    The iron dagger(p++) is the strongest poison-coated iron dagger, made by applying weapon poison++
+    to a base iron dagger. The poison itself is the main draw — at 82 Herblore the (p++) coating is a
+    drop-in upgrade for low-tier melee training or budget PvP needles, ticking heavy poison damage on
+    successful hits.
+  market_strategy:
+    title: Poison Tier Spread
+    notes:
+      - Tracks the iron dagger price plus the weapon poison++ supply
+      - Demand is thin; mainly low-level PvP enthusiasts and quest-poison stockists
+      - 125 GE buy limit caps bulk flips, but volume is too low for arb at scale
+      - Watch weapon poison++ Herblore guides for occasional content-driven spikes
+  trading_tips:
+    - Compare to (p+) variant before buying; spread is often pennies
+    - Hold during quest releases that require poisoned daggers
+    - Avoid deep stockpiles — listings clear slowly outside event spikes
+  history:
+    - date: "2001-01-04"
+      description: Iron dagger base item released.
+    - date: "2002-02-27"
+      description: Poison variants introduced with the Weapon Poison update.
+    - date: "2006-08-22"
+      description: Poison naming convention updated to current (p/p+/p++) format.
+  properties:
+    release_date: "2006-08-22"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    weight: 0.4
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

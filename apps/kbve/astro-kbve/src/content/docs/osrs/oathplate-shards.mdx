@@ -1,6 +1,6 @@
 ---
 title: Oathplate shards | OSRS Price Data
-description: "Oathplate shards: A strange metal from a distant realm. It has long since lost its luster.. High alch: 600 GP."
+description: "Oathplate shards are a stackable Yama drop refined with crushed infernal shale into infernal blend at 83 Smithing, used to craft Oathplate armour. High alch: 600 GP."
 osrs:
   id: 30765
   name: Oathplate shards
@@ -11,13 +11,79 @@ osrs:
   value: 1000
   lowalch: 400
   highalch: 600
-  limit: null
-  about: "Oathplate shards is a members-only item in Old School RuneScape. High alchemy value: 600 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: oathplate
+    tier: high
+  properties:
+    release_date: "2025-05-14"
+    update: "Yama, the Master of Pacts"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: smithing
+      level: 83
+      xp: 0
+      materials:
+        - item_id: 30765
+          item_name: Oathplate shards
+          quantity: 5
+        - item_name: Crushed infernal shale
+          quantity: 28
+      product: Infernal blend
+      output_quantity: 1
+      notes: "Each batch refines 5 shards + 28 crushed infernal shale into 1 infernal blend; ~450 shards needed per Oathplate piece."
+  related_items:
+    - item_name: Infernal blend
+      slug: infernal-blend
+      relationship: product
+      description: "Smithed intermediate combining shards with crushed infernal shale."
+    - item_name: Crushed infernal shale
+      slug: crushed-infernal-shale
+      relationship: component
+      description: "Stack of crushed infernal shale required to refine each batch of shards."
+    - item_name: Oathplate helm
+      slug: oathplate-helm
+      relationship: product
+      description: "Endgame helm crafted from refined Oathplate components."
+    - item_name: Oathplate chest
+      slug: oathplate-chest
+      relationship: product
+      description: "Endgame torso crafted from refined Oathplate components."
+    - item_name: Oathplate legs
+      slug: oathplate-legs
+      relationship: product
+      description: "Endgame legs crafted from refined Oathplate components."
+  about: "Oathplate shards are the smelted metal currency dropped by Yama, the Master of Pacts, and pulled from Forgotten lockboxes and Yama Contract rewards. They refine at 83 Smithing into infernal blend (5 shards + 28 crushed infernal shale per batch), with roughly 450 shards needed per Oathplate armour piece. As the gating resource for the post-2025 Oathplate armour set, shards sit at the centre of late-game prayer-bonus melee gear demand."
+  market_strategy:
+    notes:
+      - "Supply ties directly to Yama kill rate and Yama Contract completion (45 shards guaranteed per contract)."
+      - "Demand is gated by 83 Smithing + Oathplate armour grind cycle - 450 shards per piece is structural."
+      - "Stackable + tradeable + no GE limit - moves in massive blocks, watch order book depth."
+      - "Forgotten lockbox stack drops (11-14) provide background drip supply."
+  trading_tips:
+    - "Watch Yama kill threads after balance changes; nerfs to Yama loot table spike shard price hard."
+    - "Cross-track crushed infernal shale - shards alone are useless without shale supply."
+    - "Pre-position before any Oathplate set-bonus buff announcement."
+  history:
+    - date: "2025-05-14"
+      description: "Released with Yama, the Master of Pacts as the Oathplate armour upgrade material."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

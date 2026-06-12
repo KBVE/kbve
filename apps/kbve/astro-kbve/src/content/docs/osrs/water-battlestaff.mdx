@@ -1,6 +1,6 @@
 ---
 title: Water battlestaff | OSRS Price Data
-description: "Water battlestaff: It's a slightly magical stick.. High alch: 9,300 GP, GE limit: 18,000."
+description: "Water battlestaff is a members one-handed battlestaff requiring 30 Attack and 30 Magic that supplies unlimited water runes when wielded. High alch: 9,300 GP, GE limit: 18,000."
 osrs:
   id: 1395
   name: Water battlestaff
@@ -12,34 +12,109 @@ osrs:
   lowalch: 6200
   highalch: 9300
   limit: 18000
-  item_id: 1395
-  item_type: equipment
-  slot: weapon
-  type: battlestaff
-  attack_speed: 5
-  tradeable: true
-  weight: 2.267
-  requirements:
-    attack: 30
-    magic: 30
-  stats:
-    magic_attack: 12
-    crush_attack: 7
-    strength: 3
-  effect:
-    description: Provides unlimited water runes when equipped. Can autocast combat spells.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: battlestaff
+    tier: mid
+  properties:
+    release_date: "2002-03-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: weapon
+    weapon_type: battlestaff
+    weight: 2.267
+    attack_speed: 5
+    attack_range: 1
+    requirements:
+      attack: 30
+      magic: 30
+    attack_bonus:
+      stab: 7
+      slash: -1
+      crush: 28
+      magic: 12
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 12
+      ranged: 0
+    other_bonus:
+      melee_strength: 35
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Unlimited Water Runes
+      description: "Provides an unlimited supply of water runes for spellcasting while wielded."
+    - name: Autocast
+      description: "Allows autocasting of Standard spellbook combat spells."
+  recipes:
+    - skill: crafting
+      level: 54
+      xp: 100
+      materials:
+        - item_name: Battlestaff
+          quantity: 1
+        - item_name: Water orb
+          quantity: 1
+      tools: []
+      output_quantity: 1
+      notes: "Use a Water orb on a Battlestaff."
   related_items:
-    - slug: water-orb
-    - slug: mystic-water-staff
-  about: |-
-    Provides unlimited water runes when equipped.
-
-    Can autocast combat spells.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_name: Battlestaff
+      slug: battlestaff
+      relationship: component
+      description: "Plain battlestaff combined with a water orb to craft the elemental staff."
+    - item_name: Water orb
+      slug: water-orb
+      relationship: component
+      description: "Charged orb required for the 54 Crafting recipe."
+    - item_name: Mystic water staff
+      slug: mystic-water-staff
+      relationship: upgrade
+      description: "Upgraded variant with stronger magic bonuses, still supplying unlimited water runes."
+    - item_name: Mud battlestaff
+      slug: mud-battlestaff
+      relationship: alternative
+      description: "Combined earth/water elemental staff that supplies both rune types."
+    - item_name: Kodai wand
+      slug: kodai-wand
+      relationship: alternative
+      description: "Endgame mage weapon that also supplies unlimited water runes."
+  about: "Water battlestaff is the water-elemental battlestaff supplying unlimited water runes while wielded, requiring 30 Attack and 30 Magic to equip and crafted at 54 Crafting by combining a battlestaff with a water orb for 100 XP. It autocasts Standard-book combat spells and is mostly used as a stepping-stone upgrade toward the mystic water staff or as a permanent water-rune supplier in setups that lean on Water Surge, Water Strike or trident-style hybrid kits."
+  market_strategy:
+    notes:
+      - "Margin equation: water battlestaff GE price - (battlestaff + water orb) - crafting time"
+      - "Steady demand from water orb crafters reselling assembled staves at the GE"
+      - "GE buy limit of 18,000 keeps the staff highly liquid for bulk flippers"
+      - "Mystic water staff trade-up demand pulls supply during Mage training metas"
+  trading_tips:
+    - "Pair water battlestaff sell orders with battlestaff and water orb buy orders to lock in crafting margin"
+    - "Monitor mystic water staff spreads - higher upgrade premium widens demand for the base staff"
+    - "Watch Wilderness PK metas - Water Obelisk PK pressure on orb chargers reduces water battlestaff supply"
+  history:
+    - date: "2002-03-18"
+      description: "Released as part of the original elemental battlestaff line."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

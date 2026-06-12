@@ -1,6 +1,6 @@
 ---
 title: Oak drawers (flatpack) | OSRS Price Data
-description: "Oak drawers (flatpack): How does it all fit in there?. High alch: 6 GP, GE limit: 500."
+description: "Oak drawers (flatpack): How does it all fit in there? High alch: 6 GP, GE limit: 500."
 osrs:
   id: 8612
   name: Oak drawers (flatpack)
@@ -12,9 +12,80 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Oak drawers (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: wood
+    tier: low
+  properties:
+    release_date: "2006-05-31"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  construction:
+    construction_level: 20
+    xp: 360
+    materials:
+      - item_id: 8778
+        item_name: Oak plank
+        quantity: "6"
+    hotspot: Drawers space
+    room: Bedroom
+    tools:
+      - Hammer
+      - Saw
+    notes: Built at a Wooden workbench in a player-owned house workshop.
+  recipes:
+    - skill: construction
+      level: 20
+      xp: 360
+      materials:
+        - item_id: 8778
+          item_name: Oak plank
+          quantity: 6
+      output:
+        item_id: 8612
+        item_name: Oak drawers (flatpack)
+        output_quantity: 1
+      members: true
+      notes: "Assembled at a Wooden workbench from 6 oak planks."
+  related_items:
+    - item_id: 8778
+      item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: "Base material used for assembly."
+    - item_id: 8606
+      item_name: Drawers (flatpack)
+      slug: drawers-flatpack
+      relationship: downgrade
+      description: "Cheaper regular-plank variant for lower Construction levels."
+    - item_id: 8636
+      item_name: Teak drawers (flatpack)
+      slug: teak-drawers-flatpack
+      relationship: upgrade
+      description: "Higher-tier teak variant with more Construction XP."
+  about: "Oak drawers (flatpack) is a Construction flatpack assembled at a Wooden workbench from 6 oak planks at 20 Construction for 360 XP, used to place a drawers hotspot in a player-owned house Bedroom."
+  market_strategy:
+    notes:
+      - "Cheap mid-low Construction XP feedstock."
+      - "Niche demand from Bedroom finishing in PoH builds."
+      - "Daily volume is modest with a 500 buy limit."
+  trading_tips:
+    - "Compare 6 oak plank GE cost vs flatpack price for assembly margin."
+    - "Bulk-stock when oak plank supply spikes for arbitrage."
+  history:
+    - date: "2006-05-31"
+      description: "Released with the Construction skill update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

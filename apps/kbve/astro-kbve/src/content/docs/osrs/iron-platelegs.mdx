@@ -1,6 +1,6 @@
 ---
 title: Iron platelegs | OSRS Price Data
-description: "Iron platelegs: These look pretty heavy.. High alch: 168 GP, GE limit: 125."
+description: "Iron platelegs are F2P legs slot armour requiring 1 Defence, smithed from 3 iron bars at 31 Smithing for 75 xp. High alch: 168 GP, GE limit: 125."
 osrs:
   id: 1067
   name: Iron platelegs
@@ -12,24 +12,106 @@ osrs:
   lowalch: 112
   highalch: 168
   limit: 125
-  item_id: 1067
-  item_type: armor
-  slot: legs
-  type: platelegs
-  tradeable: true
-  weight: 9.071
-  requirements:
-    defence: 0
-  stats:
-    stab_defence: 11
-    slash_defence: 10
-    crush_defence: 10
-    ranged_defence: 10
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: iron
+    tier: low
+  properties:
+    release_date: "2001-01-04"
+    update: "RuneScape launch"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 9.071
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weight: 9.071
+    requirements:
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -10
+      ranged: -7
+    defence_bonus:
+      stab: 11
+      slash: 10
+      crush: 10
+      magic: -4
+      ranged: 10
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: smithing
+      level: 31
+      xp: 75
+      materials:
+        - item_name: Iron bar
+          item_id: 2351
+          quantity: 3
+      facility: Anvil
+      product: Iron platelegs
+      product_id: 1067
+      output_quantity: 1
+  shops:
+    - shop_name: Horvik's Armour Shop
+      location: Varrock
+      stock: 1
+      price: 280
+    - shop_name: Louie's Armoured Legs Bazaar
+      location: Al Kharid
+      stock: 10
+      price: 280
   related_items:
-    - slug: steel-platelegs
-    - slug: iron-platebody
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    - item_id: 1115
+      item_name: Iron platebody
+      slug: iron-platebody
+      relationship: set-piece
+      description: "Matching iron-tier body slot armour."
+    - item_id: 1153
+      item_name: Iron full helm
+      slug: iron-full-helm
+      relationship: set-piece
+      description: "Matching iron-tier head slot armour."
+    - item_id: 1081
+      item_name: Iron plateskirt
+      slug: iron-plateskirt
+      relationship: alternative
+      description: "Identical-stat skirt variant of iron platelegs."
+    - item_id: 1069
+      item_name: Steel platelegs
+      slug: steel-platelegs
+      relationship: upgrade
+      description: "Next-tier metal platelegs with stronger defensive bonuses."
+  about: "Iron platelegs are entry-tier F2P legs slot armour smithed at 31 Smithing from three iron bars for 75 Smithing XP, requiring only 1 Defence to wear. They are the iron-tier metal legs in the smithing progression chain, primarily used by very low-level F2P melee accounts and Smithing trainers who consume bars for XP and dump the output to alch or NPC shops."
+  market_strategy:
+    notes:
+      - "Supply floods in from Smithing trainers - GE price often hugs high alch value."
+      - "GE buy limit of 125 per 4 hours caps any single flip cycle."
+      - "High alch of 168 gp can exceed GE price during glut windows - viable nature-rune alch fodder."
+      - "Demand is thin - F2P training accounts and occasional clue stash builds."
+  trading_tips:
+    - "Watch the GE vs high alch spread; alch when GE undercuts the 168 gp ceiling."
+    - "Cross-reference iron bar prices to detect smithing arbitrage glut signals."
+    - "Low-volatility item - treat as alch fodder, not a directional flip."
+  history:
+    - date: "2001-01-04"
+      description: "Available since RuneScape's launch as a core smithable F2P armour piece."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

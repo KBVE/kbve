@@ -1,6 +1,6 @@
 ---
 title: Soulreaper axe | OSRS Price Data
-description: "Soulreaper axe is a members weapon slot item requiring 80 Attack. High alch: 144,000 GP."
+description: "Soulreaper axe is the BiS two-handed melee weapon requiring 80 Attack and Strength, assembled from the four Desert Treasure II boss components. High alch: 144,000 GP."
 osrs:
   id: 28338
   name: Soulreaper axe
@@ -11,36 +11,61 @@ osrs:
   value: 240000
   lowalch: 96000
   highalch: 144000
-  limit: null
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: soulreaper
+    tier: mid
+  properties:
+    release_date: "2023-07-26"
+    update: "Desert Treasure II - The Fallen Empire"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.825
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: two-handed axe
-    tradeable: true
+    weapon_type: two-handed axe
     weight: 2.825
+    attack_speed: 5
     requirements:
       attack: 80
       strength: 80
-    stats:
-      attack_stab: 28
-      attack_slash: 134
-      attack_crush: 66
-      attack_magic: 0
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 121
+    attack_bonus:
+      stab: 28
+      slash: 134
+      crush: 66
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 121
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-  passive_effect:
-    name: Soul Stacks
-    description: Each attack builds a stack (max 5). +6% strength per stack, up to +30% at 5 stacks. Take 8 damage per attack while building.
+  passive_effects:
+    - name: Soul Stacks
+      description: "Each attack builds a Soul Stack (max 5), granting +6 percent Strength per stack up to +30 percent at 5 stacks. Player takes 8 typeless damage per attack while stacks build, capping at 8 HP remaining."
   special_attack:
     name: Behead
-    effect: Consumes stacks for accuracy/damage boost and healing
+    cost: 0
+    effect: "Consumes all Soul Stacks for an accuracy and damage boost scaled by stacks consumed, healing the wielder for damage dealt. Does not use special attack energy."
   recipes:
     - skill: magic
       level: 75
@@ -63,52 +88,52 @@ osrs:
           quantity: 2000
       product: Soulreaper axe
       product_id: 28338
+      output_quantity: 1
+      notes: "Magic level of 75 cannot be boosted. Combined at the lectern in the Ancient Vault."
   related_items:
     - item_id: 28319
       item_name: Executioner's axe head
       slug: executioners-axe-head
       relationship: component
-      description: Component from Vardorvis
+      description: "Unique drop from Vardorvis - the axe body."
     - item_id: 28325
       item_name: Leviathan's lure
       slug: leviathans-lure
       relationship: component
-      description: Component from Leviathan
+      description: "Unique drop from The Leviathan."
+    - item_id: 28323
+      item_name: Siren's staff
+      slug: sirens-staff
+      relationship: component
+      description: "Unique drop from The Whisperer."
+    - item_id: 28321
+      item_name: Eye of the duke
+      slug: eye-of-the-duke
+      relationship: component
+      description: "Unique drop from Duke Sucellus."
     - item_id: 22325
       item_name: Scythe of vitur
       slug: scythe-of-vitur
       relationship: alternative
-      description: Alternative BiS melee weapon
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Stab | +28 |
-    | Slash | +134 |
-    | Crush | +66 |
-    | Strength | +121 |
-
-    Soul Stacks: Each attack builds a stack (max 5).
-
-    | Stacks | Strength Bonus |
-    |--------|----------------|
-    | 1 | +6% |
-    | 5 | +30% |
-
-    Damage: Take 8 damage per attack while building stacks.
-
-    Behead: Consumes stacks for accuracy/damage boost and healing.
-
-    Used for:
-    - Maximum melee DPS
-    - Bossing with healing
-    - Strength training
-
-    Highest DPS melee weapon.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Theatre of Blood BiS slash weapon - higher DPS without self-damage."
+  about: "Soulreaper axe is the post-Desert Treasure II two-handed BiS crush/slash weapon, requiring 80 Attack and Strength to wield and 75 Magic (unboostable) to assemble at the Ancient Vault lectern. Its Soul Stacks mechanic trades self-damage for a stacking Strength bonus up to +30 percent, and the free Behead special heals the user. It excels at single-target bossing where the player can mitigate or out-heal the self-damage tax."
+  market_strategy:
+    notes:
+      - "Price is the sum of four DT2 unique drops plus 2,000 blood runes - fundamentals follow boss kills per hour."
+      - "Not GE-limited (limit null), so high-roll buyers can move size."
+      - "Demand swings hard on new high-tier PvM releases that favor crush/slash."
+      - "High alch of 144,000 gp is far below cost - never alch."
+  trading_tips:
+    - "Track component price spread: arbitrage when sum-of-parts diverges from assembled axe."
+    - "Buy Executioner's axe head and Eye of the duke dips - those bosses are the bottleneck."
+    - "Pre-position before announced PvM updates - history shows 30 percent plus swings on meta shifts."
+  history:
+    - date: "2023-07-26"
+      description: "Released with Desert Treasure II - The Fallen Empire as the four-boss combine reward."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+
 import OSRSAdsenseCard from '@/components/osrs/OSRSAdsenseCard.astro';
 
 <OSRSItemPanel data={frontmatter.osrs} />

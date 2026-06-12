@@ -1,6 +1,6 @@
 ---
 title: Willow longbow (u) | OSRS Price Data
-description: "Willow longbow (u): An unstrung willow longbow; I need a bowstring for this.. High alch: 96 GP, GE limit: 10,000."
+description: "Willow longbow (u) is a members unstrung longbow cut from willow logs at 40 Fletching and finished with a bowstring. High alch: 96 GP, GE limit: 10,000."
 osrs:
   id: 58
   name: Willow longbow (u)
@@ -12,23 +12,97 @@ osrs:
   lowalch: 64
   highalch: 96
   limit: 10000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: willow
+    tier: low
+  properties:
+    release_date: "2002-03-25"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.332
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: fletching
+      level: 40
+      xp: 41.5
+      materials:
+        - item_name: Willow logs
+          item_id: 1519
+          quantity: 1
+      tools:
+        - Knife
+      product: Willow longbow (u)
+      product_id: 58
+      output_quantity: 1
+    - skill: fletching
+      level: 40
+      xp: 41.5
+      materials:
+        - item_name: Willow longbow (u)
+          item_id: 58
+          quantity: 1
+        - item_name: Bow string
+          item_id: 1777
+          quantity: 1
+      product: Willow longbow
+      product_id: 850
+      output_quantity: 1
   related_items:
+    - item_id: 1519
+      item_name: Willow logs
+      slug: willow-logs
+      relationship: component
+      description: "Cut with a knife at 40 Fletching to produce the unstrung bow."
+    - item_id: 1777
+      item_name: Bow string
+      slug: bow-string
+      relationship: component
+      description: "Attached to the unstrung bow to finish the willow longbow."
+    - item_id: 850
+      item_name: Willow longbow
+      slug: willow-longbow
+      relationship: product
+      description: "Strung result; usable for combat and high alching at 90 Magic."
     - item_id: 56
       item_name: Oak longbow (u)
       slug: oak-longbow-u
-      relationship: variant
-      description: Lower tier unstrung longbow
+      relationship: downgrade
+      description: "Lower-tier unstrung longbow for the 25 Fletching step."
     - item_id: 60
+      item_name: Maple longbow (u)
+      slug: maple-longbow-u
+      relationship: upgrade
+      description: "Next-tier unstrung longbow at 55 Fletching."
+    - item_id: 64
       item_name: Willow shortbow (u)
       slug: willow-shortbow-u
       relationship: variant
-      description: Matching unstrung willow shortbow
-  about: |-
-    > _"An unstrung willow longbow; I need a bowstring for this."_
-
-    The willow longbow (u) is an unstrung longbow made from willow logs. String with a bowstring at 40 Fletching to create a willow longbow. Members only.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: "Shortbow counterpart cut from the same willow logs."
+  about: "Willow longbow (u) is a members-only unstrung longbow cut from willow logs with a knife at 40 Fletching (41.5 XP). Stringing it with a bow string at the same level grants another 41.5 XP and produces the willow longbow, a popular high-alch stock for early-Fletching gp/hr and one of the classic 'Fletch-and-alch' Magic training feeders."
+  market_strategy:
+    notes:
+      - "Sits at the heart of the willow-longbow alch chain - demand tracks 55-89 Magic trainers."
+      - "GE buy limit 10,000 per 4 hours supports bulk supplier flow."
+      - "Profit per unit is thin; volume from bots and Fletching trainers keeps the spread tight."
+      - "High alch 96 gp is the floor that anchors GE price; new tax rules pull the floor down."
+  trading_tips:
+    - "Watch willow log spot price - tight spreads collapse the unstrung margin first."
+    - "Stockpile during double-Fletching weekends when output volume floods the GE."
+  history:
+    - date: "2002-03-25"
+      description: "Released alongside the Fletching skill rework that introduced separate unstrung longbows."
+    - date: "2005-05-17"
+      description: "Renamed from 'Willow longbow' to 'Willow longbow (u)' to disambiguate the strung result."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

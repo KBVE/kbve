@@ -1,6 +1,6 @@
 ---
 title: Dragon metal lump | OSRS Price Data
-description: "Dragon metal lump: A badly damaged lump of dragon metal.. High alch: 90,000 GP, GE limit: 50."
+description: "Dragon metal lump is a rune dragon drop combined with shards and slices to forge dragon platebody pieces. High alch: 90,000 GP, GE limit: 50."
 osrs:
   id: 22103
   name: Dragon metal lump
@@ -12,9 +12,91 @@ osrs:
   lowalch: 60000
   highalch: 90000
   limit: 50
-  about: "Dragon metal lump is a members-only item in Old School RuneScape. High alchemy value: 90,000 coins. Grand Exchange buy limit: 50 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: smithing-component
+    tier: high
+  drop_table:
+    primary_source: Rune dragon
+    best_drop_rate: 1/5,000
+    sources:
+      - source: Rune dragon
+        combat_level: 380
+        quantity: "1"
+        rarity: very-rare
+        drop_rate: 1/5,000
+        members_only: true
+  recipes:
+    - skill: smithing
+      level: 90
+      xp: 2000
+      materials:
+        - item_name: Dragon chainbody
+          quantity: 1
+        - item_name: Dragon metal shard
+          quantity: 1
+        - item_name: Dragon metal lump
+          quantity: 1
+      product: Dragon platebody
+      product_id: 21892
+      output_quantity: 1
+      facility: Anvil
+      quest_required: Dragon Slayer II
+      members_only: true
+  related_items:
+    - item_id: 22105
+      item_name: Dragon metal shard
+      slug: dragon-metal-shard
+      relationship: component
+      description: Second high-tier rune dragon drop paired with the lump.
+    - item_id: 22107
+      item_name: Dragon metal slice
+      slug: dragon-metal-slice
+      relationship: component
+      description: Related rune dragon drop used in dragon platebody crafting flow.
+    - item_id: 3140
+      item_name: Dragon chainbody
+      slug: dragon-chainbody
+      relationship: component
+      description: Base body upgraded with shard + lump into the dragon platebody.
+    - item_id: 21892
+      item_name: Dragon platebody
+      slug: dragon-platebody
+      relationship: product
+      description: End product of the 90 Smithing dragon body upgrade.
+  about: |-
+    The dragon metal lump is one of two Rune dragon-only drops required to craft the Dragon platebody,
+    the other being the dragon metal shard. With a 1/5,000 drop rate from one of the strongest dragons
+    in the game, the lump's price is anchored by raw rune dragon supply versus dragon platebody demand
+    from melee endgame DPS upgrades.
+  market_strategy:
+    title: Rune Dragon Supply Squeeze
+    notes:
+      - Supply is locked to active rune dragon killers; price is sensitive to slayer task assignments
+      - Dragon Slayer II + 90 Smithing requirement caps demand-side competition
+      - Pairs cleanly with dragon metal shard — track both before committing capital
+      - Buy limit of 50 means large investors can comfortably accumulate over multiple cycles
+  trading_tips:
+    - Watch the dragon platebody / chainbody spread to predict lump direction
+    - Bid hard during prolonged slayer droughts when supply dries up
+    - Avoid overbuying near double-XP weekends; smithing demand spikes are short-lived
+  history:
+    - date: "2018-01-04"
+      description: Released with Dragon Slayer II as one of the rune dragon platebody components.
+  properties:
+    release_date: "2018-01-04"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 2.721
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

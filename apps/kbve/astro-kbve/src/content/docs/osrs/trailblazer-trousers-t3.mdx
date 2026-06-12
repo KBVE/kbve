@@ -1,6 +1,6 @@
 ---
 title: Trailblazer trousers (t3) | OSRS Price Data
-description: "Trailblazer trousers (t3): The trousers of a trailblazer relic hunter.. High alch: 90,000 GP, GE limit: 5."
+description: "Trailblazer trousers (t3): The trousers of a trailblazer relic hunter. High alch: 90,000 GP, GE limit: 5."
 osrs:
   id: 25007
   name: Trailblazer trousers (t3)
@@ -12,9 +12,82 @@ osrs:
   lowalch: 60000
   highalch: 90000
   limit: 5
-  about: "Trailblazer trousers (t3) is a members-only item in Old School RuneScape. High alchemy value: 90,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cosmetic-cloth
+    tier: high
+  properties:
+    release_date: "2021-01-06"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: "Leagues Reward Shop"
+      location: "League Hall"
+      price: 15000
+      currency: League Points
+      stock: 1
+  related_items:
+    - item_name: Trailblazer hood (t3)
+      slug: trailblazer-hood-t3
+      relationship: set-piece
+      description: "Tier 3 hood from the trailblazer relic hunter outfit"
+    - item_name: Trailblazer top (t3)
+      slug: trailblazer-top-t3
+      relationship: set-piece
+      description: "Tier 3 top from the trailblazer relic hunter outfit"
+    - item_name: Trailblazer boots (t3)
+      slug: trailblazer-boots-t3
+      relationship: set-piece
+      description: "Tier 3 boots from the trailblazer relic hunter outfit"
+    - item_name: Trailblazer cane
+      slug: trailblazer-cane
+      relationship: alternative
+      description: "Companion cosmetic shown with the outfit on the League hall stand"
+  about: "Trailblazer trousers (t3) are the tier 3 legs of the cosmetic Trailblazer relic hunter outfit, originally purchased from the Leagues Reward Shop for 15,000 League points during the Trailblazer Reloaded league. The piece grants zero combat bonuses, is tradeable on the Grand Exchange, and stores in a costume room armour case alongside the rest of the outfit."
+  market_strategy:
+    notes:
+      - "Pure cosmetic item, demand is fashionscape and outfit completion only"
+      - "Limited supply because new copies require a future league event"
+      - "GE limit of 5 keeps any flash-flip ceiling modest"
+  trading_tips:
+    - "Buy during cosmetic flips after popular fashionscape streams"
+    - "Stock matching set pieces together to lift total resale margin"
+  history:
+    - date: "2021-01-06"
+      description: "Released as a Trailblazer League tier 3 reward outfit piece."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

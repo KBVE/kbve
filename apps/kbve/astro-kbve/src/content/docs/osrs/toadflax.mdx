@@ -1,6 +1,6 @@
 ---
 title: Toadflax | OSRS Price Data
-description: "Toadflax: A useful herb.. High alch: 28 GP, GE limit: 13,000."
+description: "Toadflax is a clean Herblore herb used in Agility potion, Antidote+, and Saradomin brew recipes. High alch: 28 GP, GE limit: 13,000."
 osrs:
   id: 2998
   name: Toadflax
@@ -12,9 +12,26 @@ osrs:
   lowalch: 19
   highalch: 28
   limit: 13000
-  herb:
-    type: clean
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: clean herb
     tier: mid
+  properties:
+    release_date: "2004-07-27"
+    update: "Agility, Potions and Parties!"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   herblore:
     cleaning_level: 30
     cleaning_xp: 8
@@ -26,87 +43,110 @@ osrs:
     seed_name: Toadflax seed
   recipes:
     - skill: herblore
+      level: 30
+      xp: 8
+      materials:
+        - item_name: Grimy toadflax
+          item_id: 3049
+          quantity: 1
+      product: Toadflax
+      product_id: 2998
+      output_quantity: 1
+      notes: "Clean grimy toadflax for 8 Herblore XP."
+    - skill: herblore
       level: 34
-      xp: 80
+      xp: 0
       materials:
         - item_name: Toadflax
           item_id: 2998
+          quantity: 1
+        - item_name: Vial of water
+          quantity: 1
+      product: Toadflax potion (unf)
+      output_quantity: 1
+      notes: "Make the unfinished toadflax potion base used by all downstream brews."
+    - skill: herblore
+      level: 34
+      xp: 80
+      materials:
+        - item_name: Toadflax potion (unf)
           quantity: 1
         - item_name: Toad's legs
           item_id: 2152
           quantity: 1
       product: Agility potion(3)
       product_id: 3034
-      product_quantity: 1
-      members_only: true
+      output_quantity: 1
     - skill: herblore
       level: 68
       xp: 155
       materials:
-        - item_name: Toadflax
-          item_id: 2998
+        - item_name: Toadflax potion (unf)
           quantity: 1
         - item_name: Yew roots
           item_id: 6049
           quantity: 1
       product: Antidote+(3)
       product_id: 5945
-      product_quantity: 1
-      members_only: true
+      output_quantity: 1
     - skill: herblore
       level: 81
       xp: 180
       materials:
-        - item_name: Toadflax
-          item_id: 2998
+        - item_name: Toadflax potion (unf)
           quantity: 1
         - item_name: Crushed nest
           item_id: 6693
           quantity: 1
       product: Saradomin brew(3)
       product_id: 6687
-      product_quantity: 1
-      members_only: true
+      output_quantity: 1
   related_items:
     - item_id: 3049
       item_name: Grimy toadflax
       slug: grimy-toadflax
       relationship: component
-      description: Uncleaned version
+      description: "Uncleaned grimy version cleaned at 30 Herblore."
     - item_id: 5296
       item_name: Toadflax seed
       slug: toadflax-seed
       relationship: component
-      description: For farming
+      description: "Seed planted in an allotment-tier herb patch at 38 Farming."
     - item_id: 6693
       item_name: Crushed nest
       slug: crushed-nest
       relationship: component
-      description: Sara brew secondary
+      description: "Secondary used to brew Saradomin brew."
     - item_id: 6685
       item_name: Saradomin brew(4)
       slug: saradomin-brew-4
       relationship: product
-      description: Final product
-  about: |-
-    | Potion | Secondary | Herblore Level | XP |
-    |--------|-----------|----------------|-----|
-    | Agility potion | Toad's legs | 34 | 80 |
-    | Antidote+ | Yew roots | 68 | 155 |
-    | Saradomin brew | Crushed nest | 81 | 180 |
+      description: "Top-tier Herblore product made from toadflax."
+    - item_id: 2152
+      item_name: Toad's legs
+      slug: toads-legs
+      relationship: component
+      description: "Secondary used to brew Agility potion."
+    - item_id: 6049
+      item_name: Yew roots
+      slug: yew-roots
+      relationship: component
+      description: "Secondary used to brew Antidote+."
+  about: "Toadflax is a clean mid-tier Herblore herb (released 27 July 2004 with the Agility update) used to make Agility potion (34 Herblore, +Toad's legs), Antidote+ (68 Herblore, +Yew roots), and Saradomin brew (81 Herblore, +Crushed nest). Grown at 38 Farming from a toadflax seed and cleaned from grimy toadflax at 30 Herblore for 8 xp, it sits at the centre of the high-XP brew pipeline favoured by raiders and PvMers."
   market_strategy:
-    profit_formulas:
-      - Brew price - Toadflax - Crushed nest - Vial = Profit
     notes:
-      - Buy Grimy toadflax → Clean → Sell clean
-      - Small margin, high volume
-      - Toadflax + Crushed nest → Saradomin brew
-      - High demand from raiders
-      - "Calculate:"
-      - Toadflax seed (38 Farming)
-      - Profitable herb to farm
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Saradomin brew demand from raiders drives most volume"
+      - "Buy limit of 13,000 supports bulk cleaning flips"
+      - "Grimy -> clean cleaning is a steady small-margin grind"
+      - "Toadflax + Crushed nest profit ties directly to raid activity"
+      - "Toadflax seed (38 Farming) keeps farm-run supply healthy"
+  trading_tips:
+    - "Compare Saradomin brew(4) price to (Toadflax + Crushed nest + Vial) for brew arbitrage"
+    - "Watch Grimy toadflax spreads after Slayer xp events for clean-and-resell flips"
+    - "Stockpile before raid leagues / Theatre of Blood updates"
+  history:
+    - date: "2004-07-27"
+      description: "Released with the Agility, Potions and Parties! update alongside Agility potion and the wider herb expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

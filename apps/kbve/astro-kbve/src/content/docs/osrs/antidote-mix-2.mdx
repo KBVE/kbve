@@ -1,6 +1,6 @@
 ---
 title: Antidote+ mix(2) | OSRS Price Data
-description: "Antidote+ mix(2): Two doses of fishy extra strength antidote potion.. High alch: 129 GP, GE limit: 2,000."
+description: "Antidote+ mix(2) is a Barbarian Herblore poison-cure mix granting 9 minutes of poison immunity. High alch: 129 GP, GE limit: 2,000."
 osrs:
   id: 11501
   name: Antidote+ mix(2)
@@ -12,9 +12,87 @@ osrs:
   lowalch: 86
   highalch: 129
   limit: 2000
-  about: "Antidote+ mix(2) is a members-only item in Old School RuneScape. High alchemy value: 129 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: mid
+  potion:
+    doses: 2
+    herblore_level: 74
+    herblore_xp: 52
+    effect: Cures poison, grants 9 minutes of immunity, and restores 6 Hitpoints.
+    effects:
+      - stat: hitpoints
+        boost_type: heal
+        boost_value: 6
+        description: Restores 6 Hitpoints on consumption.
+      - stat: hitpoints
+        boost_type: poison-immunity
+        duration: 540
+        description: Grants 9 minutes (540 seconds) of poison immunity.
+  recipes:
+    - skill: herblore
+      level: 74
+      xp: 52
+      materials:
+        - item_name: Antidote+(2)
+          quantity: 1
+        - item_name: Caviar
+          quantity: 1
+      product: Antidote+ mix(2)
+      product_id: 11501
+      output_quantity: 1
+      facility: Barbarian Herblore training
+      members_only: true
+  related_items:
+    - item_id: 11503
+      item_name: Antidote+ mix(1)
+      slug: antidote-mix-1
+      relationship: variant
+      description: Single-dose Barbarian mix; consume one dose at a time.
+    - item_id: 5945
+      item_name: Antidote+(4)
+      slug: antidote-4-5945
+      relationship: upgrade
+      description: Full four-dose antidote+ potion brewed without caviar.
+    - item_name: Caviar
+      slug: caviar
+      relationship: component
+      description: Barbarian Herblore secondary added to base antidote+.
+  about: |-
+    Antidote+ mix(2) is the two-dose Barbarian Herblore variant of the antidote+ potion, brewed by adding
+    caviar to a regular Antidote+(2). On top of curing and immunising against poison, it heals 6 Hitpoints
+    per dose, making it a compact combo-food option for poison-heavy slayer tasks and quest bosses.
+  market_strategy:
+    title: Barbarian Mix Margins
+    notes:
+      - "Ingredient stack: Antidote+(2) plus caviar; both are members tradeables with mid-tier liquidity"
+      - Profit per mix is thin; success depends on caviar buy-ins during low-demand periods
+      - Demand rises around high-poison content releases and PvM events
+      - 2,000 buy limit per four hours lets dedicated brewers move full inventories
+  trading_tips:
+    - Watch the caviar market closely; it is the volatile input
+    - Pre-stack base antidote+(2) before brewing to avoid mid-session price jumps
+    - List doses in stacks to clear faster against PvM consumers
+  history:
+    - date: "2007-07-03"
+      description: Released with the Barbarian Herblore training update.
+  properties:
+    release_date: "2007-07-03"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 0.025
+    options:
+      - Drink
+      - Empty
+      - Drop
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

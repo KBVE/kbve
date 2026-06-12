@@ -1,6 +1,6 @@
 ---
 title: Bloody bracer | OSRS Price Data
-description: "Bloody bracer: A coagulated concoction.. High alch: 6 GP, GE limit: 2,000."
+description: "Bloody bracer is a members Morytania tincture from the Rat & Bat that overheals once and drains Prayer on drink. High alch: 6 GP, GE limit: 2,000."
 osrs:
   id: 22430
   name: Bloody bracer
@@ -12,9 +12,64 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 2000
-  about: "Bloody bracer is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: tincture
+    tier: low
+  properties:
+    release_date: "2018-05-24"
+    update: "A Taste of Hope"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.55
+    options:
+      - Drink
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  obtaining:
+    methods:
+      - source: Rat & Bat pub (Slepe)
+        price: 99
+        description: "Purchasable from the Rat & Bat in Slepe for 99 coins after starting A Taste of Hope."
+  passive_effects:
+    - name: Overheal proc
+      description: "May heal you above your maximum Hitpoints once per drink, restoring 2 Hitpoints."
+    - name: Prayer drain
+      description: "Drains Prayer by 4% + 2 points on consumption, making it a risk/reward sip."
+  related_items:
+    - item_name: Blood pint
+      slug: blood-pint
+      relationship: alternative
+      description: "Other A Taste of Hope tincture sold at the Rat & Bat in Slepe."
+    - item_name: Bloody bracer (m)
+      slug: bloody-bracer-m
+      relationship: variant
+      description: "Mature variant of the tincture - only obtainable as drop, untradeable."
+  about: "Bloody bracer is a members-only Morytania tincture introduced with A Taste of Hope (24 May 2018), sold for 99 gp from the Rat & Bat pub in Slepe. Drinking it restores 2 Hitpoints (with a chance to overheal above max once) at the cost of 4% + 2 Prayer points - a niche overheal sipper used in some Vampyre and Morytania combat strategies but otherwise low-traffic."
+  market_strategy:
+    notes:
+      - "Player supply is gated by Rat & Bat shop visits and 99 gp base buy"
+      - "Buy limit of 2,000 caps merch volume per 4 hours"
+      - "Niche overheal demand from PvM theorycrafters keeps the price floating well above buy cost"
+      - "High alch backstop is only 6 gp - price purely market-driven"
+  trading_tips:
+    - "Compare GE price to 99 gp shop buy when planning bulk flips"
+    - "Demand sometimes spikes around Vampyre Slayer task changes"
+    - "Steady low-volume flip; not a primary profit driver"
+  history:
+    - date: "2018-05-24"
+      description: "Released with the A Taste of Hope quest and Slepe town content."
+    - date: "2018-05-31"
+      description: "Shop value reduced to 2 coins."
+    - date: "2024-03-20"
+      description: "Shop value adjusted to 10 coins."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

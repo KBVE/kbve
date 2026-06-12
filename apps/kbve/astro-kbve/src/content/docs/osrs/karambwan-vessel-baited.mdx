@@ -1,6 +1,6 @@
 ---
 title: Karambwan vessel (baited) | OSRS Price Data
-description: "Karambwan vessel (baited): This Karambwan Vessel is loaded with Karambwanji.. High alch: 24 GP, GE limit: 15."
+description: "Karambwan vessel (baited): This Karambwan Vessel is loaded with Karambwanji. High alch: 24 GP, GE limit: 15."
 osrs:
   id: 3159
   name: Karambwan vessel (baited)
@@ -12,9 +12,66 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 15
-  about: "Karambwan vessel (baited) is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: tool
+    tier: low
+  properties:
+    release_date: "2004-09-14"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 3.0
+    options:
+      - Use
+      - Drop
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: cooking
+      materials:
+        - item_name: Karambwan vessel
+          item_id: 3157
+          quantity: 1
+        - item_name: Raw karambwanji
+          item_id: 3150
+          quantity: 1
+      product: Karambwan vessel (baited)
+      product_id: 3159
+      output_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 3157
+      item_name: Karambwan vessel
+      slug: karambwan-vessel
+      relationship: component
+      description: Empty vessel before baiting
+    - item_id: 3150
+      item_name: Raw karambwanji
+      slug: raw-karambwanji
+      relationship: component
+      description: Bait used to load the vessel
+    - item_id: 3142
+      item_name: Raw karambwan
+      slug: raw-karambwan
+      relationship: product
+      description: Caught with the baited vessel at Karamja's karambwan spot
+  about: "Karambwan vessel (baited) is a fishing tool used to catch raw karambwan at the eastern coast of Karamja. It is created by combining an empty Karambwan vessel with raw karambwanji and is consumed on catch, returning to an empty vessel."
+  market_strategy:
+    notes:
+      - "Niche fishing tool with most supply made by players locally"
+      - "Buy limit of 15 keeps GE turnover tiny"
+      - "Most players bait their own vessels rather than buy off the GE"
+  trading_tips:
+    - Cheaper to bait vessels yourself with raw karambwanji
+    - Useful as a backup during long karambwan fishing trips
+  history:
+    - date: "2004-09-14"
+      description: "Added with the Tai Bwo Wannai Trio quest alongside Karambwan fishing."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

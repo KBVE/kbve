@@ -1,6 +1,6 @@
 ---
 title: White firelighter | OSRS Price Data
-description: "White firelighter: Makes firelighting a lot easier.. High alch: 9 GP, GE limit: 250."
+description: "White firelighter is a members Firemaking item that lights logs into a white-flamed fire, used in Shades of Mort'ton and Pyre training. High alch: 9 GP, GE limit: 250."
 osrs:
   id: 10327
   name: White firelighter
@@ -12,9 +12,78 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 250
-  about: "White firelighter is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: consumable
+    tier: low
+  properties:
+    release_date: "2005-10-04"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    members: true
+    quest_item: false
+    weight: 0.01
+    options:
+      - Use
+      - Drop
+    destroy: "Drop"
+  recipes:
+    - skill: firemaking
+      level: 33
+      xp: 0
+      facility: Shades of Mort'ton
+      tools:
+        - Tinderbox
+      materials:
+        - item_id: 10325
+          item_name: Firelighter
+          quantity: 1
+        - item_name: White marrentill
+          quantity: 1
+      product: White firelighter
+      product_id: 10327
+      output_quantity: 1
+      members: true
+      notes: "Combined at Shades of Mort'ton temple after completing Shades of Mort'ton quest"
+  related_items:
+    - item_id: 10325
+      item_name: Firelighter
+      slug: firelighter
+      relationship: component
+      description: Base firelighter combined with coloured marrentill to produce coloured variants
+    - item_name: Red firelighter
+      slug: red-firelighter
+      relationship: variant
+      description: Red-flamed coloured firelighter from the Shades of Mort'ton craft chain
+    - item_name: Green firelighter
+      slug: green-firelighter
+      relationship: variant
+      description: Green-flamed coloured firelighter from the Shades of Mort'ton craft chain
+    - item_name: Blue firelighter
+      slug: blue-firelighter
+      relationship: variant
+      description: Blue-flamed coloured firelighter from the Shades of Mort'ton craft chain
+    - item_name: Purple firelighter
+      slug: purple-firelighter
+      relationship: variant
+      description: Purple-flamed coloured firelighter from the Shades of Mort'ton craft chain
+  market_strategy:
+    notes:
+      - "Buy limit 250 per 4 hours — niche but consistent demand"
+      - "Demand from cosmetic firemakers and pyre Firemaking trainers"
+      - "Coloured fires last roughly 60 seconds; bulk buyers cycle daily"
+      - "Cheap, low-risk flip during Mort'ton or Halloween-themed events"
+  trading_tips:
+    - Compare against base firelighter + white marrentill cost to spot craft margin
+    - Stock up for Mort'ton or Halloween-themed Firemaking events
+    - Use the GE buy limit across alts when cornering coloured firelighters
+  about: White firelighter is a members Firemaking consumable made at Shades of Mort'ton by combining a regular firelighter with white marrentill. It produces a white-flamed fire when used on logs and is a staple of cosmetic Firemaking.
+  history:
+    - date: "2005-10-04"
+      description: "Released alongside the Shades of Mort'ton quest and coloured firelighter system."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

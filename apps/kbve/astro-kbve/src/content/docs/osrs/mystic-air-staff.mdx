@@ -1,6 +1,6 @@
 ---
 title: Mystic air staff | OSRS Price Data
-description: "Mystic air staff is a members weapon slot item requiring 40 Attack. High alch: 25,500 GP, GE limit: 18,000."
+description: "Mystic air staff is a members elemental staff requiring 40 Attack and 40 Magic; supplies unlimited air runes and supports air-spell autocast. High alch: 25,500 GP, GE limit: 18,000."
 osrs:
   id: 1405
   name: Mystic air staff
@@ -12,61 +12,106 @@ osrs:
   lowalch: 17000
   highalch: 25500
   limit: 18000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: mystic
+    tier: mid
+  properties:
+    release_date: "2002-03-25"
+    update: "Latest RuneScape News (25 March 2002)"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2.267
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
-    type: staff
-    tradeable: true
+    weapon_type: staff
     weight: 2.267
+    attack_speed: 5
     requirements:
       attack: 40
       magic: 40
-    stats:
-      attack_stab: 7
-      attack_slash: -1
-      attack_crush: 28
-      attack_magic: 14
-      attack_ranged: 0
-      defence_stab: 0
-      defence_slash: 0
-      defence_crush: 0
-      defence_magic: 0
-      defence_ranged: 0
-      strength: 35
+    attack_bonus:
+      stab: 10
+      slash: -1
+      crush: 40
+      magic: 14
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 14
+      ranged: 0
+    other_bonus:
+      melee_strength: 50
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
+  passive_effects:
+    - name: Unlimited air runes
+      description: "Supplies an unlimited source of air runes for spellcasting while equipped."
+    - name: Air spell autocast
+      description: "Supports standard spellbook autocast for air-element spells, including a defensive autocast option."
+  drop_table:
+    sources:
+      - source: Chaos Elemental
+        members_only: true
+      - source: Dust devil
+        members_only: true
+      - source: Venenatis
+        members_only: true
+      - source: Thermonuclear smoke devil
+        members_only: true
+      - source: Corporeal Beast
+        members_only: true
+      - source: Abyssal Sire
+        members_only: true
+      - source: Greater nechryael
+        members_only: true
   related_items:
     - item_id: 1397
       item_name: Air battlestaff
       slug: air-battlestaff
       relationship: component
-      description: Base item for upgrade
+      description: Base battlestaff upgraded by a Magic Guild instructor to create the mystic version.
     - item_id: 1403
       item_name: Mystic water staff
       slug: mystic-water-staff
       relationship: alternative
-      description: Water variant
+      description: Water-element mystic staff with matching stats.
     - item_id: 1381
       item_name: Staff of air
       slug: staff-of-air
       relationship: downgrade
-      description: Lower tier staff
-  about: |-
-    | Offence | Bonus |
-    |---------|-------|
-    | Stab | +7 |
-    | Slash | -1 |
-    | Crush | +28 |
-    | Magic | +14 |
-    | Strength | +35 |
-
-    Attack Speed: 5-tick (3.0s)
-
-    Unlimited air runes when equipped.
-
-    Supports autocast for air spells.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Lower-tier basic air staff with no level requirement.
+  about: "The Mystic air staff is a members-only elemental staff in OSRS requiring 40 Attack and 40 Magic. It is upgraded from an Air battlestaff by a Magic Guild instructor for 40,000 coins and supplies an unlimited number of air runes plus standard-spellbook air-spell autocast. With +14 magic attack and defence and +40 crush, it is the cheapest training-grade air autocaster and a popular slayer/teleport utility staff."
+  market_strategy:
+    notes:
+      - "Demand is dominated by mid-level mages, slayers, and ironmen wanting an unlimited air-rune source."
+      - "GE buy limit of 18,000 per 4 hours leaves plenty of room for flips and bulk training stock."
+      - "High alch of 25,500 gp typically clears GE price - viable as a nature-rune alch target when discounted."
+      - "Supply is fed by Magic Guild upgrades plus drops from Chaos Elemental, Dust devils, and Abyssal Sire."
+  trading_tips:
+    - "Cross-check Air battlestaff price plus 40k upgrade fee to gauge production margin."
+    - "Magic-rebalance patches historically move mystic staff prices - watch update notes."
+    - "Stable mid-tier item - prefer steady flips over speculative holds."
+  history:
+    - date: "2002-03-25"
+      description: "Released in the original RuneScape mystic staff line alongside the water, earth, and fire variants."
+    - date: "2021-09-22"
+      description: "Magic attack and defence bonuses of mystic staves raised from +10 to +14."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

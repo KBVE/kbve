@@ -12,9 +12,61 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 15
-  about: "Polished buttons is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: quest-item
+    tier: low
+  properties:
+    release_date: "2006-08-21"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: true
+    weight: 0.453
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  drop_table:
+    sources:
+      - source: H.A.M. Members chest
+        quantity: "1"
+        rarity: 1/24
+        members_only: true
+      - source: H.A.M. Guard
+        combat_level: 22
+        quantity: "1"
+        rarity: 1/200
+        members_only: true
+  related_items:
+    - item_id: 4298
+      item_name: H.A.M. shirt
+      slug: ham-shirt
+      relationship: alternative
+      description: H.A.M. pickpocket loot used in the same quest
+    - item_id: 762
+      item_name: Damp cloth
+      slug: damp-cloth
+      relationship: component
+      description: Used together to clean the H.A.M. statuette in Death to the Dorgeshuun
+  about: "Polished buttons are shiny ornamental buttons obtained by searching the chest in the H.A.M. dungeon during Death to the Dorgeshuun. They are part of the quest sequence used to fashion a fake statuette and trick the H.A.M. council, though they can also drop from pickpocketed H.A.M. members and chest searches in later activities."
+  market_strategy:
+    notes:
+      - "Quest-bound item with negligible alch value"
+      - "Demand is almost entirely from active Death to the Dorgeshuun questers"
+      - "Buy limit of 15 keeps any flips niche"
+      - "Drop sources are abundant relative to demand once the quest is finished"
+  trading_tips:
+    - "Stock during fresh account waves chasing Death to the Dorgeshuun"
+    - "Avoid alching; 1 gp return is below nature rune cost"
+    - "Pair with damp cloth listings to catch full-quest shoppers"
+  history:
+    - date: "2005-10-31"
+      description: "Released alongside the Death to the Dorgeshuun quest as a key quest item."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

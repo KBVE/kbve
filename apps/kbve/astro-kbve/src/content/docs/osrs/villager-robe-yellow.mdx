@@ -1,6 +1,6 @@
 ---
 title: Villager robe (yellow) | OSRS Price Data
-description: "Villager robe (yellow): A brightly coloured robe prized by the Tai Bwo Wannai peoples.. High alch: 150 GP, GE limit: 150."
+description: "Villager robe (yellow) is a members-only cosmetic legs piece bought at Gabooty's Tai Bwo Wannai Cooperative for 300 trading sticks (250 with Karamja gloves). High alch: 150 GP, GE limit: 150."
 osrs:
   id: 6363
   name: Villager robe (yellow)
@@ -12,9 +12,96 @@ osrs:
   lowalch: 100
   highalch: 150
   limit: 150
-  about: "Villager robe (yellow) is a members-only item in Old School RuneScape. High alchemy value: 150 coins. Grand Exchange buy limit: 150 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cosmetic
+    tier: low
+  properties:
+    release_date: "2005-08-09"
+    update: "Tai Bwo Wannai Clean-Up"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: legs
+    weight: 2
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shop:
+    - location: Tai Bwo Wannai
+      npc: Gabooty
+      shop_name: Gabooty's Tai Bwo Wannai Cooperative
+      base_price: 300 trading sticks
+      discounted_price: 250 trading sticks (Karamja gloves 1 or better)
+      stock: 50
+      restock_seconds: 60
+  related_items:
+    - item_id: 6357
+      item_name: Villager hat (yellow)
+      slug: villager-hat-yellow
+      relationship: alternative
+      description: Matching head slot piece for the yellow villager outfit.
+    - item_id: 6379
+      item_name: Villager top (yellow)
+      slug: villager-top-yellow
+      relationship: alternative
+      description: Matching body slot piece for the yellow villager outfit.
+    - item_id: 6395
+      item_name: Villager armband (yellow)
+      slug: villager-armband-yellow
+      relationship: alternative
+      description: Matching hands slot piece for the yellow villager outfit.
+    - item_id: 6371
+      item_name: Villager sandals (yellow)
+      slug: villager-sandals-yellow
+      relationship: alternative
+      description: Matching feet slot piece for the yellow villager outfit.
+    - item_id: 6361
+      item_name: Villager robe (blue)
+      slug: villager-robe-blue
+      relationship: variant
+      description: Blue colour variant of the same cosmetic robe.
+  about: "Villager robe (yellow) is the yellow-dyed legs slot piece of the Tai Bwo Wannai villager outfit, released with the Tai Bwo Wannai Clean-Up update on 9 August 2005. It is bought from Gabooty's Tai Bwo Wannai Cooperative for 300 trading sticks (or 250 with Karamja gloves 1 or better) and provides no combat bonuses. The robe is mainly used for cosmetic loadouts, Karamja roleplay sets, and fashionscape collection."
+  market_strategy:
+    notes:
+      - "Demand is largely cosmetic - fashionscape collectors and Karamja-themed loadout buyers."
+      - "GE buy limit of 150 per 4 hours keeps merchant volume capped."
+      - "High alch of 150 gp is below GE price - not an alch target."
+      - "Supply is a constant trickle from Gabooty's stock of 50 with 60-second restock."
+  trading_tips:
+    - "Trading-sticks-to-gp conversion sets the production floor - check sticks pricing before bulk buying."
+    - "Watch villager outfit demand spikes around quest reward streams or Karamja events."
+    - "Low-volume cosmetic - prefer single-set flips over bulk holdings."
+  history:
+    - date: "2005-08-09"
+      description: "Released with the Tai Bwo Wannai Clean-Up update alongside the full villager outfit."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

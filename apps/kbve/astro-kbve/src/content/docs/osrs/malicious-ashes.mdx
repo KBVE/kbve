@@ -11,10 +11,10 @@ osrs:
   value: 1
   lowalch: 1
   highalch: 1
-  limit: null
+  limit:
   material:
     type: ashes
-    tier: medium
+    tier: mid
   prayer:
     xp_scatter: 65
     xp_demonic_offering: 195
@@ -52,16 +52,35 @@ osrs:
       slug: fiendish-ashes
       relationship: downgrade
       description: Lowest XP (10 base)
+  about: |-
+    Malicious ashes are a mid-tier demonic ashes dropped by black demons and Nechryael. They sit between vile ashes (25 XP) and abyssal ashes (85 XP) on the Prayer scatter ladder, granting 65 Prayer XP per scatter or 195 XP via the Demonic Offering spell on a desecrated altar.
+
+    | Source | Combat | Drop |
+    |--------|--------|------|
+    | Black demon | 172 | Always |
+    | Nechryael | 115 | Always |
+
+    | Prayer Use | XP |
+    |------------|------|
+    | Scatter | 65 |
+    | Demonic Offering | 195 |
   market_strategy:
     notes:
-      - Common from black demon tasks
-      - Nechryael barraging popular
-      - Steady supply and demand
-      - Good middle-ground ashes
+      - Common from black demon Slayer tasks
+      - Nechryael barraging keeps supply steady
+      - Steady supply and demand balance
+      - Mid-tier ashes — useful filler for Prayer training
       - Popular Slayer task drops
-      - Compare to bone GP/XP ratios
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Compare GP/XP against superior bones
+  trading_tips:
+    - Best price spikes after demon-task multiplier bonuses
+    - Bulk buy during Slayer events for arbitrage
+    - Compare scatter GP/XP versus dragon bones daily
+  history:
+    - date: "2021-04-21"
+      description: Released with the Forsaken Tower update as the mid-tier demonic ashes.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

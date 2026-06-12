@@ -1,6 +1,6 @@
 ---
 title: Echo pearl | OSRS Price Data
-description: "Echo pearl: A glowing pearl, as you stare into it you can hear sounds of the ocean.. High alch: 4,800 GP."
+description: "Echo pearl is a rare orca/dolphin drop required to craft the fathom pearl Sailing facility. High alch: 4,800 GP."
 osrs:
   id: 31946
   name: Echo pearl
@@ -11,52 +11,92 @@ osrs:
   value: 8000
   lowalch: 3200
   highalch: 4800
-  limit: null
-  item_type: material
-  tradeable: true
-  weight: 1
-  high_alch: 4800
-  low_alch: 3200
+  limit:
+  material:
+    type: crafting-component
+    tier: mid-high
   drop_table:
     primary_source: Orca
-    best_drop_rate: 1/65.5
+    best_drop_rate: 1/35
     sources:
       - source: Orca
+        combat_level: 205
         quantity: "1"
         rarity: uncommon
-        drop_rate: 1/65.5
+        drop_rate: 1/70
         members_only: true
       - source: Dolphin
+        combat_level: 22
         quantity: "1"
         rarity: rare
-        drop_rate: 1/927
+        drop_rate: 1/1,200
         members_only: true
-  obtaining:
-    source: Orca, Dolphin
-    location: Sea creatures while Sailing
-    requirements: Sailing skill access
+  recipes:
+    - skill: construction
+      level: 83
+      xp: 2307
+      materials:
+        - item_name: Rosewood plank
+          quantity: 10
+        - item_name: Dragon nails
+          quantity: 40
+        - item_name: Dragon metal sheet
+          quantity: 2
+        - item_name: Echo pearl
+          quantity: 1
+      product: Fathom pearl
+      product_id: 32229
+      output_quantity: 1
+      facility: Boat upgrade hotspot
+      members_only: true
   related_items:
     - item_id: 32229
       item_name: Fathom pearl
       slug: fathom-pearl
       relationship: product
-      description: Used to craft the Fathom pearl facility
+      description: High-level Sailing boat facility crafted from the echo pearl.
+    - item_name: Rosewood plank
+      slug: rosewood-plank
+      relationship: component
+      description: Bulk plank component paired with the echo pearl in the recipe.
+    - item_name: Dragon metal sheet
+      slug: dragon-metal-sheet
+      relationship: component
+      description: High-tier smithing component required for the fathom pearl.
   about: |-
-    "A glowing pearl, as you stare into it you can hear sounds of the ocean."
-
-    The Echo pearl is a crafting material primarily used in Sailing and Construction to create the Fathom pearl facility.
-
-    Crafting Uses:
-    - Required component for Fathom pearl (requires 91 Sailing, 83 Construction)
-    - Combined with Rosewood planks, Dragon nails, and Dragon metal sheets
+    The echo pearl is a Sailing-era drop pulled from orcas and dolphins out on the open ocean. It feeds
+    a single recipe — the fathom pearl boat upgrade — which gates progression for high-level Construction
+    + Sailing pairings. Orcas drop the pearl roughly 17× more often than dolphins, so dedicated farmers
+    target the higher-combat creature.
   market_strategy:
+    title: Sailing Drop Economy
     notes:
-      - Orcas provide much better drop rate than dolphins
-      - Required for Fathom pearl - high-level trawling upgrade
-      - Price fluctuates based on Sailing skill demand
-      - Consider farming orcas for more efficient acquisition
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - Supply is locked to active orca and dolphin hunters; spikes follow Sailing content drops
+      - Demand is single-recipe; fathom pearl saturation will eventually soften the floor
+      - No buy limit — bulk movers can flood listings quickly during gluts
+      - Track the rosewood plank and dragon metal sheet markets to anticipate recipe demand
+  trading_tips:
+    - Buy aggressively when Sailing content is featured in seasonal events
+    - Watch fathom pearl demand patterns; this is a single-use recipe component
+    - Avoid hoarding once fathom pearl owners saturate the market
+  history:
+    - date: "2025-11-19"
+      description: Added with the Sailing skill release as a high-level boat upgrade component.
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    weight: 1
+    options:
+      - Drop
+    alchable: true
+    destroy: "Drop"
+    quest_item: false
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

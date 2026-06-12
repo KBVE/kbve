@@ -12,9 +12,60 @@ osrs:
   lowalch: 8000
   highalch: 12000
   limit: 8
-  about: "Sigil of the forager is a members-only item in Old School RuneScape. High alchemy value: 12,000 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: sigil
+    tier: high
+  passive_effects:
+    - name: Forager (Armageddon/Reborn)
+      description: Doubles harvested resources from Mining, Fishing, Woodcutting, and Farming. Does not stack with Sigil of Enhanced Harvest.
+    - name: Forager (Apocalypse)
+      description: Triples harvested resources from Mining, Fishing, Woodcutting, and Farming during the Apocalypse Deadman event.
+  drop_table:
+    sources:
+      - source: Deadman Mode drop table
+        quantity: "1"
+        rarity: rare
+        members_only: true
+  related_items:
+    - item_id: 26100
+      item_name: Sigil of enhanced harvest
+      slug: sigil-of-enhanced-harvest
+      relationship: alternative
+      description: Conflicting skilling sigil — does not stack
+    - item_id: 26104
+      item_name: Sigil of the menacing mage
+      slug: sigil-of-the-menacing-mage
+      relationship: alternative
+      description: Combat-focused Deadman sigil
+  about: |-
+    The sigil of the forager is a Deadman Mode-exclusive power sigil that doubles (or triples in Apocalypse) the resources gained from Mining, Fishing, Woodcutting, and Farming actions. The un-attuned version is dropped across the Deadman drop table; once attuned, it cannot be traded.
+
+    | Effect | Event |
+    |--------|-------|
+    | 2x resources | Armageddon / Reborn |
+    | 3x resources | Apocalypse |
+
+    Does not stack with the Sigil of Enhanced Harvest — pick one or the other for the skilling slot.
+
+    Only obtainable while a Deadman Mode event is live; not available in the standard live game.
+  market_strategy:
+    notes:
+      - Deadman-event-only — supply tied to active events
+      - Buy limit 8 per 4 hours throttles speculative flips
+      - Off-event prices collapse on the main game
+      - Watch Deadman event windows for re-issuance
+      - Powerful skilling boost during live events
+  trading_tips:
+    - Only buy/sell during active Deadman events
+    - Compare against Sigil of Enhanced Harvest pricing
+    - Track event countdown announcements for entry windows
+  history:
+    - date: "2021-08-25"
+      description: Released for Deadman Reborn.
+    - date: "2023-08-23"
+      description: Received a graphical update.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Teak fancy dress box (flatpack) | OSRS Price Data
-description: "Teak fancy dress box (flatpack): Teak fancy dress box.. High alch: 6 GP, GE limit: 500."
+description: "Teak fancy dress box (flatpack) is a members Construction 62 workbench product crafted from 2 teak planks for the Costume Room. High alch: 6 GP, GE limit: 500."
 osrs:
   id: 9866
   name: Teak fancy dress box (flatpack)
@@ -12,9 +12,76 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 500
-  about: "Teak fancy dress box (flatpack) is a members-only item in Old School RuneScape. High alchemy value: 6 coins. Grand Exchange buy limit: 500 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: flatpack
+    tier: low
+  properties:
+    release_date: "2006-10-18"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 1.0
+    options:
+      - Build
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: construction
+      level: 62
+      xp: 180
+      materials:
+        - item_name: Teak plank
+          item_id: 8780
+          quantity: 2
+      tools:
+        - Hammer
+        - Saw
+      facility: Workbench (player-owned house workshop)
+      product: Teak fancy dress box (flatpack)
+      product_id: 9866
+      output_quantity: 1
+  construction:
+    construction_level: 62
+    construction_xp: 180
+    room: Costume Room
+    hotspot: Fancy Dress Box
+    flatpack: true
+  related_items:
+    - item_id: 8780
+      item_name: Teak plank
+      slug: teak-plank
+      relationship: component
+      description: "Material (x2) used at the workbench to build the flatpack."
+    - item_id: 9864
+      item_name: Oak fancy dress box (flatpack)
+      slug: oak-fancy-dress-box-flatpack
+      relationship: downgrade
+      description: "Lower-tier oak version of the same Costume Room hotspot."
+    - item_id: 9868
+      item_name: Mahogany fancy dress box (flatpack)
+      slug: mahogany-fancy-dress-box-flatpack
+      relationship: upgrade
+      description: "Higher-tier mahogany version with more storage in the Costume Room."
+  about: "Teak fancy dress box (flatpack) is a player-made Construction flatpack crafted at a player-owned house workbench from 2 teak planks at level 62 Construction for 180 XP. It is used to upgrade the Fancy Dress Box hotspot in the Costume Room, expanding the slots available for stored cosmetic outfits."
+  market_strategy:
+    notes:
+      - "Niche flatpack with thin demand; only sells to ironman-tier Costume Room finishers."
+      - "Buy limit of 500 supports light bulk plays but cannot move much volume."
+      - "High alch 6 gp makes alching pointless."
+      - "Supply tracks teak-plank prices; any plank price shift translates 1:1 into flatpack margin."
+  trading_tips:
+    - "Flip only when teak plank is below the GE price minus tax - otherwise the build is a net loss."
+    - "Stock ahead of double-construction events when Costume Room demand briefly spikes."
+  history:
+    - date: "2006-10-18"
+      description: "Released alongside the Construction Costume Room and the Fancy Dress Box hotspot."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Elven top (white) | OSRS Price Data
-description: "Elven top (white): Clothing from the elven city of Prifddinas.. High alch: 3,000 GP."
+description: "Elven top (white) is a free-to-play Prifddinas cosmetic body item with zero combat bonuses. High alch: 3,000 GP."
 osrs:
   id: 24015
   name: Elven top (white)
@@ -11,10 +11,84 @@ osrs:
   value: 5000
   lowalch: 2000
   highalch: 3000
-  limit: null
-  about: "Elven top (white) is a free-to-play item in Old School RuneScape. High alchemy value: 3,000 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: cosmetic
+    tier: mid
+  properties:
+    release_date: "2019-07-25"
+    update: "Song of the Elves"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    weight: 0.907
+    options:
+      - Wear
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
+  equipment:
+    slot: body
+    weapon_type: cosmetic
+    weight: 0.907
+    requirements: {}
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  shops:
+    - shop_name: Lliann's Wares
+      location: Prifddinas
+      price: 5000
+      currency: Coins
+      stock: 100
+  related_items:
+    - item_name: Elven top (yellow)
+      slug: elven-top-yellow
+      relationship: variant
+      description: "Yellow color variant from the same Prifddinas tailor."
+    - item_name: Elven skirt (white)
+      slug: elven-skirt-white
+      relationship: variant
+      description: "Matching white skirt for the same outfit."
+    - item_name: Elven vest (white)
+      slug: elven-vest-white
+      relationship: variant
+      description: "Matching white vest in the elven outfit."
+  about: "Elven top (white) is a purely cosmetic body-slot outfit piece bought from Lliann's Wares in Prifddinas for 5,000 coins. It was added with the Song of the Elves update and, despite being sold in a members-only city, is flagged as free-to-play so the garment can be traded and equipped on F2P worlds."
+  market_strategy:
+    notes:
+      - "Cosmetic demand from completionists and roleplayers, no combat use."
+      - "Shop stock of 100 every 5 hours keeps a hard ceiling on prices."
+      - "High alch of 3,000 gp is a soft floor below the GE spread."
+      - "F2P-flagged listing widens the buyer pool versus other Prifddinas items."
+  trading_tips:
+    - "Run shop pulls when GE price drifts well above the 5,000 gp restock cost."
+    - "Track matching skirt and vest pricing for full-set flips."
+    - "Volume is thin - prefer limit-orders over market buys."
+  history:
+    - date: "2019-07-25"
+      description: "Released with the Song of the Elves quest update and the reopening of Prifddinas."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

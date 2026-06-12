@@ -1,6 +1,6 @@
 ---
 title: Camphor logs | OSRS Price Data
-description: "Camphor logs: Logs cut from a camphor tree.. High alch: 132 GP."
+description: "Camphor logs are 66 Woodcutting Sailing-skill logs harvested on The Great Conch, converted into camphor planks for boat upgrades. High alch: 132 GP."
 osrs:
   id: 32904
   name: Camphor logs
@@ -11,10 +11,73 @@ osrs:
   value: 220
   lowalch: 88
   highalch: 132
-  limit: null
-  about: "Camphor logs is a members-only item in Old School RuneScape. High alchemy value: 132 coins."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  limit:
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: logs
+    tier: mid
+  properties:
+    release_date: "2025-11-19"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 2
+    options:
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
+  recipes:
+    - skill: woodcutting
+      level: 66
+      xp: 143.5
+      materials:
+        - item_name: Camphor tree
+          quantity: 1
+      tools:
+        - Axe
+      product: Camphor logs
+      output_quantity: 1
+  passive_effects:
+    - name: Firemaking fuel
+      description: "Burned with a tinderbox at 66 Firemaking for 180 Firemaking XP per log."
+    - name: Sailing plank source
+      description: "Primary input for camphor planks, the mid-tier Sailing-skill construction material used in Sailing boat upgrades."
+  related_items:
+    - item_name: Camphor planks
+      slug: camphor-planks
+      relationship: product
+      description: Sailing-skill construction planks made from camphor logs
+    - item_name: Camphor pyre logs
+      slug: camphor-pyre-logs
+      relationship: variant
+      description: Sacred-oil-treated variant burned at Shades of Mort'ton funeral pyres
+    - item_name: Camphor sapling
+      slug: camphor-sapling
+      relationship: component
+      description: Hardwood-patch sapling grown at 66 Farming to produce camphor trees
+    - item_name: Mahogany logs
+      slug: mahogany-logs
+      relationship: alternative
+      description: Tropical hardwood log tier near camphor in Woodcutting and construction use
+  about: "Camphor logs are members-only Woodcutting logs harvested at 66 Woodcutting from camphor trees on The Great Conch (Troubled Tortugans) or grown at hardwood Farming patches, primarily processed into camphor planks for Sailing-skill boat upgrades but also burnable for 180 Firemaking XP."
+  market_strategy:
+    notes:
+      - "New Sailing-skill log tier - demand still settling against Sailing plank consumption"
+      - "Supply gated by 66 Woodcutting and access to The Great Conch via Troubled Tortugans progress"
+      - "No GE buy limit listed - liquidity tracks Sailing plank converter throughput"
+      - "Firemaking XP rate (180) is competitive but logs are usually too valuable to burn"
+  trading_tips:
+    - "Track camphor plank GE price - converters set the floor for camphor logs"
+    - "Stockpile around Sailing skill updates and new boat-upgrade content drops"
+    - "Watch Farming patch yield buffs - hardwood-patch supply spikes compress margins"
+  history:
+    - date: "2025-11-19"
+      description: "Released with the Sailing skill launch, introducing mid-tier hardwood logs harvested on The Great Conch."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

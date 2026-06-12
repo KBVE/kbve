@@ -1,6 +1,6 @@
 ---
 title: Emerald bolts (e) | OSRS Price Data
-description: "Emerald bolts (e) is a members ammo slot item with +85 ranged strength requiring 1 Ranged. High alch: 35 GP, GE limit: 11,000."
+description: "Emerald bolts (e) are enchanted Emerald-tipped Mithril bolts with a 55% Magical Poison proc dealing 5 venom damage. High alch: 35 GP, GE limit: 11,000."
 osrs:
   id: 9241
   name: Emerald bolts (e)
@@ -12,46 +12,104 @@ osrs:
   lowalch: 23
   highalch: 35
   limit: 11000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: mithril
+    tier: mid
+  properties:
+    release_date: "2006-07-31"
+    tradeable: true
+    stackable: true
+    noteable: false
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0
+    options:
+      - Wield
+      - Drop
+    worn_options: []
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: ammo
-    other_bonus:
-      ranged_strength: 85
+    weapon_type: crossbow
+    attack_speed: 6
+    weight: 0
     requirements:
       ranged: 1
-    weight: 0
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 85
+      magic_damage: 0
+      prayer: 0
+  recipes:
+    - skill: magic
+      level: 27
+      xp: 37
+      materials:
+        - item_name: Emerald bolts
+          quantity: 10
+        - item_name: Air rune
+          quantity: 3
+        - item_name: Nature rune
+          quantity: 1
+        - item_name: Cosmic rune
+          quantity: 1
+      tools: []
+      product: Emerald bolts (e)
+      output_quantity: 10
+  passive_effects:
+    - name: Magical Poison
+      description: "55% proc chance (54% vs players, 65% with Kandarin Hard Diary) applies poison dealing 5 damage that ticks down over time; 6 damage with Zaryte crossbow. Highest enchanted-bolt proc rate in the game."
   related_items:
     - item_id: 9240
+      item_name: Emerald bolts
+      slug: emerald-bolts
+      relationship: component
+      description: Unenchanted base bolt fletched from Mithril bolts plus Emerald bolt tips
+    - item_id: 9239
       item_name: Sapphire bolts (e)
       slug: sapphire-bolts-e
       relationship: downgrade
-      description: Previous tier enchanted bolt
-  about: |-
-    | Other | Value |
-    |-------|-------|
-    | Ranged Strength | +85 |
-
-    Proc chance: 54% (59.4% with Kandarin hard diary)
-
-    On activation, applies 5 poison damage to the target through a cloud of poisonous gas. This is by far the highest proc rate of any enchanted bolt — over 10x more frequent than most others.
-
-    At 54-59% activation rate, emerald bolts (e) are the most reliable way to poison targets with crossbow bolts:
-    - First hit has >50% chance to poison
-    - 5 poison damage ticks down over time (5→4→3→2→1)
-    - Poison continues even after switching weapons
-    - Works in both PvP and PvM
-
-    | Method | Poison Dmg | Reliability |
-    |--------|-----------|-------------|
-    | Emerald bolts (e) | 5 | 54% per hit |
-    | Dragon dagger (p++) | 10 | On hit only |
-    | Toxic blowpipe | Venom (6+) | 25% per hit |
+      description: Previous-tier enchanted bolt with the Clear Mind effect
+    - item_id: 9243
+      item_name: Ruby bolts (e)
+      slug: ruby-bolts-e
+      relationship: upgrade
+      description: Next-tier enchanted bolt with the Blood Forfeit effect
+    - item_id: 21947
+      item_name: Emerald dragon bolts (e)
+      slug: emerald-dragon-bolts-e
+      relationship: variant
+      description: Dragon-tipped enchanted variant fired only from a Dragon hunter crossbow or above
+  about: "Emerald bolts (e) are enchanted Emerald-tipped Mithril crossbow bolts created by casting Enchant Crossbow Bolt (Emerald) at 27 Magic. Their Magical Poison effect procs roughly 55% of hits, making them the most reliable poison-application tool in OSRS and a staple in low-level PKing and against Corporeal Beast's dark energy core."
   market_strategy:
     notes:
-      - Highest proc rate of any enchanted bolt
-      - Popular for consistent poison application
-      - Cheap to enchant at 27 Magic
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Highest proc rate of any enchanted bolt - over 10x more frequent than most others"
+      - "Cheap to enchant at 27 Magic with a small rune cost"
+      - "Demand from PKers, NMZ AFKers, and Corporeal Beast core killers"
+      - "Supply tied to Mithril bolt fletcher output and Emerald bolt tip drops/cuts"
+  trading_tips:
+    - "Cross-check Emerald bolts + nature/cosmic rune spot prices to detect enchantment arbitrage windows"
+    - "Stockpile during PvP tournament weekends and DMM seasons"
+    - "Hard Kandarin Diary completion bumps proc rate to 65% - watch for diary-update demand spikes"
+  history:
+    - date: "2006-07-31"
+      description: "Released alongside the Fletching Crossbows update introducing gem-tipped bolts and enchanted variants."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

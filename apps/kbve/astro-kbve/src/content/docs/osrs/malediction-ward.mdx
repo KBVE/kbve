@@ -1,6 +1,6 @@
 ---
 title: Malediction ward | OSRS Price Data
-description: "Malediction ward is a members shield slot item requiring 60 Defence. High alch: 27,000 GP, GE limit: 8."
+description: "Malediction ward is a 60 Defence magic shield with +12 magic attack and +2% magic damage built from three Wilderness boss shards. High alch: 27,000 GP, GE limit: 8."
 osrs:
   id: 11924
   name: Malediction ward
@@ -12,28 +12,59 @@ osrs:
   lowalch: 18000
   highalch: 27000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: shield
+    tier: high
+  properties:
+    release_date: "2014-03-13"
+    update: "Wilderness Bosses"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: shield
-    type: magic_shield
+    weapon_type: magic_shield
+    weight: 3.628
     requirements:
       defence: 60
-    stats:
-      attack_magic: 12
+    attack_bonus:
+      stab: -8
+      slash: -8
+      crush: -8
+      magic: 12
+      ranged: -8
+    defence_bonus:
+      stab: 50
+      slash: 52
+      crush: 48
+      magic: 15
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
       magic_damage: 2
-      defence_stab: 50
-      defence_slash: 52
-      defence_crush: 48
-      defence_magic: 15
+      prayer: 0
   drop_table:
     sources:
       - source: Volcanic Forge
-        source_id: 0
-        combat_level: 0
-        quantity: "1"
-        rarity: N/A
+        location: North-east Wilderness
+        rarity: assembly
         members_only: true
   recipes:
-    - skill: N/A
+    - skill: none
       level: 0
       xp: 0
       materials:
@@ -47,61 +78,52 @@ osrs:
           item_name: Malediction shard 3
           quantity: 1
       product: Malediction ward
-      product_id: 11924
-      facility: Volcanic Forge
-      members_only: true
+      output_quantity: 1
   related_items:
     - item_id: 11926
       item_name: Odium ward
       slug: odium-ward
       relationship: alternative
-      description: Ranged version
+      description: "Ranged counterpart shield from the same Wilderness boss shard system."
     - item_id: 12825
       item_name: Arcane spirit shield
       slug: arcane-spirit-shield
       relationship: upgrade
-      description: BiS magic shield
+      description: "Best-in-slot magic shield with stronger offence and prayer bonus."
     - item_id: 6889
       item_name: Mage's book
       slug: mages-book
       relationship: alternative
-      description: Alternative
-  about: |-
-    Combine 3 shards at Volcanic Forge (NE Wilderness):
-
-    | Shard | Source |
-    |-------|--------|
-    | Malediction shard 1 | Chaos Fanatic |
-    | Malediction shard 2 | Crazy Archaeologist |
-    | Malediction shard 3 | Scorpia |
-
-    | Offense | Value |
-    |---------|-------|
-    | Magic attack | +12 |
-    | Magic damage | +2% |
-
-    | Defence | Value |
-    |---------|-------|
-    | Stab | +50 |
-    | Slash | +52 |
-    | Crush | +48 |
-    | Magic | +15 |
-
-    Requirements: 60 Defence
-
-    Budget magic shield for:
-    - Magic combat
-    - Slayer tasks
-    - Mid-game content
-
-    Only shield with +2% magic damage.
+      description: "Off-hand magic alternative with higher magic attack and no Defence requirement."
+    - item_id: 11931
+      item_name: Malediction shard 1
+      slug: malediction-shard-1
+      relationship: component
+      description: "Chaos Fanatic drop, first of three combine shards."
+    - item_id: 11932
+      item_name: Malediction shard 2
+      slug: malediction-shard-2
+      relationship: component
+      description: "Crazy Archaeologist drop, second of three combine shards."
+    - item_id: 11933
+      item_name: Malediction shard 3
+      slug: malediction-shard-3
+      relationship: component
+      description: "Scorpia drop, third of three combine shards."
+  about: "Malediction ward is the magic-leaning shield half of the Wilderness boss shard system, assembled by combining Malediction shard 1, 2, and 3 at the Volcanic Forge in the north-east Wilderness. With a +12 magic attack, +2% magic damage, and dragon-square-tier melee defence, it is the only off-hand magic option that offers a damage multiplier without the price tag of a spirit shield, making it the standard mid-budget shield for Slayer mages and mid-game magic content."
   market_strategy:
     notes:
-      - Wilderness bosses for shards
-      - Magic damage bonus is unique
-      - Budget option before arcane
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Demand peaks with Wilderness boss hunting and Slayer magic tasks."
+      - "GE buy limit of 8 keeps merchanting thin and sensitive to wars."
+      - "Shard supply is risk-gated by Wilderness PKers, dampening output."
+      - "High alch of 27,000 gp is far below GE - not an alch target."
+  trading_tips:
+    - "Sum shard prices vs assembled ward to detect combine arbitrage windows."
+    - "Track Wilderness PvP activity - quieter weeks lift shard supply."
+    - "Spirit shield meta shifts (Arcane buffs/nerfs) move ward demand sharply."
+  history:
+    - date: "2014-03-13"
+      description: "Released with the Wilderness Bosses update alongside its Odium ward counterpart."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

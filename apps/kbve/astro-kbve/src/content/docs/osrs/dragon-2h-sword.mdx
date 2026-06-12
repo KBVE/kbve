@@ -1,6 +1,6 @@
 ---
 title: Dragon 2h sword | OSRS Price Data
-description: "Dragon 2h sword is a members weapon slot item with +93 melee strength requiring 60 Attack. High alch: 132,000 GP, GE limit: 8."
+description: "Dragon 2h sword is a 60 Attack two-handed dragon weapon with +92 slash, +93 strength, and the multi-target Powerstab spec. High alch: 132,000 GP, GE limit: 8."
 osrs:
   id: 7158
   name: Dragon 2h sword
@@ -12,10 +12,35 @@ osrs:
   lowalch: 88000
   highalch: 132000
   limit: 8
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: dragon
+    tier: high
+  properties:
+    release_date: "2006-02-20"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 3.628
+    options:
+      - Wield
+      - Drop
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: "Drop"
   equipment:
     slot: weapon
+    weapon_type: 2h_sword
     two_handed: true
     attack_speed: 7
+    weight: 3.628
+    requirements:
+      attack: 60
     attack_bonus:
       stab: -4
       slash: 92
@@ -33,79 +58,78 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      attack: 60
-    weight: 3.628
   special_attack:
     name: Powerstab
     energy: 60
-    description: Hits all targets within 1 tile in multi-combat areas. Maximum 14 NPCs or 3 players per use.
+    description: "Hits all targets within a 1-tile radius in multi-combat areas, up to a maximum of 14 NPCs or 3 players per activation. No effect in single-combat zones."
   drop_table:
     sources:
       - source: Kalphite Queen
         combat_level: 333
         quantity: "1"
-        rarity: uncommon
-        drop_rate: 1/128
+        rarity: rare
+        drop_rate: 1/256
         members_only: true
       - source: Chaos Elemental
         combat_level: 305
         quantity: "1"
         rarity: uncommon
+        drop_rate: 2/128
+        members_only: true
+      - source: Scorpia
+        combat_level: 225
+        quantity: "1"
+        rarity: rare
         drop_rate: 1/128
+        members_only: true
+      - source: Callisto
+        combat_level: 470
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/256
+        members_only: true
+      - source: "Vet'ion"
+        combat_level: 454
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/256
+        members_only: true
+      - source: Venenatis
+        combat_level: 464
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/256
         members_only: true
   related_items:
     - item_id: 1377
       item_name: Dragon battleaxe
       slug: dragon-battleaxe
       relationship: alternative
-      description: One-handed dragon strength weapon
+      description: One-handed dragon strength weapon with a 100% Strength-boost spec
     - item_id: 1249
       item_name: Dragon spear
       slug: dragon-spear
       relationship: alternative
-      description: Two-handed with stun spec
-  about: |-
-    | Attack | Value |
-    |--------|-------|
-    | Slash | +92 |
-    | Crush | +80 |
-
-    | Other | Value |
-    |-------|-------|
-    | Strength | +93 |
-
-    Requirements: 60 Attack | Speed: 7 tick (4.2s) | Two-handed
-
-    The highest Strength bonus (+93) and Slash attack (+92) of any dragon weapon, but extremely slow at 7-tick speed.
-
-    Cost: 60% special attack energy
-
-    In multi-combat areas, hits all targets within a 1-tile radius:
-    - Maximum 14 NPCs or 3 players per use
-    - No benefit in single-combat areas
-    - Area-of-effect damage makes it unique among dragon weapons
-
-    The Powerstab spec excels in:
-    - Nightmare Zone — hit multiple bosses simultaneously
-    - Catacombs of Kourend — multi-target training
-    - Multi-combat Slayer — clear clusters of monsters
-    - PvP multi-combat — hit up to 3 players at once
-
-    | Weapon | Speed | Slash | Str | Spec |
-    |--------|-------|-------|-----|------|
-    | Dragon 2h sword | 7 tick | +92 | +93 | AoE (60%) |
-    | Dragon scimitar | 4 tick | +67 | +66 | Def drain (55%) |
-    | Dragon battleaxe | 6 tick | +70 | +85 | Str boost (100%) |
-
-    Highest raw stats but the slowest speed makes it impractical for standard training. Best used for spec switching in multi-combat.
+      description: Two-handed dragon weapon with the Shove stun spec
+    - item_id: 4587
+      item_name: Dragon scimitar
+      slug: dragon-scimitar
+      relationship: alternative
+      description: Fastest one-handed dragon weapon, the standard 60 Attack training scimitar
+  about: "Dragon 2h sword is a two-handed dragon weapon requiring 60 Attack, dropped by Kalphite Queen, Chaos Elemental, Scorpia and the Wilderness bosses. Its slow 7-tick speed makes it impractical for standard training, but its Powerstab special attack hits every target within one tile in multi-combat, making it a niche AoE spec weapon for NMZ, Catacombs of Kourend, multi-target Slayer, and PvP team fights."
   market_strategy:
     notes:
-      - Kalphite Queen and Wilderness bosses are primary sources
-      - PvP demand for multi-spec
-      - Price sits near alch value
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Boss-drop only - no Smithing supply; price floor sits near the 132k high-alch value"
+      - "Kalphite Queen and Wilderness boss clears are the main supply faucets"
+      - "PvP and NMZ multi-spec demand keep volume alive despite the niche role"
+      - "GE buy limit of 8 per 4 hours caps merchant flips"
+  trading_tips:
+    - "Watch Wilderness boss rework news - drop-rate or hotspot changes move supply hard"
+    - "Stockpile before PvP tournaments and DMM seasons for multi-combat spec demand"
+    - "Cross-check against Dragon claws / Dragon warhammer demand to gauge boss-drop sentiment"
+  history:
+    - date: "2006-02-20"
+      description: "Released as the two-handed entry in the dragon weapon line with the Powerstab AoE special attack."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
