@@ -1117,6 +1117,27 @@
 				"itch_user": "kbve",
 				"itch_game": "chuckrpg"
 			}
+		},
+		{
+			"key": "unreal_rentearth",
+			"app_name": "rentearth",
+			"engine": {
+				"version": "5.7.4",
+				"project_path": "apps/rentearth/unreal-rentearth",
+				"build_targets": [
+					"Win64",
+					"Linux"
+				]
+			},
+			"source_path": "apps/rentearth/unreal-rentearth",
+			"version": "0.0.1",
+			"version_toml": "apps/rentearth/unreal-rentearth/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-rentearth.mdx",
+			"runner": "arc-runner-ue",
+			"external_publish": {
+				"itch_user": "kbve",
+				"itch_game": "rentearth"
+			}
 		}
 	],
 	"bevy_game": [],
@@ -1129,8 +1150,8 @@
 		"ue5_server": 1,
 		"unity": 1,
 		"godot": 1,
-		"unreal_game": 2,
+		"unreal_game": 3,
 		"bevy_game": 0,
-		"total": 92
+		"total": 93
 	}
 }
