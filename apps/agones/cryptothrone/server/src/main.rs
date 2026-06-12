@@ -62,6 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .build()
             .expect("sim runtime");
         let mut app = build_app(snap_tx, input_rx, roster, seed, config, map, registry);
+        app.insert_resource(game::consumables());
         app.add_systems(
             bevy::prelude::Update,
             game::spawn_world.in_set(simgrid::SimSet::Spawn),

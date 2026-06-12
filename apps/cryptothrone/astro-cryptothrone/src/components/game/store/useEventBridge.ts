@@ -141,6 +141,23 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 		);
 
 		unsubs.push(
+			laserEvents.on('item:used', (data) => {
+				const used = data as { item_ref: string; heal: number };
+				dispatch({
+					type: 'ADD_NOTIFICATION',
+					payload: {
+						title: 'Used',
+						message:
+							used.heal > 0
+								? `${used.item_ref} (+${used.heal} HP)`
+								: used.item_ref,
+						type: 'success',
+					},
+				});
+			}),
+		);
+
+		unsubs.push(
 			laserEvents.on('dice:roll', (data) => {
 				dispatch({
 					type: 'SET_DICE_ROLL',
