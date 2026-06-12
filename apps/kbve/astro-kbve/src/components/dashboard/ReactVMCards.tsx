@@ -615,18 +615,6 @@ export default function ReactVMCards() {
 
 	return (
 		<div className="not-content">
-			{/* Keyframes for skeleton pulse + refresh bar slide */}
-			<style>{`
-				@keyframes pulse {
-					0%, 100% { opacity: 0.6; }
-					50% { opacity: 0.35; }
-				}
-				@keyframes vm-refresh-slide {
-					0% { transform: translateX(-100%); }
-					100% { transform: translateX(100%); }
-				}
-			`}</style>
-
 			<RefreshBar active={refreshing} />
 
 			{error && (

@@ -34,14 +34,6 @@ async function loadRFB() {
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_BASE_DELAY_MS = 2000;
 
-const VNC_SURFACE_CSS = `
-.vnc-surface > div {
-	position: absolute !important;
-	inset: 0 !important;
-	width: auto !important;
-	height: auto !important;
-}`;
-
 export default function ReactVMVncViewer() {
 	const vncTarget = useStore(vmService.$vncTarget);
 	const rfbRef = useRef<InstanceType<typeof RFB> | null>(null);
@@ -358,7 +350,6 @@ export default function ReactVMVncViewer() {
 				flexDirection: 'column',
 				height: fullscreen ? '100vh' : undefined,
 			}}>
-			<style>{VNC_SURFACE_CSS}</style>
 			<div
 				ref={viewerRef}
 				className="vnc-surface"

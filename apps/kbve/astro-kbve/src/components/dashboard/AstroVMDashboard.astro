@@ -70,6 +70,32 @@ import ReactFirecrackerCards from './ReactFirecrackerCards';
 		gap: 0.5rem;
 	}
 
+	:global(.vnc-surface > div) {
+		position: absolute !important;
+		inset: 0 !important;
+		width: auto !important;
+		height: auto !important;
+	}
+
+	:global(@keyframes pulse) {
+		0%,
+		100% {
+			opacity: 0.6;
+		}
+		50% {
+			opacity: 0.35;
+		}
+	}
+
+	:global(@keyframes vm-refresh-slide) {
+		0% {
+			transform: translateX(-100%);
+		}
+		100% {
+			transform: translateX(100%);
+		}
+	}
+
 	:global(@keyframes spin) {
 		to {
 			transform: rotate(360deg);
