@@ -105,6 +105,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Chuck|Combat")
 	TObjectPtr<UAnimMontage> MeleeMontage;
 
+	UPROPERTY(EditAnywhere, Category = "Chuck|Combat")
+	TArray<TObjectPtr<UAnimMontage>> MeleeMontages;
+
+	int32 MeleeMontageIndex = 0;
+	bool bCrosshairOnTarget = false;
+
 	void OnSprintPressed(const FInputActionValue& Value);
 	void OnSprintReleased(const FInputActionValue& Value);
 	void OnCrouchPressed(const FInputActionValue& Value);

@@ -49,6 +49,8 @@ private:
 	float HUDTimeSeconds        = 0.f;
 	bool  bHasReceivedState     = false;
 
+	FLinearColor CrosshairTint  = FLinearColor(1.f, 1.f, 1.f, 0.65f);
+
 	float DamageFlashUntil      = 0.f;
 	float LastHealthForFlash    = -1.f;
 
@@ -58,4 +60,5 @@ private:
 	FKBVEEventHandle ManaHandle;
 	FKBVEEventHandle StaminaHandle;
 	FKBVEEventHandle DamageHandle;
+	FKBVEEventHandle CrosshairHandle;
 };

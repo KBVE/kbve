@@ -11,6 +11,9 @@
 #include "MassEntityManager.h"
 #include "MassCommonFragments.h"
 #include "KBVEStatFragment.h"
+#include "Components/SphereComponent.h"
+#include "Components/SceneComponent.h"
+#include "GameFramework/Actor.h"
 
 #include "Engine/World.h"
 #include "Engine/Texture2D.h"
@@ -35,6 +38,13 @@ void UchuckSlimeSubsystem::Deinitialize()
 	Paths.Reset();
 	SlimeSprites.Reset();
 	ClientSprites.Reset();
+	HitProxies.Reset();
+	HitProxySlime.Reset();
+	if (HitProxyHost)
+	{
+		HitProxyHost->Destroy();
+		HitProxyHost = nullptr;
+	}
 	SlimeDef = nullptr;
 	Super::Deinitialize();
 }
@@ -217,6 +227,7 @@ void UchuckSlimeSubsystem::SpawnSlimes(const FVector& Center, int32 Count, float
 
 		S->GroundZ = GroundZ;
 		S->TargetLocation = FVector(X, Y, GroundZ);
+		S->LastYaw = FMath::FRandRange(-180.f, 180.f);
 		FKBVEStatFragment* StatF = EM.GetFragmentDataPtr<FKBVEStatFragment>(E);
 		if (bHaveStats)
 		{
@@ -437,6 +448,97 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 				S->UpsertTimer = S->bInCombat ? 0.f : FMath::FRandRange(0.35f, 0.55f);
 			}
 		}
+	}
+
+	if (bHavePlayer)
+	{
+		UpdateHitProxies(PlayerLoc);
+	}
+}
+
+void UchuckSlimeSubsystem::UpdateHitProxies(const FVector& PlayerLoc)
+{
+	UWorld* World = GetWorld();
+	UMassEntitySubsystem* MassSys = World ? World->GetSubsystem<UMassEntitySubsystem>() : nullptr;
+	if (!MassSys)
+	{
+		return;
+	}
+
+	if (!HitProxyHost)
+	{
+		FActorSpawnParameters Params;
+		Params.ObjectFlags |= RF_Transient;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		HitProxyHost = World->SpawnActor<AActor>(AActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator, Params);
+		if (HitProxyHost)
+		{
+			USceneComponent* Root = NewObject<USceneComponent>(HitProxyHost, TEXT("Root"), RF_Transient);
+			HitProxyHost->SetRootComponent(Root);
+			Root->RegisterComponent();
+		}
+	}
+	if (!HitProxyHost)
+	{
+		return;
+	}
+
+	for (int32 i = HitProxies.Num(); i < MaxHitProxies; ++i)
+	{
+		USphereComponent* Proxy = NewObject<USphereComponent>(HitProxyHost, NAME_None, RF_Transient);
+		Proxy->SetupAttachment(HitProxyHost->GetRootComponent());
+		Proxy->InitSphereRadius(HitProxyRadius);
+		Proxy->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Proxy->SetCollisionObjectType(ECC_WorldDynamic);
+		Proxy->SetCollisionResponseToAllChannels(ECR_Ignore);
+		Proxy->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+		Proxy->SetCanEverAffectNavigation(false);
+		Proxy->ComponentTags.Add(TEXT("SlimeHit"));
+		Proxy->RegisterComponent();
+		HitProxies.Add(Proxy);
+		HitProxySlime.Add(INDEX_NONE);
+	}
+
+	FMassEntityManager& EM = MassSys->GetMutableEntityManager();
+	const double RangeSq = static_cast<double>(HitProxyRange) * HitProxyRange;
+
+	TArray<TPair<double, int32>> Near;
+	Near.Reserve(MaxHitProxies * 2);
+	for (int32 i = 0; i < Slimes.Num(); ++i)
+	{
+		const FMassEntityHandle E = Slimes[i];
+		if (!EM.IsEntityValid(E))
+		{
+			continue;
+		}
+		const FchuckSlimeFragment* S = EM.GetFragmentDataPtr<FchuckSlimeFragment>(E);
+		const FTransformFragment* T = EM.GetFragmentDataPtr<FTransformFragment>(E);
+		if (!S || !T || S->bDead)
+		{
+			continue;
+		}
+		const double DistSq = FVector::DistSquaredXY(T->GetTransform().GetLocation(), PlayerLoc);
+		if (DistSq <= RangeSq)
+		{
+			Near.Emplace(DistSq, i);
+		}
+	}
+	Near.Sort([](const TPair<double, int32>& A, const TPair<double, int32>& B) { return A.Key < B.Key; });
+
+	const int32 Assigned = FMath::Min(Near.Num(), MaxHitProxies);
+	for (int32 p = 0; p < Assigned; ++p)
+	{
+		const int32 Idx = Near[p].Value;
+		const FTransformFragment* T = EM.GetFragmentDataPtr<FTransformFragment>(Slimes[Idx]);
+		USphereComponent* Proxy = HitProxies[p];
+		Proxy->SetWorldLocation(T->GetTransform().GetLocation() + FVector(0.f, 0.f, HitProxyCenterZ));
+		Proxy->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		HitProxySlime[p] = Idx;
+	}
+	for (int32 p = Assigned; p < HitProxies.Num(); ++p)
+	{
+		HitProxies[p]->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		HitProxySlime[p] = INDEX_NONE;
 	}
 }
 
