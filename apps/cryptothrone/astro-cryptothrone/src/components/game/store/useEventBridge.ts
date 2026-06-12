@@ -10,6 +10,32 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 		const unsubs: (() => void)[] = [];
 
 		unsubs.push(
+			laserEvents.on('net:status', (data) => {
+				const conn = data as {
+					status:
+						| 'connecting'
+						| 'connected'
+						| 'slow'
+						| 'ready'
+						| 'rejected'
+						| 'error'
+						| 'disconnected';
+					detail?: string;
+				};
+				dispatch({ type: 'SET_CONNECTION', payload: conn });
+			}),
+		);
+
+		unsubs.push(
+			laserEvents.on('players:sync', (data) => {
+				const payload = data as {
+					players: { slot: number; username: string }[];
+				};
+				dispatch({ type: 'SET_PLAYERS', payload: payload.players });
+			}),
+		);
+
+		unsubs.push(
 			laserEvents.on('char:event', (data: CharacterEventData) => {
 				dispatch({
 					type: 'SET_MODAL',

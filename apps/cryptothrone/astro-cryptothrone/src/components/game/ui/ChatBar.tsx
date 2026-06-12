@@ -18,6 +18,22 @@ export function ChatBar() {
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key !== 'Enter') return;
+			const active = document.activeElement;
+			if (
+				active instanceof HTMLInputElement ||
+				active instanceof HTMLTextAreaElement
+			)
+				return;
+			e.preventDefault();
+			inputRef.current?.focus();
+		};
+		window.addEventListener('keydown', onKey);
+		return () => window.removeEventListener('keydown', onKey);
+	}, []);
+
+	useEffect(() => {
 		return laserEvents.on('chat:message', (data) => {
 			const msg = data as { from: string; text: string };
 			setLines((prev) =>
@@ -60,7 +76,7 @@ export function ChatBar() {
 					maxLength={MAX_INPUT}
 					onChange={(e) => setDraft(e.target.value)}
 					onKeyDown={(e) => e.stopPropagation()}
-					placeholder="Say something…"
+					placeholder="Press Enter to chat…"
 					aria-label="Chat message"
 					className="w-full rounded border border-white/20 bg-black/60 px-2 py-1 text-xs text-white placeholder-gray-400 outline-none backdrop-blur-sm focus:border-cyan-400"
 				/>
