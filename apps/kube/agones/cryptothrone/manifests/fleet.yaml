@@ -21,8 +21,11 @@ spec:
                 app.kubernetes.io/part-of: cryptothrone
         spec:
             ports:
+                # No hostPort — clients reach the server through the Cilium
+                # gateway (HTTPRoute -> cryptothrone-game Service), so the
+                # pod stays compatible with baseline PodSecurity.
                 - name: ws
-                  portPolicy: Dynamic
+                  portPolicy: None
                   containerPort: 7979
                   protocol: TCP
             health:
