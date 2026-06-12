@@ -1,0 +1,86 @@
+---
+interface Props {
+	n: number;
+	title: string;
+	status?: 'todo' | 'pending' | 'done';
+	disabled?: boolean;
+}
+const { n, title, status = 'todo', disabled = false } = Astro.props;
+---
+
+<section
+	class="sc-root"
+	data-stepcard-root
+	data-status={status}
+	data-disabled={disabled ? 'true' : 'false'}>
+	<header class="sc-header">
+		<span class="sc-badge" data-slot="badge">{n}</span>
+		<strong class="sc-title">{title}</strong>
+		<span class="sc-pill" data-slot="status">{status}</span>
+	</header>
+	<div class="sc-body">
+		<slot />
+	</div>
+</section>
+
+<style>
+	.sc-root {
+		border: 1px solid var(--sl-color-gray-5, #262626);
+		border-radius: 12px;
+		background: var(--sl-color-bg-nav, #111);
+		overflow: hidden;
+		transition: opacity 0.15s ease;
+	}
+	.sc-root[data-disabled='true'] {
+		opacity: 0.65;
+	}
+	.sc-header {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		padding: 0.7rem 1rem;
+		border-bottom: 1px solid var(--sl-color-gray-5, #262626);
+	}
+	.sc-badge {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 26px;
+		height: 26px;
+		border-radius: 999px;
+		font-size: 0.78rem;
+		font-weight: 700;
+	}
+	.sc-title {
+		flex: 1;
+	}
+	.sc-pill {
+		font-size: 0.72rem;
+		padding: 0.15rem 0.5rem;
+		border-radius: 999px;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		font-weight: 600;
+	}
+	.sc-body {
+		padding: 0.85rem 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+	}
+	.sc-root[data-status='todo'] .sc-badge,
+	.sc-root[data-status='todo'] .sc-pill {
+		background: rgba(148, 163, 184, 0.12);
+		color: #94a3b8;
+	}
+	.sc-root[data-status='pending'] .sc-badge,
+	.sc-root[data-status='pending'] .sc-pill {
+		background: rgba(251, 191, 36, 0.12);
+		color: #fbbf24;
+	}
+	.sc-root[data-status='done'] .sc-badge,
+	.sc-root[data-status='done'] .sc-pill {
+		background: rgba(74, 222, 128, 0.12);
+		color: #4ade80;
+	}
+</style>
