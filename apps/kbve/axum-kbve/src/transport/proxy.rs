@@ -3,7 +3,7 @@ use std::sync::OnceLock;
 use axum::{
     body::{Body, Bytes},
     extract::{FromRequestParts, Path, Request},
-    http::{HeaderMap, HeaderName, HeaderValue, StatusCode, header},
+    http::{HeaderMap, HeaderName, HeaderValue, Method, StatusCode, header},
     response::{IntoResponse, Response},
 };
 use reqwest::Client;
@@ -47,6 +47,35 @@ impl ServiceProxy {
         if let Err(resp) =
             require_dashboard_view_with_query(&req_headers, raw_query.as_deref(), self.name).await
         {
+            return resp;
+        }
+
+        self.forward_request(path, req, None).await
+    }
+
+    /// Read methods require DASHBOARD_VIEW; mutating methods require DASHBOARD_MANAGE.
+    async fn handle_method_aware(
+        &self,
+        path: Option<Path<String>>,
+        req: Request<Body>,
+    ) -> Response {
+        let req_headers = req.headers().clone();
+        let raw_query = req.uri().query().map(|q| q.to_string());
+
+        let mutating = matches!(
+            req.method(),
+            &Method::POST | &Method::PUT | &Method::PATCH | &Method::DELETE
+        );
+
+        let gate = if mutating {
+            require_dashboard_manage_with_query(&req_headers, raw_query.as_deref(), self.name)
+                .await
+                .map(|_| ())
+        } else {
+            require_dashboard_view_with_query(&req_headers, raw_query.as_deref(), self.name).await
+        };
+
+        if let Err(resp) = gate {
             return resp;
         }
 
@@ -836,7 +865,7 @@ pub fn init_forgejo_proxy() -> bool {
 
 pub async fn forgejo_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
     match FORGEJO.get() {
-        Some(proxy) => proxy.handle(path, req).await,
+        Some(proxy) => proxy.handle_method_aware(path, req).await,
         None => (
             StatusCode::SERVICE_UNAVAILABLE,
             axum::Json(json!({"error": "Forgejo proxy not configured"})),

@@ -1,43 +1,50 @@
 ---
 import ReactForgejoAuth from './ReactForgejoAuth';
 import ReactForgejoHeader from './ReactForgejoHeader';
+import ReactForgejoTabs from './ReactForgejoTabs';
 import ReactForgejoSummary from './ReactForgejoSummary';
 import ReactForgejoRepoTable from './ReactForgejoRepoTable';
-import ReactForgejoOrgCards from './ReactForgejoOrgCards';
-import ReactForgejoUserGrid from './ReactForgejoUserGrid';
+import ReactForgejoRepoPanel from './ReactForgejoRepoPanel';
+import ReactForgejoUserPanel from './ReactForgejoUserPanel';
+import ReactForgejoOrgPanel from './ReactForgejoOrgPanel';
+import ReactForgejoRepoAdmin from './ReactForgejoRepoAdmin';
+import ReactForgejoSystemPanel from './ReactForgejoSystemPanel';
+import ReactForgejoToast from './ReactForgejoToast';
 ---
 
 <section
 	id="forgejo-dashboard-wrapper"
 	class="forgejo-dashboard-wrapper kbve-dashboard-page"
-	aria-label="Forgejo repository dashboard">
+	aria-label="Forgejo admin dashboard">
 	<div id="dashboard-content" class="dashboard-content">
 		<ReactForgejoAuth client:only="react">
 			<div class="not-content forgejo-dashboard">
-				<!-- Island: Header (title, last updated, refresh) -->
 				<div id="forgejo-header">
 					<ReactForgejoHeader client:only="react" />
 				</div>
-
-				<!-- Island: Summary stat cards + language breakdown -->
-				<div id="forgejo-summary">
-					<ReactForgejoSummary client:only="react" />
+				<div id="forgejo-tabs">
+					<ReactForgejoTabs client:only="react" />
 				</div>
-
-				<!-- Island: Repository table with expandable detail rows -->
-				<div id="forgejo-repo-table">
+				<div id="forgejo-overview">
+					<ReactForgejoSummary client:only="react" />
 					<ReactForgejoRepoTable client:only="react" />
 				</div>
-
-				<!-- Island: Organization cards -->
-				<div id="forgejo-orgs">
-					<ReactForgejoOrgCards client:only="react" />
+				<div id="forgejo-repos">
+					<ReactForgejoRepoPanel client:only="react" />
 				</div>
-
-				<!-- Island: User grid -->
 				<div id="forgejo-users">
-					<ReactForgejoUserGrid client:only="react" />
+					<ReactForgejoUserPanel client:only="react" />
 				</div>
+				<div id="forgejo-orgs">
+					<ReactForgejoOrgPanel client:only="react" />
+				</div>
+				<div id="forgejo-webhooks">
+					<ReactForgejoRepoAdmin client:only="react" />
+				</div>
+				<div id="forgejo-system">
+					<ReactForgejoSystemPanel client:only="react" />
+				</div>
+				<ReactForgejoToast client:only="react" />
 			</div>
 		</ReactForgejoAuth>
 	</div>
