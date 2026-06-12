@@ -1,6 +1,6 @@
 name: CI - Unreal Engine
 
-run-name: 'CI - Unreal / ${{ inputs.task }} ${{ inputs.app_name }}${{ inputs.shell_path }}'
+run-name: 'CI - Unreal / ${{ inputs.task }} ${{ inputs.key }}'
 
 on:
     workflow_dispatch:
@@ -15,123 +15,31 @@ on:
                     - server
                     - win-setup
                     - mac-setup
-
             key:
                 description: '[game] Manifest key'
                 required: false
                 type: string
                 default: ''
-            app_name:
-                description: '[game] UE project / build name'
-                required: false
-                type: string
-                default: ''
-            project_path:
-                description: '[game] Path to dir containing the .uproject (within game repo)'
-                required: false
-                type: string
-                default: ''
-            engine_version:
-                description: '[game] UE version pin (e.g. 5.7.4)'
-                required: false
-                type: string
-                default: '5.7.4'
-            build_targets:
-                description: '[game] JSON array of platform targets (e.g. ["Win64","Linux"])'
-                required: false
-                type: string
-                default: '["Linux"]'
-            external_repo_url:
-                description: '[game] Game repo (owner/name)'
-                required: false
-                type: string
-                default: ''
-            external_repo_ref:
-                description: '[game] Branch/ref of external_repo_url'
-                required: false
-                type: string
-                default: ''
-            server_target:
-                description: '[game] UE server target'
-                required: false
-                type: string
-                default: ''
-            server_config:
-                description: '[game] UE -serverconfig'
-                required: false
-                type: string
-                default: ''
-            client_config:
-                description: '[game] UE -clientconfig'
-                required: false
-                type: string
-                default: ''
-            game_mode:
-                description: '[game] Server launch game mode'
-                required: false
-                type: string
-                default: ''
-            maps:
-                description: '[game] JSON array of maps to cook'
-                required: false
-                type: string
-                default: ''
-            license_method:
-                description: '[game] License method (manifest passthrough)'
-                required: false
-                type: string
-                default: ''
-            version_source:
-                description: '[game] Path to version source (mdx)'
-                required: false
-                type: string
-                default: ''
-            version_toml:
-                description: '[game] Path to version.toml'
-                required: false
-                type: string
-                default: ''
-            manifest_version:
-                description: '[game] Version from manifest'
-                required: false
-                type: string
-                default: ''
-            deploy_to_itch:
-                description: '[game] Deploy to itch.io after build'
-                required: false
-                type: boolean
-                default: false
-            itch_user:
-                description: '[game] Itch.io publisher user'
-                required: false
-                type: string
-                default: 'kbve'
-            itch_game:
-                description: '[game] Itch.io game slug'
-                required: false
-                type: string
-                default: ''
-            deploy_to_steam:
-                description: '[game] Deploy to Steam (manifest passthrough)'
-                required: false
-                type: boolean
-                default: false
-            steam_apps:
-                description: '[game] JSON array of Steam app configs (manifest passthrough)'
-                required: false
-                type: string
-                default: '[]'
             dispatched_at:
                 description: 'Unix timestamp when dispatched (queue guard)'
                 required: false
                 type: string
                 default: ''
-
-            shell_path:
-                description: '[server] Shell project path (e.g. apps/chuckrpg/unreal-chuck)'
+            engine:
+                description: '[game] JSON engine config: app_name, project_path, version, build_targets, external_repo_url, external_repo_ref, server_target, server_config, client_config, game_mode, maps, shell_path'
                 required: false
                 type: string
-                default: 'apps/chuckrpg/unreal-chuck'
+                default: '{}'
+            version:
+                description: '[game] JSON version config: source, toml, manifest'
+                required: false
+                type: string
+                default: '{}'
+            publish:
+                description: '[game] JSON publish config: deploy_to_itch, itch_user, itch_game'
+                required: false
+                type: string
+                default: '{}'
 
 permissions:
     contents: write
@@ -147,23 +55,23 @@ jobs:
         with:
             mode: game
             key: ${{ inputs.key }}
-            app_name: ${{ inputs.app_name }}
-            project_path: ${{ inputs.project_path }}
-            engine_version: ${{ inputs.engine_version }}
-            build_targets: ${{ inputs.build_targets }}
-            external_repo_url: ${{ inputs.external_repo_url }}
-            external_repo_ref: ${{ inputs.external_repo_ref }}
-            server_target: ${{ inputs.server_target }}
-            server_config: ${{ inputs.server_config }}
-            client_config: ${{ inputs.client_config }}
-            game_mode: ${{ inputs.game_mode }}
-            maps: ${{ inputs.maps }}
-            version_source: ${{ inputs.version_source }}
-            version_toml: ${{ inputs.version_toml }}
-            manifest_version: ${{ inputs.manifest_version }}
-            deploy_to_itch: ${{ inputs.deploy_to_itch }}
-            itch_username: ${{ inputs.itch_user }}
-            itch_game_id: ${{ inputs.itch_game }}
+            app_name: ${{ fromJSON(inputs.engine).app_name }}
+            project_path: ${{ fromJSON(inputs.engine).project_path }}
+            engine_version: ${{ fromJSON(inputs.engine).version }}
+            build_targets: ${{ toJSON(fromJSON(inputs.engine).build_targets) }}
+            external_repo_url: ${{ fromJSON(inputs.engine).external_repo_url }}
+            external_repo_ref: ${{ fromJSON(inputs.engine).external_repo_ref }}
+            server_target: ${{ fromJSON(inputs.engine).server_target }}
+            server_config: ${{ fromJSON(inputs.engine).server_config }}
+            client_config: ${{ fromJSON(inputs.engine).client_config }}
+            game_mode: ${{ fromJSON(inputs.engine).game_mode }}
+            maps: ${{ toJSON(fromJSON(inputs.engine).maps) }}
+            version_source: ${{ fromJSON(inputs.version).source }}
+            version_toml: ${{ fromJSON(inputs.version).toml }}
+            manifest_version: ${{ fromJSON(inputs.version).manifest }}
+            deploy_to_itch: ${{ fromJSON(inputs.publish).deploy_to_itch }}
+            itch_username: ${{ fromJSON(inputs.publish).itch_user }}
+            itch_game_id: ${{ fromJSON(inputs.publish).itch_game }}
         secrets:
             UNITY_PAT: ${{ secrets.UNITY_PAT }}
             butler_api: ${{ secrets.ITCH_API }}
@@ -176,10 +84,10 @@ jobs:
         uses: KBVE/kbve/.github/workflows/ci-unreal-build.yml@dev
         with:
             mode: server
-            shell_path: ${{ inputs.shell_path }}
-            manifest_version: ${{ inputs.manifest_version }}
-            version_source: ${{ inputs.version_source }}
-            version_toml: ${{ inputs.version_toml }}
+            shell_path: ${{ fromJSON(inputs.engine).shell_path }}
+            manifest_version: ${{ fromJSON(inputs.version).manifest }}
+            version_source: ${{ fromJSON(inputs.version).source }}
+            version_toml: ${{ fromJSON(inputs.version).toml }}
         secrets:
             UNITY_PAT: ${{ secrets.UNITY_PAT }}
             butler_api: ${{ secrets.ITCH_API }}

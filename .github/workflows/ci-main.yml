@@ -556,54 +556,39 @@ jobs:
                     fi
                     echo "  ✓ $app — $reason, dispatching ($pipeline)"
 
-                    local extra=""
-                    [ -n "$src" ] && extra="$extra --field version_source=${src}"
-                    [ -n "$vtoml" ] && extra="$extra --field version_toml=${vtoml}"
-                    [ -n "$ver" ] && extra="$extra --field manifest_version=${ver}"
-                    [ -n "$vtgt" ] && extra="$extra --field version_target=${vtgt}"
-                    [ -n "$proj_path" ] && extra="$extra --field project_path=${proj_path}"
-                    [ -n "$engine_version" ] && extra="$extra --field engine_version=${engine_version}"
-                    extra="$extra --field build_targets=${build_targets}"
-                    [ "$features" != "[]" ] && extra="$extra --field features=${features}"
-                    [ -n "$lic" ] && extra="$extra --field license_method=${lic}"
-                    [ -n "$ext_repo" ] && extra="$extra --field external_repo_url=${ext_repo}"
-                    [ -n "$ext_ref" ] && extra="$extra --field external_repo_ref=${ext_ref}"
-                    [ -n "$srv_target" ] && extra="$extra --field server_target=${srv_target}"
-                    [ -n "$srv_config" ] && extra="$extra --field server_config=${srv_config}"
-                    [ -n "$cli_config" ] && extra="$extra --field client_config=${cli_config}"
-                    [ -n "$game_mode" ] && extra="$extra --field game_mode=${game_mode}"
-                    [ "$maps" != "[]" ] && extra="$extra --field maps=${maps}"
-                    [ "$dotnet" = "true" ] && extra="$extra --field dotnet_enabled=true"
-                    extra="$extra --field deploy_to_itch=${deploy_itch}"
-                    [ -n "$itch_user" ] && extra="$extra --field itch_user=${itch_user}"
-                    [ -n "$itch_game" ] && extra="$extra --field itch_game=${itch_game}"
-                    extra="$extra --field deploy_to_steam=${deploy_steam}"
-                    [ "$steam_apps" != "[]" ] && extra="$extra --field steam_apps=${steam_apps}"
+                    # Collapse per-game fields into JSON blobs so ci-unreal's
+                    # workflow_dispatch stays under GitHub's 10-input cap; the
+                    # engine workflow fromJSON-forwards into ci-unreal-build
+                    # (workflow_call, no cap). ci-unity/ci-godot still expect the
+                    # legacy per-field inputs — convert them before they get entries.
+                    local engine_json version_json publish_json
+                    engine_json=$(echo "$entry" | jq -c --arg app "$app" --arg sp "$shell_path" \
+                      '(.engine // {}) + {app_name:$app, shell_path:$sp, build_targets:(.engine.build_targets // []), maps:(.engine.maps // [])}')
+                    version_json=$(jq -nc --arg s "$src" --arg t "$vtoml" --arg m "$ver" \
+                      '{source:$s, toml:$t, manifest:$m}')
+                    publish_json=$(jq -nc --argjson d "$deploy_itch" --arg u "$itch_user" --arg g "$itch_game" \
+                      '{deploy_to_itch:$d, itch_user:$u, itch_game:$g}')
 
                     gh workflow run "$workflow" --repo "$REPO" --ref main \
                       --field key="$key" \
-                      --field app_name="$app" \
                       --field dispatched_at="$DISPATCHED_AT" \
-                      $extra
+                      --field engine="$engine_json" \
+                      --field version="$version_json" \
+                      --field publish="$publish_json"
                     DISPATCHED=$((DISPATCHED + 1))
 
                     # Bundled dedicated server: an unreal_game entry carrying a
                     # shell_path also ships a UE5 dedicated server off the SAME
-                    # version gate (1:1 with the client). build.toml supplies the
-                    # repo / server target / UE image.
+                    # version gate (1:1 with the client). shell_path rides inside
+                    # the engine blob; build.toml supplies repo / target / UE image.
                     if [ "$pipeline" = "unreal_game" ] && [ -n "$shell_path" ]; then
                       echo "  ✓ $app — bundled dedicated server, dispatching (ue5_server)"
-                      local srv_extra=""
-                      [ -n "$src" ] && srv_extra="$srv_extra --field version_source=${src}"
-                      [ -n "$vtoml" ] && srv_extra="$srv_extra --field version_toml=${vtoml}"
-                      [ -n "$ver" ] && srv_extra="$srv_extra --field manifest_version=${ver}"
                       gh workflow run ci-unreal.yml --repo "$REPO" --ref main \
                         --field task=server \
                         --field key="$key" \
-                        --field app_name="$app" \
-                        --field shell_path="$shell_path" \
                         --field dispatched_at="$DISPATCHED_AT" \
-                        $srv_extra
+                        --field engine="$engine_json" \
+                        --field version="$version_json"
                       DISPATCHED=$((DISPATCHED + 1))
                     fi
                   }
