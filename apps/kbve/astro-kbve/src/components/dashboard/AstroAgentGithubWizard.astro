@@ -1,6 +1,11 @@
 ---
-import ReactAgentGithubWizard from './agents/ReactAgentGithubWizard';
+import StepCard from '@kbve/astro/components/StepCard.astro';
 import ReactAgentRepoAllowlist from './agents/ReactAgentRepoAllowlist';
+import WizardGate from './agents/wizard/WizardGate';
+import Step1Webhook from './agents/wizard/Step1Webhook';
+import Step2WebhookConfig from './agents/wizard/Step2WebhookConfig';
+import Step3Pat from './agents/wizard/Step3Pat';
+import Step4SmokeBackfill from './agents/wizard/Step4SmokeBackfill';
 ---
 
 <section
@@ -38,9 +43,23 @@ import ReactAgentRepoAllowlist from './agents/ReactAgentRepoAllowlist';
 			</div>
 		</header>
 
-		<div class="agent-stack">
-			<ReactAgentRepoAllowlist client:only="react" />
-			<ReactAgentGithubWizard client:only="react" />
+		<div class="agent-stack" data-wizard-root>
+			<WizardGate client:only="react" />
+			<div class="agent-stack" data-wizard-steps hidden>
+				<ReactAgentRepoAllowlist client:only="react" />
+				<StepCard n={1} title="HMAC webhook secret">
+					<Step1Webhook client:only="react" />
+				</StepCard>
+				<StepCard n={2} title="Configure the GitHub webhook">
+					<Step2WebhookConfig client:only="react" />
+				</StepCard>
+				<StepCard n={3} title="GitHub PAT (for issue + comment reads)">
+					<Step3Pat client:only="react" />
+				</StepCard>
+				<StepCard n={4} title="Smoke-test the backfill">
+					<Step4SmokeBackfill client:only="react" />
+				</StepCard>
+			</div>
 		</div>
 	</div>
 </section>
