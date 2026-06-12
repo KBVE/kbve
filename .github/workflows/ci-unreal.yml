@@ -47,6 +47,36 @@ on:
                 required: false
                 type: string
                 default: ''
+            external_repo_ref:
+                description: '[game] Branch/ref of external_repo_url'
+                required: false
+                type: string
+                default: ''
+            server_target:
+                description: '[game] UE server target'
+                required: false
+                type: string
+                default: ''
+            server_config:
+                description: '[game] UE -serverconfig'
+                required: false
+                type: string
+                default: ''
+            client_config:
+                description: '[game] UE -clientconfig'
+                required: false
+                type: string
+                default: ''
+            game_mode:
+                description: '[game] Server launch game mode'
+                required: false
+                type: string
+                default: ''
+            maps:
+                description: '[game] JSON array of maps to cook'
+                required: false
+                type: string
+                default: ''
             license_method:
                 description: '[game] License method (manifest passthrough)'
                 required: false
@@ -144,6 +174,12 @@ jobs:
             engine_version: ${{ inputs.engine_version }}
             build_targets: ${{ inputs.build_targets }}
             external_repo_url: ${{ inputs.external_repo_url }}
+            external_repo_ref: ${{ inputs.external_repo_ref }}
+            server_target: ${{ inputs.server_target }}
+            server_config: ${{ inputs.server_config }}
+            client_config: ${{ inputs.client_config }}
+            game_mode: ${{ inputs.game_mode }}
+            maps: ${{ inputs.maps }}
             version_source: ${{ inputs.version_source }}
             version_toml: ${{ inputs.version_toml }}
             manifest_version: ${{ inputs.manifest_version }}
