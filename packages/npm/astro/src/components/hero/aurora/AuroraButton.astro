@@ -1,0 +1,87 @@
+---
+interface Props {
+	href: string;
+	variant?: 'primary' | 'ghost';
+	accent?: string;
+}
+
+const {
+	href,
+	variant = 'primary',
+	accent = 'var(--sl-color-accent, #6366f1)',
+} = Astro.props;
+---
+
+<a
+	class:list={['abtn', `abtn--${variant}`]}
+	href={href}
+	style={`--abtn-accent: ${accent};`}
+	data-astro-prefetch>
+	<slot />
+</a>
+
+<style>
+	.abtn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.65rem 1.4rem;
+		border-radius: 999px;
+		font-size: 0.95rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			background 0.25s ease,
+			border-color 0.25s ease,
+			transform 0.25s ease;
+	}
+
+	.abtn:hover,
+	.abtn:focus-visible {
+		transform: translateY(-1px);
+	}
+
+	.abtn--primary {
+		color: var(--sl-color-black, #0b0c10);
+		background: linear-gradient(
+			120deg,
+			var(--abtn-accent),
+			color-mix(
+				in srgb,
+				var(--abtn-accent) 60%,
+				var(--sl-color-accent-high, #a5b4fc)
+			)
+		);
+		border: 1px solid transparent;
+		box-shadow: 0 8px 24px -8px
+			color-mix(in srgb, var(--abtn-accent) 60%, transparent);
+	}
+
+	.abtn--ghost {
+		color: var(--sl-color-white, #fff);
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-gray-4, #595959) 70%, transparent);
+		background: color-mix(
+			in srgb,
+			var(--sl-color-bg, #0b0c10) 55%,
+			transparent
+		);
+		backdrop-filter: blur(10px);
+	}
+
+	.abtn--ghost:hover,
+	.abtn--ghost:focus-visible {
+		border-color: color-mix(in srgb, var(--abtn-accent) 60%, transparent);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.abtn {
+			transition: none;
+		}
+
+		.abtn:hover,
+		.abtn:focus-visible {
+			transform: none;
+		}
+	}
+</style>

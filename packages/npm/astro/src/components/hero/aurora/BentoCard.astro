@@ -1,0 +1,203 @@
+---
+interface Props {
+	title: string;
+	description?: string;
+	href?: string;
+	eyebrow?: string;
+	span?: 'wide' | 'tall' | 'big';
+	accent?: string;
+}
+
+const {
+	title,
+	description,
+	href,
+	eyebrow,
+	span,
+	accent = 'var(--sl-color-accent, #6366f1)',
+} = Astro.props;
+
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag
+	class:list={['abc', span && `abc--${span}`]}
+	href={href}
+	style={`--abc-accent: ${accent};`}
+	{...href ? { 'data-astro-prefetch': true } : {}}>
+	<span class="abc__glow" aria-hidden="true"></span>
+	<div class="abc__body">
+		{eyebrow && <p class="abc__eyebrow">{eyebrow}</p>}
+		<h3 class="abc__title">{title}</h3>
+		{description && <p class="abc__desc">{description}</p>}
+		<div class="abc__media">
+			<slot />
+		</div>
+	</div>
+	{
+		href && (
+			<span class="abc__arrow" aria-hidden="true">
+				<svg
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round">
+					<line x1="7" y1="17" x2="17" y2="7" />
+					<polyline points="7 7 17 7 17 17" />
+				</svg>
+			</span>
+		)
+	}
+</Tag>
+
+<style>
+	.abc {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		border-radius: 1.25rem;
+		padding: 1.5rem;
+		overflow: hidden;
+		isolation: isolate;
+		text-decoration: none;
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-gray-5, #262626) 80%, transparent);
+		background: color-mix(
+			in srgb,
+			var(--sl-color-bg, #0b0c10) 78%,
+			transparent
+		);
+		backdrop-filter: blur(14px);
+		transition:
+			border-color 0.25s ease,
+			transform 0.25s ease;
+	}
+
+	a.abc:hover,
+	a.abc:focus-visible {
+		border-color: color-mix(in srgb, var(--abc-accent) 55%, transparent);
+		transform: translateY(-2px);
+	}
+
+	.abc--wide {
+		grid-column: span 2;
+	}
+
+	.abc--tall {
+		grid-row: span 2;
+	}
+
+	.abc--big {
+		grid-column: span 2;
+		grid-row: span 2;
+	}
+
+	@media (max-width: 36rem) {
+		.abc--wide,
+		.abc--big {
+			grid-column: auto;
+		}
+
+		.abc--tall,
+		.abc--big {
+			grid-row: auto;
+		}
+	}
+
+	.abc__glow {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: radial-gradient(
+			32rem circle at 0% 0%,
+			color-mix(in srgb, var(--abc-accent) 16%, transparent),
+			transparent 55%
+		);
+		opacity: 0.7;
+		transition: opacity 0.25s ease;
+	}
+
+	a.abc:hover .abc__glow,
+	a.abc:focus-visible .abc__glow {
+		opacity: 1;
+	}
+
+	.abc__body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		height: 100%;
+	}
+
+	.abc__eyebrow {
+		margin: 0;
+		font-size: 0.72rem;
+		font-weight: 600;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: color-mix(
+			in srgb,
+			var(--abc-accent) 70%,
+			var(--sl-color-white, #fff)
+		);
+	}
+
+	.abc__title {
+		margin: 0;
+		font-size: 1.15rem;
+		font-weight: 700;
+		color: var(--sl-color-white, #fff);
+	}
+
+	.abc__desc {
+		margin: 0;
+		font-size: 0.92rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2, #c2c2c2);
+	}
+
+	.abc__media {
+		margin-top: auto;
+	}
+
+	.abc__media:empty {
+		display: none;
+	}
+
+	.abc__arrow {
+		position: absolute;
+		top: 1.25rem;
+		right: 1.25rem;
+		width: 1.5rem;
+		height: 1.5rem;
+		color: var(--sl-color-gray-3, #8b949e);
+		opacity: 0;
+		transform: translate(-4px, 4px);
+		transition:
+			opacity 0.25s ease,
+			transform 0.25s ease,
+			color 0.25s ease;
+	}
+
+	a.abc:hover .abc__arrow,
+	a.abc:focus-visible .abc__arrow {
+		opacity: 1;
+		transform: translate(0, 0);
+		color: var(--abc-accent);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.abc,
+		.abc__glow,
+		.abc__arrow {
+			transition: none;
+		}
+
+		a.abc:hover,
+		a.abc:focus-visible {
+			transform: none;
+		}
+	}
+</style>
