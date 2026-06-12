@@ -143,6 +143,20 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
+        - name: https-rows-chuckrpg-beta
+          protocol: HTTPS
+          port: 443
+          hostname: api-beta.chuckrpg.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: rows-chuckrpg-beta-api-tls
+                    namespace: rows-chuckrpg-beta
+          allowedRoutes:
+              namespaces:
+                  from: All
         - name: https-cityvote
           protocol: HTTPS
           port: 443
