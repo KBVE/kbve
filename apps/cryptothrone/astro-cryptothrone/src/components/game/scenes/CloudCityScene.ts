@@ -61,6 +61,8 @@ export class CloudCityScene extends Scene {
 	private myHp = -1;
 	private myMaxHp = -1;
 	private nearbyHostiles = 0;
+	private slowTimer = 0;
+	private netReady = false;
 	private laserUnsubs: (() => void)[] = [];
 
 	constructor() {
@@ -117,7 +119,13 @@ export class CloudCityScene extends Scene {
 			kbveUsername: cfg.username,
 		});
 		this.client = client;
+		client.on('open', () => {
+			laserEvents.emit('net:status', { status: 'connected' });
+		});
 		client.on('welcome', (w) => {
+			this.netReady = true;
+			window.clearTimeout(this.slowTimer);
+			laserEvents.emit('net:status', { status: 'ready' });
 			this.mySlot = w.your_slot;
 			this.registry.clear();
 			for (const entry of w.registry ?? []) {
@@ -169,15 +177,36 @@ export class CloudCityScene extends Scene {
 			});
 		});
 		client.on('reject', (reason) => {
-			laserEvents.emit('char:event', {
-				message: `Server rejected the connection: ${reason}`,
+			window.clearTimeout(this.slowTimer);
+			laserEvents.emit('net:status', {
+				status: 'rejected',
+				detail: `The server turned you away: ${reason}`,
+			});
+		});
+		client.on('error', () => {
+			if (this.netReady) return;
+			window.clearTimeout(this.slowTimer);
+			laserEvents.emit('net:status', {
+				status: 'error',
+				detail: 'Could not reach the game server. Check your connection and try again.',
 			});
 		});
 		client.on('close', () => {
-			laserEvents.emit('char:event', {
-				message: 'Disconnected from the world.',
+			window.clearTimeout(this.slowTimer);
+			laserEvents.emit('net:status', {
+				status: 'disconnected',
+				detail: this.netReady
+					? 'You were disconnected from the world.'
+					: 'The game server closed the connection before the world loaded.',
 			});
+			this.netReady = false;
 		});
+		laserEvents.emit('net:status', { status: 'connecting' });
+		this.slowTimer = window.setTimeout(() => {
+			if (!this.netReady) {
+				laserEvents.emit('net:status', { status: 'slow' });
+			}
+		}, 8000);
 		client.connect();
 
 		this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) =>
@@ -200,6 +229,7 @@ export class CloudCityScene extends Scene {
 		);
 
 		this.events.once('shutdown', () => {
+			window.clearTimeout(this.slowTimer);
 			this.laserUnsubs.forEach((off) => off());
 			this.laserUnsubs = [];
 			this.client?.close();

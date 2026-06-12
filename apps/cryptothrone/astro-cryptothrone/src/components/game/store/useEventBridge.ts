@@ -10,6 +10,23 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 		const unsubs: (() => void)[] = [];
 
 		unsubs.push(
+			laserEvents.on('net:status', (data) => {
+				const conn = data as {
+					status:
+						| 'connecting'
+						| 'connected'
+						| 'slow'
+						| 'ready'
+						| 'rejected'
+						| 'error'
+						| 'disconnected';
+					detail?: string;
+				};
+				dispatch({ type: 'SET_CONNECTION', payload: conn });
+			}),
+		);
+
+		unsubs.push(
 			laserEvents.on('char:event', (data: CharacterEventData) => {
 				dispatch({
 					type: 'SET_MODAL',
