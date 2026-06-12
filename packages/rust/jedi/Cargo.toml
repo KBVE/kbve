@@ -88,5 +88,6 @@ axum-prometheus = { version = "0.10", optional = true }
 default = []
 clickhouse = ["dep:clickhouse"]
 prometheus = ["dep:axum-prometheus"]
+forgejo = []
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

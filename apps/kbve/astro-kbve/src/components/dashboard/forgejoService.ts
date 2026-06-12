@@ -347,6 +347,7 @@ const EXPANDED_KEY = 'forgejo:expandedRepo';
 const TAB_KEY = 'forgejo:activeTab';
 const CACHE_TTL_MS = 60 * 1000;
 const PROXY_BASE = '/dashboard/forgejo/proxy';
+const API_BASE = '/dashboard/forgejo/api';
 const REFRESH_INTERVAL_MS = 30 * 1000;
 const PAGE_SIZE = 50;
 const RESOURCE_TTL_MS = 60 * 1000;
@@ -487,11 +488,20 @@ async function fetchUsersPage(
 	token: string,
 	page: number,
 ): Promise<ForgejoUser[] | null> {
-	return apiFetch<ForgejoUser[] | null>(
-		token,
-		`/api/v1/admin/users?limit=${PAGE_SIZE}&page=${page}`,
-		null,
-	);
+	try {
+		const resp = await fetch(
+			`${API_BASE}/users?page=${page}&limit=${PAGE_SIZE}`,
+			{
+				headers: { Authorization: `Bearer ${token}` },
+				signal: AbortSignal.timeout(10000),
+			},
+		);
+		if (!resp.ok) return null;
+		const data = await resp.json();
+		return Array.isArray(data) ? data : null;
+	} catch {
+		return null;
+	}
 }
 
 async function fetchUsers(token: string): Promise<ForgejoUser[]> {

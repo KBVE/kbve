@@ -612,6 +612,10 @@ fn router(state: AppState) -> Router {
             any(super::proxy::forgejo_proxy_handler),
         )
         .route(
+            "/dashboard/forgejo/api/users",
+            axum::routing::get(super::proxy::forgejo_users_handler),
+        )
+        .route(
             "/dashboard/vm/proxy/{*path}",
             any(super::proxy::kubevirt_proxy_handler),
         )
