@@ -35,10 +35,6 @@ on:
         secrets:
             MY_GITHUB_TOKEN:
                 required: true
-            DOCKERHUB_USERNAME:
-                required: true
-            DOCKERHUB_TOKEN:
-                required: true
 
 jobs:
     publish:
@@ -68,7 +64,14 @@ jobs:
               with:
                   ref: ${{ inputs.branch }}
 
-            - name: Check version against Docker Hub
+            - name: Login to GHCR
+              uses: docker/login-action@v4
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.MY_GITHUB_TOKEN }}
+
+            - name: Check version against GHCR
               id: version_check
               if: ${{ inputs.image != '' && inputs.cargo_toml != '' }}
               run: |
@@ -80,30 +83,22 @@ jobs:
                   esac
                   echo "Local version: $LOCAL_VERSION"
 
-                  STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-                    "https://hub.docker.com/v2/repositories/${{ inputs.image }}/tags/$LOCAL_VERSION")
+                  IMAGE="${{ inputs.image }}"
+                  GHCR_IMAGE="ghcr.io/${IMAGE#ghcr.io/}"
 
                   echo "local_version=$LOCAL_VERSION" >> "$GITHUB_OUTPUT"
 
-                  if [ "$STATUS" = "200" ]; then
-                    echo "Tag $LOCAL_VERSION already exists on Docker Hub — skipping."
+                  if docker manifest inspect "${GHCR_IMAGE}:${LOCAL_VERSION}" >/dev/null 2>&1; then
+                    echo "Tag $LOCAL_VERSION already exists on GHCR — skipping."
                     echo "should_publish=false" >> "$GITHUB_OUTPUT"
                   else
-                    echo "Tag $LOCAL_VERSION not found (HTTP $STATUS) — publishing."
+                    echo "Tag $LOCAL_VERSION not found on GHCR — publishing."
                     echo "should_publish=true" >> "$GITHUB_OUTPUT"
                   fi
 
             # --- Promote CI image (build-once pattern) ---
             # Try to pull the CI-tagged image pushed by the test job.
             # If found, retag it for release and skip the full rebuild.
-
-            - name: Login to GHCR
-              if: ${{ steps.version_check.outputs.should_publish != 'false' }}
-              uses: docker/login-action@v4
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.MY_GITHUB_TOKEN }}
 
             - name: Promote CI image (skip rebuild)
               id: promote
@@ -121,11 +116,9 @@ jobs:
                       *)      LOCAL_VERSION=$(grep -m1 '^version' "$CARGO_TOML" | sed 's/version = "\(.*\)"/\1/') ;;
                     esac
 
-                    docker tag "${CI_IMAGE}" "${{ inputs.image }}:latest"
-                    docker tag "${CI_IMAGE}" "${{ inputs.image }}:${LOCAL_VERSION}"
                     docker tag "${CI_IMAGE}" "ghcr.io/${{ inputs.image }}:latest"
                     docker tag "${CI_IMAGE}" "ghcr.io/${{ inputs.image }}:${LOCAL_VERSION}"
-                    echo "Promoted ${CI_IMAGE} → ${{ inputs.image }}:{latest,${LOCAL_VERSION}}"
+                    echo "Promoted ${CI_IMAGE} → ghcr.io/${{ inputs.image }}:{latest,${LOCAL_VERSION}}"
                   else
                     echo "CI image not found, will build from scratch"
                     echo "found=false" >> "$GITHUB_OUTPUT"
@@ -178,13 +171,6 @@ jobs:
                   attempt_limit: 3
                   attempt_delay: 15000
 
-            - name: Login to Docker Hub
-              if: ${{ steps.version_check.outputs.should_publish != 'false' }}
-              uses: docker/login-action@v4
-              with:
-                  username: ${{ secrets.DOCKERHUB_USERNAME }}
-                  password: ${{ secrets.DOCKERHUB_TOKEN }}
-
             - name: Sync version from MDX to build manifest
               if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' && inputs.version_source != '' && inputs.version_target != '' }}
               run: |
@@ -234,37 +220,27 @@ jobs:
               run: |
                   IMAGE="${{ inputs.image }}"
                   VERSION="${{ steps.version_check.outputs.local_version }}"
+                  GHCR_IMAGE="ghcr.io/${IMAGE#ghcr.io/}"
 
                   # Ensure latest tag exists
                   if docker image inspect "${IMAGE}:${VERSION}" >/dev/null 2>&1; then
                     docker tag "${IMAGE}:${VERSION}" "${IMAGE}:latest"
                   fi
 
-                  # Derive both GHCR and Docker Hub image names regardless of input format
-                  if echo "${IMAGE}" | grep -q "ghcr.io/"; then
-                    GHCR_IMAGE="${IMAGE}"
-                    DOCKERHUB_IMAGE=$(echo "${IMAGE}" | sed 's|ghcr.io/||')
-                  else
-                    DOCKERHUB_IMAGE="${IMAGE}"
-                    GHCR_IMAGE="ghcr.io/${IMAGE}"
-                  fi
-
-                  # Ensure both registries have version + latest tags
-                  for REPO in "${GHCR_IMAGE}" "${DOCKERHUB_IMAGE}"; do
-                    for TAG in "${VERSION}" "latest"; do
-                      if ! docker image inspect "${REPO}:${TAG}" >/dev/null 2>&1; then
-                        # Try to create the tag from whichever source exists
-                        for SRC in "${IMAGE}:${TAG}" "${IMAGE}:latest" "${GHCR_IMAGE}:${TAG}" "${DOCKERHUB_IMAGE}:${TAG}"; do
-                          if docker image inspect "${SRC}" >/dev/null 2>&1; then
-                            docker tag "${SRC}" "${REPO}:${TAG}"
-                            break
-                          fi
-                        done
-                      fi
-                    done
+                  # Ensure GHCR has version + latest tags
+                  for TAG in "${VERSION}" "latest"; do
+                    if ! docker image inspect "${GHCR_IMAGE}:${TAG}" >/dev/null 2>&1; then
+                      # Try to create the tag from whichever source exists
+                      for SRC in "${IMAGE}:${TAG}" "${IMAGE}:latest" "${GHCR_IMAGE}:latest"; do
+                        if docker image inspect "${SRC}" >/dev/null 2>&1; then
+                          docker tag "${SRC}" "${GHCR_IMAGE}:${TAG}"
+                          break
+                        fi
+                      done
+                    fi
                   done
 
-                  IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E "^(${GHCR_IMAGE}|${DOCKERHUB_IMAGE}):" | sort -u || true)
+                  IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E "^${GHCR_IMAGE}:" | sort -u || true)
                   if [ -z "$IMAGES" ]; then
                     echo "::error::No images found matching '${IMAGE}'. Listing all images:"
                     docker images
