@@ -1,6 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
-import { getNPCById, getDialogueById } from '../data/npcs';
+import {
+	getNPCById,
+	getDialogueById,
+	getGreetingDialogueId,
+} from '../data/npcs';
 import type { NPCAction } from '../types';
 
 export function ActionMenu() {
@@ -47,11 +51,9 @@ export function ActionMenu() {
 			case 'talk': {
 				const npcData = getNPCById(npc.npcId);
 				if (!npcData) break;
-				const dialogueId =
-					npc.npcId === 'npc_barkeep'
-						? 'dlg_barkeep_greeting'
-						: 'dlg_monk_greeting';
-				const dialogue = getDialogueById(dialogueId);
+				const dialogue = getDialogueById(
+					getGreetingDialogueId(npc.npcId),
+				);
 				if (dialogue) {
 					dispatch({
 						type: 'SET_DIALOGUE',

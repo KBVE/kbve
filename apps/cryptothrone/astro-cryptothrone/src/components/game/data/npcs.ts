@@ -1,4 +1,23 @@
+import npcdbRaw from '@kbve/npcdb-data';
 import type { NPCData, DialogueNode } from '../types';
+
+interface NpcDbEntry {
+	ref: string;
+	name: string;
+	description?: string;
+	faction?: { factionId?: string };
+	stats?: { hp?: number; maxHp?: number; attack?: number };
+}
+
+const NPCDB: NpcDbEntry[] = (npcdbRaw as { npcs: NpcDbEntry[] }).npcs ?? [];
+const npcDbByRef = new Map(NPCDB.map((n) => [n.ref, n]));
+
+const REF_AVATARS: Record<string, string> = {
+	cleric: '/assets/entity/monks.png',
+	'crystal-bat': '/assets/entity/bird_original.png',
+};
+
+const DEFAULT_AVATAR = '/assets/entity/monks.png';
 
 const NPCS: NPCData[] = [
 	{
@@ -19,8 +38,41 @@ const NPCS: NPCData[] = [
 
 const npcMap = new Map(NPCS.map((n) => [n.id, n]));
 
+export function npcIdForRef(ref: string): string {
+	return `npc_${ref}`;
+}
+
+export function getNpcDbEntry(ref: string): NpcDbEntry | undefined {
+	return npcDbByRef.get(ref);
+}
+
+export function isHostileRef(ref: string): boolean {
+	return npcDbByRef.get(ref)?.faction?.factionId === 'hostile';
+}
+
+function buildNpcFromDb(ref: string): NPCData | undefined {
+	const entry = npcDbByRef.get(ref);
+	if (!entry) return undefined;
+	const npc: NPCData = {
+		id: npcIdForRef(ref),
+		name: entry.name,
+		avatar: REF_AVATARS[ref] ?? DEFAULT_AVATAR,
+		slug: `npc/${ref}`,
+		actions: isHostileRef(ref) ? ['inspect'] : ['talk', 'inspect'],
+	};
+	npcMap.set(npc.id, npc);
+	return npc;
+}
+
 export function getNPCById(id: string): NPCData | undefined {
-	return npcMap.get(id);
+	const known = npcMap.get(id);
+	if (known) return known;
+	if (id.startsWith('npc_')) return buildNpcFromDb(id.slice(4));
+	return undefined;
+}
+
+export function getNPCByRef(ref: string): NPCData | undefined {
+	return getNPCById(npcIdForRef(ref));
 }
 
 const DIALOGUES: Record<string, DialogueNode> = {
@@ -80,6 +132,31 @@ const DIALOGUES: Record<string, DialogueNode> = {
 	},
 };
 
+function buildDialogueFromDb(ref: string): DialogueNode | undefined {
+	const entry = npcDbByRef.get(ref);
+	if (!entry) return undefined;
+	const id = `dlg_${ref}_greeting`;
+	const dialogue: DialogueNode = {
+		id,
+		title: entry.name,
+		message:
+			entry.description?.trim() ||
+			`${entry.name} has nothing to say right now.`,
+	};
+	DIALOGUES[id] = dialogue;
+	return dialogue;
+}
+
 export function getDialogueById(id: string): DialogueNode | undefined {
-	return DIALOGUES[id];
+	const known = DIALOGUES[id];
+	if (known) return known;
+	const match = id.match(/^dlg_(.+)_greeting$/);
+	if (match) return buildDialogueFromDb(match[1]);
+	return undefined;
+}
+
+export function getGreetingDialogueId(npcId: string): string {
+	if (npcId === 'npc_barkeep') return 'dlg_barkeep_greeting';
+	if (npcId === 'npc_monk') return 'dlg_monk_greeting';
+	return `dlg_${npcId.replace(/^npc_/, '')}_greeting`;
 }

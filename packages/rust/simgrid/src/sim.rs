@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::Duration;
 
@@ -6,11 +6,13 @@ use bevy::app::App;
 use bevy::ecs::entity::Entity;
 use bevy::ecs::schedule::SystemSet;
 use bevy::prelude::{
-    Commands, Component, IntoScheduleConfigs, Query, Res, ResMut, Resource, Update,
+    Commands, Component, IntoScheduleConfigs, Query, Res, ResMut, Resource, Update, With, Without,
 };
+use serde_json::json;
 use tokio::sync::{broadcast, mpsc};
 use tokio::time;
 
+use crate::data::KindRegistry;
 use crate::grid::{GridPos, MoveSpeed, MoveTarget, Occupancy, WalkableMap};
 use crate::net::Roster;
 use crate::proto::{self, Dir, Input, ServerEvent, Tile};
@@ -21,6 +23,7 @@ pub const SNAPSHOT_BROADCAST_CAPACITY: usize = 256;
 pub const KEYFRAME_EVERY_N_TICKS: u32 = SIM_TICK_HZ * 5;
 
 pub const PLAYER_KIND: u16 = 0;
+pub const MAX_PATH_LEN: usize = 64;
 
 #[derive(SystemSet, Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum SimSet {
@@ -37,6 +40,7 @@ pub enum SimSet {
 pub struct SimConfig {
     pub player_kind: u16,
     pub player_hp: i32,
+    pub player_attack: i32,
     pub spawn: Tile,
     pub ticks_per_tile: u8,
 }
@@ -46,6 +50,7 @@ impl Default for SimConfig {
         Self {
             player_kind: PLAYER_KIND,
             player_hp: 100,
+            player_attack: 5,
             spawn: Tile::new(0, 0),
             ticks_per_tile: 4,
         }
@@ -79,6 +84,14 @@ pub struct SpawnedSlots {
     by_slot: HashMap<u16, Entity>,
 }
 
+#[derive(Resource, Default)]
+pub struct EidIndex {
+    by_eid: HashMap<u32, Entity>,
+}
+
+#[derive(Resource, Default)]
+pub struct PendingActions(Vec<(proto::PlayerSlot, u16, Option<proto::EntityId>)>);
+
 #[derive(Component, Clone, Copy)]
 pub struct PlayerSlotTag(pub proto::PlayerSlot);
 
@@ -89,6 +102,47 @@ pub struct EntityKind(pub u16);
 pub struct Health {
     pub hp: i32,
     pub max_hp: i32,
+}
+
+#[derive(Component, Clone, Copy)]
+pub struct CombatStats {
+    pub attack: i32,
+}
+
+#[derive(Component, Clone, Default)]
+pub struct Inventory {
+    pub slots: Vec<(String, u32)>,
+}
+
+impl Inventory {
+    pub fn add(&mut self, item_ref: &str, count: u32) {
+        if let Some(slot) = self.slots.iter_mut().find(|(r, _)| r == item_ref) {
+            slot.1 = slot.1.saturating_add(count);
+        } else {
+            self.slots.push((item_ref.to_string(), count));
+        }
+    }
+}
+
+#[derive(Component, Clone)]
+pub struct GroundItem {
+    pub item_ref: String,
+    pub count: u32,
+}
+
+#[derive(Component, Clone, Default)]
+pub struct Loot {
+    pub item_ref: Option<String>,
+}
+
+#[derive(Component, Clone, Default)]
+pub struct Path {
+    pub steps: VecDeque<Tile>,
+}
+
+#[derive(Component, Clone, Copy, Default)]
+pub struct StepBuffer {
+    pub dir: Option<Dir>,
 }
 
 #[derive(Component, Clone, Copy)]
@@ -110,6 +164,24 @@ impl Wander {
     }
 }
 
+pub fn ground_item_bundle(
+    registry: &KindRegistry,
+    item_ref: &str,
+    count: u32,
+    tile: Tile,
+) -> Option<(EntityKind, GridPos, MoveTarget, GroundItem)> {
+    let kind = registry.kind_of(item_ref)?;
+    Some((
+        EntityKind(kind),
+        GridPos::at(tile),
+        MoveTarget::default(),
+        GroundItem {
+            item_ref: item_ref.to_string(),
+            count,
+        },
+    ))
+}
+
 pub fn build_app(
     tx: broadcast::Sender<ServerEvent>,
     input_rx: mpsc::UnboundedReceiver<(proto::PlayerSlot, Input)>,
@@ -117,6 +189,7 @@ pub fn build_app(
     seed: u64,
     config: SimConfig,
     map: WalkableMap,
+    registry: KindRegistry,
 ) -> App {
     let mut app = App::new();
     app.insert_resource(SimClock::default())
@@ -127,9 +200,12 @@ pub fn build_app(
         })
         .insert_resource(RosterHandle(roster))
         .insert_resource(SpawnedSlots::default())
+        .insert_resource(EidIndex::default())
+        .insert_resource(PendingActions::default())
         .insert_resource(Occupancy::default())
         .insert_resource(map)
         .insert_resource(config)
+        .insert_resource(registry)
         .configure_sets(
             Update,
             (
@@ -146,9 +222,20 @@ pub fn build_app(
         .add_systems(Update, tick_sim.in_set(SimSet::Tick))
         .add_systems(Update, sync_roster.in_set(SimSet::Spawn))
         .add_systems(Update, rebuild_occupancy.in_set(SimSet::Occupancy))
-        .add_systems(Update, drain_inputs.in_set(SimSet::Input))
-        .add_systems(Update, wander_system.in_set(SimSet::Ai))
-        .add_systems(Update, advance_movement.in_set(SimSet::Movement))
+        .add_systems(
+            Update,
+            (drain_inputs, apply_actions).chain().in_set(SimSet::Input),
+        )
+        .add_systems(
+            Update,
+            (follow_path, wander_system).chain().in_set(SimSet::Ai),
+        )
+        .add_systems(
+            Update,
+            (advance_movement, chain_steps)
+                .chain()
+                .in_set(SimSet::Movement),
+        )
         .add_systems(Update, emit_snapshot.in_set(SimSet::Snapshot));
     app
 }
@@ -187,6 +274,12 @@ fn sync_roster(
                     hp: config.player_hp,
                     max_hp: config.player_hp,
                 },
+                CombatStats {
+                    attack: config.player_attack,
+                },
+                Inventory::default(),
+                Path::default(),
+                StepBuffer::default(),
             ))
             .id();
         spawned.by_slot.insert(slot.0, entity);
@@ -205,21 +298,39 @@ fn sync_roster(
     }
 }
 
-fn rebuild_occupancy(mut occ: ResMut<Occupancy>, q: Query<(Entity, &GridPos, &MoveTarget)>) {
+fn rebuild_occupancy(
+    mut occ: ResMut<Occupancy>,
+    mut index: ResMut<EidIndex>,
+    q: Query<(Entity, &GridPos, Option<&MoveTarget>, Option<&GroundItem>)>,
+) {
     occ.clear();
-    for (entity, pos, mv) in q.iter() {
+    index.by_eid.clear();
+    for (entity, pos, mv, item) in q.iter() {
+        index.by_eid.insert(entity.index_u32(), entity);
+        if item.is_some() {
+            continue;
+        }
         occ.set(pos.tile, entity);
-        if let Some(t) = mv.target {
+        if let Some(t) = mv.and_then(|m| m.target) {
             occ.set(t, entity);
         }
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn drain_inputs(
     queue: Res<InputQueue>,
     map: Res<WalkableMap>,
     mut occ: ResMut<Occupancy>,
-    mut q: Query<(Entity, &PlayerSlotTag, &mut GridPos, &mut MoveTarget)>,
+    mut actions: ResMut<PendingActions>,
+    mut q: Query<(
+        Entity,
+        &PlayerSlotTag,
+        &mut GridPos,
+        &mut MoveTarget,
+        &mut Path,
+        &mut StepBuffer,
+    )>,
 ) {
     let mut pending: HashMap<u16, Vec<Input>> = HashMap::new();
     {
@@ -228,40 +339,213 @@ fn drain_inputs(
             Err(p) => p.into_inner(),
         };
         while let Ok((slot, input)) = guard.try_recv() {
-            pending.entry(slot.0).or_default().push(input);
+            if let Input::Action { id, target } = input {
+                actions.0.push((slot, id, target));
+            } else {
+                pending.entry(slot.0).or_default().push(input);
+            }
         }
     }
     if pending.is_empty() {
         return;
     }
 
-    for (entity, slot, mut pos, mut mv) in q.iter_mut() {
+    for (entity, slot, mut pos, mut mv, mut path, mut buffer) in q.iter_mut() {
         let Some(inputs) = pending.get(&slot.0.0) else {
             continue;
         };
         for input in inputs {
-            apply_step(entity, input, &map, &mut occ, &mut pos, &mut mv);
+            match input {
+                Input::Step { dir } => {
+                    path.steps.clear();
+                    pos.facing = dir.facing();
+                    if mv.target.is_some() {
+                        buffer.dir = Some(*dir);
+                    } else if try_move(entity, *dir, &map, &mut occ, &pos, &mut mv, None) {
+                        buffer.dir = None;
+                    }
+                }
+                Input::MoveTo { tile } => {
+                    buffer.dir = None;
+                    let from = mv.target.unwrap_or(pos.tile);
+                    match map.find_path(from, *tile, MAX_PATH_LEN) {
+                        Some(steps) => path.steps = steps.into(),
+                        None => path.steps.clear(),
+                    }
+                }
+                Input::Face { facing } => {
+                    pos.facing = *facing;
+                }
+                Input::Action { .. } | Input::Heartbeat { .. } | Input::Leave => {}
+            }
         }
     }
 }
 
-fn apply_step(
-    entity: Entity,
-    input: &Input,
-    map: &WalkableMap,
-    occ: &mut Occupancy,
-    pos: &mut GridPos,
-    mv: &mut MoveTarget,
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
+fn apply_actions(
+    mut actions: ResMut<PendingActions>,
+    index: Res<EidIndex>,
+    registry: Res<KindRegistry>,
+    bcast: Res<SnapshotBroadcast>,
+    mut commands: Commands,
+    mut q_players: Query<(
+        Entity,
+        &PlayerSlotTag,
+        &GridPos,
+        &CombatStats,
+        &mut Inventory,
+    )>,
+    mut q_mobs: Query<
+        (&GridPos, &mut Health, Option<&Loot>, &EntityKind),
+        (Without<PlayerSlotTag>, Without<GroundItem>),
+    >,
+    q_items: Query<(&GridPos, &GroundItem)>,
 ) {
-    match input {
-        Input::Step { dir } => {
+    if actions.0.is_empty() {
+        return;
+    }
+    let drained: Vec<_> = actions.0.drain(..).collect();
+
+    let mut by_slot: HashMap<u16, Entity> = HashMap::new();
+    for (entity, slot, ..) in q_players.iter() {
+        by_slot.insert(slot.0.0, entity);
+    }
+
+    for (slot, action_id, target) in drained {
+        let Some(&player_entity) = by_slot.get(&slot.0) else {
+            continue;
+        };
+        let Some(target_entity) = target.and_then(|t| index.by_eid.get(&t.0).copied()) else {
+            continue;
+        };
+
+        match action_id {
+            proto::ACTION_ATTACK => {
+                let Ok((_, _, pos, stats, _)) = q_players.get(player_entity) else {
+                    continue;
+                };
+                let (attacker_tile, damage) = (pos.tile, stats.attack.max(1));
+                let Ok((mob_pos, mut hp, loot, kind)) = q_mobs.get_mut(target_entity) else {
+                    continue;
+                };
+                if attacker_tile.chebyshev(mob_pos.tile) > 1 {
+                    continue;
+                }
+                hp.hp -= damage;
+                let died = hp.hp <= 0;
+                let payload = json!({
+                    "attacker": player_entity.index_u32(),
+                    "target": target_entity.index_u32(),
+                    "target_ref": registry.ref_of(kind.0),
+                    "dmg": damage,
+                    "died": died,
+                })
+                .to_string()
+                .into_bytes();
+                let _ = bcast.tx.send(ServerEvent::Ephemeral {
+                    kind: proto::EPHEMERAL_COMBAT,
+                    to: proto::PLAYER_SLOT_NONE,
+                    payload,
+                });
+                if died {
+                    let drop_tile = mob_pos.tile;
+                    let drop_ref = loot.and_then(|l| l.item_ref.clone());
+                    commands.entity(target_entity).despawn();
+                    if let Some(item_ref) = drop_ref
+                        && let Some(bundle) = ground_item_bundle(&registry, &item_ref, 1, drop_tile)
+                    {
+                        commands.spawn(bundle);
+                    }
+                }
+            }
+            proto::ACTION_PICKUP => {
+                let Ok((item_pos, item)) = q_items.get(target_entity) else {
+                    continue;
+                };
+                let (item_ref, count, item_tile) =
+                    (item.item_ref.clone(), item.count, item_pos.tile);
+                let Ok((_, _, pos, _, mut inv)) = q_players.get_mut(player_entity) else {
+                    continue;
+                };
+                if pos.tile.chebyshev(item_tile) > 1 {
+                    continue;
+                }
+                inv.add(&item_ref, count);
+                commands.entity(target_entity).despawn();
+                let pickup = json!({
+                    "item_ref": item_ref,
+                    "count": count,
+                })
+                .to_string()
+                .into_bytes();
+                let _ = bcast.tx.send(ServerEvent::Ephemeral {
+                    kind: proto::EPHEMERAL_PICKUP,
+                    to: proto::PlayerSlot(slot.0),
+                    payload: pickup,
+                });
+                send_inventory(&bcast, slot, &inv);
+            }
+            _ => {}
+        }
+    }
+}
+
+fn send_inventory(bcast: &SnapshotBroadcast, slot: proto::PlayerSlot, inv: &Inventory) {
+    let items: Vec<_> = inv
+        .slots
+        .iter()
+        .map(|(r, c)| json!({ "ref": r, "count": c }))
+        .collect();
+    let payload = json!({ "items": items }).to_string().into_bytes();
+    let _ = bcast.tx.send(ServerEvent::Ephemeral {
+        kind: proto::EPHEMERAL_INVENTORY,
+        to: slot,
+        payload,
+    });
+}
+
+fn follow_path(
+    map: Res<WalkableMap>,
+    mut occ: ResMut<Occupancy>,
+    mut q: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut Path)>,
+) {
+    for (entity, mut pos, mut mv, mut path) in q.iter_mut() {
+        if mv.target.is_some() {
+            continue;
+        }
+        let Some(&next) = path.steps.front() else {
+            continue;
+        };
+        if pos.tile.manhattan(next) != 1 {
+            path.steps.clear();
+            continue;
+        }
+        if !map.is_walkable(next) {
+            path.steps.clear();
+            continue;
+        }
+        if !occ.is_free(next) && occ.occupant(next) != Some(entity) {
+            continue;
+        }
+        let dir = dir_between(pos.tile, next);
+        if let Some(dir) = dir {
             pos.facing = dir.facing();
-            try_move(entity, *dir, map, occ, pos, mv, None);
         }
-        Input::Face { facing } => {
-            pos.facing = *facing;
-        }
-        Input::MoveTo { .. } | Input::Action { .. } | Input::Heartbeat { .. } | Input::Leave => {}
+        path.steps.pop_front();
+        mv.target = Some(next);
+        mv.progress = 0;
+        occ.set(next, entity);
+    }
+}
+
+fn dir_between(from: Tile, to: Tile) -> Option<Dir> {
+    match (to.x - from.x, to.y - from.y) {
+        (0, -1) => Some(Dir::Up),
+        (0, 1) => Some(Dir::Down),
+        (-1, 0) => Some(Dir::Left),
+        (1, 0) => Some(Dir::Right),
+        _ => None,
     }
 }
 
@@ -357,16 +641,35 @@ fn advance_movement(mut q: Query<(&mut GridPos, &mut MoveTarget, &MoveSpeed)>) {
 }
 
 #[allow(clippy::type_complexity)]
+fn chain_steps(
+    map: Res<WalkableMap>,
+    mut occ: ResMut<Occupancy>,
+    mut q: Query<(Entity, &mut GridPos, &mut MoveTarget, &mut StepBuffer), With<PlayerSlotTag>>,
+) {
+    for (entity, mut pos, mut mv, mut buffer) in q.iter_mut() {
+        let Some(dir) = buffer.dir else {
+            continue;
+        };
+        if mv.target.is_some() {
+            continue;
+        }
+        buffer.dir = None;
+        pos.facing = dir.facing();
+        try_move(entity, dir, &map, &mut occ, &pos, &mut mv, None);
+    }
+}
+
+#[allow(clippy::type_complexity)]
 fn emit_snapshot(
     clock: Res<SimClock>,
     bcast: Res<SnapshotBroadcast>,
-    config: Res<SimConfig>,
     q: Query<(
         Entity,
         &EntityKind,
         Option<&PlayerSlotTag>,
         &GridPos,
         &MoveTarget,
+        Option<&MoveSpeed>,
         Option<&Health>,
     )>,
 ) {
@@ -376,11 +679,11 @@ fn emit_snapshot(
 
     let entities: Vec<proto::EntityDelta> = q
         .iter()
-        .map(|(entity, kind, slot, pos, mv, hp)| {
+        .map(|(entity, kind, slot, pos, mv, speed, hp)| {
             let sub = mv
                 .target
                 .map(|_| {
-                    let span = config.ticks_per_tile.max(1) as u32;
+                    let span = speed.map(|s| s.ticks_per_tile).unwrap_or(1).max(1) as u32;
                     ((mv.progress as u32 * 255) / span).min(255) as u8
                 })
                 .unwrap_or(0);
@@ -423,18 +726,47 @@ mod tests {
     use super::*;
     use std::collections::HashSet;
 
-    fn harness(seed: u64) -> (App, broadcast::Receiver<ServerEvent>) {
+    type Harness = (
+        App,
+        broadcast::Receiver<ServerEvent>,
+        mpsc::UnboundedSender<(proto::PlayerSlot, Input)>,
+        Arc<RwLock<Roster>>,
+    );
+
+    fn harness(seed: u64) -> Harness {
         let (tx, rx) = broadcast::channel(SNAPSHOT_BROADCAST_CAPACITY);
-        let (_input_tx, input_rx) = mpsc::unbounded_channel();
+        let (input_tx, input_rx) = mpsc::unbounded_channel();
         let roster = Arc::new(RwLock::new(Roster::new(4)));
         let map = WalkableMap::open(32, 32);
-        let app = build_app(tx, input_rx, roster, seed, SimConfig::default(), map);
-        (app, rx)
+        let mut registry = KindRegistry::new();
+        registry.register_npc("training-dummy");
+        registry.register_item("potion");
+        let app = build_app(
+            tx,
+            input_rx,
+            roster.clone(),
+            seed,
+            SimConfig {
+                spawn: Tile::new(8, 8),
+                ..SimConfig::default()
+            },
+            map,
+            registry,
+        );
+        (app, rx, input_tx, roster)
+    }
+
+    fn join(roster: &Arc<RwLock<Roster>>, name: &str) -> proto::PlayerSlot {
+        roster
+            .write()
+            .unwrap()
+            .claim(name.to_string())
+            .expect("slot available")
     }
 
     #[test]
     fn wanderer_relocates_and_emits_snapshots() {
-        let (mut app, mut rx) = harness(0xABCDEF);
+        let (mut app, mut rx, _tx, _roster) = harness(0xABCDEF);
         let origin = Tile::new(16, 16);
         app.world_mut().spawn((
             EntityKind(2),
@@ -477,7 +809,7 @@ mod tests {
 
     #[test]
     fn non_player_entity_snapshots_without_slot() {
-        let (mut app, mut rx) = harness(1);
+        let (mut app, mut rx, _tx, _roster) = harness(1);
         app.world_mut().spawn((
             EntityKind(7),
             GridPos::at(Tile::new(3, 3)),
@@ -499,5 +831,164 @@ mod tests {
             }
         }
         assert!(saw, "non-player entity missing from snapshot");
+    }
+
+    #[test]
+    fn move_to_walks_full_path() {
+        let (mut app, mut rx, input_tx, roster) = harness(7);
+        let slot = join(&roster, "walker");
+        app.update();
+
+        input_tx
+            .send((
+                slot,
+                Input::MoveTo {
+                    tile: Tile::new(12, 8),
+                },
+            ))
+            .unwrap();
+
+        for _ in 0..80 {
+            app.update();
+        }
+
+        let mut last_tile = None;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Snapshot(snap) = evt {
+                for e in snap.entities {
+                    if e.kind == PLAYER_KIND {
+                        last_tile = Some(e.tile);
+                    }
+                }
+            }
+        }
+        assert_eq!(last_tile, Some(Tile::new(12, 8)), "player did not arrive");
+    }
+
+    #[test]
+    fn buffered_step_chains_after_move() {
+        let (mut app, mut rx, input_tx, roster) = harness(9);
+        let slot = join(&roster, "chainer");
+        app.update();
+
+        input_tx
+            .send((slot, Input::Step { dir: Dir::Right }))
+            .unwrap();
+        app.update();
+        input_tx
+            .send((slot, Input::Step { dir: Dir::Right }))
+            .unwrap();
+
+        for _ in 0..20 {
+            app.update();
+        }
+
+        let mut last_tile = None;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Snapshot(snap) = evt {
+                for e in snap.entities {
+                    if e.kind == PLAYER_KIND {
+                        last_tile = Some(e.tile);
+                    }
+                }
+            }
+        }
+        assert_eq!(
+            last_tile,
+            Some(Tile::new(10, 8)),
+            "second step was not buffered"
+        );
+    }
+
+    #[test]
+    fn attack_kills_mob_and_drops_loot() {
+        let (mut app, mut rx, input_tx, roster) = harness(11);
+        let slot = join(&roster, "fighter");
+        let registry = app.world().resource::<KindRegistry>().clone();
+        let dummy_kind = registry.kind_of("training-dummy").unwrap();
+        let potion_kind = registry.kind_of("potion").unwrap();
+
+        let mob = app
+            .world_mut()
+            .spawn((
+                EntityKind(dummy_kind),
+                GridPos::at(Tile::new(9, 8)),
+                MoveTarget::default(),
+                MoveSpeed::default(),
+                Health { hp: 5, max_hp: 5 },
+                Loot {
+                    item_ref: Some("potion".into()),
+                },
+            ))
+            .id();
+        app.update();
+
+        input_tx
+            .send((
+                slot,
+                Input::Action {
+                    id: proto::ACTION_ATTACK,
+                    target: Some(proto::EntityId(mob.index_u32())),
+                },
+            ))
+            .unwrap();
+        for _ in 0..6 {
+            app.update();
+        }
+
+        let mut saw_combat = false;
+        let mut saw_potion_drop = false;
+        while let Ok(evt) = rx.try_recv() {
+            match evt {
+                ServerEvent::Ephemeral { kind, .. } if kind == proto::EPHEMERAL_COMBAT => {
+                    saw_combat = true;
+                }
+                ServerEvent::Snapshot(snap) => {
+                    if snap.entities.iter().any(|e| e.kind == potion_kind) {
+                        saw_potion_drop = true;
+                    }
+                }
+                _ => {}
+            }
+        }
+        assert!(saw_combat, "no combat ephemeral emitted");
+        assert!(saw_potion_drop, "loot did not drop");
+    }
+
+    #[test]
+    fn pickup_adds_to_inventory_and_syncs() {
+        let (mut app, mut rx, input_tx, roster) = harness(13);
+        let slot = join(&roster, "collector");
+        let registry = app.world().resource::<KindRegistry>().clone();
+
+        let bundle = ground_item_bundle(&registry, "potion", 2, Tile::new(9, 8)).unwrap();
+        let item = app.world_mut().spawn(bundle).id();
+        app.update();
+
+        input_tx
+            .send((
+                slot,
+                Input::Action {
+                    id: proto::ACTION_PICKUP,
+                    target: Some(proto::EntityId(item.index_u32())),
+                },
+            ))
+            .unwrap();
+        for _ in 0..6 {
+            app.update();
+        }
+
+        let mut inventory_payload = None;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, to, payload } = evt
+                && kind == proto::EPHEMERAL_INVENTORY
+            {
+                assert_eq!(to, slot);
+                inventory_payload = Some(String::from_utf8(payload).unwrap());
+            }
+        }
+        let payload = inventory_payload.expect("no inventory sync");
+        assert!(payload.contains("potion"), "payload: {payload}");
+        assert!(payload.contains("2"), "payload: {payload}");
     }
 }

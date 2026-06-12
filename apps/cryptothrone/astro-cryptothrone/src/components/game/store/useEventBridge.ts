@@ -91,6 +91,56 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 		);
 
 		unsubs.push(
+			laserEvents.on('inventory:sync', (data) => {
+				const sync = data as {
+					items: { ref: string; count: number }[];
+				};
+				const itemIds = sync.items.flatMap((i) =>
+					Array.from({ length: i.count }, () => i.ref),
+				);
+				dispatch({ type: 'SET_BACKPACK', payload: { itemIds } });
+			}),
+		);
+
+		unsubs.push(
+			laserEvents.on('item:pickup', (data) => {
+				const pickup = data as { item_ref: string; count: number };
+				dispatch({
+					type: 'ADD_NOTIFICATION',
+					payload: {
+						title: 'Picked up',
+						message:
+							pickup.count > 1
+								? `${pickup.item_ref} ×${pickup.count}`
+								: pickup.item_ref,
+						type: 'success',
+					},
+				});
+			}),
+		);
+
+		unsubs.push(
+			laserEvents.on('combat:event', (data) => {
+				const combat = data as {
+					target_ref: string | null;
+					dmg: number;
+					died: boolean;
+				};
+				const name = combat.target_ref ?? 'enemy';
+				dispatch({
+					type: 'ADD_NOTIFICATION',
+					payload: {
+						title: combat.died ? 'Defeated' : 'Combat',
+						message: combat.died
+							? `${name} slain!`
+							: `Hit ${name} for ${combat.dmg}`,
+						type: combat.died ? 'success' : 'info',
+					},
+				});
+			}),
+		);
+
+		unsubs.push(
 			laserEvents.on('dice:roll', (data) => {
 				dispatch({
 					type: 'SET_DICE_ROLL',

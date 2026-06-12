@@ -1,20 +1,46 @@
-import { Scene } from 'phaser';
-import { GameClient, laserEvents, createBirdAnimation } from '@kbve/laser';
-import type { Range, CharacterEventData, Dir, Snapshot } from '@kbve/laser';
+import Phaser, { Scene } from 'phaser';
+import {
+	GameClient,
+	laserEvents,
+	createBirdAnimation,
+	ACTION_ATTACK,
+	ACTION_PICKUP,
+	KIND_CAT_ITEM,
+	KIND_CAT_NPC,
+	KIND_CAT_PLAYER,
+} from '@kbve/laser';
+import type {
+	Range,
+	CharacterEventData,
+	Dir,
+	Snapshot,
+	KindEntry,
+} from '@kbve/laser';
 import { getCtNetConfig } from '@/lib/net-config';
+import { getNPCByRef, npcIdForRef } from '../data/npcs';
 
 const MAP_SCALE = 3;
-const STEP_THROTTLE_MS = 180;
-
-const KIND_PLAYER = 0;
-const KIND_MONK = 1;
-const KIND_BIRD = 2;
+const STEP_THROTTLE_MS = 90;
 const SLOT_NONE = 0xffff;
+
+interface RefSprite {
+	key: string;
+	mapping?: number;
+	anim?: string;
+}
+
+const REF_SPRITES: Record<string, RefSprite> = {
+	cleric: { key: 'monks', mapping: 0 },
+	'crystal-bat': { key: 'monster_bird', anim: 'bird' },
+};
+
+const DEFAULT_NPC_SPRITE: RefSprite = { key: 'monks', mapping: 0 };
 
 interface Tracked {
 	sprite: Phaser.GameObjects.Sprite;
 	charId: string;
 	tile: { x: number; y: number };
+	kind: number;
 }
 
 export class CloudCityScene extends Scene {
@@ -24,9 +50,12 @@ export class CloudCityScene extends Scene {
 	private mySlot = SLOT_NONE;
 	private myEid = -1;
 	private tracked = new Map<number, Tracked>();
+	private registry = new Map<number, KindEntry>();
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+	private attackKey!: Phaser.Input.Keyboard.Key;
 	private entityDepth = 0;
 	private lastStepAt = 0;
+	private tilePixels = 16;
 	private ranges: Range[] = [];
 	private rangeTile = { x: -1, y: -1 };
 
@@ -36,6 +65,7 @@ export class CloudCityScene extends Scene {
 
 	create() {
 		const tilemap = this.make.tilemap({ key: 'cloud-city-map-large' });
+		this.tilePixels = tilemap.tileWidth;
 		const tileset = tilemap.addTilesetImage(
 			'cloud_tileset',
 			'cloud-city-tiles',
@@ -58,11 +88,15 @@ export class CloudCityScene extends Scene {
 		);
 
 		createBirdAnimation(this);
+		this.makeGroundItemTexture();
 		this.gridEngine.create(tilemap, {
 			characters: [],
 			numberOfDirections: 8,
 		});
 		this.cursors = this.input.keyboard!.createCursorKeys();
+		this.attackKey = this.input.keyboard!.addKey(
+			Phaser.Input.Keyboard.KeyCodes.SPACE,
+		);
 		this.loadRanges();
 
 		const cfg = getCtNetConfig();
@@ -81,8 +115,21 @@ export class CloudCityScene extends Scene {
 		this.client = client;
 		client.on('welcome', (w) => {
 			this.mySlot = w.your_slot;
+			this.registry.clear();
+			for (const entry of w.registry ?? []) {
+				this.registry.set(entry.kind, entry);
+			}
 		});
 		client.on('snapshot', (s) => this.applySnapshot(s));
+		client.on('inventory', (inv) => {
+			laserEvents.emit('inventory:sync', inv);
+		});
+		client.on('pickup', (p) => {
+			laserEvents.emit('item:pickup', p);
+		});
+		client.on('combat', (c) => {
+			laserEvents.emit('combat:event', c);
+		});
 		client.on('reject', (reason) => {
 			laserEvents.emit('char:event', {
 				message: `Server rejected the connection: ${reason}`,
@@ -95,27 +142,56 @@ export class CloudCityScene extends Scene {
 		});
 		client.connect();
 
+		this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) =>
+			this.onPointerDown(pointer),
+		);
+
 		this.events.once('shutdown', () => this.client?.close());
+	}
+
+	private makeGroundItemTexture() {
+		if (this.textures.exists('ground-item')) return;
+		const g = this.add.graphics();
+		g.fillStyle(0xfacc15, 1);
+		g.fillCircle(8, 8, 5);
+		g.lineStyle(1.5, 0xfde68a, 1);
+		g.strokeCircle(8, 8, 6.5);
+		g.generateTexture('ground-item', 16, 16);
+		g.destroy();
+	}
+
+	private kindCat(kind: number): number {
+		return this.registry.get(kind)?.cat ?? KIND_CAT_NPC;
+	}
+
+	private kindRef(kind: number): string | null {
+		return this.registry.get(kind)?.ref ?? null;
 	}
 
 	private makeSprite(kind: number): {
 		sprite: Phaser.GameObjects.Sprite;
 		mapping?: number;
 	} {
-		let key = 'player';
-		let mapping: number | undefined = 6;
-		if (kind === KIND_MONK) {
-			key = 'monks';
-			mapping = 0;
-		} else if (kind === KIND_BIRD) {
-			key = 'monster_bird';
-			mapping = undefined;
+		const cat = this.kindCat(kind);
+		if (cat === KIND_CAT_PLAYER || this.registry.size === 0) {
+			const sprite = this.add.sprite(0, 0, 'player');
+			sprite.scale = 1.5;
+			sprite.setDepth(this.entityDepth);
+			return { sprite, mapping: 6 };
 		}
-		const sprite = this.add.sprite(0, 0, key);
+		if (cat === KIND_CAT_ITEM) {
+			const sprite = this.add.sprite(0, 0, 'ground-item');
+			sprite.scale = 1.5;
+			sprite.setDepth(this.entityDepth - 0.5);
+			return { sprite, mapping: undefined };
+		}
+		const ref = this.kindRef(kind);
+		const conf = (ref && REF_SPRITES[ref]) || DEFAULT_NPC_SPRITE;
+		const sprite = this.add.sprite(0, 0, conf.key);
 		sprite.scale = 1.5;
 		sprite.setDepth(this.entityDepth);
-		if (kind === KIND_BIRD) sprite.play('bird');
-		return { sprite, mapping };
+		if (conf.anim) sprite.play(conf.anim);
+		return { sprite, mapping: conf.mapping };
 	}
 
 	private applySnapshot(snap: Snapshot) {
@@ -142,9 +218,10 @@ export class CloudCityScene extends Scene {
 					sprite,
 					charId,
 					tile: { x: e.tile.x, y: e.tile.y },
+					kind: e.kind,
 				});
 				if (
-					e.kind === KIND_PLAYER &&
+					this.kindCat(e.kind) === KIND_CAT_PLAYER &&
 					e.owner === this.mySlot &&
 					this.myEid < 0
 				) {
@@ -174,6 +251,93 @@ export class CloudCityScene extends Scene {
 		}
 
 		this.checkRanges();
+	}
+
+	private myTile(): { x: number; y: number } | null {
+		if (this.myEid < 0) return null;
+		return this.tracked.get(this.myEid)?.tile ?? null;
+	}
+
+	private chebyshev(
+		a: { x: number; y: number },
+		b: { x: number; y: number },
+	): number {
+		return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+	}
+
+	private entityAt(tile: {
+		x: number;
+		y: number;
+	}): { eid: number; t: Tracked } | null {
+		for (const [eid, t] of this.tracked) {
+			if (eid === this.myEid) continue;
+			if (t.tile.x === tile.x && t.tile.y === tile.y) {
+				return { eid, t };
+			}
+		}
+		return null;
+	}
+
+	private onPointerDown(pointer: Phaser.Input.Pointer) {
+		if (!this.client) return;
+		const span = this.tilePixels * MAP_SCALE;
+		const tile = {
+			x: Math.floor(pointer.worldX / span),
+			y: Math.floor(pointer.worldY / span),
+		};
+
+		const hit = this.entityAt(tile);
+		if (hit) {
+			const cat = this.kindCat(hit.t.kind);
+			const me = this.myTile();
+			if (cat === KIND_CAT_ITEM) {
+				if (me && this.chebyshev(me, tile) <= 1) {
+					this.client.action(ACTION_PICKUP, hit.eid);
+				} else {
+					this.client.moveTo(tile);
+				}
+				return;
+			}
+			if (cat === KIND_CAT_NPC) {
+				const ref = this.kindRef(hit.t.kind);
+				if (ref && me && this.chebyshev(me, tile) <= 1) {
+					const npc = getNPCByRef(ref);
+					const ev = pointer.event as MouseEvent | undefined;
+					laserEvents.emit('npc:interact', {
+						npcId: npcIdForRef(ref),
+						npcName: npc?.name ?? ref,
+						actions: npc?.actions ?? ['talk'],
+						coords: {
+							x: ev?.clientX ?? pointer.x,
+							y: ev?.clientY ?? pointer.y,
+						},
+					});
+				} else {
+					this.client.moveTo(tile);
+				}
+				return;
+			}
+		}
+
+		this.client.moveTo(tile);
+	}
+
+	private attackNearby() {
+		if (!this.client) return;
+		const me = this.myTile();
+		if (!me) return;
+		let best: { eid: number; dist: number } | null = null;
+		for (const [eid, t] of this.tracked) {
+			if (eid === this.myEid) continue;
+			if (this.kindCat(t.kind) !== KIND_CAT_NPC) continue;
+			const dist = this.chebyshev(me, t.tile);
+			if (dist <= 1 && (!best || dist < best.dist)) {
+				best = { eid, dist };
+			}
+		}
+		if (best) {
+			this.client.action(ACTION_ATTACK, best.eid);
+		}
 	}
 
 	private checkRanges() {
@@ -243,6 +407,11 @@ export class CloudCityScene extends Scene {
 
 	update(time: number) {
 		if (!this.client) return;
+
+		if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
+			this.attackNearby();
+		}
+
 		if (time - this.lastStepAt < STEP_THROTTLE_MS) return;
 
 		let dir: Dir | null = null;

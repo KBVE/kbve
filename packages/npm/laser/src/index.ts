@@ -60,8 +60,17 @@ export type {
 export {
 	PROTOCOL_VERSION,
 	OWNER_NONE,
+	ACTION_ATTACK,
+	ACTION_PICKUP,
+	EPHEMERAL_INVENTORY,
+	EPHEMERAL_COMBAT,
+	EPHEMERAL_PICKUP,
+	KIND_CAT_PLAYER,
+	KIND_CAT_NPC,
+	KIND_CAT_ITEM,
 	joinFrame,
 	inputFrame,
+	decodeEphemeralPayload,
 } from './lib/net/protocol';
 export type {
 	Dir,
@@ -76,4 +85,10 @@ export type {
 	Welcome,
 	JoinMatch,
 	ClientFrame,
+	KindEntry,
+	Ephemeral,
+	InventoryItem,
+	InventorySync,
+	CombatEvent,
+	PickupEvent,
 } from './lib/net/protocol';
