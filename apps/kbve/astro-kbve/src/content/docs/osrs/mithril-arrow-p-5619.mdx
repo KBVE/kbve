@@ -1,6 +1,6 @@
 ---
 title: Mithril arrow(p+) | OSRS Price Data
-description: "Mithril arrow(p+): Venomous-looking arrows.. High alch: 19 GP, GE limit: 7,000."
+description: "Mithril arrow(p+) is a members ammo slot arrow with strong poison. High alch: 19 GP, GE limit: 7,000."
 osrs:
   id: 5619
   name: Mithril arrow(p+)
@@ -12,9 +12,61 @@ osrs:
   lowalch: 12
   highalch: 19
   limit: 7000
-  about: "Mithril arrow(p+) is a members-only item in Old School RuneScape. High alchemy value: 19 coins. Grand Exchange buy limit: 7,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: mithril
+    tier: mid
+  equipment:
+    slot: ammo
+    weight: 0.014
+    requirements:
+      ranged: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 11
+      magic_damage: 0
+      prayer: 0
+  passive_effects:
+    - name: Strong poison
+      description: "Inflicts strong poison on hit, dealing damage over time"
+  related_items:
+    - item_id: 882
+      item_name: Mithril arrow
+      slug: mithril-arrow
+      relationship: variant
+      description: Unpoisoned base arrow
+    - item_id: 5617
+      item_name: Mithril arrow(p)
+      slug: mithril-arrow-p
+      relationship: variant
+      description: Regular poison variant
+    - item_id: 5621
+      item_name: Mithril arrow(p++)
+      slug: mithril-arrow-pp
+      relationship: upgrade
+      description: Strongest poison variant
+  market_strategy:
+    notes:
+      - Niche ammo with strong poison proc
+      - Adamant/rune arrows usually preferred for DPS
+      - Demand tied to poison-strategy bossing
+  trading_tips:
+    - Use Grand Exchange for bulk orders
+    - Compare DPS vs adamant arrows before bulk buy
+  about: "Mithril arrow(p+) is a poisoned variant of the mithril arrow that inflicts strong poison on hit. Requires 30 Ranged to use."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

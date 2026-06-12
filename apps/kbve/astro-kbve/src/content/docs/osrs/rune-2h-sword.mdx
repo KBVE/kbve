@@ -12,6 +12,9 @@ osrs:
   lowalch: 25600
   highalch: 38400
   limit: 70
+  material:
+    type: rune
+    tier: high
   equipment:
     slot: weapon
     weight: 3.628
@@ -45,7 +48,7 @@ osrs:
           quantity: 3
       product: Rune 2h sword
       product_id: 1319
-      product_quantity: 1
+      output_quantity: 1
       facility: Anvil
   alchemy:
     high: 38400
@@ -72,7 +75,7 @@ osrs:
       item_name: Runite bar
       slug: runite-bar
       relationship: component
-      description: Raw material (×3)
+      description: "Raw material (×3)"
     - item_id: 1127
       item_name: Rune platebody
       slug: rune-platebody
@@ -113,8 +116,8 @@ osrs:
       - Greater demons, Fire giants, Moss giants
       - Obor (Hill Giant Boss)
       - Clue scrolls
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

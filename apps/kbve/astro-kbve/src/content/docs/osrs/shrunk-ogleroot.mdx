@@ -5,16 +5,38 @@ osrs:
   id: 11205
   name: Shrunk ogleroot
   slug: shrunk-ogleroot
-  examine: A shrunk ogleroot! How odd...
+  examine: "A shrunk ogleroot! How odd..."
   members: true
   icon: Shrunk ogleroot 5.png
   value: 2
   lowalch: 1
   highalch: 1
   limit: 15
-  about: "Shrunk ogleroot is a members-only item in Old School RuneScape. High alchemy value: 1 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Shrunk ogleroot is a miniature ogleroot used during the Mahjarrat memoriam progression. Created by drying an ogleroot via the Land of the Goblins quest mechanics."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2008-10-13"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: true
+    destroy: "Drop"
+    weight: 0.1
+  material:
+    type: plant
+    tier: low
+  market_strategy:
+    notes:
+      - "Extremely thin market with a 15 GE buy limit."
+      - "Primarily used as a quest consumable rather than a flip target."
+  trading_tips:
+    - "Only buy when actively progressing the quest chain."
+    - "Avoid stockpiling due to low daily demand."
+  history:
+    - date: "2008-10-13"
+      description: "Shrunk ogleroot released as part of the Land of the Goblins quest update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

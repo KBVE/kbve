@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: agones-rows-chuckrpg-beta
+    namespace: argocd
+    labels:
+        app.kubernetes.io/part-of: rows
+        app.kubernetes.io/instance: chuckrpg-beta
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/kbve/kbve
+        targetRevision: main
+        path: apps/kube/agones/rows-tenants/chuckrpg-beta/manifests
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: arc-runners
+    ignoreDifferences:
+        - group: agones.dev
+          kind: Fleet
+          jsonPointers:
+              - /spec/replicas
+    syncPolicy:
+        automated:
+            prune: true
+        syncOptions:
+            - CreateNamespace=false
+            - ServerSideApply=true
+            - RespectIgnoreDifferences=true

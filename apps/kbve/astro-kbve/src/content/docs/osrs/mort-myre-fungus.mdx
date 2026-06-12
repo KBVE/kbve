@@ -15,13 +15,14 @@ osrs:
   material:
     type: secondary
     tier: mid
-  sources:
-    - name: Mort Myre Swamp
-      method: Bloom spell on rotting logs
-    - name: Sulliuscep mushrooms
-      method: Woodcutting
-    - name: Monster drops
-      method: Zygomites, Vyrewatch
+  drop_table:
+    sources:
+      - source: Mort Myre Swamp
+        method: Bloom spell on rotting logs
+      - source: Sulliuscep mushrooms
+        method: Woodcutting
+      - source: Monster drops
+        method: "Zygomites, Vyrewatch"
   recipes:
     - skill: herblore
       level: 52
@@ -29,13 +30,13 @@ osrs:
       materials:
         - item_name: Avantoe potion (unf)
           item_id: 99
-          quantity: 1
+          quantity: "1"
         - item_name: Mort myre fungus
           item_id: 2970
-          quantity: 1
+          quantity: "1"
       product: Super energy(3)
       product_id: 3022
-      product_quantity: 1
+      output_quantity: 1
       facility: None
       members_only: true
   related_items:
@@ -65,10 +66,6 @@ osrs:
     | Super energy potion | Herblore 52 |
     | Druid pouch | Adds 1 charge |
   market_strategy:
-    title: |-
-      - Super energy production
-      - Stamina potion chain
-      - Consistent demand
     notes:
       - Super energy production
       - Stamina potion chain
@@ -81,8 +78,8 @@ osrs:
       - Nature Spirit quest required
       - Consistent pricing
       - Essential for stamina chain
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

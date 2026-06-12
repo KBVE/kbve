@@ -1,6 +1,6 @@
 ---
 title: Sigil of exaggeration | OSRS Price Data
-description: "Sigil of exaggeration: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP, GE limit: 10."
+description: "Sigil of exaggeration is a members Deadman Mode sigil that increases skilling output once attuned. High alch: 6,000 GP, GE limit: 10."
 osrs:
   id: 26057
   name: Sigil of exaggeration
@@ -12,9 +12,39 @@ osrs:
   lowalch: 4000
   highalch: 6000
   limit: 10
-  about: "Sigil of exaggeration is a members-only item in Old School RuneScape. High alchemy value: 6,000 coins. Grand Exchange buy limit: 10 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: sigil
+    tier: high
+  equipment:
+    slot: pocket
+    weight: 0.0
+    requirements: {}
+  passive_effects:
+    - name: Exaggerated resources
+      description: "Once attuned, gathering skilling actions yield additional resources per success while the sigil is equipped."
+  related_items:
+    - item_name: Sigil of consistency
+      slug: sigil-of-consistency
+      relationship: alternative
+      description: Another Deadman Mode sigil with a different combat-focused effect
+    - item_name: Sigil of resilience
+      slug: sigil-of-resilience
+      relationship: alternative
+      description: Defensive Deadman Mode sigil alternative
+  market_strategy:
+    notes:
+      - Deadman Mode reward item with thin standard-game volume
+      - "Low GE limit (10): supply-driven price volatility"
+      - Attunement is single-use and binds the sigil to the player
+  trading_tips:
+    - Confirm attunement state before purchasing for resale
+    - Track Deadman season schedule for supply spikes
+  about: Sigil of exaggeration is a members pocket-slot sigil from Deadman Mode that, once attuned, raises the per-action resource yield of gathering skills while equipped.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  history:
+    - date: "2022-02-23"
+      description: Sigil of exaggeration introduced with the Deadman Apocalypse seasonal mode.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

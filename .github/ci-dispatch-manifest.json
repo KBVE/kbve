@@ -1083,13 +1083,17 @@
 					"Linux"
 				],
 				"external_repo_url": "https://github.com/kbve/chuck",
+				"server_target": "chuckServerBeta",
+				"server_config": "Shipping",
 				"client_config": "Shipping",
 				"maps": [
 					"/Game/Menus/L_MainMenu",
 					"/Game/Map/L_ChuckWorld"
-				]
+				],
+				"game_mode": "/Script/Chuck.ChuckGameMode"
 			},
 			"source_path": "apps/chuckrpg/unreal-chuck",
+			"shell_path": "apps/chuckrpg/unreal-chuck",
 			"version": "0.3.19",
 			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-beta.mdx",

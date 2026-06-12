@@ -12,8 +12,14 @@ osrs:
   lowalch: 24000
   highalch: 36000
   limit: 70
+  material:
+    type: fremennik
+    tier: mid-high
   equipment:
     slot: head
+    weight: 2.721
+    requirements:
+      defence: 45
     attack_bonus:
       stab: 0
       slash: 5
@@ -31,9 +37,6 @@ osrs:
       ranged_strength: 0
       magic_damage: 0
       prayer: 0
-    requirements:
-      defence: 45
-    weight: 2.721
   related_items:
     - item_id: 3751
       item_name: Berserker helm
@@ -50,6 +53,14 @@ osrs:
       slug: archer-helm
       relationship: alternative
       description: Ranged variant
+  market_strategy:
+    notes:
+      - "Least popular Fremennik melee helm: berserker preferred"
+      - Niche accuracy option for slash weapons
+      - Supply from Barbarian Assault
+  trading_tips:
+    - Use Grand Exchange for fast trades
+    - Compare DPS vs berserker helm before buying
   about: |-
     | Attack | Value |
     |--------|-------|
@@ -62,16 +73,11 @@ osrs:
     | Crush | +29 |
     | Ranged | +30 |
 
-    Requirements: 45 Defence | Weight: 2.72 kg
+    Requirements 45 Defence with Weight 2.72 kg.
 
-    The warrior helm provides +5 slash attack — unique among Fremennik helms. However, it lacks the Strength bonus of the berserker helm, making it less popular for general melee. The +5 slash is a marginal accuracy boost that rarely outweighs +3 Strength in DPS calculations.
-  market_strategy:
-    notes:
-      - Least popular Fremennik melee helm (berserker preferred)
-      - Niche accuracy option for slash weapons
-      - Supply from Barbarian Assault
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+    The warrior helm provides +5 slash attack which is unique among Fremennik helms. However it lacks the Strength bonus of the berserker helm, making it less popular for general melee. The +5 slash is a marginal accuracy boost that rarely outweighs +3 Strength in DPS calculations.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

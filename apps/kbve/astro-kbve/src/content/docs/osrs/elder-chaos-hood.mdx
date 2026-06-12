@@ -1,6 +1,6 @@
 ---
 title: Elder chaos hood | OSRS Price Data
-description: "Elder chaos hood: The hood worn by the dangerous elder druids.. High alch: 300 GP, GE limit: 8."
+description: "Elder chaos hood is a members head slot Magic robe piece from medium clue rewards. High alch: 300 GP, GE limit: 8."
 osrs:
   id: 20595
   name: Elder chaos hood
@@ -12,9 +12,85 @@ osrs:
   lowalch: 200
   highalch: 300
   limit: 8
-  about: "Elder chaos hood is a members-only item in Old School RuneScape. High alchemy value: 300 coins. Grand Exchange buy limit: 8 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: robe
+    tier: mid
+  equipment:
+    slot: head
+    weight: 0.453
+    requirements:
+      magic: 1
+      defence: 1
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 2
+      ranged: -1
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 3
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - item_id: 10548
+      item_name: Chaos robe top
+      slug: chaos-robe-top
+      relationship: alternative
+      description: Standard chaos druid top
+    - item_id: 20593
+      item_name: Elder chaos robe
+      slug: elder-chaos-robe
+      relationship: set-piece
+      description: Body slot of the Elder chaos druid set
+    - item_id: 20520
+      item_name: Elder chaos top
+      slug: elder-chaos-top
+      relationship: set-piece
+      description: Top slot of the Elder chaos druid set
+  market_strategy:
+    title: Market Notes
+    notes:
+      - "Cosmetic-leaning Magic head with very low combat stats"
+      - "Tight GE limit of 8 keeps supply thin"
+      - "Demand mostly driven by full Elder chaos set collectors"
+  trading_tips:
+    - Verify authenticity when trading high-value items
+    - Use Grand Exchange for secure trades
+    - Buy when medium clue completions trend upward
+  about: "Elder chaos hood is a members-only Magic-themed head slot robe obtained as a medium clue scroll reward; it pairs with the Elder chaos top and robe to complete the Elder chaos druid set."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: true
+    quest_item: false
+    weight: 0.453
+    options:
+      - Wear
+      - Drop
+      - Examine
+    worn_options:
+      - Remove
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2017-07-13"
+      description: "Elder chaos hood added with the Elder chaos druid robe set update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

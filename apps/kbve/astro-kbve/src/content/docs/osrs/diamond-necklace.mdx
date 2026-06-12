@@ -12,6 +12,9 @@ osrs:
   lowalch: 1470
   highalch: 2205
   limit: 18000
+  material:
+    type: jewellery
+    tier: mid
   equipment:
     slot: neck
     requirements:
@@ -20,7 +23,7 @@ osrs:
     - skill: crafting
       level: 56
       xp: 90
-      inputs:
+      materials:
         - item_name: Diamond
           quantity: 1
         - item_name: Gold bar
@@ -69,8 +72,8 @@ osrs:
       - F2P accessible (enchanting included)
       - PvP demand for emergency healing
       - Consumed on use — steady demand
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,20 +1,96 @@
 ---
 title: Adamant shield (h1) | OSRS Price Data
-description: "Adamant shield (h1): A shield with a heraldic design. High alch: 3,264 GP, GE limit: 70."
+description: "Adamant shield (h1) is a free-to-play adamant kiteshield with a heraldic Saradomin design. High alch: 3,264 GP, GE limit: 70."
 osrs:
   id: 7334
   name: Adamant shield (h1)
   slug: adamant-shield-h1
-  examine: A shield with a heraldic design
+  examine: A shield with a heraldic design.
   members: false
   icon: Adamant shield (h1).png
   value: 5440
   lowalch: 2176
   highalch: 3264
   limit: 70
-  about: "Adamant shield (h1) is a free-to-play item in Old School RuneScape. High alchemy value: 3,264 coins. Grand Exchange buy limit: 70 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: shield
+    tier: mid
+  equipment:
+    slot: shield
+    weight: 5.443
+    requirements:
+      defence: 30
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -2
+    defence_bonus:
+      stab: 17
+      slash: 19
+      crush: 20
+      magic: -1
+      ranged: 18
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  treasure_trail:
+    tier: medium
+    is_reward: true
+    reward_tiers:
+      - medium
+  related_items:
+    - item_id: 1199
+      item_name: Adamant kiteshield
+      slug: adamant-kiteshield
+      relationship: alternative
+      description: Plain adamant kiteshield with identical combat stats
+    - item_id: 7336
+      item_name: Adamant shield (h2)
+      slug: adamant-shield-h2
+      relationship: variant
+      description: Zamorak-design heraldic adamant kiteshield
+    - item_id: 7338
+      item_name: Adamant shield (h3)
+      slug: adamant-shield-h3
+      relationship: variant
+      description: Guthix-design heraldic adamant kiteshield
+    - item_id: 7340
+      item_name: Adamant shield (h4)
+      slug: adamant-shield-h4
+      relationship: variant
+      description: Misthalin-design heraldic adamant kiteshield
+    - item_id: 7342
+      item_name: Adamant shield (h5)
+      slug: adamant-shield-h5
+      relationship: variant
+      description: Varrock-design heraldic adamant kiteshield
+  market_strategy:
+    notes:
+      - Cosmetic Treasure Trail reward; price driven by clue completion rate
+      - Stats are identical to a plain adamant kiteshield - premium is aesthetic
+      - F2P-tradeable so demand sees seasonal lifts during F2P meta
+  trading_tips:
+    - "Compare across h1-h5 - usually the cheapest design is the best buy"
+    - "Stats match the plain kiteshield: pay only the cosmetic premium you want"
+    - Resell into clue-scroll content events when cosmetics trend
+  about: "Adamant shield (h1) is a free-to-play adamant kiteshield bearing a Saradomin heraldic design, obtained as a reward from medium Treasure Trails. High alchemy value: 3,264 coins. Grand Exchange buy limit: 70 per 4 hours."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: true
+    members: false
+    quest_item: false
+    alchable: true
+  history:
+    - date: "2006-12-05"
+      description: Adamant shield (h1) added with the Treasure Trails expansion.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

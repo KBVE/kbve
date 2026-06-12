@@ -1,6 +1,6 @@
 ---
 title: Unicorn horn | OSRS Price Data
-description: "Unicorn horn: This horn has restorative properties.. High alch: 12 GP, GE limit: 13,000."
+description: "Unicorn horn is a members Herblore secondary used in Antipoison and Sanfew serum recipes. High alch: 12 GP, GE limit: 13,000."
 osrs:
   id: 237
   name: Unicorn horn
@@ -14,7 +14,7 @@ osrs:
   limit: 13000
   material:
     type: secondary
-    tier: basic
+    tier: low
   drop_table:
     sources:
       - source: Unicorn
@@ -30,7 +30,7 @@ osrs:
       - source: Venenatis
         source_id: 6504
         combat_level: 464
-        quantity: 200-500 (noted)
+        quantity: "200-500 (noted)"
         rarity: uncommon
         members_only: true
   recipes:
@@ -46,44 +46,59 @@ osrs:
           quantity: 1
       product: Antipoison(3)
       product_id: 175
-      product_quantity: 1
+      output_quantity: 1
       members_only: true
   related_items:
     - item_id: 235
       item_name: Unicorn horn dust
       slug: unicorn-horn-dust
       relationship: product
-      description: Crushed form
+      description: Crushed form for Herblore use
     - item_id: 175
       item_name: Antipoison(3)
       slug: antipoison-3
       relationship: product
-      description: End product
+      description: Primary potion product
     - item_id: 9998
       item_name: Sanfew serum(4)
       slug: sanfew-serum-4
       relationship: product
-      description: Advanced product
+      description: Advanced restorative potion product
     - item_id: 233
       item_name: Pestle and mortar
       slug: pestle-and-mortar
       relationship: component
-      description: Processing tool
-  about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Herblore Secondary |
-    | Tradeable | Yes |
-    | Weight | 0.007 kg |
-
-    Secondary ingredient for:
-    - Antipoison (with marrentill potion unf)
-    - Unicorn horn dust (crushed with pestle and mortar)
-
-    Also used in Sanfew serum production.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Tool required to crush horn into dust
+  market_strategy:
+    title: Market Notes
+    notes:
+      - "Steady Herblore demand keeps prices stable around alch value"
+      - "Bulk supply comes from Unicorn and Black unicorn farms"
+      - "Venenatis noted drops can flood the market during PvM events"
+  trading_tips:
+    - Use Grand Exchange for secure trades
+    - Crush into dust only when Antipoison demand is high
+    - Buy in bulk near alch value floor for Herblore training
+  about: "Unicorn horn is a members-only Herblore secondary harvested from unicorns; it is crushed into unicorn horn dust to brew Antipoison and feeds into Sanfew serum production."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    weight: 0.007
+    options:
+      - Use
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2002-09-26"
+      description: "Unicorn horn added with the original Herblore-precursor potion content."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

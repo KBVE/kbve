@@ -1,6 +1,6 @@
 ---
 title: Goat horn dust | OSRS Price Data
-description: "Goat horn dust: Finely ground desert goat horn.. High alch: 7 GP, GE limit: 13,000."
+description: "Goat horn dust is a members Herblore secondary used for Combat potion. High alch: 7 GP, GE limit: 13,000."
 osrs:
   id: 9736
   name: Goat horn dust
@@ -12,53 +12,63 @@ osrs:
   lowalch: 4
   highalch: 7
   limit: 13000
-  item:
+  material:
     type: herblore_secondary
-    tradeable: true
-    weight: 0.453
+    tier: low
   recipes:
     - skill: crafting
+      level: 1
+      xp: 1
+      output_quantity: 1
       materials:
         - item_name: Desert goat horn
-          quantity: 1
+          quantity: "1"
         - item_name: Pestle and mortar
-          quantity: 1
+          quantity: "1"
       product: Goat horn dust
-  uses:
-    - name: Combat potion
-      skill: herblore
+    - skill: herblore
       level: 36
-      partner: Harralander potion (unf)
+      xp: 84
+      output_quantity: 1
+      materials:
+        - item_name: Harralander potion (unf)
+          quantity: "1"
+        - item_name: Goat horn dust
+          quantity: "1"
+      product: Combat potion(3)
   related_items:
     - item_id: 9735
       item_name: Desert goat horn
       slug: desert-goat-horn
       relationship: component
-      description: Raw material
+      description: Raw material ground into dust
     - item_id: 9739
       item_name: Combat potion(4)
       slug: combat-potion-4
       relationship: product
-      description: Primary use
+      description: Primary use as Herblore secondary
     - item_id: 255
       item_name: Harralander
       slug: harralander
       relationship: alternative
-      description: Partner herb
+      description: Partner herb used in the unfinished potion
+  market_strategy:
+    notes:
+      - Secondary ingredient for Combat potion at 36 Herblore
+      - Demand driven by combat-potion flippers
+      - Supply depends on desert goat horn farming
+  trading_tips:
+    - Buy desert goat horn and grind for profit when spread allows
+    - Use Grand Exchange for bulk orders
   about: |-
-    | Property | Value |
-    |----------|-------|
-    | Slot | N/A |
-    | Type | Herblore Secondary |
-    | Tradeable | Yes |
-    | Weight | 0.453 kg |
+    Goat horn dust is a Herblore secondary made by grinding a desert goat horn with a pestle and mortar.
 
     Secondary ingredient for:
     - Combat potion (with harralander potion unf at 36 Herblore)
 
     Provides Attack and Strength boosts in one potion.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

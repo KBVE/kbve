@@ -1,6 +1,6 @@
 ---
 title: Bolt of cotton | OSRS Price Data
-description: "Bolt of cotton: A bolt of cotton.. High alch: 240 GP, GE limit: 13,000."
+description: "Bolt of cotton is a members crafting material spun from cotton balls used for high-tier tailoring. High alch: 240 GP, GE limit: 13,000."
 osrs:
   id: 31478
   name: Bolt of cotton
@@ -12,9 +12,47 @@ osrs:
   lowalch: 160
   highalch: 240
   limit: 13000
-  about: "Bolt of cotton is a members-only item in Old School RuneScape. High alchemy value: 240 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: cloth
+    tier: low
+  recipes:
+    - skill: crafting
+      level: 10
+      xp: 12
+      materials:
+        - item_name: Ball of wool
+          item_id: 1759
+          quantity: "4"
+      product: Bolt of cotton
+      product_id: 31478
+      output_quantity: 1
+      facility: Loom
+      members_only: true
+  related_items:
+    - item_id: 1781
+      item_name: Ball of wool
+      slug: ball-of-wool
+      relationship: component
+      description: Spun wool used to weave bolts of cotton on a loom
+    - item_id: 8790
+      item_name: Bolt of cloth
+      slug: bolt-of-cloth
+      relationship: alternative
+      description: Generic cloth crafting bolt
+  market_strategy:
+    notes:
+      - High GE limit (13,000) supports bulk crafting
+      - Used in tailoring and minigame uniforms
+      - Loom-bound recipe, cannot be made anywhere else
+  trading_tips:
+    - Buy in bulk to skill efficiently and resell offcuts
+    - Compare ball-of-wool input cost vs bolt resale margin
+  about: Bolt of cotton is a members crafting material woven on a loom from balls of wool, used as an input for higher-tier tailoring recipes.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  history:
+    - date: "2024-11-13"
+      description: Bolt of cotton added with the Varlamore tailoring content.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

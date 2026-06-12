@@ -12,16 +12,15 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 10000
-  item:
-    type: teleport_scroll
+  material:
+    type: teleport-scroll
+    tier: low
+  teleport:
     destination: Tai Bwo Wannai
-    tradeable: true
     stackable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard/Elite/Master
-        drop_rate: Varies by tier
+  treasure_trail:
+    tier: hard
+    description: Reward from hard, elite, or master clue scroll caskets
   related_items:
     - item_id: 12408
       item_name: Piscatoris teleport
@@ -52,8 +51,8 @@ osrs:
       - Useful for Karamja activities
       - Hardwood farming runs
       - Stock up for clue hunting
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

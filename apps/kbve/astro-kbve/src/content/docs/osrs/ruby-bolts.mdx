@@ -12,9 +12,62 @@ osrs:
   lowalch: 50
   highalch: 75
   limit: 11000
-  about: "Ruby bolts is a members-only item in Old School RuneScape. High alchemy value: 75 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Ruby bolts are adamantite crossbow bolts tipped with rubies. When enchanted via Enchant Crossbow Bolt (Ruby), they gain the Blood Forfeit special effect popular for high-HP bossing."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2006-05-15"
+    tradeable: true
+    equipable: true
+    stackable: true
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 0.0
+  material:
+    type: bolt
+    tier: mid
+  equipment:
+    slot: ammo
+    weight: 0.0
+    requirements:
+      ranged: 46
+    attack_bonus:
+      ranged: 63
+    other_bonus:
+      ranged_strength: 65
+  recipes:
+    - item_name: Ruby bolts
+      tools: []
+      materials:
+        - item_name: Adamant bolts
+          quantity: "10"
+        - item_name: Ruby bolt tips
+          quantity: "10"
+      output_quantity: 10
+      skill: fletching
+      level: 63
+      xp: 63
+      notes: "Attaching ruby bolt tips to adamant bolts in sets of ten."
+  related_items:
+    - item_name: Ruby bolts (e)
+      slug: ruby-bolts-e
+      relationship: upgrade
+      description: Enchanted variant with Blood Forfeit special effect.
+    - item_name: Adamant bolts
+      slug: adamant-bolts
+      relationship: component
+      description: Base bolt before ruby tips are attached.
+  market_strategy:
+    notes:
+      - "Demand driven by enchanters reselling Ruby bolts (e)."
+      - "Tracks ruby and adamant bolt supply cycles."
+  trading_tips:
+    - "Pair flips with Ruby bolt tips for combined margin."
+    - "Sell enchanted (e) variant for higher profit per cast."
+  history:
+    - date: "2006-05-15"
+      description: "Ruby bolts released with the crossbow Fletching update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

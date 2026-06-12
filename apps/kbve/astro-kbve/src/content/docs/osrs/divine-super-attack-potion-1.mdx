@@ -1,6 +1,6 @@
 ---
 title: Divine super attack potion(1) | OSRS Price Data
-description: "Divine super attack potion(1): 1 dose of divine super attack potion.. High alch: 24 GP, GE limit: 2,000."
+description: "Divine super attack potion(1) is a single-dose members potion granting boosted Attack with a divine immunity. High alch: 24 GP, GE limit: 2,000."
 osrs:
   id: 23706
   name: Divine super attack potion(1)
@@ -12,9 +12,70 @@ osrs:
   lowalch: 16
   highalch: 24
   limit: 2000
-  about: "Divine super attack potion(1) is a members-only item in Old School RuneScape. High alchemy value: 24 coins. Grand Exchange buy limit: 2,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: potion
+    tier: mid
+  potion:
+    doses: 1
+    type: combat
+    effects:
+      - name: Attack boost
+        description: Boosts Attack by 5 + 15% of base level, locked from further potion boosts.
+        duration: 300
+  herblore:
+    level: 78
+    xp: 80
+  recipes:
+    - skill: herblore
+      level: 78
+      xp: 80
+      materials:
+        - item_name: Super attack(4)
+          item_id: 145
+          quantity: "1"
+        - item_name: Ancient essence
+          item_id: 28924
+          quantity: "125"
+      product: Divine super attack potion(4)
+      product_id: 23694
+      output_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 23694
+      item_name: Divine super attack potion(4)
+      slug: divine-super-attack-potion-4
+      relationship: variant
+      description: 4-dose form
+    - item_id: 23700
+      item_name: Divine super attack potion(3)
+      slug: divine-super-attack-potion-3
+      relationship: variant
+      description: 3-dose form
+    - item_id: 23703
+      item_name: Divine super attack potion(2)
+      slug: divine-super-attack-potion-2
+      relationship: variant
+      description: 2-dose form
+    - item_id: 145
+      item_name: Super attack(4)
+      slug: super-attack-4
+      relationship: alternative
+      description: Non-divine equivalent
+  market_strategy:
+    notes:
+      - Single-dose typically less efficient than 4-dose for use
+      - Often the cheapest per-dose route from decanting
+      - Niche compared to divine super combat
+  trading_tips:
+    - Decant to higher doses for resale margin when spread allows
+    - Compare to plain super attack for activity-specific value
+  about: Divine super attack potion(1) is the single-dose form of the divine super attack potion, locking the player's Attack boost so other Attack potions cannot stack on top.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  history:
+    - date: "2018-01-04"
+      description: Divine super attack potion added to OSRS.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

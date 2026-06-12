@@ -12,18 +12,41 @@ osrs:
   lowalch: 1
   highalch: 1
   limit: 3000
+  about: "Bat bones give 5.3 Prayer XP when buried, a minor upgrade over regular bones (4.5 XP). Commonly obtained from bats across caves and dungeons."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2001-08-13"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Bury"
+    weight: 0.4
+  material:
+    type: bones
+    tier: low
   related_items:
     - item_id: 534
       item_name: Babydragon bones
       slug: babydragon-bones
-      relationship: variant
-      description: Higher tier bones
-  about: |-
-    > _"Ew it's a pile of bones."_
-
-    Bat bones give 5.3 Prayer XP when buried. A minor upgrade over regular bones (4.5 XP). Commonly obtained from bats in various caves and dungeons.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      relationship: upgrade
+      description: Higher tier bones with greater Prayer XP per bury.
+    - item_name: Bones
+      slug: bones
+      relationship: downgrade
+      description: Base bones with lower Prayer XP per bury.
+  market_strategy:
+    notes:
+      - "Low-cost Prayer training filler item."
+      - "Volume sells best to early-game Prayer trainers."
+  trading_tips:
+    - "Buy from bat-slayers and resell during double XP weekends."
+    - "Avoid stockpiling outside of XP events since demand resets quickly."
+  history:
+    - date: "2001-08-13"
+      description: "Bat bones released with the early bestiary expansion."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -1,6 +1,6 @@
 ---
 title: Maple bird house | OSRS Price Data
-description: "Maple bird house: Feed and catch the birds by placing this in the right spot.. High alch: 3 GP, GE limit: 250."
+description: "Maple bird house: Feed and catch the birds by placing this in the right spot. High alch: 3 GP, GE limit: 250."
 osrs:
   id: 22192
   name: Maple bird house
@@ -12,9 +12,67 @@ osrs:
   lowalch: 2
   highalch: 3
   limit: 250
-  about: "Maple bird house is a members-only item in Old School RuneScape. High alchemy value: 3 coins. Grand Exchange buy limit: 250 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  material:
+    type: trap
+    tier: mid
+  recipes:
+    - skill: crafting
+      level: 44
+      xp: 25
+      output_quantity: 1
+      materials:
+        - item_name: Maple logs
+          quantity: 10
+        - item_name: Clockwork
+          quantity: 1
+  related_items:
+    - item_name: Maple logs
+      slug: maple-logs
+      relationship: component
+      description: Logs required to craft the bird house.
+    - item_name: Clockwork
+      slug: clockwork
+      relationship: component
+      description: Mechanism required for every bird house tier.
+    - item_name: Yew bird house
+      slug: yew-bird-house
+      relationship: upgrade
+      description: Next bird house tier with higher Hunter XP.
+    - item_name: Teak bird house
+      slug: teak-bird-house
+      relationship: downgrade
+      description: Lower-tier bird house option.
+  market_strategy:
+    notes:
+      - Used in Fossil Island bird house trapping runs.
+      - Self-crafted by most Hunters; GE supply is mostly leftover stock.
+      - Each trip uses 4 bird houses placed on Fossil Island bird house spots.
+      - Hunter XP per house is 280 at level 44.
+  trading_tips:
+    - Buy below alch value as a low-risk flip in small volume.
+    - Demand is steady due to bird nest and clue scroll rolls from the trap.
+  about: |-
+    > _"Feed and catch the birds by placing this in the right spot."_
+
+    Mid-tier bird house used on Fossil Island bird house trapping circuits. Crafted from 10 maple logs and a clockwork at Crafting level 44, and baited with hop seeds or wildblood seeds to catch birds for feathers, bird nests, and Hunter XP.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2018-04-12"
+    tradeable: true
+    stackable: false
+    noteable: true
+    equipable: false
+    members: true
+    quest_item: false
+    options:
+      - Drop
+      - Examine
+    alchable: true
+    destroy: Drop
+  history:
+    - date: "2018-04-12"
+      description: Maple bird house released with the Fossil Island bird house trapping update.
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

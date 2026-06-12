@@ -56,9 +56,11 @@ resources:
     - n8n/application.yaml
     - rabbitmq/application.yaml
     - rows/tenants/overlays/chuckrpg-dev/application.yaml
+    - rows/tenants/overlays/chuckrpg-beta/application.yaml
     - agones/application.yaml
     - agones/rows/application.yaml
     - agones/rows-tenants/chuckrpg-dev/application.yaml
+    - agones/rows-tenants/chuckrpg-beta/application.yaml
     - agones/mc/application.yaml
     - agones/nd-server/application.yaml
     - agones/cryptothrone/application.yaml

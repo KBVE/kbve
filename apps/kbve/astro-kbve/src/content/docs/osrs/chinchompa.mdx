@@ -12,6 +12,11 @@ osrs:
   lowalch: 56
   highalch: 84
   limit: 7000
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: chinchompa
+    tier: mid
   equipment:
     slot: weapon
     type: chinchompa
@@ -23,15 +28,13 @@ osrs:
       attack_ranged: 45
   passive_effects:
     - name: Multi-Target
-      description: Explodes on impact, hits up to 11 targets in 3x3 area, stackable ammo, not recovered by Ava's
-  obtaining:
-    methods:
+      description: "Explodes on impact, hits up to 11 targets in 3x3 area, stackable ammo, not recovered by Ava's"
+  drop_table:
+    sources:
       - source: Box trapping
-        requirements:
-          hunter: 53
-        locations: Piscatoris, Kourend, Isle of Souls
-        xp: 198.4
-        quest: Eagles' Peak
+        quantity: "1"
+        rarity: Common
+        notes: "Hunter 53 at Piscatoris, Kourend, Isle of Souls; 198.4 xp per catch; requires Eagles' Peak"
   related_items:
     - item_id: 11959
       item_name: Black chinchompa
@@ -72,8 +75,10 @@ osrs:
       - Eagles' Peak required
       - Much cheaper than black
       - Lower XP rates
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  trading_tips:
+    - Eagles' Peak required
+    - Much cheaper than black
+    - Lower XP rates
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,42 @@ osrs:
   lowalch: 6
   highalch: 9
   limit: 13000
-  about: "Raw cave eel is a members-only item in Old School RuneScape. High alchemy value: 9 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Raw cave eel is caught at Lumbridge Swamp Caves and the Dorgeshuun mines using an oily fishing rod with fishing bait. Cooks into a cave eel for Cooking XP."
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  properties:
+    release_date: "2004-10-04"
+    tradeable: true
+    equipable: false
+    stackable: false
+    noteable: true
+    quest_item: false
+    destroy: "Drop"
+    weight: 1.0
+  material:
+    type: fish
+    tier: low
+  recipes:
+    - item_name: Cave eel
+      tools: ["Range or fire"]
+      materials:
+        - item_name: Raw cave eel
+          quantity: "1"
+      output_quantity: 1
+      skill: cooking
+      level: 38
+      xp: 115
+      notes: "Cooks into Cave eel; burn chance decreases with higher Cooking level."
+  market_strategy:
+    notes:
+      - "Niche cooking supply with low-volume market."
+      - "Sells best to ironmen training Cooking and Fishing alts."
+  trading_tips:
+    - "Buy from fishers and resell to cooks for small flips."
+    - "Stack large quantities slowly due to thin liquidity."
+  history:
+    - date: "2004-10-04"
+      description: "Raw cave eel released with the Lumbridge Swamp Caves update."
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
