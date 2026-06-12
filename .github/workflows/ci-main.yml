@@ -526,6 +526,12 @@ jobs:
                     dotnet=$(echo "$entry" | jq -r '.engine.dotnet_enabled // false')
                     lic=$(echo "$entry" | jq -r '.engine.license_method // empty')
                     ext_repo=$(echo "$entry" | jq -r '.engine.external_repo_url // empty')
+                    ext_ref=$(echo "$entry" | jq -r '.engine.external_repo_ref // empty')
+                    srv_target=$(echo "$entry" | jq -r '.engine.server_target // empty')
+                    srv_config=$(echo "$entry" | jq -r '.engine.server_config // empty')
+                    cli_config=$(echo "$entry" | jq -r '.engine.client_config // empty')
+                    game_mode=$(echo "$entry" | jq -r '.engine.game_mode // empty')
+                    maps=$(echo "$entry" | jq -c '.engine.maps // []')
                     itch_user=$(echo "$entry" | jq -r '.external_publish.itch_user // empty')
                     itch_game=$(echo "$entry" | jq -r '.external_publish.itch_game // empty')
                     deploy_itch="false"
@@ -561,6 +567,12 @@ jobs:
                     [ "$features" != "[]" ] && extra="$extra --field features=${features}"
                     [ -n "$lic" ] && extra="$extra --field license_method=${lic}"
                     [ -n "$ext_repo" ] && extra="$extra --field external_repo_url=${ext_repo}"
+                    [ -n "$ext_ref" ] && extra="$extra --field external_repo_ref=${ext_ref}"
+                    [ -n "$srv_target" ] && extra="$extra --field server_target=${srv_target}"
+                    [ -n "$srv_config" ] && extra="$extra --field server_config=${srv_config}"
+                    [ -n "$cli_config" ] && extra="$extra --field client_config=${cli_config}"
+                    [ -n "$game_mode" ] && extra="$extra --field game_mode=${game_mode}"
+                    [ "$maps" != "[]" ] && extra="$extra --field maps=${maps}"
                     [ "$dotnet" = "true" ] && extra="$extra --field dotnet_enabled=true"
                     extra="$extra --field deploy_to_itch=${deploy_itch}"
                     [ -n "$itch_user" ] && extra="$extra --field itch_user=${itch_user}"

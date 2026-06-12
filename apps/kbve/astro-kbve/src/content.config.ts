@@ -127,6 +127,16 @@ const ProjectSchemaWithEngine = ICiProjectSchema.extend({
 			test_args: z.array(z.string().max(256)).max(50).optional(),
 			features: z.array(z.string().min(1).max(64)).max(50).optional(),
 			external_repo_url: z.string().url().max(512).optional(),
+			external_repo_ref: z.string().min(1).max(128).optional(),
+			server_target: z.string().min(1).max(128).optional(),
+			server_config: z
+				.enum(['Development', 'Shipping', 'Test', 'DebugGame', 'Debug'])
+				.optional(),
+			client_config: z
+				.enum(['Development', 'Shipping', 'Test', 'DebugGame', 'Debug'])
+				.optional(),
+			maps: z.array(z.string().min(1).max(128)).max(50).optional(),
+			game_mode: z.string().min(1).max(256).optional(),
 		})
 		.optional(),
 	external_publish: ExternalPublishInline,
