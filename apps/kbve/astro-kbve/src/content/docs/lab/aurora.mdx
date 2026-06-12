@@ -18,14 +18,29 @@ import SpotlightCard from '@kbve/astro/components/hero/aurora/SpotlightCard.astr
 import StatRibbon from '@kbve/astro/components/hero/aurora/StatRibbon.astro';
 
 <AuroraHero
+    id="kbve-hero"
     eyebrow="KBVE"
     title="Build, ship, play."
     tagline="A kilobyte-scale virtual enterprise — a studio, an open-source collective, and a hosting platform for community projects.">
-    <AuroraButton href="/projects/">Explore projects</AuroraButton>
-    <AuroraButton href="/github/" variant="ghost">Star on GitHub</AuroraButton>
+    <AuroraButton
+        id="kbve-hero-cta-projects"
+        href="/projects/"
+        ariaLabel="Explore KBVE projects">
+        Explore projects
+    </AuroraButton>
+    <AuroraButton
+        id="kbve-hero-cta-github"
+        href="/github/"
+        variant="ghost"
+        icon="spark"
+        ariaLabel="Star KBVE on GitHub">
+        Star on GitHub
+    </AuroraButton>
 </AuroraHero>
 
 <StatRibbon
+    id="kbve-stats"
+    ariaLabel="KBVE community statistics"
     stats={[
         { value: '500+', label: 'Community members' },
         { value: '100+', label: 'Open-source repos' },
@@ -34,28 +49,49 @@ import StatRibbon from '@kbve/astro/components/hero/aurora/StatRibbon.astro';
     ]}
 />
 
-<BentoGrid heading="What we ship" tagline="Four lanes that loop forever.">
+<BentoGrid
+    id="kbve-ship"
+    heading="What we ship"
+    tagline="Four lanes that loop forever.">
     <BentoCard
+        id="kbve-ship-services"
         title="Services"
         eyebrow="For teams"
         description="Custom software, automation, managed game-server hosting."
         href="/service/"
         span="big"
         accent="#06b6d4"
-    />
+        ariaLabel="Services — custom software, automation, managed game-server hosting">
+        <svg
+            slot="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+            <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+            <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+            <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
+        </svg>
+    </BentoCard>
     <BentoCard
+        id="kbve-ship-features"
         title="Features"
         description="Live platform features powering the community."
         href="/feature/"
         accent="#a855f7"
     />
     <BentoCard
+        id="kbve-ship-github"
         title="GitHub"
         description="Open-source repos and top contributors."
         href="/github/"
         accent="#c9a56a"
     />
     <BentoCard
+        id="kbve-ship-projects"
         title="Projects"
         eyebrow="Studio"
         description="Games, tools, libraries — built in the open."
@@ -65,20 +101,26 @@ import StatRibbon from '@kbve/astro/components/hero/aurora/StatRibbon.astro';
     />
 </BentoGrid>
 
-<BentoGrid heading="Spotlight" tagline="Cursor-follow glow, pointer-fine only.">
+<BentoGrid
+    id="kbve-spotlight"
+    heading="Spotlight"
+    tagline="Cursor-follow glow, pointer-fine only.">
     <SpotlightCard
+        id="kbve-spot-rareicon"
         title="Rareicon"
         description="2D sci-fi action-RPG bullet-hell roguelite. Chip vs DaemonCorps."
         href="/projects/"
         accent="#06b6d4"
     />
     <SpotlightCard
+        id="kbve-spot-chuckrpg"
         title="ChuckRPG"
         description="UE5 open-world experiment with Mass ECS slimes."
         href="/projects/"
         accent="#a855f7"
     />
     <SpotlightCard
+        id="kbve-spot-discordsh"
         title="Discord.sh"
         description="Community tooling and bot infrastructure."
         href="/feature/"

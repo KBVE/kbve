@@ -4,6 +4,9 @@ interface Props {
 	description?: string;
 	href?: string;
 	accent?: string;
+	id?: string;
+	ariaLabel?: string;
+	xData?: string;
 }
 
 const {
@@ -11,6 +14,9 @@ const {
 	description,
 	href,
 	accent = 'var(--sl-color-accent, #6366f1)',
+	id,
+	ariaLabel,
+	xData,
 } = Astro.props;
 
 const Tag = href ? 'a' : 'div';
@@ -19,8 +25,11 @@ const Tag = href ? 'a' : 'div';
 <Tag
 	class="asc"
 	href={href}
+	id={id}
+	aria-label={ariaLabel}
 	style={`--asc-accent: ${accent};`}
-	{...href ? { 'data-astro-prefetch': true } : {}}>
+	{...href ? { 'data-astro-prefetch': true } : {}}
+	{...xData ? { 'x-data': xData } : {}}>
 	<span class="asc__spot" aria-hidden="true"></span>
 	<span class="asc__edge" aria-hidden="true"></span>
 	<div class="asc__body">
@@ -81,6 +90,12 @@ const Tag = href ? 'a' : 'div';
 			transparent
 		);
 		backdrop-filter: blur(14px);
+		transition: border-color 0.3s ease;
+	}
+
+	.asc:hover,
+	.asc:focus-visible {
+		border-color: color-mix(in srgb, var(--asc-accent) 35%, transparent);
 	}
 
 	.asc__spot {
@@ -144,6 +159,7 @@ const Tag = href ? 'a' : 'div';
 	}
 
 	@media (prefers-reduced-motion: reduce) {
+		.asc,
 		.asc__spot,
 		.asc__edge {
 			transition: none;

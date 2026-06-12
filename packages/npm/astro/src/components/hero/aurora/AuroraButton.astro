@@ -3,25 +3,71 @@ interface Props {
 	href: string;
 	variant?: 'primary' | 'ghost';
 	accent?: string;
+	icon?: 'arrow' | 'spark' | 'none';
+	id?: string;
+	ariaLabel?: string;
+	xData?: string;
 }
 
 const {
 	href,
 	variant = 'primary',
 	accent = 'var(--sl-color-accent, #6366f1)',
+	icon = 'arrow',
+	id,
+	ariaLabel,
+	xData,
 } = Astro.props;
 ---
 
 <a
 	class:list={['abtn', `abtn--${variant}`]}
 	href={href}
+	id={id}
+	aria-label={ariaLabel}
 	style={`--abtn-accent: ${accent};`}
-	data-astro-prefetch>
-	<slot />
+	data-astro-prefetch
+	{...xData ? { 'x-data': xData } : {}}>
+	<span class="abtn__shine" aria-hidden="true"></span>
+	<span class="abtn__label"><slot /></span>
+	{
+		icon === 'arrow' && (
+			<svg
+				class="abtn__icon abtn__icon--arrow"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2.25"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true">
+				<line
+					class="abtn__arrow-shaft"
+					x1="4"
+					y1="12"
+					x2="19"
+					y2="12"
+				/>
+				<polyline class="abtn__arrow-head" points="13 6 19 12 13 18" />
+			</svg>
+		)
+	}
+	{
+		icon === 'spark' && (
+			<svg
+				class="abtn__icon abtn__icon--spark"
+				viewBox="0 0 24 24"
+				fill="currentColor"
+				aria-hidden="true">
+				<path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4L12 2z" />
+			</svg>
+		)
+	}
 </a>
 
 <style>
 	.abtn {
+		position: relative;
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
@@ -30,15 +76,71 @@ const {
 		font-size: 0.95rem;
 		font-weight: 600;
 		text-decoration: none;
+		overflow: hidden;
+		isolation: isolate;
 		transition:
-			background 0.25s ease,
 			border-color 0.25s ease,
-			transform 0.25s ease;
+			box-shadow 0.25s ease;
 	}
 
-	.abtn:hover,
-	.abtn:focus-visible {
-		transform: translateY(-1px);
+	.abtn__shine {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: linear-gradient(
+			105deg,
+			transparent 40%,
+			color-mix(in srgb, var(--sl-color-white, #fff) 30%, transparent) 50%,
+			transparent 60%
+		);
+		transform: translateX(-150%);
+	}
+
+	.abtn:hover .abtn__shine,
+	.abtn:focus-visible .abtn__shine {
+		transform: translateX(150%);
+		transition: transform 0.65s ease;
+	}
+
+	.abtn__label {
+		display: inline-flex;
+		align-items: center;
+	}
+
+	.abtn__icon {
+		width: 1em;
+		height: 1em;
+		flex: none;
+	}
+
+	.abtn__arrow-shaft {
+		stroke-dasharray: 15;
+		stroke-dashoffset: 15;
+		transition: stroke-dashoffset 0.3s ease;
+	}
+
+	.abtn__arrow-head {
+		transform: translateX(-4px);
+		transition: transform 0.3s ease;
+	}
+
+	.abtn:hover .abtn__arrow-shaft,
+	.abtn:focus-visible .abtn__arrow-shaft {
+		stroke-dashoffset: 0;
+	}
+
+	.abtn:hover .abtn__arrow-head,
+	.abtn:focus-visible .abtn__arrow-head {
+		transform: translateX(0);
+	}
+
+	.abtn__icon--spark {
+		transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+
+	.abtn:hover .abtn__icon--spark,
+	.abtn:focus-visible .abtn__icon--spark {
+		transform: rotate(90deg) scale(1.25);
 	}
 
 	.abtn--primary {
@@ -54,7 +156,13 @@ const {
 		);
 		border: 1px solid transparent;
 		box-shadow: 0 8px 24px -8px
-			color-mix(in srgb, var(--abtn-accent) 60%, transparent);
+			color-mix(in srgb, var(--abtn-accent) 50%, transparent);
+	}
+
+	.abtn--primary:hover,
+	.abtn--primary:focus-visible {
+		box-shadow: 0 10px 32px -8px
+			color-mix(in srgb, var(--abtn-accent) 75%, transparent);
 	}
 
 	.abtn--ghost {
@@ -72,16 +180,22 @@ const {
 	.abtn--ghost:hover,
 	.abtn--ghost:focus-visible {
 		border-color: color-mix(in srgb, var(--abtn-accent) 60%, transparent);
+		box-shadow: 0 6px 20px -10px
+			color-mix(in srgb, var(--abtn-accent) 50%, transparent);
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.abtn {
+		.abtn,
+		.abtn__shine,
+		.abtn__arrow-shaft,
+		.abtn__arrow-head,
+		.abtn__icon--spark {
 			transition: none;
 		}
 
-		.abtn:hover,
-		.abtn:focus-visible {
-			transform: none;
+		.abtn:hover .abtn__shine,
+		.abtn:focus-visible .abtn__shine {
+			transform: translateX(-150%);
 		}
 	}
 </style>

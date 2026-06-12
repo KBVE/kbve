@@ -2,13 +2,27 @@
 interface Props {
 	heading?: string;
 	tagline?: string;
+	id?: string;
+	xData?: string;
 }
 
-const { heading, tagline } = Astro.props;
+const { heading, tagline, id, xData } = Astro.props;
+
+const headingId = id && heading ? `${id}-heading` : undefined;
 ---
 
-<section class="abg not-content">
-	{heading && <h2 class="abg__heading">{heading}</h2>}
+<section
+	class="abg not-content"
+	id={id}
+	aria-labelledby={headingId}
+	{...xData ? { 'x-data': xData } : {}}>
+	{
+		heading && (
+			<h2 class="abg__heading" id={headingId}>
+				{heading}
+			</h2>
+		)
+	}
 	{tagline && <p class="abg__tagline">{tagline}</p>}
 	<div class="abg__grid">
 		<slot />

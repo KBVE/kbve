@@ -7,15 +7,31 @@ interface Stat {
 interface Props {
 	stats: Stat[];
 	accent?: string;
+	id?: string;
+	ariaLabel?: string;
+	xData?: string;
 }
 
-const { stats, accent = 'var(--sl-color-accent, #6366f1)' } = Astro.props;
+const {
+	stats,
+	accent = 'var(--sl-color-accent, #6366f1)',
+	id,
+	ariaLabel = 'Key statistics',
+	xData,
+} = Astro.props;
 ---
 
-<div class="asr not-content" style={`--asr-accent: ${accent};`}>
+<div
+	class="asr not-content"
+	id={id}
+	role="group"
+	aria-label={ariaLabel}
+	style={`--asr-accent: ${accent};`}
+	{...xData ? { 'x-data': xData } : {}}>
 	{
 		stats.map((stat) => (
 			<div class="asr__stat">
+				<span class="asr__rule" aria-hidden="true" />
 				<span class="asr__num" data-asr-value={stat.value}>
 					{stat.value}
 				</span>
@@ -94,7 +110,7 @@ const { stats, accent = 'var(--sl-color-accent, #6366f1)' } = Astro.props;
 	.asr__stat {
 		display: flex;
 		flex-direction: column;
-		gap: 0.25rem;
+		gap: 0.35rem;
 		padding: 1.25rem 1.5rem;
 		border-radius: 1rem;
 		border: 1px solid
@@ -105,6 +121,22 @@ const { stats, accent = 'var(--sl-color-accent, #6366f1)' } = Astro.props;
 			transparent
 		);
 		backdrop-filter: blur(10px);
+		transition: border-color 0.25s ease;
+	}
+
+	.asr__stat:hover {
+		border-color: color-mix(in srgb, var(--asr-accent) 40%, transparent);
+	}
+
+	.asr__rule {
+		width: 1.75rem;
+		height: 2px;
+		border-radius: 999px;
+		background: linear-gradient(
+			90deg,
+			var(--asr-accent),
+			color-mix(in srgb, var(--asr-accent) 20%, transparent)
+		);
 	}
 
 	.asr__num {
@@ -124,6 +156,13 @@ const { stats, accent = 'var(--sl-color-accent, #6366f1)' } = Astro.props;
 
 	.asr__label {
 		font-size: 0.85rem;
+		letter-spacing: 0.02em;
 		color: var(--sl-color-gray-3, #8b949e);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.asr__stat {
+			transition: none;
+		}
 	}
 </style>

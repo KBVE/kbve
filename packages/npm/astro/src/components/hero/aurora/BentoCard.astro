@@ -6,6 +6,9 @@ interface Props {
 	eyebrow?: string;
 	span?: 'wide' | 'tall' | 'big';
 	accent?: string;
+	id?: string;
+	ariaLabel?: string;
+	xData?: string;
 }
 
 const {
@@ -15,6 +18,9 @@ const {
 	eyebrow,
 	span,
 	accent = 'var(--sl-color-accent, #6366f1)',
+	id,
+	ariaLabel,
+	xData,
 } = Astro.props;
 
 const Tag = href ? 'a' : 'div';
@@ -23,11 +29,20 @@ const Tag = href ? 'a' : 'div';
 <Tag
 	class:list={['abc', span && `abc--${span}`]}
 	href={href}
+	id={id}
+	aria-label={ariaLabel}
 	style={`--abc-accent: ${accent};`}
-	{...href ? { 'data-astro-prefetch': true } : {}}>
+	{...href ? { 'data-astro-prefetch': true } : {}}
+	{...xData ? { 'x-data': xData } : {}}>
+	<span class="abc__edge" aria-hidden="true"></span>
 	<span class="abc__glow" aria-hidden="true"></span>
 	<div class="abc__body">
-		{eyebrow && <p class="abc__eyebrow">{eyebrow}</p>}
+		<div class="abc__head">
+			<span class="abc__icon">
+				<slot name="icon" />
+			</span>
+			{eyebrow && <p class="abc__eyebrow">{eyebrow}</p>}
+		</div>
 		<h3 class="abc__title">{title}</h3>
 		{description && <p class="abc__desc">{description}</p>}
 		<div class="abc__media">
@@ -72,13 +87,14 @@ const Tag = href ? 'a' : 'div';
 		backdrop-filter: blur(14px);
 		transition:
 			border-color 0.25s ease,
-			transform 0.25s ease;
+			box-shadow 0.25s ease;
 	}
 
 	a.abc:hover,
 	a.abc:focus-visible {
 		border-color: color-mix(in srgb, var(--abc-accent) 55%, transparent);
-		transform: translateY(-2px);
+		box-shadow: 0 12px 32px -16px
+			color-mix(in srgb, var(--abc-accent) 55%, transparent);
 	}
 
 	.abc--wide {
@@ -106,6 +122,25 @@ const Tag = href ? 'a' : 'div';
 		}
 	}
 
+	.abc__edge {
+		position: absolute;
+		inset: 0 0 auto;
+		height: 1px;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			color-mix(in srgb, var(--abc-accent) 65%, transparent) 50%,
+			transparent
+		);
+		opacity: 0.6;
+		transition: opacity 0.25s ease;
+	}
+
+	a.abc:hover .abc__edge,
+	a.abc:focus-visible .abc__edge {
+		opacity: 1;
+	}
+
 	.abc__glow {
 		position: absolute;
 		inset: 0;
@@ -129,6 +164,32 @@ const Tag = href ? 'a' : 'div';
 		flex-direction: column;
 		gap: 0.5rem;
 		height: 100%;
+	}
+
+	.abc__head {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+	}
+
+	.abc__head:not(:has(*)) {
+		display: none;
+	}
+
+	.abc__icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--abc-accent);
+	}
+
+	.abc__icon:empty {
+		display: none;
+	}
+
+	.abc__icon :global(svg) {
+		width: 1.5rem;
+		height: 1.5rem;
 	}
 
 	.abc__eyebrow {
@@ -190,14 +251,10 @@ const Tag = href ? 'a' : 'div';
 
 	@media (prefers-reduced-motion: reduce) {
 		.abc,
+		.abc__edge,
 		.abc__glow,
 		.abc__arrow {
 			transition: none;
-		}
-
-		a.abc:hover,
-		a.abc:focus-visible {
-			transform: none;
 		}
 	}
 </style>
