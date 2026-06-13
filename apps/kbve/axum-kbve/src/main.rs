@@ -171,7 +171,7 @@ async fn main() -> anyhow::Result<()> {
         warn!("Forgejo proxy not configured (FORGEJO_UPSTREAM_URL not set)");
     }
 
-    if transport::proxy::init_forgejo_api() {
+    if transport::forgejo_api::init_forgejo_api() {
         info!("Forgejo typed API initialized - /dashboard/forgejo/api/* enabled");
     }
 
