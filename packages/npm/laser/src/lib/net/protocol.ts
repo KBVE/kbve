@@ -106,6 +106,7 @@ export interface CombatEvent {
 	target_ref: string | null;
 	dmg: number;
 	died: boolean;
+	crit?: boolean;
 }
 
 export interface PickupEvent {

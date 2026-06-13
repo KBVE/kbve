@@ -98,6 +98,8 @@ export class CloudCityScene extends Scene {
 	private fpsAt = 0;
 	private lastPosKey = '';
 	private currentZone = '';
+	private heartbeatTimer = 0;
+	private lastAutoPickup = 0;
 	private prevLevel = -1;
 	private prevXp = -1;
 	private hoverThrottle = 0;
@@ -179,6 +181,7 @@ export class CloudCityScene extends Scene {
 		this.events.once('shutdown', () => {
 			window.clearTimeout(this.slowTimer);
 			window.clearTimeout(this.reconnectTimer);
+			window.clearInterval(this.heartbeatTimer);
 			this.laserUnsubs.forEach((off) => off());
 			this.laserUnsubs = [];
 			this.netTerminal = true;
@@ -221,8 +224,12 @@ export class CloudCityScene extends Scene {
 			laserEvents.emit('combat:event', c);
 			this.showFloatingText(
 				c.target,
-				`-${c.dmg}`,
-				c.target === this.myEid ? '#f87171' : '#fbbf24',
+				c.crit ? `CRIT ${c.dmg}!` : `-${c.dmg}`,
+				c.crit
+					? '#fb7185'
+					: c.target === this.myEid
+						? '#f87171'
+						: '#fbbf24',
 			);
 			this.flashSprite(c.target);
 			if (c.died && c.target === this.myEid) {
@@ -329,6 +336,23 @@ export class CloudCityScene extends Scene {
 			}
 		}, 8000);
 		client.connect();
+
+		this.heartbeatTimer = window.setInterval(() => {
+			this.client?.heartbeat();
+		}, 20000);
+
+		// Camera zoom: +/- keys and mouse wheel, clamped.
+		const zoom = (delta: number) => {
+			const cam = this.cameras.main;
+			cam.setZoom(Phaser.Math.Clamp(cam.zoom + delta, 0.6, 2.2));
+		};
+		this.input.keyboard?.on('keydown-PLUS', () => zoom(0.2));
+		this.input.keyboard?.on('keydown-MINUS', () => zoom(-0.2));
+		this.input.on(
+			'wheel',
+			(_p: unknown, _o: unknown, _dx: number, dy: number) =>
+				zoom(dy > 0 ? -0.15 : 0.15),
+		);
 	}
 
 	private makeGroundItemTexture() {
@@ -844,10 +868,26 @@ export class CloudCityScene extends Scene {
 		return 'The Wilds';
 	}
 
+	private autoPickup(time: number) {
+		if (!this.client || this.myEid < 0 || time - this.lastAutoPickup < 300)
+			return;
+		const me = this.myTile();
+		if (!me) return;
+		for (const [eid, t] of this.tracked) {
+			if (this.kindCat(t.kind) !== KIND_CAT_ITEM) continue;
+			if (this.chebyshev(me, t.tile) <= 1) {
+				this.lastAutoPickup = time;
+				this.client.action(ACTION_PICKUP, eid);
+				return;
+			}
+		}
+	}
+
 	update(time: number) {
 		if (!this.client) return;
 		this.updateHpBars();
 		this.updateOverlays(time);
+		this.autoPickup(time);
 
 		if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
 			this.attackNearby();
