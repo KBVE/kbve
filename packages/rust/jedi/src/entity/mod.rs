@@ -3,6 +3,8 @@ pub mod bitwise;
 pub mod envelope;
 pub mod error;
 pub mod flex;
+#[cfg(feature = "forgejo")]
+pub mod forgejo;
 pub mod github;
 pub mod hash;
 pub mod pipe;

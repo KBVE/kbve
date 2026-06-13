@@ -37,6 +37,9 @@ public:
 	bool bPauseWhenOffscreen;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|WebSurface|Perf", meta = (ClampMin = "0"))
+	float SnapshotWarmupSeconds;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|WebSurface|Perf", meta = (ClampMin = "0"))
 	float SnapshotDistance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|WebSurface|Bridge")
@@ -80,6 +83,8 @@ private:
 
 	EKBVEWebSurfaceState State = EKBVEWebSurfaceState::Inactive;
 	float RedrawAccumulator = 0.f;
+	float WarmupRemaining = 0.f;
+	bool  bHasLoadedURL = false;
 
 	UWebBrowser* ResolveBrowser();
 	void EnsureBridge();

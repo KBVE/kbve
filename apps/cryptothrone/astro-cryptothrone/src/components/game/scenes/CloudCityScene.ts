@@ -63,6 +63,7 @@ export class CloudCityScene extends Scene {
 	private nearbyHostiles = 0;
 	private slowTimer = 0;
 	private netReady = false;
+	private netTerminal = false;
 	private rosterKey = '';
 	private laserUnsubs: (() => void)[] = [];
 
@@ -179,14 +180,16 @@ export class CloudCityScene extends Scene {
 		});
 		client.on('reject', (reason) => {
 			window.clearTimeout(this.slowTimer);
+			this.netTerminal = true;
 			laserEvents.emit('net:status', {
 				status: 'rejected',
 				detail: `The server turned you away: ${reason}`,
 			});
 		});
 		client.on('error', () => {
-			if (this.netReady) return;
+			if (this.netReady || this.netTerminal) return;
 			window.clearTimeout(this.slowTimer);
+			this.netTerminal = true;
 			laserEvents.emit('net:status', {
 				status: 'error',
 				detail: 'Could not reach the game server. Check your connection and try again.',
@@ -194,6 +197,7 @@ export class CloudCityScene extends Scene {
 		});
 		client.on('close', () => {
 			window.clearTimeout(this.slowTimer);
+			if (this.netTerminal) return;
 			laserEvents.emit('net:status', {
 				status: 'disconnected',
 				detail: this.netReady

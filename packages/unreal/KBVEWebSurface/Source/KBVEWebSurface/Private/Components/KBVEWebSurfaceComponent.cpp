@@ -19,6 +19,7 @@ UKBVEWebSurfaceComponent::UKBVEWebSurfaceComponent()
 	MaxFrameRate = 30;
 	bPauseWhenOffscreen = true;
 	SnapshotDistance = 0.f;
+	SnapshotWarmupSeconds = 1.0f;
 	BridgeName = TEXT("kbveBridge");
 
 	SetWidgetSpace(EWidgetSpace::World);
@@ -100,6 +101,19 @@ void UKBVEWebSurfaceComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 		TransitionTo(EKBVEWebSurfaceState::Live);
 	}
 
+	// Skip snapshots until a page has been navigated and given time to spin up its
+	// web-content process + first paint. Snapshotting a blank/not-ready WKWebView is
+	// what makes macOS log "takeSnapshotWithConfiguration errored with NSError 1".
+	if (!bHasLoadedURL)
+	{
+		return;
+	}
+	if (WarmupRemaining > 0.f)
+	{
+		WarmupRemaining -= DeltaTime;
+		return;
+	}
+
 	const float FrameInterval = 1.f / FMath::Max(1, MaxFrameRate);
 	RedrawAccumulator += DeltaTime;
 	if (RedrawAccumulator >= FrameInterval)
@@ -121,6 +135,9 @@ void UKBVEWebSurfaceComponent::LoadURL(const FString& URL)
 	{
 		EnsureBridge();
 		Browser->LoadURL(URL);
+		bHasLoadedURL = true;
+		WarmupRemaining = SnapshotWarmupSeconds;
+		RedrawAccumulator = 0.f;
 	}
 }
 

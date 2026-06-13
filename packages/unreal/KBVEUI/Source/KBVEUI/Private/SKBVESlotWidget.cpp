@@ -78,6 +78,7 @@ FReply SKBVESlotWidget::OnMouseButtonDown(const FGeometry& Geometry, const FPoin
 		return FReply::Unhandled();
 	}
 	const bool bFilled = OnIsFilled.IsBound() ? OnIsFilled.Execute() : false;
+	UE_LOG(LogTemp, Display, TEXT("[KBVESlot] MouseDown dom=%s idx=%d filled=%d"), *DragDomain.ToString(), SlotIndex, bFilled ? 1 : 0);
 	if (bFilled && !DragDomain.IsNone())
 	{
 		return FReply::Handled().DetectDrag(SharedThis(this), EKeys::LeftMouseButton);

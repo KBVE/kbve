@@ -22,7 +22,7 @@ struct FchuckInventoryFragment : public FMassFragment
 	GENERATED_BODY()
 
 	static constexpr int32 BagCapacity    = 24;
-	static constexpr int32 HotbarCapacity = 10;
+	static constexpr int32 HotbarCapacity = 24;
 
 	FchuckInventorySlotPOD Bag[BagCapacity];
 	FchuckInventorySlotPOD Hotbar[HotbarCapacity];

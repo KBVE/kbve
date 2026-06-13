@@ -61,11 +61,11 @@ void AchuckMenuPlayerController::BeginPlay()
 
 	if (UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr)
 	{
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), MenuWidget.ToSharedRef(),    10);
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), AccountWidget.ToSharedRef(), 40);
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), LoginWidget.ToSharedRef(),   45);
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), CharSelectWidget.ToSharedRef(), 50);
-		Viewport->AddViewportWidgetForPlayer(GetLocalPlayer(), LoadingWidget.ToSharedRef(), 60);
+		Viewport->AddViewportWidgetContent(MenuWidget.ToSharedRef(),    10);
+		Viewport->AddViewportWidgetContent(AccountWidget.ToSharedRef(), 40);
+		Viewport->AddViewportWidgetContent(LoginWidget.ToSharedRef(),   45);
+		Viewport->AddViewportWidgetContent(CharSelectWidget.ToSharedRef(), 50);
+		Viewport->AddViewportWidgetContent(LoadingWidget.ToSharedRef(), 60);
 	}
 
 	if (UGameInstance* GI = GetGameInstance())
@@ -162,22 +162,22 @@ void AchuckMenuPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReaso
 	UGameViewportClient* Viewport = GetWorld() ? GetWorld()->GetGameViewport() : nullptr;
 	if (LoginWidget.IsValid())
 	{
-		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), LoginWidget.ToSharedRef());
+		if (Viewport) Viewport->RemoveViewportWidgetContent(LoginWidget.ToSharedRef());
 		LoginWidget.Reset();
 	}
 	if (AccountWidget.IsValid())
 	{
-		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), AccountWidget.ToSharedRef());
+		if (Viewport) Viewport->RemoveViewportWidgetContent(AccountWidget.ToSharedRef());
 		AccountWidget.Reset();
 	}
 	if (LoadingWidget.IsValid())
 	{
-		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), LoadingWidget.ToSharedRef());
+		if (Viewport) Viewport->RemoveViewportWidgetContent(LoadingWidget.ToSharedRef());
 		LoadingWidget.Reset();
 	}
 	if (MenuWidget.IsValid())
 	{
-		if (Viewport) Viewport->RemoveViewportWidgetForPlayer(GetLocalPlayer(), MenuWidget.ToSharedRef());
+		if (Viewport) Viewport->RemoveViewportWidgetContent(MenuWidget.ToSharedRef());
 		MenuWidget.Reset();
 	}
 	Super::EndPlay(EndPlayReason);

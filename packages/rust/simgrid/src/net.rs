@@ -327,12 +327,16 @@ async fn claim_slot(
     kbve_username: String,
     format: WireFormat,
 ) -> Option<AdmittedPlayer> {
+    let name = kbve_username.clone();
     let slot = match state.roster.write() {
         Ok(mut r) => r.claim(kbve_username),
         Err(_) => None,
     };
     match slot {
-        Some(slot) => Some(AdmittedPlayer { slot, format }),
+        Some(slot) => {
+            tracing::info!(slot = slot.0, username = %name, "player joined");
+            Some(AdmittedPlayer { slot, format })
+        }
         None => {
             send_reject(socket, format, "match full").await;
             None
@@ -341,6 +345,7 @@ async fn claim_slot(
 }
 
 async fn send_reject(socket: &mut WebSocket, format: WireFormat, reason: &str) {
+    tracing::info!(reason, "join rejected");
     let evt = ServerEvent::Reject {
         reason: reason.to_string(),
     };
