@@ -15,6 +15,7 @@ import type {
 	Dir,
 	Snapshot,
 	KindEntry,
+	ConnectionState,
 } from '@kbve/laser';
 import { getCtNetConfig } from '@/lib/net-config';
 import { getNPCByRef, npcIdForRef, isHostileRef } from '../data/npcs';
@@ -112,10 +113,8 @@ export class CloudCityScene extends Scene {
 	private myMaxHp = -1;
 	private nearbyHostiles = 0;
 	private slowTimer = 0;
-	private reconnectTimer = 0;
 	private netReady = false;
 	private netTerminal = false;
-	private reconnectAttempts = 0;
 	private rosterKey = '';
 	private pendingAction: PendingAction | null = null;
 	private fpsFrames = 0;
@@ -249,7 +248,6 @@ export class CloudCityScene extends Scene {
 
 		this.events.once('shutdown', () => {
 			window.clearTimeout(this.slowTimer);
-			window.clearTimeout(this.reconnectTimer);
 			window.clearInterval(this.heartbeatTimer);
 			this.laserUnsubs.forEach((off) => off());
 			this.laserUnsubs = [];
@@ -268,12 +266,8 @@ export class CloudCityScene extends Scene {
 			kbveUsername: cfg.username,
 		});
 		this.client = client;
-		client.on('open', () => {
-			laserEvents.emit('net:status', { status: 'connected' });
-		});
 		client.on('welcome', (w) => {
 			this.netReady = true;
-			this.reconnectAttempts = 0;
 			window.clearTimeout(this.slowTimer);
 			laserEvents.emit('net:status', { status: 'ready' });
 			this.mySlot = w.your_slot;
@@ -358,47 +352,7 @@ export class CloudCityScene extends Scene {
 				detail: `The server turned you away: ${reason}`,
 			});
 		});
-		client.on('error', () => {
-			if (this.netReady || this.netTerminal) return;
-			window.clearTimeout(this.slowTimer);
-			this.netTerminal = true;
-			laserEvents.emit('net:status', {
-				status: 'error',
-				detail: 'Could not reach the game server. Check your connection and try again.',
-			});
-		});
-		client.on('close', () => {
-			window.clearTimeout(this.slowTimer);
-			if (this.netTerminal) return;
-			const wasReady = this.netReady;
-			this.netReady = false;
-			if (wasReady && this.reconnectAttempts < 3) {
-				this.reconnectAttempts += 1;
-				const attempt = this.reconnectAttempts;
-				laserEvents.emit('net:status', {
-					status: 'reconnecting',
-					detail: `Connection dropped — reconnecting (attempt ${attempt}/3)…`,
-				});
-				this.reconnectTimer = window.setTimeout(
-					() => this.connectClient(),
-					1500 * 2 ** (attempt - 1),
-				);
-				return;
-			}
-			laserEvents.emit('net:status', {
-				status: 'disconnected',
-				detail: wasReady
-					? 'You were disconnected from the world and reconnecting failed.'
-					: 'The game server closed the connection before the world loaded.',
-			});
-		});
-		laserEvents.emit('net:status', {
-			status: this.reconnectAttempts > 0 ? 'reconnecting' : 'connecting',
-			detail:
-				this.reconnectAttempts > 0
-					? `Connection dropped — reconnecting (attempt ${this.reconnectAttempts}/3)…`
-					: undefined,
-		});
+		client.on('state', (st) => this.onNetState(st));
 		this.slowTimer = window.setTimeout(() => {
 			if (!this.netReady && !this.netTerminal) {
 				laserEvents.emit('net:status', { status: 'slow' });
@@ -422,6 +376,39 @@ export class CloudCityScene extends Scene {
 			(_p: unknown, _o: unknown, _dx: number, dy: number) =>
 				zoom(dy > 0 ? -0.15 : 0.15),
 		);
+	}
+
+	/**
+	 * Map the laser transport state (connecting/connected/reconnecting/closed)
+	 * onto the app-level net:status the UI overlay renders. App-level statuses
+	 * `ready`/`rejected`/`slow` are layered separately by welcome/reject/timer.
+	 */
+	private onNetState(st: ConnectionState) {
+		switch (st.status) {
+			case 'connecting':
+				laserEvents.emit('net:status', { status: 'connecting' });
+				break;
+			case 'connected':
+				laserEvents.emit('net:status', { status: 'connected' });
+				break;
+			case 'reconnecting':
+				this.netReady = false;
+				laserEvents.emit('net:status', {
+					status: 'reconnecting',
+					detail: `Connection dropped — reconnecting (attempt ${st.attempts}/3)…`,
+				});
+				break;
+			case 'closed':
+				window.clearTimeout(this.slowTimer);
+				if (this.netTerminal) return;
+				laserEvents.emit('net:status', {
+					status: 'disconnected',
+					detail: st.reason
+						? `Disconnected: ${st.reason}`
+						: 'The connection to the world was closed.',
+				});
+				break;
+		}
 	}
 
 	private makeGroundItemTexture() {
