@@ -121,26 +121,55 @@ export class CloudCityScene extends Scene {
 	}
 
 	create() {
-		const tilemap = this.make.tilemap({ key: 'cloud-city-map-large' });
-		this.tilePixels = tilemap.tileWidth;
+		// mapdb GridTilemap (proto-canonical JSON): collision bitset + render
+		// layers. Single source of truth shared with the server (simgrid) and
+		// the client prediction BFS — no Tiled parsing.
+		const tm = this.cache.json.get('cloud-city-tilemap') as {
+			width: number;
+			height: number;
+			tileSize: number;
+			blocked: boolean[];
+			layers: { name: string; data: number[] }[];
+			tilesetColumns: number;
+		};
+		this.tilePixels = tm.tileSize;
+		const tilemap = this.make.tilemap({
+			tileWidth: tm.tileSize,
+			tileHeight: tm.tileSize,
+			width: tm.width,
+			height: tm.height,
+		});
 		const tileset = tilemap.addTilesetImage(
 			'cloud_tileset',
 			'cloud-city-tiles',
+			tm.tileSize,
+			tm.tileSize,
 		);
-		for (let i = 0; i < tilemap.layers.length; i++) {
+		tm.layers.forEach((layerDef, i) => {
 			const layer = tileset
-				? tilemap.createLayer(i, tileset, 0, 0)
+				? tilemap.createBlankLayer(layerDef.name, tileset)
 				: null;
-			if (layer) {
-				layer.setScale(MAP_SCALE);
-				layer.setDepth(i);
-				// Mirror the server's ge_collide walkability so client
-				// prediction matches authority and rarely needs to snap back.
-				layer.forEachTile((t) => {
-					if (t && t.properties && t.properties.ge_collide) {
-						this.blocked.add(`${t.x},${t.y}`);
-					}
-				});
+			if (!layer) return;
+			layer.setScale(MAP_SCALE);
+			layer.setDepth(i);
+			for (let idx = 0; idx < layerDef.data.length; idx++) {
+				const gid = layerDef.data[idx];
+				if (gid > 0) {
+					// Tiled gid (1-based) -> Phaser tileset index (0-based).
+					layer.putTileAt(
+						gid - 1,
+						idx % tm.width,
+						Math.floor(idx / tm.width),
+					);
+				}
+			}
+		});
+		// Collision straight from the precomputed bitset (matches authority).
+		for (let idx = 0; idx < tm.blocked.length; idx++) {
+			if (tm.blocked[idx]) {
+				this.blocked.add(
+					`${idx % tm.width},${Math.floor(idx / tm.width)}`,
+				);
 			}
 		}
 		this.entityDepth = tilemap.layers.length + 1;
