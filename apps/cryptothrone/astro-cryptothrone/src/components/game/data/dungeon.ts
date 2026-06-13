@@ -118,6 +118,98 @@ export function generateDungeon(
 	};
 }
 
+export const TOWN_W = 60;
+export const TOWN_H = 60;
+const TOWN_CELL = 10;
+const TOWN_MARGIN = 2;
+const TOWN_PLAZA_R = 7;
+const TOWN_EMPTY_PCT = 25;
+
+export interface Town {
+	width: number;
+	height: number;
+	blocked: boolean[];
+	spawn: { x: number; y: number };
+	buildings: Room[];
+}
+
+/**
+ * Deterministic town — plaza + street grid + inset building footprints.
+ * Byte-for-byte identical to Rust generate_town; same per-cell rng draw
+ * order (bw, bh, bxj, byj, empty) so the bitsets match.
+ */
+export function generateTown(
+	seed: number,
+	width = TOWN_W,
+	height = TOWN_H,
+): Town {
+	const next = mulberry32(seed);
+	const range = (lo: number, hi: number) => {
+		const span = Math.max(hi - lo + 1, 1);
+		return lo + (next() % span);
+	};
+	const blocked = new Array<boolean>(width * height).fill(false);
+	const buildings: Room[] = [];
+	const ccx = Math.floor(width / 2);
+	const ccy = Math.floor(height / 2);
+	const maxB = Math.max(TOWN_CELL - 2 * TOWN_MARGIN, 3);
+	const cols = Math.floor(width / TOWN_CELL);
+	const rows = Math.floor(height / TOWN_CELL);
+
+	for (let gy = 0; gy < rows; gy++) {
+		for (let gx = 0; gx < cols; gx++) {
+			const ox = gx * TOWN_CELL;
+			const oy = gy * TOWN_CELL;
+			const bw = range(3, maxB);
+			const bh = range(3, maxB);
+			const bxj = range(0, Math.max(TOWN_CELL - 2 * TOWN_MARGIN - bw, 0));
+			const byj = range(0, Math.max(TOWN_CELL - 2 * TOWN_MARGIN - bh, 0));
+			const empty = next() % 100 < TOWN_EMPTY_PCT;
+
+			const bx = ox + TOWN_MARGIN + bxj;
+			const by = oy + TOWN_MARGIN + byj;
+			const bcx = bx + Math.floor(bw / 2);
+			const bcy = by + Math.floor(bh / 2);
+			const inPlaza =
+				Math.max(Math.abs(bcx - ccx), Math.abs(bcy - ccy)) <=
+				TOWN_PLAZA_R;
+			if (empty || inPlaza || bx + bw >= width || by + bh >= height)
+				continue;
+
+			for (let y = by; y < by + bh; y++)
+				for (let x = bx; x < bx + bw; x++)
+					blocked[y * width + x] = true;
+			buildings.push({ x: bx, y: by, w: bw, h: bh });
+		}
+	}
+
+	return { width, height, blocked, spawn: { x: ccx, y: ccy }, buildings };
+}
+
+/** Build a GridTilemap from a town seed (ground walkable, buildings solid). */
+export function townTilemap(seed: number) {
+	const t = generateTown(seed);
+	const data = t.blocked.map((b) => (b ? WALL_GID : FLOOR_GID));
+	return {
+		ref: `town-${seed}`,
+		name: 'Procedural Town',
+		width: t.width,
+		height: t.height,
+		tileSize: TILE_SIZE,
+		spawn: t.spawn,
+		blocked: t.blocked,
+		layers: [{ name: 'floor', data }],
+		regions: t.buildings.map((b, i) => ({
+			name: `Building ${i + 1}`,
+			x: b.x,
+			y: b.y,
+			w: b.w,
+			h: b.h,
+		})),
+		tilesetColumns: 45,
+	};
+}
+
 /** FNV-1a over the blocked bitset — cross-language parity fingerprint. */
 export function fingerprint(blocked: boolean[]): number {
 	let h = 0x811c9dc5;
