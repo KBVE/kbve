@@ -21,7 +21,7 @@ maxRunners: 3
 template:
     metadata:
         annotations:
-            kbve.com/restart-trigger: '20260322-runner-as-uid1000'
+            kbve.com/restart-trigger: '20260613-dind-emptydir'
     spec:
         initContainers:
             - name: init-dind-externals
@@ -107,8 +107,7 @@ template:
             - name: dind-externals
               emptyDir: {}
             - name: dind-storage
-              persistentVolumeClaim:
-                  claimName: arc-dind-ue-cache
+              emptyDir: {}
             - name: engine-cache
               persistentVolumeClaim:
                   claimName: arc-engine-cache
