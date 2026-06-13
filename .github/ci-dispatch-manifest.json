@@ -54,7 +54,7 @@
 		{
 			"key": "arc_runner",
 			"app_name": "arc-runner",
-			"version": "0.1.4",
+			"version": "0.1.5",
 			"version_toml": "packages/docker/arc-runner/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arc-runner.mdx",
 			"source_path": "packages/docker/arc-runner",
@@ -106,7 +106,7 @@
 		{
 			"key": "cryptothrone",
 			"app_name": "cryptothrone",
-			"version": "0.1.16",
+			"version": "0.1.18",
 			"version_toml": "apps/cryptothrone/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone.mdx",
 			"version_target": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",
@@ -120,7 +120,7 @@
 		{
 			"key": "cryptothrone_server",
 			"app_name": "cryptothrone-server",
-			"version": "0.0.8",
+			"version": "0.0.10",
 			"version_toml": "apps/agones/cryptothrone/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone-server.mdx",
 			"version_target": "apps/agones/cryptothrone/server/Cargo.toml",
