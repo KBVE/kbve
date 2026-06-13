@@ -24,7 +24,7 @@
 
 - No TLS certificate needed (UDP, not HTTPS)
 - No HTTPRoute (not HTTP traffic)
-- Fleet: `ows-hubworld` in `arc-runners` namespace
+- Fleet: per-tenant (`ows-chuckrpg-beta` / `ows-chuckrpg-dev`) in `arc-runners` namespace (legacy single-tenant `ows-hubworld` retired)
 - Server binary: auto-detected from `ows-server-build` PVC
 
 ### WebTransport (wt.kbve.com)
