@@ -174,6 +174,27 @@ $$;
 
 -- ASSERT_AFTER_UP
 
+-- 0. ACL: authenticated has EXECUTE, anon does not.
+BEGIN;
+DO $$
+DECLARE
+    v_signature TEXT := 'public.proxy_market_my_ledger_readonly('
+        || 'integer,timestamptz,bigint,wallet.source_kind[],wallet.currency_kind)';
+    v_auth BOOLEAN;
+    v_anon BOOLEAN;
+BEGIN
+    v_auth := has_function_privilege('authenticated', v_signature, 'EXECUTE');
+    v_anon := has_function_privilege('anon',          v_signature, 'EXECUTE');
+    IF NOT v_auth THEN
+        RAISE EXCEPTION 'fail: authenticated should have EXECUTE on %', v_signature;
+    END IF;
+    IF v_anon THEN
+        RAISE EXCEPTION 'fail: anon should NOT have EXECUTE on %', v_signature;
+    END IF;
+END;
+$$;
+COMMIT;
+
 -- 1. Anon (no JWT) raises 28000.
 BEGIN;
 RESET request.jwt.claims;

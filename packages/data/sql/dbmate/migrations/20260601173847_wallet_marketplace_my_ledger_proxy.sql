@@ -38,23 +38,19 @@
 --   (p_before_created_at, p_before_id) — both required together,
 --   matching the my_listings / my_bids pattern. p_before_id must be
 --   positive when supplied. Sorted by created_at DESC, id DESC.
---   Backed by wallet_ledger_account_currency_idx. A follow-up index
---   migration (separate PR) will add a partial covering index for
---   the marketplace-only hot path; planner currently uses the
---   composite index plus a filter — acceptable until measured.
+--   Existing ledger indexes (notably wallet_ledger_account_currency_idx)
+--   support the initial query paths; the exact plan depends on which
+--   filters are supplied. With p_currency NULL the planner cannot
+--   produce a globally sorted result from a (account_id, currency, ...)
+--   index without extra work — acceptable until measured. A follow-up
+--   measured index migration will optimize the marketplace-only
+--   default path (covering partial index + likely a branched literal
+--   IN-list query so the partial predicate is provable).
 --
 -- Owner / grants:
 --   OWNER service_role, SECURITY DEFINER, STABLE, search_path = ''.
 --   GRANT EXECUTE TO authenticated, service_role. PUBLIC + anon
 --   REVOKEd.
-
--- Drop any prior shape before recreating so a future signature change
--- (return-column rename / add / drop) does not error out on the
--- PostgreSQL "cannot change return type of existing function" check.
--- This is a no-op on first apply.
-DROP FUNCTION IF EXISTS public.proxy_market_my_ledger_readonly(
-    INTEGER, TIMESTAMPTZ, BIGINT, wallet.source_kind[], wallet.currency_kind
-);
 
 CREATE OR REPLACE FUNCTION public.proxy_market_my_ledger_readonly(
     p_limit             INTEGER                 DEFAULT 50,
@@ -78,7 +74,11 @@ RETURNS TABLE (
     ref_id        BIGINT,
     created_at    TIMESTAMPTZ
 )
-LANGUAGE plpgsql SECURITY DEFINER STABLE SET search_path = '' AS $$
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 DECLARE
     v_account UUID;
     v_limit   INTEGER := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
@@ -131,7 +131,7 @@ ALTER FUNCTION public.proxy_market_my_ledger_readonly(
 
 ALTER FUNCTION public.proxy_market_my_ledger_readonly(
     INTEGER, TIMESTAMPTZ, BIGINT, wallet.source_kind[], wallet.currency_kind
-) COST 100 ROWS 100;
+) COST 100 ROWS 50;
 
 REVOKE ALL ON FUNCTION public.proxy_market_my_ledger_readonly(
     INTEGER, TIMESTAMPTZ, BIGINT, wallet.source_kind[], wallet.currency_kind
