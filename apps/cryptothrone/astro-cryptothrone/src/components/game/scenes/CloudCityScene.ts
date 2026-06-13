@@ -20,7 +20,7 @@ import { getCtNetConfig } from '@/lib/net-config';
 import { getNPCByRef, npcIdForRef, isHostileRef } from '../data/npcs';
 
 const MAP_SCALE = 3;
-const STEP_THROTTLE_MS = 90;
+const STEP_THROTTLE_MS = 60;
 const SLOT_NONE = 0xffff;
 const PLAYER_SPRITE_VARIANTS = 8;
 
@@ -430,7 +430,7 @@ export class CloudCityScene extends Scene {
 					id: charId,
 					sprite,
 					startPosition: { x: e.tile.x, y: e.tile.y },
-					speed: 4,
+					speed: 7,
 					collides: false,
 				};
 				if (mapping !== undefined) {
