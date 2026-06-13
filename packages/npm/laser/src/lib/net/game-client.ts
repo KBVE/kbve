@@ -1,4 +1,5 @@
 import { LaserEventBus } from '../core/events';
+import { ReconnectingSocket, type ConnectionState } from './connection';
 import {
 	EPHEMERAL_COMBAT,
 	EPHEMERAL_EQUIPPED,
@@ -38,6 +39,7 @@ export type GameClientEventMap = {
 	equipped: EquippedEvent;
 	stats: StatsEvent;
 	reject: string;
+	state: ConnectionState;
 	close: void;
 	error: string;
 };
@@ -46,16 +48,39 @@ export interface GameClientOptions {
 	url: string;
 	jwt: string;
 	kbveUsername: string;
+	/** Max reconnect attempts before going terminal. Default 3. */
+	maxReconnects?: number;
 }
 
 export class GameClient {
-	private ws: WebSocket | null = null;
 	private clientTick = 0;
+	private terminal = false;
 	private readonly bus = new LaserEventBus<GameClientEventMap>();
 	private readonly opts: GameClientOptions;
+	private readonly socket: ReconnectingSocket;
 
 	constructor(opts: GameClientOptions) {
 		this.opts = opts;
+		this.socket = new ReconnectingSocket(
+			{
+				url: opts.url,
+				maxAttempts: opts.maxReconnects ?? 3,
+				baseDelayMs: 1500,
+				shouldReconnect: () => !this.terminal,
+			},
+			{
+				onOpen: () => {
+					this.send(joinFrame(this.opts.jwt, this.opts.kbveUsername));
+					this.bus.emit('open', undefined);
+				},
+				onMessage: (ev) => this.handleMessage(ev),
+				onState: (state) => {
+					this.bus.emit('state', state);
+					if (state.status === 'closed')
+						this.bus.emit('close', undefined);
+				},
+			},
+		);
 	}
 
 	on<K extends keyof GameClientEventMap>(
@@ -65,37 +90,35 @@ export class GameClient {
 		return this.bus.on(event, handler);
 	}
 
-	connect(): void {
-		if (this.ws) return;
-		const ws = new WebSocket(this.opts.url);
-		this.ws = ws;
+	getState(): ConnectionState {
+		return this.socket.getState();
+	}
 
-		ws.addEventListener('open', () => {
-			this.send(joinFrame(this.opts.jwt, this.opts.kbveUsername));
-			this.bus.emit('open', undefined);
-		});
-		ws.addEventListener('message', (ev: MessageEvent) => {
-			let msg: ServerEvent;
-			try {
-				msg = JSON.parse(
-					typeof ev.data === 'string' ? ev.data : String(ev.data),
-				);
-			} catch {
-				return;
-			}
-			if ('Welcome' in msg) this.bus.emit('welcome', msg.Welcome);
-			else if ('Snapshot' in msg) this.bus.emit('snapshot', msg.Snapshot);
-			else if ('Ephemeral' in msg) this.handleEphemeral(msg.Ephemeral);
-			else if ('Reject' in msg)
-				this.bus.emit('reject', msg.Reject.reason);
-		});
-		ws.addEventListener('error', () =>
-			this.bus.emit('error', 'socket error'),
-		);
-		ws.addEventListener('close', () => {
-			this.ws = null;
-			this.bus.emit('close', undefined);
-		});
+	connect(): void {
+		this.socket.connect();
+	}
+
+	/** Stop reconnecting — the server turned us away for good. */
+	markTerminal(): void {
+		this.terminal = true;
+	}
+
+	private handleMessage(ev: MessageEvent): void {
+		let msg: ServerEvent;
+		try {
+			msg = JSON.parse(
+				typeof ev.data === 'string' ? ev.data : String(ev.data),
+			);
+		} catch {
+			return;
+		}
+		if ('Welcome' in msg) this.bus.emit('welcome', msg.Welcome);
+		else if ('Snapshot' in msg) this.bus.emit('snapshot', msg.Snapshot);
+		else if ('Ephemeral' in msg) this.handleEphemeral(msg.Ephemeral);
+		else if ('Reject' in msg) {
+			this.terminal = true;
+			this.bus.emit('reject', msg.Reject.reason);
+		}
 	}
 
 	private handleEphemeral(evt: Ephemeral): void {
@@ -122,16 +145,11 @@ export class GameClient {
 	}
 
 	private send(msg: ClientMessage): void {
-		this.ws?.send(JSON.stringify(msg));
+		this.socket.send(JSON.stringify(msg));
 	}
 
 	sendInputs(inputs: Input[]): void {
-		if (
-			!this.ws ||
-			this.ws.readyState !== WebSocket.OPEN ||
-			inputs.length === 0
-		)
-			return;
+		if (!this.socket.isOpen() || inputs.length === 0) return;
 		this.clientTick += 1;
 		this.send(inputFrame(this.clientTick, inputs));
 	}
@@ -165,9 +183,7 @@ export class GameClient {
 	}
 
 	close(): void {
-		if (!this.ws) return;
 		this.sendInputs(['Leave']);
-		this.ws.close();
-		this.ws = null;
+		this.socket.close();
 	}
 }

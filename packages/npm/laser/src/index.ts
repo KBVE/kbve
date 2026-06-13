@@ -51,6 +51,15 @@ export {
 // Physics (Rapier)
 export { RAPIER, createRapierPhysics } from './lib/physics/rapier';
 
+// Net — shared reconnecting socket + connection state machine
+export { ReconnectingSocket, defaultCloseReason } from './lib/net/connection';
+export type {
+	ConnectionStatus,
+	ConnectionState,
+	ReconnectingSocketOptions,
+	ReconnectingSocketHandlers,
+} from './lib/net/connection';
+
 // Net — WS client speaking the simgrid JSON wire
 export { GameClient } from './lib/net/game-client';
 export { RealmChatClient } from './lib/net/realm-chat-client';
