@@ -7,6 +7,7 @@ import {
 	floatingText,
 	drawHealthBar,
 	attachCameraZoom,
+	findTilePath,
 	ACTION_ATTACK,
 	ACTION_PICKUP,
 	KIND_CAT_ITEM,
@@ -810,60 +811,10 @@ export class CloudCityScene extends Scene {
 	 */
 	private startMoveTo(tile: { x: number; y: number }) {
 		if (!this.client) return;
-		this.predictedPath = this.findLocalPath(this.predicted, tile);
+		this.predictedPath = findTilePath(this.predicted, tile, (x, y) =>
+			this.blocked.has(`${x},${y}`),
+		);
 		this.client.moveTo(tile);
-	}
-
-	private findLocalPath(
-		from: { x: number; y: number },
-		to: { x: number; y: number },
-	): { x: number; y: number }[] {
-		if (
-			(from.x === to.x && from.y === to.y) ||
-			this.blocked.has(`${to.x},${to.y}`)
-		)
-			return [];
-		// BFS mirroring the server (grid.rs find_path): neighbour order
-		// up/down/left/right, shortest path, capped length — same inputs +
-		// same tie-breaking keep client and server routes identical.
-		const MAX = 64;
-		const key = (x: number, y: number) => `${x},${y}`;
-		const prev = new Map<string, string | null>();
-		prev.set(key(from.x, from.y), null);
-		const queue = [from];
-		const dirs = [
-			[0, -1],
-			[0, 1],
-			[-1, 0],
-			[1, 0],
-		];
-		let found = false;
-		while (queue.length) {
-			const cur = queue.shift()!;
-			if (cur.x === to.x && cur.y === to.y) {
-				found = true;
-				break;
-			}
-			for (const [dx, dy] of dirs) {
-				const nx = cur.x + dx;
-				const ny = cur.y + dy;
-				const k = key(nx, ny);
-				if (prev.has(k) || this.blocked.has(k)) continue;
-				prev.set(k, key(cur.x, cur.y));
-				queue.push({ x: nx, y: ny });
-			}
-		}
-		if (!found) return [];
-		const path: { x: number; y: number }[] = [];
-		let cur: string | null = key(to.x, to.y);
-		while (cur && cur !== key(from.x, from.y)) {
-			const [x, y] = cur.split(',').map(Number);
-			path.push({ x, y });
-			cur = prev.get(cur) ?? null;
-			if (path.length > MAX) return [];
-		}
-		path.reverse();
-		return path;
 	}
 
 	private onPointerMove(pointer: Phaser.Input.Pointer) {
