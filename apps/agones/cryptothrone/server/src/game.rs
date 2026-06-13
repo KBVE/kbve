@@ -11,7 +11,7 @@ pub const MAP_WIDTH: i32 = 50;
 pub const MAP_HEIGHT: i32 = 50;
 pub const MAX_PLAYERS: usize = 32;
 
-const CLOUD_CITY_MAP: &[u8] = include_bytes!("../assets/cloud_city_large.json");
+const CLOUD_CITY_MAP: &[u8] = include_bytes!("../assets/cloud_city.tilemap.json");
 const NPCDB_JSON: &[u8] =
     include_bytes!("../../../../../packages/data/codegen/generated/npcdb-data.json");
 
@@ -129,7 +129,7 @@ pub fn equipment() -> EquipmentEffects {
 }
 
 pub fn walkable_map() -> WalkableMap {
-    WalkableMap::from_tiled_json(CLOUD_CITY_MAP)
+    WalkableMap::from_grid_tilemap_json(CLOUD_CITY_MAP)
         .unwrap_or_else(|_| WalkableMap::open(MAP_WIDTH, MAP_HEIGHT))
 }
 
