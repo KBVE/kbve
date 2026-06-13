@@ -1,0 +1,37 @@
+# Least-privilege RBAC for the dispatch-time Windows VM boot preamble.
+# An arc-runner-set-kbve pod (this SA) starts the windows-builder KubeVirt VM
+# when a Win64 unreal build is dispatched — replaces the GitHub-API-polling
+# KEDA start scaler. Start-only: strictly less than the vm-scaler SA (no stop,
+# no pods/exec, no deployments/scale). VM lives in angelscript; SA in arc-runners.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: arc-vm-starter
+    namespace: arc-runners
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: arc-vm-starter
+    namespace: angelscript
+rules:
+    - apiGroups: ['kubevirt.io']
+      resources: ['virtualmachines']
+      verbs: ['get']
+    - apiGroups: ['subresources.kubevirt.io']
+      resources: ['virtualmachines/start']
+      verbs: ['update']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: arc-vm-starter
+    namespace: angelscript
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: arc-vm-starter
+subjects:
+    - kind: ServiceAccount
+      name: arc-vm-starter
+      namespace: arc-runners
