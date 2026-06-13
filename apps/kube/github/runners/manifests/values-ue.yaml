@@ -21,11 +21,11 @@ maxRunners: 3
 template:
     metadata:
         annotations:
-            kbve.com/restart-trigger: '20260613-dind-emptydir'
+            kbve.com/restart-trigger: '20260613-ue-runner-gitlfs'
     spec:
         initContainers:
             - name: init-dind-externals
-              image: ghcr.io/actions/actions-runner:2.335.1
+              image: ghcr.io/kbve/arc-runner:0.1.5
               command:
                   [
                       'cp',
@@ -39,7 +39,7 @@ template:
                     mountPath: /home/runner/tmpDir
         containers:
             - name: runner
-              image: ghcr.io/actions/actions-runner:2.335.1
+              image: ghcr.io/kbve/arc-runner:0.1.5
               command: ['/home/runner/run.sh']
               env:
                   - name: DOCKER_HOST
