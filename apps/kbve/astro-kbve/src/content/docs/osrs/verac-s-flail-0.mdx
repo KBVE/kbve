@@ -12,9 +12,45 @@ osrs:
   lowalch: 64000
   highalch: 96000
   limit: 15
-  about: "Verac's flail 0 is a members-only item in Old School RuneScape. High alchemy value: 96,000 coins. Grand Exchange buy limit: 15 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Verac's flail 0 is the fully-degraded form of Verac the Defiled's barrows flail. It must be repaired at an armour stand or NPC before it can be used in combat."
+  material:
+    type: barrows
+    tier: high
+  equipment:
+    slot: weapon
+    type: flail
+    tradeable: true
+  related_items:
+    - item_id: 4755
+      item_name: "Verac's flail"
+      slug: verac-s-flail
+      relationship: variant
+      description: Fully repaired Verac's flail
+    - item_id: 4753
+      item_name: "Verac's helm"
+      slug: verac-s-helm
+      relationship: set-piece
+      description: Verac's barrows set helmet
+    - item_id: 4757
+      item_name: "Verac's plateskirt"
+      slug: verac-s-plateskirt
+      relationship: set-piece
+      description: Verac's barrows set plateskirt
+    - item_id: 4759
+      item_name: "Verac's brassard"
+      slug: verac-s-brassard
+      relationship: set-piece
+      description: Verac's barrows set brassard
+  market_strategy:
+    notes:
+      - Degraded barrows item priced below the repaired variant
+      - "Low buy limit (15 per 4 hours): caps flip volume"
+      - Demand driven by Barrows runners and repair flippers
+  trading_tips:
+    - Compare against the repaired Verac's flail price minus repair cost for arbitrage
+    - Watch barrows minigame popularity for supply changes
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

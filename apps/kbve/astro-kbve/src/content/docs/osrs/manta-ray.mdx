@@ -12,30 +12,24 @@ osrs:
   lowalch: 80
   highalch: 120
   limit: 10000
-  food:
-    heals: 22
-    cooking_level: 91
-    cooking_xp: 216.2
-    burn_level: 99
-  cooking:
-    level: 91
-    xp: 216.2
-    stop_burn_level: 99
-    stop_burn_level_gauntlets: 91
-    raw_item_id: 389
-    raw_item_name: Raw manta ray
-    ticks: 4
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: food
+    tier: high
   recipes:
     - skill: cooking
       level: 91
       xp: 216.2
       materials:
         - item_name: Raw manta ray
-          item_id: 389
           quantity: 1
-      facility: Fire or range
-      ticks: 4
-      members_only: true
+      tools:
+        - Fire or range
+      output_quantity: 1
+  passive_effects:
+    - name: Healing
+      description: "Restores 22 Hitpoints when eaten"
   related_items:
     - item_id: 389
       item_name: Raw manta ray
@@ -57,21 +51,23 @@ osrs:
       slug: dark-crab
       relationship: alternative
       description: Same healing (22 HP)
+  about: "Manta ray is a members cooked food that heals 22 Hitpoints, tied with dark crab for second-highest non-overheal healing. Cooked from raw manta ray at 91 Cooking for 216.2 XP, with a stop-burn level of 99 (or 91 with cooking gauntlets). Sourced primarily from Fishing Trawler."
   market_strategy:
     notes:
-      - Same healing as dark crab
-      - No overheal effect
-      - High Cooking requirement
-      - High-level PvM
-      - Raids preparation
-      - Combat food
-      - Cooking training
-      - Tied for 2nd best healing
-      - Fishing Trawler source
-      - High burn rate
-      - Less popular than shark
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Same healing as dark crab"
+      - "No overheal effect"
+      - "High Cooking requirement"
+      - "High-level PvM"
+      - "Raids preparation"
+      - "Combat food"
+      - "Cooking training"
+      - "Tied for 2nd best healing"
+      - "Fishing Trawler source"
+      - "High burn rate"
+      - "Less popular than shark"
+  trading_tips:
+    - "Buy limit 10,000 per 4 hours"
+    - "Requires 91 Cooking to cook from raw"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
