@@ -998,9 +998,6 @@ fn follow_path(
             path.steps.clear();
             continue;
         }
-        if !occ.is_free(next) && occ.occupant(next) != Some(entity) {
-            continue;
-        }
         let dir = dir_between(pos.tile, next);
         if let Some(dir) = dir {
             pos.facing = dir.facing();
@@ -1191,9 +1188,6 @@ fn try_move(
         return false;
     }
     if !map.is_walkable(candidate) {
-        return false;
-    }
-    if !occ.is_free(candidate) && occ.occupant(candidate) != Some(entity) {
         return false;
     }
     mv.target = Some(candidate);

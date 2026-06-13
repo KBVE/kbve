@@ -3,6 +3,11 @@ import {
 	GameClient,
 	laserEvents,
 	createBirdAnimation,
+	flashEntity,
+	floatingText,
+	drawHealthBar,
+	attachCameraZoom,
+	findTilePath,
 	ACTION_ATTACK,
 	ACTION_PICKUP,
 	KIND_CAT_ITEM,
@@ -364,18 +369,7 @@ export class CloudCityScene extends Scene {
 			this.client?.heartbeat();
 		}, 20000);
 
-		// Camera zoom: +/- keys and mouse wheel, clamped.
-		const zoom = (delta: number) => {
-			const cam = this.cameras.main;
-			cam.setZoom(Phaser.Math.Clamp(cam.zoom + delta, 0.6, 2.2));
-		};
-		this.input.keyboard?.on('keydown-PLUS', () => zoom(0.2));
-		this.input.keyboard?.on('keydown-MINUS', () => zoom(-0.2));
-		this.input.on(
-			'wheel',
-			(_p: unknown, _o: unknown, _dx: number, dy: number) =>
-				zoom(dy > 0 ? -0.15 : 0.15),
-		);
+		attachCameraZoom(this);
 	}
 
 	/**
@@ -464,24 +458,14 @@ export class CloudCityScene extends Scene {
 	private showFloatingText(eid: number, text: string, color: string) {
 		const target = this.tracked.get(eid);
 		if (!target) return;
-		const label = this.add
-			.text(target.sprite.x, target.sprite.y - 14, text, {
-				fontFamily: 'monospace',
-				fontSize: '14px',
-				color,
-				stroke: '#000000',
-				strokeThickness: 3,
-			})
-			.setOrigin(0.5, 1)
-			.setDepth(this.entityDepth + 1);
-		this.tweens.add({
-			targets: label,
-			y: label.y - 28,
-			alpha: 0,
-			duration: 900,
-			ease: 'Cubic.easeOut',
-			onComplete: () => label.destroy(),
-		});
+		floatingText(
+			this,
+			target.sprite.x,
+			target.sprite.y - 14,
+			text,
+			color,
+			this.entityDepth + 1,
+		);
 	}
 
 	private applySnapshot(snap: Snapshot) {
@@ -647,9 +631,7 @@ export class CloudCityScene extends Scene {
 	private flashSprite(eid: number) {
 		const target = this.tracked.get(eid);
 		if (!target) return;
-		target.sprite.setTintFill(0xffffff);
-		this.time.delayedCall(60, () => target.sprite.setTint(0xff6b6b));
-		this.time.delayedCall(180, () => target.sprite.clearTint());
+		flashEntity(this, target.sprite);
 	}
 
 	private updateHpBars() {
@@ -670,21 +652,7 @@ export class CloudCityScene extends Scene {
 			if (!t.hpBar) {
 				t.hpBar = this.add.graphics().setDepth(this.entityDepth + 1);
 			}
-			const w = 26;
-			const pct = Math.max(0, Math.min(1, t.hp / t.maxHp));
-			t.hpBar.clear();
-			t.hpBar.fillStyle(0x000000, 0.6);
-			t.hpBar.fillRect(t.sprite.x - w / 2, t.sprite.y - 30, w, 4);
-			t.hpBar.fillStyle(
-				pct > 0.5 ? 0x4ade80 : pct > 0.25 ? 0xfbbf24 : 0xf87171,
-				1,
-			);
-			t.hpBar.fillRect(
-				t.sprite.x - w / 2 + 0.5,
-				t.sprite.y - 29.5,
-				(w - 1) * pct,
-				3,
-			);
+			drawHealthBar(t.hpBar, t.sprite.x, t.sprite.y - 30, t.hp, t.maxHp);
 		}
 	}
 
@@ -843,60 +811,10 @@ export class CloudCityScene extends Scene {
 	 */
 	private startMoveTo(tile: { x: number; y: number }) {
 		if (!this.client) return;
-		this.predictedPath = this.findLocalPath(this.predicted, tile);
+		this.predictedPath = findTilePath(this.predicted, tile, (x, y) =>
+			this.blocked.has(`${x},${y}`),
+		);
 		this.client.moveTo(tile);
-	}
-
-	private findLocalPath(
-		from: { x: number; y: number },
-		to: { x: number; y: number },
-	): { x: number; y: number }[] {
-		if (
-			(from.x === to.x && from.y === to.y) ||
-			this.blocked.has(`${to.x},${to.y}`)
-		)
-			return [];
-		// BFS mirroring the server (grid.rs find_path): neighbour order
-		// up/down/left/right, shortest path, capped length — same inputs +
-		// same tie-breaking keep client and server routes identical.
-		const MAX = 64;
-		const key = (x: number, y: number) => `${x},${y}`;
-		const prev = new Map<string, string | null>();
-		prev.set(key(from.x, from.y), null);
-		const queue = [from];
-		const dirs = [
-			[0, -1],
-			[0, 1],
-			[-1, 0],
-			[1, 0],
-		];
-		let found = false;
-		while (queue.length) {
-			const cur = queue.shift()!;
-			if (cur.x === to.x && cur.y === to.y) {
-				found = true;
-				break;
-			}
-			for (const [dx, dy] of dirs) {
-				const nx = cur.x + dx;
-				const ny = cur.y + dy;
-				const k = key(nx, ny);
-				if (prev.has(k) || this.blocked.has(k)) continue;
-				prev.set(k, key(cur.x, cur.y));
-				queue.push({ x: nx, y: ny });
-			}
-		}
-		if (!found) return [];
-		const path: { x: number; y: number }[] = [];
-		let cur: string | null = key(to.x, to.y);
-		while (cur && cur !== key(from.x, from.y)) {
-			const [x, y] = cur.split(',').map(Number);
-			path.push({ x, y });
-			cur = prev.get(cur) ?? null;
-			if (path.length > MAX) return [];
-		}
-		path.reverse();
-		return path;
 	}
 
 	private onPointerMove(pointer: Phaser.Input.Pointer) {

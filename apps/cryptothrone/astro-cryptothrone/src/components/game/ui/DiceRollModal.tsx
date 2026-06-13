@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { FloatingWindow } from '@kbve/astro';
 import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
 
 function rollDie(): number {
@@ -98,21 +99,33 @@ export function DiceRollModal() {
 	if (!diceRoll) return null;
 
 	return (
-		<div className="fixed inset-0 flex items-center justify-center z-50 bg-zinc-800/50 text-white">
-			<div className="bg-zinc-800 p-6 rounded-lg shadow-lg w-96 border border-yellow-500">
-				<h2 className="text-lg text-yellow-400 font-bold mb-4">
-					Steal Attempt
-				</h2>
+		<FloatingWindow
+			storageKey="ct-dice-window"
+			initial={{
+				x:
+					typeof window !== 'undefined'
+						? Math.max(12, (window.innerWidth - 360) / 2)
+						: 200,
+				y:
+					typeof window !== 'undefined'
+						? Math.max(12, (window.innerHeight - 320) / 3)
+						: 100,
+			}}
+			size={{ width: 360, height: 320 }}
+			resizable={false}
+			title="Steal Attempt"
+			onClose={handleClose}>
+			<div className="p-5 text-white">
 				<p className="mb-4 text-sm">
 					Roll the dice to steal from {diceRoll.npcName}. You need 17
 					or higher to succeed.
 				</p>
 
-				<div className="flex justify-center gap-3 mb-4">
+				<div className="mb-4 flex justify-center gap-3">
 					{diceRoll.diceValues.map((val, idx) => (
 						<div
 							key={idx}
-							className={`w-14 h-14 flex items-center justify-center bg-gray-700 border-2 rounded-lg text-3xl ${rolling ? 'border-yellow-300 animate-pulse' : val > 0 ? 'border-yellow-500' : 'border-gray-500'}`}>
+							className={`flex h-14 w-14 items-center justify-center rounded-lg border-2 bg-gray-700 text-3xl ${rolling ? 'animate-pulse border-yellow-300' : val > 0 ? 'border-yellow-500' : 'border-gray-500'}`}>
 							{val > 0 ? DICE_FACES[val] : '?'}
 						</div>
 					))}
@@ -121,7 +134,7 @@ export function DiceRollModal() {
 				{diceRoll.totalRoll !== null &&
 					diceRoll.phase === 'result' &&
 					!rolling && (
-						<p className="text-center text-lg mb-4">
+						<p className="mb-4 text-center text-lg">
 							Total:{' '}
 							<span
 								className={`font-bold ${diceRoll.totalRoll >= 17 ? 'text-green-400' : diceRoll.totalRoll <= 4 ? 'text-red-400' : 'text-yellow-400'}`}>
@@ -135,18 +148,18 @@ export function DiceRollModal() {
 						<button
 							onClick={handleRoll}
 							disabled={rolling}
-							className="flex-1 py-2 bg-yellow-500 hover:bg-yellow-400 text-white rounded transition-all disabled:opacity-50">
+							className="flex-1 rounded bg-yellow-500 py-2 text-white transition-all hover:bg-yellow-400 disabled:opacity-50">
 							{rolling ? 'Rolling...' : 'Roll Dice'}
 						</button>
 					)}
 					<button
 						onClick={handleClose}
 						disabled={rolling}
-						className="flex-1 py-2 bg-red-500 hover:bg-red-600 text-white rounded transition-all disabled:opacity-50">
+						className="flex-1 rounded bg-red-500 py-2 text-white transition-all hover:bg-red-600 disabled:opacity-50">
 						Close
 					</button>
 				</div>
 			</div>
-		</div>
+		</FloatingWindow>
 	);
 }

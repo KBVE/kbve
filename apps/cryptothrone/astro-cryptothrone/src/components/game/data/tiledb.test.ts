@@ -1,7 +1,22 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { CITY_PALETTE, DUNGEON_PALETTE, Role } from './dungeon';
+
+// nx runs vitest with cwd at the project dir, not the workspace root, so anchor
+// on this file and walk up to the repo that holds the generated catalog.
+function resolveFromWorkspace(rel: string): string {
+	let dir = dirname(fileURLToPath(import.meta.url));
+	for (let i = 0; i < 12; i++) {
+		const candidate = resolve(dir, rel);
+		if (existsSync(candidate)) return candidate;
+		const parent = dirname(dir);
+		if (parent === dir) break;
+		dir = parent;
+	}
+	throw new Error(`could not locate ${rel} from ${import.meta.url}`);
+}
 
 const ROLE_NAMES = new Set([
 	'unspecified',
@@ -20,8 +35,7 @@ const ROLE_NAMES = new Set([
 
 const catalog: Array<Record<string, unknown>> = JSON.parse(
 	readFileSync(
-		resolve(
-			process.cwd(),
+		resolveFromWorkspace(
 			'packages/data/codegen/generated/tiledb-data.json',
 		),
 		'utf8',
