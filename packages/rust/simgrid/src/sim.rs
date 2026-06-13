@@ -545,7 +545,6 @@ fn rebuild_occupancy(
 fn drain_inputs(
     queue: Res<InputQueue>,
     map: Res<WalkableMap>,
-    roster: Res<RosterHandle>,
     effects: Res<ConsumableEffects>,
     equipment: Res<EquipmentEffects>,
     config: Res<SimConfig>,
@@ -672,25 +671,6 @@ fn drain_inputs(
                         stats.attack,
                         defense.0,
                     );
-                }
-                Input::Say { text } => {
-                    let trimmed = text.trim();
-                    if trimmed.is_empty() {
-                        continue;
-                    }
-                    let msg: String = trimmed.chars().take(proto::MAX_CHAT_LEN).collect();
-                    let from = match roster.0.read() {
-                        Ok(r) => r.username(slot.0).unwrap_or_default(),
-                        Err(p) => p.into_inner().username(slot.0).unwrap_or_default(),
-                    };
-                    let payload = json!({ "from": from, "text": msg })
-                        .to_string()
-                        .into_bytes();
-                    let _ = bcast.tx.send(ServerEvent::Ephemeral {
-                        kind: proto::EPHEMERAL_CHAT,
-                        to: proto::PLAYER_SLOT_NONE,
-                        payload,
-                    });
                 }
                 Input::Action { .. } | Input::Heartbeat { .. } | Input::Leave => {}
             }
@@ -1992,38 +1972,6 @@ mod tests {
         let payload = restored.expect("no inventory restore on rejoin");
         assert!(payload.contains("potion"), "payload: {payload}");
         assert!(payload.contains("3"), "payload: {payload}");
-    }
-
-    #[test]
-    fn say_broadcasts_chat() {
-        let (mut app, mut rx, input_tx, roster) = harness(29);
-        let slot = join(&roster, "talker");
-        app.update();
-
-        input_tx
-            .send((
-                slot,
-                Input::Say {
-                    text: "  hello world  ".into(),
-                },
-            ))
-            .unwrap();
-        for _ in 0..3 {
-            app.update();
-        }
-
-        let mut chat = None;
-        while let Ok(evt) = rx.try_recv() {
-            if let ServerEvent::Ephemeral { kind, to, payload } = evt
-                && kind == proto::EPHEMERAL_CHAT
-            {
-                assert_eq!(to, proto::PLAYER_SLOT_NONE);
-                chat = Some(String::from_utf8(payload).unwrap());
-            }
-        }
-        let payload = chat.expect("no chat broadcast");
-        assert!(payload.contains("hello world"), "payload: {payload}");
-        assert!(payload.contains("talker"), "payload: {payload}");
     }
 
     #[test]
