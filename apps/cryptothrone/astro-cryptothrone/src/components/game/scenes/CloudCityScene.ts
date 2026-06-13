@@ -169,6 +169,11 @@ export class CloudCityScene extends Scene {
 				const d = data as { ref: string };
 				if (d?.ref) this.client?.equipItem(d.ref);
 			}),
+			laserEvents.on('emote', (data) => {
+				const d = data as { emoji: string };
+				if (d?.emoji && this.myEid >= 0)
+					this.showFloatingText(this.myEid, d.emoji, '#ffffff');
+			}),
 		);
 
 		this.events.once('shutdown', () => {

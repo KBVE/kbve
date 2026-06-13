@@ -25,6 +25,12 @@ import { Hotbar } from './ui/Hotbar';
 import { KeybindHelp } from './ui/KeybindHelp';
 import { QuestTracker } from './ui/QuestTracker';
 import { DayNight } from './ui/DayNight';
+import { SoundManager } from './ui/SoundManager';
+import { Achievements } from './ui/Achievements';
+import { DeathScreen } from './ui/DeathScreen';
+import { Compass } from './ui/Compass';
+import { SocialBar } from './ui/SocialBar';
+import { EmoteBar } from './ui/EmoteBar';
 
 /**
  * Isolated Phaser canvas — never re-renders when game store changes.
@@ -112,6 +118,12 @@ function GameUI({ username }: { username?: string }) {
 			<KeybindHelp />
 			<QuestTracker />
 			<DayNight />
+			<SoundManager />
+			<Achievements />
+			<DeathScreen />
+			<Compass />
+			<SocialBar />
+			<EmoteBar />
 			<ConnectionOverlay />
 		</>
 	);
