@@ -11,7 +11,9 @@ import { cn } from '../utils/cn';
 import { useDraggable, type Position } from '../hooks/useDraggable';
 import { useResizable, type Size } from '../hooks/useResizable';
 
-let zCounter = 50;
+// Base below the game's blocking-modal band (z-50+) so floating panels stay
+// under dialogs/overlays. A dedicated z-order manager will supersede this.
+let zCounter = 30;
 function nextZ(): number {
 	zCounter += 1;
 	return zCounter;

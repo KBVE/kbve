@@ -528,8 +528,9 @@ export class CloudCityScene extends Scene {
 				if (this.kindCat(e.kind) === KIND_CAT_PLAYER) {
 					const name = this.slotUsername.get(e.owner);
 					if (name) {
+						const top = sprite.getTopCenter();
 						tracked.nameplate = this.add
-							.text(sprite.x, sprite.y - 34, name, {
+							.text(top.x, top.y - 4, name, {
 								fontFamily: 'monospace',
 								fontSize: '11px',
 								color: '#fcd34d',
@@ -739,6 +740,42 @@ export class CloudCityScene extends Scene {
 		return null;
 	}
 
+	/**
+	 * Nearest walkable tile next to `target` (NPCs occupy a solid tile, so you
+	 * can't path onto it). Picks the neighbour closest to `from` so the player
+	 * stops beside the NPC and the pending interaction can fire. Falls back to
+	 * the target tile when fully boxed in.
+	 */
+	private adjacentFreeTile(
+		target: { x: number; y: number },
+		from: { x: number; y: number },
+	): { x: number; y: number } {
+		const deltas = [
+			[0, -1],
+			[0, 1],
+			[-1, 0],
+			[1, 0],
+			[-1, -1],
+			[1, -1],
+			[-1, 1],
+			[1, 1],
+		];
+		const free = deltas
+			.map(([dx, dy]) => ({ x: target.x + dx, y: target.y + dy }))
+			.filter(
+				(c) => !this.blocked.has(`${c.x},${c.y}`) && !this.entityAt(c),
+			);
+		if (free.length === 0) return target;
+		free.sort(
+			(a, b) =>
+				this.chebyshev(a, from) - this.chebyshev(b, from) ||
+				Math.abs(a.x - from.x) +
+					Math.abs(a.y - from.y) -
+					(Math.abs(b.x - from.x) + Math.abs(b.y - from.y)),
+		);
+		return free[0];
+	}
+
 	private onPointerDown(pointer: Phaser.Input.Pointer) {
 		if (!this.client) return;
 		const span = this.tilePixels * MAP_SCALE;
@@ -766,7 +803,7 @@ export class CloudCityScene extends Scene {
 					this.client.action(ACTION_PICKUP, hit.eid);
 				} else {
 					this.pendingAction = { kind: 'pickup', eid: hit.eid };
-					this.client.moveTo(tile);
+					this.startMoveTo(tile);
 				}
 				return;
 			}
@@ -786,7 +823,9 @@ export class CloudCityScene extends Scene {
 					});
 				} else {
 					this.pendingAction = { kind: 'interact', eid: hit.eid };
-					this.client.moveTo(tile);
+					this.startMoveTo(
+						me ? this.adjacentFreeTile(tile, me) : tile,
+					);
 				}
 				return;
 			}
@@ -961,7 +1000,8 @@ export class CloudCityScene extends Scene {
 	private updateOverlays(time: number) {
 		for (const [, t] of this.tracked) {
 			if (t.nameplate) {
-				t.nameplate.setPosition(t.sprite.x, t.sprite.y - 34);
+				const top = t.sprite.getTopCenter();
+				t.nameplate.setPosition(top.x, top.y - 4);
 			}
 		}
 		// FPS — emit roughly once per second.
