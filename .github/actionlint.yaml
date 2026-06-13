@@ -1,6 +1,7 @@
 self-hosted-runner:
     labels:
         - arc-runner-set
+        - arc-runner-set-kbve
         - arc-runner-ue
         - arc-runner-ue-mac
         - UE5-Mac

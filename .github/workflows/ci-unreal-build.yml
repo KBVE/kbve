@@ -806,9 +806,38 @@ jobs:
                   docker system prune -f 2>/dev/null || true
                   rm -rf /tmp/game-project /tmp/game-clone /tmp/ue5-game-output 2>/dev/null || true
 
+    win_vm_boot:
+        name: Boot Windows VM
+        needs: [guard, game_gate]
+        if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Win64')
+        runs-on: arc-runner-set-kbve
+        timeout-minutes: 8
+        permissions:
+            contents: read
+        steps:
+            - name: Request windows-builder VM start
+              run: |
+                  API=https://kubernetes.default.svc
+                  SA=/var/run/secrets/kubernetes.io/serviceaccount
+                  TOKEN=$(cat "$SA/token")
+                  NS=angelscript
+                  VM=windows-builder
+                  STATUS=$(curl -sS --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
+                    "$API/apis/kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM" | jq -r '.status.printableStatus // "Unknown"')
+                  echo "::notice::$VM current status: $STATUS"
+                  if [ "$STATUS" = "Running" ]; then
+                    echo "VM already running — UE5-Win runner should be live."
+                    exit 0
+                  fi
+                  echo "Requesting start..."
+                  curl -sS --fail-with-body --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
+                    -X PUT -H "Content-Type: application/json" -d '{}' \
+                    "$API/apis/subresources.kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM/start"
+                  echo "::notice::$VM start requested; UE5-Win runner will register once the guest boots."
+
     game_build_windows:
         name: Game Build (Win64 client)
-        needs: [guard, game_gate]
+        needs: [guard, game_gate, win_vm_boot]
         if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Win64')
         runs-on: UE5-Win
         timeout-minutes: 480
