@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { FloatingWindow } from '@kbve/astro';
 import { useGameSelector, useGameDispatch } from '../store/GameStoreContext';
 import { getDialogueById } from '../data/npcs';
 import { TypewriterText } from './TypewriterText';
@@ -47,44 +48,52 @@ export function DialogueModal() {
 	const showNpcText = hasPlayerResponse ? playerTypingDone : true;
 
 	return (
-		<div className="fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/50">
+		<FloatingWindow
+			storageKey="ct-dialogue-window"
+			initial={{
+				x:
+					typeof window !== 'undefined'
+						? Math.max(12, (window.innerWidth - 720) / 2)
+						: 120,
+				y:
+					typeof window !== 'undefined'
+						? Math.max(12, (window.innerHeight - 460) / 3)
+						: 80,
+			}}
+			size={{ width: 720, height: 460 }}
+			minWidth={420}
+			minHeight={300}
+			title={npcName}
+			onClose={handleClose}>
 			<div
-				className="flex flex-col lg:flex-row bg-zinc-950 border border-yellow-500 shadow-sm rounded-xl bg-cover min-w-[700px] max-w-[900px] min-h-[400px]"
+				className="flex h-full flex-col bg-zinc-950 bg-cover lg:flex-row"
 				style={{
 					backgroundImage: node.backgroundImage
 						? `url(${node.backgroundImage})`
 						: undefined,
 				}}>
-				<div className="w-full lg:w-1/3 p-4 rounded-l-xl flex flex-col items-center justify-center relative">
-					<h3 className="font-bold text-yellow-400 bg-zinc-950/80 rounded-2xl text-center mb-4 p-2">
-						{npcName}
-					</h3>
+				<div className="flex w-full flex-col items-center justify-center p-4 lg:w-1/3">
 					{npcAvatar && (
 						<img
 							src={npcAvatar}
 							alt={npcName}
-							className="w-full h-auto rounded-md"
+							className="h-auto w-full rounded-md"
 						/>
 					)}
 				</div>
 
-				<div className="w-full lg:w-2/3 p-4 flex flex-col justify-between">
-					<div className="flex justify-between items-center pb-3 border-b border-gray-700">
-						<h3 className="font-bold text-yellow-400">
-							{node.title || 'Dialogue'}
-						</h3>
-						<button
-							onClick={handleClose}
-							className="text-yellow-400 hover:bg-gray-100/10 rounded-full p-1 text-xl">
-							&times;
-						</button>
-					</div>
+				<div className="flex w-full flex-col lg:w-2/3">
+					{node.title && (
+						<div className="border-b border-gray-700 px-4 py-2 text-sm font-bold text-yellow-400">
+							{node.title}
+						</div>
+					)}
 
-					<div className="p-4 overflow-y-auto flex-1">
+					<div className="flex-1 overflow-y-auto p-4">
 						<div className="flex flex-col gap-3">
 							{hasPlayerResponse && (
 								<div className="flex justify-end">
-									<div className="w-3/4 text-yellow-400 bg-zinc-950/40 rounded-xl p-4 text-right">
+									<div className="w-3/4 rounded-xl bg-zinc-950/40 p-4 text-right text-yellow-400">
 										{!playerTypingDone ? (
 											<TypewriterText
 												text={node.playerResponse!}
@@ -100,7 +109,7 @@ export function DialogueModal() {
 							)}
 
 							{showNpcText && (
-								<div className="w-3/4 text-white bg-zinc-950/40 rounded-xl p-4">
+								<div className="w-3/4 rounded-xl bg-zinc-950/40 p-4 text-white">
 									{!npcTypingDone ? (
 										<TypewriterText
 											text={node.message}
@@ -114,20 +123,20 @@ export function DialogueModal() {
 						</div>
 					</div>
 
-					<div className="flex justify-end items-center gap-2 py-3 px-4 border-t border-gray-700">
+					<div className="flex items-center justify-end gap-2 border-t border-gray-700 px-4 py-3">
 						{npcTypingDone &&
 							node.options?.map((option) => (
 								<button
 									key={option.id}
 									onClick={() => handleOption(option)}
-									className="px-5 py-2 bg-yellow-500 hover:bg-yellow-400 text-white rounded transition-all">
+									className="rounded bg-yellow-500 px-5 py-2 text-white transition-all hover:bg-yellow-400">
 									{option.title}
 								</button>
 							))}
 						<button
 							onClick={handleClose}
 							disabled={!npcTypingDone}
-							className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded transition-all disabled:opacity-50 disabled:pointer-events-none">
+							className="rounded bg-red-500 px-5 py-2 text-white transition-all hover:bg-red-600 disabled:pointer-events-none disabled:opacity-50">
 							{npcTypingDone
 								? `Goodbye ${npcName}`
 								: 'Speaking...'}
@@ -135,6 +144,6 @@ export function DialogueModal() {
 					</div>
 				</div>
 			</div>
-		</div>
+		</FloatingWindow>
 	);
 }
