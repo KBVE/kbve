@@ -14,7 +14,7 @@ metadata:
         # picks up the new Postgres password. Without this the pool holds
         # stale creds and `/api/v1/wallet/*` starts 5xx-ing until manual
         # restart on every CNPG password rotation.
-        secret.reloader.stakater.com/reload: 'supabase-shared'
+        secret.reloader.stakater.com/reload: 'supabase-shared,forgejo-deploy-keys'
 spec:
     replicas: 1
     strategy:
@@ -28,7 +28,7 @@ spec:
     template:
         metadata:
             annotations:
-                rollout-restart: '2026-05-13T23:30:00Z'
+                rollout-restart: '2026-06-13T16:30:00Z'
             labels:
                 app: kbve
                 version: '1.0.22'
