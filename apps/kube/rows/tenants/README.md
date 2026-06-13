@@ -77,7 +77,7 @@ two and fails if they diverge — run it in CI / before merge. Update both toget
 - **Secrets**: ServiceAccounts `rows-external-secrets` / `rows-instancelauncher`; SecretStores
   (kilobase, rabbitmq) + ExternalSecrets → `rows-db-credentials`, `rows-rabbitmq-credentials`,
   `rows-supabase-jwt`. Cross-ns read RBAC for these SAs is appended in
-  `apps/kube/kilobase/manifests/cross-namespace-rbac.yaml` + `apps/kube/rabbitmq/manifests/cross-namespace-rbac.yaml`.
+  `apps/kube/kilobase/manifests/cross-namespace-rbac.yaml` (kilobase) and `apps/kube/rows/manifest/rbac.yaml` (rabbitmq — the ArgoCD-deployed RoleBinding `ows-read-rabbitmq-secrets`; a duplicate previously lived under `apps/kube/rabbitmq/manifests/` but was never wired into a kustomization and has been removed).
 - **Sealed**: `rows-customer-guid` + `rows-encryption-key` are committed as STUBS per overlay —
   replace via kubeseal before deploy (below).
 - **Routing**: per-tenant `Certificate` + `HTTPRoute` (overlay patches the hostname), `ReferenceGrant`,
