@@ -5,6 +5,7 @@ import { PhaserGame, laserEvents } from '@kbve/laser';
 import type { PhaserGameRef } from '@kbve/laser';
 import { PreloaderScene } from './scenes/PreloaderScene';
 import { CloudCityScene } from './scenes/CloudCityScene';
+import { ProceduralZoneScene } from './scenes/ProceduralZoneScene';
 import { GameStoreProvider, useGameDispatch } from './store/GameStoreContext';
 import { useEventBridge } from './store/useEventBridge';
 import { CharacterDialog } from './ui/CharacterDialog';
@@ -44,7 +45,7 @@ const PhaserCanvas = memo(function PhaserCanvas() {
 		() => ({
 			width: 800,
 			height: 600,
-			scenes: [PreloaderScene, CloudCityScene],
+			scenes: [PreloaderScene, CloudCityScene, ProceduralZoneScene],
 			backgroundColor: '#1a1a2e',
 			pixelArt: true,
 			plugins: {

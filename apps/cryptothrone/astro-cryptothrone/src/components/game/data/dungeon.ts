@@ -280,6 +280,7 @@ export interface TilePalette {
 	tileSize: number;
 	tilesetImage: string;
 	tilesetColumns: number;
+	tileCount: number;
 	entries: Record<number, number[]>;
 	animations?: Record<number, TileAnimation>;
 	collision?: Record<number, boolean>;

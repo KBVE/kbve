@@ -56,9 +56,7 @@ describe('packed palette carries catalog animation + collision', () => {
 		expect(anim, 'water gid should be animated').toBeDefined();
 		expect(anim!.frames.length).toBeGreaterThanOrEqual(2);
 		for (const f of anim!.frames)
-			expect(f).toBeLessThanOrEqual(
-				(CITY_PALETTE as { tileCount: number }).tileCount,
-			);
+			expect(f).toBeLessThanOrEqual(CITY_PALETTE.tileCount);
 	});
 
 	it('collision map covers every gid the palette can place', () => {
