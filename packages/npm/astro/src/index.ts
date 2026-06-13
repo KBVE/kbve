@@ -15,6 +15,10 @@ export { TooltipOverlay } from './react/TooltipOverlay';
 export type { TooltipOverlayProps } from './react/TooltipOverlay';
 export { NotContent } from './react/NotContent';
 export type { NotContentProps } from './react/NotContent';
+export { Drawer } from './react/Drawer';
+export type { DrawerProps, DrawerSide } from './react/Drawer';
+export { Popover } from './react/Popover';
+export type { PopoverProps, PopoverPlacement } from './react/Popover';
 export { FloatingWindow } from './react/FloatingWindow';
 export type { FloatingWindowProps, WindowLayer } from './react/FloatingWindow';
 
