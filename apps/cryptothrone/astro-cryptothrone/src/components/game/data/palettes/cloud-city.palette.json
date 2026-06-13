@@ -5,7 +5,7 @@
 	"tileSize": 16,
 	"tilesetImage": "palettes/cloud-city.atlas.png",
 	"tilesetColumns": 8,
-	"tileCount": 10,
+	"tileCount": 11,
 	"entries": {
 		"1": [2],
 		"2": [2],
@@ -14,8 +14,27 @@
 		"5": [6, 7, 8, 9],
 		"6": [3, 4, 5],
 		"7": [2],
-		"8": [1],
+		"8": [10],
 		"9": [2],
-		"10": [10]
+		"10": [1]
+	},
+	"animations": {
+		"10": {
+			"frames": [10, 11],
+			"frameDurations": [0.5, 0.5],
+			"loop": true
+		}
+	},
+	"collision": {
+		"1": true,
+		"2": false,
+		"3": true,
+		"4": true,
+		"5": true,
+		"6": true,
+		"7": true,
+		"8": true,
+		"9": true,
+		"10": true
 	}
 }
