@@ -12,7 +12,7 @@ spec:
     policy:
         type: Buffer
         buffer:
-            bufferSize: 2
+            bufferSize: 1
             minReplicas: 0
             maxReplicas: 10
     sync:
