@@ -19,6 +19,9 @@ pub const PLAYER_HP: i32 = 100;
 pub const PLAYER_ATTACK: i32 = 5;
 pub const PLAYER_TICKS_PER_TILE: u8 = 4;
 pub const PLAYER_SPAWN: Tile = Tile::new(5, 12);
+// Cloud City plaza is a safe town — hostiles can't aggro players within
+// this Chebyshev radius of spawn. Venture out to find combat.
+pub const PLAYER_SAFE_RADIUS: i32 = 8;
 
 pub const NPC_RESPAWN_TICKS: u32 = SIM_TICK_HZ * 30;
 
@@ -26,13 +29,14 @@ pub const CLERIC_REF: &str = "cleric";
 pub const CLERIC_SPAWN: Tile = Tile::new(4, 10);
 
 pub const BAT_REF: &str = "crystal-bat";
-pub const BAT_COUNT: i32 = 10;
-pub const BAT_ORIGIN: Tile = Tile::new(7, 7);
+pub const BAT_COUNT: i32 = 8;
+// Crystal cavern, far SE of the plaza — outside the safe zone.
+pub const BAT_ORIGIN: Tile = Tile::new(34, 30);
 pub const BAT_LOOT_REF: &str = "potion";
 
 pub const GOBLIN_REF: &str = "goblin";
 pub const GOBLIN_COUNT: i32 = 4;
-pub const GOBLIN_ORIGIN: Tile = Tile::new(20, 20);
+pub const GOBLIN_ORIGIN: Tile = Tile::new(24, 24);
 pub const GOBLIN_LOOT_REF: &str = "coin";
 
 pub const HOSTILE_AGGRO_RANGE: i32 = 6;
@@ -72,6 +76,7 @@ pub fn config() -> SimConfig {
         player_attack: PLAYER_ATTACK,
         spawn: PLAYER_SPAWN,
         ticks_per_tile: PLAYER_TICKS_PER_TILE,
+        safe_radius: PLAYER_SAFE_RADIUS,
     }
 }
 
@@ -162,7 +167,7 @@ pub fn spawn_world(mut done: Local<bool>, registry: Res<KindRegistry>, mut comma
             &registry,
             BAT_REF,
             origin,
-            Some((20, 20)),
+            Some((6, 20)),
             Some(BAT_LOOT_REF),
         ) {
             spawn_npc_from_spec(&mut commands, &spec);
