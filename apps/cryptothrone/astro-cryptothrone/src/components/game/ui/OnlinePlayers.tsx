@@ -24,14 +24,18 @@ export function OnlinePlayers() {
 								className="h-1.5 w-1.5 rounded-full bg-emerald-400"
 								aria-hidden="true"
 							/>
-							<span className="truncate">
+							<a
+								href={`https://kbve.com/@${p.username}`}
+								target="_blank"
+								rel="noopener"
+								className="truncate text-stone-300 no-underline hover:text-amber-300">
 								{p.username}
 								{p.username === me && (
 									<span className="ml-1 text-xs text-gray-500">
 										(you)
 									</span>
 								)}
-							</span>
+							</a>
 						</li>
 					))}
 				</ul>
