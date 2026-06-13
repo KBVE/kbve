@@ -93,6 +93,14 @@ impl WalkableMap {
         Ok(Self::from_blocked(tm.width, tm.height, tm.blocked))
     }
 
+    /// Build a walkable map from a procedural dungeon seed. The client
+    /// reproduces the identical layout from the same seed (see
+    /// dungeon.ts), so only the seed needs to cross the wire.
+    pub fn from_dungeon(seed: u32, width: i32, height: i32) -> Self {
+        let d = crate::dungeon::generate(seed, width, height);
+        Self::from_blocked(d.width, d.height, d.blocked)
+    }
+
     pub fn from_tiled_json(bytes: &[u8]) -> Result<Self, serde_json::Error> {
         let map: TiledMap = serde_json::from_slice(bytes)?;
         let w = map.width.max(1);
