@@ -42,6 +42,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "KBVE|NPC|Sprite")
 	void DespawnSprite(FKBVENpcSpriteHandle Handle);
 
+	bool DebugStoredYawDeg(FKBVENpcSpriteHandle Handle, float& OutYawDeg) const;
+
+	void DebugSetCellParams(UKBVENpcSpriteDef* Def, float RowFront, float RowSide, float RowBack, float SwapSide);
+
 private:
 	struct FInstanceRec
 	{

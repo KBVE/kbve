@@ -34,6 +34,7 @@ template:
         annotations:
             kbve.com/restart-trigger: '20260504-canary-bootstrap'
     spec:
+        serviceAccountName: arc-vm-starter
         initContainers:
             - name: init-dind-externals
               image: ghcr.io/kbve/arc-runner:0.1.4

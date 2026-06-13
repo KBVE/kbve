@@ -21,6 +21,17 @@
 #include "NavigationSystem.h"
 #include "NavigationPath.h"
 #include "NavigationData.h"
+#include "DrawDebugHelpers.h"
+
+static TAutoConsoleVariable<int32> CVarSlimeFaceDbg(
+	TEXT("chuck.slime.facedbg"), 0,
+	TEXT("Draw slime movement-direction arrows (1) to compare against billboard facing."),
+	ECVF_Default);
+
+static TAutoConsoleVariable<int32> CVarSlimeRowFront(TEXT("chuck.slime.rowfront"), -1, TEXT("Override slime atlas front row (-1=def)."), ECVF_Default);
+static TAutoConsoleVariable<int32> CVarSlimeRowSide (TEXT("chuck.slime.rowside"),  -1, TEXT("Override slime atlas side row (-1=def)."),  ECVF_Default);
+static TAutoConsoleVariable<int32> CVarSlimeRowBack (TEXT("chuck.slime.rowback"),  -1, TEXT("Override slime atlas back row (-1=def)."),  ECVF_Default);
+static TAutoConsoleVariable<int32> CVarSlimeSwapSide(TEXT("chuck.slime.swapside"), -1, TEXT("Override slime side flip 0/1 (-1=def)."),    ECVF_Default);
 
 namespace
 {
@@ -71,10 +82,10 @@ void UchuckSlimeSubsystem::EnsureSpriteDef()
 	SlimeDef->Atlas = LoadObject<UTexture2D>(nullptr, SlimeTexPath);
 	SlimeDef->Columns = Cols;
 	SlimeDef->Rows = Rows;
-	SlimeDef->RowFront = 2;
+	SlimeDef->RowFront = 0;
 	SlimeDef->RowSide = 1;
-	SlimeDef->RowBack = 0;
-	SlimeDef->bSwapSide = false;
+	SlimeDef->RowBack = 2;
+	SlimeDef->bSwapSide = true;
 	SlimeDef->FramesPerAnim = Cols;
 	SlimeDef->Fps = FrameRate;
 	SlimeDef->WorldSize = FVector2f(150.f, 150.f);
@@ -327,9 +338,26 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 	UKBVENetEntityReplicator* Rep = EnsureReplicator(true);
 	UKBVENpcSpriteRenderSubsystem* Renderer = GetSpriteRenderer();
 
+	if (Renderer && SlimeDef)
+	{
+		const int32 RF = CVarSlimeRowFront.GetValueOnGameThread();
+		const int32 RS = CVarSlimeRowSide.GetValueOnGameThread();
+		const int32 RB = CVarSlimeRowBack.GetValueOnGameThread();
+		const int32 SW = CVarSlimeSwapSide.GetValueOnGameThread();
+		if (RF >= 0 || RS >= 0 || RB >= 0 || SW >= 0)
+		{
+			Renderer->DebugSetCellParams(SlimeDef,
+				RF >= 0 ? (float)RF : -1.f,
+				RS >= 0 ? (float)RS : -1.f,
+				RB >= 0 ? (float)RB : -1.f,
+				SW >= 0 ? (float)SW : -1.f);
+		}
+	}
+
 	int32 RepathBudget = 4;
 
 	FVector PlayerLoc = FVector::ZeroVector;
+	FVector CamLoc = FVector::ZeroVector;
 	bool bHavePlayer = false;
 	if (APlayerController* PC = World->GetFirstPlayerController())
 	{
@@ -337,6 +365,10 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 		{
 			PlayerLoc = Pn->GetActorLocation();
 			bHavePlayer = true;
+		}
+		if (PC->PlayerCameraManager)
+		{
+			CamLoc = PC->PlayerCameraManager->GetCameraLocation();
 		}
 	}
 	const double RelevanceRadiusSq = 8500.0 * 8500.0;
@@ -413,11 +445,26 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 		{
 			Dir /= Flat;
 			MoveYaw = FMath::RadiansToDegrees(FMath::Atan2(Dir.Y, Dir.X));
+
+			const float TurnDelta = FMath::Abs(FMath::FindDeltaAngleDegrees(S->LastYaw, MoveYaw));
+			if (TurnDelta > 45.f && S->TurnTimer <= 0.f)
+			{
+				S->TurnTimer = 0.35f;
+			}
 			S->LastYaw = MoveYaw;
+
 			S->HopPhase += DeltaTime * HopRate;
 			const float HopUp = FMath::Max(0.f, FMath::Sin(S->HopPhase));
 
-			FVector NewPos = Pos + Dir * S->Speed * DeltaTime * HopUp * HopMoveScale;
+			FVector NewPos = Pos;
+			if (S->TurnTimer > 0.f)
+			{
+				S->TurnTimer -= DeltaTime;
+			}
+			else
+			{
+				NewPos = Pos + Dir * S->Speed * DeltaTime * HopUp * HopMoveScale;
+			}
 			S->GroundTimer -= DeltaTime;
 			if (S->GroundTimer <= 0.f)
 			{
@@ -437,6 +484,41 @@ void UchuckSlimeSubsystem::TickServer(float DeltaTime)
 		if (Renderer && SlimeSprites.IsValidIndex(i) && bRelevant)
 		{
 			Renderer->UpdateSprite(SlimeSprites[i], Pos, MoveYaw);
+		}
+
+		if (bRelevant && CVarSlimeFaceDbg.GetValueOnGameThread() != 0)
+		{
+			if (UWorld* W = GetWorld())
+			{
+				const float Rad = FMath::DegreesToRadians(MoveYaw);
+				const FVector Fwd(FMath::Cos(Rad), FMath::Sin(Rad), 0.f);
+				const FVector Base = Pos + FVector(0.f, 0.f, 90.f);
+				DrawDebugDirectionalArrow(W, Base, Base + Fwd * 160.f, 40.f,
+					bMoving ? FColor::Green : FColor::Yellow, false, -1.f, 0, 4.f);
+
+				FVector ToCam = CamLoc - Pos;
+				ToCam.Z = 0.f;
+				const float CamYaw = FMath::RadiansToDegrees(FMath::Atan2(ToCam.Y, ToCam.X));
+				const float D = FMath::FindDeltaAngleDegrees(CamYaw, MoveYaw);
+				const float AD = FMath::Abs(D);
+
+				const float SwapSide = SlimeDef ? (SlimeDef->bSwapSide ? 1.f : 0.f) : 0.f;
+				const float Right = (D < 0.f) ? 1.f : 0.f;
+				const bool bFlip = (Right != SwapSide);
+
+				FString Move;
+				FString Shows;
+				if (AD >= 135.f) { Move = TEXT("AWAY"); Shows = TEXT("BACK"); }
+				else if (AD > 45.f)
+				{
+					Move = (D < 0.f) ? TEXT("LEFT") : TEXT("RIGHT");
+					Shows = bFlip ? TEXT("RIGHT(flip)") : TEXT("LEFT(base)");
+				}
+				else { Move = TEXT("TOWARD"); Shows = TEXT("FRONT"); }
+
+				const FString Cell = FString::Printf(TEXT("move:%s  sprite:%s"), *Move, *Shows);
+				DrawDebugString(W, Pos + FVector(0.f, 0.f, 150.f), Cell, nullptr, FColor::Cyan, 0.f, true);
+			}
 		}
 
 		if (Rep && bRelevant)

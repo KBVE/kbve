@@ -389,6 +389,18 @@ void UKBVENpcSpriteRenderSubsystem::DespawnSprite(FKBVENpcSpriteHandle Handle)
 			Moved->Index = Slot;
 		}
 		(*Idx)[Slot] = MovedHandle;
+
+		FTransform MovedXform;
+		HISM->GetInstanceTransform(Last, MovedXform, true);
+		HISM->UpdateInstanceTransform(Slot, MovedXform, true, false, true);
+		const int32 Floats = HISM->NumCustomDataFloats;
+		if (Floats > 0 && HISM->PerInstanceSMCustomData.Num() >= (Last + 1) * Floats)
+		{
+			for (int32 c = 0; c < Floats; ++c)
+			{
+				HISM->SetCustomDataValue(Slot, c, HISM->PerInstanceSMCustomData[Last * Floats + c], false);
+			}
+		}
 	}
 	if (Idx->Num() > 0)
 	{
@@ -396,6 +408,40 @@ void UKBVENpcSpriteRenderSubsystem::DespawnSprite(FKBVENpcSpriteHandle Handle)
 	}
 	HISM->RemoveInstance(Last);
 	Instances.Remove(Handle.Id);
+}
+
+void UKBVENpcSpriteRenderSubsystem::DebugSetCellParams(UKBVENpcSpriteDef* Def, float RowFront, float RowSide, float RowBack, float SwapSide)
+{
+	TObjectPtr<UInstancedStaticMeshComponent>* Found = Def ? DefHISMs.Find(Def) : nullptr;
+	if (!Found || !*Found)
+	{
+		return;
+	}
+	UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>((*Found)->GetMaterial(0));
+	if (!MID)
+	{
+		return;
+	}
+	if (RowFront >= 0.f) { MID->SetScalarParameterValue(TEXT("RowFront"), RowFront); }
+	if (RowSide  >= 0.f) { MID->SetScalarParameterValue(TEXT("RowSide"),  RowSide); }
+	if (RowBack  >= 0.f) { MID->SetScalarParameterValue(TEXT("RowBack"),  RowBack); }
+	if (SwapSide >= 0.f) { MID->SetScalarParameterValue(TEXT("SwapSide"), SwapSide); }
+}
+
+bool UKBVENpcSpriteRenderSubsystem::DebugStoredYawDeg(FKBVENpcSpriteHandle Handle, float& OutYawDeg) const
+{
+	const FInstanceRec* Rec = Instances.Find(Handle.Id);
+	if (!Rec || !Rec->HISM)
+	{
+		return false;
+	}
+	const int32 Floats = Rec->HISM->NumCustomDataFloats;
+	if (Floats <= 0 || Rec->HISM->PerInstanceSMCustomData.Num() < (Rec->Index + 1) * Floats)
+	{
+		return false;
+	}
+	OutYawDeg = FMath::RadiansToDegrees(Rec->HISM->PerInstanceSMCustomData[Rec->Index * Floats + 0]);
+	return true;
 }
 
 void UKBVENpcSpriteRenderSubsystem::Tick(float DeltaTime)

@@ -148,6 +148,10 @@ export class GameClient {
 		this.sendInputs([{ Action: { id, target } }]);
 	}
 
+	heartbeat(): void {
+		this.sendInputs([{ Heartbeat: { client_tick: this.clientTick } }]);
+	}
+
 	useItem(itemRef: string): void {
 		this.sendInputs([{ UseItem: { item_ref: itemRef } }]);
 	}

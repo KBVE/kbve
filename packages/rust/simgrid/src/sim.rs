@@ -183,6 +183,7 @@ pub struct KillCounts(pub HashMap<u16, u32>);
 
 pub const REGEN_PERIOD_TICKS: u32 = SIM_TICK_HZ * 2;
 pub const REGEN_AMOUNT: i32 = 2;
+pub const CRIT_CHANCE_PCT: u64 = 15;
 
 #[derive(Clone, Copy)]
 pub struct AggroSpec {
@@ -734,6 +735,7 @@ fn apply_actions(
     registry: Res<KindRegistry>,
     bcast: Res<SnapshotBroadcast>,
     clock: Res<SimClock>,
+    seed: Res<SimSeed>,
     config: Res<SimConfig>,
     equipment: Res<EquipmentEffects>,
     mut respawns: ResMut<RespawnQueue>,
@@ -795,7 +797,10 @@ fn apply_actions(
                 if attacker_tile.chebyshev(mob_pos.tile) > 1 {
                     continue;
                 }
-                let damage = (attack - mob_defense.map(|d| d.0).unwrap_or(0)).max(1);
+                let base = (attack - mob_defense.map(|d| d.0).unwrap_or(0)).max(1);
+                let crit = hash3(seed.0, player_entity.index_u32() as u64, clock.tick as u64) % 100
+                    < CRIT_CHANCE_PCT;
+                let damage = if crit { base * 2 } else { base };
                 let kill_xp = mob_level.map(|l| l.0).unwrap_or(1).max(1) * XP_PER_NPC_LEVEL;
                 hp.hp -= damage;
                 let died = hp.hp <= 0;
@@ -804,6 +809,7 @@ fn apply_actions(
                     "target": target_entity.index_u32(),
                     "target_ref": registry.ref_of(kind.0),
                     "dmg": damage,
+                    "crit": crit,
                     "died": died,
                 })
                 .to_string()

@@ -17,7 +17,7 @@ const NPCDB_JSON: &[u8] =
 
 pub const PLAYER_HP: i32 = 100;
 pub const PLAYER_ATTACK: i32 = 5;
-pub const PLAYER_TICKS_PER_TILE: u8 = 4;
+pub const PLAYER_TICKS_PER_TILE: u8 = 3;
 pub const PLAYER_SPAWN: Tile = Tile::new(5, 12);
 // Cloud City plaza is a safe town — hostiles can't aggro players within
 // this Chebyshev radius of spawn. Venture out to find combat.
