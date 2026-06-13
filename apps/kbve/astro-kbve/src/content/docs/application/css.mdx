@@ -200,6 +200,33 @@ The View Transitions API animates between DOM states (and across page navigation
 }
 ```
 
+### Respecting motion preferences
+
+Always gate non-essential motion behind `prefers-reduced-motion`. Users who set the OS "reduce motion" flag get a static experience; everyone else gets the animation.
+
+```css
+@media (prefers-reduced-motion: no-preference) {
+    .card {
+        animation: reveal linear both;
+        animation-timeline: view();
+    }
+}
+
+/* Or kill all motion as a blanket safety net */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+```
+
+<Aside type="caution">
+The scroll-driven, shimmer and glow examples in this doc are decorative. In production, wrap them in `motion-safe:` (Tailwind) or the media query above so they respect the user's accessibility setting.
+</Aside>
+
 ### Text wrapping
 
 ```css
@@ -226,6 +253,150 @@ Logical properties adapt to writing direction (LTR / RTL) automatically.
 
 <Aside type="tip">
 Other modern wins worth knowing: `accent-color` (themes checkboxes/radios), `aspect-ratio` (no padding hack), `scrollbar-gutter: stable` (no layout shift on scroll), `:is()` / `:where()` (selector grouping, `:where()` has zero specificity), and `gap` on flexbox.
+</Aside>
+
+---
+
+## Layout Patterns
+
+The two layout engines — Flexbox (one dimension) and Grid (two dimensions) — cover almost every layout. A handful of patterns recur constantly.
+
+### Responsive grid without media queries
+
+`auto-fit` + `minmax()` reflows columns to fit the container. Cards wrap on their own as space shrinks.
+
+```css
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+    gap: 1rem;
+}
+```
+
+<Aside>
+The `min(16rem, 100%)` guard stops a single card overflowing on viewports narrower than the track minimum. In Tailwind: `grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))]`.
+</Aside>
+
+### Dead-center anything
+
+```css
+.center {
+    display: grid;
+    place-items: center;
+}
+```
+
+### Sticky footer
+
+Footer sits at the bottom on short pages, pushed down on tall ones — no fixed heights.
+
+```css
+body {
+    min-height: 100dvh;        /* dvh = dynamic viewport, accounts for mobile URL bars */
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;                   /* grows to fill, footer follows */
+}
+```
+
+### The stack and the sidebar
+
+```css
+/* Even vertical rhythm between children */
+.stack > * + * {
+    margin-block-start: 1.5rem;
+}
+
+/* Sidebar that collapses below content when space runs out */
+.with-sidebar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.with-sidebar > .sidebar { flex: 1 1 15rem; }
+.with-sidebar > .content { flex: 999 1 60%; }
+```
+
+### Cascade layers
+
+`@layer` gives you explicit control over specificity ordering — later layers always win over earlier ones, regardless of selector strength. This tames override wars and is how Tailwind v4 organizes its own output (`theme`, `base`, `components`, `utilities`).
+
+```css
+@layer reset, base, components, utilities;
+
+@layer base {
+    a { color: blue; }
+}
+
+@layer components {
+    /* Wins over base even though the selector is identical specificity */
+    .link { color: rebeccapurple; }
+}
+```
+
+<Aside type="tip">
+Unlayered styles beat layered ones, so anything outside a layer always wins — useful for one-off overrides, dangerous if used by accident.
+</Aside>
+
+---
+
+## Transitions & Animation
+
+Two mechanisms: `transition` interpolates between two states (a hover, a class toggle), while `@keyframes` + `animation` runs a defined timeline that can loop and have many steps.
+
+### Transitions
+
+```css
+.button {
+    background: var(--brand);
+    /* property | duration | easing | delay */
+    transition: background 200ms ease-out, transform 200ms ease-out;
+}
+.button:hover {
+    transform: translateY(-2px);
+}
+```
+
+<Aside type="caution">
+Transition only cheap, compositor-friendly properties — `transform`, `opacity`, `filter`. Animating `width`, `height`, `top` or `margin` triggers layout on every frame and janks. Need a layout-looking move? Use `transform: scale()` / `translate()` instead.
+</Aside>
+
+### Easing
+
+`ease-out` for things entering, `ease-in` for things leaving, custom `cubic-bezier()` for character. Modern browsers also support `linear()` for spring and bounce curves without JavaScript.
+
+```css
+:root {
+    --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
+    /* A spring-like bounce, approximated with a linear() stop list */
+    --ease-spring: linear(0, 0.4 12%, 1.1 28%, 0.95 42%, 1.02 60%, 1);
+}
+```
+
+### Keyframes
+
+A full timeline. This is the `shimmer` keyframe the gradient-text example earlier relies on — define it once globally (in your stylesheet or Tailwind `@theme`).
+
+```css
+@keyframes shimmer {
+    to { background-position: 200% center; }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-0.5rem); }
+}
+
+.badge {
+    animation: float 3s ease-in-out infinite;
+}
+```
+
+<Aside type="tip">
+In Tailwind v4, register a keyframe-backed animation as a theme token: `@theme { --animate-float: float 3s ease-in-out infinite; }` generates the `animate-float` utility. Always pair looping animation with `motion-safe:` so it respects reduced-motion.
 </Aside>
 
 ---
@@ -750,6 +921,102 @@ module.exports = {
 
 ---
 
+## Responsive & Dark Mode
+
+Tailwind styles mobile-first: an unprefixed utility applies everywhere, and a breakpoint prefix applies at that width **and up**.
+
+| Prefix | Min width | Typical device |
+|--------|-----------|----------------|
+| `sm:`  | 40rem (640px)  | large phone / small tablet |
+| `md:`  | 48rem (768px)  | tablet |
+| `lg:`  | 64rem (1024px) | laptop |
+| `xl:`  | 80rem (1280px) | desktop |
+| `2xl:` | 96rem (1536px) | large desktop |
+
+```html
+<!-- 1 column on mobile, 2 on tablet, 4 on desktop -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+```
+
+State and feature variants stack the same way — `hover:`, `focus-visible:`, `active:`, `disabled:`, `group-hover:`, `peer-checked:`, `motion-safe:`, `motion-reduce:`, `rtl:`.
+
+### Dark mode
+
+Tailwind's `dark:` variant toggles on either the OS preference or a `.dark` class on a root element. v4 selects the strategy in CSS:
+
+```css
+@import "tailwindcss";
+
+/* class strategy — toggle <html class="dark"> yourself */
+@custom-variant dark (&:where(.dark, .dark *));
+```
+
+```html
+<div class="bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+    Adapts to the active theme.
+</div>
+```
+
+Pure CSS equivalent, no framework:
+
+```css
+:root { color-scheme: light dark; }
+
+@media (prefers-color-scheme: dark) {
+    :root { --bg: #0a0a0a; --fg: #fafafa; }
+}
+```
+
+<Aside type="tip">
+`color-scheme: light dark` tells the browser to render native form controls, scrollbars and `system` colors for the active theme automatically.
+</Aside>
+
+---
+
+## Accessibility
+
+Good CSS is accessible CSS. A few patterns carry most of the weight.
+
+### Visible focus
+
+Never remove focus outlines outright. Use `:focus-visible` so a ring shows for keyboard users without flashing on mouse click.
+
+```css
+.button:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+}
+```
+
+```html
+<!-- Tailwind -->
+<button class="focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2">
+    Accessible
+</button>
+```
+
+### Screen-reader-only text
+
+Visually hide content while keeping it in the accessibility tree (Tailwind ships `sr-only`).
+
+```css
+.sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+```
+
+<Aside type="caution">
+Other quick wins: keep text contrast at WCAG AA (4.5:1 for body copy), never convey meaning by color alone, honor `prefers-reduced-motion`, and ensure interactive targets are at least 24×24px.
+</Aside>
+
+---
+
 ## Custom Components
 
 Reusable visual effects. Text-effect snippets use arbitrary values (`[text-shadow:...]`) so they render on any Tailwind build, with the native v4 utility noted alongside.
@@ -841,6 +1108,100 @@ export const neonBorderCode = `<div class="flex items-center justify-center p-10
 </div>`;
 
 <DevCode htmlCode={neonBorderCode} />
+
+---
+
+### Loading Spinner
+
+A spinner from a single bordered element — transparent on three sides, colored on one, spun with `animate-spin`.
+
+export const spinnerCode = `<div class="flex items-center justify-center gap-6 p-10 bg-gray-900">
+  <div class="w-10 h-10 border-4 rounded-full border-cyan-500 border-t-transparent animate-spin"></div>
+  <div class="w-10 h-10 border-4 border-dashed rounded-full border-fuchsia-500 animate-spin"></div>
+  <div class="w-10 h-10 border-2 rounded-full border-amber-400 border-b-transparent border-l-transparent animate-spin"></div>
+</div>`;
+
+<DevCode htmlCode={spinnerCode} />
+
+---
+
+### Skeleton Loader
+
+Placeholder shapes with `animate-pulse` while content streams in.
+
+export const skeletonCode = `<div class="max-w-sm p-6 bg-white rounded-lg shadow">
+  <div class="flex items-center gap-4">
+    <div class="w-12 h-12 bg-gray-200 rounded-full animate-pulse"></div>
+    <div class="flex-1 space-y-3">
+      <div class="w-3/4 h-3 bg-gray-200 rounded animate-pulse"></div>
+      <div class="w-1/2 h-3 bg-gray-200 rounded animate-pulse"></div>
+    </div>
+  </div>
+  <div class="mt-6 space-y-3">
+    <div class="h-3 bg-gray-200 rounded animate-pulse"></div>
+    <div class="h-3 bg-gray-200 rounded animate-pulse"></div>
+    <div class="w-5/6 h-3 bg-gray-200 rounded animate-pulse"></div>
+  </div>
+</div>`;
+
+<DevCode htmlCode={skeletonCode} />
+
+---
+
+### Toggle Switch
+
+A pure-CSS switch — a hidden `peer` checkbox drives the track and knob with `peer-checked:` variants. No JavaScript.
+
+export const toggleCode = `<div class="flex items-center gap-6 p-10 bg-gray-100">
+  <label class="relative inline-flex items-center cursor-pointer">
+    <input type="checkbox" class="sr-only peer" checked>
+    <div class="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-cyan-500 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+    <span class="ml-3 text-sm font-medium text-gray-700">Enabled</span>
+  </label>
+</div>`;
+
+<DevCode htmlCode={toggleCode} />
+
+---
+
+### Tooltip
+
+CSS-only tooltip — `group-hover` reveals an absolutely positioned label. Pair with `aria-label` for assistive tech.
+
+export const tooltipCode = `<div class="flex items-center justify-center p-16 bg-gray-900">
+  <div class="relative inline-block group">
+    <button class="px-4 py-2 font-medium text-white rounded-md bg-cyan-600">Hover me</button>
+    <span class="absolute z-10 px-3 py-1.5 text-sm text-white -translate-x-1/2 bg-gray-800 rounded-md opacity-0 pointer-events-none bottom-full left-1/2 mb-2 whitespace-nowrap transition-opacity duration-200 group-hover:opacity-100">
+      Tooltip text
+      <span class="absolute -translate-x-1/2 border-4 border-transparent top-full left-1/2 border-t-gray-800"></span>
+    </span>
+  </div>
+</div>`;
+
+<DevCode htmlCode={tooltipCode} />
+
+---
+
+### Badges & Pills
+
+Status chips with a leading dot.
+
+export const badgeCode = `<div class="flex flex-wrap items-center gap-3 p-10 bg-gray-50">
+  <span class="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full text-green-700 bg-green-100">
+    <span class="w-2 h-2 rounded-full bg-green-500"></span> Online
+  </span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full text-amber-700 bg-amber-100">
+    <span class="w-2 h-2 rounded-full bg-amber-500"></span> Pending
+  </span>
+  <span class="inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full text-red-700 bg-red-100">
+    <span class="w-2 h-2 rounded-full bg-red-500"></span> Offline
+  </span>
+  <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-semibold tracking-wide uppercase rounded text-white bg-gradient-to-r from-cyan-500 to-fuchsia-500">
+    New
+  </span>
+</div>`;
+
+<DevCode htmlCode={badgeCode} />
 
 ---
 
