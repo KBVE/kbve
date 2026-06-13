@@ -378,7 +378,7 @@ pub(crate) async fn require_dashboard_view(
 /// Gate for sensitive proxy routes that need a higher privilege level than
 /// plain DASHBOARD_VIEW (e.g. network-enabled firecracker). Requires the
 /// same JWT checks plus DASHBOARD_MANAGE permission.
-async fn require_dashboard_manage_with_query(
+pub(crate) async fn require_dashboard_manage_with_query(
     headers: &HeaderMap,
     query: Option<&str>,
     service_name: &str,

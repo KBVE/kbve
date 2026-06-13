@@ -199,6 +199,17 @@ export interface ForgejoVersion {
 	version: string;
 }
 
+export interface ForgejoStats {
+	repo_count: number;
+	total_size_kb: number;
+	public: number;
+	private: number;
+	mirror: number;
+	archived: number;
+	fork: number;
+	truncated: boolean;
+}
+
 export interface ForgejoCollaborator extends ForgejoUser {
 	permissions?: {
 		admin: boolean;
@@ -739,6 +750,7 @@ class ForgejoService {
 	public readonly $version = atom<string | null>(null);
 	public readonly $cronTasks = atom<ForgejoCronTask[]>([]);
 	public readonly $unadopted = atom<string[]>([]);
+	public readonly $stats = atom<ForgejoStats | null>(null);
 
 	public readonly $issueRepo = atom<string | null>(null);
 	public readonly $issueState = atom<'open' | 'closed'>('open');
@@ -927,6 +939,7 @@ class ForgejoService {
 			this.$orgsHasMore.set(orgs.hasMore);
 			this.$lastUpdated.set(new Date());
 			void saveCache(repos.items, users.items, orgs.items);
+			void this.fetchStats();
 		} catch (e: unknown) {
 			if (e instanceof AccessRestrictedError) {
 				this.$authState.set('forbidden');
@@ -940,6 +953,24 @@ class ForgejoService {
 			this.$error.set(e instanceof Error ? e.message : 'Unknown error');
 		} finally {
 			this.$loading.set(false);
+		}
+	}
+
+	public async fetchStats(): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		try {
+			const resp = await fetch(`${API_BASE}/stats`, {
+				headers: { Authorization: `Bearer ${token}` },
+				signal: AbortSignal.timeout(20000),
+			});
+			if (!resp.ok) return;
+			const data = (await resp.json()) as ForgejoStats;
+			if (data && typeof data.total_size_kb === 'number') {
+				this.$stats.set(data);
+			}
+		} catch {
+			return;
 		}
 	}
 
