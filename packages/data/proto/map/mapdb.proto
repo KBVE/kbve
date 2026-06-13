@@ -1332,6 +1332,47 @@ message HexTilemap {
   bool drafted = 10;
 }
 
+// Semantic tile classification — separates WHAT a tile is (its role) from
+// WHICH gid renders it. Procedural generators emit a row-major role grid
+// (deterministic per seed); collision derives from the role; a per-biome
+// TilePalette resolves role -> gid for presentation.
+enum TileRole {
+  TILE_ROLE_UNSPECIFIED = 0;
+  TILE_ROLE_GROUND      = 1;   // generic walkable terrain
+  TILE_ROLE_PLAZA       = 2;   // open civic space (walkable)
+  TILE_ROLE_ROAD        = 3;   // street / path (walkable)
+  TILE_ROLE_GRASS       = 4;   // vegetation ground (walkable)
+  TILE_ROLE_WALL        = 5;   // building wall / solid (blocks)
+  TILE_ROLE_ROOF        = 6;   // building roof (blocks)
+  TILE_ROLE_DOOR        = 7;   // building entrance (walkable)
+  TILE_ROLE_WATER       = 8;   // water (blocks)
+  TILE_ROLE_PROP        = 9;   // decorative, walkable (rug, lamp base)
+  TILE_ROLE_PROP_SOLID  = 10;  // decorative obstacle (tree, statue, barrel)
+  TILE_ROLE_VOID        = 11;  // empty / out of bounds (blocks)
+}
+
+// One role's render options: gid variants picked deterministically by seed so
+// repeated roles don't tile flatly. gids[0] is the canonical/single tile.
+message TilePaletteEntry {
+  TileRole role = 1;
+  repeated uint32 gids = 2;
+}
+
+// Maps semantic TileRoles to render gids for one biome/style. Presentation
+// only — never affects collision (that comes from the role grid). Swap the
+// palette to restyle the same generated layout for a different location.
+// Standalone artifact, like GridTilemap — not embedded in MapRegistry.
+message TilePalette {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  Biome biome = 4;
+  string tileset_image = 5;
+  int32 tileset_columns = 6;
+  int32 tile_size = 7;
+  repeated TilePaletteEntry entries = 8;
+}
+
 // =============================================================================
 // Sub-messages — Identity & Banners (faction + settlement visual identity)
 // =============================================================================

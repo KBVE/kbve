@@ -182,6 +182,23 @@
 			},
 			"cache": true
 		},
+		"sync:palettes": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-palette-atlas.mjs",
+				"{workspaceRoot}/packages/data/codegen/palettes/*.json",
+				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_tileset.png"
+			],
+			"outputs": [
+				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/map/palettes",
+				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/src/components/game/data/palettes"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-palette-atlas.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:mapdb": {
 			"executor": "nx:run-commands",
 			"inputs": [

@@ -1,0 +1,21 @@
+{
+	"ref": "cloud-city",
+	"name": "Cloud City",
+	"biome": "BIOME_CITY",
+	"tileSize": 16,
+	"tilesetImage": "palettes/cloud-city.atlas.png",
+	"tilesetColumns": 8,
+	"tileCount": 10,
+	"entries": {
+		"1": [2],
+		"2": [2],
+		"3": [2],
+		"4": [2],
+		"5": [6, 7, 8, 9],
+		"6": [3, 4, 5],
+		"7": [2],
+		"8": [1],
+		"9": [2],
+		"10": [10]
+	}
+}

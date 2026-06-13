@@ -1,17 +1,48 @@
-//! Deterministic procedural dungeon generation.
+//! Deterministic procedural map generation (dungeons + towns).
 //!
 //! Seed in -> identical grid out, byte-for-byte matched by the client
 //! TypeScript port (apps/cryptothrone .../data/dungeon.ts). Both sides use
-//! the same Mulberry32 PRNG and the same rooms+L-corridor carve order, so
-//! the server only has to hand the client a seed — never the map. Keeps the
-//! collision authoritative while the client renders + predicts the same
-//! dungeon locally.
+//! the same Mulberry32 PRNG and the same carve/placement order.
+//!
+//! Generators emit a **role grid** (semantic TileRole per tile, matching the
+//! mapdb TileRole enum). Collision derives from the role via [`role_blocks`],
+//! so the server only ships a seed — never the map — and a per-biome palette
+//! resolves role -> render gid on the client without touching collision.
 
 pub const DUNGEON_W: i32 = 48;
 pub const DUNGEON_H: i32 = 48;
 const MAX_ROOMS: u32 = 14;
 const ROOM_MIN: u32 = 4;
 const ROOM_MAX: u32 = 9;
+
+/// Semantic tile roles — values match the mapdb `TileRole` proto enum.
+pub mod role {
+    pub const UNSPECIFIED: u8 = 0;
+    pub const GROUND: u8 = 1;
+    pub const PLAZA: u8 = 2;
+    pub const ROAD: u8 = 3;
+    pub const GRASS: u8 = 4;
+    pub const WALL: u8 = 5;
+    pub const ROOF: u8 = 6;
+    pub const DOOR: u8 = 7;
+    pub const WATER: u8 = 8;
+    pub const PROP: u8 = 9;
+    pub const PROP_SOLID: u8 = 10;
+    pub const VOID: u8 = 11;
+}
+
+/// Whether a role blocks movement. The single source of truth for collision —
+/// shared by server (`WalkableMap`) and the client prediction grid.
+pub fn role_blocks(r: u8) -> bool {
+    matches!(
+        r,
+        role::WALL | role::ROOF | role::WATER | role::PROP_SOLID | role::VOID
+    )
+}
+
+fn blocked_from_roles(roles: &[u8]) -> Vec<bool> {
+    roles.iter().map(|&r| role_blocks(r)).collect()
+}
 
 /// Mulberry32 — tiny 32-bit PRNG. Pure u32 wrapping ops so it reproduces
 /// exactly in JS (Math.imul + `>>> 0`).
@@ -48,21 +79,22 @@ pub struct Room {
 pub struct Dungeon {
     pub width: i32,
     pub height: i32,
+    pub roles: Vec<u8>,
     pub blocked: Vec<bool>,
     pub spawn: (i32, i32),
     pub rooms: Vec<Room>,
 }
 
-/// Generate a connected rooms+corridors dungeon from a seed. Identical to
-/// the client TS port.
+/// Generate a connected rooms+corridors dungeon from a seed. Solid rock is
+/// WALL; carved space is GROUND. Identical to the client TS port.
 pub fn generate(seed: u32, width: i32, height: i32) -> Dungeon {
     let mut rng = Mulberry32::new(seed);
-    let mut blocked = vec![true; (width * height) as usize];
+    let mut roles = vec![role::WALL; (width * height) as usize];
     let mut rooms: Vec<Room> = Vec::new();
 
-    let carve = |b: &mut Vec<bool>, x: i32, y: i32| {
+    let carve = |r: &mut Vec<u8>, x: i32, y: i32| {
         if x >= 0 && x < width && y >= 0 && y < height {
-            b[(y * width + x) as usize] = false;
+            r[(y * width + x) as usize] = role::GROUND;
         }
     };
 
@@ -81,7 +113,7 @@ pub fn generate(seed: u32, width: i32, height: i32) -> Dungeon {
 
         for yy in ry..ry + rh {
             for xx in rx..rx + rw {
-                carve(&mut blocked, xx, yy);
+                carve(&mut roles, xx, yy);
             }
         }
         let cx = rx + rw / 2;
@@ -91,17 +123,17 @@ pub fn generate(seed: u32, width: i32, height: i32) -> Dungeon {
             let py = prev.y + prev.h / 2;
             if rng.next_u32() & 1 == 0 {
                 for x in px.min(cx)..=px.max(cx) {
-                    carve(&mut blocked, x, py);
+                    carve(&mut roles, x, py);
                 }
                 for y in py.min(cy)..=py.max(cy) {
-                    carve(&mut blocked, cx, y);
+                    carve(&mut roles, cx, y);
                 }
             } else {
                 for y in py.min(cy)..=py.max(cy) {
-                    carve(&mut blocked, px, y);
+                    carve(&mut roles, px, y);
                 }
                 for x in px.min(cx)..=px.max(cx) {
-                    carve(&mut blocked, x, cy);
+                    carve(&mut roles, x, cy);
                 }
             }
         }
@@ -115,9 +147,11 @@ pub fn generate(seed: u32, width: i32, height: i32) -> Dungeon {
 
     let first = rooms[0];
     let spawn = (first.x + first.w / 2, first.y + first.h / 2);
+    let blocked = blocked_from_roles(&roles);
     Dungeon {
         width,
         height,
+        roles,
         blocked,
         spawn,
         rooms,
@@ -134,20 +168,31 @@ const TOWN_EMPTY_PCT: u32 = 25;
 pub struct Town {
     pub width: i32,
     pub height: i32,
+    pub roles: Vec<u8>,
     pub blocked: Vec<bool>,
     pub spawn: (i32, i32),
     pub buildings: Vec<Room>,
 }
 
-/// Generate a structured town: a clear central plaza, a grid of streets, and
-/// inset building footprints (solid obstacles you walk around). Identical to
-/// the client TS port (town generateTown).
+/// Generate a structured town: a clear central PLAZA, a street grid of GROUND,
+/// inset buildings (WALL border + ROOF interior), and a PROP_SOLID tree in
+/// each skipped lot. Identical to the client TS port (town generateTown).
 pub fn generate_town(seed: u32, width: i32, height: i32) -> Town {
     let mut rng = Mulberry32::new(seed);
-    let mut blocked = vec![false; (width * height) as usize];
+    let mut roles = vec![role::GROUND; (width * height) as usize];
     let mut buildings: Vec<Room> = Vec::new();
     let (ccx, ccy) = (width / 2, height / 2);
     let max_b = (TOWN_CELL - 2 * TOWN_MARGIN).max(3);
+
+    let in_plaza = |x: i32, y: i32| (x - ccx).abs().max((y - ccy).abs()) <= TOWN_PLAZA_R;
+
+    for y in 0..height {
+        for x in 0..width {
+            if in_plaza(x, y) {
+                roles[(y * width + x) as usize] = role::PLAZA;
+            }
+        }
+    }
 
     let cols = width / TOWN_CELL;
     let rows = height / TOWN_CELL;
@@ -165,13 +210,17 @@ pub fn generate_town(seed: u32, width: i32, height: i32) -> Town {
             let by = oy + TOWN_MARGIN + byj;
             let bcx = bx + bw / 2;
             let bcy = by + bh / 2;
-            let in_plaza = (bcx - ccx).abs().max((bcy - ccy).abs()) <= TOWN_PLAZA_R;
-            if empty || in_plaza || bx + bw >= width || by + bh >= height {
+            if bx + bw >= width || by + bh >= height || in_plaza(bcx, bcy) {
+                continue;
+            }
+            if empty {
+                roles[(bcy * width + bcx) as usize] = role::PROP_SOLID;
                 continue;
             }
             for y in by..by + bh {
                 for x in bx..bx + bw {
-                    blocked[(y * width + x) as usize] = true;
+                    let edge = x == bx || x == bx + bw - 1 || y == by || y == by + bh - 1;
+                    roles[(y * width + x) as usize] = if edge { role::WALL } else { role::ROOF };
                 }
             }
             buildings.push(Room {
@@ -183,16 +232,28 @@ pub fn generate_town(seed: u32, width: i32, height: i32) -> Town {
         }
     }
 
+    let blocked = blocked_from_roles(&roles);
     Town {
         width,
         height,
+        roles,
         blocked,
         spawn: (ccx, ccy),
         buildings,
     }
 }
 
-/// FNV-1a over the blocked bitset — a cross-language parity fingerprint.
+/// FNV-1a over the role grid — the canonical cross-language parity fingerprint.
+pub fn fingerprint_roles(roles: &[u8]) -> u32 {
+    let mut h: u32 = 0x811c_9dc5;
+    for &r in roles {
+        h ^= r as u32;
+        h = h.wrapping_mul(0x0100_0193);
+    }
+    h
+}
+
+/// FNV-1a over the blocked bitset — collision parity.
 pub fn fingerprint(blocked: &[bool]) -> u32 {
     let mut h: u32 = 0x811c_9dc5;
     for &b in blocked {
@@ -206,33 +267,26 @@ pub fn fingerprint(blocked: &[bool]) -> u32 {
 mod tests {
     use super::*;
 
-    #[test]
-    fn dungeon_is_deterministic_and_connected() {
-        let d = generate(1337, DUNGEON_W, DUNGEON_H);
-        let d2 = generate(1337, DUNGEON_W, DUNGEON_H);
-        assert_eq!(fingerprint(&d.blocked), fingerprint(&d2.blocked));
-        assert_ne!(
-            fingerprint(&d.blocked),
-            fingerprint(&generate(99, DUNGEON_W, DUNGEON_H).blocked)
-        );
-        // spawn walkable
-        let si = (d.spawn.1 * d.width + d.spawn.0) as usize;
-        assert!(!d.blocked[si]);
-        // connectivity: BFS from spawn reaches every floor tile
-        let floors = d.blocked.iter().filter(|b| !**b).count();
-        let mut seen = vec![false; d.blocked.len()];
+    fn connected(roles: &[u8], w: i32, h: i32, spawn: (i32, i32)) -> bool {
+        let blocked = blocked_from_roles(roles);
+        let si = (spawn.1 * w + spawn.0) as usize;
+        if blocked[si] {
+            return false;
+        }
+        let open = blocked.iter().filter(|b| !**b).count();
+        let mut seen = vec![false; blocked.len()];
         seen[si] = true;
         let mut q = vec![si];
         let mut reached = 1;
         while let Some(c) = q.pop() {
-            let (x, y) = ((c as i32) % d.width, (c as i32) / d.width);
+            let (x, y) = ((c as i32) % w, (c as i32) / w);
             for (dx, dy) in [(0, -1), (0, 1), (-1, 0), (1, 0)] {
                 let (nx, ny) = (x + dx, y + dy);
-                if nx < 0 || ny < 0 || nx >= d.width || ny >= d.height {
+                if nx < 0 || ny < 0 || nx >= w || ny >= h {
                     continue;
                 }
-                let ni = (ny * d.width + nx) as usize;
-                if seen[ni] || d.blocked[ni] {
+                let ni = (ny * w + nx) as usize;
+                if seen[ni] || blocked[ni] {
                     continue;
                 }
                 seen[ni] = true;
@@ -240,60 +294,62 @@ mod tests {
                 q.push(ni);
             }
         }
-        assert_eq!(reached, floors, "dungeon has stranded floor tiles");
+        reached == open
+    }
+
+    #[test]
+    fn dungeon_is_deterministic_and_connected() {
+        let d = generate(1337, DUNGEON_W, DUNGEON_H);
+        let d2 = generate(1337, DUNGEON_W, DUNGEON_H);
+        assert_eq!(fingerprint_roles(&d.roles), fingerprint_roles(&d2.roles));
+        assert_ne!(
+            fingerprint_roles(&d.roles),
+            fingerprint_roles(&generate(99, DUNGEON_W, DUNGEON_H).roles)
+        );
+        assert!(connected(&d.roles, d.width, d.height, d.spawn));
     }
 
     #[test]
     fn parity_fingerprint_1337() {
-        // Frozen fingerprint — the TS port must match this exact value for
-        // seed 1337 / 48x48. If the algorithm changes, update both sides.
+        // Frozen — the TS port must match these exact values for seed 1337 /
+        // 48x48. If the algorithm changes, update both sides.
         let d = generate(1337, DUNGEON_W, DUNGEON_H);
-        println!("FINGERPRINT_1337={}", fingerprint(&d.blocked));
+        println!("ROLE_FINGERPRINT_1337={}", fingerprint_roles(&d.roles));
+        println!("BLOCKED_FINGERPRINT_1337={}", fingerprint(&d.blocked));
+        // dungeon collision is unchanged from the pre-role version
+        assert_eq!(fingerprint(&d.blocked), 532487171);
     }
 
     #[test]
     fn town_is_deterministic_and_connected() {
         let t = generate_town(2024, TOWN_W, TOWN_H);
         let t2 = generate_town(2024, TOWN_W, TOWN_H);
-        assert_eq!(fingerprint(&t.blocked), fingerprint(&t2.blocked));
+        assert_eq!(fingerprint_roles(&t.roles), fingerprint_roles(&t2.roles));
         assert_ne!(
-            fingerprint(&t.blocked),
-            fingerprint(&generate_town(7, TOWN_W, TOWN_H).blocked)
+            fingerprint_roles(&t.roles),
+            fingerprint_roles(&generate_town(7, TOWN_W, TOWN_H).roles)
         );
         assert!(!t.buildings.is_empty(), "town has no buildings");
-        // spawn (plaza center) walkable
-        let si = (t.spawn.1 * t.width + t.spawn.0) as usize;
-        assert!(!t.blocked[si]);
-        // streets connect: BFS from spawn over open ground reaches every
-        // walkable tile — no building seals off a pocket.
-        let ground = t.blocked.iter().filter(|b| !**b).count();
-        let mut seen = vec![false; t.blocked.len()];
-        seen[si] = true;
-        let mut q = vec![si];
-        let mut reached = 1;
-        while let Some(c) = q.pop() {
-            let (x, y) = ((c as i32) % t.width, (c as i32) / t.width);
-            for (dx, dy) in [(0, -1), (0, 1), (-1, 0), (1, 0)] {
-                let (nx, ny) = (x + dx, y + dy);
-                if nx < 0 || ny < 0 || nx >= t.width || ny >= t.height {
-                    continue;
-                }
-                let ni = (ny * t.width + nx) as usize;
-                if seen[ni] || t.blocked[ni] {
-                    continue;
-                }
-                seen[ni] = true;
-                reached += 1;
-                q.push(ni);
-            }
-        }
-        assert_eq!(reached, ground, "town has stranded ground tiles");
+        // plaza spawn is walkable; streets fully connect.
+        assert_eq!(
+            t.roles[(t.spawn.1 * t.width + t.spawn.0) as usize],
+            role::PLAZA
+        );
+        assert!(connected(&t.roles, t.width, t.height, t.spawn));
     }
 
     #[test]
     fn parity_town_fingerprint_2024() {
-        // Frozen town fingerprint — TS port must match for seed 2024 / 60x60.
         let t = generate_town(2024, TOWN_W, TOWN_H);
-        println!("TOWN_FINGERPRINT_2024={}", fingerprint(&t.blocked));
+        println!("ROLE_FINGERPRINT_2024={}", fingerprint_roles(&t.roles));
+        println!("BLOCKED_FINGERPRINT_2024={}", fingerprint(&t.blocked));
+    }
+
+    #[test]
+    fn role_blocking_matches_collision() {
+        let t = generate_town(2024, TOWN_W, TOWN_H);
+        for (r, b) in t.roles.iter().zip(t.blocked.iter()) {
+            assert_eq!(role_blocks(*r), *b);
+        }
     }
 }
