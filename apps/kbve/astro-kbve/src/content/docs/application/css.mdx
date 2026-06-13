@@ -343,6 +343,64 @@ Unlayered styles beat layered ones, so anything outside a layer always wins — 
 
 ---
 
+## Transitions & Animation
+
+Two mechanisms: `transition` interpolates between two states (a hover, a class toggle), while `@keyframes` + `animation` runs a defined timeline that can loop and have many steps.
+
+### Transitions
+
+```css
+.button {
+    background: var(--brand);
+    /* property | duration | easing | delay */
+    transition: background 200ms ease-out, transform 200ms ease-out;
+}
+.button:hover {
+    transform: translateY(-2px);
+}
+```
+
+<Aside type="caution">
+Transition only cheap, compositor-friendly properties — `transform`, `opacity`, `filter`. Animating `width`, `height`, `top` or `margin` triggers layout on every frame and janks. Need a layout-looking move? Use `transform: scale()` / `translate()` instead.
+</Aside>
+
+### Easing
+
+`ease-out` for things entering, `ease-in` for things leaving, custom `cubic-bezier()` for character. Modern browsers also support `linear()` for spring and bounce curves without JavaScript.
+
+```css
+:root {
+    --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
+    /* A spring-like bounce, approximated with a linear() stop list */
+    --ease-spring: linear(0, 0.4 12%, 1.1 28%, 0.95 42%, 1.02 60%, 1);
+}
+```
+
+### Keyframes
+
+A full timeline. This is the `shimmer` keyframe the gradient-text example earlier relies on — define it once globally (in your stylesheet or Tailwind `@theme`).
+
+```css
+@keyframes shimmer {
+    to { background-position: 200% center; }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-0.5rem); }
+}
+
+.badge {
+    animation: float 3s ease-in-out infinite;
+}
+```
+
+<Aside type="tip">
+In Tailwind v4, register a keyframe-backed animation as a theme token: `@theme { --animate-float: float 3s ease-in-out infinite; }` generates the `animate-float` utility. Always pair looping animation with `motion-safe:` so it respects reduced-motion.
+</Aside>
+
+---
+
 ## TailwindCSS
 
 TailwindCSS is a utility-first CSS framework. Instead of writing custom CSS, you compose designs from low-level utility classes directly in your markup.
