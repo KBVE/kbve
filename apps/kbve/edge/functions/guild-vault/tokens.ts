@@ -111,7 +111,8 @@ const handlers: Record<string, Handler> = {
       return safeRpcError(error, "guild_vault_rpc");
     }
 
-    const tokens = Array.isArray(data) ? data : [];
+    const rows = Array.isArray(data) ? data : [];
+    const tokens = rows.map((t) => ({ ...t, token_id: t.id }));
     return jsonResponse({ success: true, tokens, count: tokens.length });
   },
 
