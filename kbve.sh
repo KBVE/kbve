@@ -625,11 +625,14 @@ audit_worktree_stale() {
 #        --dry-run preview only
 audit_worktree_prune() {
     local main_repo; main_repo=$(git rev-parse --show-toplevel)
-    local jobs="${WT_PRUNE_JOBS:-8}"
-    local dry=0 merged_only=0 arg
+    local cpus; cpus=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 8)
+    local jobs="${WT_PRUNE_JOBS:-$cpus}"
+    local dry=0 merged_only=0 batch_size="$jobs" arg prev=""
     for arg in "$@"; do
         [ "$arg" = "--dry-run" ] && dry=1
         [ "$arg" = "--merged" ] && merged_only=1
+        [ "$prev" = "--batch" ] && batch_size="$arg"
+        prev="$arg"
     done
 
     echo "Fetching origin/dev + origin/main ..."
@@ -670,13 +673,24 @@ audit_worktree_prune() {
     fi
     if [ "$n" -eq 0 ]; then echo "Nothing to prune."; rm -f "$remove_file" "$skip_file"; return 0; fi
 
-    local before after
-    before=$(df -h . | tail -1 | awk '{print $4}')
-    tr '\n' '\0' < "$remove_file" | xargs -0 -P "$jobs" -n1 rm -rf
-    git worktree prune
-    after=$(df -h . | tail -1 | awk '{print $4}')
+    local before; before=$(df -h . | tail -1 | awk '{print $4}')
+    echo "Pruning $n worktrees in batches of $batch_size (${jobs}-way parallel) ..."
 
-    echo "Pruned $n worktrees. Free: ${before} -> ${after}  (branch refs preserved)."
+    local tmpd; tmpd=$(mktemp -d)
+    split -l "$batch_size" "$remove_file" "$tmpd/b_"
+    local done=0 bi=0 chunk
+    for chunk in "$tmpd"/b_*; do
+        bi=$((bi + 1))
+        local cn; cn=$(wc -l < "$chunk" | tr -d ' ')
+        tr '\n' '\0' < "$chunk" | xargs -0 -P "$jobs" -n1 rm -rf
+        git worktree prune
+        done=$((done + cn))
+        echo "  batch $bi: -$cn  (total $done/$n, free $(df -h . | tail -1 | awk '{print $4}'))"
+    done
+    rm -rf "$tmpd"
+
+    local after; after=$(df -h . | tail -1 | awk '{print $4}')
+    echo "Pruned $done worktrees. Free: ${before} -> ${after}  (branch refs preserved)."
     rm -f "$remove_file" "$skip_file"
 }
 
