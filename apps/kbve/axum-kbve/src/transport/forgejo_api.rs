@@ -5,7 +5,8 @@
 //! `/stats` aggregate (true storage/counts across every repo, not just the
 //! loaded page) and Actions runner registration endpoints.
 
-use std::sync::OnceLock;
+use std::sync::{Mutex, OnceLock};
+use std::time::{Duration, Instant};
 
 use axum::{
     Json, Router,
@@ -17,9 +18,50 @@ use axum::{
 use serde::Deserialize;
 use serde_json::{Value, json};
 
-use jedi::entity::forgejo::ForgejoClient;
+use jedi::entity::error::JediError;
+use jedi::entity::forgejo::{ForgejoClient, ForgejoStats, ForgejoStorage};
 
 use super::proxy::{require_dashboard_manage_with_query, require_dashboard_view};
+
+/// Aggregates (`/stats`, `/storage`) page through every repo / owner upstream,
+/// so they are cached server-side: the 30s dashboard refresh re-hits Forgejo at
+/// most once per TTL instead of re-aggregating on every request.
+const AGG_TTL: Duration = Duration::from_secs(300);
+
+static STATS_CACHE: OnceLock<Mutex<Option<(Instant, ForgejoStats)>>> = OnceLock::new();
+static STORAGE_CACHE: OnceLock<Mutex<Option<(Instant, ForgejoStorage)>>> = OnceLock::new();
+
+async fn cached_stats(c: &ForgejoClient) -> Result<ForgejoStats, JediError> {
+    let cell = STATS_CACHE.get_or_init(|| Mutex::new(None));
+    if let Some(v) = cell.lock().ok().and_then(|g| {
+        g.as_ref()
+            .filter(|(t, _)| t.elapsed() < AGG_TTL)
+            .map(|(_, v)| v.clone())
+    }) {
+        return Ok(v);
+    }
+    let fresh = c.repo_stats().await?;
+    if let Ok(mut g) = cell.lock() {
+        *g = Some((Instant::now(), fresh.clone()));
+    }
+    Ok(fresh)
+}
+
+async fn cached_storage(c: &ForgejoClient) -> Result<ForgejoStorage, JediError> {
+    let cell = STORAGE_CACHE.get_or_init(|| Mutex::new(None));
+    if let Some(v) = cell.lock().ok().and_then(|g| {
+        g.as_ref()
+            .filter(|(t, _)| t.elapsed() < AGG_TTL)
+            .map(|(_, v)| v.clone())
+    }) {
+        return Ok(v);
+    }
+    let fresh = c.instance_storage().await?;
+    if let Ok(mut g) = cell.lock() {
+        *g = Some((Instant::now(), fresh.clone()));
+    }
+    Ok(fresh)
+}
 
 static FORGEJO_API: OnceLock<ForgejoClient> = OnceLock::new();
 
@@ -322,12 +364,12 @@ async fn team_members(
 
 async fn stats(headers: HeaderMap) -> Response {
     let c = vc!(headers);
-    reply!(c.repo_stats().await)
+    reply!(cached_stats(c).await)
 }
 
 async fn storage(headers: HeaderMap) -> Response {
     let c = vc!(headers);
-    reply!(c.instance_storage().await)
+    reply!(cached_storage(c).await)
 }
 
 async fn repo_runners(headers: HeaderMap, Path((owner, repo)): Path<(String, String)>) -> Response {
