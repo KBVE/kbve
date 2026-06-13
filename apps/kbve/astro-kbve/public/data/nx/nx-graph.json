@@ -2706,7 +2706,7 @@
               "executor": "nx:run-commands",
               "options": {
                 "cwd": "apps/rentearth/unreal-rentearth",
-                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearthEditor Mac Development \"$PWD/rentearth.uproject\""
+                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/rentearth.uproject\""
               },
               "configurations": {},
               "parallelism": true
@@ -2715,7 +2715,7 @@
               "executor": "nx:run-commands",
               "options": {
                 "cwd": "apps/rentearth/unreal-rentearth",
-                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearth Mac Development \"$PWD/rentearth.uproject\""
+                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuck Mac Development \"$PWD/rentearth.uproject\""
               },
               "configurations": {},
               "parallelism": true
@@ -2724,7 +2724,7 @@
               "executor": "nx:run-commands",
               "options": {
                 "cwd": "apps/rentearth/unreal-rentearth",
-                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearthServer Mac Development \"$PWD/rentearth.uproject\""
+                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckServer Mac Development \"$PWD/rentearth.uproject\""
               },
               "configurations": {},
               "parallelism": true
@@ -2733,7 +2733,7 @@
               "executor": "nx:run-commands",
               "options": {
                 "cwd": "apps/rentearth/unreal-rentearth",
-                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearthEditor Mac Development \"$PWD/rentearth.uproject\""
+                "command": "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/rentearth.uproject\""
               },
               "configurations": {},
               "parallelism": true
@@ -2762,7 +2762,7 @@
               "options": {
                 "cwd": "",
                 "commands": [
-                  "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" rentearthEditor Mac Development \"$PWD/apps/rentearth/unreal-rentearth/rentearth.uproject\"",
+                  "\"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.7}/Engine/Build/BatchFiles/Mac/Build.sh\" chuckEditor Mac Development \"$PWD/apps/rentearth/unreal-rentearth/rentearth.uproject\"",
                   "./apps/rentearth/unreal-rentearth/scripts/launch-editor.sh"
                 ],
                 "parallel": false
@@ -9681,6 +9681,24 @@
               "configurations": {},
               "parallelism": true
             },
+            "sync:hextile-atlas": {
+              "executor": "nx:run-commands",
+              "inputs": [
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Textures/Environment/**/*.png",
+                "{workspaceRoot}/packages/data/codegen/gen-hextile-atlas.mjs"
+              ],
+              "outputs": [
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/hextile-atlas.png",
+                "{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/Hex/HexTileAtlas.Generated.cs"
+              ],
+              "options": {
+                "command": "node packages/data/codegen/gen-hextile-atlas.mjs",
+                "cwd": ""
+              },
+              "cache": true,
+              "configurations": {},
+              "parallelism": true
+            },
             "solitaire:snapshot-npcdb": {
               "dependsOn": [
                 "build"
@@ -14988,12 +15006,12 @@
       "astro-cryptothrone": [
         {
           "source": "astro-cryptothrone",
-          "target": "laser",
+          "target": "astro",
           "type": "static"
         },
         {
           "source": "astro-cryptothrone",
-          "target": "astro",
+          "target": "laser",
           "type": "static"
         }
       ],
