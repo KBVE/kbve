@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
+import { FloatingWindow } from '@kbve/astro';
 
 const BINDS: [string, string][] = [
-	['Arrows', 'Move'],
+	['Arrows / WASD', 'Move'],
 	['Click', 'Move / interact'],
 	['Space', 'Attack adjacent'],
 	['1–4', 'Use consumable'],
@@ -27,11 +28,24 @@ export function KeybindHelp() {
 	}, []);
 	if (!open) return null;
 	return (
-		<div className="pointer-events-auto absolute inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
-			<div className="w-64 rounded-xl border border-amber-200/15 bg-black/80 p-5 backdrop-blur-xl">
-				<h3 className="mb-3 text-center text-sm font-bold text-amber-300">
-					Controls
-				</h3>
+		<FloatingWindow
+			storageKey="ct-controls-window"
+			layer="modal"
+			initial={{
+				x:
+					typeof window !== 'undefined'
+						? Math.max(12, (window.innerWidth - 288) / 2)
+						: 200,
+				y:
+					typeof window !== 'undefined'
+						? Math.max(12, (window.innerHeight - 300) / 3)
+						: 100,
+			}}
+			size={{ width: 288, height: 300 }}
+			resizable={false}
+			title="Controls"
+			onClose={() => setOpen(false)}>
+			<div className="p-4">
 				<ul className="space-y-1.5">
 					{BINDS.map(([k, v]) => (
 						<li
@@ -44,13 +58,7 @@ export function KeybindHelp() {
 						</li>
 					))}
 				</ul>
-				<button
-					type="button"
-					onClick={() => setOpen(false)}
-					className="mt-4 w-full rounded-lg bg-amber-500/90 py-1.5 text-xs font-semibold text-black hover:bg-amber-400">
-					Close
-				</button>
 			</div>
-		</div>
+		</FloatingWindow>
 	);
 }
