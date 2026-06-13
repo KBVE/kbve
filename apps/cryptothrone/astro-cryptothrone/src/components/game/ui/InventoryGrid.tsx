@@ -2,6 +2,15 @@ import { useState, useCallback } from 'react';
 import { laserEvents } from '@kbve/laser';
 import { getItemById } from '../data/items';
 
+const RARITY_BORDER: Record<string, string> = {
+	common: 'border-stone-400/50',
+	uncommon: 'border-green-400/60',
+	rare: 'border-blue-400/60',
+	epic: 'border-purple-400/70',
+	legendary: 'border-amber-400/80',
+	mythic: 'border-rose-400/80',
+};
+
 interface InventoryGridProps {
 	backpack: string[];
 }
@@ -73,7 +82,10 @@ export function InventoryGrid({ backpack }: InventoryGridProps) {
 								<img
 									src={item.img}
 									alt={item.name}
-									className="w-8 h-8 border border-yellow-400/50"
+									className={`w-8 h-8 border ${
+										RARITY_BORDER[item.rarity] ??
+										'border-yellow-400/50'
+									}`}
 								/>
 							</button>
 						</li>

@@ -3,6 +3,7 @@ import { StatsSection } from './StatsSection';
 import { ToggleButton } from './ToggleButton';
 import { InventoryGrid } from './InventoryGrid';
 import { OnlinePlayers } from './OnlinePlayers';
+import { EquipmentSummary } from './EquipmentSummary';
 import { getItemById } from '../data/items';
 
 export function StickySidebar() {
@@ -81,6 +82,7 @@ export function StickySidebar() {
 
 				<div className="mb-4">
 					<h2 className="text-lg font-semibold mb-2">Equipment</h2>
+					<EquipmentSummary />
 					<ul className="grid grid-cols-8 gap-2">
 						{Object.entries(player.inventory.equipment).map(
 							([slot, itemId]) => {
