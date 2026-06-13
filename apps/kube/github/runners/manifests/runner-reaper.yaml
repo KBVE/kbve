@@ -1,0 +1,87 @@
+# Runner reaper — prevents ARC ephemeral runners from deadlocking CI.
+#
+# When a runner pod fails to start repeatedly (node pressure, transient mount
+# failures, etc.) ARC marks the EphemeralRunner phase=Failed and STOPS
+# retrying it. The failed runner keeps occupying a slot in the scale set, so
+# the listener never replaces it — eventually every slot is a dead Failed
+# runner and no jobs can be picked up (the CI deadlock). Recovery was a manual
+# `kubectl delete ephemeralrunner`.
+#
+# This CronJob reaps phase=Failed EphemeralRunners on a short interval; ARC
+# then recreates fresh runners automatically. Idempotent + safe — it only
+# touches runners ARC has already given up on.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: arc-runner-reaper
+    namespace: arc-runners
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: arc-runner-reaper
+    namespace: arc-runners
+rules:
+    - apiGroups: ['actions.github.com']
+      resources: ['ephemeralrunners']
+      verbs: ['get', 'list', 'delete']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: arc-runner-reaper
+    namespace: arc-runners
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: arc-runner-reaper
+subjects:
+    - kind: ServiceAccount
+      name: arc-runner-reaper
+      namespace: arc-runners
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: arc-runner-reaper
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: arc-runner-reaper
+        app.kubernetes.io/component: maintenance
+spec:
+    schedule: '*/10 * * * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        spec:
+            backoffLimit: 2
+            ttlSecondsAfterFinished: 600
+            template:
+                spec:
+                    serviceAccountName: arc-runner-reaper
+                    restartPolicy: OnFailure
+                    containers:
+                        - name: reaper
+                          image: ghcr.io/kbve/kubectl:0.1.4
+                          command: ['/bin/sh', '-c']
+                          args:
+                              - |
+                                  set -eu
+                                  NS=arc-runners
+                                  FAILED=$(kubectl get ephemeralrunner -n "$NS" -o json \
+                                    | jq -r '.items[] | select(.status.phase == "Failed") | .metadata.name')
+                                  if [ -z "$FAILED" ]; then
+                                    echo "No Failed ephemeralrunners; nothing to reap."
+                                    exit 0
+                                  fi
+                                  echo "Reaping Failed ephemeralrunners:"
+                                  echo "$FAILED"
+                                  echo "$FAILED" | xargs -r kubectl delete ephemeralrunner -n "$NS"
+                          resources:
+                              requests:
+                                  cpu: 25m
+                                  memory: 64Mi
+                              limits:
+                                  cpu: 100m
+                                  memory: 128Mi
