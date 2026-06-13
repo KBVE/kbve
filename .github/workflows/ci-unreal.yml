@@ -85,6 +85,8 @@ jobs:
         with:
             mode: server
             shell_path: ${{ fromJSON(inputs.engine).shell_path }}
+            server_target: ${{ fromJSON(inputs.engine).server_target }}
+            server_config: ${{ fromJSON(inputs.engine).server_config }}
             manifest_version: ${{ fromJSON(inputs.version).manifest }}
             version_source: ${{ fromJSON(inputs.version).source }}
             version_toml: ${{ fromJSON(inputs.version).toml }}
