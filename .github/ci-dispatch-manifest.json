@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.195",
+			"version": "1.0.196",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -106,7 +106,7 @@
 		{
 			"key": "cryptothrone",
 			"app_name": "cryptothrone",
-			"version": "0.1.11",
+			"version": "0.1.12",
 			"version_toml": "apps/cryptothrone/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone.mdx",
 			"version_target": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",
@@ -120,7 +120,7 @@
 		{
 			"key": "cryptothrone_server",
 			"app_name": "cryptothrone-server",
-			"version": "0.0.3",
+			"version": "0.0.4",
 			"version_toml": "apps/agones/cryptothrone/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone-server.mdx",
 			"version_target": "apps/agones/cryptothrone/server/Cargo.toml",
@@ -1094,7 +1094,7 @@
 			},
 			"source_path": "apps/chuckrpg/unreal-chuck",
 			"shell_path": "apps/chuckrpg/unreal-chuck",
-			"version": "0.3.19",
+			"version": "0.3.20",
 			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-beta.mdx",
 			"runner": "arc-runner-ue",
@@ -1105,7 +1105,7 @@
 		},
 		{
 			"key": "unreal_chuck_dev",
-			"app_name": "chuck-demo",
+			"app_name": "chuck-dev",
 			"engine": {
 				"version": "5.7.4",
 				"project_path": "chuck",
@@ -1127,7 +1127,7 @@
 			"source_path": "apps/chuckrpg/unreal-chuck",
 			"shell_path": "apps/chuckrpg/unreal-chuck",
 			"version": "0.3.20",
-			"version_toml": "apps/chuckrpg/unreal-chuck/version.toml",
+			"version_toml": "apps/chuckrpg/unreal-chuck/version-dev.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/unreal-chuck-dev.mdx",
 			"runner": "arc-runner-ue",
 			"external_publish": {
