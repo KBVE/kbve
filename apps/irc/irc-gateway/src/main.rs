@@ -31,6 +31,8 @@ async fn main() -> anyhow::Result<()> {
 
     info!("IRC Gateway v{}", env!("CARGO_PKG_VERSION"));
 
+    gateway::history::spawn_listeners();
+
     let http = tokio::spawn(transport::https::serve());
     let irc = tokio::spawn(gateway::irc::serve());
 

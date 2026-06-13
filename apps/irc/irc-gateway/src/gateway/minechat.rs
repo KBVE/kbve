@@ -212,6 +212,17 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
     }
 
     let (mut client_tx, mut client_rx) = client_ws.split();
+
+    // Replay recent channel history so a fresh client lands in a room with
+    // context instead of an empty log.
+    for ch in &channels {
+        for msg in crate::gateway::history::recent(ch) {
+            if send_json(&mut client_tx, &msg).await.is_err() {
+                return;
+            }
+        }
+    }
+
     let (pulse_tx, mut pulse_rx) = tokio::sync::mpsc::unbounded_channel::<()>();
 
     let nick_c2i = nick.clone();

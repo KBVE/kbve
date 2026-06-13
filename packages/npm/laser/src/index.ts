@@ -25,6 +25,17 @@ export { PlayerController } from './lib/phaser/player-controller';
 export { VirtualJoystick } from './lib/phaser/virtual-joystick';
 export type { VirtualJoystickConfig } from './lib/phaser/virtual-joystick';
 export {
+	flashEntity,
+	floatingText,
+	drawHealthBar,
+	attachCameraZoom,
+} from './lib/phaser/entity-fx';
+export type { CameraZoomOptions } from './lib/phaser/entity-fx';
+
+// Tile prediction — BFS pathing that mirrors the server grid
+export { findTilePath } from './lib/tile/path';
+export type { TileXY } from './lib/tile/path';
+export {
 	getBirdNum,
 	isBird,
 	createBirdSprites,
