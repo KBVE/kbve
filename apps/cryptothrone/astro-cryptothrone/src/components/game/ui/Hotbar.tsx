@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { laserEvents } from '@kbve/laser';
 import { useGameSelector } from '../store/GameStoreContext';
 import { getItemById } from '../data/items';
+import { ITEM_ICON_FALLBACK } from '../data/itemdb';
 
 const SLOTS = 4;
 
@@ -48,6 +49,11 @@ export function Hotbar() {
 							<img
 								src={item.img}
 								alt={item.name}
+								onError={(e) => {
+									const el = e.currentTarget;
+									if (el.src !== ITEM_ICON_FALLBACK)
+										el.src = ITEM_ICON_FALLBACK;
+								}}
 								className="h-full w-full object-contain p-1"
 							/>
 						)}
