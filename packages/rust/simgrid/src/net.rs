@@ -260,7 +260,7 @@ async fn await_join_match(
                 socket,
                 format,
                 &format!(
-                    "protocol mismatch: client={}, server={}",
+                    "protocol mismatch: client={}, server={} — refresh your browser to update the game client",
                     jm.protocol,
                     proto::PROTOCOL_VERSION
                 ),
@@ -291,7 +291,12 @@ async fn admit(
         }
     };
     let Some(username) = resolve_username(state.require_username, raw) else {
-        send_reject(socket, format, "username required").await;
+        send_reject(
+            socket,
+            format,
+            "username required — set a KBVE username first",
+        )
+        .await;
         return None;
     };
     claim_slot(state, socket, username, format).await
@@ -305,7 +310,12 @@ async fn admit(
     format: WireFormat,
 ) -> Option<AdmittedPlayer> {
     let Some(username) = resolve_username(state.require_username, jm.kbve_username) else {
-        send_reject(socket, format, "username required").await;
+        send_reject(
+            socket,
+            format,
+            "username required — set a KBVE username first",
+        )
+        .await;
         return None;
     };
     claim_slot(state, socket, username, format).await
@@ -338,7 +348,12 @@ async fn claim_slot(
             Some(AdmittedPlayer { slot, format })
         }
         None => {
-            send_reject(socket, format, "match full").await;
+            let capacity = state
+                .roster
+                .read()
+                .map(|r| r.capacity())
+                .unwrap_or_default();
+            send_reject(socket, format, &format!("match full ({capacity} players)")).await;
             None
         }
     }

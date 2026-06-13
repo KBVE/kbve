@@ -62,8 +62,10 @@ export class CloudCityScene extends Scene {
 	private myMaxHp = -1;
 	private nearbyHostiles = 0;
 	private slowTimer = 0;
+	private reconnectTimer = 0;
 	private netReady = false;
 	private netTerminal = false;
+	private reconnectAttempts = 0;
 	private rosterKey = '';
 	private laserUnsubs: (() => void)[] = [];
 
@@ -115,6 +117,41 @@ export class CloudCityScene extends Scene {
 			return;
 		}
 
+		this.connectClient();
+
+		this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) =>
+			this.onPointerDown(pointer),
+		);
+
+		this.laserUnsubs.push(
+			laserEvents.on('item:use', (data) => {
+				const d = data as { ref: string };
+				if (d?.ref) this.client?.useItem(d.ref);
+			}),
+			laserEvents.on('item:equip', (data) => {
+				const d = data as { ref: string };
+				if (d?.ref) this.client?.equipItem(d.ref);
+			}),
+			laserEvents.on('chat:send', (data) => {
+				const d = data as { text: string };
+				if (d?.text) this.client?.say(d.text);
+			}),
+		);
+
+		this.events.once('shutdown', () => {
+			window.clearTimeout(this.slowTimer);
+			window.clearTimeout(this.reconnectTimer);
+			this.laserUnsubs.forEach((off) => off());
+			this.laserUnsubs = [];
+			this.netTerminal = true;
+			this.client?.close();
+		});
+	}
+
+	private connectClient() {
+		const cfg = getCtNetConfig();
+		if (!cfg) return;
+
 		const client = new GameClient({
 			url: cfg.wsUrl,
 			jwt: cfg.jwt,
@@ -126,6 +163,7 @@ export class CloudCityScene extends Scene {
 		});
 		client.on('welcome', (w) => {
 			this.netReady = true;
+			this.reconnectAttempts = 0;
 			window.clearTimeout(this.slowTimer);
 			laserEvents.emit('net:status', { status: 'ready' });
 			this.mySlot = w.your_slot;
@@ -183,6 +221,7 @@ export class CloudCityScene extends Scene {
 			this.netTerminal = true;
 			laserEvents.emit('net:status', {
 				status: 'rejected',
+				reason,
 				detail: `The server turned you away: ${reason}`,
 			});
 		});
@@ -198,47 +237,41 @@ export class CloudCityScene extends Scene {
 		client.on('close', () => {
 			window.clearTimeout(this.slowTimer);
 			if (this.netTerminal) return;
+			const wasReady = this.netReady;
+			this.netReady = false;
+			if (wasReady && this.reconnectAttempts < 3) {
+				this.reconnectAttempts += 1;
+				const attempt = this.reconnectAttempts;
+				laserEvents.emit('net:status', {
+					status: 'reconnecting',
+					detail: `Connection dropped — reconnecting (attempt ${attempt}/3)…`,
+				});
+				this.reconnectTimer = window.setTimeout(
+					() => this.connectClient(),
+					1500 * 2 ** (attempt - 1),
+				);
+				return;
+			}
 			laserEvents.emit('net:status', {
 				status: 'disconnected',
-				detail: this.netReady
-					? 'You were disconnected from the world.'
+				detail: wasReady
+					? 'You were disconnected from the world and reconnecting failed.'
 					: 'The game server closed the connection before the world loaded.',
 			});
-			this.netReady = false;
 		});
-		laserEvents.emit('net:status', { status: 'connecting' });
+		laserEvents.emit('net:status', {
+			status: this.reconnectAttempts > 0 ? 'reconnecting' : 'connecting',
+			detail:
+				this.reconnectAttempts > 0
+					? `Connection dropped — reconnecting (attempt ${this.reconnectAttempts}/3)…`
+					: undefined,
+		});
 		this.slowTimer = window.setTimeout(() => {
-			if (!this.netReady) {
+			if (!this.netReady && !this.netTerminal) {
 				laserEvents.emit('net:status', { status: 'slow' });
 			}
 		}, 8000);
 		client.connect();
-
-		this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) =>
-			this.onPointerDown(pointer),
-		);
-
-		this.laserUnsubs.push(
-			laserEvents.on('item:use', (data) => {
-				const d = data as { ref: string };
-				if (d?.ref) this.client?.useItem(d.ref);
-			}),
-			laserEvents.on('item:equip', (data) => {
-				const d = data as { ref: string };
-				if (d?.ref) this.client?.equipItem(d.ref);
-			}),
-			laserEvents.on('chat:send', (data) => {
-				const d = data as { text: string };
-				if (d?.text) this.client?.say(d.text);
-			}),
-		);
-
-		this.events.once('shutdown', () => {
-			window.clearTimeout(this.slowTimer);
-			this.laserUnsubs.forEach((off) => off());
-			this.laserUnsubs = [];
-			this.client?.close();
-		});
 	}
 
 	private makeGroundItemTexture() {

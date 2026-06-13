@@ -13,6 +13,7 @@ export type ConnectionStatus =
 	| 'connecting'
 	| 'connected'
 	| 'slow'
+	| 'reconnecting'
 	| 'ready'
 	| 'rejected'
 	| 'error'
@@ -21,6 +22,7 @@ export type ConnectionStatus =
 export interface ConnectionState {
 	status: ConnectionStatus;
 	detail?: string;
+	reason?: string;
 }
 
 export interface OnlinePlayer {
