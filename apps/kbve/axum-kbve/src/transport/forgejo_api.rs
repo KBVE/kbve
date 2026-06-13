@@ -325,6 +325,11 @@ async fn stats(headers: HeaderMap) -> Response {
     reply!(c.repo_stats().await)
 }
 
+async fn storage(headers: HeaderMap) -> Response {
+    let c = vc!(headers);
+    reply!(c.instance_storage().await)
+}
+
 async fn repo_runners(headers: HeaderMap, Path((owner, repo)): Path<(String, String)>) -> Response {
     let c = vc!(headers);
     reply!(c.list_repo_runners(&owner, &repo).await)
@@ -654,6 +659,7 @@ pub fn routes() -> Router {
     Router::new()
         // top-level
         .route(&p("/stats"), get(stats))
+        .route(&p("/storage"), get(storage))
         .route(&p("/version"), get(version))
         .route(&p("/cron"), get(cron))
         .route(&p("/cron/{task}"), post(run_cron))

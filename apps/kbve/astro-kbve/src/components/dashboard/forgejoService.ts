@@ -202,12 +202,26 @@ export interface ForgejoVersion {
 export interface ForgejoStats {
 	repo_count: number;
 	total_size_kb: number;
+	git_size_kb: number;
+	lfs_size_kb: number;
 	public: number;
 	private: number;
 	mirror: number;
 	archived: number;
 	fork: number;
 	truncated: boolean;
+}
+
+export interface ForgejoStorage {
+	quota_enabled: boolean;
+	owners_counted: number;
+	truncated: boolean;
+	repos_bytes: number;
+	lfs_bytes: number;
+	attachments_bytes: number;
+	artifacts_bytes: number;
+	packages_bytes: number;
+	total_bytes: number;
 }
 
 export interface ForgejoCollaborator extends ForgejoUser {
@@ -751,6 +765,7 @@ class ForgejoService {
 	public readonly $cronTasks = atom<ForgejoCronTask[]>([]);
 	public readonly $unadopted = atom<string[]>([]);
 	public readonly $stats = atom<ForgejoStats | null>(null);
+	public readonly $storage = atom<ForgejoStorage | null>(null);
 
 	public readonly $issueRepo = atom<string | null>(null);
 	public readonly $issueState = atom<'open' | 'closed'>('open');
@@ -940,6 +955,7 @@ class ForgejoService {
 			this.$lastUpdated.set(new Date());
 			void saveCache(repos.items, users.items, orgs.items);
 			void this.fetchStats();
+			void this.fetchStorage();
 		} catch (e: unknown) {
 			if (e instanceof AccessRestrictedError) {
 				this.$authState.set('forbidden');
@@ -968,6 +984,24 @@ class ForgejoService {
 			const data = (await resp.json()) as ForgejoStats;
 			if (data && typeof data.total_size_kb === 'number') {
 				this.$stats.set(data);
+			}
+		} catch {
+			return;
+		}
+	}
+
+	public async fetchStorage(): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		try {
+			const resp = await fetch(`${API_BASE}/storage`, {
+				headers: { Authorization: `Bearer ${token}` },
+				signal: AbortSignal.timeout(30000),
+			});
+			if (!resp.ok) return;
+			const data = (await resp.json()) as ForgejoStorage;
+			if (data && typeof data.total_bytes === 'number') {
+				this.$storage.set(data);
 			}
 		} catch {
 			return;
