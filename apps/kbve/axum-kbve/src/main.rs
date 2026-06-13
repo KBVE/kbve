@@ -106,6 +106,12 @@ async fn main() -> anyhow::Result<()> {
         info!("Forum service not configured - /forum routes will 503");
     }
 
+    if db::init_pg_cluster().await {
+        info!("PgCluster initialized - PgCluster-backed routes enabled");
+    } else {
+        warn!("PgCluster not configured - PgCluster-backed routes will 503");
+    }
+
     if db::init_wallet_client().await {
         info!("Wallet client initialized - /api/v1/wallet/me/* routes enabled");
     } else {
