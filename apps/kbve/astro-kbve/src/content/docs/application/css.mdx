@@ -257,6 +257,92 @@ Other modern wins worth knowing: `accent-color` (themes checkboxes/radios), `asp
 
 ---
 
+## Layout Patterns
+
+The two layout engines — Flexbox (one dimension) and Grid (two dimensions) — cover almost every layout. A handful of patterns recur constantly.
+
+### Responsive grid without media queries
+
+`auto-fit` + `minmax()` reflows columns to fit the container. Cards wrap on their own as space shrinks.
+
+```css
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+    gap: 1rem;
+}
+```
+
+<Aside>
+The `min(16rem, 100%)` guard stops a single card overflowing on viewports narrower than the track minimum. In Tailwind: `grid grid-cols-[repeat(auto-fit,minmax(min(16rem,100%),1fr))]`.
+</Aside>
+
+### Dead-center anything
+
+```css
+.center {
+    display: grid;
+    place-items: center;
+}
+```
+
+### Sticky footer
+
+Footer sits at the bottom on short pages, pushed down on tall ones — no fixed heights.
+
+```css
+body {
+    min-height: 100dvh;        /* dvh = dynamic viewport, accounts for mobile URL bars */
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;                   /* grows to fill, footer follows */
+}
+```
+
+### The stack and the sidebar
+
+```css
+/* Even vertical rhythm between children */
+.stack > * + * {
+    margin-block-start: 1.5rem;
+}
+
+/* Sidebar that collapses below content when space runs out */
+.with-sidebar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.with-sidebar > .sidebar { flex: 1 1 15rem; }
+.with-sidebar > .content { flex: 999 1 60%; }
+```
+
+### Cascade layers
+
+`@layer` gives you explicit control over specificity ordering — later layers always win over earlier ones, regardless of selector strength. This tames override wars and is how Tailwind v4 organizes its own output (`theme`, `base`, `components`, `utilities`).
+
+```css
+@layer reset, base, components, utilities;
+
+@layer base {
+    a { color: blue; }
+}
+
+@layer components {
+    /* Wins over base even though the selector is identical specificity */
+    .link { color: rebeccapurple; }
+}
+```
+
+<Aside type="tip">
+Unlayered styles beat layered ones, so anything outside a layer always wins — useful for one-off overrides, dangerous if used by accident.
+</Aside>
+
+---
+
 ## TailwindCSS
 
 TailwindCSS is a utility-first CSS framework. Instead of writing custom CSS, you compose designs from low-level utility classes directly in your markup.
