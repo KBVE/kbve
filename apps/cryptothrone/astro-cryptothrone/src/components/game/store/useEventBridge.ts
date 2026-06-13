@@ -213,35 +213,6 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 			}),
 		);
 
-		unsubs.push(
-			laserEvents.on('dice:roll', (data) => {
-				dispatch({
-					type: 'SET_DICE_ROLL',
-					payload: {
-						npcId: data.npcId,
-						npcName: data.npcName,
-						diceCount: data.diceCount,
-						diceValues: [],
-						totalRoll: null,
-						phase: 'rolling',
-					},
-				});
-			}),
-		);
-
-		unsubs.push(
-			laserEvents.on('dice:result', (data) => {
-				const total = data.diceValues.reduce((a, b) => a + b, 0);
-				dispatch({
-					type: 'UPDATE_DICE_VALUES',
-					payload: {
-						diceValues: data.diceValues,
-						totalRoll: total,
-					},
-				});
-			}),
-		);
-
 		return () => unsubs.forEach((fn) => fn());
 	}, [dispatch]);
 }
