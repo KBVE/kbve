@@ -128,8 +128,16 @@ export function ChatBar() {
 	const submit = (e: React.FormEvent) => {
 		e.preventDefault();
 		const text = draft.trim();
-		if (!text) return;
+		if (!text || !connected) return;
 		clientRef.current?.send(text);
+		// Local echo — IRC never sends a client its own PRIVMSG back, so
+		// without this the sender never sees the message they just sent.
+		setLines((prev) =>
+			[
+				...prev,
+				{ id: ++lineCounter, from: me, text, at: timestamp() },
+			].slice(-MAX_LINES),
+		);
 		setDraft('');
 	};
 

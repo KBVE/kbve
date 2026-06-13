@@ -1,6 +1,18 @@
 import rawItemdb from '@kbve/itemdb-data';
 import type { ItemData, ItemAction, ItemRarity } from '../types';
 
+// Inline SVG placeholder for item icons whose sprite is missing (the default
+// /assets/icons/<ref>.png path has no backing file for many items). A data URI
+// can't 404, so it sidesteps Cloudflare caching a missing-asset 404.
+const FALLBACK_SVG =
+	'<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32">' +
+	'<rect width="32" height="32" rx="4" fill="#3f3f46"/>' +
+	'<text x="16" y="22" font-size="16" fill="#a1a1aa" text-anchor="middle" ' +
+	'font-family="monospace">?</text></svg>';
+export const ITEM_ICON_FALLBACK = `data:image/svg+xml;utf8,${encodeURIComponent(
+	FALLBACK_SVG,
+)}`;
+
 const FLAG_WEAPON = 1 << 0;
 const FLAG_ARMOR = 1 << 1;
 const FLAG_FOOD = 1 << 3;

@@ -1,3 +1,4 @@
+pub mod history;
 pub mod irc;
 pub mod minechat;
 pub mod rest;
