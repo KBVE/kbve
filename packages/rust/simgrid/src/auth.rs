@@ -40,7 +40,15 @@ pub fn verify_supabase_jwt(token: &str, secret: &[u8]) -> Result<SupabaseClaims,
     let mut validation = Validation::new(jsonwebtoken::Algorithm::HS256);
     validation.validate_aud = false;
     let data = decode::<SupabaseClaims>(token, &DecodingKey::from_secret(secret), &validation)
-        .map_err(|e| AuthError::Invalid(e.to_string()))?;
+        .map_err(|e| match e.kind() {
+            jsonwebtoken::errors::ErrorKind::ExpiredSignature => {
+                AuthError::Invalid("session expired".into())
+            }
+            jsonwebtoken::errors::ErrorKind::InvalidSignature => {
+                AuthError::Invalid("token signature invalid".into())
+            }
+            _ => AuthError::Invalid(e.to_string()),
+        })?;
     if data.claims.kbve_username.is_empty() {
         return Err(AuthError::MissingUsername);
     }

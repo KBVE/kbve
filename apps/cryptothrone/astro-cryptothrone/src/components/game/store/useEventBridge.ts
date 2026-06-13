@@ -16,11 +16,13 @@ export function useEventBridge(dispatch: Dispatch<GameAction>) {
 						| 'connecting'
 						| 'connected'
 						| 'slow'
+						| 'reconnecting'
 						| 'ready'
 						| 'rejected'
 						| 'error'
 						| 'disconnected';
 					detail?: string;
+					reason?: string;
 				};
 				dispatch({ type: 'SET_CONNECTION', payload: conn });
 			}),
