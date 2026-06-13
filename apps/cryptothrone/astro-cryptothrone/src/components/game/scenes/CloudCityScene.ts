@@ -40,6 +40,17 @@ function spriteVariantForName(name: string): number {
 	return (h >>> 0) % PLAYER_SPRITE_VARIANTS;
 }
 
+function isTypingInDom(): boolean {
+	const el = document.activeElement;
+	if (!el) return false;
+	const tag = el.tagName;
+	return (
+		tag === 'INPUT' ||
+		tag === 'TEXTAREA' ||
+		(el as HTMLElement).isContentEditable === true
+	);
+}
+
 interface RefSprite {
 	key: string;
 	mapping?: number;
@@ -85,6 +96,12 @@ export class CloudCityScene extends Scene {
 	private tracked = new Map<number, Tracked>();
 	private kindRegistry = new Map<number, KindEntry>();
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+	private wasd!: {
+		up: Phaser.Input.Keyboard.Key;
+		down: Phaser.Input.Keyboard.Key;
+		left: Phaser.Input.Keyboard.Key;
+		right: Phaser.Input.Keyboard.Key;
+	};
 	private attackKey!: Phaser.Input.Keyboard.Key;
 	private entityDepth = 0;
 	private lastStepAt = 0;
@@ -187,9 +204,14 @@ export class CloudCityScene extends Scene {
 			numberOfDirections: 8,
 		});
 		this.cursors = this.input.keyboard!.createCursorKeys();
-		this.attackKey = this.input.keyboard!.addKey(
-			Phaser.Input.Keyboard.KeyCodes.SPACE,
-		);
+		const Codes = Phaser.Input.Keyboard.KeyCodes;
+		this.wasd = {
+			up: this.input.keyboard!.addKey(Codes.W, false),
+			down: this.input.keyboard!.addKey(Codes.S, false),
+			left: this.input.keyboard!.addKey(Codes.A, false),
+			right: this.input.keyboard!.addKey(Codes.D, false),
+		};
+		this.attackKey = this.input.keyboard!.addKey(Codes.SPACE, false);
 		this.loadRanges();
 
 		const cfg = getCtNetConfig();
@@ -1022,6 +1044,10 @@ export class CloudCityScene extends Scene {
 		this.updateOverlays(time);
 		this.autoPickup(time);
 
+		// Skip game keys while a text field (chat) owns focus so typing
+		// W/A/S/D/space doesn't also drive the avatar.
+		if (isTypingInDom()) return;
+
 		if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
 			this.attackNearby();
 		}
@@ -1033,10 +1059,13 @@ export class CloudCityScene extends Scene {
 		if (this.gridEngine.isMoving(myChar)) return;
 
 		let dir: Dir | null = null;
-		if (this.cursors.up.isDown) dir = 'Up';
-		else if (this.cursors.down.isDown) dir = 'Down';
-		else if (this.cursors.left.isDown) dir = 'Left';
-		else if (this.cursors.right.isDown) dir = 'Right';
+		if (this.cursors.up.isDown || this.wasd.up.isDown) dir = 'Up';
+		else if (this.cursors.down.isDown || this.wasd.down.isDown)
+			dir = 'Down';
+		else if (this.cursors.left.isDown || this.wasd.left.isDown)
+			dir = 'Left';
+		else if (this.cursors.right.isDown || this.wasd.right.isDown)
+			dir = 'Right';
 
 		if (dir) {
 			// Keyboard interrupts any click-path and predicts a single step.

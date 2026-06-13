@@ -58,6 +58,8 @@ export type {
 	RealmChatOptions,
 	RealmChatMessage,
 	RealmChatEventMap,
+	RealmChatStatus,
+	RealmChatState,
 } from './lib/net/realm-chat-client';
 export type {
 	GameClientOptions,

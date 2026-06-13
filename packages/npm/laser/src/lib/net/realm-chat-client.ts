@@ -19,11 +19,25 @@ export interface RealmChatMessage {
 	text: string;
 }
 
+export type RealmChatStatus =
+	| 'connecting'
+	| 'connected'
+	| 'reconnecting'
+	| 'closed';
+
+export interface RealmChatState {
+	status: RealmChatStatus;
+	reason?: string;
+	attempts: number;
+	nextRetryMs?: number;
+}
+
 export type RealmChatEventMap = {
 	open: void;
 	message: RealmChatMessage;
 	close: void;
 	error: string;
+	status: RealmChatState;
 };
 
 export interface RealmChatOptions {
@@ -45,6 +59,9 @@ export class RealmChatClient {
 	private closed = false;
 	private attempts = 0;
 	private reconnectTimer = 0;
+	private everOpened = false;
+	private lastReason: string | undefined;
+	private state: RealmChatState = { status: 'connecting', attempts: 0 };
 	private readonly bus = new LaserEventBus<RealmChatEventMap>();
 	private readonly opts: RealmChatOptions;
 
@@ -59,8 +76,32 @@ export class RealmChatClient {
 		return this.bus.on(event, handler);
 	}
 
+	getState(): RealmChatState {
+		return this.state;
+	}
+
+	private setState(next: RealmChatState): void {
+		this.state = next;
+		this.bus.emit('status', next);
+	}
+
 	connect(): void {
 		if (this.ws || this.closed) return;
+		this.everOpened = false;
+		this.setState({
+			status: this.attempts === 0 ? 'connecting' : 'reconnecting',
+			attempts: this.attempts,
+			reason: this.lastReason,
+		});
+		if (!this.opts.jwt) {
+			this.lastReason = 'missing auth token';
+			this.setState({
+				status: 'closed',
+				attempts: this.attempts,
+				reason: this.lastReason,
+			});
+			return;
+		}
 		const sep = this.opts.url.includes('?') ? '&' : '?';
 		const url = `${this.opts.url}${sep}game=${encodeURIComponent(
 			this.opts.game,
@@ -70,7 +111,10 @@ export class RealmChatClient {
 
 		ws.addEventListener('open', () => {
 			this.attempts = 0;
+			this.everOpened = true;
+			this.lastReason = undefined;
 			this.bus.emit('open', undefined);
+			this.setState({ status: 'connected', attempts: 0 });
 		});
 		ws.addEventListener('message', (ev: MessageEvent) => {
 			let frame: ChatFrame;
@@ -89,12 +133,22 @@ export class RealmChatClient {
 			});
 		});
 		ws.addEventListener('error', () => this.bus.emit('error', 'socket'));
-		ws.addEventListener('close', () => {
+		ws.addEventListener('close', (ev: CloseEvent) => {
 			this.ws = null;
+			this.lastReason = closeReason(ev.code, ev.reason, this.everOpened);
 			this.bus.emit('close', undefined);
-			if (this.closed) return;
+			if (this.closed) {
+				this.setState({ status: 'closed', attempts: this.attempts });
+				return;
+			}
 			this.attempts += 1;
 			const delay = Math.min(1000 * 2 ** (this.attempts - 1), 15000);
+			this.setState({
+				status: 'reconnecting',
+				attempts: this.attempts,
+				reason: this.lastReason,
+				nextRetryMs: delay,
+			});
 			this.reconnectTimer = window.setTimeout(
 				() => this.connect(),
 				delay,
@@ -121,5 +175,27 @@ export class RealmChatClient {
 		window.clearTimeout(this.reconnectTimer);
 		this.ws?.close();
 		this.ws = null;
+		this.setState({ status: 'closed', attempts: this.attempts });
 	}
+}
+
+/**
+ * Browsers never expose the rejected HTTP status of a failed WS handshake, so
+ * an auth/bad-game reject and an unreachable host both surface as code 1006
+ * with no opened socket. We split on `everOpened` to give the most accurate
+ * hint we can from what the WebSocket API actually reveals.
+ */
+function closeReason(
+	code: number,
+	reason: string,
+	everOpened: boolean,
+): string {
+	const trimmed = reason.trim();
+	if (everOpened) {
+		if (code === 1000) return 'disconnected';
+		return trimmed || `server dropped connection (code ${code})`;
+	}
+	if (code === 1006)
+		return 'cannot reach chat — server down or auth rejected';
+	return trimmed || `connection refused (code ${code})`;
 }
