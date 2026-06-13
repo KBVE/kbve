@@ -1,4 +1,4 @@
-export const PROTOCOL_VERSION = 4;
+export const PROTOCOL_VERSION = 5;
 
 export const ACTION_ATTACK = 1;
 export const ACTION_PICKUP = 2;
@@ -6,7 +6,6 @@ export const ACTION_PICKUP = 2;
 export const EPHEMERAL_INVENTORY = 1;
 export const EPHEMERAL_COMBAT = 2;
 export const EPHEMERAL_PICKUP = 3;
-export const EPHEMERAL_CHAT = 4;
 export const EPHEMERAL_ITEM_USED = 5;
 export const EPHEMERAL_EQUIPPED = 6;
 export const EPHEMERAL_STATS = 7;
@@ -30,7 +29,6 @@ export type Input =
 	| { Action: { id: number; target: number | null } }
 	| { UseItem: { item_ref: string } }
 	| { EquipItem: { item_ref: string } }
-	| { Say: { text: string } }
 	| { Heartbeat: { client_tick: number } }
 	| 'Leave';
 
@@ -115,11 +113,6 @@ export interface PickupEvent {
 	count: number;
 }
 
-export interface ChatEvent {
-	from: string;
-	text: string;
-}
-
 export interface ItemUsedEvent {
 	item_ref: string;
 	heal: number;
@@ -138,6 +131,7 @@ export interface StatsEvent {
 	xp_next: number;
 	max_hp: number;
 	attack: number;
+	kills?: number;
 }
 
 export type ServerEvent =

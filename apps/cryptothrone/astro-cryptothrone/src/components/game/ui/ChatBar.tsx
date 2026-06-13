@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { laserEvents } from '@kbve/laser';
+import { RealmChatClient } from '@kbve/laser';
 import { useGameSelector } from '../store/GameStoreContext';
+import {
+	getCtNetConfig,
+	resolveChatUrl,
+	REALM_CHAT_GAME,
+	REALM_CHAT_CHANNEL,
+} from '@/lib/net-config';
 
 interface ChatLine {
 	id: number;
@@ -41,6 +47,8 @@ export function ChatBar() {
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const focusedRef = useRef(false);
 	focusedRef.current = focused;
+	const clientRef = useRef<RealmChatClient | null>(null);
+	const [connected, setConnected] = useState(false);
 
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
@@ -63,8 +71,16 @@ export function ChatBar() {
 	}, []);
 
 	useEffect(() => {
-		return laserEvents.on('chat:message', (data) => {
-			const msg = data as { from: string; text: string };
+		const cfg = getCtNetConfig();
+		if (!cfg) return;
+		const client = new RealmChatClient({
+			url: resolveChatUrl(),
+			jwt: cfg.jwt,
+			game: REALM_CHAT_GAME,
+			channel: REALM_CHAT_CHANNEL,
+		});
+		clientRef.current = client;
+		const offMsg = client.on('message', (msg) => {
 			setLines((prev) =>
 				[
 					...prev,
@@ -78,6 +94,16 @@ export function ChatBar() {
 			);
 			if (!focusedRef.current) setUnread((n) => n + 1);
 		});
+		const offOpen = client.on('open', () => setConnected(true));
+		const offClose = client.on('close', () => setConnected(false));
+		client.connect();
+		return () => {
+			offMsg();
+			offOpen();
+			offClose();
+			client.close();
+			clientRef.current = null;
+		};
 	}, []);
 
 	useEffect(() => {
@@ -93,7 +119,7 @@ export function ChatBar() {
 		e.preventDefault();
 		const text = draft.trim();
 		if (!text) return;
-		laserEvents.emit('chat:send', { text });
+		clientRef.current?.send(text);
 		setDraft('');
 	};
 
@@ -106,7 +132,13 @@ export function ChatBar() {
 			}`}>
 			<div className="overflow-hidden rounded-xl border border-white/10 bg-black/60 shadow-xl shadow-black/40 backdrop-blur-xl">
 				<div className="flex items-center justify-between border-b border-white/5 px-3 py-1.5">
-					<span className="text-[0.65rem] font-semibold uppercase tracking-widest text-amber-300/80">
+					<span className="flex items-center gap-1.5 text-[0.65rem] font-semibold uppercase tracking-widest text-amber-300/80">
+						<span
+							className={`h-1.5 w-1.5 rounded-full ${
+								connected ? 'bg-emerald-400' : 'bg-stone-500'
+							}`}
+							aria-hidden="true"
+						/>
 						Realm chat
 					</span>
 					{unread > 0 && (

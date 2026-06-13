@@ -15,6 +15,22 @@ import { DialogueModal } from './ui/DialogueModal';
 import { DiceRollModal } from './ui/DiceRollModal';
 import { ChatBar } from './ui/ChatBar';
 import { ConnectionOverlay } from './ui/ConnectionOverlay';
+import { ZoneBanner } from './ui/ZoneBanner';
+import { CoordsBar } from './ui/CoordsBar';
+import { GoldCounter } from './ui/GoldCounter';
+import { Minimap } from './ui/Minimap';
+import { CombatLog } from './ui/CombatLog';
+import { TargetFrame } from './ui/TargetFrame';
+import { Hotbar } from './ui/Hotbar';
+import { KeybindHelp } from './ui/KeybindHelp';
+import { QuestTracker } from './ui/QuestTracker';
+import { DayNight } from './ui/DayNight';
+import { SoundManager } from './ui/SoundManager';
+import { Achievements } from './ui/Achievements';
+import { DeathScreen } from './ui/DeathScreen';
+import { Compass } from './ui/Compass';
+import { SocialBar } from './ui/SocialBar';
+import { EmoteBar } from './ui/EmoteBar';
 
 /**
  * Isolated Phaser canvas — never re-renders when game store changes.
@@ -92,6 +108,22 @@ function GameUI({ username }: { username?: string }) {
 			<CharacterDialog />
 			<NotificationToast />
 			<ChatBar />
+			<ZoneBanner />
+			<CoordsBar />
+			<GoldCounter />
+			<Minimap />
+			<CombatLog />
+			<TargetFrame />
+			<Hotbar />
+			<KeybindHelp />
+			<QuestTracker />
+			<DayNight />
+			<SoundManager />
+			<Achievements />
+			<DeathScreen />
+			<Compass />
+			<SocialBar />
+			<EmoteBar />
 			<ConnectionOverlay />
 		</>
 	);

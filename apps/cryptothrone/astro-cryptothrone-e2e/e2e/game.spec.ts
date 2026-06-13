@@ -69,7 +69,7 @@ test.describe('Phaser runtime (WebGL)', () => {
 		);
 		await seedFakeSession(page);
 		await page.goto('/game/play/', { waitUntil: 'domcontentloaded' });
-		const canvas = page.locator('.game-fullscreen canvas');
+		const canvas = page.locator('.game-fullscreen canvas').first();
 		await expect(canvas).toBeAttached({ timeout: 30_000 });
 		const box = await canvas.boundingBox();
 		expect(box?.width ?? 0).toBeGreaterThan(0);

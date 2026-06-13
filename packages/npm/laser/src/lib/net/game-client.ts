@@ -1,13 +1,11 @@
 import { LaserEventBus } from '../core/events';
 import {
-	EPHEMERAL_CHAT,
 	EPHEMERAL_COMBAT,
 	EPHEMERAL_EQUIPPED,
 	EPHEMERAL_INVENTORY,
 	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_PICKUP,
 	EPHEMERAL_STATS,
-	type ChatEvent,
 	type ClientMessage,
 	type CombatEvent,
 	type Dir,
@@ -36,7 +34,6 @@ export type GameClientEventMap = {
 	inventory: InventorySync;
 	combat: CombatEvent;
 	pickup: PickupEvent;
-	chat: ChatEvent;
 	itemUsed: ItemUsedEvent;
 	equipped: EquippedEvent;
 	stats: StatsEvent;
@@ -112,9 +109,6 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_PICKUP) {
 			const data = decodeEphemeralPayload<PickupEvent>(evt.payload);
 			if (data) this.bus.emit('pickup', data);
-		} else if (evt.kind === EPHEMERAL_CHAT) {
-			const data = decodeEphemeralPayload<ChatEvent>(evt.payload);
-			if (data) this.bus.emit('chat', data);
 		} else if (evt.kind === EPHEMERAL_ITEM_USED) {
 			const data = decodeEphemeralPayload<ItemUsedEvent>(evt.payload);
 			if (data) this.bus.emit('itemUsed', data);
@@ -160,10 +154,6 @@ export class GameClient {
 
 	equipItem(itemRef: string): void {
 		this.sendInputs([{ EquipItem: { item_ref: itemRef } }]);
-	}
-
-	say(text: string): void {
-		this.sendInputs([{ Say: { text } }]);
 	}
 
 	face(facing: Facing): void {

@@ -41,6 +41,12 @@ interface RefSprite {
 
 const REF_SPRITES: Record<string, RefSprite> = {
 	cleric: { key: 'monks', mapping: 0 },
+	merchant: { key: 'monks', mapping: 1 },
+	soldier: { key: 'monks', mapping: 2 },
+	king: { key: 'monks', mapping: 3 },
+	goblin: { key: 'monks', mapping: 4 },
+	'goblin-general': { key: 'monks', mapping: 5 },
+	wolf: { key: 'monks', mapping: 6 },
 	'crystal-bat': { key: 'monster_bird', anim: 'bird' },
 };
 
@@ -54,6 +60,7 @@ interface Tracked {
 	hp: number;
 	maxHp: number;
 	hpBar?: Phaser.GameObjects.Graphics;
+	nameplate?: Phaser.GameObjects.Text;
 }
 
 interface PendingAction {
@@ -87,6 +94,10 @@ export class CloudCityScene extends Scene {
 	private reconnectAttempts = 0;
 	private rosterKey = '';
 	private pendingAction: PendingAction | null = null;
+	private fpsFrames = 0;
+	private fpsAt = 0;
+	private lastPosKey = '';
+	private currentZone = '';
 	private prevLevel = -1;
 	private prevXp = -1;
 	private hoverThrottle = 0;
@@ -158,9 +169,10 @@ export class CloudCityScene extends Scene {
 				const d = data as { ref: string };
 				if (d?.ref) this.client?.equipItem(d.ref);
 			}),
-			laserEvents.on('chat:send', (data) => {
-				const d = data as { text: string };
-				if (d?.text) this.client?.say(d.text);
+			laserEvents.on('emote', (data) => {
+				const d = data as { emoji: string };
+				if (d?.emoji && this.myEid >= 0)
+					this.showFloatingText(this.myEid, d.emoji, '#ffffff');
 			}),
 		);
 
@@ -220,9 +232,6 @@ export class CloudCityScene extends Scene {
 				});
 			}
 		});
-		client.on('chat', (c) => {
-			laserEvents.emit('chat:message', c);
-		});
 		client.on('itemUsed', (u) => {
 			laserEvents.emit('item:used', u);
 			if (u.heal > 0) {
@@ -240,6 +249,7 @@ export class CloudCityScene extends Scene {
 					xpNext: st.xp_next,
 					maxHp: st.max_hp,
 					attack: st.attack,
+					kills: st.kills ?? 0,
 				},
 			});
 			if (this.prevLevel >= 0 && st.level > this.prevLevel) {
@@ -427,14 +437,30 @@ export class CloudCityScene extends Scene {
 					conf.walkingAnimationMapping = mapping;
 				}
 				this.gridEngine.addCharacter(conf);
-				this.tracked.set(e.eid, {
+				const tracked: Tracked = {
 					sprite,
 					charId,
 					tile: { x: e.tile.x, y: e.tile.y },
 					kind: e.kind,
 					hp: e.hp,
 					maxHp: e.max_hp,
-				});
+				};
+				if (this.kindCat(e.kind) === KIND_CAT_PLAYER) {
+					const name = this.slotUsername.get(e.owner);
+					if (name) {
+						tracked.nameplate = this.add
+							.text(sprite.x, sprite.y - 34, name, {
+								fontFamily: 'monospace',
+								fontSize: '11px',
+								color: '#fcd34d',
+								stroke: '#000000',
+								strokeThickness: 3,
+							})
+							.setOrigin(0.5, 1)
+							.setDepth(this.entityDepth + 2);
+					}
+				}
+				this.tracked.set(e.eid, tracked);
 				if (
 					this.kindCat(e.kind) === KIND_CAT_PLAYER &&
 					e.owner === this.mySlot &&
@@ -469,6 +495,7 @@ export class CloudCityScene extends Scene {
 				this.gridEngine.removeCharacter(t.charId);
 			}
 			t.hpBar?.destroy();
+			t.nameplate?.destroy();
 			t.sprite.destroy();
 			this.tracked.delete(eid);
 			if (eid === this.myEid) this.myEid = -1;
@@ -479,6 +506,10 @@ export class CloudCityScene extends Scene {
 		this.checkHostileProximity();
 		this.syncRoster(snap);
 		this.runPendingAction();
+		const DAY_MS = 600000;
+		laserEvents.emit('world:time', {
+			phase: (snap.server_time_ms % DAY_MS) / DAY_MS,
+		});
 	}
 
 	private runPendingAction() {
@@ -617,6 +648,15 @@ export class CloudCityScene extends Scene {
 		this.pendingAction = null;
 		const hit = this.entityAt(tile);
 		if (hit) {
+			const ref = this.kindRef(hit.t.kind);
+			const npc = ref ? getNPCByRef(ref) : undefined;
+			laserEvents.emit('target:set', {
+				eid: hit.eid,
+				name: npc?.name ?? ref ?? 'Unknown',
+				hp: hit.t.hp,
+				maxHp: hit.t.maxHp,
+				cat: this.kindCat(hit.t.kind),
+			});
 			const cat = this.kindCat(hit.t.kind);
 			const me = this.myTile();
 			if (cat === KIND_CAT_ITEM) {
@@ -650,6 +690,7 @@ export class CloudCityScene extends Scene {
 			}
 		}
 
+		laserEvents.emit('target:clear', {});
 		this.client.moveTo(tile);
 	}
 
@@ -751,9 +792,62 @@ export class CloudCityScene extends Scene {
 		];
 	}
 
+	private updateOverlays(time: number) {
+		for (const [, t] of this.tracked) {
+			if (t.nameplate) {
+				t.nameplate.setPosition(t.sprite.x, t.sprite.y - 34);
+			}
+		}
+		// FPS — emit roughly once per second.
+		this.fpsFrames += 1;
+		if (time - this.fpsAt >= 1000) {
+			const fps = Math.round(
+				(this.fpsFrames * 1000) / (time - this.fpsAt),
+			);
+			this.fpsAt = time;
+			this.fpsFrames = 0;
+			laserEvents.emit('perf:fps', { fps });
+		}
+		// Other players (for the minimap).
+		const others: { x: number; y: number }[] = [];
+		for (const [eid, t] of this.tracked) {
+			if (
+				eid !== this.myEid &&
+				this.kindCat(t.kind) === KIND_CAT_PLAYER
+			) {
+				others.push({ x: t.tile.x, y: t.tile.y });
+			}
+		}
+		laserEvents.emit('world:players', { players: others });
+		// Player tile position.
+		const me = this.myTile();
+		if (me) {
+			const key = `${me.x},${me.y}`;
+			if (key !== this.lastPosKey) {
+				this.lastPosKey = key;
+				laserEvents.emit('player:position', { x: me.x, y: me.y });
+			}
+			const zone = this.zoneForTile(me);
+			if (zone !== this.currentZone) {
+				this.currentZone = zone;
+				laserEvents.emit('zone:enter', { name: zone });
+			}
+		}
+	}
+
+	private zoneForTile(t: { x: number; y: number }): string {
+		const near = (cx: number, cy: number, r: number) =>
+			Math.max(Math.abs(t.x - cx), Math.abs(t.y - cy)) <= r;
+		if (near(5, 12, 8)) return 'Cloud City Plaza';
+		if (near(24, 24, 7)) return 'Goblin Camp';
+		if (near(34, 30, 8)) return 'Crystal Cavern';
+		return 'The Wilds';
+	}
+
 	update(time: number) {
 		if (!this.client) return;
 		this.updateHpBars();
+		this.updateOverlays(time);
 
 		if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
 			this.attackNearby();

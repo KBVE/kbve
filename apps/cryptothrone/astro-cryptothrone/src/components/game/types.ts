@@ -5,6 +5,7 @@ export interface PlayerStats {
 	xp?: number;
 	xpNext?: number;
 	attack?: number;
+	kills?: number;
 	mp: number;
 	maxMp: number;
 	ep: number;
