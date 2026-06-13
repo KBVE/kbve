@@ -25,7 +25,7 @@ template:
     spec:
         initContainers:
             - name: init-dind-externals
-              image: ghcr.io/actions/actions-runner:2.333.0
+              image: ghcr.io/actions/actions-runner:2.335.1
               command:
                   [
                       'cp',
@@ -39,7 +39,7 @@ template:
                     mountPath: /home/runner/tmpDir
         containers:
             - name: runner
-              image: ghcr.io/actions/actions-runner:2.333.0
+              image: ghcr.io/actions/actions-runner:2.335.1
               command: ['/home/runner/run.sh']
               env:
                   - name: DOCKER_HOST
