@@ -252,6 +252,7 @@ export default function ReactForgejoSummary() {
 	const totalSize = useStore(forgejoService.$totalSize);
 	const totalReleases = useStore(forgejoService.$totalReleases);
 	const stats = useStore(forgejoService.$stats);
+	const storage = useStore(forgejoService.$storage);
 
 	if (!active) return null;
 
@@ -260,6 +261,25 @@ export default function ReactForgejoSummary() {
 	const publicValue = stats ? stats.public : publicCount;
 	const privateValue = stats ? stats.private : privateCount;
 	const archivedValue = stats ? stats.archived : archivedCount;
+
+	const usingQuota = !!storage?.quota_enabled;
+	const sizeKb = usingQuota
+		? Math.round(storage!.total_bytes / 1024)
+		: sizeValue;
+	const sizeSub = usingQuota
+		? [
+				storage!.lfs_bytes > 0 &&
+					`LFS ${formatSize(storage!.lfs_bytes / 1024)}`,
+				storage!.packages_bytes > 0 &&
+					`pkg ${formatSize(storage!.packages_bytes / 1024)}`,
+				storage!.artifacts_bytes > 0 &&
+					`artifacts ${formatSize(storage!.artifacts_bytes / 1024)}`,
+			]
+				.filter(Boolean)
+				.join(' · ') || `across ${repoValue} repositories`
+		: stats && stats.lfs_size_kb > 0
+			? `git ${formatSize(stats.git_size_kb)} · LFS ${formatSize(stats.lfs_size_kb)}`
+			: `across ${repoValue} repositories`;
 
 	if (loading && totalRepos === 0) {
 		return (
@@ -312,10 +332,10 @@ export default function ReactForgejoSummary() {
 				}}>
 				<StatCard
 					icon={<HardDrive size={12} />}
-					label="Total Storage"
-					value={formatSize(sizeValue)}
+					label={usingQuota ? 'Total Storage' : 'Repo Storage'}
+					value={formatSize(sizeKb)}
 					color="#06b6d4"
-					sub={`across ${repoValue} repositories`}
+					sub={sizeSub}
 				/>
 				<StatCard
 					icon={<BookOpen size={12} />}

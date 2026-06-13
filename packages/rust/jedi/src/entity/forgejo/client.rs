@@ -770,6 +770,8 @@ impl ForgejoClient {
             for r in &batch {
                 stats.repo_count += 1;
                 stats.total_size_kb += r.size;
+                stats.git_size_kb += r.git_size;
+                stats.lfs_size_kb += r.lfs_size;
                 if r.private {
                     stats.private += 1;
                 } else {
@@ -795,6 +797,68 @@ impl ForgejoClient {
             }
         }
         Ok(stats)
+    }
+
+    async fn owner_quota(&self, owner: &str) -> Result<QuotaInfo, JediError> {
+        self.get(&format!("/api/v1/admin/users/{owner}/quota"), &[])
+            .await
+    }
+
+    /// Aggregates true used storage from Forgejo's per-owner quota API across
+    /// every user and org: git repos, LFS, packages, Actions artifacts and
+    /// attachments (all in bytes). Requires quota tracking enabled on the
+    /// instance; when disabled the totals come back zero and callers should
+    /// fall back to [`repo_stats`].
+    pub async fn instance_storage(&self) -> Result<ForgejoStorage, JediError> {
+        const PAGE: u32 = 50;
+        const MAX_OWNERS: usize = 1000;
+        let mut storage = ForgejoStorage::default();
+        let mut owners: Vec<String> = Vec::new();
+
+        let mut page = 1u32;
+        loop {
+            let batch = self.list_admin_users(page, PAGE).await?;
+            let n = batch.len() as u32;
+            owners.extend(batch.into_iter().map(|u| u.login));
+            if n < PAGE || owners.len() >= MAX_OWNERS {
+                break;
+            }
+            page += 1;
+        }
+        let mut page = 1u32;
+        loop {
+            let batch = self.list_orgs(page, PAGE).await?;
+            let n = batch.len() as u32;
+            owners.extend(batch.into_iter().map(|o| o.username));
+            if n < PAGE || owners.len() >= MAX_OWNERS {
+                break;
+            }
+            page += 1;
+        }
+        if owners.len() > MAX_OWNERS {
+            owners.truncate(MAX_OWNERS);
+            storage.truncated = true;
+        }
+
+        for owner in &owners {
+            if let Ok(q) = self.owner_quota(owner).await {
+                let s = &q.used.size;
+                storage.repos_bytes += s.repos.public + s.repos.private;
+                storage.lfs_bytes += s.git.lfs;
+                storage.attachments_bytes +=
+                    s.assets.attachments.issues + s.assets.attachments.releases;
+                storage.artifacts_bytes += s.assets.artifacts;
+                storage.packages_bytes += s.assets.packages.all;
+                storage.owners_counted += 1;
+            }
+        }
+        storage.total_bytes = storage.repos_bytes
+            + storage.lfs_bytes
+            + storage.attachments_bytes
+            + storage.artifacts_bytes
+            + storage.packages_bytes;
+        storage.quota_enabled = storage.total_bytes > 0;
+        Ok(storage)
     }
 
     // ── Actions runners ──────────────────────────────────────────────
