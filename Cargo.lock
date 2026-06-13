@@ -8699,11 +8699,13 @@ dependencies = [
  "regex",
  "reqwest 0.12.28",
  "rustc-hash 2.1.2",
+ "rustls 0.23.37",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
  "tokio",
  "tokio-postgres",
+ "tokio-postgres-rustls",
  "tonic 0.14.5",
  "tonic-health",
  "tonic-prost",
@@ -8715,6 +8717,9 @@ dependencies = [
  "tracing-subscriber",
  "twitch-irc",
  "ulid",
+ "url",
+ "uuid",
+ "webpki-roots 0.26.11",
 ]
 
 [[package]]
@@ -12606,8 +12611,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8dc729a129e682e8d24170cd30ae1aa01b336b096cbb56df6d534ffec133d186"
 dependencies = [
  "bytes",
+ "chrono",
  "fallible-iterator 0.2.0",
  "postgres-protocol",
+ "serde_core",
+ "serde_json",
+ "uuid",
 ]
 
 [[package]]
@@ -16698,6 +16707,21 @@ dependencies = [
  "tokio",
  "tokio-util",
  "whoami 2.1.1",
+]
+
+[[package]]
+name = "tokio-postgres-rustls"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27d684bad428a0f2481f42241f821db42c54e2dc81d8c00db8536c506b0a0144"
+dependencies = [
+ "const-oid 0.9.6",
+ "ring",
+ "rustls 0.23.37",
+ "tokio",
+ "tokio-postgres",
+ "tokio-rustls 0.26.4",
+ "x509-cert",
 ]
 
 [[package]]

@@ -3,6 +3,7 @@ use serde::Serialize;
 use thiserror::Error;
 use std::borrow::Cow;
 use tower::BoxError;
+#[cfg(feature = "postgres")]
 use bb8::ErrorSink;
 use fred::error::Error as RedisError;
 
@@ -78,6 +79,7 @@ impl From<std::io::Error> for JediError {
   }
 }
 
+#[cfg(feature = "postgres")]
 impl From<tokio_postgres::Error> for JediError {
   fn from(err: tokio_postgres::Error) -> Self {
     JediError::Database(Cow::Owned(err.to_string()))
@@ -125,6 +127,7 @@ impl From<BoxError> for JediError {
   }
 }
 
+#[cfg(feature = "postgres")]
 impl<T: std::fmt::Display> From<bb8::RunError<T>> for JediError {
   fn from(err: bb8::RunError<T>) -> Self {
     match &err {
@@ -166,6 +169,7 @@ impl From<clickhouse::error::Error> for JediError {
   }
 }
 
+#[cfg(feature = "postgres")]
 impl<E: std::fmt::Display + Send + Sync + 'static> ErrorSink<E> for JediErrorSink {
   fn sink(&self, error: E) {
     let err = JediError::Database(Cow::Owned(format!("bb8 async error: {}", error)));
