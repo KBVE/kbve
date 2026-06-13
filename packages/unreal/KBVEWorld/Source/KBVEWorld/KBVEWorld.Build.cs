@@ -41,15 +41,5 @@ public class KBVEWorld : ModuleRules
 				"AssetRegistry"
 			});
 		}
-
-		PublicIncludePaths.AddRange(new string[]
-		{
-			"KBVEWorld/Public"
-		});
-
-		PrivateIncludePaths.AddRange(new string[]
-		{
-			"KBVEWorld/Private"
-		});
 	}
 }

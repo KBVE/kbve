@@ -15,7 +15,7 @@
 	"EnabledByDefault": false,
 	"Plugins": [
 		{
-			"Name": "MassEntity",
+			"Name": "MassGameplay",
 			"Enabled": true
 		},
 		{

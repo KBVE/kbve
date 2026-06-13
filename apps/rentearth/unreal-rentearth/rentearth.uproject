@@ -23,6 +23,10 @@
 	],
 	"Plugins": [
 		{
+			"Name": "StructUtils",
+			"Enabled": true
+		},
+		{
 			"Name": "ChaosSolverPlugin",
 			"Enabled": true
 		},
