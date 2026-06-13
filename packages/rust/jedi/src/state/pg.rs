@@ -41,9 +41,19 @@ use uuid::Uuid;
 
 use crate::entity::error::JediError;
 
+/// Re-export so consumers don't need a direct `tokio-postgres` dep for
+/// `Transaction`, `Row`, `types::*`, etc. used inside `with_caller_read`
+/// closures.
+pub use tokio_postgres;
+
 pub type PgPool = Pool<PostgresConnectionManager<MakeRustlsConnect>>;
 pub type PgConn<'a> =
     bb8::PooledConnection<'a, PostgresConnectionManager<MakeRustlsConnect>>;
+
+/// Boxed future shape expected from the `with_caller_read` closure body.
+/// Lets consumers write `|tx| Box::pin(async move { … })` without
+/// spelling out the full `futures_util::future::BoxFuture` path.
+pub type PgCallerReadFut<'tx, T> = BoxFuture<'tx, Result<T, JediError>>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PgRole {
