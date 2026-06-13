@@ -811,34 +811,46 @@ jobs:
         needs: [guard, game_gate]
         if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Win64')
         runs-on: arc-runner-set-kbve
-        timeout-minutes: 8
+        timeout-minutes: 10
         permissions:
             contents: read
+        outputs:
+            vm_ready: ${{ steps.boot.outputs.vm_ready }}
         steps:
-            - name: Request windows-builder VM start
+            - name: Start + wait for windows-builder VM
+              id: boot
               run: |
                   API=https://kubernetes.default.svc
                   SA=/var/run/secrets/kubernetes.io/serviceaccount
                   TOKEN=$(cat "$SA/token")
                   NS=angelscript
                   VM=windows-builder
-                  STATUS=$(curl -sS --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
-                    "$API/apis/kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM" | jq -r '.status.printableStatus // "Unknown"')
-                  echo "::notice::$VM current status: $STATUS"
-                  if [ "$STATUS" = "Running" ]; then
-                    echo "VM already running — UE5-Win runner should be live."
-                    exit 0
+                  status() { curl -sS --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
+                    "$API/apis/kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM" | jq -r '.status.printableStatus // "Unknown"'; }
+                  S=$(status); echo "::notice::$VM status: $S"
+                  if [ "$S" != "Running" ]; then
+                    echo "Requesting start..."
+                    curl -sS --fail-with-body --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
+                      -X PUT -H "Content-Type: application/json" -d '{}' \
+                      "$API/apis/subresources.kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM/start" || true
                   fi
-                  echo "Requesting start..."
-                  curl -sS --fail-with-body --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
-                    -X PUT -H "Content-Type: application/json" -d '{}' \
-                    "$API/apis/subresources.kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM/start"
-                  echo "::notice::$VM start requested; UE5-Win runner will register once the guest boots."
+                  for i in $(seq 1 30); do
+                    S=$(status)
+                    if [ "$S" = "Running" ]; then
+                      echo "::notice::$VM is Running; Win64 build proceeds once the UE5-Win runner registers."
+                      echo "vm_ready=true" >> "$GITHUB_OUTPUT"
+                      exit 0
+                    fi
+                    echo "waiting for $VM to reach Running ($i/30): $S"
+                    sleep 10
+                  done
+                  echo "::warning::$VM did not reach Running in ~5m; SKIPPING the Win64 client build so the run still finishes (Linux client + dedicated server + publish unaffected)."
+                  echo "vm_ready=false" >> "$GITHUB_OUTPUT"
 
     game_build_windows:
         name: Game Build (Win64 client)
         needs: [guard, game_gate, win_vm_boot]
-        if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Win64')
+        if: inputs.mode == 'game' && needs.guard.outputs.allowed == 'true' && needs.game_gate.outputs.should_build == 'true' && contains(inputs.build_targets, 'Win64') && needs.win_vm_boot.outputs.vm_ready == 'true'
         runs-on: UE5-Win
         timeout-minutes: 480
         defaults:
