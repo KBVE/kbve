@@ -16,7 +16,7 @@ export type { TooltipOverlayProps } from './react/TooltipOverlay';
 export { NotContent } from './react/NotContent';
 export type { NotContentProps } from './react/NotContent';
 export { FloatingWindow } from './react/FloatingWindow';
-export type { FloatingWindowProps } from './react/FloatingWindow';
+export type { FloatingWindowProps, WindowLayer } from './react/FloatingWindow';
 
 export { useDraggable } from './hooks/useDraggable';
 export type {

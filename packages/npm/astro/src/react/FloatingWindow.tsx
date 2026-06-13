@@ -11,12 +11,21 @@ import { cn } from '../utils/cn';
 import { useDraggable, type Position } from '../hooks/useDraggable';
 import { useResizable, type Size } from '../hooks/useResizable';
 
-// Base below the game's blocking-modal band (z-50+) so floating panels stay
-// under dialogs/overlays. A dedicated z-order manager will supersede this.
-let zCounter = 30;
-function nextZ(): number {
-	zCounter += 1;
-	return zCounter;
+export type WindowLayer = 'panel' | 'modal';
+
+// Two bounded z bands: panels float beneath blocking overlays, modal windows
+// sit above panels. Click-to-front advances within a band and clamps at its
+// ceiling so the counter never climbs into the next band.
+const Z_BANDS: Record<WindowLayer, { base: number; ceil: number }> = {
+	panel: { base: 30, ceil: 799 },
+	modal: { base: 800, ceil: 1599 },
+};
+const zTop: Record<WindowLayer, number> = { panel: 30, modal: 800 };
+
+function nextZ(layer: WindowLayer): number {
+	const band = Z_BANDS[layer];
+	zTop[layer] = Math.min(zTop[layer] + 1, band.ceil);
+	return zTop[layer];
 }
 
 interface Persisted extends Position, Partial<Size> {}
@@ -55,6 +64,8 @@ export interface FloatingWindowProps {
 	headerActions?: ReactNode;
 	/** Persist position + size under this localStorage key. */
 	storageKey?: string;
+	/** z-order band: `panel` floats under blocking overlays, `modal` above panels. */
+	layer?: WindowLayer;
 	/** Render into document.body instead of in place. */
 	portal?: boolean;
 	className?: string;
@@ -79,6 +90,7 @@ export function FloatingWindow({
 	onClose,
 	headerActions,
 	storageKey,
+	layer = 'panel',
 	portal = false,
 	className,
 	bodyClassName,
@@ -86,8 +98,8 @@ export function FloatingWindow({
 }: FloatingWindowProps) {
 	const persisted = useMemo(() => loadPersisted(storageKey), [storageKey]);
 	const panelRef = useRef<HTMLDivElement>(null);
-	const [z, setZ] = useState<number>(() => nextZ());
-	const bringForward = useCallback(() => setZ(nextZ()), []);
+	const [z, setZ] = useState<number>(() => nextZ(layer));
+	const bringForward = useCallback(() => setZ(nextZ(layer)), [layer]);
 
 	const clamp = useCallback((p: Position): Position => {
 		if (typeof window === 'undefined') return p;
