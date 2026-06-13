@@ -21,7 +21,7 @@ pub const PLAYER_TICKS_PER_TILE: u8 = 3;
 pub const PLAYER_SPAWN: Tile = Tile::new(5, 12);
 // Cloud City plaza is a safe town — hostiles can't aggro players within
 // this Chebyshev radius of spawn. Venture out to find combat.
-pub const PLAYER_SAFE_RADIUS: i32 = 8;
+pub const PLAYER_SAFE_RADIUS: i32 = 12;
 
 pub const NPC_RESPAWN_TICKS: u32 = SIM_TICK_HZ * 30;
 

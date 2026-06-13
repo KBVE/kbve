@@ -183,6 +183,7 @@ pub struct KillCounts(pub HashMap<u16, u32>);
 
 pub const REGEN_PERIOD_TICKS: u32 = SIM_TICK_HZ * 2;
 pub const REGEN_AMOUNT: i32 = 2;
+pub const TOWN_REGEN_AMOUNT: i32 = 6;
 pub const CRIT_CHANCE_PCT: u64 = 15;
 
 #[derive(Clone, Copy)]
@@ -1102,14 +1103,27 @@ fn hostile_ai(
 }
 
 #[allow(clippy::type_complexity)]
-fn regen_players(clock: Res<SimClock>, mut q: Query<&mut Health, With<PlayerSlotTag>>) {
+fn regen_players(
+    clock: Res<SimClock>,
+    config: Res<SimConfig>,
+    mut q: Query<(&mut Health, &GridPos), With<PlayerSlotTag>>,
+) {
     if !clock.tick.is_multiple_of(REGEN_PERIOD_TICKS) {
         return;
     }
-    for mut hp in q.iter_mut() {
-        if hp.hp > 0 && hp.hp < hp.max_hp {
-            hp.hp = (hp.hp + REGEN_AMOUNT).min(hp.max_hp);
+    for (mut hp, pos) in q.iter_mut() {
+        if hp.hp <= 0 || hp.hp >= hp.max_hp {
+            continue;
         }
+        // The town fountain mends faster — return to the plaza to recover.
+        let in_town =
+            config.safe_radius > 0 && pos.tile.chebyshev(config.spawn) <= config.safe_radius;
+        let amount = if in_town {
+            TOWN_REGEN_AMOUNT
+        } else {
+            REGEN_AMOUNT
+        };
+        hp.hp = (hp.hp + amount).min(hp.max_hp);
     }
 }
 
