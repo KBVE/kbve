@@ -13,6 +13,23 @@ export { ModalOverlay } from './react/ModalOverlay';
 export type { ModalOverlayProps } from './react/ModalOverlay';
 export { TooltipOverlay } from './react/TooltipOverlay';
 export type { TooltipOverlayProps } from './react/TooltipOverlay';
+export { NotContent } from './react/NotContent';
+export type { NotContentProps } from './react/NotContent';
+export { FloatingWindow } from './react/FloatingWindow';
+export type { FloatingWindowProps } from './react/FloatingWindow';
+
+export { useDraggable } from './hooks/useDraggable';
+export type {
+	Position,
+	UseDraggableOptions,
+	UseDraggableResult,
+} from './hooks/useDraggable';
+export { useResizable } from './hooks/useResizable';
+export type {
+	Size,
+	UseResizableOptions,
+	UseResizableResult,
+} from './hooks/useResizable';
 
 export { ReactRuffle } from './components/ruffle/ReactRuffle';
 export type { ReactRuffleProps } from './components/ruffle/ReactRuffle';

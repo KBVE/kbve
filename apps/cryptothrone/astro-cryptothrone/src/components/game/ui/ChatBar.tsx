@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { RealmChatClient, type RealmChatState } from '@kbve/laser';
+import { FloatingWindow } from '@kbve/astro';
 import { useGameSelector } from '../store/GameStoreContext';
 import {
 	getCtNetConfig,
@@ -154,25 +155,38 @@ export function ChatBar() {
 					: null;
 
 	return (
-		<div
-			className={`absolute bottom-3 left-3 z-40 w-80 select-none transition-opacity duration-300 ${
+		<FloatingWindow
+			storageKey="ct-chat-window"
+			initial={{
+				x: 12,
+				y:
+					typeof window !== 'undefined'
+						? window.innerHeight - 300
+						: 360,
+			}}
+			size={{ width: 320, height: 260 }}
+			minWidth={240}
+			minHeight={160}
+			className={`select-none transition-opacity duration-300 ${
 				dimmed ? 'opacity-70 hover:opacity-100' : 'opacity-100'
-			}`}>
-			<div className="overflow-hidden rounded-xl border border-white/10 bg-black/60 shadow-xl shadow-black/40 backdrop-blur-xl">
-				<div className="flex items-center justify-between border-b border-white/5 px-3 py-1.5">
-					<span className="flex items-center gap-1.5 text-[0.65rem] font-semibold uppercase tracking-widest text-amber-300/80">
-						<span
-							className={`h-1.5 w-1.5 rounded-full ${statusDot}`}
-							aria-hidden="true"
-						/>
-						Realm chat
+			}`}
+			title={
+				<span className="flex items-center gap-1.5">
+					<span
+						className={`h-1.5 w-1.5 rounded-full ${statusDot}`}
+						aria-hidden="true"
+					/>
+					Realm chat
+				</span>
+			}
+			headerActions={
+				unread > 0 ? (
+					<span className="rounded-full bg-amber-500/90 px-1.5 py-0.5 text-[0.6rem] font-bold leading-none text-black">
+						{unread}
 					</span>
-					{unread > 0 && (
-						<span className="rounded-full bg-amber-500/90 px-1.5 py-0.5 text-[0.6rem] font-bold leading-none text-black">
-							{unread}
-						</span>
-					)}
-				</div>
+				) : null
+			}>
+			<div className="flex h-full flex-col">
 				{statusText && (
 					<div
 						role="status"
@@ -184,43 +198,41 @@ export function ChatBar() {
 						{statusText}
 					</div>
 				)}
-				{lines.length > 0 && (
-					<div
-						ref={scrollRef}
-						className="max-h-40 space-y-1 overflow-y-auto px-3 py-2 text-xs [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.15)_transparent]">
-						{lines.map((line) => {
-							const mine = line.from === me;
-							return (
-								<div
-									key={line.id}
-									className="break-words leading-snug">
-									<span className="mr-1.5 text-[0.6rem] tabular-nums text-stone-500">
-										{line.at}
-									</span>
-									<span
-										className={
-											mine
-												? 'font-semibold text-amber-300'
-												: 'font-semibold'
-										}
-										style={
-											mine
-												? undefined
-												: {
-														color: `hsl(${nameHue(line.from)} 70% 70%)`,
-													}
-										}>
-										{line.from}
-									</span>
-									<span className="text-stone-500">: </span>
-									<span className="text-stone-200">
-										{line.text}
-									</span>
-								</div>
-							);
-						})}
-					</div>
-				)}
+				<div
+					ref={scrollRef}
+					className="flex-1 space-y-1 overflow-y-auto px-3 py-2 text-xs [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.15)_transparent]">
+					{lines.map((line) => {
+						const mine = line.from === me;
+						return (
+							<div
+								key={line.id}
+								className="break-words leading-snug">
+								<span className="mr-1.5 text-[0.6rem] tabular-nums text-stone-500">
+									{line.at}
+								</span>
+								<span
+									className={
+										mine
+											? 'font-semibold text-amber-300'
+											: 'font-semibold'
+									}
+									style={
+										mine
+											? undefined
+											: {
+													color: `hsl(${nameHue(line.from)} 70% 70%)`,
+												}
+									}>
+									{line.from}
+								</span>
+								<span className="text-stone-500">: </span>
+								<span className="text-stone-200">
+									{line.text}
+								</span>
+							</div>
+						);
+					})}
+				</div>
 				<form
 					onSubmit={submit}
 					className="flex items-center gap-2 border-t border-white/5 px-2 py-1.5">
@@ -267,6 +279,6 @@ export function ChatBar() {
 					</button>
 				</form>
 			</div>
-		</div>
+		</FloatingWindow>
 	);
 }
