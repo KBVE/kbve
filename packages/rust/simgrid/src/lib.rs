@@ -1,4 +1,5 @@
 pub mod data;
+pub mod dungeon;
 pub mod grid;
 pub mod net;
 pub mod proto;

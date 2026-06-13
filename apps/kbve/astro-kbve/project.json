@@ -154,6 +154,18 @@
 				"cwd": "{workspaceRoot}"
 			}
 		},
+		"gen:dungeon": {
+			"executor": "nx:run-commands",
+			"inputs": ["{workspaceRoot}/packages/data/codegen/gen_dungeon.py"],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated/tilemaps/crypt_depths.tilemap.json"
+			],
+			"options": {
+				"command": "python3 packages/data/codegen/gen_dungeon.py",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:tilemaps": {
 			"executor": "nx:run-commands",
 			"inputs": [

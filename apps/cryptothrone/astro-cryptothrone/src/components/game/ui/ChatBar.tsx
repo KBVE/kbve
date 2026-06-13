@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { RealmChatClient } from '@kbve/laser';
+import { RealmChatClient, type RealmChatState } from '@kbve/laser';
 import { useGameSelector } from '../store/GameStoreContext';
 import {
 	getCtNetConfig,
@@ -48,7 +48,11 @@ export function ChatBar() {
 	const focusedRef = useRef(false);
 	focusedRef.current = focused;
 	const clientRef = useRef<RealmChatClient | null>(null);
-	const [connected, setConnected] = useState(false);
+	const [chatState, setChatState] = useState<RealmChatState>({
+		status: 'connecting',
+		attempts: 0,
+	});
+	const connected = chatState.status === 'connected';
 
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
@@ -72,7 +76,14 @@ export function ChatBar() {
 
 	useEffect(() => {
 		const cfg = getCtNetConfig();
-		if (!cfg) return;
+		if (!cfg) {
+			setChatState({
+				status: 'closed',
+				attempts: 0,
+				reason: 'not signed in',
+			});
+			return;
+		}
 		const client = new RealmChatClient({
 			url: resolveChatUrl(),
 			jwt: cfg.jwt,
@@ -94,13 +105,11 @@ export function ChatBar() {
 			);
 			if (!focusedRef.current) setUnread((n) => n + 1);
 		});
-		const offOpen = client.on('open', () => setConnected(true));
-		const offClose = client.on('close', () => setConnected(false));
+		const offStatus = client.on('status', (s) => setChatState(s));
 		client.connect();
 		return () => {
 			offMsg();
-			offOpen();
-			offClose();
+			offStatus();
 			client.close();
 			clientRef.current = null;
 		};
@@ -125,6 +134,25 @@ export function ChatBar() {
 
 	const dimmed = !focused && lines.length > 0;
 
+	const statusDot =
+		chatState.status === 'connected'
+			? 'bg-emerald-400'
+			: chatState.status === 'connecting' ||
+				  chatState.status === 'reconnecting'
+				? 'bg-amber-400 animate-pulse'
+				: 'bg-red-500';
+
+	const statusText =
+		chatState.status === 'connecting'
+			? 'Connecting…'
+			: chatState.status === 'reconnecting'
+				? `Reconnecting… (try ${chatState.attempts})${
+						chatState.reason ? ` — ${chatState.reason}` : ''
+					}`
+				: chatState.status === 'closed'
+					? (chatState.reason ?? 'Disconnected')
+					: null;
+
 	return (
 		<div
 			className={`absolute bottom-3 left-3 z-40 w-80 select-none transition-opacity duration-300 ${
@@ -134,9 +162,7 @@ export function ChatBar() {
 				<div className="flex items-center justify-between border-b border-white/5 px-3 py-1.5">
 					<span className="flex items-center gap-1.5 text-[0.65rem] font-semibold uppercase tracking-widest text-amber-300/80">
 						<span
-							className={`h-1.5 w-1.5 rounded-full ${
-								connected ? 'bg-emerald-400' : 'bg-stone-500'
-							}`}
+							className={`h-1.5 w-1.5 rounded-full ${statusDot}`}
 							aria-hidden="true"
 						/>
 						Realm chat
@@ -147,6 +173,17 @@ export function ChatBar() {
 						</span>
 					)}
 				</div>
+				{statusText && (
+					<div
+						role="status"
+						className={`border-b border-white/5 px-3 py-1 text-[0.65rem] ${
+							chatState.status === 'closed'
+								? 'text-red-300/90'
+								: 'text-amber-200/80'
+						}`}>
+						{statusText}
+					</div>
+				)}
 				{lines.length > 0 && (
 					<div
 						ref={scrollRef}
@@ -199,7 +236,9 @@ export function ChatBar() {
 							e.stopPropagation();
 							if (e.key === 'Escape') inputRef.current?.blur();
 						}}
-						placeholder="Press Enter to chat…"
+						placeholder={
+							connected ? 'Press Enter to chat…' : 'Chat offline'
+						}
 						aria-label="Chat message"
 						className="min-w-0 flex-1 bg-transparent px-1 py-1 text-xs text-white placeholder-stone-500 outline-none"
 					/>
@@ -210,7 +249,7 @@ export function ChatBar() {
 					)}
 					<button
 						type="submit"
-						disabled={!draft.trim()}
+						disabled={!draft.trim() || !connected}
 						aria-label="Send message"
 						className="rounded-md p-1.5 text-amber-300 transition enabled:hover:bg-amber-400/10 disabled:opacity-30">
 						<svg

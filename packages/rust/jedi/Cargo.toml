@@ -37,7 +37,7 @@ tower-http = { version = "0.6.8", features = [
     "cors"
 ] }
 tokio = { version = "1.43", features = ["full", "rt-multi-thread"] }
-tokio-postgres = "0.7.2"
+tokio-postgres = { version = "0.7.2", optional = true, features = ["with-uuid-1", "with-chrono-0_4", "with-serde_json-1"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 axum = { version = "0.8.5", features = ["ws", "macros"] }
@@ -52,8 +52,13 @@ axum-extra = { version = "0.12.1", features = [
     "file-stream"
 ]}
 askama = "0.15.4"
-bb8 = "0.9.0"
-bb8-postgres = "0.9.0"
+bb8 = { version = "0.9.0", optional = true }
+bb8-postgres = { version = "0.9.0", optional = true }
+tokio-postgres-rustls = { version = "0.13", optional = true }
+rustls = { version = "0.23", optional = true, default-features = false, features = ["ring"] }
+webpki-roots = { version = "0.26", optional = true }
+url = { version = "2", optional = true }
+uuid = { version = "1", optional = true, features = ["serde", "v4"] }
 fred = { version = "10", features = [
   "i-keys", "i-pubsub", "i-std", "subscriber-client",
   "serde-json", "i-server", "i-scripts", "i-streams",
@@ -89,5 +94,15 @@ default = []
 clickhouse = ["dep:clickhouse"]
 prometheus = ["dep:axum-prometheus"]
 forgejo = []
+postgres = [
+    "dep:tokio-postgres",
+    "dep:bb8",
+    "dep:bb8-postgres",
+    "dep:tokio-postgres-rustls",
+    "dep:rustls",
+    "dep:webpki-roots",
+    "dep:url",
+    "dep:uuid",
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

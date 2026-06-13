@@ -430,6 +430,7 @@ fn router(state: AppState) -> Router {
         .route("/api/v1/forum/tags", get(api_list_tags))
         .route("/api/v1/wallet/me/balance", get(super::wallet::me_balance))
         .route("/api/v1/wallet/me/coupons", get(super::wallet::me_coupons))
+        .route("/api/v1/wallet/me/ledger", get(super::ledger::me_ledger))
         .route(
             "/api/v1/wallet/me/redeem-coupon",
             post(super::wallet::me_redeem_coupon),

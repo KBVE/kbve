@@ -6,6 +6,7 @@ mod forum;
 pub mod mc;
 mod mc_lot;
 mod osrs;
+mod pg_cluster;
 mod profile;
 mod referral;
 mod rentearth;
@@ -44,4 +45,5 @@ pub use profile::{
 pub use referral::{get_referral_client, init_referral_client};
 pub use rentearth::{RentEarthProfile, get_rentearth_service, init_rentearth_service};
 pub use twitch::{get_twitch_client, init_twitch_client};
+pub use pg_cluster::{get_pg_cluster, init_pg_cluster};
 pub use wallet::{get_wallet_client, init_wallet_client};
