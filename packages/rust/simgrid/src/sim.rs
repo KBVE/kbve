@@ -43,11 +43,15 @@ pub struct SimConfig {
     pub player_attack: i32,
     pub spawn: Tile,
     pub ticks_per_tile: u8,
+    /// Hostiles won't target players within this Chebyshev distance of
+    /// `spawn` — a safe starting town. 0 disables the safe zone.
+    pub safe_radius: i32,
 }
 
 impl Default for SimConfig {
     fn default() -> Self {
         Self {
+            safe_radius: 0,
             player_kind: PLAYER_KIND,
             player_hp: 100,
             player_attack: 5,
@@ -1006,6 +1010,7 @@ fn dir_between(from: Tile, to: Tile) -> Option<Dir> {
 #[allow(clippy::type_complexity)]
 fn hostile_ai(
     clock: Res<SimClock>,
+    config: Res<SimConfig>,
     map: Res<WalkableMap>,
     bcast: Res<SnapshotBroadcast>,
     mut occ: ResMut<Occupancy>,
@@ -1016,6 +1021,11 @@ fn hostile_ai(
         let mut nearest: Option<(Entity, Tile, i32)> = None;
         for (pe, ppos, hp, _) in q_players.iter() {
             if hp.hp <= 0 {
+                continue;
+            }
+            // Players inside the spawn safe zone are untouchable — the
+            // starting town stays peaceful so nobody loads into combat.
+            if config.safe_radius > 0 && ppos.tile.chebyshev(config.spawn) <= config.safe_radius {
                 continue;
             }
             let d = pos.tile.chebyshev(ppos.tile);
@@ -1553,6 +1563,63 @@ mod tests {
             .world_mut()
             .query_filtered::<Entity, With<PlayerSlotTag>>();
         q.iter(app.world()).next().expect("player spawned")
+    }
+
+    #[test]
+    fn safe_zone_blocks_hostile_aggro() {
+        let (tx, mut rx) = broadcast::channel(SNAPSHOT_BROADCAST_CAPACITY);
+        let (input_tx, input_rx) = mpsc::unbounded_channel();
+        let roster = Arc::new(RwLock::new(Roster::new(4)));
+        let map = WalkableMap::open(32, 32);
+        let mut registry = KindRegistry::new();
+        registry.register_npc("training-dummy");
+        let mut app = build_app(
+            tx,
+            input_rx,
+            roster.clone(),
+            7,
+            SimConfig {
+                spawn: Tile::new(8, 8),
+                safe_radius: 5,
+                ..SimConfig::default()
+            },
+            map,
+            registry,
+        );
+        let _ = &input_tx;
+        join(&roster, "townie");
+        app.update();
+
+        let registry = app.world().resource::<KindRegistry>().clone();
+        let kind = registry.kind_of("training-dummy").unwrap();
+        // Hostile spawns adjacent to the player, well inside the safe zone.
+        let spec = hostile_spec(kind, Tile::new(9, 8));
+        {
+            let mut q = bevy::ecs::world::CommandQueue::default();
+            let mut commands = Commands::new(&mut q, app.world());
+            spawn_npc_from_spec(&mut commands, &spec);
+            q.apply(app.world_mut());
+        }
+        let player = player_entity(&mut app);
+        let hp0 = app.world().get::<Health>(player).unwrap().hp;
+        for _ in 0..60 {
+            app.update();
+        }
+        let hp1 = app.world().get::<Health>(player).unwrap().hp;
+        assert_eq!(hp1, hp0, "safe-zone player took damage");
+
+        let mut hit = false;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, payload, .. } = evt
+                && kind == proto::EPHEMERAL_COMBAT
+            {
+                let t = String::from_utf8(payload).unwrap();
+                if t.contains("\"target_ref\":\"player\"") {
+                    hit = true;
+                }
+            }
+        }
+        assert!(!hit, "hostile attacked a player in the safe zone");
     }
 
     #[test]

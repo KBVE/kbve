@@ -22,6 +22,16 @@ import { getNPCByRef, npcIdForRef, isHostileRef } from '../data/npcs';
 const MAP_SCALE = 3;
 const STEP_THROTTLE_MS = 90;
 const SLOT_NONE = 0xffff;
+const PLAYER_SPRITE_VARIANTS = 8;
+
+function spriteVariantForName(name: string): number {
+	let h = 2166136261;
+	for (let i = 0; i < name.length; i++) {
+		h ^= name.charCodeAt(i);
+		h = Math.imul(h, 16777619);
+	}
+	return (h >>> 0) % PLAYER_SPRITE_VARIANTS;
+}
 
 interface RefSprite {
 	key: string;
@@ -56,9 +66,10 @@ export class CloudCityScene extends Scene {
 	private client: GameClient | null = null;
 
 	private mySlot = SLOT_NONE;
+	private slotUsername = new Map<number, string>();
 	private myEid = -1;
 	private tracked = new Map<number, Tracked>();
-	private registry = new Map<number, KindEntry>();
+	private kindRegistry = new Map<number, KindEntry>();
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 	private attackKey!: Phaser.Input.Keyboard.Key;
 	private entityDepth = 0;
@@ -182,9 +193,9 @@ export class CloudCityScene extends Scene {
 			window.clearTimeout(this.slowTimer);
 			laserEvents.emit('net:status', { status: 'ready' });
 			this.mySlot = w.your_slot;
-			this.registry.clear();
+			this.kindRegistry.clear();
 			for (const entry of w.registry ?? []) {
-				this.registry.set(entry.kind, entry);
+				this.kindRegistry.set(entry.kind, entry);
 			}
 		});
 		client.on('snapshot', (s) => this.applySnapshot(s));
@@ -322,23 +333,28 @@ export class CloudCityScene extends Scene {
 	}
 
 	private kindCat(kind: number): number {
-		return this.registry.get(kind)?.cat ?? KIND_CAT_NPC;
+		return this.kindRegistry.get(kind)?.cat ?? KIND_CAT_NPC;
 	}
 
 	private kindRef(kind: number): string | null {
-		return this.registry.get(kind)?.ref ?? null;
+		return this.kindRegistry.get(kind)?.ref ?? null;
 	}
 
-	private makeSprite(kind: number): {
+	private makeSprite(
+		kind: number,
+		owner: number,
+	): {
 		sprite: Phaser.GameObjects.Sprite;
 		mapping?: number;
 	} {
 		const cat = this.kindCat(kind);
-		if (cat === KIND_CAT_PLAYER || this.registry.size === 0) {
+		if (cat === KIND_CAT_PLAYER || this.kindRegistry.size === 0) {
 			const sprite = this.add.sprite(0, 0, 'player');
 			sprite.scale = 1.5;
 			sprite.setDepth(this.entityDepth);
-			return { sprite, mapping: 6 };
+			const username = this.slotUsername.get(owner);
+			const mapping = username ? spriteVariantForName(username) : 6;
+			return { sprite, mapping };
 		}
 		if (cat === KIND_CAT_ITEM) {
 			const sprite = this.add.sprite(0, 0, 'ground-item');
@@ -380,6 +396,9 @@ export class CloudCityScene extends Scene {
 
 	private applySnapshot(snap: Snapshot) {
 		const seen = new Set<number>();
+		for (const pv of snap.players) {
+			this.slotUsername.set(pv.slot, pv.kbve_username);
+		}
 
 		for (const e of snap.entities) {
 			if (
@@ -395,7 +414,7 @@ export class CloudCityScene extends Scene {
 			seen.add(e.eid);
 			const existing = this.tracked.get(e.eid);
 			if (!existing) {
-				const { sprite, mapping } = this.makeSprite(e.kind);
+				const { sprite, mapping } = this.makeSprite(e.kind, e.owner);
 				const charId = `e${e.eid}`;
 				const conf: Record<string, unknown> = {
 					id: charId,
@@ -423,6 +442,10 @@ export class CloudCityScene extends Scene {
 				) {
 					this.myEid = e.eid;
 					this.cameras.main.startFollow(sprite, true);
+					// Seed range tracker to spawn so a range dialog only
+					// fires when the player walks into a zone, not when
+					// they spawn already standing in one.
+					this.rangeTile = { x: e.tile.x, y: e.tile.y };
 				}
 			} else {
 				if (
