@@ -53,6 +53,12 @@ export { RAPIER, createRapierPhysics } from './lib/physics/rapier';
 
 // Net — WS client speaking the simgrid JSON wire
 export { GameClient } from './lib/net/game-client';
+export { RealmChatClient } from './lib/net/realm-chat-client';
+export type {
+	RealmChatOptions,
+	RealmChatMessage,
+	RealmChatEventMap,
+} from './lib/net/realm-chat-client';
 export type {
 	GameClientOptions,
 	GameClientEventMap,
@@ -65,7 +71,6 @@ export {
 	EPHEMERAL_INVENTORY,
 	EPHEMERAL_COMBAT,
 	EPHEMERAL_PICKUP,
-	EPHEMERAL_CHAT,
 	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_EQUIPPED,
 	EPHEMERAL_STATS,
@@ -95,7 +100,6 @@ export type {
 	InventorySync,
 	CombatEvent,
 	PickupEvent,
-	ChatEvent,
 	ItemUsedEvent,
 	EquippedEvent,
 	StatsEvent,

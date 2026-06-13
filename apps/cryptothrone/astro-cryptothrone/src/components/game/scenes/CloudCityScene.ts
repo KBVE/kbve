@@ -158,10 +158,6 @@ export class CloudCityScene extends Scene {
 				const d = data as { ref: string };
 				if (d?.ref) this.client?.equipItem(d.ref);
 			}),
-			laserEvents.on('chat:send', (data) => {
-				const d = data as { text: string };
-				if (d?.text) this.client?.say(d.text);
-			}),
 		);
 
 		this.events.once('shutdown', () => {
@@ -219,9 +215,6 @@ export class CloudCityScene extends Scene {
 						'You died! The well pulls you back to the plaza, body intact, pride bruised.',
 				});
 			}
-		});
-		client.on('chat', (c) => {
-			laserEvents.emit('chat:message', c);
 		});
 		client.on('itemUsed', (u) => {
 			laserEvents.emit('item:used', u);
