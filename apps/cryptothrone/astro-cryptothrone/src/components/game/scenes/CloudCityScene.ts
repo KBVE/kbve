@@ -41,6 +41,14 @@ interface Tracked {
 	charId: string;
 	tile: { x: number; y: number };
 	kind: number;
+	hp: number;
+	maxHp: number;
+	hpBar?: Phaser.GameObjects.Graphics;
+}
+
+interface PendingAction {
+	kind: 'pickup' | 'interact';
+	eid: number;
 }
 
 export class CloudCityScene extends Scene {
@@ -67,6 +75,10 @@ export class CloudCityScene extends Scene {
 	private netTerminal = false;
 	private reconnectAttempts = 0;
 	private rosterKey = '';
+	private pendingAction: PendingAction | null = null;
+	private prevLevel = -1;
+	private prevXp = -1;
+	private hoverThrottle = 0;
 	private laserUnsubs: (() => void)[] = [];
 
 	constructor() {
@@ -121,6 +133,9 @@ export class CloudCityScene extends Scene {
 
 		this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) =>
 			this.onPointerDown(pointer),
+		);
+		this.input.on('pointermove', (pointer: Phaser.Input.Pointer) =>
+			this.onPointerMove(pointer),
 		);
 
 		this.laserUnsubs.push(
@@ -186,6 +201,7 @@ export class CloudCityScene extends Scene {
 				`-${c.dmg}`,
 				c.target === this.myEid ? '#f87171' : '#fbbf24',
 			);
+			this.flashSprite(c.target);
 			if (c.died && c.target === this.myEid) {
 				laserEvents.emit('char:event', {
 					message:
@@ -215,6 +231,26 @@ export class CloudCityScene extends Scene {
 					attack: st.attack,
 				},
 			});
+			if (this.prevLevel >= 0 && st.level > this.prevLevel) {
+				this.showFloatingText(this.myEid, 'LEVEL UP!', '#fbbf24');
+				laserEvents.emit('notification', {
+					title: `Level ${st.level}`,
+					message: `Max HP ${st.max_hp}, attack ${st.attack}. Healed to full.`,
+					notificationType: 'success',
+				});
+			} else if (
+				this.prevXp >= 0 &&
+				st.level === this.prevLevel &&
+				st.xp > this.prevXp
+			) {
+				this.showFloatingText(
+					this.myEid,
+					`+${st.xp - this.prevXp} xp`,
+					'#a78bfa',
+				);
+			}
+			this.prevLevel = st.level;
+			this.prevXp = st.xp;
 		});
 		client.on('reject', (reason) => {
 			window.clearTimeout(this.slowTimer);
@@ -377,6 +413,8 @@ export class CloudCityScene extends Scene {
 					charId,
 					tile: { x: e.tile.x, y: e.tile.y },
 					kind: e.kind,
+					hp: e.hp,
+					maxHp: e.max_hp,
 				});
 				if (
 					this.kindCat(e.kind) === KIND_CAT_PLAYER &&
@@ -386,15 +424,19 @@ export class CloudCityScene extends Scene {
 					this.myEid = e.eid;
 					this.cameras.main.startFollow(sprite, true);
 				}
-			} else if (
-				existing.tile.x !== e.tile.x ||
-				existing.tile.y !== e.tile.y
-			) {
-				this.gridEngine.moveTo(existing.charId, {
-					x: e.tile.x,
-					y: e.tile.y,
-				});
-				existing.tile = { x: e.tile.x, y: e.tile.y };
+			} else {
+				if (
+					existing.tile.x !== e.tile.x ||
+					existing.tile.y !== e.tile.y
+				) {
+					this.gridEngine.moveTo(existing.charId, {
+						x: e.tile.x,
+						y: e.tile.y,
+					});
+					existing.tile = { x: e.tile.x, y: e.tile.y };
+				}
+				existing.hp = e.hp;
+				existing.maxHp = e.max_hp;
 			}
 		}
 
@@ -403,14 +445,90 @@ export class CloudCityScene extends Scene {
 			if (this.gridEngine.hasCharacter(t.charId)) {
 				this.gridEngine.removeCharacter(t.charId);
 			}
+			t.hpBar?.destroy();
 			t.sprite.destroy();
 			this.tracked.delete(eid);
 			if (eid === this.myEid) this.myEid = -1;
+			if (this.pendingAction?.eid === eid) this.pendingAction = null;
 		}
 
 		this.checkRanges();
 		this.checkHostileProximity();
 		this.syncRoster(snap);
+		this.runPendingAction();
+	}
+
+	private runPendingAction() {
+		const pending = this.pendingAction;
+		if (!pending || !this.client) return;
+		const me = this.myTile();
+		const target = this.tracked.get(pending.eid);
+		if (!me || !target) {
+			this.pendingAction = null;
+			return;
+		}
+		if (this.chebyshev(me, target.tile) > 1) return;
+		this.pendingAction = null;
+		if (pending.kind === 'pickup') {
+			this.client.action(ACTION_PICKUP, pending.eid);
+			return;
+		}
+		const ref = this.kindRef(target.kind);
+		if (!ref) return;
+		const npc = getNPCByRef(ref);
+		laserEvents.emit('npc:interact', {
+			npcId: npcIdForRef(ref),
+			npcName: npc?.name ?? ref,
+			actions: npc?.actions ?? ['talk'],
+			coords: {
+				x: window.innerWidth / 2,
+				y: window.innerHeight / 2,
+			},
+		});
+	}
+
+	private flashSprite(eid: number) {
+		const target = this.tracked.get(eid);
+		if (!target) return;
+		target.sprite.setTintFill(0xffffff);
+		this.time.delayedCall(60, () => target.sprite.setTint(0xff6b6b));
+		this.time.delayedCall(180, () => target.sprite.clearTint());
+	}
+
+	private updateHpBars() {
+		for (const [, t] of this.tracked) {
+			const cat = this.kindCat(t.kind);
+			const wounded =
+				cat === KIND_CAT_NPC &&
+				t.maxHp > 0 &&
+				t.hp < t.maxHp &&
+				t.hp > 0;
+			if (!wounded) {
+				if (t.hpBar) {
+					t.hpBar.destroy();
+					t.hpBar = undefined;
+				}
+				continue;
+			}
+			if (!t.hpBar) {
+				t.hpBar = this.add.graphics().setDepth(this.entityDepth + 1);
+			}
+			const w = 26;
+			const pct = Math.max(0, Math.min(1, t.hp / t.maxHp));
+			t.hpBar.clear();
+			t.hpBar.fillStyle(0x000000, 0.6);
+			t.hpBar.fillRect(t.sprite.x - w / 2, t.sprite.y - 30, w, 4);
+			t.hpBar.fillStyle(
+				pct > 0.5 ? 0x4ade80 : pct > 0.25 ? 0xfbbf24 : 0xf87171,
+				1,
+			);
+			t.hpBar.fillRect(
+				t.sprite.x - w / 2 + 0.5,
+				t.sprite.y - 29.5,
+				(w - 1) * pct,
+				3,
+			);
+		}
 	}
 
 	private syncRoster(snap: Snapshot) {
@@ -473,6 +591,7 @@ export class CloudCityScene extends Scene {
 			y: Math.floor(pointer.worldY / span),
 		};
 
+		this.pendingAction = null;
 		const hit = this.entityAt(tile);
 		if (hit) {
 			const cat = this.kindCat(hit.t.kind);
@@ -481,6 +600,7 @@ export class CloudCityScene extends Scene {
 				if (me && this.chebyshev(me, tile) <= 1) {
 					this.client.action(ACTION_PICKUP, hit.eid);
 				} else {
+					this.pendingAction = { kind: 'pickup', eid: hit.eid };
 					this.client.moveTo(tile);
 				}
 				return;
@@ -500,6 +620,7 @@ export class CloudCityScene extends Scene {
 						},
 					});
 				} else {
+					this.pendingAction = { kind: 'interact', eid: hit.eid };
 					this.client.moveTo(tile);
 				}
 				return;
@@ -507,6 +628,19 @@ export class CloudCityScene extends Scene {
 		}
 
 		this.client.moveTo(tile);
+	}
+
+	private onPointerMove(pointer: Phaser.Input.Pointer) {
+		const now = this.time.now;
+		if (now - this.hoverThrottle < 120) return;
+		this.hoverThrottle = now;
+		const span = this.tilePixels * MAP_SCALE;
+		const tile = {
+			x: Math.floor(pointer.worldX / span),
+			y: Math.floor(pointer.worldY / span),
+		};
+		const hit = this.entityAt(tile);
+		this.input.setDefaultCursor(hit ? 'pointer' : 'default');
 	}
 
 	private attackNearby() {
@@ -524,6 +658,8 @@ export class CloudCityScene extends Scene {
 		}
 		if (best) {
 			this.client.action(ACTION_ATTACK, best.eid);
+		} else {
+			this.showFloatingText(this.myEid, 'no target', '#9ca3af');
 		}
 	}
 
@@ -594,6 +730,7 @@ export class CloudCityScene extends Scene {
 
 	update(time: number) {
 		if (!this.client) return;
+		this.updateHpBars();
 
 		if (Phaser.Input.Keyboard.JustDown(this.attackKey)) {
 			this.attackNearby();
