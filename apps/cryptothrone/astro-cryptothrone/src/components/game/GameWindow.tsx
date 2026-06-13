@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 import GridEngine from 'grid-engine';
 import { PhaserGame, laserEvents } from '@kbve/laser';
 import type { PhaserGameRef } from '@kbve/laser';
+import { NotContent } from '@kbve/astro';
 import { PreloaderScene } from './scenes/PreloaderScene';
 import { CloudCityScene } from './scenes/CloudCityScene';
 import { ProceduralZoneScene } from './scenes/ProceduralZoneScene';
@@ -101,7 +102,7 @@ function GameUI({ username }: { username?: string }) {
 	}, [dispatch]);
 
 	return (
-		<>
+		<NotContent>
 			<StickySidebar />
 			<ActionMenu />
 			<DialogueModal />
@@ -126,7 +127,7 @@ function GameUI({ username }: { username?: string }) {
 			<SocialBar />
 			<EmoteBar />
 			<ConnectionOverlay />
-		</>
+		</NotContent>
 	);
 }
 
