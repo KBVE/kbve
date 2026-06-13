@@ -29,6 +29,10 @@
 	],
 	"Plugins": [
 		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true
+		},
+		{
 			"Name": "KBVEYYJson",
 			"Enabled": true
 		},

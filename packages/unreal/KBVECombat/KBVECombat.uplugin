@@ -21,6 +21,10 @@
 	],
 	"Plugins": [
 		{
+			"Name": "MassGameplay",
+			"Enabled": true
+		},
+		{
 			"Name": "KBVEGameplay",
 			"Enabled": true
 		}

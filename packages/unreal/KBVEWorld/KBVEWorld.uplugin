@@ -23,6 +23,18 @@
 	],
 	"Plugins": [
 		{
+			"Name": "MassGameplay",
+			"Enabled": true
+		},
+		{
+			"Name": "StructUtils",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVESQLite",
+			"Enabled": true
+		},
+		{
 			"Name": "ProceduralMeshComponent",
 			"Enabled": true
 		},
