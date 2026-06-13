@@ -13,6 +13,6 @@
 	"IsExperimentalVersion": false,
 	"Installed": false,
 	"EnabledByDefault": false,
-	"Plugins": [ { "Name": "MassEntity", "Enabled": true } ],
+	"Plugins": [ { "Name": "MassGameplay", "Enabled": true } ],
 	"Modules": [ { "Name": "KBVEMapDB", "Type": "Runtime", "LoadingPhase": "Default" } ]
 }

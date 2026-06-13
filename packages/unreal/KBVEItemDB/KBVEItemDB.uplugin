@@ -14,7 +14,9 @@
 	"Installed": false,
 	"EnabledByDefault": false,
 	"Plugins": [
-		{ "Name": "MassEntity", "Enabled": true }
+		{ "Name": "MassGameplay", "Enabled": true },
+		{ "Name": "KBVEYYJson", "Enabled": true },
+		{ "Name": "KBVESQLite", "Enabled": true }
 	],
 	"Modules": [
 		{ "Name": "KBVEItemDB", "Type": "Runtime", "LoadingPhase": "Default" }
