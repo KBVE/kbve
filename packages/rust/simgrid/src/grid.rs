@@ -48,6 +48,14 @@ struct TiledProp {
     value: serde_json::Value,
 }
 
+#[derive(Deserialize)]
+struct GridTilemapJson {
+    width: i32,
+    height: i32,
+    #[serde(default)]
+    blocked: Vec<bool>,
+}
+
 #[derive(Resource, Clone)]
 pub struct WalkableMap {
     pub width: i32,
@@ -76,6 +84,13 @@ impl WalkableMap {
             height: h,
             blocked: cells,
         }
+    }
+
+    /// Load from a mapdb GridTilemap JSON (proto-canonical). The collision
+    /// is the precomputed `blocked` bitset — no Tiled/tileset parsing.
+    pub fn from_grid_tilemap_json(bytes: &[u8]) -> Result<Self, serde_json::Error> {
+        let tm: GridTilemapJson = serde_json::from_slice(bytes)?;
+        Ok(Self::from_blocked(tm.width, tm.height, tm.blocked))
     }
 
     pub fn from_tiled_json(bytes: &[u8]) -> Result<Self, serde_json::Error> {
@@ -256,6 +271,16 @@ mod tests {
         assert_eq!((m.width, m.height), (2, 1));
         assert!(!m.is_walkable(Tile::new(0, 0)));
         assert!(m.is_walkable(Tile::new(1, 0)));
+    }
+
+    #[test]
+    fn grid_tilemap_json_collision() {
+        let json = r#"{"width":2,"height":2,"blocked":[false,true,false,false]}"#;
+        let m = WalkableMap::from_grid_tilemap_json(json.as_bytes()).expect("parse");
+        assert_eq!((m.width, m.height), (2, 2));
+        assert!(m.is_walkable(Tile::new(0, 0)));
+        assert!(!m.is_walkable(Tile::new(1, 0)));
+        assert!(m.is_walkable(Tile::new(0, 1)));
     }
 
     #[test]

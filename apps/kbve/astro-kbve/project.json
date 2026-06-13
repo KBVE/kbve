@@ -154,6 +154,22 @@
 				"cwd": "{workspaceRoot}"
 			}
 		},
+		"sync:tilemaps": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-tilemaps.mjs",
+				"{workspaceRoot}/packages/data/codegen/maps/*.json"
+			],
+			"outputs": [
+				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_city.tilemap.json",
+				"{workspaceRoot}/apps/agones/cryptothrone/server/assets/cloud_city.tilemap.json"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-tilemaps.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:mapdb": {
 			"executor": "nx:run-commands",
 			"inputs": [

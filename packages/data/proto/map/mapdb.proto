@@ -1261,6 +1261,78 @@ message HexWorldMap {
 }
 
 // =============================================================================
+// Tilemaps — concrete authored/generated maps (grid + hex). Standalone
+// artifacts, not embedded in MapRegistry: a 50x50 grid is grid data, not
+// hand-authored frontmatter. Consumed by simgrid (collision) + game clients
+// (render). Procedural dungeons emit these with generation=PROCEDURAL + seed.
+// =============================================================================
+
+// One render layer of an orthogonal grid: row-major tile ids (Tiled-style
+// gids; 0 = empty), width*height long.
+message GridTileLayer {
+  string name = 1;
+  repeated uint32 data = 2;
+}
+
+// A named rectangular region inside a grid (plaza / camp / cavern …).
+message NamedRegion {
+  string name = 1;
+  int32 x = 2;
+  int32 y = 3;
+  int32 w = 4;
+  int32 h = 5;
+}
+
+// Orthogonal grid tilemap — cryptothrone-style towns/dungeons.
+message GridTilemap {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+  int32 width = 5;                  // tiles
+  int32 height = 6;                 // tiles
+  int32 tile_size = 7;              // px per tile (render hint)
+  GridPos spawn = 8;                // default player spawn
+  repeated bool blocked = 9;        // row-major collision, width*height
+  repeated GridTileLayer layers = 10;
+  repeated NamedRegion regions = 11;
+  GenerationMode generation = 12;
+  uint64 seed = 13;
+  string tileset_image = 14;        // render: tileset atlas path
+  int32 tileset_columns = 15;
+  bool drafted = 16;
+}
+
+// Hex tile orientation (rareicon hex maps).
+enum HexOrientation {
+  HEX_ORIENTATION_UNSPECIFIED = 0;
+  HEX_ORIENTATION_POINTY = 1;
+  HEX_ORIENTATION_FLAT = 2;
+}
+
+// One hex cell — axial coord + tile id + flags.
+message HexTile {
+  HexCoord coord = 1;
+  uint32 tile = 2;
+  bool blocked = 3;
+  int32 biome = 4;
+}
+
+// Hex tilemap — rareicon-style maps (axial q/r).
+message HexTilemap {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+  HexOrientation orientation = 5;
+  double hex_size = 6;
+  repeated HexTile tiles = 7;
+  GenerationMode generation = 8;
+  uint64 seed = 9;
+  bool drafted = 10;
+}
+
+// =============================================================================
 // Sub-messages — Identity & Banners (faction + settlement visual identity)
 // =============================================================================
 

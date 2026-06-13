@@ -31,9 +31,9 @@ export class PreloaderScene extends Scene {
 		});
 
 		this.load.image('cloud-city-tiles', '/assets/map/cloud_tileset.png');
-		this.load.tilemapTiledJSON(
-			'cloud-city-map-large',
-			'/assets/map/cloud_city_large.json',
+		this.load.json(
+			'cloud-city-tilemap',
+			'/assets/map/cloud_city.tilemap.json',
 		);
 
 		this.load.spritesheet('player', '/assets/entity/charactersheet.png', {

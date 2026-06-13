@@ -26,6 +26,10 @@ pub struct ForgejoRepo {
     #[serde(default)]
     pub size: u64,
     #[serde(default)]
+    pub git_size: u64,
+    #[serde(default)]
+    pub lfs_size: u64,
+    #[serde(default)]
     pub default_branch: String,
     #[serde(default)]
     pub updated_at: String,
@@ -286,12 +290,91 @@ pub struct ForgejoVersion {
 pub struct ForgejoStats {
     pub repo_count: u64,
     pub total_size_kb: u64,
+    pub git_size_kb: u64,
+    pub lfs_size_kb: u64,
     pub public: u64,
     pub private: u64,
     pub mirror: u64,
     pub archived: u64,
     pub fork: u64,
     pub truncated: bool,
+}
+
+// Forgejo quota API ("used" bytes). Fields default to 0 so instances with
+// quota tracking disabled (or older versions) deserialize to an empty quota.
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub(crate) struct QuotaInfo {
+    #[serde(default)]
+    pub used: QuotaUsed,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub(crate) struct QuotaUsed {
+    #[serde(default)]
+    pub size: QuotaUsedSize,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub(crate) struct QuotaUsedSize {
+    #[serde(default)]
+    pub repos: QuotaRepos,
+    #[serde(default)]
+    pub git: QuotaGit,
+    #[serde(default)]
+    pub assets: QuotaAssets,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub(crate) struct QuotaRepos {
+    #[serde(default)]
+    pub public: u64,
+    #[serde(default)]
+    pub private: u64,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub(crate) struct QuotaGit {
+    #[serde(rename = "LFS", default)]
+    pub lfs: u64,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub(crate) struct QuotaAssets {
+    #[serde(default)]
+    pub attachments: QuotaAttachments,
+    #[serde(default)]
+    pub artifacts: u64,
+    #[serde(default)]
+    pub packages: QuotaPackages,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub(crate) struct QuotaAttachments {
+    #[serde(default)]
+    pub issues: u64,
+    #[serde(default)]
+    pub releases: u64,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub(crate) struct QuotaPackages {
+    #[serde(default)]
+    pub all: u64,
+}
+
+/// Instance storage aggregated from per-owner Forgejo quota (bytes).
+#[derive(Debug, Clone, Default, Serialize)]
+pub struct ForgejoStorage {
+    pub quota_enabled: bool,
+    pub owners_counted: u64,
+    pub truncated: bool,
+    pub repos_bytes: u64,
+    pub lfs_bytes: u64,
+    pub attachments_bytes: u64,
+    pub artifacts_bytes: u64,
+    pub packages_bytes: u64,
+    pub total_bytes: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

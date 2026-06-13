@@ -36,7 +36,7 @@ template:
         containers:
             - name: runner
               # Windows runner image — use the Windows variant
-              image: ghcr.io/actions/actions-runner:2.333.0
+              image: ghcr.io/actions/actions-runner:2.335.1
               env:
                   - name: RUNNER_ALLOW_RUNASROOT
                     value: '1'
