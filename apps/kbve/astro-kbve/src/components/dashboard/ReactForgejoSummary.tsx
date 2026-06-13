@@ -251,8 +251,15 @@ export default function ReactForgejoSummary() {
 	const totalUsers = useStore(forgejoService.$totalUsers);
 	const totalSize = useStore(forgejoService.$totalSize);
 	const totalReleases = useStore(forgejoService.$totalReleases);
+	const stats = useStore(forgejoService.$stats);
 
 	if (!active) return null;
+
+	const sizeValue = stats ? stats.total_size_kb : totalSize;
+	const repoValue = stats ? stats.repo_count : totalRepos;
+	const publicValue = stats ? stats.public : publicCount;
+	const privateValue = stats ? stats.private : privateCount;
+	const archivedValue = stats ? stats.archived : archivedCount;
 
 	if (loading && totalRepos === 0) {
 		return (
@@ -306,16 +313,16 @@ export default function ReactForgejoSummary() {
 				<StatCard
 					icon={<HardDrive size={12} />}
 					label="Total Storage"
-					value={formatSize(totalSize)}
+					value={formatSize(sizeValue)}
 					color="#06b6d4"
-					sub={`across ${totalRepos} repositories`}
+					sub={`across ${repoValue} repositories`}
 				/>
 				<StatCard
 					icon={<BookOpen size={12} />}
 					label="Repositories"
-					value={totalRepos}
+					value={repoValue}
 					color="#22c55e"
-					sub={`${publicCount} public · ${privateCount} private${archivedCount > 0 ? ` · ${archivedCount} archived` : ''}`}
+					sub={`${publicValue} public · ${privateValue} private${archivedValue > 0 ? ` · ${archivedValue} archived` : ''}`}
 				/>
 				<StatCard
 					icon={<Tag size={12} />}

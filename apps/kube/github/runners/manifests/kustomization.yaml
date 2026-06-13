@@ -18,3 +18,4 @@ resources:
     - registry-mirror.yaml
     - valkey-sccache-externalsecret.yaml
     - vm-starter-rbac.yaml
+    - runner-reaper.yaml

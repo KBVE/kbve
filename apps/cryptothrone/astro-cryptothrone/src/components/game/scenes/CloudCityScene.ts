@@ -113,7 +113,7 @@ export class CloudCityScene extends Scene {
 	private laserUnsubs: (() => void)[] = [];
 	private blocked = new Set<string>();
 	private predicted = { x: 0, y: 0 };
-	private predicting = false;
+	private predictedPath: { x: number; y: number }[] = [];
 	private predictSeeded = false;
 
 	constructor() {
@@ -517,7 +517,7 @@ export class CloudCityScene extends Scene {
 					// they spawn already standing in one.
 					this.rangeTile = { x: e.tile.x, y: e.tile.y };
 				}
-			} else if (e.eid === this.myEid && this.predicting) {
+			} else if (e.eid === this.myEid) {
 				// Reconcile prediction: trust the local position unless it
 				// drifts too far from authority (rejected move / lag spike),
 				// then snap back to the server.
@@ -755,8 +755,71 @@ export class CloudCityScene extends Scene {
 		}
 
 		laserEvents.emit('target:clear', {});
-		this.predicting = false;
+		this.startMoveTo(tile);
+	}
+
+	/**
+	 * Predict a click-move client-side: pathfind locally over the same
+	 * walkability the server uses (so the routes match) and walk it tile by
+	 * tile, while the server runs its own authoritative MoveTo. Reconciliation
+	 * snaps us back only if the two genuinely diverge.
+	 */
+	private startMoveTo(tile: { x: number; y: number }) {
+		if (!this.client) return;
+		this.predictedPath = this.findLocalPath(this.predicted, tile);
 		this.client.moveTo(tile);
+	}
+
+	private findLocalPath(
+		from: { x: number; y: number },
+		to: { x: number; y: number },
+	): { x: number; y: number }[] {
+		if (
+			(from.x === to.x && from.y === to.y) ||
+			this.blocked.has(`${to.x},${to.y}`)
+		)
+			return [];
+		// BFS mirroring the server (grid.rs find_path): neighbour order
+		// up/down/left/right, shortest path, capped length — same inputs +
+		// same tie-breaking keep client and server routes identical.
+		const MAX = 64;
+		const key = (x: number, y: number) => `${x},${y}`;
+		const prev = new Map<string, string | null>();
+		prev.set(key(from.x, from.y), null);
+		const queue = [from];
+		const dirs = [
+			[0, -1],
+			[0, 1],
+			[-1, 0],
+			[1, 0],
+		];
+		let found = false;
+		while (queue.length) {
+			const cur = queue.shift()!;
+			if (cur.x === to.x && cur.y === to.y) {
+				found = true;
+				break;
+			}
+			for (const [dx, dy] of dirs) {
+				const nx = cur.x + dx;
+				const ny = cur.y + dy;
+				const k = key(nx, ny);
+				if (prev.has(k) || this.blocked.has(k)) continue;
+				prev.set(k, key(cur.x, cur.y));
+				queue.push({ x: nx, y: ny });
+			}
+		}
+		if (!found) return [];
+		const path: { x: number; y: number }[] = [];
+		let cur: string | null = key(to.x, to.y);
+		while (cur && cur !== key(from.x, from.y)) {
+			const [x, y] = cur.split(',').map(Number);
+			path.push({ x, y });
+			cur = prev.get(cur) ?? null;
+			if (path.length > MAX) return [];
+		}
+		path.reverse();
+		return path;
 	}
 
 	private onPointerMove(pointer: Phaser.Input.Pointer) {
@@ -934,34 +997,50 @@ export class CloudCityScene extends Scene {
 			this.attackNearby();
 		}
 
+		if (this.myEid < 0 || !this.predictSeeded) return;
+		const myChar = `e${this.myEid}`;
+		// One predicted tile at a time: wait for the local tween to finish so
+		// prediction tracks the server's tile rate instead of outrunning it.
+		if (this.gridEngine.isMoving(myChar)) return;
+
 		let dir: Dir | null = null;
 		if (this.cursors.up.isDown) dir = 'Up';
 		else if (this.cursors.down.isDown) dir = 'Down';
 		else if (this.cursors.left.isDown) dir = 'Left';
 		else if (this.cursors.right.isDown) dir = 'Right';
 
-		if (!dir || this.myEid < 0 || !this.predictSeeded) return;
-
-		const myChar = `e${this.myEid}`;
-		// One predicted tile at a time: wait for the local tween to finish so
-		// prediction tracks the server's tile rate instead of outrunning it.
-		if (this.gridEngine.isMoving(myChar)) return;
-
-		const delta = DIR_DELTA[dir];
-		const cand = {
-			x: this.predicted.x + delta.x,
-			y: this.predicted.y + delta.y,
-		};
-		// Predict only into tiles the server would also allow. Blocked tiles
-		// just send a Step (server stays authoritative) without local motion.
-		if (!this.blocked.has(`${cand.x},${cand.y}`)) {
-			this.predicting = true;
-			this.predicted = cand;
-			this.gridEngine.moveTo(myChar, cand);
-			const me = this.tracked.get(this.myEid);
-			if (me) me.tile = { ...cand };
+		if (dir) {
+			// Keyboard interrupts any click-path and predicts a single step.
+			this.predictedPath = [];
+			const delta = DIR_DELTA[dir];
+			const cand = {
+				x: this.predicted.x + delta.x,
+				y: this.predicted.y + delta.y,
+			};
+			if (!this.blocked.has(`${cand.x},${cand.y}`)) {
+				this.advancePredicted(myChar, cand);
+			}
+			this.client.step(dir);
+			this.lastStepAt = time;
+			return;
 		}
-		this.client.step(dir);
-		this.lastStepAt = time;
+
+		// Follow a predicted click-path one tile at a time (the server walks
+		// its own authoritative MoveTo in parallel).
+		if (this.predictedPath.length > 0) {
+			const next = this.predictedPath.shift()!;
+			if (!this.blocked.has(`${next.x},${next.y}`)) {
+				this.advancePredicted(myChar, next);
+			} else {
+				this.predictedPath = [];
+			}
+		}
+	}
+
+	private advancePredicted(myChar: string, tile: { x: number; y: number }) {
+		this.predicted = { ...tile };
+		this.gridEngine.moveTo(myChar, tile);
+		const me = this.tracked.get(this.myEid);
+		if (me) me.tile = { ...tile };
 	}
 }

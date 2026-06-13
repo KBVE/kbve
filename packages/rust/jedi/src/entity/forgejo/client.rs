@@ -753,4 +753,87 @@ impl ForgejoClient {
         )
         .await
     }
+
+    // ── Aggregates ───────────────────────────────────────────────────
+
+    /// Pages through every accessible repository server-side and aggregates
+    /// true totals (count + storage), so the dashboard reports accurate size
+    /// across all repos rather than only the first loaded page.
+    pub async fn repo_stats(&self) -> Result<ForgejoStats, JediError> {
+        const PAGE: u32 = 50;
+        const MAX_PAGES: u32 = 400;
+        let mut stats = ForgejoStats::default();
+        let mut page = 1u32;
+        loop {
+            let batch = self.search_repos(page, PAGE, None).await?;
+            let n = batch.len() as u32;
+            for r in &batch {
+                stats.repo_count += 1;
+                stats.total_size_kb += r.size;
+                if r.private {
+                    stats.private += 1;
+                } else {
+                    stats.public += 1;
+                }
+                if r.mirror {
+                    stats.mirror += 1;
+                }
+                if r.archived {
+                    stats.archived += 1;
+                }
+                if r.fork {
+                    stats.fork += 1;
+                }
+            }
+            if n < PAGE {
+                break;
+            }
+            page += 1;
+            if page > MAX_PAGES {
+                stats.truncated = true;
+                break;
+            }
+        }
+        Ok(stats)
+    }
+
+    // ── Actions runners ──────────────────────────────────────────────
+
+    pub async fn list_repo_runners(&self, owner: &str, repo: &str) -> Result<Value, JediError> {
+        self.get(
+            &format!("/api/v1/repos/{owner}/{repo}/actions/runners"),
+            &[],
+        )
+        .await
+    }
+
+    pub async fn list_org_runners(&self, org: &str) -> Result<Value, JediError> {
+        self.get(&format!("/api/v1/orgs/{org}/actions/runners"), &[])
+            .await
+    }
+
+    pub async fn repo_runner_token(
+        &self,
+        owner: &str,
+        repo: &str,
+    ) -> Result<ForgejoRegistrationToken, JediError> {
+        self.get(
+            &format!("/api/v1/repos/{owner}/{repo}/actions/runners/registration-token"),
+            &[],
+        )
+        .await
+    }
+
+    pub async fn org_runner_token(&self, org: &str) -> Result<ForgejoRegistrationToken, JediError> {
+        self.get(
+            &format!("/api/v1/orgs/{org}/actions/runners/registration-token"),
+            &[],
+        )
+        .await
+    }
+
+    pub async fn admin_runner_token(&self) -> Result<ForgejoRegistrationToken, JediError> {
+        self.get("/api/v1/admin/runners/registration-token", &[])
+            .await
+    }
 }
