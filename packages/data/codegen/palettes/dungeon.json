@@ -1,0 +1,23 @@
+{
+	"ref": "dungeon",
+	"name": "Stone Dungeon",
+	"biome": "BIOME_DUNGEON",
+	"tileSize": 16,
+	"columns": 8,
+	"source": {
+		"image": "apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_tileset.png",
+		"columns": 45
+	},
+	"roles": {
+		"GROUND": [368],
+		"PLAZA": [368],
+		"ROAD": [368],
+		"GRASS": [368],
+		"DOOR": [368],
+		"PROP": [368],
+		"WALL": [518, 519, 524, 526],
+		"ROOF": [518, 524],
+		"PROP_SOLID": [1112],
+		"WATER": [108]
+	}
+}
