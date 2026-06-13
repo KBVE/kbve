@@ -617,6 +617,69 @@ audit_worktree_stale() {
     fi
 }
 
+# Parallel-prune removable worktrees. Removes those that are clean or only have
+# lockfile churn (Cargo.lock / pnpm-lock / etc). Worktrees with real uncommitted
+# work are skipped. `git worktree prune` keeps branch refs, so commits are never
+# lost (only the checkout) and any worktree can be recreated with -worktree.
+# Flags: --merged  restrict to branches merged into origin/dev or origin/main
+#        --dry-run preview only
+audit_worktree_prune() {
+    local main_repo; main_repo=$(git rev-parse --show-toplevel)
+    local jobs="${WT_PRUNE_JOBS:-8}"
+    local dry=0 merged_only=0 arg
+    for arg in "$@"; do
+        [ "$arg" = "--dry-run" ] && dry=1
+        [ "$arg" = "--merged" ] && merged_only=1
+    done
+
+    echo "Fetching origin/dev + origin/main ..."
+    git fetch origin dev main --quiet 2>/dev/null
+    local dev_sha main_sha
+    dev_sha=$(git rev-parse origin/dev 2>/dev/null)
+    main_sha=$(git rev-parse origin/main 2>/dev/null)
+
+    local remove_file skip_file
+    remove_file=$(mktemp); skip_file=$(mktemp)
+
+    while IFS= read -r wt; do
+        [ "$wt" = "$main_repo" ] && continue
+        [ -d "$wt" ] || continue
+
+        local st; st=$(git -C "$wt" status --porcelain 2>/dev/null)
+        if [ -n "$st" ]; then
+            local nonlock; nonlock=$(printf '%s\n' "$st" | grep -vE 'Cargo\.lock|pnpm-lock\.yaml|package-lock\.json|yarn\.lock|\.lock$')
+            [ -n "$nonlock" ] && { echo "$wt" >> "$skip_file"; continue; }
+        fi
+
+        if [ "$merged_only" = "1" ]; then
+            local h; h=$(git -C "$wt" rev-parse HEAD 2>/dev/null)
+            if ! { git merge-base --is-ancestor "$h" "$dev_sha" 2>/dev/null || git merge-base --is-ancestor "$h" "$main_sha" 2>/dev/null; }; then
+                echo "$wt" >> "$skip_file"; continue
+            fi
+        fi
+        echo "$wt" >> "$remove_file"
+    done < <(git worktree list --porcelain | awk '/^worktree /{print $2}')
+
+    local n s
+    n=$(wc -l < "$remove_file" | tr -d ' '); s=$(wc -l < "$skip_file" | tr -d ' ')
+    echo "Removable: $n   Skipped (real uncommitted work): $s"
+
+    if [ "$dry" = "1" ]; then
+        echo "(dry-run) would remove $n worktrees with ${jobs}-way parallel rm."
+        rm -f "$remove_file" "$skip_file"; return 0
+    fi
+    if [ "$n" -eq 0 ]; then echo "Nothing to prune."; rm -f "$remove_file" "$skip_file"; return 0; fi
+
+    local before after
+    before=$(df -h . | tail -1 | awk '{print $4}')
+    tr '\n' '\0' < "$remove_file" | xargs -0 -P "$jobs" -n1 rm -rf
+    git worktree prune
+    after=$(df -h . | tail -1 | awk '{print $4}')
+
+    echo "Pruned $n worktrees. Free: ${before} -> ${after}  (branch refs preserved)."
+    rm -f "$remove_file" "$skip_file"
+}
+
 # Function to manage a tmux session
 manage_tmux_session() {
     # Assign the first argument to session_name
@@ -1061,6 +1124,10 @@ case "$1" in
         ;;
     -worktree-stale)
         audit_worktree_stale
+        ;;
+    -worktree-prune)
+        shift
+        audit_worktree_prune "$@"
         ;;
     -db)
         if is_installed "diesel_ext"; then
