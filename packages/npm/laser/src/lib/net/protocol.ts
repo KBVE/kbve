@@ -131,6 +131,7 @@ export interface StatsEvent {
 	xp_next: number;
 	max_hp: number;
 	attack: number;
+	kills?: number;
 }
 
 export type ServerEvent =

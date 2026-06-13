@@ -23,6 +23,8 @@ import { CombatLog } from './ui/CombatLog';
 import { TargetFrame } from './ui/TargetFrame';
 import { Hotbar } from './ui/Hotbar';
 import { KeybindHelp } from './ui/KeybindHelp';
+import { QuestTracker } from './ui/QuestTracker';
+import { DayNight } from './ui/DayNight';
 
 /**
  * Isolated Phaser canvas — never re-renders when game store changes.
@@ -108,6 +110,8 @@ function GameUI({ username }: { username?: string }) {
 			<TargetFrame />
 			<Hotbar />
 			<KeybindHelp />
+			<QuestTracker />
+			<DayNight />
 			<ConnectionOverlay />
 		</>
 	);
