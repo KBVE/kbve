@@ -39,6 +39,25 @@ pub const GOBLIN_COUNT: i32 = 4;
 pub const GOBLIN_ORIGIN: Tile = Tile::new(24, 24);
 pub const GOBLIN_LOOT_REF: &str = "coin";
 
+// Friendly town NPCs (player faction — never aggro, give the plaza life).
+pub const MERCHANT_REF: &str = "merchant";
+pub const MERCHANT_SPAWN: Tile = Tile::new(8, 9);
+pub const SOLDIER_REF: &str = "soldier";
+pub const SOLDIER_SPAWN: Tile = Tile::new(3, 14);
+pub const KING_REF: &str = "king";
+pub const KING_SPAWN: Tile = Tile::new(6, 6);
+
+// Boss — goblin general, deep in the camp; drops a gold bar.
+pub const BOSS_REF: &str = "goblin-general";
+pub const BOSS_SPAWN: Tile = Tile::new(27, 27);
+pub const BOSS_LOOT_REF: &str = "gold-bar";
+
+// Wolves roam the wilds (beast faction — wander but don't hunt players).
+pub const WOLF_REF: &str = "wolf";
+pub const WOLF_COUNT: i32 = 3;
+pub const WOLF_ORIGIN: Tile = Tile::new(18, 14);
+pub const WOLF_LOOT_REF: &str = "coin";
+
 pub const HOSTILE_AGGRO_RANGE: i32 = 6;
 pub const IRON_SWORD_ATTACK: i32 = 5;
 pub const IRON_SHIELD_DEFENSE: i32 = 3;
@@ -61,11 +80,17 @@ pub fn registry() -> KindRegistry {
     reg.register_npc(CLERIC_REF);
     reg.register_npc(BAT_REF);
     reg.register_npc(GOBLIN_REF);
+    reg.register_npc(MERCHANT_REF);
+    reg.register_npc(SOLDIER_REF);
+    reg.register_npc(KING_REF);
+    reg.register_npc(BOSS_REF);
+    reg.register_npc(WOLF_REF);
     for (item_ref, _, _) in GROUND_ITEMS {
         reg.register_item(item_ref);
     }
     reg.register_item(BAT_LOOT_REF);
     reg.register_item(GOBLIN_LOOT_REF);
+    reg.register_item(BOSS_LOOT_REF);
     reg
 }
 
@@ -183,6 +208,41 @@ pub fn spawn_world(mut done: Local<bool>, registry: Res<KindRegistry>, mut comma
             origin,
             Some((8, 25)),
             Some(GOBLIN_LOOT_REF),
+        ) {
+            spawn_npc_from_spec(&mut commands, &spec);
+        }
+    }
+
+    for (ref_id, tile) in [
+        (MERCHANT_REF, MERCHANT_SPAWN),
+        (SOLDIER_REF, SOLDIER_SPAWN),
+        (KING_REF, KING_SPAWN),
+    ] {
+        if let Some(spec) = npc_spec(&db, &registry, ref_id, tile, Some((2, 40)), None) {
+            spawn_npc_from_spec(&mut commands, &spec);
+        }
+    }
+
+    if let Some(spec) = npc_spec(
+        &db,
+        &registry,
+        BOSS_REF,
+        BOSS_SPAWN,
+        Some((4, 30)),
+        Some(BOSS_LOOT_REF),
+    ) {
+        spawn_npc_from_spec(&mut commands, &spec);
+    }
+
+    for i in 0..WOLF_COUNT {
+        let origin = Tile::new(WOLF_ORIGIN.x + i * 2, WOLF_ORIGIN.y);
+        if let Some(spec) = npc_spec(
+            &db,
+            &registry,
+            WOLF_REF,
+            origin,
+            Some((10, 22)),
+            Some(WOLF_LOOT_REF),
         ) {
             spawn_npc_from_spec(&mut commands, &spec);
         }

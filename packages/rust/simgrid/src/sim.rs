@@ -104,6 +104,7 @@ pub struct SavedPlayer {
     pub armor: Option<String>,
     pub level: i32,
     pub xp: i32,
+    pub kills: u32,
 }
 
 impl Default for SavedPlayer {
@@ -115,6 +116,7 @@ impl Default for SavedPlayer {
             armor: None,
             level: 1,
             xp: 0,
+            kills: 0,
         }
     }
 }
@@ -175,6 +177,12 @@ pub fn level_attack(base_attack: i32, level: i32) -> i32 {
 
 #[derive(Resource, Default)]
 pub struct RespawnQueue(Vec<(u32, NpcSpec)>);
+
+#[derive(Resource, Default)]
+pub struct KillCounts(pub HashMap<u16, u32>);
+
+pub const REGEN_PERIOD_TICKS: u32 = SIM_TICK_HZ * 2;
+pub const REGEN_AMOUNT: i32 = 2;
 
 #[derive(Clone, Copy)]
 pub struct AggroSpec {
@@ -361,6 +369,7 @@ pub fn build_app(
         .insert_resource(ConsumableEffects::default())
         .insert_resource(EquipmentEffects::default())
         .insert_resource(RespawnQueue::default())
+        .insert_resource(KillCounts::default())
         .insert_resource(Occupancy::default())
         .insert_resource(map)
         .insert_resource(config)
@@ -396,7 +405,12 @@ pub fn build_app(
         )
         .add_systems(
             Update,
-            (advance_movement, chain_steps, respawn_players)
+            (
+                advance_movement,
+                chain_steps,
+                respawn_players,
+                regen_players,
+            )
                 .chain()
                 .in_set(SimSet::Movement),
         )
@@ -416,6 +430,7 @@ fn sync_roster(
     bcast: Res<SnapshotBroadcast>,
     mut spawned: ResMut<SpawnedSlots>,
     mut store: ResMut<PlayerStore>,
+    mut kill_counts: ResMut<KillCounts>,
     equipment: Res<EquipmentEffects>,
     q_saved: Query<(&Inventory, &Health, &Equipped, &XpState)>,
     mut commands: Commands,
@@ -440,6 +455,8 @@ fn sync_roster(
         let saved = store.by_username.get(username).cloned();
         let level = saved.as_ref().map(|s| s.level.max(1)).unwrap_or(1);
         let xp = saved.as_ref().map(|s| s.xp).unwrap_or(0);
+        let kills = saved.as_ref().map(|s| s.kills).unwrap_or(0);
+        kill_counts.0.insert(slot.0, kills);
         let max_hp = level_max_hp(config.player_hp, level);
         let hp = saved
             .as_ref()
@@ -471,7 +488,7 @@ fn sync_roster(
         if armor.is_some() {
             send_equipped(&bcast, *slot, "armor", armor.as_deref(), attack, defense);
         }
-        send_stats(&bcast, *slot, level, xp, max_hp, attack);
+        send_stats(&bcast, *slot, level, xp, max_hp, attack, kills);
         let entity = commands
             .spawn((
                 PlayerSlotTag(*slot),
@@ -502,6 +519,7 @@ fn sync_roster(
         .collect();
     for k in gone {
         if let Some((entity, username)) = spawned.by_slot.remove(&k) {
+            let kills = kill_counts.0.remove(&k).unwrap_or(0);
             if !username.is_empty()
                 && let Ok((inv, hp, equipped, xp)) = q_saved.get(entity)
             {
@@ -514,6 +532,7 @@ fn sync_roster(
                         armor: equipped.armor.clone(),
                         level: xp.level,
                         xp: xp.xp,
+                        kills,
                     },
                 );
             }
@@ -718,6 +737,7 @@ fn apply_actions(
     config: Res<SimConfig>,
     equipment: Res<EquipmentEffects>,
     mut respawns: ResMut<RespawnQueue>,
+    mut kill_counts: ResMut<KillCounts>,
     mut commands: Commands,
     mut q_players: Query<(
         Entity,
@@ -808,12 +828,17 @@ fn apply_actions(
                     {
                         commands.spawn(bundle);
                     }
+                    let kills = {
+                        let k = kill_counts.0.entry(slot.0).or_default();
+                        *k += 1;
+                        *k
+                    };
                     if let Ok((_, _, _, mut stats, _, mut php, mut xp, equipped)) =
                         q_players.get_mut(player_entity)
                     {
                         award_xp(
                             &bcast, slot, &config, &equipment, kill_xp, &mut xp, &mut php,
-                            &mut stats, equipped,
+                            &mut stats, equipped, kills,
                         );
                     }
                 }
@@ -861,6 +886,7 @@ fn award_xp(
     hp: &mut Health,
     stats: &mut CombatStats,
     equipped: &Equipped,
+    kills: u32,
 ) {
     xp.xp += gained.max(0);
     let mut leveled = false;
@@ -879,7 +905,7 @@ fn award_xp(
         hp.hp = hp.max_hp;
         stats.attack = level_attack(config.player_attack, xp.level) + weapon_bonus.attack;
     }
-    send_stats(bcast, slot, xp.level, xp.xp, hp.max_hp, stats.attack);
+    send_stats(bcast, slot, xp.level, xp.xp, hp.max_hp, stats.attack, kills);
 }
 
 fn send_equipped(
@@ -912,6 +938,7 @@ fn send_stats(
     xp: i32,
     max_hp: i32,
     attack: i32,
+    kills: u32,
 ) {
     let payload = json!({
         "level": level,
@@ -919,6 +946,7 @@ fn send_stats(
         "xp_next": xp_to_next(level),
         "max_hp": max_hp,
         "attack": attack,
+        "kills": kills,
     })
     .to_string()
     .into_bytes();
@@ -1068,6 +1096,17 @@ fn hostile_ai(
 }
 
 #[allow(clippy::type_complexity)]
+fn regen_players(clock: Res<SimClock>, mut q: Query<&mut Health, With<PlayerSlotTag>>) {
+    if !clock.tick.is_multiple_of(REGEN_PERIOD_TICKS) {
+        return;
+    }
+    for mut hp in q.iter_mut() {
+        if hp.hp > 0 && hp.hp < hp.max_hp {
+            hp.hp = (hp.hp + REGEN_AMOUNT).min(hp.max_hp);
+        }
+    }
+}
+
 fn respawn_players(
     config: Res<SimConfig>,
     mut q: Query<
@@ -1634,6 +1673,75 @@ mod tests {
             }
         }
         assert!(saw_player_hit, "hostile never reached/attacked the player");
+    }
+
+    #[test]
+    fn regen_heals_wounded_player_over_time() {
+        let (mut app, _rx, _tx, roster) = harness(51);
+        let _slot = join(&roster, "wounded");
+        app.update();
+        let player = player_entity(&mut app);
+        {
+            let mut hp = app.world_mut().get_mut::<Health>(player).unwrap();
+            hp.hp = 40;
+        }
+        for _ in 0..(REGEN_PERIOD_TICKS as usize * 3 + 2) {
+            app.update();
+        }
+        let hp = app.world().get::<Health>(player).unwrap().hp;
+        assert!(hp > 40, "regen did not heal (hp={hp})");
+        assert!(hp <= 100, "regen overhealed past max (hp={hp})");
+    }
+
+    #[test]
+    fn kills_counted_in_stats_payload() {
+        let (mut app, mut rx, input_tx, roster) = harness(53);
+        let slot = join(&roster, "hunter");
+        app.update();
+        let registry = app.world().resource::<KindRegistry>().clone();
+        let kind = registry.kind_of("training-dummy").unwrap();
+        let mut spec = hostile_spec(kind, Tile::new(9, 8));
+        spec.aggro = None;
+        spec.max_hp = 1;
+        spec.respawn_ticks = 0;
+        let mob = {
+            let mut q = bevy::ecs::world::CommandQueue::default();
+            let mut commands = Commands::new(&mut q, app.world());
+            spawn_npc_from_spec(&mut commands, &spec);
+            q.apply(app.world_mut());
+            let mut qq = app
+                .world_mut()
+                .query_filtered::<(Entity, &EntityKind), Without<PlayerSlotTag>>();
+            qq.iter(app.world())
+                .find(|(_, k)| k.0 == kind)
+                .map(|(e, _)| e)
+                .unwrap()
+        };
+        app.update();
+        input_tx
+            .send((
+                slot,
+                Input::Action {
+                    id: proto::ACTION_ATTACK,
+                    target: Some(proto::EntityId(mob.index_u32())),
+                },
+            ))
+            .unwrap();
+        for _ in 0..4 {
+            app.update();
+        }
+        let mut saw = false;
+        while let Ok(evt) = rx.try_recv() {
+            if let ServerEvent::Ephemeral { kind, payload, .. } = evt
+                && kind == proto::EPHEMERAL_STATS
+            {
+                let t = String::from_utf8(payload).unwrap();
+                if t.contains("\"kills\":1") {
+                    saw = true;
+                }
+            }
+        }
+        assert!(saw, "kills not reflected in stats payload");
     }
 
     #[test]

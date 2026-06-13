@@ -41,6 +41,12 @@ interface RefSprite {
 
 const REF_SPRITES: Record<string, RefSprite> = {
 	cleric: { key: 'monks', mapping: 0 },
+	merchant: { key: 'monks', mapping: 1 },
+	soldier: { key: 'monks', mapping: 2 },
+	king: { key: 'monks', mapping: 3 },
+	goblin: { key: 'monks', mapping: 4 },
+	'goblin-general': { key: 'monks', mapping: 5 },
+	wolf: { key: 'monks', mapping: 6 },
 	'crystal-bat': { key: 'monster_bird', anim: 'bird' },
 };
 
@@ -238,6 +244,7 @@ export class CloudCityScene extends Scene {
 					xpNext: st.xp_next,
 					maxHp: st.max_hp,
 					attack: st.attack,
+					kills: st.kills ?? 0,
 				},
 			});
 			if (this.prevLevel >= 0 && st.level > this.prevLevel) {
@@ -494,6 +501,10 @@ export class CloudCityScene extends Scene {
 		this.checkHostileProximity();
 		this.syncRoster(snap);
 		this.runPendingAction();
+		const DAY_MS = 600000;
+		laserEvents.emit('world:time', {
+			phase: (snap.server_time_ms % DAY_MS) / DAY_MS,
+		});
 	}
 
 	private runPendingAction() {
