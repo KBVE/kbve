@@ -24,6 +24,13 @@ const STEP_THROTTLE_MS = 60;
 const SLOT_NONE = 0xffff;
 const PLAYER_SPRITE_VARIANTS = 8;
 
+const DIR_DELTA: Record<string, { x: number; y: number }> = {
+	Up: { x: 0, y: -1 },
+	Down: { x: 0, y: 1 },
+	Left: { x: -1, y: 0 },
+	Right: { x: 1, y: 0 },
+};
+
 function spriteVariantForName(name: string): number {
 	let h = 2166136261;
 	for (let i = 0; i < name.length; i++) {
@@ -104,6 +111,10 @@ export class CloudCityScene extends Scene {
 	private prevXp = -1;
 	private hoverThrottle = 0;
 	private laserUnsubs: (() => void)[] = [];
+	private blocked = new Set<string>();
+	private predicted = { x: 0, y: 0 };
+	private predicting = false;
+	private predictSeeded = false;
 
 	constructor() {
 		super({ key: 'CloudCity' });
@@ -123,6 +134,13 @@ export class CloudCityScene extends Scene {
 			if (layer) {
 				layer.setScale(MAP_SCALE);
 				layer.setDepth(i);
+				// Mirror the server's ge_collide walkability so client
+				// prediction matches authority and rarely needs to snap back.
+				layer.forEachTile((t) => {
+					if (t && t.properties && t.properties.ge_collide) {
+						this.blocked.add(`${t.x},${t.y}`);
+					}
+				});
 			}
 		}
 		this.entityDepth = tilemap.layers.length + 1;
@@ -492,11 +510,31 @@ export class CloudCityScene extends Scene {
 				) {
 					this.myEid = e.eid;
 					this.cameras.main.startFollow(sprite, true);
+					this.predicted = { x: e.tile.x, y: e.tile.y };
+					this.predictSeeded = true;
 					// Seed range tracker to spawn so a range dialog only
 					// fires when the player walks into a zone, not when
 					// they spawn already standing in one.
 					this.rangeTile = { x: e.tile.x, y: e.tile.y };
 				}
+			} else if (e.eid === this.myEid && this.predicting) {
+				// Reconcile prediction: trust the local position unless it
+				// drifts too far from authority (rejected move / lag spike),
+				// then snap back to the server.
+				const drift = Math.max(
+					Math.abs(e.tile.x - this.predicted.x),
+					Math.abs(e.tile.y - this.predicted.y),
+				);
+				if (drift > 2) {
+					this.predicted = { x: e.tile.x, y: e.tile.y };
+					this.gridEngine.setPosition(existing.charId, {
+						x: e.tile.x,
+						y: e.tile.y,
+					});
+				}
+				existing.tile = { ...this.predicted };
+				existing.hp = e.hp;
+				existing.maxHp = e.max_hp;
 			} else {
 				if (
 					existing.tile.x !== e.tile.x ||
@@ -508,6 +546,8 @@ export class CloudCityScene extends Scene {
 					});
 					existing.tile = { x: e.tile.x, y: e.tile.y };
 				}
+				if (e.eid === this.myEid)
+					this.predicted = { x: e.tile.x, y: e.tile.y };
 				existing.hp = e.hp;
 				existing.maxHp = e.max_hp;
 			}
@@ -715,6 +755,7 @@ export class CloudCityScene extends Scene {
 		}
 
 		laserEvents.emit('target:clear', {});
+		this.predicting = false;
 		this.client.moveTo(tile);
 	}
 
@@ -893,17 +934,34 @@ export class CloudCityScene extends Scene {
 			this.attackNearby();
 		}
 
-		if (time - this.lastStepAt < STEP_THROTTLE_MS) return;
-
 		let dir: Dir | null = null;
 		if (this.cursors.up.isDown) dir = 'Up';
 		else if (this.cursors.down.isDown) dir = 'Down';
 		else if (this.cursors.left.isDown) dir = 'Left';
 		else if (this.cursors.right.isDown) dir = 'Right';
 
-		if (dir) {
-			this.client.step(dir);
-			this.lastStepAt = time;
+		if (!dir || this.myEid < 0 || !this.predictSeeded) return;
+
+		const myChar = `e${this.myEid}`;
+		// One predicted tile at a time: wait for the local tween to finish so
+		// prediction tracks the server's tile rate instead of outrunning it.
+		if (this.gridEngine.isMoving(myChar)) return;
+
+		const delta = DIR_DELTA[dir];
+		const cand = {
+			x: this.predicted.x + delta.x,
+			y: this.predicted.y + delta.y,
+		};
+		// Predict only into tiles the server would also allow. Blocked tiles
+		// just send a Step (server stays authoritative) without local motion.
+		if (!this.blocked.has(`${cand.x},${cand.y}`)) {
+			this.predicting = true;
+			this.predicted = cand;
+			this.gridEngine.moveTo(myChar, cand);
+			const me = this.tracked.get(this.myEid);
+			if (me) me.tile = { ...cand };
 		}
+		this.client.step(dir);
+		this.lastStepAt = time;
 	}
 }
