@@ -12,9 +12,31 @@ osrs:
   lowalch: 5
   highalch: 7
   limit: 13000
-  about: "Sweetcorn (bowl) is a members-only item in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 13,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Sweetcorn (bowl) is a members-only cooking ingredient in Old School RuneScape. High alchemy value: 7 coins. Grand Exchange buy limit: 13,000 per 4 hours."
+  material:
+    type: food
+    tier: low
+  related_items:
+    - item_id: 5986
+      item_name: Sweetcorn
+      slug: sweetcorn
+      relationship: component
+      description: Raw sweetcorn used to fill the bowl
+    - item_id: 1923
+      item_name: Bowl
+      slug: bowl
+      relationship: component
+      description: Empty bowl container
+  market_strategy:
+    notes:
+      - High buy limit (13,000) supports bulk cooking-ingredient flips
+      - Tied to stew and curry recipes for steady baseline demand
+      - Margins per unit are small; profit lives in volume
+  trading_tips:
+    - Pair with Bowl and Spice prices to gauge stew/curry recipe arbitrage
+    - Watch for spikes during cooking-related events or quests
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

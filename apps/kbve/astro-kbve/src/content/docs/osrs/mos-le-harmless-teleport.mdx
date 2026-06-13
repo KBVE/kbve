@@ -12,16 +12,11 @@ osrs:
   lowalch: 4
   highalch: 6
   limit: 10000
-  item:
-    type: teleport_scroll
-    destination: Mos Le'Harmless
-    tradeable: true
-    stackable: true
-  obtaining:
-    methods:
-      - source: Treasure Trails
-        tier: Hard/Elite/Master
-        drop_rate: Varies by tier
+  material:
+    type: scroll
+    tier: low
+  treasure_trail:
+    tier: hard
   related_items:
     - item_id: 12642
       item_name: Lumberyard teleport
@@ -52,8 +47,8 @@ osrs:
       - Essential for black mask farming
       - Useful for cave horror tasks
       - Stock up for slayer
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

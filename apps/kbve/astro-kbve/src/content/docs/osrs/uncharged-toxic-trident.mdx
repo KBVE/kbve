@@ -12,6 +12,10 @@ osrs:
   lowalch: 31200
   highalch: 46800
   limit: 8
+  about: "Uncharged toxic trident is the uncharged base form of the Trident of the swamp, requiring 75 Magic to wield once charged. It is created by attaching a Magic fang to an uncharged Trident of the seas."
+  material:
+    type: magic
+    tier: high
   equipment:
     slot: weapon
     type: staff
@@ -22,28 +26,53 @@ osrs:
     stats:
       attack_magic: 25
       defence_magic: 15
-  creation:
-    method: Attach magic fang to uncharged trident
-    requirements:
-      crafting: 59
-  features:
-    - Built-in spell with venom
-    - Charges with runes and scales
-    - 25% venom chance
+  passive_effects:
+    - name: Built-in autocast
+      description: Casts a built-in magic attack with no rune cost once charged
+    - name: Venom chance
+      description: Has a 25% chance to inflict venom on targets once charged
+  recipes:
+    - skill: crafting
+      level: 59
+      xp: 0
+      materials:
+        - item_name: Trident of the seas (full)
+          item_id: 11905
+          quantity: 1
+        - item_name: Magic fang
+          item_id: 12932
+          quantity: 1
+      output_item: Uncharged toxic trident
+      output_id: 12900
+      output_quantity: 1
+      facility: None
+      members_only: true
   related_items:
     - item_id: 11907
       item_name: Trident of the seas
       slug: trident-of-the-seas
       relationship: downgrade
-      description: Base version
+      description: Base seas trident
     - item_id: 12932
       item_name: Magic fang
       slug: magic-fang
       relationship: component
-      description: Upgrade component
-  about: Built-in spell with venom. Charges with runes and scales.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      description: Upgrade component dropped by Zulrah
+    - item_id: 12899
+      item_name: Trident of the swamp
+      slug: trident-of-the-swamp
+      relationship: upgrade
+      description: Charged toxic trident variant
+  market_strategy:
+    notes:
+      - Built-in venom autocast drives PvM demand once charged
+      - "Low buy limit (8 per 4 hours): caps speculative volume"
+      - Tied to Magic fang supply from Zulrah drops
+  trading_tips:
+    - Track Magic fang and Trident of the seas prices for assembly margin
+    - Watch Zulrah drop-rate updates for supply shocks
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

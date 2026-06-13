@@ -12,31 +12,45 @@ osrs:
   lowalch: 6200
   highalch: 9300
   limit: 18000
-  item_id: 1393
-  item_type: equipment
-  slot: weapon
-  type: battlestaff
-  attack_speed: 5
-  tradeable: true
-  weight: 2.267
-  requirements:
-    attack: 30
-    magic: 30
-  stats:
-    magic_attack: 12
-    crush_attack: 7
-    strength: 3
-  effect:
-    description: Provides unlimited fire runes when equipped. Can autocast combat spells.
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
+  material:
+    type: wood
+    tier: mid-high
+  equipment:
+    slot: weapon
+    type: battlestaff
+    attack_speed: 5
+    requirements:
+      attack: 30
+      magic: 30
+    stats:
+      magic_attack: 12
+      crush_attack: 7
+      strength: 3
+  passive_effects:
+    - name: Unlimited fire runes
+      description: "Provides unlimited fire runes when equipped and can autocast combat spells"
   related_items:
-    - slug: fire-orb
-    - slug: mystic-fire-staff
+    - item_name: Fire orb
+      slug: fire-orb
+      relationship: component
+      description: "Crafted onto a battlestaff to make the fire battlestaff"
+    - item_name: Mystic fire staff
+      slug: mystic-fire-staff
+      relationship: upgrade
+      description: "Crafted upgrade with stronger magic bonuses"
   about: |-
     Provides unlimited fire runes when equipped.
 
     Can autocast combat spells.
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+  market_strategy:
+    notes:
+      - "Crafted from fire orb plus battlestaff at 62 Crafting"
+      - "Demand from Magic trainers wanting free fire runes"
+  trading_tips:
+    - "Buy limit 18,000 per 4 hours"
+    - "Members-only magic weapon with unlimited fire runes when equipped"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
