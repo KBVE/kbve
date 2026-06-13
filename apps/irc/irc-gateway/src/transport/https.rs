@@ -91,6 +91,7 @@ fn router(static_config: &crate::astro::StaticConfig) -> Router {
         // Terminates the IRC protocol server-side; clients only see
         // ChatMessage JSON. See gateway::minechat for the full contract.
         .route("/minechat", get(crate::gateway::minechat::ws_handler))
+        .route("/gamechat", get(crate::gateway::minechat::game_ws_handler))
         .nest("/api/v1", crate::gateway::rest::api_router());
 
     static_router.merge(api_router).layer(middleware)

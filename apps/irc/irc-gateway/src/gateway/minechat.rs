@@ -97,14 +97,84 @@ pub async fn ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoResponse
     info!(user = %nick, "minechat upgrade accepted");
     ws.max_frame_size(16 * 1024)
         .max_message_size(64 * 1024)
-        .on_upgrade(move |socket| session(socket, nick))
+        .on_upgrade(move |socket| {
+            session(
+                socket,
+                nick,
+                ALLOWED_CHANNELS.iter().map(|c| c.to_string()).collect(),
+                PLATFORM.to_string(),
+            )
+        })
+        .into_response()
+}
+
+/// Game-chat profiles keyed by the `?game=` query param. Each game gets one
+/// dedicated channel and a platform tag; the set is static so clients can't
+/// negotiate their way into arbitrary channels.
+const GAME_PROFILES: &[(&str, &str, &str)] = &[
+    // (game key, channel, platform)
+    ("cryptothrone", "#cryptothrone", "cryptothrone"),
+];
+
+fn game_profile(game: &str) -> Option<(&'static str, &'static str)> {
+    GAME_PROFILES
+        .iter()
+        .find(|(k, _, _)| *k == game)
+        .map(|(_, ch, plat)| (*ch, *plat))
+}
+
+fn query_param(req: &Request, key: &str) -> Option<String> {
+    req.uri().query().and_then(|q| {
+        q.split('&').find_map(|pair| {
+            let (k, v) = pair.split_once('=')?;
+            (k == key).then(|| v.to_string())
+        })
+    })
+}
+
+/// `/gamechat` — JSON-framed game chat that reuses the minechat session loop
+/// but identifies players by their real KBVE username and routes each game to
+/// its own channel. Pick the game with `?game=<key>`; auth with `?token=`.
+pub async fn game_ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoResponse {
+    let token = match jwt::extract_token(&req) {
+        Some(t) => t,
+        None => return StatusCode::UNAUTHORIZED.into_response(),
+    };
+    let claims = match jwt::validate_token(&token) {
+        Ok(c) => c,
+        Err(status) => return status.into_response(),
+    };
+
+    let game = query_param(&req, "game").unwrap_or_default();
+    let Some((channel, platform)) = game_profile(&game) else {
+        warn!(game = %game, "gamechat: unknown game");
+        return StatusCode::BAD_REQUEST.into_response();
+    };
+
+    // Real username when present, otherwise a stable game-prefixed fallback
+    // so the player is never anonymous-but-spoofable.
+    let nick = claims
+        .irc_nick()
+        .unwrap_or_else(|| format!("{game}-{}", sanitize_sub(&claims.sub, 8)));
+
+    info!(user = %nick, game = %game, channel = %channel, "gamechat upgrade accepted");
+    ws.max_frame_size(16 * 1024)
+        .max_message_size(64 * 1024)
+        .on_upgrade(move |socket| {
+            session(
+                socket,
+                nick,
+                vec![channel.to_string()],
+                platform.to_string(),
+            )
+        })
         .into_response()
 }
 
 /// Per-connection state machine. Runs until the WebSocket closes or ergo
 /// drops the IRC connection. Two independent futures fan JSON↔IRC in each
 /// direction; either one returning ends the session via `tokio::select!`.
-async fn session(client_ws: WebSocket, nick: String) {
+async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, platform: String) {
     let ergo_host = std::env::var("ERGO_IRC_HOST")
         .unwrap_or_else(|_| "ergo-irc-service.irc.svc.cluster.local".into());
     let ergo_port: u16 = std::env::var("ERGO_IRC_PORT")
@@ -135,7 +205,7 @@ async fn session(client_ws: WebSocket, nick: String) {
         error!(user = %nick, "USER write failed: {e}");
         return;
     }
-    for ch in ALLOWED_CHANNELS {
+    for ch in &channels {
         if let Err(e) = write_irc_line(&ergo_w, &format!("JOIN {ch}")).await {
             warn!(user = %nick, channel = ch, "JOIN write failed: {e}");
         }
@@ -177,7 +247,7 @@ async fn session(client_ws: WebSocket, nick: String) {
             };
 
             // Channel whitelist — silently drop anything unexpected.
-            if !ALLOWED_CHANNELS.iter().any(|c| *c == parsed.channel) {
+            if !channels.contains(&parsed.channel) {
                 debug!(user = %nick_c2i, channel = %parsed.channel, "channel not allowed");
                 continue;
             }
@@ -196,7 +266,7 @@ async fn session(client_ws: WebSocket, nick: String) {
 
             // Pin sender + platform server-side so clients can't spoof.
             parsed.sender = nick_c2i.clone();
-            parsed.platform = PLATFORM.to_string();
+            parsed.platform = platform.clone();
 
             let line = parsed.to_irc_privmsg();
             if let Err(e) = write_irc_line(&ergo_w_c2i, &line).await {
