@@ -60,6 +60,18 @@ export class PreloaderScene extends Scene {
 	}
 
 	create() {
+		const params = new URLSearchParams(
+			typeof window !== 'undefined' ? window.location.search : '',
+		);
+		const zone = params.get('zone');
+		if (zone === 'town' || zone === 'dungeon') {
+			const seed = Number(params.get('seed'));
+			this.scene.start('ProceduralZone', {
+				zone,
+				seed: Number.isFinite(seed) && seed > 0 ? seed : undefined,
+			});
+			return;
+		}
 		this.scene.start('CloudCity');
 	}
 }

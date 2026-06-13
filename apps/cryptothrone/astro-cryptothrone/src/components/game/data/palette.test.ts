@@ -17,9 +17,7 @@ function assertValid(p: TilePalette) {
 	for (const gids of Object.values(p.entries))
 		for (const g of gids) {
 			expect(g).toBeGreaterThanOrEqual(1);
-			expect(g).toBeLessThanOrEqual(
-				(p as { tileCount: number }).tileCount,
-			);
+			expect(g).toBeLessThanOrEqual(p.tileCount);
 		}
 }
 

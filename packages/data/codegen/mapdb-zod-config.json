@@ -5,11 +5,6 @@
 			"stripPrefix": "BIOME_",
 			"caseTransform": "lowercase"
 		},
-		"map.TileRole": {
-			"mode": "const_array",
-			"stripPrefix": "TILE_ROLE_",
-			"caseTransform": "lowercase"
-		},
 		"map.ZoneType": {
 			"mode": "const_array",
 			"stripPrefix": "ZONE_TYPE_",

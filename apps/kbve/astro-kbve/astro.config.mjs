@@ -338,6 +338,10 @@ export default defineConfig({
 							label: 'NpcDB',
 							items: [{ autogenerate: { directory: 'npcdb' } }],
 						},
+						{
+							label: 'TileDB',
+							items: [{ autogenerate: { directory: 'tiledb' } }],
+						},
 					],
 				},
 				{
