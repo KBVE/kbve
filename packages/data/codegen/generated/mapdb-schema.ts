@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mapdb.binpb
  * Config: ../mapdb-zod-config.json
- * Generated: 2026-06-01T06:12:05.352Z
+ * Generated: 2026-06-13T16:57:56.395Z
  */
 
 import { z } from 'zod';
@@ -1375,3 +1375,92 @@ export const MapRegistrySchema = z.object({
 });
 
 export type MapRegistry = z.infer<typeof MapRegistrySchema>;
+
+// TilePaletteEntry
+export const TilePaletteEntrySchema = z.object({
+	role: z.string(),
+	gids: z.array(z.number()).optional(),
+});
+
+export type TilePaletteEntry = z.infer<typeof TilePaletteEntrySchema>;
+
+// TilePalette
+export const TilePaletteSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	biome: BiomeSchema,
+	tileset_image: z.string(),
+	tileset_columns: z.number(),
+	tile_size: z.number(),
+	entries: z.array(TilePaletteEntrySchema).optional(),
+});
+
+export type TilePalette = z.infer<typeof TilePaletteSchema>;
+
+// HexTile
+export const HexTileSchema = z.object({
+	coord: HexCoordSchema.optional(),
+	tile: z.number(),
+	blocked: z.boolean(),
+	biome: z.number(),
+});
+
+export type HexTile = z.infer<typeof HexTileSchema>;
+
+// HexTilemap
+export const HexTilemapSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	orientation: z.string(),
+	hex_size: z.number(),
+	tiles: z.array(HexTileSchema).optional(),
+	generation: GenerationModeSchema,
+	seed: z.number(),
+	drafted: z.boolean(),
+});
+
+export type HexTilemap = z.infer<typeof HexTilemapSchema>;
+
+// GridTileLayer
+export const GridTileLayerSchema = z.object({
+	name: z.string(),
+	data: z.array(z.number()).optional(),
+});
+
+export type GridTileLayer = z.infer<typeof GridTileLayerSchema>;
+
+// NamedRegion
+export const NamedRegionSchema = z.object({
+	name: z.string(),
+	x: z.number(),
+	y: z.number(),
+	w: z.number(),
+	h: z.number(),
+});
+
+export type NamedRegion = z.infer<typeof NamedRegionSchema>;
+
+// GridTilemap
+export const GridTilemapSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	width: z.number(),
+	height: z.number(),
+	tile_size: z.number(),
+	spawn: GridPosSchema.optional(),
+	blocked: z.array(z.boolean()).optional(),
+	layers: z.array(GridTileLayerSchema).optional(),
+	regions: z.array(NamedRegionSchema).optional(),
+	generation: GenerationModeSchema,
+	seed: z.number(),
+	tileset_image: z.string(),
+	tileset_columns: z.number(),
+	drafted: z.boolean(),
+});
+
+export type GridTilemap = z.infer<typeof GridTilemapSchema>;
