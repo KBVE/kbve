@@ -16,6 +16,10 @@ spec:
               - path:
                     type: PathPrefix
                     value: /
+          timeouts:
+              # Long-lived WebSocket — override Envoy's ~15s default backend
+              # timeout so wss connections survive (matches kbve /ws rule).
+              backendRequest: 3600s
           backendRefs:
               - name: cryptothrone-game
                 port: 7979

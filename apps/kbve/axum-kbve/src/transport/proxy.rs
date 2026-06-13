@@ -368,7 +368,10 @@ fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String
     None
 }
 
-async fn require_dashboard_view(headers: &HeaderMap, service_name: &str) -> Result<(), Response> {
+pub(crate) async fn require_dashboard_view(
+    headers: &HeaderMap,
+    service_name: &str,
+) -> Result<(), Response> {
     require_dashboard_view_with_query(headers, None, service_name).await
 }
 
@@ -871,62 +874,6 @@ pub async fn forgejo_proxy_handler(path: Option<Path<String>>, req: Request<Body
             axum::Json(json!({"error": "Forgejo proxy not configured"})),
         )
             .into_response(),
-    }
-}
-
-static FORGEJO_API: OnceLock<jedi::entity::forgejo::ForgejoClient> = OnceLock::new();
-
-pub fn init_forgejo_api() -> bool {
-    let upstream = match std::env::var("FORGEJO_UPSTREAM_URL") {
-        Ok(u) => u,
-        Err(_) => return false,
-    };
-    let token = match std::env::var("FORGEJO_AUTH_TOKEN") {
-        Ok(t) => t,
-        Err(_) => return false,
-    };
-    FORGEJO_API
-        .set(jedi::entity::forgejo::ForgejoClient::new(&upstream, &token))
-        .is_ok()
-}
-
-fn query_u32(query: Option<&str>, key: &str, default: u32) -> u32 {
-    query
-        .and_then(|qs| {
-            qs.split('&').find_map(|pair| {
-                pair.strip_prefix(key)
-                    .and_then(|rest| rest.strip_prefix('='))
-                    .and_then(|v| v.parse::<u32>().ok())
-            })
-        })
-        .unwrap_or(default)
-}
-
-/// Typed Forgejo route: real admin user list. Normalised errors via JediError.
-pub async fn forgejo_users_handler(req: Request<Body>) -> Response {
-    let headers = req.headers().clone();
-    let query = req.uri().query().map(|q| q.to_string());
-
-    if let Err(resp) =
-        require_dashboard_view_with_query(&headers, query.as_deref(), "Forgejo-API").await
-    {
-        return resp;
-    }
-    let client = match FORGEJO_API.get() {
-        Some(c) => c,
-        None => {
-            return (
-                StatusCode::SERVICE_UNAVAILABLE,
-                axum::Json(json!({"error": "Forgejo API not configured"})),
-            )
-                .into_response();
-        }
-    };
-    let page = query_u32(query.as_deref(), "page", 1);
-    let limit = query_u32(query.as_deref(), "limit", 50);
-    match client.list_admin_users(page, limit).await {
-        Ok(users) => axum::Json(users).into_response(),
-        Err(e) => e.into_response(),
     }
 }
 

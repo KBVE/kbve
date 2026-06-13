@@ -1,3 +1,4 @@
+pub mod forgejo_api;
 pub mod https;
 pub mod market;
 pub mod mc_lot;
