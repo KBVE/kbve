@@ -994,18 +994,12 @@ jobs:
 
     game_post_publish:
         name: Game Post-publish version sync
-        needs: [game_gate, game_build_linux, game_build_windows, game_build_mac]
+        needs: [game_gate, game_build_linux]
         if: |
             inputs.mode == 'game' &&
-            always() &&
             needs.game_gate.outputs.should_build == 'true' &&
             inputs.version_toml != '' &&
-            (needs.game_build_linux.result == 'success' || needs.game_build_linux.result == 'skipped') &&
-            (needs.game_build_windows.result == 'success' || needs.game_build_windows.result == 'skipped') &&
-            (needs.game_build_mac.result == 'success' || needs.game_build_mac.result == 'skipped') &&
-            !(needs.game_build_linux.result == 'skipped' &&
-              needs.game_build_windows.result == 'skipped' &&
-              needs.game_build_mac.result == 'skipped')
+            needs.game_build_linux.result == 'success'
         permissions:
             contents: write
             pull-requests: write
