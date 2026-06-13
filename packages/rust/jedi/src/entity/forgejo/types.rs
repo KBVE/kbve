@@ -282,6 +282,24 @@ pub struct ForgejoVersion {
     pub version: String,
 }
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ForgejoStats {
+    pub repo_count: u64,
+    pub total_size_kb: u64,
+    pub public: u64,
+    pub private: u64,
+    pub mirror: u64,
+    pub archived: u64,
+    pub fork: u64,
+    pub truncated: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForgejoRegistrationToken {
+    #[serde(default)]
+    pub token: String,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub(crate) struct ForgejoSearchResults<T> {
     #[serde(default = "Vec::new")]

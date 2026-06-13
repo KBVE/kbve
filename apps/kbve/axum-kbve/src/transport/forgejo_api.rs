@@ -1,25 +1,25 @@
-//! Typed Forgejo read routes backed by the jedi `forgejo` client.
+//! Typed Forgejo routes backed by the jedi `forgejo` client.
 //!
-//! Reads only — typed responses + normalised `JediError` JSON, gated by
-//! DASHBOARD_VIEW. Mutations continue through the method-gated generic proxy
-//! (`/dashboard/forgejo/proxy/*`); the jedi write methods exist for future
-//! server-side validation/policy and are wired here when that lands.
+//! Reads are DASHBOARD_VIEW-gated; mutations are DASHBOARD_MANAGE-gated. All
+//! responses are typed JSON or normalised `JediError`. Includes a server-side
+//! `/stats` aggregate (true storage/counts across every repo, not just the
+//! loaded page) and Actions runner registration endpoints.
 
 use std::sync::OnceLock;
 
 use axum::{
     Json, Router,
-    extract::Path,
+    extract::{Path, Query},
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
-    routing::get,
+    routing::{delete, get, patch, post, put},
 };
 use serde::Deserialize;
-use serde_json::json;
+use serde_json::{Value, json};
 
 use jedi::entity::forgejo::ForgejoClient;
 
-use super::proxy::require_dashboard_view;
+use super::proxy::{require_dashboard_manage_with_query, require_dashboard_view};
 
 static FORGEJO_API: OnceLock<ForgejoClient> = OnceLock::new();
 
@@ -55,6 +55,7 @@ pub struct ListQuery {
     state: Option<String>,
     #[serde(rename = "type")]
     kind: Option<String>,
+    purge: Option<bool>,
 }
 
 impl ListQuery {
@@ -71,11 +72,36 @@ async fn gate(headers: &HeaderMap) -> Result<&'static ForgejoClient, Response> {
     client()
 }
 
+async fn gate_manage(headers: &HeaderMap) -> Result<&'static ForgejoClient, Response> {
+    require_dashboard_manage_with_query(headers, None, "Forgejo-API").await?;
+    client()
+}
+
 macro_rules! reply {
     ($expr:expr) => {
         match $expr {
             Ok(v) => Json(v).into_response(),
             Err(e) => e.into_response(),
+        }
+    };
+}
+
+/// MANAGE-gated handler: resolve client or early-return the gate response.
+macro_rules! mc {
+    ($headers:expr) => {
+        match gate_manage(&$headers).await {
+            Ok(c) => c,
+            Err(r) => return r,
+        }
+    };
+}
+
+/// VIEW-gated handler: resolve client or early-return the gate response.
+macro_rules! vc {
+    ($headers:expr) => {
+        match gate(&$headers).await {
+            Ok(c) => c,
+            Err(r) => return r,
         }
     };
 }
@@ -292,60 +318,442 @@ async fn team_members(
     reply!(c.list_team_members(team_id, q.limit()).await)
 }
 
+// ── Aggregate / runners (reads) ──────────────────────────────────────
+
+async fn stats(headers: HeaderMap) -> Response {
+    let c = vc!(headers);
+    reply!(c.repo_stats().await)
+}
+
+async fn repo_runners(headers: HeaderMap, Path((owner, repo)): Path<(String, String)>) -> Response {
+    let c = vc!(headers);
+    reply!(c.list_repo_runners(&owner, &repo).await)
+}
+
+async fn org_runners(headers: HeaderMap, Path(org): Path<String>) -> Response {
+    let c = vc!(headers);
+    reply!(c.list_org_runners(&org).await)
+}
+
+// ── Runner registration tokens (manage — credential) ─────────────────
+
+async fn repo_runner_token(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.repo_runner_token(&owner, &repo).await)
+}
+
+async fn org_runner_token(headers: HeaderMap, Path(org): Path<String>) -> Response {
+    let c = mc!(headers);
+    reply!(c.org_runner_token(&org).await)
+}
+
+async fn admin_runner_token(headers: HeaderMap) -> Response {
+    let c = mc!(headers);
+    reply!(c.admin_runner_token().await)
+}
+
+// ── Repo writes ──────────────────────────────────────────────────────
+
+async fn create_repo_for_user(
+    headers: HeaderMap,
+    Path(user): Path<String>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_repo_for_user(&user, &body).await)
+}
+
+async fn create_repo_for_org(
+    headers: HeaderMap,
+    Path(org): Path<String>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_repo_for_org(&org, &body).await)
+}
+
+async fn edit_repo(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.edit_repo(&owner, &repo, &body).await)
+}
+
+async fn delete_repo(headers: HeaderMap, Path((owner, repo)): Path<(String, String)>) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_repo(&owner, &repo).await)
+}
+
+async fn transfer_repo(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.transfer_repo(&owner, &repo, &body).await)
+}
+
+async fn migrate_repo(headers: HeaderMap, Json(body): Json<Value>) -> Response {
+    let c = mc!(headers);
+    reply!(c.migrate_repo(&body).await)
+}
+
+async fn add_collaborator(
+    headers: HeaderMap,
+    Path((owner, repo, user)): Path<(String, String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.add_collaborator(&owner, &repo, &user, &body).await)
+}
+
+async fn remove_collaborator(
+    headers: HeaderMap,
+    Path((owner, repo, user)): Path<(String, String, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.remove_collaborator(&owner, &repo, &user).await)
+}
+
+// ── User writes ──────────────────────────────────────────────────────
+
+async fn create_user(headers: HeaderMap, Json(body): Json<Value>) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_user(&body).await)
+}
+
+async fn edit_user(
+    headers: HeaderMap,
+    Path(login): Path<String>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.edit_user(&login, &body).await)
+}
+
+async fn delete_user(
+    headers: HeaderMap,
+    Path(login): Path<String>,
+    Query(q): Query<ListQuery>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_user(&login, q.purge.unwrap_or(false)).await)
+}
+
+// ── Org & team writes ────────────────────────────────────────────────
+
+async fn create_org(headers: HeaderMap, Json(body): Json<Value>) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_org(&body).await)
+}
+
+async fn edit_org(
+    headers: HeaderMap,
+    Path(org): Path<String>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.edit_org(&org, &body).await)
+}
+
+async fn delete_org(headers: HeaderMap, Path(org): Path<String>) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_org(&org).await)
+}
+
+async fn remove_org_member(
+    headers: HeaderMap,
+    Path((org, user)): Path<(String, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.remove_org_member(&org, &user).await)
+}
+
+async fn create_team(
+    headers: HeaderMap,
+    Path(org): Path<String>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_team(&org, &body).await)
+}
+
+async fn delete_team(headers: HeaderMap, Path(team_id): Path<u64>) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_team(team_id).await)
+}
+
+async fn add_team_member(
+    headers: HeaderMap,
+    Path((team_id, user)): Path<(u64, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.add_team_member(team_id, &user).await)
+}
+
+async fn remove_team_member(
+    headers: HeaderMap,
+    Path((team_id, user)): Path<(u64, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.remove_team_member(team_id, &user).await)
+}
+
+// ── Webhook / release / protection / secret / variable writes ────────
+
+async fn create_hook(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_hook(&owner, &repo, &body).await)
+}
+
+async fn delete_hook(
+    headers: HeaderMap,
+    Path((owner, repo, id)): Path<(String, String, u64)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_hook(&owner, &repo, id).await)
+}
+
+async fn test_hook(
+    headers: HeaderMap,
+    Path((owner, repo, id)): Path<(String, String, u64)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.test_hook(&owner, &repo, id).await)
+}
+
+async fn create_release(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_release(&owner, &repo, &body).await)
+}
+
+async fn delete_release(
+    headers: HeaderMap,
+    Path((owner, repo, id)): Path<(String, String, u64)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_release(&owner, &repo, id).await)
+}
+
+async fn create_protection(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_branch_protection(&owner, &repo, &body).await)
+}
+
+async fn delete_protection(
+    headers: HeaderMap,
+    Path((owner, repo, name)): Path<(String, String, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_branch_protection(&owner, &repo, &name).await)
+}
+
+async fn set_secret(
+    headers: HeaderMap,
+    Path((owner, repo, name)): Path<(String, String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.set_secret(&owner, &repo, &name, &body).await)
+}
+
+async fn delete_secret(
+    headers: HeaderMap,
+    Path((owner, repo, name)): Path<(String, String, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_secret(&owner, &repo, &name).await)
+}
+
+async fn create_variable(
+    headers: HeaderMap,
+    Path((owner, repo, name)): Path<(String, String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_variable(&owner, &repo, &name, &body).await)
+}
+
+async fn delete_variable(
+    headers: HeaderMap,
+    Path((owner, repo, name)): Path<(String, String, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_variable(&owner, &repo, &name).await)
+}
+
+// ── Issue / system writes ────────────────────────────────────────────
+
+async fn set_issue_state(
+    headers: HeaderMap,
+    Path((owner, repo, index)): Path<(String, String, u64)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.set_issue_state(&owner, &repo, index, &body).await)
+}
+
+async fn lock_issue(
+    headers: HeaderMap,
+    Path((owner, repo, index)): Path<(String, String, u64)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.lock_issue(&owner, &repo, index, &body).await)
+}
+
+async fn unlock_issue(
+    headers: HeaderMap,
+    Path((owner, repo, index)): Path<(String, String, u64)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.unlock_issue(&owner, &repo, index).await)
+}
+
+async fn run_cron(headers: HeaderMap, Path(task): Path<String>) -> Response {
+    let c = mc!(headers);
+    reply!(c.run_cron(&task).await)
+}
+
+async fn adopt_unadopted(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.adopt_unadopted(&owner, &repo).await)
+}
+
+async fn delete_unadopted(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_unadopted(&owner, &repo).await)
+}
+
 pub fn routes() -> Router {
     let base = "/dashboard/forgejo/api";
+    let p = |s: &str| format!("{base}{s}");
     Router::new()
-        .route(&format!("{base}/users"), get(users))
-        .route(&format!("{base}/orgs"), get(orgs))
-        .route(&format!("{base}/repos/search"), get(repos_search))
-        .route(&format!("{base}/version"), get(version))
-        .route(&format!("{base}/cron"), get(cron))
-        .route(&format!("{base}/unadopted"), get(unadopted))
-        .route(&format!("{base}/repos/{{owner}}/{{repo}}"), get(repo))
+        // top-level
+        .route(&p("/stats"), get(stats))
+        .route(&p("/version"), get(version))
+        .route(&p("/cron"), get(cron))
+        .route(&p("/cron/{task}"), post(run_cron))
+        .route(&p("/unadopted"), get(unadopted))
         .route(
-            &format!("{base}/repos/{{owner}}/{{repo}}/branches"),
-            get(branches),
+            &p("/unadopted/{owner}/{repo}"),
+            post(adopt_unadopted).delete(delete_unadopted),
         )
         .route(
-            &format!("{base}/repos/{{owner}}/{{repo}}/commits"),
-            get(commits),
+            &p("/admin/runners/registration-token"),
+            post(admin_runner_token),
         )
+        // users
+        .route(&p("/users"), get(users).post(create_user))
+        .route(&p("/users/{login}"), patch(edit_user).delete(delete_user))
+        .route(&p("/users/{user}/repos"), post(create_repo_for_user))
+        // orgs & teams
+        .route(&p("/orgs"), get(orgs).post(create_org))
+        .route(&p("/orgs/{org}"), patch(edit_org).delete(delete_org))
+        .route(&p("/orgs/{org}/repos"), post(create_repo_for_org))
+        .route(&p("/orgs/{org}/members"), get(org_members))
+        .route(&p("/orgs/{org}/members/{user}"), delete(remove_org_member))
+        .route(&p("/orgs/{org}/teams"), get(teams).post(create_team))
+        .route(&p("/orgs/{org}/runners"), get(org_runners))
         .route(
-            &format!("{base}/repos/{{owner}}/{{repo}}/languages"),
-            get(languages),
+            &p("/orgs/{org}/runners/registration-token"),
+            post(org_runner_token),
         )
+        .route(&p("/teams/{team_id}"), delete(delete_team))
+        .route(&p("/teams/{team_id}/members"), get(team_members))
         .route(
-            &format!("{base}/repos/{{owner}}/{{repo}}/collaborators"),
+            &p("/teams/{team_id}/members/{user}"),
+            put(add_team_member).delete(remove_team_member),
+        )
+        // repos
+        .route(&p("/repos/search"), get(repos_search))
+        .route(&p("/repos/migrate"), post(migrate_repo))
+        .route(
+            &p("/repos/{owner}/{repo}"),
+            get(repo).patch(edit_repo).delete(delete_repo),
+        )
+        .route(&p("/repos/{owner}/{repo}/transfer"), post(transfer_repo))
+        .route(&p("/repos/{owner}/{repo}/branches"), get(branches))
+        .route(&p("/repos/{owner}/{repo}/commits"), get(commits))
+        .route(&p("/repos/{owner}/{repo}/languages"), get(languages))
+        .route(
+            &p("/repos/{owner}/{repo}/collaborators"),
             get(collaborators),
         )
         .route(
-            &format!("{base}/repos/{{owner}}/{{repo}}/releases"),
-            get(releases),
+            &p("/repos/{owner}/{repo}/collaborators/{user}"),
+            put(add_collaborator).delete(remove_collaborator),
         )
         .route(
-            &format!("{base}/repos/{{owner}}/{{repo}}/hooks"),
-            get(hooks),
+            &p("/repos/{owner}/{repo}/releases"),
+            get(releases).post(create_release),
         )
         .route(
-            &format!("{base}/repos/{{owner}}/{{repo}}/protections"),
-            get(protections),
+            &p("/repos/{owner}/{repo}/releases/{id}"),
+            delete(delete_release),
         )
         .route(
-            &format!("{base}/repos/{{owner}}/{{repo}}/secrets"),
-            get(secrets),
+            &p("/repos/{owner}/{repo}/hooks"),
+            get(hooks).post(create_hook),
+        )
+        .route(&p("/repos/{owner}/{repo}/hooks/{id}"), delete(delete_hook))
+        .route(
+            &p("/repos/{owner}/{repo}/hooks/{id}/tests"),
+            post(test_hook),
         )
         .route(
-            &format!("{base}/repos/{{owner}}/{{repo}}/variables"),
-            get(variables),
+            &p("/repos/{owner}/{repo}/protections"),
+            get(protections).post(create_protection),
         )
         .route(
-            &format!("{base}/repos/{{owner}}/{{repo}}/issues"),
-            get(issues),
+            &p("/repos/{owner}/{repo}/protections/{name}"),
+            delete(delete_protection),
         )
-        .route(&format!("{base}/orgs/{{org}}/members"), get(org_members))
-        .route(&format!("{base}/orgs/{{org}}/teams"), get(teams))
+        .route(&p("/repos/{owner}/{repo}/secrets"), get(secrets))
         .route(
-            &format!("{base}/teams/{{team_id}}/members"),
-            get(team_members),
+            &p("/repos/{owner}/{repo}/secrets/{name}"),
+            put(set_secret).delete(delete_secret),
+        )
+        .route(&p("/repos/{owner}/{repo}/variables"), get(variables))
+        .route(
+            &p("/repos/{owner}/{repo}/variables/{name}"),
+            post(create_variable).delete(delete_variable),
+        )
+        .route(&p("/repos/{owner}/{repo}/issues"), get(issues))
+        .route(
+            &p("/repos/{owner}/{repo}/issues/{index}"),
+            patch(set_issue_state),
+        )
+        .route(
+            &p("/repos/{owner}/{repo}/issues/{index}/lock"),
+            put(lock_issue).delete(unlock_issue),
+        )
+        .route(&p("/repos/{owner}/{repo}/runners"), get(repo_runners))
+        .route(
+            &p("/repos/{owner}/{repo}/runners/registration-token"),
+            post(repo_runner_token),
         )
 }
