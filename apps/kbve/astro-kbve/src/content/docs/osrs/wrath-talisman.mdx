@@ -12,9 +12,31 @@ osrs:
   lowalch: 1
   highalch: 2
   limit: 11000
-  about: "Wrath talisman is a members-only item in Old School RuneScape. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Wrath talisman is a members-only Runecraft talisman used to access the Wrath altar for crafting Wrath runes. High alchemy value: 2 coins. Grand Exchange buy limit: 11,000 per 4 hours."
+  material:
+    type: talisman
+    tier: low
+  related_items:
+    - item_id: 21880
+      item_name: Wrath rune
+      slug: wrath-rune
+      relationship: product
+      description: Rune crafted at the Wrath altar
+    - item_id: 1448
+      item_name: Mind talisman
+      slug: mind-talisman
+      relationship: alternative
+      description: Other Runecraft altar talisman
+  market_strategy:
+    notes:
+      - High buy limit (11,000) supports bulk Runecraft supply flips
+      - Demand tied to Wrath rune crafting and high-level Runecraft training
+      - Per-unit profit is small; volume drives returns
+  trading_tips:
+    - Track Wrath rune price for downstream Runecraft demand signal
+    - Watch for Runecraft-related updates that shift altar usage
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,9 +12,35 @@ osrs:
   lowalch: 8
   highalch: 12
   limit: 125
-  about: "Wooden shield is a free-to-play item in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 125 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Wooden shield is a free-to-play entry-level shield in Old School RuneScape. High alchemy value: 12 coins. Grand Exchange buy limit: 125 per 4 hours."
+  material:
+    type: wood
+    tier: low
+  equipment:
+    slot: shield
+    type: shield
+    tradeable: true
+  related_items:
+    - item_id: 1173
+      item_name: Bronze sq shield
+      slug: bronze-sq-shield
+      relationship: upgrade
+      description: Entry-level metal square shield
+    - item_id: 1189
+      item_name: Bronze kiteshield
+      slug: bronze-kiteshield
+      relationship: upgrade
+      description: Bronze kiteshield upgrade path
+  market_strategy:
+    notes:
+      - Free-to-play starter shield with very low intrinsic value
+      - "Low buy limit (125 per 4 hours): caps bulk flipping"
+      - Steady low-level demand from new accounts and tutorial flow
+  trading_tips:
+    - Margins are tiny; trade only if you can move close to the limit
+    - Watch new-player promotional periods for short-term demand bumps
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

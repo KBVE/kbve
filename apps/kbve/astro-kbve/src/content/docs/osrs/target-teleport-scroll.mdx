@@ -12,9 +12,26 @@ osrs:
   lowalch: 12000
   highalch: 18000
   limit: 5
-  about: "Target teleport scroll is a members-only item in Old School RuneScape. High alchemy value: 18,000 coins. Grand Exchange buy limit: 5 per 4 hours."
-  mdx_version: 2
-  mdx_updated: "2026-04-10"
+  about: "Target teleport scroll is a members-only consumable that permanently unlocks the level 85 Target Teleport spell on the standard spellbook. High alchemy value: 18,000 coins. Grand Exchange buy limit: 5 per 4 hours."
+  material:
+    type: scroll
+    tier: high
+  related_items:
+    - item_id: 12845
+      item_name: Bounty teleport scroll
+      slug: bounty-teleport-scroll
+      relationship: alternative
+      description: Lower-level Bounty Hunter teleport scroll
+  market_strategy:
+    notes:
+      - One-time consumable tied to Bounty Hunter PvP content
+      - "Very low buy limit (5 per 4 hours): caps daily volume"
+      - Demand tracks PvP and Bounty Hunter activity cycles
+  trading_tips:
+    - Stockpile during quiet PvP weeks for resale during BH events
+    - Compare against Bounty teleport scroll price for relative demand
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';

@@ -12,8 +12,12 @@ osrs:
   lowalch: 90
   highalch: 135
   limit: 2000
+  about: "Super attack(4) is a 4-dose Attack-boosting potion brewed at Herblore 45. It is a core ingredient for Super combat potion(4) and a staple melee boost for bossing and Slayer."
+  material:
+    type: potion
+    tier: mid
   potion:
-    doses: 3
+    doses: 4
     type: boost
     skill: attack
     boost_min: 5
@@ -34,9 +38,9 @@ osrs:
         - item_name: Eye of newt
           item_id: 221
           quantity: 1
-      product: Super attack(3)
-      product_id: 2436
-      product_quantity: 1
+      output_item: Super attack(4)
+      output_id: 2436
+      output_quantity: 1
       facility: None
       members_only: true
   related_items:
@@ -49,7 +53,7 @@ osrs:
       item_name: Eye of newt
       slug: eye-of-newt
       relationship: component
-      description: Secondary
+      description: Secondary ingredient
     - item_id: 12695
       item_name: Super combat potion(4)
       slug: super-combat-potion-4
@@ -60,33 +64,17 @@ osrs:
       slug: attack-potion-3
       relationship: alternative
       description: Lower tier
-  about: |-
-    | Requirement | Value |
-    |-------------|-------|
-    | Herblore Level | 45 |
-    | XP | 100 |
-    | Ingredients | Irit leaf + Eye of newt |
-
-    | Effect | Value |
-    |--------|-------|
-    | Attack boost | +5 to +19 (15% + 5) |
-    | Duration | 60s per level lost |
-    | Preserve prayer | 90s per level lost |
   market_strategy:
     notes:
-      - Super combat ingredient
-      - Standalone attack boost
-      - High demand
-      - Super combat production
-      - Melee PvM
-      - Bossing preparation
-      - Slayer tasks
-      - Low buy limit (2,000)
-      - Irit leaf herb
-      - Eye of newt secondary
-      - Component for super combat
-  mdx_version: 2
-  mdx_updated: '2026-04-09'
+      - "Core ingredient for Super combat potion(4): drives steady demand"
+      - Standalone Attack boost used in melee PvM and Slayer
+      - "Low buy limit (2,000): caps high-volume flipping"
+      - Tied to Irit leaf supply
+  trading_tips:
+    - Track Irit leaf and Eye of newt prices to estimate brew margin
+    - Watch Super combat potion(4) demand for downstream price pressure
+  mdx_version: 3
+  mdx_updated: "2026-06-05"
 ---
 
 import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
