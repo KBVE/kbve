@@ -1519,7 +1519,7 @@ dependencies = [
 
 [[package]]
 name = "axum-cryptothrone"
-version = "0.1.13"
+version = "0.1.15"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
