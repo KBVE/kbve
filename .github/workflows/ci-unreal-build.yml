@@ -229,6 +229,10 @@ jobs:
                           return;
                         }
                       }
+                      if (context.actor === 'github-actions[bot]' && context.payload.repository?.full_name === 'KBVE/kbve') {
+                        core.setOutput('allowed', 'true');
+                        return;
+                      }
                       try {
                         const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
                           owner: context.repo.owner,
