@@ -3,6 +3,10 @@ import {
 	GameClient,
 	laserEvents,
 	createBirdAnimation,
+	flashEntity,
+	floatingText,
+	drawHealthBar,
+	attachCameraZoom,
 	ACTION_ATTACK,
 	ACTION_PICKUP,
 	KIND_CAT_ITEM,
@@ -364,18 +368,7 @@ export class CloudCityScene extends Scene {
 			this.client?.heartbeat();
 		}, 20000);
 
-		// Camera zoom: +/- keys and mouse wheel, clamped.
-		const zoom = (delta: number) => {
-			const cam = this.cameras.main;
-			cam.setZoom(Phaser.Math.Clamp(cam.zoom + delta, 0.6, 2.2));
-		};
-		this.input.keyboard?.on('keydown-PLUS', () => zoom(0.2));
-		this.input.keyboard?.on('keydown-MINUS', () => zoom(-0.2));
-		this.input.on(
-			'wheel',
-			(_p: unknown, _o: unknown, _dx: number, dy: number) =>
-				zoom(dy > 0 ? -0.15 : 0.15),
-		);
+		attachCameraZoom(this);
 	}
 
 	/**
@@ -464,24 +457,14 @@ export class CloudCityScene extends Scene {
 	private showFloatingText(eid: number, text: string, color: string) {
 		const target = this.tracked.get(eid);
 		if (!target) return;
-		const label = this.add
-			.text(target.sprite.x, target.sprite.y - 14, text, {
-				fontFamily: 'monospace',
-				fontSize: '14px',
-				color,
-				stroke: '#000000',
-				strokeThickness: 3,
-			})
-			.setOrigin(0.5, 1)
-			.setDepth(this.entityDepth + 1);
-		this.tweens.add({
-			targets: label,
-			y: label.y - 28,
-			alpha: 0,
-			duration: 900,
-			ease: 'Cubic.easeOut',
-			onComplete: () => label.destroy(),
-		});
+		floatingText(
+			this,
+			target.sprite.x,
+			target.sprite.y - 14,
+			text,
+			color,
+			this.entityDepth + 1,
+		);
 	}
 
 	private applySnapshot(snap: Snapshot) {
@@ -647,9 +630,7 @@ export class CloudCityScene extends Scene {
 	private flashSprite(eid: number) {
 		const target = this.tracked.get(eid);
 		if (!target) return;
-		target.sprite.setTintFill(0xffffff);
-		this.time.delayedCall(60, () => target.sprite.setTint(0xff6b6b));
-		this.time.delayedCall(180, () => target.sprite.clearTint());
+		flashEntity(this, target.sprite);
 	}
 
 	private updateHpBars() {
@@ -670,21 +651,7 @@ export class CloudCityScene extends Scene {
 			if (!t.hpBar) {
 				t.hpBar = this.add.graphics().setDepth(this.entityDepth + 1);
 			}
-			const w = 26;
-			const pct = Math.max(0, Math.min(1, t.hp / t.maxHp));
-			t.hpBar.clear();
-			t.hpBar.fillStyle(0x000000, 0.6);
-			t.hpBar.fillRect(t.sprite.x - w / 2, t.sprite.y - 30, w, 4);
-			t.hpBar.fillStyle(
-				pct > 0.5 ? 0x4ade80 : pct > 0.25 ? 0xfbbf24 : 0xf87171,
-				1,
-			);
-			t.hpBar.fillRect(
-				t.sprite.x - w / 2 + 0.5,
-				t.sprite.y - 29.5,
-				(w - 1) * pct,
-				3,
-			);
+			drawHealthBar(t.hpBar, t.sprite.x, t.sprite.y - 30, t.hp, t.maxHp);
 		}
 	}
 
