@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mapdb.binpb
  * Config: ../mapdb-zod-config.json
- * Generated: 2026-06-13T16:57:56.395Z
+ * Generated: 2026-06-13T17:27:24.546Z
  */
 
 import { z } from 'zod';
@@ -1375,6 +1375,22 @@ export const MapRegistrySchema = z.object({
 });
 
 export type MapRegistry = z.infer<typeof MapRegistrySchema>;
+
+// TileAsset
+export const TileAssetSchema = z.object({
+	id: z.string(),
+	ref: z.string(),
+	name: z.string(),
+	role: z.string(),
+	image: z.string(),
+	tile_size: z.number(),
+	frame_count: z.number(),
+	collides: z.boolean().optional(),
+	biomes: z.array(BiomeSchema).optional(),
+	tags: z.array(z.string()).optional(),
+});
+
+export type TileAsset = z.infer<typeof TileAssetSchema>;
 
 // TilePaletteEntry
 export const TilePaletteEntrySchema = z.object({

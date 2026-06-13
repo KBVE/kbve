@@ -1,15 +1,13 @@
 /**
  * Tile-palette atlas packer.
  *
- * Reads tagged tile manifests (codegen/palettes/<ref>.json) — each declares,
- * per biome, which source tiles fill each semantic TileRole. Slices those
- * tiles out of the source tileset, packs them into a compact per-biome atlas
- * (only the tiles that biome uses), and emits a TilePalette JSON mapping each
- * TileRole -> dense gid in the packed atlas.
- *
- * Bootstrap source is a slice of the monolithic cloud_tileset; later the
- * manifest can point each role at individual tile PNGs without changing the
- * output contract (packed atlas + palette JSON keyed by TileRole number).
+ * Sources tiles from the tiledb catalog (gen-tiledb-data.mjs -> tiledb-data.json)
+ * by ref. Each palette manifest (codegen/palettes/<ref>.json) lists, per biome,
+ * which catalogued tiles fill each TileRole. The packer blits every tile's
+ * sprite (a multi-frame strip when animated) into a compact per-biome atlas and
+ * emits a TilePalette JSON: role -> dense gid, plus per-gid animation + collision
+ * carried through from the catalog. Presentation only — collision authority
+ * still lives in the role grid; the per-gid collision map is a render-side hint.
  *
  *   node packages/data/codegen/gen-palette-atlas.mjs
  */
@@ -21,17 +19,13 @@ import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
+const app = 'apps/cryptothrone/astro-cryptothrone';
 const manifestDir = resolve(__dirname, 'palettes');
-// Packed atlas PNG -> public (Phaser loads it by URL at runtime).
-const atlasDir = resolve(
-	repoRoot,
-	'apps/cryptothrone/astro-cryptothrone/public/assets/map/palettes',
-);
-// Palette JSON -> src (imported by the generators + tests at build time).
-const paletteDir = resolve(
-	repoRoot,
-	'apps/cryptothrone/astro-cryptothrone/src/components/game/data/palettes',
-);
+const atlasDir = resolve(repoRoot, app, 'public/assets/map/palettes');
+const paletteDir = resolve(repoRoot, app, 'src/components/game/data/palettes');
+// Per-tile sprites are catalog assets served by astro-kbve; image paths in
+// tiledb are site-absolute ("/assets/tiledb/<ref>.png").
+const tileAssetRoot = resolve(repoRoot, 'apps/kbve/astro-kbve/public');
 
 // TileRole enum — must match packages/data/proto/map/mapdb.proto.
 const ROLE = {
@@ -49,48 +43,65 @@ const ROLE = {
 	VOID: 11,
 };
 
-async function pack(manifest) {
-	const tile = manifest.tileSize;
-	const srcCols = manifest.source.columns;
-	const srcPath = resolve(repoRoot, manifest.source.image);
+const catalog = new Map(
+	JSON.parse(
+		readFileSync(resolve(__dirname, 'generated/tiledb-data.json'), 'utf8'),
+	).map((t) => [t.ref, t]),
+);
 
-	// Unique source gids across all roles, sorted -> stable dense assignment.
-	const sourceGids = [
-		...new Set(Object.values(manifest.roles).flat()),
-	].sort((a, b) => a - b);
-	const denseOf = new Map(sourceGids.map((g, i) => [g, i + 1])); // 1-based
-
-	const cols = manifest.columns;
-	const n = sourceGids.length;
-	const rows = Math.max(1, Math.ceil(n / cols));
-	const W = cols * tile;
-	const H = rows * tile;
-
-	const { data: src, info } = await sharp(srcPath)
+async function rawTile(image) {
+	return sharp(resolve(tileAssetRoot, image.replace(/^\//, '')))
 		.ensureAlpha()
 		.raw()
 		.toBuffer({ resolveWithObject: true });
-	const sW = info.width;
+}
+
+async function pack(manifest) {
+	const tile = manifest.tileSize;
+	const cols = manifest.columns;
 	const ch = 4;
+
+	// Unique tile refs across roles, sorted -> stable dense gid assignment.
+	const refs = [...new Set(Object.values(manifest.roles).flat())].sort();
+	const tiles = refs.map((ref) => {
+		const t = catalog.get(ref);
+		if (!t) throw new Error(`palette "${manifest.ref}" references unknown tile "${ref}"`);
+		return t;
+	});
+
+	// Each tile occupies frameCount consecutive cells; gid = its first frame.
+	const firstGid = new Map();
+	let cells = 0;
+	for (const t of tiles) {
+		firstGid.set(t.ref, cells + 1); // 1-based
+		cells += Math.max(1, t.frameCount);
+	}
+
+	const rows = Math.max(1, Math.ceil(cells / cols));
+	const W = cols * tile;
+	const H = rows * tile;
 	const out = Buffer.alloc(W * H * ch, 0);
 
-	sourceGids.forEach((gid, idx) => {
-		const sid = gid - 1;
-		const sx = (sid % srcCols) * tile;
-		const sy = Math.floor(sid / srcCols) * tile;
-		const dx = (idx % cols) * tile;
-		const dy = Math.floor(idx / cols) * tile;
-		for (let y = 0; y < tile; y++) {
-			for (let x = 0; x < tile; x++) {
-				const si = ((sy + y) * sW + (sx + x)) * ch;
-				const di = ((dy + y) * W + (dx + x)) * ch;
-				out[di] = src[si];
-				out[di + 1] = src[si + 1];
-				out[di + 2] = src[si + 2];
-				out[di + 3] = src[si + 3];
+	for (const t of tiles) {
+		const { data: src, info } = await rawTile(t.image);
+		const frames = Math.max(1, t.frameCount);
+		const base = firstGid.get(t.ref) - 1;
+		for (let f = 0; f < frames; f++) {
+			const cell = base + f;
+			const dx = (cell % cols) * tile;
+			const dy = Math.floor(cell / cols) * tile;
+			for (let y = 0; y < tile; y++) {
+				for (let x = 0; x < tile; x++) {
+					const si = (y * info.width + (f * tile + x)) * ch;
+					const di = ((dy + y) * W + (dx + x)) * ch;
+					out[di] = src[si];
+					out[di + 1] = src[si + 1];
+					out[di + 2] = src[si + 2];
+					out[di + 3] = src[si + 3];
+				}
 			}
 		}
-	});
+	}
 
 	const atlasName = `${manifest.ref}.atlas.png`;
 	await sharp(out, { raw: { width: W, height: H, channels: ch } })
@@ -98,10 +109,24 @@ async function pack(manifest) {
 		.toFile(resolve(atlasDir, atlasName));
 
 	const entries = {};
-	for (const [roleName, gids] of Object.entries(manifest.roles)) {
+	for (const [roleName, roleRefs] of Object.entries(manifest.roles)) {
 		const num = ROLE[roleName];
 		if (num === undefined) throw new Error(`unknown TileRole "${roleName}"`);
-		entries[num] = gids.map((g) => denseOf.get(g));
+		entries[num] = roleRefs.map((r) => firstGid.get(r));
+	}
+
+	const animations = {};
+	const collision = {};
+	for (const t of tiles) {
+		const g = firstGid.get(t.ref);
+		collision[g] = t.collides;
+		if (t.frameCount > 1) {
+			animations[g] = {
+				frames: Array.from({ length: t.frameCount }, (_, i) => g + i),
+				frameDurations: t.animation?.frameDurations,
+				loop: t.animation?.loop ?? true,
+			};
+		}
 	}
 
 	const palette = {
@@ -111,23 +136,24 @@ async function pack(manifest) {
 		tileSize: tile,
 		tilesetImage: `palettes/${atlasName}`,
 		tilesetColumns: cols,
-		tileCount: n,
+		tileCount: cells,
 		entries,
+		animations,
+		collision,
 	};
 	writeFileSync(
 		resolve(paletteDir, `${manifest.ref}.palette.json`),
 		`${JSON.stringify(palette, null, '\t')}\n`,
 	);
 	console.log(
-		`  ✓ ${manifest.ref}: ${n} tiles -> ${atlasName} (${W}x${H}) + ${manifest.ref}.palette.json`,
+		`  ✓ ${manifest.ref}: ${refs.length} tiles / ${cells} cells -> ${atlasName} (${W}x${H}); ${Object.keys(animations).length} animated`,
 	);
 }
 
 mkdirSync(atlasDir, { recursive: true });
 mkdirSync(paletteDir, { recursive: true });
 const manifests = readdirSync(manifestDir).filter((f) => f.endsWith('.json'));
-console.log(`Packing ${manifests.length} palette(s)...`);
+console.log(`Packing ${manifests.length} palette(s) from ${catalog.size} catalogued tiles...`);
 for (const f of manifests) {
-	const manifest = JSON.parse(readFileSync(resolve(manifestDir, f), 'utf8'));
-	await pack(manifest);
+	await pack(JSON.parse(readFileSync(resolve(manifestDir, f), 'utf8')));
 }
