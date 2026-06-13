@@ -1,6 +1,5 @@
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashSet, VecDeque};
 
-use bevy::ecs::entity::Entity;
 use bevy::prelude::{Component, Resource};
 use serde::Deserialize;
 
@@ -202,33 +201,6 @@ impl WalkableMap {
         }
         path.reverse();
         Some(path)
-    }
-}
-
-#[derive(Resource, Default)]
-pub struct Occupancy {
-    by_tile: HashMap<Tile, Entity>,
-}
-
-impl Occupancy {
-    pub fn clear(&mut self) {
-        self.by_tile.clear();
-    }
-
-    pub fn occupant(&self, tile: Tile) -> Option<Entity> {
-        self.by_tile.get(&tile).copied()
-    }
-
-    pub fn is_free(&self, tile: Tile) -> bool {
-        !self.by_tile.contains_key(&tile)
-    }
-
-    pub fn set(&mut self, tile: Tile, entity: Entity) {
-        self.by_tile.insert(tile, entity);
-    }
-
-    pub fn remove(&mut self, tile: Tile) {
-        self.by_tile.remove(&tile);
     }
 }
 
