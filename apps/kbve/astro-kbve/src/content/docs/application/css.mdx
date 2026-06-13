@@ -1017,6 +1017,77 @@ Other quick wins: keep text contrast at WCAG AA (4.5:1 for body copy), never con
 
 ---
 
+## Forms & Inputs
+
+Forms carry the most CSS edge cases — native controls, focus states and validation feedback. Modern CSS handles most of it without JavaScript.
+
+### Theming native controls
+
+`accent-color` recolors checkboxes, radios, range sliders and progress bars in one line — no custom markup.
+
+export const accentCode = `<form class="flex flex-col gap-4 p-8 max-w-sm bg-white rounded-lg" style="accent-color:#06b6d4">
+  <label class="flex items-center gap-2 text-gray-800"><input type="checkbox" checked> Remember me</label>
+  <div class="flex gap-4 text-gray-800">
+    <label class="flex items-center gap-2"><input type="radio" name="plan" checked> Free</label>
+    <label class="flex items-center gap-2"><input type="radio" name="plan"> Pro</label>
+  </div>
+  <input type="range" min="0" max="100" value="60">
+  <progress value="0.6"></progress>
+</form>`;
+
+<DevCode htmlCode={accentCode} />
+
+### Validation states
+
+`:user-invalid` and `:user-valid` only react **after** the user has interacted with a field — unlike `:invalid`, which fires on page load before anyone has typed. This is the correct hook for inline error styling.
+
+export const validationCode = `<form class="flex flex-col gap-4 p-8 max-w-sm bg-white rounded-lg">
+  <div class="flex flex-col gap-1">
+    <label class="text-sm font-medium text-gray-700">Email (try an invalid one)</label>
+    <input type="email" required placeholder="you@example.com"
+      class="px-3 py-2 text-gray-800 bg-white border-2 rounded-md outline-none border-gray-300 focus:border-cyan-500 user-invalid:border-red-500 user-valid:border-green-500">
+  </div>
+</form>`;
+
+<DevCode htmlCode={validationCode} />
+
+<Aside>
+Tailwind exposes these as the `user-invalid:` and `user-valid:` variants. The pure-CSS form is `input:user-invalid { border-color: red; }`.
+</Aside>
+
+### Input group with leading icon
+
+export const inputGroupCode = `<form class="p-8 max-w-sm bg-gray-50 rounded-lg">
+  <div class="relative">
+    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+    </span>
+    <input type="search" placeholder="Search…"
+      class="w-full py-2 pl-10 pr-4 text-gray-800 bg-white border border-gray-300 rounded-lg outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200">
+  </div>
+</form>`;
+
+<DevCode htmlCode={inputGroupCode} />
+
+### Floating label
+
+A label that rides above the field once it has focus or content — driven by `:placeholder-shown` and `peer`, no JavaScript.
+
+export const floatingLabelCode = `<form class="p-8 max-w-sm bg-white rounded-lg">
+  <div class="relative">
+    <input id="name" type="text" placeholder=" "
+      class="block w-full px-3 pt-5 pb-2 text-gray-800 bg-transparent border-2 rounded-md outline-none peer border-gray-300 focus:border-cyan-500">
+    <label for="name"
+      class="absolute text-gray-500 duration-200 transform -translate-y-3 scale-75 top-3 left-3 origin-[0] peer-placeholder-shown:translate-y-0 peer-placeholder-shown:scale-100 peer-focus:-translate-y-3 peer-focus:scale-75 peer-focus:text-cyan-600">
+      Full name
+    </label>
+  </div>
+</form>`;
+
+<DevCode htmlCode={floatingLabelCode} />
+
+---
+
 ## Custom Components
 
 Reusable visual effects. Text-effect snippets use arbitrary values (`[text-shadow:...]`) so they render on any Tailwind build, with the native v4 utility noted alongside.
@@ -1202,6 +1273,74 @@ export const badgeCode = `<div class="flex flex-wrap items-center gap-3 p-10 bg-
 </div>`;
 
 <DevCode htmlCode={badgeCode} />
+
+---
+
+### Accordion
+
+The native `<details>` / `<summary>` element is an accordion with zero JavaScript — open state, keyboard support and accessibility are built in. Style the marker and the open state with the `open` attribute and `details[open]`.
+
+export const accordionCode = `<div class="max-w-md p-4 space-y-2 bg-gray-50 rounded-lg">
+  <details class="p-4 bg-white rounded-lg shadow-sm group" open>
+    <summary class="flex items-center justify-between font-medium text-gray-800 cursor-pointer list-none">
+      What is TailwindCSS?
+      <svg class="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </summary>
+    <p class="mt-3 text-sm text-gray-600">A utility-first CSS framework for composing designs directly in your markup.</p>
+  </details>
+  <details class="p-4 bg-white rounded-lg shadow-sm group">
+    <summary class="flex items-center justify-between font-medium text-gray-800 cursor-pointer list-none">
+      Does it need JavaScript?
+      <svg class="w-5 h-5 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </summary>
+    <p class="mt-3 text-sm text-gray-600">No — this accordion is pure HTML and CSS via the details element.</p>
+  </details>
+</div>`;
+
+<DevCode htmlCode={accordionCode} />
+
+<Aside>
+`list-none` (plus `summary::-webkit-details-marker { display:none }` in CSS) hides the default disclosure triangle so you can supply your own chevron.
+</Aside>
+
+---
+
+### Alert Banners
+
+export const alertCode = `<div class="max-w-md p-6 space-y-3 bg-gray-50">
+  <div class="flex gap-3 p-4 border-l-4 rounded-md bg-green-50 border-green-500">
+    <span class="font-bold text-green-600">✓</span>
+    <p class="text-sm text-green-800">Saved successfully.</p>
+  </div>
+  <div class="flex gap-3 p-4 border-l-4 rounded-md bg-amber-50 border-amber-500">
+    <span class="font-bold text-amber-600">!</span>
+    <p class="text-sm text-amber-800">Your session expires soon.</p>
+  </div>
+  <div class="flex gap-3 p-4 border-l-4 rounded-md bg-red-50 border-red-500">
+    <span class="font-bold text-red-600">✕</span>
+    <p class="text-sm text-red-800">Something went wrong.</p>
+  </div>
+</div>`;
+
+<DevCode htmlCode={alertCode} />
+
+---
+
+### Progress Bar
+
+export const progressCode = `<div class="max-w-md p-8 space-y-5 bg-white">
+  <div class="w-full h-2 overflow-hidden bg-gray-200 rounded-full">
+    <div class="h-full rounded-full bg-cyan-500" style="width:70%"></div>
+  </div>
+  <div class="w-full h-3 overflow-hidden bg-gray-200 rounded-full">
+    <div class="h-full rounded-full bg-gradient-to-r from-cyan-500 to-fuchsia-500" style="width:45%"></div>
+  </div>
+  <div class="relative w-full h-4 overflow-hidden bg-gray-200 rounded-full">
+    <div class="flex items-center justify-end h-full pr-2 text-xs font-medium text-white rounded-full bg-emerald-500" style="width:88%">88%</div>
+  </div>
+</div>`;
+
+<DevCode htmlCode={progressCode} />
 
 ---
 
