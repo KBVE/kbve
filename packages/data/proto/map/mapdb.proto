@@ -1373,6 +1373,24 @@ message TilePalette {
   repeated TilePaletteEntry entries = 8;
 }
 
+// A single catalogued tile — one sliced sprite with its semantic role,
+// collision, animation, and biome tags. Source of truth is the tiledb astro
+// collection (one MDX per tile); the palette packer sources tiles by ref.
+// Animation framing + render hints are layered in the Astro schema (like
+// WorldObjectDef), so this proto holds the cross-consumer core.
+message TileAsset {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  TileRole role = 4;
+  string image = 5;                 // per-tile sprite path (relative to assets)
+  int32 tile_size = 6;              // px per frame (square)
+  int32 frame_count = 7;            // 1 = static; >1 = animated strip
+  optional bool collides = 8;       // per-tile override of the role default
+  repeated Biome biomes = 9;        // palettes this tile may appear in
+  repeated string tags = 10;
+}
+
 // =============================================================================
 // Sub-messages — Identity & Banners (faction + settlement visual identity)
 // =============================================================================

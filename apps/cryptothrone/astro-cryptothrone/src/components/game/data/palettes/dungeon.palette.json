@@ -5,7 +5,7 @@
 	"tileSize": 16,
 	"tilesetImage": "palettes/dungeon.atlas.png",
 	"tilesetColumns": 8,
-	"tileCount": 7,
+	"tileCount": 8,
 	"entries": {
 		"1": [2],
 		"2": [2],
@@ -14,8 +14,24 @@
 		"5": [3, 4, 5, 6],
 		"6": [3, 5],
 		"7": [2],
-		"8": [1],
+		"8": [7],
 		"9": [2],
-		"10": [7]
+		"10": [1]
+	},
+	"animations": {
+		"7": {
+			"frames": [7, 8],
+			"frameDurations": [0.5, 0.5],
+			"loop": true
+		}
+	},
+	"collision": {
+		"1": true,
+		"2": false,
+		"3": true,
+		"4": true,
+		"5": true,
+		"6": true,
+		"7": true
 	}
 }

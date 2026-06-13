@@ -182,12 +182,45 @@
 			},
 			"cache": true
 		},
+		"sync:tiles": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-tile-slices.mjs",
+				"{workspaceRoot}/packages/data/codegen/tiles/tiles.manifest.json",
+				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_tileset.png"
+			],
+			"outputs": [
+				"{projectRoot}/public/assets/tiledb",
+				"{projectRoot}/src/content/docs/tiledb"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-tile-slices.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:tiledb": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-tiledb-data.mjs",
+				"{projectRoot}/src/content/docs/tiledb/*.mdx"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated/tiledb-data.json"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-tiledb-data.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:palettes": {
 			"executor": "nx:run-commands",
 			"inputs": [
 				"{workspaceRoot}/packages/data/codegen/gen-palette-atlas.mjs",
 				"{workspaceRoot}/packages/data/codegen/palettes/*.json",
-				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_tileset.png"
+				"{workspaceRoot}/packages/data/codegen/generated/tiledb-data.json",
+				"{projectRoot}/public/assets/tiledb"
 			],
 			"outputs": [
 				"{workspaceRoot}/apps/cryptothrone/astro-cryptothrone/public/assets/map/palettes",
@@ -215,6 +248,29 @@
 			],
 			"options": {
 				"command": "node packages/data/codegen/gen-mapdb-data.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:mapdb-zod": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["devops:build"],
+			"inputs": [
+				"{workspaceRoot}/packages/data/proto/map/mapdb.proto",
+				"{workspaceRoot}/packages/data/proto/kbve/common.proto",
+				"{workspaceRoot}/packages/data/codegen/mapdb-zod-config.json",
+				"{workspaceRoot}/packages/data/codegen/gen-mapdb-zod.mjs"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/descriptors/mapdb.binpb",
+				"{workspaceRoot}/packages/data/codegen/generated/mapdb-schema.ts"
+			],
+			"options": {
+				"commands": [
+					"protoc --include_imports --descriptor_set_out=packages/data/codegen/descriptors/mapdb.binpb --proto_path=packages/data/proto map/mapdb.proto",
+					"npx tsx packages/data/codegen/gen-mapdb-zod.mjs"
+				],
+				"parallel": false,
 				"cwd": "{workspaceRoot}"
 			},
 			"cache": true

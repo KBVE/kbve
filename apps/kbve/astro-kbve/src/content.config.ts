@@ -11,6 +11,7 @@ import {
 	IQuestSchema,
 	IMapObjectSchema,
 	INpcSchema,
+	ITileSchema,
 	OSRSExtendedSchema,
 	ICiProjectSchema,
 	MCItemSchema,
@@ -182,6 +183,14 @@ const npcdb = defineCollection({
 	schema: INpcSchema,
 });
 
+const tiledb = defineCollection({
+	loader: glob({
+		pattern: '**/*.mdx',
+		base: './src/content/docs/tiledb',
+	}),
+	schema: ITileSchema,
+});
+
 export const collections = {
 	docs: defineCollection({
 		loader: docsLoader(),
@@ -257,4 +266,5 @@ export const collections = {
 	gdd,
 	project,
 	mapdb,
+	tiledb,
 };

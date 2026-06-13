@@ -4,20 +4,21 @@
 	"biome": "BIOME_CITY",
 	"tileSize": 16,
 	"columns": 8,
-	"source": {
-		"image": "apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_tileset.png",
-		"columns": 45
-	},
 	"roles": {
-		"GROUND": [368],
-		"PLAZA": [368],
-		"ROAD": [368],
-		"GRASS": [368],
-		"DOOR": [368],
-		"PROP": [368],
-		"WALL": [518, 519, 524, 526],
-		"ROOF": [484, 485, 486],
-		"PROP_SOLID": [1112],
-		"WATER": [108]
+		"GROUND": ["ground-stone"],
+		"PLAZA": ["ground-stone"],
+		"ROAD": ["ground-stone"],
+		"GRASS": ["ground-stone"],
+		"DOOR": ["ground-stone"],
+		"PROP": ["ground-stone"],
+		"WALL": [
+			"wall-stone-a",
+			"wall-stone-b",
+			"wall-stone-c",
+			"wall-stone-d"
+		],
+		"ROOF": ["roof-tile-a", "roof-tile-b", "roof-tile-c"],
+		"PROP_SOLID": ["bush"],
+		"WATER": ["water"]
 	}
 }

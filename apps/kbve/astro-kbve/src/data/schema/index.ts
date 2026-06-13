@@ -1,6 +1,7 @@
 export * from './IObjectSchema';
 export * from './IQuestSchema';
 export * from './IMapSchema';
+export * from './ITileSchema';
 export * from './INpcSchema';
 export * from './osrs';
 export * from './mc';

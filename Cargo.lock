@@ -1633,7 +1633,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.196"
+version = "1.0.197"
 dependencies = [
  "anyhow",
  "askama 0.16.0",
@@ -4852,7 +4852,7 @@ dependencies = [
 
 [[package]]
 name = "cryptothrone-server"
-version = "0.0.11"
+version = "0.0.12"
 dependencies = [
  "agones",
  "axum 0.7.9",

@@ -56,5 +56,7 @@ export async function warmRoutes(
 	paths: string[],
 	timeoutMs = DEFAULT_WARM_TIMEOUT_MS,
 ): Promise<void> {
-	await Promise.all(paths.map((p) => warmRoute(p, timeoutMs)));
+	for (const p of paths) {
+		await warmRoute(p, timeoutMs);
+	}
 }
