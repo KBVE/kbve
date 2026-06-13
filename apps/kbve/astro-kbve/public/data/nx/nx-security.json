@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-06-12T09:36:23Z",
+  "generated_at": "2026-06-13T09:14:45Z",
   "summary": {
     "critical": 4,
-    "high": 48,
-    "medium": 62,
-    "low": 29,
+    "high": 49,
+    "medium": 65,
+    "low": 30,
     "info": 30
   },
   "ecosystems": {
     "npm": {
-      "total": 67,
+      "total": 69,
       "severities": {
         "critical": 2,
-        "high": 30,
+        "high": 31,
         "medium": 32,
-        "low": 3,
+        "low": 4,
         "info": 0
       },
       "advisories": [
@@ -376,46 +376,11 @@
           "url": "https://github.com/advisories/GHSA-q8mj-m7cp-5q26"
         },
         {
-          "id": "1119610",
-          "title": "tmp has Path Traversal via unsanitized prefix/postfix that enables directory escape",
-          "severity": "high",
-          "package": "tmp",
-          "url": "https://github.com/advisories/GHSA-ph9p-34f9-6g65"
-        },
-        {
           "id": "1119667",
           "title": "axios's shouldBypassProxy does not recognize IPv4-mapped IPv6 addresses, allowing NO_PROXY bypass (incomplete fix for CVE-2025-62718)",
           "severity": "high",
           "package": "axios",
           "url": "https://github.com/advisories/GHSA-pjwm-pj3p-43mv"
-        },
-        {
-          "id": "1119669",
-          "title": "axios has DoS & Header Injection via Prototype Pollution Read-Side Gadgets in axios merge functions",
-          "severity": "medium",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-898c-q2cr-xwhg"
-        },
-        {
-          "id": "1120074",
-          "title": "Allocation of Resources Without Limits or Throttling in Axios",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-777c-7fjr-54vf"
-        },
-        {
-          "id": "1120076",
-          "title": "Axios: Proxy-Authorization Credential Leak to Origin Server Across HTTP-to-HTTPS Redirect in Axios Node.js HTTP Adapter",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-p92q-9vqr-4j8v"
-        },
-        {
-          "id": "1120078",
-          "title": "Axios: Proxy-Authorization header leaks to redirect target when proxy is re-evaluated to direct connection",
-          "severity": "high",
-          "package": "axios",
-          "url": "https://github.com/advisories/GHSA-j5f8-grm9-p9fc"
         },
         {
           "id": "1120125",
@@ -467,34 +432,83 @@
           "url": "https://github.com/advisories/GHSA-hfxv-24rg-xrqf"
         },
         {
-          "id": "1120549",
+          "id": "1120643",
+          "title": "Allocation of Resources Without Limits or Throttling in Axios",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-777c-7fjr-54vf"
+        },
+        {
+          "id": "1120645",
+          "title": "Axios: Proxy-Authorization Credential Leak to Origin Server Across HTTP-to-HTTPS Redirect in Axios Node.js HTTP Adapter",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-p92q-9vqr-4j8v"
+        },
+        {
+          "id": "1120647",
+          "title": "Axios: Proxy-Authorization header leaks to redirect target when proxy is re-evaluated to direct connection",
+          "severity": "high",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-j5f8-grm9-p9fc"
+        },
+        {
+          "id": "1120649",
           "title": "axios Vulnerable to Credential Theft and Response Hijacking via Prototype Pollution Gadget in Config Merge",
           "severity": "high",
           "package": "axios",
           "url": "https://github.com/advisories/GHSA-3g43-6gmg-66jw"
         },
         {
-          "id": "1120550",
+          "id": "1120650",
           "title": "axios Vulnerable to Full Man-in-the-Middle via Prototype Pollution Gadget in `config.proxy`",
           "severity": "high",
           "package": "axios",
           "url": "https://github.com/advisories/GHSA-35jp-ww65-95wh"
         },
         {
-          "id": "1120594",
+          "id": "1120652",
+          "title": "axios has DoS & Header Injection via Prototype Pollution Read-Side Gadgets in axios merge functions",
+          "severity": "medium",
+          "package": "axios",
+          "url": "https://github.com/advisories/GHSA-898c-q2cr-xwhg"
+        },
+        {
+          "id": "1120654",
+          "title": "tmp has Path Traversal via unsanitized prefix/postfix that enables directory escape",
+          "severity": "high",
+          "package": "tmp",
+          "url": "https://github.com/advisories/GHSA-ph9p-34f9-6g65"
+        },
+        {
+          "id": "1120656",
           "title": "joi has an uncaught RangeError on deeply nested input through recursive `link()` schemas",
           "severity": "medium",
           "package": "joi",
           "url": "https://github.com/advisories/GHSA-q7cg-457f-vx79"
+        },
+        {
+          "id": "1120679",
+          "title": "esbuild: Missing binary integrity verification in Deno module enables remote code execution via NPM_CONFIG_REGISTRY",
+          "severity": "high",
+          "package": "esbuild",
+          "url": "https://github.com/advisories/GHSA-gv7w-rqvm-qjhr"
+        },
+        {
+          "id": "1120680",
+          "title": "esbuild allows arbitrary file read when running the development server on Windows",
+          "severity": "low",
+          "package": "esbuild",
+          "url": "https://github.com/advisories/GHSA-g7r4-m6w7-qqqr"
         }
       ]
     },
     "cargo": {
-      "total": 45,
+      "total": 48,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 15,
+        "medium": 18,
         "low": 0,
         "info": 30
       },
@@ -512,6 +526,20 @@
           "severity": "medium",
           "package": "hickory-proto",
           "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp"
+        },
+        {
+          "id": "RUSTSEC-2026-0179",
+          "title": "Unbounded SCRAM iteration count allows a malicious server to cause CPU-exhaustion denial of service",
+          "severity": "medium",
+          "package": "postgres-protocol",
+          "url": "https://github.com/rust-postgres/rust-postgres/commit/d40097a36a85068ea50a3afbf0ce154ba439e7f0"
+        },
+        {
+          "id": "RUSTSEC-2026-0180",
+          "title": "Panic decoding a malformed `hstore` value allows denial of service",
+          "severity": "medium",
+          "package": "postgres-protocol",
+          "url": "https://github.com/rust-postgres/rust-postgres/commit/a7cf84b5c46431cbca9d8ff50508c23f446efa7d"
         },
         {
           "id": "RUSTSEC-2023-0071",
@@ -603,6 +631,13 @@
           "severity": "medium",
           "package": "steamworks",
           "url": "https://github.com/Noxime/steamworks-rs/issues/321"
+        },
+        {
+          "id": "RUSTSEC-2026-0178",
+          "title": "Panic on a `DataRow` with fewer fields than columns allows denial of service",
+          "severity": "medium",
+          "package": "tokio-postgres",
+          "url": "https://github.com/rust-postgres/rust-postgres/commit/7a00ffa9ad4d951ec0a4564b52f1780fa9d353c1"
         },
         {
           "id": "RUSTSEC-2024-0413",
