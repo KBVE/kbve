@@ -59,6 +59,7 @@ rustls = { version = "0.23", optional = true, default-features = false, features
 webpki-roots = { version = "0.26", optional = true }
 url = { version = "2", optional = true }
 uuid = { version = "1", optional = true, features = ["serde", "v4"] }
+rustls-pemfile = { version = "2", optional = true }
 fred = { version = "10", features = [
   "i-keys", "i-pubsub", "i-std", "subscriber-client",
   "serde-json", "i-server", "i-scripts", "i-streams",
@@ -101,6 +102,7 @@ postgres = [
     "dep:bb8-postgres",
     "dep:tokio-postgres-rustls",
     "dep:rustls",
+    "dep:rustls-pemfile",
     "dep:webpki-roots",
     "dep:url",
     "dep:uuid",
