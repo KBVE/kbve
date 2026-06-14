@@ -12,6 +12,7 @@ pub async fn init_kv_cache() -> bool {
     KV_CACHE.set(cache).is_ok()
 }
 
+#[allow(dead_code)]
 pub fn get_kv_cache() -> Option<&'static Arc<KvCache>> {
     KV_CACHE.get()
 }

@@ -510,6 +510,7 @@ impl PgCluster {
     /// can purge every key carrying the tag. Tags are derived from
     /// the fetched value via `tag_fn`, so callers don't need to know
     /// the response shape at call time.
+    #[allow(clippy::too_many_arguments)]
     pub async fn cached_caller_read_tagged<T, F, TagFn>(
         self: &Arc<Self>,
         cache: &Arc<crate::state::kv::KvCache>,
