@@ -16,7 +16,7 @@ bevy = { version = "0.18", default-features = false, features = [
     "bevy_state",
     "keyboard",
 ] }
-avian3d = { version = "0.5", default-features = false, features = [
+avian3d = { version = "0.6", default-features = false, features = [
     "3d",
     "f32",
     "parry-f32",
