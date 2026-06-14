@@ -1,6 +1,14 @@
-import type { AgentServerEvent, EffectExecutor } from '@kbve/core';
+import type {
+	AgentServerEvent,
+	CoreEffect,
+	CoreEvent,
+	EffectExecutor,
+} from '@kbve/core';
 
-export function createWebSocketExecutor(): EffectExecutor {
+export function createWebSocketExecutor(): EffectExecutor<
+	CoreEffect,
+	CoreEvent
+> {
 	let socket: WebSocket | null = null;
 	return {
 		execute(effect, dispatch) {

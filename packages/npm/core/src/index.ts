@@ -4,3 +4,4 @@ export * from './types';
 export * from './state';
 export * from './reducer';
 export * from './store';
+export * from './auth';
