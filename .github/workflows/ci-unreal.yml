@@ -88,6 +88,9 @@ jobs:
             shell_path: ${{ fromJSON(inputs.engine).shell_path }}
             server_target: ${{ fromJSON(inputs.engine).server_target }}
             server_config: ${{ fromJSON(inputs.engine).server_config }}
+            external_repo_url: ${{ fromJSON(inputs.engine).external_repo_url }}
+            external_repo_ref: ${{ fromJSON(inputs.engine).external_repo_ref }}
+            project_path: ${{ fromJSON(inputs.engine).project_path }}
             manifest_version: ${{ fromJSON(inputs.version).manifest }}
             version_source: ${{ fromJSON(inputs.version).source }}
             version_toml: ${{ fromJSON(inputs.version).toml }}

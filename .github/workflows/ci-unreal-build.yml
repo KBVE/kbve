@@ -395,48 +395,87 @@ jobs:
               with:
                   lfs: false
 
-            - name: Pull game LFS (Forgejo) + materialize project
+            - name: Clone external game repo + materialize project
               env:
+                  GH_TOKEN: ${{ steps.pat.outputs.token }}
                   FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
               run: |
-                  PROJ="${{ inputs.shell_path }}"
-                  if [ ! -f "${PROJ}/.lfsconfig" ]; then
-                    echo "::error::${PROJ}/.lfsconfig not found - cannot resolve game LFS endpoint"
+                  SLUG="${{ inputs.external_repo_url }}"
+                  SLUG="${SLUG#https://github.com/}"
+                  SLUG="${SLUG#git@github.com:}"
+                  SLUG="${SLUG%.git}"
+                  SUBDIR="${{ inputs.project_path }}"
+                  REF="${{ inputs.external_repo_ref }}"
+                  echo "::notice::Cloning external game repo ${SLUG} (${REF:-default branch}), subdir '${SUBDIR}'"
+                  rm -rf /tmp/game-clone /tmp/game-project
+
+                  GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 ${REF:+--branch "${REF}"} \
+                    "https://x-access-token:${GH_TOKEN}@github.com/${SLUG}.git" /tmp/game-clone
+
+                  cd /tmp/game-clone
+
+                  if [ -n "${SUBDIR}" ] && [ "${SUBDIR}" != "." ]; then
+                    INCLUDE="${SUBDIR}/**"
+                    SRC="/tmp/game-clone/${SUBDIR}"
+                  else
+                    INCLUDE="**"
+                    SRC="/tmp/game-clone"
+                  fi
+
+                  RAW_LFS=""
+                  [ -f .lfsconfig ] && RAW_LFS=$(git config -f .lfsconfig lfs.url 2>/dev/null || true)
+                  case "${RAW_LFS}" in
+                    *forgejo.kbve.com/*|*git.kbve.com/*)
+                      if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
+                        echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing - cannot pull LFS from git.kbve.com"
+                        exit 1
+                      fi
+                      echo "::add-mask::${FORGEJO_TOKEN}"
+                      REPO_PATH="${RAW_LFS#ssh://}"; REPO_PATH="${REPO_PATH#https://}"; REPO_PATH="${REPO_PATH#http://}"
+                      REPO_PATH="${REPO_PATH#*@}"
+                      REPO_PATH="${REPO_PATH#*/}"
+                      REPO_PATH="${REPO_PATH%/}"
+                      case "${REPO_PATH}" in
+                        */info/lfs) ;;
+                        *.git) REPO_PATH="${REPO_PATH}/info/lfs" ;;
+                        *) REPO_PATH="${REPO_PATH%.git}.git/info/lfs" ;;
+                      esac
+                      AUTH_LFS="https://${FORGEJO_USER}:${FORGEJO_TOKEN}@git.kbve.com/${REPO_PATH}"
+                      echo "::notice::Pulling LFS (${INCLUDE}) from git.kbve.com/${REPO_PATH} (normalized from ${RAW_LFS})"
+                      git -c lfs.url="${AUTH_LFS}" lfs install --local
+                      git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"
+                      ;;
+                    *)
+                      echo "::notice::Pulling LFS (${INCLUDE}) from origin (GitHub-native)"
+                      git lfs install --local
+                      git lfs pull --include="${INCLUDE}"
+                      ;;
+                  esac
+
+                  if [ ! -d "${SRC}" ]; then
+                    echo "::error::project_path '${SUBDIR}' not found in ${SLUG}"
                     exit 1
                   fi
-                  if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
-                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing - cannot pull LFS from git.kbve.com"
-                    exit 1
-                  fi
-                  echo "::add-mask::${FORGEJO_TOKEN}"
-                  LFS_URL=$(git config -f "${PROJ}/.lfsconfig" lfs.url)
-                  AUTH_URL="${LFS_URL/https:\/\//https://${FORGEJO_USER}:${FORGEJO_TOKEN}@}"
-                  echo "::notice::Pulling LFS for ${PROJ} from ${LFS_URL}"
-                  git -c lfs.url="${AUTH_URL}" lfs install --local
-                  git -c lfs.url="${AUTH_URL}" lfs pull --include="${PROJ}/**"
-                  rm -rf /tmp/game-project
                   mkdir -p /tmp/game-project
-                  cp -r "${PROJ}/." /tmp/game-project/
+                  cp -r "${SRC}/." /tmp/game-project/
 
             - name: Build dedicated server
               env:
-                  PROJECT_PATH: ${{ needs.server_config.outputs.project_path }}
                   SERVER_TARGET: ${{ needs.server_config.outputs.server_target }}
                   SERVER_CONFIG: ${{ needs.server_config.outputs.server_config }}
               run: |
                   mkdir -p /tmp/ue5-build-output
 
-                  UPROJECT_DIR=$(dirname "${PROJECT_PATH}")
-                  UPROJECT_FILE=$(basename "${PROJECT_PATH}")
-
-                  if [ "${UPROJECT_DIR}" = "." ]; then
-                    PROJECT_MOUNT="/tmp/game-project"
-                  else
-                    PROJECT_MOUNT="/tmp/game-project/${UPROJECT_DIR}"
+                  UPROJECT_FILE=$(find /tmp/game-project -maxdepth 1 -name '*.uproject' | head -1)
+                  if [ -z "${UPROJECT_FILE}" ]; then
+                    echo "::error::No .uproject at /tmp/game-project root (materialized from external repo)"
+                    exit 1
                   fi
+                  UPROJECT_FILE=$(basename "${UPROJECT_FILE}")
+                  PROJECT_MOUNT="/tmp/game-project"
 
-                  echo "::notice::Mounting ${PROJECT_MOUNT} -> /project, building ${UPROJECT_FILE}"
+                  echo "::notice::Mounting ${PROJECT_MOUNT} -> /project, building ${UPROJECT_FILE} (target ${SERVER_TARGET})"
 
                   docker run --rm \
                     -v "${PROJECT_MOUNT}:/project" \
