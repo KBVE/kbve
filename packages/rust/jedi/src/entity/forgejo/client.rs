@@ -12,6 +12,7 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use std::time::Duration;
 
+use super::policy::ForgejoPolicy;
 use super::types::*;
 use crate::entity::error::JediError;
 
@@ -22,6 +23,7 @@ pub struct ForgejoClient {
     client: Client,
     token: String,
     base_url: String,
+    policy: ForgejoPolicy,
 }
 
 impl ForgejoClient {
@@ -37,7 +39,15 @@ impl ForgejoClient {
             client,
             token: token.to_string(),
             base_url: base_url.trim_end_matches('/').to_string(),
+            policy: ForgejoPolicy::open(),
         }
+    }
+
+    /// Restrict owner-scoped mutations to the policy's allowlist. Reads and
+    /// admin-global ops (user CRUD, cron, unadopted) are unaffected.
+    pub fn with_policy(mut self, policy: ForgejoPolicy) -> Self {
+        self.policy = policy;
+        self
     }
 
     // ── Core helpers ─────────────────────────────────────────────────
@@ -174,6 +184,7 @@ impl ForgejoClient {
         user: &str,
         body: &Value,
     ) -> Result<ForgejoRepo, JediError> {
+        self.policy.check_owner(user)?;
         self.write(
             Method::POST,
             &format!("/api/v1/admin/users/{user}/repos"),
@@ -187,6 +198,7 @@ impl ForgejoClient {
         org: &str,
         body: &Value,
     ) -> Result<ForgejoRepo, JediError> {
+        self.policy.check_owner(org)?;
         self.write(
             Method::POST,
             &format!("/api/v1/orgs/{org}/repos"),
@@ -201,6 +213,7 @@ impl ForgejoClient {
         repo: &str,
         body: &Value,
     ) -> Result<ForgejoRepo, JediError> {
+        self.policy.check_owner(owner)?;
         self.write(
             Method::PATCH,
             &format!("/api/v1/repos/{owner}/{repo}"),
@@ -210,6 +223,7 @@ impl ForgejoClient {
     }
 
     pub async fn delete_repo(&self, owner: &str, repo: &str) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::DELETE,
             &format!("/api/v1/repos/{owner}/{repo}"),
@@ -224,6 +238,7 @@ impl ForgejoClient {
         repo: &str,
         body: &Value,
     ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::POST,
             &format!("/api/v1/repos/{owner}/{repo}/transfer"),
@@ -292,6 +307,7 @@ impl ForgejoClient {
         user: &str,
         body: &Value,
     ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::PUT,
             &format!("/api/v1/repos/{owner}/{repo}/collaborators/{user}"),
@@ -306,6 +322,7 @@ impl ForgejoClient {
         repo: &str,
         user: &str,
     ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::DELETE,
             &format!("/api/v1/repos/{owner}/{repo}/collaborators/{user}"),
@@ -360,11 +377,13 @@ impl ForgejoClient {
     }
 
     pub async fn edit_org(&self, org: &str, body: &Value) -> Result<ForgejoOrg, JediError> {
+        self.policy.check_owner(org)?;
         self.write(Method::PATCH, &format!("/api/v1/orgs/{org}"), Some(body))
             .await
     }
 
     pub async fn delete_org(&self, org: &str) -> Result<(), JediError> {
+        self.policy.check_owner(org)?;
         self.write_empty(Method::DELETE, &format!("/api/v1/orgs/{org}"), None)
             .await
     }
@@ -382,6 +401,7 @@ impl ForgejoClient {
     }
 
     pub async fn remove_org_member(&self, org: &str, user: &str) -> Result<(), JediError> {
+        self.policy.check_owner(org)?;
         self.write_empty(
             Method::DELETE,
             &format!("/api/v1/orgs/{org}/members/{user}"),
@@ -399,6 +419,7 @@ impl ForgejoClient {
     }
 
     pub async fn create_team(&self, org: &str, body: &Value) -> Result<ForgejoTeam, JediError> {
+        self.policy.check_owner(org)?;
         self.write(
             Method::POST,
             &format!("/api/v1/orgs/{org}/teams"),
@@ -463,6 +484,7 @@ impl ForgejoClient {
         repo: &str,
         body: &Value,
     ) -> Result<ForgejoHook, JediError> {
+        self.policy.check_owner(owner)?;
         self.write(
             Method::POST,
             &format!("/api/v1/repos/{owner}/{repo}/hooks"),
@@ -472,6 +494,7 @@ impl ForgejoClient {
     }
 
     pub async fn delete_hook(&self, owner: &str, repo: &str, id: u64) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::DELETE,
             &format!("/api/v1/repos/{owner}/{repo}/hooks/{id}"),
@@ -481,6 +504,7 @@ impl ForgejoClient {
     }
 
     pub async fn test_hook(&self, owner: &str, repo: &str, id: u64) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::POST,
             &format!("/api/v1/repos/{owner}/{repo}/hooks/{id}/tests"),
@@ -510,6 +534,7 @@ impl ForgejoClient {
         repo: &str,
         body: &Value,
     ) -> Result<ForgejoRelease, JediError> {
+        self.policy.check_owner(owner)?;
         self.write(
             Method::POST,
             &format!("/api/v1/repos/{owner}/{repo}/releases"),
@@ -519,6 +544,7 @@ impl ForgejoClient {
     }
 
     pub async fn delete_release(&self, owner: &str, repo: &str, id: u64) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::DELETE,
             &format!("/api/v1/repos/{owner}/{repo}/releases/{id}"),
@@ -547,6 +573,7 @@ impl ForgejoClient {
         repo: &str,
         body: &Value,
     ) -> Result<ForgejoBranchProtection, JediError> {
+        self.policy.check_owner(owner)?;
         self.write(
             Method::POST,
             &format!("/api/v1/repos/{owner}/{repo}/branch_protections"),
@@ -561,6 +588,7 @@ impl ForgejoClient {
         repo: &str,
         name: &str,
     ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::DELETE,
             &format!("/api/v1/repos/{owner}/{repo}/branch_protections/{name}"),
@@ -591,6 +619,7 @@ impl ForgejoClient {
         name: &str,
         body: &Value,
     ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::PUT,
             &format!("/api/v1/repos/{owner}/{repo}/actions/secrets/{name}"),
@@ -605,6 +634,7 @@ impl ForgejoClient {
         repo: &str,
         name: &str,
     ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::DELETE,
             &format!("/api/v1/repos/{owner}/{repo}/actions/secrets/{name}"),
@@ -633,6 +663,7 @@ impl ForgejoClient {
         name: &str,
         body: &Value,
     ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::POST,
             &format!("/api/v1/repos/{owner}/{repo}/actions/variables/{name}"),
@@ -647,6 +678,7 @@ impl ForgejoClient {
         repo: &str,
         name: &str,
     ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::DELETE,
             &format!("/api/v1/repos/{owner}/{repo}/actions/variables/{name}"),
@@ -683,6 +715,7 @@ impl ForgejoClient {
         index: u64,
         body: &Value,
     ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::PATCH,
             &format!("/api/v1/repos/{owner}/{repo}/issues/{index}"),
@@ -698,6 +731,7 @@ impl ForgejoClient {
         index: u64,
         body: &Value,
     ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::PUT,
             &format!("/api/v1/repos/{owner}/{repo}/issues/{index}/lock"),
@@ -707,6 +741,7 @@ impl ForgejoClient {
     }
 
     pub async fn unlock_issue(&self, owner: &str, repo: &str, index: u64) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::DELETE,
             &format!("/api/v1/repos/{owner}/{repo}/issues/{index}/lock"),
@@ -737,6 +772,7 @@ impl ForgejoClient {
     }
 
     pub async fn adopt_unadopted(&self, owner: &str, repo: &str) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::POST,
             &format!("/api/v1/admin/unadopted/{owner}/{repo}"),
@@ -746,6 +782,7 @@ impl ForgejoClient {
     }
 
     pub async fn delete_unadopted(&self, owner: &str, repo: &str) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
         self.write_empty(
             Method::DELETE,
             &format!("/api/v1/admin/unadopted/{owner}/{repo}"),

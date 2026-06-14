@@ -112,6 +112,12 @@ async fn main() -> anyhow::Result<()> {
         warn!("PgCluster not configured - PgCluster-backed routes will 503");
     }
 
+    if db::init_kv_cache().await {
+        info!("KvCache initialized - L1 LRU + L2 Valkey read-through cache enabled");
+    } else {
+        warn!("KvCache init failed - read-through cache disabled");
+    }
+
     if db::init_wallet_client().await {
         info!("Wallet client initialized - /api/v1/wallet/me/* routes enabled");
     } else {

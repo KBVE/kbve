@@ -1,5 +1,10 @@
 import { useStore } from '@nanostores/react';
-import { forgejoService, formatSize, langColor } from './forgejoService';
+import {
+	forgejoService,
+	formatSize,
+	langColor,
+	timeAgo,
+} from './forgejoService';
 import { useTabActive } from './forgejoUi';
 import {
 	Loader2,
@@ -10,6 +15,8 @@ import {
 	Tag,
 	Lock,
 	Archive,
+	Activity,
+	GitBranch,
 } from 'lucide-react';
 
 function StatCard({
@@ -240,6 +247,90 @@ function LanguageBar() {
 	);
 }
 
+function RecentActivity() {
+	const repos = useStore(forgejoService.$repos);
+	if (repos.length === 0) return null;
+	const recent = [...repos]
+		.filter((r) => r.updated_at)
+		.sort(
+			(a, b) =>
+				new Date(b.updated_at).getTime() -
+				new Date(a.updated_at).getTime(),
+		)
+		.slice(0, 8);
+	if (recent.length === 0) return null;
+	return (
+		<div style={{ marginBottom: '1.5rem' }}>
+			<div
+				style={{
+					fontSize: '0.75rem',
+					fontWeight: 600,
+					color: 'var(--sl-color-gray-3, #8b949e)',
+					marginBottom: 8,
+					textTransform: 'uppercase',
+					letterSpacing: '0.05em',
+					display: 'flex',
+					alignItems: 'center',
+					gap: 4,
+				}}>
+				<Activity size={12} />
+				Recent Activity
+			</div>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+				{recent.map((r) => (
+					<div
+						key={r.id}
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 8,
+							padding: '0.35rem 0.6rem',
+							borderRadius: 6,
+							background: 'var(--sl-color-bg, #0d1117)',
+							fontSize: '0.78rem',
+						}}>
+						<GitBranch
+							size={11}
+							style={{
+								color: 'var(--sl-color-gray-4, #6b7280)',
+								flexShrink: 0,
+							}}
+						/>
+						<span
+							style={{
+								color: 'var(--sl-color-white, #e6edf3)',
+								fontWeight: 500,
+								overflow: 'hidden',
+								textOverflow: 'ellipsis',
+								whiteSpace: 'nowrap',
+								flex: 1,
+							}}>
+							{r.full_name}
+						</span>
+						{r.lfs_size > 0 && (
+							<span
+								style={{
+									color: '#8b5cf6',
+									fontSize: '0.65rem',
+								}}>
+								LFS {formatSize(r.lfs_size)}
+							</span>
+						)}
+						<span
+							style={{
+								color: 'var(--sl-color-gray-4, #6b7280)',
+								fontSize: '0.68rem',
+								whiteSpace: 'nowrap',
+							}}>
+							{timeAgo(r.updated_at)}
+						</span>
+					</div>
+				))}
+			</div>
+		</div>
+	);
+}
+
 export default function ReactForgejoSummary() {
 	const active = useTabActive('overview');
 	const loading = useStore(forgejoService.$loading);
@@ -364,6 +455,8 @@ export default function ReactForgejoSummary() {
 
 			{/* Language breakdown */}
 			<LanguageBar />
+
+			<RecentActivity />
 		</div>
 	);
 }
