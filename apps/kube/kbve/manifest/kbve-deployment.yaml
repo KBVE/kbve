@@ -14,7 +14,7 @@ metadata:
         # picks up the new Postgres password. Without this the pool holds
         # stale creds and `/api/v1/wallet/*` starts 5xx-ing until manual
         # restart on every CNPG password rotation.
-        secret.reloader.stakater.com/reload: 'supabase-shared,forgejo-deploy-keys'
+        secret.reloader.stakater.com/reload: 'supabase-shared,forgejo-deploy-keys,valkey-auth'
 spec:
     replicas: 1
     strategy:
@@ -211,6 +211,42 @@ spec:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: db-url-ro
+                      # PgCluster (jedi::state::pg) three-pool wiring
+                      # matching the CNPG instance topology. Same
+                      # `postgres` creds as WALLET_DATABASE_URL above;
+                      # only the host service differs (rw / ro / -r any).
+                      # PgCluster::from_env falls back through DATABASE_URL_PROD
+                      # and WALLET_DATABASE_URL, but spelling the canonical
+                      # KBVE_PG_* names lets `kbve.wallet` migrate off
+                      # diesel-async later without touching this manifest.
+                      - name: KBVE_PG_RW_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: db-url
+                      - name: KBVE_PG_RO_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: db-url-ro
+                      - name: KBVE_PG_ANY_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: db-url-any
+                      # KvCache (jedi::state::kv) L2 backing. valkey-auth
+                      # is cloned into the kbve namespace by Kyverno
+                      # (apps/kube/valkey/manifests/valkey-auth-sync-policy.yaml).
+                      # init_kv_cache() warn-logs and stays L1-only if
+                      # this URL is unreachable, so a Valkey outage never
+                      # breaks `/api/v1/wallet/me/*`.
+                      - name: VALKEY_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: valkey-auth
+                                key: valkey-password
+                      - name: KBVE_KV_URL
+                        value: 'redis://default:$(VALKEY_PASSWORD)@valkey.valkey.svc.cluster.local:6379/3'
                       # HMAC-SHA256 key for the referral handler's IP +
                       # subnet hashing. Sourced from referral-config in
                       # this namespace (built by kbve-externalsecret.yaml
