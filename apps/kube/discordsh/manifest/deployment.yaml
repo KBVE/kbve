@@ -89,6 +89,20 @@ spec:
                         value: 'mud-discordsh'
                       - name: IRC_CHANNELS
                         value: '#global,#world-events,#dungeon'
+                      # PgCluster direct DB access (bypasses Postgrest)
+                      # Password injected via ESO template into full connection URLs
+                      - name: KBVE_PG_RW_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-postgres-password
+                                key: rw_url
+                      - name: KBVE_PG_RO_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-postgres-password
+                                key: ro_url
+                      - name: KBVE_PG_APPLICATION_NAME
+                        value: 'axum-discordsh'
                   resources:
                       requests:
                           memory: '256Mi'
