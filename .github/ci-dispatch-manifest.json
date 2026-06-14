@@ -40,7 +40,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.196",
+			"version": "1.0.199",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -106,7 +106,7 @@
 		{
 			"key": "cryptothrone",
 			"app_name": "cryptothrone",
-			"version": "0.1.18",
+			"version": "0.1.28",
 			"version_toml": "apps/cryptothrone/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone.mdx",
 			"version_target": "apps/cryptothrone/axum-cryptothrone/Cargo.toml",
@@ -120,7 +120,7 @@
 		{
 			"key": "cryptothrone_server",
 			"app_name": "cryptothrone-server",
-			"version": "0.0.10",
+			"version": "0.0.16",
 			"version_toml": "apps/agones/cryptothrone/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/cryptothrone-server.mdx",
 			"version_target": "apps/agones/cryptothrone/server/Cargo.toml",
@@ -161,7 +161,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.42",
+			"version": "0.1.43",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -259,7 +259,7 @@
 		{
 			"key": "irc_gateway",
 			"app_name": "irc-gateway",
-			"version": "0.1.22",
+			"version": "0.1.25",
 			"version_toml": "apps/irc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
 			"version_target": "apps/irc/irc-gateway/Cargo.toml",
@@ -1083,7 +1083,7 @@
 					"Linux"
 				],
 				"external_repo_url": "https://github.com/kbve/chuck",
-				"server_target": "chuckServerBeta",
+				"server_target": "chuckServer",
 				"server_config": "Shipping",
 				"client_config": "Shipping",
 				"maps": [
