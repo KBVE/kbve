@@ -12,11 +12,14 @@ COPY Cargo.lock ./
 
 COPY apps/agones/cryptothrone/server/Cargo.toml apps/agones/cryptothrone/server/Cargo.toml
 COPY packages/rust/simgrid/Cargo.toml packages/rust/simgrid/Cargo.toml
+COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 
 RUN mkdir -p apps/agones/cryptothrone/server/src && \
     echo "fn main() {}" > apps/agones/cryptothrone/server/src/main.rs && \
     mkdir -p packages/rust/simgrid/src && \
-    echo "" > packages/rust/simgrid/src/lib.rs
+    echo "" > packages/rust/simgrid/src/lib.rs && \
+    mkdir -p packages/rust/jedi/src && \
+    echo "" > packages/rust/jedi/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json --bin cryptothrone-server
 
@@ -57,6 +60,7 @@ COPY apps/agones/cryptothrone/server/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
 COPY packages/rust/simgrid packages/rust/simgrid
+COPY packages/rust/jedi packages/rust/jedi
 COPY packages/data/codegen/generated/npcdb-data.json packages/data/codegen/generated/npcdb-data.json
 COPY apps/agones/cryptothrone/server apps/agones/cryptothrone/server
 
