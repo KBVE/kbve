@@ -24,6 +24,7 @@ import type {
 } from '@kbve/laser';
 import { getCtNetConfig } from '@/lib/net-config';
 import { getNPCByRef, npcIdForRef, isHostileRef } from '../data/npcs';
+import { getZone, DEFAULT_ZONE, type ZoneDef } from '../data/zones';
 
 const MAP_SCALE = 3;
 const STEP_THROTTLE_MS = 60;
@@ -112,6 +113,7 @@ export class CloudCityScene extends Scene {
 	private entityDepth = 0;
 	private lastStepAt = 0;
 	private tilePixels = 16;
+	private zone: ZoneDef = getZone(DEFAULT_ZONE);
 	private ranges: Range[] = [];
 	private rangeTile = { x: -1, y: -1 };
 	private myHp = -1;
@@ -141,11 +143,15 @@ export class CloudCityScene extends Scene {
 		super({ key: 'CloudCity' });
 	}
 
+	init(data: { zone?: string }) {
+		this.zone = getZone(data?.zone);
+	}
+
 	create() {
 		// mapdb GridTilemap (proto-canonical JSON): collision bitset + render
 		// layers. Single source of truth shared with the server (simgrid) and
 		// the client prediction BFS — no Tiled parsing.
-		const tm = this.cache.json.get('cloud-city-tilemap') as {
+		const tm = this.cache.json.get(this.zone.tilemapKey) as {
 			width: number;
 			height: number;
 			tileSize: number;
@@ -161,8 +167,8 @@ export class CloudCityScene extends Scene {
 			height: tm.height,
 		});
 		const tileset = tilemap.addTilesetImage(
-			'cloud_tileset',
-			'cloud-city-tiles',
+			this.zone.tilesetName,
+			this.zone.tilesetKey,
 			tm.tileSize,
 			tm.tileSize,
 		);
