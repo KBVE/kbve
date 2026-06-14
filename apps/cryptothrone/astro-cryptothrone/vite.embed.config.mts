@@ -23,6 +23,7 @@ export default defineConfig({
 	resolve: {
 		alias: [
 			{ find: /^@\//, replacement: resolve(here, 'src') + '/' },
+			{ find: '@kbve/astro/ui', replacement: pkg('npm/astro/src/ui.ts') },
 			{ find: '@kbve/astro', replacement: pkg('npm/astro/src/index.ts') },
 			{ find: '@kbve/droid', replacement: pkg('npm/droid/src/index.ts') },
 			{ find: '@kbve/laser', replacement: pkg('npm/laser/src/index.ts') },

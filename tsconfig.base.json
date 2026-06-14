@@ -16,6 +16,7 @@
 		"baseUrl": ".",
 		"paths": {
 			"@kbve/astro": ["packages/npm/astro/src/index.ts"],
+			"@kbve/astro/ui": ["packages/npm/astro/src/ui.ts"],
 			"@kbve/astro/components/*": ["packages/npm/astro/src/components/*"],
 			"@kbve/devops": ["packages/npm/devops/src/index.ts"],
 			"@kbve/droid": ["packages/npm/droid/src/index.ts"],

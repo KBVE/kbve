@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { RealmChatClient, type RealmChatState } from '@kbve/laser';
-import { FloatingWindow } from '@kbve/astro';
+import { FloatingWindow } from '@kbve/astro/ui';
 import { useGameSelector } from '../store/GameStoreContext';
 import {
 	getCtNetConfig,
