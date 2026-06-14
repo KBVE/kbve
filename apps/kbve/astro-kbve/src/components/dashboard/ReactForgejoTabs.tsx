@@ -7,6 +7,7 @@ import {
 	Building2,
 	Webhook,
 	CircleDot,
+	Cpu,
 	ServerCog,
 } from 'lucide-react';
 
@@ -21,6 +22,7 @@ const TABS: { id: ForgejoTab; label: string; icon: React.ReactNode }[] = [
 		icon: <Webhook size={14} />,
 	},
 	{ id: 'issues', label: 'Issues & PRs', icon: <CircleDot size={14} /> },
+	{ id: 'runners', label: 'Runners', icon: <Cpu size={14} /> },
 	{ id: 'system', label: 'System', icon: <ServerCog size={14} /> },
 ];
 

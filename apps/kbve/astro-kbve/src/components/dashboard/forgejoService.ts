@@ -26,6 +26,8 @@ export interface ForgejoRepo {
 	archived: boolean;
 	empty: boolean;
 	size: number;
+	git_size: number;
+	lfs_size: number;
 	stars_count: number;
 	forks_count: number;
 	open_issues_count: number;
@@ -239,7 +241,16 @@ export type ForgejoTab =
 	| 'orgs'
 	| 'webhooks'
 	| 'issues'
+	| 'runners'
 	| 'system';
+
+export interface ForgejoRunner {
+	id?: number;
+	name?: string;
+	status?: string;
+	labels?: string[];
+	[key: string]: unknown;
+}
 
 export interface ForgejoIssue {
 	id: number;
@@ -766,6 +777,9 @@ class ForgejoService {
 	public readonly $unadopted = atom<string[]>([]);
 	public readonly $stats = atom<ForgejoStats | null>(null);
 	public readonly $storage = atom<ForgejoStorage | null>(null);
+	public readonly $runners = atom<ForgejoRunner[]>([]);
+	public readonly $runnerToken = atom<string | null>(null);
+	public readonly $runnerScope = atom<string>('instance');
 
 	public readonly $issueRepo = atom<string | null>(null);
 	public readonly $issueState = atom<'open' | 'closed'>('open');
@@ -1926,6 +1940,79 @@ class ForgejoService {
 				await this.loadIssues();
 			},
 			lock ? `#${index} locked` : `#${index} unlocked`,
+		);
+	}
+
+	// --- Actions runners ---
+
+	private _runnerListPath(scope: string): string | null {
+		if (scope === 'instance') return null;
+		if (scope.startsWith('org:')) return `/orgs/${scope.slice(4)}/runners`;
+		return `/repos/${scope}/runners`;
+	}
+
+	private _runnerTokenPath(scope: string): string {
+		if (scope === 'instance') return '/admin/runners/registration-token';
+		if (scope.startsWith('org:'))
+			return `/orgs/${scope.slice(4)}/runners/registration-token`;
+		return `/repos/${scope}/runners/registration-token`;
+	}
+
+	public setRunnerScope(scope: string): void {
+		this.$runnerScope.set(scope);
+		this.$runnerToken.set(null);
+		this.loadRunners();
+	}
+
+	public async loadRunners(): Promise<void> {
+		const token = this.$accessToken.get();
+		if (!token) return;
+		const path = this._runnerListPath(this.$runnerScope.get());
+		if (!path) {
+			this.$runners.set([]);
+			return;
+		}
+		try {
+			const resp = await fetch(`${API_BASE}${path}`, {
+				headers: { Authorization: `Bearer ${token}` },
+				signal: AbortSignal.timeout(15000),
+			});
+			if (!resp.ok) {
+				this.$runners.set([]);
+				return;
+			}
+			const data = await resp.json();
+			const arr = Array.isArray(data)
+				? data
+				: Array.isArray(data?.runners)
+					? data.runners
+					: [];
+			this.$runners.set(arr as ForgejoRunner[]);
+		} catch {
+			this.$runners.set([]);
+		}
+	}
+
+	public genRunnerToken(): Promise<boolean> {
+		const path = this._runnerTokenPath(this.$runnerScope.get());
+		return this._run(
+			'runner-token',
+			async (t) => {
+				const resp = await fetch(`${API_BASE}${path}`, {
+					method: 'POST',
+					headers: { Authorization: `Bearer ${t}` },
+					signal: AbortSignal.timeout(15000),
+				});
+				if (!resp.ok) {
+					throw new ForgejoMutationError(
+						resp.status,
+						`Token request failed (${resp.status})`,
+					);
+				}
+				const data = await resp.json();
+				this.$runnerToken.set(data?.token ?? null);
+			},
+			'Runner registration token generated',
 		);
 	}
 
