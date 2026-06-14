@@ -1519,7 +1519,7 @@ dependencies = [
 
 [[package]]
 name = "axum-cryptothrone"
-version = "0.1.21"
+version = "0.1.23"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
@@ -1533,6 +1533,7 @@ dependencies = [
  "kbve",
  "kube",
  "num_cpus",
+ "reqwest 0.12.28",
  "rustls 0.23.37",
  "serde",
  "serde_json",
@@ -1633,7 +1634,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.197"
+version = "1.0.198"
 dependencies = [
  "anyhow",
  "askama 0.16.0",
@@ -4857,6 +4858,7 @@ dependencies = [
  "agones",
  "axum 0.7.9",
  "bevy",
+ "jedi",
  "simgrid",
  "tokio",
  "tracing",
@@ -8692,6 +8694,7 @@ dependencies = [
  "http-body-util",
  "hyper 1.9.0",
  "hyper-util",
+ "lru 0.18.0",
  "metrics",
  "once_cell",
  "papaya",

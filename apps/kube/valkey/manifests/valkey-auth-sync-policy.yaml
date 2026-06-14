@@ -52,3 +52,19 @@ spec:
               clone:
                   namespace: valkey
                   name: valkey-auth
+        - name: clone-valkey-auth-kbve
+          match:
+              resources:
+                  kinds:
+                      - Namespace
+                  names:
+                      - kbve
+          generate:
+              apiVersion: v1
+              kind: Secret
+              name: valkey-auth
+              namespace: kbve
+              synchronize: true
+              clone:
+                  namespace: valkey
+                  name: valkey-auth
