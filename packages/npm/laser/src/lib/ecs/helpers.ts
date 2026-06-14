@@ -1,9 +1,11 @@
 import { query } from 'bitecs';
 import type { QueryTerm, World } from 'bitecs';
 
+// Read-only indexed access — satisfied by both plain number[] and the typed
+// arrays (Int32Array/Float32Array) bitECS components use as SoA storage.
 export interface PositionLike {
-	x: number[];
-	y: number[];
+	x: ArrayLike<number>;
+	y: ArrayLike<number>;
 }
 
 export function* queryInRange(
