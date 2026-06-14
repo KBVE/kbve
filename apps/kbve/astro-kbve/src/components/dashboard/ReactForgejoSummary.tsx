@@ -17,6 +17,7 @@ import {
 	Archive,
 	Activity,
 	GitBranch,
+	Package,
 } from 'lucide-react';
 
 function StatCard({
@@ -354,23 +355,39 @@ export default function ReactForgejoSummary() {
 	const archivedValue = stats ? stats.archived : archivedCount;
 
 	const usingQuota = !!storage?.quota_enabled;
-	const sizeKb = usingQuota
-		? Math.round(storage!.total_bytes / 1024)
-		: sizeValue;
-	const sizeSub = usingQuota
+
+	const gitKb = usingQuota
+		? Math.round(storage!.repos_bytes / 1024)
+		: (stats?.git_size_kb ?? 0);
+	const lfsKb = usingQuota
+		? Math.round(storage!.lfs_bytes / 1024)
+		: (stats?.lfs_size_kb ?? 0);
+	const contentKb = usingQuota ? gitKb + lfsKb : sizeValue;
+	const contentSub =
+		lfsKb > 0
+			? `git ${formatSize(gitKb)} · LFS ${formatSize(lfsKb)}`
+			: `across ${repoValue} repositories`;
+
+	const nonRepoKb = usingQuota
+		? Math.round(
+				(storage!.artifacts_bytes +
+					storage!.packages_bytes +
+					storage!.attachments_bytes) /
+					1024,
+			)
+		: 0;
+	const nonRepoSub = usingQuota
 		? [
-				storage!.lfs_bytes > 0 &&
-					`LFS ${formatSize(storage!.lfs_bytes / 1024)}`,
+				storage!.artifacts_bytes > 0 &&
+					`CI ${formatSize(storage!.artifacts_bytes / 1024)}`,
 				storage!.packages_bytes > 0 &&
 					`pkg ${formatSize(storage!.packages_bytes / 1024)}`,
-				storage!.artifacts_bytes > 0 &&
-					`artifacts ${formatSize(storage!.artifacts_bytes / 1024)}`,
+				storage!.attachments_bytes > 0 &&
+					`attach ${formatSize(storage!.attachments_bytes / 1024)}`,
 			]
 				.filter(Boolean)
-				.join(' · ') || `across ${repoValue} repositories`
-		: stats && stats.lfs_size_kb > 0
-			? `git ${formatSize(stats.git_size_kb)} · LFS ${formatSize(stats.lfs_size_kb)}`
-			: `across ${repoValue} repositories`;
+				.join(' · ')
+		: '';
 
 	if (loading && totalRepos === 0) {
 		return (
@@ -423,11 +440,20 @@ export default function ReactForgejoSummary() {
 				}}>
 				<StatCard
 					icon={<HardDrive size={12} />}
-					label={usingQuota ? 'Total Storage' : 'Repo Storage'}
-					value={formatSize(sizeKb)}
+					label="Repository Storage"
+					value={formatSize(contentKb)}
 					color="#06b6d4"
-					sub={sizeSub}
+					sub={contentSub}
 				/>
+				{usingQuota && nonRepoKb > 0 && (
+					<StatCard
+						icon={<Package size={12} />}
+						label="CI & Packages"
+						value={formatSize(nonRepoKb)}
+						color="#f97316"
+						sub={nonRepoSub}
+					/>
+				)}
 				<StatCard
 					icon={<BookOpen size={12} />}
 					label="Repositories"
