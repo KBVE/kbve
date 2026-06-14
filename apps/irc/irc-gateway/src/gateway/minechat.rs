@@ -279,7 +279,16 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
             parsed.sender = nick_c2i.clone();
             parsed.platform = platform.clone();
 
-            let line = parsed.to_irc_privmsg();
+            // Plain chat goes out as a bare PRIVMSG — the same wire format the
+            // chat.kbve.com web client (/ws) uses — so game + IRC clients share
+            // a channel cleanly (sender is carried by the IRC prefix). Only
+            // structured game events keep the [KIND] sender@platform wrapper.
+            let line = if matches!(parsed.kind, MessageKind::Chat) {
+                let content = parsed.content.replace(['\r', '\n'], " ");
+                format!("PRIVMSG {} :{content}", parsed.channel)
+            } else {
+                parsed.to_irc_privmsg()
+            };
             if let Err(e) = write_irc_line(&ergo_w_c2i, &line).await {
                 warn!(user = %nick_c2i, "ergo write failed: {e}");
                 break;
