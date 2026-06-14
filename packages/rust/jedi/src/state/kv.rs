@@ -288,6 +288,22 @@ impl KvCache {
             tracing::warn!(error = %e, key = %key, "[KvCache] L2 put failed");
         }
     }
+
+    /// Atomic per-window counter for rate limiting, shared via valkey across
+    /// every service pointed at the same `KBVE_KV_URL`. Increments the counter
+    /// for `key` in the current window and returns the post-increment count, or
+    /// `None` when L2 (valkey) is unavailable so callers can fall back to an
+    /// in-process limiter. The key expires after `window_secs`, so the window
+    /// is fixed (resets once the counter ages out).
+    pub async fn check_rate(&self, key: &str, window_secs: u64) -> Option<u64> {
+        let pool = self.l2.as_ref()?;
+        let rkey = self.qualified(&format!("rl:{key}"));
+        let count: i64 = pool.incr::<i64, _>(&rkey).await.ok()?;
+        if count == 1 {
+            let _ = pool.expire::<(), _>(&rkey, window_secs as i64, None).await;
+        }
+        Some(count.max(0) as u64)
+    }
 }
 
 async fn build_valkey_pool() -> Result<ValkeyPool, String> {

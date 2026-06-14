@@ -25,7 +25,7 @@ jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
 futures-util = { version = "0.3", default-features = false, features = ["sink"] }
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi" }
+jedi = { path = "../../../packages/rust/jedi", features = ["valkey"] }
 kbve = { path = "../../../packages/rust/kbve" }
 
 # Shared chat message schema — ChatMessage + MessageKind +

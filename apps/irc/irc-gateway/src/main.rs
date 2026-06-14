@@ -31,6 +31,10 @@ async fn main() -> anyhow::Result<()> {
 
     info!("IRC Gateway v{}", env!("CARGO_PKG_VERSION"));
 
+    if gateway::kv::init().await {
+        info!("KvCache initialized — anti-spam counters shared via Valkey when configured");
+    }
+
     gateway::history::spawn_listeners();
 
     // Drop idle anti-spam buckets every minute so memory stays bounded.
