@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<title>CryptoThrone</title>
+		<style>
+			html,
+			body {
+				margin: 0;
+				height: 100%;
+				background: #0b0b14;
+				color: #e5e5e5;
+				font-family: system-ui, sans-serif;
+				overflow: hidden;
+			}
+			#app {
+				width: 100vw;
+				height: 100vh;
+			}
+		</style>
+	</head>
+	<body>
+		<!-- Discord Activity root. discord.js runs the OAuth handshake, bridges
+		     to a game-server session, then mounts the game into #app. -->
+		<div id="app">Loading CryptoThrone…</div>
+		<script src="/discord/discord.js" defer></script>
+	</body>
+</html>
