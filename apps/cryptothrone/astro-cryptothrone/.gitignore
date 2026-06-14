@@ -1,1 +1,6 @@
 coverage/
+
+# Embed bundle is built per deploy (nx build-embed). Never commit the artifact —
+# source of truth is src/embed/.
+public/embed/embed.js
+public/embed/assets/
