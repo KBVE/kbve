@@ -23,6 +23,9 @@ spec:
               - namespaceSelector:
                     matchLabels:
                         kubernetes.io/metadata.name: discordsh
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: kbve
           ports:
               - port: 6379
                 protocol: TCP
