@@ -19,6 +19,14 @@ interface ChatLine {
 const MAX_LINES = 50;
 const MAX_INPUT = 200;
 
+// Client-side throttle — first line of defense, kept just under the gateway's
+// per-username limit so a normal user is stopped here before the server has to
+// drop/kick. The server (irc-gateway) stays authoritative.
+const CLIENT_MAX_PER_WINDOW = 8;
+const CLIENT_WINDOW_MS = 10_000;
+const CLIENT_MIN_INTERVAL_MS = 600;
+const THROTTLE_NOTICE = 'Slow down — sending messages too fast.';
+
 let lineCounter = 0;
 
 const NAME_HUES = [28, 162, 200, 262, 330, 95];
@@ -49,6 +57,7 @@ export function ChatBar() {
 	const focusedRef = useRef(false);
 	focusedRef.current = focused;
 	const clientRef = useRef<RealmChatClient | null>(null);
+	const sendTimesRef = useRef<number[]>([]);
 	const [chatState, setChatState] = useState<RealmChatState>({
 		status: 'connecting',
 		attempts: 0,
@@ -129,6 +138,34 @@ export function ChatBar() {
 		e.preventDefault();
 		const text = draft.trim();
 		if (!text || !connected) return;
+
+		// Client-side throttle: block before flooding the socket; the gateway
+		// stays authoritative. Keep the draft so the user can resend shortly.
+		const now = Date.now();
+		const recent = sendTimesRef.current.filter(
+			(t) => now - t < CLIENT_WINDOW_MS,
+		);
+		const tooSoon =
+			recent.length > 0 &&
+			now - recent[recent.length - 1] < CLIENT_MIN_INTERVAL_MS;
+		if (tooSoon || recent.length >= CLIENT_MAX_PER_WINDOW) {
+			setLines((prev) =>
+				prev[prev.length - 1]?.text === THROTTLE_NOTICE
+					? prev
+					: [
+							...prev,
+							{
+								id: ++lineCounter,
+								from: 'system',
+								text: THROTTLE_NOTICE,
+								at: timestamp(),
+							},
+						].slice(-MAX_LINES),
+			);
+			return;
+		}
+		sendTimesRef.current = [...recent, now];
+
 		clientRef.current?.send(text);
 		// Local echo — IRC never sends a client its own PRIVMSG back, so
 		// without this the sender never sees the message they just sent.
