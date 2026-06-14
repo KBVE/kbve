@@ -268,6 +268,110 @@ pub struct ForgejoIssue {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForgejoPull {
+    pub id: u64,
+    pub number: u64,
+    #[serde(default)]
+    pub title: String,
+    #[serde(default)]
+    pub body: String,
+    #[serde(default)]
+    pub state: String,
+    #[serde(default)]
+    pub merged: bool,
+    #[serde(default)]
+    pub mergeable: bool,
+    #[serde(default)]
+    pub is_locked: bool,
+    #[serde(default)]
+    pub comments: u64,
+    #[serde(default)]
+    pub base: Option<ForgejoPullBranch>,
+    #[serde(default)]
+    pub head: Option<ForgejoPullBranch>,
+    #[serde(default)]
+    pub created_at: String,
+    #[serde(default)]
+    pub updated_at: String,
+    #[serde(default)]
+    pub html_url: String,
+    #[serde(default)]
+    pub user: Option<ForgejoOwner>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForgejoPullBranch {
+    #[serde(default)]
+    pub label: String,
+    #[serde(default, rename = "ref")]
+    pub ref_name: String,
+    #[serde(default)]
+    pub sha: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForgejoComment {
+    pub id: u64,
+    #[serde(default)]
+    pub body: String,
+    #[serde(default)]
+    pub html_url: String,
+    #[serde(default)]
+    pub created_at: String,
+    #[serde(default)]
+    pub updated_at: String,
+    #[serde(default)]
+    pub user: Option<ForgejoOwner>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForgejoLabel {
+    pub id: u64,
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub color: String,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default)]
+    pub exclusive: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForgejoMilestone {
+    pub id: u64,
+    #[serde(default)]
+    pub title: String,
+    #[serde(default)]
+    pub description: String,
+    #[serde(default)]
+    pub state: String,
+    #[serde(default)]
+    pub open_issues: u64,
+    #[serde(default)]
+    pub closed_issues: u64,
+    #[serde(default)]
+    pub due_on: Option<String>,
+    #[serde(default)]
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ForgejoPublicKey {
+    pub id: u64,
+    #[serde(default)]
+    pub title: String,
+    #[serde(default)]
+    pub fingerprint: String,
+    #[serde(default)]
+    pub key: String,
+    #[serde(default)]
+    pub read_only: bool,
+    #[serde(default)]
+    pub created_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ForgejoCronTask {
     pub name: String,
     #[serde(default)]

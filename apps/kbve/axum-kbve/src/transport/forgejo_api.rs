@@ -325,6 +325,61 @@ async fn issues(
     reply!(c.list_issues(&owner, &repo, state, kind, q.limit()).await)
 }
 
+async fn pulls(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+    q: axum::extract::Query<ListQuery>,
+) -> Response {
+    let c = vc!(headers);
+    let state = q.state.as_deref().unwrap_or("open");
+    reply!(c.list_pulls(&owner, &repo, state, q.limit()).await)
+}
+
+async fn get_pull(
+    headers: HeaderMap,
+    Path((owner, repo, index)): Path<(String, String, u64)>,
+) -> Response {
+    let c = vc!(headers);
+    reply!(c.get_pull(&owner, &repo, index).await)
+}
+
+async fn issue_comments(
+    headers: HeaderMap,
+    Path((owner, repo, index)): Path<(String, String, u64)>,
+    q: axum::extract::Query<ListQuery>,
+) -> Response {
+    let c = vc!(headers);
+    reply!(c.list_issue_comments(&owner, &repo, index, q.limit()).await)
+}
+
+async fn labels(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+    q: axum::extract::Query<ListQuery>,
+) -> Response {
+    let c = vc!(headers);
+    reply!(c.list_labels(&owner, &repo, q.limit()).await)
+}
+
+async fn milestones(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+    q: axum::extract::Query<ListQuery>,
+) -> Response {
+    let c = vc!(headers);
+    let state = q.state.as_deref().unwrap_or("open");
+    reply!(c.list_milestones(&owner, &repo, state, q.limit()).await)
+}
+
+async fn user_keys(
+    headers: HeaderMap,
+    Path(login): Path<String>,
+    q: axum::extract::Query<ListQuery>,
+) -> Response {
+    let c = vc!(headers);
+    reply!(c.list_user_keys(&login, q.limit()).await)
+}
+
 // ── Org / team reads ─────────────────────────────────────────────────
 
 async fn org_members(
@@ -677,6 +732,154 @@ async fn unlock_issue(
     reply!(c.unlock_issue(&owner, &repo, index).await)
 }
 
+// ── Pull request / ticket writes ─────────────────────────────────────
+
+async fn create_pull(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_pull(&owner, &repo, &body).await)
+}
+
+async fn edit_pull(
+    headers: HeaderMap,
+    Path((owner, repo, index)): Path<(String, String, u64)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.edit_pull(&owner, &repo, index, &body).await)
+}
+
+async fn merge_pull(
+    headers: HeaderMap,
+    Path((owner, repo, index)): Path<(String, String, u64)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.merge_pull(&owner, &repo, index, &body).await)
+}
+
+async fn create_issue_comment(
+    headers: HeaderMap,
+    Path((owner, repo, index)): Path<(String, String, u64)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_issue_comment(&owner, &repo, index, &body).await)
+}
+
+async fn edit_issue_comment(
+    headers: HeaderMap,
+    Path((owner, repo, id)): Path<(String, String, u64)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.edit_issue_comment(&owner, &repo, id, &body).await)
+}
+
+async fn delete_issue_comment(
+    headers: HeaderMap,
+    Path((owner, repo, id)): Path<(String, String, u64)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_issue_comment(&owner, &repo, id).await)
+}
+
+async fn create_label(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_label(&owner, &repo, &body).await)
+}
+
+async fn edit_label(
+    headers: HeaderMap,
+    Path((owner, repo, id)): Path<(String, String, u64)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.edit_label(&owner, &repo, id, &body).await)
+}
+
+async fn delete_label(
+    headers: HeaderMap,
+    Path((owner, repo, id)): Path<(String, String, u64)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_label(&owner, &repo, id).await)
+}
+
+async fn set_issue_labels(
+    headers: HeaderMap,
+    Path((owner, repo, index)): Path<(String, String, u64)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.set_issue_labels(&owner, &repo, index, &body).await)
+}
+
+async fn create_milestone(
+    headers: HeaderMap,
+    Path((owner, repo)): Path<(String, String)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_milestone(&owner, &repo, &body).await)
+}
+
+async fn edit_milestone(
+    headers: HeaderMap,
+    Path((owner, repo, id)): Path<(String, String, u64)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.edit_milestone(&owner, &repo, id, &body).await)
+}
+
+async fn delete_milestone(
+    headers: HeaderMap,
+    Path((owner, repo, id)): Path<(String, String, u64)>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_milestone(&owner, &repo, id).await)
+}
+
+async fn edit_hook(
+    headers: HeaderMap,
+    Path((owner, repo, id)): Path<(String, String, u64)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.edit_hook(&owner, &repo, id, &body).await)
+}
+
+async fn edit_release(
+    headers: HeaderMap,
+    Path((owner, repo, id)): Path<(String, String, u64)>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.edit_release(&owner, &repo, id, &body).await)
+}
+
+async fn create_user_key(
+    headers: HeaderMap,
+    Path(login): Path<String>,
+    Json(body): Json<Value>,
+) -> Response {
+    let c = mc!(headers);
+    reply!(c.create_user_key(&login, &body).await)
+}
+
+async fn delete_user_key(headers: HeaderMap, Path((login, id)): Path<(String, u64)>) -> Response {
+    let c = mc!(headers);
+    reply!(c.delete_user_key(&login, id).await)
+}
+
 async fn run_cron(headers: HeaderMap, Path(task): Path<String>) -> Response {
     let c = mc!(headers);
     reply!(c.run_cron(&task).await)
@@ -721,6 +924,11 @@ pub fn routes() -> Router {
         .route(&p("/users"), get(users).post(create_user))
         .route(&p("/users/{login}"), patch(edit_user).delete(delete_user))
         .route(&p("/users/{user}/repos"), post(create_repo_for_user))
+        .route(
+            &p("/users/{login}/keys"),
+            get(user_keys).post(create_user_key),
+        )
+        .route(&p("/users/{login}/keys/{id}"), delete(delete_user_key))
         // orgs & teams
         .route(&p("/orgs"), get(orgs).post(create_org))
         .route(&p("/orgs/{org}"), patch(edit_org).delete(delete_org))
@@ -764,13 +972,16 @@ pub fn routes() -> Router {
         )
         .route(
             &p("/repos/{owner}/{repo}/releases/{id}"),
-            delete(delete_release),
+            patch(edit_release).delete(delete_release),
         )
         .route(
             &p("/repos/{owner}/{repo}/hooks"),
             get(hooks).post(create_hook),
         )
-        .route(&p("/repos/{owner}/{repo}/hooks/{id}"), delete(delete_hook))
+        .route(
+            &p("/repos/{owner}/{repo}/hooks/{id}"),
+            patch(edit_hook).delete(delete_hook),
+        )
         .route(
             &p("/repos/{owner}/{repo}/hooks/{id}/tests"),
             post(test_hook),
@@ -801,6 +1012,46 @@ pub fn routes() -> Router {
         .route(
             &p("/repos/{owner}/{repo}/issues/{index}/lock"),
             put(lock_issue).delete(unlock_issue),
+        )
+        .route(
+            &p("/repos/{owner}/{repo}/issues/{index}/comments"),
+            get(issue_comments).post(create_issue_comment),
+        )
+        .route(
+            &p("/repos/{owner}/{repo}/issues/comments/{id}"),
+            patch(edit_issue_comment).delete(delete_issue_comment),
+        )
+        .route(
+            &p("/repos/{owner}/{repo}/issues/{index}/labels"),
+            put(set_issue_labels),
+        )
+        .route(
+            &p("/repos/{owner}/{repo}/labels"),
+            get(labels).post(create_label),
+        )
+        .route(
+            &p("/repos/{owner}/{repo}/labels/{id}"),
+            patch(edit_label).delete(delete_label),
+        )
+        .route(
+            &p("/repos/{owner}/{repo}/milestones"),
+            get(milestones).post(create_milestone),
+        )
+        .route(
+            &p("/repos/{owner}/{repo}/milestones/{id}"),
+            patch(edit_milestone).delete(delete_milestone),
+        )
+        .route(
+            &p("/repos/{owner}/{repo}/pulls"),
+            get(pulls).post(create_pull),
+        )
+        .route(
+            &p("/repos/{owner}/{repo}/pulls/{index}"),
+            get(get_pull).patch(edit_pull),
+        )
+        .route(
+            &p("/repos/{owner}/{repo}/pulls/{index}/merge"),
+            post(merge_pull),
         )
         .route(&p("/repos/{owner}/{repo}/runners"), get(repo_runners))
         .route(
