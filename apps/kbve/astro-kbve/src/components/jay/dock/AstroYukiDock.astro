@@ -66,7 +66,8 @@ const AVATAR_SRC = '/assets/images/brand/earth_ceo.png';
 		role="dialog"
 		aria-modal="false"
 		aria-labelledby="kbve-yuki-panel-title"
-		hidden>
+		hidden
+		inert>
 		<header class="kbve-yuki-dock__header">
 			<div class="kbve-yuki-dock__title-row">
 				<img
@@ -150,8 +151,7 @@ const AVATAR_SRC = '/assets/images/brand/earth_ceo.png';
 		pointer-events: none;
 	}
 
-	.kbve-yuki-dock__fab,
-	.kbve-yuki-dock__panel {
+	.kbve-yuki-dock__fab {
 		pointer-events: auto;
 	}
 
@@ -249,24 +249,24 @@ const AVATAR_SRC = '/assets/images/brand/earth_ceo.png';
 		overflow: hidden;
 		transform-origin: bottom right;
 		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
 		transform: translateY(8px) scale(0.96);
 		transition:
 			transform 0.18s ease,
-			opacity 0.18s ease;
+			opacity 0.18s ease,
+			visibility 0s linear 0.18s;
 	}
 
 	.kbve-yuki-dock[data-state='expanded'] .kbve-yuki-dock__panel {
 		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
 		transform: translateY(0) scale(1);
-	}
-
-	.kbve-yuki-dock[data-state='expanded'] .kbve-yuki-dock__panel[hidden] {
-		display: grid;
-	}
-
-	.kbve-yuki-dock[data-state='collapsed']
-		.kbve-yuki-dock__panel:not([hidden]) {
-		visibility: hidden;
+		transition:
+			transform 0.18s ease,
+			opacity 0.18s ease,
+			visibility 0s;
 	}
 
 	@media (max-width: 640px) {
