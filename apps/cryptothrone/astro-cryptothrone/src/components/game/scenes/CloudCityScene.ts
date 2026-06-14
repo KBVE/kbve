@@ -43,6 +43,15 @@ import {
 	type PredictState,
 	type IsBlocked,
 } from '../systems/prediction';
+import {
+	chebyshev,
+	resolveClick,
+	resolvePending,
+	nearestAdjacentNpc,
+	adjacentFreeTile,
+	type ClickHit,
+	type NpcEntry,
+} from '../systems/interaction';
 
 interface EntityRefs {
 	sprite: Phaser.GameObjects.Sprite;
@@ -607,13 +616,11 @@ export class CloudCityScene extends Scene {
 		if (!pending || !this.client) return;
 		const me = this.myTile();
 		const targetTile = this.store.tile(pending.eid);
-		if (!me || !targetTile) {
-			this.pendingAction = null;
-			return;
-		}
-		if (this.chebyshev(me, targetTile) > 1) return;
+		const outcome = resolvePending(pending.kind, me, targetTile ?? null);
+		if (outcome === 'wait') return;
 		this.pendingAction = null;
-		if (pending.kind === 'pickup') {
+		if (outcome === 'cancel') return;
+		if (outcome === 'pickup') {
 			this.client.action(ACTION_PICKUP, pending.eid);
 			return;
 		}
@@ -685,7 +692,7 @@ export class CloudCityScene extends Scene {
 			const ref = this.kindRef(this.store.kind(serverEid));
 			if (!ref || !isHostileRef(ref)) continue;
 			const t = this.store.tile(serverEid);
-			if (t && this.chebyshev(me, t) <= 3) count += 1;
+			if (t && chebyshev(me, t) <= 3) count += 1;
 		}
 		if (count > 0 && this.nearbyHostiles === 0) {
 			laserEvents.emit('monster:nearby', { count });
@@ -698,54 +705,9 @@ export class CloudCityScene extends Scene {
 		return this.store.tile(this.myEid);
 	}
 
-	private chebyshev(
-		a: { x: number; y: number },
-		b: { x: number; y: number },
-	): number {
-		return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
-	}
-
 	private entityAt(tile: { x: number; y: number }): number | null {
 		const hit = this.store.at(tile.x, tile.y, this.myEid);
 		return hit ? hit.serverEid : null;
-	}
-
-	/**
-	 * Nearest walkable tile next to `target` (NPCs occupy a solid tile, so you
-	 * can't path onto it). Picks the neighbour closest to `from` so the player
-	 * stops beside the NPC and the pending interaction can fire. Falls back to
-	 * the target tile when fully boxed in.
-	 */
-	private adjacentFreeTile(
-		target: { x: number; y: number },
-		from: { x: number; y: number },
-	): { x: number; y: number } {
-		const deltas = [
-			[0, -1],
-			[0, 1],
-			[-1, 0],
-			[1, 0],
-			[-1, -1],
-			[1, -1],
-			[-1, 1],
-			[1, 1],
-		];
-		const free = deltas
-			.map(([dx, dy]) => ({ x: target.x + dx, y: target.y + dy }))
-			.filter(
-				(c) =>
-					!this.blocked.has(`${c.x},${c.y}`) &&
-					this.entityAt(c) === null,
-			);
-		if (free.length === 0) return target;
-		free.sort(
-			(a, b) =>
-				this.chebyshev(a, from) - this.chebyshev(b, from) ||
-				Math.abs(a.x - from.x) +
-					Math.abs(a.y - from.y) -
-					(Math.abs(b.x - from.x) + Math.abs(b.y - from.y)),
-		);
-		return free[0];
 	}
 
 	private onPointerDown(pointer: Phaser.Input.Pointer) {
@@ -757,32 +719,42 @@ export class CloudCityScene extends Scene {
 		};
 
 		this.pendingAction = null;
+		const me = this.myTile();
+		const inRange = me !== null && chebyshev(me, tile) <= 1;
 		const hitEid = this.entityAt(tile);
+		let hit: ClickHit | null = null;
 		if (hitEid !== null) {
 			const kind = this.store.kind(hitEid);
 			const ref = this.kindRef(kind);
 			const npc = ref ? getNPCByRef(ref) : undefined;
-			const cat = this.kindCat(kind);
+			hit = {
+				eid: hitEid,
+				cat: this.catName(kind),
+				hasRef: ref !== null,
+			};
 			laserEvents.emit('target:set', {
 				eid: hitEid,
 				name: npc?.name ?? ref ?? 'Unknown',
 				hp: this.store.hp(hitEid),
 				maxHp: this.store.maxHp(hitEid),
-				cat,
+				cat: this.kindCat(kind),
 			});
-			const me = this.myTile();
-			if (cat === KIND_CAT_ITEM) {
-				if (me && this.chebyshev(me, tile) <= 1) {
-					this.client.action(ACTION_PICKUP, hitEid);
-				} else {
-					this.pendingAction = { kind: 'pickup', eid: hitEid };
-					this.startMoveTo(tile);
-				}
+		}
+
+		const intent = resolveClick(hit, inRange);
+		switch (intent.kind) {
+			case 'pickup':
+				this.client.action(ACTION_PICKUP, intent.eid);
 				return;
-			}
-			if (cat === KIND_CAT_NPC) {
-				if (ref && me && this.chebyshev(me, tile) <= 1) {
-					const ev = pointer.event as MouseEvent | undefined;
+			case 'pickup-move':
+				this.pendingAction = { kind: 'pickup', eid: intent.eid };
+				this.startMoveTo(tile);
+				return;
+			case 'interact': {
+				const ref = this.kindRef(this.store.kind(intent.eid));
+				const npc = ref ? getNPCByRef(ref) : undefined;
+				const ev = pointer.event as MouseEvent | undefined;
+				if (ref) {
 					laserEvents.emit('npc:interact', {
 						npcId: npcIdForRef(ref),
 						npcName: npc?.name ?? ref,
@@ -792,18 +764,27 @@ export class CloudCityScene extends Scene {
 							y: ev?.clientY ?? pointer.y,
 						},
 					});
-				} else {
-					this.pendingAction = { kind: 'interact', eid: hitEid };
-					this.startMoveTo(
-						me ? this.adjacentFreeTile(tile, me) : tile,
-					);
 				}
 				return;
 			}
+			case 'interact-move':
+				this.pendingAction = { kind: 'interact', eid: intent.eid };
+				this.startMoveTo(
+					me
+						? adjacentFreeTile(
+								tile,
+								me,
+								this.isBlocked,
+								(c) => this.entityAt(c) !== null,
+							)
+						: tile,
+				);
+				return;
+			case 'move':
+				laserEvents.emit('target:clear', {});
+				this.startMoveTo(tile);
+				return;
 		}
-
-		laserEvents.emit('target:clear', {});
-		this.startMoveTo(tile);
 	}
 
 	/**
@@ -835,20 +816,17 @@ export class CloudCityScene extends Scene {
 		if (!this.client) return;
 		const me = this.myTile();
 		if (!me) return;
-		let best: { eid: number; dist: number } | null = null;
+		const npcs: NpcEntry[] = [];
 		for (const [serverEid] of this.store.entries()) {
 			if (serverEid === this.myEid) continue;
 			if (this.kindCat(this.store.kind(serverEid)) !== KIND_CAT_NPC)
 				continue;
 			const t = this.store.tile(serverEid);
-			if (!t) continue;
-			const dist = this.chebyshev(me, t);
-			if (dist <= 1 && (!best || dist < best.dist)) {
-				best = { eid: serverEid, dist };
-			}
+			if (t) npcs.push({ eid: serverEid, tile: t });
 		}
-		if (best) {
-			this.client.action(ACTION_ATTACK, best.eid);
+		const target = nearestAdjacentNpc(me, npcs);
+		if (target !== null) {
+			this.client.action(ACTION_ATTACK, target);
 		} else {
 			this.showFloatingText(this.myEid, 'no target', '#9ca3af');
 		}
@@ -935,7 +913,7 @@ export class CloudCityScene extends Scene {
 			if (this.kindCat(this.store.kind(serverEid)) !== KIND_CAT_ITEM)
 				continue;
 			const t = this.store.tile(serverEid);
-			if (t && this.chebyshev(me, t) <= 1) {
+			if (t && chebyshev(me, t) <= 1) {
 				this.lastAutoPickup = time;
 				this.client.action(ACTION_PICKUP, serverEid);
 				return;
