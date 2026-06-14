@@ -86,6 +86,10 @@ function CreateRepoModal({ onClose }: { onClose: () => void }) {
 	});
 	const submit = async () => {
 		const [kind, owner] = state.owner.split(':');
+		if (!owner) {
+			forgejoService.showToast('error', 'Pick an owner');
+			return;
+		}
 		const ok = await forgejoService.createRepo({
 			owner,
 			ownerIsOrg: kind === 'org',
@@ -165,6 +169,10 @@ function MigrateRepoModal({ onClose }: { onClose: () => void }) {
 	});
 	const submit = async () => {
 		const [, owner] = state.owner.split(':');
+		if (!owner) {
+			forgejoService.showToast('error', 'Pick an owner');
+			return;
+		}
 		const ok = await forgejoService.migrateRepo({
 			clone_addr: state.clone_addr,
 			repo_name: state.repo_name,
@@ -356,7 +364,10 @@ function CollaboratorsModal({
 	const collabs = collabMap[repo.full_name];
 	const [user, setUser] = useState('');
 	const [perm, setPerm] = useState('write');
-	if (collabs === undefined) forgejoService.loadCollaborators(repo.full_name);
+	useEffect(() => {
+		if (collabs === undefined)
+			forgejoService.loadCollaborators(repo.full_name);
+	}, [repo.full_name, collabs === undefined]);
 	return (
 		<Modal
 			title={`Collaborators · ${repo.full_name}`}
