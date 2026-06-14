@@ -26,6 +26,8 @@
 		<!-- Discord Activity root. discord.js runs the OAuth handshake, bridges
 		     to a game-server session, then mounts the game into #app. -->
 		<div id="app">Loading CryptoThrone…</div>
-		<script src="/discord/discord.js" defer></script>
+		<!-- Relative src: under the Discord root mapping (/ -> .../discord/) an
+		     absolute /discord/discord.js would double to /discord/discord/…. -->
+		<script src="discord.js" defer></script>
 	</body>
 </html>

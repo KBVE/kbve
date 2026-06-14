@@ -5,6 +5,7 @@ namespace: cryptothrone
 resources:
     - cryptothrone-serviceaccount.yaml
     - cryptothrone-externalsecret.yaml
+    - cryptothrone-discord-sealed-secret.yaml
     - cryptothrone-deployment.yaml
     - httproute.yaml
     - certificate.yaml

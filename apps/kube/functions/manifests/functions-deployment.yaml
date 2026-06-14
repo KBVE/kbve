@@ -17,7 +17,7 @@ spec:
         spec:
             containers:
                 - name: edge-functions
-                  image: ghcr.io/kbve/edge:0.1.42
+                  image: ghcr.io/kbve/edge:0.1.43
                   imagePullPolicy: Always
                   command:
                       - 'edge-runtime'

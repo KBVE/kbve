@@ -441,7 +441,6 @@ jobs:
                         *.git) REPO_PATH="${REPO_PATH}/info/lfs" ;;
                         *) REPO_PATH="${REPO_PATH%.git}.git/info/lfs" ;;
                       esac
-                      REPO_PATH="$(printf '%s' "${REPO_PATH%%/*}" | tr 'A-Z' 'a-z')/${REPO_PATH#*/}"
                       AUTH_LFS="https://${FORGEJO_USER}:${FORGEJO_TOKEN}@git.kbve.com/${REPO_PATH}"
                       echo "::notice::Pulling LFS (${INCLUDE}) from git.kbve.com/${REPO_PATH} (normalized from ${RAW_LFS})"
                       git -c lfs.url="${AUTH_LFS}" lfs install --local
@@ -755,7 +754,6 @@ jobs:
                         *.git) REPO_PATH="${REPO_PATH}/info/lfs" ;;
                         *) REPO_PATH="${REPO_PATH%.git}.git/info/lfs" ;;
                       esac
-                      REPO_PATH="$(printf '%s' "${REPO_PATH%%/*}" | tr 'A-Z' 'a-z')/${REPO_PATH#*/}"
                       AUTH_LFS="https://${FORGEJO_USER}:${FORGEJO_TOKEN}@git.kbve.com/${REPO_PATH}"
                       echo "::notice::Pulling LFS (${INCLUDE}) from git.kbve.com/${REPO_PATH} (normalized from ${RAW_LFS})"
                       git -c lfs.url="${AUTH_LFS}" lfs install --local
