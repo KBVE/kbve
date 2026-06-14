@@ -29,6 +29,14 @@ import {
 	interactableAt,
 	type Interactable,
 } from '../data/interactables';
+import { EntityStore, type EntityCat } from '../ecs/store';
+
+interface EntityRefs {
+	sprite: Phaser.GameObjects.Sprite;
+	charId: string;
+	nameplate?: Phaser.GameObjects.Text;
+	hpBar?: Phaser.GameObjects.Graphics;
+}
 
 const MAP_SCALE = 3;
 const STEP_THROTTLE_MS = 60;
@@ -81,17 +89,6 @@ const REF_SPRITES: Record<string, RefSprite> = {
 
 const DEFAULT_NPC_SPRITE: RefSprite = { key: 'monks', mapping: 0 };
 
-interface Tracked {
-	sprite: Phaser.GameObjects.Sprite;
-	charId: string;
-	tile: { x: number; y: number };
-	kind: number;
-	hp: number;
-	maxHp: number;
-	hpBar?: Phaser.GameObjects.Graphics;
-	nameplate?: Phaser.GameObjects.Text;
-}
-
 interface PendingAction {
 	kind: 'pickup' | 'interact';
 	eid: number;
@@ -104,7 +101,7 @@ export class CloudCityScene extends Scene {
 	private mySlot = SLOT_NONE;
 	private slotUsername = new Map<number, string>();
 	private myEid = -1;
-	private tracked = new Map<number, Tracked>();
+	private store = new EntityStore<EntityRefs>();
 	private kindRegistry = new Map<number, KindEntry>();
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 	private wasd!: {
@@ -435,6 +432,15 @@ export class CloudCityScene extends Scene {
 		return this.kindRegistry.get(kind)?.ref ?? null;
 	}
 
+	private catName(kind: number): EntityCat {
+		const c = this.kindCat(kind);
+		return c === KIND_CAT_PLAYER
+			? 'player'
+			: c === KIND_CAT_ITEM
+				? 'item'
+				: 'npc';
+	}
+
 	private makeSprite(
 		kind: number,
 		owner: number,
@@ -467,12 +473,12 @@ export class CloudCityScene extends Scene {
 	}
 
 	private showFloatingText(eid: number, text: string, color: string) {
-		const target = this.tracked.get(eid);
-		if (!target) return;
+		const refs = this.store.refs(eid);
+		if (!refs) return;
 		floatingText(
 			this,
-			target.sprite.x,
-			target.sprite.y - 14,
+			refs.sprite.x,
+			refs.sprite.y - 14,
 			text,
 			color,
 			this.entityDepth + 1,
@@ -497,8 +503,7 @@ export class CloudCityScene extends Scene {
 				});
 			}
 			seen.add(e.eid);
-			const existing = this.tracked.get(e.eid);
-			if (!existing) {
+			if (!this.store.has(e.eid)) {
 				const { sprite, mapping } = this.makeSprite(e.kind, e.owner);
 				const charId = `e${e.eid}`;
 				const conf: Record<string, unknown> = {
@@ -512,25 +517,18 @@ export class CloudCityScene extends Scene {
 					conf.walkingAnimationMapping = mapping;
 				}
 				this.gridEngine.addCharacter(conf);
-				const tracked: Tracked = {
-					sprite,
-					charId,
-					tile: { x: e.tile.x, y: e.tile.y },
-					kind: e.kind,
-					hp: e.hp,
-					maxHp: e.max_hp,
-				};
-				const cat = this.kindCat(e.kind);
+				const refs: EntityRefs = { sprite, charId };
+				const ref = this.kindRef(e.kind);
+				const cat = this.catName(e.kind);
 				let label: string | undefined;
-				if (cat === KIND_CAT_PLAYER) {
+				if (cat === 'player') {
 					label = this.slotUsername.get(e.owner);
-				} else if (cat === KIND_CAT_NPC) {
-					const ref = this.kindRef(e.kind);
+				} else if (cat === 'npc') {
 					label = ref ? (getNPCByRef(ref)?.name ?? ref) : undefined;
 				}
 				if (label) {
 					const top = sprite.getTopCenter();
-					tracked.nameplate = this.add
+					refs.nameplate = this.add
 						.text(top.x, top.y + 2, label, {
 							fontFamily: 'monospace',
 							fontSize: '11px',
@@ -541,9 +539,21 @@ export class CloudCityScene extends Scene {
 						.setOrigin(0.5, 1)
 						.setDepth(this.entityDepth + 2);
 				}
-				this.tracked.set(e.eid, tracked);
+				this.store.spawn(
+					e.eid,
+					{
+						tile: { x: e.tile.x, y: e.tile.y },
+						kind: e.kind,
+						cat,
+						owner: e.owner,
+						hostile: !!(ref && isHostileRef(ref)),
+						hp: e.hp,
+						maxHp: e.max_hp,
+					},
+					refs,
+				);
 				if (
-					this.kindCat(e.kind) === KIND_CAT_PLAYER &&
+					cat === 'player' &&
 					e.owner === this.mySlot &&
 					this.myEid < 0
 				) {
@@ -562,43 +572,48 @@ export class CloudCityScene extends Scene {
 				);
 				if (drift > 2) {
 					this.predicted = { x: e.tile.x, y: e.tile.y };
-					this.gridEngine.setPosition(existing.charId, {
-						x: e.tile.x,
-						y: e.tile.y,
-					});
+					const refs = this.store.refs(e.eid);
+					if (refs) {
+						this.gridEngine.setPosition(refs.charId, {
+							x: e.tile.x,
+							y: e.tile.y,
+						});
+					}
 				}
-				existing.tile = { ...this.predicted };
-				existing.hp = e.hp;
-				existing.maxHp = e.max_hp;
+				this.store.update(e.eid, {
+					tile: { ...this.predicted },
+					hp: e.hp,
+					maxHp: e.max_hp,
+				});
 			} else {
-				if (
-					existing.tile.x !== e.tile.x ||
-					existing.tile.y !== e.tile.y
-				) {
-					this.gridEngine.moveTo(existing.charId, {
+				const cur = this.store.tile(e.eid);
+				const refs = this.store.refs(e.eid);
+				if (cur && refs && (cur.x !== e.tile.x || cur.y !== e.tile.y)) {
+					this.gridEngine.moveTo(refs.charId, {
 						x: e.tile.x,
 						y: e.tile.y,
 					});
-					existing.tile = { x: e.tile.x, y: e.tile.y };
 				}
-				if (e.eid === this.myEid)
-					this.predicted = { x: e.tile.x, y: e.tile.y };
-				existing.hp = e.hp;
-				existing.maxHp = e.max_hp;
+				this.store.update(e.eid, {
+					tile: { x: e.tile.x, y: e.tile.y },
+					hp: e.hp,
+					maxHp: e.max_hp,
+				});
 			}
 		}
 
-		for (const [eid, t] of this.tracked) {
-			if (seen.has(eid)) continue;
-			if (this.gridEngine.hasCharacter(t.charId)) {
-				this.gridEngine.removeCharacter(t.charId);
+		for (const [serverEid, , refs] of [...this.store.entries()]) {
+			if (seen.has(serverEid)) continue;
+			if (this.gridEngine.hasCharacter(refs.charId)) {
+				this.gridEngine.removeCharacter(refs.charId);
 			}
-			t.hpBar?.destroy();
-			t.nameplate?.destroy();
-			t.sprite.destroy();
-			this.tracked.delete(eid);
-			if (eid === this.myEid) this.myEid = -1;
-			if (this.pendingAction?.eid === eid) this.pendingAction = null;
+			refs.hpBar?.destroy();
+			refs.nameplate?.destroy();
+			refs.sprite.destroy();
+			this.store.despawn(serverEid);
+			if (serverEid === this.myEid) this.myEid = -1;
+			if (this.pendingAction?.eid === serverEid)
+				this.pendingAction = null;
 		}
 
 		this.checkHostileProximity();
@@ -614,18 +629,18 @@ export class CloudCityScene extends Scene {
 		const pending = this.pendingAction;
 		if (!pending || !this.client) return;
 		const me = this.myTile();
-		const target = this.tracked.get(pending.eid);
-		if (!me || !target) {
+		const targetTile = this.store.tile(pending.eid);
+		if (!me || !targetTile) {
 			this.pendingAction = null;
 			return;
 		}
-		if (this.chebyshev(me, target.tile) > 1) return;
+		if (this.chebyshev(me, targetTile) > 1) return;
 		this.pendingAction = null;
 		if (pending.kind === 'pickup') {
 			this.client.action(ACTION_PICKUP, pending.eid);
 			return;
 		}
-		const ref = this.kindRef(target.kind);
+		const ref = this.kindRef(this.store.kind(pending.eid));
 		if (!ref) return;
 		const npc = getNPCByRef(ref);
 		laserEvents.emit('npc:interact', {
@@ -640,34 +655,36 @@ export class CloudCityScene extends Scene {
 	}
 
 	private flashSprite(eid: number) {
-		const target = this.tracked.get(eid);
-		if (!target) return;
-		flashEntity(this, target.sprite);
+		const refs = this.store.refs(eid);
+		if (!refs) return;
+		flashEntity(this, refs.sprite);
 	}
 
 	private updateHpBars() {
-		for (const [eid, t] of this.tracked) {
-			const cat = this.kindCat(t.kind);
+		for (const [serverEid, , refs] of this.store.entries()) {
+			const cat = this.kindCat(this.store.kind(serverEid));
+			const hp = this.store.hp(serverEid);
+			const maxHp = this.store.maxHp(serverEid);
 			// Entity-uniform: any wounded entity (player or NPC) gets a world
 			// hp bar, except items and the local player (HUD shows that one).
 			const wounded =
 				cat !== KIND_CAT_ITEM &&
-				eid !== this.myEid &&
-				t.maxHp > 0 &&
-				t.hp < t.maxHp &&
-				t.hp > 0;
+				serverEid !== this.myEid &&
+				maxHp > 0 &&
+				hp < maxHp &&
+				hp > 0;
 			if (!wounded) {
-				if (t.hpBar) {
-					t.hpBar.destroy();
-					t.hpBar = undefined;
+				if (refs.hpBar) {
+					refs.hpBar.destroy();
+					refs.hpBar = undefined;
 				}
 				continue;
 			}
-			if (!t.hpBar) {
-				t.hpBar = this.add.graphics().setDepth(this.entityDepth + 1);
+			if (!refs.hpBar) {
+				refs.hpBar = this.add.graphics().setDepth(this.entityDepth + 1);
 			}
-			const center = t.sprite.getTopCenter();
-			drawHealthBar(t.hpBar, center.x, t.sprite.y - 22, t.hp, t.maxHp);
+			const center = refs.sprite.getTopCenter();
+			drawHealthBar(refs.hpBar, center.x, refs.sprite.y - 22, hp, maxHp);
 		}
 	}
 
@@ -686,11 +703,12 @@ export class CloudCityScene extends Scene {
 		const me = this.myTile();
 		if (!me) return;
 		let count = 0;
-		for (const [eid, t] of this.tracked) {
-			if (eid === this.myEid) continue;
-			const ref = this.kindRef(t.kind);
+		for (const [serverEid] of this.store.entries()) {
+			if (serverEid === this.myEid) continue;
+			const ref = this.kindRef(this.store.kind(serverEid));
 			if (!ref || !isHostileRef(ref)) continue;
-			if (this.chebyshev(me, t.tile) <= 3) count += 1;
+			const t = this.store.tile(serverEid);
+			if (t && this.chebyshev(me, t) <= 3) count += 1;
 		}
 		if (count > 0 && this.nearbyHostiles === 0) {
 			laserEvents.emit('monster:nearby', { count });
@@ -700,7 +718,7 @@ export class CloudCityScene extends Scene {
 
 	private myTile(): { x: number; y: number } | null {
 		if (this.myEid < 0) return null;
-		return this.tracked.get(this.myEid)?.tile ?? null;
+		return this.store.tile(this.myEid);
 	}
 
 	private chebyshev(
@@ -710,17 +728,9 @@ export class CloudCityScene extends Scene {
 		return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
 	}
 
-	private entityAt(tile: {
-		x: number;
-		y: number;
-	}): { eid: number; t: Tracked } | null {
-		for (const [eid, t] of this.tracked) {
-			if (eid === this.myEid) continue;
-			if (t.tile.x === tile.x && t.tile.y === tile.y) {
-				return { eid, t };
-			}
-		}
-		return null;
+	private entityAt(tile: { x: number; y: number }): number | null {
+		const hit = this.store.at(tile.x, tile.y, this.myEid);
+		return hit ? hit.serverEid : null;
 	}
 
 	/**
@@ -746,7 +756,9 @@ export class CloudCityScene extends Scene {
 		const free = deltas
 			.map(([dx, dy]) => ({ x: target.x + dx, y: target.y + dy }))
 			.filter(
-				(c) => !this.blocked.has(`${c.x},${c.y}`) && !this.entityAt(c),
+				(c) =>
+					!this.blocked.has(`${c.x},${c.y}`) &&
+					this.entityAt(c) === null,
 			);
 		if (free.length === 0) return target;
 		free.sort(
@@ -768,32 +780,31 @@ export class CloudCityScene extends Scene {
 		};
 
 		this.pendingAction = null;
-		const hit = this.entityAt(tile);
-		if (hit) {
-			const ref = this.kindRef(hit.t.kind);
+		const hitEid = this.entityAt(tile);
+		if (hitEid !== null) {
+			const kind = this.store.kind(hitEid);
+			const ref = this.kindRef(kind);
 			const npc = ref ? getNPCByRef(ref) : undefined;
+			const cat = this.kindCat(kind);
 			laserEvents.emit('target:set', {
-				eid: hit.eid,
+				eid: hitEid,
 				name: npc?.name ?? ref ?? 'Unknown',
-				hp: hit.t.hp,
-				maxHp: hit.t.maxHp,
-				cat: this.kindCat(hit.t.kind),
+				hp: this.store.hp(hitEid),
+				maxHp: this.store.maxHp(hitEid),
+				cat,
 			});
-			const cat = this.kindCat(hit.t.kind);
 			const me = this.myTile();
 			if (cat === KIND_CAT_ITEM) {
 				if (me && this.chebyshev(me, tile) <= 1) {
-					this.client.action(ACTION_PICKUP, hit.eid);
+					this.client.action(ACTION_PICKUP, hitEid);
 				} else {
-					this.pendingAction = { kind: 'pickup', eid: hit.eid };
+					this.pendingAction = { kind: 'pickup', eid: hitEid };
 					this.startMoveTo(tile);
 				}
 				return;
 			}
 			if (cat === KIND_CAT_NPC) {
-				const ref = this.kindRef(hit.t.kind);
 				if (ref && me && this.chebyshev(me, tile) <= 1) {
-					const npc = getNPCByRef(ref);
 					const ev = pointer.event as MouseEvent | undefined;
 					laserEvents.emit('npc:interact', {
 						npcId: npcIdForRef(ref),
@@ -805,7 +816,7 @@ export class CloudCityScene extends Scene {
 						},
 					});
 				} else {
-					this.pendingAction = { kind: 'interact', eid: hit.eid };
+					this.pendingAction = { kind: 'interact', eid: hitEid };
 					this.startMoveTo(
 						me ? this.adjacentFreeTile(tile, me) : tile,
 					);
@@ -841,7 +852,7 @@ export class CloudCityScene extends Scene {
 			x: Math.floor(pointer.worldX / span),
 			y: Math.floor(pointer.worldY / span),
 		};
-		const hit = this.entityAt(tile);
+		const hit = this.entityAt(tile) !== null;
 		this.input.setDefaultCursor(hit ? 'pointer' : 'default');
 	}
 
@@ -850,12 +861,15 @@ export class CloudCityScene extends Scene {
 		const me = this.myTile();
 		if (!me) return;
 		let best: { eid: number; dist: number } | null = null;
-		for (const [eid, t] of this.tracked) {
-			if (eid === this.myEid) continue;
-			if (this.kindCat(t.kind) !== KIND_CAT_NPC) continue;
-			const dist = this.chebyshev(me, t.tile);
+		for (const [serverEid] of this.store.entries()) {
+			if (serverEid === this.myEid) continue;
+			if (this.kindCat(this.store.kind(serverEid)) !== KIND_CAT_NPC)
+				continue;
+			const t = this.store.tile(serverEid);
+			if (!t) continue;
+			const dist = this.chebyshev(me, t);
 			if (dist <= 1 && (!best || dist < best.dist)) {
-				best = { eid, dist };
+				best = { eid: serverEid, dist };
 			}
 		}
 		if (best) {
@@ -872,9 +886,9 @@ export class CloudCityScene extends Scene {
 	 */
 	private tryInteract() {
 		if (this.myEid < 0) return;
-		const me = this.tracked.get(this.myEid);
+		const me = this.myTile();
 		if (!me) return;
-		const it = interactableAt(this.interactables, me.tile.x, me.tile.y);
+		const it = interactableAt(this.interactables, me.x, me.y);
 		if (!it) return;
 		const eventData: CharacterEventData = { message: it.message };
 		if (it.name) eventData.character_name = it.name;
@@ -884,10 +898,10 @@ export class CloudCityScene extends Scene {
 	}
 
 	private updateOverlays(time: number) {
-		for (const [, t] of this.tracked) {
-			if (t.nameplate) {
-				const top = t.sprite.getTopCenter();
-				t.nameplate.setPosition(top.x, top.y + 2);
+		for (const [, , refs] of this.store.entries()) {
+			if (refs.nameplate) {
+				const top = refs.sprite.getTopCenter();
+				refs.nameplate.setPosition(top.x, top.y + 2);
 			}
 		}
 		// FPS — emit roughly once per second.
@@ -902,12 +916,13 @@ export class CloudCityScene extends Scene {
 		}
 		// Other players (for the minimap).
 		const others: { x: number; y: number }[] = [];
-		for (const [eid, t] of this.tracked) {
+		for (const [serverEid] of this.store.entries()) {
 			if (
-				eid !== this.myEid &&
-				this.kindCat(t.kind) === KIND_CAT_PLAYER
+				serverEid !== this.myEid &&
+				this.kindCat(this.store.kind(serverEid)) === KIND_CAT_PLAYER
 			) {
-				others.push({ x: t.tile.x, y: t.tile.y });
+				const t = this.store.tile(serverEid);
+				if (t) others.push(t);
 			}
 		}
 		laserEvents.emit('world:players', { players: others });
@@ -941,11 +956,13 @@ export class CloudCityScene extends Scene {
 			return;
 		const me = this.myTile();
 		if (!me) return;
-		for (const [eid, t] of this.tracked) {
-			if (this.kindCat(t.kind) !== KIND_CAT_ITEM) continue;
-			if (this.chebyshev(me, t.tile) <= 1) {
+		for (const [serverEid] of this.store.entries()) {
+			if (this.kindCat(this.store.kind(serverEid)) !== KIND_CAT_ITEM)
+				continue;
+			const t = this.store.tile(serverEid);
+			if (t && this.chebyshev(me, t) <= 1) {
 				this.lastAutoPickup = time;
-				this.client.action(ACTION_PICKUP, eid);
+				this.client.action(ACTION_PICKUP, serverEid);
 				return;
 			}
 		}
@@ -1015,7 +1032,6 @@ export class CloudCityScene extends Scene {
 	private advancePredicted(myChar: string, tile: { x: number; y: number }) {
 		this.predicted = { ...tile };
 		this.gridEngine.moveTo(myChar, tile);
-		const me = this.tracked.get(this.myEid);
-		if (me) me.tile = { ...tile };
+		this.store.update(this.myEid, { tile: { ...tile } });
 	}
 }
