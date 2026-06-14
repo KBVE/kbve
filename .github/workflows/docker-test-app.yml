@@ -60,6 +60,16 @@ jobs:
                   swap-storage: false
                   docker-images: true
 
+            - name: Disable flaky third-party apt sources
+              # The GitHub runner ships packages.microsoft.com / azure-cli apt
+              # sources that intermittently return 403 and break `apt-get update`
+              # inside `playwright install-deps`. We don't need them — remove so
+              # OS-dep installs stay resilient (recurring CI flake, #12373).
+              run: |
+                  sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list \
+                             /etc/apt/sources.list.d/azure-cli.list \
+                             /etc/apt/sources.list.d/microsoft*.list 2>/dev/null || true
+
             - name: Checkout the monorepo
               uses: actions/checkout@v6
               continue-on-error: true
@@ -287,7 +297,28 @@ jobs:
             - name: Install Playwright OS deps (cache hit)
               if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.baked-playwright.outputs.all_present != 'true' && steps.playwright-cache.outputs.cache-hit == 'true' }}
               timeout-minutes: 10
-              run: pnpm exec playwright install-deps ${{ steps.detect-playwright.outputs.browsers }}
+              env:
+                  BROWSERS: ${{ steps.detect-playwright.outputs.browsers }}
+              run: |
+                  set -uo pipefail
+                  # Belt-and-suspenders for the apt OS-dep install: the flaky
+                  # third-party apt source is already stripped above; retry to
+                  # ride transient mirror blips, then fall back to the full
+                  # `install --with-deps` path as a last resort.
+                  install_deps() {
+                    echo "::group::playwright install-deps ($1)"
+                    sudo apt-get update || true
+                    pnpm exec playwright install-deps ${BROWSERS}
+                    local rc=$?
+                    echo "::endgroup::"
+                    return $rc
+                  }
+                  install_deps "try 1" && exit 0
+                  echo "::warning::install-deps try 1 failed; retrying"
+                  sleep 10
+                  install_deps "try 2" && exit 0
+                  echo "::warning::install-deps exhausted; trying install --with-deps"
+                  pnpm exec playwright install --with-deps ${BROWSERS}
 
             - name: Nx e2e ${{ inputs.project }}
               env:
