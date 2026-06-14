@@ -195,13 +195,24 @@ async fn cache_headers(request: Request, next: Next) -> Response {
     let path = request.uri().path().to_owned();
     let mut response = next.run(request).await;
 
-    // Never let a CDN cache a non-2xx: a 404 for an asset that didn't exist yet
-    // would otherwise stick for max-age (Cloudflare served stale /discord/*.js
-    // 404s for a day while the bundle rolled out).
+    let is_html = response
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .is_some_and(|ct| ct.starts_with("text/html"));
+    // The Discord/embed entry bundles keep a stable filename across releases, so
+    // a long max-age would pin last deploy's bytes; force them to revalidate.
+    let is_entry_bundle = path == "/discord/discord.js" || path == "/embed/embed.js";
+
+    // /_astro/ assets are content-hashed → immutable. HTML and the unhashed entry
+    // bundles must revalidate (ETag/304) so a redeploy is seen at once. A non-2xx
+    // is never cached — a transient 404 once stuck in Cloudflare for a full day.
     let cache_value = if !response.status().is_success() {
         "no-store"
     } else if path.starts_with("/_astro/") {
         "public, max-age=31536000, immutable"
+    } else if is_html || is_entry_bundle {
+        "no-cache"
     } else {
         "public, max-age=86400"
     };
@@ -474,6 +485,58 @@ mod tests {
             .to_str()
             .unwrap();
         assert!(cc.contains("86400"));
+    }
+
+    #[tokio::test]
+    async fn test_cache_headers_html_revalidates() {
+        let app = Router::new()
+            .route(
+                "/discord/",
+                get(|| async {
+                    (
+                        [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
+                        "<html>",
+                    )
+                }),
+            )
+            .layer(axum::middleware::from_fn(cache_headers));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/discord/")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(
+            response.headers().get(header::CACHE_CONTROL).unwrap(),
+            "no-cache"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_cache_headers_entry_bundle_revalidates() {
+        let app = Router::new()
+            .route("/discord/discord.js", get(|| async { "bundle" }))
+            .layer(axum::middleware::from_fn(cache_headers));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/discord/discord.js")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(
+            response.headers().get(header::CACHE_CONTROL).unwrap(),
+            "no-cache"
+        );
     }
 
     #[tokio::test]
