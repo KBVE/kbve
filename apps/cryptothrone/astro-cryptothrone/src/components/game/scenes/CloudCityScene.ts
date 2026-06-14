@@ -36,6 +36,13 @@ import {
 	type SyncResolvers,
 	type SyncState,
 } from '../systems/netSync';
+import {
+	stepDir,
+	followPath,
+	commitPredicted,
+	type PredictState,
+	type IsBlocked,
+} from '../systems/prediction';
 
 interface EntityRefs {
 	sprite: Phaser.GameObjects.Sprite;
@@ -48,13 +55,6 @@ const MAP_SCALE = 3;
 const STEP_THROTTLE_MS = 60;
 const SLOT_NONE = 0xffff;
 const PLAYER_SPRITE_VARIANTS = 8;
-
-const DIR_DELTA: Record<string, { x: number; y: number }> = {
-	Up: { x: 0, y: -1 },
-	Down: { x: 0, y: 1 },
-	Left: { x: -1, y: 0 },
-	Right: { x: 1, y: 0 },
-};
 
 function spriteVariantForName(name: string): number {
 	let h = 2166136261;
@@ -144,6 +144,8 @@ export class CloudCityScene extends Scene {
 	private hoverThrottle = 0;
 	private laserUnsubs: (() => void)[] = [];
 	private blocked = new Set<string>();
+	private readonly isBlocked: IsBlocked = (x, y) =>
+		this.blocked.has(`${x},${y}`);
 	private predicted = { x: 0, y: 0 };
 	private predictedPath: { x: number; y: number }[] = [];
 	private predictSeeded = false;
@@ -812,9 +814,7 @@ export class CloudCityScene extends Scene {
 	 */
 	private startMoveTo(tile: { x: number; y: number }) {
 		if (!this.client) return;
-		this.predictedPath = findTilePath(this.predicted, tile, (x, y) =>
-			this.blocked.has(`${x},${y}`),
-		);
+		this.predictedPath = findTilePath(this.predicted, tile, this.isBlocked);
 		this.client.moveTo(tile);
 	}
 
@@ -967,6 +967,12 @@ export class CloudCityScene extends Scene {
 		// prediction tracks the server's tile rate instead of outrunning it.
 		if (this.gridEngine.isMoving(myChar)) return;
 
+		const pstate: PredictState = {
+			predicted: this.predicted,
+			path: this.predictedPath,
+			seeded: this.predictSeeded,
+		};
+
 		let dir: Dir | null = null;
 		if (this.cursors.up.isDown || this.wasd.up.isDown) dir = 'Up';
 		else if (this.cursors.down.isDown || this.wasd.down.isDown)
@@ -977,35 +983,26 @@ export class CloudCityScene extends Scene {
 			dir = 'Right';
 
 		if (dir) {
-			// Keyboard interrupts any click-path and predicts a single step.
-			this.predictedPath = [];
-			const delta = DIR_DELTA[dir];
-			const cand = {
-				x: this.predicted.x + delta.x,
-				y: this.predicted.y + delta.y,
-			};
-			if (!this.blocked.has(`${cand.x},${cand.y}`)) {
-				this.advancePredicted(myChar, cand);
-			}
+			const cand = stepDir(pstate, dir, this.isBlocked);
+			if (cand) this.advancePredicted(pstate, myChar, cand);
+			this.predictedPath = pstate.path;
 			this.client.step(dir);
 			this.lastStepAt = time;
 			return;
 		}
 
-		// Follow a predicted click-path one tile at a time (the server walks
-		// its own authoritative MoveTo in parallel).
-		if (this.predictedPath.length > 0) {
-			const next = this.predictedPath.shift()!;
-			if (!this.blocked.has(`${next.x},${next.y}`)) {
-				this.advancePredicted(myChar, next);
-			} else {
-				this.predictedPath = [];
-			}
-		}
+		const next = followPath(pstate, this.isBlocked);
+		this.predictedPath = pstate.path;
+		if (next) this.advancePredicted(pstate, myChar, next);
 	}
 
-	private advancePredicted(myChar: string, tile: { x: number; y: number }) {
-		this.predicted = { ...tile };
+	private advancePredicted(
+		state: PredictState,
+		myChar: string,
+		tile: { x: number; y: number },
+	) {
+		commitPredicted(state, tile);
+		this.predicted = state.predicted;
 		this.gridEngine.moveTo(myChar, tile);
 		this.store.update(this.myEid, { tile: { ...tile } });
 	}
