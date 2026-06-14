@@ -1,0 +1,6 @@
+export const CORE_PACKAGE_VERSION = '0.0.1';
+
+export * from './types';
+export * from './state';
+export * from './reducer';
+export * from './store';
