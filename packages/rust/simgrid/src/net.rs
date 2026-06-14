@@ -1,11 +1,12 @@
-use std::sync::{Arc, RwLock};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex, RwLock};
 
 use axum::Router;
 use axum::extract::State;
 use axum::extract::ws::{Message, WebSocket, WebSocketUpgrade};
 use axum::response::IntoResponse;
 use axum::routing::get;
-use tokio::sync::{broadcast, mpsc};
+use tokio::sync::{broadcast, mpsc, watch};
 
 use crate::proto::{self, ClientMessage, Input, ServerEvent};
 
@@ -55,6 +56,20 @@ impl Roster {
             .map(|e| e.kbve_username.clone())
     }
 
+    /// Slots already held by this username — used to evict prior sessions so a
+    /// player can't appear as two ghosts of the same name.
+    pub(crate) fn slots_for_username(&self, name: &str) -> Vec<proto::PlayerSlot> {
+        self.slots
+            .iter()
+            .enumerate()
+            .filter_map(|(i, s)| {
+                s.as_ref()
+                    .filter(|e| e.kbve_username == name)
+                    .map(|_| proto::PlayerSlot(i as u16))
+            })
+            .collect()
+    }
+
     pub fn snapshot(&self) -> Vec<proto::PlayerView> {
         self.slots
             .iter()
@@ -87,6 +102,9 @@ pub struct ServerState {
     pub require_username: bool,
     pub roster: Arc<RwLock<Roster>>,
     pub registry: Vec<proto::KindEntry>,
+    /// Per-slot eviction signal: a reconnecting username kicks its prior
+    /// session(s) so the same player never lingers as two ghosts.
+    kicks: Arc<Mutex<HashMap<u16, watch::Sender<bool>>>>,
 }
 
 impl ServerState {
@@ -106,6 +124,7 @@ impl ServerState {
             require_username,
             roster: Arc::new(RwLock::new(Roster::new(capacity))),
             registry: Vec::new(),
+            kicks: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -124,6 +143,7 @@ enum WireFormat {
 struct AdmittedPlayer {
     slot: proto::PlayerSlot,
     format: WireFormat,
+    kick_rx: watch::Receiver<bool>,
 }
 
 fn decode_client(msg: &Message) -> Option<(ClientMessage, WireFormat)> {
@@ -169,6 +189,7 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
     };
     let slot = admitted.slot;
     let format = admitted.format;
+    let mut kick_rx = admitted.kick_rx;
     let roster_handle = state.roster.clone();
 
     let welcome = ServerEvent::Welcome {
@@ -189,6 +210,10 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
     loop {
         tokio::select! {
             biased;
+            _ = kick_rx.changed() => {
+                tracing::info!(slot = slot.0, "session evicted by a newer login");
+                break;
+            }
             evt = async {
                 match &mut rx {
                     Some(r) => r.recv().await.ok(),
@@ -224,6 +249,12 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
         }
     }
 
+    // Drop our kick channel before freeing the slot: while the slot is still
+    // claimed no other join can take it, so we can't clobber a reused slot's
+    // fresh kick sender.
+    if let Ok(mut kicks) = state.kicks.lock() {
+        kicks.remove(&slot.0);
+    }
     release_slot(&roster_handle, slot);
 }
 
@@ -338,25 +369,49 @@ async fn claim_slot(
     format: WireFormat,
 ) -> Option<AdmittedPlayer> {
     let name = kbve_username.clone();
-    let slot = match state.roster.write() {
-        Ok(mut r) => r.claim(kbve_username),
-        Err(_) => None,
+    // Find any prior session(s) for this username, then claim a fresh slot —
+    // both under one write lock so two simultaneous joins can't race.
+    let (slot, prior) = match state.roster.write() {
+        Ok(mut r) => {
+            let prior = r.slots_for_username(&name);
+            (r.claim(kbve_username), prior)
+        }
+        Err(_) => (None, Vec::new()),
     };
-    match slot {
-        Some(slot) => {
-            tracing::info!(slot = slot.0, username = %name, "player joined");
-            Some(AdmittedPlayer { slot, format })
+    let Some(slot) = slot else {
+        let capacity = state
+            .roster
+            .read()
+            .map(|r| r.capacity())
+            .unwrap_or_default();
+        send_reject(socket, format, &format!("match full ({capacity} players)")).await;
+        return None;
+    };
+
+    // Newest wins: kick prior sessions so this player isn't two ghosts. Each
+    // kicked session breaks its loop and releases its own slot (the sim then
+    // despawns that ghost and persists its state by username).
+    if !prior.is_empty()
+        && let Ok(kicks) = state.kicks.lock()
+    {
+        for old in &prior {
+            if let Some(tx) = kicks.get(&old.0) {
+                let _ = tx.send(true);
+            }
         }
-        None => {
-            let capacity = state
-                .roster
-                .read()
-                .map(|r| r.capacity())
-                .unwrap_or_default();
-            send_reject(socket, format, &format!("match full ({capacity} players)")).await;
-            None
-        }
+        tracing::info!(username = %name, evicted = prior.len(), "evicted prior session(s)");
     }
+
+    let (kick_tx, kick_rx) = watch::channel(false);
+    if let Ok(mut kicks) = state.kicks.lock() {
+        kicks.insert(slot.0, kick_tx);
+    }
+    tracing::info!(slot = slot.0, username = %name, "player joined");
+    Some(AdmittedPlayer {
+        slot,
+        format,
+        kick_rx,
+    })
 }
 
 async fn send_reject(socket: &mut WebSocket, format: WireFormat, reason: &str) {
@@ -391,7 +446,26 @@ fn inject_roster(evt: ServerEvent, roster: &Arc<RwLock<Roster>>) -> ServerEvent 
 
 #[cfg(test)]
 mod tests {
-    use super::resolve_username;
+    use super::{Roster, resolve_username};
+
+    #[test]
+    fn roster_dedups_username_for_eviction() {
+        let mut r = Roster::new(4);
+        let s0 = r.claim("ann".into()).unwrap();
+        let _s1 = r.claim("bob".into()).unwrap();
+
+        // ann reconnects: her prior slot is found, a fresh slot is claimed.
+        let prior: Vec<u16> = r.slots_for_username("ann").iter().map(|s| s.0).collect();
+        assert_eq!(prior, vec![s0.0]);
+        let s2 = r.claim("ann".into()).unwrap();
+        assert_ne!(s2.0, s0.0);
+        assert_eq!(r.slots_for_username("ann").len(), 2);
+
+        // After the old session releases, only the new one remains.
+        r.release(s0);
+        let after: Vec<u16> = r.slots_for_username("ann").iter().map(|s| s.0).collect();
+        assert_eq!(after, vec![s2.0]);
+    }
 
     #[test]
     fn require_username_rejects_empty() {
