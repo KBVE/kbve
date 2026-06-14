@@ -1088,6 +1088,290 @@ impl ForgejoClient {
         .await
     }
 
+    pub async fn list_user_gpg_keys(
+        &self,
+        login: &str,
+        limit: u32,
+    ) -> Result<Vec<ForgejoGpgKey>, JediError> {
+        self.get(
+            &format!("/api/v1/users/{login}/gpg_keys"),
+            &[("limit", limit.to_string())],
+        )
+        .await
+    }
+
+    // ── Branches ─────────────────────────────────────────────────────
+
+    pub async fn get_branch(
+        &self,
+        owner: &str,
+        repo: &str,
+        branch: &str,
+    ) -> Result<ForgejoBranch, JediError> {
+        self.get(
+            &format!("/api/v1/repos/{owner}/{repo}/branches/{branch}"),
+            &[],
+        )
+        .await
+    }
+
+    pub async fn create_branch(
+        &self,
+        owner: &str,
+        repo: &str,
+        body: &Value,
+    ) -> Result<ForgejoBranch, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::POST,
+            &format!("/api/v1/repos/{owner}/{repo}/branches"),
+            Some(body),
+        )
+        .await
+    }
+
+    pub async fn delete_branch(
+        &self,
+        owner: &str,
+        repo: &str,
+        branch: &str,
+    ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
+        self.write_empty(
+            Method::DELETE,
+            &format!("/api/v1/repos/{owner}/{repo}/branches/{branch}"),
+            None,
+        )
+        .await
+    }
+
+    pub async fn edit_branch_protection(
+        &self,
+        owner: &str,
+        repo: &str,
+        name: &str,
+        body: &Value,
+    ) -> Result<ForgejoBranchProtection, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::PATCH,
+            &format!("/api/v1/repos/{owner}/{repo}/branch_protections/{name}"),
+            Some(body),
+        )
+        .await
+    }
+
+    // ── Tags ─────────────────────────────────────────────────────────
+
+    pub async fn list_tags(
+        &self,
+        owner: &str,
+        repo: &str,
+        limit: u32,
+    ) -> Result<Vec<ForgejoTag>, JediError> {
+        self.get(
+            &format!("/api/v1/repos/{owner}/{repo}/tags"),
+            &[("limit", limit.to_string())],
+        )
+        .await
+    }
+
+    pub async fn create_tag(
+        &self,
+        owner: &str,
+        repo: &str,
+        body: &Value,
+    ) -> Result<ForgejoTag, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::POST,
+            &format!("/api/v1/repos/{owner}/{repo}/tags"),
+            Some(body),
+        )
+        .await
+    }
+
+    pub async fn delete_tag(&self, owner: &str, repo: &str, tag: &str) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
+        self.write_empty(
+            Method::DELETE,
+            &format!("/api/v1/repos/{owner}/{repo}/tags/{tag}"),
+            None,
+        )
+        .await
+    }
+
+    // ── Release assets ───────────────────────────────────────────────
+
+    pub async fn list_release_assets(
+        &self,
+        owner: &str,
+        repo: &str,
+        release_id: u64,
+    ) -> Result<Vec<ForgejoReleaseAsset>, JediError> {
+        self.get(
+            &format!("/api/v1/repos/{owner}/{repo}/releases/{release_id}/assets"),
+            &[],
+        )
+        .await
+    }
+
+    pub async fn delete_release_asset(
+        &self,
+        owner: &str,
+        repo: &str,
+        release_id: u64,
+        asset_id: u64,
+    ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
+        self.write_empty(
+            Method::DELETE,
+            &format!("/api/v1/repos/{owner}/{repo}/releases/{release_id}/assets/{asset_id}"),
+            None,
+        )
+        .await
+    }
+
+    // ── Teams (extended) ─────────────────────────────────────────────
+
+    pub async fn get_team(&self, team_id: u64) -> Result<ForgejoTeam, JediError> {
+        self.get(&format!("/api/v1/teams/{team_id}"), &[]).await
+    }
+
+    pub async fn edit_team(&self, team_id: u64, body: &Value) -> Result<ForgejoTeam, JediError> {
+        self.write(
+            Method::PATCH,
+            &format!("/api/v1/teams/{team_id}"),
+            Some(body),
+        )
+        .await
+    }
+
+    pub async fn list_team_repos(
+        &self,
+        team_id: u64,
+        limit: u32,
+    ) -> Result<Vec<ForgejoRepo>, JediError> {
+        self.get(
+            &format!("/api/v1/teams/{team_id}/repos"),
+            &[("limit", limit.to_string())],
+        )
+        .await
+    }
+
+    pub async fn add_team_repo(
+        &self,
+        team_id: u64,
+        org: &str,
+        repo: &str,
+    ) -> Result<(), JediError> {
+        self.write_empty(
+            Method::PUT,
+            &format!("/api/v1/teams/{team_id}/repos/{org}/{repo}"),
+            None,
+        )
+        .await
+    }
+
+    pub async fn remove_team_repo(
+        &self,
+        team_id: u64,
+        org: &str,
+        repo: &str,
+    ) -> Result<(), JediError> {
+        self.write_empty(
+            Method::DELETE,
+            &format!("/api/v1/teams/{team_id}/repos/{org}/{repo}"),
+            None,
+        )
+        .await
+    }
+
+    // ── Repository contents ──────────────────────────────────────────
+
+    pub async fn list_contents(
+        &self,
+        owner: &str,
+        repo: &str,
+        path: &str,
+        git_ref: Option<&str>,
+    ) -> Result<Value, JediError> {
+        let q: Vec<(&str, String)> = git_ref
+            .filter(|s| !s.is_empty())
+            .map(|r| vec![("ref", r.to_string())])
+            .unwrap_or_default();
+        self.get(&format!("/api/v1/repos/{owner}/{repo}/contents/{path}"), &q)
+            .await
+    }
+
+    pub async fn create_or_update_file(
+        &self,
+        owner: &str,
+        repo: &str,
+        path: &str,
+        body: &Value,
+    ) -> Result<Value, JediError> {
+        self.policy.check_owner(owner)?;
+        let method = if body.get("sha").is_some() {
+            Method::PUT
+        } else {
+            Method::POST
+        };
+        self.write(
+            method,
+            &format!("/api/v1/repos/{owner}/{repo}/contents/{path}"),
+            Some(body),
+        )
+        .await
+    }
+
+    pub async fn delete_file(
+        &self,
+        owner: &str,
+        repo: &str,
+        path: &str,
+        body: &Value,
+    ) -> Result<Value, JediError> {
+        self.policy.check_owner(owner)?;
+        self.write(
+            Method::DELETE,
+            &format!("/api/v1/repos/{owner}/{repo}/contents/{path}"),
+            Some(body),
+        )
+        .await
+    }
+
+    // ── Packages ─────────────────────────────────────────────────────
+
+    pub async fn list_packages(
+        &self,
+        owner: &str,
+        page: u32,
+        limit: u32,
+    ) -> Result<Vec<ForgejoPackage>, JediError> {
+        self.get(
+            &format!("/api/v1/packages/{owner}"),
+            &Self::page_query(page, limit),
+        )
+        .await
+    }
+
+    pub async fn delete_package(
+        &self,
+        owner: &str,
+        kind: &str,
+        name: &str,
+        version: &str,
+    ) -> Result<(), JediError> {
+        self.policy.check_owner(owner)?;
+        self.write_empty(
+            Method::DELETE,
+            &format!("/api/v1/packages/{owner}/{kind}/{name}/{version}"),
+            None,
+        )
+        .await
+    }
+
     // ── System / admin ───────────────────────────────────────────────
 
     pub async fn version(&self) -> Result<ForgejoVersion, JediError> {
