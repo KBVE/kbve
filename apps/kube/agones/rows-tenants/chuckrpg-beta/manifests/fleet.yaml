@@ -108,7 +108,7 @@ spec:
                           volumeMounts:
                               - name: server-binary
                                 mountPath: /server
-                                subPath: chuckServerBeta
+                                subPath: chuckServer
                     volumes:
                         - name: server-binary
                           persistentVolumeClaim:
