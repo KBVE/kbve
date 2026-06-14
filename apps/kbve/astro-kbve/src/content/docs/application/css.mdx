@@ -623,6 +623,81 @@ Every demo here loops or runs on hover purely for illustration. In production wr
 
 ---
 
+## Effects & Filters
+
+CSS can do a lot of what once needed image editors — blur, recolor, clip and blend — all GPU-accelerated and animatable.
+
+### filter
+
+`filter` chains image-style operations: `blur`, `brightness`, `contrast`, `grayscale`, `saturate`, `hue-rotate`, `drop-shadow`. They compose left to right.
+
+export const fxFilterCode = `<div class="flex flex-wrap items-end justify-center gap-6 p-10 bg-gray-900 text-center text-xs text-gray-300">
+  <figure><div class="w-20 h-20 rounded-xl bg-gradient-to-br from-cyan-400 to-fuchsia-500"></div><figcaption class="mt-2">none</figcaption></figure>
+  <figure><div class="w-20 h-20 rounded-xl bg-gradient-to-br from-cyan-400 to-fuchsia-500" style="filter:grayscale(1)"></div><figcaption class="mt-2">grayscale(1)</figcaption></figure>
+  <figure><div class="w-20 h-20 rounded-xl bg-gradient-to-br from-cyan-400 to-fuchsia-500" style="filter:hue-rotate(120deg) saturate(1.5)"></div><figcaption class="mt-2">hue-rotate</figcaption></figure>
+  <figure><div class="w-20 h-20 rounded-xl bg-gradient-to-br from-cyan-400 to-fuchsia-500" style="filter:blur(4px)"></div><figcaption class="mt-2">blur(4px)</figcaption></figure>
+  <figure><div class="w-20 h-20 rounded-xl bg-gradient-to-br from-cyan-400 to-fuchsia-500" style="filter:drop-shadow(0 6px 10px rgba(6,182,212,0.7))"></div><figcaption class="mt-2">drop-shadow</figcaption></figure>
+</div>`;
+
+<DevCode htmlCode={fxFilterCode} />
+
+<Aside type="tip">
+`drop-shadow()` follows the alpha shape of the element (PNG cut-outs, rounded corners, SVG) — unlike `box-shadow`, which is always a rectangle.
+</Aside>
+
+### backdrop-filter
+
+`backdrop-filter` filters whatever sits **behind** an element — the basis of frosted glass.
+
+export const fxBackdropCode = `<div class="relative flex items-center justify-center p-10 overflow-hidden h-52" style="background:url('https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=600') center/cover">
+  <div class="px-8 py-6 text-white border rounded-2xl bg-white/10 border-white/30" style="backdrop-filter:blur(10px) saturate(1.4)">
+    <p class="text-lg font-bold">Frosted Glass</p>
+    <p class="text-sm text-white/80">backdrop-filter: blur + saturate</p>
+  </div>
+</div>`;
+
+<DevCode htmlCode={fxBackdropCode} />
+
+### mix-blend-mode
+
+Blend an element with what's underneath — `difference`, `multiply`, `screen`, `overlay`. Great for text that stays legible over any background.
+
+export const fxBlendCode = `<div class="relative flex items-center justify-center p-10 overflow-hidden h-44 bg-gradient-to-r from-cyan-400 via-amber-300 to-fuchsia-500">
+  <h1 class="text-6xl font-black text-white" style="mix-blend-mode:difference">BLEND</h1>
+</div>`;
+
+<DevCode htmlCode={fxBlendCode} />
+
+### clip-path
+
+`clip-path` crops an element to any shape — polygons, circles, insets. Animatable between equal point counts.
+
+export const fxClipCode = `<div class="flex flex-wrap items-center justify-center gap-6 p-10 bg-gray-900 text-center text-xs text-gray-300">
+  <figure><div class="w-24 h-24 bg-gradient-to-br from-cyan-400 to-fuchsia-500" style="clip-path:polygon(50% 0,100% 38%,82% 100%,18% 100%,0 38%)"></div><figcaption class="mt-2">pentagon</figcaption></figure>
+  <figure><div class="w-24 h-24 bg-gradient-to-br from-cyan-400 to-fuchsia-500" style="clip-path:circle(50%)"></div><figcaption class="mt-2">circle</figcaption></figure>
+  <figure><div class="w-24 h-24 bg-gradient-to-br from-cyan-400 to-fuchsia-500" style="clip-path:polygon(0 0,100% 0,100% 75%,50% 100%,0 75%)"></div><figcaption class="mt-2">arrow tag</figcaption></figure>
+</div>`;
+
+<DevCode htmlCode={fxClipCode} />
+
+### mask-image
+
+A mask uses a gradient or image alpha to fade or cut out content — softer than the hard edges of `clip-path`.
+
+export const fxMaskCode = `<div class="p-10 bg-gray-900">
+  <p class="text-2xl font-bold leading-relaxed text-cyan-300" style="-webkit-mask-image:linear-gradient(to right,#000 55%,transparent);mask-image:linear-gradient(to right,#000 55%,transparent)">
+    This paragraph fades out toward the edge using a linear-gradient mask — the classic "read more" teaser without an overlay element.
+  </p>
+</div>`;
+
+<DevCode htmlCode={fxMaskCode} />
+
+<Aside type="caution">
+`backdrop-filter` and `mask-image` still want the `-webkit-` prefix for older Safari. Always provide a readable fallback — if the filter is unsupported, the panel should stay legible on its own.
+</Aside>
+
+---
+
 ## TailwindCSS
 
 TailwindCSS is a utility-first CSS framework. Instead of writing custom CSS, you compose designs from low-level utility classes directly in your markup.
@@ -1624,6 +1699,135 @@ export const pricingCardCode = `<div class="flex items-center justify-center p-1
 </div>`;
 
 <DevCode htmlCode={pricingCardCode} />
+
+---
+
+### Tabs (CSS-only)
+
+Radio inputs hold the active state; `peer`-style sibling selectors show the matching panel. No JavaScript.
+
+export const tabsCode = `<div class="max-w-md p-6 bg-gray-50 rounded-xl">
+  <div class="flex border-b border-gray-200">
+    <input type="radio" name="tabs" id="tab-1" class="hidden peer/1" checked>
+    <label for="tab-1" class="px-4 py-2 -mb-px text-sm font-medium text-gray-500 border-b-2 border-transparent cursor-pointer peer-checked/1:text-cyan-600 peer-checked/1:border-cyan-500">Overview</label>
+    <input type="radio" name="tabs" id="tab-2" class="hidden peer/2">
+    <label for="tab-2" class="px-4 py-2 -mb-px text-sm font-medium text-gray-500 border-b-2 border-transparent cursor-pointer peer-checked/2:text-cyan-600 peer-checked/2:border-cyan-500">Specs</label>
+    <input type="radio" name="tabs" id="tab-3" class="hidden peer/3">
+    <label for="tab-3" class="px-4 py-2 -mb-px text-sm font-medium text-gray-500 border-b-2 border-transparent cursor-pointer peer-checked/3:text-cyan-600 peer-checked/3:border-cyan-500">Reviews</label>
+    <p class="hidden w-full pt-4 text-sm text-gray-600 peer-checked/1:block">Overview panel — the big picture.</p>
+    <p class="hidden w-full pt-4 text-sm text-gray-600 peer-checked/2:block">Specs panel — the technical detail.</p>
+    <p class="hidden w-full pt-4 text-sm text-gray-600 peer-checked/3:block">Reviews panel — what people say.</p>
+  </div>
+</div>`;
+
+<DevCode htmlCode={tabsCode} />
+
+---
+
+### Breadcrumbs
+
+export const breadcrumbsCode = `<nav class="p-6 bg-white" aria-label="Breadcrumb">
+  <ol class="flex items-center gap-2 text-sm text-gray-500">
+    <li><a href="#_" class="hover:text-cyan-600">Home</a></li>
+    <li aria-hidden="true">/</li>
+    <li><a href="#_" class="hover:text-cyan-600">Application</a></li>
+    <li aria-hidden="true">/</li>
+    <li class="font-medium text-gray-900" aria-current="page">CSS</li>
+  </ol>
+</nav>`;
+
+<DevCode htmlCode={breadcrumbsCode} />
+
+---
+
+### Avatar Stack
+
+Overlapping avatars with `-space-x` and a ring to separate them.
+
+export const avatarStackCode = `<div class="flex items-center p-8 bg-gray-50">
+  <div class="flex -space-x-3">
+    <div class="flex items-center justify-center w-10 h-10 text-sm font-bold text-white rounded-full ring-2 ring-white bg-cyan-500">AL</div>
+    <div class="flex items-center justify-center w-10 h-10 text-sm font-bold text-white rounded-full ring-2 ring-white bg-fuchsia-500">KB</div>
+    <div class="flex items-center justify-center w-10 h-10 text-sm font-bold text-white rounded-full ring-2 ring-white bg-amber-500">VE</div>
+    <div class="flex items-center justify-center w-10 h-10 text-sm font-bold text-gray-600 bg-gray-200 rounded-full ring-2 ring-white">+5</div>
+  </div>
+</div>`;
+
+<DevCode htmlCode={avatarStackCode} />
+
+---
+
+### Timeline
+
+export const timelineCode = `<div class="max-w-md p-8 bg-white">
+  <ol class="relative border-l-2 border-gray-200">
+    <li class="mb-8 ml-6">
+      <span class="absolute flex items-center justify-center w-4 h-4 -left-2 rounded-full ring-4 ring-white bg-cyan-500"></span>
+      <h3 class="font-semibold text-gray-900">Proposed</h3>
+      <p class="text-sm text-gray-500">Concept opened as issue #1559</p>
+    </li>
+    <li class="mb-8 ml-6">
+      <span class="absolute flex items-center justify-center w-4 h-4 -left-2 rounded-full ring-4 ring-white bg-cyan-500"></span>
+      <h3 class="font-semibold text-gray-900">Migrated</h3>
+      <p class="text-sm text-gray-500">TailwindCSS moved into css.mdx</p>
+    </li>
+    <li class="ml-6">
+      <span class="absolute w-4 h-4 -left-2 bg-gray-300 rounded-full ring-4 ring-white"></span>
+      <h3 class="font-semibold text-gray-400">Expanded</h3>
+      <p class="text-sm text-gray-400">More examples and components</p>
+    </li>
+  </ol>
+</div>`;
+
+<DevCode htmlCode={timelineCode} />
+
+---
+
+### Star Rating
+
+A pure-CSS rating with `<kbd>`-free unicode stars; flip the row with `flex-row-reverse` + `peer` so a hover lights every star up to the cursor.
+
+export const ratingCode = `<div class="flex items-center justify-center p-10 bg-gray-900">
+  <div class="flex flex-row-reverse">
+    <input type="radio" name="rate" id="r5" class="hidden peer/5"><label for="r5" class="text-3xl text-gray-600 cursor-pointer peer-checked/5:text-amber-400 hover:text-amber-400">★</label>
+    <input type="radio" name="rate" id="r4" class="hidden peer/4"><label for="r4" class="text-3xl text-gray-600 cursor-pointer peer-checked/4:text-amber-400 hover:text-amber-400">★</label>
+    <input type="radio" name="rate" id="r3" class="hidden peer/3" checked><label for="r3" class="text-3xl text-gray-600 cursor-pointer peer-checked/3:text-amber-400 hover:text-amber-400">★</label>
+    <input type="radio" name="rate" id="r2" class="hidden peer/2"><label for="r2" class="text-3xl text-gray-600 cursor-pointer peer-checked/2:text-amber-400 hover:text-amber-400">★</label>
+    <input type="radio" name="rate" id="r1" class="hidden peer/1"><label for="r1" class="text-3xl text-gray-600 cursor-pointer peer-checked/1:text-amber-400 hover:text-amber-400">★</label>
+  </div>
+</div>`;
+
+<DevCode htmlCode={ratingCode} />
+
+---
+
+### Toast
+
+export const toastCode = `<div class="p-8 bg-gray-50">
+  <div class="flex items-start max-w-sm gap-3 p-4 bg-white border-l-4 rounded-lg shadow-lg border-cyan-500">
+    <div class="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-cyan-100 text-cyan-600">✓</div>
+    <div class="flex-1">
+      <p class="text-sm font-semibold text-gray-900">Deployed</p>
+      <p class="text-sm text-gray-500">Build finished in 3m 56s.</p>
+    </div>
+    <button class="text-gray-400 hover:text-gray-600">✕</button>
+  </div>
+</div>`;
+
+<DevCode htmlCode={toastCode} />
+
+---
+
+### Keyboard Keys
+
+export const kbdCode = `<div class="flex items-center gap-2 p-10 text-gray-700 bg-gray-50">
+  <kbd class="px-2 py-1 text-sm font-semibold bg-white border border-gray-300 rounded shadow-[inset_0_-2px_0_#e5e7eb]">⌘</kbd>
+  <span class="text-gray-400">+</span>
+  <kbd class="px-2 py-1 text-sm font-semibold bg-white border border-gray-300 rounded shadow-[inset_0_-2px_0_#e5e7eb]">K</kbd>
+  <span class="ml-3 text-sm text-gray-500">to open the command palette</span>
+</div>`;
+
+<DevCode htmlCode={kbdCode} />
 
 ---
 
